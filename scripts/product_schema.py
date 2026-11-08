@@ -753,6 +753,12 @@ def validate_subpage_type_codes(data: dict[str, Any], cards: Any, errors: list[s
         if isinstance(cards, dict) and card_type not in cards:
             errors.append(path_error(code_path, "must also be defined in cards"))
 
+    retired_types = data.get("retiredCardTypes", [])
+    if not isinstance(retired_types, list) or not all(isinstance(value, str) and value for value in retired_types):
+        errors.append(path_error("retiredCardTypes", "must be a list of non-empty strings"))
+    elif len(retired_types) != len(set(retired_types)) or set(retired_types) & set(cards):
+        errors.append(path_error("retiredCardTypes", "must be unique and cannot include active card types"))
+
     retired = data.get("retiredSubpageTypeCodes")
     if not isinstance(retired, list) or not all(isinstance(code, str) and code for code in retired):
         errors.append(path_error("retiredSubpageTypeCodes", "must be a list of non-empty strings"))

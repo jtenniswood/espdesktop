@@ -224,9 +224,9 @@ groups = (
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_subpages.h", "", ("get_subpage_order", "subpage_back_token_span", "get_subpage_back_label", "get_subpage_back_color", "get_subpage_title")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
-    ("button_grid_sensor_driver.h", "espdesktop::cards", ("sensor_driver_apply_background",)),
+    ("button_grid_image_driver.h", "espdesktop::cards", ("image_driver_apply_background",)),
     ("button_grid_weather_driver.h", "espdesktop::cards", ("weather_driver_apply_background",)),
-    ("button_grid_subscriptions.h", "", ("apply_sensor_active_color", "subscribe_sensor_text_card_value", "subscribe_sensor_icon_state")),
+    ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
     ("button_grid_status_entity_driver.h", "espdesktop::cards", ("status_entity_driver_matches", "status_entity_driver_state_active", "status_entity_driver_active_color_enabled", "status_entity_driver_bind_data")),
     ("button_grid_alarm.h", "", ("alarm_theme_off_color", "alarm_set_card_state_colors")),
     ("button_grid_media.h", "", ("media_cover_art_apply_theme", "media_control_refresh_speaker_row")),
@@ -557,7 +557,7 @@ int main() {
   defaults.sensor_val = 0x212121;
   assert(card_slider_fill_color(defaults) == defaults.on_val);
   DisplayProfile display;
-  for (const std::string type : {"", "sensor", "presence", "door_window", "light_control", "fan_control", "media", "cover"}) {
+  for (const std::string type : {"", "presence", "door_window", "light_control", "fan_control", "media", "cover"}) {
     for (const std::string mode : {"matching", "theme", "custom"}) {
       const std::string options = "card_off_color=6633B9,card_active_color=" + mode + ",card_on_color=FFFFFF";
       const ParsedCfg configs[] = {
@@ -624,8 +624,8 @@ int main() {
     assert(modal_label.text[0] == display_text_color_for_bg(colour.active));
     climate_style_range_target_button(&modal_button, true, colour.active);
     assert(modal_label.text[0] == display_text_color_for_bg(colour.active));
-    for (const std::string type : {"sensor", "local_sensor"}) {
-      for (const std::string precision : {"0", "text", "icon", "time"}) {
+    for (const std::string type : {"image"}) {
+      for (const std::string precision : {""}) {
         const std::string options = "card_off_color=" + std::string(colour.hex);
         const std::string main = "sensor.temp;Temperature;Thermometer;Auto;sensor.temp;C;" + type + ";" + precision + ";" + options;
         const std::string legacy = "B,1|sensor.temp:Temperature:Thermometer:Auto:sensor.temp:C:" + type + ":" + precision + ":" + options;
@@ -642,7 +642,7 @@ int main() {
           BtnSlot slot{&button};
           apply_button_colors(&button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
           sync_card_checked_text_color(&button);
-          espdesktop::cards::sensor_driver_apply_background(slot, palette);
+          espdesktop::cards::image_driver_apply_background(slot, palette);
           assert(palette.custom_background);
           const auto fill = card_slider_fill_color(palette);
           const auto foreground = readable_text_color_for_bg(palette.off_val);
@@ -754,22 +754,6 @@ int main() {
       }
     }
   }
-  // Icon Sensors use the same unknown treatment while preserving configured icons.
-  for (bool active_colour : {false, true}) {
-    ParsedCfg config;
-    config.sensor = "binary_sensor.icon"; config.icon = "My Off"; config.icon_on = "My On";
-    lv_obj_t button, icon;
-    subscribe_sensor_icon_state(&button, &icon, config, active_colour);
-    assert(icon.content == "Minus" && (button.state & LV_STATE_DISABLED));
-    for (const char *state : {"on", "unavailable", "off", "unknown", "", "on"}) {
-      subscriptions.at(config.sensor)(esphome::StringRef(state));
-      const bool unavailable = ha_state_unavailable_ref(esphome::StringRef(state));
-      assert(bool(button.state & LV_STATE_DISABLED) == unavailable);
-      assert(icon.content == (unavailable ? "Minus" : (std::string(state) == "on" ? "My On" : "My Off")));
-      assert(bool(button.state & LV_STATE_CHECKED) == (active_colour && std::string(state) == "on"));
-      assert(!(button.flags & LV_OBJ_FLAG_CLICKABLE));
-    }
-  }
   for (const char *options : {"", "card_off_color=invalid"}) {
     ParsedCfg config;
     config.options = options;
@@ -789,17 +773,7 @@ int main() {
     assert(!neutral.custom_background && neutral.surface_sensor_val == theme->surface_sensor);
     const auto custom = card_palette_for_config(CardPalette{}, config, DisplayProfile{});
     assert(custom.custom_background && custom.surface_sensor_val == 0xFF8C00);
-    lv_obj_t sensor, label;
-    sensor.children = {&label};
-    ParsedCfg text_config;
-    text_config.sensor = "sensor.text";
-    subscribe_sensor_text_card_value(&label, text_config, &sensor, true, custom.on_val, true, custom.surface_sensor_val);
-    subscriptions.at(text_config.sensor)(esphome::StringRef("unavailable"));
-    assert(sensor.background[0] == custom.surface_sensor_val);
-    assert(label.text[0] == display_text_color_for_bg(custom.surface_sensor_val));
-    subscribe_sensor_text_card_value(&label, text_config, &sensor, true, neutral.on_val, true);
-    subscriptions.at(text_config.sensor)(esphome::StringRef("unavailable"));
-    assert(sensor.background[0] == theme->surface_sensor);
+
   }
   set_active_theme_palette(DARK_THEME);
   const auto corrected = card_palette_for_config(defaults, config, display);

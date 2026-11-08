@@ -51,6 +51,14 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  if (card_runtime_type_retired(b.type)) {
+    const std::string type = b.type;
+    b = SubpageBtn{};
+    b.type = type;
+    b.icon = "Auto";
+    b.icon_on = "Auto";
+    return b;
+  }
   // Shared colours must survive the card-specific option cleanup below.
   const std::string card_colors = card_color_options_normalized(b.options);
   b.options = options_without_card_colors(b.options);
@@ -223,15 +231,12 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (!b.type.empty() && b.type != "action" && b.type != "alarm" &&
       b.type != "alarm_action" &&
       !climate_card_type(b.type) && b.type != "cover" && b.type != "garage" && b.type != "gate" &&
-      b.type != "webhook" && b.type != "wifi_qr" && b.type != "wifi_qr_card" &&
+      b.type != "webhook" &&
       b.type != "sensor" && b.type != "door_window" && b.type != "presence" &&
       b.type != "subpage" && b.type != "light_control" && b.type != "media" &&
       b.type != "image" && b.type != "weather" &&
       !fan_card_type(b.type) && !card_large_numbers_supported(p)) {
     b.options.clear();
-  }
-  if (b.type == "sensor") {
-    b.options = sensor_card_options_normalized(b.options, b.precision);
   }
   if (!card_colors.empty()) {
     if (!b.options.empty()) b.options += ",";

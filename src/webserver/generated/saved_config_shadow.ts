@@ -64,61 +64,6 @@ export const SAVED_CONFIG_SHADOW_PILOT_POLICIES: Readonly<Record<string, CardNor
       "legacy_vacuum_dock"
     ]
   },
-  "sensor": {
-    "fields": {
-      "entity": {
-        "policy": "keep"
-      },
-      "label": {
-        "policy": "keep"
-      },
-      "icon": {
-        "policy": "hook",
-        "hook": "normalize_sensor_fields"
-      },
-      "icon_on": {
-        "policy": "hook",
-        "hook": "normalize_sensor_fields"
-      },
-      "sensor": {
-        "policy": "hook",
-        "hook": "normalize_sensor_fields"
-      },
-      "unit": {
-        "policy": "keep"
-      },
-      "type": {
-        "policy": "default",
-        "value": "sensor"
-      },
-      "precision": {
-        "policy": "hook",
-        "hook": "normalize_sensor_fields"
-      },
-      "options": {
-        "policy": "hook",
-        "hook": "normalize_sensor_options"
-      }
-    },
-    "unknownOptions": "drop",
-    "canonicalOptionOrder": [
-      "large_numbers",
-      "time_unit",
-      "active_color",
-      "state_labels",
-      "state_input",
-      "state_output",
-      "state_input_2",
-      "state_output_2"
-    ],
-    "optionHook": "normalize_sensor_options",
-    "migrationActions": [
-      "legacy_local_sensor",
-      "legacy_text_sensor",
-      "legacy_sensor_state_high_label",
-      "legacy_sensor_state_low_label"
-    ]
-  },
   "media": {
     "fields": {
       "entity": {
@@ -359,38 +304,6 @@ export function normalizeSavedConfigVacuumShadow(input: Partial<CardConfig>): Ca
   return config;
 }
 
-export function normalizeSavedConfigSensorShadow(input: Partial<CardConfig>): CardConfig | null {
-  const config = shaped(input);
-  if (config.type === "text_sensor") { config.type = "sensor"; config.precision = "text"; config.entity = ""; config.label = ""; config.unit = ""; config.icon_on = "Auto"; }
-  if (config.type === "local_sensor") { config.type = "sensor"; config.sensor = "local"; config.icon_on = "Auto"; config.options = ""; }
-  if (config.type !== "sensor") return null;
-  if (config.sensor !== "local" && config.precision === "time") { config.unit = ""; config.icon = "Auto"; config.icon_on = "Auto"; }
-  if (config.sensor === "local") {
-    config.icon_on = "Auto"; config.options = "";
-    if (["text", "1", "2"].indexOf(config.precision) < 0) config.precision = "";
-    if (config.precision !== "text" && (!config.icon || config.icon === "Auto")) config.icon = "Auto";
-    return config;
-  }
-  const source = config.options; const out: string[] = [];
-  if (config.precision !== "icon" && config.precision !== "text" && config.precision !== "time") {
-    if (optionValue(source, "large_numbers") === "off") out.push("large_numbers=off");
-    else if (optionPresent(source, "large_numbers")) out.push("large_numbers");
-  }
-  if (config.precision !== "time" && optionPresent(source, "active_color")) out.push("active_color");
-  if (config.precision === "text" && optionPresent(source, "state_labels")) {
-    out.push("state_labels");
-    let stateInput = optionValue(source, "state_input"); let stateOutput = optionValue(source, "state_output");
-    if (!stateInput && optionValue(source, "state_high_label")) { stateInput = "high"; if (!stateOutput) stateOutput = optionValue(source, "state_high_label"); }
-    else if (!stateInput && optionValue(source, "state_low_label")) { stateInput = "low"; if (!stateOutput) stateOutput = optionValue(source, "state_low_label"); }
-    for (const [name, value] of [["state_input", stateInput], ["state_output", stateOutput], ["state_input_2", optionValue(source, "state_input_2")], ["state_output_2", optionValue(source, "state_output_2")]] as const) {
-      const trimmed = value.trim();
-      if (trimmed) out.push(name + "=" + encodeOptionValue(trimmed));
-    }
-  }
-  if (config.precision === "time") { const timeUnit = optionValue(source, "time_unit"); if (["seconds", "minutes", "hours", "days"].indexOf(timeUnit) >= 0) out.push("time_unit=" + timeUnit); }
-  config.options = out.join(","); return config;
-}
-
 export function normalizeSavedConfigActionShadow(input: Partial<CardConfig>): CardConfig | null {
   const config = shaped(input);
   if (config.type === "local") { config.type = "action"; config.sensor = "local"; }
@@ -461,5 +374,5 @@ export function normalizeSavedConfigMediaShadow(input: Partial<CardConfig>): Car
 }
 
 export function normalizeSavedConfigShadow(input: Partial<CardConfig>): CardConfig | null {
-  return normalizeSavedConfigVacuumShadow(input) || normalizeSavedConfigSensorShadow(input) || normalizeSavedConfigActionShadow(input) || normalizeSavedConfigMediaShadow(input);
+  return normalizeSavedConfigVacuumShadow(input) || normalizeSavedConfigActionShadow(input) || normalizeSavedConfigMediaShadow(input);
 }

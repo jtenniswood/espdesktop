@@ -31,7 +31,6 @@ This generated reference lists stable setup facts from the shared card contract.
 | Fans | fan_switch | fan | Yes | Fans (fan_speed) | None | Visible |
 | Garage Door | garage | cover | Yes | Own picker item | Interaction: default, open, close; Display: label, status; Confirmation Required: default, off, on, both; Message; Confirm Button; Cancel Button | Visible |
 | Gate | gate | cover | Yes | Own picker item | Interaction: default, open, close, stop; Display: label, status | Visible |
-| Internal Switches | internal | None | Yes | Own picker item | Mode: switch, push | Visible |
 | Lights | light_brightness | light | Yes | Own picker item | None | Visible |
 | Lights | light_switch | light | Yes | Lights (light_brightness) | None | Visible |
 | Lights | light_temperature | light | Yes | Lights (light_brightness) | None | Visible |
@@ -41,16 +40,10 @@ This generated reference lists stable setup facts from the shared card contract.
 | Option Select | option_select | select, input_select | Yes | Own picker item | None | Hidden |
 | Trigger | push | None | Yes | Own picker item | None | Visible |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label; Large icon with title | Visible |
-| Screen Lock | screen_lock | None | Yes | Own picker item | Screensaver on lock | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
-| Sensor | sensor | sensor, binary_sensor, text_sensor | Yes | Own picker item | Large Sensor Numbers; Incoming Value Unit: default, seconds, minutes, hours, days; Lit When Active; Status Translation; Input Status; Display Text; Input Status 2; Display Text 2 | Visible |
-| Local Sensor | local_sensor | sensor, text_sensor | Yes | Sensor (sensor) | None | Hidden |
 | Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | No | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
 | Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Visible |
 | Camera Card | image | camera, image | Yes | Own picker item | Show Label; Show Icon; Image fit: fill, fit; Camera refresh: off, periodic, activity; Refresh interval: 5, 10, 30; Trigger entity | Visible |
-| Wifi Sharing | wifi_qr | switch | Yes | Own picker item | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
-| QR Card | wifi_qr_card | switch | Yes | Wifi Sharing (wifi_qr) | Network name; Security: wpa, open; Password; Hidden network; Visible Tabs: qr, credentials, guest | Visible |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Hidden |
-| Screensaver | screensaver | None | Yes | Own picker item | None | Visible |

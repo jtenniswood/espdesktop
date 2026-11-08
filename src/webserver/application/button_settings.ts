@@ -963,7 +963,7 @@ export function createButtonSettingsFeature(
             });
             panel.appendChild(patternField.field);
         }
-        if (b.type !== "image" && b.type !== "wifi_qr_card") {
+        if (b.type !== "image") {
             var colourControls = renderColourSettings(panel, idPrefix, () =>
                 configOptionValue(b.options, "card_off_color") || defaultCardBackgroundColor(b.type || "", state),
                 (hex: string) => {

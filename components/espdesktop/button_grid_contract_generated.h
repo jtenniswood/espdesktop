@@ -9,6 +9,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
+inline bool card_contract_type_retired(const std::string &type) { return type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
@@ -34,7 +35,6 @@ enum class CardTypeId : uint8_t {
   FAN_SWITCH,
   GARAGE,
   GATE,
-  INTERNAL,
   LIGHT_BRIGHTNESS,
   LIGHT_SWITCH,
   LIGHT_TEMPERATURE,
@@ -44,19 +44,13 @@ enum class CardTypeId : uint8_t {
   OPTION_SELECT,
   PUSH,
   COMPANION,
-  SCREEN_LOCK,
   WEBHOOK,
-  SENSOR,
-  LOCAL_SENSOR,
   SLIDER,
   SUBPAGE,
   TIMEZONE,
   WEATHER,
   IMAGE,
-  WIFI_QR,
-  WIFI_QR_CARD,
   WEATHER_FORECAST,
-  SCREENSAVER,
   UNKNOWN,
 };
 
@@ -79,7 +73,6 @@ enum class CardDriverId : uint8_t {
   FAN,
   FAN_CONTROL,
   ACCESS,
-  INTERNAL,
   NUMERIC,
   LIGHT_TEMPERATURE,
   LIGHT_CONTROL,
@@ -96,15 +89,11 @@ enum class CardDriverId : uint8_t {
   OPTION_SELECT,
   PUSH,
   COMPANION,
-  SCREEN_LOCK,
   WEBHOOK,
-  SENSOR,
   SUBPAGE,
   WEATHER,
   IMAGE,
-  WIFI_QR,
   TIMER,
-  SCREENSAVER,
   UNKNOWN,
 };
 
@@ -152,7 +141,6 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "fan_switch") return CardTypeId::FAN_SWITCH;
   if (type == "garage") return CardTypeId::GARAGE;
   if (type == "gate") return CardTypeId::GATE;
-  if (type == "internal") return CardTypeId::INTERNAL;
   if (type == "light_brightness") return CardTypeId::LIGHT_BRIGHTNESS;
   if (type == "light_switch") return CardTypeId::LIGHT_SWITCH;
   if (type == "light_temperature") return CardTypeId::LIGHT_TEMPERATURE;
@@ -162,19 +150,13 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "option_select") return CardTypeId::OPTION_SELECT;
   if (type == "push") return CardTypeId::PUSH;
   if (type == "companion") return CardTypeId::COMPANION;
-  if (type == "screen_lock") return CardTypeId::SCREEN_LOCK;
   if (type == "webhook") return CardTypeId::WEBHOOK;
-  if (type == "sensor") return CardTypeId::SENSOR;
-  if (type == "local_sensor") return CardTypeId::LOCAL_SENSOR;
   if (type == "slider") return CardTypeId::SLIDER;
   if (type == "subpage") return CardTypeId::SUBPAGE;
   if (type == "timezone") return CardTypeId::TIMEZONE;
   if (type == "weather") return CardTypeId::WEATHER;
   if (type == "image") return CardTypeId::IMAGE;
-  if (type == "wifi_qr") return CardTypeId::WIFI_QR;
-  if (type == "wifi_qr_card") return CardTypeId::WIFI_QR_CARD;
   if (type == "weather_forecast") return CardTypeId::WEATHER_FORECAST;
-  if (type == "screensaver") return CardTypeId::SCREENSAVER;
   return CardTypeId::UNKNOWN;
 }
 
@@ -202,7 +184,6 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::FAN_SWITCH: return {type, CardDriverId::FAN, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::GARAGE: return {type, CardDriverId::ACCESS, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::GATE: return {type, CardDriverId::ACCESS, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
-    case CardTypeId::INTERNAL: return {type, CardDriverId::INTERNAL, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::LIGHT_BRIGHTNESS: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::LIGHT_SWITCH: return {type, CardDriverId::TOGGLE, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::LIGHT_TEMPERATURE: return {type, CardDriverId::LIGHT_TEMPERATURE, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
@@ -212,19 +193,13 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::OPTION_SELECT: return {type, CardDriverId::OPTION_SELECT, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::PUSH: return {type, CardDriverId::PUSH, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION: return {type, CardDriverId::COMPANION, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
-    case CardTypeId::SCREEN_LOCK: return {type, CardDriverId::SCREEN_LOCK, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEBHOOK: return {type, CardDriverId::WEBHOOK, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
-    case CardTypeId::SENSOR: return {type, CardDriverId::SENSOR, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
-    case CardTypeId::LOCAL_SENSOR: return {type, CardDriverId::SENSOR, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::SLIDER: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::SUBPAGE: return {type, CardDriverId::SUBPAGE, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION)};
     case CardTypeId::TIMEZONE: return {type, CardDriverId::DATE_TIME, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::IMAGE: return {type, CardDriverId::IMAGE, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
-    case CardTypeId::WIFI_QR: return {type, CardDriverId::WIFI_QR, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_SUBPAGE)};
-    case CardTypeId::WIFI_QR_CARD: return {type, CardDriverId::WIFI_QR, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER_FORECAST: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
-    case CardTypeId::SCREENSAVER: return {type, CardDriverId::SCREENSAVER, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     default: return {};
   }
 }
@@ -284,7 +259,6 @@ inline const char *const CARD_CONTRACT_GARAGE_MODES[] = {"", "open", "close"};
 inline const char *const CARD_CONTRACT_GARAGE_LABEL_DISPLAY_MODES[] = {"label", "status"};
 inline const char *const CARD_CONTRACT_GATE_MODES[] = {"", "open", "close", "stop"};
 inline const char *const CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES[] = {"label", "status"};
-inline const char *const CARD_CONTRACT_INTERNAL_MODES[] = {"switch", "push"};
 inline const char *const CARD_CONTRACT_LOCK_MODES[] = {"", "lock", "unlock"};
 inline const char *const CARD_CONTRACT_MEDIA_MODES[] = {"control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"};
 inline const char *const CARD_CONTRACT_MEDIA_DISPLAY_MODES[] = {"", "state"};
@@ -332,7 +306,6 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_BEHAVIOR = "finder_o
 constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_OVERRIDE = "finder_open_override";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GARAGE_MODE = "garage_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_GATE_MODE = "gate_mode";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_HIDDEN = "hidden";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ICON_DISPLAY = "icon_display";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_ICON = "image_icon";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_LABEL = "image_label";
@@ -340,7 +313,6 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_MODE = "image_modal_
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_REFRESH_INTERVAL = "image_modal_refresh_interval";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_REFRESH_MODE = "image_modal_refresh_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_IMAGE_MODAL_REFRESH_TRIGGER = "image_modal_refresh_trigger";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_INTERNAL_MODE = "internal_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_LABEL_DISPLAY = "label_display";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_LARGE_NUMBERS = "large_numbers";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_LAWN_MOWER_MODE = "lawn_mower_mode";
@@ -353,7 +325,6 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_MEDIA_NOW_PLAYING_CONTROLS = "me
 constexpr const char *CARD_CONTRACT_OPTION_NAME_MEDIA_TABS = "media_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_NUMBER_DISPLAY = "number_display";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ON_PATTERN = "on_pattern";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_PASS64 = "pass64";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_PIN_ARM = "pin_arm";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_PIN_DISARM = "pin_disarm";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_PLAYLIST_CONTENT_ID = "playlist_content_id";
@@ -361,32 +332,22 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_PLAYLIST_CONTENT_TYPE = "playlis
 constexpr const char *CARD_CONTRACT_OPTION_NAME_PLAYLIST_PLAYER_SOURCE = "playlist_player_source";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_POWER_ENTITY = "power_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_RAINFALL_SOURCE = "rainfall_source";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_SCREENSAVER_ON_LOCK = "screensaver_on_lock";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SCRIPT_FIELDS = "script_fields";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_SECURITY = "security";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SPEAKER_GROUP_ENTITY = "speaker_group_entity";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_SSID64 = "ssid64";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STAT_LABELS_OFF = "stat_labels_off";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_ENTITY = "state_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_HIGH_LABEL = "state_high_label";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT = "state_input";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_INPUT_2 = "state_input_2";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_LABELS = "state_labels";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_LOW_LABEL = "state_low_label";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT = "state_output";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT_2 = "state_output_2";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_PRECISION = "state_precision";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_UNIT = "state_unit";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_CONNECTOR = "subpage_connector";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_KIND = "subpage_kind";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_TEMPERATURE_STEP = "temperature_step";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_TIME_UNIT = "time_unit";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VACUUM_MODE = "vacuum_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VOLUME_MAX = "volume_max";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEATHER_MODE = "weather_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBAPP_ICON_TITLE = "webapp_icon_title";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBHOOK_HEADERS = "webhook_headers";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_WIFI_TABS = "wifi_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WIND_SOURCE = "wind_source";
 constexpr const char *CARD_CONTRACT_GARAGE_LABEL_DISPLAY_DEFAULT = "label";
 constexpr const char *CARD_CONTRACT_GATE_LABEL_DISPLAY_DEFAULT = "label";
@@ -449,11 +410,6 @@ inline bool card_contract_gate_mode_valid(const std::string &mode) {
 inline bool card_contract_gate_label_display_valid(const std::string &mode) {
   return card_contract_string_in(mode, CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES,
     sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES) / sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES[0]));
-}
-
-inline bool card_contract_internal_mode_valid(const std::string &mode) {
-  return card_contract_string_in(mode, CARD_CONTRACT_INTERNAL_MODES,
-    sizeof(CARD_CONTRACT_INTERNAL_MODES) / sizeof(CARD_CONTRACT_INTERNAL_MODES[0]));
 }
 
 inline bool card_contract_lock_mode_valid(const std::string &mode) {
@@ -612,7 +568,6 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "fan_switch") return "Fans";
   if (type == "garage") return "Garage Door";
   if (type == "gate") return "Gate";
-  if (type == "internal") return "Internal Switches";
   if (type == "light_brightness") return "Lights";
   if (type == "light_switch") return "Lights";
   if (type == "light_temperature") return "Lights";
@@ -622,19 +577,13 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "option_select") return "Option Select";
   if (type == "push") return "Trigger";
   if (type == "companion") return "Companion";
-  if (type == "screen_lock") return "Screen Lock";
   if (type == "webhook") return "Webhook";
-  if (type == "sensor") return "Sensor";
-  if (type == "local_sensor") return "Local Sensor";
   if (type == "slider") return "Slider";
   if (type == "subpage") return "Subpage";
   if (type == "timezone") return "Date & Time";
   if (type == "weather") return "Weather";
   if (type == "image") return "Camera Card";
-  if (type == "wifi_qr") return "Wifi Sharing";
-  if (type == "wifi_qr_card") return "QR Card";
   if (type == "weather_forecast") return "Weather Forecast";
-  if (type == "screensaver") return "Screensaver";
   return type.empty() ? "Switch" : type.c_str();
 }
 
@@ -661,7 +610,6 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "fan_switch") return true;
   if (type == "garage") return true;
   if (type == "gate") return true;
-  if (type == "internal") return true;
   if (type == "light_brightness") return true;
   if (type == "light_switch") return true;
   if (type == "light_temperature") return true;
@@ -671,19 +619,13 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "option_select") return true;
   if (type == "push") return true;
   if (type == "companion") return true;
-  if (type == "screen_lock") return true;
   if (type == "webhook") return true;
-  if (type == "sensor") return true;
-  if (type == "local_sensor") return true;
   if (type == "slider") return true;
   if (type == "subpage") return false;
   if (type == "timezone") return true;
   if (type == "weather") return true;
   if (type == "image") return true;
-  if (type == "wifi_qr") return true;
-  if (type == "wifi_qr_card") return true;
   if (type == "weather_forecast") return true;
-  if (type == "screensaver") return true;
   return false;
 }
 
@@ -710,7 +652,6 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "fan_switch") return "Fan Off";
   if (type == "garage") return "Garage";
   if (type == "gate") return "Gate";
-  if (type == "internal") return "Lightbulb Outline";
   if (type == "light_brightness") return "Lightbulb Outline";
   if (type == "light_switch") return "Lightbulb Outline";
   if (type == "light_temperature") return "Lightbulb";
@@ -720,19 +661,13 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "option_select") return "Flash";
   if (type == "push") return "Gesture Tap";
   if (type == "companion") return "Monitor";
-  if (type == "screen_lock") return "Lock";
   if (type == "webhook") return "Auto";
-  if (type == "sensor") return "Auto";
-  if (type == "local_sensor") return "Auto";
   if (type == "slider") return "Auto";
   if (type == "subpage") return "Auto";
   if (type == "timezone") return "Auto";
   if (type == "weather") return "Auto";
   if (type == "image") return "Auto";
-  if (type == "wifi_qr") return "Wifi";
-  if (type == "wifi_qr_card") return "Auto";
   if (type == "weather_forecast") return "Auto";
-  if (type == "screensaver") return "Monitor";
   return "Auto";
 }
 
@@ -759,7 +694,6 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "fan_switch") return "Fan";
   if (type == "garage") return "Garage Open";
   if (type == "gate") return "Gate Open";
-  if (type == "internal") return "Lightbulb";
   if (type == "light_brightness") return "Lightbulb";
   if (type == "light_switch") return "Lightbulb";
   if (type == "light_temperature") return "Auto";
@@ -769,19 +703,13 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "option_select") return "Auto";
   if (type == "push") return "Auto";
   if (type == "companion") return "Auto";
-  if (type == "screen_lock") return "Lock Open";
   if (type == "webhook") return "Auto";
-  if (type == "sensor") return "Auto";
-  if (type == "local_sensor") return "Auto";
   if (type == "slider") return "Auto";
   if (type == "subpage") return "Auto";
   if (type == "timezone") return "Auto";
   if (type == "weather") return "Auto";
   if (type == "image") return "Auto";
-  if (type == "wifi_qr") return "Auto";
-  if (type == "wifi_qr_card") return "Auto";
   if (type == "weather_forecast") return "Auto";
-  if (type == "screensaver") return "Auto";
   return "Auto";
 }
 
@@ -810,7 +738,7 @@ inline const char *card_contract_fan_default_icon_on_name(const std::string &typ
 }
 
 inline bool card_contract_large_numbers_supported(const std::string &type, const std::string &precision) {
-  if (type == "sensor") return precision != "icon" && precision != "text";
+  (void) precision;
   return type == "" || type == "action" || type == "calendar" || type == "clock" ||
          type == "companion" ||
          type == "climate" || type == "media" || type == "subpage" ||
@@ -823,8 +751,6 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "calendar") return "D";
   if (type == "clock") return "CK";
   if (type == "timezone") return "T";
-  if (type == "sensor") return "S";
-  if (type == "local_sensor") return "LS";
   if (type == "door_window") return "X";
   if (type == "presence") return "PR";
   if (type == "weather") return "W";
@@ -854,11 +780,8 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "climate_control") return "HC";
   if (type == "push") return "P";
   if (type == "companion") return "CP";
-  if (type == "screen_lock") return "SL";
   if (type == "webhook") return "WH";
-  if (type == "internal") return "I";
   if (type == "subpage") return "G";
-  if (type == "screensaver") return "SS";
   return type.c_str();
 }
 
@@ -868,8 +791,6 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "D") return "calendar";
   if (code == "CK") return "clock";
   if (code == "T") return "timezone";
-  if (code == "S") return "sensor";
-  if (code == "LS") return "local_sensor";
   if (code == "X") return "door_window";
   if (code == "PR") return "presence";
   if (code == "W") return "weather";
@@ -899,10 +820,7 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "HC") return "climate_control";
   if (code == "P") return "push";
   if (code == "CP") return "companion";
-  if (code == "SL") return "screen_lock";
   if (code == "WH") return "webhook";
-  if (code == "I") return "internal";
   if (code == "G") return "subpage";
-  if (code == "SS") return "screensaver";
   return code;
 }

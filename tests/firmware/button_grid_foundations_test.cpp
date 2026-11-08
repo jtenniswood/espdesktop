@@ -88,20 +88,18 @@ int main() {
   const auto clock = card_runtime_context("clock");
   const auto timezone = card_runtime_context("timezone");
   const auto calendar = card_runtime_context("calendar");
-  const auto sensor = card_runtime_context("sensor");
-  const auto local_sensor = card_runtime_context("local_sensor");
-  const auto raw_text_sensor_alias = card_runtime_context("text_sensor");
   const auto weather = card_runtime_context("weather");
   const auto weather_forecast = card_runtime_context("weather_forecast");
+  if (card_runtime_context("internal").known) {
+    return EXIT_FAILURE;
+  }
   const auto toggle = card_runtime_context("");
   const auto action = card_runtime_context("action");
   const auto alarm_action = card_runtime_context("alarm_action");
   const auto fan_switch = card_runtime_context("fan_switch");
-  const auto internal = card_runtime_context("internal");
   const auto light_switch = card_runtime_context("light_switch");
   const auto raw_local_action_alias = card_runtime_context("local");
   const auto push = card_runtime_context("push");
-  const auto screen_lock = card_runtime_context("screen_lock");
   const auto webhook = card_runtime_context("webhook");
   const auto slider = card_runtime_context("slider");
   const auto light_brightness = card_runtime_context("light_brightness");
@@ -135,15 +133,12 @@ int main() {
       clock.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
       timezone.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
       calendar.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
-      sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
-      local_sensor.runtime.driver != espdesktop::card_runtime::CardDriverId::SENSOR ||
-      raw_text_sensor_alias.known ||
       weather.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       weather_forecast.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       !toggle.known || !action.known || !alarm_action.known ||
-      !fan_switch.known || !internal.known || !light_switch.known ||
+      !fan_switch.known || !light_switch.known ||
       raw_local_action_alias.known ||
-      !push.known || !screen_lock.known || !webhook.known ||
+      !push.known || !webhook.known ||
       slider.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
       light_brightness.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
       light_temperature.runtime.driver !=
@@ -267,9 +262,9 @@ int main() {
     "", "action", "alarm", "alarm_action", "calendar", "climate",
     "climate_control", "clock", "cover", "door_window", "fan_control",
     "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_switch",
-    "garage", "gate", "image", "internal", "lawn_mower", "light_brightness",
-    "light_control", "light_switch", "light_temperature", "local_sensor", "lock",
-    "media", "option_select", "presence", "push", "screen_lock", "sensor",
+    "garage", "gate", "image", "lawn_mower", "light_brightness",
+    "light_control", "light_switch", "light_temperature", "lock",
+    "media", "option_select", "presence", "push",
     "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
     "webhook",
   };

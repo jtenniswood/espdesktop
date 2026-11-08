@@ -71,7 +71,7 @@ def run_self_test() -> None:
         else:
             raise AssertionError("a generated pilot must define its sample card")
     default_card = copy.deepcopy(data)
-    default_card["pilots"]["cards"][""] = default_card["pilots"]["cards"]["sensor"]
+    default_card["pilots"]["cards"][""] = default_card["pilots"]["cards"]["media"]
     with TemporaryDirectory() as directory:
         path = Path(directory) / "model.json"
         path.write_text(json.dumps(default_card), encoding="utf-8")
@@ -90,7 +90,7 @@ def run_self_test() -> None:
             raise AssertionError("an unnamed device pilot must fail validation")
     incomplete = copy.deepcopy(data)
     incomplete["pilots"]["cards"].pop(
-        next(card_type for card_type in incomplete["pilots"]["cards"] if card_type != "sensor")
+        next(card_type for card_type in incomplete["pilots"]["cards"] if card_type != "media")
     )
     with TemporaryDirectory() as directory:
         path = Path(directory) / "model.json"

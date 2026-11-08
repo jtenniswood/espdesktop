@@ -213,7 +213,6 @@ connect_to_wifi=Conectar ao WiFi
 scan_to_connect=Escaneie para conectar
 network=Rede
 password=Senha
-unable_to_create_qr_code=Não foi possível criar o código QR
 connected=Conectado
 connecting_to_ethernet=Conectando à Ethernet
 connecting_to_wifi=Conectando ao WiFi
@@ -311,8 +310,6 @@ stat_remaining=restante
 
 timer=Temporizador
 timer_confirm=Confirmar
-guest_wifi=Wi-Fi de convidados
-wifi_did_not_change=O Wi-Fi não mudou
 connect_to_the_wifi_hotspot=Conecte-se ao ponto de acesso WiFi
 to_configure_your_network=para configurar sua rede.
 then_visit_address_in_your_browser=Depois abra {address} no navegador
@@ -336,7 +333,6 @@ weekday_fri=sex.
 weekday_sat=sáb.
 
 # Default card labels (label_ keys use key-based lookup only)
-label_connect=Conectar
 label_local_action=Ação local
 label_switch=Interruptor
 label_lighting=Iluminação

@@ -3206,7 +3206,7 @@ async function assertContextColourPicker(browser, testCase) {
       assert.deepStrictEqual(await Promise.all([1, 2].map(slot => card(slot).evaluate(el => el.style.backgroundColor))), originalBackgrounds,
         `${label}: oversized bulk recolouring leaves every selected card unchanged`);
       await page.locator(".sp-brand").click();
-      for (const type of ["image", "wifi_qr_card"]) {
+      for (const type of ["image"]) {
         await page.evaluate(type => window.__seedEspState([
           { id: "text-button_1_config", state: `camera.garden;Fixed Background;Auto;Auto;;;${type}` },
         ]), type);
@@ -3587,82 +3587,6 @@ async function assertFanOptionalLightSettings(page, label) {
     const overlay = document.querySelector(".sp-settings-overlay");
     return overlay && !overlay.classList.contains("sp-visible");
   });
-}
-
-async function assertInternalControlsPanel(page, posts, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  await page.waitForSelector("#sp-screen.sp-page.active");
-  const emptyCell = page
-    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
-    .first();
-  if ((await emptyCell.count()) === 0) return;
-  const before = posts.length;
-  await emptyCell.click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  const internalOption = page.getByRole("button", { name: "Internal card type" });
-  if ((await internalOption.count()) > 0) {
-    await chooseCardType(page, "Internal");
-    const controlsButton = page.getByRole("button", {
-      name: "Controls",
-      exact: true,
-    });
-    const controlsPanel = controlsButton.locator("..");
-    assert(
-      await controlsButton.isVisible(),
-      `${label}: Internal card should show a Controls panel`,
-    );
-    assert.strictEqual(
-      await controlsButton.getAttribute("aria-expanded"),
-      "false",
-      `${label}: Internal Controls should start collapsed`,
-    );
-    assert.deepStrictEqual(
-      await page
-        .locator(".sp-settings-modal .sp-panel > .sp-disclosure > .sp-disclosure-button > span:first-child")
-        .evaluateAll((headings) => headings.map((heading) => heading.textContent)),
-      ["Controls", "Card Settings"],
-      `${label}: Internal groups should show Controls before Card Settings`,
-    );
-    assert.strictEqual(
-      await page.locator("#sp-inp-internal-relay").evaluate((element) => {
-        const disclosure = element.closest(".sp-disclosure");
-        const heading = disclosure && disclosure.querySelector(".sp-disclosure-button > span:first-child");
-        return heading && heading.textContent;
-      }),
-      "Controls",
-      `${label}: Internal Relay should be inside Controls`,
-    );
-    await controlsButton.click();
-    assert(
-      await page.locator("#sp-inp-internal-relay").isVisible(),
-      `${label}: expanding Internal Controls should reveal the relay`,
-    );
-    assert.strictEqual(
-      await controlsPanel.getByRole("button", { name: "Switch", exact: true }).count(),
-      1,
-      `${label}: Internal Type should be inside Controls`,
-    );
-    const pushButton = controlsPanel.getByRole("button", {
-      name: "Push Button",
-      exact: true,
-    });
-    await pushButton.click();
-    assert(
-      (await pushButton.getAttribute("class")).includes("active"),
-      `${label}: Internal Type should remain interactive inside Controls`,
-    );
-  }
-
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => {
-    const overlay = document.querySelector(".sp-settings-overlay");
-    return overlay && !overlay.classList.contains("sp-visible");
-  });
-  assert.strictEqual(
-    posts.length,
-    before,
-    `${label}: Internal Controls audit should not save a card`,
-  );
 }
 
 async function assertWebhookSettingsPanel(page, posts, label) {
@@ -5975,30 +5899,6 @@ async function seedNativeDocument(page, nativeState) {
   await page.waitForSelector('.sp-main [data-slot="2"]');
 }
 
-async function assertWifiSharingHidesHomeAssistantControls(browser, testCase) {
-  const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, {
-    homeAssistantSupport: false,
-    nativeState: nativeConfigState(testCase.slug),
-  });
-  const page = await context.newPage();
-  await installFakeEventSource(page);
-  try {
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
-      waitUntil: "domcontentloaded",
-    });
-    await page.waitForSelector("#sp-app");
-    await page.waitForFunction(
-      () => window.__eventSources && window.__eventSources.length > 0,
-    );
-    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
-    await page.waitForSelector(".sp-main > .sp-btn");
-    await assertWifiSharingGuestControlsHidden(page, testCase.name);
-  } finally {
-    await context.close();
-  }
-}
-
 async function assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { homeAssistantSupport: false });
@@ -6128,7 +6028,6 @@ async function assertInlineCardNames(page, nativeState, label) {
     ["calendar datetime", "sensor.date;;Auto;Auto;;;calendar;datetime"],
     ["clock", ";;Auto;Auto;;;clock"],
     ["timezone", "Europe/London;;Auto;Auto;;;timezone"],
-    ["screen_lock", ";;Lock;Lock Open;;;screen_lock"],
   ]) {
     nativeState.document.buttons[1] = config;
     await seedNativeDocument(page, nativeState);
@@ -6176,24 +6075,6 @@ async function assertInlineCardNames(page, nativeState, label) {
   await seedNativeDocument(page, nativeState);
 }
 
-async function assertWifiSharingGuestControlsHidden(page, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
-  assert(await emptyCell.count(), `${label}: guest Wi-Fi test needs an empty slot`);
-  await emptyCell.click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page.locator('[data-card-type="wifi_qr"]').click();
-  await page.waitForSelector(".sp-settings-modal");
-  assert.strictEqual(
-    await page.locator("#sp-inp-wifi-tab-guest").count(),
-    0,
-    `${label}: newly added Wifi Sharing cards do not expose Guest Wi-Fi controls`,
-  );
-  assert.strictEqual(await page.locator("#sp-inp-wifi-guest-entity").count(), 0);
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay.sp-visible"));
-}
-
 async function assertNativeProfileJourney(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -6221,7 +6102,6 @@ async function assertNativeProfileJourney(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await seedNativeDocument(page, nativeState);
-    if (testCase.exerciseInteractions) await assertWifiSharingHidesHomeAssistantControls(browser, testCase);
 
     await assertInlineCardNames(page, nativeState, testCase.name);
     await assertSubpageBackCard(page, testCase.name, nativeState);
@@ -7160,7 +7040,6 @@ async function runCase(browser, testCase) {
       await assertCameraRefreshSettings(page, posts, testCase.name);
       await assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase);
     }
-    await assertInternalControlsPanel(page, posts, testCase.name);
     await assertEmptyCellSettings(page, posts, testCase.name, testCase);
     await assertNewMediaCardDefaults(page, posts, testCase.name);
     if (testCase.exerciseInteractions) {
@@ -7761,78 +7640,6 @@ async function assertScreensaverPinSettings(browser) {
     await page.waitForFunction(() => document.querySelector("#sp-set-screensaver-pin-enabled").checked === false &&
       document.querySelector("#sp-set-screensaver-pin").disabled === false);
     assert.strictEqual(pin.pin, "");
-    // A Screen Lock card edits the same PIN and cannot be saved before the
-    // device has accepted one. Manual locking does not require wake locking.
-    pin.randomize = false;
-    await page.getByRole("tab", { name: "Layout" }).click();
-    await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
-    await page.locator('.sp-card-type-option[data-card-type="screen_lock"]').click();
-    const lockSettings = page.locator('.sp-settings-modal [data-sp-pin-settings]');
-    const lockInput = lockSettings.locator('input[type="password"]');
-    await lockInput.waitFor({ state: "visible" });
-    await page.waitForFunction(() => !document.querySelector('.sp-settings-modal input[type="password"]').disabled);
-    assert.strictEqual(await lockSettings.locator('input[id$="-randomize"]').isChecked(), false);
-    assert.strictEqual(await lockSettings.getByText('Require PIN after wake', { exact: true }).count(), 0,
-      'manual Screen Lock always requires its saved PIN');
-    assert.strictEqual(await lockSettings.getByRole('button', { name: 'Clear', exact: true }).count(), 0);
-    assert(await lockSettings.evaluate(form => {
-      const pin = form.querySelector('input[type="password"]');
-      const randomize = form.querySelector('input[id$="-randomize"]');
-      return !!(pin.compareDocumentPosition(randomize) & Node.DOCUMENT_POSITION_FOLLOWING);
-    }), 'randomize appears below the PIN field');
-    const behavior = page.locator('.sp-settings-modal .sp-disclosure').filter({ hasText: 'Screensaver on lock' });
-    await behavior.locator('> .sp-disclosure-button').click();
-    const screensaverToggle = page.locator('.sp-settings-modal input[id$="screensaver-on-lock"]');
-    assert.strictEqual(await screensaverToggle.isChecked(), false, 'screensaver on lock defaults off');
-    await page.locator(".sp-settings-modal .sp-save-btn").click();
-    await page.getByText("Save a PIN before saving this card.", { exact: true }).waitFor();
-    await lockInput.fill("12bad");
-    await lockSettings.getByRole("button", { name: "Save", exact: true }).click();
-    await lockSettings.getByRole("alert").getByText("Enter a PIN containing 1–16 digits.").waitFor();
-    await lockInput.fill("123456");
-    pin.failSave = true;
-    await lockSettings.getByRole("button", { name: "Save", exact: true }).click();
-    await lockSettings.getByRole("alert").getByText("Could not save or read PIN settings. Check the connection and try again.").waitFor();
-    await page.locator(".sp-settings-modal .sp-save-btn").click();
-    assert(await page.locator(".sp-settings-overlay.sp-visible").isVisible(), "failed PIN write cannot save the card");
-    pin.failSave = false;
-    await lockSettings.getByRole("button", { name: "Save", exact: true }).click();
-    await page.waitForFunction(() => document.querySelector('.sp-settings-modal input[type="password"]').value === "");
-    assert.strictEqual(pin.pin, "123456");
-    assert.strictEqual(pin.enabled, false, "card PIN can be saved without enabling automatic wake protection");
-    assert.strictEqual(await input.getAttribute("placeholder"), "••••••", "card save updates screensaver PIN controls");
-    await page.locator('.sp-settings-modal input[id$="screensaver-on-lock"] + .sp-toggle-track').click();
-    await page.locator(".sp-settings-modal .sp-save-btn").click();
-    await page.locator(".sp-settings-overlay.sp-visible").waitFor({ state: "hidden" });
-    await page.getByRole("tab", { name: "Screen" }).click();
-    await enable.click();
-    await input.waitFor({ state: "visible" });
-    assert.strictEqual(await input.getAttribute("placeholder"), "••••••");
-    await input.fill("9876");
-    await card.getByRole("button", { name: "Save", exact: true }).click();
-    await page.waitForFunction(() => document.querySelector("#sp-set-screensaver-pin").value === "");
-    await page.getByRole("tab", { name: "Layout" }).click();
-    await page.locator('.sp-main [data-slot]').filter({ hasText: "Screen Unlocked" }).first().click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await lockInput.waitFor({ state: "visible" });
-    await page.waitForFunction(() => !document.querySelector('.sp-settings-modal input[type="password"]').disabled);
-    assert.strictEqual(await lockInput.getAttribute("placeholder"), "••••", "screensaver PIN save is visible in the card editor");
-    assert.strictEqual(await screensaverToggle.isChecked(), true, 'screensaver preference survives saving and re-opening the card');
-    await behavior.locator('> .sp-disclosure-button').click();
-    await page.locator('.sp-settings-modal input[id$="screensaver-on-lock"] + .sp-toggle-track').click();
-    await page.locator('.sp-settings-modal .sp-save-btn').click();
-    await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
-    await page.locator('.sp-main [data-slot]').filter({ hasText: 'Screen Unlocked' }).first().click();
-    await page.getByRole('button', { name: 'Edit', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('.sp-settings-modal input[type="password"]').disabled);
-    assert.strictEqual(await screensaverToggle.isChecked(), false, 'screensaver preference can be disabled');
-    await page.locator(".sp-settings-close").click();
-    await page.getByRole("tab", { name: "Screen" }).click();
-    await card.getByRole('button', { name: 'Clear', exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector('#sp-set-screensaver-pin-enabled').checked &&
-      !document.querySelector('#sp-set-screensaver-pin').disabled);
-    assert.strictEqual(pin.pin, '');
-    assert.strictEqual(pin.enabled, false, 'shared PIN can still be cleared from screensaver settings');
     // A protected destination importing an ordinary backup must clear its PIN.
     pin.pin = "2468"; pin.enabled = true;
     await importBackup(page, backupFixture(testCase.slug, testCase.slots), "screensaver-pin-restore");
@@ -7953,7 +7760,6 @@ async function assertPreviewOutlinePixels(page, card, label) {
       continuous: style.clipPath.startsWith("path("), dashed: card.classList.contains("sp-empty-cell") };
   });
 
-
   const thicknesses = await page.evaluate(async ({ geometry: g, png }) => {
     const image = new Image(); image.src = png; await image.decode();
     const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
@@ -8026,7 +7832,7 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
       const hooks = window.__ESPDESKTOP_TEST_HOOKS__.config;
       const keys = exhaustive
         ? [...new Set([...hooks.cardContractCardKeys(), ...hooks.buttonTypePickerKeysFor(false), "media_cover_art"])]
-        : ["weather", "image", "media_cover_art", "light_brightness", "wifi_qr_card"];
+        : ["weather", "image", "media_cover_art", "light_brightness"];
       return keys.map(key => {
         const config = hooks.buttonTypeDefaultConfig(key);
         return config ? { key, config: hooks.serializeButtonConfig(config) } : null;
@@ -8363,7 +8169,6 @@ async function assertS3ForecastEditorLayout(browser) {
 
   } finally { await context.close(); }
 }
-
 
 async function assertCameraScreensaverDimming(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -8964,10 +8769,46 @@ async function assertSpecialPageEntry(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertRetiredCardRemoval(browser) {
+  const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
+  const types = [...(contract.retiredCardTypes || []), ...contract.retiredSubpageTypeCodes];
+  const testCase = ACTIVE_CASES[0];
+  for (const type of types) {
+    const nativeState = nativeConfigState(testCase.slug);
+    nativeState.document.buttons = {
+      1: `old.entity;Retired;Gauge;Auto;sensor.old;C;${type};1;old=value`,
+      2: "light.lamp;Neighbour;Lightbulb;Auto",
+      3: ";Room;Folder;Auto;;;subpage",
+    };
+    nativeState.document.settings.button_order = "1,2,3";
+    nativeState.document.subpages = {
+      3: `~B,1,2|${type},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
+    };
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old main tile is removed`);
+      assert(await page.locator('.sp-main .sp-empty-cell:not(.sp-info-only-hidden)').count(), `${type}: removed space is available`);
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.waitForSelector('.sp-main [data-slot="-2"]');
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old subpage tile is removed`);
+      assert.equal(await page.locator('.sp-main [data-slot="2"]').count(), 1, `${type}: neighbouring card is preserved`);
+    } finally { await context.close(); }
+  }
+  console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    await assertRetiredCardRemoval(browser);
+    if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;

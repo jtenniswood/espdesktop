@@ -549,49 +549,6 @@ def firmware_action_card_script_fields_errors(firmware_dir: Path, root: Path) ->
     return errors
 
 
-def firmware_local_sensor_binding_order_errors(firmware_dir: Path, root: Path) -> list[str]:
-    grid_path = firmware_dir / "button_grid_grid.h"
-    driver_path = firmware_dir / "button_grid_sensor_driver.h"
-    if not grid_path.exists():
-        return []
-    grid_rel = grid_path.relative_to(root)
-    grid_text = grid_path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    if not driver_path.exists():
-        errors.append(f"{grid_rel}: bind local sensor subtypes through the shared sensor driver")
-        return errors
-
-    driver_rel = driver_path.relative_to(root)
-    driver_text = driver_path.read_text(encoding="utf-8")
-    bind_match = re.search(
-        r"inline\s+bool\s+sensor_driver_bind_data\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-        driver_text,
-        re.DOTALL,
-    )
-    if bind_match is None:
-        errors.append(f"{driver_rel}: keep local sensor binding in sensor_driver_bind_data")
-    else:
-        bind_body = bind_match.group("body")
-        local_start = bind_body.find("if (sensor_driver_is_local(config, context))")
-        ha_text_start = bind_body.find("if (is_text_sensor_card(config))")
-        ha_sensor_start = bind_body.find("if (!config.sensor.empty())")
-        if local_start < 0 or "sensor_driver_register_local_value(slot, config)" not in bind_body:
-            errors.append(f"{driver_rel}: bind local sensor values through the local registry")
-        elif any(start >= 0 and local_start > start for start in (ha_text_start, ha_sensor_start)):
-            errors.append(f"{driver_rel}: bind local sensor values before Home Assistant sensor subscriptions")
-
-    if "sensor_driver_bind_data(" not in grid_text:
-        errors.append(f"{grid_rel}: bind sensor cards through the shared sensor driver")
-
-    for match in re.finditer(r"if\s*\(\s*bind_basic_sensor_card\s*\(", grid_text):
-        bind_start = match.start()
-        image_start = grid_text.rfind("image_driver_bind_main", 0, bind_start)
-        line_no = grid_text.count("\n", 0, bind_start) + 1
-        if image_start < 0:
-            errors.append(f"{grid_rel}:{line_no}: bind image cards before basic sensor cards")
-
-    return errors
 
 
 def firmware_time_reconnect_errors(time_path: Path, root: Path) -> list[str]:
@@ -3936,7 +3893,6 @@ def run_scan() -> int:
     errors.extend(firmware_media_card_availability_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_cover_art_external_input_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_action_card_script_fields_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_local_sensor_binding_order_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_time_reconnect_errors(TIME_ADDON_PATH, ROOT))
     errors.extend(firmware_ntp_startup_errors(TIME_ADDON_PATH, SUN_CALC_PATH, CONNECTIVITY_PATHS, ROOT))
     errors.extend(firmware_weather_request_errors(FIRMWARE_DIR, ROOT))
@@ -4165,21 +4121,6 @@ def expect_action_card_script_fields_errors(name: str, text: str, expected: tupl
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_local_sensor_binding_order_errors(
-    name: str, files: dict[str, str], expected: tuple[str, ...]
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        for filename, text in files.items():
-            (firmware_dir / filename).write_text(text, encoding="utf-8")
-
-        errors = firmware_local_sensor_binding_order_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
 def expect_time_reconnect_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
@@ -5737,42 +5678,6 @@ def run_self_test() -> int:
         "  req.variables.init(script_fields.size());\n"
         "  ha_action_add_data_template(req, \"variables\", script_fields_template.c_str());\n"
         "}\n",
-        (),
-    )
-    expect_local_sensor_binding_order_errors(
-        "local sensor subtype reaches HA subscription first",
-        {
-            "button_grid_grid.h":
-                "if (image_driver_bind_main(s, p, context, cfg)) continue;\n"
-                "if (sensor_driver_bind_data(s, p, context, palette)) return true;\n"
-                "if (bind_basic_sensor_card(s, p, context, palette)) continue;\n",
-            "button_grid_sensor_driver.h":
-                "inline bool sensor_driver_bind_data(BtnSlot &slot, const ParsedCfg &config, const Context &context) {\n"
-                "  if (!config.sensor.empty()) subscribe_sensor_value();\n"
-                "  if (sensor_driver_is_local(config, context)) {\n"
-                "    sensor_driver_register_local_value(slot, config);\n"
-                "    return true;\n"
-                "  }\n"
-                "}\n",
-        },
-        ("bind local sensor values before Home Assistant sensor subscriptions",),
-    )
-    expect_local_sensor_binding_order_errors(
-        "local sensor subtype binds through shared driver",
-        {
-            "button_grid_grid.h":
-                "if (image_driver_bind_main(s, p, context, cfg)) continue;\n"
-                "if (sensor_driver_bind_data(s, p, context, palette)) return true;\n"
-                "if (bind_basic_sensor_card(s, p, context, palette)) continue;\n",
-            "button_grid_sensor_driver.h":
-                "inline bool sensor_driver_bind_data(BtnSlot &slot, const ParsedCfg &config, const Context &context) {\n"
-                "  if (sensor_driver_is_local(config, context)) {\n"
-                "    sensor_driver_register_local_value(slot, config);\n"
-                "    return true;\n"
-                "  }\n"
-                "  if (!config.sensor.empty()) subscribe_sensor_value();\n"
-                "}\n",
-        },
         (),
     )
     expect_time_reconnect_errors(

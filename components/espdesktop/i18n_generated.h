@@ -210,7 +210,6 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Naskenujte pro připojení";
   if (std::strcmp(text, "Network") == 0) return "Síť";
   if (std::strcmp(text, "Password") == 0) return "Heslo";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Nelze vytvořit QR kód";
   if (std::strcmp(text, "Connected") == 0) return "Připojeno";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Připojování k Ethernetu";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Připojování k WiFi";
@@ -301,8 +300,6 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "left") == 0) return "zbývá";
   if (std::strcmp(text, "Timer") == 0) return "Časovač";
   if (std::strcmp(text, "Confirm") == 0) return "Potvrdit";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pro hosty";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stav Wi-Fi se nezměnil";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Připojte se k WiFi hotspotu";
   if (std::strcmp(text, "to configure your network.") == 0) return "a nastavte svou síť.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Poté v prohlížeči otevřete {address}";
@@ -508,7 +505,6 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Scan for at oprette forbindelse";
   if (std::strcmp(text, "Network") == 0) return "Netværk";
   if (std::strcmp(text, "Password") == 0) return "Adgangskode";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Kunne ikke oprette QR-kode";
   if (std::strcmp(text, "Connected") == 0) return "Forbundet";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Opretter forbindelse til Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Opretter forbindelse til WiFi";
@@ -596,8 +592,6 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "free") == 0) return "ledig";
   if (std::strcmp(text, "left") == 0) return "tilbage";
   if (std::strcmp(text, "Confirm") == 0) return "Bekræft";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gæste-Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi blev ikke ændret";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Opret forbindelse til WiFi-hotspottet";
   if (std::strcmp(text, "to configure your network.") == 0) return "for at konfigurere dit netværk.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Åbn derefter {address} i din browser";
@@ -802,7 +796,6 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Scannen zum Verbinden";
   if (std::strcmp(text, "Network") == 0) return "Netzwerk";
   if (std::strcmp(text, "Password") == 0) return "Passwort";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "QR-Code konnte nicht erstellt werden";
   if (std::strcmp(text, "Connected") == 0) return "Verbunden";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Verbindung mit Ethernet wird hergestellt";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Verbindung mit WiFi wird hergestellt";
@@ -890,8 +883,6 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "free") == 0) return "frei";
   if (std::strcmp(text, "left") == 0) return "übrig";
   if (std::strcmp(text, "Confirm") == 0) return "Bestätigen";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gast-WLAN";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "WLAN wurde nicht geändert";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Verbinde dich mit dem WLAN-Hotspot";
   if (std::strcmp(text, "to configure your network.") == 0) return "um dein Netzwerk einzurichten.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Öffne dann {address} in deinem Browser";
@@ -1108,7 +1099,6 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Escanea para conectarte";
   if (std::strcmp(text, "Network") == 0) return "Red";
   if (std::strcmp(text, "Password") == 0) return "Contraseña";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "No se puede crear el código QR";
   if (std::strcmp(text, "Connected") == 0) return "Conectado";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Conectando a Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Conectando a WiFi";
@@ -1199,8 +1189,6 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restante";
   if (std::strcmp(text, "Timer") == 0) return "Temporizador";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de invitados";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "El Wi-Fi no ha cambiado";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Conéctate al punto de acceso WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "para configurar tu red.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Después abre {address} en tu navegador";
@@ -1427,7 +1415,6 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Skannaa yhdistääksesi";
   if (std::strcmp(text, "Network") == 0) return "Verkko";
   if (std::strcmp(text, "Password") == 0) return "Salasana";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "QR-koodia ei voitu luoda";
   if (std::strcmp(text, "Connected") == 0) return "Yhdistetty";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Yhdistetään Ethernetiin";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Yhdistetään WiFi-verkkoon";
@@ -1518,8 +1505,6 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "left") == 0) return "jäljellä";
   if (std::strcmp(text, "Timer") == 0) return "Ajastin";
   if (std::strcmp(text, "Confirm") == 0) return "Vahvista";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Vieras-Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ei muuttunut";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Yhdistä WiFi-tukiasemaan";
   if (std::strcmp(text, "to configure your network.") == 0) return "määrittääksesi verkkosi.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Avaa sitten selaimessa {address}";
@@ -1724,7 +1709,6 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Scannez pour vous connecter";
   if (std::strcmp(text, "Network") == 0) return "Réseau";
   if (std::strcmp(text, "Password") == 0) return "Mot de passe";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Impossible de créer le code QR";
   if (std::strcmp(text, "Connected") == 0) return "Connecté";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Connexion à Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Connexion au WiFi";
@@ -1816,8 +1800,6 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restant";
   if (std::strcmp(text, "Timer") == 0) return "Minuteur";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmer";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi invité";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Le Wi-Fi n’a pas changé";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Connectez-vous au point d’accès WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "pour configurer votre réseau.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Ouvrez ensuite {address} dans votre navigateur";
@@ -2053,7 +2035,6 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "סרקו כדי להתחבר";
   if (std::strcmp(text, "Network") == 0) return "רשת";
   if (std::strcmp(text, "Password") == 0) return "סיסמה";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "לא ניתן ליצור קוד QR";
   if (std::strcmp(text, "Connected") == 0) return "מחובר";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "מתחבר לרשת קווית";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "מתחבר ל-WiFi";
@@ -2142,8 +2123,6 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "left") == 0) return "נותר";
   if (std::strcmp(text, "Timer") == 0) return "טיימר";
   if (std::strcmp(text, "Confirm") == 0) return "לאישור";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "רשת אורחים";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "מצב ה-WiFi לא השתנה";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "התחברו לנקודת הגישה של WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "כדי להגדיר את הרשת שלכם.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "לאחר מכן פתחו את {address} בדפדפן";
@@ -2364,7 +2343,6 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Olvassa be a csatlakozáshoz";
   if (std::strcmp(text, "Network") == 0) return "Hálózat";
   if (std::strcmp(text, "Password") == 0) return "Jelszó";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Nem sikerült létrehozni a QR-kódot";
   if (std::strcmp(text, "Connected") == 0) return "Csatlakoztatva";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Csatlakozás Ethernethez";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Csatlakozás WiFi-hez";
@@ -2454,8 +2432,6 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "left") == 0) return "maradt";
   if (std::strcmp(text, "Timer") == 0) return "Időzítő";
   if (std::strcmp(text, "Confirm") == 0) return "Megerősítés";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Vendég Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "A Wi-Fi állapota nem változott";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Csatlakozzon a WiFi-hotspothoz";
   if (std::strcmp(text, "to configure your network.") == 0) return "a hálózat beállításához.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Ezután nyissa meg a {address} címet a böngészőben";
@@ -2668,7 +2644,6 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Connect to WiFi") == 0) return "Connettiti al WiFi";
   if (std::strcmp(text, "Scan to connect") == 0) return "Scansiona per connetterti";
   if (std::strcmp(text, "Network") == 0) return "Rete";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Impossibile creare il codice QR";
   if (std::strcmp(text, "Connected") == 0) return "Connesso";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Connessione a Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Connessione al WiFi";
@@ -2757,8 +2732,6 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "free") == 0) return "libero";
   if (std::strcmp(text, "left") == 0) return "rimanente";
   if (std::strcmp(text, "Confirm") == 0) return "Confermare";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi ospiti";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Il Wi-Fi non è cambiato";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Connettiti all’hotspot WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "per configurare la tua rete.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Poi apri {address} nel browser";
@@ -2973,7 +2946,6 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Skann for å koble til";
   if (std::strcmp(text, "Network") == 0) return "Nettverk";
   if (std::strcmp(text, "Password") == 0) return "Passord";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Kan ikke opprette QR-kode";
   if (std::strcmp(text, "Connected") == 0) return "Tilkoblet";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Kobler til Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Kobler til WiFi";
@@ -3064,8 +3036,6 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "left") == 0) return "igjen";
   if (std::strcmp(text, "Timer") == 0) return "Tidtaker";
   if (std::strcmp(text, "Confirm") == 0) return "Bekreft";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gjeste-Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ble ikke endret";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Koble til WiFi-hotspotet";
   if (std::strcmp(text, "to configure your network.") == 0) return "for å konfigurere nettverket ditt.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Åpne deretter {address} i nettleseren";
@@ -3277,7 +3247,6 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Scan om verbinding te maken";
   if (std::strcmp(text, "Network") == 0) return "Netwerk";
   if (std::strcmp(text, "Password") == 0) return "Wachtwoord";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Kan QR-code niet maken";
   if (std::strcmp(text, "Connected") == 0) return "Verbonden";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Verbinden met Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Verbinden met WiFi";
@@ -3360,8 +3329,6 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "free") == 0) return "vrij";
   if (std::strcmp(text, "left") == 0) return "over";
   if (std::strcmp(text, "Confirm") == 0) return "Bevestigen";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gastwifi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wifi is niet gewijzigd";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Maak verbinding met de WiFi-hotspot";
   if (std::strcmp(text, "to configure your network.") == 0) return "om je netwerk in te stellen.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Open daarna {address} in je browser";
@@ -3575,7 +3542,6 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Zeskanuj, aby się połączyć";
   if (std::strcmp(text, "Network") == 0) return "Sieć";
   if (std::strcmp(text, "Password") == 0) return "Hasło";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Nie można utworzyć kodu QR";
   if (std::strcmp(text, "Connected") == 0) return "Połączono";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Łączenie z Ethernetem";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Łączenie z WiFi";
@@ -3666,8 +3632,6 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "left") == 0) return "pozostało";
   if (std::strcmp(text, "Timer") == 0) return "Minutnik";
   if (std::strcmp(text, "Confirm") == 0) return "Potwierdzić";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi dla gości";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stan Wi-Fi nie zmienił się";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Połącz się z hotspotem WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "aby skonfigurować swoją sieć.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Następnie otwórz {address} w przeglądarce";
@@ -3879,7 +3843,6 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Escaneie para conectar";
   if (std::strcmp(text, "Network") == 0) return "Rede";
   if (std::strcmp(text, "Password") == 0) return "Senha";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Não foi possível criar o código QR";
   if (std::strcmp(text, "Connected") == 0) return "Conectado";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Conectando à Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Conectando ao WiFi";
@@ -3968,8 +3931,6 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restante";
   if (std::strcmp(text, "Timer") == 0) return "Temporizador";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de convidados";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "O Wi-Fi não mudou";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Conecte-se ao ponto de acesso WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "para configurar sua rede.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Depois abra {address} no navegador";
@@ -4182,7 +4143,6 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Digitalize para ligar";
   if (std::strcmp(text, "Network") == 0) return "Rede";
   if (std::strcmp(text, "Password") == 0) return "Palavra-passe";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Não foi possível criar o código QR";
   if (std::strcmp(text, "Connected") == 0) return "Ligado";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "A ligar à Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "A ligar ao WiFi";
@@ -4271,8 +4231,6 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "left") == 0) return "restante";
   if (std::strcmp(text, "Timer") == 0) return "Temporizador";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmar";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi de convidados";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "O Wi-Fi não mudou";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Ligue-se ao ponto de acesso WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "para configurar a sua rede.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Depois abra {address} no navegador";
@@ -4499,7 +4457,6 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Scanați pentru conectare";
   if (std::strcmp(text, "Network") == 0) return "Rețea";
   if (std::strcmp(text, "Password") == 0) return "Parolă";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Codul QR nu a putut fi creat";
   if (std::strcmp(text, "Connected") == 0) return "Conectat";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Se conectează la Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Se conectează la WiFi";
@@ -4589,8 +4546,6 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "left") == 0) return "rămas";
   if (std::strcmp(text, "Timer") == 0) return "Temporizator";
   if (std::strcmp(text, "Confirm") == 0) return "Confirmați";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pentru oaspeți";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Starea Wi-Fi nu s-a schimbat";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Conectați-vă la hotspotul WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "pentru a configura rețeaua.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Apoi deschideți {address} în browser";
@@ -4818,7 +4773,6 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Отсканируйте, чтобы подключиться";
   if (std::strcmp(text, "Network") == 0) return "Сеть";
   if (std::strcmp(text, "Password") == 0) return "Пароль";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Не удалось создать QR-код";
   if (std::strcmp(text, "Connected") == 0) return "Подключено";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Подключение к Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Подключение к WiFi";
@@ -4908,8 +4862,6 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "left") == 0) return "осталось";
   if (std::strcmp(text, "Timer") == 0) return "Таймер";
   if (std::strcmp(text, "Confirm") == 0) return "Подтвердить";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Гостевой Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Состояние Wi-Fi не изменилось";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Подключитесь к точке доступа WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "чтобы настроить сеть.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Затем откройте {address} в браузере";
@@ -5122,7 +5074,6 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Naskenujte pre pripojenie";
   if (std::strcmp(text, "Network") == 0) return "Sieť";
   if (std::strcmp(text, "Password") == 0) return "Heslo";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Nie je možné vytvoriť QR kód";
   if (std::strcmp(text, "Connected") == 0) return "Pripojené";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Pripájanie k Ethernetu";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Pripájanie k WiFi";
@@ -5213,8 +5164,6 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "left") == 0) return "zostáva";
   if (std::strcmp(text, "Timer") == 0) return "Časovač";
   if (std::strcmp(text, "Confirm") == 0) return "Potvrdiť";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi pre hostí";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stav Wi-Fi sa nezmenil";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Pripojte sa k WiFi hotspotu";
   if (std::strcmp(text, "to configure your network.") == 0) return "a nastavte svoju sieť.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Potom v prehliadači otvorte {address}";
@@ -5431,7 +5380,6 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Skenirajte za povezavo";
   if (std::strcmp(text, "Network") == 0) return "Omrežje";
   if (std::strcmp(text, "Password") == 0) return "Geslo";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Kode QR ni mogoče ustvariti";
   if (std::strcmp(text, "Connected") == 0) return "Povezano";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Povezovanje z Ethernetom";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Povezovanje z WiFi";
@@ -5522,8 +5470,6 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "left") == 0) return "preostalo";
   if (std::strcmp(text, "Timer") == 0) return "Časovnik";
   if (std::strcmp(text, "Confirm") == 0) return "Potrdi";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Wi-Fi za goste";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Stanje Wi-Fi se ni spremenilo";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Povežite se z dostopno točko WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "da nastavite omrežje.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Nato v brskalniku odprite {address}";
@@ -5732,7 +5678,6 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Skanna för att ansluta";
   if (std::strcmp(text, "Network") == 0) return "Nätverk";
   if (std::strcmp(text, "Password") == 0) return "Lösenord";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Det gick inte att skapa QR-koden";
   if (std::strcmp(text, "Connected") == 0) return "Ansluten";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Ansluter till Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Ansluter till WiFi";
@@ -5821,8 +5766,6 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "free") == 0) return "ledigt";
   if (std::strcmp(text, "left") == 0) return "kvar";
   if (std::strcmp(text, "Confirm") == 0) return "Bekräfta";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Gäst-Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi ändrades inte";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Anslut till WiFi-hotspotten";
   if (std::strcmp(text, "to configure your network.") == 0) return "för att konfigurera ditt nätverk.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Öppna sedan {address} i din webbläsare";
@@ -6043,7 +5986,6 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Bağlanmak için tarayın";
   if (std::strcmp(text, "Network") == 0) return "Ağ";
   if (std::strcmp(text, "Password") == 0) return "Parola";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "QR kodu oluşturulamadı";
   if (std::strcmp(text, "Connected") == 0) return "Bağlandı";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Ethernet’e bağlanıyor";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "WiFi’ye bağlanıyor";
@@ -6134,8 +6076,6 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "left") == 0) return "kalan";
   if (std::strcmp(text, "Timer") == 0) return "Zamanlayıcı";
   if (std::strcmp(text, "Confirm") == 0) return "Onayla";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Misafir Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Wi-Fi durumu değişmedi";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "WiFi erişim noktasına bağlanın";
   if (std::strcmp(text, "to configure your network.") == 0) return "ve ağınızı yapılandırın.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Ardından tarayıcınızda {address} adresini açın";
@@ -6358,7 +6298,6 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Scan to connect") == 0) return "Відскануйте, щоб під’єднатися";
   if (std::strcmp(text, "Network") == 0) return "Мережа";
   if (std::strcmp(text, "Password") == 0) return "Пароль";
-  if (std::strcmp(text, "Unable to create QR code") == 0) return "Не вдалося створити QR-код";
   if (std::strcmp(text, "Connected") == 0) return "Під’єднано";
   if (std::strcmp(text, "Connecting to Ethernet") == 0) return "Під’єднання до Ethernet";
   if (std::strcmp(text, "Connecting to WiFi") == 0) return "Під’єднання до WiFi";
@@ -6448,8 +6387,6 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "left") == 0) return "залишилось";
   if (std::strcmp(text, "Timer") == 0) return "Таймер";
   if (std::strcmp(text, "Confirm") == 0) return "Підтвердити";
-  if (std::strcmp(text, "Guest Wi-Fi") == 0) return "Гостьовий Wi-Fi";
-  if (std::strcmp(text, "Wi-Fi did not change") == 0) return "Стан Wi-Fi не змінився";
   if (std::strcmp(text, "Connect to the WiFi hotspot") == 0) return "Підключіться до точки доступу WiFi";
   if (std::strcmp(text, "to configure your network.") == 0) return "щоб налаштувати мережу.";
   if (std::strcmp(text, "Then visit {address} in your browser") == 0) return "Потім відкрийте {address} у браузері";
@@ -6681,7 +6618,6 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Scan to connect";
   if (std::strcmp(key, "network") == 0) return "Network";
   if (std::strcmp(key, "password") == 0) return "Password";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Unable to create QR code";
   if (std::strcmp(key, "connected") == 0) return "Connected";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Connecting to Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Connecting to WiFi";
@@ -6777,8 +6713,6 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "left";
   if (std::strcmp(key, "timer") == 0) return "Timer";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirm";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Guest Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi did not change";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Connect to the WiFi hotspot";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "to configure your network.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Then visit {address} in your browser";
@@ -6798,7 +6732,6 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "Thurs";
   if (std::strcmp(key, "weekday_fri") == 0) return "Fri";
   if (std::strcmp(key, "weekday_sat") == 0) return "Sat";
-  if (std::strcmp(key, "label_connect") == 0) return "Connect";
   if (std::strcmp(key, "label_local_action") == 0) return "Local Action";
   if (std::strcmp(key, "label_switch") == 0) return "Switch";
   if (std::strcmp(key, "label_lighting") == 0) return "Lighting";
@@ -7011,7 +6944,6 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Naskenujte pro připojení";
   if (std::strcmp(key, "network") == 0) return "Síť";
   if (std::strcmp(key, "password") == 0) return "Heslo";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Nelze vytvořit QR kód";
   if (std::strcmp(key, "connected") == 0) return "Připojeno";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Připojování k Ethernetu";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Připojování k WiFi";
@@ -7106,8 +7038,6 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "zbývá";
   if (std::strcmp(key, "timer") == 0) return "Časovač";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdit";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pro hosty";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stav Wi-Fi se nezměnil";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Připojte se k WiFi hotspotu";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "a nastavte svou síť.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Poté v prohlížeči otevřete {address}";
@@ -7121,7 +7051,6 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "čt";
   if (std::strcmp(key, "weekday_fri") == 0) return "pá";
   if (std::strcmp(key, "weekday_sat") == 0) return "so";
-  if (std::strcmp(key, "label_connect") == 0) return "Připojit";
   if (std::strcmp(key, "label_local_action") == 0) return "Místní akce";
   if (std::strcmp(key, "label_switch") == 0) return "Spínač";
   if (std::strcmp(key, "label_lighting") == 0) return "Osvětlení";
@@ -7320,7 +7249,6 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Scan for at oprette forbindelse";
   if (std::strcmp(key, "network") == 0) return "Netværk";
   if (std::strcmp(key, "password") == 0) return "Adgangskode";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Kunne ikke oprette QR-kode";
   if (std::strcmp(key, "connected") == 0) return "Forbundet";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Opretter forbindelse til Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Opretter forbindelse til WiFi";
@@ -7412,8 +7340,6 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "ledig";
   if (std::strcmp(key, "stat_remaining") == 0) return "tilbage";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekræft";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Gæste-Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi blev ikke ændret";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Opret forbindelse til WiFi-hotspottet";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "for at konfigurere dit netværk.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Åbn derefter {address} i din browser";
@@ -7427,7 +7353,6 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "tor.";
   if (std::strcmp(key, "weekday_fri") == 0) return "fre.";
   if (std::strcmp(key, "weekday_sat") == 0) return "lør.";
-  if (std::strcmp(key, "label_connect") == 0) return "Forbind";
   if (std::strcmp(key, "label_local_action") == 0) return "Lokal handling";
   if (std::strcmp(key, "label_switch") == 0) return "Kontakt";
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
@@ -7623,7 +7548,6 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Scannen zum Verbinden";
   if (std::strcmp(key, "network") == 0) return "Netzwerk";
   if (std::strcmp(key, "password") == 0) return "Passwort";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "QR-Code konnte nicht erstellt werden";
   if (std::strcmp(key, "connected") == 0) return "Verbunden";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Verbindung mit Ethernet wird hergestellt";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Verbindung mit WiFi wird hergestellt";
@@ -7715,8 +7639,6 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "frei";
   if (std::strcmp(key, "stat_remaining") == 0) return "übrig";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bestätigen";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Gast-WLAN";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "WLAN wurde nicht geändert";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Verbinde dich mit dem WLAN-Hotspot";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "um dein Netzwerk einzurichten.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Öffne dann {address} in deinem Browser";
@@ -7735,7 +7657,6 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "Do.";
   if (std::strcmp(key, "weekday_fri") == 0) return "Fr.";
   if (std::strcmp(key, "weekday_sat") == 0) return "Sa.";
-  if (std::strcmp(key, "label_connect") == 0) return "Verbinden";
   if (std::strcmp(key, "label_local_action") == 0) return "Lokale Aktion";
   if (std::strcmp(key, "label_switch") == 0) return "Schalter";
   if (std::strcmp(key, "label_lighting") == 0) return "Beleuchtung";
@@ -7938,7 +7859,6 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Escanea para conectarte";
   if (std::strcmp(key, "network") == 0) return "Red";
   if (std::strcmp(key, "password") == 0) return "Contraseña";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "No se puede crear el código QR";
   if (std::strcmp(key, "connected") == 0) return "Conectado";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Conectando a Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Conectando a WiFi";
@@ -8033,8 +7953,6 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   if (std::strcmp(key, "timer") == 0) return "Temporizador";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de invitados";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "El Wi-Fi no ha cambiado";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Conéctate al punto de acceso WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "para configurar tu red.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Después abre {address} en tu navegador";
@@ -8054,7 +7972,6 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "jue.";
   if (std::strcmp(key, "weekday_fri") == 0) return "vie.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
-  if (std::strcmp(key, "label_connect") == 0) return "Conectar";
   if (std::strcmp(key, "label_local_action") == 0) return "Acción local";
   if (std::strcmp(key, "label_switch") == 0) return "Interruptor";
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminación";
@@ -8267,7 +8184,6 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Skannaa yhdistääksesi";
   if (std::strcmp(key, "network") == 0) return "Verkko";
   if (std::strcmp(key, "password") == 0) return "Salasana";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "QR-koodia ei voitu luoda";
   if (std::strcmp(key, "connected") == 0) return "Yhdistetty";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Yhdistetään Ethernetiin";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Yhdistetään WiFi-verkkoon";
@@ -8362,8 +8278,6 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "jäljellä";
   if (std::strcmp(key, "timer") == 0) return "Ajastin";
   if (std::strcmp(key, "timer_confirm") == 0) return "Vahvista";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Vieras-Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ei muuttunut";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Yhdistä WiFi-tukiasemaan";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "määrittääksesi verkkosi.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Avaa sitten selaimessa {address}";
@@ -8377,7 +8291,6 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "to";
   if (std::strcmp(key, "weekday_fri") == 0) return "pe";
   if (std::strcmp(key, "weekday_sat") == 0) return "la";
-  if (std::strcmp(key, "label_connect") == 0) return "Yhdistä";
   if (std::strcmp(key, "label_local_action") == 0) return "Paikallinen toiminto";
   if (std::strcmp(key, "label_switch") == 0) return "Kytkin";
   if (std::strcmp(key, "label_lighting") == 0) return "Valaistus";
@@ -8575,7 +8488,6 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Scannez pour vous connecter";
   if (std::strcmp(key, "network") == 0) return "Réseau";
   if (std::strcmp(key, "password") == 0) return "Mot de passe";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Impossible de créer le code QR";
   if (std::strcmp(key, "connected") == 0) return "Connecté";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Connexion à Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Connexion au WiFi";
@@ -8671,8 +8583,6 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restant";
   if (std::strcmp(key, "timer") == 0) return "Minuteur";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmer";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi invité";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Le Wi-Fi n’a pas changé";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Connectez-vous au point d’accès WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "pour configurer votre réseau.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Ouvrez ensuite {address} dans votre navigateur";
@@ -8692,7 +8602,6 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "jeu.";
   if (std::strcmp(key, "weekday_fri") == 0) return "ven.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sam.";
-  if (std::strcmp(key, "label_connect") == 0) return "Connecter";
   if (std::strcmp(key, "label_local_action") == 0) return "Action locale";
   if (std::strcmp(key, "label_switch") == 0) return "Interrupteur";
   if (std::strcmp(key, "label_lighting") == 0) return "Éclairage";
@@ -8914,7 +8823,6 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "סרקו כדי להתחבר";
   if (std::strcmp(key, "network") == 0) return "רשת";
   if (std::strcmp(key, "password") == 0) return "סיסמה";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "לא ניתן ליצור קוד QR";
   if (std::strcmp(key, "connected") == 0) return "מחובר";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "מתחבר לרשת קווית";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "מתחבר ל-WiFi";
@@ -9007,8 +8915,6 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "נותר";
   if (std::strcmp(key, "timer") == 0) return "טיימר";
   if (std::strcmp(key, "timer_confirm") == 0) return "לאישור";
-  if (std::strcmp(key, "guest_wifi") == 0) return "רשת אורחים";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "מצב ה-WiFi לא השתנה";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "התחברו לנקודת הגישה של WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "כדי להגדיר את הרשת שלכם.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "לאחר מכן פתחו את {address} בדפדפן";
@@ -9022,7 +8928,6 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "ה׳";
   if (std::strcmp(key, "weekday_fri") == 0) return "ו׳";
   if (std::strcmp(key, "weekday_sat") == 0) return "ש׳";
-  if (std::strcmp(key, "label_connect") == 0) return "התחבר";
   if (std::strcmp(key, "label_local_action") == 0) return "פעולה מקומית";
   if (std::strcmp(key, "label_switch") == 0) return "מתג";
   if (std::strcmp(key, "label_lighting") == 0) return "תאורה";
@@ -9236,7 +9141,6 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Olvassa be a csatlakozáshoz";
   if (std::strcmp(key, "network") == 0) return "Hálózat";
   if (std::strcmp(key, "password") == 0) return "Jelszó";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Nem sikerült létrehozni a QR-kódot";
   if (std::strcmp(key, "connected") == 0) return "Csatlakoztatva";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Csatlakozás Ethernethez";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Csatlakozás WiFi-hez";
@@ -9330,8 +9234,6 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "maradt";
   if (std::strcmp(key, "timer") == 0) return "Időzítő";
   if (std::strcmp(key, "timer_confirm") == 0) return "Megerősítés";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Vendég Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "A Wi-Fi állapota nem változott";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Csatlakozzon a WiFi-hotspothoz";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "a hálózat beállításához.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Ezután nyissa meg a {address} címet a böngészőben";
@@ -9345,7 +9247,6 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "csüt.";
   if (std::strcmp(key, "weekday_fri") == 0) return "pén.";
   if (std::strcmp(key, "weekday_sat") == 0) return "szomb.";
-  if (std::strcmp(key, "label_connect") == 0) return "Csatlakozás";
   if (std::strcmp(key, "label_local_action") == 0) return "Helyi művelet";
   if (std::strcmp(key, "label_switch") == 0) return "Kapcsoló";
   if (std::strcmp(key, "label_lighting") == 0) return "Világítás";
@@ -9551,7 +9452,6 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "connect_to_wifi") == 0) return "Connettiti al WiFi";
   if (std::strcmp(key, "scan_to_connect") == 0) return "Scansiona per connetterti";
   if (std::strcmp(key, "network") == 0) return "Rete";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Impossibile creare il codice QR";
   if (std::strcmp(key, "connected") == 0) return "Connesso";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Connessione a Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Connessione al WiFi";
@@ -9644,8 +9544,6 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "libero";
   if (std::strcmp(key, "stat_remaining") == 0) return "rimanente";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confermare";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi ospiti";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Il Wi-Fi non è cambiato";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Connettiti all’hotspot WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "per configurare la tua rete.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Poi apri {address} nel browser";
@@ -9665,7 +9563,6 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "gio.";
   if (std::strcmp(key, "weekday_fri") == 0) return "ven.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sab.";
-  if (std::strcmp(key, "label_connect") == 0) return "Connetti";
   if (std::strcmp(key, "label_local_action") == 0) return "Azione locale";
   if (std::strcmp(key, "label_switch") == 0) return "Interruttore";
   if (std::strcmp(key, "label_lighting") == 0) return "Illuminazione";
@@ -9866,7 +9763,6 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Skann for å koble til";
   if (std::strcmp(key, "network") == 0) return "Nettverk";
   if (std::strcmp(key, "password") == 0) return "Passord";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Kan ikke opprette QR-kode";
   if (std::strcmp(key, "connected") == 0) return "Tilkoblet";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Kobler til Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Kobler til WiFi";
@@ -9961,8 +9857,6 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "igjen";
   if (std::strcmp(key, "timer") == 0) return "Tidtaker";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekreft";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Gjeste-Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ble ikke endret";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Koble til WiFi-hotspotet";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "for å konfigurere nettverket ditt.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Åpne deretter {address} i nettleseren";
@@ -9976,7 +9870,6 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "tor.";
   if (std::strcmp(key, "weekday_fri") == 0) return "fre.";
   if (std::strcmp(key, "weekday_sat") == 0) return "lør.";
-  if (std::strcmp(key, "label_connect") == 0) return "Koble til";
   if (std::strcmp(key, "label_local_action") == 0) return "Lokal handling";
   if (std::strcmp(key, "label_switch") == 0) return "Bryter";
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
@@ -10179,7 +10072,6 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Scan om verbinding te maken";
   if (std::strcmp(key, "network") == 0) return "Netwerk";
   if (std::strcmp(key, "password") == 0) return "Wachtwoord";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Kan QR-code niet maken";
   if (std::strcmp(key, "connected") == 0) return "Verbonden";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Verbinden met Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Verbinden met WiFi";
@@ -10266,8 +10158,6 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "vrij";
   if (std::strcmp(key, "stat_remaining") == 0) return "over";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bevestigen";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Gastwifi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wifi is niet gewijzigd";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Maak verbinding met de WiFi-hotspot";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "om je netwerk in te stellen.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Open daarna {address} in je browser";
@@ -10286,7 +10176,6 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "do.";
   if (std::strcmp(key, "weekday_fri") == 0) return "vr.";
   if (std::strcmp(key, "weekday_sat") == 0) return "za.";
-  if (std::strcmp(key, "label_connect") == 0) return "Verbinden";
   if (std::strcmp(key, "label_local_action") == 0) return "Lokale actie";
   if (std::strcmp(key, "label_switch") == 0) return "Schakelaar";
   if (std::strcmp(key, "label_lighting") == 0) return "Verlichting";
@@ -10485,7 +10374,6 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Zeskanuj, aby się połączyć";
   if (std::strcmp(key, "network") == 0) return "Sieć";
   if (std::strcmp(key, "password") == 0) return "Hasło";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Nie można utworzyć kodu QR";
   if (std::strcmp(key, "connected") == 0) return "Połączono";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Łączenie z Ethernetem";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Łączenie z WiFi";
@@ -10580,8 +10468,6 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "pozostało";
   if (std::strcmp(key, "timer") == 0) return "Minutnik";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potwierdzić";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi dla gości";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stan Wi-Fi nie zmienił się";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Połącz się z hotspotem WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "aby skonfigurować swoją sieć.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Następnie otwórz {address} w przeglądarce";
@@ -10595,7 +10481,6 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "czw.";
   if (std::strcmp(key, "weekday_fri") == 0) return "pt.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sob.";
-  if (std::strcmp(key, "label_connect") == 0) return "Połącz";
   if (std::strcmp(key, "label_local_action") == 0) return "Akcja lokalna";
   if (std::strcmp(key, "label_switch") == 0) return "Przełącznik";
   if (std::strcmp(key, "label_lighting") == 0) return "Oświetlenie";
@@ -10800,7 +10685,6 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Escaneie para conectar";
   if (std::strcmp(key, "network") == 0) return "Rede";
   if (std::strcmp(key, "password") == 0) return "Senha";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Não foi possível criar o código QR";
   if (std::strcmp(key, "connected") == 0) return "Conectado";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Conectando à Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Conectando ao WiFi";
@@ -10893,8 +10777,6 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   if (std::strcmp(key, "timer") == 0) return "Temporizador";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de convidados";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "O Wi-Fi não mudou";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Conecte-se ao ponto de acesso WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "para configurar sua rede.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Depois abra {address} no navegador";
@@ -10908,7 +10790,6 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "qui.";
   if (std::strcmp(key, "weekday_fri") == 0) return "sex.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
-  if (std::strcmp(key, "label_connect") == 0) return "Conectar";
   if (std::strcmp(key, "label_local_action") == 0) return "Ação local";
   if (std::strcmp(key, "label_switch") == 0) return "Interruptor";
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
@@ -11113,7 +10994,6 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Digitalize para ligar";
   if (std::strcmp(key, "network") == 0) return "Rede";
   if (std::strcmp(key, "password") == 0) return "Palavra-passe";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Não foi possível criar o código QR";
   if (std::strcmp(key, "connected") == 0) return "Ligado";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "A ligar à Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "A ligar ao WiFi";
@@ -11206,8 +11086,6 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "restante";
   if (std::strcmp(key, "timer") == 0) return "Temporizador";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmar";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi de convidados";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "O Wi-Fi não mudou";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Ligue-se ao ponto de acesso WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "para configurar a sua rede.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Depois abra {address} no navegador";
@@ -11227,7 +11105,6 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "qui.";
   if (std::strcmp(key, "weekday_fri") == 0) return "sex.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sáb.";
-  if (std::strcmp(key, "label_connect") == 0) return "Ligar";
   if (std::strcmp(key, "label_local_action") == 0) return "Ação local";
   if (std::strcmp(key, "label_switch") == 0) return "Interruptor";
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
@@ -11440,7 +11317,6 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Scanați pentru conectare";
   if (std::strcmp(key, "network") == 0) return "Rețea";
   if (std::strcmp(key, "password") == 0) return "Parolă";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Codul QR nu a putut fi creat";
   if (std::strcmp(key, "connected") == 0) return "Conectat";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Se conectează la Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Se conectează la WiFi";
@@ -11534,8 +11410,6 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "rămas";
   if (std::strcmp(key, "timer") == 0) return "Temporizator";
   if (std::strcmp(key, "timer_confirm") == 0) return "Confirmați";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pentru oaspeți";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Starea Wi-Fi nu s-a schimbat";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Conectați-vă la hotspotul WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "pentru a configura rețeaua.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Apoi deschideți {address} în browser";
@@ -11549,7 +11423,6 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "joi";
   if (std::strcmp(key, "weekday_fri") == 0) return "vin.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sâm.";
-  if (std::strcmp(key, "label_connect") == 0) return "Conectare";
   if (std::strcmp(key, "label_local_action") == 0) return "Acțiune locală";
   if (std::strcmp(key, "label_switch") == 0) return "Întrerupător";
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminat";
@@ -11770,7 +11643,6 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Отсканируйте, чтобы подключиться";
   if (std::strcmp(key, "network") == 0) return "Сеть";
   if (std::strcmp(key, "password") == 0) return "Пароль";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Не удалось создать QR-код";
   if (std::strcmp(key, "connected") == 0) return "Подключено";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Подключение к Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Подключение к WiFi";
@@ -11864,8 +11736,6 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "осталось";
   if (std::strcmp(key, "timer") == 0) return "Таймер";
   if (std::strcmp(key, "timer_confirm") == 0) return "Подтвердить";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Гостевой Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Состояние Wi-Fi не изменилось";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Подключитесь к точке доступа WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "чтобы настроить сеть.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Затем откройте {address} в браузере";
@@ -11879,7 +11749,6 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "чт";
   if (std::strcmp(key, "weekday_fri") == 0) return "пт";
   if (std::strcmp(key, "weekday_sat") == 0) return "сб";
-  if (std::strcmp(key, "label_connect") == 0) return "Подключиться";
   if (std::strcmp(key, "label_local_action") == 0) return "Локальное действие";
   if (std::strcmp(key, "label_switch") == 0) return "Выключатель";
   if (std::strcmp(key, "label_lighting") == 0) return "Освещение";
@@ -12085,7 +11954,6 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Naskenujte pre pripojenie";
   if (std::strcmp(key, "network") == 0) return "Sieť";
   if (std::strcmp(key, "password") == 0) return "Heslo";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Nie je možné vytvoriť QR kód";
   if (std::strcmp(key, "connected") == 0) return "Pripojené";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Pripájanie k Ethernetu";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Pripájanie k WiFi";
@@ -12180,8 +12048,6 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "zostáva";
   if (std::strcmp(key, "timer") == 0) return "Časovač";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potvrdiť";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi pre hostí";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stav Wi-Fi sa nezmenil";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Pripojte sa k WiFi hotspotu";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "a nastavte svoju sieť.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Potom v prehliadači otvorte {address}";
@@ -12195,7 +12061,6 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "št";
   if (std::strcmp(key, "weekday_fri") == 0) return "pi";
   if (std::strcmp(key, "weekday_sat") == 0) return "so";
-  if (std::strcmp(key, "label_connect") == 0) return "Pripojiť";
   if (std::strcmp(key, "label_local_action") == 0) return "Miestna akcia";
   if (std::strcmp(key, "label_switch") == 0) return "Spínač";
   if (std::strcmp(key, "label_lighting") == 0) return "Osvetlenie";
@@ -12405,7 +12270,6 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Skenirajte za povezavo";
   if (std::strcmp(key, "network") == 0) return "Omrežje";
   if (std::strcmp(key, "password") == 0) return "Geslo";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Kode QR ni mogoče ustvariti";
   if (std::strcmp(key, "connected") == 0) return "Povezano";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Povezovanje z Ethernetom";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Povezovanje z WiFi";
@@ -12500,8 +12364,6 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "preostalo";
   if (std::strcmp(key, "timer") == 0) return "Časovnik";
   if (std::strcmp(key, "timer_confirm") == 0) return "Potrdi";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Wi-Fi za goste";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Stanje Wi-Fi se ni spremenilo";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Povežite se z dostopno točko WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "da nastavite omrežje.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Nato v brskalniku odprite {address}";
@@ -12515,7 +12377,6 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "čet.";
   if (std::strcmp(key, "weekday_fri") == 0) return "pet.";
   if (std::strcmp(key, "weekday_sat") == 0) return "sob.";
-  if (std::strcmp(key, "label_connect") == 0) return "Poveži";
   if (std::strcmp(key, "label_local_action") == 0) return "Lokalno dejanje";
   if (std::strcmp(key, "label_switch") == 0) return "Stikalo";
   if (std::strcmp(key, "label_lighting") == 0) return "Razsvetljava";
@@ -12717,7 +12578,6 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Skanna för att ansluta";
   if (std::strcmp(key, "network") == 0) return "Nätverk";
   if (std::strcmp(key, "password") == 0) return "Lösenord";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Det gick inte att skapa QR-koden";
   if (std::strcmp(key, "connected") == 0) return "Ansluten";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Ansluter till Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Ansluter till WiFi";
@@ -12810,8 +12670,6 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "stat_free") == 0) return "ledigt";
   if (std::strcmp(key, "stat_remaining") == 0) return "kvar";
   if (std::strcmp(key, "timer_confirm") == 0) return "Bekräfta";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Gäst-Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi ändrades inte";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Anslut till WiFi-hotspotten";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "för att konfigurera ditt nätverk.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Öppna sedan {address} i din webbläsare";
@@ -12825,7 +12683,6 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "tor";
   if (std::strcmp(key, "weekday_fri") == 0) return "fre";
   if (std::strcmp(key, "weekday_sat") == 0) return "lör";
-  if (std::strcmp(key, "label_connect") == 0) return "Anslut";
   if (std::strcmp(key, "label_local_action") == 0) return "Lokal åtgärd";
   if (std::strcmp(key, "label_switch") == 0) return "Strömbrytare";
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
@@ -13037,7 +12894,6 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Bağlanmak için tarayın";
   if (std::strcmp(key, "network") == 0) return "Ağ";
   if (std::strcmp(key, "password") == 0) return "Parola";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "QR kodu oluşturulamadı";
   if (std::strcmp(key, "connected") == 0) return "Bağlandı";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Ethernet’e bağlanıyor";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "WiFi’ye bağlanıyor";
@@ -13132,8 +12988,6 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "kalan";
   if (std::strcmp(key, "timer") == 0) return "Zamanlayıcı";
   if (std::strcmp(key, "timer_confirm") == 0) return "Onayla";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Misafir Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Wi-Fi durumu değişmedi";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "WiFi erişim noktasına bağlanın";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "ve ağınızı yapılandırın.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Ardından tarayıcınızda {address} adresini açın";
@@ -13147,7 +13001,6 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "Per";
   if (std::strcmp(key, "weekday_fri") == 0) return "Cum";
   if (std::strcmp(key, "weekday_sat") == 0) return "Cmt";
-  if (std::strcmp(key, "label_connect") == 0) return "Bağlan";
   if (std::strcmp(key, "label_local_action") == 0) return "Yerel eylem";
   if (std::strcmp(key, "label_switch") == 0) return "Anahtar";
   if (std::strcmp(key, "label_lighting") == 0) return "Aydınlatma";
@@ -13363,7 +13216,6 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "scan_to_connect") == 0) return "Відскануйте, щоб під’єднатися";
   if (std::strcmp(key, "network") == 0) return "Мережа";
   if (std::strcmp(key, "password") == 0) return "Пароль";
-  if (std::strcmp(key, "unable_to_create_qr_code") == 0) return "Не вдалося створити QR-код";
   if (std::strcmp(key, "connected") == 0) return "Під’єднано";
   if (std::strcmp(key, "connecting_to_ethernet") == 0) return "Під’єднання до Ethernet";
   if (std::strcmp(key, "connecting_to_wifi") == 0) return "Під’єднання до WiFi";
@@ -13457,8 +13309,6 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "stat_remaining") == 0) return "залишилось";
   if (std::strcmp(key, "timer") == 0) return "Таймер";
   if (std::strcmp(key, "timer_confirm") == 0) return "Підтвердити";
-  if (std::strcmp(key, "guest_wifi") == 0) return "Гостьовий Wi-Fi";
-  if (std::strcmp(key, "wifi_did_not_change") == 0) return "Стан Wi-Fi не змінився";
   if (std::strcmp(key, "connect_to_the_wifi_hotspot") == 0) return "Підключіться до точки доступу WiFi";
   if (std::strcmp(key, "to_configure_your_network") == 0) return "щоб налаштувати мережу.";
   if (std::strcmp(key, "then_visit_address_in_your_browser") == 0) return "Потім відкрийте {address} у браузері";
@@ -13472,7 +13322,6 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "weekday_thurs") == 0) return "чт";
   if (std::strcmp(key, "weekday_fri") == 0) return "пт";
   if (std::strcmp(key, "weekday_sat") == 0) return "сб";
-  if (std::strcmp(key, "label_connect") == 0) return "Підключитися";
   if (std::strcmp(key, "label_local_action") == 0) return "Локальна дія";
   if (std::strcmp(key, "label_switch") == 0) return "Вимикач";
   if (std::strcmp(key, "label_lighting") == 0) return "Освітлення";

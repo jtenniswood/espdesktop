@@ -1,5 +1,6 @@
 #pragma once
 #include "screensaver_pin.h"
+#include "display_text.h"
 #include "screen_lock_state.h"
 #include "pin_keypad.h"
 

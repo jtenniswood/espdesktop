@@ -67,7 +67,6 @@ export function createPreviewClipboardFeature(
         canAddImageCards,
         showImageCardLimitBanner,
     } = dependencies.imageOptions;
-    const { sensorCardLocalSource: SENSOR_CARD_LOCAL_SENSOR } = dependencies.sensorOptions;
     const {
         normalizeButtonConfig,
         normalizeCardSizeForConfig,
@@ -170,9 +169,7 @@ export function createPreviewClipboardFeature(
             throw cardTransferError("The " + cardTransferTypeLabel(type) +
                 " card type cannot be placed inside a subpage.");
         }
-        if (type === "internal" ||
-            (type === "action" && normalized.sensor === ACTION_CARD_LOCAL_ACTION) ||
-            (type === "sensor" && normalized.sensor === SENSOR_CARD_LOCAL_SENSOR)) {
+        if (type === "action" && normalized.sensor === ACTION_CARD_LOCAL_ACTION) {
             warnings.local = true;
         }
         return normalized;

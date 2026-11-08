@@ -817,7 +817,7 @@ def test_weather_card_visual_matches_preview() -> None:
     )
     grid = (ROOT / "components" / "espdesktop" / "button_grid_grid.h").read_text(encoding="utf-8")
     setup_start = grid.find("inline void setup_card_visual")
-    setup_end = grid.find("inline bool bind_basic_sensor_card", setup_start)
+    setup_end = grid.find("inline bool bind_passive_card", setup_start)
     setup_visual = grid[setup_start:setup_end] if setup_start >= 0 and setup_end >= 0 else ""
     assert (
         "inline void reset_card_slot_dynamic_children" in grid
@@ -1039,7 +1039,7 @@ def test_current_weather_state_keeps_normal_card_visuals() -> None:
     assert "weather_forecast_cancel_pending_requests(false);" in grid, (
         "dashboard reconfiguration must cancel stale weather forecast action responses"
     )
-    assert grid.count("if (bind_basic_sensor_card(") >= 2, (
+    assert grid.count("if (bind_passive_card(") >= 2, (
         "main-grid and subpage weather cards must use the same shared binding path"
     )
     assert (

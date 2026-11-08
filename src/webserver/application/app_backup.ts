@@ -1,3 +1,4 @@
+import { removeRetiredPanelRecords } from "../features/retired_cards";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
@@ -65,7 +66,6 @@ import type { SettingsPageHelpersFeature } from "./settings_page_helpers";
 import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../features/legacy_layout_restore";
-import { panelConfigDocumentContainsWifiSharing } from "../features/wifi_sharing_config";
 
 export interface AppBackupControllers {
     readonly identity?: PanelIdentityFeature;
@@ -414,6 +414,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     nativeDocument.settings.special_page || backupPlan.config.settings?.special_page || "");
                 nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
                 nativeDocument.settings.button_on_color = String(nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || "");
+                removeRetiredPanelRecords(nativeDocument, controllers.codec);
                 var parsedButtonOrder: any = EspDesktopModel.parseGridOrder(
                     nativeDocument.settings.button_order,
                     controllers.layout.numSlots,
@@ -431,10 +432,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     throw Object.assign(new Error(message), { backupMessage: message });
                 }
                 function queueLegacyLayoutRestore() {
-                    if (panelConfigDocumentContainsWifiSharing(nativeDocument)) {
-                        const message = "This backup contains Wifi Sharing cards, which require current device firmware. Update the panel before restoring this backup.";
-                        rejectBackup(message);
-                    }
                     const keys = specialPageEntityKeys();
                     const specialPageValue = nativeDocument.settings.special_page || "";
                     const specialPageEntities = Promise.all(keys.map((key) =>

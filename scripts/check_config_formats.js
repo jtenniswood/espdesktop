@@ -231,11 +231,6 @@ assert.deepStrictEqual(
   buttonShape(hooks.cardContractDefaultConfig("")),
   "switch card type default is spec-backed"
 );
-assert.deepStrictEqual(
-  buttonShape(hooks.buttonTypeDefaultConfig("sensor")),
-  buttonShape(hooks.cardContractDefaultConfig("sensor")),
-  "sensor card type default is spec-backed"
-);
 function assertButtonTypeSpecBacked(type, description) {
   const spec = hooks.buttonTypeRuntimeSpec(type);
   assert(spec, `${description} runtime spec exists`);
@@ -251,7 +246,7 @@ function assertButtonTypeSpecBacked(type, description) {
   );
 }
 assertButtonTypeSpecBacked("", "switch card");
-assertButtonTypeSpecBacked("sensor", "sensor card");
+
 assertButtonTypeSpecBacked("slider", "slider card");
 assertButtonTypeSpecBacked("cover", "cover card");
 assertButtonTypeSpecBacked("light_brightness", "light brightness card");
@@ -278,9 +273,12 @@ assertButtonTypeSpecBacked("clock", "clock card");
 assertButtonTypeSpecBacked("timezone", "timezone card");
 assertButtonTypeSpecBacked("weather", "weather card");
 assertButtonTypeSpecBacked("push", "push card");
-assertButtonTypeSpecBacked("screen_lock", "screen lock card");
 assertButtonTypeSpecBacked("webhook", "webhook card");
-assertButtonTypeSpecBacked("internal", "internal relay card");
+for (const type of ["wifi_qr", "wifi_qr_card"]) {
+  const retired = hooks.parseButtonConfig(`;;;;;;${type};;ssid64=R3Vlc3Q,pass64=cGFzc3dvcmQ`);
+  assert.strictEqual(retired.options, "", "removed card credentials are discarded when loading saved layouts");
+  assert(!hooks.serializeButtonConfig(retired).includes("pass64"), "removed card credentials cannot be re-saved");
+}
 assertButtonTypeSpecBacked("garage", "garage card");
 assertButtonTypeSpecBacked("gate", "gate card");
 assertButtonTypeSpecBacked("lock", "lock card");
@@ -348,16 +346,6 @@ assert.strictEqual(hooks.pushDefaultIconOn(), "Auto", "push on icon cleanup is s
 assert.strictEqual(hooks.webhookMethod("post"), "POST", "webhook method normalizes to uppercase");
 assert.strictEqual(hooks.webhookMethod("bad"), "GET", "webhook invalid method falls back to GET");
 assert.deepStrictEqual(
-  Array.from(hooks.internalRelayModeOptionValues()),
-  ["switch", "push"],
-  "internal relay mode options are spec-backed"
-);
-assert.strictEqual(hooks.normalizeInternalRelayMode("push"), "push", "internal relay push mode is allowed by spec");
-assert.strictEqual(hooks.normalizeInternalRelayMode("bad"), "switch", "internal relay invalid mode falls back to switch");
-assert.strictEqual(hooks.internalRelayDefaultIcon("switch"), "Lightbulb Outline", "internal relay switch icon is spec-backed");
-assert.strictEqual(hooks.internalRelayDefaultIcon("push"), "Gesture Tap", "internal relay push icon is spec-backed");
-assert.strictEqual(hooks.internalRelayDefaultOnIcon(), "Lightbulb", "internal relay on icon is spec-backed");
-assert.deepStrictEqual(
   Array.from(hooks.mediaModeOptionValues()),
   ["control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"],
   "media mode options are spec-backed"
@@ -367,17 +355,6 @@ assert.strictEqual(hooks.mediaEditorMode("cover_art"), "cover_art", "cover art m
 assert.strictEqual(hooks.mediaEditorMode("speaker_group"), "speaker_group", "speaker group media mode maps through spec");
 assert.strictEqual(hooks.mediaEditorMode("bad"), "play_pause", "invalid media mode falls back through spec");
 assert.strictEqual(hooks.cardRequiresSquareSize({ type: "media", sensor: "cover_art" }), false, "cover art cards can use rectangular sizes");
-assert.strictEqual(hooks.cardSupportsExtraLargeSize({ type: "wifi_qr" }), true, "Wifi Connect cards support 3x3 sizes");
-assert.strictEqual(hooks.cardSupportsExtraLargeSize({ type: "wifi_qr_card" }), true, "Wifi QR cards support 3x3 sizes");
-assert.strictEqual(hooks.cardSupportsWifiPortraitSizes({ type: "wifi_qr" }), false, "non-10-inch Wifi cards reject portrait sizes");
-assert.strictEqual(tenInchHooks.cardSupportsWifiPortraitSizes({ type: "wifi_qr" }), true, "10-inch Wifi cards support portrait sizes");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "wifi_qr" }, 2), 1, "Wifi cards reject non-square tall sizes");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "wifi_qr_card" }, 3), 1, "Wifi QR cards reject non-square wide sizes");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "wifi_qr" }, 4), 4, "Wifi cards keep 2x2 sizes");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "wifi_qr_card" }, 7), 7, "Wifi QR cards keep 3x3 sizes");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "wifi_qr" }, 9), 1, "non-10-inch Wifi cards reject 2x3 sizes");
-assert.strictEqual(tenInchHooks.normalizeCardSizeForConfig({ type: "wifi_qr" }, 9), 9, "10-inch Wifi cards keep 2x3 sizes");
-assert.strictEqual(tenInchHooks.normalizeCardSizeForConfig({ type: "wifi_qr_card" }, 10), 10, "10-inch Wifi QR cards keep 3x4 sizes");
 assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 4), 4, "cover art keeps 2x2 size");
 assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "media", sensor: "cover_art" }, 7), 7, "cover art keeps 3x3 size");
 assert.strictEqual(tenInchHooks.cardSupportsPortraitLargeSize({ type: "media", sensor: "cover_art" }), true, "10-inch cover art supports portrait-large size");
@@ -401,10 +378,7 @@ assert.strictEqual(tenInchHooks.cardSupportsLandscapeLargeSize({ type: "image" }
 assert.strictEqual(tenInchHooks.normalizeCardSizeForConfig({ type: "image" }, 11), 11, "10-inch image cards keep 4x3 size");
 assert.strictEqual(fourInchHooks.normalizeCardSizeForConfig({ type: "image" }, 11), 1, "4-inch image cards reject 4x3 size");
 assert.strictEqual(tenInchHooks.normalizeCardSizeForConfig({ type: "image" }, 10), 10, "10-inch image cards keep 3x4 size");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "sensor" }, 8), 1, "non-camera cards reject max-wide size");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "sensor" }, 9), 1, "non-camera cards reject max-tall size");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "sensor" }, 10), 1, "ordinary cards reject portrait-large size");
-assert.strictEqual(hooks.normalizeCardSizeForConfig({ type: "sensor" }, 11), 1, "ordinary cards reject landscape-large size");
+
 assert.strictEqual(
   Array.from(tenInchHooks.cardSizeMenuOptions({ type: "media", sensor: "cover_art" })).some((option) => option.size === 10 && option.label === "Massive (4x3)"),
   true,
@@ -435,35 +409,9 @@ assert.strictEqual(
   false,
   "4.3-inch cover art size menu hides Extra Large (3x3)",
 );
-assert.strictEqual(
-  Array.from(hooks.cardSizeMenuOptions({ type: "wifi_qr" })).some((option) => option.size === 7 && option.label === "Extra Large (3x3)"),
-  true,
-  "Wifi Connect card size menu exposes Extra Large (3x3)",
-);
-assert.strictEqual(
-  Array.from(hooks.cardSizeMenuOptions({ type: "wifi_qr_card" })).some((option) => option.size === 7 && option.label === "Extra Large (3x3)"),
-  true,
-  "Wifi QR card size menu exposes Extra Large (3x3)",
-);
-assert.deepStrictEqual(
-  Array.from(hooks.cardSizeMenuOptions({ type: "wifi_qr" }), (option) => option.size),
-  [1, 4, 7],
-  "Wifi Connect card size menu only exposes square sizes",
-);
-assert.deepStrictEqual(
-  Array.from(hooks.cardSizeMenuOptions({ type: "wifi_qr_card" }), (option) => option.size),
-  [1, 4, 7],
-  "Wifi QR card size menu only exposes square sizes",
-);
-assert.deepStrictEqual(
-  Array.from(tenInchHooks.cardSizeMenuOptions({ type: "wifi_qr" }), (option) => [option.size, option.label]),
-  [[1, "Single (1x1)"], [4, "Large (2x2)"], [7, "Extra Large (3x3)"], [9, "Max Tall (2x3)"], [10, "Massive (3x4)"]],
-  "10-inch Wifi card size menu adds 2x3 and 3x4 portrait sizes",
-);
 // Square-grid spans must survive save/transfer for ordinary and Companion cards.
 for (const squareHooks of [s3Hooks, fourInchHooks]) {
-  for (const card of [{ type: "sensor", sensor: "local", entity: "sensor.office" },
-    { type: "companion", entity: "com.apple.Safari" }, { type: "companion_stat", entity: "cpu" }]) {
+  for (const card of [{ type: "companion", entity: "com.apple.Safari" }, { type: "companion_stat", entity: "cpu" }]) {
     for (const size of [8, 9]) {
       assert.strictEqual(squareHooks.normalizeCardSizeForConfig(card, size), size);
       assert.ok(Array.from(squareHooks.cardSizeMenuOptions(card)).some(option => option.size === size));
@@ -472,22 +420,8 @@ for (const squareHooks of [s3Hooks, fourInchHooks]) {
       assert.strictEqual(moved.entries[0].size, size, "square-grid transfer keeps six-cell size");
     }
   }
-  for (const type of ["wifi_qr", "wifi_qr_card"]) {
-    for (const size of [8, 9]) {
-      assert.strictEqual(squareHooks.normalizeCardSizeForConfig({ type }, size), 1);
-      assert.ok(!Array.from(squareHooks.cardSizeMenuOptions({ type })).some(option => option.size === size));
-    }
-  }
 }
-const transferredSensor = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
-  cards: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office", size: 10 }],
-}, false, true);
-assert.strictEqual(transferredSensor.entries[0].size, 1, "card transfer downgrades unsupported 3x4 sensor size");
-assert.strictEqual(transferredSensor.warnings.cardResized, true, "card transfer reports normalized card sizes");
-assert.throws(() => tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
-  cards: [{ type: "sensor", entity: "sensor.office", label: "Office" }],
-}, false, false), /Home Assistant-backed cards are no longer available/,
-"Home Assistant card transfer remains blocked unless firmware opts in");
+
 const transferredCoverArt = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "media", sensor: "cover_art", entity: "media_player.office", label: "Cover Art", size: 10 }],
 }, false, true);
@@ -496,24 +430,7 @@ const transferredLandscapeCamera = hooks.cardTransferEntriesFromEnvelopeForTest(
   cards: [{ type: "image", entity: "camera.office", label: "Office", size: 11 }],
 }, false, true);
 assert.strictEqual(transferredLandscapeCamera.entries[0].size, 11, "landscape 7-inch card transfer keeps supported Massive Wide camera size");
-const transferredSubpage = tenInchHooks.cardTransferEntriesFromEnvelopeForTest({
-  cards: [{
-    type: "subpage",
-    label: "Sensors",
-    size: 1,
-    subpage: {
-      order: ["1p", "B"],
-      back_label: "Back",
-      buttons: [{ type: "sensor", sensor: "local", entity: "sensor.office", label: "Office" }],
-    },
-  }],
-}, false, true);
-assert.strictEqual(transferredSubpage.warnings.subpageResized, true, "card transfer reports normalized subpage sizes");
-assert.strictEqual(
-  Array.from(tenInchHooks.parseSubpageConfig(transferredSubpage.entries[0].subpageConfig).order).includes("1p"),
-  false,
-  "card transfer downgrades unsupported 3x4 sizes inside subpages",
-);
+
 const transferredS3Camera = s3Hooks.cardTransferEntriesFromEnvelopeForTest({
   cards: [{ type: "image", entity: "camera.front_door", label: "Front Door", size: 1 }],
 }, false, true);
@@ -786,74 +703,12 @@ assert.strictEqual(switchOptionByName.large_numbers.kind, "flag", "switch large-
 assert.deepStrictEqual(Array.from(switchOptionByName.on_pattern.values), ["", "stripes"], "switch on pattern spec exposes stripes option");
 assert.strictEqual(switchOptionByName.confirm_yes.defaultValue, "Yes", "switch confirm text spec exposes current default");
 assert.strictEqual(switchOptionByName.confirm_no.defaultValue, "No", "switch cancel text spec exposes current default");
-const sensorOptionSpecs = hooks.cardContractOptions("sensor");
-const sensorOptionByName = Object.fromEntries(sensorOptionSpecs.map((option) => [option.name, option]));
-assert.deepStrictEqual(
-  Array.from(sensorOptionSpecs, (option) => option.name),
-  ["large_numbers", "time_unit", "active_color", "state_labels", "state_input", "state_output", "state_input_2", "state_output_2"],
-  "sensor option specs preserve current option order"
-);
-assert.deepStrictEqual(
-  Array.from(sensorOptionByName.large_numbers.supportedWhen.precisionNot),
-  ["icon", "text", "time"],
-  "sensor large-number option spec excludes icon, text, and time sensor modes"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "large_numbers", { precision: "" }),
-  true,
-  "sensor large-number option supports numeric mode"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "large_numbers", { precision: "text" }),
-  false,
-  "sensor large-number option blocks text mode"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "large_numbers", { precision: "icon" }),
-  false,
-  "sensor large-number option blocks icon mode"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "large_numbers", { precision: "time" }),
-  false,
-  "sensor large-number option blocks time mode"
-);
-assert.deepStrictEqual(Array.from(sensorOptionByName.time_unit.values), ["", "seconds", "minutes", "hours", "days"], "time sensor input unit choices are contract-backed");
-assert.strictEqual(sensorOptionByName.time_unit.label, "Incoming Value Unit", "time sensor unit override has a clear user-facing label");
-assert.strictEqual(sensorOptionByName.active_color.label, "Lit When Active", "sensor active-colour option has a user-facing label");
-assert.deepStrictEqual(
-  Array.from(sensorOptionByName.active_color.supportedWhen.precisionNot),
-  ["time"],
-  "sensor active-colour option excludes Time mode"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "active_color", { precision: "text" }),
-  true,
-  "sensor active-colour option supports Text mode"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "active_color", { precision: "icon" }),
-  true,
-  "sensor active-colour option supports Icon mode"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "active_color", { precision: "" }),
-  true,
-  "sensor active-colour option supports Numeric mode"
-);
-assert.strictEqual(
-  hooks.cardContractOptionSupportedFor("sensor", "active_color", { precision: "time" }),
-  false,
-  "sensor active-colour option blocks Time mode"
-);
+
 assert.deepStrictEqual(Object.assign({}, hooks.cardContractMigrationAlias("weather_forecast")), {
   type: "weather",
   precision: "tomorrow",
 }, "generated contract exposes migration aliases");
-assert.deepStrictEqual(Object.assign({}, hooks.cardContractMigrationAlias("text_sensor")), {
-  type: "sensor",
-  precision: "text",
-}, "generated contract exposes legacy text sensor migration alias");
+
 Object.entries(current.generatedContract.migrationAliases).forEach(([alias, expected]) => {
   assert.deepStrictEqual(
     Object.assign({}, hooks.cardContractMigrationAlias(alias)),
@@ -1076,105 +931,6 @@ hooks.setGarageConfirmationOptions(confirmGarageWithLabelDisplay, "", "", "", ""
 assert.strictEqual(hooks.garageConfirmationEnabled(confirmGarageWithLabelDisplay), false, "garage confirmation can be cleared");
 assert.strictEqual(hooks.garageLabelDisplayMode(confirmGarageWithLabelDisplay), "status", "clearing garage confirmation preserves label display");
 
-assertButtonRoundTrip(hooks, "delimiter button", {
-  entity: "sensor.kitchen_temperature",
-  label: "Kitchen; west, 50% | prep: zone",
-  icon: "Thermometer",
-  icon_on: "Auto",
-  sensor: "sensor.kitchen_temperature",
-  unit: "deg;C",
-  type: "sensor",
-  precision: "1",
-}, true);
-
-assertButtonRoundTrip(hooks, "large sensor numbers option", {
-  entity: "sensor.blood_glucose",
-  label: "Blood Glucose",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "sensor.blood_glucose",
-  unit: "",
-  type: "sensor",
-  precision: "",
-  options: "large_numbers",
-}, false);
-
-const localSensorSubtype = {
-  entity: "room_temp",
-  label: "Living Room",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "local",
-  unit: "°C",
-  type: "sensor",
-  precision: "1",
-  options: "",
-};
-assertButtonRoundTrip(hooks, "local sensor subtype", localSensorSubtype, false);
-assert.strictEqual(hooks.sensorCardIsLocal(localSensorSubtype), true, "local sensor subtype is detected");
-assert.strictEqual(hooks.cardLargeNumbersEnabled({
-  type: "sensor",
-  sensor: "local",
-  precision: "1",
-  options: "large_numbers",
-}), false, "local sensor subtype does not use large sensor numbers");
-
-const iconSensor = hooks.parseButtonConfig(";;;;binary_sensor.patio_door;;sensor;icon;");
-iconSensor.icon = "Door Closed";
-iconSensor.icon_on = "Door Open";
-assertButtonRoundTrip(hooks, "sensor icon display", iconSensor, false);
-assert.strictEqual(
-  hooks.cardLargeNumbersEnabled({ type: "sensor", precision: "icon", options: "large_numbers" }),
-  false,
-  "sensor icon display does not use large numbers"
-);
-
-const parsedActiveSensor = hooks.parseButtonConfig(";;;;binary_sensor.patio_door;;sensor;text;active_color");
-assert.strictEqual(hooks.sensorActiveColorEnabled(parsedActiveSensor), true, "sensor active colour enabled");
-
-const autoTimeSensor = hooks.parseButtonConfig("sensor.ups_runtime;UPS Runtime;Clock;Bell;sensor.ups_runtime;hours;sensor;time;large_numbers,time_unit=weeks,state_labels");
-assert.strictEqual(autoTimeSensor.precision, "time", "time sensor mode round-trips");
-assert.strictEqual(autoTimeSensor.unit, "", "time sensor clears the normal unit field");
-assert.strictEqual(autoTimeSensor.icon, "Auto", "time sensor clears icon settings");
-assert.strictEqual(autoTimeSensor.icon_on, "Auto", "time sensor clears on icon settings");
-assert.strictEqual(autoTimeSensor.options, "", "invalid time units normalize to Auto and incompatible options are removed");
-assert.strictEqual(hooks.sensorTimeUnit(autoTimeSensor), "", "Auto time unit is represented by an omitted option");
-hooks.setSensorTimeUnit(autoTimeSensor, "hours");
-assert.strictEqual(autoTimeSensor.options, "time_unit=hours", "manual time unit persists");
-assert.strictEqual(hooks.sensorTimeUnit(autoTimeSensor), "hours", "manual time unit reads back");
-autoTimeSensor.precision = "";
-autoTimeSensor.options = hooks.normalizeSensorOptions(autoTimeSensor.options, autoTimeSensor.precision);
-assert.strictEqual(autoTimeSensor.options, "", "switching away from Time removes the time unit");
-
-const stateLabelSensor = hooks.parseButtonConfig(";;;;sensor.bin_level;;sensor;text;state_labels,state_input=high,state_output=Please%20empty,state_input_2=low,state_output_2=Full");
-assert.strictEqual(hooks.sensorStateLabelsEnabled(stateLabelSensor), true, "sensor text state labels enabled");
-assert.strictEqual(hooks.sensorStateInput(stateLabelSensor), "high", "sensor state input is decoded");
-assert.strictEqual(hooks.sensorStateOutput(stateLabelSensor), "Please empty", "sensor state output is decoded");
-assert.strictEqual(hooks.sensorStateInput2(stateLabelSensor), "low", "second sensor state input is decoded");
-assert.strictEqual(hooks.sensorStateOutput2(stateLabelSensor), "Full", "second sensor state output is decoded");
-assertButtonRoundTrip(hooks, "sensor status translation", stateLabelSensor, false);
-const legacyStateLabelSensor = hooks.parseButtonConfig(";;;;sensor.bin_level;;sensor;text;state_labels,state_high_label=Please%20empty");
-assert.strictEqual(legacyStateLabelSensor.options, "state_labels,state_input=high,state_output=Please empty", "legacy high label migrates to status translation");
-const numericStateLabelSensor = hooks.parseButtonConfig(";;;;sensor.bin_level;;sensor;0;state_labels,state_high_label=Please%20empty");
-assert.strictEqual(numericStateLabelSensor.options, "", "sensor state labels are text-mode only");
-
-assertButtonMigration(
-  hooks,
-  "text sensor drops large numbers but keeps active colour",
-  "sensor.patio_door;Patio Door;Door Closed;Auto;binary_sensor.patio_door;;sensor;text;large_numbers,active_color",
-  {
-    entity: "sensor.patio_door",
-    label: "Patio Door",
-    icon: "Door Closed",
-    icon_on: "Auto",
-    sensor: "binary_sensor.patio_door",
-    unit: "",
-    type: "sensor",
-    precision: "text",
-    options: "active_color",
-  }
-);
-
 assertButtonRoundTrip(hooks, "door window card door subtype", {
   entity: "",
   label: "Patio Door",
@@ -1233,45 +989,6 @@ assertButtonMigration(
   }
 );
 
-assertButtonRoundTrip(hooks, "internal relay push button", {
-  entity: "relay_1",
-  label: "Door Strike",
-  icon: "Gesture Tap",
-  icon_on: "Auto",
-  sensor: "push",
-  unit: "",
-  type: "internal",
-  precision: "",
-}, false);
-
-const screenLockCard = {
-  entity: "",
-  label: "",
-  icon: "Lock",
-  icon_on: "Lock Open",
-  sensor: "",
-  unit: "",
-  type: "screen_lock",
-  precision: "",
-  options: "",
-};
-assertButtonRoundTrip(hooks, "screen lock local card", screenLockCard, false);
-assertButtonRoundTrip(hooks, "screen lock screensaver on lock", { ...screenLockCard, options: "screensaver_on_lock" }, false);
-assert.deepStrictEqual(
-  buttonShape(hooks.parseButtonConfig(hooks.serializeButtonConfig({
-    entity: "switch.should_not_save",
-    label: "Screen Lock",
-    icon: "Auto",
-    icon_on: "Auto",
-    sensor: "sensor.should_not_save",
-    unit: "%",
-    type: "screen_lock",
-    precision: "2",
-    options: "large_numbers",
-  }))),
-  buttonShape(screenLockCard),
-  "screen lock card strips non-local config fields"
-);
 
 assertButtonRoundTrip(hooks, "webhook post json", {
   entity: "https://maker.ifttt.com/trigger/door/json/with/key/test",
@@ -2810,29 +2527,6 @@ assertButtonMigration(hooks, "legacy weather forecast card", "weather.forecast_h
   precision: "tomorrow",
 });
 
-assertButtonMigration(hooks, "legacy text sensor card", "sensor.washer_state;Washer;Washer;Auto;;;text_sensor", {
-  entity: "",
-  label: "",
-  icon: "Washer",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "sensor",
-  precision: "text",
-});
-
-assertButtonMigration(hooks, "legacy local sensor card", "room_temp;Living Room;Auto;Thermometer;;°C;local_sensor;1;large_numbers", {
-  entity: "room_temp",
-  label: "Living Room",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "local",
-  unit: "°C",
-  type: "sensor",
-  precision: "1",
-  options: "",
-});
-
 assertButtonMigration(hooks, "legacy media controls card", "media_player.living_room;Living Room;Speaker;Auto;controls;;media", {
   entity: "media_player.living_room",
   label: "Living Room",
@@ -3232,28 +2926,6 @@ assertButtonMigration(hooks, "legacy option select becomes action subtype", "sel
   precision: "",
 });
 
-assert.deepStrictEqual(buttonShape(hooks.parseButtonConfig("light.legacy;Legacy;Auto;Lightbulb;sensor.legacy;W;sensor;1")), buttonShape({
-  entity: "light.legacy",
-  label: "Legacy",
-  icon: "Auto",
-  icon_on: "Lightbulb",
-  sensor: "sensor.legacy",
-  unit: "W",
-  type: "sensor",
-  precision: "1",
-}), "legacy button parse");
-
-assert.deepStrictEqual(buttonShape(hooks.parseButtonConfig("~light.compact,Compact%3B%20Label,Auto,Auto,sensor.compact,deg%3BC,sensor,2")), buttonShape({
-  entity: "light.compact",
-  label: "Compact; Label",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "sensor.compact",
-  unit: "deg;C",
-  type: "sensor",
-  precision: "2",
-}), "compact button parse");
-
 assertButtonMigration(hooks, "legacy horizontal slider card", "light.strip;Strip;Lightbulb;Lightbulb On;h;;slider", {
   entity: "light.strip",
   label: "Strip",
@@ -3265,30 +2937,12 @@ assertButtonMigration(hooks, "legacy horizontal slider card", "light.strip;Strip
   precision: "",
 });
 
-assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("1,B,2|light.legacy:Legacy:Auto:Lightbulb:::|sensor.room:Room:Thermometer:Auto:sensor.room:deg C:sensor:1")), {
-  order: ["1", "B", "2"],
-  buttons: [
-    buttonShape({ entity: "light.legacy", label: "Legacy", icon: "Auto", icon_on: "Lightbulb" }),
-    buttonShape({ entity: "sensor.room", label: "Room", icon: "Thermometer", icon_on: "Auto", sensor: "sensor.room", unit: "deg C", type: "sensor", precision: "1" }),
-  ],
-}, "legacy subpage parse");
-
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("1,B|cover.office_blind:Office Blind:Blinds:Blinds Open:tilt::cover")), {
   order: ["1", "B"],
   buttons: [
     buttonShape({ entity: "cover.office_blind", label: "Office Blind", icon: "Blinds", icon_on: "Blinds Open", sensor: "tilt", type: "cover" }),
   ],
 }, "legacy cover tilt subpage parse");
-
-assertSubpageMigration(hooks, "legacy mixed subpage migration", "1,B,2,3,4|weather.forecast_home:Weather:Auto:Auto:::weather_forecast|sensor.washer_state:Washer:Washer:Auto:::text_sensor|media_player.living_room:Living Room:Speaker:Auto:controls::media|light.strip:Strip:Lightbulb:Lightbulb On:h::slider", {
-  order: ["1", "B", "2", "3", "4"],
-  buttons: [
-    buttonShape({ entity: "weather.forecast_home", label: "", icon: "Auto", icon_on: "Auto", type: "weather", precision: "tomorrow" }),
-    buttonShape({ entity: "", label: "", icon: "Washer", icon_on: "Auto", type: "sensor", precision: "text" }),
-    buttonShape({ entity: "media_player.living_room", label: "Living Room", icon: "Auto", icon_on: "Auto", sensor: "play_pause", type: "media" }),
-    buttonShape({ entity: "light.strip", label: "Strip", icon: "Lightbulb", icon_on: "Lightbulb On", type: "slider" }),
-  ],
-});
 
 assertSubpageRoundTrip(hooks, "normal subpage", {
   order: ["1", "B", "2"],
@@ -3340,14 +2994,6 @@ assertSubpageRoundTrip(hooks, "switch confirmation subpage", {
     buttonShape(confirmSwitch),
   ],
 }, false);
-
-assertSubpageRoundTrip(hooks, "internal relay subpage", {
-  order: ["1", "B"],
-  buttons: [
-    buttonShape({ entity: "relay_1", label: "Relay", icon: "Power Plug", type: "internal" }),
-    buttonShape({ entity: "relay_2", label: "Bell", icon: "Gesture Tap", sensor: "push", type: "internal" }),
-  ],
-}, true);
 
 assertSubpageRoundTrip(hooks, "cover toggle subpage", {
   order: ["1", "B"],
@@ -3577,25 +3223,6 @@ assertSubpageMigration(hooks, "fan subpage clears ignored fields", "~1,B|E,fan.b
   ],
 });
 
-assertSubpageRoundTrip(hooks, "delimiter subpage", {
-  order: ["1", "B", "2"],
-  buttons: [
-    buttonShape({ entity: "light.zone", label: "Kitchen: west | 50%, main", icon: "Auto", icon_on: "Auto" }),
-    buttonShape({ entity: "sensor.zone", label: "Temp: west | 50%", icon: "Thermometer", icon_on: "Auto", sensor: "sensor.zone", unit: "deg:C", type: "sensor", precision: "1", options: "large_numbers" }),
-  ],
-}, true);
-
-const customBackLabelSubpage = {
-  order: ["1", "B", "2"],
-  backLabel: "Return Home",
-  buttons: [
-    buttonShape({ entity: "light.zone", label: "Zone", icon: "Auto", icon_on: "Auto" }),
-    buttonShape({ entity: "sensor.zone", label: "Temp", icon: "Thermometer", icon_on: "Auto", sensor: "sensor.zone", unit: "°C", type: "sensor", precision: "1" }),
-  ],
-};
-const customBackLabelEncoded = assertSubpageRoundTrip(hooks, "custom back label subpage", customBackLabelSubpage, true);
-assert.strictEqual(hooks.parseSubpageConfig(customBackLabelEncoded).backLabel, "Return Home", "custom back label round-trips through subpage config");
-
 assertSubpageRoundTrip(hooks, "extra tall and extra wide subpage order", {
   order: ["Bt", "1t", "", "", "", "Bx", "2x"],
   buttons: [
@@ -3603,14 +3230,6 @@ assertSubpageRoundTrip(hooks, "extra tall and extra wide subpage order", {
     buttonShape({ entity: "light.wide", label: "Wide", icon: "Auto", icon_on: "Auto" }),
   ],
 }, false);
-
-assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B,2|L,light.strip,Strip%20A,Lightbulb,Lightbulb%20On,h,,|S,sensor.temp,Temp,Thermometer,,sensor.temp,deg%20C,1")), {
-  order: ["1", "B", "2"],
-  buttons: [
-    buttonShape({ entity: "light.strip", label: "Strip A", icon: "Lightbulb", icon_on: "Lightbulb On", sensor: "", type: "slider" }),
-    buttonShape({ entity: "sensor.temp", label: "Temp", icon: "Thermometer", icon_on: "Auto", sensor: "sensor.temp", unit: "deg C", type: "sensor", precision: "1" }),
-  ],
-}, "compact subpage parse");
 
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|X,,Kitchen%20Window,Window%20Closed,Window%20Open,binary_sensor.kitchen_window,,window,active_color")), {
   order: ["1", "B"],
@@ -3718,13 +3337,6 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|C,cover.offic
     buttonShape({ entity: "cover.office_blind", label: "Office Blind", icon: "Blinds", icon_on: "Auto", sensor: "set_position", unit: "35", type: "cover" }),
   ],
 }, "compact cover set position subpage parse");
-
-assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|I,relay_2,Gate,Power%20Plug,Power,push")), {
-  order: ["1", "B"],
-  buttons: [
-    buttonShape({ entity: "relay_2", label: "Gate", icon: "Power Plug", icon_on: "Power", sensor: "push", type: "internal" }),
-  ],
-}, "compact internal relay subpage parse");
 
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|A,scene.movie_mode,Movie%20Mode,Flash,,scene.turn_on")), {
   order: ["1", "B"],
