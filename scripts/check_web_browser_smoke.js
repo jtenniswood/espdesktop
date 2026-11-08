@@ -8191,7 +8191,7 @@ async function assertS3ForecastEditorLayout(browser) {
 async function assertCameraScreensaverDimming(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   const nativeState = nativeConfigState(testCase.slug);
-  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true, connectorsStatus: { onboarding_complete: true, home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true }, mac_companion: { available: false, configured: false, paired: false, connected: false } } });
+  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
   const page = await context.newPage();
   const posts = [], errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -8687,6 +8687,7 @@ async function assertAppSubpageOpeningPreference(browser) {
 
 async function assertSubpageTitleBarSetting(browser, testCase) {
   const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons[2] = "light.office;Office;Lightbulb;Auto";
   fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
   fixture.document.subpages[1] = "~B,1|companion,shortcut.command+r,Reload,Refresh,Auto";
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -8699,6 +8700,7 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
     await page.evaluate(({ clockOn, savedTitle }) => window.__seedEspState([
       { id: "switch-screen__clock_bar", state: clockOn ? "ON" : "OFF", value: clockOn },
       { id: "switch-subpage_title_bar_enabled", state: savedTitle ? "ON" : "OFF", value: savedTitle },
+      { id: "switch-swipe_up_page_enabled", state: "ON", value: true },
     ]), { clockOn, savedTitle });
     await page.waitForFunction(on => document.querySelector(".sp-topbar").classList.contains("sp-hidden") === !on, clockOn);
   }
@@ -8745,6 +8747,9 @@ async function assertSubpageClockBar(browser, testCase) {
 
 async function assertSpecialPageEntry(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[2] = "light.office;Office;Lightbulb;Auto";
+  nativeState.document.settings.special_page = "~B,1|,light.kitchen,Kitchen,Lightbulb,Auto";
+  const savedPage = nativeState.document.settings.special_page;
   const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
     ? { width: 390, height: 844 } : testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
@@ -8780,10 +8785,27 @@ async function assertSpecialPageEntry(browser, testCase) {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
     await page.waitForSelector("#sp-app");
     await seedNativeDocument(page, nativeState);
+    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
+    assert.strictEqual(await entry.count(), 0, "swipe-up editor entry is off by default");
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    const toggle = page.locator("#sp-set-swipe-up-page");
+    const card = page.locator("#sp-settings .card").filter({ has: toggle });
+    await card.locator(".card-header").click();
+    assert.strictEqual(await toggle.isChecked(), false, "swipe-up setting defaults off");
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await openPage();
     await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    assert.strictEqual(await entry.count(), 0, "turning swipe-up off hides its entry");
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await openPage();
 
+    assert.strictEqual(nativeState.document.settings.special_page, savedPage, "toggling keeps saved swipe-up cards");
     console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
 
   } finally { await context.close(); }

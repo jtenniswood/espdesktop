@@ -181,6 +181,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postAutoOpenAppSubpages,
         postReturnHomeOnAppSwitch,
         postSubpageTitleBar,
+        postSwipeUpPage,
     } = controllers.clockBarPostApi;
     const {
         postText,
@@ -313,6 +314,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 auto_open_app_subpages: state.autoOpenAppSubpages,
                 return_home_on_app_switch: state.returnHomeOnAppSwitch,
                 subpage_title_bar: state.subpageTitleBarOn,
+                swipe_up_page: state.swipeUpPageOn,
                 timezone: state.timezone,
                 language: normalizeLanguage(state.language),
                 clock_format: state.clockFormat,
@@ -609,6 +611,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
                     postReturnHomeOnAppSwitch(importedSettings.returnHomeOnAppSwitch);
                     postSubpageTitleBar(importedSettings.subpageTitleBar);
+                    postSwipeUpPage(importedSettings.swipeUpPage);
                     var importedTimezone: any = importedSettings.timezone;
                     var importedTemperatureUnit: any = importedSettings.temperatureUnit;
                     var importedLanguage: any = importedSettings.language;
@@ -714,6 +717,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
                     state.subpageTitleBarOn = importedSettings.subpageTitleBar;
+                    state.swipeUpPageOn = importedSettings.swipeUpPage;
                     if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
                     if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
                     state.timezone = importedTimezone;

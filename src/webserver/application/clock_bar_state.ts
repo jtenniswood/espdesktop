@@ -267,6 +267,7 @@ export function createClockBarFeature(
         if (els.topbar)
             els.topbar.className = "sp-topbar" + (visible ? "" : " sp-hidden");
         if (els.setSubpageTitleBar) els.setSubpageTitleBar.checked = state.subpageTitleBarOn;
+        if (els.setSwipeUpPage) els.setSwipeUpPage.checked = state.swipeUpPageOn;
         if (els.setSubpageTitleBarRow) {
             els.setSubpageTitleBarRow.hidden = !!state.clockBarOn;
             els.setSubpageTitleBarRow.classList.toggle("sp-hidden", !!state.clockBarOn);

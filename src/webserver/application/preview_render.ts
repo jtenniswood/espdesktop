@@ -413,7 +413,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     }
     function renderPreview(this: any) {
         if (els.specialPageEntry) {
-            els.specialPageEntry.hidden = state.editingSubpage === -1;
+            els.specialPageEntry.hidden = !state.swipeUpPageOn || state.editingSubpage === -1;
             els.specialPageEntry.disabled = state.configLocked;
         }
         appIconResizeObserver?.disconnect();

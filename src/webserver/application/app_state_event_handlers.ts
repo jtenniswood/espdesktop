@@ -214,6 +214,12 @@ export function createAppStateEventHandlersFeature(
                 state.temperatureDegreeSymbolOn = d.value === true || val === "ON";
                 syncClockBarUi();
             },
+            "switch-screen__swipe_up_page": function (this: any, val?: any, d?: any) {
+                state.swipeUpPageOn = d.value === true || val === "ON";
+                if (!state.swipeUpPageOn && state.editingSubpage === -1) state.editingSubpage = null;
+                syncClockBarUi();
+                renderPreview();
+            },
             "switch-screen__subpage_title_bar": function (this: any, val?: any, d?: any) {
                 state.subpageTitleBarOn = d.value === true || val === "ON";
                 syncClockBarUi();

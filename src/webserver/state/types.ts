@@ -155,6 +155,7 @@ export interface AppState {
   autoOpenAppSubpages: boolean;
   returnHomeOnAppSwitch: boolean;
   subpageTitleBarOn: boolean;
+  swipeUpPageOn: boolean;
   presenceEntity: string;
   screensaverCameraEntity: string;
   screensaverCameraSupported: boolean;

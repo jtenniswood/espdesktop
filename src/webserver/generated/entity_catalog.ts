@@ -192,6 +192,15 @@ export const ENTITY_CATALOG = {
         "subpage_title_bar_enabled"
       ]
     },
+    "screen_swipe_up_page": {
+      "domain": "switch",
+      "name": "Screen: Swipe-up Page",
+      "objectIds": [
+        "screen__swipe_up_page",
+        "screen_swipe_up_page",
+        "swipe_up_page_enabled"
+      ]
+    },
     "screen_subpage_chevron": {
       "domain": "switch",
       "name": "Screen: Subpage Chevron",
@@ -888,6 +897,7 @@ export const ENTITY_CATALOG = {
       "companion_auto_open_app_subpages",
       "companion_return_home_on_app_switch",
       "screen_subpage_title_bar",
+      "screen_swipe_up_page",
       "screen_subpage_chevron",
       "screen_temperature_unit",
       "indoor_temp_entity",

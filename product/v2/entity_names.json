@@ -36,6 +36,7 @@
     { "key": "companion_auto_open_app_subpages", "domain": "switch", "name": "Companion: Auto Open App Subpages", "objectIds": ["companion__auto_open_app_subpages", "companion_auto_open_app_subpages", "companion_auto_open_app_subpages_enabled"], "groups": ["settings"] },
     { "key": "companion_return_home_on_app_switch", "domain": "switch", "name": "Companion: Return Home On App Switch", "objectIds": ["companion__return_home_on_app_switch", "companion_return_home_on_app_switch", "companion_return_home_on_app_switch_enabled"], "groups": ["settings"] },
     { "key": "screen_subpage_title_bar", "domain": "switch", "name": "Screen: Subpage Title Bar", "objectIds": ["screen__subpage_title_bar", "screen_subpage_title_bar", "subpage_title_bar_enabled"], "groups": ["settings"] },
+    { "key": "screen_swipe_up_page", "domain": "switch", "name": "Screen: Swipe-up Page", "objectIds": ["screen__swipe_up_page", "screen_swipe_up_page", "swipe_up_page_enabled"], "groups": ["settings"] },
     { "key": "screen_subpage_chevron", "domain": "switch", "name": "Screen: Subpage Chevron", "objectIds": ["screen__subpage_chevron", "screen_subpage_chevron", "subpage_chevrons_enabled"], "groups": ["settings"] },
     { "key": "screen_temperature_unit", "domain": "select", "name": "Screen: Temperature Unit", "groups": ["settings"] },
     { "key": "indoor_temp_entity", "domain": "text", "name": "Indoor Temp Entity", "groups": ["settings"] },

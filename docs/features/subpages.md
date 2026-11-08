@@ -58,7 +58,9 @@ screensavers and while a popup is open.
 
 ## Swipe-up page
 
-Swipe up from the bottom edge of the home screen or a card subpage to open a
+The swipe-up page is **off by default**. Turn on **Screen → Swipe-up Page → Enable swipe-up page** to use it. The setting is saved across restarts and included in backups; older backups without this setting leave it off. Turning it off hides the layout editor button and keeps the page’s saved cards.
+
+When enabled, swipe up from the bottom edge of the home screen or a card subpage to open a
 separate page. A short upward swipe from the bottom edge opens it; a long drag
 is not needed. Choose **Configure swipe-up page** below the display preview in the web layout editor to add cards.
 The page has no title above the preview or on the display.

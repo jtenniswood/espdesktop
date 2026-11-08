@@ -9,6 +9,8 @@ ROOT = Path(__file__).resolve().parents[2]
 header = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
 press_state = header[header.index('struct NavigationGridGesturePress {'):header.index('inline void navigation_grid_screen_gesture(')]
 return_handler = definition(header, 'navigation_return_from_special_page')[1]
+setting_handlers = '\n'.join(definition(header, name)[1] for name in [
+    'navigation_special_page_enabled', 'navigation_set_special_page_enabled', 'navigation_open_special_page'])
 handler = definition(header, 'navigation_grid_screen_gesture')[1]
 label_handler = definition(header, 'navigation_active_subpage_label')[1]
 registration = definition(header, 'navigation_register_grid_screen_gesture')[1]
@@ -191,4 +193,27 @@ with tempfile.TemporaryDirectory() as tmp:
     source.write_text(stubs+press_state+return_handler+handler+registration+label_handler+checks)
     subprocess.run([sys.argv[1] if len(sys.argv)>1 else 'c++','-std=c++17','-Wall','-Wextra','-Werror',str(source),'-o',str(binary)],check=True)
     subprocess.run([str(binary)],check=True)
+with tempfile.TemporaryDirectory() as tmp:
+    source = Path(tmp) / 'setting.cpp'
+    binary = Path(tmp) / 'setting'
+    setting_stubs = stubs.replace('bool navigation_open_special_page() { ++opened; return true; }', '')
+    source.write_text(setting_stubs + return_handler + setting_handlers + r'''
+int main() {
+  (void)LV_DIR_RIGHT; (void)LV_DIR_LEFT; (void)LV_DIR_BOTTOM; (void)LV_EVENT_RELEASED;
+  special_entry.screen = &special;
+  assert(!navigation_special_page_enabled());
+  assert(!navigation_open_special_page() && active == &grid);
+  navigation_set_special_page_enabled(true);
+  assert(navigation_open_special_page() && active == &special);
+  navigation_set_special_page_enabled(false);
+  assert(active == &grid && !navigation_open_special_page());
+  navigation_set_special_page_enabled(true);
+  active = &subgrid;
+  assert(navigation_open_special_page());
+  navigation_set_special_page_enabled(false);
+  assert(active == &subgrid);
+}
+''')
+    subprocess.run([sys.argv[1] if len(sys.argv)>1 else 'c++', '-std=c++17', '-Wall', '-Wextra', '-Werror', str(source), '-o', str(binary)], check=True)
+    subprocess.run([str(binary)], check=True)
 print('Special-page gesture guards passed for Screen Lock, modals, setup/screensaver modes and bottom/left-edge swipes.')

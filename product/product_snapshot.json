@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 38,
-    "entityNames": 125,
+    "entityNames": 126,
     "icons": 401,
     "structuralIcons": 37,
     "compatibilityFixtureGroups": 2
@@ -6531,6 +6531,19 @@
           "screen__subpage_title_bar",
           "screen_subpage_title_bar",
           "subpage_title_bar_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_swipe_up_page",
+        "domain": "switch",
+        "name": "Screen: Swipe-up Page",
+        "objectIds": [
+          "screen__swipe_up_page",
+          "screen_swipe_up_page",
+          "swipe_up_page_enabled"
         ],
         "groups": [
           "settings"

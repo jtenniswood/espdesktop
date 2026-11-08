@@ -62,6 +62,7 @@
       "autoOpenAppSubpages": true,
       "returnHomeOnAppSwitch": true,
       "subpageTitleBar": true,
+      "swipeUpPage": false,
       "timezone": "Europe/London (GMT+0)",
       "temperatureUnit": "\u00b0F",
       "language": "en",

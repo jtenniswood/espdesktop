@@ -190,7 +190,20 @@ inline bool navigation_return_from_special_page() {
   return true;
 }
 
+inline bool &navigation_special_page_enabled() {
+  static bool enabled = false;
+  return enabled;
+}
+
+inline void navigation_set_special_page_enabled(bool enabled) {
+  navigation_special_page_enabled() = enabled;
+  const auto *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+  if (!enabled && entry != nullptr && lv_scr_act() == entry->screen)
+    navigation_return_from_special_page();
+}
+
 inline bool navigation_open_special_page() {
+  if (!navigation_special_page_enabled()) return false;
   NavigationSubpageEntry *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
   if (entry == nullptr || entry->screen == nullptr) return false;
   if (lv_scr_act() != entry->screen) {
