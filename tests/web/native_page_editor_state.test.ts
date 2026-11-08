@@ -118,11 +118,11 @@ export async function runNativeEditorTransferLockTests(): Promise<void> {
     shell, closeSettings() {}, render() {}, canApply: () => true });
   const background = editor.refresh();
   check(!state.nativeConfigLoading, "a loaded editor does not take the initial snapshot lock");
-  check(state.nativeTransferActive && shell.isConfigLocked() && apply.disabled && classes["sp-config-locked"],
+  check(state.nativeTransferActive && shell.isConfigLocked() && apply.disabled && classes["sp-config-busy"] && !classes["sp-config-locked"],
     "starting background discovery cannot release the transfer's edit or navigation lock");
   discover(false); await background;
   check(state.nativeTransferActive && shell.isConfigLocked() && apply.disabled,
     "finishing background discovery cannot release another operation's lock");
   state.nativeTransferActive = false; shell.syncConfigLockUi();
-  check(!shell.isConfigLocked() && !apply.disabled && !classes["sp-config-locked"], "the transfer owner releases its own lock");
+  check(!shell.isConfigLocked() && !apply.disabled && !classes["sp-config-busy"] && !classes["sp-config-locked"], "the transfer owner releases its own lock");
 }

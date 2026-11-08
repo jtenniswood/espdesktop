@@ -52,8 +52,14 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             return;
         c = c || ctx();
         els.previewHint.style.display = "";
-        if (isConfigLocked()) {
+        if (state.configLocked) {
             els.previewHint.textContent = "Editing is paused while the device reconnects";
+        }
+        else if (state.nativeTransferActive) {
+            els.previewHint.textContent = "Updating cards\u2026";
+        }
+        else if (isConfigLocked()) {
+            els.previewHint.textContent = state.nativeConfigReadOnly ? "Read-only configuration" : "Loading pages\u2026";
         }
         else if (state.clockBarSelectedItem) {
             els.previewHint.textContent = clockBarItemLabel(state.clockBarSelectedItem) + " selected";
