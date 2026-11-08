@@ -224,6 +224,22 @@ inline std::string calendar_date_entity_or_default(const std::string &entity_id)
 }
 
 
+struct TimezoneCardRef {
+  lv_obj_t *value_lbl;
+  lv_obj_t *unit_lbl;
+  lv_obj_t *label_lbl;
+  std::string timezone;
+  std::string label;
+  bool show_label;
+};
+
+struct TimezoneCardState {
+  bool valid = false;
+  time_t epoch = 0;
+  std::string active_timezone;
+  bool use_12h = false;
+};
+
 inline TimezoneCardState &timezone_card_state() {
   static TimezoneCardState state;
   return state;
