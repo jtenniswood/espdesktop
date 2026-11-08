@@ -8802,7 +8802,7 @@ async function assertRetiredCardRemoval(browser) {
     };
     nativeState.document.settings.button_order = "1,2,3";
     nativeState.document.subpages = {
-      3: `~B,1,2|${type},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
+      3: `~B,1w,,2|${type},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
     };
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
@@ -8818,6 +8818,12 @@ async function assertRetiredCardRemoval(browser) {
       await page.waitForSelector('.sp-main [data-slot="-2"]');
       assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old subpage tile is removed`);
       assert.equal(await page.locator('.sp-main [data-slot="2"]').count(), 1, `${type}: neighbouring card is preserved`);
+      await page.locator('.sp-back-btn .sp-back-hit').click();
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.waitForSelector('.sp-main [data-slot="-2"]');
+      assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: retired span stays free after reopening`);
+      assert.equal(await page.locator('.sp-main [data-slot="2"]').count(), 1, `${type}: reopening preserves the neighbouring card`);
+
     } finally { await context.close(); }
   }
   console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);

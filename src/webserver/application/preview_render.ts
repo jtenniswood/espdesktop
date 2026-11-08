@@ -243,7 +243,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const document = dependencies.document;
     const els = dependencies.runtime.els;
     const { cardOnPattern } = dependencies.confirmationOptions;
-    const { getSubpage } = dependencies.codec;
+    const { getSubpage, serializeSubpageGrid } = dependencies.codec;
     const { gridPreviewBlocked: gridPreviewBlockedByRotationStartup } = dependencies.screenRotation;
     const { isConfigLocked } = dependencies.shell;
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
@@ -437,6 +437,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         main.removeAttribute("aria-busy");
         var c: any = ctx();
         const removed = removeRetiredCards(c.grid, c.sizes, c.buttons, dependencies.layout.gridCols);
+        if (c.isSub && removed.length) {
+            const subpage = getSubpage(state.editingSubpage);
+            subpage.order = serializeSubpageGrid(subpage);
+        }
         for (const slot of removed) {
             const index = c.selected.indexOf(slot);
             if (index !== -1) c.selected.splice(index, 1);
