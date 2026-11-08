@@ -164,10 +164,16 @@ inline void numeric_selectable_driver_bind_slider(
         (config.entity == "media.input_mute" && config.label == "Microphone Mute") ||
         (config.entity == "media.output_mute" && config.label == "Output Mute")))
       lv_label_set_display_text(slot.text_lbl, companion_volume_control_label(config.entity));
-    if (slot.icon_lbl && (config.icon.empty() || config.icon == "Auto"))
-      lv_label_set_display_text(slot.icon_lbl, find_icon(
-        config.entity == "media.input_mute" ? "Microphone Off" : "Volume Off"));
-    companion_track_mute(slot.btn, config.entity);
+    const bool microphone = config.entity == "media.input_mute";
+    const char *muted_icon_name = microphone ? "Microphone Off" : "Volume Off";
+    // Older cards saved the muted glyph as their default icon.
+    const bool default_icon = config.icon.empty() || config.icon == "Auto" ||
+      config.icon == muted_icon_name;
+    const char *unmuted_icon = find_icon(default_icon
+      ? (microphone ? "Microphone" : "Volume High") : config.icon.c_str());
+    const char *muted_icon = find_icon(muted_icon_name);
+    if (slot.icon_lbl) lv_label_set_display_text(slot.icon_lbl, unmuted_icon);
+    companion_track_mute(slot.btn, config.entity, slot.icon_lbl, unmuted_icon, muted_icon);
     return;
   }
   lv_obj_t *slider = slot.sensor_container

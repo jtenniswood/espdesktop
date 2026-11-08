@@ -732,6 +732,9 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
 struct CompanionMuteRef {
   lv_obj_t *button = nullptr;
   std::string control_id;
+  lv_obj_t *icon_label = nullptr;
+  const char *icon_unmuted = nullptr;
+  const char *icon_muted = nullptr;
 };
 
 struct CompanionViewRegistry {
@@ -819,6 +822,19 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
   companion_request_card_refresh();
 }
 
+inline void companion_apply_mute_state(const CompanionMuteRef &ref,
+                                       const CompanionRuntimeSnapshot &snapshot) {
+  const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
+    [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
+  const bool available = snapshot.connected && value != snapshot.values.end();
+  const bool muted = available && value->value > 0;
+  set_card_disabled_state(ref.button, !available);
+  set_card_checked_state(ref.button, muted);
+  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
+  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label))
+    lv_label_set_text(ref.icon_label, icon);
+}
+
 inline bool companion_forget_mute(lv_obj_t *button) {
   auto &refs = companion_view_registry().mutes;
   const auto previous_size = refs.size();
@@ -828,10 +844,14 @@ inline bool companion_forget_mute(lv_obj_t *button) {
   return refs.size() != previous_size;
 }
 
-inline void companion_track_mute(lv_obj_t *button, const std::string &control_id) {
+inline void companion_track_mute(lv_obj_t *button, const std::string &control_id,
+                                  lv_obj_t *icon_label = nullptr,
+                                  const char *icon_unmuted = nullptr,
+                                  const char *icon_muted = nullptr) {
   if (!button || !companion_mute_control_valid(control_id)) return;
   companion_forget_mute(button);
-  companion_view_registry().mutes.push_back({button, control_id});
+  companion_view_registry().mutes.push_back(
+    {button, control_id, icon_label, icon_unmuted, icon_muted});
   lv_obj_add_event_cb(button, [](lv_event_t *event) {
     companion_forget_mute(static_cast<lv_obj_t *>(lv_event_get_target(event)));
   }, LV_EVENT_DELETE, nullptr);
@@ -1001,13 +1021,8 @@ inline void companion_refresh_cards_if_requested() {
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
     ++it;
   }
-  for (const auto &ref : companion_view_registry().mutes) {
-    const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
-      [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
-    const bool available = snapshot.connected && value != snapshot.values.end();
-    set_card_disabled_state(ref.button, !available);
-    set_card_checked_state(ref.button, available && value->value > 0);
-  }
+  for (const auto &ref : companion_view_registry().mutes)
+    companion_apply_mute_state(ref, snapshot);
   auto &sliders = companion_slider_refs();
   for (auto it = sliders.begin(); it != sliders.end();) {
     if (!it->slider || !lv_obj_is_valid(it->slider)) {
@@ -1038,7 +1053,8 @@ inline void companion_track_metric_card(void *, void *, void *, const std::strin
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
 inline bool companion_forget_mute(void *) { return false; }
-inline void companion_track_mute(void *, const std::string &) {}
+inline void companion_track_mute(void *, const std::string &, void * = nullptr,
+                                 const char * = nullptr, const char * = nullptr) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *) {}
 inline void companion_refresh_cards_if_requested() {}

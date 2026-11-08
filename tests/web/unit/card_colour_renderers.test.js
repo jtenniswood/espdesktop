@@ -152,8 +152,8 @@ test("Webhook editors preserve colour when reopening and editing or clearing hea
 
 test("Volume controls offer microphone and output mute as tap cards and preserve custom labels", () => {
   for (const [mode, id, label, icon] of [
-    ["mac_input_mute", "media.input_mute", "Microphone Mute", "Microphone Off"],
-    ["mac_output_mute", "media.output_mute", "Output Mute", "Volume Off"],
+    ["mac_input_mute", "media.input_mute", "Microphone Mute", "Microphone"],
+    ["mac_output_mute", "media.output_mute", "Output Mute", "Volume High"],
   ]) {
     for (const custom of ["", "My Audio"]) {
       const e = editor();
@@ -177,7 +177,7 @@ test("Volume controls offer microphone and output mute as tap cards and preserve
 test("Mac volume and mute cards have one icon picker matching the display default", () => {
   for (const [entity, expected] of [
     ["media.output_volume", "Volume High"], ["media.input_volume", "Microphone"],
-    ["media.output_mute", "Volume Off"], ["media.input_mute", "Microphone Off"],
+    ["media.output_mute", "Volume High"], ["media.input_mute", "Microphone"],
   ]) for (const icon of ["", "Auto", "Star"]) {
     const e = editor();
     const card = { type: "slider", entity, icon, icon_on: "Bell" };
@@ -197,4 +197,18 @@ test("Mac volume and mute cards have one icon picker matching the display defaul
   const e = editor();
   e.registry.definitions.slider.renderSettings(element(), { type: "slider", entity: "light.office" }, 1, e.helpers);
   assert(e.icons.some(icon => icon.metadata.field === "icon_on"));
+});
+
+
+test("existing mute cards use normal speaker and mic icons when their saved defaults were muted glyphs", () => {
+  for (const [entity, icon, expected] of [
+    ["media.output_mute", "Volume Off", "Volume High"],
+    ["media.input_mute", "Microphone Off", "Microphone"],
+  ]) {
+    const e = editor(), card = { type: "slider", entity, icon };
+    const definition = e.registry.definitions.slider;
+    definition.renderSettings(element(), card, 1, e.helpers);
+    assert.equal(e.icons[0].metadata.value, expected);
+    assert(definition.renderPreview(card, e.helpers).iconHtml.includes("mdi-" + expected.toLowerCase().replaceAll(" ", "-")));
+  }
 });

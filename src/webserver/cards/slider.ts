@@ -45,14 +45,21 @@ function companionSliderDefaultLabel(mode: string): string {
 function companionSliderDefaultIcon(mode: string): string {
     if (mode === "mac_output") return "Volume High";
     if (mode === "mac_input") return "Microphone";
-    if (mode === "mac_output_mute") return "Volume Off";
-    if (mode === "mac_input_mute") return "Microphone Off";
+    if (mode === "mac_output_mute") return "Volume High";
+    if (mode === "mac_input_mute") return "Microphone";
     return "Auto";
+}
+
+function companionSliderNormalIcon(icon: string, mode: string): string {
+    const oldMuteDefault = mode === "mac_output_mute" ? "Volume Off"
+        : mode === "mac_input_mute" ? "Microphone Off" : "";
+    return !icon || icon === "Auto" || icon === oldMuteDefault
+        ? companionSliderDefaultIcon(mode) : icon;
 }
 
 export function companionSliderIcon(icon: string, previousMode: string, nextMode: string): string {
     const previousDefault = companionSliderDefaultIcon(previousMode);
-    if (!icon || icon === "Auto" || icon === previousDefault) {
+    if (companionSliderNormalIcon(icon, previousMode) === previousDefault) {
         return companionSliderDefaultIcon(nextMode);
     }
     return icon;
@@ -390,7 +397,7 @@ export function registerSliderCardTypes(
                         pickerIdSuffix: "icon-picker",
                         idSuffix: "icon",
                         field: "icon",
-                        value: b.icon && b.icon !== "Auto" ? b.icon : defaultIcon,
+                        value: companionSliderNormalIcon(b.icon, sliderMode),
                         fallback: defaultIcon,
                         label: "Icon",
                         onChange: function () { renderButtonSettings(); },
@@ -471,7 +478,9 @@ export function registerSliderCardTypes(
                     ? iconSlug(companionSliderDefaultIcon(sliderMode)) : opts.fallbackIcon;
                 var label: any = sliderMode === "mac_output" && b.label === "Output Volume"
                     ? defaultLabel : b.label || defaultLabel;
-                var iconName: any = b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;
+                var iconName: any = sliderMode !== "home_assistant"
+                    ? iconSlug(companionSliderNormalIcon(b.icon, sliderMode))
+                    : b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;
                 if (sliderMode === "mac_output_mute" || sliderMode === "mac_input_mute" ||
                     (opts.interactionMode && (b.sensor === "toggle" || coverCommandMode(b.sensor)))) {
                     return {
