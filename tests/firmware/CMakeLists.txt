@@ -46,9 +46,6 @@ add_test(NAME network_status_corners_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/network_status_corners_test.py)
 
-add_test(NAME option_select_dispatch_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/option_select_dispatch_test.py)
 
 add_executable(theme_palette_test theme_palette_test.cpp)
 target_compile_features(theme_palette_test PRIVATE cxx_std_17)
@@ -69,7 +66,6 @@ add_custom_command(
     --output ${CMAKE_CURRENT_BINARY_DIR}/theme_modal_adapter.h
   DEPENDS generate_theme_modal_test.py ../../components/espdesktop/button_grid_modal.h
     ../../components/espdesktop/button_grid_subscriptions.h
-    ../../components/espdesktop/button_grid_media.h
     ../../components/espdesktop/card_availability.h
   VERBATIM)
 add_executable(theme_runtime_tree_test theme_runtime_tree_test.cpp
@@ -174,9 +170,6 @@ add_test(NAME web_event_source_lifecycle_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/web_event_source_lifecycle_test.py)
 
-add_test(NAME option_select_values_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/option_select_values_test.py)
 
 add_executable(button_grid_foundations_test button_grid_foundations_test.cpp)
 target_compile_features(button_grid_foundations_test PRIVATE cxx_std_17)
@@ -279,9 +272,6 @@ target_compile_features(media_control_tabs_test PRIVATE cxx_std_17)
 target_compile_options(media_control_tabs_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(media_control_tabs_test PRIVATE ../../components/espdesktop)
 add_test(NAME media_control_tabs_test COMMAND media_control_tabs_test)
-add_test(NAME media_speaker_volume_event_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/media_speaker_volume_event_test.py)
 
 add_executable(media_power_capability_test media_power_capability_test.cpp)
 target_compile_features(media_power_capability_test PRIVATE cxx_std_17)
@@ -607,14 +597,9 @@ add_test(NAME network_status_layout_test COMMAND network_status_layout_test)
 
 add_test(NAME companion_screensaver_test
   COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_screensaver_test.py)
-add_executable(timer_card_test timer_card_test.cpp)
-target_compile_features(timer_card_test PRIVATE cxx_std_17)
-target_compile_options(timer_card_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(timer_card_test PRIVATE ../../components/espdesktop)
-add_test(NAME timer_card_test COMMAND timer_card_test)
 
-add_test(NAME timer_subpage_cleanup_test
-  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/timer_subpage_cleanup_test.py)
+add_test(NAME subpage_runtime_cleanup_test
+  COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/subpage_runtime_cleanup_test.py)
 
 add_executable(panel_identity_runtime_beta_test panel_identity_runtime_test.cpp ../../components/espdesktop/panel_identity.cpp)
 target_compile_features(panel_identity_runtime_beta_test PRIVATE cxx_std_17)

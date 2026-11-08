@@ -137,7 +137,6 @@ TASKS = (
              "components/espdesktop/button_grid_climate.h",
              "components/espdesktop/climate_state_logic.h",
              "components/espdesktop/button_grid_media_slider_lifecycle.h",
-             "components/espdesktop/button_grid_media.h",
              "common/device/screen_cover_art.yaml",
              "common/config/display.yaml",
              "devices/guition-esp32-p4-jc1060p470/device/device.yaml",

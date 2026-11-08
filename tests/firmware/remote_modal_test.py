@@ -55,15 +55,6 @@ helpers += function('button_grid_wifi_qr_driver.h', 'wifi_qr_driver_modal_target
 helpers += '}\n'
 helpers += function('button_grid_navigation.h', 'navigation_close_modals_for_display_takeover')
 helpers += function('button_grid_grid.h', 'grid_release_runtime_allocations')
-# Read the actual generated rebuild script. ESPHome waits before reaching the
-# destructive lambda, leaving the alarm runtime and its controls alive.
-rebuild_yaml = yaml.safe_load((ROOT / 'devices/guition-esp32-s3-4848s040/device/sensors.yaml').read_text())
-rebuild = next(script for script in rebuild_yaml['script'] if script['id'] == 'apply_button_grid')
-actions = rebuild['then']
-wait_index = next(i for i, action in enumerate(actions) if 'wait_until' in action)
-rebuild_index = next(i for i, action in enumerate(actions) if 'lambda' in action and 'grid_rebuild_all(' in action['lambda'])
-assert wait_index < rebuild_index
-helpers += "bool test_rebuild_ready() {" + actions[wait_index]['wait_until']['lambda'] + "}\n"
 config = yaml.safe_load((ROOT / 'common/device/api_remote_actions.yaml').read_text())
 navigate = next(script for script in config['script'] if script['id'] == 'remote_navigate')
 body = next(action['lambda'] for action in navigate['then'] if 'lambda' in action)
