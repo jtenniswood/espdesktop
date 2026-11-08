@@ -36,6 +36,8 @@ Choose **Apply Configuration** to save your changes to the display.
 
 To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage, Back and Close buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
 
+Returning with **Back** or a swipe shows the destination page before loading any missing app artwork. Cached icons appear straight away; other icons can appear shortly afterward.
+
 ## Swipe back
 
 Swipe right from the left edge of a subpage to use its **Back** action. This also
