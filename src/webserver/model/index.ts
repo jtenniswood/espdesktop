@@ -145,7 +145,6 @@ export {
   normalizeScreensaverCameraImageMode,
   normalizeScreensaverCameraDimming,
   normalizeScreensaverDimmedBrightness,
-  normalizeTemperatureUnit,
   normalizeTimeOfDay,
   scheduleModeOption,
   scheduleSensorActivationOption,

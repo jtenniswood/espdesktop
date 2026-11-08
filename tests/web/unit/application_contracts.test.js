@@ -131,7 +131,6 @@ describe("browserless application contracts", () => {
     const entities = createEntityStateFeature({
       actionCardStateEntity: () => "",
       totalSlots: () => 12,
-      clockBarTemperatureEntities: () => [],
       textInput: () => ({}),
     });
     assert.equal(entities.entityName("button_order"), "Button Order");
@@ -269,7 +268,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /timezoneId: \(value\) => statusPreview\.getTzId\(value\)/);
     assert.match(app, /statusPreview\.updateClock\(\)/);
     assert.match(handlers, /statusPreview: Pick<AppStatusPreviewFeature,/);
-    assert.match(handlers, /updateNetworkPreview,[\s\S]*updateSunInfo,[\s\S]*updateTempPreview,[\s\S]*\} = statusPreview/);
+    assert.match(handlers, /updateNetworkPreview,[\s\S]*updateSunInfo,[\s\S]*\} = statusPreview/);
   });
 
   test("injects status preview into settings and backup consumers", () => {
@@ -356,7 +355,7 @@ describe("browserless application contracts", () => {
     const nativeWrite = backup.indexOf("await nativeRestore");
     const legacyWrite = backup.indexOf("await queueLegacyLayoutRestore()");
     const editorMutation = backup.indexOf("state.buttons = []");
-    const settingsPost = backup.indexOf("postClockBarTemperatureEntities(");
+    const settingsPost = backup.indexOf("postClockBar(importedSettings.clockBar)");
     assert.ok(discovery >= 0 && nativeWrite > discovery && legacyWrite > discovery);
     assert.ok(editorMutation > nativeWrite && editorMutation > legacyWrite);
     assert.ok(settingsPost > editorMutation);
@@ -693,8 +692,8 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(weather, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
     assert.doesNotMatch(forecast, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|WEATHER_CARD_METADATA)\b/);
-    assert.match(entry, /const weatherCards = registerWeatherCardTypes\(registry, context\.configuration\.weatherOptions, context\.controllers\.clockBarState, fields, cardUi\);/);
-    assert.match(entry, /registerWeatherForecastCardTypes\(registry, weatherCards, context\.controllers\.clockBarState, fields\);/);
+    assert.match(entry, /const weatherCards = registerWeatherCardTypes\(registry, context\.configuration\.weatherOptions, fields, cardUi\);/);
+    assert.match(entry, /registerWeatherForecastCardTypes\(registry, weatherCards, fields\);/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerWeather/);
     assert.doesNotMatch(globals, /\bvar (?:WEATHER_CARD_METADATA|WEATHER_FORECAST_CARD_METADATA|normalizeWeatherCardMode|weatherCardDefaultForecastLabel|weatherCardIsForecastMode|weatherForecastCardsSupported|weatherModeOptionValues|weatherModeOptions):/);
   });

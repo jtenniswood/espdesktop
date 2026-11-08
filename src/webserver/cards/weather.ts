@@ -10,7 +10,6 @@ import {
 } from "../generated/card_contract";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ConfigWeatherOptionsFeature } from "../application/config_weather_options";
-import type { ClockBarFeature } from "../application/clock_bar_state";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 
 export interface WeatherCardRegistration {
@@ -21,7 +20,6 @@ export interface WeatherCardRegistration {
 export function registerWeatherCardTypes(
     registry: CardRegistry,
     weatherOptions: ConfigWeatherOptionsFeature,
-    _clockBar: Pick<ClockBarFeature, "temperatureUnitSymbol">,
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
 ): WeatherCardRegistration {

@@ -9,7 +9,6 @@ import { createColorSwatches } from "../components/color_swatches";
 import {
     normalizeBrightnessMode,
     normalizeLanguage,
-    normalizeTemperatureUnit,
     normalizeTimeOfDay,
     normalizeThemeMode,
     normalizeThemeAutoMethod,
@@ -50,7 +49,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: ArtworkPostApiFeature, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postAutoOpenAppSubpages" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "infoPanel" | "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo">, artworkPostApi: ArtworkPostApiFeature, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postAutoOpenAppSubpages" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "infoPanel" | "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { infoPanel, appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -61,7 +60,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { entityName, entityInput } = entityState;
     const { postText, postSelect, postNumber, postScreensaverMode, postScreensaverTimeout, postHomeScreenTimeout } = requestApi;
     const { bindTextPost } = codec;
-    const { appendTimezoneOption, syncInput, updateClock, updateSunInfo, updateTempPreview } = statusPreview;
+    const { appendTimezoneOption, syncInput, updateClock, updateSunInfo,  } = statusPreview;
     const { syncPreviewOrientation } = core;
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
@@ -78,7 +77,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         setEnabled: setClockBarEnabled,
         setNightModeEnabled,
         syncUi: syncClockBarUi,
-        syncTemperatureUi,
+
     } = clockBar;
     // ── Settings Page ──────────────────────────────────────────────────────
     function buildSettingsPage(this: any, parent?: any) {
@@ -283,10 +282,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         tzSelect.addEventListener("change", function (this: any) {
             state.timezone = this.value;
             postSelect(entityName("screen_timezone"), this.value);
-            if (normalizeTemperatureUnit(state.temperatureUnit) === "Auto") {
-                updateTempPreview();
-                renderPreview();
-            }
+            renderPreview();
             updateClock();
         });
         tzField.appendChild(tzSelect);
@@ -368,7 +364,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var clockBarBadge: any = statusBadge("Clock bar on");
         els.setClockBarBadge = clockBarBadge;
         syncClockBarUi();
-        syncTemperatureUi();
+
         var clockBarCard: any = makeCollapsibleCard("Clock Bar", clockBarBody, true, clockBarBadge);
         var batteryStatusCard: any = null;
         if (layout.config.features && layout.config.features.battery) {
@@ -411,35 +407,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             rotationCard = makeCollapsibleCard("Rotation", rotationBody, true);
             els.setScreenRotation = rotSelect;
         }
-        var tempBody: any = document.createElement("div");
-        var unitField: any = document.createElement("div");
-        unitField.className = "sp-field";
-        unitField.appendChild(fieldLabel("Temperature Unit", "sp-set-temperature-unit"));
-        var unitSelect: any = document.createElement("select");
-        unitSelect.className = "sp-select";
-        unitSelect.id = "sp-set-temperature-unit";
-        [
-            ["Auto", "Auto (from timezone)"],
-            ["\u00B0C", "Centigrade (\u00B0C)"],
-            ["\u00B0F", "Fahrenheit (\u00B0F)"],
-        ].forEach(function (this: any, opt?: any) {
-            var o: any = document.createElement("option");
-            o.value = opt[0];
-            o.textContent = opt[1];
-            unitSelect.appendChild(o);
-        });
-        unitSelect.value = normalizeTemperatureUnit(state.temperatureUnit);
-        unitSelect.addEventListener("change", function (this: any) {
-            state.temperatureUnit = normalizeTemperatureUnit(this.value);
-            postSelect(entityName("screen_temperature_unit"), state.temperatureUnit);
-            updateTempPreview();
-            renderPreview();
-        });
-        unitField.appendChild(unitSelect);
-        tempBody.appendChild(unitField);
-        els.setTemperatureUnit = unitSelect;
-        syncTemperatureUi();
-        var temperatureCard: any = makeCollapsibleCard("Temperature", tempBody, true);
         var ssBody: any = document.createElement("div");
         var ssMode: any = getActiveScreensaverMode();
         ssBody.appendChild(fieldLabel("Mode"));
@@ -634,7 +601,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         appendSettingsSection(deviceConfig, "Preferences", [
             languageCard,
             timeSettingsCard,
-            temperatureCard,
         ]);
         appendSettingsSection(deviceConfig, "System", [
             systemSettingsCards.identityCard,

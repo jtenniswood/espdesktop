@@ -96,16 +96,13 @@ esphome:
                           ? id(${label_font})->get_lv_font()
                           : id(${media_title_font})->get_lv_font(),
                   LV_PART_MAIN);
-              refresh_clock_bar_temperature_label_values(
+              refresh_clock_bar_left_label(
                   id(main_page)->obj,
                   clock_bar_should_show(
                       id(clock_bar_enabled).state,
                       id(main_page)->obj,
                       id(espdesktop_app).display().current_mode(),
-                      id(espdesktop_app).display().target_schedule_inactive()),
-                  id(indoor_temp_enable).state,
-                  id(outdoor_temp_enable).state,
-                  id(indoor_temp), id(outdoor_temp));
+                      id(espdesktop_app).display().target_schedule_inactive()));
             };
     # Apply restored clock-bar visibility before subpages copy main-page padding.
     - priority: -150
@@ -133,25 +130,6 @@ esphome:
               preferences_changed = true;
             }
             if (preferences_changed) global_preferences->sync();
-        - lambda: |-
-            std::vector<std::string> restored_clock_bar_temperature_entities =
-                parse_clock_bar_temperature_entities(id(clock_bar_temperature_entities).state);
-            if (restored_clock_bar_temperature_entities.empty()) {
-              std::string legacy_clock_bar_temperature_entity;
-              if (id(outdoor_temp_enable).state && !id(outdoor_temp_entity).state.empty()) {
-                legacy_clock_bar_temperature_entity = id(outdoor_temp_entity).state;
-              } else if (id(indoor_temp_enable).state && !id(indoor_temp_entity).state.empty()) {
-                legacy_clock_bar_temperature_entity = id(indoor_temp_entity).state;
-              }
-              if (!legacy_clock_bar_temperature_entity.empty()) {
-                id(clock_bar_temperature_entities).publish_state(legacy_clock_bar_temperature_entity);
-                id(outdoor_temp_enable).turn_on();
-                id(indoor_temp_enable).turn_off();
-              }
-            }
-            set_display_temperature_unit(id(temperature_unit_select).current_option(),
-                                         id(timezone_select).current_option());
-            set_display_temperature_degree_symbol(id(temperature_degree_symbol_enabled).state);
         - script.execute: clock_bar_hide
         - script.execute: clock_bar_apply
 
@@ -225,7 +203,7 @@ script:
           lv_obj_t *temperature_labels[] = {
             id(temperatures),
           };
-          set_clock_bar_temperature_labels(temperature_labels, 1);
+          set_clock_bar_left_labels(temperature_labels, 1);
           clock_bar_set_button_grid_pages_pad_top(
               id(main_page)->obj,
               reserve_clock_bar_space ? clock_bar_reserved_height : ${main_page_compact_pad_top});
@@ -256,8 +234,7 @@ script:
               id(temperatures),
               id(display_time),
               id(network_status_button),
-              visibility.visible &&
-                  (id(indoor_temp_enable).state || id(outdoor_temp_enable).state),
+              visibility.visible && !clock_bar_left_title().empty(),
               show_time,
               show_network,
               clock_bar_screen_width >= 700 ? 8 : 6,
@@ -303,11 +280,8 @@ script:
           }
           if (!visible) return;
 
-          refresh_clock_bar_temperature_label_values(id(main_page)->obj,
-                                    visible,
-                                    id(indoor_temp_enable).state,
-                                    id(outdoor_temp_enable).state,
-                                    id(indoor_temp), id(outdoor_temp));
+          refresh_clock_bar_left_label(id(main_page)->obj,
+                                    visible);
 
 switch:
   - platform: template
@@ -373,121 +347,6 @@ switch:
       - script.execute: clock_bar_apply
     on_turn_off:
       - script.execute: clock_bar_apply
-
-  - platform: template
-    name: "${entity_indoor_temp_enable}"
-    internal: true
-    id: indoor_temp_enable
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    entity_category: config
-    icon: "mdi:home-thermometer"
-    web_server:
-      sorting_group_id: sg_display
-    on_turn_on:
-      - script.execute: clock_bar_apply
-      - script.execute: refresh_display_sensor_subscriptions
-      - lambda: |-
-          refresh_clock_bar_temperature_label_values(
-            id(main_page)->obj,
-            clock_bar_should_show(
-              id(clock_bar_enabled).state,
-              id(main_page)->obj,
-              id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive()),
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp), id(outdoor_temp));
-    on_turn_off:
-      - script.execute: clock_bar_apply
-      - script.execute: refresh_display_sensor_subscriptions
-      - lambda: |-
-          refresh_clock_bar_temperature_label_values(
-            id(main_page)->obj,
-            clock_bar_should_show(
-              id(clock_bar_enabled).state,
-              id(main_page)->obj,
-              id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive()),
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp), id(outdoor_temp));
-
-  - platform: template
-    name: "${entity_outdoor_temp_enable}"
-    internal: true
-    id: outdoor_temp_enable
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    entity_category: config
-    icon: "mdi:sun-thermometer"
-    web_server:
-      sorting_group_id: sg_display
-    on_turn_on:
-      - script.execute: clock_bar_apply
-      - script.execute: refresh_display_sensor_subscriptions
-      - lambda: |-
-          refresh_clock_bar_temperature_label_values(
-            id(main_page)->obj,
-            clock_bar_should_show(
-              id(clock_bar_enabled).state,
-              id(main_page)->obj,
-              id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive()),
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp), id(outdoor_temp));
-    on_turn_off:
-      - script.execute: clock_bar_apply
-      - script.execute: refresh_display_sensor_subscriptions
-      - lambda: |-
-          refresh_clock_bar_temperature_label_values(
-            id(main_page)->obj,
-            clock_bar_should_show(
-              id(clock_bar_enabled).state,
-              id(main_page)->obj,
-              id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive()),
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp), id(outdoor_temp));
-
-  - platform: template
-    name: "${entity_screen_temperature_degree_symbol}"
-    internal: true
-    id: temperature_degree_symbol_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    entity_category: config
-    icon: "mdi:temperature-celsius"
-    web_server:
-      sorting_group_id: sg_display
-    on_turn_on:
-      - lambda: |-
-          set_display_temperature_degree_symbol(true);
-          refresh_clock_bar_temperature_label_values(
-            id(main_page)->obj,
-            clock_bar_should_show(
-              id(clock_bar_enabled).state,
-              id(main_page)->obj,
-              id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive()),
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp), id(outdoor_temp));
-    on_turn_off:
-      - lambda: |-
-          set_display_temperature_degree_symbol(false);
-          refresh_clock_bar_temperature_label_values(
-            id(main_page)->obj,
-            clock_bar_should_show(
-              id(clock_bar_enabled).state,
-              id(main_page)->obj,
-              id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive()),
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp), id(outdoor_temp));
 
   - platform: template
     name: "${entity_screen_subpage_title_bar}"
@@ -733,97 +592,7 @@ select:
             then:
               - script.execute: screensaver_idle_check
 
-  - platform: template
-    name: "${entity_screen_temperature_unit}"
-    internal: true
-    disabled_by_default: true
-    id: temperature_unit_select
-    entity_category: config
-    icon: "mdi:temperature-celsius"
-    optimistic: true
-    restore_value: true
-    initial_option: "Auto"
-    options:
-      - "Auto"
-      - "°C"
-      - "°F"
-    web_server:
-      sorting_group_id: sg_display
-    on_value:
-      then:
-        - lambda: |-
-            set_display_temperature_unit(id(temperature_unit_select).current_option(),
-                                         id(timezone_select).current_option());
-            refresh_clock_bar_temperature_label_values(
-              id(main_page)->obj,
-              clock_bar_should_show(
-                id(clock_bar_enabled).state,
-                id(main_page)->obj,
-                id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive()),
-              id(indoor_temp_enable).state,
-              id(outdoor_temp_enable).state,
-              id(indoor_temp), id(outdoor_temp));
-
 text:
-  - platform: template
-    name: "${entity_clock_bar_temperature_entities}"
-    internal: true
-    id: clock_bar_temperature_entities
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 240
-    mode: text
-    entity_category: config
-    icon: "mdi:thermometer-lines"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_display
-    on_value:
-      then:
-        - script.execute: clock_bar_apply
-        - script.execute: refresh_display_sensor_subscriptions
-
-  - platform: template
-    name: "${entity_indoor_temp_entity}"
-    internal: true
-    id: indoor_temp_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:home-thermometer"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_display
-    on_value:
-      then:
-        - script.execute: refresh_display_sensor_subscriptions
-
-  - platform: template
-    name: "${entity_outdoor_temp_entity}"
-    internal: true
-    id: outdoor_temp_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:sun-thermometer"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_display
-    on_value:
-      then:
-        - script.execute: refresh_display_sensor_subscriptions
-
   - platform: template
     name: "Screensaver Mode"
     internal: true

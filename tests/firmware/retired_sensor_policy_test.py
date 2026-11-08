@@ -43,12 +43,11 @@ code = r'''
 ''' + production + r'''
 struct lv_obj_t {};
 lv_obj_t *registered_label = nullptr, *refreshed_page = nullptr;
-size_t registered_count = 0, value_count = 9;
+size_t registered_count = 0;
 bool refreshed_visible = false;
-void set_clock_bar_temperature_labels(lv_obj_t **labels, size_t count) { registered_label = labels[0]; registered_count = count; }
-void set_clock_bar_temperature_value_count(size_t count) { value_count = count; }
-void refresh_clock_bar_temperature_label_values(lv_obj_t *page, bool visible, bool indoor, bool outdoor, float a, float b) {
- assert(!indoor && !outdoor && std::isnan(a) && std::isnan(b)); refreshed_page = page; refreshed_visible = visible;
+void set_clock_bar_left_labels(lv_obj_t **labels, size_t count) { registered_label = labels[0]; registered_count = count; }
+void refresh_clock_bar_left_label(lv_obj_t *page, bool visible) {
+ refreshed_page = page; refreshed_visible = visible;
 }
 ''' + local_header + r'''
 struct Text {
@@ -71,7 +70,7 @@ int main() {
  lv_obj_t label, page; lv_obj_t *labels[] = {&label};
  for (bool visible : {false, true}) {
   grid_refresh_local_header(labels, 1, &page, visible);
-  assert(registered_label == &label && registered_count == 1 && value_count == 0);
+  assert(registered_label == &label && registered_count == 1);
   assert(refreshed_page == &page && refreshed_visible == visible);
  }
  for (const auto &idle : {"disabled", "timer", "companion", "sensor"}) {

@@ -586,7 +586,7 @@ inline void image_card_set_clock_bar_companion_icon(
       key.append(reinterpret_cast<const char *>(hash.data()), hash.size());
   }
 #endif
-  auto &labels = clock_bar_temperature_labels();
+  auto &labels = clock_bar_left_labels();
   lv_obj_t *parent = labels.empty() || !labels[0] ? nullptr : lv_obj_get_parent(labels[0]);
   if (entity_id.empty() || icon_name.empty() || !parent) {
     if (context && context->active) image_card_evict_optional_icon(context);

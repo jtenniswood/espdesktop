@@ -20,7 +20,6 @@
 #include "backlight_fade.h"
 #include "display_mode_controller.h"
 #include "sun_calc.h"
-#include "temperature_unit.h"
 
 #ifdef USE_ESP32
 #include <esp_sleep.h>

@@ -58,7 +58,6 @@ struct GridConfig {
   int subpage_chevron_x = 0;
   int subpage_chevron_y = 2;
   int subpage_chevron_text_width_percent = 94;
-  std::string temperature_unit;
   std::string timezone;
   std::string special_page_config;
   std::function<void(espdesktop::DisplayTakeoverKind)> begin_display_takeover;
@@ -545,7 +544,6 @@ inline void grid_refresh_layout(
     const std::string &order_str,
     lv_obj_t *main_page_obj = nullptr) {
   ESP_LOGI("sensors", "Grid refresh: layout start (%lu ms)", esphome::millis());
-  set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   int NS = bounded_grid_slots(cfg.num_slots);
@@ -630,7 +628,6 @@ inline void grid_phase1(
   // Remote controls may be open over a non-grid page when widgets are rebuilt.
   navigation_close_modals_for_display_takeover();
   set_backlight_display_takeover_callback(navigation_close_modals_for_display_takeover);
-  set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   // Clear image references before visual setup removes their old LVGL widgets.
@@ -1161,7 +1158,6 @@ inline void grid_phase2(
   }
 #endif
   grid_log_memory("start");
-  set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   set_wifi_qr_icon_font(display_icon_font(display));
@@ -1578,8 +1574,6 @@ inline void grid_phase2(
 // Register it without subscribing to retired Home Assistant temperature entities.
 inline void grid_refresh_local_header(lv_obj_t **labels, size_t count,
                                       lv_obj_t *main_page_obj, bool visible) {
-  set_clock_bar_temperature_labels(labels, count);
-  set_clock_bar_temperature_value_count(0);
-  refresh_clock_bar_temperature_label_values(main_page_obj, visible,
-                                             false, false, NAN, NAN);
+  set_clock_bar_left_labels(labels, count);
+  refresh_clock_bar_left_label(main_page_obj, visible);
 }

@@ -28,7 +28,6 @@ import {
     normalizeScreensaverCameraImageMode,
     normalizeScreensaverCameraDimming,
     normalizeScreensaverDimmedBrightness,
-    normalizeTemperatureUnit,
     normalizeTimeOfDay,
     normalizeThemeMode,
     normalizeThemeAutoMethod,
@@ -76,7 +75,7 @@ export function createAppStateEventHandlersFeature(
     firmwareUpdate: FirmwareUpdateFeature,
     c6Firmware: C6FirmwareFeature,
     clockBar: ClockBarFeature,
-    statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "normalizeNetworkTransport" | "normalizeWifiStrengthPercent" | "syncInput" | "updateClock" | "updateClockBarItemUi" | "updateNetworkPreview" | "updateSunInfo" | "updateTempPreview">,
+    statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "normalizeNetworkTransport" | "normalizeWifiStrengthPercent" | "syncInput" | "updateClock" | "updateClockBarItemUi" | "updateNetworkPreview" | "updateSunInfo">,
     grid: Pick<GridFeature, "applyButtonOrderValue">,
     settingsHelpers: Pick<SettingsPageHelpersFeature, "syncAlarmDelayAudioUi" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">,
     preview: Pick<PreviewRenderFeature, "render">,
@@ -104,10 +103,9 @@ export function createAppStateEventHandlersFeature(
         syncUi: syncC6FirmwareUi,
     } = c6Firmware;
     const {
-        applyTemperatureEntities: applyClockBarTemperatureEntities,
-        normalizeTemperatureEntities: normalizeClockBarTemperatureEntities,
+
         syncUi: syncClockBarUi,
-        syncTemperatureUi,
+
     } = clockBar;
     const {
         appendTimezoneOption,
@@ -118,7 +116,7 @@ export function createAppStateEventHandlersFeature(
         updateClockBarItemUi,
         updateNetworkPreview,
         updateSunInfo,
-        updateTempPreview,
+
     } = statusPreview;
     const { applyButtonOrderValue } = grid;
     // ── State Event Handlers ──────────────────────────────────────────
@@ -141,27 +139,12 @@ export function createAppStateEventHandlersFeature(
             },
             "text-button_off_color": function (this: any) { },
             "text-sensor_card_color": function (this: any) { },
-            "switch-indoor_temp_enable": function (this: any, val?: any, d?: any) {
-                state._clockBarTemperatureVisibilityReceived = true;
-                state._indoorOn = d.value === true || val === "ON";
-                syncTemperatureUi();
-                updateTempPreview();
-                updateClockBarItemUi();
-            },
-            "switch-outdoor_temp_enable": function (this: any, val?: any, d?: any) {
-                state._clockBarTemperatureVisibilityReceived = true;
-                state._outdoorOn = d.value === true || val === "ON";
-                syncTemperatureUi();
-                updateTempPreview();
-                updateClockBarItemUi();
-            },
+
             "switch-screen__clock_bar": function (this: any, val?: any, d?: any, key?: any) {
                 if (applyClockBarStateValue(state, val, d, key))
                     syncClockBarUi();
             },
-            "text-clock_bar_temperature_entities": function (this: any, val?: any) {
-                applyClockBarTemperatureEntities(normalizeClockBarTemperatureEntities(val), false);
-            },
+
             "switch-screen__clock_bar_time": function (this: any, val?: any, d?: any) {
                 state.clockBarTimeOn = d.value === true || val === "ON";
                 syncClockBarUi();
@@ -206,10 +189,7 @@ export function createAppStateEventHandlersFeature(
                 state.alarmDelayFinalCountdown = normalizeAlarmDelayFinalCountdown(val);
                 syncAlarmDelayAudioUi();
             },
-            "switch-screen__temperature_degree_symbol": function (this: any, val?: any, d?: any) {
-                state.temperatureDegreeSymbolOn = d.value === true || val === "ON";
-                syncClockBarUi();
-            },
+
             "switch-screen__subpage_title_bar": function (this: any, val?: any, d?: any) {
                 state.subpageTitleBarOn = d.value === true || val === "ON";
                 syncClockBarUi();
@@ -228,31 +208,7 @@ export function createAppStateEventHandlersFeature(
                 syncClockBarUi();
                 renderPreview();
             },
-            "text-indoor_temp_entity": function (this: any, val?: any) {
-                state.indoorEntity = val;
-                syncInput(els.setIndoorEntity, val);
-                if (!state._clockBarTemperatureEntitiesReceived) {
-                    syncTemperatureUi();
-                    updateTempPreview();
-                    updateClockBarItemUi();
-                }
-            },
-            "text-outdoor_temp_entity": function (this: any, val?: any) {
-                state.outdoorEntity = val;
-                syncInput(els.setOutdoorEntity, val);
-                if (!state._clockBarTemperatureEntitiesReceived) {
-                    syncTemperatureUi();
-                    updateTempPreview();
-                    updateClockBarItemUi();
-                }
-            },
-            "select-screen__temperature_unit": function (this: any, val?: any, d?: any) {
-                state.temperatureUnit = normalizeTemperatureUnit(d.value || val);
-                if (els.setTemperatureUnit)
-                    els.setTemperatureUnit.value = state.temperatureUnit;
-                updateTempPreview();
-                renderPreview();
-            },
+
             "number-screensaver_timeout": function (this: any, val?: any, d?: any) {
                 applyScreensaverTimeoutState(d);
             },
@@ -549,17 +505,13 @@ export function createAppStateEventHandlersFeature(
                 }
                 if (els.setTimezone)
                     els.setTimezone.value = state.timezone;
-                if (normalizeTemperatureUnit(state.temperatureUnit) === "Auto") {
-                    updateTempPreview();
-                    renderPreview();
-                }
+                renderPreview();
                 updateClock();
             },
             "text_sensor-screen__active_timezone": function (this: any, val?: any, d?: any) {
                 state.activeTimezone = d.value || val || FALLBACK_TIMEZONE_OPTION;
                 if (isAutomaticTimezone(state.timezone)) {
-                    if (normalizeTemperatureUnit(state.temperatureUnit) === "Auto")
-                        updateTempPreview();
+
                     renderPreview();
                     updateClock();
                 }

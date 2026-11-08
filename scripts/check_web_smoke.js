@@ -641,8 +641,6 @@ assert(
   "fan cards are available"
 );
 
-assert.strictEqual(hooks.normalizeTemperatureUnit("fahrenheit"), "\u00b0F");
-assert.strictEqual(hooks.normalizeTemperatureUnit("centigrade"), "\u00b0C");
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort("80"), 80);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(""), 8123);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(0), 1);
@@ -671,27 +669,13 @@ const climateLargePreview = hooks.buttonTypePreviewFor("climate", {
   temperatureUnit: "\u00b0C",
 });
 assert(climateLargePreview.iconHtml.includes("sp-sensor-preview-large"), "climate temperature preview supports large numbers");
-const climatePreviewF = hooks.buttonTypePreviewFor("climate", climatePreviewButton, {
-  temperatureUnit: "\u00b0F",
-});
-assert(climatePreviewF.iconHtml.includes("\u00b0F"), "climate preview uses Fahrenheit unit");
-const climatePreviewAuto = hooks.buttonTypePreviewFor("climate", climatePreviewButton, {
-  temperatureUnit: "Auto",
-  timezone: "America/New_York (GMT-5)",
-});
-assert(climatePreviewAuto.iconHtml.includes("\u00b0F"), "climate preview follows Auto timezone unit");
-assert.strictEqual(
-  hooks.temperatureUnitSymbolFor("Auto (Home Assistant)", "Auto", "America/New_York"),
-  "\u00b0F",
-  "Auto temperature unit follows the published active timezone"
-);
 const climateLabelPreview = hooks.buttonTypePreviewFor("climate", {
   ...climatePreviewButton,
   options: "label_display=actual",
 }, {
   temperatureUnit: "\u00b0F",
 });
-assert(climateLabelPreview.labelHtml.includes("21\u00b0F"), "climate actual label includes the configured unit");
+assert(climateLabelPreview.labelHtml.includes("21\u00b0C"), "read-only legacy preview ignores the retired temperature setting");
 const climateIconPreview = hooks.buttonTypePreviewFor("climate", {
   ...climatePreviewButton,
   options: "number_display=icon",

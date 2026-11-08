@@ -92,14 +92,6 @@ export const ENTITY_CATALOG = {
         "screen_wake"
       ]
     },
-    "indoor_temp_enable": {
-      "domain": "switch",
-      "name": "Indoor Temp Enable"
-    },
-    "outdoor_temp_enable": {
-      "domain": "switch",
-      "name": "Outdoor Temp Enable"
-    },
     "screen_clock_bar": {
       "domain": "switch",
       "name": "Screen: Clock Bar",
@@ -116,13 +108,6 @@ export const ENTITY_CATALOG = {
         "screen__clock_bar_time",
         "screen_clock_bar_time",
         "clock_bar_time_enabled"
-      ]
-    },
-    "clock_bar_temperature_entities": {
-      "domain": "text",
-      "name": "Clock Bar: Temperature Entities",
-      "objectIds": [
-        "clock_bar__temperature_entities"
       ]
     },
     "screen_network_status_icon": {
@@ -155,15 +140,6 @@ export const ENTITY_CATALOG = {
     "battery_percent": {
       "domain": "sensor",
       "name": "Battery"
-    },
-    "screen_temperature_degree_symbol": {
-      "domain": "switch",
-      "name": "Screen: Temperature Degree Symbol",
-      "objectIds": [
-        "screen__temperature_degree_symbol",
-        "screen_temperature_degree_symbol",
-        "temperature_degree_symbol_enabled"
-      ]
     },
     "companion_auto_open_app_subpages": {
       "domain": "switch",
@@ -200,18 +176,6 @@ export const ENTITY_CATALOG = {
         "screen_subpage_chevron",
         "subpage_chevrons_enabled"
       ]
-    },
-    "screen_temperature_unit": {
-      "domain": "select",
-      "name": "Screen: Temperature Unit"
-    },
-    "indoor_temp_entity": {
-      "domain": "text",
-      "name": "Indoor Temp Entity"
-    },
-    "outdoor_temp_entity": {
-      "domain": "text",
-      "name": "Outdoor Temp Entity"
     },
     "screensaver_mode": {
       "domain": "text",
@@ -834,21 +798,14 @@ export const ENTITY_CATALOG = {
       "special_page_config_ext_7"
     ],
     "settings": [
-      "indoor_temp_enable",
-      "outdoor_temp_enable",
       "screen_clock_bar",
       "screen_clock_bar_time",
-      "clock_bar_temperature_entities",
       "screen_network_status_icon",
       "screen_clock_bar_night_mode",
-      "screen_temperature_degree_symbol",
       "companion_auto_open_app_subpages",
       "companion_return_home_on_app_switch",
       "screen_subpage_title_bar",
       "screen_subpage_chevron",
-      "screen_temperature_unit",
-      "indoor_temp_entity",
-      "outdoor_temp_entity",
       "screensaver_mode",
       "screen_saver_action",
       "screen_saver_camera_entity",

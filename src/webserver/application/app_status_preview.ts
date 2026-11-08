@@ -14,11 +14,7 @@ export interface AppStatusPreviewFeature {
     appendTimezoneOption(select?: any, option?: any): void;
     updateClockText(): void;
     updateClock(): void;
-    clockBarTemperatureActive(): any;
-    clockBarTemperatureItemId(index?: any): any;
-    clockBarTemperatureItemIndex(item?: any): any;
-    isClockBarTemperatureItem(item?: any): any;
-    clockBarTemperatureItemIds(): any;
+
     clockBarItems(): any;
     clockBarDefaultSection(item?: any): any;
     clockBarItemActive(item?: any): any;
@@ -30,7 +26,7 @@ export interface AppStatusPreviewFeature {
     updateClockBarItemUi(): void;
     syncInput(element?: any, value?: any): void;
     updateSunInfo(): void;
-    updateTempPreview(): void;
+
     normalizeNetworkTransport(value?: any): any;
     normalizeWifiStrengthPercent(value?: any): any;
     networkPreviewIconSlug(transport?: any, strengthPercent?: any): any;
@@ -43,10 +39,9 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
     const { isAutomaticTimezone, effectiveTimezoneOptionForWeb, voiceServicesUiState } = environment;
     const els = runtime.els;
     const {
-        clockBarTemperatureUnitSymbol,
-        temperatureVisible: clockBarTemperatureVisible,
+
         visibleInPreview: clockBarVisibleInPreview,
-        primaryTemperatureEntity: primaryClockBarTemperatureEntity,
+
     } = clockBar;
     // ── Clock (minute-aligned) ─────────────────────────────────────────────
     function getTzId(this: any, tz?: any) {
@@ -133,33 +128,16 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         var msToNext: any = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
         setTimeout(updateClock, msToNext + 50);
     }
-    function clockBarTemperatureActive(this: any) {
-        return clockBarTemperatureVisible();
-    }
-    function clockBarTemperatureItemId(this: any, index?: any) {
-        return index === 0 ? "temperature" : "temperature_" + (index + 1);
-    }
-    function clockBarTemperatureItemIndex(this: any, item?: any) {
-        if (item === "temperature")
-            return 0;
-        return -1;
-    }
-    function isClockBarTemperatureItem(this: any, item?: any) {
-        return clockBarTemperatureItemIndex(item) >= 0;
-    }
-    function clockBarTemperatureItemIds(this: any) {
-        return ["temperature"];
-    }
+
     function clockBarItems(this: any) {
-        var items: any = ["temperature", "time"];
+        var items: any = ["time"];
         if (voiceServicesUiState().clockBarItemVisible)
             items.push("voice");
         items.push("network");
         return items;
     }
     function clockBarDefaultSection(this: any, item?: any) {
-        if (isClockBarTemperatureItem(item))
-            return "left";
+
         if (item === "time")
             return "left";
         if (item === "voice")
@@ -169,9 +147,6 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         return "left";
     }
     function clockBarItemActive(this: any, item?: any) {
-        var tempIndex: any = clockBarTemperatureItemIndex(item);
-        if (tempIndex >= 0)
-            return clockBarTemperatureVisible();
         if (item === "time")
             return !!state.clockBarTimeOn;
         if (item === "voice")
@@ -184,8 +159,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         return els.clockBarItems && els.clockBarItems[item] || null;
     }
     function clockBarItemLabel(this: any, item?: any) {
-        if (isClockBarTemperatureItem(item))
-            return "Temperature";
+
         if (item === "time")
             return "Clock";
         if (item === "voice")
@@ -196,22 +170,13 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
     }
     function createClockBarItemElement(this: any, item?: any, section?: any) {
         var button: any = document.createElement("div");
-        button.className = "sp-clockbar-item sp-clockbar-" + (isClockBarTemperatureItem(item) ? "temperature" : item);
+        button.className = "sp-clockbar-item sp-clockbar-" + item;
         button.setAttribute("data-clockbar-item", item);
         button.setAttribute("data-clockbar-section", section);
         button.setAttribute("aria-label", clockBarItemLabel(item));
         button.setAttribute("role", "button");
         button.setAttribute("tabindex", "0");
-        if (isClockBarTemperatureItem(item)) {
-            var temp: any = document.createElement("span");
-            temp.className = "sp-temp";
-            temp.textContent = "--";
-            button.appendChild(temp);
-            if (!els.temps)
-                els.temps = {};
-            els.temps[item] = temp;
-        }
-        else if (item === "time") {
+        if (item === "time") {
             var clock: any = document.createElement("span");
             clock.className = "sp-clock";
             clock.textContent = "--:--";
@@ -260,7 +225,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
             });
             container.className = "sp-clockbar-section sp-clockbar-" + section + (rendered ? "" : " sp-clockbar-section-empty");
         });
-        updateTempPreview();
+
         updateClockText();
         updateNetworkPreview();
         updateVoicePreview();
@@ -307,24 +272,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
             parts.push("Sunset: " + state.sunset);
         el.textContent = parts.join(" \u00a0/\u00a0 ");
     }
-    function updateTempPreview(this: any) {
-        if (!els.temps)
-            return;
-        var show: any = clockBarVisibleInPreview();
-        var unit: any = clockBarTemperatureUnitSymbol();
-        var sampleValues: any = ["17", "24", "21", "19", "22", "18"];
-        clockBarTemperatureItemIds().forEach(function (this: any, item?: any, index?: any) {
-            var el: any = els.temps[item];
-            if (!el)
-                return;
-            var configured: any = primaryClockBarTemperatureEntity();
-            var value: any = configured ? (sampleValues[index] || "--") : "--";
-            if (index === 0 && state._outdoorVal != null)
-                value = state._outdoorVal;
-            el.className = "sp-temp" + (show ? " sp-visible" : "");
-            el.textContent = value + unit;
-        });
-    }
+
     function normalizeNetworkTransport(this: any, value?: any) {
         value = String(value == null ? "" : value).trim().toLowerCase();
         return value === "ethernet" ? "ethernet" : "wifi";
@@ -374,11 +322,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         appendTimezoneOption,
         updateClockText,
         updateClock,
-        clockBarTemperatureActive,
-        clockBarTemperatureItemId,
-        clockBarTemperatureItemIndex,
-        isClockBarTemperatureItem,
-        clockBarTemperatureItemIds,
+
         clockBarItems,
         clockBarDefaultSection,
         clockBarItemActive,
@@ -390,7 +334,7 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         updateClockBarItemUi,
         syncInput,
         updateSunInfo,
-        updateTempPreview,
+
         normalizeNetworkTransport,
         normalizeWifiStrengthPercent,
         networkPreviewIconSlug,

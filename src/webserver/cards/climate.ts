@@ -12,19 +12,16 @@ import { iconSlug } from "../application/ui_primitives";
 import type { CardRegistry } from "../application/card_registry";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import type { ConfigAccessClimateAlarmOptionsFeature } from "../application/config_access_climate_alarm_options";
-import type { ClockBarFeature } from "../application/clock_bar_state";
 import type { ButtonSettingsRenderQueueFeature } from "../application/button_settings_render_queue";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 export function registerClimateCardTypes(
     registry: CardRegistry,
     modalTabs: ConfigModalTabOptionsFeature,
     accessOptions: ConfigAccessClimateAlarmOptionsFeature,
-    clockBar: Pick<ClockBarFeature, "temperatureUnitSymbol">,
     renderQueue: ButtonSettingsRenderQueueFeature,
     fields: ControlsFieldsFeature,
 ): void {
     const { cardBadgeLabelHtml, cardSensorPreviewHtml, condField } = fields;
-    const { temperatureUnitSymbol } = clockBar;
     const {
         climateControlTabDefinitions,
         climateControlTabs,
@@ -102,7 +99,7 @@ export function registerClimateCardTypes(
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var climateConfig: any = parseClimatePrecisionConfig(b.precision);
             var prec: any = parseInt(climateConfig.precision || "0", 10) || 0;
-            var unit: any = temperatureUnitSymbol();
+            var unit: any = "°C";
             var actualVal: any = (21).toFixed(prec);
             var targetVal: any = (20).toFixed(prec);
             var numberMode: any = climateNumberDisplayMode(b);

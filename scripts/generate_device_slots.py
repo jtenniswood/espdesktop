@@ -468,7 +468,6 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append(
             f"            cfg.climate_option_value_font = id({device['climate_option_value_font']})->get_lv_font();"
         )
-    lines.append("            cfg.temperature_unit = id(temperature_unit_select).current_option();")
     lines.append("            cfg.timezone = id(timezone_select).current_option();")
     lines.append("            cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {")
     lines.append("              id(display_takeover_begin).execute(static_cast<int>(kind));")

@@ -1,20 +1,3 @@
-export function normalizeTemperatureUnit(value: unknown): string {
-  const unit = String(value == null ? "" : value).trim().toLowerCase();
-  if (unit === "f" || unit === "\u00B0f" || unit === "fahrenheit") return "\u00B0F";
-  if (unit === "c" || unit === "\u00B0c" || unit === "celsius" || unit === "centigrade") return "\u00B0C";
-  return "Auto";
-}
-
-export function normalizeClockBarTemperatureEntities(value: unknown): string[] {
-  const input = Array.isArray(value) ? value : String(value || "").split(/[|,\n]/);
-  const out: string[] = [];
-  for (const entry of input) {
-    const entity = String(entry || "").trim();
-    if (entity && out.indexOf(entity) === -1) out.push(entity);
-  }
-  return out.slice(0, 1);
-}
-
 export function normalizeLanguage(value: unknown): string {
   const language = String(value == null ? "" : value).trim().toLowerCase();
   return language || "en";
@@ -370,11 +353,6 @@ export interface BackupPanelSettingsCurrent {
 }
 
 export interface BackupPanelSettingsState {
-  indoorTempEnable: boolean;
-  outdoorTempEnable: boolean;
-  indoorTempEntity: string;
-  outdoorTempEntity: string;
-  clockBarTemperatureEntities: string[];
   clockBar: boolean;
   clockBarTime: boolean;
   clockBarNightMode: boolean;
@@ -386,13 +364,11 @@ export interface BackupPanelSettingsState {
   alarmDelayExitAnnouncement: string;
   alarmDelayBeepVolume: number;
   alarmDelayFinalCountdown: number;
-  temperatureDegreeSymbol: boolean;
   subpageChevron: boolean;
   autoOpenAppSubpages: boolean;
   returnHomeOnAppSwitch: boolean;
   subpageTitleBar: boolean;
   timezone: string;
-  temperatureUnit: string;
   language: string;
   clockFormat: string;
   hasNtpServer1: boolean;
@@ -469,7 +445,6 @@ export function normalizeBackupPanelSettings(
   const hasNtpServer1 = objectValue(settings, "ntp_server_1") !== undefined;
   const hasNtpServer2 = objectValue(settings, "ntp_server_2") !== undefined;
   const hasNtpServer3 = objectValue(settings, "ntp_server_3") !== undefined;
-  const hasOutdoorTempEnable = objectValue(settings, "outdoor_temp_enable") !== undefined;
   const clockFormat = current.clockFormatOptions.indexOf(String(settings.clock_format || "")) !== -1
     ? String(settings.clock_format)
     : current.clockFormat;
@@ -499,18 +474,6 @@ export function normalizeBackupPanelSettings(
       ? settings.screensaver_dimmed_brightness_night
       : screensaverDimmedBrightnessDay,
   );
-  const legacyTemperatureEntities: string[] = [];
-  if (settings.outdoor_temp_enable && settings.outdoor_temp_entity) {
-    legacyTemperatureEntities.push(String(settings.outdoor_temp_entity));
-  }
-  if (settings.indoor_temp_enable && settings.indoor_temp_entity) {
-    legacyTemperatureEntities.push(String(settings.indoor_temp_entity));
-  }
-  const clockBarTemperatureEntities = normalizeClockBarTemperatureEntities(
-    objectValue(settings, "clock_bar_temperature_entities") != null
-      ? settings.clock_bar_temperature_entities
-      : legacyTemperatureEntities,
-  );
   const coverArtHomeAssistantProtocol = objectValue(settings, "home_assistant_artwork_protocol") != null
     ? normalizeHomeAssistantArtworkProtocol(settings.home_assistant_artwork_protocol)
     : normalizeHomeAssistantArtworkProtocol(current.coverArtHomeAssistantProtocol);
@@ -521,11 +484,6 @@ export function normalizeBackupPanelSettings(
     ? normalizeHomeAssistantArtworkPort(settings.home_assistant_artwork_port)
     : normalizeHomeAssistantArtworkPort(current.coverArtHomeAssistantPort);
   return {
-    indoorTempEnable: false,
-    outdoorTempEnable: hasOutdoorTempEnable ? !!settings.outdoor_temp_enable : clockBarTemperatureEntities.length > 0,
-    indoorTempEntity: "",
-    outdoorTempEntity: clockBarTemperatureEntities[0] || "",
-    clockBarTemperatureEntities,
     clockBar: objectValue(settings, "clock_bar") != null ? !!settings.clock_bar : false,
     clockBarTime: objectValue(settings, "clock_bar_time") != null ? !!settings.clock_bar_time : true,
     clockBarNightMode: objectValue(settings, "clock_bar_night_mode") != null ? !!settings.clock_bar_night_mode : false,
@@ -543,9 +501,6 @@ export function normalizeBackupPanelSettings(
     ),
     alarmDelayBeepVolume: normalizeAlarmDelayBeepVolume(settings.alarm_delay_beep_volume),
     alarmDelayFinalCountdown: normalizeAlarmDelayFinalCountdown(settings.alarm_delay_final_countdown),
-    temperatureDegreeSymbol: objectValue(settings, "temperature_degree_symbol") != null
-      ? !!settings.temperature_degree_symbol
-      : true,
     subpageTitleBar: objectValue(settings, "subpage_title_bar") != null ? !!settings.subpage_title_bar : true,
     autoOpenAppSubpages: objectValue(settings, "auto_open_app_subpages") != null
       ? !!settings.auto_open_app_subpages
@@ -557,7 +512,6 @@ export function normalizeBackupPanelSettings(
       ? !!settings.subpage_chevron
       : true,
     timezone: normalizeTimezoneOption(settings.timezone, current.timezone),
-    temperatureUnit: normalizeTemperatureUnit(settings.temperature_unit),
     language: normalizeLanguage(settings.language || current.language),
     clockFormat,
     hasNtpServer1,

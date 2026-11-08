@@ -324,9 +324,6 @@ void EspDesktopApp::setup() {
   }
   connectors::connector_state_service().setup(
       web_auth_username_, web_auth_password_);
-  clock_bar_home_assistant_configured_provider() = []() {
-    return false;
-  };
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.
   // Give the display and restored text entities time to come up before

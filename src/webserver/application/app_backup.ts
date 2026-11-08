@@ -22,7 +22,6 @@ import {
     normalizeScreensaverAction,
     normalizeScreensaverCameraImageMode,
     normalizeScreensaverDimmedBrightness,
-    normalizeTemperatureUnit,
     normalizeTimeOfDay,
     normalizeThemeMode,
     normalizeThemeAutoMethod,
@@ -87,7 +86,7 @@ export interface AppBackupControllers {
     readonly entityState: Pick<EntityStateFeature, "entityName" | "entityNameForSlot">;
     readonly shell: Pick<ControlsShellFeature, "switchTab"> & Partial<Pick<ControlsShellFeature, "showBanner">>;
     readonly requestApi: ApplicationApiFeature;
-    readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput" | "updateTempPreview">;
+    readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
     readonly grid: Pick<GridFeature, "applyImportedButtonOrder" | "cancelMainGridSave" | "serializeGrid">;
     readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
@@ -114,7 +113,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { entityName, entityNameForSlot } = controllers.entityState;
     const { switchTab } = controllers.shell;
     const requestApi = controllers.requestApi;
-    const { syncInput, updateTempPreview } = controllers.statusPreview;
+    const { syncInput,  } = controllers.statusPreview;
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
     const {
         postMediaPlayerSleepPrevention,
@@ -143,7 +142,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postClockBrightnessNight,
         postClockScreensaver,
         postClockBar,
-        postClockBarTemperatureEntities,
+
         postClockBarTime,
         postClockBarNightMode,
         postNetworkStatusIcon,
@@ -154,7 +153,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postAlarmDelayExitAnnouncement,
         postAlarmDelayBeepVolume,
         postAlarmDelayFinalCountdown,
-        postTemperatureDegreeSymbol,
+
         postSubpageChevron,
         postAutoOpenAppSubpages,
         postReturnHomeOnAppSwitch,
@@ -188,11 +187,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { syncUi: syncScreensaverTimeoutUi } = controllers.screensaverTimeout;
     const { controlsVisible: firmwareUpdateControlsVisible, syncUi: syncFirmwareUpdateUi } = controllers.firmwareUpdate;
     const {
-        applyTemperatureEntities: applyClockBarTemperatureEntities,
-        temperatureEntities: clockBarTemperatureEntities,
-        serializeTemperatureEntities: serializeClockBarTemperatureEntities,
+
         syncUi: syncClockBarUi,
-        syncTemperatureUi,
+
     } = controllers.clockBar;
     // ── Export / Import ────────────────────────────────────────────────────
     var backupExportController: BackupExportController = controllers.backupExport;
@@ -257,17 +254,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             subpages: backupSubpages(),
             settings: {
                 special_page: specialPageConfig(),
-                indoor_temp_enable: state._indoorOn,
-                outdoor_temp_enable: state._outdoorOn,
-                clock_bar_temperature_entities: serializeClockBarTemperatureEntities(clockBarTemperatureEntities()),
-                indoor_temp_entity: state.indoorEntity,
-                outdoor_temp_entity: state.outdoorEntity,
-                temperature_unit: normalizeTemperatureUnit(state.temperatureUnit),
+
                 clock_bar: state.clockBarOn,
                 clock_bar_time: state.clockBarTimeOn,
                 clock_bar_night_mode: state.clockBarNightModeOn,
                 network_status_icon: state.networkStatusOn,
-                temperature_degree_symbol: state.temperatureDegreeSymbolOn,
+
                 subpage_chevron: state.subpageChevronsOn,
                 auto_open_app_subpages: state.autoOpenAppSubpages,
                 return_home_on_app_switch: state.returnHomeOnAppSwitch,
@@ -504,15 +496,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     els.setOnColor._syncColor(state.onColor);
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
-                    state._clockBarTemperatureVisibilityReceived = true;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    applyClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities, false);
-                    postClockBarTemperatureEntities(serializeClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities));
-                    postSwitch(entityName("outdoor_temp_enable"), importedSettings.outdoorTempEnable);
-                    postSwitch(entityName("indoor_temp_enable"), importedSettings.indoorTempEnable);
-                    postText(entityName("outdoor_temp_entity"), importedSettings.outdoorTempEntity);
-                    postText(entityName("indoor_temp_entity"), importedSettings.indoorTempEntity);
+
                     postClockBar(importedSettings.clockBar);
                     postClockBarTime(importedSettings.clockBarTime);
                     postClockBarNightMode(importedSettings.clockBarNightMode);
@@ -527,13 +511,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postAlarmDelayBeepVolume(importedSettings.alarmDelayBeepVolume);
                         postAlarmDelayFinalCountdown(importedSettings.alarmDelayFinalCountdown);
                     }
-                    postTemperatureDegreeSymbol(importedSettings.temperatureDegreeSymbol);
+
                     postSubpageChevron(importedSettings.subpageChevron);
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
                     postReturnHomeOnAppSwitch(importedSettings.returnHomeOnAppSwitch);
                     postSubpageTitleBar(importedSettings.subpageTitleBar);
                     var importedTimezone: any = importedSettings.timezone;
-                    var importedTemperatureUnit: any = importedSettings.temperatureUnit;
                     var importedLanguage: any = importedSettings.language;
                     var importedClockFormat: any = importedSettings.clockFormat;
                     var hasNtpServer1: any = importedSettings.hasNtpServer1;
@@ -546,7 +529,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postSelect(entityName("screen_timezone"), importedTimezone);
                     if (s.language)
                         postSelect(entityName("screen_language"), importedLanguage);
-                    postSelect(entityName("screen_temperature_unit"), importedTemperatureUnit);
+
                     if (s.clock_format)
                         postSelect(entityName("screen_clock_format"), importedClockFormat);
                     if (hasNtpServer1) {
@@ -592,13 +575,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
-                    state.clockBarTemperatureEntities = importedSettings.clockBarTemperatureEntities;
-                    state._clockBarTemperatureEntitiesReceived = true;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state.indoorEntity = importedSettings.indoorTempEntity;
-                    state.outdoorEntity = importedSettings.outdoorTempEntity;
-                    state.temperatureUnit = importedTemperatureUnit;
+
                     state.clockBarOn = importedSettings.clockBar;
                     state.clockBarTimeOn = importedSettings.clockBarTime;
                     state.clockBarNightModeOn = importedSettings.clockBarNightMode;
@@ -610,7 +587,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.alarmDelayExitAnnouncement = importedSettings.alarmDelayExitAnnouncement;
                     state.alarmDelayBeepVolume = importedSettings.alarmDelayBeepVolume;
                     state.alarmDelayFinalCountdown = importedSettings.alarmDelayFinalCountdown;
-                    state.temperatureDegreeSymbolOn = importedSettings.temperatureDegreeSymbol;
+
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
@@ -660,11 +637,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverTimeout = importedSettings.screensaverTimeout;
                     state.homeScreenTimeout = importedSettings.homeScreenTimeout;
                     state.screenRotation = importedScreenRotation;
-                    syncTemperatureUi();
+
                     syncClockBarUi();
                     syncAlarmDelayAudioUi();
-                    if (els.setTemperatureUnit)
-                        els.setTemperatureUnit.value = state.temperatureUnit;
+
                     syncInput(els.setPresence, state.presenceEntity);
                     syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
                     syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
@@ -693,7 +669,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncPreviewOrientation();
                     if (els.setSsMode)
                         els.setSsMode(getActiveScreensaverMode());
-                    updateTempPreview();
+
                 }
                 var screenSettings: any = backupPlan.screen;
                 if (screenSettings) {

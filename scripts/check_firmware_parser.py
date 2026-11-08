@@ -256,7 +256,6 @@ inline void lv_obj_move_foreground(lv_obj_t *obj) {
 }
 inline void lv_obj_move_background(lv_obj_t *) { lv_obj_move_background_calls++; }
 
-#include "temperature_unit.h"
 #include "display_color.h"
 #include "button_grid_config_parser.h"
 #include "backlight.h"
@@ -352,12 +351,6 @@ int main() {
   assert(!screen_schedule_clock_bar.reserve_space);
   assert(!screen_schedule_clock_bar.visible);
 
-  auto clock_bar_entities = parse_clock_bar_temperature_entities(
-    " sensor.outdoor | sensor.indoor, sensor.outdoor\nsensor.loft,, ");
-  assert(clock_bar_entities.size() == 1);
-  assert(clock_bar_entities[0] == "sensor.outdoor");
-
-  set_clock_bar_temperature_value_count(1);
   lv_obj_t temperature_1;
   lv_obj_t display_time;
   lv_obj_t network_status_button;
@@ -373,19 +366,11 @@ int main() {
     12, 17, 20, 10, 80);
   assert(lv_obj_move_background_calls == 2);
   assert(lv_obj_get_width(&temperature_1) == 72);
-  set_clock_bar_temperature_labels(temperature_labels, 1);
-  clock_bar_temperature_values()[0] = 17;
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
-  assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return true; };
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
-  assert(!lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return false; };
-  set_clock_bar_temperature_value_count(0);
-  refresh_clock_bar_temperature_label_values(&main_page, true, true, true, 21, 17);
+  set_clock_bar_left_labels(temperature_labels, 1);
+  refresh_clock_bar_left_label(&main_page, true);
   assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
   set_clock_bar_companion_subpage_label("Settings");
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
+  refresh_clock_bar_left_label(&main_page, true);
   assert(!lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
   assert(temperature_1.text == "Settings");
   clock_bar_update_left_text_width(&temperature_1);
@@ -401,7 +386,6 @@ int main() {
   assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
   assert(lv_obj_has_flag(&display_time, LV_OBJ_FLAG_HIDDEN));
   assert(lv_obj_has_flag(&network_status_button, LV_OBJ_FLAG_HIDDEN));
-  set_clock_bar_temperature_value_count(0);
 
   // Settings remains above modal and nested overlays, even when a modal
   // explicitly moves itself to the foreground after creation.
@@ -689,17 +673,7 @@ int main() {
   assert(switch_confirmation_yes_text(garage_close_from_open_confirmation) == "Proceed");
   assert(switch_confirmation_no_text(garage_close_from_open_confirmation) == "Wait");
 
-  set_display_temperature_unit("\u00B0F", "UTC (GMT+0)");
-  assert(convert_temperature_value_for_display(10, "\u00B0C") == 50);
-  assert(convert_temperature_value_for_display(10, "\u00B0F") == 10);
-  assert(convert_temperature_value_for_display_float(10.4f, "\u00B0C") > 50.7f);
-  assert(convert_temperature_value_for_display_float(10.4f, "\u00B0C") < 50.8f);
-  assert(convert_temperature_value_for_display(50, "\u00B0F") == 50);
-  set_display_temperature_unit("\u00B0C", "UTC (GMT+0)");
-  assert(convert_temperature_value_for_display(50, "\u00B0F") == 10);
-  assert(convert_temperature_value_for_display_float(50.7f, "\u00B0F") > 10.3f);
-  assert(convert_temperature_value_for_display_float(50.7f, "\u00B0F") < 10.4f);
-  assert(convert_temperature_value_for_display(10, "\u00B0C") == 10);
+
 
   esphome::companion::companion_set_timezone_id("Europe/London");
   assert(effective_timezone_option("Auto (Mac Companion)") == "Europe/London");
@@ -1172,7 +1146,6 @@ def main() -> int:
         shutil.copy2(PARSER_HEADER.with_name("i18n_generated.h"), tmp_path / "i18n_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")
         shutil.copy2(MEDIA_CONFIG_HEADER, tmp_path / "button_grid_media_config.h")
-        shutil.copy2(ROOT / "components" / "espdesktop" / "temperature_unit.h", tmp_path / "temperature_unit.h")
         shutil.copy2(ROOT / "components" / "espdesktop" / "sun_calc.h", tmp_path / "sun_calc.h")
         shutil.copy2(COMPANION_TIMEZONE_HEADER, tmp_path / "companion_timezone.h")
         shutil.copy2(COMPANION_CAPABILITIES_HEADER, tmp_path / "companion_capabilities_generated.h")

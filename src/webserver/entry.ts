@@ -177,7 +177,6 @@ function registerCards(context: ApplicationContext) {
     registry,
     context.configuration.modalTabs,
     context.configuration.accessClimateAlarm,
-    context.controllers.clockBarState,
     context.controllers.renderQueue,
     fields,
   );
@@ -229,8 +228,8 @@ function registerCards(context: ApplicationContext) {
   registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields,
     () => context.configuration.native.homeAssistantSupportEnabled());
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
-  const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, context.controllers.clockBarState, fields, cardUi);
-  registerWeatherForecastCardTypes(registry, weatherCards, context.controllers.clockBarState, fields);
+  const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, fields, cardUi);
+  registerWeatherForecastCardTypes(registry, weatherCards, fields);
   registerWebhookCardTypes(registry, context.configuration.webhookOptions, fields, cardUi);
   return lightCards;
 }
@@ -269,7 +268,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.controllers.screensaverTimeout,
     context.controllers.firmwareVersion,
     context.controllers.firmwareUpdate,
-    context.controllers.clockBarState,
     context.controllers.entityState,
     context.controllers.requestApi,
     context.controllers.statusPreview,
@@ -362,7 +360,7 @@ function composeApplicationContext(): ApplicationContext {
   const entityState = createEntityStateFeature({
     actionCardStateEntity: (button) => confirmationOptions.actionCardStateEntity(button),
     totalSlots: () => layout.totalSlots,
-    clockBarTemperatureEntities: () => clockBarState.temperatureEntities(),
+
     textInput: (id, value, placeholder) => fields.textInput(id, value, placeholder),
   });
   const screenRotation = createScreenRotationFeature(runtime, layout, {
@@ -570,17 +568,10 @@ function composeApplicationContext(): ApplicationContext {
   );
   const clockBar = createClockBarController();
   clockBarState = createClockBarFeature(clockBar, runtime, core, environment, {
-    homeAssistantConnected: () => !!connectorsPage?.homeAssistantConnected(),
     hideSettingsOverlay: () => selection.hideSettingsOverlay(),
-    timezoneId: (value) => statusPreview.getTzId(value),
-    postTemperatureEntities: (value) => clockBarPostApi.postClockBarTemperatureEntities(value),
-    postSwitch: (name, value) => requestApi.postSwitch(name, value),
-    entityName: (key) => entityState.entityName(key),
-    postText: (name, value) => requestApi.postText(name, value),
-    updateTemperaturePreview: () => statusPreview.updateTempPreview(),
+
     updateItemUi: () => statusPreview.updateClockBarItemUi(),
-    postTemperatureDegreeSymbol: (value) => clockBarPostApi.postTemperatureDegreeSymbol(value),
-    isTemperatureItem: (item) => statusPreview.isClockBarTemperatureItem(item),
+
     postTime: (value) => clockBarPostApi.postClockBarTime(value),
     postVoiceServices: (value) => clockBarPostApi.postVoiceServices(value),
     postNetworkStatus: (value) => clockBarPostApi.postNetworkStatusIcon(value),
@@ -944,16 +935,6 @@ function composeApplicationContext(): ApplicationContext {
   connectorsPage = createConnectorsPageFeature(
     dom, shell, companionSection, !!layout.config.features?.companion,
   );
-  let temperatureHomeAssistantConnected = connectorsPage.homeAssistantConnected();
-  connectorsPage.onStatusChange(() => {
-    const connected = connectorsPage.homeAssistantConnected();
-    if (connected === temperatureHomeAssistantConnected) return;
-    temperatureHomeAssistantConnected = connected;
-    if (!connected && statusPreview.isClockBarTemperatureItem(state.clockBarSelectedItem)) {
-      selection.clearCardSelection();
-    }
-    statusPreview.updateClockBarItemUi();
-  });
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
   connectorsPage.onStatusChange(() => {

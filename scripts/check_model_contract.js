@@ -559,7 +559,6 @@ assert.deepStrictEqual(plain(layoutPlan.importedSizes), { 1: 3 }, "backup layout
 assert.strictEqual(layoutPlan.buttons[0].entity, "weather.home", "backup layout follows saved order first");
 assert.strictEqual(layoutPlan.buttons[1].entity, "light.kitchen", "backup layout fills target slots in order");
 
-assert.strictEqual(model.normalizeTemperatureUnit("fahrenheit"), "\u00B0F", "temperature unit normalization");
 assert.strictEqual(model.normalizeScheduleWakeTimeout(1), 10, "wake timeout minimum");
 assert.strictEqual(model.normalizeCoverArtDelay(0), 3, "legacy immediate cover art delay migrates to three seconds");
 assert.strictEqual(model.normalizeCoverArtDelay(60), 60, "valid cover art delay remains unchanged");
@@ -687,9 +686,9 @@ const panelSettings = model.normalizeBackupPanelSettings({
   updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"],
   screenRotationOptions: ["0", "90", "180", "270"],
 });
-assert.strictEqual(panelSettings.temperatureUnit, "\u00B0C", "panel temperature unit normalizes");
-assert.strictEqual(panelSettings.outdoorTempEnable, false, "panel clock bar temperature visibility imports");
-assert.deepStrictEqual(plain(panelSettings.clockBarTemperatureEntities), ["sensor.porch_temperature"], "panel clock bar temperature entity imports");
+for (const retired of ["temperatureUnit", "outdoorTempEnable", "indoorTempEnable", "clockBarTemperatureEntities", "temperatureDegreeSymbol"]) {
+  assert(!Object.prototype.hasOwnProperty.call(panelSettings, retired), `retired setting ${retired} is ignored`);
+}
 assert.strictEqual(panelSettings.clockBarTime, false, "panel clock bar time imports");
 assert.strictEqual(panelSettings.clockBarNightMode, true, "panel clock bar night mode icon imports");
 assert.strictEqual(panelSettings.networkStatusIcon, false, "panel clock bar network status imports");
