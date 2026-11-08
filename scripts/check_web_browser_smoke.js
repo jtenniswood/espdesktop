@@ -6368,6 +6368,62 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   }
 }
 
+async function assertMacScreenControls(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = {
+    1: "system.brightness_up;Screen Brighter;Weather Sunny;Auto;;;companion",
+    2: "system.brightness_down;Screen Dimmer;Weather Sunny Off;Auto;;;companion",
+    3: "system.lock;Mac Lock;Lock;Auto;;;companion",
+    4: "display.brightness;Display Brightness;Weather Sunny;Weather Sunny;;;slider",
+  };
+  nativeState.document.settings.button_order = "1,2,3,4";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, nativeState);
+    async function editSlot(slot) {
+      await page.locator(`.sp-main [data-slot="${slot}"]`).click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      const settings = page.locator(".sp-settings-modal .sp-disclosure").filter({
+        has: page.locator(".sp-disclosure-button", { hasText: "Card Settings" }),
+      }).first();
+      if (await settings.locator(".sp-disclosure-button").first().getAttribute("aria-expanded") !== "true") {
+        await settings.locator(".sp-disclosure-button").first().click();
+      }
+    }
+    await editSlot(1);
+    const actions = page.getByLabel("Mac screen action", { exact: true });
+    assert.deepStrictEqual(await actions.locator("option").allTextContents(), ["Screen Brighter", "Screen Dimmer", "Mac Lock"]);
+    assert.strictEqual(await actions.inputValue(), "system.brightness_up");
+    await actions.selectOption("system.lock");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => String(nativeState.document.buttons[1]).startsWith("system.lock;"), "Mac screen action saves");
+    await editSlot(4);
+    const slider = page.locator('[id$="slider-control"]');
+    assert.strictEqual(await slider.inputValue(), "mac_brightness");
+    await slider.selectOption("mac_input");
+    await page.locator('[id$="slider-control"]').selectOption("mac_brightness");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => String(nativeState.document.buttons[4]).startsWith("display.brightness;"), "Mac brightness slider saves");
+    await page.reload();
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, nativeState);
+    await editSlot(1);
+    assert.strictEqual(await page.getByLabel("Mac screen action", { exact: true }).inputValue(), "system.lock");
+    assert.deepStrictEqual(errors, []);
+    console.log("Mac screen buttons and brightness slider: picker, mode switching, save and reload passed.");
+  } finally { await context.close(); }
+}
+
 async function assertCompanionShortcutSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -8911,6 +8967,7 @@ async function assertNestedCompanionPages(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_MAC_SCREEN_ONLY === "1") { await assertMacScreenControls(browser); return; }
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     if (process.env.ESPDESKTOP_COMPANION_SHORTCUTS_ONLY === "1") {
@@ -8968,6 +9025,7 @@ async function assertNestedCompanionPages(browser) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
+    await assertMacScreenControls(browser);
     await assertSpecialPageEntry(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
