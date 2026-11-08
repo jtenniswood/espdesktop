@@ -221,8 +221,7 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -433,8 +432,7 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -634,8 +632,7 @@
             "card_curve_medium_radius": "20px"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -835,8 +832,7 @@
             "card_curve_medium_radius": "20px"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -1034,8 +1030,7 @@
           "esp32C6FirmwareUpdate": true,
           "extraPackages": {
             "battery": "!include device/battery.yaml"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -1230,8 +1225,7 @@
             "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -1428,8 +1422,7 @@
             "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -1638,8 +1631,7 @@
           "backlightPwmFrequency": {
             "wifi": "100Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -1845,9 +1837,7 @@
             "card_curve_medium_radius": "21px",
             "button_radius": "8px"
           },
-          "deviceFontPackageKey": "fonts_device",
-          "apiNavigateAction": true,
-          "apiOpenModalAction": true
+          "deviceFontPackageKey": "fonts_device"
         }
       },
       "settings": {

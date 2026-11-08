@@ -9,9 +9,7 @@
           "build": {
             "chip": "ESP32-P4"
           },
-          "package": {
-            "apiOpenModalAction": true
-          }
+          "package": {}
         }
       },
       "esp32-s3": {
@@ -19,9 +17,7 @@
           "build": {
             "chip": "ESP32-S3"
           },
-          "package": {
-            "apiOpenModalAction": true
-          }
+          "package": {}
         }
       }
     },
@@ -1507,8 +1503,7 @@
               "card_curve_small_radius": "16px",
               "card_curve_medium_radius": "21px",
               "button_radius": "8px"
-            },
-            "apiNavigateAction": true
+            }
           }
         }
       }
