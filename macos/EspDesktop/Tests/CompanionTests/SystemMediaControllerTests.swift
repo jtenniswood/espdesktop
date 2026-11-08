@@ -136,4 +136,26 @@ final class SystemMediaControllerTests: XCTestCase {
         XCTAssertEqual(audio.nativeMutes[1], false)
     }
 
+    func testNativeMuteWorksWithoutAdjustableVolume() {
+        let audio = AudioFixture()
+        audio.levels.removeAll()
+        audio.nativeMutes = [1: false, 2: false]
+        let controller = audio.controller()
+        XCTAssertNil(controller.values()[SystemMediaController.outputVolumeID])
+        XCTAssertNil(controller.values()[SystemMediaController.inputVolumeID])
+        for (control, device) in [(SystemMediaController.outputMuteID, AudioDeviceID(1)),
+                                  (SystemMediaController.inputMuteID, AudioDeviceID(2))] {
+            XCTAssertEqual(controller.values()[control], 0)
+            XCTAssertTrue(controller.setValue(100, controlIdentifier: control))
+            XCTAssertEqual(audio.nativeMutes[device], true)
+            XCTAssertEqual(controller.values()[control], 100)
+            XCTAssertTrue(controller.setValue(0, controlIdentifier: control))
+            XCTAssertEqual(audio.nativeMutes[device], false)
+        }
+        XCTAssertEqual(audio.writes, 0)
+        audio.nativeMutes.removeAll()
+        XCTAssertTrue(controller.values().isEmpty)
+        XCTAssertFalse(controller.setValue(100, controlIdentifier: SystemMediaController.inputMuteID))
+    }
+
 }

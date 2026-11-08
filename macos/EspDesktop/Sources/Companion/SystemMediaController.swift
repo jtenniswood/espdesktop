@@ -49,15 +49,18 @@ final class SystemMediaController {
             (kAudioDevicePropertyScopeOutput, Self.outputVolumeID, Self.outputMuteID),
             (kAudioDevicePropertyScopeInput, Self.inputVolumeID, Self.inputMuteID)
         ] {
-            guard let device = findDevice(scope), let level = readVolume(device, scope) else { continue }
+            guard let device = findDevice(scope) else { continue }
+            let level = readVolume(device, scope)
             let key = DeviceKey(device: device, scope: scope)
             // An external volume adjustment ends the zero-level fallback mute.
-            if level > 0 { restoreLevels.removeValue(forKey: key) }
-            result[volumeID] = Int((level * 100).rounded()).clampedPercentage
+            if let level {
+                if level > 0 { restoreLevels.removeValue(forKey: key) }
+                result[volumeID] = Int((level * 100).rounded()).clampedPercentage
+            }
             // Never offer an unmute that would have to guess an unknown level.
             if let muted = readMute(device, scope) {
                 result[muteID] = muted ? 100 : 0
-            } else if level > 0 || restoreLevels[key] != nil {
+            } else if let level, level > 0 || restoreLevels[key] != nil {
                 result[muteID] = level == 0 ? 100 : 0
             }
         }
@@ -74,11 +77,12 @@ final class SystemMediaController {
         guard let device = findDevice(scope) else { return false }
         let key = DeviceKey(device: device, scope: scope)
         if controlIdentifier == Self.outputMuteID || controlIdentifier == Self.inputMuteID {
-            guard value == 0 || value == 100, let current = readVolume(device, scope) else { return false }
+            guard value == 0 || value == 100 else { return false }
             // Native mute preserves the device's level and works across app restarts.
             if readMute(device, scope) != nil {
                 return writeMute(value == 100, device, scope)
             }
+            guard let current = readVolume(device, scope) else { return false }
             if value == 100 {
                 if current == 0 { return true }
                 guard writeVolume(0, device, scope) else { return false }
