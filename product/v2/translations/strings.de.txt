@@ -349,3 +349,4 @@ wind_west=West
 wind_north_west=North West
 output_mute=Ausgabe stummschalten
 microphone_mute=Mikrofon stummschalten
+mic=Mikro

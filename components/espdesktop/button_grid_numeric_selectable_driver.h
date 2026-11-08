@@ -189,7 +189,9 @@ inline void numeric_selectable_driver_bind_slider(
       lv_label_set_display_text(slot.icon_lbl, icon_off);
     }
     if (slot.text_lbl && (config.label.empty() ||
-        (config.entity == "media.output_volume" && config.label == "Output Volume"))) {
+        (config.entity == "media.output_volume" && config.label == "Output Volume") ||
+        (config.entity == "media.input_volume" &&
+         (config.label == "Input Volume" || config.label == "Input volume" || config.label == "Mic")))) {
       lv_label_set_display_text(
         slot.text_lbl, companion_volume_control_label(config.entity));
     }

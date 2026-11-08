@@ -36,7 +36,7 @@ export function companionSliderMode(card: any): string {
 
 function companionSliderDefaultLabel(mode: string): string {
     if (mode === "mac_output") return "Volume";
-    if (mode === "mac_input") return "Input Volume";
+    if (mode === "mac_input") return "Mic";
     if (mode === "mac_output_mute") return "Output Mute";
     if (mode === "mac_input_mute") return "Microphone Mute";
     return "";
@@ -147,7 +147,7 @@ export function registerSliderCardTypes(
                     options: [
                         ["home_assistant", "Home Assistant light or fan"],
                         ["mac_output", "Mac output volume"],
-                        ["mac_input", "Mac input volume"],
+                        ["mac_input", "Mic"],
                         ["mac_output_mute", "Output mute"],
                         ["mac_input_mute", "Microphone mute"],
                     ],
@@ -195,7 +195,7 @@ export function registerSliderCardTypes(
                                 var previousMode: any = companionSliderMode(b);
                                 b.icon = companionSliderIcon(b.icon, previousMode, sliderMode);
                                 b.icon_on = companionSliderIcon(b.icon_on, previousMode, sliderMode);
-                                const defaultLabels = ["Volume", "Output Volume", "Input Volume", "Output Mute", "Microphone Mute"];
+                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Output Mute", "Microphone Mute"];
                                 const identifiers: Record<string, string> = {
                                     mac_output: COMPANION_OUTPUT_VOLUME_ID,
                                     mac_input: COMPANION_INPUT_VOLUME_ID,
@@ -476,8 +476,9 @@ export function registerSliderCardTypes(
                 var defaultLabel: any = companionSliderDefaultLabel(sliderMode) || b.entity || opts.fallbackLabel;
                 var defaultIcon: any = sliderMode !== "home_assistant"
                     ? iconSlug(companionSliderDefaultIcon(sliderMode)) : opts.fallbackIcon;
-                var label: any = sliderMode === "mac_output" && b.label === "Output Volume"
-                    ? defaultLabel : b.label || defaultLabel;
+                var oldDefaultLabel = (sliderMode === "mac_output" && b.label === "Output Volume") ||
+                    (sliderMode === "mac_input" && (b.label === "Input Volume" || b.label === "Input volume"));
+                var label: any = oldDefaultLabel ? defaultLabel : b.label || defaultLabel;
                 var iconName: any = sliderMode !== "home_assistant"
                     ? iconSlug(companionSliderNormalIcon(b.icon, sliderMode))
                     : b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;

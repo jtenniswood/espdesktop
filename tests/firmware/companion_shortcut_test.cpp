@@ -37,6 +37,7 @@ int main() {
     assert(!runtime.snapshot().application_highlight_known);
   }
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Volume");
+  assert(std::string(companion_volume_control_label("media.input_volume")) == "Mic");
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
@@ -61,7 +62,7 @@ int main() {
   set_espdesktop_language("de");
   assert(std::string(companion_volume_control_label("media.input_mute")) == "Mikrofon stummschalten");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
-  assert(std::string(companion_volume_control_label("media.input_volume")) == "Eingabelautstärke");
+  assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("window.minimize") == "Minimieren");
   assert(companion_default_action_label("window.arrange.left-right") == "Links und rechts");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");

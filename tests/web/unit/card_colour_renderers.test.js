@@ -19,7 +19,7 @@ function editor() {
   const document = { createElement: () => element() };
   const registry = { definitions: {}, register(type, definition) { this.definitions[type] = definition; } };
   const ui = { renderButtonSettings() {} };
-  const fields = { cardBadgeLabelHtml() {}, cardBadgePreview() {} };
+  const fields = { cardBadgeLabelHtml(_helpers, label) { return label; }, cardBadgePreview() {} };
   const robot = loadTypescriptTest("src/webserver/application/config_robot_card_options.ts")
     .createConfigRobotCardOptionsFeature();
   const tabs = loadTypescriptTest("src/webserver/application/config_modal_tab_options.ts")
@@ -210,5 +210,23 @@ test("existing mute cards use normal speaker and mic icons when their saved defa
     definition.renderSettings(element(), card, 1, e.helpers);
     assert.equal(e.icons[0].metadata.value, expected);
     assert(definition.renderPreview(card, e.helpers).iconHtml.includes("mdi-" + expected.toLowerCase().replaceAll(" ", "-")));
+  }
+});
+
+
+test("Mic replaces the input volume default label while preserving custom names", () => {
+  for (const label of ["", "Input Volume", "Input volume", "Mic", "Desk microphone"]) {
+    const e = editor();
+    const card = { type: "slider", entity: "media.input_volume", label };
+    const definition = e.registry.definitions.slider;
+    const preview = definition.renderPreview(card, e.helpers);
+    const expected = label === "Desk microphone" ? label : "Mic";
+    assert.equal(preview.labelHtml, expected);
+    definition.renderSettings(element(), card, 1, e.helpers);
+    assert(e.modes[0].options.some(option => option[0] === "mac_input" && option[1] === "Mic"));
+    e.modes[0].onChange.call({ value: "mac_input" });
+    assert.equal(card.label, expected);
+    e.modes[0].onChange.call({ value: "mac_output" });
+    assert.equal(card.label, label === "Desk microphone" ? label : "Volume");
   }
 });

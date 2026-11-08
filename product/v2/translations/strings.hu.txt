@@ -349,3 +349,4 @@ wind_west=West
 wind_north_west=North West
 output_mute=Kimenet némítása
 microphone_mute=Mikrofon némítása
+mic=Mikrofon
