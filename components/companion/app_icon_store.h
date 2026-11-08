@@ -64,7 +64,7 @@ class AppIconStore {
   struct MemoryEntry {
     std::string application_id;
     std::array<uint8_t, 32> hash{};
-    std::unique_ptr<uint8_t, PixelDeleter> pixels;
+    std::unique_ptr<uint8_t, PixelDeleter> pixels{nullptr, PixelDeleter{0}};
     size_t stored_bytes{0};
     bool compressed{false};
     uint64_t last_used{0};
