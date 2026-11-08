@@ -1,4 +1,5 @@
 #include "companion.h"
+#include "../espdesktop/screen_lock_state.h"
 #include "companion_discovery.h"
 #include "now_playing_protocol.h"
 #include "../espdesktop/companion_protocol_generated.h"
@@ -806,6 +807,11 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         }
         else companion_set_focused_actions(std::move(action_ids));
       });
+      return true;
+    }
+
+    if (const auto *payload = std::get_if<companion_protocol::SessionLock>(&*decoded)) {
+      this->defer_session_([locked = payload->locked]() { screen_lock_set_mac_locked(locked); });
       return true;
     }
 

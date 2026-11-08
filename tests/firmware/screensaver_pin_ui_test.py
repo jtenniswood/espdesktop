@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[2]
 ui = (ROOT / 'components/espdesktop/screensaver_pin_ui.h').read_text()
 ui = ui[ui.index('struct ScreensaverPinUi'):]
 lock = (ROOT / 'components/espdesktop/screen_lock_state.h').read_text()
-lock = lock[lock.index('inline bool screen_lock_enabled()'):]
+lock = lock[lock.index('inline bool &screen_lock_mac_locked()'):]
 navigation = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
 navigation = definition(navigation, 'navigation_return_home')[1]
 settings = (ROOT / 'components/espdesktop/network_status.h').read_text()
@@ -266,6 +266,35 @@ int main() {
   screensaver_pin_key_cb(&submit);
   deferred.front()(nullptr); deferred.clear();
   assert(!pin.locked() && !ui.overlay);
+  assert(pin.save(false, &empty));
+
+  // Mac lock needs no local PIN, consumes touches, and cannot be bypassed.
+  screen_lock_set_mac_locked(true);
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  assert(screen_lock_enabled() && ui.overlay && ui.mac_locked && !ui.label);
+  assert(rendered_title->text == "Screen Locked" && !ui.overlay->on_release);
+  screensaver_pin_guard_cb(&released);
+  assert(deferred.empty() && !pin.keypad_requested());
+  screensaver_pin_refresh(false, nullptr, nullptr, nullptr, false);
+  assert(ui.overlay && ui.mac_locked); // Idle clock remains protected too.
+  screen_lock_set_mac_locked(false);
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  assert(!screen_lock_enabled() && !ui.overlay);
+  // Mac unlock preserves a separately configured local PIN lock.
+  assert(pin.save(false, &code));
+  assert(pin.lock());
+  screen_lock_set_mac_locked(true);
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  screensaver_pin_key_cb(&zero);
+  screensaver_pin_key_cb(&four);
+  screensaver_pin_key_cb(&submit);
+  assert(pin.locked());
+  screen_lock_set_mac_locked(false);
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  assert(pin.locked() && ui.label && !ui.mac_locked);
+  assert(pin.submit(code));
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  assert(!ui.overlay);
   assert(pin.save(false, &empty));
 
   // Settings follows the saved PIN even when automatic wake protection is off.
