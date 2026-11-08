@@ -1065,36 +1065,6 @@
     }
   },
   {
-    "name": "screensaver: force",
-    "input": "~,,Monitor,Auto,,,screensaver,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Monitor",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "screensaver",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "screen_lock: toggle",
-    "input": "~,,Lock,Lock%20Open,,,screen_lock,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Lock",
-      "icon_on": "Lock Open",
-      "sensor": "",
-      "unit": "",
-      "type": "screen_lock",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "webhook: get",
     "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,GET,,webhook,,",
     "expected": {

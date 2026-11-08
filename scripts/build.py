@@ -1592,8 +1592,6 @@ SAVED_CONFIG_STATIC_CARD_TYPES = (
     "light_switch",
     "light_temperature",
     "push",
-    "screen_lock",
-    "screensaver",
     "slider",
 )
 

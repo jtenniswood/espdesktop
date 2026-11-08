@@ -177,7 +177,7 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
     "hook": "normalize_sensor_options"
   }
 };
-export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = [] as const;
+export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["SL", "SS"] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
@@ -3218,68 +3218,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "screen_lock": {
-    "label": "Screen Lock",
-    "allowInSubpage": true,
-    "domains": [],
-    "options": [
-      {
-        "name": "screensaver_on_lock",
-        "label": "Screensaver on lock",
-        "kind": "flag",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "clear"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Lock"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Lock Open"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "screen_lock"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "keep"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "screensaver_on_lock"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Lock",
-      "icon_on": "Lock Open",
-      "sensor": "",
-      "unit": "",
-      "type": "screen_lock",
-      "precision": "",
-      "options": ""
-    }
-  },
   "webhook": {
     "label": "Webhook",
     "allowInSubpage": true,
@@ -4334,58 +4272,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "precision": "tomorrow",
       "options": ""
     }
-  },
-  "screensaver": {
-    "label": "Screensaver",
-    "allowInSubpage": true,
-    "domains": [],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "clear"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Monitor"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "screensaver"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "clear"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": []
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Monitor",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "screensaver",
-      "precision": "",
-      "options": ""
-    }
   }
 };
 export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
@@ -4799,18 +4685,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "screen_lock": {
-    "driver": "screen_lock",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
   "webhook": {
     "driver": "webhook",
     "capabilities": {
@@ -4942,18 +4816,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "runtimeAllocation": true,
       "subpage": true
     }
-  },
-  "screensaver": {
-    "driver": "screensaver",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": false,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
   }
 };
 export const CARD_CONTRACT_MIGRATION_ALIASES: Readonly<Record<string, Partial<CardConfig>>> = {
@@ -5025,11 +4887,9 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "climate_control": "HC",
   "push": "P",
   "companion": "CP",
-  "screen_lock": "SL",
   "webhook": "WH",
   "internal": "I",
-  "subpage": "G",
-  "screensaver": "SS"
+  "subpage": "G"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
   "TM": "timer",
@@ -5068,11 +4928,9 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "HC": "climate_control",
   "P": "push",
   "CP": "companion",
-  "SL": "screen_lock",
   "WH": "webhook",
   "I": "internal",
-  "G": "subpage",
-  "SS": "screensaver"
+  "G": "subpage"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
   "": true,
@@ -5151,7 +5009,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "playlist_player_source": "playlist_player_source",
   "power_entity": "power_entity",
   "rainfall_source": "rainfall_source",
-  "screensaver_on_lock": "screensaver_on_lock",
   "script_fields": "script_fields",
   "security": "security",
   "speaker_group_entity": "speaker_group_entity",

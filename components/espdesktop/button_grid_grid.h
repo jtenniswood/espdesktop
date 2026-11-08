@@ -1264,7 +1264,6 @@ inline void grid_phase1(
   weather_daily_reset_cards();
   reset_weather_forecast_cards();
   reset_climate_control_refs();
-  screen_lock_reset_registry();
 
   for (int pos = 0; pos < NS; pos++) {
     int idx = order.positions[pos];
@@ -1865,7 +1864,6 @@ inline void grid_release_runtime_allocations(
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;
   ha_release_callbacks_for_owner(entry.screen);
-  screen_lock_unregister_tree(entry.screen);
   grid_prepare_media_runtime_for_visual_reset(entry.back_button);
   grid_release_runtime_allocations(entry.back_button);
   for (const auto &card : entry.cards) {

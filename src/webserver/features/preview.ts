@@ -130,7 +130,7 @@ const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
 ]);
 
 const LOCAL_CARD_TYPES = new Set([
-  "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
+  "clock", "internal", "local_sensor", "timezone", "wifi_qr", "wifi_qr_card",
 ]);
 
 export type CardPickerConnector = "home_assistant" | "mac_companion";

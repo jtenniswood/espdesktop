@@ -29,8 +29,6 @@ enum class Family : uint8_t {
   OPTION_SELECT,
   PUSH,
   COMPANION,
-  SCREEN_LOCK,
-  SCREENSAVER,
   SENSOR,
   SLIDER,
   SUBPAGE,

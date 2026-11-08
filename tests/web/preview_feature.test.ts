@@ -65,7 +65,7 @@ export function runPreviewFeatureTests(): void {
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
   }
-  for (const key of ["internal", "screen_lock", "wifi_qr", "wifi_qr_card"]) {
+  for (const key of ["internal", "wifi_qr", "wifi_qr_card"]) {
     equal(cardTypeConnector(key), "local", `${key} is classified as a local card`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), true, `${key} remains available without Home Assistant`);
   }
@@ -130,7 +130,6 @@ export function runPreviewFeatureTests(): void {
       companion_window: { label: "Window control", allowInSubpage: true },
       internal: { label: "Internal Switches", allowInSubpage: true },
       push: { label: "Trigger", allowInSubpage: true },
-      screen_lock: { label: "Screen Lock", allowInSubpage: true },
       webhook: { label: "Webhook", allowInSubpage: true },
       slider: { label: "Slider", allowInSubpage: true },
       wifi_qr: { label: "Wifi Sharing", allowInSubpage: true },
@@ -138,7 +137,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "companion_app", "calendar", "internal", "companion_shortcut", "companion_folder", "companion_url", "screen_lock", "sensor", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "wifi_qr", "companion_window"],
+    ["action", "companion_app", "calendar", "internal", "companion_shortcut", "companion_folder", "companion_url", "sensor", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "wifi_qr", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

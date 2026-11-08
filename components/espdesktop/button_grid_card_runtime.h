@@ -61,8 +61,6 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::OPTION_SELECT: return Family::OPTION_SELECT;
     case Type::PUSH: return Family::PUSH;
     case Type::COMPANION: return Family::COMPANION;
-    case Type::SCREEN_LOCK: return Family::SCREEN_LOCK;
-    case Type::SCREENSAVER: return Family::SCREENSAVER;
     case Type::SENSOR: return Family::SENSOR;
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;

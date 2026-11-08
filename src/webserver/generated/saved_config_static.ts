@@ -36,30 +36,6 @@ export function normalizeSavedConfigStatic(config: CardConfig): boolean {
     config.options = "";
     return true;
   }
-  if (config.type === "screen_lock") {
-    config.entity = "";
-    config.label = "";
-    config.icon = "Lock";
-    config.icon_on = "Lock Open";
-    config.sensor = "";
-    config.unit = "";
-    config.type = "screen_lock";
-    config.precision = "";
-    config.options = ["screensaver_on_lock"].filter(name => configOptionEnabled(config.options, name)).join(",");
-    return true;
-  }
-  if (config.type === "screensaver") {
-    config.entity = "";
-    config.label = "";
-    config.icon = "Monitor";
-    config.icon_on = "Auto";
-    config.sensor = "";
-    config.unit = "";
-    config.type = "screensaver";
-    config.precision = "";
-    config.options = "";
-    return true;
-  }
   if (config.type === "slider") {
     config.sensor = "";
     config.type = "slider";

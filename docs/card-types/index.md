@@ -43,8 +43,6 @@ Use this page when you know what you want the panel to do but are not sure which
 | Control media playback, volume, progress, or now-playing display | [Media](/card-types/media) | `media_player` |
 | Control a thermostat or HVAC entity | [Climate](/card-types/climate) | `climate` |
 | Control a built-in relay on the panel itself | [Internal Switches](/card-types/internal-relays) | Built-in relay |
-| Start the configured screensaver immediately | [Screensaver](/features/screensaver#start-the-screensaver-with-a-card) | No entity required |
-| Lock or unlock the touchscreen controls locally | [Screen Lock](/card-types/screen-lock) | No entity required |
 | Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
 
 ## Mac Cards
@@ -66,7 +64,7 @@ Some cards do not need a Home Assistant entity:
 - **Local Sensor** shows a value supplied by the panel firmware.
 - **Webhook** sends a direct HTTP request.
 - **Action > Local Action** runs a registered callback on the panel itself.
-- **Date & Time**, **World Clock**, **Screen Lock**, and **Subpage** can work from the panel itself.
+- **Date & Time**, **World Clock**, and **Subpage** can work from the panel itself.
 - **Internal Switches** controls built-in relay hardware on supported panels.
 - **Wifi Sharing** stores separately configured guest-network credentials on the panel.
 

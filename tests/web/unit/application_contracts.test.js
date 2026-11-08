@@ -437,7 +437,6 @@ describe("browserless application contracts", () => {
       ["lawn_mower", "registerLawnMowerCardTypes"],
       ["presence", "registerPresenceCardTypes"],
       ["push", "registerPushCardTypes"],
-      ["screen_lock", "registerScreenLockCardTypes"],
       ["action", "registerActionCardTypes"],
       ["alarm", "registerAlarmCardTypes"],
       ["climate", "registerClimateCardTypes"],
@@ -650,16 +649,16 @@ describe("browserless application contracts", () => {
   test("registers static card families without compatibility descriptors", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    const cards = ["push", "screen_lock"];
+    const cards = ["push"];
     for (const card of cards) {
       const source = fs.readFileSync(path.join(ROOT, `src/webserver/cards/${card}.ts`), "utf8");
       assert.doesNotMatch(source, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
     }
-    for (const registration of ["registerPushCardTypes", "registerScreenLockCardTypes"]) {
+    for (const registration of ["registerPushCardTypes"]) {
       assert.match(entry, new RegExp(`^  ${registration}\\(registry, fields(?:, [^\\n]+)?\\);`, "m"));
       assert.doesNotMatch(entry, new RegExp(`registerCompatibility\\(${registration}`));
     }
-    assert.doesNotMatch(globals, /\bvar (?:PUSH_CARD_METADATA|SCREEN_LOCK_CARD_METADATA|pushActionSpec|pushDefaultIcon|pushDefaultIconOn):/);
+    assert.doesNotMatch(globals, /\bvar (?:PUSH_CARD_METADATA|pushActionSpec|pushDefaultIcon|pushDefaultIconOn):/);
   });
 
   test("keeps card metadata private to registry definitions", () => {

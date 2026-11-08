@@ -4,7 +4,7 @@
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
 // Contract coverage markers: type == "", "action", "alarm_action",
-// "companion", "fan_switch", "internal", "light_switch", "push", "screen_lock", "screensaver", "webhook".
+// "companion", "fan_switch", "internal", "light_switch", "push", "webhook".
 
 namespace espdesktop::cards {
 
@@ -19,8 +19,6 @@ inline bool basic_action_driver_matches(const Context &context,
     case Driver::INTERNAL:
     case Driver::PUSH:
     case Driver::COMPANION:
-    case Driver::SCREEN_LOCK:
-    case Driver::SCREENSAVER:
     case Driver::WEBHOOK:
       return !action_card_option_select(config);
     case Driver::FAN:
@@ -36,14 +34,6 @@ inline bool basic_action_driver_setup_visual(
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
-    case Driver::SCREENSAVER:
-      lv_label_set_display_text(slot.icon_lbl, find_icon("Monitor"));
-      lv_label_set_display_text(slot.text_lbl, espdesktop_i18n("Screensaver"));
-      apply_push_button_transition(slot.btn);
-      break;
-    case Driver::SCREEN_LOCK:
-      setup_screen_lock_card(slot, config);
-      break;
     case Driver::COMPANION:
       setup_companion_card(slot, config, sensor_color);
       break;
@@ -341,19 +331,6 @@ inline bool basic_action_driver_bind_subpage(
       }, click);
       break;
     }
-    case Driver::SCREENSAVER:
-      bind_immediate_button_action(slot.btn, [](lv_event_t *) {
-        if (force_screensaver_action()) force_screensaver_action()();
-      }, nullptr);
-      break;
-    case Driver::SCREEN_LOCK: {
-      auto *screensaver_on_lock = grid_delete_with_owner(slot.btn,
-          new bool(cfg_option_enabled(config.options, "screensaver_on_lock")));
-      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-        screen_lock_activate(*static_cast<const bool *>(lv_event_get_user_data(event)));
-      }, screensaver_on_lock);
-      break;
-    }
     case Driver::PUSH: {
       std::string label = config.label.empty()
         ? espdesktop_i18n(std::string("Push")) : config.label;
@@ -511,12 +488,6 @@ inline bool basic_action_driver_handle_main_click(
   using Driver = card_runtime::CardDriverId;
   if (!basic_action_driver_matches(context, config)) return false;
   switch (context.runtime.driver) {
-    case Driver::SCREENSAVER:
-      if (force_screensaver_action()) force_screensaver_action()();
-      break;
-    case Driver::SCREEN_LOCK:
-      screen_lock_activate(cfg_option_enabled(config.options, "screensaver_on_lock"));
-      break;
     case Driver::PUSH: {
       std::string label = config.label;
       if (label.empty()) {

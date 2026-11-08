@@ -569,10 +569,8 @@ export function createConfigCodecFeature(
         var label: any = b && b.label || "";
         if (type === "calendar" || type === "clock" || type === "timezone")
             label = "";
-        if (type === "screen_lock")
-            label = "";
         var sensor: any = isActionOptionSelect ? ACTION_CARD_OPTION_SELECT_ACTION :
-            (isBrightnessSliderType(type) || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.sensor || "");
+            (isBrightnessSliderType(type) || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.sensor || "");
         if (type === "lock" && sensor !== "lock" && sensor !== "unlock")
             sensor = "";
         if (b && b.type === "local")
@@ -580,7 +578,7 @@ export function createConfigCodecFeature(
         if (b && (b.type === "local_sensor" || sensorCardIsLocal(b)))
             sensor = SENSOR_CARD_LOCAL_SENSOR;
         var isLocalAction: any = type === "action" && sensor === ACTION_CARD_LOCAL_ACTION;
-        var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
+        var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
         if (isLocalAction)
             unit = "";
         var icon: any = b && b.icon || "Auto";
@@ -592,8 +590,6 @@ export function createConfigCodecFeature(
             icon = "Security";
         if (type === "calendar" || type === "clock" || type === "timezone")
             icon = "Auto";
-        if (type === "screen_lock")
-            icon = "Lock";
         if (type === "alarm_action" && (!icon || icon === "Auto"))
             icon = (alarmActionInfo(sensor) || alarmActionSpecs()[0]).icon;
         if (isFanCardType(type) && (!icon || icon === "Auto"))
@@ -607,9 +603,7 @@ export function createConfigCodecFeature(
             iconOn = "Fan";
         if (type === "lock")
             iconOn = sensor ? "Auto" : ((!iconOn || iconOn === "Auto") ? "Lock Open" : iconOn);
-        if (type === "screen_lock")
-            iconOn = "Lock Open";
-        var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "screen_lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
+        var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
         if (isLocalAction)
             precision = "";
         if (sensor === SENSOR_CARD_LOCAL_SENSOR && precision !== "text" && precision !== "1" && precision !== "2")
@@ -713,9 +707,6 @@ export function createConfigCodecFeature(
         else if (type === "lock") {
             options = "";
         }
-        else if (type === "screen_lock") {
-            options = configOptionEnabled(options, "screensaver_on_lock") ? "screensaver_on_lock" : "";
-        }
         else if (type === "calendar" || type === "clock" || type === "timezone") {
             options = normalizeDateTimeOptions(type, options, precision);
         }
@@ -759,7 +750,7 @@ export function createConfigCodecFeature(
         else if (isActionOptionSelect || isFanCardType(type)) {
             options = "";
         }
-        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "webhook" && type !== "screen_lock" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
+        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "webhook" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
             options = "";
         }
         if (type === "image") {
@@ -807,7 +798,7 @@ export function createConfigCodecFeature(
         if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
         options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", options);
         return trimConfigFields([
-            (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
+            (type === "door_window" || type === "presence") ? "" : (b && b.entity || ""),
             label,
             icon,
             iconOn,

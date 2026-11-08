@@ -2240,68 +2240,6 @@
       }
     },
     {
-      "name": "screensaver: force",
-      "sourceKind": "contract",
-      "sourceType": "screensaver",
-      "mode": "force",
-      "canonicalType": "screensaver",
-      "web": {
-        "registration": "screensaver",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "5ceeb7950e2d1334"
-        }
-      },
-      "firmware": {
-        "family": "SCREENSAVER"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "none"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "screen_lock: toggle",
-      "sourceKind": "contract",
-      "sourceType": "screen_lock",
-      "mode": "toggle",
-      "canonicalType": "screen_lock",
-      "web": {
-        "registration": "screen_lock",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "9158d30006fd780a"
-        }
-      },
-      "firmware": {
-        "family": "SCREEN_LOCK"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "local"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "webhook: get",
       "sourceKind": "contract",
       "sourceType": "webhook",
