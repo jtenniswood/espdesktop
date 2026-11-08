@@ -1,4 +1,5 @@
 #include "app_icon_store.h"
+#include "app_icon_codec.h"
 
 #include <algorithm>
 #include <cstring>
@@ -48,7 +49,7 @@ AppIconStore &app_icon_store() {
 void AppIconStore::PixelDeleter::operator()(uint8_t *pixels) const {
 #ifdef USE_ESP32
   RAMAllocator<uint8_t> allocator(RAMAllocator<uint8_t>::ALLOC_EXTERNAL);
-  allocator.deallocate(pixels, APP_ICON_PIXEL_BYTES);
+  allocator.deallocate(pixels, capacity);
 #else
   (void)pixels;
 #endif
@@ -73,19 +74,31 @@ bool AppIconStore::save_memory_locked(const std::string &application_id,
   if (selected == memory_entries_.end())
     selected = std::min_element(memory_entries_.begin(), memory_entries_.end(),
         [](const MemoryEntry &a, const MemoryEntry &b) { return a.last_used < b.last_used; });
-  if (!selected->pixels) {
+  constexpr size_t pixel_count = APP_ICON_SIDE * APP_ICON_SIDE;
+  const size_t packed_bytes = app_icon_codec::encoded_size(pixels, pixel_count);
+  const bool compressed = packed_bytes < APP_ICON_PIXEL_BYTES;
+  const size_t stored_bytes = compressed ? packed_bytes : APP_ICON_PIXEL_BYTES;
+  if (!selected->pixels || selected->pixels.get_deleter().capacity < stored_bytes) {
     // Never spill icon buffers into the internal heap or consume drawing/transfer headroom.
     const unsigned caps = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;
-    if (heap_caps_get_free_size(caps) < APP_ICON_MEMORY_HEADROOM_BYTES + APP_ICON_PIXEL_BYTES ||
-        heap_caps_get_largest_free_block(caps) < APP_ICON_PIXEL_BYTES) return false;
+    if (heap_caps_get_free_size(caps) < APP_ICON_MEMORY_HEADROOM_BYTES + stored_bytes ||
+        heap_caps_get_largest_free_block(caps) < stored_bytes) return false;
     RAMAllocator<uint8_t> allocator(RAMAllocator<uint8_t>::ALLOC_EXTERNAL);
-    selected->pixels.reset(allocator.allocate(APP_ICON_PIXEL_BYTES));
-    if (!selected->pixels) return false;
+    std::unique_ptr<uint8_t, PixelDeleter> replacement(
+        allocator.allocate(stored_bytes), PixelDeleter{stored_bytes});
+    if (!replacement) return false;
+    selected->pixels = std::move(replacement);
   }
   if (evicted_application_id && !selected->application_id.empty() &&
       selected->application_id != application_id)
     *evicted_application_id = selected->application_id;
-  std::memcpy(selected->pixels.get(), pixels, APP_ICON_PIXEL_BYTES);
+  if (compressed) {
+    if (!app_icon_codec::encode(pixels, pixel_count, selected->pixels.get(), stored_bytes)) return false;
+  } else {
+    std::memcpy(selected->pixels.get(), pixels, APP_ICON_PIXEL_BYTES);
+  }
+  selected->stored_bytes = stored_bytes;
+  selected->compressed = compressed;
   selected->application_id = application_id;
   selected->hash = hash;
   selected->last_used = ++access_sequence_;
@@ -323,7 +336,12 @@ bool AppIconStore::copy_pixels(const std::string &application_id,
   const int memory_slot = find_memory_locked(application_id);
   if (memory_slot >= 0) {
     auto &entry = memory_entries_[memory_slot];
-    std::memcpy(output, entry.pixels.get(), APP_ICON_PIXEL_BYTES);
+    if (entry.compressed) {
+      if (!app_icon_codec::decode(entry.pixels.get(), entry.stored_bytes, output, APP_ICON_SIDE * APP_ICON_SIDE))
+        return false;
+    } else {
+      std::memcpy(output, entry.pixels.get(), APP_ICON_PIXEL_BYTES);
+    }
     entry.last_used = ++access_sequence_;
     if (copied_hash) *copied_hash = entry.hash;
     return true;

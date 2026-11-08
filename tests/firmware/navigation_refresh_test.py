@@ -40,7 +40,7 @@ struct CompanionAppIconImageData {
 namespace espdesktop::cover_art { using AccentPalette = decltype(CompanionAppIconImageData::accent_palette); }
 namespace esphome::companion {
 constexpr size_t APP_ICON_PIXEL_BYTES = 172800;
-constexpr size_t APP_ICON_MEMORY_HEADROOM_BYTES = 2 * 1024 * 1024;
+constexpr size_t APP_ICON_MEMORY_HEADROOM_BYTES = 1024 * 1024;
 struct Store {
   std::map<std::string, std::array<uint8_t, 32>> hashes;
   void begin() {}
@@ -259,7 +259,7 @@ int main() {
   ready_icons[0].display_bytes = 160 * 160 * 3;
   allocations = {{&ready_owners[0], &ready_icons[0], grid_delete_runtime_ptr<CompanionAppIconImageData>}};
   active = &subpage;
-  test_free_psram = 1024 * 1024;
+  test_free_psram = 512 * 1024;
   companion_refresh_app_icon_visibility();
   assert(!ready_icons[0].pixels && !ready_icons[0].display_pixels && !ready_icons[0].image_loaded);
 }

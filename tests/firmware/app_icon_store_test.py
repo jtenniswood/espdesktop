@@ -100,6 +100,7 @@ TEST = r'''
 #include "mbedtls/sha256.h"
 #include "esp_heap_caps.h"
 #include "app_icon_store.h"
+#include "app_icon_codec.h"
 using namespace esphome::companion;
 std::array<uint8_t, 32> digest(const std::vector<uint8_t> &pixels) {
   std::array<uint8_t, 32> result{};
@@ -107,6 +108,22 @@ std::array<uint8_t, 32> digest(const std::vector<uint8_t> &pixels) {
   return result;
 }
 int main() {
+  // Exercise literal/repeat boundaries, noisy data, truncation and trailing data.
+  for (size_t count : {1u, 2u, 3u, 127u, 128u, 129u, 57600u}) {
+    for (int pattern = 0; pattern < 3; ++pattern) {
+      std::vector<uint8_t> source(count * 3), decoded(source.size());
+      for (size_t index = 0; index < source.size(); ++index)
+        source[index] = pattern == 0 ? 42 : pattern == 1 ? index % 251 : (index / 130) % 256;
+      const auto packed_size = app_icon_codec::encoded_size(source.data(), count);
+      std::vector<uint8_t> packed(packed_size + 1, 0xff);
+      assert(app_icon_codec::encode(source.data(), count, packed.data(), packed_size));
+      assert(app_icon_codec::decode(packed.data(), packed_size, decoded.data(), count) && decoded == source);
+      assert(!app_icon_codec::decode(packed.data(), packed_size - 1, decoded.data(), count));
+      assert(!app_icon_codec::decode(packed.data(), packed_size + 1, decoded.data(), count));
+      assert(!app_icon_codec::encode(source.data(), count, packed.data(), packed_size - 1));
+      assert(packed[packed_size] == 0xff);
+    }
+  }
   AppIconStore store;
   assert(store.begin());
   store.set_references({"app.one"});
@@ -195,7 +212,7 @@ int main() {
     assert(evicted.empty());
   }
   assert(APP_ICON_MEMORY_CACHE_RECORDS == 12);
-  assert(memory_bytes == 12 * APP_ICON_PIXEL_BYTES && memory_bytes <= APP_ICON_MEMORY_CACHE_BYTES);
+  assert(memory_bytes > 0 && memory_bytes < APP_ICON_PIXEL_BYTES && memory_bytes <= APP_ICON_MEMORY_CACHE_BYTES);
   for (size_t index = 0; index < 23; ++index) {
     assert(store.hash_for(apps[index], &copied_hash));
     assert(store.copy_pixels(apps[index], output.data(), output.size(), &copied_hash));
@@ -217,19 +234,30 @@ int main() {
   // Replacing artwork already in RAM updates its content/hash without new storage.
   pixels[0] = 91;
   assert(store.save(apps[23], digest(pixels), pixels.data(), pixels.size(), &evicted));
-  assert(evicted.empty() && memory_allocations == allocations_before);
+  assert(evicted.empty());
   assert(store.copy_pixels(apps[23], output.data(), output.size()) && output == pixels);
+  uint32_t random_state = 42;
+  for (auto &byte : pixels) {
+    random_state ^= random_state << 13; random_state ^= random_state >> 17; random_state ^= random_state << 5;
+    byte = random_state;
+  }
+  assert(app_icon_codec::encoded_size(pixels.data(), APP_ICON_SIDE * APP_ICON_SIDE) > pixels.size());
+  assert(store.save(apps[23], digest(pixels), pixels.data(), pixels.size()));
+  assert(store.copy_pixels(apps[23], output.data(), output.size()) && output == pixels);
+  assert(memory_bytes <= APP_ICON_MEMORY_CACHE_BYTES);
+  const auto allocations_after_update = memory_allocations;
   // Volatile overflow is deliberately excluded from a fresh boot's flash scan.
   AppIconStore after_restart;
   assert(after_restart.begin());
   assert(after_restart.copy_pixels(apps[0], output.data(), output.size()));
   assert(!after_restart.copy_pixels(apps[23], output.data(), output.size()));
   assert(store.remove(apps[23]));
-  assert(memory_bytes == 11 * APP_ICON_PIXEL_BYTES);
+  const size_t after_remove = memory_bytes;
+  assert(after_remove > 0 && after_remove < APP_ICON_PIXEL_BYTES);
   auto remaining = apps;
   remaining.erase(std::remove(remaining.begin(), remaining.end(), apps[11]), remaining.end());
   store.set_references(remaining);
-  assert(!store.hash_for(apps[11], &copied_hash) && memory_bytes == 10 * APP_ICON_PIXEL_BYTES);
+  assert(!store.hash_for(apps[11], &copied_hash) && memory_bytes < after_remove);
   store.set_enabled_applications({apps[0]});
   assert(memory_bytes == 0);
   store.set_enabled_applications(apps);
@@ -240,10 +268,37 @@ int main() {
     assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size()));
   free_psram = APP_ICON_MEMORY_HEADROOM_BYTES;
   assert(store.save(apps[11], digest(pixels), pixels.data(), pixels.size(), &evicted));
-  assert(!evicted.empty() && memory_bytes == 0 && memory_allocations == allocations_before);
+  assert(!evicted.empty() && memory_bytes == 0 && memory_allocations == allocations_after_update);
   free_psram = 8 * 1024 * 1024;
   assert(store.save(apps[24], digest(pixels), pixels.data(), pixels.size()));
-  assert(memory_bytes == APP_ICON_PIXEL_BYTES);
+  assert(memory_bytes > 0 && memory_bytes <= APP_ICON_PIXEL_BYTES);
+  assert(store.clear_cache() && memory_bytes == 0);
+  // Compression allows the extra records to fit even with only 64 KB above
+  // the memory reserve. No detail is lost when these records are read back.
+  free_psram = APP_ICON_MEMORY_HEADROOM_BYTES + 64 * 1024;
+  std::fill(pixels.begin(), pixels.end(), 42);
+  for (size_t index = 0; index < 23; ++index) {
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size(), &evicted));
+    assert(evicted.empty() && free_psram >= APP_ICON_MEMORY_HEADROOM_BYTES);
+  }
+  assert(memory_bytes < 64 * 1024);
+  for (size_t index = 0; index < 23; ++index)
+    assert(store.copy_pixels(apps[index], output.data(), output.size()) && output == pixels);
+  assert(store.clear_cache() && memory_bytes == 0);
+  // High-entropy artwork falls back to raw copies while remaining within the
+  // same total cache budget, rather than exceeding it or losing precision.
+  free_psram = 8 * 1024 * 1024;
+  for (auto &byte : pixels) {
+    random_state ^= random_state << 13; random_state ^= random_state >> 17; random_state ^= random_state << 5;
+    byte = random_state;
+  }
+  for (size_t index = 0; index < 23; ++index) {
+    assert(store.save(apps[index], digest(pixels), pixels.data(), pixels.size(), &evicted));
+    assert(evicted.empty());
+  }
+  assert(memory_bytes == APP_ICON_MEMORY_CACHE_RECORDS * APP_ICON_PIXEL_BYTES);
+  for (size_t index = 0; index < 23; ++index)
+    assert(store.copy_pixels(apps[index], output.data(), output.size()) && output == pixels);
   assert(store.clear_cache() && memory_bytes == 0);
 }
 '''

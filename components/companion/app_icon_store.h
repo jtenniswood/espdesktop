@@ -23,7 +23,7 @@ constexpr size_t APP_ICON_MAX_APPLICATION_ID_BYTES = 96;
 constexpr size_t APP_ICON_MAX_RECORDS = 256;
 constexpr size_t APP_ICON_MEMORY_CACHE_BYTES = 2 * 1024 * 1024;
 constexpr size_t APP_ICON_MEMORY_CACHE_RECORDS = APP_ICON_MEMORY_CACHE_BYTES / APP_ICON_PIXEL_BYTES;
-constexpr size_t APP_ICON_MEMORY_HEADROOM_BYTES = 2 * 1024 * 1024;
+constexpr size_t APP_ICON_MEMORY_HEADROOM_BYTES = 1024 * 1024;
 
 // Fixed-size RGB565A8 icons share the unused middle of card_images.
 // The panel configuration slots and device identity remain outside this area.
@@ -58,12 +58,15 @@ class AppIconStore {
   };
 
   struct PixelDeleter {
+    size_t capacity{0};
     void operator()(uint8_t *pixels) const;
   };
   struct MemoryEntry {
     std::string application_id;
     std::array<uint8_t, 32> hash{};
     std::unique_ptr<uint8_t, PixelDeleter> pixels;
+    size_t stored_bytes{0};
+    bool compressed{false};
     uint64_t last_used{0};
   };
 
