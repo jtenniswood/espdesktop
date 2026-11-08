@@ -69,6 +69,8 @@ inline bool numeric_selectable_driver_setup_visual(
         display, slot.text_lbl
           ? lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN)
           : nullptr));
+  } else if (companion_mute_control_valid(config.entity)) {
+    setup_toggle_visual(slot, config);
   } else if (context.runtime.driver == Driver::LIGHT_TEMPERATURE) {
     setup_light_temp_visual(
       slot, config,
@@ -93,7 +95,7 @@ inline bool numeric_selectable_driver_attach_interaction(
 inline bool numeric_selectable_driver_refresh_layout(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (!numeric_selectable_driver_matches(context, config)) return false;
-  if (numeric_selectable_driver_slider(context)) {
+  if (numeric_selectable_driver_slider(context) && !companion_mute_control_valid(config.entity)) {
     refresh_slider_card_layout(slot);
   }
   return true;
@@ -151,6 +153,17 @@ inline FanCardCtx *numeric_selectable_driver_bind_fan_action(
 inline void numeric_selectable_driver_bind_slider(
     BtnSlot &slot, const ParsedCfg &config) {
   if (config.entity.empty()) return;
+  if (companion_mute_control_valid(config.entity)) {
+    if (slot.text_lbl && (config.label.empty() ||
+        (config.entity == "media.input_mute" && config.label == "Microphone Mute") ||
+        (config.entity == "media.output_mute" && config.label == "Output Mute")))
+      lv_label_set_display_text(slot.text_lbl, companion_volume_control_label(config.entity));
+    if (slot.icon_lbl && (config.icon.empty() || config.icon == "Auto"))
+      lv_label_set_display_text(slot.icon_lbl, find_icon(
+        config.entity == "media.input_mute" ? "Microphone Off" : "Volume Off"));
+    companion_track_mute(slot.btn, config.entity);
+    return;
+  }
   lv_obj_t *slider = slot.sensor_container
     ? static_cast<lv_obj_t *>(lv_obj_get_user_data(slot.sensor_container))
     : nullptr;
@@ -286,7 +299,10 @@ inline bool numeric_selectable_driver_bind_subpage(
     bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
       std::string *value = static_cast<std::string *>(
         lv_event_get_user_data(event));
-      if (value && !value->empty()) send_slider_action(*value, -1);
+      if (value && !value->empty()) {
+        if (companion_mute_control_valid(*value)) companion_toggle_mute(*value);
+        else send_slider_action(*value, -1);
+      }
     }, entity);
   }
   return true;
@@ -305,7 +321,8 @@ inline bool numeric_selectable_driver_handle_main_click(
     if (fan) fan_card_handle_click(fan);
   } else if (context.runtime.driver == Driver::NUMERIC ||
              context.runtime.type == card_runtime::CardTypeId::FAN_SPEED) {
-    if (!config.entity.empty()) send_slider_action(config.entity, -1);
+    if (companion_mute_control_valid(config.entity)) companion_toggle_mute(config.entity);
+    else if (!config.entity.empty()) send_slider_action(config.entity, -1);
   }
   // Light Temperature sends only from the slider release callback.
   return true;

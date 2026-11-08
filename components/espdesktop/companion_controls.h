@@ -342,13 +342,20 @@ inline void companion_set_keyboard_actions_supported(bool supported) {
   companion_runtime_service().set_keyboard_actions_supported(supported);
 }
 
+inline bool companion_mute_control_valid(const std::string &control_id) {
+  return control_id == "media.output_mute" || control_id == "media.input_mute";
+}
+
 inline bool companion_volume_control_valid(const std::string &control_id) {
-  return control_id == "media.output_volume" || control_id == "media.input_volume";
+  return control_id == "media.output_volume" || control_id == "media.input_volume" ||
+    companion_mute_control_valid(control_id);
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
   if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
   if (control_id == "media.input_volume") return espdesktop_i18n("Input Volume");
+  if (control_id == "media.output_mute") return espdesktop_i18n("Output Mute");
+  if (control_id == "media.input_mute") return espdesktop_i18n("Microphone Mute");
   return espdesktop_i18n("Volume");
 }
 
@@ -722,9 +729,15 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   }
 }
 
+struct CompanionMuteRef {
+  lv_obj_t *button = nullptr;
+  std::string control_id;
+};
+
 struct CompanionViewRegistry {
   std::vector<CompanionCardRef> cards;
   std::vector<CompanionSliderRef> sliders;
+  std::vector<CompanionMuteRef> mutes;
   std::string pending_focus_frame;
 };
 
@@ -803,6 +816,23 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
     refs.push_back({slider, icon_label, control_id, has_icon_on, icon_off, icon_on});
     lv_obj_add_event_cb(slider, companion_slider_deleted, LV_EVENT_DELETE, nullptr);
   }
+  companion_request_card_refresh();
+}
+
+inline void companion_track_mute(lv_obj_t *button, const std::string &control_id) {
+  if (!button || !companion_mute_control_valid(control_id)) return;
+  auto &refs = companion_view_registry().mutes;
+  refs.erase(std::remove_if(refs.begin(), refs.end(), [button](const auto &ref) {
+    return ref.button == button;
+  }), refs.end());
+  refs.push_back({button, control_id});
+  lv_obj_add_event_cb(button, [](lv_event_t *event) {
+    auto *deleted = static_cast<lv_obj_t *>(lv_event_get_target(event));
+    auto &refs = companion_view_registry().mutes;
+    refs.erase(std::remove_if(refs.begin(), refs.end(), [deleted](const auto &ref) {
+      return ref.button == deleted;
+    }), refs.end());
+  }, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
 }
 
@@ -969,6 +999,13 @@ inline void companion_refresh_cards_if_requested() {
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
     ++it;
   }
+  for (const auto &ref : companion_view_registry().mutes) {
+    const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
+      [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
+    const bool available = snapshot.connected && value != snapshot.values.end();
+    set_card_disabled_state(ref.button, !available);
+    set_card_checked_state(ref.button, available && value->value > 0);
+  }
   auto &sliders = companion_slider_refs();
   for (auto it = sliders.begin(); it != sliders.end();) {
     if (!it->slider || !lv_obj_is_valid(it->slider)) {
@@ -998,11 +1035,20 @@ inline void companion_track_card(void *, const std::string &, const std::string 
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
+inline void companion_track_mute(void *, const std::string &) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *) {}
 inline void companion_refresh_cards_if_requested() {}
 inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
+
+inline bool companion_toggle_mute(const std::string &control_id) {
+  int value = 0;
+  if (!companion_mute_control_valid(control_id) || !companion_connected() ||
+      !companion_value(control_id, value) || !companion_value_sender()) return false;
+  return companion_value_sender()(control_id, value > 0 ? 0 : 100,
+                                  "mute-" + std::to_string(companion_next_request_number()));
+}
 
 inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id,
@@ -1032,7 +1078,8 @@ inline bool invoke_companion_url(const std::string &app_id,
 inline bool invoke_companion_value(const std::string &control_id, int value,
                                    const std::string &request_id) {
   if (!companion_connected() || !companion_volume_control_valid(control_id) ||
-      value < 0 || value > 100 || !companion_value_sender()) return false;
+      value < 0 || value > 100 || !companion_value_sender() ||
+      (companion_mute_control_valid(control_id) && value != 0 && value != 100)) return false;
   return companion_value_sender()(control_id, value, request_id);
 }
 

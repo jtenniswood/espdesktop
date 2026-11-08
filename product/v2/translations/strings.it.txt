@@ -347,3 +347,5 @@ wind_south=South
 wind_south_west=South West
 wind_west=West
 wind_north_west=North West
+output_mute=Disattiva audio
+microphone_mute=Disattiva microfono

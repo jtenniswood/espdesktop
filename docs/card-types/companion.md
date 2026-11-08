@@ -20,6 +20,10 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 
 Choose the **Volume** group to add a slider for the paired Mac’s output or input volume. The output control is labelled **Volume** by default; existing custom labels are kept. Dragging a volume slider does not trigger swipe navigation.
 
+The Volume group's **Control** menu also offers **Microphone mute** and **Output mute**. These create tap cards: tap once to mute the selected Mac input or output, then tap again to restore audio at its previous level. Where supported, the device’s native mute preserves the level; otherwise the app sets its level to zero and remembers the exact previous value. A highlighted card means muted. Input and output are independent, and the remembered level belongs to that audio device. Raising the level with a Volume slider also unmutes that device.
+
+Install matching updated Mac app and display firmware to use mute cards. The Mac app remembers levels while it stays running, including display reconnects. For devices using the zero-level fallback, if the app restarts while a device is at zero, the mute card is unavailable until you set a nonzero level with its volume slider; it never guesses a restore level. Devices without adjustable system input or output volume are unavailable.
+
 Action cards are unavailable when the Mac is disconnected or the selected app, folder, command, or URL is unavailable. Open URL cards use the Mac's default browser. Statistics show `--` until a reading is available.
 
 Companion cards are currently offered only on the 4848S040 profile. For Home Assistant controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).

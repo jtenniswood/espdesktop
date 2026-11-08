@@ -313,6 +313,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "čt";
   if (std::strcmp(text, "Fri") == 0) return "pá";
   if (std::strcmp(text, "Sat") == 0) return "so";
+  if (std::strcmp(text, "Output Mute") == 0) return "Ztlumit výstup";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Ztlumit mikrofon";
   return text;
 }
 
@@ -605,6 +607,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor.";
   if (std::strcmp(text, "Fri") == 0) return "fre.";
   if (std::strcmp(text, "Sat") == 0) return "lør.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Slå lyd fra";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Slå mikrofon fra";
   return text;
 }
 
@@ -901,6 +905,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "Do.";
   if (std::strcmp(text, "Fri") == 0) return "Fr.";
   if (std::strcmp(text, "Sat") == 0) return "Sa.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Ausgabe stummschalten";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon stummschalten";
   return text;
 }
 
@@ -1208,6 +1214,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jue.";
   if (std::strcmp(text, "Fri") == 0) return "vie.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Silenciar salida";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar micrófono";
   return text;
 }
 
@@ -1518,6 +1526,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "to";
   if (std::strcmp(text, "Fri") == 0) return "pe";
   if (std::strcmp(text, "Sat") == 0) return "la";
+  if (std::strcmp(text, "Output Mute") == 0) return "Mykistä ääni";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mykistä mikrofoni";
   return text;
 }
 
@@ -1819,6 +1829,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jeu.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sam.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Couper le son";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Couper le microphone";
   return text;
 }
 
@@ -2136,6 +2148,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "ה׳";
   if (std::strcmp(text, "Fri") == 0) return "ו׳";
   if (std::strcmp(text, "Sat") == 0) return "ש׳";
+  if (std::strcmp(text, "Output Mute") == 0) return "השתקת פלט";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "השתקת מיקרופון";
   return text;
 }
 
@@ -2445,6 +2459,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "csüt.";
   if (std::strcmp(text, "Fri") == 0) return "pén.";
   if (std::strcmp(text, "Sat") == 0) return "szomb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Kimenet némítása";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon némítása";
   return text;
 }
 
@@ -2751,6 +2767,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "gio.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sab.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Disattiva audio";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Disattiva microfono";
   return text;
 }
 
@@ -3049,6 +3067,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor.";
   if (std::strcmp(text, "Fri") == 0) return "fre.";
   if (std::strcmp(text, "Sat") == 0) return "lør.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Demp lyd";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Demp mikrofon";
   return text;
 }
 
@@ -3347,6 +3367,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "do.";
   if (std::strcmp(text, "Fri") == 0) return "vr.";
   if (std::strcmp(text, "Sat") == 0) return "za.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Uitvoer dempen";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Microfoon dempen";
   return text;
 }
 
@@ -3645,6 +3667,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "czw.";
   if (std::strcmp(text, "Fri") == 0) return "pt.";
   if (std::strcmp(text, "Sat") == 0) return "sob.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Wycisz wyjście";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Wycisz mikrofon";
   return text;
 }
 
@@ -3944,6 +3968,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   return text;
 }
 
@@ -4250,6 +4276,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   return text;
 }
 
@@ -4559,6 +4587,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "joi";
   if (std::strcmp(text, "Fri") == 0) return "vin.";
   if (std::strcmp(text, "Sat") == 0) return "sâm.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Dezactivează sunetul";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Dezactivează microfonul";
   return text;
 }
 
@@ -4875,6 +4905,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Output Mute") == 0) return "Выключить звук";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Выключить микрофон";
   return text;
 }
 
@@ -5177,6 +5209,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "št";
   if (std::strcmp(text, "Fri") == 0) return "pi";
   if (std::strcmp(text, "Sat") == 0) return "so";
+  if (std::strcmp(text, "Output Mute") == 0) return "Stlmiť výstup";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Stlmiť mikrofón";
   return text;
 }
 
@@ -5483,6 +5517,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "čet.";
   if (std::strcmp(text, "Fri") == 0) return "pet.";
   if (std::strcmp(text, "Sat") == 0) return "sob.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Utišaj zvok";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Utišaj mikrofon";
   return text;
 }
 
@@ -5779,6 +5815,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor";
   if (std::strcmp(text, "Fri") == 0) return "fre";
   if (std::strcmp(text, "Sat") == 0) return "lör";
+  if (std::strcmp(text, "Output Mute") == 0) return "Stäng av ljud";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Stäng av mikrofon";
   return text;
 }
 
@@ -6089,6 +6127,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "Per";
   if (std::strcmp(text, "Fri") == 0) return "Cum";
   if (std::strcmp(text, "Sat") == 0) return "Cmt";
+  if (std::strcmp(text, "Output Mute") == 0) return "Çıkışı sessize al";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofonu sessize al";
   return text;
 }
 
@@ -6400,6 +6440,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Output Mute") == 0) return "Вимкнути звук";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Вимкнути мікрофон";
   return text;
 }
 
@@ -6746,6 +6788,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "wind_south_west") == 0) return "South West";
   if (std::strcmp(key, "wind_west") == 0) return "West";
   if (std::strcmp(key, "wind_north_west") == 0) return "North West";
+  if (std::strcmp(key, "output_mute") == 0) return "Output Mute";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Microphone Mute";
   return key;
 }
 
@@ -7057,6 +7101,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garáž";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Ztlumit výstup";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Ztlumit mikrofon";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7357,6 +7403,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "label_switch") == 0) return "Kontakt";
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Slå lyd fra";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Slå mikrofon fra";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7661,6 +7709,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "label_switch") == 0) return "Schalter";
   if (std::strcmp(key, "label_lighting") == 0) return "Beleuchtung";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Ausgabe stummschalten";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon stummschalten";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7977,6 +8027,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminación";
   if (std::strcmp(key, "label_garage") == 0) return "Garaje";
   if (std::strcmp(key, "label_camera") == 0) return "Cámara";
+  if (std::strcmp(key, "output_mute") == 0) return "Silenciar salida";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar micrófono";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8297,6 +8349,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Autotalli";
   if (std::strcmp(key, "label_sensor") == 0) return "Anturi";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Mykistä ääni";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mykistä mikrofoni";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8607,6 +8661,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Éclairage";
   if (std::strcmp(key, "label_sensor") == 0) return "Capteur";
   if (std::strcmp(key, "label_camera") == 0) return "Caméra";
+  if (std::strcmp(key, "output_mute") == 0) return "Couper le son";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Couper le microphone";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8934,6 +8990,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "מוסך";
   if (std::strcmp(key, "label_sensor") == 0) return "חיישן";
   if (std::strcmp(key, "label_camera") == 0) return "מצלמה";
+  if (std::strcmp(key, "output_mute") == 0) return "השתקת פלט";
+  if (std::strcmp(key, "microphone_mute") == 0) return "השתקת מיקרופון";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9253,6 +9311,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garázs";
   if (std::strcmp(key, "label_sensor") == 0) return "Érzékelő";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Kimenet némítása";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon némítása";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9568,6 +9628,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Illuminazione";
   if (std::strcmp(key, "label_sensor") == 0) return "Sensore";
   if (std::strcmp(key, "label_camera") == 0) return "Telecamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Disattiva audio";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Disattiva microfono";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9875,6 +9937,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
   if (std::strcmp(key, "label_garage") == 0) return "Garasje";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Demp lyd";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Demp mikrofon";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10179,6 +10243,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "label_local_action") == 0) return "Lokale actie";
   if (std::strcmp(key, "label_switch") == 0) return "Schakelaar";
   if (std::strcmp(key, "label_lighting") == 0) return "Verlichting";
+  if (std::strcmp(key, "output_mute") == 0) return "Uitvoer dempen";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Microfoon dempen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10487,6 +10553,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaż";
   if (std::strcmp(key, "label_sensor") == 0) return "Czujnik";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Wycisz wyjście";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Wycisz mikrofon";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10795,6 +10863,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
   if (std::strcmp(key, "label_garage") == 0) return "Garagem";
   if (std::strcmp(key, "label_camera") == 0) return "Câmera";
+  if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11110,6 +11180,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
   if (std::strcmp(key, "label_garage") == 0) return "Garagem";
   if (std::strcmp(key, "label_camera") == 0) return "Câmara";
+  if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11429,6 +11501,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaj";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Cameră";
+  if (std::strcmp(key, "output_mute") == 0) return "Dezactivează sunetul";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Dezactivează microfonul";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11755,6 +11829,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Гараж";
   if (std::strcmp(key, "label_sensor") == 0) return "Датчик";
   if (std::strcmp(key, "label_camera") == 0) return "Камера";
+  if (std::strcmp(key, "output_mute") == 0) return "Выключить звук";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Выключить микрофон";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12067,6 +12143,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garáž";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Stlmiť výstup";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Stlmiť mikrofón";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12383,6 +12461,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaža";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Utišaj zvok";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Utišaj mikrofon";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12687,6 +12767,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "label_switch") == 0) return "Strömbrytare";
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Stäng av ljud";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Stäng av mikrofon";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13007,6 +13089,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaj";
   if (std::strcmp(key, "label_sensor") == 0) return "Sensör";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Çıkışı sessize al";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofonu sessize al";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13328,6 +13412,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Гараж";
   if (std::strcmp(key, "label_sensor") == 0) return "Датчик";
   if (std::strcmp(key, "label_camera") == 0) return "Камера";
+  if (std::strcmp(key, "output_mute") == 0) return "Вимкнути звук";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Вимкнути мікрофон";
   return espdesktop_i18n_key_en(key);
 }
 

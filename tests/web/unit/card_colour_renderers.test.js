@@ -143,3 +143,27 @@ test("Webhook editors preserve colour when reopening and editing or clearing hea
     }
   }
 });
+
+
+test("Volume controls offer microphone and output mute as tap cards and preserve custom labels", () => {
+  for (const [mode, id, label, icon] of [
+    ["mac_input_mute", "media.input_mute", "Microphone Mute", "Microphone Off"],
+    ["mac_output_mute", "media.output_mute", "Output Mute", "Volume Off"],
+  ]) {
+    for (const custom of ["", "My Audio"]) {
+      const e = editor();
+      const button = { type: "slider", entity: "media.output_volume", label: custom, icon: "Auto", icon_on: "Auto" };
+      const definition = e.registry.definitions.slider;
+      definition.renderSettings(element(), button, 1, e.helpers);
+      assert(e.modes[0].options.some(option => option[0] === mode));
+      e.modes[0].onChange.call({ value: mode });
+      assert.equal(button.entity, id);
+      assert.equal(button.label, custom || label);
+      assert.equal(button.icon, icon);
+      const preview = definition.renderPreview(button, e.helpers);
+      assert(!JSON.stringify(preview).includes("sp-slider-track"));
+      definition.renderSettings(element(), button, 1, e.helpers);
+      assert.equal(e.modes.at(-1).value(), mode);
+    }
+  }
+});
