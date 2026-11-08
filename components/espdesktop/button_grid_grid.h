@@ -2564,6 +2564,7 @@ inline void grid_phase2(
         if (espdesktop::grid_native_page(child_key)) {
           nested_pages.push_back({child_key, navigation_slot, si, sub_slot, sb_cfg, sub_scr});
           if (sb_cfg.type == "subpage") {
+            espdesktop::cards::navigation_driver_bind_subpage(sub_slot, sb_cfg, context);
             bind_immediate_button_action(sub_slot.btn, [](lv_event_t *event) {
               auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
               auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));

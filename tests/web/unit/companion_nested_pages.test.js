@@ -83,3 +83,13 @@ test("preset reindexing keeps a custom folder's shortcut descendants with its ow
   assert.equal(changed.subpages[34], fixture.document.subpages[33]);
   assert.equal(original.subpages[33], fixture.document.subpages[33]);
 });
+
+test("renaming a folder to match a sibling retains both independent child pages", () => {
+  const original = structuredClone(fixture.document);
+  original.subpages[1] = "~B,1,2|subpage,,A|subpage,,B";
+  original.subpages[33] = "~B,1|companion,shortcut.command%2Bl,First contents";
+  original.subpages[34] = "~B,1|companion,shortcut.command%2Bt,Second contents";
+  const changed = updateEditorPage(original, 1, "~B,1,2|subpage,,B|subpage,,B");
+  assert.equal(changed.subpages[33], original.subpages[33]);
+  assert.equal(changed.subpages[34], original.subpages[34]);
+});

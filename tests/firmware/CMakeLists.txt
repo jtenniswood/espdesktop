@@ -982,3 +982,5 @@ add_test(NAME nested_page_document_paths COMMAND node ${CMAKE_CURRENT_SOURCE_DIR
 target_compile_definitions(panel_config_transient_storage_test PRIVATE USE_ESP32)
 target_include_directories(panel_config_transient_storage_test PRIVATE config_storage_stubs)
 target_sources(panel_config_transient_storage_test PRIVATE ../../components/espdesktop/panel_config_espidf_storage.cpp)
+
+add_test(NAME nested_folder_state_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/nested_folder_state_test.py)
