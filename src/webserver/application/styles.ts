@@ -253,6 +253,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-special-page-entry{display:block;width:min(1080px,calc(100% - 2*var(--gap)));margin:0 auto 10px;" +
         "border:1px solid var(--border);border-radius:var(--action-r);background:var(--surface2);" +
         "color:var(--text);padding:8px 12px;font:500 var(--text-sm) -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer}" +
+        ".sp-special-page-entry[hidden]{display:none}" +
         ".sp-special-page-entry:hover{background:var(--border)}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +

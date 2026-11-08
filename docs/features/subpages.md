@@ -11,7 +11,7 @@ A subpage is an extra screen opened from a **Subpage** card. Use it to group rel
 
 Cards on the home screen and subpages act as soon as you touch them. Fixed control buttons, tabs, PIN keys and panel close buttons also respond on touch-down. Confirmation prompts still require an explicit choice. Sliders and scrollable choices keep their drag and release behavior so scrolling does not accidentally select an item.
 
-Regular subpages show their page name in the standard clock bar. App shortcut pages show the app icon on the Back card instead of an app title in the clock bar. When Clock Bar is off, app pages use the full screen without reserving space for a header. The clock stays hidden on subpages. When Clock Bar is off, use **Show app title bar** under **Device settings → App Subpages** to show or hide it globally. When Clock Bar is on, the title bar is always shown and this control is hidden. The preference is remembered for when Clock Bar is turned off again.
+All subpages, including app subpages and the Special Page, hide their top title and clock bar so cards use the full screen. Clock Bar settings apply to the home screen only. App subpages show their app artwork on the return-home card.
 
 Under **Device settings → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app subpage open when you switch apps on your Mac. With it on, the display leaves that page: it opens the new app’s subpage when **Open app subpages on focus** is enabled and a matching page exists, or returns home otherwise. The setting is saved on the display and included in backups.
 
@@ -41,9 +41,9 @@ To customise a Back card, edit its name and colours in the editor. Its default a
 Swipe up from the bottom edge of the home screen or a card subpage to open a
 separate page. A short upward swipe from the bottom edge opens it; a long drag
 is not needed. Configure it with **Special Page** in the web layout editor.
-Click the page title in the preview to rename it, then choose **Save**. Use the
-reset icon and save to restore the default. The custom title is saved with the
-page and appears on the display with updated firmware.
+Use the page-name button above the device preview to rename it, then choose **Save**. Use the
+reset icon and save to restore the default. The custom name is saved with the
+page for use in the editor and backups.
 It starts empty, supports ordinary cards, and cannot contain nested subpages.
 Its **Close** button, marked with a cross icon, returns to the screen you came
 from. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.

@@ -173,6 +173,13 @@ export function createControlsShellFeature(
         specialPageEntry.textContent = "Configure Special Page";
         els.specialPageEntry = specialPageEntry;
         page.appendChild(specialPageEntry);
+        const specialPageRename = document.createElement("button");
+        specialPageRename.type = "button";
+        specialPageRename.className = "sp-special-page-entry";
+        specialPageRename.setAttribute("aria-label", "Rename Special Page");
+        specialPageRename.hidden = true;
+        els.specialPageRename = specialPageRename;
+        page.appendChild(specialPageRename);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =

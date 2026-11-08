@@ -21,13 +21,12 @@ code = r'''#include <algorithm>
 using lv_coord_t = int;
 constexpr int LV_PART_MAIN = 0;
 struct lv_obj_t { int top = 4; };
-lv_obj_t home, subpage, app_page, screensaver;
+lv_obj_t home, subpage, app_page, special_page, screensaver;
 lv_obj_t *active = &home;
 lv_obj_t *lv_scr_act() { return active; }
-bool clock_bar_active_on_button_grid_page(lv_obj_t *) { return active == &home || active == &subpage || active == &app_page; }
 struct ClockBarVisibility { bool reserve_space = false, visible = false; };
 void clock_bar_clear_responsive_grid_cards(lv_obj_t *) {}
-''' + source[registry_start:padding_start] + source[start:end] + r'''
+''' + source[registry_start:padding_start] + source[padding_end:start] + source[start:end] + r'''
 int updates = 0;
 int lv_obj_get_style_pad_top(lv_obj_t *page, int) { return page->top; }
 void lv_obj_set_style_pad_top(lv_obj_t *page, int top, int) { page->top = top; }
@@ -56,13 +55,14 @@ struct ApplyClockBar {
 int main() {
   using espdesktop::DisplayMode;
   clock_bar_register_button_grid_page(&subpage);
-  clock_bar_register_button_grid_page(&app_page, false);
+  clock_bar_register_button_grid_page(&app_page);
+  clock_bar_register_button_grid_page(&special_page);
   // Execute the production page-change wiring with the home bar turned off.
   refresh();
   assert(home.top == 4 && subpage.top == 4 && !settings_visible);
   active = &subpage;
   refresh();
-  assert(subpage.top == 40 && settings_visible && full_refreshes == 2); // Full clock-bar height is reserved before the title.
+  assert(subpage.top == 4 && !settings_visible && full_refreshes == 2); // All subpages keep compact top spacing.
   const int before = updates;
   refresh();
   assert(updates == before && full_refreshes == 2); // Periodic refreshes still avoid unnecessary layout.
@@ -72,15 +72,25 @@ int main() {
   active = &app_page;
   refresh();
   assert(app_page.top == 4 && !settings_visible);
+  clock_bar_enabled.state = true;
+  active = &home;
+  refresh();
+  assert(home.top == 40 && settings_visible);
+  active = &special_page;
+  refresh();
+  assert(special_page.top == 4 && !settings_visible);
+  active = &home;
+  refresh();
+  assert(home.top == 40 && settings_visible);
   for (bool title_bar : {false, true}) {
     clock_bar_subpage_title_bar_enabled() = title_bar;
   for (bool enabled : {false, true}) {
     for (bool scheduled_off : {false, true}) {
-      for (auto *screen : {&home, &subpage, &app_page, &screensaver}) {
+      for (auto *screen : {&home, &subpage, &app_page, &special_page, &screensaver}) {
         active = screen;
         for (auto mode : {DisplayMode::ACTIVE, DisplayMode::DIMMED, DisplayMode::CLOCK}) {
           auto result = clock_bar_resolve_visibility(enabled, &home, mode, scheduled_off);
-          const bool reserve = (enabled || (screen == &subpage && title_bar)) && !scheduled_off;
+          const bool reserve = enabled && (screen == &home || screen == &screensaver) && !scheduled_off;
           assert(result.reserve_space == reserve);
           assert(result.visible == (reserve && screen != &screensaver && mode != DisplayMode::CLOCK));
         }
@@ -88,11 +98,8 @@ int main() {
     }
   }
   }
-  clock_bar_register_button_grid_page(&subpage, false);
-  assert(clock_bar_subpage_title_pages().empty());
-  clock_bar_register_button_grid_page(&subpage);
   clock_bar_unregister_button_grid_page(&subpage);
-  assert(clock_bar_subpage_title_pages().empty());
+  assert(clock_bar_button_grid_pages().size() == 2);
   clock_bar_clear_button_grid_pages();
   assert(clock_bar_button_grid_pages().empty());
 }

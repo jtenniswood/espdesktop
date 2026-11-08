@@ -5,10 +5,6 @@ import type { CoreFeature } from "./core";
 import type { ApplicationLayoutState } from "./application_context";
 import type { EnvironmentStateFeature } from "./environment_state";
 import type { ClockBarFeature } from "./clock_bar_state";
-import {
-    companionAppShortcutFolderEnabled,
-    companionShortcutFolderAppLabel,
-} from "./companion_shortcut_folder";
 
 export interface AppStatusPreviewFeature {
     getTzId(timezone?: any): any;
@@ -242,7 +238,8 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
         var layout: any = {
             left: state.editingSubpage == null ? ["time"] : [],
             middle: [],
-            right: voiceServicesUiState().clockBarItemVisible ? ["voice", "network"] : ["network"],
+            right: state.editingSubpage != null ? [] :
+                voiceServicesUiState().clockBarItemVisible ? ["voice", "network"] : ["network"],
         };
         els.clockBarItems = {};
         els.temps = {};
@@ -254,30 +251,6 @@ export function createAppStatusPreviewFeature(runtime: UiRuntimeState, core: Cor
             if (!container)
                 return;
             container.innerHTML = "";
-            if (section === "left" && state.editingSubpage != null) {
-                const title = document.createElement("span");
-                title.className = "sp-clockbar-subpage-title";
-                const parent = state.editingSubpage === -1
-                    ? null : state.buttons[state.editingSubpage - 1];
-                if (companionAppShortcutFolderEnabled(parent)) return;
-                const appName = companionShortcutFolderAppLabel(parent?.entity);
-                const label = document.createElement("span");
-                label.className = "sp-clockbar-subpage-label";
-                label.textContent = state.editingSubpage === -1 ? state.subpages[-1]?.title || "Special Page" : String(parent?.label || "").trim() || appName || "Subpage";
-                title.title = label.textContent;
-                if (state.editingSubpage === -1 && !state.configLocked) {
-                    title.dataset.renameSpecialPage = "";
-                    title.tabIndex = 0;
-                    title.setAttribute("role", "button");
-                    title.setAttribute("aria-label", "Rename Special Page");
-                    title.title = "Click to rename";
-                    title.style.cursor = "pointer";
-                }
-                title.appendChild(label);
-                container.className = "sp-clockbar-section sp-clockbar-left";
-                container.appendChild(title);
-                return;
-            }
             var rendered: any = 0;
             layout[section].forEach(function (this: any, item?: any) {
                 var itemEl: any = createClockBarItemElement(item, section);

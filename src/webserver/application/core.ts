@@ -2,7 +2,6 @@ import * as EspDesktopModel from "../model";
 import type { ApplicationLayoutState } from "./application_context";
 import type { AppState } from "../state/types";
 import type { UiRuntimeState } from "./state";
-import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { syncPreviewCorners } from "./preview_corners";
 import { cardCurveRadius } from "../model/settings";
 
@@ -93,9 +92,6 @@ export function createCoreFeature(
         scale = scale || previewLayoutScale(layout || activeLayout());
         var compactTop: any = grid.compactTop != null ? grid.compactTop : grid.bottom;
         var gridTop: any = clockBarVisibleInPreview() ? grid.top : compactTop;
-        const parent = state.editingSubpage != null ? state.buttons[state.editingSubpage - 1] : null;
-        if (clockBarVisibleInPreview() && companionAppShortcutFolderEnabled(parent) && isFinite(Number(grid.top)))
-            gridTop = Number(grid.top);
         document.documentElement.style.setProperty("--grid-top", scaledCqw(gridTop, scale));
     }
     function syncPreviewStyleVars(this: any, layout?: any, scale?: any) {
