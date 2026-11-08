@@ -8607,7 +8607,8 @@ async function assertGlobalIconSize(browser, testCase) {
       await openBackupControls(page);
       const downloadPromise = page.waitForEvent("download");
       await page.getByRole("button", { name: "Export", exact: true }).click();
-      const backup = JSON.parse(fs.readFileSync(await (await downloadPromise).path(), "utf8"));
+      const archive = readStoredZip(new Uint8Array(fs.readFileSync(await (await downloadPromise).path())));
+      const backup = JSON.parse(Buffer.from(archive["backup.json"]).toString("utf8"));
       assert.strictEqual(backup.screen.default_icon_size, "large", "backups include the global default");
       const previousPosts = defaultPosts.length;
       await importBackup(page, backupFixture(testCase.slug, testCase.slots), "default-icon-size-legacy");
