@@ -30,7 +30,7 @@ export function firstRunApplications(actions: readonly CompanionAction[]): Compa
     for (const action of actions) {
         if (!action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
             !action.id.startsWith("media.") && !action.id.startsWith("system.") &&
-            !action.id.startsWith("window.")) unique.set(action.id, action);
+            !action.id.startsWith("window.") && !action.id.startsWith("webapp.")) unique.set(action.id, action);
     }
     return [...unique.values()].sort((a, b) => a.label.localeCompare(b.label));
 }
@@ -159,7 +159,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             const [actions] = await Promise.all([
                 catalogue.load(true),
                 catalogue.loadDefinitions(true).then(definitions => {
-                    replaceCompanionDefinitions(definitions.applications, definitions.webApplications);
+                    replaceCompanionDefinitions(definitions.applications);
                 }).catch(() => { /* Bundled shortcuts remain available on older firmware. */ }),
             ]);
             apps = firstRunApplications(actions);
@@ -184,15 +184,22 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         busy = true;
         error = "";
         render();
+        const previousAutoSwitch = deps.autoSwitchEnabled();
+        let switchAttempted = false;
+        let layoutSaved = false;
         try {
             // Save the global switch first. A failure must not mark setup complete.
-            if (!skip && !await deps.saveAutoSwitch(shortcuts.size > 0 && autoSwitch)) {
-                throw new Error("Could not save automatic switching. Check the connection and try again.");
+            if (!skip) {
+                switchAttempted = true;
+                if (!await deps.saveAutoSwitch(shortcuts.size > 0 && autoSwitch)) {
+                    throw new Error("Could not save automatic switching. Check the connection and try again.");
+                }
             }
             const chosen = skip ? [] : selectedApps();
             const result = await deps.native.schedule(current =>
                 firstRunDocument(current, chosen, shortcuts, deps.capacity, deps.codec, replacing));
             if (result !== "saved") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
+            layoutSaved = true;
             eligible = false;
             close();
             if (skip) {
@@ -202,6 +209,10 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             }
         } catch (failure) {
             error = failure instanceof Error ? failure.message : "Could not save setup. Please try again.";
+            if (switchAttempted && !layoutSaved) {
+                const restored = await deps.saveAutoSwitch(previousAutoSwitch).catch(() => false);
+                if (!restored) error += " Could not restore automatic switching. Check Screen → App Subpages after reconnecting.";
+            }
         } finally {
             busy = false;
             render();
@@ -285,7 +296,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             content.appendChild(element("p", "After saving, choose Apply Configuration in Layout to restart the display and show your new cards."));
         }
         if (replacing) {
-            const notice = element("p", "Saving replaces your home-screen cards and their shortcut pages. Other display settings and your Special Page are kept.", "sp-setup-replace-notice");
+            const notice = element("p", "Saving replaces your home-screen cards and their shortcut pages. Other display settings are kept.", "sp-setup-replace-notice");
             content.prepend(notice);
         }
         dialog.appendChild(content);

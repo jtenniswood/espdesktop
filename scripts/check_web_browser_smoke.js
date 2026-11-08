@@ -8801,7 +8801,7 @@ async function assertFirstRunSetup(browser) {
     mac_companion: { available: true, configured: true, paired: true, connected: true },
   };
   const context = await browser.newContext({ viewport: { width: 900, height: 800 } });
-  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus: status });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus: status, nativeV2: true });
   const actions = [
     { id: "com.apple.Safari", label: "Safari" },
     { id: "com.apple.Notes", label: "Notes" },
@@ -8814,6 +8814,9 @@ async function assertFirstRunSetup(browser) {
     ? route.fulfill({ status: 200, json: {} }) : route.fallback());
   const switches = [];
   let failSwitch = false;
+  let failLayout = false;
+  await context.route("**/api/v1/config/**", route => failLayout && route.request().method() === "PUT"
+    ? route.fulfill({ status: 500, body: "Failed save" }) : route.fallback());
   await context.route("**/switch/**", route => {
     if (route.request().method() === "GET") return route.fulfill({ status: 200, json: { state: "ON", value: true } });
     if (!/auto.*open.*app.*subpages/i.test(decodeURIComponent(route.request().url()))) return route.fallback();
@@ -8872,7 +8875,7 @@ async function assertFirstRunSetup(browser) {
     const safariSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Safari;"));
     assert(fixture.document.buttons[safariSlot].includes("app_shortcuts"));
     assert(fixture.document.subpages[safariSlot].includes("shortcut."));
-    assert(switches.every(action => action === "turn_off"), "manual page opening was chosen");
+    assert.equal(switches.at(-1), "turn_off", "manual page opening was chosen");
     await open();
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "completion survives page reload");
@@ -8901,6 +8904,14 @@ async function assertFirstRunSetup(browser) {
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores shortcut pages");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     assert.equal(await dialog.getByLabel("Open shortcut pages when apps are in focus").isChecked(), false);
+    await dialog.getByLabel("Open shortcut pages when apps are in focus").check();
+    failLayout = true;
+    const beforeFailure = JSON.stringify(fixture.document);
+    await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();
+    await dialog.getByRole("alert").waitFor();
+    assert.deepEqual(switches.slice(-2), ["turn_on", "turn_off"], "failed replacement restores the previous switching setting");
+    assert.equal(JSON.stringify(fixture.document), beforeFailure, "failed replacement keeps the saved layout");
+    failLayout = false;
     await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert(fixture.puts.length >= 2, "explicit replacement saves through the same wizard");
