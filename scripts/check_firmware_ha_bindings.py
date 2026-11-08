@@ -2065,8 +2065,6 @@ def firmware_image_card_entity_errors(firmware_dir: Path, root: Path) -> list[st
         errors.append(f"{rel}: keep camera entities supported by image cards")
     if 'entity_id.rfind("image.", 0) == 0' not in text:
         errors.append(f"{rel}: support Home Assistant image entities in image cards")
-    if 'if (!image_card_entity_supported(p.entity))' not in text:
-        errors.append(f"{rel}: use the shared image card entity-domain guard")
     if "only supports camera entities" in text:
         errors.append(f"{rel}: do not reject Home Assistant image entities as unavailable")
     return errors
@@ -2152,8 +2150,6 @@ def firmware_image_card_quality_errors(firmware_dir: Path, root: Path) -> list[s
         errors.append(f"{rel}: swap expanded image cards to the modal-quality image after it downloads")
     if "ImageCardModalCache" not in text or "image_card_modal_cache" not in text:
         errors.append(f"{rel}: retain one shared modal image cache for instant reopen")
-    if 'image_card_set_loading_state(loading, "Too many")' not in text:
-        errors.append(f"{rel}: show a visible image-card limit message when downloaders run out")
     loading_state = re.search(
         r"inline\s+void\s+image_card_set_loading_state\s*\(\s*lv_obj_t\s*\*loading_widget.*?"
         r"(?=\ninline\s+void\s+image_card_set_loading_state\s*\(\s*ImageCardCtx)",
@@ -2238,8 +2234,8 @@ def firmware_image_card_quality_errors(firmware_dir: Path, root: Path) -> list[s
     if driver_path.exists():
         driver_rel = driver_path.relative_to(root)
         driver_text = driver_path.read_text(encoding="utf-8")
-        if "image_card_refresh_tile_geometry(image_context)" not in driver_text:
-            errors.append(f"{driver_rel}: update active image-card geometry during grid refresh")
+        if "set_card_disabled_state(slot.btn, true)" not in driver_text:
+            errors.append(f"{driver_rel}: keep retired camera cards inactive")
     else:
         grid_path = firmware_dir / "button_grid_grid.h"
         if grid_path.exists():
@@ -2294,11 +2290,6 @@ def firmware_image_card_startup_errors(
         errors.append(f"{rel}: refresh image cards when the camera/image entity state changes")
     if "image_card_context_current" not in text or "generation == ha_subscription_generation()" not in text:
         errors.append(f"{rel}: ignore stale image-card callbacks after grid rebuild")
-    if (
-        "image_card_generation" not in text
-        or "image_card_context_current(ctx, image_card_entity_id, image_card_generation)" not in text
-    ):
-        errors.append(f"{rel}: ignore stale image-card entity_picture callbacks after grid rebuild")
     if ("image_card_tile_request_size(width, height" not in text and
         "image_card_tile_request_size(decode_width, decode_height" not in text):
         errors.append(f"{rel}: request display-sized Home Assistant image card downloads")
@@ -6743,7 +6734,6 @@ def run_self_test() -> int:
         "}\n",
         (
             "support Home Assistant image entities in image cards",
-            "use the shared image card entity-domain guard",
             "do not reject Home Assistant image entities as unavailable",
         ),
     )
@@ -6806,7 +6796,6 @@ def run_self_test() -> int:
             "support six concurrent image cards on P4 displays",
             "check free memory before image-card downloads",
             "include PSRAM in image-card memory checks",
-            "show a visible image-card limit message when downloaders run out",
             "preserve the configured image-card icon while loading",
             "keep modal-quality image refresh enabled on the 4.3-inch P4 screen",
             "size every image-card tile request to its on-screen bounds",
@@ -6943,7 +6932,6 @@ def run_self_test() -> int:
             "request image-card attributes once the Home Assistant API is connected",
             "refresh image cards when the camera/image entity state changes",
             "ignore stale image-card callbacks after grid rebuild",
-            "ignore stale image-card entity_picture callbacks after grid rebuild",
             "request display-sized Home Assistant image card downloads",
             "request bounded Home Assistant image card proxy downloads",
             "recognize Home Assistant camera and image proxy URLs",

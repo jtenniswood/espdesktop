@@ -926,7 +926,7 @@ def check_root(root: Path) -> list[str]:
             "image_driver_cleanup",
             "image_driver_reset_pool",
             "image_driver_handle_main_click",
-            "image_card_bind_runtime",
+            "set_card_disabled_state(slot.btn, true)",
             "reset_image_card_pool",
             '"image"',
         )

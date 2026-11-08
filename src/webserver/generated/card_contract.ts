@@ -3992,6 +3992,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "image": {
     "label": "Camera Card",
     "allowInSubpage": true,
+    "hidden": true,
     "domains": [
       "camera",
       "image"
@@ -4001,13 +4002,17 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "name": "image_label",
         "label": "Show Label",
         "kind": "flag",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_icon",
         "label": "Show Icon",
         "kind": "flag",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_mode",
@@ -4018,7 +4023,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "fit"
         ],
         "defaultValue": "fill",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_refresh_mode",
@@ -4030,7 +4037,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "activity"
         ],
         "defaultValue": "off",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_refresh_interval",
@@ -4042,13 +4051,17 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "30"
         ],
         "defaultValue": "10",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_refresh_trigger",
         "label": "Trigger entity",
         "kind": "text",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       }
     ],
     "normalization": {

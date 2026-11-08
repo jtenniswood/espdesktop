@@ -2,11 +2,10 @@
 
 #include "card_modal_target.h"
 
-// Shared lifecycle driver for Image cards. The downloader, cache, geometry,
-// and modal implementation remain in button_grid_image.h; this driver owns
-// the grid and subpage lifecycle boundary.
+// Retired Home Assistant camera/image cards keep their reserved type and saved
+// fields, but never allocate a downloader, subscribe, or open a modal.
+// Mac web-app icons still use the shared image pool independently.
 // Contract coverage marker: "image".
-
 namespace espdesktop::cards {
 
 inline bool image_driver_matches(const Context &context) {
@@ -15,12 +14,15 @@ inline bool image_driver_matches(const Context &context) {
 
 inline bool image_driver_setup_visual(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const CardPalette &palette) {
+    const CardPalette &) {
   if (!image_driver_matches(context)) return false;
-  if (image_card_modal_fit_enabled(config)) {
-    sensor_driver_apply_background(slot, palette);
-  }
-  setup_image_card(slot, palette);
+  setup_toggle_visual(slot, config);
+  lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
+  lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+  lv_label_set_display_text(slot.icon_lbl, find_icon("Camera"));
+  set_wrapped_button_label_text(slot.text_lbl, "--");
+  set_card_disabled_state(slot.btn, true);
+  lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
   return true;
 }
 
@@ -30,31 +32,8 @@ inline bool image_driver_attach_interaction(
 }
 
 inline bool image_driver_refresh_layout(
-    BtnSlot &slot, const ParsedCfg &, const Context &context) {
-  if (!image_driver_matches(context)) return false;
-  ImageCardCtx *image_context = slot.btn
-    ? static_cast<ImageCardCtx *>(lv_obj_get_user_data(slot.btn))
-    : nullptr;
-  if (image_context && image_context->active) {
-    image_card_refresh_tile_geometry(image_context);
-  } else {
-    lv_obj_t *widget = slot.sensor_container
-      ? static_cast<lv_obj_t *>(lv_obj_get_user_data(slot.sensor_container))
-      : nullptr;
-    if (widget) {
-      image_card_position_widget(slot.btn, widget);
-      lv_obj_t *loading = image_card_loading_widget(widget);
-      image_card_position_widget(slot.btn, loading);
-      image_card_refresh_loading_layout(loading);
-    }
-  }
-  if (slot.text_lbl && !lv_obj_has_flag(slot.text_lbl, LV_OBJ_FLAG_HIDDEN)) {
-    image_card_align_label_stack(slot.text_lbl, slot.btn, slot.icon_lbl);
-  }
-  if (slot.icon_lbl && !lv_obj_has_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN)) {
-    image_card_align_icon(slot.icon_lbl, slot.btn);
-  }
-  return true;
+    BtnSlot &, const ParsedCfg &, const Context &context) {
+  return image_driver_matches(context);
 }
 
 inline bool image_driver_cleanup(
@@ -69,38 +48,25 @@ inline void image_driver_reset_pool(const GridConfig &grid) {
 }
 
 inline bool image_driver_bind_main(
-    BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const GridConfig &grid, const CardPalette &palette) {
-  if (!image_driver_matches(context) ||
-      context.surface != Surface::MAIN_GRID) return false;
-  return image_card_bind_runtime(slot, config, grid, palette.surface_sensor_val, false);
+    BtnSlot &, const ParsedCfg &, const Context &context,
+    const GridConfig &, const CardPalette &) {
+  return image_driver_matches(context) && context.surface == Surface::MAIN_GRID;
 }
 
 inline bool image_driver_bind_subpage(
-    BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const GridConfig &grid, const CardPalette &palette) {
-  if (!image_driver_matches(context) ||
-      context.surface != Surface::SUBPAGE) return false;
-  return image_card_bind_runtime(slot, config, grid, palette.surface_sensor_val, true);
+    BtnSlot &, const ParsedCfg &, const Context &context,
+    const GridConfig &, const CardPalette &) {
+  return image_driver_matches(context) && context.surface == Surface::SUBPAGE;
 }
 
 inline bool image_driver_handle_main_click(
-    const Context &context, const ParsedCfg &, lv_obj_t *button) {
-  if (!image_driver_matches(context)) return false;
-  ImageCardCtx *image_context = button
-    ? static_cast<ImageCardCtx *>(lv_obj_get_user_data(button)) : nullptr;
-  if (image_context) image_card_open_modal(image_context);
-  return true;
+    const Context &context, const ParsedCfg &, lv_obj_t *) {
+  return image_driver_matches(context);
 }
 
-// Explicit modal-only route; it must never activate the card's command path.
 inline ModalTarget image_driver_modal_target(
-    const Context &context, const ParsedCfg &config, lv_obj_t *button) {
-  if (!image_driver_matches(context)) return {};
-  auto *runtime = button
-    ? static_cast<ImageCardCtx *>(lv_obj_get_user_data(button)) : nullptr;
-  return modal_target(runtime, config.entity, ControlModalKind::IMAGE_CARD,
-                      image_card_can_open_modal(runtime), image_card_open_modal);
+    const Context &, const ParsedCfg &, lv_obj_t *) {
+  return {};
 }
 
 }  // namespace espdesktop::cards

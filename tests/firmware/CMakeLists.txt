@@ -901,3 +901,6 @@ add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
 
 add_test(NAME retired_camera_migration_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_camera_migration_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME retired_image_card_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_image_card_test.py ${CMAKE_CXX_COMPILER})

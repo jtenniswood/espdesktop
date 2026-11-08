@@ -197,8 +197,6 @@ function registerCards(context: ApplicationContext) {
   registerImageCardTypes(
     registry,
     context.configuration.imageOptions,
-    fields,
-    cardUi,
   );
   registerWifiQrCardTypes(registry, context.configuration.modalTabs, fields, cardUi, context.configuration.native);
   registerInternalCardTypes(
