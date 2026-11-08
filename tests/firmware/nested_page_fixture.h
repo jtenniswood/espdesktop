@@ -35,7 +35,7 @@ inline std::vector<Row> authored(const DeviceUiLimits &limits) {
   Row navigation; navigation.kind = K::NAVIGATION; navigation.id = folder.id; navigation.first = page.id;
   Row entity; entity.kind = K::ENTITY; entity.id = 65000; entity.first = 76;
   std::vector<Row> records{profile, root, page, folder, child, navigation, entity};
-  for (auto value : std::array<std::pair<uint16_t, const char *>, 6>{{{71,"2"},{72,"B,1w"},{73,"subpage"},{74,"温度 🌡️"},{75,"sensor"},{76,"sensor.temperature"}}}) {
+  for (auto value : std::array<std::pair<uint16_t, const char *>, 6>{{{71,"2"},{72,"B,1w"},{73,"subpage"},{74,"温度 🌡️"},{75,"slider"},{76,"sensor.temperature"}}}) {
     Row text; text.kind = K::STRING; text.id = value.first; text.text = value.second; records.push_back(text);
   }
   return records;

@@ -227,7 +227,7 @@ void retained_off_grid_subpage_cards() {
   for (const auto &limits : DEVICE_UI_PROFILES) {
     std::string children = "B,1";
     for (size_t slot = 1; slot <= limits.cards_per_subpage + size_t{2}; ++slot)
-      children += "|:Stored:Auto:Auto:sensor.retained_" + std::to_string(slot) + "::sensor";
+      children += "|:Stored:Auto:Auto:sensor.retained_" + std::to_string(slot) + "::";
     const auto legacy = make_v1(limits, ";Folder;;;;;subpage", children);
     std::string overfull_order = "B";
     for (size_t slot = 1; slot <= limits.slot_count; ++slot)

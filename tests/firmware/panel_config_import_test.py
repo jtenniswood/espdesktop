@@ -54,7 +54,7 @@ rows=[(1,b'panel-a'),slot(2,1,folder),slot(2,2,''),slot(2,3,sensor),slot(2,4,fol
 empty=['']*9;folder_fields=['','Folder','','','','','subpage','','']
 expected={'profile':'panel-a','settings':{'button_order':'4,3d,,1,2','future':'\ufeffvalue\0😀','__proto__':'opaque'},'pages':{
  0:{'order':'4,3d,,1,2','flags':0,'nav':True,'cards':[(1,folder_fields,1,folder),(2,empty,1,''),(3,['sensor.same','Known','','','','','sensor','',''],1,sensor),(4,folder_fields,1,folder),(32,empty,2,'')]},
- 1:{'order':'B=Back%3Aroom:ABCDEF,1w','flags':1,'nav':True,'cards':[(1,['sensor.same','\ufeffRoom','Auto','Auto','sensor.shared','°C','sensor','1','unknown=%FF%2C'],1,child),(2,['','','Auto','Auto','','','','',''],1,'')]},
+ 1:{'order':'B=Back%3Aroom:ABCDEF,1w','flags':1,'nav':True,'cards':[(1,['sensor.same','\ufeffRoom','Auto','Auto','sensor.shared','°C','S','1','unknown=%FF%2C'],1,child),(2,['','','Auto','Auto','','','','',''],1,'')]},
  3:{'order':'B','flags':0,'nav':False,'cards':[(1,['sensor.hidden','Hidden','Auto','Auto','','','','',''],1,'sensor.hidden:Hidden')]},
  4:{'order':'','flags':2,'nav':True,'cards':[]},32:{'order':'','flags':1,'nav':False,'cards':[]}}}
 source=v1(rows)

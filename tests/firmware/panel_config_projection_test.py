@@ -24,7 +24,7 @@ result=run(canonical);assert result.returncode==0,result.stderr
 assert parse_v1(result.stdout)=={
  'profile':'guition-esp32-s3-4848s040',
  'buttons':{1:'~,Room ☀,,,,,subpage',32:'sensor.indoor_temperature;Room ☀;Auto;Auto;;;sensor;;'},
- 'subpages':{1:'~B=Up:FF8C00,1|S,sensor.indoor_temperature,Temperature °C,,,sensor.indoor_humidity,°C,1,large=true',32:''},
+ 'subpages':{1:'~B=Up:FF8C00,1|sensor,sensor.indoor_temperature,Temperature °C,,,sensor.indoor_humidity,°C,1,large=true',32:''},
  'settings':{'future_setting':'Café|☀\0value','button_order':'1,32'}}
 rejected=0
 for name,data,valid,mode in cases:
