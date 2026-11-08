@@ -3906,7 +3906,7 @@ def gen_web_icon_module(data):
     """Typed icon names and exception map for the web bundle."""
     fb = data["fallback"]
     exceptions = [f'    Auto: "{fb["mdi"]}",\n']
-    names = [icon["name"] for icon in data["icons"]]
+    names = [icon["name"] for icon in data["icons"] if icon.get("picker", True)]
 
     # Saved cards can also reference structural icons used by firmware defaults.
     for icon in icon_items(data):

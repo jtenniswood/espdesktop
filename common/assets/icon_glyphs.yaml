@@ -1,9 +1,7 @@
 # --- GENERATED:ICONS START ---
 - "\U000F0493"  # mdi-cog (Auto fallback)
-- "\U000F05AA"  # mdi-wifi-off (Wi-Fi disabled)
 - "\U000F0156"  # mdi-close (Modal close button)
 - "\U000F024B"  # mdi-folder (Default subpage indicator)
-- "\U000F01DA"  # mdi-download (Firmware install update entity)
 - "\U000F04F9"  # mdi-tag (Firmware version entity)
 - "\U000F06B0"  # mdi-update (Firmware update entities)
 - "\U000F0432"  # mdi-qrcode (Wifi Share QR tab)
@@ -14,20 +12,15 @@
 - "\U000F0922"  # mdi-wifi-strength-2 (Network status)
 - "\U000F0925"  # mdi-wifi-strength-3 (Network status)
 - "\U000F092E"  # mdi-wifi-strength-off-outline (Network status)
-- "\U000F0200"  # mdi-ethernet (Setup screens)
 - "\U000F07D0"  # mdi-home-assistant (Setup screens)
 - "\U000F02E9"  # mdi-image (Image card loading state)
 - "\U000F049D"  # mdi-shuffle (Media modal shuffle control)
 - "\U000F0456"  # mdi-repeat (Media modal repeat control)
 - "\U000F0458"  # mdi-repeat-once (Media modal repeat-one state)
 - "\U000F02ED"  # mdi-image-broken (Image card unavailable state)
-- "\U000F0634"  # mdi-apple-keyboard-control (Companion shortcut labels)
-- "\U000F0635"  # mdi-apple-keyboard-option (Companion shortcut labels)
-- "\U000F0636"  # mdi-apple-keyboard-shift (Companion shortcut labels)
 - "\U000F004D"  # mdi-arrow-left (Companion shortcut labels)
 - "\U000F0054"  # mdi-arrow-right (Companion shortcut labels)
 - "\U000F0D90"  # mdi-monitor-off (Disconnected Mac connector)
-- "\U000F035B"  # mdi-memory (Build information card)
 - "\U000F0D33"  # mdi-shield-link-variant (Pairing card)
 - "\U000F031A"  # mdi-lan-pending (Connected connector card)
 - "\U000F0319"  # mdi-lan-disconnect (Disconnected connector card)
@@ -429,4 +422,127 @@
 - "\U000F0570"  # mdi-view-grid
 - "\U000F0616"  # mdi-arrow-expand
 - "\U000F0615"  # mdi-arrow-collapse
+- "\U000F0035"  # mdi-apple
+- "\U000F05B3"  # mdi-microsoft-windows
+- "\U000F033D"  # mdi-linux
+- "\U000F07C0"  # mdi-desktop-classic
+- "\U000F003B"  # mdi-apps
+- "\U000F1577"  # mdi-application-cog-outline
+- "\U000F0DAE"  # mdi-application-import
+- "\U000F0DAD"  # mdi-application-export
+- "\U000F10AC"  # mdi-dock-window
+- "\U000F056E"  # mdi-view-dashboard
+- "\U000F0756"  # mdi-format-list-checks
+- "\U000F00ED"  # mdi-calendar
+- "\U000F01F0"  # mdi-email-outline
+- "\U000F0EDE"  # mdi-chat-outline
+- "\U000F11D7"  # mdi-note-text-outline
+- "\U000F00EC"  # mdi-calculator
+- "\U000F0007"  # mdi-account-box-outline
+- "\U000F0625"  # mdi-help-circle-outline
+- "\U000F02FD"  # mdi-information-outline
+- "\U000F097B"  # mdi-keyboard-outline
+- "\U000F09FA"  # mdi-keyboard-settings-outline
+- "\U000F0634"  # mdi-apple-keyboard-control
+- "\U000F0635"  # mdi-apple-keyboard-option
+- "\U000F0636"  # mdi-apple-keyboard-shift
+- "\U000F12B7"  # mdi-keyboard-esc
+- "\U000F0311"  # mdi-keyboard-return
+- "\U000F0312"  # mdi-keyboard-tab
+- "\U000F0B5C"  # mdi-backspace-outline
+- "\U000F1050"  # mdi-keyboard-space
+- "\U000F054C"  # mdi-undo
+- "\U000F044E"  # mdi-redo
+- "\U000F018F"  # mdi-content-copy
+- "\U000F0190"  # mdi-content-cut
+- "\U000F0192"  # mdi-content-paste
+- "\U000F0486"  # mdi-select-all
+- "\U000F06D4"  # mdi-find-replace
+- "\U000F0224"  # mdi-file-outline
+- "\U000F0EED"  # mdi-file-plus-outline
+- "\U000F09EE"  # mdi-file-document-outline
+- "\U000F0818"  # mdi-content-save-outline
+- "\U000F0F44"  # mdi-content-save-all-outline
+- "\U000F0455"  # mdi-rename-box
+- "\U000F0552"  # mdi-upload
+- "\U000F01DA"  # mdi-download
+- "\U000F120E"  # mdi-archive-outline
+- "\U000F07B9"  # mdi-folder-zip-outline
+- "\U000F0163"  # mdi-cloud-outline
+- "\U000F12D6"  # mdi-cloud-sync-outline
+- "\U000F0339"  # mdi-link-variant
+- "\U000F033A"  # mdi-link-variant-off
+- "\U000F0497"  # mdi-share-variant
+- "\U000F00C3"  # mdi-bookmark-outline
+- "\U000F02DA"  # mdi-history
+- "\U000F075C"  # mdi-tab-plus
+- "\U000F0B4C"  # mdi-tab-remove
+- "\U000F199E"  # mdi-tab-search
+- "\U000F0450"  # mdi-refresh
+- "\U000F0CDE"  # mdi-arrow-left-circle-outline
+- "\U000F0CE0"  # mdi-arrow-right-circle-outline
+- "\U000F03CC"  # mdi-open-in-new
+- "\U000F05F9"  # mdi-incognito
+- "\U000F06A1"  # mdi-home-outline
+- "\U000F057F"  # mdi-volume-low
+- "\U000F0580"  # mdi-volume-medium
+- "\U000F075D"  # mdi-volume-plus
+- "\U000F075E"  # mdi-volume-minus
+- "\U000F075F"  # mdi-volume-mute
+- "\U000F02CE"  # mdi-headset
+- "\U000F062E"  # mdi-tune
+- "\U000F0EA3"  # mdi-equalizer-outline
+- "\U000F0568"  # mdi-video-off
+- "\U000F0919"  # mdi-video-account
+- "\U000F1483"  # mdi-monitor-share
+- "\U000F044B"  # mdi-record-rec
+- "\U000F0EC3"  # mdi-record-circle-outline
+- "\U000F0B58"  # mdi-account-group-outline
+- "\U000F182D"  # mdi-hand-back-right-outline
+- "\U000F0A91"  # mdi-bell-off-outline
+- "\U000F009C"  # mdi-bell-outline
+- "\U000F018D"  # mdi-console
+- "\U000F0169"  # mdi-code-braces
+- "\U000F0174"  # mdi-code-tags
+- "\U000F062C"  # mdi-source-branch
+- "\U000F02A2"  # mdi-git
+- "\U000F0A30"  # mdi-bug-outline
+- "\U000F040D"  # mdi-play-circle-outline
+- "\U000F1323"  # mdi-hammer-wrench
+- "\U000F1632"  # mdi-database-outline
+- "\U000F109B"  # mdi-api
+- "\U000F0E51"  # mdi-monitor-screenshot
+- "\U000F019E"  # mdi-crop
+- "\U000F0CB6"  # mdi-pencil-outline
+- "\U000F00E3"  # mdi-brush
+- "\U000F020A"  # mdi-eyedropper
+- "\U000F09FE"  # mdi-layers-outline
+- "\U000F0976"  # mdi-image-outline
+- "\U000F0001"  # mdi-vector-square
+- "\U000F0BD2"  # mdi-timeline-outline
+- "\U000F1123"  # mdi-movie-edit-outline
+- "\U000F0A8F"  # mdi-animation-outline
+- "\U000F0EE0"  # mdi-cpu-64-bit
+- "\U000F035B"  # mdi-memory
+- "\U000F0553"  # mdi-usb
+- "\U000F129F"  # mdi-usb-flash-drive-outline
+- "\U000F037D"  # mdi-mouse
+- "\U000F0709"  # mdi-restart
+- "\U000F0904"  # mdi-power-sleep
+- "\U000F0343"  # mdi-logout
+- "\U000F00E0"  # mdi-brightness-7
+- "\U000F00DE"  # mdi-brightness-5
+- "\U000F0A07"  # mdi-monitor-dashboard
+- "\U000F037A"  # mdi-monitor-multiple
+- "\U000F0C9D"  # mdi-network-outline
+- "\U000F0200"  # mdi-ethernet
+- "\U000F0BC5"  # mdi-shield-key-outline
+- "\U000F05AA"  # mdi-wifi-off
+- "\U000F00B2"  # mdi-bluetooth-off
+- "\U000F04E6"  # mdi-sync
+- "\U000F0B91"  # mdi-eject-outline
+- "\U000F08BB"  # mdi-cog-outline
+- "\U000F05AF"  # mdi-window-maximize
+- "\U000F0294"  # mdi-fullscreen-exit
+- "\U000F0E58"  # mdi-picture-in-picture-bottom-right-outline
 # --- GENERATED:ICONS END ---

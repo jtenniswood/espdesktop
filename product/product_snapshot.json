@@ -12,8 +12,8 @@
     "deviceProfiles": 9,
     "cardTypes": 36,
     "entityNames": 112,
-    "icons": 401,
-    "structuralIcons": 37,
+    "icons": 526,
+    "structuralIcons": 30,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -7152,12 +7152,6 @@
     },
     "structural": [
       {
-        "name": "Wifi Off",
-        "codepoint": "F05AA",
-        "mdi": "wifi-off",
-        "comment": "Wi-Fi disabled"
-      },
-      {
         "name": "Close",
         "codepoint": "F0156",
         "mdi": "close",
@@ -7168,12 +7162,6 @@
         "codepoint": "F024B",
         "mdi": "folder",
         "comment": "Default subpage indicator"
-      },
-      {
-        "name": "Download",
-        "codepoint": "F01DA",
-        "mdi": "download",
-        "comment": "Firmware install update entity"
       },
       {
         "name": "Tag",
@@ -7236,12 +7224,6 @@
         "comment": "Network status"
       },
       {
-        "name": "Ethernet",
-        "codepoint": "F0200",
-        "mdi": "ethernet",
-        "comment": "Setup screens"
-      },
-      {
         "name": "Home Assistant",
         "codepoint": "F07D0",
         "mdi": "home-assistant",
@@ -7278,24 +7260,6 @@
         "comment": "Image card unavailable state"
       },
       {
-        "name": "Shortcut Control",
-        "codepoint": "F0634",
-        "mdi": "apple-keyboard-control",
-        "comment": "Companion shortcut labels"
-      },
-      {
-        "name": "Shortcut Option",
-        "codepoint": "F0635",
-        "mdi": "apple-keyboard-option",
-        "comment": "Companion shortcut labels"
-      },
-      {
-        "name": "Shortcut Shift",
-        "codepoint": "F0636",
-        "mdi": "apple-keyboard-shift",
-        "comment": "Companion shortcut labels"
-      },
-      {
         "name": "Shortcut Left",
         "codepoint": "F004D",
         "mdi": "arrow-left",
@@ -7312,12 +7276,6 @@
         "codepoint": "F0D90",
         "comment": "Disconnected Mac connector",
         "name": "Monitor Off"
-      },
-      {
-        "name": "Memory",
-        "codepoint": "F035B",
-        "mdi": "memory",
-        "comment": "Build information card"
       },
       {
         "name": "Shield Link Variant",
@@ -7377,12 +7335,14 @@
       {
         "name": "Chevron Left",
         "codepoint": "F0141",
-        "mdi": "chevron-left"
+        "mdi": "chevron-left",
+        "picker": false
       },
       {
         "name": "Chevron Right",
         "codepoint": "F0142",
-        "mdi": "chevron-right"
+        "mdi": "chevron-right",
+        "picker": false
       },
       {
         "name": "Account",
@@ -7392,47 +7352,56 @@
       {
         "name": "Air Conditioner",
         "codepoint": "F001B",
-        "mdi": "air-conditioner"
+        "mdi": "air-conditioner",
+        "picker": false
       },
       {
         "name": "Air Filter",
         "codepoint": "F0D43",
-        "mdi": "air-filter"
+        "mdi": "air-filter",
+        "picker": false
       },
       {
         "name": "Air Purifier",
         "codepoint": "F0D44",
-        "mdi": "air-purifier"
+        "mdi": "air-purifier",
+        "picker": false
       },
       {
         "name": "Air Purifier Off",
         "codepoint": "F1B57",
-        "mdi": "air-purifier-off"
+        "mdi": "air-purifier-off",
+        "picker": false
       },
       {
         "name": "Airplane",
         "codepoint": "F001D",
-        "mdi": "airplane"
+        "mdi": "airplane",
+        "picker": false
       },
       {
         "name": "Alarm",
         "codepoint": "F009E",
-        "mdi": "bell-ring"
+        "mdi": "bell-ring",
+        "picker": false
       },
       {
         "name": "Alarm Bell",
         "codepoint": "F078E",
-        "mdi": "alarm-bell"
+        "mdi": "alarm-bell",
+        "picker": false
       },
       {
         "name": "Alarm Clock",
         "codepoint": "F0020",
-        "mdi": "alarm"
+        "mdi": "alarm",
+        "picker": false
       },
       {
         "name": "Alarm Light",
         "codepoint": "F078F",
-        "mdi": "alarm-light"
+        "mdi": "alarm-light",
+        "picker": false
       },
       {
         "name": "Application",
@@ -7442,27 +7411,32 @@
       {
         "name": "Arrow Down",
         "codepoint": "F0045",
-        "mdi": "arrow-down"
+        "mdi": "arrow-down",
+        "picker": false
       },
       {
         "name": "Arrow Up",
         "codepoint": "F005D",
-        "mdi": "arrow-up"
+        "mdi": "arrow-up",
+        "picker": false
       },
       {
         "name": "Arrow Up Down",
         "codepoint": "F0E79",
-        "mdi": "arrow-up-down"
+        "mdi": "arrow-up-down",
+        "picker": false
       },
       {
         "name": "Awning",
         "codepoint": "F1B87",
-        "mdi": "awning"
+        "mdi": "awning",
+        "picker": false
       },
       {
         "name": "Awning Outline",
         "codepoint": "F1B88",
-        "mdi": "awning-outline"
+        "mdi": "awning-outline",
+        "picker": false
       },
       {
         "name": "Battery",
@@ -7472,47 +7446,56 @@
       {
         "name": "Battery 10%",
         "codepoint": "F007A",
-        "mdi": "battery-10"
+        "mdi": "battery-10",
+        "picker": false
       },
       {
         "name": "Battery 20%",
         "codepoint": "F007B",
-        "mdi": "battery-20"
+        "mdi": "battery-20",
+        "picker": false
       },
       {
         "name": "Battery 30%",
         "codepoint": "F007C",
-        "mdi": "battery-30"
+        "mdi": "battery-30",
+        "picker": false
       },
       {
         "name": "Battery 40%",
         "codepoint": "F007D",
-        "mdi": "battery-40"
+        "mdi": "battery-40",
+        "picker": false
       },
       {
         "name": "Battery 50%",
         "codepoint": "F007E",
-        "mdi": "battery-50"
+        "mdi": "battery-50",
+        "picker": false
       },
       {
         "name": "Battery 60%",
         "codepoint": "F007F",
-        "mdi": "battery-60"
+        "mdi": "battery-60",
+        "picker": false
       },
       {
         "name": "Battery 70%",
         "codepoint": "F0080",
-        "mdi": "battery-70"
+        "mdi": "battery-70",
+        "picker": false
       },
       {
         "name": "Battery 80%",
         "codepoint": "F0081",
-        "mdi": "battery-80"
+        "mdi": "battery-80",
+        "picker": false
       },
       {
         "name": "Battery 90%",
         "codepoint": "F0082",
-        "mdi": "battery-90"
+        "mdi": "battery-90",
+        "picker": false
       },
       {
         "name": "Battery Alert",
@@ -7527,12 +7510,14 @@
       {
         "name": "Battery Charging 100",
         "codepoint": "F0085",
-        "mdi": "battery-charging-100"
+        "mdi": "battery-charging-100",
+        "picker": false
       },
       {
         "name": "Battery Charging 70",
         "codepoint": "F089E",
-        "mdi": "battery-charging-70"
+        "mdi": "battery-charging-70",
+        "picker": false
       },
       {
         "name": "Battery High",
@@ -7552,72 +7537,86 @@
       {
         "name": "Battery Off",
         "codepoint": "F125D",
-        "mdi": "battery-off"
+        "mdi": "battery-off",
+        "picker": false
       },
       {
         "name": "Battery Outline",
         "codepoint": "F008E",
-        "mdi": "battery-outline"
+        "mdi": "battery-outline",
+        "picker": false
       },
       {
         "name": "Battery Unknown",
         "codepoint": "F0091",
-        "mdi": "battery-unknown"
+        "mdi": "battery-unknown",
+        "picker": false
       },
       {
         "name": "Bathtub",
         "codepoint": "F1818",
-        "mdi": "bathtub"
+        "mdi": "bathtub",
+        "picker": false
       },
       {
         "name": "Bathtub Outline",
         "codepoint": "F1819",
-        "mdi": "bathtub-outline"
+        "mdi": "bathtub-outline",
+        "picker": false
       },
       {
         "name": "Bed",
         "codepoint": "F02E3",
-        "mdi": "bed"
+        "mdi": "bed",
+        "picker": false
       },
       {
         "name": "Bed King",
         "codepoint": "F0FD2",
-        "mdi": "bed-king"
+        "mdi": "bed-king",
+        "picker": false
       },
       {
         "name": "Bed Queen",
         "codepoint": "F0FD0",
-        "mdi": "bed-queen"
+        "mdi": "bed-queen",
+        "picker": false
       },
       {
         "name": "Bell",
         "codepoint": "F009A",
-        "mdi": "bell"
+        "mdi": "bell",
+        "picker": false
       },
       {
         "name": "Bird",
         "codepoint": "F15C6",
-        "mdi": "bird"
+        "mdi": "bird",
+        "picker": false
       },
       {
         "name": "Blinds",
         "codepoint": "F00AC",
-        "mdi": "blinds"
+        "mdi": "blinds",
+        "picker": false
       },
       {
         "name": "Blinds Horizontal",
         "codepoint": "F1A2B",
-        "mdi": "blinds-horizontal"
+        "mdi": "blinds-horizontal",
+        "picker": false
       },
       {
         "name": "Blinds Horizontal Closed",
         "codepoint": "F1A2C",
-        "mdi": "blinds-horizontal-closed"
+        "mdi": "blinds-horizontal-closed",
+        "picker": false
       },
       {
         "name": "Blinds Open",
         "codepoint": "F1011",
-        "mdi": "blinds-open"
+        "mdi": "blinds-open",
+        "picker": false
       },
       {
         "name": "Bluetooth",
@@ -7627,27 +7626,32 @@
       {
         "name": "Broom",
         "codepoint": "F00E2",
-        "mdi": "broom"
+        "mdi": "broom",
+        "picker": false
       },
       {
         "name": "Bunk Bed",
         "codepoint": "F1302",
-        "mdi": "bunk-bed"
+        "mdi": "bunk-bed",
+        "picker": false
       },
       {
         "name": "Bus",
         "codepoint": "F00E7",
-        "mdi": "bus"
+        "mdi": "bus",
+        "picker": false
       },
       {
         "name": "Camera",
         "codepoint": "F0100",
-        "mdi": "camera"
+        "mdi": "camera",
+        "picker": false
       },
       {
         "name": "Car Electric",
         "codepoint": "F0B6C",
-        "mdi": "car-electric"
+        "mdi": "car-electric",
+        "picker": false
       },
       {
         "name": "Cast",
@@ -7657,42 +7661,50 @@
       {
         "name": "Cat",
         "codepoint": "F011B",
-        "mdi": "cat"
+        "mdi": "cat",
+        "picker": false
       },
       {
         "name": "CCTV",
         "codepoint": "F07AE",
-        "mdi": "cctv"
+        "mdi": "cctv",
+        "picker": false
       },
       {
         "name": "Ceiling Fan",
         "codepoint": "F1797",
-        "mdi": "ceiling-fan"
+        "mdi": "ceiling-fan",
+        "picker": false
       },
       {
         "name": "Ceiling Fan Light",
         "codepoint": "F1798",
-        "mdi": "ceiling-fan-light"
+        "mdi": "ceiling-fan-light",
+        "picker": false
       },
       {
         "name": "Ceiling Light",
         "codepoint": "F0769",
-        "mdi": "ceiling-light"
+        "mdi": "ceiling-light",
+        "picker": false
       },
       {
         "name": "Ceiling Lights Multiple",
         "codepoint": "F18DD",
-        "mdi": "ceiling-light-multiple"
+        "mdi": "ceiling-light-multiple",
+        "picker": false
       },
       {
         "name": "Ceiling Light Multiple Outline",
         "codepoint": "F18DE",
-        "mdi": "ceiling-light-multiple-outline"
+        "mdi": "ceiling-light-multiple-outline",
+        "picker": false
       },
       {
         "name": "Chandelier",
         "codepoint": "F1793",
-        "mdi": "chandelier"
+        "mdi": "chandelier",
+        "picker": false
       },
       {
         "name": "Check",
@@ -7702,32 +7714,38 @@
       {
         "name": "Chair Rolling",
         "codepoint": "F0F48",
-        "mdi": "chair-rolling"
+        "mdi": "chair-rolling",
+        "picker": false
       },
       {
         "name": "Chef Hat",
         "codepoint": "F0B7C",
-        "mdi": "chef-hat"
+        "mdi": "chef-hat",
+        "picker": false
       },
       {
         "name": "Chevron Down",
         "codepoint": "F0140",
-        "mdi": "chevron-down"
+        "mdi": "chevron-down",
+        "picker": false
       },
       {
         "name": "Chevron Up",
         "codepoint": "F0143",
-        "mdi": "chevron-up"
+        "mdi": "chevron-up",
+        "picker": false
       },
       {
         "name": "Coach Lamp",
         "codepoint": "F1020",
-        "mdi": "coach-lamp"
+        "mdi": "coach-lamp",
+        "picker": false
       },
       {
         "name": "Coach Lamp Variant",
         "codepoint": "F1A37",
-        "mdi": "coach-lamp-variant"
+        "mdi": "coach-lamp-variant",
+        "picker": false
       },
       {
         "name": "Clock",
@@ -7742,32 +7760,38 @@
       {
         "name": "Coffee Maker",
         "codepoint": "F109F",
-        "mdi": "coffee-maker"
+        "mdi": "coffee-maker",
+        "picker": false
       },
       {
         "name": "Countertop",
         "codepoint": "F181C",
-        "mdi": "countertop"
+        "mdi": "countertop",
+        "picker": false
       },
       {
         "name": "Current AC",
         "codepoint": "F1480",
-        "mdi": "current-ac"
+        "mdi": "current-ac",
+        "picker": false
       },
       {
         "name": "Current DC",
         "codepoint": "F095C",
-        "mdi": "current-dc"
+        "mdi": "current-dc",
+        "picker": false
       },
       {
         "name": "Curtains",
         "codepoint": "F1846",
-        "mdi": "curtains"
+        "mdi": "curtains",
+        "picker": false
       },
       {
         "name": "Curtains Closed",
         "codepoint": "F1847",
-        "mdi": "curtains-closed"
+        "mdi": "curtains-closed",
+        "picker": false
       },
       {
         "name": "Delete",
@@ -7792,57 +7816,68 @@
       {
         "name": "Desk",
         "codepoint": "F1239",
-        "mdi": "desk"
+        "mdi": "desk",
+        "picker": false
       },
       {
         "name": "Desk Lamp",
         "codepoint": "F095F",
-        "mdi": "desk-lamp"
+        "mdi": "desk-lamp",
+        "picker": false
       },
       {
         "name": "Desk Lamp Off",
         "codepoint": "F1B1F",
-        "mdi": "desk-lamp-off"
+        "mdi": "desk-lamp-off",
+        "picker": false
       },
       {
         "name": "Desk Lamp On",
         "codepoint": "F1B20",
-        "mdi": "desk-lamp-on"
+        "mdi": "desk-lamp-on",
+        "picker": false
       },
       {
         "name": "Dishwasher",
         "codepoint": "F0AAC",
-        "mdi": "dishwasher"
+        "mdi": "dishwasher",
+        "picker": false
       },
       {
         "name": "Dishwasher Off",
         "codepoint": "F11B9",
-        "mdi": "dishwasher-off"
+        "mdi": "dishwasher-off",
+        "picker": false
       },
       {
         "name": "Dog",
         "codepoint": "F0A43",
-        "mdi": "dog"
+        "mdi": "dog",
+        "picker": false
       },
       {
         "name": "Downlight",
         "codepoint": "F179B",
-        "mdi": "light-recessed"
+        "mdi": "light-recessed",
+        "picker": false
       },
       {
         "name": "Door",
         "codepoint": "F081A",
-        "mdi": "door"
+        "mdi": "door",
+        "picker": false
       },
       {
         "name": "Door Open",
         "codepoint": "F081C",
-        "mdi": "door-open"
+        "mdi": "door-open",
+        "picker": false
       },
       {
         "name": "Doorbell",
         "codepoint": "F0869",
-        "mdi": "doorbell-video"
+        "mdi": "doorbell-video",
+        "picker": false
       },
       {
         "name": "Dots Horizontal",
@@ -7852,17 +7887,20 @@
       {
         "name": "Dryer",
         "codepoint": "F0917",
-        "mdi": "tumble-dryer"
+        "mdi": "tumble-dryer",
+        "picker": false
       },
       {
         "name": "Dryer Off",
         "codepoint": "F11BB",
-        "mdi": "tumble-dryer-off"
+        "mdi": "tumble-dryer-off",
+        "picker": false
       },
       {
         "name": "EV Charger",
         "codepoint": "F05F1",
-        "mdi": "ev-station"
+        "mdi": "ev-station",
+        "picker": false
       },
       {
         "name": "Fan",
@@ -7872,42 +7910,50 @@
       {
         "name": "Fan Off",
         "codepoint": "F081D",
-        "mdi": "fan-off"
+        "mdi": "fan-off",
+        "picker": false
       },
       {
         "name": "Fan Auto",
         "codepoint": "F171D",
-        "mdi": "fan-auto"
+        "mdi": "fan-auto",
+        "picker": false
       },
       {
         "name": "Fan Speed 1",
         "codepoint": "F1472",
-        "mdi": "fan-speed-1"
+        "mdi": "fan-speed-1",
+        "picker": false
       },
       {
         "name": "Fan Speed 2",
         "codepoint": "F1473",
-        "mdi": "fan-speed-2"
+        "mdi": "fan-speed-2",
+        "picker": false
       },
       {
         "name": "Fan Speed 3",
         "codepoint": "F1474",
-        "mdi": "fan-speed-3"
+        "mdi": "fan-speed-3",
+        "picker": false
       },
       {
         "name": "Fire",
         "codepoint": "F0238",
-        "mdi": "fire"
+        "mdi": "fire",
+        "picker": false
       },
       {
         "name": "Fire Off",
         "codepoint": "F1722",
-        "mdi": "fire-off"
+        "mdi": "fire-off",
+        "picker": false
       },
       {
         "name": "Fireplace",
         "codepoint": "F0E2E",
-        "mdi": "fireplace"
+        "mdi": "fireplace",
+        "picker": false
       },
       {
         "name": "Flash",
@@ -7917,7 +7963,8 @@
       {
         "name": "Floor Lamp",
         "codepoint": "F08DD",
-        "mdi": "floor-lamp"
+        "mdi": "floor-lamp",
+        "picker": false
       },
       {
         "name": "Folder Music Outline",
@@ -7957,12 +8004,14 @@
       {
         "name": "Fountain",
         "codepoint": "F096B",
-        "mdi": "fountain"
+        "mdi": "fountain",
+        "picker": false
       },
       {
         "name": "Fridge",
         "codepoint": "F0290",
-        "mdi": "fridge"
+        "mdi": "fridge",
+        "picker": false
       },
       {
         "name": "Gamepad",
@@ -7972,32 +8021,38 @@
       {
         "name": "Garage",
         "codepoint": "F06D9",
-        "mdi": "garage"
+        "mdi": "garage",
+        "picker": false
       },
       {
         "name": "Garage Open",
         "codepoint": "F06DA",
-        "mdi": "garage-open"
+        "mdi": "garage-open",
+        "picker": false
       },
       {
         "name": "Garage Open Variant",
         "codepoint": "F12D4",
-        "mdi": "garage-open-variant"
+        "mdi": "garage-open-variant",
+        "picker": false
       },
       {
         "name": "Garage Variant",
         "codepoint": "F12D3",
-        "mdi": "garage-variant"
+        "mdi": "garage-variant",
+        "picker": false
       },
       {
         "name": "Gate",
         "codepoint": "F0299",
-        "mdi": "gate"
+        "mdi": "gate",
+        "picker": false
       },
       {
         "name": "Gate Open",
         "codepoint": "F116A",
-        "mdi": "gate-open"
+        "mdi": "gate-open",
+        "picker": false
       },
       {
         "name": "Gesture Tap",
@@ -8012,37 +8067,44 @@
       {
         "name": "Gauge",
         "codepoint": "F029A",
-        "mdi": "gauge"
+        "mdi": "gauge",
+        "picker": false
       },
       {
         "name": "Gauge Empty",
         "codepoint": "F0873",
-        "mdi": "gauge-empty"
+        "mdi": "gauge-empty",
+        "picker": false
       },
       {
         "name": "Gauge Full",
         "codepoint": "F0874",
-        "mdi": "gauge-full"
+        "mdi": "gauge-full",
+        "picker": false
       },
       {
         "name": "Gauge Low",
         "codepoint": "F0875",
-        "mdi": "gauge-low"
+        "mdi": "gauge-low",
+        "picker": false
       },
       {
         "name": "Grid Export",
         "codepoint": "F192C",
-        "mdi": "transmission-tower-export"
+        "mdi": "transmission-tower-export",
+        "picker": false
       },
       {
         "name": "Grid Import",
         "codepoint": "F192D",
-        "mdi": "transmission-tower-import"
+        "mdi": "transmission-tower-import",
+        "picker": false
       },
       {
         "name": "Grid Off",
         "codepoint": "F19DD",
-        "mdi": "transmission-tower-off"
+        "mdi": "transmission-tower-off",
+        "picker": false
       },
       {
         "name": "Headphones",
@@ -8052,12 +8114,14 @@
       {
         "name": "Radiator",
         "codepoint": "F0438",
-        "mdi": "radiator"
+        "mdi": "radiator",
+        "picker": false
       },
       {
         "name": "Radiator Off",
         "codepoint": "F0AD8",
-        "mdi": "radiator-off"
+        "mdi": "radiator-off",
+        "picker": false
       },
       {
         "name": "Home",
@@ -8067,62 +8131,74 @@
       {
         "name": "Home Lightbulb",
         "codepoint": "F1251",
-        "mdi": "home-lightbulb"
+        "mdi": "home-lightbulb",
+        "picker": false
       },
       {
         "name": "Home Lightbulb Outline",
         "codepoint": "F1252",
-        "mdi": "home-lightbulb-outline"
+        "mdi": "home-lightbulb-outline",
+        "picker": false
       },
       {
         "name": "Heat Pump",
         "codepoint": "F1A43",
-        "mdi": "heat-pump"
+        "mdi": "heat-pump",
+        "picker": false
       },
       {
         "name": "Heat Wave",
         "codepoint": "F1A45",
-        "mdi": "heat-wave"
+        "mdi": "heat-wave",
+        "picker": false
       },
       {
         "name": "Heating Coil",
         "codepoint": "F1AAF",
-        "mdi": "heating-coil"
+        "mdi": "heating-coil",
+        "picker": false
       },
       {
         "name": "HVAC",
         "codepoint": "F1352",
-        "mdi": "hvac"
+        "mdi": "hvac",
+        "picker": false
       },
       {
         "name": "HVAC Off",
         "codepoint": "F159E",
-        "mdi": "hvac-off"
+        "mdi": "hvac-off",
+        "picker": false
       },
       {
         "name": "Hot Tub",
         "codepoint": "F0828",
-        "mdi": "hot-tub"
+        "mdi": "hot-tub",
+        "picker": false
       },
       {
         "name": "Humidifier",
         "codepoint": "F1099",
-        "mdi": "air-humidifier"
+        "mdi": "air-humidifier",
+        "picker": false
       },
       {
         "name": "Humidity Alert",
         "codepoint": "F1509",
-        "mdi": "water-percent-alert"
+        "mdi": "water-percent-alert",
+        "picker": false
       },
       {
         "name": "Iron",
         "codepoint": "F1824",
-        "mdi": "iron"
+        "mdi": "iron",
+        "picker": false
       },
       {
         "name": "Kettle",
         "codepoint": "F05FA",
-        "mdi": "kettle"
+        "mdi": "kettle",
+        "picker": false
       },
       {
         "name": "Key",
@@ -8132,17 +8208,20 @@
       {
         "name": "Lamp",
         "codepoint": "F06B5",
-        "mdi": "lamp"
+        "mdi": "lamp",
+        "picker": false
       },
       {
         "name": "Lamp Outline",
         "codepoint": "F17D0",
-        "mdi": "lamp-outline"
+        "mdi": "lamp-outline",
+        "picker": false
       },
       {
         "name": "Lava Lamp",
         "codepoint": "F07D5",
-        "mdi": "lava-lamp"
+        "mdi": "lava-lamp",
+        "picker": false
       },
       {
         "name": "LAN",
@@ -8152,127 +8231,152 @@
       {
         "name": "Lawnmower",
         "codepoint": "F11F7",
-        "mdi": "robot-mower"
+        "mdi": "robot-mower",
+        "picker": false
       },
       {
         "name": "Robot Mower",
         "codepoint": "F11F7",
-        "mdi": "robot-mower"
+        "mdi": "robot-mower",
+        "picker": false
       },
       {
         "name": "Robot Mower Outline",
         "codepoint": "F11F3",
-        "mdi": "robot-mower-outline"
+        "mdi": "robot-mower-outline",
+        "picker": false
       },
       {
         "name": "Leaf",
         "codepoint": "F032A",
-        "mdi": "leaf"
+        "mdi": "leaf",
+        "picker": false
       },
       {
         "name": "LED Strip",
         "codepoint": "F07D6",
-        "mdi": "led-strip"
+        "mdi": "led-strip",
+        "picker": false
       },
       {
         "name": "LED Strip Variant",
         "codepoint": "F1051",
-        "mdi": "led-strip-variant"
+        "mdi": "led-strip-variant",
+        "picker": false
       },
       {
         "name": "LED Strip Variant Off",
         "codepoint": "F1A4B",
-        "mdi": "led-strip-variant-off"
+        "mdi": "led-strip-variant-off",
+        "picker": false
       },
       {
         "name": "Light Switch",
         "codepoint": "F097E",
-        "mdi": "light-switch"
+        "mdi": "light-switch",
+        "picker": false
       },
       {
         "name": "Flood Light Down",
         "codepoint": "F1987",
-        "mdi": "light-flood-down"
+        "mdi": "light-flood-down",
+        "picker": false
       },
       {
         "name": "Lightbulb",
         "codepoint": "F0335",
-        "mdi": "lightbulb"
+        "mdi": "lightbulb",
+        "picker": false
       },
       {
         "name": "Lightbulb Auto",
         "codepoint": "F1800",
-        "mdi": "lightbulb-auto"
+        "mdi": "lightbulb-auto",
+        "picker": false
       },
       {
         "name": "Lightbulb Auto Outline",
         "codepoint": "F1801",
-        "mdi": "lightbulb-auto-outline"
+        "mdi": "lightbulb-auto-outline",
+        "picker": false
       },
       {
         "name": "Lightbulb Fluorescent Tube Outline",
         "codepoint": "F1805",
-        "mdi": "lightbulb-fluorescent-tube-outline"
+        "mdi": "lightbulb-fluorescent-tube-outline",
+        "picker": false
       },
       {
         "name": "Lightbulb Group",
         "codepoint": "F1253",
-        "mdi": "lightbulb-group"
+        "mdi": "lightbulb-group",
+        "picker": false
       },
       {
         "name": "Lightbulb Group Outline",
         "codepoint": "F1254",
-        "mdi": "lightbulb-group-outline"
+        "mdi": "lightbulb-group-outline",
+        "picker": false
       },
       {
         "name": "Lightbulb Night",
         "codepoint": "F1A4C",
-        "mdi": "lightbulb-night"
+        "mdi": "lightbulb-night",
+        "picker": false
       },
       {
         "name": "Lightbulb Night Outline",
         "codepoint": "F1A4D",
-        "mdi": "lightbulb-night-outline"
+        "mdi": "lightbulb-night-outline",
+        "picker": false
       },
       {
         "name": "Lightbulb Off",
         "codepoint": "F0E4F",
-        "mdi": "lightbulb-off"
+        "mdi": "lightbulb-off",
+        "picker": false
       },
       {
         "name": "Lightbulb On 50",
         "codepoint": "F1A52",
-        "mdi": "lightbulb-on-50"
+        "mdi": "lightbulb-on-50",
+        "picker": false
       },
       {
         "name": "Lightbulb On Outline",
         "codepoint": "F06E9",
-        "mdi": "lightbulb-on-outline"
+        "mdi": "lightbulb-on-outline",
+        "picker": false
       },
       {
         "name": "Lightbulb Spot",
         "codepoint": "F17F4",
-        "mdi": "lightbulb-spot"
+        "mdi": "lightbulb-spot",
+        "picker": false
       },
       {
         "name": "Lightbulb Spot Off",
         "codepoint": "F17F5",
-        "mdi": "lightbulb-spot-off"
+        "mdi": "lightbulb-spot-off",
+        "picker": false
       },
       {
         "name": "Lightbulb Variant",
         "codepoint": "F1802",
-        "mdi": "lightbulb-variant"
+        "mdi": "lightbulb-variant",
+        "picker": false
       },
       {
         "name": "Lightbulb Variant Outline",
         "codepoint": "F1803",
-        "mdi": "lightbulb-variant-outline"
+        "mdi": "lightbulb-variant-outline",
+        "picker": false
       },
       {
         "name": "Lightbulb Outline",
         "codepoint": "F0336",
-        "mdi": "lightbulb-outline"
+        "mdi": "lightbulb-outline",
+        "picker": false
       },
       {
         "name": "Lightning Bolt",
@@ -8297,7 +8401,8 @@
       {
         "name": "Lock Open Variant",
         "codepoint": "F0FC6",
-        "mdi": "lock-open-variant"
+        "mdi": "lock-open-variant",
+        "picker": false
       },
       {
         "name": "Lock Outline",
@@ -8307,7 +8412,8 @@
       {
         "name": "Mailbox",
         "codepoint": "F06EE",
-        "mdi": "mailbox"
+        "mdi": "mailbox",
+        "picker": false
       },
       {
         "name": "Menu",
@@ -8322,22 +8428,26 @@
       {
         "name": "Medication",
         "codepoint": "F1B14",
-        "mdi": "medication"
+        "mdi": "medication",
+        "picker": false
       },
       {
         "name": "Medication Outline",
         "codepoint": "F1B15",
-        "mdi": "medication-outline"
+        "mdi": "medication-outline",
+        "picker": false
       },
       {
         "name": "Meter Electric",
         "codepoint": "F1A57",
-        "mdi": "meter-electric"
+        "mdi": "meter-electric",
+        "picker": false
       },
       {
         "name": "Meter Gas",
         "codepoint": "F1A59",
-        "mdi": "meter-gas"
+        "mdi": "meter-gas",
+        "picker": false
       },
       {
         "name": "Microphone",
@@ -8357,7 +8467,8 @@
       {
         "name": "Microwave",
         "codepoint": "F0C99",
-        "mdi": "microwave"
+        "mdi": "microwave",
+        "picker": false
       },
       {
         "name": "Minus",
@@ -8372,12 +8483,14 @@
       {
         "name": "Motion Sensor",
         "codepoint": "F0D91",
-        "mdi": "motion-sensor"
+        "mdi": "motion-sensor",
+        "picker": false
       },
       {
         "name": "Motion Sensor Off",
         "codepoint": "F1435",
-        "mdi": "motion-sensor-off"
+        "mdi": "motion-sensor-off",
+        "picker": false
       },
       {
         "name": "Movie Roll",
@@ -8412,37 +8525,44 @@
       {
         "name": "Outdoor Lamp",
         "codepoint": "F1054",
-        "mdi": "outdoor-lamp"
+        "mdi": "outdoor-lamp",
+        "picker": false
       },
       {
         "name": "Oven",
         "codepoint": "F04DE",
-        "mdi": "stove"
+        "mdi": "stove",
+        "picker": false
       },
       {
         "name": "Palette",
         "codepoint": "F03D8",
-        "mdi": "palette"
+        "mdi": "palette",
+        "picker": false
       },
       {
         "name": "Package",
         "codepoint": "F03D6",
-        "mdi": "package-variant"
+        "mdi": "package-variant",
+        "picker": false
       },
       {
         "name": "Package Closed",
         "codepoint": "F03D7",
-        "mdi": "package-variant-closed"
+        "mdi": "package-variant-closed",
+        "picker": false
       },
       {
         "name": "Pill",
         "codepoint": "F0402",
-        "mdi": "pill"
+        "mdi": "pill",
+        "picker": false
       },
       {
         "name": "Pill Multiple",
         "codepoint": "F1B4C",
-        "mdi": "pill-multiple"
+        "mdi": "pill-multiple",
+        "picker": false
       },
       {
         "name": "Plus",
@@ -8472,12 +8592,14 @@
       {
         "name": "Pool",
         "codepoint": "F0606",
-        "mdi": "pool"
+        "mdi": "pool",
+        "picker": false
       },
       {
         "name": "Post Lamp",
         "codepoint": "F1A60",
-        "mdi": "post-lamp"
+        "mdi": "post-lamp",
+        "picker": false
       },
       {
         "name": "Power",
@@ -8537,7 +8659,8 @@
       {
         "name": "Remote Home",
         "codepoint": "F07D2",
-        "mdi": "home-circle"
+        "mdi": "home-circle",
+        "picker": false
       },
       {
         "name": "Remote Left",
@@ -8562,47 +8685,56 @@
       {
         "name": "Remote TV",
         "codepoint": "F0EC5",
-        "mdi": "remote-tv"
+        "mdi": "remote-tv",
+        "picker": false
       },
       {
         "name": "Robot Vacuum",
         "codepoint": "F070D",
-        "mdi": "robot-vacuum"
+        "mdi": "robot-vacuum",
+        "picker": false
       },
       {
         "name": "Robot Vacuum Alert",
         "codepoint": "F1B5D",
-        "mdi": "robot-vacuum-alert"
+        "mdi": "robot-vacuum-alert",
+        "picker": false
       },
       {
         "name": "Robot Vacuum Off",
         "codepoint": "F1C01",
-        "mdi": "robot-vacuum-off"
+        "mdi": "robot-vacuum-off",
+        "picker": false
       },
       {
         "name": "Robot Vacuum Variant",
         "codepoint": "F0908",
-        "mdi": "robot-vacuum-variant"
+        "mdi": "robot-vacuum-variant",
+        "picker": false
       },
       {
         "name": "Robot Vacuum Variant Alert",
         "codepoint": "F1B5E",
-        "mdi": "robot-vacuum-variant-alert"
+        "mdi": "robot-vacuum-variant-alert",
+        "picker": false
       },
       {
         "name": "Robot Vacuum Variant Off",
         "codepoint": "F1C02",
-        "mdi": "robot-vacuum-variant-off"
+        "mdi": "robot-vacuum-variant-off",
+        "picker": false
       },
       {
         "name": "Roller Shade",
         "codepoint": "F1A6B",
-        "mdi": "roller-shade"
+        "mdi": "roller-shade",
+        "picker": false
       },
       {
         "name": "Roller Shade Closed",
         "codepoint": "F1A6C",
-        "mdi": "roller-shade-closed"
+        "mdi": "roller-shade-closed",
+        "picker": false
       },
       {
         "name": "Router",
@@ -8617,32 +8749,38 @@
       {
         "name": "Security",
         "codepoint": "F068A",
-        "mdi": "shield-home"
+        "mdi": "shield-home",
+        "picker": false
       },
       {
         "name": "Shield Home",
         "codepoint": "F068A",
-        "mdi": "shield-home"
+        "mdi": "shield-home",
+        "picker": false
       },
       {
         "name": "Shield Lock",
         "codepoint": "F099D",
-        "mdi": "shield-lock"
+        "mdi": "shield-lock",
+        "picker": false
       },
       {
         "name": "Shield Off",
         "codepoint": "F099E",
-        "mdi": "shield-off"
+        "mdi": "shield-off",
+        "picker": false
       },
       {
         "name": "Shower",
         "codepoint": "F09A0",
-        "mdi": "shower"
+        "mdi": "shower",
+        "picker": false
       },
       {
         "name": "Shower Head",
         "codepoint": "F09A1",
-        "mdi": "shower-head"
+        "mdi": "shower-head",
+        "picker": false
       },
       {
         "name": "Skip Next",
@@ -8657,62 +8795,74 @@
       {
         "name": "Smoke Detector",
         "codepoint": "F0392",
-        "mdi": "smoke-detector"
+        "mdi": "smoke-detector",
+        "picker": false
       },
       {
         "name": "Snowflake",
         "codepoint": "F0717",
-        "mdi": "snowflake"
+        "mdi": "snowflake",
+        "picker": false
       },
       {
         "name": "Snowflake Alert",
         "codepoint": "F0F29",
-        "mdi": "snowflake-alert"
+        "mdi": "snowflake-alert",
+        "picker": false
       },
       {
         "name": "Snowflake Thermometer",
         "codepoint": "F1A71",
-        "mdi": "snowflake-thermometer"
+        "mdi": "snowflake-thermometer",
+        "picker": false
       },
       {
         "name": "Silverware",
         "codepoint": "F04A3",
-        "mdi": "silverware"
+        "mdi": "silverware",
+        "picker": false
       },
       {
         "name": "Sofa",
         "codepoint": "F04B9",
-        "mdi": "sofa"
+        "mdi": "sofa",
+        "picker": false
       },
       {
         "name": "Sofa Outline",
         "codepoint": "F156D",
-        "mdi": "sofa-outline"
+        "mdi": "sofa-outline",
+        "picker": false
       },
       {
         "name": "Sofa Single Outline",
         "codepoint": "F156F",
-        "mdi": "sofa-single-outline"
+        "mdi": "sofa-single-outline",
+        "picker": false
       },
       {
         "name": "Solar Panel",
         "codepoint": "F0D9B",
-        "mdi": "solar-panel"
+        "mdi": "solar-panel",
+        "picker": false
       },
       {
         "name": "Solar Panel Large",
         "codepoint": "F0D9C",
-        "mdi": "solar-panel-large"
+        "mdi": "solar-panel-large",
+        "picker": false
       },
       {
         "name": "Solar Power",
         "codepoint": "F0A72",
-        "mdi": "solar-power"
+        "mdi": "solar-power",
+        "picker": false
       },
       {
         "name": "Solar Power Variant",
         "codepoint": "F1A73",
-        "mdi": "solar-power-variant"
+        "mdi": "solar-power-variant",
+        "picker": false
       },
       {
         "name": "Speaker",
@@ -8752,72 +8902,86 @@
       {
         "name": "Spotlight",
         "codepoint": "F04C8",
-        "mdi": "spotlight"
+        "mdi": "spotlight",
+        "picker": false
       },
       {
         "name": "Spotlight Beam",
         "codepoint": "F04C9",
-        "mdi": "spotlight-beam"
+        "mdi": "spotlight-beam",
+        "picker": false
       },
       {
         "name": "Sprinkler",
         "codepoint": "F105F",
-        "mdi": "sprinkler"
+        "mdi": "sprinkler",
+        "picker": false
       },
       {
         "name": "Sprinkler Variant",
         "codepoint": "F1060",
-        "mdi": "sprinkler-variant"
+        "mdi": "sprinkler-variant",
+        "picker": false
       },
       {
         "name": "Stairs",
         "codepoint": "F04CD",
-        "mdi": "stairs"
+        "mdi": "stairs",
+        "picker": false
       },
       {
         "name": "Stop",
         "codepoint": "F04DB",
-        "mdi": "stop"
+        "mdi": "stop",
+        "picker": false
       },
       {
         "name": "String Lights",
         "codepoint": "F12BA",
-        "mdi": "string-lights"
+        "mdi": "string-lights",
+        "picker": false
       },
       {
         "name": "String Lights Off",
         "codepoint": "F12BB",
-        "mdi": "string-lights-off"
+        "mdi": "string-lights-off",
+        "picker": false
       },
       {
         "name": "Stove",
         "codepoint": "F04DE",
-        "mdi": "stove"
+        "mdi": "stove",
+        "picker": false
       },
       {
         "name": "Swap Horizontal",
         "codepoint": "F04E1",
-        "mdi": "swap-horizontal"
+        "mdi": "swap-horizontal",
+        "picker": false
       },
       {
         "name": "Swap Vertical",
         "codepoint": "F04E2",
-        "mdi": "swap-vertical"
+        "mdi": "swap-vertical",
+        "picker": false
       },
       {
         "name": "Power Socket UK",
         "codepoint": "F07E8",
-        "mdi": "power-socket-uk"
+        "mdi": "power-socket-uk",
+        "picker": false
       },
       {
         "name": "Power Socket EU",
         "codepoint": "F07E7",
-        "mdi": "power-socket-eu"
+        "mdi": "power-socket-eu",
+        "picker": false
       },
       {
         "name": "Power Socket US",
         "codepoint": "F07E9",
-        "mdi": "power-socket-us"
+        "mdi": "power-socket-us",
+        "picker": false
       },
       {
         "name": "Sun",
@@ -8827,22 +8991,26 @@
       {
         "name": "Table",
         "codepoint": "F05BC",
-        "mdi": "table-furniture"
+        "mdi": "table-furniture",
+        "picker": false
       },
       {
         "name": "Table Chair",
         "codepoint": "F1061",
-        "mdi": "table-chair"
+        "mdi": "table-chair",
+        "picker": false
       },
       {
         "name": "Television",
         "codepoint": "F0502",
-        "mdi": "television"
+        "mdi": "television",
+        "picker": false
       },
       {
         "name": "Television Off",
         "codepoint": "F083B",
-        "mdi": "television-off"
+        "mdi": "television-off",
+        "picker": false
       },
       {
         "name": "Thermometer",
@@ -8852,47 +9020,56 @@
       {
         "name": "Thermometer Alert",
         "codepoint": "F0E01",
-        "mdi": "thermometer-alert"
+        "mdi": "thermometer-alert",
+        "picker": false
       },
       {
         "name": "Thermometer High",
         "codepoint": "F10C2",
-        "mdi": "thermometer-high"
+        "mdi": "thermometer-high",
+        "picker": false
       },
       {
         "name": "Thermometer Low",
         "codepoint": "F10C3",
-        "mdi": "thermometer-low"
+        "mdi": "thermometer-low",
+        "picker": false
       },
       {
         "name": "Thermometer Off",
         "codepoint": "F1531",
-        "mdi": "thermometer-off"
+        "mdi": "thermometer-off",
+        "picker": false
       },
       {
         "name": "Thermostat",
         "codepoint": "F0393",
-        "mdi": "thermostat"
+        "mdi": "thermostat",
+        "picker": false
       },
       {
         "name": "Thermostat Box",
         "codepoint": "F0891",
-        "mdi": "thermostat-box"
+        "mdi": "thermostat-box",
+        "picker": false
       },
       {
         "name": "Home-Thermostat",
         "codepoint": "F0F54",
-        "mdi": "home-thermometer"
+        "mdi": "home-thermometer",
+        "picker": false
       },
       {
         "name": "Thermostat Auto",
         "codepoint": "F1B17",
-        "mdi": "thermostat-auto"
+        "mdi": "thermostat-auto",
+        "picker": false
       },
       {
         "name": "Thermometer Water",
         "codepoint": "F1A80",
-        "mdi": "thermometer-water"
+        "mdi": "thermometer-water",
+        "picker": false
       },
       {
         "name": "Timer",
@@ -8902,32 +9079,38 @@
       {
         "name": "Toilet",
         "codepoint": "F09AB",
-        "mdi": "toilet"
+        "mdi": "toilet",
+        "picker": false
       },
       {
         "name": "Toy Brick",
         "codepoint": "F1288",
-        "mdi": "toy-brick"
+        "mdi": "toy-brick",
+        "picker": false
       },
       {
         "name": "Track Light",
         "codepoint": "F0914",
-        "mdi": "track-light"
+        "mdi": "track-light",
+        "picker": false
       },
       {
         "name": "Track Light Off",
         "codepoint": "F1B01",
-        "mdi": "track-light-off"
+        "mdi": "track-light-off",
+        "picker": false
       },
       {
         "name": "Train",
         "codepoint": "F052C",
-        "mdi": "train"
+        "mdi": "train",
+        "picker": false
       },
       {
         "name": "Transmission Tower",
         "codepoint": "F0D3E",
-        "mdi": "transmission-tower"
+        "mdi": "transmission-tower",
+        "picker": false
       },
       {
         "name": "Trash Can",
@@ -8942,22 +9125,26 @@
       {
         "name": "Vacuum",
         "codepoint": "F19A1",
-        "mdi": "vacuum"
+        "mdi": "vacuum",
+        "picker": false
       },
       {
         "name": "Vacuum Outline",
         "codepoint": "F19A2",
-        "mdi": "vacuum-outline"
+        "mdi": "vacuum-outline",
+        "picker": false
       },
       {
         "name": "Vanity Light",
         "codepoint": "F11E1",
-        "mdi": "vanity-light"
+        "mdi": "vanity-light",
+        "picker": false
       },
       {
         "name": "View Headline",
         "codepoint": "F0571",
-        "mdi": "view-headline"
+        "mdi": "view-headline",
+        "picker": false
       },
       {
         "name": "Video",
@@ -8982,212 +9169,254 @@
       {
         "name": "Wall Outlet",
         "codepoint": "F0427",
-        "mdi": "power-socket"
+        "mdi": "power-socket",
+        "picker": false
       },
       {
         "name": "Wall Sconce",
         "codepoint": "F091C",
-        "mdi": "wall-sconce"
+        "mdi": "wall-sconce",
+        "picker": false
       },
       {
         "name": "Washing Machine",
         "codepoint": "F072A",
-        "mdi": "washing-machine"
+        "mdi": "washing-machine",
+        "picker": false
       },
       {
         "name": "Washing Machine Off",
         "codepoint": "F11BD",
-        "mdi": "washing-machine-off"
+        "mdi": "washing-machine-off",
+        "picker": false
       },
       {
         "name": "Water",
         "codepoint": "F058C",
-        "mdi": "water"
+        "mdi": "water",
+        "picker": false
       },
       {
         "name": "Water Boiler",
         "codepoint": "F0F92",
-        "mdi": "water-boiler"
+        "mdi": "water-boiler",
+        "picker": false
       },
       {
         "name": "Water Boiler Off",
         "codepoint": "F11B4",
-        "mdi": "water-boiler-off"
+        "mdi": "water-boiler-off",
+        "picker": false
       },
       {
         "name": "Water Percent",
         "codepoint": "F058E",
-        "mdi": "water-percent"
+        "mdi": "water-percent",
+        "picker": false
       },
       {
         "name": "Water Pump",
         "codepoint": "F058F",
-        "mdi": "water-pump"
+        "mdi": "water-pump",
+        "picker": false
       },
       {
         "name": "Water Pump Off",
         "codepoint": "F0F93",
-        "mdi": "water-pump-off"
+        "mdi": "water-pump-off",
+        "picker": false
       },
       {
         "name": "Water Alert",
         "codepoint": "F1502",
-        "mdi": "water-alert"
+        "mdi": "water-alert",
+        "picker": false
       },
       {
         "name": "Weather Cloudy",
         "codepoint": "F0590",
-        "mdi": "weather-cloudy"
+        "mdi": "weather-cloudy",
+        "picker": false
       },
       {
         "name": "Weather Cloudy Alert",
         "codepoint": "F0F2F",
-        "mdi": "weather-cloudy-alert"
+        "mdi": "weather-cloudy-alert",
+        "picker": false
       },
       {
         "name": "Weather Cloudy Clock",
         "codepoint": "F18F6",
-        "mdi": "weather-cloudy-clock"
+        "mdi": "weather-cloudy-clock",
+        "picker": false
       },
       {
         "name": "Weather Dust",
         "codepoint": "F1B5A",
-        "mdi": "weather-dust"
+        "mdi": "weather-dust",
+        "picker": false
       },
       {
         "name": "Weather Fog",
         "codepoint": "F0591",
-        "mdi": "weather-fog"
+        "mdi": "weather-fog",
+        "picker": false
       },
       {
         "name": "Weather Hail",
         "codepoint": "F0592",
-        "mdi": "weather-hail"
+        "mdi": "weather-hail",
+        "picker": false
       },
       {
         "name": "Weather Hazy",
         "codepoint": "F0F30",
-        "mdi": "weather-hazy"
+        "mdi": "weather-hazy",
+        "picker": false
       },
       {
         "name": "Weather Hurricane",
         "codepoint": "F0898",
-        "mdi": "weather-hurricane"
+        "mdi": "weather-hurricane",
+        "picker": false
       },
       {
         "name": "Weather Lightning",
         "codepoint": "F0593",
-        "mdi": "weather-lightning"
+        "mdi": "weather-lightning",
+        "picker": false
       },
       {
         "name": "Weather Lightning Rainy",
         "codepoint": "F067E",
-        "mdi": "weather-lightning-rainy"
+        "mdi": "weather-lightning-rainy",
+        "picker": false
       },
       {
         "name": "Weather Night",
         "codepoint": "F0594",
-        "mdi": "weather-night"
+        "mdi": "weather-night",
+        "picker": false
       },
       {
         "name": "Weather Night Cloudy",
         "codepoint": "F0F31",
-        "mdi": "weather-night-partly-cloudy"
+        "mdi": "weather-night-partly-cloudy",
+        "picker": false
       },
       {
         "name": "Weather Partly Cloudy",
         "codepoint": "F0595",
-        "mdi": "weather-partly-cloudy"
+        "mdi": "weather-partly-cloudy",
+        "picker": false
       },
       {
         "name": "Weather Partly Lightning",
         "codepoint": "F0F32",
-        "mdi": "weather-partly-lightning"
+        "mdi": "weather-partly-lightning",
+        "picker": false
       },
       {
         "name": "Weather Partly Rainy",
         "codepoint": "F0F33",
-        "mdi": "weather-partly-rainy"
+        "mdi": "weather-partly-rainy",
+        "picker": false
       },
       {
         "name": "Weather Partly Snowy",
         "codepoint": "F0F34",
-        "mdi": "weather-partly-snowy"
+        "mdi": "weather-partly-snowy",
+        "picker": false
       },
       {
         "name": "Weather Partly Snowy Rainy",
         "codepoint": "F0F35",
-        "mdi": "weather-partly-snowy-rainy"
+        "mdi": "weather-partly-snowy-rainy",
+        "picker": false
       },
       {
         "name": "Weather Pouring",
         "codepoint": "F0596",
-        "mdi": "weather-pouring"
+        "mdi": "weather-pouring",
+        "picker": false
       },
       {
         "name": "Weather Rainy",
         "codepoint": "F0597",
-        "mdi": "weather-rainy"
+        "mdi": "weather-rainy",
+        "picker": false
       },
       {
         "name": "Weather Snowy",
         "codepoint": "F0598",
-        "mdi": "weather-snowy"
+        "mdi": "weather-snowy",
+        "picker": false
       },
       {
         "name": "Weather Snowy Heavy",
         "codepoint": "F0F36",
-        "mdi": "weather-snowy-heavy"
+        "mdi": "weather-snowy-heavy",
+        "picker": false
       },
       {
         "name": "Weather Snowy Rainy",
         "codepoint": "F067F",
-        "mdi": "weather-snowy-rainy"
+        "mdi": "weather-snowy-rainy",
+        "picker": false
       },
       {
         "name": "Weather Sunny",
         "codepoint": "F0599",
-        "mdi": "weather-sunny"
+        "mdi": "weather-sunny",
+        "picker": false
       },
       {
         "name": "Weather Sunny Alert",
         "codepoint": "F0F37",
-        "mdi": "weather-sunny-alert"
+        "mdi": "weather-sunny-alert",
+        "picker": false
       },
       {
         "name": "Weather Sunny Off",
         "codepoint": "F14E4",
-        "mdi": "weather-sunny-off"
+        "mdi": "weather-sunny-off",
+        "picker": false
       },
       {
         "name": "Weather Sunset",
         "codepoint": "F059A",
-        "mdi": "weather-sunset"
+        "mdi": "weather-sunset",
+        "picker": false
       },
       {
         "name": "Weather Sunset Down",
         "codepoint": "F059B",
-        "mdi": "weather-sunset-down"
+        "mdi": "weather-sunset-down",
+        "picker": false
       },
       {
         "name": "Weather Sunset Up",
         "codepoint": "F059C",
-        "mdi": "weather-sunset-up"
+        "mdi": "weather-sunset-up",
+        "picker": false
       },
       {
         "name": "Weather Tornado",
         "codepoint": "F0F38",
-        "mdi": "weather-tornado"
+        "mdi": "weather-tornado",
+        "picker": false
       },
       {
         "name": "Weather Windy",
         "codepoint": "F059D",
-        "mdi": "weather-windy"
+        "mdi": "weather-windy",
+        "picker": false
       },
       {
         "name": "Weather Windy Variant",
         "codepoint": "F059E",
-        "mdi": "weather-windy-variant"
+        "mdi": "weather-windy-variant",
+        "picker": false
       },
       {
         "name": "Web",
@@ -9202,42 +9431,50 @@
       {
         "name": "Wind Power",
         "codepoint": "F1A88",
-        "mdi": "wind-power"
+        "mdi": "wind-power",
+        "picker": false
       },
       {
         "name": "Wind Turbine",
         "codepoint": "F0DA5",
-        "mdi": "wind-turbine"
+        "mdi": "wind-turbine",
+        "picker": false
       },
       {
         "name": "Wind Turbine Alert",
         "codepoint": "F19AB",
-        "mdi": "wind-turbine-alert"
+        "mdi": "wind-turbine-alert",
+        "picker": false
       },
       {
         "name": "Wind Turbine Check",
         "codepoint": "F19AC",
-        "mdi": "wind-turbine-check"
+        "mdi": "wind-turbine-check",
+        "picker": false
       },
       {
         "name": "Window Closed",
         "codepoint": "F05AE",
-        "mdi": "window-closed"
+        "mdi": "window-closed",
+        "picker": false
       },
       {
         "name": "Window Open",
         "codepoint": "F05B1",
-        "mdi": "window-open"
+        "mdi": "window-open",
+        "picker": false
       },
       {
         "name": "Window Shutter",
         "codepoint": "F111C",
-        "mdi": "window-shutter"
+        "mdi": "window-shutter",
+        "picker": false
       },
       {
         "name": "Window Shutter Open",
         "codepoint": "F111E",
-        "mdi": "window-shutter-open"
+        "mdi": "window-shutter-open",
+        "picker": false
       },
       {
         "name": "Tab",
@@ -9373,6 +9610,638 @@
         "name": "Arrow Collapse",
         "codepoint": "F0615",
         "mdi": "arrow-collapse"
+      },
+      {
+        "name": "Apple",
+        "codepoint": "F0035",
+        "mdi": "apple"
+      },
+      {
+        "name": "Windows",
+        "codepoint": "F05B3",
+        "mdi": "microsoft-windows"
+      },
+      {
+        "name": "Linux",
+        "codepoint": "F033D",
+        "mdi": "linux"
+      },
+      {
+        "name": "Desktop",
+        "codepoint": "F07C0",
+        "mdi": "desktop-classic"
+      },
+      {
+        "name": "Applications",
+        "codepoint": "F003B",
+        "mdi": "apps"
+      },
+      {
+        "name": "Application Settings",
+        "codepoint": "F1577",
+        "mdi": "application-cog-outline"
+      },
+      {
+        "name": "Application Launch",
+        "codepoint": "F0DAE",
+        "mdi": "application-import"
+      },
+      {
+        "name": "Application Exit",
+        "codepoint": "F0DAD",
+        "mdi": "application-export"
+      },
+      {
+        "name": "Dock",
+        "codepoint": "F10AC",
+        "mdi": "dock-window"
+      },
+      {
+        "name": "Desktop Dashboard",
+        "codepoint": "F056E",
+        "mdi": "view-dashboard"
+      },
+      {
+        "name": "Task List",
+        "codepoint": "F0756",
+        "mdi": "format-list-checks"
+      },
+      {
+        "name": "Calendar",
+        "codepoint": "F00ED",
+        "mdi": "calendar"
+      },
+      {
+        "name": "Email",
+        "codepoint": "F01F0",
+        "mdi": "email-outline"
+      },
+      {
+        "name": "Chat",
+        "codepoint": "F0EDE",
+        "mdi": "chat-outline"
+      },
+      {
+        "name": "Notes",
+        "codepoint": "F11D7",
+        "mdi": "note-text-outline"
+      },
+      {
+        "name": "Calculator",
+        "codepoint": "F00EC",
+        "mdi": "calculator"
+      },
+      {
+        "name": "Contacts",
+        "codepoint": "F0007",
+        "mdi": "account-box-outline"
+      },
+      {
+        "name": "Help",
+        "codepoint": "F0625",
+        "mdi": "help-circle-outline"
+      },
+      {
+        "name": "Information",
+        "codepoint": "F02FD",
+        "mdi": "information-outline"
+      },
+      {
+        "name": "Keyboard",
+        "codepoint": "F097B",
+        "mdi": "keyboard-outline"
+      },
+      {
+        "name": "Keyboard Settings",
+        "codepoint": "F09FA",
+        "mdi": "keyboard-settings-outline"
+      },
+      {
+        "name": "Shortcut Control",
+        "codepoint": "F0634",
+        "mdi": "apple-keyboard-control",
+        "comment": "Companion shortcut labels"
+      },
+      {
+        "name": "Shortcut Option",
+        "codepoint": "F0635",
+        "mdi": "apple-keyboard-option",
+        "comment": "Companion shortcut labels"
+      },
+      {
+        "name": "Shortcut Shift",
+        "codepoint": "F0636",
+        "mdi": "apple-keyboard-shift",
+        "comment": "Companion shortcut labels"
+      },
+      {
+        "name": "Shortcut Escape",
+        "codepoint": "F12B7",
+        "mdi": "keyboard-esc"
+      },
+      {
+        "name": "Shortcut Return",
+        "codepoint": "F0311",
+        "mdi": "keyboard-return"
+      },
+      {
+        "name": "Shortcut Tab",
+        "codepoint": "F0312",
+        "mdi": "keyboard-tab"
+      },
+      {
+        "name": "Shortcut Backspace",
+        "codepoint": "F0B5C",
+        "mdi": "backspace-outline"
+      },
+      {
+        "name": "Shortcut Space",
+        "codepoint": "F1050",
+        "mdi": "keyboard-space"
+      },
+      {
+        "name": "Undo",
+        "codepoint": "F054C",
+        "mdi": "undo"
+      },
+      {
+        "name": "Redo",
+        "codepoint": "F044E",
+        "mdi": "redo"
+      },
+      {
+        "name": "Copy",
+        "codepoint": "F018F",
+        "mdi": "content-copy"
+      },
+      {
+        "name": "Cut",
+        "codepoint": "F0190",
+        "mdi": "content-cut"
+      },
+      {
+        "name": "Paste",
+        "codepoint": "F0192",
+        "mdi": "content-paste"
+      },
+      {
+        "name": "Select All",
+        "codepoint": "F0486",
+        "mdi": "select-all"
+      },
+      {
+        "name": "Find Replace",
+        "codepoint": "F06D4",
+        "mdi": "find-replace"
+      },
+      {
+        "name": "Arrow Left",
+        "codepoint": "F004D",
+        "mdi": "arrow-left"
+      },
+      {
+        "name": "Arrow Right",
+        "codepoint": "F0054",
+        "mdi": "arrow-right"
+      },
+      {
+        "name": "File",
+        "codepoint": "F0224",
+        "mdi": "file-outline"
+      },
+      {
+        "name": "New File",
+        "codepoint": "F0EED",
+        "mdi": "file-plus-outline"
+      },
+      {
+        "name": "Open File",
+        "codepoint": "F09EE",
+        "mdi": "file-document-outline"
+      },
+      {
+        "name": "Save",
+        "codepoint": "F0818",
+        "mdi": "content-save-outline"
+      },
+      {
+        "name": "Save All",
+        "codepoint": "F0F44",
+        "mdi": "content-save-all-outline"
+      },
+      {
+        "name": "Rename",
+        "codepoint": "F0455",
+        "mdi": "rename-box"
+      },
+      {
+        "name": "Upload",
+        "codepoint": "F0552",
+        "mdi": "upload"
+      },
+      {
+        "name": "Download",
+        "codepoint": "F01DA",
+        "mdi": "download",
+        "comment": "Firmware install update entity"
+      },
+      {
+        "name": "Archive",
+        "codepoint": "F120E",
+        "mdi": "archive-outline"
+      },
+      {
+        "name": "Zip File",
+        "codepoint": "F07B9",
+        "mdi": "folder-zip-outline"
+      },
+      {
+        "name": "Cloud",
+        "codepoint": "F0163",
+        "mdi": "cloud-outline"
+      },
+      {
+        "name": "Cloud Sync",
+        "codepoint": "F12D6",
+        "mdi": "cloud-sync-outline"
+      },
+      {
+        "name": "Link",
+        "codepoint": "F0339",
+        "mdi": "link-variant"
+      },
+      {
+        "name": "Link Off",
+        "codepoint": "F033A",
+        "mdi": "link-variant-off"
+      },
+      {
+        "name": "Share",
+        "codepoint": "F0497",
+        "mdi": "share-variant"
+      },
+      {
+        "name": "Bookmark",
+        "codepoint": "F00C3",
+        "mdi": "bookmark-outline"
+      },
+      {
+        "name": "History",
+        "codepoint": "F02DA",
+        "mdi": "history"
+      },
+      {
+        "name": "New Tab",
+        "codepoint": "F075C",
+        "mdi": "tab-plus"
+      },
+      {
+        "name": "Close Tab",
+        "codepoint": "F0B4C",
+        "mdi": "tab-remove"
+      },
+      {
+        "name": "Find Tab",
+        "codepoint": "F199E",
+        "mdi": "tab-search"
+      },
+      {
+        "name": "Refresh",
+        "codepoint": "F0450",
+        "mdi": "refresh"
+      },
+      {
+        "name": "Back",
+        "codepoint": "F0CDE",
+        "mdi": "arrow-left-circle-outline"
+      },
+      {
+        "name": "Forward",
+        "codepoint": "F0CE0",
+        "mdi": "arrow-right-circle-outline"
+      },
+      {
+        "name": "Open External",
+        "codepoint": "F03CC",
+        "mdi": "open-in-new"
+      },
+      {
+        "name": "Incognito",
+        "codepoint": "F05F9",
+        "mdi": "incognito"
+      },
+      {
+        "name": "Home Page",
+        "codepoint": "F06A1",
+        "mdi": "home-outline"
+      },
+      {
+        "name": "Volume Low",
+        "codepoint": "F057F",
+        "mdi": "volume-low"
+      },
+      {
+        "name": "Volume Medium",
+        "codepoint": "F0580",
+        "mdi": "volume-medium"
+      },
+      {
+        "name": "Volume Up",
+        "codepoint": "F075D",
+        "mdi": "volume-plus"
+      },
+      {
+        "name": "Volume Down",
+        "codepoint": "F075E",
+        "mdi": "volume-minus"
+      },
+      {
+        "name": "Mute",
+        "codepoint": "F075F",
+        "mdi": "volume-mute"
+      },
+      {
+        "name": "Headset",
+        "codepoint": "F02CE",
+        "mdi": "headset"
+      },
+      {
+        "name": "Audio Settings",
+        "codepoint": "F062E",
+        "mdi": "tune"
+      },
+      {
+        "name": "Equalizer",
+        "codepoint": "F0EA3",
+        "mdi": "equalizer-outline"
+      },
+      {
+        "name": "Video Off",
+        "codepoint": "F0568",
+        "mdi": "video-off"
+      },
+      {
+        "name": "Video Call",
+        "codepoint": "F0919",
+        "mdi": "video-account"
+      },
+      {
+        "name": "Screen Share",
+        "codepoint": "F1483",
+        "mdi": "monitor-share"
+      },
+      {
+        "name": "Screen Record",
+        "codepoint": "F044B",
+        "mdi": "record-rec"
+      },
+      {
+        "name": "Record",
+        "codepoint": "F0EC3",
+        "mdi": "record-circle-outline"
+      },
+      {
+        "name": "Meeting",
+        "codepoint": "F0B58",
+        "mdi": "account-group-outline"
+      },
+      {
+        "name": "Hand Raise",
+        "codepoint": "F182D",
+        "mdi": "hand-back-right-outline"
+      },
+      {
+        "name": "Do Not Disturb",
+        "codepoint": "F0A91",
+        "mdi": "bell-off-outline"
+      },
+      {
+        "name": "Notifications",
+        "codepoint": "F009C",
+        "mdi": "bell-outline"
+      },
+      {
+        "name": "Terminal",
+        "codepoint": "F018D",
+        "mdi": "console"
+      },
+      {
+        "name": "Code",
+        "codepoint": "F0169",
+        "mdi": "code-braces"
+      },
+      {
+        "name": "Code Tags",
+        "codepoint": "F0174",
+        "mdi": "code-tags"
+      },
+      {
+        "name": "Source Branch",
+        "codepoint": "F062C",
+        "mdi": "source-branch"
+      },
+      {
+        "name": "Git",
+        "codepoint": "F02A2",
+        "mdi": "git"
+      },
+      {
+        "name": "Bug",
+        "codepoint": "F0A30",
+        "mdi": "bug-outline"
+      },
+      {
+        "name": "Run",
+        "codepoint": "F040D",
+        "mdi": "play-circle-outline"
+      },
+      {
+        "name": "Build",
+        "codepoint": "F1323",
+        "mdi": "hammer-wrench"
+      },
+      {
+        "name": "Database",
+        "codepoint": "F1632",
+        "mdi": "database-outline"
+      },
+      {
+        "name": "API",
+        "codepoint": "F109B",
+        "mdi": "api"
+      },
+      {
+        "name": "Screenshot",
+        "codepoint": "F0E51",
+        "mdi": "monitor-screenshot"
+      },
+      {
+        "name": "Crop",
+        "codepoint": "F019E",
+        "mdi": "crop"
+      },
+      {
+        "name": "Draw",
+        "codepoint": "F0CB6",
+        "mdi": "pencil-outline"
+      },
+      {
+        "name": "Brush",
+        "codepoint": "F00E3",
+        "mdi": "brush"
+      },
+      {
+        "name": "Color Picker",
+        "codepoint": "F020A",
+        "mdi": "eyedropper"
+      },
+      {
+        "name": "Layers",
+        "codepoint": "F09FE",
+        "mdi": "layers-outline"
+      },
+      {
+        "name": "Image",
+        "codepoint": "F0976",
+        "mdi": "image-outline"
+      },
+      {
+        "name": "Vector",
+        "codepoint": "F0001",
+        "mdi": "vector-square"
+      },
+      {
+        "name": "Timeline",
+        "codepoint": "F0BD2",
+        "mdi": "timeline-outline"
+      },
+      {
+        "name": "Video Edit",
+        "codepoint": "F1123",
+        "mdi": "movie-edit-outline"
+      },
+      {
+        "name": "Animation",
+        "codepoint": "F0A8F",
+        "mdi": "animation-outline"
+      },
+      {
+        "name": "CPU",
+        "codepoint": "F0EE0",
+        "mdi": "cpu-64-bit"
+      },
+      {
+        "name": "Memory",
+        "codepoint": "F035B",
+        "mdi": "memory",
+        "comment": "Build information card"
+      },
+      {
+        "name": "USB",
+        "codepoint": "F0553",
+        "mdi": "usb"
+      },
+      {
+        "name": "USB Drive",
+        "codepoint": "F129F",
+        "mdi": "usb-flash-drive-outline"
+      },
+      {
+        "name": "Mouse",
+        "codepoint": "F037D",
+        "mdi": "mouse"
+      },
+      {
+        "name": "Restart",
+        "codepoint": "F0709",
+        "mdi": "restart"
+      },
+      {
+        "name": "Sleep",
+        "codepoint": "F0904",
+        "mdi": "power-sleep"
+      },
+      {
+        "name": "Logout",
+        "codepoint": "F0343",
+        "mdi": "logout"
+      },
+      {
+        "name": "Brightness Up",
+        "codepoint": "F00E0",
+        "mdi": "brightness-7"
+      },
+      {
+        "name": "Brightness Down",
+        "codepoint": "F00DE",
+        "mdi": "brightness-5"
+      },
+      {
+        "name": "Display Settings",
+        "codepoint": "F0A07",
+        "mdi": "monitor-dashboard"
+      },
+      {
+        "name": "Monitor Multiple",
+        "codepoint": "F037A",
+        "mdi": "monitor-multiple"
+      },
+      {
+        "name": "Network",
+        "codepoint": "F0C9D",
+        "mdi": "network-outline"
+      },
+      {
+        "name": "Ethernet",
+        "codepoint": "F0200",
+        "mdi": "ethernet",
+        "comment": "Setup screens"
+      },
+      {
+        "name": "VPN",
+        "codepoint": "F0BC5",
+        "mdi": "shield-key-outline"
+      },
+      {
+        "name": "Wifi Off",
+        "codepoint": "F05AA",
+        "mdi": "wifi-off",
+        "comment": "Wi-Fi disabled"
+      },
+      {
+        "name": "Bluetooth Off",
+        "codepoint": "F00B2",
+        "mdi": "bluetooth-off"
+      },
+      {
+        "name": "Sync",
+        "codepoint": "F04E6",
+        "mdi": "sync"
+      },
+      {
+        "name": "Eject",
+        "codepoint": "F0B91",
+        "mdi": "eject-outline"
+      },
+      {
+        "name": "Settings",
+        "codepoint": "F08BB",
+        "mdi": "cog-outline"
+      },
+      {
+        "name": "Window Maximise",
+        "codepoint": "F05AF",
+        "mdi": "window-maximize"
+      },
+      {
+        "name": "Full Screen Exit",
+        "codepoint": "F0294",
+        "mdi": "fullscreen-exit"
+      },
+      {
+        "name": "Picture in Picture",
+        "codepoint": "F0E58",
+        "mdi": "picture-in-picture-bottom-right-outline"
       }
     ],
     "domain_defaults": {
