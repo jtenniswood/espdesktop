@@ -1142,17 +1142,15 @@ def firmware_media_sleep_prevention_errors(
             if (
                 "id(cover_art_screensaver_enabled).state &&" not in idle_body
                 or "id(media_player_sleep_prevention_enabled).state &&" not in idle_body
-                or "id(media_player_playing)" not in idle_body
+                or "id(cover_art_media_playing)" not in idle_body
             ):
                 errors.append(
                     f"{rel}: keep media playback awake only while cover art and media sleep prevention are enabled"
                 )
-            if "id(cover_art_media_playing)" in idle_body:
-                errors.append(f"{rel}: use the dedicated media sleep prevention playback state")
             if re.search(
                 r"\(id\(media_player_sleep_prevention_enabled\)\.state\s*\|\|\s*"
                 r"id\(cover_art_screensaver_enabled\)\.state\)\s*&&\s*"
-                r"id\(media_player_playing\)",
+                r"id\(cover_art_media_playing\)",
                 idle_body,
             ):
                 errors.append(f"{rel}: require both cover art and media sleep prevention to keep the idle timer awake")
@@ -1253,22 +1251,6 @@ def firmware_touch_cover_art_delay_errors(paths: tuple[Path, ...], root: Path) -
             )
     return errors
 
-
-def firmware_media_sleep_prevention_subscription_errors(paths: tuple[Path, ...], root: Path) -> list[str]:
-    errors: list[str] = []
-    for path in paths:
-        if not path.exists():
-            continue
-        rel = path.relative_to(root)
-        text = path.read_text(encoding="utf-8")
-        if "id(media_player_sleep_prevention_entity).state" not in text:
-            errors.append(f"{rel}: subscribe media sleep prevention to its configured media player entity")
-        if re.search(
-            r"id\(cover_art_media_player_entity\)\.state,\s*\n\s*&id\(media_player_playing\)",
-            text,
-        ):
-            errors.append(f"{rel}: do not drive media sleep prevention from the cover art media player")
-    return errors
 
 
 def firmware_media_control_low_heap_metadata_errors(firmware_dir: Path, root: Path) -> list[str]:
@@ -3164,9 +3146,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
 
     presence_update_body = yaml_script_body(text, "screensaver_presence_update")
     wake_body = yaml_script_body(text, "screensaver_presence_wake")
-    if wake_body is None:
-        errors.append(f"{rel}: missing screensaver_presence_wake script")
-    else:
+    if wake_body is not None:
         if (
             presence_update_body is not None
             and "script.execute: screensaver_presence_update" in wake_body
@@ -3229,9 +3209,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
             errors.append(f"{rel}: let sensor screensaver wake when the screen schedule is disabled")
 
     presence_sleep_body = yaml_script_body(text, "screensaver_presence_sleep")
-    if presence_sleep_body is None:
-        errors.append(f"{rel}: missing screensaver_presence_sleep script")
-    else:
+    if presence_sleep_body is not None:
         if (
             presence_update_body is not None
             and "script.execute: screensaver_presence_update" in presence_sleep_body
@@ -3257,74 +3235,26 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
     return errors
 
 
-def firmware_separate_schedule_sensor_errors(
-    backlight_path: Path,
-    display_path: Path,
-    cover_art_path: Path,
-    grid_header_path: Path,
-    sensor_paths: tuple[Path, ...],
-    root: Path,
+def firmware_local_display_sensor_retirement_errors(
+    backlight_path: Path, display_path: Path, cover_art_path: Path,
+    grid_header_path: Path, sensor_paths: tuple[Path, ...], root: Path,
 ) -> list[str]:
-    """Require independent screensaver and Night Schedule sensor bindings."""
+    """Local display policies must not reconnect retired HA sensor bindings."""
     errors: list[str] = []
-    schedule_path = backlight_path.with_name("backlight_schedule.yaml")
-    required_schedule_markers = (
-        "id: screen_schedule_sensor_entity_migrated",
-        "id: screen_schedule_sensor_entity",
-        "id(screen_schedule_sensor_entity_migrated)",
-        "call.set_value(id(presence_sensor_entity).state)",
-        "id(schedule_presence_detected)",
-    )
-    if not schedule_path.exists():
-        errors.append(f"{schedule_path.relative_to(root)}: define the dedicated Night Schedule sensor")
-    else:
-        schedule_text = schedule_path.read_text(encoding="utf-8")
-        for marker in required_schedule_markers:
-            if marker not in schedule_text:
-                errors.append(
-                    f"{schedule_path.relative_to(root)}: retain {marker} for the dedicated Night Schedule sensor"
-                )
-
-    if display_path.exists():
-        display_text = display_path.read_text(encoding="utf-8")
-        if "id: presence_sensor_entity" not in display_text:
-            errors.append(f"{display_path.relative_to(root)}: retain the Screensaver presence sensor")
-        if "script.execute: refresh_button_grid" not in display_text:
-            errors.append(f"{display_path.relative_to(root)}: refresh subscriptions when the Screensaver sensor changes")
-
-    if backlight_path.exists():
-        backlight_text = backlight_path.read_text(encoding="utf-8")
-        if "id: schedule_presence_detected" not in backlight_text:
-            errors.append(f"{backlight_path.relative_to(root)}: keep separate schedule sensor state")
-        if "id(presence_detected)" not in backlight_text:
-            errors.append(f"{backlight_path.relative_to(root)}: keep Screensaver presence state")
-
-    if cover_art_path.exists() and "id(schedule_presence_detected)" not in cover_art_path.read_text(encoding="utf-8"):
-        errors.append(f"{cover_art_path.relative_to(root)}: use the Night Schedule sensor when blocking cover art")
-
-    if not grid_header_path.exists():
-        errors.append(f"{grid_header_path.relative_to(root)}: bind both sensor subscriptions in grid_phase3")
-    else:
-        grid_text = grid_header_path.read_text(encoding="utf-8")
-        for marker in (
-            "schedule_presence_entity",
-            "schedule_presence_detected_ptr",
-            "schedule_presence_changed_callback",
-            "ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3)",
-        ):
-            if marker not in grid_text:
-                errors.append(f"{grid_header_path.relative_to(root)}: retain {marker} for independent, refreshable sensor subscriptions")
-
-    for sensor_path in sensor_paths:
-        sensor_text = sensor_path.read_text(encoding="utf-8")
-        if (
-            "id(screen_schedule_sensor_entity).state" not in sensor_text
-            or "&id(schedule_presence_detected)" not in sensor_text
-            or "id(screen_schedule_check).execute();" not in sensor_text
-        ):
-            errors.append(
-                f"{sensor_path.relative_to(root)}: pass and immediately apply the dedicated Night Schedule sensor"
-            )
+    for path in (backlight_path, display_path, cover_art_path, grid_header_path,
+                 backlight_path.with_name("backlight_schedule.yaml"), *sensor_paths):
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for marker in ("id(presence_detected)", "id(schedule_presence_detected)",
+                       "id(media_player_playing)", "id: presence_sensor_entity",
+                       "id: screen_schedule_sensor_entity", "grid_phase3(",
+                       "screensaver_presence_wake", "screensaver_presence_sleep"):
+            if marker in text:
+                errors.append(f"{path.relative_to(root)}: remove retired display sensor binding {marker}")
+    for path in sensor_paths:
+        if "grid_refresh_local_header(" not in path.read_text(encoding="utf-8"):
+            errors.append(f"{path.relative_to(root)}: preserve the shared local header registration")
     return errors
 
 
@@ -3720,7 +3650,6 @@ def run_scan() -> int:
     errors.extend(firmware_cover_art_lifecycle_controller_errors(BACKLIGHT_PATH, COVER_ART_PATH, ROOT))
     errors.extend(firmware_media_sleep_prevention_errors(BACKLIGHT_PATH, DISPLAY_CONFIG_PATH, COVER_ART_PATH, ROOT))
     errors.extend(firmware_touch_cover_art_delay_errors(DEVICE_TOUCH_PATHS, ROOT))
-    errors.extend(firmware_media_sleep_prevention_subscription_errors(DEVICE_SENSOR_PATHS, ROOT))
     errors.extend(firmware_media_control_low_heap_metadata_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_group_lifecycle_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_power_binding_errors(FIRMWARE_DIR, ROOT))
@@ -3758,7 +3687,7 @@ def run_scan() -> int:
     errors.extend(firmware_screen_schedule_screensaver_overlay_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_screen_schedule_screensaver_override_errors(BACKLIGHT_PATH, ROOT))
     errors.extend(
-        firmware_separate_schedule_sensor_errors(
+        firmware_local_display_sensor_retirement_errors(
             BACKLIGHT_PATH,
             DISPLAY_CONFIG_PATH,
             COVER_ART_PATH,
@@ -5947,7 +5876,7 @@ def run_self_test() -> int:
         "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     ((id(media_player_sleep_prevention_enabled).state ||\n"
         "                       id(cover_art_screensaver_enabled).state) &&\n"
-        "                      id(media_player_playing));\n",
+        "                      id(cover_art_media_playing));\n",
         "switch:\n"
         "  - platform: template\n"
         "    id: cover_art_screensaver_enabled\n"
@@ -5973,7 +5902,7 @@ def run_self_test() -> int:
         "            lambda: |-\n"
         "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n",
+        "                      id(cover_art_media_playing));\n",
         "",
         "",
         ("keep media playback awake only while cover art and media sleep prevention are enabled",),
@@ -5989,7 +5918,7 @@ def run_self_test() -> int:
         "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n"
+        "                      id(cover_art_media_playing));\n"
         "  - id: screensaver_wake\n"
         "    then:\n"
         "      - if:\n"
@@ -6033,7 +5962,7 @@ def run_self_test() -> int:
         "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n"
+        "                      id(cover_art_media_playing));\n"
         "  - id: screensaver_sleep_timer\n"
         "    then:\n"
         "      - if:\n"
@@ -6083,7 +6012,7 @@ def run_self_test() -> int:
         "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
         "                     (id(cover_art_screensaver_enabled).state &&\n"
         "                      id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n"
+        "                      id(cover_art_media_playing));\n"
         "  - id: screensaver_sleep_timer\n"
         "    then:\n"
         "      - if:\n"

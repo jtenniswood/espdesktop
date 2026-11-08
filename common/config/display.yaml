@@ -784,25 +784,6 @@ text:
       sorting_group_id: sg_display
     on_value:
       then:
-        - lambda: |-
-            lv_obj_t *temperature_labels[] = {
-              id(temperatures),
-            };
-            configure_clock_bar_temperature_entities(
-              id(clock_bar_temperature_entities).state,
-              temperature_labels,
-              1,
-              id(main_page)->obj,
-              []() {
-                return clock_bar_should_show(
-                    id(clock_bar_enabled).state,
-                    id(main_page)->obj,
-                    id(espdesktop_app).display().current_mode(),
-              id(espdesktop_app).display().target_schedule_inactive());
-              },
-              []() {
-                return id(outdoor_temp_enable).state;
-              });
         - script.execute: clock_bar_apply
         - script.execute: refresh_display_sensor_subscriptions
 
@@ -873,50 +854,6 @@ text:
                   then:
                     - script.execute: screensaver_idle_check
 
-  # Optional presence sensor for screensaver (e.g. mmWave)
-  - platform: template
-    name: "${entity_presence_sensor_entity}"
-    internal: true
-    id: presence_sensor_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:motion-sensor"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - script.execute: refresh_display_sensor_subscriptions
-        - script.execute: refresh_button_grid
-
-  - platform: template
-    name: "${entity_media_player_sleep_prevention_entity}"
-    internal: true
-    id: media_player_sleep_prevention_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:speaker-play"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - script.execute: refresh_display_sensor_subscriptions
-        - if:
-            condition:
-              lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
-            then:
-              - script.execute: screensaver_idle_check
 
 number:
   - platform: template

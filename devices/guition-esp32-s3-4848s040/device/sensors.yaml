@@ -280,45 +280,14 @@ script:
     mode: single
     then:
       - lambda: |-
-          lv_obj_t *temperature_labels[] = {
-            id(temperatures),
-          };
-          grid_phase3(
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp_entity).state,
-            id(outdoor_temp_entity).state,
-            id(clock_bar_temperature_entities).state,
-            &id(indoor_temp), &id(outdoor_temp),
-            temperature_labels,
-            1,
-            id(main_page)->obj,
-            id(presence_sensor_entity).state,
-            &id(presence_detected),
-            id(screen_schedule_sensor_entity).state,
-            &id(schedule_presence_detected),
-            id(media_player_sleep_prevention_entity).state,
-            &id(media_player_playing),
-            []() {
-              return clock_bar_should_show(
+          lv_obj_t *header_labels[] = {id(temperatures)};
+          grid_refresh_local_header(
+              header_labels, 1, id(main_page)->obj,
+              clock_bar_should_show(
                   id(clock_bar_enabled).state,
                   id(main_page)->obj,
                   id(espdesktop_app).display().current_mode(),
-                  id(espdesktop_app).display().target_schedule_inactive());
-            },
-            []() {
-              id(screensaver_presence_wake).execute();
-            },
-            []() {
-              id(screensaver_presence_sleep).execute();
-            },
-            []() {
-              id(screen_schedule_check).execute();
-            },
-            []() {
-              return id(outdoor_temp_enable).state;
-            });
-          ha_reannounce_state_subscriptions();
+                  id(espdesktop_app).display().target_schedule_inactive()));
 
 
 esphome:

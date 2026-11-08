@@ -26,10 +26,31 @@ names = ("screen_schedule_in_window", "screen_schedule_sensor_trigger", "screen_
          "screen_schedule_time_trigger", "screen_schedule_waiting_for_time", "screen_schedule_night_active",
          "screen_schedule_normal_active", "screen_schedule_blocks_cover_art")
 production = "\n".join(definition(helpers, name)[1] for name in names)
+header_source = (ROOT / "components/espdesktop/button_grid_grid.h").read_text()
+local_header = definition(header_source, "grid_refresh_local_header")[1]
+assert "grid_phase3(" not in header_source
+for profile in (ROOT / "devices").glob("*/device/sensors.yaml"):
+    wiring = profile.read_text()
+    assert "grid_refresh_local_header(" in wiring
+    assert "ha_reannounce_state_subscriptions" not in wiring
+    assert "presence_sensor_entity" not in wiring
+    assert "media_player_sleep_prevention_entity" not in wiring
 code = r'''
 #include <cassert>
 #include <string>
+#include <cmath>
+#include <cstddef>
 ''' + production + r'''
+struct lv_obj_t {};
+lv_obj_t *registered_label = nullptr, *refreshed_page = nullptr;
+size_t registered_count = 0, value_count = 9;
+bool refreshed_visible = false;
+void set_clock_bar_temperature_labels(lv_obj_t **labels, size_t count) { registered_label = labels[0]; registered_count = count; }
+void set_clock_bar_temperature_value_count(size_t count) { value_count = count; }
+void refresh_clock_bar_temperature_label_values(lv_obj_t *page, bool visible, bool indoor, bool outdoor, float a, float b) {
+ assert(!indoor && !outdoor && std::isnan(a) && std::isnan(b)); refreshed_page = page; refreshed_visible = visible;
+}
+''' + local_header + r'''
 struct Text {
  std::string state; int writes = 0;
  struct Call { Text *text; std::string value;
@@ -47,6 +68,12 @@ void migrate() {
 ''' + migration["then"][0]["lambda"] + r'''
 }
 int main() {
+ lv_obj_t label, page; lv_obj_t *labels[] = {&label};
+ for (bool visible : {false, true}) {
+  grid_refresh_local_header(labels, 1, &page, visible);
+  assert(registered_label == &label && registered_count == 1 && value_count == 0);
+  assert(refreshed_page == &page && refreshed_visible == visible);
+ }
  for (const auto &idle : {"disabled", "timer", "companion", "sensor"}) {
   for (const auto &trigger : {"disabled", "time", "timer", "sensor", "Sensor"}) {
    for (bool enabled : {false, true}) {

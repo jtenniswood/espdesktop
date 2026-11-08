@@ -117,9 +117,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { syncInput, updateTempPreview } = controllers.statusPreview;
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
     const {
-        postPresenceSensorEntity,
         postMediaPlayerSleepPrevention,
-        postMediaPlayerSleepPreventionEntity,
         postCoverArtScreensaver,
         postCoverArtSource,
         postCoverArtDelay,
@@ -132,8 +130,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postBrightnessDuskTime,
         postScreenScheduleEnabled,
         postScreenScheduleTrigger,
-        postScreenScheduleSensorActivation,
-        postScreenScheduleSensorEntity,
         postScreenScheduleOnHour,
         postScreenScheduleOffHour,
         postScreenScheduleMode,
@@ -283,9 +279,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_2: state.ntpServer2,
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
-                presence_sensor_entity: state.presenceEntity,
                 media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
-                media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
                 clock_date: state.clockDateOn,
@@ -322,8 +316,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
                 schedule_trigger: normalizeScheduleTrigger(state.scheduleTrigger, state.scheduleEnabled),
                 schedule_enabled: !!state.scheduleEnabled,
-                schedule_sensor_activation: normalizeScheduleSensorActivation(state.scheduleSensorActivation),
-                schedule_sensor_entity: state.scheduleSensorEntity,
                 schedule_on_hour: normalizeHour(state.scheduleOnHour, 6),
                 schedule_off_hour: normalizeHour(state.scheduleOffHour, 23),
                 schedule_mode: normalizeScheduleMode(state.scheduleMode),
@@ -568,9 +560,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     }
                     var importedScreensaverMode: any = importedSettings.screensaverMode;
                     postScreensaverMode(importedScreensaverMode);
-                    postPresenceSensorEntity(importedSettings.presenceSensorEntity);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
-                    postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
                     if (controllers.layout.config.features?.companion)
                         postCoverArtSource(importedSettings.coverArtSource);
@@ -782,8 +772,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postBrightnessDawnTime(state.brightnessDawnTime);
                     postBrightnessDuskTime(state.brightnessDuskTime);
                     postScreenScheduleTrigger(state.scheduleTrigger);
-                    postScreenScheduleSensorActivation(state.scheduleSensorActivation);
-                    postScreenScheduleSensorEntity(state.scheduleSensorEntity);
                     postScreenScheduleOnHour(state.scheduleOnHour);
                     postScreenScheduleOffHour(state.scheduleOffHour);
                     postScreenScheduleMode(state.scheduleMode);

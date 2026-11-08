@@ -64,18 +64,18 @@ describe("browserless application contracts", () => {
     assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
 
-  test("gates Home Assistant and Companion screensaver modes by live connector state", () => {
+  test("offers local screensaver modes and follows Companion availability", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const screensaver = fs.readFileSync(path.join(ROOT, "src/webserver/application/screensaver_state.ts"), "utf8");
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
-    assert.match(settings, /\["sensor", "Home Assistant"\]/);
+    assert.doesNotMatch(settings, /\["sensor", "Home Assistant"\]/);
     assert.match(settings, /\["companion", "App Connection"\]/);
-    assert.match(settings, /sensorBtn\.hidden = !haConnected/);
+    assert.doesNotMatch(settings, /sensorBtn|Presence sensor entity/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
-    assert.match(screensaver, /state\.screensaverMode === "companion"/);
-    assert.match(eventHandlers, /val === "companion"/);
+    assert.match(screensaver, /normalizeScreensaverMode\(state\.screensaverMode\)/);
+    assert.match(eventHandlers, /normalizeScreensaverMode\(val\)/);
     assert.match(connectors, /homeAssistantConnected: \(\) => false/);
     assert.match(connectors, /companionConfigured\(\)/);
   });

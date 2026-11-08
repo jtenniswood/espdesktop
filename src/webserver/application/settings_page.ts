@@ -447,7 +447,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var ssModeSegment: any = segmentControl([
             ["disabled", "Disabled"],
             ["timer", "Timer"],
-            ["sensor", "Home Assistant"],
             ["companion", "App Connection"],
         ], ssMode, function (this: any, mode?: any) {
             setSsMode(mode);
@@ -456,7 +455,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         }, "sp-segment sp-screensaver-mode");
         var disabledBtn: any = ssModeSegment.buttons.disabled;
         var timerBtn: any = ssModeSegment.buttons.timer;
-        var sensorBtn: any = ssModeSegment.buttons.sensor;
         var companionBtn: any = ssModeSegment.buttons.companion;
         ssBody.appendChild(ssModeSegment.segment);
         var timerPanel: any = document.createElement("div");
@@ -493,39 +491,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         ssBody.appendChild(timerPanel);
         els.setSSTimeout = timeoutSelect;
         syncScreensaverTimeoutUi();
-        var sensorPanel: any = document.createElement("div");
-        var presenceField: any = document.createElement("div");
-        presenceField.className = "sp-field";
-        presenceField.appendChild(fieldLabel("Presence Entity", "sp-set-presence"));
-        var presInp: any = entityInput("sp-set-presence", state.presenceEntity, "Presence sensor entity", ["binary_sensor", "sensor"]);
-        presenceField.appendChild(presInp);
-        sensorPanel.appendChild(presenceField);
-        bindTextPost(presInp, entityName("presence_sensor_entity"), {
-            post: postPresenceSensorEntity,
-        });
-        var sensorClockControls: any = createScreensaverThenControls("sp-set-sensor-clock-mode");
-        sensorPanel.appendChild(sensorClockControls.clockField);
-        sensorPanel.appendChild(sensorClockControls.dimBrightnessField);
-        sensorPanel.appendChild(sensorClockControls.brightnessField);
-        ssBody.appendChild(sensorPanel);
-        els.setPresence = presInp;
-        els.setSensorClockSelect = sensorClockControls.clockSelect;
-        els.setSensorClockField = sensorClockControls.clockField;
-        els.setSensorDimBrightnessField = sensorClockControls.dimBrightnessField;
-        els.setSensorManualDimBrightnessField = sensorClockControls.manualDimBrightnessField;
-        els.setSensorAutomaticDimBrightnessField = sensorClockControls.automaticDimBrightnessField;
-        els.setSensorDimBrightness = sensorClockControls.dimBrightness;
-        els.setSensorDimBrightnessVal = sensorClockControls.dimBrightnessVal;
-        els.setSensorDimBrightnessDay = sensorClockControls.dimBrightnessDay;
-        els.setSensorDimBrightnessDayVal = sensorClockControls.dimBrightnessDayVal;
-        els.setSensorDimBrightnessNight = sensorClockControls.dimBrightnessNight;
-        els.setSensorDimBrightnessNightVal = sensorClockControls.dimBrightnessNightVal;
-        els.setSensorClockBrightnessDay = sensorClockControls.clockBrightnessDay;
-        els.setSensorClockBrightnessDayVal = sensorClockControls.clockBrightnessDayVal;
-        els.setSensorClockBrightnessNight = sensorClockControls.clockBrightnessNight;
-        els.setSensorClockBrightnessNightVal = sensorClockControls.clockBrightnessNightVal;
-        els.setSensorClockBrightnessField = sensorClockControls.brightnessField;
-        els.setSensorClockDateToggle = sensorClockControls.dateToggle;
         var companionPanel: any = document.createElement("div");
         var companionClockControls: any = createScreensaverThenControls("sp-set-companion-clock-mode", "When disconnected");
         companionPanel.appendChild(companionClockControls.clockField);
@@ -555,19 +520,14 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var ssBadge: any = statusBadge("Screensaver on");
         els.setScreensaverBadge = ssBadge;
         function setSsMode(this: any, mode?: any) {
-            // Device events can reapply a saved HA mode while its connector is
-            // offline. Hide its controls without overwriting the saved mode.
-            if ((mode === "sensor" && !homeAssistantConnected()) ||
-                (mode === "companion" && !companionConfigured())) {
+            if (mode === "companion" && !companionConfigured()) {
                 mode = "disabled";
             }
             ssMode = mode;
             disabledBtn.classList.toggle("active", mode === "disabled");
             timerBtn.classList.toggle("active", mode === "timer");
-            sensorBtn.classList.toggle("active", mode === "sensor");
             companionBtn.classList.toggle("active", mode === "companion");
             timerPanel.style.display = mode === "timer" ? "" : "none";
-            sensorPanel.style.display = mode === "sensor" ? "" : "none";
             companionPanel.style.display = mode === "companion" ? "" : "none";
             if (els.setScreensaverBadge) {
                 els.setScreensaverBadge.className = "sp-card-badge" + (mode === "disabled" ? " sp-hidden" : "");
@@ -583,18 +543,14 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         els.syncScreensaverPinUi = pinSettings.refresh;
         var screensaverCard: any = makeCollapsibleCard("Screensaver", ssBody, true, ssBadge);
         function syncScreensaverModeOptions(this: any) {
-            var haConnected = homeAssistantConnected();
-            schedule.setHomeAssistantConnected(haConnected);
+            schedule.setHomeAssistantConnected(false);
             var companionAvailable = companionConfigured();
             coverArtCard.hidden = !companionAvailable;
             coverArtCard.classList.toggle("sp-hidden", !companionAvailable);
-            sensorBtn.hidden = !haConnected;
-            sensorBtn.classList.toggle("sp-hidden", !haConnected);
             companionBtn.hidden = !companionAvailable;
             companionBtn.classList.toggle("sp-hidden", !companionAvailable);
             var activeMode = getActiveScreensaverMode();
-            if ((activeMode === "sensor" && !haConnected) ||
-                (activeMode === "companion" && !companionAvailable)) {
+            if (activeMode === "companion" && !companionAvailable) {
                 activeMode = "disabled";
             }
             setSsMode(activeMode);

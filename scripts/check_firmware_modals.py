@@ -232,8 +232,6 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
             )
         if "display_takeover_suspended" in text:
             errors.append("common/addon/backlight.yaml: remove the compatibility takeover boolean")
-        if "screensaver_sensor_sleep_pending" not in text:
-            errors.append("common/addon/backlight.yaml: preserve pending sensor-mode sleep while image modals are active")
         begin_body = yaml_script_body(text, "display_takeover_begin")
         end_body = yaml_script_body(text, "display_takeover_end")
         if (
