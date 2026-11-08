@@ -536,7 +536,11 @@ lvgl:
   on_draw_start:
     - lambda: id(my_display).begin_frame();
   on_draw_end:
-    - lambda: id(my_display).end_frame();
+    - lambda: |-
+        id(my_display).end_frame();
+        #ifdef USE_COMPANION
+        if (!id(my_display).is_failed()) companion_focus_frame_presented();
+        #endif
   displays: my_display
   rotation: 180
   touchscreens:

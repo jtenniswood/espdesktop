@@ -284,7 +284,7 @@ struct BasicActionSubpageEnvironment {
 inline void basic_action_driver_attach_subpage_toggle(
     BtnSlot &slot, const ParsedCfg &config) {
   ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-  lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+  bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
     ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
     lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(event));
     if (!card || card->entity.empty()) return;
@@ -295,8 +295,13 @@ inline void basic_action_driver_attach_subpage_toggle(
     } else {
       send_toggle_action(card->entity);
     }
-  }, LV_EVENT_CLICKED, click);
+  }, click);
 }
+
+struct CompanionSubpageActionContext {
+  ParsedCfg card;
+  std::string required_focus_id;
+};
 
 inline bool basic_action_driver_bind_subpage(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
@@ -306,34 +311,41 @@ inline bool basic_action_driver_bind_subpage(
   switch (context.runtime.driver) {
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity)) break;
-      ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
-        ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
-        if (!card) return;
+      std::string required_focus_id;
+      if (environment.parent_config && companion_app_shortcuts_enabled(*environment.parent_config) &&
+          (config.entity.rfind("shortcut.", 0) == 0 || config.entity.rfind("window.", 0) == 0))
+        required_focus_id = environment.parent_config->entity;
+      auto *click = grid_delete_with_owner(slot.btn,
+        new CompanionSubpageActionContext{config, required_focus_id});
+      companion_require_card_focus(slot.btn, required_focus_id);
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
+        auto *context = static_cast<CompanionSubpageActionContext *>(lv_event_get_user_data(event));
+        if (!context) return;
+        const auto *card = &context->card;
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
         const bool invoked = companion_encoded_url(card->sensor).empty()
-          ? invoke_companion_action(card->entity, request_id,
+          ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
                                     companion_folder_open_behavior(*card))
           : invoke_companion_url(card->entity, card->sensor, request_id);
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
-      }, LV_EVENT_CLICKED, click);
+      }, click);
       break;
     }
     case Driver::SCREENSAVER:
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *) {
         if (force_screensaver_action()) force_screensaver_action()();
-      }, LV_EVENT_CLICKED, nullptr);
+      }, nullptr);
       break;
     case Driver::SCREEN_LOCK: {
       auto *screensaver_on_lock = grid_delete_with_owner(slot.btn,
           new bool(cfg_option_enabled(config.options, "screensaver_on_lock")));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         screen_lock_activate(*static_cast<const bool *>(lv_event_get_user_data(event)));
-      }, LV_EVENT_CLICKED, screensaver_on_lock);
+      }, screensaver_on_lock);
       break;
     }
     case Driver::PUSH: {
@@ -341,7 +353,7 @@ inline bool basic_action_driver_bind_subpage(
         ? espdesktop_i18n(std::string("Push")) : config.label;
       std::string *stored_label = grid_delete_with_owner(
         slot.btn, new std::string(label));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         std::string *value = static_cast<std::string *>(
           lv_event_get_user_data(event));
         esphome::api::HomeassistantActionRequest request;
@@ -349,22 +361,22 @@ inline bool basic_action_driver_bind_subpage(
               request, "esphome.push_button_pressed", true, 1)) return;
         ha_action_add_data(request, "label", value->c_str());
         ha_action_send(request);
-      }, LV_EVENT_CLICKED, stored_label);
+      }, stored_label);
       break;
     }
     case Driver::WEBHOOK: {
       ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-      lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
         ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
         if (card) send_webhook_action(*card);
-      }, LV_EVENT_CLICKED, click);
+      }, click);
       break;
     }
     case Driver::ACTION: {
       if (!config.entity.empty() &&
           (config.type == "local" || !config.sensor.empty())) {
         ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-        lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
           ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
           if (!card) return;
           if (card->type == "local") {
@@ -372,7 +384,7 @@ inline bool basic_action_driver_bind_subpage(
           } else {
             send_action_card_action(*card);
           }
-        }, LV_EVENT_CLICKED, click);
+        }, click);
       }
       break;
     }
@@ -392,11 +404,11 @@ inline bool basic_action_driver_bind_subpage(
           *environment.grid_config, environment.palette,
           environment.display, environment.grid_cols);
         if (action) {
-          lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+          bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
             AlarmActionCtx *value = static_cast<AlarmActionCtx *>(
               lv_event_get_user_data(event));
             alarm_action_activate(value);
-          }, LV_EVENT_CLICKED, action);
+          }, action);
         }
       }
       break;
@@ -408,11 +420,11 @@ inline bool basic_action_driver_bind_subpage(
         if (environment.add_parent_indicator) {
           environment.add_parent_indicator(config.entity);
         }
-        lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
           FanCardCtx *value = static_cast<FanCardCtx *>(
             lv_event_get_user_data(event));
           if (value) fan_card_handle_click(value);
-        }, LV_EVENT_CLICKED, fan);
+        }, fan);
       }
       break;
     }
@@ -451,13 +463,13 @@ inline bool basic_action_driver_bind_subpage(
           slot.btn, new InternalRelayClickCtx());
         click->key = config.entity;
         click->push_mode = push_mode;
-        lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
+        bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
           InternalRelayClickCtx *value = static_cast<InternalRelayClickCtx *>(
             lv_event_get_user_data(event));
           if (value && !value->key.empty()) {
             send_internal_relay_action(value->key, value->push_mode);
           }
-        }, LV_EVENT_CLICKED, click);
+        }, click);
       }
       break;
     }
@@ -520,12 +532,19 @@ inline bool basic_action_driver_handle_main_click(
       lv_obj_t *screen = nullptr;
       if (companion_app_shortcuts_enabled(config) && button) {
         screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
-        if (screen) {
-          companion_expect_action_result(request_id, config.entity, [screen]() {
-            if (lv_obj_is_valid(screen)) {
-              lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-            }
-          }, esphome::millis() + 10000);
+        if (screen && !companion_auto_open_app_subpages()) {
+          // In manual mode, the first press focuses the app. Only an already
+          // active (on) card opens its subpage, without invoking the app again.
+          if (companion_action_active(config.entity) && lv_obj_is_valid(screen)) {
+            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            break;
+          }
+        }
+        if (screen && companion_auto_open_app_subpages()) {
+          // Navigation is local; do not wait for Mac focus/acknowledgement.
+          if (lv_obj_is_valid(screen)) {
+            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+          }
         }
       }
       const bool invoked = companion_encoded_url(config.sensor).empty()

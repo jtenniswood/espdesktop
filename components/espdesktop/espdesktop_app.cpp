@@ -567,12 +567,37 @@ void EspDesktopApp::sync_finder_folders() {
 }
 
 void EspDesktopApp::loop() {
+  uint32_t phase_started = esphome::millis();
+  const auto trace_phase = [&phase_started](const char *phase) {
+    const uint32_t now = esphome::millis();
+    if (now - phase_started > 40)
+      ESP_LOGD("ui_latency", "%s took %u ms at=%u", phase,
+               unsigned(now - phase_started), unsigned(now));
+    phase_started = now;
+  };
   home_assistant_endpoint_.loop();
+  trace_phase("HA endpoint");
   core_.run_once();
+  trace_phase("app core");
+  // Transport callbacks only request a refresh; apply it on the UI loop.
+  // The atomic flag keeps this cheap when no Companion state has changed.
+#ifdef USE_COMPANION
+  const bool focus_pending = companion_runtime_service().focus_refresh_pending();
+#endif
+  companion_refresh_cards_if_requested();
+  trace_phase("card refresh");
+#ifdef USE_COMPANION
+  // Let the next LVGL pass paint a focus change before starting background
+  // icon work, which otherwise adds its processing time to input latency.
+  if (!focus_pending) companion_process_pending_app_icon_refresh();
+  trace_phase("icon refresh");
+#endif
   sync_finder_folders();
+  trace_phase("Finder sync");
   // The app core starts before WiFi so Home Assistant boot automations are
   // safe. The IDF web server starts later, so retry idempotent registrations.
   register_panel_config_endpoints();
+  trace_phase("HTTP registration");
 }
 
 void EspDesktopApp::on_safe_shutdown() {

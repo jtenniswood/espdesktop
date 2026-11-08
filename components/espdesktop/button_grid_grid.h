@@ -1,8 +1,8 @@
 #pragma once
 
-#include "card_icon_layout.h"
 
 #include "card_curve.h"
+#include "card_icon_layout.h"
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
@@ -223,9 +223,10 @@ inline bool apply_subpage_back_colors(lv_obj_t *button, const std::string &order
   CardPalette defaults;
   defaults.has_on = defaults.has_off = true;
   defaults.off_val = display_correct_color(current_theme().surface_card, display);
-  defaults.on_val = defaults.off_val;
+  defaults.on_val = current_button_primary_color();
   const CardPalette palette = card_palette_for_config(defaults, config, display);
   apply_button_colors(button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
+  apply_instant_button_feedback(button);
   sync_card_checked_text_color(button);
   return !palette.custom_background;
 }
@@ -1054,9 +1055,6 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
     lv_obj_set_width(s.text_lbl, lv_pct(100));
   }
   display_apply_main_width(s.icon_lbl, display);
-  espdesktop::card_icons::attach(s.btn, s.icon_lbl, s.text_lbl,
-      cfg_option_value(p.options, "icon_size"), display_main_width_percent(display),
-      width_compensation_vertical_axis());
   control_modal_register_card_label(s);
   display_apply_slot_text_width(s, display);
 #ifdef USE_COMPANION
@@ -1543,21 +1541,26 @@ inline void grid_delete_runtime_ptr(void *ptr) {
 }
 
 #ifdef USE_COMPANION
-inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
-  if (!owner) return nullptr;
-  void *image_data = nullptr;
-  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
-    if (allocation.owner == owner &&
-        allocation.deleter == grid_delete_runtime_ptr<CompanionAppIconImageData>) {
-      image_data = allocation.ptr;
-      break;
-    }
-  }
-  if (!image_data) return nullptr;
+// Callers walking runtime allocations already know the icon data. Look only
+// through that card's children instead of searching the full registry again.
+inline lv_obj_t *grid_find_companion_app_icon_image_for_data(
+    lv_obj_t *owner, const void *image_data) {
+  if (!owner || !image_data) return nullptr;
   const int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(owner));
   for (int32_t i = 0; i < count; i++) {
     lv_obj_t *child = lv_obj_get_child(owner, i);
     if (child && lv_obj_get_user_data(child) == image_data) return child;
+  }
+  return nullptr;
+}
+
+inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {
+  if (!owner) return nullptr;
+  for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
+    if (allocation.owner == owner &&
+        allocation.deleter == grid_delete_runtime_ptr<CompanionAppIconImageData>) {
+      return grid_find_companion_app_icon_image_for_data(owner, allocation.ptr);
+    }
   }
   return nullptr;
 }
@@ -1575,7 +1578,7 @@ inline void companion_refresh_app_icon_visibility() {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
     if (!image || lv_obj_get_screen(image) == lv_scr_act() || (!source->pixels && !source->display_pixels)) continue;
     // The finished image is sufficient for redraws and cached layout metrics.
     // Keep the original only when resizing failed and LVGL is displaying it.
@@ -1593,7 +1596,7 @@ inline void companion_refresh_app_icon_visibility() {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode || source->image_loaded) continue;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
+    lv_obj_t *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
     if (image && lv_obj_get_screen(image) == lv_scr_act())
       companion_apply_cached_app_icon(*source, image);
   }
@@ -1603,6 +1606,19 @@ inline void companion_app_icon_screen_changed(lv_event_t *) {
   companion_refresh_app_icon_visibility();
 }
 
+inline bool &companion_app_icon_work_pending() {
+  static bool pending = false;
+  return pending;
+}
+
+inline bool companion_app_icon_pixels_current(const CompanionAppIconImageData &source) {
+  std::array<uint8_t, 32> hash{};
+  return source.image_loaded && source.loaded_hash_valid &&
+    source.rendered_online == source.companion_online &&
+    esphome::companion::app_icon_store().hash_for(source.application_id, &hash) &&
+    hash == source.loaded_hash;
+}
+
 inline void companion_refresh_cached_app_icon(const std::string &application_id) {
   esphome::companion::app_icon_store().begin();
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
@@ -1610,10 +1626,13 @@ inline void companion_refresh_cached_app_icon(const std::string &application_id)
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode ||
         (!application_id.empty() && source->application_id != application_id)) continue;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
-    if (image) companion_apply_cached_app_icon(*source, image);
+    if (companion_app_icon_pixels_current(*source)) {
+      source->refresh_pending = false;
+      continue;
+    }
+    source->refresh_pending = true;
+    companion_app_icon_work_pending() = true;
   }
-  navigation_refresh_subpage_label();
 }
 
 inline void companion_refresh_app_icon_connection_state(bool online) {
@@ -1621,17 +1640,45 @@ inline void companion_refresh_app_icon_connection_state(bool online) {
     if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
     auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
     if (!source || !source->app_icon_mode) continue;
+    if (source->companion_online == online) continue;
     source->companion_online = online;
-    lv_obj_t *image = grid_find_companion_app_icon_image(allocation.owner);
-    if (image && source->image_loaded) {
-      // Reload the unmodified cached pixels before switching between the
-      // monochrome offline icon and the original-color online icon.
-      companion_apply_cached_app_icon(*source, image);
+    if (source->image_loaded) {
+      source->refresh_pending = !companion_app_icon_pixels_current(*source);
+      companion_app_icon_work_pending() |= source->refresh_pending;
     } else {
       source->accent_palette = {};
       companion_apply_app_icon_card_palette(*source, allocation.owner);
     }
   }
+}
+
+inline void companion_process_pending_app_icon_refresh() {
+  if (!companion_app_icon_work_pending()) return;
+  CompanionAppIconImageData *selected = nullptr;
+  lv_obj_t *selected_image = nullptr;
+  int best_priority = 3;
+  unsigned pending_count = 0;
+  for (const auto &allocation : grid_runtime_allocations()) {
+    if (allocation.deleter != grid_delete_runtime_ptr<CompanionAppIconImageData>) continue;
+    auto *source = static_cast<CompanionAppIconImageData *>(allocation.ptr);
+    if (!source || !source->refresh_pending) continue;
+    if (!source->app_icon_mode) { source->refresh_pending = false; continue; }
+    auto *image = grid_find_companion_app_icon_image_for_data(allocation.owner, source);
+    if (!image) { source->refresh_pending = false; continue; }
+    ++pending_count;
+    const bool visible = lv_obj_get_screen(image) == lv_scr_act();
+    const int priority = visible ? (lv_obj_has_state(allocation.owner, LV_STATE_CHECKED) ? 0 : 1) : 2;
+    if (priority < best_priority) {
+      selected = source; selected_image = image; best_priority = priority;
+    }
+  }
+  companion_app_icon_work_pending() = pending_count > 1;
+  if (!selected) return;
+  // Never retain an owner pointer across loop turns: a grid rebuild can delete
+  // it. Select from the live registry and rebuild at most one icon per turn.
+  selected->refresh_pending = false;
+  companion_apply_cached_app_icon(*selected, selected_image);
+  navigation_refresh_subpage_label();
 }
 #endif
 
@@ -2341,7 +2388,7 @@ inline void grid_phase2(
 
     auto sp_btns = parse_subpage_config(sp_cfg);
     std::string sp_order_str = get_subpage_order(sp_cfg);
-    std::string sp_back_label = get_subpage_back_label(sp_order_str);
+    std::string sp_back_label = get_subpage_back_label(sp_order_str, is_special_page);
 
     SubpageOrder sp_ord;
     parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
@@ -2357,7 +2404,7 @@ inline void grid_phase2(
       }
     }
     if (is_special_page) {
-      navigation_register_special_page(sub_scr, main_page_obj);
+      navigation_register_special_page(sub_scr, main_page_obj, get_subpage_title(sp_order_str));
     } else {
       espdesktop::cards::navigation_driver_own_subpage(
         slots[si], p, parent_context, navigation_slot, display_order, sub_scr);
@@ -2388,20 +2435,35 @@ inline void grid_phase2(
       cfg.subpage_chevron_font);
     display_apply_main_width(back_slot.icon_lbl, display);
     display_apply_slot_text_width(back_slot, display);
-    lv_label_set_display_text(back_slot.icon_lbl, "\U000F0141");
+    const bool app_back = !is_special_page && companion_app_shortcuts_enabled(p);
+    lv_label_set_display_text(back_slot.icon_lbl, is_special_page ? "\U000F0156" :
+        app_back ? find_icon((p.icon.empty() || p.icon == "Auto") ? "Monitor" : p.icon.c_str()) : "\U000F0141");
     lv_label_set_display_text(back_slot.text_lbl, sp_back_label.c_str());
     apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
     configure_button_label_wrap(back_slot.text_lbl);
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
+    if (app_back) {
+      espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
+          "large", display_main_width_percent(display), cfg.width_compensation_vertical);
+#ifdef USE_COMPANION
+      if (p.entity.rfind("webapp.", 0) == 0) {
+        image_card_bind_companion_webapp_icon(back_slot, p, cfg, true);
+      } else {
+        companion_set_card_icon_image(back_slot, p.entity, "large");
+        esphome::companion::request_app_icon(p.entity);
+      }
+#endif
+    }
 
     lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
+      navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)));
       if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
         navigation_return_from_special_page();
       } else {
         lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
         refresh_visible_image_cards();
       }
-    }, LV_EVENT_CLICKED, is_special_page
+    }, LV_EVENT_PRESSED, is_special_page
       ? static_cast<void *>(&navigation_special_page_back_button_marker())
       : static_cast<void *>(main_page_obj));
     navigation_register_subpage_back_button(navigation_slot, back_slot, back_neutral_background);
@@ -2423,17 +2485,17 @@ inline void grid_phase2(
       }
       sp_entity_ids[eid_idx] = entity_id;
       if (set_checked) {
-        lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+        bind_immediate_button_action(btn, [](lv_event_t *e) {
           lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(e));
           set_card_checked_state(target, true);
           std::string *en = (std::string *)lv_event_get_user_data(e);
           if (en && !en->empty()) send_toggle_action(*en);
-        }, LV_EVENT_CLICKED, &sp_entity_ids[eid_idx]);
+        }, &sp_entity_ids[eid_idx]);
       } else {
-        lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+        bind_immediate_button_action(btn, [](lv_event_t *e) {
           std::string *en = (std::string *)lv_event_get_user_data(e);
           if (en && !en->empty()) send_toggle_action(*en);
-        }, LV_EVENT_CLICKED, &sp_entity_ids[eid_idx]);
+        }, &sp_entity_ids[eid_idx]);
       }
     };
 

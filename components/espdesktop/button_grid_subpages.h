@@ -422,8 +422,9 @@ inline bool subpage_back_token_span(const std::string &order_str, size_t start, 
   return true;
 }
 
-inline std::string get_subpage_back_label(const std::string &order_str) {
-  if (order_str.empty()) return espdesktop_i18n(std::string("Back"));
+inline std::string get_subpage_back_label(const std::string &order_str, bool is_special_page = false) {
+  const std::string default_label = espdesktop_i18n(std::string(is_special_page ? "Close" : "Back"));
+  if (order_str.empty()) return default_label;
   size_t st = 0;
   while (st <= order_str.length()) {
     size_t cm = order_str.find(',', st);
@@ -436,14 +437,14 @@ inline std::string get_subpage_back_label(const std::string &order_str) {
           size_t label_end = order_str.find(':', label_start);
           if (label_end == std::string::npos || label_end > cm) label_end = cm;
           std::string label = decode_compact_subpage_field(order_str, label_start, label_end - label_start);
-          return label.empty() ? espdesktop_i18n(std::string("Back")) : label;
+          return label.empty() || (is_special_page && (label == "Back" || label == "Close")) ? default_label : label;
         }
-        return espdesktop_i18n(std::string("Back"));
+        return default_label;
       }
     }
     st = cm + 1;
   }
-  return espdesktop_i18n(std::string("Back"));
+  return default_label;
 }
 
 // A colour suffix follows the encoded label: B=Return%3AHome:FF8C00.
@@ -458,7 +459,30 @@ inline std::string get_subpage_back_color(const std::string &order_str) {
       if (label_start == std::string::npos) return "";
       const size_t separator = order_str.find(':', label_start);
       if (separator == std::string::npos || separator >= end) return "";
-      return normalize_card_color_value(order_str.substr(separator + 1, end - separator - 1));
+      const size_t title_separator = order_str.find(':', separator + 1);
+      const size_t color_end = title_separator < end ? title_separator : end;
+      return normalize_card_color_value(order_str.substr(separator + 1, color_end - separator - 1));
+    }
+    start = end + 1;
+  }
+  return "";
+}
+
+// Optional encoded page title follows the back label and colour: B=::My%3APage.
+inline std::string get_subpage_title(const std::string &order_str) {
+  size_t start = 0;
+  while (start < order_str.size()) {
+    size_t end = order_str.find(',', start);
+    if (end == std::string::npos) end = order_str.size();
+    char suffix = '\0';
+    size_t label_start = std::string::npos;
+    if (subpage_back_token_span(order_str, start, end, suffix, &label_start) &&
+        label_start != std::string::npos) {
+      const size_t color = order_str.find(':', label_start);
+      if (color >= end) return "";
+      const size_t title = order_str.find(':', color + 1);
+      if (title >= end) return "";
+      return decode_compact_subpage_field(order_str, title + 1, end - title - 1);
     }
     start = end + 1;
   }

@@ -39,7 +39,7 @@ function deviceConfig(overrides: Partial<DeviceConfig> = {}): DeviceConfig {
 
 export function runStateContractTests(): void {
   const first = createInitialState(deviceConfig({
-    timezoneOptions: ["UTC (GMT+0)", "Auto (Mac Companion)"],
+    timezoneOptions: ["UTC (GMT+0)", "Auto (Home Assistant)"],
     features: { screenRotation: true, screenRotationDefault: "180", screenRotationOptions: ["0", "180"] },
   }));
   const second = createInitialState(deviceConfig());
@@ -52,11 +52,10 @@ export function runStateContractTests(): void {
   equal(first.alarmDelayAudioOn, false, "alarm delay audio defaults off");
   equal(first.alarmDelayTtsOn, true, "alarm delay TTS defaults on");
   equal(first.alarmDelayFinalCountdown, 10, "alarm delay final countdown defaults to ten seconds");
+  equal(first.autoOpenAppSubpages, true, "app subpages open on focus by default");
+  equal(first.returnHomeOnAppSwitch, true, "app switching returns home by default");
   equal(first.coverArtSource, "Mac Companion", "cover art uses the paired Mac source");
-  const restoredCompanionSettings = normalizeBackupPanelSettings({
-    screensaver_mode: "companion",
-    cover_art_source: "Mac Companion",
-  }, {
+  const backupCurrent = {
     timezone: "UTC",
     language: "en",
     clockFormat: "12",
@@ -73,7 +72,20 @@ export function runStateContractTests(): void {
     updateFrequency: "daily",
     updateFrequencyOptions: ["daily"],
     screenRotationOptions: ["0"],
-  });
+  };
+  const restoredCompanionSettings = normalizeBackupPanelSettings({
+    auto_open_app_subpages: false,
+    return_home_on_app_switch: false,
+    subpage_title_bar: false,
+    screensaver_mode: "companion",
+    cover_art_source: "Mac Companion",
+  }, backupCurrent);
+  equal(restoredCompanionSettings.autoOpenAppSubpages, false, "backup restore preserves manual app subpages");
+  equal(restoredCompanionSettings.returnHomeOnAppSwitch, false, "backup restore preserves staying on an app page");
+  equal(normalizeBackupPanelSettings({}, backupCurrent).returnHomeOnAppSwitch, true, "older backups default to returning home");
+  equal(restoredCompanionSettings.subpageTitleBar, false, "backup restore preserves hidden subpage title bars");
+  equal(normalizeBackupPanelSettings({}, backupCurrent).subpageTitleBar, true, "older backups show subpage title bars by default");
+  equal(normalizeBackupPanelSettings({}, backupCurrent).autoOpenAppSubpages, true, "older backups retain automatic app subpages");
   equal(restoredCompanionSettings.screensaverMode, "companion",
     "backup restore preserves Companion screensaver mode");
   equal(restoredCompanionSettings.coverArtSource, "Mac Companion",
@@ -132,6 +144,9 @@ export function runStateContractTests(): void {
     alarmDelayFinalCountdown: "number-alarm_delay__final_countdown",
     temperatureDegreeSymbol: "switch-screen__temperature_degree_symbol",
     subpageChevron: "switch-screen__subpage_chevron",
+    autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
+    returnHomeOnAppSwitch: "switch-companion__return_home_on_app_switch",
+    subpageTitleBar: "switch-screen__subpage_title_bar",
     screensaverTimeout: "number-screensaver_timeout",
     clockScreensaver: "switch-screen_saver__clock",
     mediaPlayerSleepPrevention: "switch-screen_saver__media_player_sleep_prevention",

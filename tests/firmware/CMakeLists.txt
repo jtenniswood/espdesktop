@@ -98,6 +98,11 @@ target_include_directories(companion_shortcut_test PRIVATE
   ../../components/espdesktop
 )
 add_test(NAME companion_shortcut_test COMMAND companion_shortcut_test)
+add_test(NAME companion_subpage_preference_boot_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME companion_navigation_preference_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_navigation_preference_test.py)
 
 add_executable(companion_now_playing_protocol_test companion_now_playing_protocol_test.cpp)
 target_compile_features(companion_now_playing_protocol_test PRIVATE cxx_std_17)
@@ -118,6 +123,8 @@ target_include_directories(app_icon_layout_test PRIVATE ../../components/espdesk
 add_test(NAME app_icon_layout_test COMMAND app_icon_layout_test)
 add_test(NAME app_icon_layout_events_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/app_icon_layout_events_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME instant_button_feedback_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/instant_button_feedback_test.py ${CMAKE_CXX_COMPILER})
 add_test(NAME app_icon_pixel_lifetime_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/app_icon_pixel_lifetime_test.py ${CMAKE_CXX_COMPILER})
 
@@ -665,6 +672,10 @@ target_compile_definitions(panel_identity_runtime_beta_test PRIVATE TEST_ESPHOME
 target_include_directories(panel_identity_runtime_beta_test PRIVATE panel_identity_stubs ../../components/espdesktop)
 add_test(NAME panel_identity_runtime_beta_test COMMAND panel_identity_runtime_beta_test)
 
+add_test(NAME clock_bar_grid_layout_test COMMAND
+  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/clock_bar_grid_layout_test.py)
+
 set(CLOCK_BAR_TITLE_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/clock_bar_title_test.cpp)
 add_custom_command(
   OUTPUT ${CLOCK_BAR_TITLE_TEST_SOURCE}
@@ -889,3 +900,5 @@ add_test(NAME companion_artwork_contract_self_test COMMAND
 
 add_test(NAME local_action_dispatch_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/local_action_dispatch_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)

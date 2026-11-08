@@ -32,6 +32,7 @@
 // Public compatibility include. Device YAML includes this file, while the
 // implementation is split into focused headers below for easier review.
 #include "button_grid_limits.h"
+#include "button_grid_touch.h"
 #include "button_grid_string.h"
 #include "display_text.h"
 

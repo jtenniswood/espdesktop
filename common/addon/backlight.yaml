@@ -1500,7 +1500,8 @@ script:
               }
               return true;
           timeout: 2s
-      - delay: 250ms
+      # Let input settle briefly after release before accepting a new tap.
+      - delay: 50ms
       - script.stop: screensaver_wake_touch_guard_clear
       - globals.set:
           id: screensaver_wake_touch_guard_active

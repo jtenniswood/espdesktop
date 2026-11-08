@@ -14,6 +14,28 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 using namespace esphome::companion;
 
 int main() {
+  // Fast app colour is visual-only, independent of the slower contextual focus.
+  {
+    CompanionRuntimeService runtime;
+    runtime.set_connected(true);
+    runtime.set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
+    runtime.consume_auto_subpage_action("webapp.google-docs");
+    runtime.set_application_highlight("com.apple.finder");
+    auto state = runtime.snapshot();
+    assert(state.application_highlight_known && state.application_highlight_id == "com.apple.finder");
+    assert(state.focused_action_ids.empty());
+    assert(runtime.pending_auto_subpage_action().empty());
+    assert(runtime.consume_focus_refresh_request());
+    runtime.consume_refresh_request();
+    runtime.set_application_highlight("com.apple.finder");
+    assert(!runtime.consume_refresh_request());
+    assert(!runtime.consume_focus_refresh_request());
+    runtime.set_focused_actions({"folder.one"});
+    assert(runtime.snapshot().application_highlight_id == "com.apple.finder");
+    assert(runtime.pending_auto_subpage_action() == "com.apple.finder");
+    runtime.set_connected(false);
+    assert(!runtime.snapshot().application_highlight_known);
+  }
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
@@ -223,6 +245,11 @@ int main() {
   assert(companion_metric_value(companion_runtime_snapshot(), "stat.network_throughput", metric_value));
   assert(metric_value == 512.5f / 1024.0f);
   assert(!companion_metric_value(companion_runtime_snapshot(), "stat.battery", metric_value));
+  assert(companion_return_home_on_app_switch());
+  companion_set_return_home_on_app_switch(false);
+  assert(!companion_return_home_on_app_switch());
+  companion_set_return_home_on_app_switch(true);
+  assert(companion_return_home_on_app_switch());
   companion_set_focused_action("com.apple.Safari");
   assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
   assert(companion_consume_auto_subpage_action("com.apple.Safari"));
@@ -265,6 +292,31 @@ int main() {
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
   assert(!companion_consume_subpage_return_request());
+  // Manual mode clears pending navigation, keeps focus feedback, and never
+  // opens or returns from a page because another app becomes focused.
+  companion_set_focused_action("com.apple.Safari");
+  assert(!companion_pending_auto_subpage_action().empty());
+  companion_set_auto_open_app_subpages(false);
+  assert(!companion_auto_open_app_subpages());
+  assert(companion_pending_auto_subpage_action().empty());
+  assert(!companion_consume_subpage_return_request());
+  companion_set_focused_action("com.apple.finder");
+  assert(companion_action_active("com.apple.finder"));
+  assert(companion_pending_auto_subpage_action().empty());
+  assert(!companion_consume_subpage_return_request());
+  companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
+  assert(companion_action_active("webapp.google-docs"));
+  assert(companion_pending_auto_subpage_action().empty());
+  assert(!companion_consume_subpage_return_request());
+  companion_set_auto_open_app_subpages(true);
+  assert(companion_auto_open_app_subpages());
+  assert(companion_pending_auto_subpage_action().empty());
+  companion_set_focused_action("com.apple.finder");
+  assert(companion_pending_auto_subpage_action() == "com.apple.finder");
+  assert(companion_consume_subpage_return_request());
+  assert(companion_consume_auto_subpage_action("com.apple.finder"));
+  companion_set_focused_action("");
+  companion_consume_subpage_return_request();
   assert(companion_volume_control_valid("media.output_volume"));
   assert(companion_volume_control_valid("media.input_volume"));
   assert(!companion_volume_control_valid("media.screen_brightness"));
@@ -274,6 +326,30 @@ int main() {
   assert(output_volume == 72);
   companion_remove_value("media.output_volume");
   assert(!companion_value("media.output_volume", output_volume));
+  companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
+  companion_runtime_service().set_application_highlight("com.apple.finder");
+  assert(companion_action_active("com.apple.finder", true));
+  assert(!companion_action_active("com.apple.Safari", true));
+  assert(!companion_action_active("com.apple.finder"));
+  assert(!companion_action_active("webapp.google-docs", true));
+  companion_set_focused_actions({"folder.one"});
+  assert(companion_action_active("com.apple.finder", true));
+  assert(companion_action_active("folder.one"));
+  int guarded_invocations = 0;
+  companion_set_keyboard_actions_supported(true);
+  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &) {
+    ++guarded_invocations; return true;
+  });
+  companion_set_focused_actions({"A"});
+  companion_runtime_service().set_application_highlight("B");
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-B", "B"));
+  assert(!invoke_companion_action_for_app("shortcut.control+w", "guard-A", "A"));
+  assert(guarded_invocations == 0);
+  companion_set_focused_actions({"B"});
+  assert(invoke_companion_action_for_app("shortcut.control+w", "confirmed-B", "B"));
+  assert(guarded_invocations == 1);
+  assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", ""));
+  assert(guarded_invocations == 2);
   companion_set_value("media.output_volume", 72);
   bool volume_invoked = false;
   register_companion_value_sender([&volume_invoked](const std::string &control, int value,

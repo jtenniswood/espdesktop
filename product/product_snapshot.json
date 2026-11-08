@@ -11,8 +11,8 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 45,
-    "entityNames": 122,
-    "icons": 400,
+    "entityNames": 125,
+    "icons": 401,
     "structuralIcons": 37,
     "compatibilityFixtureGroups": 2
   },
@@ -7318,6 +7318,45 @@
         ]
       },
       {
+        "key": "companion_auto_open_app_subpages",
+        "domain": "switch",
+        "name": "Companion: Auto Open App Subpages",
+        "objectIds": [
+          "companion__auto_open_app_subpages",
+          "companion_auto_open_app_subpages",
+          "companion_auto_open_app_subpages_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "companion_return_home_on_app_switch",
+        "domain": "switch",
+        "name": "Companion: Return Home On App Switch",
+        "objectIds": [
+          "companion__return_home_on_app_switch",
+          "companion_return_home_on_app_switch",
+          "companion_return_home_on_app_switch_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
+        "key": "screen_subpage_title_bar",
+        "domain": "switch",
+        "name": "Screen: Subpage Title Bar",
+        "objectIds": [
+          "screen__subpage_title_bar",
+          "screen_subpage_title_bar",
+          "subpage_title_bar_enabled"
+        ],
+        "groups": [
+          "settings"
+        ]
+      },
+      {
         "key": "screen_subpage_chevron",
         "domain": "switch",
         "name": "Screen: Subpage Chevron",
@@ -9937,6 +9976,11 @@
         "name": "Speaker Play",
         "codepoint": "F1B72",
         "mdi": "speaker-play"
+      },
+      {
+        "name": "Search",
+        "codepoint": "F0349",
+        "mdi": "magnify"
       },
       {
         "name": "Spotlight",

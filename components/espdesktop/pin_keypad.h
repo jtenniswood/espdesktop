@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pin_keypad_order.h"
+#include "button_grid_touch.h"
 
 // Shared alarm/screensaver PIN layout. Callers own submission and modal lifetime.
 inline lv_obj_t *pin_keypad_create_button(lv_obj_t *parent, lv_coord_t width,
@@ -153,8 +154,7 @@ inline lv_obj_t *pin_keypad_create(lv_obj_t *panel, const ControlModalLayout &la
     lv_coord_t x = start_x + col * (key_size + gap);
     lv_coord_t y = start_y + row * (key_size + gap);
     lv_obj_set_pos(key_btn, x, y);
-    lv_obj_add_event_cb(key_btn, key_cb, LV_EVENT_CLICKED,
-      const_cast<char *>(key_data[i]));
+    bind_immediate_button_action(key_btn, key_cb, const_cast<char *>(key_data[i]));
   }
 
   return pin_lbl;

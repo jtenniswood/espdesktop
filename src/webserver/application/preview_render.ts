@@ -7,6 +7,7 @@ import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { escHtml } from "./ui_primitives";
+import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -155,27 +156,18 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
-    function resizeStandardIcon(button: HTMLElement): void {
-        const icon = button.querySelector<HTMLElement>(".sp-btn-icon:not(img)");
-        const view = document.defaultView;
-        if (!icon || !view) return;
-        const style = view.getComputedStyle(button);
-        const label = button.querySelector<HTMLElement>(".sp-btn-label, .sp-btn-label-row");
-        const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
-        const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom)
-            - (button.dataset.iconSize === "large" ? 0 : (label?.getBoundingClientRect().height || 0) + 4);
-        icon.style.fontSize = "";
-        const naturalSize = parseFloat(view.getComputedStyle(icon).fontSize);
-        const requested = button.dataset.iconSize === "large" ? Infinity : naturalSize * 1.5;
-        icon.style.fontSize = Math.max(1, Math.min(requested, width, height)) + "px";
-    }
-    const standardIconResizeObserver = typeof ResizeObserver === "function"
-        ? new ResizeObserver(entries => entries.forEach(entry => {
-            const button = entry.target.closest<HTMLElement>(".sp-btn");
-            if (button) resizeStandardIcon(button);
-        })) : null;
     // Use a single measured side for square images at every card aspect ratio.
-    function resizeAppIcon(button: Element): void {
+    function resizeCardIcon(button: Element): void {
+        const fallback = button.querySelector<HTMLElement>(".sp-app-back-icon");
+        if (fallback && !fallback.hidden && document.defaultView) {
+            const style = document.defaultView.getComputedStyle(button);
+            const width = button.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
+            const height = button.clientHeight - parseFloat(style.paddingTop) - parseFloat(style.paddingBottom);
+            const scale = Math.max(0.01, Math.min(width / Math.max(1, fallback.offsetWidth), height / Math.max(1, fallback.offsetHeight)));
+            fallback.style.transformOrigin = "top left";
+            fallback.style.transform = "scale(" + scale + ")";
+            return;
+        }
         const icon = button.querySelector<HTMLImageElement>(".sp-companion-app-icon");
         const view = document.defaultView;
         if (!icon || !view) return;
@@ -199,7 +191,58 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         icon.style.top = (parseFloat(style.paddingTop) - side * artwork.insetTopPercent / 100) + "px";
     }
     const appIconResizeObserver = typeof ResizeObserver === "function"
-        ? new ResizeObserver(entries => entries.forEach(entry => resizeAppIcon(entry.target.closest(".sp-btn") || entry.target))) : null;
+        ? new ResizeObserver(entries => entries.forEach(entry => resizeCardIcon(entry.target.closest(".sp-btn") || entry.target))) : null;
+    function loadCardAppIcon(btn: HTMLElement, applicationId: string, backgroundColor: string,
+                             fallbackIcon: HTMLElement | null, back = false): void {
+        const applyIcon = (previewIcon: CompanionAppIconPreview): void => {
+            if (!btn.isConnected) return;
+            const appIcon = document.createElement("img");
+            appIcon.className = "sp-btn-icon sp-companion-app-icon" + (back ? " sp-back-hit" : "");
+            btn.classList.add("sp-companion-app-icon-fit-card");
+            appIcon.alt = "";
+            appIcon.setAttribute("aria-hidden", "true");
+            appIcon.src = previewIcon.dataUrl;
+            appIconArtwork.set(appIcon, previewIcon);
+            btn.appendChild(appIcon);
+            if (fallbackIcon) fallbackIcon.hidden = true;
+            resizeCardIcon(btn);
+            appIconResizeObserver?.observe(btn);
+            const label = btn.querySelector(".sp-btn-label");
+            if (label) appIconResizeObserver?.observe(label);
+            if (!back && previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
+                btn.style.backgroundColor = "#" + previewIcon.defaultColor;
+                btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
+                btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
+                btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
+                btn.classList.add("sp-companion-app-icon-card");
+            }
+        };
+        if (applicationId.startsWith("webapp.")) {
+            const url = COMPANION_WEB_APPS.find(app => "webapp." + app.id === applicationId)?.icon;
+            if (!url) return;
+            const source = document.createElement("img");
+            source.onload = () => applyIcon({
+                dataUrl: url, defaultColor: "", activeColor: "", online: true,
+                insetLeftPercent: 0, insetTopPercent: 0,
+                artworkWidthFraction: 1, artworkHeightFraction: 1,
+            });
+            source.src = url;
+            return;
+        }
+        const loadAppIcon = function (attempt: number): void {
+            void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
+                if (!btn.isConnected) return;
+                if (!previewIcon) {
+                    if (attempt < 12) window.setTimeout(function () {
+                        loadAppIcon(attempt + 1);
+                    }, Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
+                    return;
+                }
+                applyIcon(previewIcon);
+            });
+        };
+        loadAppIcon(0);
+    }
     const weatherLayout = createWeatherDailyPreviewLayout(document, dependencies.layout.config,
         () => state.screenRotation === "90" || state.screenRotation === "270");
     // ── Preview rendering (unified) ────────────────────────────────────────
@@ -271,7 +314,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
-        standardIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
         var main: any = els.previewMain;
@@ -300,12 +342,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
                 var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                var backLabel = subpage?.backLabel || "Back";
+                var isSpecialPage = state.editingSubpage === -1;
+                const parent = !isSpecialPage && state.editingSubpage != null
+                    ? state.buttons[state.editingSubpage - 1] : null;
+                const appBack = companionAppShortcutFolderEnabled(parent);
+                var backLabel = subpage?.backLabel || (isSpecialPage ? "Close" : "Back");
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-chevron-left"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor
@@ -317,6 +363,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
+                if (appBack) {
+                    backBtn.setAttribute("data-icon-size", "large");
+                    backBtn.setAttribute("aria-label", backLabel + " — Home");
+                    resizeCardIcon(backBtn);
+                    appIconResizeObserver?.observe(backBtn);
+                    loadCardAppIcon(backBtn, parent!.entity, subpage?.backColor || "",
+                        backBtn.querySelector(".sp-app-back-icon"), true);
+                }
             }
             else if (slot > 0) {
                 if (slot > (c.isSub ? c.buttons.length : c.maxSlots)) {
@@ -416,53 +470,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 }
                 appendResizeHandle(btn);
                 main.appendChild(btn);
-                const standardIconSize = btn.querySelector(".sp-btn-icon") || typePreview?.appIconId
+                const appIconSize = typePreview?.appIconId
                     ? cardIconSize(b.options, state.defaultIconSize) : "small";
-                btn.setAttribute("data-icon-size", standardIconSize);
-                if (standardIconSize !== "small" && !typePreview?.appIconId) {
-                    resizeStandardIcon(btn);
-                    standardIconResizeObserver?.observe(btn);
-                    const title = btn.querySelector(".sp-btn-label, .sp-btn-label-row");
-                    if (title) standardIconResizeObserver?.observe(title);
-                }
+                btn.setAttribute("data-icon-size", appIconSize);
                 if (typePreview && typeof typePreview.appIconId === "string" &&
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
-                    const loadAppIcon = function (attempt: number): void {
-                        void companionAppIconPreviewData(applicationId, backgroundColor, document).then(function (previewIcon) {
-                            if (!btn.isConnected) return;
-                            if (!previewIcon) {
-                                if (attempt < 12) window.setTimeout(function () {
-                                    loadAppIcon(attempt + 1);
-                                }, Math.min(5000 * 2 ** Math.min(attempt, 3), 30000));
-                                return;
-                            }
-                        const appIcon = document.createElement("img");
-                        appIcon.className = "sp-btn-icon sp-companion-app-icon";
-                        btn.classList.add("sp-companion-app-icon-fit-card");
-                        appIcon.alt = "";
-                        appIcon.setAttribute("aria-hidden", "true");
-                        appIcon.src = previewIcon.dataUrl;
-                        appIconArtwork.set(appIcon, previewIcon);
-                        btn.appendChild(appIcon);
-                        resizeAppIcon(btn);
-                        appIconResizeObserver?.observe(btn);
-                        const label = btn.querySelector(".sp-btn-label");
-                        if (label) appIconResizeObserver?.observe(label);
-                        if (fallbackIcon) fallbackIcon.hidden = true;
-                        if (previewIcon.online && previewIcon.defaultColor && previewIcon.activeColor) {
-                            btn.style.backgroundColor = "#" + previewIcon.defaultColor;
-                            btn.style.setProperty("--card-text-color", cardPreviewTextColor(previewIcon.defaultColor));
-                            btn.style.setProperty("--sp-companion-app-icon-active-text", cardPreviewTextColor(previewIcon.activeColor));
-                            btn.style.setProperty("--sp-companion-app-icon-active", "#" + previewIcon.activeColor);
-                            btn.classList.add("sp-companion-app-icon-card");
-                        }
-                        });
-                    };
-                    loadAppIcon(0);
+                    loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
                 }
                 if (["light_brightness", "fan_speed", "cover", "slider", "light_temperature"].indexOf(b.type) !== -1) {
                     applySliderPreviewTextContrast(btn, cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary, sliderFillColor);

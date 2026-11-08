@@ -637,14 +637,14 @@ inline lv_obj_t *light_control_create_tab_button(lv_obj_t *parent, const char *i
     lv_obj_set_style_transform_zoom(label, 180, LV_PART_MAIN);
     light_control_center_icon_label(label);
   }
-  lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+  bind_immediate_button_action(btn, [](lv_event_t *e) {
     LightControlTab tab = static_cast<LightControlTab>(
       reinterpret_cast<uintptr_t>(lv_event_get_user_data(e)));
     LightControlModalUi &ui = light_control_modal_ui();
     ui.tab = tab;
     light_control_apply_tab_visibility();
     light_control_layout_modal(ui.active);
-  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
+  }, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
   return btn;
 }
 
@@ -1939,14 +1939,14 @@ inline lv_obj_t *cover_control_create_tab_button(lv_obj_t *parent, const char *i
     lv_obj_set_style_transform_zoom(label, 210, LV_PART_MAIN);
     light_control_center_icon_label(label);
   }
-  lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+  bind_immediate_button_action(btn, [](lv_event_t *e) {
     CoverControlTab tab = static_cast<CoverControlTab>(
       reinterpret_cast<uintptr_t>(lv_event_get_user_data(e)));
     CoverControlModalUi &ui = cover_control_modal_ui();
     ui.tab = tab;
     cover_control_apply_tab_visibility();
     cover_control_layout_modal(ui.active);
-  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
+  }, reinterpret_cast<void *>(static_cast<uintptr_t>(tab)));
   return btn;
 }
 
@@ -2023,7 +2023,7 @@ inline lv_obj_t *cover_control_create_preset_button(lv_obj_t *parent, int pct,
     lv_obj_clear_flag(label, LV_OBJ_FLAG_CLICKABLE);
   }
 
-  lv_obj_add_event_cb(btn, [](lv_event_t *e) {
+  bind_immediate_button_action(btn, [](lv_event_t *e) {
     int pct = static_cast<int>(reinterpret_cast<uintptr_t>(lv_event_get_user_data(e)));
     CoverControlModalUi &ui = cover_control_modal_ui();
     if (!ui.active || !ui.active->available || !cover_control_supports_position(ui.active)) return;
@@ -2044,7 +2044,7 @@ inline lv_obj_t *cover_control_create_preset_button(lv_obj_t *parent, int pct,
       cover_control_set_position_value(ui.active, previous_position);
       cover_control_apply_card_visual(ui.active);
     }
-  }, LV_EVENT_CLICKED, reinterpret_cast<void *>(static_cast<uintptr_t>(pct)));
+  }, reinterpret_cast<void *>(static_cast<uintptr_t>(pct)));
 
   return btn;
 }
@@ -2545,7 +2545,7 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
     ui.controls_box, find_icon("Arrow Down"), ctx->icon_font,
     ctx->width_compensation_percent);
   if (ui.up_btn) {
-    lv_obj_add_event_cb(ui.up_btn, [](lv_event_t *e) {
+    bind_immediate_button_action(ui.up_btn, [](lv_event_t *e) {
       (void) e;
       CoverControlModalUi &ui = cover_control_modal_ui();
       if (ui.active && ui.active->available &&
@@ -2554,10 +2554,10 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
           ui.active->entity_id, "open",
           cover_control_command_uses_tilt(ui.active, "open"));
       }
-    }, LV_EVENT_CLICKED, nullptr);
+    }, nullptr);
   }
   if (ui.stop_btn) {
-    lv_obj_add_event_cb(ui.stop_btn, [](lv_event_t *e) {
+    bind_immediate_button_action(ui.stop_btn, [](lv_event_t *e) {
       (void) e;
       CoverControlModalUi &ui = cover_control_modal_ui();
       if (ui.active && ui.active->available &&
@@ -2566,10 +2566,10 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
           ui.active->entity_id, "stop",
           cover_control_command_uses_tilt(ui.active, "stop"));
       }
-    }, LV_EVENT_CLICKED, nullptr);
+    }, nullptr);
   }
   if (ui.down_btn) {
-    lv_obj_add_event_cb(ui.down_btn, [](lv_event_t *e) {
+    bind_immediate_button_action(ui.down_btn, [](lv_event_t *e) {
       (void) e;
       CoverControlModalUi &ui = cover_control_modal_ui();
       if (ui.active && ui.active->available &&
@@ -2578,7 +2578,7 @@ inline void cover_control_open_modal(CoverControlCtx *ctx) {
           ui.active->entity_id, "close",
           cover_control_command_uses_tilt(ui.active, "close"));
       }
-    }, LV_EVENT_CLICKED, nullptr);
+    }, nullptr);
   }
 
   ui.presets_box = lv_obj_create(ui.panel);
@@ -3751,20 +3751,20 @@ inline void media_volume_open_modal(MediaVolumeCtx *ctx) {
     ctx->icon_font, theme_display_color(current_theme().control_neutral), theme_display_color(current_theme().surface_primary), ctx->width_compensation_percent);
   ui.plus_btn = control_modal_create_round_button(ui.panel, 72, find_icon("Plus"),
     ctx->icon_font, theme_display_color(current_theme().control_neutral), theme_display_color(current_theme().surface_primary), ctx->width_compensation_percent);
-  lv_obj_add_event_cb(ui.minus_btn, [](lv_event_t *) {
+  bind_immediate_button_action(ui.minus_btn, [](lv_event_t *) {
     MediaVolumeModalUi &ui = media_volume_modal_ui();
     if (ui.active) {
       media_volume_apply_percent(
         ui.active, ui.active->current_pct - 1, true, true);
     }
-  }, LV_EVENT_CLICKED, nullptr);
-  lv_obj_add_event_cb(ui.plus_btn, [](lv_event_t *) {
+  }, nullptr);
+  bind_immediate_button_action(ui.plus_btn, [](lv_event_t *) {
     MediaVolumeModalUi &ui = media_volume_modal_ui();
     if (ui.active) {
       media_volume_apply_percent(
         ui.active, ui.active->current_pct + 1, true, true);
     }
-  }, LV_EVENT_CLICKED, nullptr);
+  }, nullptr);
 
   media_volume_layout_modal(ctx);
   media_volume_set_modal_value(ctx, ctx->current_pct);

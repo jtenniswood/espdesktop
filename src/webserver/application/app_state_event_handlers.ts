@@ -212,6 +212,19 @@ export function createAppStateEventHandlersFeature(
                 state.temperatureDegreeSymbolOn = d.value === true || val === "ON";
                 syncClockBarUi();
             },
+            "switch-screen__subpage_title_bar": function (this: any, val?: any, d?: any) {
+                state.subpageTitleBarOn = d.value === true || val === "ON";
+                syncClockBarUi();
+                renderPreview();
+            },
+            "switch-companion__auto_open_app_subpages": function (this: any, val?: any, d?: any) {
+                state.autoOpenAppSubpages = d.value === true || val === "ON";
+                if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
+            },
+            "switch-companion__return_home_on_app_switch": function (this: any, val?: any, d?: any) {
+                state.returnHomeOnAppSwitch = d.value === true || val === "ON";
+                if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
+            },
             "switch-screen__subpage_chevron": function (this: any, val?: any, d?: any) {
                 state.subpageChevronsOn = d.value === true || val === "ON";
                 syncClockBarUi();

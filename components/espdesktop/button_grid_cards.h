@@ -4,6 +4,7 @@
 
 #include "button_grid_datetime_cards.h"
 #include "card_icon_size.h"
+#include "instant_button_style.h"
 #include "companion_controls.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
@@ -33,6 +34,10 @@ struct CompanionAppIconImageData {
   size_t display_bytes = 0;
   espdesktop::app_icon::Insets artwork_insets{};
   bool artwork_insets_ready = false;
+  std::array<uint8_t, 32> loaded_hash{};
+  bool loaded_hash_valid = false;
+  bool rendered_online = false;
+  bool refresh_pending = false;
 
   bool prepare_pixels(const std::string &id) {
     std::array<uint8_t, 32> hash{};
@@ -77,6 +82,7 @@ struct CompanionAppIconImageData {
     release_source_pixels();
     descriptor.data = nullptr;
     image_loaded = false;
+    loaded_hash_valid = false;
   }
 
   ~CompanionAppIconImageData() {
@@ -94,11 +100,6 @@ inline void companion_apply_app_icon_card_palette(
   // Default-colour cards are owned by the live theme. Reconnects and icon
   // refreshes must not restore fallback colours captured before a theme change.
   if (!button || !source.card_palette_ready) return;
-  if (source.app_icon_mode) {
-    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    lv_obj_set_style_outline_color(button, lv_color_hex(source.fallback_active_rgb), checked);
-  }
   if (!source.custom_background) return;
   const bool use_accent = source.app_icon_mode && source.companion_online && source.image_loaded &&
                           source.accent_palette.valid;
@@ -243,8 +244,9 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
   }
   if (!image || source.application_id.empty() || !source.prepare_pixels(source.application_id) ||
       !esphome::companion::app_icon_store().copy_pixels(
-          source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES)) {
-    source.image_loaded = false;
+          source.application_id, source.pixels, esphome::companion::APP_ICON_PIXEL_BYTES,
+          &source.loaded_hash)) {
+    source.release_pixels();
     source.accent_palette = {};
     if (image) lv_obj_add_flag(image, LV_OBJ_FLAG_HIDDEN);
     if (source.fallback_icon) lv_obj_clear_flag(source.fallback_icon, LV_OBJ_FLAG_HIDDEN);
@@ -252,6 +254,8 @@ inline bool companion_apply_cached_app_icon(CompanionAppIconImageData &source, l
     return false;
   }
   source.image_loaded = true;
+  source.loaded_hash_valid = true;
+  source.rendered_online = source.companion_online;
   source.artwork_insets_ready = false;
   source.release_display_pixels();
   constexpr size_t pixel_count = esphome::companion::APP_ICON_SIDE *
@@ -334,12 +338,6 @@ inline void companion_set_card_icon_image(BtnSlot &slot, const std::string &appl
   source->icon_size = icon_size;
   source->app_icon_mode = true;
   source->companion_online = companion_connected();
-  const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-      static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-  lv_obj_set_style_outline_width(slot.btn, 3, checked);
-  lv_obj_set_style_outline_pad(slot.btn, -3, checked);
-  lv_obj_set_style_outline_color(slot.btn, lv_color_hex(source->fallback_active_rgb), checked);
-  lv_obj_set_style_outline_opa(slot.btn, LV_OPA_COVER, checked);
   companion_apply_cached_app_icon(*source, slot.app_icon_img);
 }
 
@@ -362,12 +360,17 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
   auto *source = static_cast<CompanionAppIconImageData *>(
       lv_obj_get_user_data(slot.app_icon_img));
   if (source) {
-    const auto checked = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
-        static_cast<lv_style_selector_t>(LV_STATE_CHECKED);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_PAD, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_COLOR, checked);
-    lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_OPA, checked);
+    static const lv_state_t states[] = {
+        LV_STATE_DEFAULT, LV_STATE_CHECKED, LV_STATE_PRESSED,
+        static_cast<lv_state_t>(LV_STATE_CHECKED | LV_STATE_PRESSED)};
+    for (const auto state : states) {
+      const auto selector = static_cast<lv_style_selector_t>(LV_PART_MAIN) |
+          static_cast<lv_style_selector_t>(state);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_WIDTH, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_PAD, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_COLOR, selector);
+      lv_obj_remove_local_style_prop(slot.btn, LV_STYLE_OUTLINE_OPA, selector);
+    }
     source->app_icon_mode = false;
   }
   if (!source || !source->palette_applied) return;
@@ -478,12 +481,13 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
   static lv_style_transition_dsc_t push_trans;
   static bool push_trans_inited = false;
   if (!push_trans_inited) {
-    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 400, 0, NULL);
+    lv_style_transition_dsc_init(&push_trans, push_props, lv_anim_path_ease_out, 120, 0, NULL);
     push_trans_inited = true;
   }
   lv_obj_set_style_transition(btn, &push_trans,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
+
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
@@ -577,7 +581,8 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   lv_label_set_display_text(s.text_lbl, label.c_str());
   if (companion_app_launch_card(p) &&
       (cfg_option_token_present(p.options, "app_hide_label") ||
-       espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")) == "large")) {
+       (companion_app_icon_enabled(p) &&
+        espdesktop::resolved_card_icon_size(cfg_option_value(p.options, "icon_size")) == "large"))) {
     lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
   } else {
     lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
@@ -603,11 +608,12 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
 #endif
   }
   companion_track_card(s.btn, p.entity, p.sensor, s.text_lbl, p.label.empty());
-  if (available) {
-    set_card_disabled_state(s.btn, false);
+  set_card_disabled_state(s.btn, !available);
+  if (companion_app_launch_card(p)) {
+    apply_instant_button_feedback(s.btn);
+  } else if (available) {
     apply_push_button_transition(s.btn);
   } else {
-    set_card_disabled_state(s.btn, true);
     clear_push_button_transition(s.btn);
   }
   companion_apply_card_focus(s.btn, p.entity, p.sensor);

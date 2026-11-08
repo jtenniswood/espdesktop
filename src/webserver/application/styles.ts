@@ -79,7 +79,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-clockbar-section{height:100%;min-width:0;flex:1;display:flex;align-items:center;gap:.4cqw;position:relative}" +
         ".sp-clockbar-left{justify-content:flex-start}.sp-clockbar-middle{justify-content:center}.sp-clockbar-right{justify-content:flex-end}" +
         ".sp-clockbar-subpage-title,.sp-clockbar-subpage-label,.sp-temp,.sp-clock{font-size:var(--btn-label);line-height:1.2;color:var(--preview-clockbar-text);font-weight:var(--btn-label-weight,400)}" +
-        ".sp-clockbar-subpage-title{display:flex;align-items:center;gap:.5rem;white-space:nowrap;overflow:hidden;min-width:0}" +
+        ".sp-clockbar-subpage-title{display:flex;align-items:center;gap:.25rem;white-space:nowrap;overflow:hidden;min-width:0}" +
         ".sp-clockbar-subpage-icon{font-size:.92rem;width:1.8em;height:1.8em;flex:none;object-fit:contain;border-radius:22%;" +
         "margin-left:calc(var(--grid-left) - var(--topbar-pad-x))}" +
         ".sp-clockbar-subpage-label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}" +
@@ -253,6 +253,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-special-page-entry{display:block;width:min(1080px,calc(100% - 2*var(--gap)));margin:0 auto 10px;" +
         "border:1px solid var(--border);border-radius:var(--action-r);background:var(--surface2);" +
         "color:var(--text);padding:8px 12px;font:500 var(--text-sm) -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer}" +
+        ".sp-special-page-entry[hidden]{display:none}" +
         ".sp-special-page-entry:hover{background:var(--border)}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
@@ -289,6 +290,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal::-webkit-scrollbar-thumb{background:#fff;border-radius:999px}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
         "height:100%;margin:0;border-radius:0;border:none}}" +
+        ".sp-rename-dialog{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:.875rem;line-height:1.5;box-sizing:border-box;padding:var(--gap);margin:auto;width:calc(100% - 40px);max-width:420px;max-height:80dvh;height:fit-content;border:1px solid var(--border);border-radius:var(--radius);color:var(--text)}" +
+        ".sp-rename-dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
+        ".sp-rename-dialog .sp-section-title{padding-right:40px}.sp-rename-dialog .sp-field{margin-bottom:0}.sp-rename-error:empty{display:none}" +
         ".sp-settings-close{position:absolute;top:10px;right:12px;width:36px;height:36px;" +
         "border-radius:999px;border:1px solid var(--border);background:var(--surface2);" +
         "color:var(--text2);display:flex;align-items:center;justify-content:center;" +
@@ -725,10 +729,10 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-fw-btn.sp-fw-btn-busy{background:rgba(35,37,43,.5);color:#8a8d94;" +
         "border-color:rgba(74,77,84,.45);border-radius:999px;padding:8px 28px;opacity:1}" +
         ".sp-fw-btn.sp-fw-btn-busy:hover{background:rgba(35,37,43,.5);border-color:rgba(74,77,84,.45)}" +
-        ".sp-btn-label-row{display:flex;align-items:flex-end;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
+        ".sp-btn-label-row{display:flex;align-items:last baseline;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
         ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
-        ".sp-subpage-badge{font-size:var(--btn-label);line-height:1;color:#fff;flex-shrink:0;" +
-        "display:inline-flex;align-items:center;justify-content:center;width:1.35em;height:1.35em;" +
+        ".sp-subpage-badge{font-size:var(--btn-label);line-height:1.35;color:#fff;flex-shrink:0;" +
+        "display:inline-block;text-align:center;width:1.35em;height:1.35em;" +
         "cursor:pointer;padding:0;background:transparent;text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 2px rgba(0,0,0,.65)}" +
         ".sp-btn-label-row:has(>.sp-subpage-badge:only-child){justify-content:flex-start}" +
         ".sp-btn[data-icon-size=large] .sp-btn-label{display:none}" +

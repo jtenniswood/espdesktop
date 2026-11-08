@@ -30,6 +30,18 @@ inline void card_text_contrast_event_cb(lv_event_t *event) {
   }
 }
 
+// Fixed modal controls may deliberately style their child labels separately.
+// Only cards registered with this contrast model inherit their button's colour.
+inline void sync_bound_card_text_color(lv_obj_t *btn) {
+  if (!btn) return;
+  for (uint32_t i = 0; i < lv_obj_get_event_count(btn); ++i) {
+    if (lv_event_dsc_get_cb(lv_obj_get_event_dsc(btn, i)) == card_text_contrast_event_cb) {
+      sync_card_checked_text_color(btn);
+      return;
+    }
+  }
+}
+
 inline void bind_card_text_contrast_events(lv_obj_t *btn) {
   lv_obj_remove_event_cb_with_user_data(btn, card_text_contrast_event_cb, nullptr);
   lv_obj_add_event_cb(btn, card_text_contrast_event_cb, LV_EVENT_ALL, nullptr);

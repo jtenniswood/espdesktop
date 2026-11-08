@@ -1,5 +1,7 @@
 #pragma once
 
+#include "button_grid_touch.h"
+
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
 
 #include <functional>
@@ -34,6 +36,7 @@ struct NavigationSubpageEntry {
   int slot = 0;
   int display_order = 0;
   std::string kind;
+  std::string title;
   lv_obj_t *screen = nullptr;
   lv_obj_t *back_button = nullptr;
   bool back_neutral_background = true;
@@ -151,6 +154,11 @@ inline bool navigation_return_home(lv_obj_t *main_page_obj) {
   }
   navigation_refresh_subpage_label();
   return true;
+}
+
+inline void navigation_consume_touch_press(lv_obj_t *button) {
+  // Share pointer consumption and contrast restoration with other buttons.
+  consume_button_touch_press(button);
 }
 
 inline bool navigation_return_from_special_page() {
@@ -314,9 +322,11 @@ inline void navigation_register_subpage(int slot, int display_order,
 }
 
 inline void navigation_register_special_page(lv_obj_t *screen,
-                                             lv_obj_t *main_page_obj) {
+                                             lv_obj_t *main_page_obj,
+                                             const std::string &title = "") {
   navigation_special_page_main_screen() = main_page_obj;
   navigation_register_subpage(NAVIGATION_SPECIAL_PAGE_SLOT, 0, "special", screen);
+  if (auto *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT)) entry->title = title;
   navigation_register_grid_screen_gesture(screen);
 }
 
@@ -396,13 +406,11 @@ inline std::string navigation_active_subpage_label() {
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
+  if (entry && entry->kind == "special") return entry->title;
   if (entry == nullptr || parent == nullptr) return "";
-  if (!parent->label.empty()) return parent->label;
-  // Unlabelled app folders retain their familiar application-name fallback.
-  if (entry->kind != "app_shortcuts") return "";
-  const ParsedCfg parent_config = parse_cfg(parent->config);
-  if (!companion_app_shortcuts_enabled(parent_config)) return "";
-  return companion_shortcut_catalog::app_label(parent_config.entity);
+  // The app's identity is shown on its return-home card instead of the clock bar.
+  if (entry->kind == "app_shortcuts") return "";
+  return parent->label;
 }
 
 inline void navigation_refresh_subpage_label() {
@@ -415,26 +423,19 @@ inline void navigation_refresh_subpage_label() {
     return;
   }
   set_clock_bar_companion_subpage_label(navigation_active_subpage_label());
-  const int slot = navigation_active_subpage_slot();
-  NavigationSubpageEntry *entry = navigation_find_slot(slot);
-  NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
-  if (!entry || entry->kind != "app_shortcuts" || !parent) {
-    image_card_set_clock_bar_companion_icon("", "", "");
-    return;
+  image_card_set_clock_bar_companion_icon("", "", "");
+}
+
+inline NavigationSubpageEntry *navigation_companion_subpage_for_action(
+    const std::string &action) {
+  if (action.empty()) return nullptr;
+  for (const auto &parent : navigation_home_targets()) {
+    const ParsedCfg config = parse_cfg(parent.config);
+    if (!companion_app_shortcuts_enabled(config) || config.entity != action) continue;
+    NavigationSubpageEntry *entry = navigation_find_slot(parent.slot);
+    if (entry && entry->screen) return entry;
   }
-  const ParsedCfg config = parse_cfg(parent->config);
-  if (!companion_app_shortcuts_enabled(config)) {
-    image_card_set_clock_bar_companion_icon("", "", "");
-    return;
-  }
-  const bool web_app = config.entity.rfind("webapp.", 0) == 0;
-  const std::string icon_name = config.icon.empty() || config.icon == "Auto"
-      ? (web_app ? "Web" : "Monitor") : config.icon;
-  const std::string icon_url = web_app
-      ? companion_web_app_icon_url(config.entity) : "";
-  image_card_set_clock_bar_companion_icon(
-      config.entity, icon_name, icon_url,
-      !web_app && companion_app_icon_enabled(config));
+  return nullptr;
 }
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(
@@ -454,6 +455,14 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
     companion_consume_subpage_return_request();
     return false;
   }
+  if (!companion_return_home_on_app_switch()) {
+    // Discard the matching automatic open too, so another app's page cannot
+    // replace the page the user chose to keep on screen.
+    const std::string requested = companion_pending_auto_subpage_action();
+    if (!requested.empty()) companion_consume_auto_subpage_action(requested);
+    companion_consume_subpage_return_request();
+    return false;
+  }
   // A panel tap on the app's home card can focus Finder while its action-result
   // callback is loading this very subpage. That focus change also raises the
   // usual "leave the current app subpage" request; consume it without returning
@@ -463,6 +472,9 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
     return false;
   }
   companion_consume_subpage_return_request();
+  // The following navigation check can load the destination directly. Loading
+  // Home first runs its screen/icon refresh work before the new page can draw.
+  if (navigation_companion_subpage_for_action(companion_pending_auto_subpage_action())) return false;
   return navigation_return_home(main_page_obj);
 }
 
@@ -472,20 +484,18 @@ inline bool navigation_open_companion_subpage_if_requested(
   if (alarm_display_takeover_active()) return false;
   const std::string requested = companion_pending_auto_subpage_action();
   if (requested.empty()) return false;
-  for (const auto &parent : navigation_home_targets()) {
-    const ParsedCfg parent_config = parse_cfg(parent.config);
-    if (!companion_app_shortcuts_enabled(parent_config) ||
-        parent_config.entity != requested) continue;
-    NavigationSubpageEntry *entry = navigation_find_slot(parent.slot);
-    if (entry == nullptr || entry->screen == nullptr) return false;
-    if (!companion_consume_auto_subpage_action(requested)) return false;
-    navigation_hide_modals();
-    if (lv_scr_act() != entry->screen) {
-      lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-    }
-    return true;
+  NavigationSubpageEntry *active = navigation_find_slot(navigation_active_subpage_slot());
+  if (!companion_return_home_on_app_switch() && active && active->kind == "app_shortcuts") {
+    companion_consume_auto_subpage_action(requested);
+    return false;
   }
-  return false;
+  NavigationSubpageEntry *entry = navigation_companion_subpage_for_action(requested);
+  if (entry == nullptr || !companion_consume_auto_subpage_action(requested)) return false;
+  navigation_hide_modals();
+  if (lv_scr_act() != entry->screen) {
+    lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  }
+  return true;
 }
 
 inline bool navigation_restore_subpage_slot(int slot) {

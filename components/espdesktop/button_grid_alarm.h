@@ -1234,8 +1234,7 @@ inline void alarm_control_create_arming_view(AlarmControlModalUi &ui,
   ui.arming_disarm_action.card = ctx;
   ui.arming_disarm_action.mode = "disarm";
   ui.arming_disarm_action.requires_pin = ctx ? alarm_action_requires_pin(ctx->options, "disarm") : true;
-  lv_obj_add_event_cb(ui.arming_disarm_btn, alarm_control_mode_cb, LV_EVENT_CLICKED,
-    &ui.arming_disarm_action);
+  bind_immediate_button_action(ui.arming_disarm_btn, alarm_control_mode_cb, &ui.arming_disarm_action);
 }
 
 inline bool alarm_control_can_open_modal(AlarmCardCtx *ctx) {
@@ -1317,7 +1316,7 @@ inline void alarm_control_open_modal(AlarmCardCtx *ctx) {
     ui.actions[i].card = ctx;
     ui.actions[i].mode = modes[i];
     ui.actions[i].requires_pin = alarm_action_requires_pin(ctx->options, ui.actions[i].mode);
-    lv_obj_add_event_cb(ui.mode_btn[i], alarm_control_mode_cb, LV_EVENT_CLICKED, &ui.actions[i]);
+    bind_immediate_button_action(ui.mode_btn[i], alarm_control_mode_cb, &ui.actions[i]);
   }
 
   alarm_control_create_arming_view(ui, ctx, layout, title_font, countdown_font, label_font);
@@ -1419,10 +1418,10 @@ inline AlarmCardCtx *create_alarm_card_context(
   apply_slot_text_width_compensation(back_slot, width_compensation_percent);
   lv_label_set_display_text(back_slot.icon_lbl, "\U000F0141");
   lv_label_set_display_text(back_slot.text_lbl, espdesktop_i18n("Back"));
-  lv_obj_add_event_cb(back_btn, [](lv_event_t *e) {
+  bind_immediate_button_action(back_btn, [](lv_event_t *e) {
     lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_user_data(e));
     if (target) lv_scr_load_anim(target, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-  }, LV_EVENT_CLICKED, main_page_obj);
+  }, main_page_obj);
 
   std::string modes[ALARM_MAX_ACTIONS];
   int mode_count = alarm_visible_action_modes(p.options, modes, ALARM_MAX_VISIBLE_ACTIONS);
@@ -1446,10 +1445,10 @@ inline AlarmCardCtx *create_alarm_card_context(
     action_ctx->card = ctx;
     action_ctx->mode = mode;
     action_ctx->requires_pin = alarm_action_requires_pin(p.options, mode);
-    lv_obj_add_event_cb(action_btn, [](lv_event_t *e) {
+    bind_immediate_button_action(action_btn, [](lv_event_t *e) {
       AlarmActionCtx *action = static_cast<AlarmActionCtx *>(lv_event_get_user_data(e));
       alarm_action_activate(action);
-    }, LV_EVENT_CLICKED, action_ctx);
+    }, action_ctx);
     page_pos++;
   }
   return ctx;

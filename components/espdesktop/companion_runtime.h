@@ -126,6 +126,8 @@ struct CompanionRuntimeSnapshot {
   std::vector<CompanionURLFocusTarget> url_focus_targets;
   std::vector<std::string> web_app_focus_ids;
   uint32_t url_focus_targets_generation{0};
+  bool application_highlight_known{false};
+  std::string application_highlight_id;
 };
 
 inline std::string companion_network_address(const CompanionRuntimeSnapshot &snapshot,
@@ -251,7 +253,12 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
             connected_, now_playing_, system_metrics_, url_focus_targets_, web_app_focus_ids_,
-            url_focus_targets_generation_};
+            url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
+  }
+
+  std::string highlighted_application() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return application_highlight_id_;
   }
 
   CompanionFocusTargetsState focus_targets_state() const {
@@ -331,10 +338,47 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
+  void set_auto_open_app_subpages(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    auto_open_app_subpages_ = enabled;
+    pending_auto_subpage_action_id_.clear();
+    subpage_return_requested.store(false);
+  }
+
+  void set_return_home_on_app_switch(bool enabled) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return_home_on_app_switch_ = enabled;
+  }
+
+  bool return_home_on_app_switch() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return return_home_on_app_switch_;
+  }
+
+  bool auto_open_app_subpages() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return auto_open_app_subpages_;
+  }
+
   bool set_focused_action(std::string action_id) {
     std::vector<std::string> identifiers;
     if (!action_id.empty()) identifiers.push_back(std::move(action_id));
     return set_focused_actions(std::move(identifiers));
+  }
+
+  void set_application_highlight(std::string application_id) {
+    std::lock_guard<std::mutex> lock(mutex_);
+    if (application_highlight_known_ && application_highlight_id_ == application_id) return;
+    application_highlight_known_ = true;
+    application_highlight_id_ = std::move(application_id);
+    // A fast visual report cannot leave the previous app's shortcuts enabled
+    // while its replacement's detailed focus query is still pending.
+    if (focused_action_id_ != application_highlight_id_) {
+      focused_action_id_.clear();
+      focused_action_ids_.clear();
+      pending_auto_subpage_action_id_.clear();
+    }
+    focus_refresh_requested_.store(true);
   }
 
   bool set_focused_actions(std::vector<std::string> identifiers) {
@@ -359,14 +403,15 @@ class CompanionRuntimeService {
       return application_id;
     }();
     const std::string previous_auto_subpage_id = focused_auto_subpage_id_;
-    const bool should_return = connected_ && !previous_auto_subpage_id.empty() &&
+    if (focused_action_ids_ == accepted && previous_auto_subpage_id == auto_subpage_id) return false;
+    const bool should_return = auto_open_app_subpages_ && connected_ && !previous_auto_subpage_id.empty() &&
       auto_subpage_id != previous_auto_subpage_id;
-    if (accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
+    if (!auto_open_app_subpages_ || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
     else if (previous_auto_subpage_id != auto_subpage_id) pending_auto_subpage_action_id_ = auto_subpage_id;
     focused_action_ids_ = std::move(accepted);
     focused_action_id_ = parent_id(focused_action_ids_);
     focused_auto_subpage_id_ = auto_subpage_id;
-    request_refresh_();
+    focus_refresh_requested_.store(true);
     return should_return;
   }
 
@@ -391,6 +436,8 @@ class CompanionRuntimeService {
       values_.clear();
       focused_action_id_.clear();
       focused_action_ids_.clear();
+      application_highlight_known_ = false;
+      application_highlight_id_.clear();
       focused_auto_subpage_id_.clear();
       pending_auto_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
@@ -403,6 +450,8 @@ class CompanionRuntimeService {
 
   void request_refresh() { request_refresh_(); }
   bool consume_refresh_request() { return refresh_requested_.exchange(false); }
+  bool consume_focus_refresh_request() { return focus_refresh_requested_.exchange(false); }
+  bool focus_refresh_pending() const { return focus_refresh_requested_.load(); }
   std::atomic<bool> &refresh_flag() { return refresh_requested_; }
 
  private:
@@ -410,6 +459,8 @@ class CompanionRuntimeService {
 
   mutable std::mutex mutex_;
   std::vector<CompanionAction> actions_;
+  bool application_highlight_known_{false};
+  std::string application_highlight_id_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
   std::vector<std::string> web_app_focus_ids_;
@@ -417,6 +468,8 @@ class CompanionRuntimeService {
   std::vector<CompanionValue> values_;
   std::string focused_action_id_;
   std::vector<std::string> focused_action_ids_;
+  bool auto_open_app_subpages_ = true;
+  bool return_home_on_app_switch_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
   bool keyboard_actions_supported_{false};
@@ -425,4 +478,5 @@ class CompanionRuntimeService {
   CompanionNowPlayingSnapshot now_playing_;
   CompanionSystemMetricsSnapshot system_metrics_;
   std::atomic<bool> refresh_requested_{false};
+  std::atomic<bool> focus_refresh_requested_{false};
 };

@@ -20,8 +20,9 @@ protocol CompanionSessionResources: AnyObject {
     func folderActions() -> [ApprovedFolder]
     func launchableApps() -> [LaunchableApp]
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
-    func focusedCompanionActionIdentifier() -> String
-    func focusedCompanionActionIdentifiers() -> [String]
+    func focusedCompanionActionIdentifier() async -> String
+    func immediateFocusedApplicationIdentifier() -> String?
+    func focusedCompanionActionIdentifiers() async -> [String]
     func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String])
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func configuredWebAppIDs() -> [String]
@@ -55,11 +56,12 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func configuredWebAppIDs() -> [String] { [] }
-    func focusedCompanionActionIdentifiers() -> [String] {
-        let identifier = focusedCompanionActionIdentifier()
+    func focusedCompanionActionIdentifiers() async -> [String] {
+        let identifier = await focusedCompanionActionIdentifier()
         return identifier.isEmpty ? [] : [identifier]
     }
     func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String]) {}

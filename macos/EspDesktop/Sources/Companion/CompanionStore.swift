@@ -148,6 +148,8 @@ final class CompanionStore: NSObject, ObservableObject {
     private var latestNowPlayingSnapshot: CompanionNowPlayingSnapshot?
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
     private var mediaControlTimer: Timer?
+    private var focusTimer: Timer?
+    private var activatedApplicationPID: pid_t?
     private var lastMediaControlValues: [String: Int] = [:]
     private var companionURLFocusTargets: [(id: String, url: URL)] = []
     private var companionWebAppFocusIDs: Set<String> = []
@@ -429,11 +431,39 @@ final class CompanionStore: NSObject, ObservableObject {
         return identifier
     }
 
-    func focusedCompanionActionIdentifier() -> String {
-        focusedCompanionActionIdentifiers().first ?? ""
+    func focusedCompanionActionIdentifier() async -> String {
+        await focusedCompanionActionIdentifiers().first ?? ""
     }
 
-    func focusedCompanionActionIdentifiers() -> [String] {
+    func immediateFocusedApplicationIdentifier() -> String? {
+        // NSWorkspace has already confirmed foreground activation. Do not put
+        // window enumeration or browser/Finder AppleScript on the colour path.
+        let application = NSWorkspace.shared.frontmostApplication
+        if let expected = activatedApplicationPID, application?.processIdentifier != expected { return nil }
+        guard let identifier = application?.bundleIdentifier,
+              approvedApplicationIdentifiers.contains(identifier) else { return "" }
+        return identifier
+    }
+
+    func focusedCompanionActionIdentifiers() async -> [String] {
+        // Activation notifications can arrive before NSWorkspace updates its
+        // frontmostApplication cache. Never confirm the previous app as current.
+        let expectedPID = activatedApplicationPID
+        let ready = await CompanionFocusQuery.waitForApplication(
+            isExpectedApplication: {
+                expectedPID == nil || NSWorkspace.shared.frontmostApplication?.processIdentifier == expectedPID
+            }
+        )
+        guard !Task.isCancelled else { return [] }
+        if activatedApplicationPID == expectedPID { activatedApplicationPID = nil }
+        guard ready else { return [] }
+        return await CompanionFocusQuery.readStable(
+            currentApplication: { NSWorkspace.shared.frontmostApplication?.processIdentifier },
+            query: { await self.queryFocusedCompanionActionIdentifiers() }
+        )
+    }
+
+    private func queryFocusedCompanionActionIdentifiers() async -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
@@ -441,7 +471,8 @@ final class CompanionStore: NSObject, ObservableObject {
             guard !companionWebAppFocusIDs.isEmpty || !companionURLFocusTargets.isEmpty else {
                 return browser.isEmpty ? [] : [browser]
             }
-            guard let url = activeBrowserTabURL(bundleIdentifier: bundleIdentifier) else {
+            let activeURL = await activeBrowserTabURL(bundleIdentifier: bundleIdentifier)
+            guard let url = activeURL else {
                 return browser.isEmpty ? [] : [browser]
             }
             let catalogues = remoteCatalogueStore.value
@@ -454,12 +485,18 @@ final class CompanionStore: NSObject, ObservableObject {
             return matches
         }
         if bundleIdentifier == "com.apple.finder" {
-            let folder = focusedFinderFolderActionIdentifier()
+            let folder = await focusedFinderFolderActionIdentifier()
             let result = folder.isEmpty ? focusedLaunchableApplicationIdentifier() : folder
             return result.isEmpty ? [] : [result]
         }
-        guard CompanionWindowDetector.hasVisibleWindow(for: application),
-              approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
+        guard approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
+        let visible = await CompanionFocusQuery.waitForVisibleWindow(
+            isCurrentApplication: {
+                NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier
+            },
+            hasVisibleWindow: { CompanionWindowDetector.hasVisibleWindow(for: application) }
+        )
+        guard visible, approvedApplicationIdentifiers.contains(bundleIdentifier) else { return [] }
         return [bundleIdentifier]
     }
 
@@ -469,33 +506,33 @@ final class CompanionStore: NSObject, ObservableObject {
         if isConnected { connection.publishFocusedAction() }
     }
 
-    private func activeBrowserTabURL(bundleIdentifier: String) -> URL? {
+    private func activeBrowserTabURL(bundleIdentifier: String) async -> URL? {
         let application = bundleIdentifier == "com.apple.Safari" ? "Safari" : "Google Chrome"
+        let tab = bundleIdentifier == "com.apple.Safari" ? "current tab" : "active tab"
         let source = """
         tell application "\(application)"
             try
                 if (count of windows) is 0 then return ""
-                return URL of active tab of front window
+                return URL of \(tab) of front window
             on error
                 return ""
             end try
         end tell
         """
-        var error: NSDictionary?
-        guard let descriptor = NSAppleScript(source: source)?.executeAndReturnError(&error),
-              let rawURL = descriptor.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+        guard let rawURL = await CompanionFocusScript.read(source),
+              NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier,
               let url = URL(string: rawURL),
               (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
         return url
     }
 
-    private func focusedFinderFolderActionIdentifier() -> String {
+    private func focusedFinderFolderActionIdentifier() async -> String {
         guard !approvedFolders.isEmpty else { return "" }
-        guard let path = focusedFinderFolderPath() else { return "" }
+        guard let path = await focusedFinderFolderPath() else { return "" }
         return ApprovedFolder.actionIdentifier(forFocusedPath: path, in: approvedFolders)
     }
 
-    private func focusedFinderFolderPath() -> String? {
+    private func focusedFinderFolderPath() async -> String? {
         let source = """
         tell application "Finder"
             try
@@ -506,15 +543,22 @@ final class CompanionStore: NSObject, ObservableObject {
             end try
         end tell
         """
-        var error: NSDictionary?
-        guard let descriptor = NSAppleScript(source: source)?.executeAndReturnError(&error),
-              let path = descriptor.stringValue?.trimmingCharacters(in: .whitespacesAndNewlines),
+        guard let path = await CompanionFocusScript.read(source),
+              NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder",
               !path.isEmpty else { return nil }
         return path
     }
 
-    @objc private func frontmostApplicationDidChange(_: Notification) {
-        if isConnected { connection.publishFocusedAction() }
+    @objc private func frontmostApplicationDidChange(_ notification: Notification) {
+        guard isConnected else { return }
+        let application = notification.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication
+        activatedApplicationPID = application?.processIdentifier
+        let activated = application?.bundleIdentifier
+        let approved = activated.map { approvedApplicationIdentifiers.contains($0) ? $0 : "" }
+        // Use the activation event itself rather than a possibly older cached
+        // frontmostApplication value while this notification is being delivered.
+        connection.publishFocusedAction(invalidatePendingQuery: true,
+                                        activatedApplicationIdentifier: approved)
     }
 
     @objc private func systemTimeZoneDidChange(_: Notification) {
@@ -679,6 +723,9 @@ final class CompanionStore: NSObject, ObservableObject {
         } else {
             mediaControlTimer?.invalidate()
             mediaControlTimer = nil
+            focusTimer?.invalidate()
+            focusTimer = nil
+            activatedApplicationPID = nil
             lastMediaControlValues = [:]
         }
     }
@@ -740,6 +787,19 @@ final class CompanionStore: NSObject, ObservableObject {
     }
     func launch(bundleIdentifier: String) async -> Bool {
         guard let app = launchableApps().first(where: { $0.bundleIdentifier == bundleIdentifier }) else { return false }
+        // Approval still applies when the app is already open. Avoid reopening
+        // the current app (which can also create an unwanted extra window).
+        if let frontmost = NSWorkspace.shared.frontmostApplication,
+           frontmost.bundleIdentifier == bundleIdentifier,
+           CompanionWindowDetector.hasVisibleWindow(for: frontmost) {
+            return true
+        }
+        if let running = NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier)
+            .first(where: { !$0.isTerminated && !$0.isHidden }),
+           CompanionWindowDetector.hasVisibleWindow(for: running),
+           running.activate(options: [.activateIgnoringOtherApps]) {
+            return await waitForApplicationActivation(bundleIdentifier, name: app.name)
+        }
         let configuration = NSWorkspace.OpenConfiguration()
         configuration.activates = true
         let runningApplication: NSRunningApplication? = await withCheckedContinuation { continuation in
@@ -749,13 +809,18 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         guard let runningApplication else { return false }
         _ = runningApplication.activate(options: [.activateIgnoringOtherApps])
-        for _ in 0..<30 {
+        return await waitForApplicationActivation(bundleIdentifier, name: app.name)
+    }
+
+    private func waitForApplicationActivation(_ bundleIdentifier: String, name: String) async -> Bool {
+        for _ in 0..<150 {
+            guard !Task.isCancelled else { return false }
             if NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier {
                 return true
             }
-            try? await Task.sleep(nanoseconds: 100_000_000)
+            try? await Task.sleep(nanoseconds: 20_000_000)
         }
-        updateStatus("\(app.name) did not become active")
+        updateStatus("\(name) did not become active")
         return false
     }
 
@@ -774,8 +839,10 @@ final class CompanionStore: NSObject, ObservableObject {
               companionWebAppFocusIDs.contains(String(actionIdentifier.dropFirst("webapp.".count))) else {
             return false
         }
-        for _ in 0..<40 {
-            let focusedActionIdentifiers = focusedCompanionActionIdentifiers()
+        let deadline = ContinuousClock.now + .seconds(6)
+        while ContinuousClock.now < deadline {
+            guard !Task.isCancelled else { return false }
+            let focusedActionIdentifiers = await focusedCompanionActionIdentifiers()
             if Self.webAppActivationObserved(
                 actionIdentifier: actionIdentifier,
                 focusedActionIdentifiers: focusedActionIdentifiers
@@ -894,9 +961,17 @@ final class CompanionStore: NSObject, ObservableObject {
             mediaControlTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
                     self?.publishMediaControlValues()
-                    self?.connection.publishFocusedAction()
                 }
             }
+        }
+        if focusTimer == nil {
+            // Tabs and Finder folders do not generate app-activation events.
+            // Keep their polling independent of the slower audio-level timer.
+            let timer = Timer(timeInterval: 0.2, repeats: true) { [weak self] _ in
+                Task { @MainActor [weak self] in self?.connection.publishFocusedAction() }
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            focusTimer = timer
         }
         publishMediaControlValues(force: true)
         connection.publishFocusedAction()

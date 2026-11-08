@@ -222,6 +222,7 @@ struct CompanionSettings: View {
     @ObservedObject var store: CompanionStore
     @StateObject private var discovery = CompanionDiscovery()
     @State private var manualAddress = false
+    @State private var customizingApplications: Bool?
     @State private var selectedDisplayID: String?
     @State private var pairingCode = ""
     @State private var confirmingForget = false
@@ -708,43 +709,54 @@ struct CompanionSettings: View {
         store.pair(code: pairingCode)
     }
 
+    private var showingApplicationCustomization: Bool {
+        customizingApplications ?? (!store.availableApps.isEmpty && !store.allApplicationsApproved)
+    }
+
     private var applicationsPage: some View {
         Form {
             Section {
-                if store.availableApps.isEmpty {
+                Toggle("All available apps", isOn: Binding(
+                    get: { !showingApplicationCustomization },
+                    set: { allApps in
+                        customizingApplications = !allApps
+                        store.setAllApplications(approved: allApps)
+                    }
+                ))
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                .disabled(!store.applicationCatalogueReady)
+            } header: {
+                HStack(spacing: 6) {
+                    Text("Apps")
+                    CompanionInfoButton(
+                        title: "Apps",
+                        information: "All available apps includes every installed app. Switch it off to start with no apps selected, then switch on the apps you want to make available for app shortcuts on your display."
+                    )
+                }
+            }
+
+            if store.availableApps.isEmpty {
+                Section {
                     emptyState("No Applications Found", symbol: "app.dashed",
                                detail: "Install applications in your Applications folder, then refresh this list.") {
                         Button("Refresh Applications") { store.refreshApplications() }
                     }
-                } else {
+                }
+            } else if showingApplicationCustomization {
+                Section {
                     ForEach(store.availableApps) { application in
                         Toggle(isOn: Binding(
                             get: { store.applicationIsApproved(application) },
-                            set: { store.setApplication(application, approved: $0) }
+                            set: {
+                                customizingApplications = true
+                                store.setApplication(application, approved: $0)
+                            }
                         )) {
                             Text(application.name)
                         }
                         .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                         .padding(.vertical, 2)
                     }
-                }
-            } header: {
-                HStack(spacing: 6) {
-                    Text("Apps")
-                    CompanionInfoButton(
-                        title: "Apps",
-                        information: "Choose which Mac apps you can launch from your display. Use the switch beside Apps to select or deselect all apps. Enabled apps are available for app shortcuts; switch an app off to hide it from the display."
-                    )
-                    Spacer()
-                    Toggle("Select all apps", isOn: Binding(
-                        get: { store.allApplicationsApproved },
-                        set: { store.setAllApplications(approved: $0) }
-                    ))
-                    .labelsHidden()
-                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                    .controlSize(.mini)
-                    .disabled(store.availableApps.isEmpty)
-                    .help("Select or deselect all apps")
                 }
             }
         }

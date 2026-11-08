@@ -700,54 +700,19 @@ inline void send_media_playlist_action(const ParsedCfg &p) {
   }
 }
 
-inline bool media_fast_press_mode(const std::string &mode) {
-  return mode == "previous" || mode == "next";
-}
-
-inline bool *media_fast_press_slots() {
-  static bool slots[MAX_GRID_SLOTS + 1] = {};
-  return slots;
-}
-
-inline bool media_fast_press_consume(int slot_num) {
-  if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return false;
-  bool *slots = media_fast_press_slots();
-  bool sent = slots[slot_num];
-  slots[slot_num] = false;
-  return sent;
-}
-
-inline bool button_press_opens_modal(const ParsedCfg &config, lv_obj_t *button) {
-  const auto context = card_runtime_context(config);
-  if (card_runtime_main_click_opens_modal(context)) return true;
-
-  using Driver = espdesktop::card_runtime::CardDriverId;
-  if (context.runtime.driver == Driver::ACTION) {
-    return action_script_confirmation_enabled(config);
-  }
-  if (context.runtime.driver == Driver::TOGGLE && button &&
-      !is_button_entity(config.entity)) {
-    return switch_confirmation_required(
-      config, lv_obj_has_state(button, LV_STATE_CHECKED));
-  }
-  return false;
-}
+inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num,
+                                          lv_obj_t *button);
+inline void handle_button_click(const std::string &cfg, int slot_num,
+                                lv_obj_t *btn_obj);
 
 inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (espdesktop::screensaver_pin().locked()) return;
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
   ParsedCfg p = parse_cfg(cfg);
-  if (btn_obj && button_press_opens_modal(p, btn_obj)) {
-    // The modal replaces this card on release. Clearing the state inside the
-    // press event avoids scheduling a pointless pressed-card repaint first.
-    lv_obj_clear_state(btn_obj, LV_STATE_PRESSED);
-  }
-  if (p.type != "media") return;
-  std::string mode = media_card_mode(p.sensor);
-  if (!media_fast_press_mode(mode) || p.entity.empty()) return;
-  media_fast_press_slots()[slot_num] = true;
-  send_media_playback_action(p.entity, mode);
+  if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
+  consume_button_touch_press(btn_obj);
+  handle_button_click(cfg, slot_num, btn_obj);
 }
 
 // ── Button click dispatch ─────────────────────────────────────────────
@@ -819,7 +784,6 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (espdesktop::screensaver_pin().locked()) return;
   (void) btn_obj;
-  if (media_fast_press_consume(slot_num)) return;
   ParsedCfg p = parse_cfg(cfg);
   const auto context = card_runtime_context(p);
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",

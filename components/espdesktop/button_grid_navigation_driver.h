@@ -267,3 +267,21 @@ inline bool navigation_driver_handle_main_click(
 }
 
 }  // namespace espdesktop::cards
+
+inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num,
+                                          lv_obj_t *button) {
+  const auto context = card_runtime_context(config);
+  const bool subpage = espdesktop::cards::navigation_driver_matches(context);
+  const bool app_subpage = companion_app_shortcuts_enabled(config) &&
+    (companion_auto_open_app_subpages() || companion_action_active(config.entity));
+  if (!button || (!subpage && !app_subpage)) return false;
+  auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+  if (!screen || !lv_obj_is_valid(screen)) return false;
+  navigation_consume_touch_press(button);
+  if (subpage) {
+    espdesktop::cards::navigation_driver_handle_main_click(context, config, button);
+  } else {
+    espdesktop::cards::basic_action_driver_handle_main_click(context, config, slot_num, button);
+  }
+  return true;
+}

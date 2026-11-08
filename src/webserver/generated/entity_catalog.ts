@@ -165,6 +165,33 @@ export const ENTITY_CATALOG = {
         "temperature_degree_symbol_enabled"
       ]
     },
+    "companion_auto_open_app_subpages": {
+      "domain": "switch",
+      "name": "Companion: Auto Open App Subpages",
+      "objectIds": [
+        "companion__auto_open_app_subpages",
+        "companion_auto_open_app_subpages",
+        "companion_auto_open_app_subpages_enabled"
+      ]
+    },
+    "companion_return_home_on_app_switch": {
+      "domain": "switch",
+      "name": "Companion: Return Home On App Switch",
+      "objectIds": [
+        "companion__return_home_on_app_switch",
+        "companion_return_home_on_app_switch",
+        "companion_return_home_on_app_switch_enabled"
+      ]
+    },
+    "screen_subpage_title_bar": {
+      "domain": "switch",
+      "name": "Screen: Subpage Title Bar",
+      "objectIds": [
+        "screen__subpage_title_bar",
+        "screen_subpage_title_bar",
+        "subpage_title_bar_enabled"
+      ]
+    },
     "screen_subpage_chevron": {
       "domain": "switch",
       "name": "Screen: Subpage Chevron",
@@ -858,6 +885,9 @@ export const ENTITY_CATALOG = {
       "screen_network_status_icon",
       "screen_clock_bar_night_mode",
       "screen_temperature_degree_symbol",
+      "companion_auto_open_app_subpages",
+      "companion_return_home_on_app_switch",
+      "screen_subpage_title_bar",
       "screen_subpage_chevron",
       "screen_temperature_unit",
       "indoor_temp_entity",

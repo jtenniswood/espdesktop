@@ -88,7 +88,7 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(store, /NSWorkspace\.shared\.icon\(forFile: url\.path\)/);
     assert.match(app, /ForEach\(store\.availableApps\) \{ application in/);
     assert.match(app, /get: \{ store\.applicationIsApproved\(application\) \}/);
-    assert.match(app, /set: \{ store\.setApplication\(application, approved: \$0\) \}/);
+    assert.match(app, /set: \{\s*customizingApplications = true\s*store\.setApplication\(application, approved: \$0\)\s*\}/);
     assert.equal((app.match(/isAvailable: store\.supportsLaunchAtLogin/g) || []).length, 2);
     assert.match(app, /\.disabled\(!isAvailable\)/);
   });

@@ -3380,7 +3380,8 @@ inline void image_card_refresh_theme(uint32_t fit_background_color) {
 }
 
 inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p,
-                                                   const GridConfig &cfg) {
+                                                   const GridConfig &cfg,
+                                                   bool large_icon = false) {
   if (p.type != "companion" || p.entity.rfind("webapp.", 0) != 0) return false;
   const std::string source = companion_web_app_icon_url(p.entity);
   if (source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return false;
@@ -3399,7 +3400,10 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
   const bool icon_with_title = cfg_option_token_present(p.options, "webapp_icon_title");
   const int button_width = static_cast<int>(lv_obj_get_width(s.btn));
   const int button_height = static_cast<int>(lv_obj_get_height(s.btn));
-  const int icon_size = icon_with_title
+  const int icon_size = large_icon
+    ? std::max(1, std::min(static_cast<int>(lv_obj_get_content_width(s.btn)),
+                           static_cast<int>(lv_obj_get_content_height(s.btn))))
+    : icon_with_title
     ? std::max(24, std::min(static_cast<int>(button_width * 0.55f),
                             static_cast<int>(button_height * 0.50f)))
     : std::max(24, std::min(48, static_cast<int>(button_height * 0.42f)));
@@ -3409,6 +3413,14 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
   lv_obj_align(widget, icon_with_title ? LV_ALIGN_TOP_LEFT : LV_ALIGN_CENTER,
                icon_with_title ? padding_left : 0,
                icon_with_title ? padding_top : (s.text_lbl ? -4 : 0));
+  if (large_icon) {
+    // Percent sizing follows grid resizing without allocating a second image buffer.
+    // Contain preserves the artwork's aspect ratio in wide or tall return cards.
+    lv_obj_set_size(widget, lv_pct(100), lv_pct(100));
+    lv_obj_align(widget, LV_ALIGN_TOP_LEFT, 0, 0);
+    image_card_apply_tile_image_align(widget, true);
+    if (s.text_lbl) lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
+  }
   if (icon_with_title && s.text_lbl) {
     const lv_coord_t padding_right = lv_obj_get_style_pad_right(s.btn, LV_PART_MAIN);
     const lv_coord_t padding_bottom = lv_obj_get_style_pad_bottom(s.btn, LV_PART_MAIN);
@@ -3793,10 +3805,10 @@ inline bool image_card_bind_runtime(BtnSlot &s, const ParsedCfg &p,
   lv_obj_set_user_data(s.btn, ctx);
   lv_obj_add_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
   if (bind_click_handler) {
-    lv_obj_add_event_cb(s.btn, [](lv_event_t *e) {
+    bind_immediate_button_action(s.btn, [](lv_event_t *e) {
       ImageCardCtx *ctx = static_cast<ImageCardCtx *>(lv_event_get_user_data(e));
       image_card_open_modal(ctx);
-    }, LV_EVENT_CLICKED, ctx);
+    }, ctx);
   }
 
   const std::string image_card_entity_id = p.entity;

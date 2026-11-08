@@ -16,6 +16,7 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
+  splitSubpageConfigChunks,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = freshWebOutputDir();
@@ -113,36 +114,17 @@ function nativeConfigState(slug) {
   };
 }
 
-async function assertSubpageTitleTypography(page, label, nativeState) {
+async function assertSubpageBackCard(page, label, nativeState) {
   await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
-  await page.waitForSelector(".sp-clockbar-subpage-title");
-  const typography = await page.evaluate(() => {
-    const title = document.querySelector(".sp-clockbar-subpage-title");
-    const cardLabel = document.querySelector(".sp-main .sp-btn-label");
-    const titleStyle = getComputedStyle(title);
-    const cardStyle = getComputedStyle(cardLabel);
-    return {
-      title: {
-        fontFamily: titleStyle.fontFamily,
-        fontSize: titleStyle.fontSize,
-        fontWeight: titleStyle.fontWeight,
-        lineHeight: titleStyle.lineHeight,
-      },
-      card: {
-        fontFamily: cardStyle.fontFamily,
-        fontSize: cardStyle.fontSize,
-        fontWeight: cardStyle.fontWeight,
-        lineHeight: cardStyle.lineHeight,
-      },
-    };
-  });
-  assert.deepStrictEqual(
-    typography.title,
-    typography.card,
-    `${label}: subpage title uses the device card-label typography`,
-  );
+  await page.waitForSelector(".sp-back-btn");
+  assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")),
+    `${label}: subpages have no clock bar`);
+  assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0,
+    `${label}: subpages have no top label`);
+  assert.strictEqual(await page.locator(".sp-back-btn .mdi-chevron-left").count(), 1,
+    `${label}: regular subpages retain their Back arrow`);
   const initialColor = await page.locator(".sp-back-btn").evaluate(el => getComputedStyle(el).backgroundColor);
-  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 12, y: 12 } });
+  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 2, y: (await page.locator(".sp-back-btn").boundingBox()).height / 2 } });
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
   await page.getByRole("button", { name: "Set colour to yellow", exact: true }).click();
@@ -159,7 +141,7 @@ async function assertSubpageTitleTypography(page, label, nativeState) {
   await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
   assert.strictEqual(await page.locator(".sp-back-btn").evaluate(el => getComputedStyle(el).backgroundColor),
     "rgb(238, 209, 70)", `${label}: reopening subpage preserves its back colour`);
-  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 12, y: 12 } });
+  await page.locator(".sp-back-btn").click({ position: { x: (await page.locator(".sp-back-btn").boundingBox()).width - 2, y: (await page.locator(".sp-back-btn").boundingBox()).height / 2 } });
   await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
   const custom = page.locator(".sp-settings-modal").getByLabel("Choose custom colour", { exact: true });
@@ -702,6 +684,10 @@ function nativeDocumentEvents(document) {
   });
   Object.entries(document.subpages).forEach(([slot, state]) => {
     events.push({ id: `text-subpage_${slot}_config`, state });
+  });
+  const specialPageChunks = splitSubpageConfigChunks(document.settings.special_page || "", 8, 255) || [];
+  ["", "_ext", "_ext_2", "_ext_3", "_ext_4", "_ext_5", "_ext_6", "_ext_7"].forEach((suffix, index) => {
+    events.push({ id: `text-special_page_config${suffix}`, state: specialPageChunks[index] || "" });
   });
   return events;
 }
@@ -1518,11 +1504,10 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
       true,
       `${label}: WiFi automatic updates should be enabled by default`,
     );
-    assert.strictEqual(
+    assert(
       await firmwareCard
         .locator(".sp-fw-overview .sp-fw-actions")
-        .evaluate((node) => getComputedStyle(node).justifyContent),
-      "flex-end",
+        .evaluate((node) => ["flex-end", "flow-end"].includes(getComputedStyle(node).justifyContent)),
       `${label}: firmware actions should align with the version values`,
     );
     await page.evaluate(() => window.__seedEspState([{
@@ -2785,6 +2770,52 @@ async function assertNewMediaCardDefaults(page, posts, label) {
   );
 }
 
+async function assertWebAppReturnIcon(browser, testCase) {
+  if (!testCase.companionSupported) return;
+  const { COMPANION_WEB_APPS } = loadTypeScriptModule("src/webserver/generated/web_apps.ts");
+  const webApp = COMPANION_WEB_APPS.find(app => app.id === "google-docs");
+  const artwork = fs.readFileSync(path.join(ROOT, "product/v2/web_apps/icons/google-docs.png"));
+  for (const native of [false, true]) {
+    const fixture = nativeConfigState(testCase.slug);
+    fixture.document.buttons[2] = "webapp.google-docs;Google Docs;Web;Auto;;;companion;;app_shortcuts";
+    fixture.document.subpages[2] = "~B,1|companion,shortcut.command+b,Bold,Format Bold,Auto";
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState: {} });
+    let iconRequests = 0, nativeWebAppRequests = 0;
+    await context.route(webApp.icon, route => {
+      ++iconRequests;
+      return route.fulfill({ status: 200, contentType: "image/png", body: artwork });
+    });
+    await context.route("**/companion/app-icon?*", route => {
+      if (new URL(route.request().url()).searchParams.get("appId")?.startsWith("webapp.")) ++nativeWebAppRequests;
+      return route.fulfill({ status: 404, body: "" });
+    });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, fixture);
+      await page.locator('.sp-main [data-slot="2"] .sp-subpage-badge').dispatchEvent("click");
+      const back = page.locator(".sp-back-btn");
+      const image = back.locator("img.sp-back-hit");
+      await image.waitFor();
+      assert.strictEqual(await image.getAttribute("src"), webApp.icon, "Web App Back card uses its URL artwork");
+      await page.waitForFunction(() => document.querySelector(".sp-back-btn img")?.naturalWidth > 0);
+      const cardBounds = await back.boundingBox(), iconBounds = await image.boundingBox();
+      assert(iconBounds.width > 30 && iconBounds.x >= cardBounds.x - 1 && iconBounds.y >= cardBounds.y - 1 &&
+        iconBounds.x + iconBounds.width <= cardBounds.x + cardBounds.width + 1 &&
+        iconBounds.y + iconBounds.height <= cardBounds.y + cardBounds.height + 1, "Web App artwork fits its return card");
+      assert(!(await back.locator(".sp-btn-label").isVisible()), "Web App return card uses the large icon without its label");
+      assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0);
+      await back.click();
+      await page.locator('.sp-main [data-slot="2"] .sp-subpage-badge').waitFor();
+      assert(iconRequests > 0 && nativeWebAppRequests === 0, "Web Apps use the URL pipeline, never the macOS icon endpoint");
+    } finally { await context.close(); }
+  }
+  console.log(`${testCase.name}: Web App return artwork and home action passed for native and legacy configuration.`);
+}
+
 async function assertAutomaticAppIcons(browser, testCase) {
   if (!testCase.companionSupported) return;
   for (const native of [false, true]) {
@@ -2814,7 +2845,7 @@ async function assertAutomaticAppIcons(browser, testCase) {
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
     async function chooseSize(slot, size) {
       await card(slot).click({ button: "right" });
-      const trigger = page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true });
+      const trigger = page.locator(".sp-ctx-menu").getByRole("button", { name: "App Icon Size", exact: true });
       await trigger.click();
       const submenu = page.locator(".sp-ctx-submenu").filter({ has: page.getByRole("button", { name: "Use Default", exact: true }) });
       assert.deepStrictEqual(await submenu.getByRole("button").allTextContents().then(labels => labels.map(label => label.replace("✓", "").trim())),
@@ -2882,6 +2913,18 @@ async function assertAutomaticAppIcons(browser, testCase) {
       // Use the same menu inside a subpage and verify the complete subpage record.
       await card(2).locator(".sp-subpage-badge").click();
       await page.locator(".sp-back-btn").waitFor();
+      const backAppIcon = page.locator(".sp-back-btn img.sp-back-hit");
+      await backAppIcon.waitFor();
+      assert.strictEqual(await page.locator(".sp-back-btn").getAttribute("data-icon-size"), "large");
+      assert(!(await page.locator(".sp-back-btn .sp-btn-label").isVisible()), "app Back card hides its label");
+      assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0,
+        "app subpage identity moves from the clock bar to the return-home card");
+      if (process.env.ESPDESKTOP_APP_BACK_SCREENSHOT) {
+        await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_APP_BACK_SCREENSHOT });
+      }
+      await page.locator(".sp-back-btn").click();
+      await card(2).locator(".sp-subpage-badge").waitFor();
+      await card(2).locator(".sp-subpage-badge").click();
       await chooseSize(1, "Large");
       const subpageSaved = native ? fixture.document.subpages[2] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_2")).map(([,value]) => value).join("");
@@ -6162,7 +6205,7 @@ async function assertNativeProfileJourney(browser, testCase) {
     if (testCase.exerciseInteractions) await assertWifiSharingHidesHomeAssistantControls(browser, testCase);
 
     await assertInlineCardNames(page, nativeState, testCase.name);
-    await assertSubpageTitleTypography(page, testCase.name, nativeState);
+    await assertSubpageBackCard(page, testCase.name, nativeState);
 
     const card = page.locator('.sp-main [data-slot="1"]');
     assert(
@@ -7089,6 +7132,7 @@ async function runCase(browser, testCase) {
     if (testCase.exerciseInteractions) {
       await assertContextColourPicker(browser, testCase);
       await assertAutomaticAppIcons(browser, testCase);
+      await assertWebAppReturnIcon(browser, testCase);
       await assertCardActiveColourControls(page, posts, testCase.name);
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
@@ -7822,8 +7866,8 @@ async function assertCardCurveSettings(browser, testCase) {
       const appearance = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-card-curve") });
       if (!(await page.locator("#sp-set-card-curve").isVisible())) await appearance.locator(".card-header").click();
       await page.locator("#sp-set-card-curve").waitFor({ state: "visible" });
-      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 3)),
-        ["Active Colour", "Card Style", "Theme"], "corner settings must own only the three non-wallpaper Appearance panels");
+      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 4)),
+        ["Active Colour", "Card Style", "App Subpages", "Theme"], "Appearance settings include the global App Subpages panel");
       assert.strictEqual(await page.locator("#sp-set-wallpaper, #sp-set-card-transparency, #sp-set-active-card-transparency").count(), 0,
         "wallpaper controls belong exclusively to the wallpaper PR");
     };
@@ -8229,6 +8273,17 @@ async function assertWeatherWidthScaling(browser) {
   } finally { await page.close(); }
 }
 
+// Check the visible layout: Chromium may serialize flex-start as flow-start.
+async function assertForecastLeftAlignment(day) {
+  const offsets = await day.evaluate(element => {
+    const left = element.getBoundingClientRect().left;
+    return Array.from(element.querySelectorAll(':scope > span'))
+      .map(span => span.getBoundingClientRect().left - left);
+  });
+  assert(offsets.length > 0 && offsets.every(offset => Math.abs(offset) < 1),
+    `Forecast icon and labels must align to the left edge: ${offsets}`);
+}
+
 async function assertS3ForecastEditorLayout(browser) {
   const slug = 'guition-esp32-s3-4848s040';
   const nativeState = nativeConfigState(slug);
@@ -8248,7 +8303,7 @@ async function assertS3ForecastEditorLayout(browser) {
       await page.setViewportSize({ width, height: 1000 });
       await page.waitForFunction(() => document.querySelectorAll('.sp-weather-daily-card .sp-weather-day:not([hidden])').length === 4);
       const day = page.locator('.sp-weather-day:not([hidden])').first();
-      assert.strictEqual(await day.evaluate(element => getComputedStyle(element).alignItems), 'flex-start');
+      await assertForecastLeftAlignment(day);
     }
     await page.locator('.sp-screen').screenshot({ path: '/tmp/weather-preview-s3-editor-after.png' });
     console.log('S3 editor integration: 3×1 forecast shows four left-aligned days before and after resizing.');
@@ -8270,10 +8325,10 @@ async function assertS3ForecastEditorLayout(browser) {
       assert.strictEqual(await days.count(), 1);
       const geometry = await days.first().evaluate(day => {
         const spans = day.querySelectorAll(':scope > span');
-        return {left: getComputedStyle(day).alignItems, icon: spans[0].getBoundingClientRect().top,
+        return {icon: spans[0].getBoundingClientRect().top,
           text: spans[1].getBoundingClientRect().top, high: spans[2].textContent};
       });
-      assert.strictEqual(geometry.left, 'flex-start');
+      await assertForecastLeftAlignment(days.first());
       assert(geometry.icon < geometry.text && /^\d+°\/\d+°$/.test(geometry.high),
         'Single-day forecasts keep the icon above the day and show the high/low pair.');
       await page.setViewportSize({width: 1000, height: 1000});
@@ -8385,12 +8440,70 @@ async function assertCameraScreensaverDimming(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertInitialGlobalIconSize(browser) {
+  const slug = "guition-esp32-s3-4848s040";
+  for (const preset of ["Large", "Medium", "Small", null]) {
+    const context = await browser.newContext({ viewport: { width: 1000, height: 900 } });
+    await installRoutes(context, slug);
+    let releaseSize;
+    let sizeRequested;
+    const requested = new Promise(resolve => { sizeRequested = resolve; });
+    const released = new Promise(resolve => { releaseSize = resolve; });
+    await context.route("**/select/**", async route => {
+      if (!decodeURIComponent(new URL(route.request().url()).pathname).includes("Default Icon Size")) return route.fallback();
+      sizeRequested();
+      await released;
+      await route.fulfill({ status: preset ? 200 : 404, contentType: "application/json",
+        body: JSON.stringify(preset ? { id: "select-screen__default_icon_size", state: preset, value: preset } : {}) });
+    });
+    await context.route("**/text/**", async route => {
+      const name = decodeURIComponent(new URL(route.request().url()).pathname.split("/")[2]).toLowerCase().replace(/ /g, "_");
+      const slot = name.match(/^button_(\d+)_config$/);
+      const value = name === "button_order" ? "1,2" : slot ? (slot[1] === "1"
+        ? "com.apple.finder;Finder;Monitor;Auto;;;companion;;"
+        : slot[1] === "2" ? "com.apple.Safari;Safari;Monitor;Auto;;;companion;;icon_size=small" : "") : "";
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "text-" + name, value, state: value }) });
+    });
+    const page = await context.newPage();
+    const errors = [];
+    page.on("pageerror", error => errors.push(error.message));
+    await page.addInitScript(() => {
+      window.__initialAppLayouts = [];
+      function record() {
+        const card = document.querySelector('.sp-main [data-slot="1"]:has(.sp-companion-app-icon-fallback)');
+        if (card && card.getBoundingClientRect().width) window.__initialAppLayouts.push({
+          size: card.getAttribute("data-icon-size"),
+          labelVisible: getComputedStyle(card.querySelector(".sp-btn-label")).display !== "none",
+        });
+        requestAnimationFrame(record);
+      }
+      requestAnimationFrame(record);
+    });
+    try {
+      await page.goto(`http://espdesktop.test/${slug}`, { waitUntil: "domcontentloaded" });
+      await requested;
+      await page.waitForTimeout(150);
+      assert.deepStrictEqual(await page.evaluate(() => window.__initialAppLayouts), [], "pending default cannot show app cards in a provisional layout");
+      releaseSize();
+      await page.waitForFunction(() => window.__initialAppLayouts.length >= 3);
+      const expected = preset ? preset.toLowerCase() : "small";
+      const frames = await page.evaluate(() => window.__initialAppLayouts);
+      assert(frames.every(frame => frame.size === expected && frame.labelVisible === (expected !== "large")),
+        `${preset || "unsupported"}: every visible frame starts in the saved layout`);
+      assert.strictEqual(await page.locator('.sp-main [data-slot="2"]').getAttribute("data-icon-size"), "small", "per-card override still wins");
+      assert.deepStrictEqual(errors, []);
+      console.log(`Initial app icon layout passed: ${preset || "unsupported setting"}`);
+    } finally { releaseSize(); await context.close(); }
+  }
+}
+
 async function assertGlobalIconSize(browser, testCase) {
   for (const native of [false, true]) {
     console.log(`Checking global icon size: ${testCase.slug}/${native ? "native" : "legacy"}`);
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[2] = "light.desk;Desk;Lightbulb;Auto;;;;;icon_size=small";
-    fixture.document.subpages[3] = "~B,1,2|,light.kitchen,Kitchen,Lightbulb,Auto|,light.desk,Desk,Lightbulb,Auto,,,,icon_size=medium";
+    fixture.document.buttons[1] = "com.apple.finder;Finder;Monitor;Auto;;;companion;;";
+    fixture.document.buttons[2] = "com.apple.Safari;Safari;Monitor;Auto;;;companion;;icon_size=small";
+    fixture.document.subpages[3] = "~B,1,2|companion,com.apple.finder,Finder,Monitor,Auto|companion,com.apple.Safari,Safari,Monitor,Auto,,,,icon_size=medium";
     let savedDefault = "Small";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
@@ -8406,7 +8519,7 @@ async function assertGlobalIconSize(browser, testCase) {
     const errors = [];
     page.on("pageerror", error => errors.push(error.message));
     const card = slot => page.locator(`.sp-main [data-slot="${slot}"]`);
-    const sizes = page.getByRole("group", { name: "Default icon size", exact: true });
+    const sizes = page.getByRole("group", { name: "Default app icon size", exact: true });
     async function open() {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
       await page.waitForFunction(() => window.__eventSources?.length > 0);
@@ -8434,7 +8547,7 @@ async function assertGlobalIconSize(browser, testCase) {
       assert(await card(2).locator(".sp-btn-label").isVisible());
       assert.strictEqual(native ? fixture.document.buttons[2] : legacyTextState.button_2_config, originalSmall, "global changes do not rewrite per-card choices");
       await card(2).click({ button: "right" });
-      await page.locator(".sp-ctx-menu").getByRole("button", { name: "Icon Size", exact: true }).click();
+      await page.locator(".sp-ctx-menu").getByRole("button", { name: "App Icon Size", exact: true }).click();
       await page.locator(".sp-ctx-submenu").getByRole("button", { name: "Use Default", exact: true }).click();
       await page.waitForFunction(() => document.querySelector('.sp-main [data-slot="2"]')?.dataset.iconSize === "large");
       assert(!(native ? fixture.document.buttons[2] : legacyTextState.button_2_config).includes("icon_size="), "Use Default removes the saved override");
@@ -8480,70 +8593,41 @@ async function assertGlobalIconSize(browser, testCase) {
 
 async function assertStandardIconSizes(browser, testCase) {
   for (const native of [true, false]) {
-    console.log(`Checking standard icon sizes: ${testCase.name}/${native ? "native" : "legacy"}`);
+    console.log(`Checking fixed non-app icons: ${testCase.name}/${native ? "native" : "legacy"}`);
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[2] = "stats;Stats;Gauge;;;;companion;;";
-    fixture.document.buttons[3] = ";Monitor;Monitor;;;;subpage;;";
+    fixture.document.buttons[1] = "light.kitchen;Kitchen;Lightbulb;Auto;;;;;icon_size=large";
+    fixture.document.buttons[2] = "stats;Stats;Gauge;;;;companion;;icon_size=medium";
+    fixture.document.buttons[3] = ";Monitor;Monitor;;;;subpage;;icon_size=large";
+    fixture.document.subpages[3] = "~B,1|,light.kitchen,Kitchen,Lightbulb,Auto,,,,icon_size=large";
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
     const page = await context.newPage();
-    await page.addInitScript(() => { window.__ESPDESKTOP_TEST_HOOKS__ = {}; });
     await installFakeEventSource(page);
+    async function assertFixed(slot) {
+      const card = page.locator(`.sp-main [data-slot="${slot}"]`);
+      assert.strictEqual(await card.getAttribute("data-icon-size"), "small", "ordinary icons ignore global and saved sizes");
+      assert(await card.locator(".sp-btn-label").isVisible(), "ordinary icons retain their label");
+      await card.click({ button: "right" });
+      assert.strictEqual(await page.locator(".sp-ctx-menu").getByRole("button", { name: /Icon Size/ }).count(), 0,
+        "ordinary icons have no size context menu");
+      await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
+      assert.strictEqual(await page.locator(".sp-settings-modal").getByRole("group", { name: /icon size/i }).count(), 0,
+        "ordinary icons have no size editor");
+      await page.keyboard.press("Escape");
+    }
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
-      await page.waitForSelector("#sp-app");
       await page.waitForFunction(() => window.__eventSources?.length > 0);
       await seedNativeDocument(page, fixture);
+      await page.evaluate(() => window.__seedEspState([
+        { id: "select-screen__default_icon_size", state: "Large", value: "Large" },
+      ]));
       await page.getByRole("tab", { name: "Layout" }).click();
-      for (const slot of [1, 2, 3]) {
-      const card = page.locator(`.sp-main [data-slot="${slot}"]`);
-      const widths = {};
-      const measurements = {};
-      for (const size of ["Medium", "Large", "Small"]) {
-        await card.click();
-        await page.getByRole("button", { name: "Edit", exact: true }).click();
-        await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
-          .first().locator(".sp-disclosure-button").click();
-        const sizes = page.getByRole("group", { name: "Icon size", exact: true });
-        await sizes.getByRole("button", { name: size, exact: true }).click();
-        await page.getByRole("button", { name: "Save", exact: true }).click();
-        const saved = () => native ? fixture.document.buttons[slot] : legacyTextState[`button_${slot}_config`] || "";
-        const persisted = () => saved().includes("icon_size=" + size.toLowerCase());
-        const deadline = Date.now() + 10000;
-        while (!persisted() && Date.now() < deadline) await new Promise(resolve => setTimeout(resolve, 25));
-        assert(persisted(), "icon size was saved to the display configuration");
-        // Saving can replace the preview grid after a locator resolves. Query
-        // and measure the current card in the same browser operation instead
-        // of reading a detached card's zero-size geometry.
-        const geometryHandle = await page.waitForFunction(({ slot, size }) => {
-          const el = document.querySelector(`.sp-main [data-slot="${slot}"]`);
-          if (!el?.isConnected || el.dataset.iconSize !== size || el.clientWidth === 0) return false;
-          const icon = el.querySelector(".sp-btn-icon").getBoundingClientRect();
-          if (icon.width === 0 || icon.height === 0) return false;
-          const title = el.querySelector(".sp-btn-label").getBoundingClientRect();
-          return { iconBottom: icon.bottom, titleTop: title.top, width: icon.width,
-            size: el.dataset.iconSize, cardWidth: el.clientWidth, cardHeight: el.clientHeight,
-            fontSize: getComputedStyle(el.querySelector(".sp-btn-icon")).fontSize,
-            fonts: document.fonts.status };
-        }, { slot, size: size.toLowerCase() });
-        const geometry = await geometryHandle.jsonValue();
-        await geometryHandle.dispose();
-        widths[size] = geometry.width;
-        measurements[size] = geometry;
-        if (size === "Large") assert(!(await card.locator(".sp-btn-label").isVisible()), "Large hides the title");
-        else assert(geometry.iconBottom <= geometry.titleTop + 1, `${testCase.name}/${size}: icon stays above title`);
-        await card.click();
-        await page.getByRole("button", { name: "Edit", exact: true }).click();
-        await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" })
-          .first().locator(".sp-disclosure-button").click();
-        assert(await page.getByRole("group", { name: "Icon size", exact: true })
-          .getByRole("button", { name: size, exact: true }).evaluate(el => el.classList.contains("active")), "saved icon size reopens selected");
-        await page.keyboard.press("Escape");
-      }
-      assert(widths.Medium > widths.Small && widths.Large >= widths.Medium,
-        `${testCase.name}/${native ? "native" : "legacy"}/slot ${slot}: size selections enlarge the visible icon: ${JSON.stringify(measurements)}`);
-      }
+      for (const slot of [1, 2, 3]) await assertFixed(slot);
+      await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+      await page.locator(".sp-back-btn").waitFor();
+      await assertFixed(1);
     } finally { await context.close(); }
   }
 }
@@ -8687,13 +8771,251 @@ async function assertRainfallEditor(browser) {
   } finally {await context.close()}
 }
 
+async function assertAppSubpageOpeningPreference(browser) {
+  const testCase = ACTIVE_CASES[0];
+  const fixture = nativeConfigState(testCase.slug);
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const posts = [];
+  const returnPosts = [];
+  await context.route("**/switch/*return_home_on_app_switch*/**", async route => {
+    returnPosts.push(new URL(route.request().url()).pathname.split("/").pop());
+    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
+  });
+  await context.route("**/switch/*auto_open_app_subpages*/**", async route => {
+    posts.push(new URL(route.request().url()).pathname.split("/").pop());
+    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
+  });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  async function open() {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, fixture);
+    await page.waitForFunction(() => !document.querySelector("#sp-app").classList.contains("sp-onboarding"));
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    const card = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
+    assert.strictEqual(await card.locator(".card-header h3").textContent(), "App Subpages");
+    assert.strictEqual(await card.evaluate(element => element.previousElementSibling.querySelector(".card-header h3").textContent), "Card Style",
+      "App Subpages appears directly below Card Style on the Screen tab");
+    if (await card.evaluate(element => element.classList.contains("collapsed"))) await card.locator(".card-header").click();
+  }
+  try {
+    await open();
+    const toggle = page.locator("#sp-set-auto-open-app-subpages");
+    assert(await toggle.isChecked(), "automatic opening remains the default");
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("auto_open_app_subpages") && response.url().endsWith("/turn_off")),
+      toggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(posts, ["turn_off"], "manual opening is saved as a global device preference");
+    await open();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
+    ]));
+    await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").checked);
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("auto_open_app_subpages") && response.url().endsWith("/turn_on")),
+      toggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(posts, ["turn_off", "turn_on"]);
+    const returnToggle = page.locator("#sp-set-return-home-on-app-switch");
+    assert(await returnToggle.isChecked(), "returning home remains the default");
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_off")),
+      returnToggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(returnPosts, ["turn_off"], "staying on the page is saved to the device");
+    await open();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-companion_return_home_on_app_switch_enabled", state: "OFF", value: false },
+    ]));
+    await page.waitForFunction(() => !document.querySelector("#sp-set-return-home-on-app-switch").checked);
+    await Promise.all([
+      page.waitForResponse(response => response.url().includes("return_home_on_app_switch") && response.url().endsWith("/turn_on")),
+      returnToggle.locator("..").locator(".sp-toggle-track").click(),
+    ]);
+    assert.deepStrictEqual(returnPosts, ["turn_off", "turn_on"]);
+    assert.deepStrictEqual(errors, [], "the setting and device events cause no browser errors");
+    console.log("Global app subpage preference browser checks passed.");
+  } finally { await context.close(); }
+}
+
+async function assertSubpageTitleBarSetting(browser, testCase) {
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
+  fixture.document.subpages[1] = "~B,1|companion,shortcut.command+r,Reload,Refresh,Auto";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  async function seed(clockOn, savedTitle) {
+    await page.evaluate(({ clockOn, savedTitle }) => window.__seedEspState([
+      { id: "switch-screen__clock_bar", state: clockOn ? "ON" : "OFF", value: clockOn },
+      { id: "switch-subpage_title_bar_enabled", state: savedTitle ? "ON" : "OFF", value: savedTitle },
+    ]), { clockOn, savedTitle });
+    await page.waitForFunction(on => document.querySelector(".sp-topbar").classList.contains("sp-hidden") === !on, clockOn);
+  }
+  async function checkSubpage(compactTop) {
+    await page.locator(".sp-back-btn").waitFor();
+    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "every subpage hides the entire bar");
+    assert.strictEqual(await page.locator(".sp-clockbar-subpage-title,.sp-clock").count(), 0, "subpages have no title or clock");
+    assert.strictEqual(await page.evaluate(() => document.documentElement.style.getPropertyValue("--grid-top")), compactTop,
+      "subpages reclaim all header space even when Clock Bar is enabled");
+    const bounds = await page.locator(".sp-back-btn .sp-back-hit:not([hidden])").boundingBox();
+    await page.mouse.click(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2);
+    await page.locator('.sp-main [data-slot="3"]').waitFor();
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, fixture);
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.locator("#sp-set-subpage-title-bar").count(), 0, "obsolete title-bar control is removed");
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seed(false, true);
+    const compactTop = await page.evaluate(() => document.documentElement.style.getPropertyValue("--grid-top"));
+    for (const clockOn of [false, true]) {
+      for (const savedTitle of [false, true]) {
+        await seed(clockOn, savedTitle);
+        for (const slot of [3, ...(testCase.companionSupported ? [1] : [])]) {
+          await page.locator(`.sp-main [data-slot="${slot}"] .sp-subpage-badge`).dispatchEvent("click");
+          await checkSubpage(compactTop);
+          assert.strictEqual(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), !clockOn,
+            "returning home restores its own Clock Bar setting");
+        }
+        await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+        await checkSubpage(compactTop);
+      }
+    }
+    assert.deepStrictEqual(errors, []);
+    console.log(`${testCase.name}: all subpages hide titles and bars, use compact spacing, and preserve the home setting.`);
+  } finally { await context.close(); }
+}
+
+async function assertSubpageClockBar(browser, testCase) {
+  await assertSubpageTitleBarSetting(browser, testCase);
+}
+
+async function assertSpecialPageRename(browser, testCase) {
+  const nativeState = nativeConfigState(testCase.slug);
+  const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
+    ? { width: 390, height: 844 } : testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  const title = page.getByRole("button", { name: "Rename Special Page", exact: true });
+  const dialog = page.getByRole("dialog", { name: "Rename", exact: true });
+  const input = page.getByLabel("Page name", { exact: true });
+  const custom = "Office: Tools, 50% | 日本語 <test>";
+  async function openPage() {
+    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+    await title.waitFor();
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await openPage();
+    assert.strictEqual(await title.innerText(), "Special Page");
+    await title.click();
+    await input.fill("Cancelled name");
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), "Special Page");
+    await title.press("Enter");
+    await input.fill("Escape name");
+    await input.press("Escape");
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), "Special Page");
+    await title.press("Space");
+    await input.fill(custom);
+    if (process.env.ESPDESKTOP_SPECIAL_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SPECIAL_PAGE_SCREENSHOT });
+    await input.press("Enter");
+    await dialog.waitFor({ state: "hidden" });
+    assert.strictEqual(await title.innerText(), custom);
+    await page.locator(".sp-main .sp-empty-cell").first().click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Paste Code", { exact: true }).click();
+    const pasteDialog = page.locator(".sp-transfer-dialog");
+    await pasteDialog.locator("textarea").fill(JSON.stringify({
+      format: "espdesktop.cards", version: 1, source: { device: testCase.slug, firmware: "test" },
+      cards: [{ entity: "light.kitchen", label: "Kitchen", icon: "Lightbulb", icon_on: "Auto",
+        sensor: "", unit: "", type: "", precision: "", options: "", size: 1 }],
+    }));
+    await pasteDialog.getByRole("button", { name: "Paste", exact: true }).click();
+    assert.deepStrictEqual((await page.locator(".sp-transfer-error").allTextContents()).filter(Boolean), [], "card code is accepted");
+    await pasteDialog.waitFor({ state: "detached" });
+    await waitForNativeState(nativeState, () => nativeState.document.settings.special_page.includes("Kitchen"), "paste a card into the renamed Special Page");
+    assert.strictEqual(await title.innerText(), custom, "pasting a card retains the page name");
+    const saved = nativeState.document.settings.special_page;
+    assert(saved.includes("Office%3A Tools%2C 50%25 %7C 日本語 <test>"));
+    await page.reload();
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await openPage();
+    assert.strictEqual(await title.innerText(), custom, "name persists after reload");
+    await title.click();
+    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
+    assert.strictEqual(await input.inputValue(), "", "reset selects the default title");
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), custom, "cancel discards a reset");
+    await title.click();
+    await dialog.getByRole("button", { name: "Close rename", exact: true }).click();
+    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
+    assert.strictEqual(await title.innerText(), custom, "close preserves the saved name");
+    await title.click();
+    await input.fill("Failed name");
+    let reject = true;
+    await page.route("**/api/v1/config/**", async route => {
+      if (reject && route.request().method() === "PUT") return route.fulfill({ status: 500, body: "Failed" });
+      return route.fallback();
+    });
+    await dialog.getByRole("button", { name: "Save", exact: true }).click();
+    await dialog.getByRole("alert").filter({ hasText: "Could not save" }).waitFor();
+    assert.strictEqual(await title.innerText(), custom, "failure restores the saved title");
+    assert.strictEqual(await input.inputValue(), "Failed name", "failure preserves the draft");
+    assert.strictEqual(nativeState.document.settings.special_page, saved);
+    reject = false;
+    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
+    await input.press("Enter");
+    await dialog.waitFor({ state: "hidden" });
+    assert.strictEqual(await title.innerText(), "Special Page", "saving reset restores default");
+    console.log(`${testCase.name}: Special Page rename, reload, cancel, keyboard and save failure passed.`);
+  } finally { await context.close(); }
+}
+
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
+      return;
+    }
+    if (process.env.ESPDESKTOP_SUBPAGE_CLOCK_BAR_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSubpageClockBar(browser, testCase);
+      return;
+    }
+    if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
+      await assertAppSubpageOpeningPreference(browser);
+      return;
+    }
+    if (process.env.ESPDESKTOP_SPECIAL_PAGE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSpecialPageRename(browser, testCase);
+      return;
+    }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_INITIAL_ICON_SIZE_ONLY === "1") {
+      await assertInitialGlobalIconSize(browser);
       return;
     }
     if (process.env.ESPDESKTOP_GLOBAL_ICON_SIZE_ONLY === "1") {
@@ -8708,7 +9030,7 @@ async function assertRainfallEditor(browser) {
     }
     if (process.env.ESPDESKTOP_STANDARD_ICON_SIZES_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertStandardIconSizes(browser, testCase);
-      console.log("Standard icon sizes passed for native and legacy configurations.");
+      console.log("Fixed non-app icon layouts and missing size controls passed for native and legacy configurations.");
       return;
     }
     if (process.env.ESPDESKTOP_COLOURS_ONLY === "1") {
@@ -8716,6 +9038,7 @@ async function assertRainfallEditor(browser) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
+    await assertSpecialPageRename(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RAINFALL_ONLY === "1") { await assertRainfallEditor(browser); return; }
@@ -8736,14 +9059,21 @@ async function assertRainfallEditor(browser) {
           await page.waitForSelector("#sp-app");
           await seedNativeDocument(page, nativeState);
           if (process.env.ESPDESKTOP_CARD_NAMES_ONLY === "1") await assertInlineCardNames(page, nativeState, testCase.name);
-          else await assertSubpageTitleTypography(page, testCase.name, nativeState);
+          else await assertSubpageBackCard(page, testCase.name, nativeState);
         } finally { await context.close(); }
       }
       console.log(`Card title browser checks passed for ${ACTIVE_CASES.length} layouts.`);
       return;
     }
+    if (process.env.ESPDESKTOP_WEBAPP_BACK_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertWebAppReturnIcon(browser, testCase);
+      return;
+    }
     if (process.env.ESPDESKTOP_CONTEXT_ICON_SIZE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertAutomaticAppIcons(browser, testCase);
+      for (const testCase of ACTIVE_CASES) {
+        await assertAutomaticAppIcons(browser, testCase);
+        await assertWebAppReturnIcon(browser, testCase);
+      }
       console.log("Right-click app icon sizes and chevrons passed for native and legacy configurations.");
       return;
     }
@@ -8820,6 +9150,7 @@ async function assertRainfallEditor(browser) {
       console.log("Home Assistant visibility browser checks passed.");
       return;
     }
+    await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }
     await assertHomeAssistantConnectorLayout(browser);
@@ -8828,6 +9159,7 @@ async function assertRainfallEditor(browser) {
     if (!acceptanceOnly) {
       await assertPageTitleEvents(browser);
       await assertRotationStartupOrdering(browser);
+      await assertInitialGlobalIconSize(browser);
     }
     await assertHostedCompatibility(browser);
     await assertFirmwareRetryFeedback(browser);

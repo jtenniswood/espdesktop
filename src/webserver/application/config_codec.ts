@@ -1,5 +1,5 @@
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
-import { companionMetricForEntity } from "../model/companion_card_codec";
+import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import {
@@ -527,7 +527,7 @@ export function createConfigCodecFeature(
             b.options = "";
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
-        if (b) b.options = preserveCardIconSize(iconSizeOptions, b.options);
+        if (b) b.options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", b.options);
         return b;
     }
     function isBrightnessSliderType(this: any, type?: any) {
@@ -805,7 +805,7 @@ export function createConfigCodecFeature(
             precision = "";
         }
         if (cardColorOptions) options = [options || "", cardColorOptions].filter(Boolean).join(",");
-        options = preserveCardIconSize(iconSizeOptions, options);
+        options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", options);
         return trimConfigFields([
             (type === "door_window" || type === "presence" || type === "screen_lock") ? "" : (b && b.entity || ""),
             label,
@@ -861,7 +861,7 @@ export function createConfigCodecFeature(
         return EspDesktopModel.parseSubpageOrder(orderStr);
     }
     function subpageOrderForSerialize(this: any, sp?: any) {
-        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel, sp && sp.backColor);
+        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel, sp && sp.backColor, sp && sp.title);
     }
     function subpageSerializedOrder(this: any, sp?: any) {
         if (!sp)
@@ -1023,6 +1023,9 @@ export function createConfigCodecFeature(
         else if (!subpage.backLabel) {
             subpage.backLabel = backLabelFromOrder(subpage.order);
         }
+        if (homeSlot === -1 && (!subpage.backLabel || subpage.backLabel === "Back")) {
+            subpage.backLabel = "Close";
+        }
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
@@ -1038,7 +1041,7 @@ export function createConfigCodecFeature(
         return JSON.stringify(sp.order) !== previousOrder;
     }
     function serializeSubpageGrid(this: any, sp?: any) {
-        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor);
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title);
     }
     function enterSubpage(this: any, homeSlot?: any) {
         state.editingSubpage = homeSlot;

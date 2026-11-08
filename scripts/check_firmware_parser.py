@@ -231,6 +231,12 @@ inline void lv_obj_remove_event_cb_with_user_data(lv_obj_t *obj, lv_event_cb_t c
     return h.callback == cb && h.data == data;
   }), handlers.end());
 }
+using lv_event_dsc_t = TestEventHandler;
+inline uint32_t lv_obj_get_event_count(lv_obj_t *obj) { return obj->handlers.size(); }
+inline lv_event_dsc_t *lv_obj_get_event_dsc(lv_obj_t *obj, uint32_t index) {
+  return &obj->handlers[index];
+}
+inline lv_event_cb_t lv_event_dsc_get_cb(lv_event_dsc_t *dsc) { return dsc->callback; }
 inline void test_send_event(lv_obj_t *obj, int code) {
   const auto handlers = obj->handlers;
   for (const auto &h : handlers) {

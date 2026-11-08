@@ -18,6 +18,12 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   return "app";
 }
 
+// Only native application cards display app artwork with an adjustable size.
+export function companionCardHasAppIcon(config: Partial<CardConfig>): boolean {
+  return config.type === "companion" && !!config.entity && !config.sensor &&
+    companionSavedCardMode(config) === "app";
+}
+
 export function decodeCompanionCard(config: Partial<CardConfig>, mode = companionSavedCardMode(config)): CompanionCardModel {
   const entity = config.entity || "";
   switch (mode) {

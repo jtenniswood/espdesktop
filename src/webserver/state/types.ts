@@ -94,6 +94,7 @@ export interface RuntimeSubpage {
   sizes: SlotSizeMap;
   backLabel?: string;
   backColor?: string;
+  title?: string;
 }
 
 export interface AppClipboard {
@@ -149,6 +150,9 @@ export interface AppState {
   wifiStrengthPercent: number;
   temperatureDegreeSymbolOn: boolean;
   subpageChevronsOn: boolean;
+  autoOpenAppSubpages: boolean;
+  returnHomeOnAppSwitch: boolean;
+  subpageTitleBarOn: boolean;
   presenceEntity: string;
   screensaverCameraEntity: string;
   screensaverCameraSupported: boolean;

@@ -1,3 +1,4 @@
+import { showSpecialPageTitleDialog } from "./special_page_title";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { coveredCells } from "../model/grid";
@@ -90,6 +91,40 @@ export function createPreviewInteractionsFeature(
         saveSubpageConfig,
         subpageFirstFreeSlot,
     } = dependencies.codec;
+    function renameSpecialPage() {
+        showSpecialPageTitleDialog({
+            document,
+            title: getSubpage(-1).title || "",
+            locked: isConfigLocked,
+            restoreFocus: () => els.specialPageRename?.focus(),
+            save: async title => {
+                const subpage = getSubpage(-1);
+                const previous = subpage.title;
+                const previousOrder = subpage.order;
+                const previousPending = state.subpageSavePending[-1];
+                const candidate = { ...subpage, title };
+                if (!configPersistence.subpageConfigFits(serializeSubpageConfig(candidate), -1)) {
+                    throw new Error("This page is too full to save that name. Use a shorter name or remove a card.");
+                }
+                subpage.title = title;
+                try {
+                    const result = await saveSubpageConfig(-1);
+                    if (result !== "saved") {
+                        throw new Error("Could not save the page name. Check the connection and try again.");
+                    }
+                } catch (error) {
+                    subpage.order = previousOrder;
+                    if (previousPending === undefined) delete state.subpageSavePending[-1];
+                    else state.subpageSavePending[-1] = previousPending;
+                    if (previous === undefined) delete subpage.title;
+                    else subpage.title = previous;
+                    renderPreview();
+                    throw error;
+                }
+                renderPreview();
+            },
+        });
+    }
     function editCardTitle(title: HTMLElement) {
         if (title.querySelector("input")) return;
         const card = title.closest<HTMLElement>("[data-slot]");
@@ -104,7 +139,8 @@ export function createPreviewInteractionsFeature(
         input.className = "sp-card-name-input";
         input.setAttribute("aria-label", "Card name");
         input.dataset.homeSlot = String(homeSlot || "");
-        input.value = back ? back.backLabel || "Back" : button.label || "";
+        const defaultBackLabel = homeSlot === -1 ? "Close" : "Back";
+        input.value = back ? back.backLabel || defaultBackLabel : button.label || "";
         input.placeholder = title.textContent || "Card name";
         let finished = false;
         function finish(save: boolean) {
@@ -115,7 +151,7 @@ export function createPreviewInteractionsFeature(
                 state.editingSubpage === homeSlot && current.grid.includes(slot)) {
                 const label = input.value.trim();
                 if (back) {
-                    getSubpage(homeSlot).backLabel = label || "Back";
+                    getSubpage(homeSlot).backLabel = label || defaultBackLabel;
                     saveSubpageConfig(homeSlot);
                 } else {
                     const live = current.buttons[slot - 1];
@@ -179,6 +215,9 @@ export function createPreviewInteractionsFeature(
                 enterSubpage(-1);
             });
         }
+        els.specialPageRename?.addEventListener("click", () => {
+            if (!isConfigLocked() && state.editingSubpage === -1) renameSpecialPage();
+        });
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
@@ -216,11 +255,12 @@ export function createPreviewInteractionsFeature(
             });
         }
         function isBackExitTarget(this: any, e?: any, target?: any) {
-            var icon: any = target.querySelector(".sp-back-hit");
+            var icon: any = target.querySelector(".sp-back-hit:not([hidden])");
             if (!icon)
                 return false;
             var rect: any = icon.getBoundingClientRect();
-            var pad: any = 12;
+            // A large app icon already fills the card; keep its outer edge selectable.
+            var pad: any = target.getAttribute("data-icon-size") === "large" ? 0 : 12;
             return e.clientX >= rect.left - pad &&
                 e.clientX <= rect.right + pad &&
                 e.clientY >= rect.top - pad &&
