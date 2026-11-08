@@ -168,12 +168,11 @@ inline void numeric_selectable_driver_bind_slider(
     ? static_cast<lv_obj_t *>(lv_obj_get_user_data(slot.sensor_container))
     : nullptr;
   if (companion_volume_control_valid(config.entity)) {
-    const bool has_icon_on = slider_has_alt_icon(config.type, config.icon_on);
+    // Mac volume has one icon at every level, including zero.
+    const bool has_icon_on = false;
     const char *icon_off = slider_icon_off(
       config.type, config.entity, config.icon);
-    const char *icon_on = has_icon_on
-      ? slider_icon_on(config.type, config.entity, config.icon, config.icon_on)
-      : nullptr;
+    const char *icon_on = nullptr;
     if (slot.icon_lbl) {
       lv_label_set_display_text(slot.icon_lbl, icon_off);
     }

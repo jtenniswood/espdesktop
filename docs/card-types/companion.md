@@ -18,7 +18,7 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Show Mac statistics](/mac-controls/statistics)
 - [Permissions and security](/mac-controls/security)
 
-Choose the **Volume** group to add a slider for the paired Mac’s output or input volume. The output control is labelled **Volume** by default; existing custom labels are kept. Dragging a volume slider does not trigger swipe navigation.
+Choose the **Volume** group to add a slider for the paired Mac’s output or input volume. The output control is labelled **Volume** by default; existing custom labels are kept. Mac volume controls have one **Icon** setting, with a speaker for output and a microphone for input by default. The setup preview and display use the same icon at every volume level. Dragging a volume slider does not trigger swipe navigation.
 
 The Volume group's **Control** menu also offers **Microphone mute** and **Output mute**. These create tap cards: tap once to mute the selected Mac input or output, then tap again to restore audio at its previous level. Where supported, the device’s native mute preserves the level; otherwise the app sets its level to zero and remembers the exact previous value. A highlighted card means muted. Input and output are independent, and the remembered level belongs to that audio device. Raising the level with a Volume slider also unmutes that device.
 

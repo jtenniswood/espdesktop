@@ -384,7 +384,19 @@ export function registerSliderCardTypes(
                         iconPicker._setIcon(currentVal);
                     return picker;
                 }
-                if (opts.alwaysShowIconPair) {
+                if (opts.companionVolumeModes && sliderMode !== "home_assistant") {
+                    const defaultIcon = companionSliderDefaultIcon(sliderMode);
+                    helpers.renderCardIconPicker(panel, b, helpers, {
+                        pickerIdSuffix: "icon-picker",
+                        idSuffix: "icon",
+                        field: "icon",
+                        value: b.icon && b.icon !== "Auto" ? b.icon : defaultIcon,
+                        fallback: defaultIcon,
+                        label: "Icon",
+                        onChange: function () { renderButtonSettings(); },
+                    });
+                }
+                else if (opts.alwaysShowIconPair) {
                     var offIconVal: any = b.icon && b.icon !== "Auto" ? b.icon : opts.defaultIcon;
                     var onIconDefault: any = opts.onIconInheritsOff ? offIconVal : opts.defaultIconOn;
                     var onIconVal: any = b.icon_on && b.icon_on !== "Auto" ? b.icon_on : onIconDefault;
@@ -392,8 +404,7 @@ export function registerSliderCardTypes(
                     offIconSection = iconField(opts.iconOffFieldLabel || "Closed Icon", "icon", "icon", offIconVal, opts.defaultIcon);
                     var onIconSection: any = iconField(opts.iconOnFieldLabel || "Open Icon", "icon-on", "icon_on", onIconVal, opts.defaultIconOn);
                     syncCoverIconUi = function (this: any) {
-                        var singleIcon: any = sliderMode === "mac_output_mute" || sliderMode === "mac_input_mute" ||
-                            (opts.interactionMode && coverCommandMode(coverMode));
+                        var singleIcon: any = opts.interactionMode && coverCommandMode(coverMode);
                         singleIconSection.style.display = singleIcon ? "" : "none";
                         offIconSection.style.display = singleIcon ? "none" : "";
                         onIconSection.style.display = singleIcon ? "none" : "";

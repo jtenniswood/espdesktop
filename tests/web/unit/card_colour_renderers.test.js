@@ -43,21 +43,26 @@ function editor() {
   const webhook = loadTypescriptTest("src/webserver/application/config_webhook_options.ts")
     .createConfigWebhookOptionsFeature();
   loadTypescriptTest("src/webserver/cards/webhook.ts").registerWebhookCardTypes(registry, webhook, fields, ui);
-  const saved = {}, inputs = {}, modes = [];
+  const saved = {}, inputs = {}, modes = [], icons = [];
   function field(value = "") { return { field: element(), input: element(value), select: element(value) }; }
   const helpers = {
     idPrefix: "test-",
     saveField(name, value) { saved[name] = value; },
     renderCardModeSelector(_panel, _button, _helpers, metadata) { modes.push(metadata.mode); return field(); },
     renderCardEntityField: () => field(), renderCardTextField: () => field(),
-    renderCardNumberField: () => field("50"), renderCardIconPicker: () => element(),
+    renderCardNumberField: () => field("50"),
+    renderCardIconPicker(_panel, _button, _helpers, metadata) {
+      const result = element();
+      icons.push({ metadata, element: result });
+      return result;
+    },
     renderBasicCardFields() {}, requireField() {}, requireEntityDomain() {},
     disclosureSection: () => ({ panel: element(), section: element() }),
     textField(_label, id, value) { const result = field(value); inputs[id] = result.input; return result; },
     selectField(_label, id, _options, value) { const result = field(value); inputs[id] = result.select; return result; },
     toggleRow(_label, id, checked) { const result = { row: element(), input: element() }; result.input.checked = checked; inputs[id] = result.input; return result; },
   };
-  return { registry, document, helpers, saved, inputs, modes, lightCards, webhook };
+  return { registry, document, helpers, saved, inputs, modes, icons, lightCards, webhook };
 }
 
 test("reopening robot, fan and cover editors keeps the chosen colour", () => {
@@ -166,4 +171,30 @@ test("Volume controls offer microphone and output mute as tap cards and preserve
       assert.equal(e.modes.at(-1).value(), mode);
     }
   }
+});
+
+
+test("Mac volume and mute cards have one icon picker matching the display default", () => {
+  for (const [entity, expected] of [
+    ["media.output_volume", "Volume High"], ["media.input_volume", "Microphone"],
+    ["media.output_mute", "Volume Off"], ["media.input_mute", "Microphone Off"],
+  ]) for (const icon of ["", "Auto", "Star"]) {
+    const e = editor();
+    const card = { type: "slider", entity, icon, icon_on: "Bell" };
+    const definition = e.registry.definitions.slider;
+    definition.renderSettings(element(), card, 1, e.helpers);
+    assert.equal(e.icons.length, 1, entity);
+    assert.equal(e.icons[0].metadata.label, "Icon");
+    assert.equal(e.icons[0].metadata.field, "icon");
+    assert.equal(e.icons[0].metadata.value, icon === "Star" ? icon : expected);
+    assert.equal(e.icons[0].metadata.fallback, expected);
+    const preview = definition.renderPreview(card, e.helpers);
+    const slug = (icon === "Star" ? icon : expected).toLowerCase().replaceAll(" ", "-");
+    assert(preview.iconHtml.includes("mdi-" + slug));
+    assert(!preview.iconHtml.includes("mdi-bell"));
+  }
+  // Home Assistant sliders retain their separate off/on icon settings.
+  const e = editor();
+  e.registry.definitions.slider.renderSettings(element(), { type: "slider", entity: "light.office" }, 1, e.helpers);
+  assert(e.icons.some(icon => icon.metadata.field === "icon_on"));
 });
