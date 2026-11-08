@@ -251,7 +251,7 @@ int main() {
       !card_runtime_main_click_opens_modal(media_control) ||
       !card_runtime_main_click_opens_modal(media_volume) ||
       !card_runtime_main_click_opens_modal(media_cover_art) ||
-      !card_runtime_main_click_opens_modal(option_select) ||
+      card_runtime_main_click_opens_modal(option_select) ||
       card_runtime_main_click_opens_modal(media_play_pause) ||
       card_runtime_main_click_opens_modal(media_transport) ||
       card_runtime_main_click_opens_modal(media_position) ||
@@ -259,12 +259,12 @@ int main() {
     return EXIT_FAILURE;
   }
   const char *contract_card_types[] = {
-    "", "action", "alarm", "alarm_action", "calendar", "climate",
+    "", "alarm", "alarm_action", "calendar", "climate",
     "climate_control", "clock", "cover", "door_window", "fan_control",
     "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_switch",
     "garage", "gate", "image", "lawn_mower", "light_brightness",
     "light_control", "light_switch", "light_temperature", "lock",
-    "media", "option_select", "presence", "push",
+    "media", "presence", "push",
     "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
     "webhook",
   };
