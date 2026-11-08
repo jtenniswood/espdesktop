@@ -3592,7 +3592,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "type": "sensor",
       "precision": "",
       "options": ""
-    }
+    },
+    "hidden": true
   },
   "local_sensor": {
     "label": "Local Sensor",

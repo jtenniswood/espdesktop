@@ -100,6 +100,8 @@ export function registerSensorCardTypes(
         allowInSubpage: function (this: any) { return cardContractAllowInSubpage("sensor"); },
         pickerKey: function (this: any) { return cardContractPickerKey("sensor"); },
         hidden: function (this: any) { return cardContractHidden("sensor"); },
+        // Existing cards remain editable; new cards are no longer offered.
+        isAvailable: function () { return !cardContractHidden("sensor"); },
         hideLabel: true,
         defaultConfig: function (this: any) { return cardContractDefaultConfig("sensor"); },
         cardMetadata: SENSOR_CARD_METADATA,

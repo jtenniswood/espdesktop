@@ -2372,9 +2372,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
         },
         "preview": {
           "available": true,
@@ -2403,9 +2403,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
         },
         "preview": {
           "available": true,
@@ -2435,9 +2435,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
         },
         "preview": {
           "available": true,
@@ -2466,9 +2466,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
         },
         "preview": {
           "available": true,
@@ -2497,9 +2497,9 @@
       "web": {
         "registration": "sensor",
         "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
         },
         "preview": {
           "available": true,

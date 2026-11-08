@@ -5958,7 +5958,8 @@
           "type": "sensor",
           "precision": "",
           "options": ""
-        }
+        },
+        "hidden": true
       },
       "local_sensor": {
         "label": "Local Sensor",

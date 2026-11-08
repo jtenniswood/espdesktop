@@ -24,7 +24,6 @@ Use this page when you know what you want the panel to do but are not sure which
 | Pick from a Home Assistant select list | [Option Select](/card-types/option-select) | `select` or `input_select` |
 | Fire a custom Home Assistant automation event | [Trigger](/card-types/buttons) | No entity required |
 | Call an HTTP URL directly from the panel | [Webhook](/card-types/webhooks) | URL |
-| Show a live number, readable duration, text state, or active/inactive icon | [Sensor](/card-types/sensors) | Home Assistant `sensor`, `binary_sensor`, or `text_sensor`; or a Local Sensor source |
 | Show a door or window contact sensor | [Doors & Windows](/card-types/doors-windows) | `binary_sensor` or `sensor` |
 | Show presence, motion, or occupancy state | [Presence](/card-types/presence) | `binary_sensor`, `sensor`, or `text_sensor` |
 | Drag to set light brightness, fan speed, or a number value | [Slider](/card-types/sliders) | `light`, `fan`, `number`, or `input_number` |
@@ -46,6 +45,8 @@ Use this page when you know what you want the panel to do but are not sure which
 | Start the configured screensaver immediately | [Screensaver](/features/screensaver#start-the-screensaver-with-a-card) | No entity required |
 | Lock or unlock the touchscreen controls locally | [Screen Lock](/card-types/screen-lock) | No entity required |
 | Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
+
+Sensor is no longer offered when adding cards. Existing [Sensor](/card-types/sensors) and [Local Sensor](/card-types/local-sensors) cards remain supported in saved layouts.
 
 ## Mac Cards
 

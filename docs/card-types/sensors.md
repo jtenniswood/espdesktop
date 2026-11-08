@@ -6,13 +6,15 @@ description:
 
 # Sensor
 
+Sensor is no longer available in the card picker. These controls remain available when editing an existing Sensor card in a saved layout.
+
 A Sensor card is read-only. It displays a Home Assistant `sensor`, `binary_sensor`, or `text_sensor`; it can also use a [Local Sensor](/card-types/local-sensors) from the panel itself.
 
 ![Sensor card showing 0 kph wind speed](/images/card-sensor.png)
 
-## Set Up a Sensor Card
+## Edit an Existing Sensor Card
 
-1. Select a card and change its type to **Sensor**.
+1. Select an existing Sensor card and open **Edit**.
 2. Leave **Source** as **Home Assistant**, choose the display type, and enter the sensor entity.
 3. Set a label, unit, and icon as needed.
 

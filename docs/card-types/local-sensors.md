@@ -6,12 +6,14 @@ description:
 
 # Local Sensor
 
+Sensor is no longer available in the card picker. This guide applies to existing Sensor cards in saved layouts.
+
 Local Sensor is a **Sensor** card source for a sensor or text sensor running on the display device. It is read-only and continues to work while Home Assistant is unavailable.
 
-## Set Up a Local Sensor
+## Edit an Existing Local Sensor
 
 1. Define the sensor normally in the device's ESPHome YAML.
-2. Select a card, change its type to **Sensor**, then set **Source** to **Local Sensor**.
+2. Edit an existing Sensor card and set **Source** to **Local Sensor**.
 3. Choose the sensor. The label and unit are filled in for you and can be changed.
 4. Choose **Numeric** for a value or **Text** for a live text state.
 
