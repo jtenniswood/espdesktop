@@ -250,11 +250,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         "padding:14px var(--gap);background:var(--surface);" +
         "color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;user-select:none}" +
         ".sp-selection-bar.sp-visible{display:flex}" +
-        ".sp-special-page-entry{display:block;width:min(1080px,calc(100% - 2*var(--gap)));margin:0 auto 10px;" +
-        "border:1px solid var(--border);border-radius:var(--action-r);background:var(--surface2);" +
-        "color:var(--text);padding:8px 12px;font:500 var(--text-sm) -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer}" +
-        ".sp-special-page-entry[hidden]{display:none}" +
-        ".sp-special-page-entry:hover{background:var(--border)}" +
+        ".sp-swipe-wrap{display:flex;justify-content:center;padding:0 var(--gap);margin:6px 0 0}.sp-swipe-wrap:has([hidden]){display:none}" +
+        ".sp-special-page-entry{box-sizing:border-box;justify-content:center;width:calc(var(--screen-w) + 4px);max-width:100%}" +
+        ".sp-special-page-entry.sp-selection-btn{min-height:48px}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
         ".sp-selection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}" +
@@ -269,7 +267,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-selection-btn:disabled,.sp-selection-btn:disabled:hover{opacity:.45;cursor:not-allowed;background:var(--surface2);border-color:var(--border);color:var(--text2)}" +
         ".sp-selection-btn .mdi{font-size:16px;line-height:1}" +
         "@media(max-width:600px){.sp-selection-bar{margin-left:0;margin-right:0;padding:12px var(--gap);gap:8px}" +
-        ".sp-special-page-entry{width:calc(100% - 2*var(--gap))}" +
         ".sp-selection-actions{gap:6px}.sp-selection-btn{padding:8px 10px}" +
         ".sp-selection-btn[aria-label='Card actions']{width:36px;padding:0}.sp-selection-btn .mdi{flex-shrink:0}}" +
         ".sp-config{padding:var(--gap) var(--gap) var(--gap)}" +
@@ -290,9 +287,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal::-webkit-scrollbar-thumb{background:#fff;border-radius:999px}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
         "height:100%;margin:0;border-radius:0;border:none}}" +
-        ".sp-rename-dialog{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:.875rem;line-height:1.5;box-sizing:border-box;padding:var(--gap);margin:auto;width:calc(100% - 40px);max-width:420px;max-height:80dvh;height:fit-content;border:1px solid var(--border);border-radius:var(--radius);color:var(--text)}" +
-        ".sp-rename-dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
-        ".sp-rename-dialog .sp-section-title{padding-right:40px}.sp-rename-dialog .sp-field{margin-bottom:0}.sp-rename-error:empty{display:none}" +
         ".sp-settings-close{position:absolute;top:10px;right:12px;width:36px;height:36px;" +
         "border-radius:999px;border:1px solid var(--border);background:var(--surface2);" +
         "color:var(--text2);display:flex;align-items:center;justify-content:center;" +
@@ -744,7 +738,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-brand{font-size:.875rem}" +
         ".sp-tab{padding:0 12px;font-size:.8rem}" +
         ".sp-tab-docs{margin-left:4px;padding-left:18px}" +
-        ".sp-wrap{padding-left:0;padding-right:0}" +
+        ".sp-wrap,.sp-swipe-wrap{padding-left:0;padding-right:0}.sp-special-page-entry{width:100%}" +
         ".sp-screen{box-sizing:border-box;width:100%;max-width:100%}" +
         ".sp-hint{padding-left:var(--gap);padding-right:var(--gap);line-height:1.35}" +
         ".card{padding:16px}" +

@@ -18,6 +18,7 @@ const {
   decodeConfigField,
   splitSubpageConfigChunks,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
+const { encodePanelPageDocument, decodePanelPageDocument } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = freshWebOutputDir();
 const FAILURE_DIR = path.join(ROOT, ".cache", "web-browser-smoke");
@@ -364,7 +365,10 @@ async function installRoutes(context, slug, options = {}) {
           reset: options.resetState ? { modes: ["customization", "factory"], status: "/api/v1/reset" } : undefined,
           identity: options.identityState ? { version: 1 } : undefined,
           screensaver_pin: options.screensaverPinState ? { version: 1 } : undefined,
-          configuration: { read: true, write: true, document_versions: [1],
+          configuration: { read: true, write: true, document_versions: options.nativeV2 ? [1, 2] : [1],
+            durable_document_version: options.nativeV2 ? 2 : 1,
+            max_navigation_depth: options.nativeV2 ? 2 : 1, writable_navigation_depth: options.nativeV2 ? 2 : 1,
+            max_v2_document_bytes: 524288, preserves_inactive_records: true,
             max_record_body_bytes: nativeState.maxRecordBodyBytes },
           web_assets: { versions: [1] },
         }),
@@ -406,7 +410,7 @@ async function installRoutes(context, slug, options = {}) {
         }
         const body = route.request().postDataBuffer();
         assert(body, `${slug}: native configuration PUT has a binary body`);
-        nativeState.document = decodePanelConfig(new Uint8Array(body));
+        nativeState.document = (options.nativeV2 ? decodePanelPageDocument : decodePanelConfig)(new Uint8Array(body));
         nativeState.generation += 1;
         nativeState.puts.push({
           generation: nativeState.generation,
@@ -414,15 +418,15 @@ async function installRoutes(context, slug, options = {}) {
         });
         await route.fulfill({
           status: 204,
-          headers: { ETag: `"${nativeState.generation}"` },
+          headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
         });
         return;
       }
       await route.fulfill({
         status: 200,
         contentType: "application/vnd.espdesktop.panel-config",
-        headers: { ETag: `"${nativeState.generation}"` },
-        body: Buffer.from(encodePanelConfig(nativeState.document)),
+        headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
+        body: Buffer.from((options.nativeV2 ? encodePanelPageDocument : encodePanelConfig)(nativeState.document)),
       });
       return;
     }
@@ -483,6 +487,15 @@ async function installRoutes(context, slug, options = {}) {
         contentType: "application/javascript",
         body: fs.readFileSync(immutableBundlePath, "utf8"),
       });
+      return;
+    }
+    if (requestUrl.hostname === "espdesktop.test" && route.request().method() === "GET" && /^\/(text|text_sensor|select|number|switch|sensor|binary_sensor|button|update|light)\//.test(requestUrl.pathname)) {
+      const parts = requestUrl.pathname.split("/").filter(Boolean);
+      const domain = parts[0], name = decodeURIComponent(parts[1] || "");
+      const normalized = value => String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+      const events = nativeState ? nativeDocumentEvents(nativeState.document) : seededEvents();
+      const event = events.find(event => normalized(event.id) === normalized(domain + "-" + name));
+      await route.fulfill(event ? { status: 200, contentType: "application/json", body: JSON.stringify(event) } : { status: 404, body: "Entity absent from this fixture" });
       return;
     }
     if (requestUrl.hostname === "espdesktop.test") {
@@ -3221,7 +3234,7 @@ async function assertContextColourPicker(browser, testCase) {
         await seedNativeDocument(page, fixture);
         await page.locator(".sp-brand").click();
         let rejectAfter = 0;
-        await page.route("**/api/v1/config/**", async route => {
+        await page.route("**/api/v1/config{,/**}", async route => {
           if (route.request().method() !== "PUT") return route.fallback();
           if (rejectAfter-- <= 0) return route.fulfill({ status: 409, body: "generation conflict" });
           return route.fallback();
@@ -3258,7 +3271,7 @@ async function assertContextColourPicker(browser, testCase) {
         assert.strictEqual(fixture.document.subpages[3], savedSubpage);
         // A 202 has durable native data but no compatible older-firmware copy.
         // Keep the saved colour and the controller's downgrade warning.
-        await page.route("**/api/v1/config/**", async route => {
+        await page.route("**/api/v1/config{,/**}", async route => {
           if (route.request().method() !== "PUT") return route.fallback();
           fixture.document = decodePanelConfig(new Uint8Array(route.request().postDataBuffer()));
           fixture.generation++;
@@ -5074,7 +5087,8 @@ async function assertEditSmoke(page, posts, errors) {
 
 async function assertApplySmoke(page, posts, errors) {
   const before = posts.length;
-  await page.getByRole("button", { name: "Apply Configuration" }).click();
+  await page.getByRole("tab", { name: "System", exact: true }).click();
+  await page.locator("#sp-device").getByRole("button", { name: "Apply Configuration" }).click();
   await waitForPost(
     posts,
     {
@@ -5972,6 +5986,7 @@ async function seedNativeDocument(page, nativeState) {
     nativeDocumentEvents(nativeState.document),
   );
   await page.waitForSelector('.sp-main [data-slot="2"]');
+  await page.waitForFunction(() => document.querySelector(".sp-main")?.getAttribute("aria-disabled") === "false");
 }
 
 async function assertWifiSharingHidesHomeAssistantControls(browser, testCase) {
@@ -6059,7 +6074,7 @@ async function assertInlineCardNames(page, nativeState, label) {
   assert.strictEqual(nativeState.document.buttons[1], renamed, `${label}: Escape cancels`);
   await title.click();
   await input.fill("Also cancelled");
-  await page.locator(".sp-preview-hint, .sp-hint").first().click();
+  await page.locator(".sp-brand").click();
   await page.waitForFunction(() => !document.querySelector(".sp-card-name-input"));
   assert.strictEqual(nativeState.document.buttons[1], renamed, `${label}: clicking away cancels`);
   await title.click();
@@ -6138,7 +6153,7 @@ async function assertInlineCardNames(page, nativeState, label) {
     const generatedLabel = card.locator(".sp-btn-label");
     if (await generatedLabel.count()) {
       assert.strictEqual(await generatedLabel.getAttribute("tabindex"), null);
-      await page.locator(".sp-preview-hint, .sp-hint").first().click();
+      await page.locator(".sp-brand").click();
       await generatedLabel.click();
       assert(await card.evaluate(el => el.classList.contains("sp-selected")),
         `${label}: clicking ${type} text still selects its card`);
@@ -6491,8 +6506,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await seedNativeDocument(page, nativeState);
     const commandIcon = page.locator('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
     await commandIcon.waitFor({ state: "visible" });
+    await page.waitForFunction(() => {
+      const element = document.querySelector('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
+      return element && getComputedStyle(element, "::before").content === '"' + String.fromCodePoint(0xF0633) + '"';
+    });
     assert.strictEqual(
-      await commandIcon.evaluate((element) => getComputedStyle(element, "::before").content),
+      await page.evaluate(() => getComputedStyle(document.querySelector('.sp-main [data-slot="1"] .mdi-apple-keyboard-command'), "::before").content),
       '"' + String.fromCodePoint(0xF0633) + '"',
       "saved Command cards render the bundled MDI glyph",
     );
@@ -6648,7 +6667,7 @@ async function assertCompanionStorageSettings(browser, testCase) {
     const page = await context.newPage();
     await installFakeEventSource(page);
     const openSettings = async () => {
-      await page.locator('.sp-main [data-slot="1"]').click();
+      await page.locator('.sp-main [data-slot="1"]').click({ position: { x: 70, y: 25 } });
       await page.getByRole("button", { name: "Edit", exact: true }).click();
       await page.waitForSelector(".sp-settings-overlay.sp-visible");
       const field = page.locator('[id$="storage-device"]');
@@ -8906,7 +8925,7 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
           assert.strictEqual(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), !clockOn,
             "returning home restores its own Clock Bar setting");
         }
-        await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
+        await page.getByRole("button", { name: "Configure swipe-up page", exact: true }).click();
         await checkSubpage(compactTop);
       }
     }
@@ -8919,98 +8938,142 @@ async function assertSubpageClockBar(browser, testCase) {
   await assertSubpageTitleBarSetting(browser, testCase);
 }
 
-async function assertSpecialPageRename(browser, testCase) {
+async function assertSpecialPageEntry(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
     ? { width: 390, height: 844 } : testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
   const page = await context.newPage();
   await installFakeEventSource(page);
-  const title = page.getByRole("button", { name: "Rename Special Page", exact: true });
-  const dialog = page.getByRole("dialog", { name: "Rename", exact: true });
-  const input = page.getByLabel("Page name", { exact: true });
-  const custom = "Office: Tools, 50% | 日本語 <test>";
   async function openPage() {
-    await page.getByRole("button", { name: "Configure Special Page", exact: true }).click();
-    await title.waitFor();
+    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
+    await entry.waitFor();
+    assert.strictEqual(await page.locator("#sp-screen .sp-apply-bar").count(), 0, "Layout has no Apply button or restart note");
+    const screenBounds = await page.locator(".sp-screen").boundingBox();
+    const entryBounds = await entry.boundingBox();
+    assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
+    assert(entryBounds.y - screenBounds.y - screenBounds.height <= 11, "swipe-up entry stays close to the display");
+    assert(Math.abs(entryBounds.width - screenBounds.width) < 1, "swipe-up entry matches the display width");
+    assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
+    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "home preview has no grab handle");
+    assert.strictEqual(await entry.innerText(), "Configure swipe-up page");
+    assert(entryBounds.height >= 48, "Configure swipe-up page has a taller click target");
+    assert(!(await page.locator("#sp-screen .sp-hint").isVisible()), "idle editing instructions are hidden without blank spacing");
+    assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
+    if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
+    await entry.focus();
+    await entry.press("Enter");
+    await page.locator(".sp-main .sp-back-btn").waitFor();
+    assert.strictEqual(await entry.count(), 0, "entry is hidden while editing the swipe-up page");
+    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "swipe-up page has no clock bar");
+    assert.strictEqual(await page.locator(".sp-topbar .sp-clockbar-subpage-title").count(), 0, "swipe-up page has no title inside the display");
+    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "special page preview has no grab handle");
+    assert.strictEqual(await page.getByRole("button", { name: "Rename Special Page", exact: true }).count(), 0, "page title is absent above the preview");
+    if (process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT, fullPage: true });
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
     await page.waitForSelector("#sp-app");
     await seedNativeDocument(page, nativeState);
     await openPage();
-    assert.strictEqual(await title.innerText(), "Special Page");
-    await title.click();
-    await input.fill("Cancelled name");
-    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
-    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
-    assert.strictEqual(await title.innerText(), "Special Page");
-    await title.press("Enter");
-    await input.fill("Escape name");
-    await input.press("Escape");
-    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
-    assert.strictEqual(await title.innerText(), "Special Page");
-    await title.press("Space");
-    await input.fill(custom);
-    if (process.env.ESPDESKTOP_SPECIAL_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SPECIAL_PAGE_SCREENSHOT });
-    await input.press("Enter");
-    await dialog.waitFor({ state: "hidden" });
-    assert.strictEqual(await title.innerText(), custom);
-    await page.locator(".sp-main .sp-empty-cell").first().click({ button: "right" });
-    await page.locator(".sp-ctx-menu").getByText("Paste Code", { exact: true }).click();
-    const pasteDialog = page.locator(".sp-transfer-dialog");
-    await pasteDialog.locator("textarea").fill(JSON.stringify({
-      format: "espdesktop.cards", version: 1, source: { device: testCase.slug, firmware: "test" },
-      cards: [{ entity: "light.kitchen", label: "Kitchen", icon: "Lightbulb", icon_on: "Auto",
-        sensor: "", unit: "", type: "", precision: "", options: "", size: 1 }],
-    }));
-    await pasteDialog.getByRole("button", { name: "Paste", exact: true }).click();
-    assert.deepStrictEqual((await page.locator(".sp-transfer-error").allTextContents()).filter(Boolean), [], "card code is accepted");
-    await pasteDialog.waitFor({ state: "detached" });
-    await waitForNativeState(nativeState, () => nativeState.document.settings.special_page.includes("Kitchen"), "paste a card into the renamed Special Page");
-    assert.strictEqual(await title.innerText(), custom, "pasting a card retains the page name");
-    const saved = nativeState.document.settings.special_page;
-    assert(saved.includes("Office%3A Tools%2C 50%25 %7C 日本語 <test>"));
-    await page.reload();
-    await page.waitForSelector("#sp-app");
-    await seedNativeDocument(page, nativeState);
+    await page.locator(".sp-back-btn .sp-back-hit").click();
     await openPage();
-    assert.strictEqual(await title.innerText(), custom, "name persists after reload");
-    await title.click();
-    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
-    assert.strictEqual(await input.inputValue(), "", "reset selects the default title");
-    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
-    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
-    assert.strictEqual(await title.innerText(), custom, "cancel discards a reset");
-    await title.click();
-    await dialog.getByRole("button", { name: "Close rename", exact: true }).click();
-    await page.locator("#sp-special-page-rename").waitFor({ state: "detached" });
-    assert.strictEqual(await title.innerText(), custom, "close preserves the saved name");
-    await title.click();
-    await input.fill("Failed name");
-    let reject = true;
-    await page.route("**/api/v1/config/**", async route => {
-      if (reject && route.request().method() === "PUT") return route.fulfill({ status: 500, body: "Failed" });
+
+    console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
+
+  } finally { await context.close(); }
+}
+
+async function assertNestedCompanionPages(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040"), fixture = nativeConfigState(testCase.slug);
+  fixture.document = JSON.parse(fs.readFileSync(path.join(ROOT, "compatibility/fixtures/companion_nested_pages.json"))).document;
+  fixture.document.deviceProfile = testCase.slug;
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  const page = await context.newPage(), errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    const open = async () => {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForFunction(() => window.__eventSources?.length > 0);
+      await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+      await page.getByRole("tab", { name: "Layout", exact: true }).click();
+      await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+      await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+      await page.getByText("Address", { exact: true }).first().waitFor();
+    };
+    // Create a new app shortcut page while its app is already inside a folder.
+    const existing = structuredClone(fixture.document);
+    delete fixture.document.subpages[33];
+    fixture.document.subpages[1] = fixture.document.subpages[1].replace("app_shortcuts", "");
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+    if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
+    await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length === 1 && !!fixture.document.subpages[33], "create a nested app page atomically");
+    assert(fixture.document.subpages[1].includes("app_shortcuts"));
+    assert(fixture.document.subpages[33].includes("shortcut."));
+    // Start the independent edit/reload scenario with a custom existing card.
+    fixture.document = existing; fixture.generation++; fixture.puts = [];
+    await open();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.getByText("Safari", { exact: true }).first().waitFor();
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
+    if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await app.locator(".sp-disclosure-button").click();
+    await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
+    let rejectNext = true;
+    await page.route("**/api/v1/config", async route => {
+      if (route.request().method() === "PUT" && rejectNext) {
+        rejectNext = false; return route.fulfill({ status: 500, body: "Save failed" });
+      }
       return route.fallback();
     });
-    await dialog.getByRole("button", { name: "Save", exact: true }).click();
-    await dialog.getByRole("alert").filter({ hasText: "Could not save" }).waitFor();
-    assert.strictEqual(await title.innerText(), custom, "failure restores the saved title");
-    assert.strictEqual(await input.inputValue(), "Failed name", "failure preserves the draft");
-    assert.strictEqual(nativeState.document.settings.special_page, saved);
-    reject = false;
-    await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
-    await input.press("Enter");
-    await dialog.waitFor({ state: "hidden" });
-    assert.strictEqual(await title.innerText(), "Special Page", "saving reset restores default");
-    console.log(`${testCase.name}: Special Page rename, reload, cancel, keyboard and save failure passed.`);
-  } finally { await context.close(); }
+    const beforeRetry = fixture.document.subpages[1];
+    const failed = page.waitForResponse(response => response.url().endsWith("/api/v1/config") && response.status() === 500);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await failed;
+    await page.waitForFunction(() => {
+      const save = [...document.querySelectorAll(".sp-settings-modal button")].find(button => button.textContent === "Save");
+      return save && !save.disabled;
+    });
+    assert.equal(fixture.puts.length, 0);
+    assert.equal(fixture.document.subpages[1], beforeRetry);
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.puts.length === 1, "one atomic nested app save");
+    assert(fixture.document.subpages[33].includes("Address"), "existing shortcut survives app preset change");
+    assert(fixture.document.subpages[33].includes("shortcut."), "app shortcuts persist under nested key");
+    const parsed = loadTypeScriptModule("src/webserver/model/subpage.ts").parseRawSubpageConfig(fixture.document.subpages[33], code => code);
+    const back = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/app_shortcuts/safari.json"))).shortcuts.find(shortcut => shortcut.id === "1");
+    assert(parsed.buttons.some(card => card.entity === "shortcut." + back.shortcut), "retry in the same dialog saves the newly selected shortcut");
+    await open();
+    assert.deepStrictEqual(errors, []);
+    console.log("Nested Companion shortcut creation, edit, failed-save retry, atomic save, reload and parent Back passed.");
+  } catch(error) { await page.screenshot({ path: "/tmp/nested-browser.png" }); fs.writeFileSync("/tmp/nested-browser.html", await page.content()); throw error; } finally { await context.close(); }
 }
 
 (async function main() {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_COMPANION_SHORTCUTS_ONLY === "1") {
+      const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+      await assertCompanionShortcutSettings(browser, testCase);
+      await assertAppSubpageCapacity(browser, testCase);
+      await assertShortcutCatalogSettings(browser, testCase);
+      await assertCompanionStorageSettings(browser, testCase);
+      console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
+      return;
+    }
+    if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") { await assertNestedCompanionPages(browser); return; }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;
@@ -9024,7 +9087,7 @@ async function assertSpecialPageRename(browser, testCase) {
       return;
     }
     if (process.env.ESPDESKTOP_SPECIAL_PAGE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertSpecialPageRename(browser, testCase);
+      for (const testCase of ACTIVE_CASES) await assertSpecialPageEntry(browser, testCase);
       return;
     }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
@@ -9056,7 +9119,7 @@ async function assertSpecialPageRename(browser, testCase) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
-    await assertSpecialPageRename(browser, ACTIVE_CASES[0]);
+    await assertSpecialPageEntry(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RAINFALL_ONLY === "1") { await assertRainfallEditor(browser); return; }
@@ -9168,6 +9231,7 @@ async function assertSpecialPageRename(browser, testCase) {
       console.log("Home Assistant visibility browser checks passed.");
       return;
     }
+    await assertNestedCompanionPages(browser);
     await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);
     if (process.env.ESPDESKTOP_EDITOR_REFRESH_ONLY === "1") { console.log("Editor refresh browser checks passed."); return; }

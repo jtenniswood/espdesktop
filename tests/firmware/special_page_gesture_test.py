@@ -8,6 +8,7 @@ from generate_media_lifecycle_integration import definition
 ROOT = Path(__file__).resolve().parents[2]
 header = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
 press_state = header[header.index('struct NavigationGridGesturePress {'):header.index('inline void navigation_grid_screen_gesture(')]
+return_handler = definition(header, 'navigation_return_from_special_page')[1]
 handler = definition(header, 'navigation_grid_screen_gesture')[1]
 label_handler = definition(header, 'navigation_active_subpage_label')[1]
 registration = definition(header, 'navigation_register_grid_screen_gesture')[1]
@@ -18,8 +19,9 @@ stubs = r'''
 #include <vector>
 #include <string>
 using lv_coord_t = int;
-constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1, LV_DIR_RIGHT=2, LV_DIR_LEFT=3, LV_EVENT_PRESSED=4, LV_EVENT_RELEASED=5, LV_INDEV_TYPE_POINTER=1;
-struct lv_obj_t { int height=480, width=480; bool valid=true; } grid, other, overlay, back_button;
+constexpr int NAVIGATION_SPECIAL_PAGE_SLOT=49, LV_SCR_LOAD_ANIM_NONE=0;
+constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1, LV_DIR_RIGHT=2, LV_DIR_LEFT=3, LV_DIR_BOTTOM=4, LV_EVENT_PRESSED=4, LV_EVENT_RELEASED=5, LV_INDEV_TYPE_POINTER=1;
+struct lv_obj_t { int height=480, width=480; bool valid=true; } grid, other, overlay, back_button, special, subgrid;
 struct lv_point_t { int x=0,y=0; };
 struct lv_indev_t { int direction=LV_DIR_TOP; lv_point_t point{0,420}, vector{0,-50}; } device;
 struct lv_event_t { int code=LV_EVENT_GESTURE; } event;
@@ -50,6 +52,13 @@ void lv_obj_send_event(lv_obj_t *o, int code, void *data) {
 }
 bool navigation_open_special_page() { ++opened; return true; }
 void lv_indev_wait_release(lv_indev_t *) { ++waited; }
+lv_obj_t *previous=nullptr, *home=&grid;
+lv_obj_t *&navigation_special_page_previous_screen() { return previous; }
+lv_obj_t *&navigation_special_page_main_screen() { return home; }
+int restored=0;
+void navigation_hide_modals() {}
+void navigation_present_page_before_image_refresh() { ++restored; }
+void lv_scr_load_anim(lv_obj_t *screen,int,int,int,bool) { active=screen; }
 lv_indev_t *lv_indev_get_next(lv_indev_t *p) { return p ? nullptr : &device; }
 int lv_indev_get_type(lv_indev_t *) { return LV_INDEV_TYPE_POINTER; }
 void lv_indev_set_gesture_min_distance(lv_indev_t *, int value) { distance=value; }
@@ -58,14 +67,14 @@ void lv_indev_add_event_cb(lv_indev_t *, void (*)(lv_event_t *), int, void *) { 
 struct NavigationSubpageEntry {
   std::string kind, title;
   lv_obj_t *screen=nullptr, *back_button=nullptr;
-} entry;
+} entry, special_entry;
 std::vector<NavigationSubpageEntry> subpages;
 std::vector<NavigationSubpageEntry> &navigation_subpages() { return subpages; }
 struct NavigationHomeTargetEntry { std::string label, config; } parent;
 int selected_slot = 0;
 bool has_parent = false;
 int navigation_active_subpage_slot() { return selected_slot; }
-NavigationSubpageEntry *navigation_find_slot(int slot) { return slot ? &entry : nullptr; }
+NavigationSubpageEntry *navigation_find_slot(int slot) { return slot == NAVIGATION_SPECIAL_PAGE_SLOT ? &special_entry : slot ? &entry : nullptr; }
 NavigationHomeTargetEntry *navigation_find_slot_target(int) { return has_parent ? &parent : nullptr; }
 struct ParsedCfg { std::string entity; };
 ParsedCfg parse_cfg(const std::string &) { return {}; }
@@ -86,10 +95,10 @@ int main() {
   navigation_register_grid_screen_gesture(&grid);
   assert(callbacks==3 && screens.size()==1);
   assert(navigation_active_subpage_label().empty());
-  selected_slot=1; entry.kind="special"; entry.title="Office: Tools";
-  assert(navigation_active_subpage_label()=="Office: Tools");
-  entry.title.clear(); assert(navigation_active_subpage_label().empty());
-  entry.kind="subpage"; has_parent=true; parent.label="Rooms";
+  selected_slot=NAVIGATION_SPECIAL_PAGE_SLOT; special_entry.kind="special"; special_entry.title="Office: Tools";
+  assert(navigation_active_subpage_label().empty());
+  special_entry.title.clear(); assert(navigation_active_subpage_label().empty());
+  selected_slot=1; entry.kind="subpage"; has_parent=true; parent.label="Rooms";
   assert(navigation_active_subpage_label()=="Rooms");
   entry.kind="app_shortcuts"; assert(navigation_active_subpage_label().empty());
 
@@ -149,12 +158,37 @@ int main() {
   assert(opened==1 && waited==6);
   begin(240,399); gesture(240,373,LV_DIR_TOP);
   assert(opened==1 && waited==6);
+
+  // Preserve top-edge dismissal and the previous-screen fallback from main.
+  navigation_register_grid_screen_gesture(&special);
+  navigation_register_grid_screen_gesture(&subgrid);
+  special_entry.screen=&special;
+  active=&special; previous=&subgrid;
+  begin(240,40); locked=true; gesture(240,70,LV_DIR_BOTTOM); locked=false;
+  begin(240,40); modal.overlay=&overlay; gesture(240,70,LV_DIR_BOTTOM); modal.overlay=nullptr;
+  begin(240,100); gesture(240,130,LV_DIR_BOTTOM);
+  begin(240,440); gesture(240,410,LV_DIR_TOP);
+  assert(active==&special && restored==0 && waited==6);
+  begin(240,70); gesture(240,96,LV_DIR_BOTTOM);
+  assert(active==&subgrid && previous==nullptr && restored==1 && waited==7);
+  active=&special; previous=&grid;
+  begin(240,80); gesture(240,106,LV_DIR_BOTTOM);
+  assert(active==&grid && restored==2 && waited==8);
+  active=&special; previous=&other; other.valid=false;
+  begin(240,40); gesture(240,70,LV_DIR_BOTTOM);
+  assert(active==&grid && restored==3 && waited==9);
+  active=&special; previous=nullptr;
+  begin(240,40); gesture(240,70,LV_DIR_BOTTOM);
+  assert(active==&grid && restored==4 && waited==10);
+  active=&special; previous=nullptr; home=nullptr;
+  begin(240,40); gesture(240,70,LV_DIR_BOTTOM);
+  assert(active==&special && restored==4 && waited==10);
 }
 '''
 with tempfile.TemporaryDirectory() as tmp:
     source=Path(tmp)/'test.cpp'
     binary=Path(tmp)/'test'
-    source.write_text(stubs+press_state+handler+registration+label_handler+checks)
+    source.write_text(stubs+press_state+return_handler+handler+registration+label_handler+checks)
     subprocess.run([sys.argv[1] if len(sys.argv)>1 else 'c++','-std=c++17','-Wall','-Wextra','-Werror',str(source),'-o',str(binary)],check=True)
     subprocess.run([str(binary)],check=True)
 print('Special-page gesture guards passed for Screen Lock, modals, setup/screensaver modes and bottom/left-edge swipes.')

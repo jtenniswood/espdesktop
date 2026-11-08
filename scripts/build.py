@@ -3403,6 +3403,7 @@ def gen_card_contract_h(data):
         "\n",
         "#include <cstdint>\n",
         "#include <string>\n",
+        "#include <string_view>\n",
         "\n",
         "// =============================================================================\n",
         "// GENERATED CARD CONFIG CONTRACT - do not edit by hand\n",
@@ -3715,6 +3716,11 @@ def gen_card_contract_h(data):
         "         type == \"timezone\";\n",
         "}\n",
         "\n",
+        "inline std::string_view card_contract_subpage_code_view(std::string_view type) {\n",
+    ])
+    for card_type, code in codes.items():
+        lines.append(f'  if (type == "{card_type}") return "{code}";\n')
+    lines.extend(["  return type;\n", "}\n", "\n",
         "inline const char *card_contract_subpage_type_code(const std::string &type) {\n",
     ])
     for card_type, code in codes.items():
@@ -3723,6 +3729,11 @@ def gen_card_contract_h(data):
         "  return type.c_str();\n",
         "}\n",
         "\n",
+        "inline std::string_view card_contract_subpage_type_view(const std::string_view &code) {\n",
+    ])
+    for card_type, code in codes.items():
+        lines.append(f'  if (code == "{code}") return "{card_type}";\n')
+    lines.extend(["  return code;\n", "}\n", "\n",
         "inline std::string card_contract_subpage_type_from_code(const std::string &code) {\n",
     ])
     for card_type, code in codes.items():
@@ -4001,29 +4012,32 @@ def web_mdi_icon_names(data, codepoints):
 
     The picker gets its names from the Product Model. A smaller set of fixed
     controls and card badges is written directly in the editor source, so scan
-    those string literals too. Filtering them through the pinned MDI map keeps
-    unrelated UI text out of the font stylesheet.
+    runtime string literals too. Type-only names must not add glyphs. Filtering
+    bare names through the pinned MDI map keeps unrelated UI text out of the
+    font stylesheet; explicit MDI classes are always checked.
     """
     names = {item["mdi"] for item in icon_items(data)}
-    for path in WEB_SOURCE_DIR.rglob("*.ts"):
-        source = path.read_text(encoding="utf-8")
-        names.update(
-            match.group(1)
-            for match in re.finditer(r"\bmdi-([a-z0-9-]+)\b", source)
-            if match.group(1) in codepoints
+    overlays = GENERATED_TRANSACTION.overlays() if GENERATED_TRANSACTION is not None else {}
+    paths = set(WEB_SOURCE_DIR.rglob("*.ts"))
+    paths.update(Path(path) for path in overlays
+                 if Path(path).suffix == ".ts" and Path(path).is_relative_to(WEB_SOURCE_DIR))
+    sources = []
+    for path in sorted(paths):
+        source = overlays.get(str(path.resolve()))
+        if source is None:
+            source = path.read_text(encoding="utf-8")
+        sources.append({"file": str(path), "source": source})
+    try:
+        result = subprocess.run(
+            ["node", str(ROOT / "scripts" / "web_icon_names.js")],
+            input=json.dumps({"sources": sources, "knownNames": list(codepoints)}),
+            text=True, capture_output=True, check=False,
         )
-        accessibility_role_values = {
-            match.span(1)
-            for match in re.finditer(
-                r"\.setAttribute\(\s*[\"']role[\"']\s*,\s*[\"']([a-z][a-z0-9-]*)[\"']",
-                source,
-            )
-        }
-        names.update(
-            match.group(1)
-            for match in re.finditer(r"['\"]([a-z][a-z0-9-]*)['\"]", source)
-            if match.group(1) in codepoints and match.span(1) not in accessibility_role_values
-        )
+    except FileNotFoundError as exc:
+        raise BuildError("Node.js and npm ci are required to validate browser icons") from exc
+    if result.returncode != 0:
+        raise BuildError(result.stderr.strip() or "Browser icon source scan failed")
+    names.update(json.loads(result.stdout))
     return names
 
 

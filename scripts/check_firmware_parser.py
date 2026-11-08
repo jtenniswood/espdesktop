@@ -99,11 +99,7 @@ struct lv_obj_t {
   int width = 480;
   void *user_data = nullptr;
 };
-constexpr int MAX_GRID_SLOTS = 25;
-inline int bounded_grid_slots(int num_slots) {
-  if (num_slots < 0) return 0;
-  return num_slots > MAX_GRID_SLOTS ? MAX_GRID_SLOTS : num_slots;
-}
+#include "button_grid_limits.h"
 struct BtnSlot {
   esphome::text::Text *config = nullptr;
   lv_obj_t *btn = nullptr;
@@ -1166,6 +1162,8 @@ def main() -> int:
         return 1
     with TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
+        for helper in ("button_grid_order_parser.h", "config_field_decode.h", "display_utf8_case.h", "ha_state_limits.h", "home_assistant_transport_runtime.h"):
+            shutil.copy2(PARSER_HEADER.parent / helper, tmp_path / helper)
         shutil.copy2(PARSER_HEADER, tmp_path / "button_grid_config_parser.h")
         shutil.copy2(PARSER_HEADER.with_name("i18n_generated.h"), tmp_path / "i18n_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")

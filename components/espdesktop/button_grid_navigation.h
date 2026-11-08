@@ -33,6 +33,7 @@ struct NavigationHomeTargetEntry {
 };
 
 struct NavigationSubpageEntry {
+  int parent_slot = 0;
   int slot = 0;
   int display_order = 0;
   std::string kind;
@@ -56,6 +57,7 @@ bool neutral_background = true;
 };
 
 inline NavigationSubpageEntry *navigation_find_slot(int slot);
+inline bool navigation_restore_subpage_slot(int slot);
 inline void navigation_register_subpage(int slot, int display_order,
                                         const std::string &kind,
                                         lv_obj_t *screen);
@@ -271,11 +273,19 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
       ESP_LOGD("ui_latency", "Swipe back finished at=%u", unsigned(esphome::millis()));
       return;
     }
-  } else if (direction == LV_DIR_TOP) {
+  } else {
     const lv_coord_t screen_height = lv_obj_get_height(screen);
     const lv_coord_t swipe_start_y = start.y;
-    if (screen_height <= 0 || swipe_start_y < screen_height * 5 / 6) return;
-
+    if (screen_height <= 0) return;
+    const auto *special_page = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+    if (special_page && special_page->screen == screen) {
+      // Preserve the top-edge dismissal added on main, using touch-down too.
+      if (direction != LV_DIR_BOTTOM || swipe_start_y < 0 ||
+          swipe_start_y > screen_height / 6) return;
+      if (navigation_return_from_special_page()) lv_indev_wait_release(indev);
+      return;
+    }
+    if (direction != LV_DIR_TOP || swipe_start_y < screen_height * 5 / 6) return;
     if (navigation_open_special_page()) lv_indev_wait_release(indev);
   }
 }
@@ -325,6 +335,7 @@ inline void navigation_clear_subpages(lv_obj_t *main_page_obj) {
   for (auto &entry : navigation_subpages()) {
     if (entry.screen != nullptr) {
       navigation_release_subpage_runtime(entry);
+      clock_bar_clear_responsive_grid_cards(entry.screen);
       lv_obj_del(entry.screen);
     }
   }
@@ -375,7 +386,8 @@ inline void navigation_register_subpage(int slot, int display_order,
   entry.kind = navigation_lower(navigation_trim(kind));
   entry.screen = screen;
   navigation_subpages().push_back(entry);
-  clock_bar_register_button_grid_page(screen);
+  // The swipe-up page has no clock bar, independent of clock-bar settings.
+  if (entry.kind != "special") clock_bar_register_button_grid_page(screen);
   // Both events run after LVGL has changed the active screen. Unloading also
   // restores temperatures immediately when returning home or opening another UI.
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,
@@ -469,7 +481,7 @@ inline std::string navigation_active_subpage_label() {
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
-  if (entry && entry->kind == "special") return entry->title;
+  if (entry && entry->kind == "special") return "";
   if (entry == nullptr || parent == nullptr) return "";
   // The app's identity is shown on its return-home card instead of the clock bar.
   if (entry->kind == "app_shortcuts") return "";
@@ -538,7 +550,7 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
   // The following navigation check can load the destination directly. Loading
   // Home first runs its screen/icon refresh work before the new page can draw.
   if (navigation_companion_subpage_for_action(companion_pending_auto_subpage_action())) return false;
-  return navigation_return_home(main_page_obj);
+  return entry->parent_slot > 0 ? navigation_restore_subpage_slot(entry->parent_slot) : navigation_return_home(main_page_obj);
 }
 
 inline bool navigation_open_companion_subpage_if_requested(

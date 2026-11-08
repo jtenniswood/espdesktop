@@ -233,7 +233,7 @@ def check_root(root: Path) -> list[str]:
             or "media_driver_bind_subpage( sub_slot, sb_cfg, context, media_environment)" not in compact_grid
             or "navigation_driver_setup_visual( s, p, context, cfg, display)" not in compact_grid
             or "navigation_driver_bind_main( s, p, context, navigation_state)" not in compact_grid
-            or "navigation_driver_own_subpage( slots[si], p, parent_context, navigation_slot, display_order, sub_scr)" not in compact_grid
+            or "navigation_driver_own_subpage( owner_slot, p, parent_context, navigation_slot, display_order, sub_scr)" not in compact_grid
             or "navigation_register_special_page(sub_scr, main_page_obj, get_subpage_title(sp_order_str))" not in compact_grid
             or "image_driver_setup_visual(s, p, context, palette)" not in compact_grid
             or "image_driver_bind_main( s, p, context, cfg, palette)" not in compact_grid
