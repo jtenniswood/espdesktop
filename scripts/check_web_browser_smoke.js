@@ -8234,6 +8234,17 @@ async function assertWeatherWidthScaling(browser) {
   } finally { await page.close(); }
 }
 
+// Check the visible layout: Chromium may serialize flex-start as flow-start.
+async function assertForecastLeftAlignment(day) {
+  const offsets = await day.evaluate(element => {
+    const left = element.getBoundingClientRect().left;
+    return Array.from(element.querySelectorAll(':scope > span'))
+      .map(span => span.getBoundingClientRect().left - left);
+  });
+  assert(offsets.length > 0 && offsets.every(offset => Math.abs(offset) < 1),
+    `Forecast icon and labels must align to the left edge: ${offsets}`);
+}
+
 async function assertS3ForecastEditorLayout(browser) {
   const slug = 'guition-esp32-s3-4848s040';
   const nativeState = nativeConfigState(slug);
@@ -8253,7 +8264,7 @@ async function assertS3ForecastEditorLayout(browser) {
       await page.setViewportSize({ width, height: 1000 });
       await page.waitForFunction(() => document.querySelectorAll('.sp-weather-daily-card .sp-weather-day:not([hidden])').length === 4);
       const day = page.locator('.sp-weather-day:not([hidden])').first();
-      assert.strictEqual(await day.evaluate(element => getComputedStyle(element).alignItems), 'flex-start');
+      await assertForecastLeftAlignment(day);
     }
     await page.locator('.sp-screen').screenshot({ path: '/tmp/weather-preview-s3-editor-after.png' });
     console.log('S3 editor integration: 3×1 forecast shows four left-aligned days before and after resizing.');
@@ -8275,10 +8286,10 @@ async function assertS3ForecastEditorLayout(browser) {
       assert.strictEqual(await days.count(), 1);
       const geometry = await days.first().evaluate(day => {
         const spans = day.querySelectorAll(':scope > span');
-        return {left: getComputedStyle(day).alignItems, icon: spans[0].getBoundingClientRect().top,
+        return {icon: spans[0].getBoundingClientRect().top,
           text: spans[1].getBoundingClientRect().top, high: spans[2].textContent};
       });
-      assert.strictEqual(geometry.left, 'flex-start');
+      await assertForecastLeftAlignment(days.first());
       assert(geometry.icon < geometry.text && /^\d+°\/\d+°$/.test(geometry.high),
         'Single-day forecasts keep the icon above the day and show the high/low pair.');
       await page.setViewportSize({width: 1000, height: 1000});
