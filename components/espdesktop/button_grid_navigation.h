@@ -203,7 +203,7 @@ inline bool navigation_display_mode_allows_grid_gesture() {
 inline void navigation_grid_screen_gesture(lv_event_t *event) {
   if (event == nullptr || lv_event_get_code(event) != LV_EVENT_GESTURE) return;
   lv_indev_t *indev = lv_indev_active();
-  if (indev == nullptr || lv_indev_get_gesture_dir(indev) != LV_DIR_TOP ||
+  if (indev == nullptr ||
       !navigation_display_mode_allows_grid_gesture() ||
       screen_lock_enabled() || control_modal_active().overlay != nullptr ||
       control_modal_nested_active().overlay != nullptr) return;
@@ -217,11 +217,29 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
   lv_point_t vector{};
   lv_indev_get_point(indev, &point);
   lv_indev_get_vect(indev, &vector);
-  const lv_coord_t screen_height = lv_obj_get_height(screen);
-  const lv_coord_t swipe_start_y = point.y - vector.y;
-  if (screen_height <= 0 || swipe_start_y < screen_height * 5 / 6) return;
+  const auto direction = lv_indev_get_gesture_dir(indev);
+  if (direction == LV_DIR_RIGHT) {
+    const lv_coord_t screen_width = lv_obj_get_width(screen);
+    const lv_coord_t swipe_start_x = point.x - vector.x;
+    if (screen_width <= 0 || swipe_start_x < 0 ||
+        swipe_start_x > screen_width / 6) return;
 
-  if (navigation_open_special_page()) lv_indev_wait_release(indev);
+    for (const auto &entry : navigation_subpages()) {
+      if (entry.screen != screen || entry.back_button == nullptr ||
+          !lv_obj_is_valid(entry.back_button)) continue;
+      // Use the page's Back/Close action so special pages return to their
+      // previous screen and ordinary/app subpages keep their existing behavior.
+      lv_indev_wait_release(indev);
+      lv_event_send(entry.back_button, LV_EVENT_PRESSED, nullptr);
+      return;
+    }
+  } else if (direction == LV_DIR_TOP) {
+    const lv_coord_t screen_height = lv_obj_get_height(screen);
+    const lv_coord_t swipe_start_y = point.y - vector.y;
+    if (screen_height <= 0 || swipe_start_y < screen_height * 5 / 6) return;
+
+    if (navigation_open_special_page()) lv_indev_wait_release(indev);
+  }
 }
 
 inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
