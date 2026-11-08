@@ -91,3 +91,41 @@ for (const result of ['saved', 'mirror-failed', 'failed', 'discovery-failed']) {
     }
   });
 }
+
+
+test("image restore remaps swipe-up page settings before writing native configuration", async () => {
+  const noop = () => undefined;
+  const emptyFeature = new Proxy({}, { get: () => noop });
+  const special = { grid: [1], buttons: [{ type: "companion", options: "bg_image=old-id" }] };
+  const plan = { backupPlan: { screen: {}, buttons: [], subpages: {}, config: {
+    settings: { special_page: JSON.stringify(special), untouched: "keep" },
+    native_config: { stale: true },
+  } } };
+  let finish;
+  const completion = new Promise(resolve => { finish = resolve; });
+  const controllers = new Proxy({
+    layout: { deviceId: "test-panel", numSlots: 0 }, runtime: { els: {} },
+    backupImport: { plan: () => plan },
+    backupFile: { import: receive => receive({}, {}) },
+    codec: { parseSubpageConfig: JSON.parse, serializeSubpageConfig: JSON.stringify },
+    cardImages: { backupAssetProvider: { createRestore: () => ({
+      stage: noop, commit: noop, rollback: noop,
+      remapImportedReferences: value => {
+        for (const button of value.buttons || []) button.options = button.options.replace("old-id", "uploaded-id");
+      },
+    }) } },
+    backupRestore: { restore: async (_data, _target, _apply, assets) => {
+      await assets.stage();
+      assets.remap(plan);
+      finish();
+      return false;
+    } },
+  }, { get: (target, key) => target[key] ?? emptyFeature });
+  createAppBackupFeature(controllers).importConfig();
+  await completion;
+  const restored = JSON.parse(plan.backupPlan.config.settings.special_page);
+  assert.equal(restored.buttons[0].options, "bg_image=uploaded-id");
+  assert.deepEqual(restored.grid, [1]);
+  assert.equal(plan.backupPlan.config.settings.untouched, "keep");
+  assert.equal(plan.backupPlan.config.native_config, null, "stale native IDs must not overwrite the remapped page");
+});

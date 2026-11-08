@@ -897,6 +897,14 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     stage: () => restore.stage(),
                     remap(plannedImport) {
                         restore.remapImportedReferences(plannedImport.backupPlan);
+                        // The swipe-up page is serialized as a setting rather than
+                        // an ordinary subpage in EspDesktop backups.
+                        const settings = plannedImport.backupPlan.config.settings;
+                        if (settings?.special_page) {
+                            const specialPage = parseSubpageConfig(settings.special_page);
+                            restore.remapImportedReferences({ buttons: specialPage.buttons });
+                            settings.special_page = serializeSubpageConfig(specialPage);
+                        }
                         // Native documents in the archive still use the old asset IDs.
                         plannedImport.backupPlan.config.native_config = null;
                     },

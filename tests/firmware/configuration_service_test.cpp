@@ -433,6 +433,8 @@ bool image_reference_transform_preserves_native_configuration() {
     const auto profile = bytes("panel-native");
     const auto button = bytes("light.kitchen;Latest name;;;;;light;;bg_image=asset-123,confirm_on");
     const auto subpage = bytes("1,2|light.a;A;;;;;light;;bg_image=asset-123|switch.b;B;;;;;switch;;bg_image=other");
+    const auto special_key = bytes("special_page");
+    const auto special_value = bytes("1,2|light.special;Special;;;;;light;;bg_image=asset-123|switch.special;Swipe;;;;;switch;;bg_image=special-only");
     const auto key = bytes("button_on_color");
     const auto value = bytes("FF0000");
     size_t size = 0;
@@ -440,6 +442,7 @@ bool image_reference_transform_preserves_native_configuration() {
         writer.append_device_profile(profile.data(), profile.size()) != PanelConfigStatus::OK ||
         writer.append_button(1, button.data(), button.size()) != PanelConfigStatus::OK ||
         writer.append_subpage(1, subpage.data(), subpage.size()) != PanelConfigStatus::OK ||
+        writer.append_setting(special_key.data(), special_key.size(), special_value.data(), special_value.size()) != PanelConfigStatus::OK ||
         writer.append_setting(key.data(), key.size(), value.data(), value.size()) != PanelConfigStatus::OK ||
         writer.finish(&size) != PanelConfigStatus::OK) return false;
     const auto initial = service.save_current(document.data(), size);
@@ -452,6 +455,7 @@ bool image_reference_transform_preserves_native_configuration() {
     auto loaded = service.load(document.data(), document.size());
     bool referenced = false;
     if (!loaded.ok() || !espdesktop::panel_config_references_asset(document.data(), loaded.document_size, "asset-123", referenced) || !referenced) return false;
+    if (!espdesktop::panel_config_references_asset(document.data(), loaded.document_size, "special-only", referenced) || !referenced) return false;
     backend.fail_writes(false);
     const auto result = service.transform_current(document.data(), document.size(), transform, nullptr);
     if (!result.ok() || result.generation != initial.generation + 1 || legacy.load_calls != 0) return false;
@@ -460,7 +464,8 @@ bool image_reference_transform_preserves_native_configuration() {
     if (!espdesktop::panel_config_references_asset(document.data(), loaded.document_size, "other", referenced) || !referenced) return false;
     const std::string saved(reinterpret_cast<const char *>(document.data()), loaded.document_size);
     if (saved.find("Latest name") == std::string::npos || saved.find("confirm_on") == std::string::npos ||
-        saved.find("FF0000") == std::string::npos || runtime.applied.size() != loaded.document_size) return false;
+        saved.find("FF0000") == std::string::npos || saved.find("bg_image=asset-123") != std::string::npos ||
+        saved.find("bg_image=special-only") == std::string::npos || runtime.applied.size() != loaded.document_size) return false;
     if (service.save_if_generation(initial.generation, 1, document.data(), loaded.document_size).status != ServiceStatus::GENERATION_CONFLICT) return false;
     if (mode == LegacyConfigurationMode::READ_IMPORT_ONLY && legacy.mirror_calls != 0) return false;
   }

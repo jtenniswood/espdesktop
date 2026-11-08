@@ -15,8 +15,10 @@ inline bool panel_config_references_asset(const uint8_t *document, size_t size,
   PanelConfigRecord record;
   PanelConfigStatus status;
   while ((status = reader.next(&record)) == PanelConfigStatus::OK) {
+    const bool special_page = record.type == PanelConfigRecordType::SETTING &&
+        std::string(reinterpret_cast<const char *>(record.key), record.key_size) == "special_page";
     if (record.type != PanelConfigRecordType::BUTTON &&
-        record.type != PanelConfigRecordType::SUBPAGE) continue;
+        record.type != PanelConfigRecordType::SUBPAGE && !special_page) continue;
     const std::string value(reinterpret_cast<const char *>(record.value), record.value_size);
     referenced |= record.type == PanelConfigRecordType::BUTTON
         ? card_config_references_asset(value, id)
@@ -53,7 +55,9 @@ inline bool clear_panel_config_asset_references(uint8_t *document, size_t &size,
         break;
       case PanelConfigRecordType::SETTING: {
         const std::string key(reinterpret_cast<const char *>(record.key), record.key_size);
-        status = writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(), bytes, value.size());
+        if (key == "special_page") clear_subpage_background_references(value, id);
+        status = writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+            reinterpret_cast<const uint8_t *>(value.data()), value.size());
         break;
       }
     }
