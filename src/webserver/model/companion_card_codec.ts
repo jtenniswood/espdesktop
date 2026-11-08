@@ -1,5 +1,5 @@
 import type { CardConfig } from "../contracts/types";
-import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
+import { COMPANION_SYSTEM_METRICS, COMPANION_SYSTEM_ACTIONS } from "../generated/companion_capabilities";
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 
 export function companionMetricForEntity(entity: unknown) {
@@ -11,7 +11,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   const entity = config.entity || "";
   if (entity.startsWith("webapp.")) return "webapp";
   if (entity.startsWith("shortcut.")) return "shortcut";
-  if (entity.startsWith("system.")) return "system";
+  if (COMPANION_SYSTEM_ACTIONS.some((action) => action.id === entity)) return "system";
   if (entity.startsWith("window.")) return "window";
   if (entity.startsWith("folder.")) return "folder";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";

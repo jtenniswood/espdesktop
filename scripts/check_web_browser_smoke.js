@@ -6399,6 +6399,14 @@ async function assertMacScreenControls(browser) {
         await settings.locator(".sp-disclosure-button").first().click();
       }
     }
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Mac screen card type", exact: true }).click();
+    assert.strictEqual(await page.getByLabel("Mac screen action", { exact: true }).inputValue(), "system.brightness_up");
+    await page.getByRole("button", { name: "Close settings", exact: true }).click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Display brightness card type", exact: true }).click();
+    assert.strictEqual(await page.locator('[id$="slider-control"]').inputValue(), "mac_brightness");
+    await page.getByRole("button", { name: "Close settings", exact: true }).click();
     await editSlot(1);
     const actions = page.getByLabel("Mac screen action", { exact: true });
     assert.deepStrictEqual(await actions.locator("option").allTextContents(), ["Screen Brighter", "Screen Dimmer", "Mac Lock"]);
@@ -7470,7 +7478,7 @@ async function assertPanelNaming(browser) {
     const choice = page.getByRole("checkbox", { name: "Also restore panel name" });
     assert(!await choice.isChecked(), "name restore defaults off");
     assert((await page.locator("dialog").textContent()).includes("bedroom-b2c3.local"), "restore uses destination MAC");
-    await page.getByRole("button", { name: "Cancel", exact: true }).click();
+    await page.getByRole("button", { name: "Close settings", exact: true }).click();
     assert.strictEqual(identityState.posts.length, 2, "cancel import cannot rename");
     await importBackup(page, backup, "keep-destination-name");
     await page.getByRole("button", { name: "Restore", exact: true }).click();

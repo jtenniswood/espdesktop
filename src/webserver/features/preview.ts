@@ -74,6 +74,8 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },
   companion_url: { icon: "web", description: "Open a URL on the Mac." },
   companion_webapp: { icon: "web", description: "Launch a configured Web App on the Mac." },
+  companion_brightness: { icon: "weather-sunny", description: "Adjust the main Mac display brightness." },
+  companion_system: { icon: "lock", description: "Brighten, dim, or lock the Mac screen." },
   companion_window: { icon: "window-open", description: "Control the active Mac window." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
@@ -108,6 +110,8 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_url: "companion",
   companion_webapp: "companion",
   companion_window: "companion",
+  companion_system: "companion",
+  companion_brightness: "slider",
 };
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
@@ -157,6 +161,7 @@ export function cardRequiresHomeAssistant(
     readonly sensor?: string | null;
   } | null | undefined,
 ): boolean {
+  if (key === "slider" && ["media.output_volume", "media.input_volume", "display.brightness"].includes(card?.entity || "")) return false;
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
     const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);

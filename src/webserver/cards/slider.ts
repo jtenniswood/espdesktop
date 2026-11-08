@@ -504,6 +504,21 @@ export function registerSliderCardTypes(
         iconOnFieldLabel: "On Icon",
         companionVolumeModes: true,
     }));
+    registry.register("companion_brightness", {
+        ...registry.definitions.slider,
+        label: "Display brightness",
+        pickerKey: null,
+        isAvailable: () => companionSupported,
+        onSelect: (card: any) => {
+            card.type = "slider";
+            card.entity = COMPANION_BRIGHTNESS_ID;
+            card.label = "Display Brightness";
+            card.icon = "Weather Sunny";
+            card.icon_on = "Weather Sunny";
+            card.sensor = "";
+            card.unit = "";
+        },
+    });
     registry.register("cover", sliderTypeFactory({
         type: "cover",
         placeholder: "e.g. Office Blind",

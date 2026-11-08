@@ -168,6 +168,9 @@ export function runCompanionShortcutFeatureTests(): void {
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
+  if (decodeCompanionCard({ ...emptyCardConfig("companion"), entity: "system.default_browser", sensor: "url.https%3A%2F%2Fexample.com" }).mode !== "url") {
+    throw new Error("Mac screen actions must not hide the URL editor for default-browser cards");
+  }
   for (const entity of ["system.brightness_up", "system.brightness_down", "system.lock"]) {
     const card = { ...emptyCardConfig("companion"), entity };
     normalizeCompanionCard(card);

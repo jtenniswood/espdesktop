@@ -26,6 +26,6 @@ For protocol details and matching release versions, see [Companion Compatibility
 
 ## Mac Screen Buttons
 
-Choose **Companion → Mac screen**, then select **Screen Brighter**, **Screen Dimmer**, or **Mac Lock**. Brightness buttons change the main Mac display by 10 percentage points per press, bounded at 0–100%. Brightness controls appear unavailable if the screen does not support them. For a draggable control, choose **Slider → Control → Mac display brightness**. Drag to set a level from 0–100%; the slider also follows changes made on the Mac. External monitor DDC control is not included.
+Choose **Companion → Mac screen**, then select **Screen Brighter**, **Screen Dimmer**, or **Mac Lock**. Brightness buttons change the main Mac display by 10 percentage points per press, bounded at 0–100%. Brightness controls appear unavailable if the screen does not support them. For a draggable control, choose **Display brightness** in the Mac Companion card picker (or **Slider → Control → Mac display brightness** when editing an existing slider). Drag to set a level from 0–100%; the slider also follows changes made on the Mac. External monitor DDC control is not included.
 
 **Mac Lock** sends the standard Control–Command–Q shortcut. Allow EspDesktop under **System Settings → Privacy & Security → Accessibility**. These controls require updated display firmware and the updated Mac app.

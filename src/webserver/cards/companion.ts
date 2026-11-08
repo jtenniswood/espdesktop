@@ -1629,6 +1629,7 @@ export function registerCompanionCardTypes(
         ["companion_folder", "Open folder", "folder"],
         ["companion_stats", "Stats", "stats"],
         ["companion_window", "Window control", "window"],
+        ["companion_system", "Mac screen", "system"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
