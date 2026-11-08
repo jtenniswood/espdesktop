@@ -28,7 +28,8 @@ bool navigation_return_home(lv_obj_t *screen) {
   active_screen = screen;
   return true;
 }
-int deleted = 0, released = 0;
+int deleted = 0, released = 0, cleared_grid_pages = 0;
+void clock_bar_clear_responsive_grid_cards(lv_obj_t *) { ++cleared_grid_pages; }
 void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   // A card owner may hold timers or images that reference its widgets.
   assert(entry.screen && entry.screen != active_screen);
@@ -37,6 +38,7 @@ void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
 }
 void lv_obj_del(lv_obj_t *screen) {
   assert(screen->runtime_released && screen != active_screen);
+  assert(cleared_grid_pages == deleted + 1);
   ++deleted;
   delete screen;
 }

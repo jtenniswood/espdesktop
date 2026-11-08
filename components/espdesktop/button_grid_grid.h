@@ -1353,7 +1353,8 @@ inline void grid_phase2(
     lv_obj_set_style_bg_opa(sub_scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_layout(sub_scr, LV_LAYOUT_GRID);
     lv_obj_set_grid_dsc_array(sub_scr, sp_col_dsc, sp_row_dsc);
-    lv_obj_set_style_pad_top(sub_scr, mp_pad_top, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(sub_scr, is_special_page
+        ? mp_pad_bottom : mp_pad_top, LV_PART_MAIN);
     lv_obj_set_style_pad_bottom(sub_scr, mp_pad_bottom, LV_PART_MAIN);
     lv_obj_set_style_pad_left(sub_scr, mp_pad_left, LV_PART_MAIN);
     lv_obj_set_style_pad_right(sub_scr, mp_pad_right, LV_PART_MAIN);

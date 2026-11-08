@@ -48,11 +48,6 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             els.settingsOverlay.classList.remove("sp-visible");
     }
     function updatePreviewHint(this: any, c?: any) {
-        if (els.specialPageRename) {
-            els.specialPageRename.hidden = state.editingSubpage !== -1;
-            els.specialPageRename.textContent = state.subpages[-1]?.title || "Special Page";
-            els.specialPageRename.disabled = isConfigLocked();
-        }
         if (!els.previewHint)
             return;
         c = c || ctx();
@@ -67,7 +62,8 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             els.previewHint.textContent = c.selected.length + " buttons selected \u2022 right click to copy, cut, or delete";
         }
         else {
-            els.previewHint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
+            els.previewHint.textContent = "";
+            els.previewHint.style.display = "none";
         }
     }
     function renderClockBarSelectionBar(this: any) {

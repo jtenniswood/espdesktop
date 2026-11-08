@@ -167,19 +167,6 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
-        var specialPageEntry: any = document.createElement("button");
-        specialPageEntry.className = "sp-special-page-entry";
-        specialPageEntry.type = "button";
-        specialPageEntry.textContent = "Configure Special Page";
-        els.specialPageEntry = specialPageEntry;
-        page.appendChild(specialPageEntry);
-        const specialPageRename = document.createElement("button");
-        specialPageRename.type = "button";
-        specialPageRename.className = "sp-special-page-entry";
-        specialPageRename.setAttribute("aria-label", "Rename Special Page");
-        specialPageRename.hidden = true;
-        els.specialPageRename = specialPageRename;
-        page.appendChild(specialPageRename);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =
@@ -205,8 +192,17 @@ export function createControlsShellFeature(
         els.previewMain.setAttribute("aria-label", "Button grid");
         var hint: any = document.createElement("div");
         hint.className = "sp-hint";
-        hint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
+        hint.style.display = "none";
         els.previewHint = hint;
+        var specialPageEntry: any = document.createElement("button");
+        specialPageEntry.className = "sp-selection-btn sp-special-page-entry";
+        specialPageEntry.type = "button";
+        specialPageEntry.textContent = "Configure swipe-up page";
+        els.specialPageEntry = specialPageEntry;
+        var swipeWrap: any = document.createElement("div");
+        swipeWrap.className = "sp-swipe-wrap";
+        swipeWrap.appendChild(specialPageEntry);
+        page.appendChild(swipeWrap);
         page.appendChild(hint);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";
@@ -227,7 +223,6 @@ export function createControlsShellFeature(
         overlay.appendChild(modal);
         page.appendChild(overlay);
         els.settingsOverlay = overlay;
-        page.appendChild(buildApplyBar());
         parent.appendChild(page);
         els.screenPage = page;
     }
