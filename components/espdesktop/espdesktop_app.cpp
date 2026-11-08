@@ -27,6 +27,7 @@
 #include "panel_config_write_endpoint.h"
 #include "panel_config_http_context.h"
 #include "panel_identity_endpoint.h"
+#include "panel_diagnostics_endpoint.h"
 #include "companion_app_icon_endpoint.h"
 #include "screensaver_pin_endpoint.h"
 #include "button_grid.h"
@@ -42,6 +43,7 @@ extern "C" void espdesktop_register_web_server_handlers(
   if (server == nullptr) return;
   espdesktop::reset::register_handlers(*server);
   espdesktop::register_panel_identity_endpoint(*server);
+  espdesktop::register_panel_diagnostics_endpoint(*server);
   espdesktop::register_screensaver_pin_endpoint(*server);
   register_local_sensor_endpoint(*server);
   register_local_action_endpoint(*server);

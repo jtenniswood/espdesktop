@@ -43,8 +43,8 @@ device testing notes. Treat those notes as the starting point for manual device
 testing after the automated checks pass.
 
 For a flashed panel, use the [device runtime tests](https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/device-runtime-tests.md) to
-observe API health, restart evidence, crash logs, and memory while optionally
-opening and closing a configured card. CI checks the runner itself with offline
+observe HTTP health, restart evidence, firmware identity, and memory without
+changing the display or calling the native ESPHome API. CI checks the runner itself with offline
 fixtures; live device tests run separately against an explicit address.
 
 A successful compile or CI run confirms that the project builds. It does not
