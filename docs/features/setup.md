@@ -50,3 +50,5 @@ For Home Assistant setup and panel features, see [EspControl docs](https://jtenn
 Right-click a preview card and open **Change Colour** to choose a preset or custom background. Select several cards to recolour them together; subpage Back cards also support this. **Reset Colour** restores the default background while preserving a separate active colour. Changes save immediately.
 
 Current firmware supports up to 4 KB per saved card or subpage record (4,095 bytes of content). The editor keeps the smaller limits when connected to older firmware. Export a backup before downgrading firmware: larger layouts cannot fit its older text storage.
+
+Local Action cards run actions registered on the device. Home Assistant service actions from older layouts are kept as unavailable cards; replace one with a Local Action card to choose an available device action.

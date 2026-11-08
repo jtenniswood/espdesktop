@@ -333,75 +333,6 @@ def firmware_unavailable_retry_errors(
     return errors
 
 
-def firmware_action_card_availability_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_grid.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    driver_path = firmware_dir / "button_grid_basic_action_driver.h"
-    if driver_path.exists():
-        driver_rel = driver_path.relative_to(root)
-        driver_text = driver_path.read_text(encoding="utf-8")
-        required = (
-            "basic_action_driver_bind_action_state",
-            "subscribe_action_card_display_state",
-            "case Driver::PUSH:",
-            '"Push %d"',
-            'ha_action_add_data(request, "slot", slot_buffer)',
-            '"esphome.push_button_pressed"',
-        )
-        for needle in required:
-            if needle not in driver_text:
-                errors.append(
-                    f"{driver_rel}: preserve shared Action state and Trigger event behavior ({needle})"
-                )
-        if "register_ha_control_availability" in driver_text:
-            errors.append(
-                f"{driver_rel}: keep stateless Action and Trigger cards tappable while Home Assistant availability is pending"
-            )
-        return errors
-
-    stateless_main_pattern = re.compile(
-        r"std::string\s+state_entity\s*=\s*action_card_state_entity\(p\);"
-        r"(?P<body>.*?)continue;",
-        re.DOTALL,
-    )
-    stateless_subpage_pattern = re.compile(
-        r"std::string\s+state_entity\s*=\s*action_card_state_entity\(sb_cfg\);"
-        r"(?P<body>.*?)ParsedCfg\s+\*ctx\s*=",
-        re.DOTALL,
-    )
-    push_main_pattern = re.compile(
-        r"if\s*\(\s*p\.type\s*==\s*\"push\"\s*\)\s*\{"
-        r"(?P<body>.*?)continue;",
-        re.DOTALL,
-    )
-    push_subpage_pattern = re.compile(
-        r"if\s*\(\s*sb_cfg\.type\s*==\s*\"push\"\s*\)\s*\{"
-        r"(?P<body>.*?)continue;",
-        re.DOTALL,
-    )
-
-    for match in stateless_main_pattern.finditer(text):
-        body = match.group("body")
-        if "else" in body and "register_ha_control_availability(s.btn, s.btn)" in body:
-            errors.append(f"{rel}: keep stateless action cards tappable while Home Assistant availability is pending")
-    for match in stateless_subpage_pattern.finditer(text):
-        body = match.group("body")
-        if "else" in body and "register_ha_control_availability(sub_slot.btn, sub_slot.btn)" in body:
-            errors.append(f"{rel}: keep stateless subpage action cards tappable while Home Assistant availability is pending")
-    for match in push_main_pattern.finditer(text):
-        body = match.group("body")
-        if "register_ha_control_availability(s.btn, s.btn)" in body:
-            errors.append(f"{rel}: keep trigger cards tappable while Home Assistant availability is pending")
-    for match in push_subpage_pattern.finditer(text):
-        body = match.group("body")
-        if "register_ha_control_availability(sb_btn, sb_btn)" in body:
-            errors.append(f"{rel}: keep subpage trigger cards tappable while Home Assistant availability is pending")
-    return errors
 
 
 def firmware_option_select_state_errors(firmware_dir: Path, root: Path) -> list[str]:
@@ -521,32 +452,6 @@ def firmware_media_cover_art_external_input_errors(
     return errors
 
 
-def firmware_action_card_script_fields_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_actions.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    if "script_fields" not in text:
-        return errors
-    if "std::vector<ActionCardScriptField> script_fields" not in text:
-        errors.append(f"{rel}: keep parsed script field strings alive until the action is sent")
-    if "req.variables.init(script_fields.size())" not in text:
-        errors.append(f"{rel}: initialize script field variables separately from service data")
-    if "ha_action_add_variable(req, field.key.c_str(), field.value.c_str())" not in text:
-        errors.append(f"{rel}: send script fields through Home Assistant action variables")
-    if "req.data_template.init(1)" not in text or 'ha_action_add_data_template(req, "variables"' not in text:
-        errors.append(f"{rel}: send script fields in the script.turn_on variables service payload")
-    add_fields_match = re.search(
-        r"inline\s+void\s+action_card_add_script_field_variables\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-        text,
-        re.DOTALL,
-    )
-    if add_fields_match and "ha_action_add_data(req, key.c_str(), value.c_str())" in add_fields_match.group("body"):
-        errors.append(f"{rel}: do not send script fields as top-level script.turn_on service data")
-    return errors
 
 
 def firmware_local_sensor_binding_order_errors(firmware_dir: Path, root: Path) -> list[str]:
@@ -3941,12 +3846,10 @@ def run_scan() -> int:
     errors = firmware_ha_binding_errors(FIRMWARE_DIR, ROOT)
     errors.extend(firmware_display_controller_ownership_errors(DISPLAY_LIFECYCLE_ROOTS, ROOT))
     errors.extend(firmware_ha_boundary_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_action_card_availability_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_option_select_state_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_card_disabled_state_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_card_availability_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_cover_art_external_input_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_action_card_script_fields_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_local_sensor_binding_order_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_time_reconnect_errors(TIME_ADDON_PATH, ROOT))
     errors.extend(firmware_ntp_startup_errors(TIME_ADDON_PATH, SUN_CALC_PATH, CONNECTIVITY_PATHS, ROOT))
@@ -4099,18 +4002,6 @@ def expect_unavailable_retry_errors(
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_action_card_availability_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_grid.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_action_card_availability_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
 def expect_option_select_state_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
@@ -4158,18 +4049,6 @@ def expect_media_cover_art_external_input_errors(
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_action_card_script_fields_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_actions.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_action_card_script_fields_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
 def expect_local_sensor_binding_order_errors(
@@ -5612,69 +5491,6 @@ def run_self_test() -> int:
             "do not retry unavailable HA states",
         ),
     )
-    expect_action_card_availability_errors(
-        "stateless main action registered for availability",
-        "if (p.type == \"action\") {\n"
-        "  std::string state_entity = action_card_state_entity(p);\n"
-        "  if (!state_entity.empty()) {\n"
-        "    subscribe_action_card_display_state(ctx, state_entity);\n"
-        "  } else {\n"
-        "    register_ha_control_availability(s.btn, s.btn);\n"
-        "  }\n"
-        "  continue;\n"
-        "}\n",
-        ("keep stateless action cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "stateless subpage action registered for availability",
-        "if (sb_cfg.type == \"action\") {\n"
-        "  std::string state_entity = action_card_state_entity(sb_cfg);\n"
-        "  if (!state_entity.empty()) {\n"
-        "    subscribe_action_card_display_state(action_ctx, state_entity);\n"
-        "  } else {\n"
-        "    register_ha_control_availability(sub_slot.btn, sub_slot.btn);\n"
-        "  }\n"
-        "  ParsedCfg *ctx = new ParsedCfg(sb_cfg);\n"
-        "}\n",
-        ("keep stateless subpage action cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "stateful action only subscribes display state",
-        "if (p.type == \"action\") {\n"
-        "  std::string state_entity = action_card_state_entity(p);\n"
-        "  if (!state_entity.empty()) {\n"
-        "    subscribe_action_card_display_state(ctx, state_entity);\n"
-        "  }\n"
-        "  continue;\n"
-        "}\n",
-        (),
-    )
-    expect_action_card_availability_errors(
-        "main trigger registered for availability",
-        "if (p.type == \"push\") {\n"
-        "  register_ha_control_availability(s.btn, s.btn);\n"
-        "  continue;\n"
-        "}\n",
-        ("keep trigger cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "subpage trigger registered for availability",
-        "if (sb_cfg.type == \"push\") {\n"
-        "  register_ha_control_availability(sb_btn, sb_btn);\n"
-        "  std::string push_label = sb_cfg.label.empty() ? espdesktop_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
-        "  continue;\n"
-        "}\n",
-        ("keep subpage trigger cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "trigger cards stay stateless",
-        "if (p.type == \"push\") continue;\n"
-        "if (sb_cfg.type == \"push\") {\n"
-        "  std::string push_label = sb_cfg.label.empty() ? espdesktop_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
-        "  continue;\n"
-        "}\n",
-        (),
-    )
     expect_media_card_availability_errors(
         "unavailable entity dims media card",
         "inline void media_playback_apply_state_to_control(MediaPlaybackState *state, MediaControlCtx *ctx) {\n"
@@ -5693,56 +5509,6 @@ def run_self_test() -> int:
         "media progress remains guarded",
         "inline void media_control_refresh_progress(MediaControlCtx *ctx) {\n"
         "  media_control_apply_availability(ui.progress_slider, ui.progress_slider, has_duration);\n"
-        "}\n",
-        (),
-    )
-    expect_action_card_script_fields_errors(
-        "script fields sent as service data",
-        "inline void action_card_add_script_field_variables(esphome::api::HomeassistantActionRequest &req) {\n"
-        "  std::string fields = cfg_option_value(options, \"script_fields\");\n"
-        "  ha_action_add_data(req, key.c_str(), value.c_str());\n"
-        "}\n"
-        "inline void send_action_card_action(const ParsedCfg &p) {\n"
-        "  size_t script_field_count = action_card_script_field_count(p.options);\n"
-        "  ha_action_begin(req, p.sensor.c_str(), false, 1 + script_field_count);\n"
-        "}\n",
-        (
-            "keep parsed script field strings alive",
-            "initialize script field variables separately",
-            "send script fields through Home Assistant action variables",
-            "do not send script fields as top-level",
-        ),
-    )
-    expect_action_card_script_fields_errors(
-        "script fields sent as template context only",
-        "inline void action_card_add_script_field_variables(esphome::api::HomeassistantActionRequest &req) {\n"
-        "  std::string fields = cfg_option_value(options, \"script_fields\");\n"
-        "  ha_action_add_variable(req, key.c_str(), value.c_str());\n"
-        "}\n"
-        "inline void send_action_card_action(const ParsedCfg &p) {\n"
-        "  std::vector<ActionCardScriptField> script_fields = action_card_script_fields(p.options);\n"
-        "  ha_action_begin(req, p.sensor.c_str(), false, 1);\n"
-        "  req.variables.init(script_fields.size());\n"
-        "}\n",
-        (
-            "send script fields in the script.turn_on variables service payload",
-            "send script fields through Home Assistant action variables",
-        ),
-    )
-    expect_action_card_script_fields_errors(
-        "script fields sent in variables payload",
-        "inline void action_card_add_script_field_variables(esphome::api::HomeassistantActionRequest &req) {\n"
-        "  std::string fields = cfg_option_value(options, \"script_fields\");\n"
-        "  for (const auto &field : fields) {\n"
-        "    ha_action_add_variable(req, field.key.c_str(), field.value.c_str());\n"
-        "  }\n"
-        "}\n"
-        "inline void send_action_card_action(const ParsedCfg &p) {\n"
-        "  std::vector<ActionCardScriptField> script_fields = action_card_script_fields(p.options);\n"
-        "  ha_action_begin(req, p.sensor.c_str(), false, 1);\n"
-        "  req.data_template.init(1);\n"
-        "  req.variables.init(script_fields.size());\n"
-        "  ha_action_add_data_template(req, \"variables\", script_fields_template.c_str());\n"
         "}\n",
         (),
     )

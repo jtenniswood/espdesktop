@@ -39,7 +39,7 @@ function editor() {
   loadTypescriptTest("src/webserver/cards/slider.ts").registerSliderCardTypes(
     registry, tabs, lightCards, fields, { inlineDisclosure: () => element() }, true, ui);
   loadTypescriptTest("src/webserver/cards/action.ts").registerActionCardTypes(
-    registry, confirmation, { refreshEntityDatalist() {} }, fields, ui, () => true);
+    registry, fields);
   loadTypescriptTest("src/webserver/cards/wifi_qr.ts").registerWifiQrCardTypes(
     registry, tabs, fields, ui, { supported: () => true, homeAssistantSupportEnabled: () => true });
   const webhook = loadTypescriptTest("src/webserver/application/config_webhook_options.ts")
@@ -114,18 +114,13 @@ test("Connect-card normalization and credential edits retain colour and Wi-Fi ta
 });
 
 
-test("Action mode changes keep the colour while clearing obsolete mode options", () => {
-  for (const target of ["input_select.select_option", "local"]) {
-    const e = editor();
-    const button = { type: "action", sensor: "scene.turn_on", entity: "scene.movie", icon: "Flash", options: "state_entity=sensor.old,card_off_color=00BCD4" };
-    e.registry.definitions.action.renderSettingsBeforeLabel(element(), button, 1, e.helpers);
-    e.modes[0].onChange.call({ value: target });
-    assert.equal(button.sensor, target);
-    assert.equal(button.options, "card_off_color=00BCD4", target);
-    assert.equal(e.saved.options, button.options, target);
-    e.registry.definitions.action.renderSettingsBeforeLabel(element(), button, 1, e.helpers);
-    assert.equal(button.options, "card_off_color=00BCD4", target + " reopened");
-  }
+test("Replacing a legacy action with a local card keeps its colour and clears service options", () => {
+  const e = editor();
+  const button = { type: "action", sensor: "scene.turn_on", entity: "scene.movie", icon: "Flash", options: "state_entity=sensor.old,card_off_color=00BCD4" };
+  e.registry.definitions.action.onSelect(button);
+  assert.equal(button.sensor, "local");
+  assert.equal(button.entity, "");
+  assert.equal(button.options, "card_off_color=00BCD4");
 });
 
 test("Light mode initializers retain the colour across every supported mode", () => {

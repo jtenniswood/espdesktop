@@ -22,7 +22,7 @@ inline bool basic_action_driver_matches(const Context &context,
     case Driver::SCREEN_LOCK:
     case Driver::SCREENSAVER:
     case Driver::WEBHOOK:
-      return !action_card_option_select(config);
+      return true;
     case Driver::FAN:
       return context.runtime.type == Type::FAN_SWITCH;
     default:
@@ -60,7 +60,9 @@ inline bool basic_action_driver_setup_visual(
       if (config.type == "local" || action_card_local_action(config)) {
         setup_local_action_card(slot, config);
       } else {
-        setup_action_card(slot, config);
+        lv_label_set_display_text(slot.icon_lbl, find_icon("Alert Circle Outline"));
+        lv_label_set_display_text(slot.text_lbl, config.label.empty() ? espdesktop_i18n("Unavailable") : config.label);
+        lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
       }
       break;
     default:
@@ -219,15 +221,6 @@ inline FanCardCtx *basic_action_driver_bind_fan_switch(
   return fan;
 }
 
-inline void basic_action_driver_bind_action_state(
-    BtnSlot &slot, const ParsedCfg &config, const Context &context) {
-  const std::string state_entity = action_card_state_entity(config);
-  if (state_entity.empty()) return;
-  ActionCardStateCtx *state = basic_action_driver_track(
-    context, slot.btn, create_action_card_state_context(slot, config));
-  subscribe_action_card_display_state(state, state_entity);
-}
-
 inline bool basic_action_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const GridConfig &grid_config, const CardPalette &palette,
@@ -240,7 +233,6 @@ inline bool basic_action_driver_bind_main(
       basic_action_driver_bind_toggle(slot, config, context, toggle_state);
       break;
     case Driver::ACTION:
-      basic_action_driver_bind_action_state(slot, config, context);
       break;
     case Driver::ALARM_ACTION:
       basic_action_driver_bind_alarm_action(
@@ -367,18 +359,14 @@ inline bool basic_action_driver_bind_subpage(
       break;
     }
     case Driver::ACTION: {
-      basic_action_driver_bind_action_state(slot, config, context);
       if (!config.entity.empty() &&
           (config.type == "local" || !config.sensor.empty())) {
         ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
         lv_obj_add_event_cb(slot.btn, [](lv_event_t *event) {
           ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
-          lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(event));
           if (!card) return;
           if (card->type == "local") {
             send_local_action(card->entity);
-          } else if (action_script_confirmation_enabled(*card) && target) {
-            switch_confirmation_open_modal(*card, target, false);
           } else {
             send_action_card_action(*card);
           }
@@ -567,8 +555,6 @@ inline bool basic_action_driver_handle_main_click(
         if (!config.entity.empty()) send_local_action(config.entity);
       } else if (action_card_local_action(config)) {
         if (!config.entity.empty()) send_local_action(config.entity);
-      } else if (action_script_confirmation_enabled(config) && button) {
-        switch_confirmation_open_modal(config, button, false);
       } else {
         send_action_card_action(config);
       }

@@ -7,16 +7,14 @@
 // subpage cards while retaining the established slider, fan, and modal helpers.
 // Contract coverage markers: "slider", "light_brightness", "light_temperature",
 // "fan_speed", "fan_oscillate", "fan_direction", "fan_preset", "option_select",
-// plus Action option-select compatibility.
+// Legacy Action option-select records are handled as unavailable cards.
 
 namespace espdesktop::cards {
 
 inline bool numeric_selectable_driver_option_select(
-    const Context &context, const ParsedCfg &config) {
+    const Context &context, const ParsedCfg &) {
   using Driver = card_runtime::CardDriverId;
-  return context.runtime.driver == Driver::OPTION_SELECT ||
-         (context.runtime.driver == Driver::ACTION &&
-          action_card_option_select(config));
+  return context.runtime.driver == Driver::OPTION_SELECT;
 }
 
 inline bool numeric_selectable_driver_slider(

@@ -640,7 +640,6 @@ def check_root(root: Path) -> list[str]:
             "basic_action_driver_cleanup",
             "basic_action_driver_handle_main_click",
             "basic_action_driver_bind_toggle",
-            "basic_action_driver_bind_action_state",
             "basic_action_driver_bind_alarm_action",
             "basic_action_driver_bind_fan_switch",
             "send_webhook_action",

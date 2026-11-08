@@ -1056,7 +1056,7 @@ const actionLargePreview = hooks.buttonTypePreviewFor("action", {
   type: "action",
   options: "state_entity=sensor.kitchen_power,state_unit=W,state_precision=1",
 }, { cardSize: 4 });
-assert(actionLargePreview.iconHtml.includes("sp-sensor-preview-large"), "action numeric state 2x2 preview defaults to large numbers");
+assert(!actionLargePreview.iconHtml.includes("sp-sensor-preview"), "retired actions no longer preview a Home Assistant numeric state");
 
 const actionIconStatePreview = hooks.buttonTypePreviewFor("action", {
   entity: "script.goodnight",
@@ -1067,7 +1067,7 @@ const actionIconStatePreview = hooks.buttonTypePreviewFor("action", {
   type: "action",
   options: "state_entity=input_boolean.goodnight_ready,state_precision=icon",
 });
-assert(actionIconStatePreview.iconHtml.includes("mdi-toggle-switch"), "action icon state preview uses the icon-state badge");
+assert(!actionIconStatePreview.iconHtml.includes("mdi-toggle-switch"), "retired actions no longer preview Home Assistant icon state");
 
 const actionOptionPreview = hooks.buttonTypePreviewFor("action", {
   entity: "select.wled_preset",
@@ -1075,7 +1075,7 @@ const actionOptionPreview = hooks.buttonTypePreviewFor("action", {
   sensor: "input_select.select_option",
   type: "action",
 });
-assert(actionOptionPreview.iconHtml.includes("Option"), "action option-select preview uses option text");
+assert(!actionOptionPreview.iconHtml.includes("Option"), "retired actions no longer preview a Home Assistant option selector");
 assert(!actionOptionPreview.labelHtml.includes("sp-type-badge"), "action option-select preview omits the card-type badge");
 
 const localActionPreview = hooks.buttonTypePreviewFor("action", {

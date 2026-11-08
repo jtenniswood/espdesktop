@@ -155,8 +155,7 @@ function registerCards(context: ApplicationContext) {
     renderButtonSettings: (force?: boolean) => context.controllers.buttonSettings.render(force),
   };
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
-  registerActionCardTypes(registry, context.configuration.confirmationOptions, context.controllers.entityState, fields, cardUi,
-    () => context.configuration.native.homeAssistantSupportEnabled());
+  registerActionCardTypes(registry, fields);
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
   registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields,

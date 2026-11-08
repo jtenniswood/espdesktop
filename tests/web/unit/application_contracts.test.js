@@ -898,8 +898,8 @@ describe("browserless application contracts", () => {
     assert.equal(actionOptions.actionCardEntityMatchesAction("number.target_level", "number.set_value"), true);
     assert.equal(actionOptions.actionCardEntityMatchesAction("number.target_level", "input_number.set_value"), false);
     assert.equal(actionOptions.actionCardEntityMatchesAction("", "input_number.set_value"), true);
-    assert.match(card, /actionCardEntityMatchesAction\(b\.entity, this\.value\)/);
-    assert.match(entry, /registerActionCardTypes\(registry, context\.configuration\.confirmationOptions, context\.controllers\.entityState, fields, cardUi,[\s\S]*homeAssistantSupportEnabled/);
+    assert.doesNotMatch(card, /actionCardEntityMatchesAction|scene\.turn_on|script\.turn_on/);
+    assert.match(entry, /registerActionCardTypes\(registry, fields\)/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerActionCardTypes/);
     assert.match(entry, /actionCardStateEntity: \(button\) => confirmationOptions\.actionCardStateEntity\(button\)/);
     assert.doesNotMatch(globals, /\bvar (?:ACTION_CARD_ACTIONS|ACTION_CARD_METADATA|actionCardInfo|actionCardIsLocal|actionCardIsOptionSelect|actionCardNeedsExtraValue|actionCardStateDisplayMode|actionCardStateEntity|actionCardStatePrecision|actionCardStateUnit|normalizeActionCardConfig|normalizeSavedConfigActionFields|renderActionCardLocalSettings|setActionCardStateOptions):/);
@@ -996,7 +996,7 @@ describe("browserless application contracts", () => {
     const options = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_confirmation_options.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.match(contract, /export const ACTION_CARD_LOCAL_ACTION/);
-    assert.match(card, /from "\.\.\/application\/config_confirmation_options"/);
+    assert.doesNotMatch(card, /ConfigConfirmationOptionsFeature/);
     assert.match(options, /from "\.\/config_action_contract"/);
     assert.doesNotMatch(card, /liveGlobal\(\(\) => ACTION_CARD_(?:LOCAL_ACTION|OPTION_SELECT_ACTION|STATE_)/);
     assert.doesNotMatch(globals, /var ACTION_CARD_(?:LOCAL_ACTION|OPTION_SELECT_ACTION|STATE_)/);
