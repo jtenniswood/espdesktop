@@ -7710,8 +7710,8 @@ async function assertCardCurveSettings(browser, testCase) {
       const appearance = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-card-curve") });
       if (!(await page.locator("#sp-set-card-curve").isVisible())) await appearance.locator(".card-header").click();
       await page.locator("#sp-set-card-curve").waitFor({ state: "visible" });
-      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 4)),
-        ["Active Colour", "Card Style", "App Subpages", "Theme"], "Appearance settings include the global App Subpages panel");
+      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 5)),
+        ["Active Colour", "Card Style", "App Subpages", "Swipe-up Page", "Theme"], "Appearance settings include the global App Subpages panel");
       assert.strictEqual(await page.locator("#sp-set-wallpaper, #sp-set-card-transparency, #sp-set-active-card-transparency").count(), 0,
         "wallpaper controls belong exclusively to the wallpaper PR");
     };
