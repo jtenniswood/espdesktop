@@ -1,0 +1,32 @@
+[
+  {
+    "name": "retired internal bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;internal;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "internal",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired I bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;I;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "I",
+      "precision": "",
+      "options": ""
+    }
+  }
+]

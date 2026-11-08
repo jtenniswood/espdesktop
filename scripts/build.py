@@ -1056,7 +1056,7 @@ def gen_card_contract_ts(data):
         "};\n"
         "\n"
         f"export const CARD_CONTRACT_VERSION = {int(data['contractVersion'])} as const;\n"
-        f"export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = {json.dumps(data.get('retiredCardTypes', []))};\n"
+        f"export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = {json.dumps(data.get('retiredCardTypes', []) + data.get('retiredSubpageTypeCodes', []))};\n"
         "export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || \"\"); }\n"
         f"export const CARD_CONTRACT_NORMALIZATION_HOOKS = {js_string_list(data['normalizationHooks'])} as const;\n"
         f"export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {json.dumps(data['migrationActions'], indent=2)};\n"
@@ -3411,7 +3411,7 @@ def gen_card_contract_h(data):
         "// =============================================================================\n",
         "\n",
         f"constexpr int CARD_CONTRACT_VERSION = {int(data['contractVersion'])};\n",
-        "inline bool card_contract_type_retired(const std::string &type) { return " + (" || ".join("type == " + json.dumps(t) for t in data.get("retiredCardTypes", [])) or "false") + "; }\n",
+        "inline bool card_contract_type_retired(const std::string &type) { return " + (" || ".join("type == " + json.dumps(t) for t in data.get("retiredCardTypes", []) + data.get("retiredSubpageTypeCodes", [])) or "false") + "; }\n",
         gen_card_runtime_h(data),
         f'constexpr const char *CARD_CONTRACT_OPTION_SELECT_ACTION = {json.dumps(data["optionSelect"]["canonicalAction"])};\n',
         cpp_string_array("CARD_CONTRACT_OPTION_SELECT_ACTIONS", option_actions),

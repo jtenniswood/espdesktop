@@ -1,3 +1,4 @@
+import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
@@ -430,6 +431,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         main.removeAttribute("aria-busy");
         var c: any = ctx();
+        const removed = removeRetiredCards(c.grid, c.sizes, c.buttons, dependencies.layout.gridCols);
+        for (const slot of removed) {
+            const index = c.selected.indexOf(slot);
+            if (index !== -1) c.selected.splice(index, 1);
+        }
         updatePreviewHint(c);
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];

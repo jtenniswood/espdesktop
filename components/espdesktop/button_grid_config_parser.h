@@ -1544,6 +1544,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     const std::string type = p.type;
     p = ParsedCfg{};
     p.type = type;
+    p.icon = "Auto";
+    p.icon_on = "Auto";
     return p;
   }
   const std::string icon_size = cfg_option_value(p.options, "icon_size");
