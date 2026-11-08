@@ -223,38 +223,6 @@ source += definition('image_card_refresh_due')
 source += definition('refresh_visible_image_cards')
 source += definition('image_card_suspend_pipeline')
 source += definition('image_card_resume_pipeline')
-camera_yaml = (root / 'common/device/screen_camera_screensaver.yaml').read_text()
-callback = re.search(
-    r'std::function<void\(esphome::StringRef\)>\(\[entity, subscription_generation\]\(esphome::StringRef state\) \{.*?\}\)',
-    camera_yaml, re.S)
-assert callback, 'screensaver state callback'
-source += r'''
-struct Setting { std::string state = "camera.front"; } screensaver_camera_entity;
-struct Script { int calls = 0; void execute() { ++calls; } };
-Script camera_screensaver_show_unavailable, camera_screensaver_request_image;
-Image *camera_screensaver_downloaded_image;
-bool camera_screensaver_entity_unavailable = false;
-bool camera_screensaver_request_pending = false, camera_screensaver_image_available = true;
-#define id(x) x
-auto screensaver_callback(std::string entity, uint32_t subscription_generation) {
-  return ''' + callback[0] + r''';
-}
-'''
-error_callback = textwrap.dedent(camera_yaml.split('    on_error:\n      - lambda: |-\n', 1)[1]
-                                 .split('\n      - if:', 1)[0])
-source += r'''
-namespace espdesktop { enum class DisplayMode { CAMERA }; }
-struct CameraDisplay {
- bool active = true, current = true;
- bool target_mode_is(espdesktop::DisplayMode) { return active; }
- bool transition_is_current(uint32_t, espdesktop::DisplayMode) { return current; }
-};
-struct CameraApp { CameraDisplay state; CameraDisplay &display() { return state; } } espdesktop_app;
-struct Retry { int delay_ms = -1; void execute(int delay) { delay_ms = delay; } } camera_screensaver_retry;
-uint32_t camera_screensaver_transition_generation = 1;
-bool camera_screensaver_use_sized_request = false;
-void screensaver_download_error() {
-''' + error_callback + '\n}\n'
 source += r'''
 int main() {
  // Pending camera cards leave the startup spinner after its grace period,
@@ -326,20 +294,6 @@ int main() {
   }
  }
  contexts[0] = {}; ui = {}; cache = {};
- // Original-image failures try a bounded snapshot on the next loop; bounded
- // failures retain backoff, and stale/inactive sessions cannot enable fallback.
- screensaver_download_error();
- assert(camera_screensaver_use_sized_request && camera_screensaver_retry.delay_ms == 1);
- screensaver_download_error();
- assert(camera_screensaver_retry.delay_ms == 10000);
- camera_screensaver_use_sized_request = false;
- espdesktop_app.state.current = false;
- screensaver_download_error();
- assert(!camera_screensaver_use_sized_request && camera_screensaver_retry.delay_ms == 10000);
- espdesktop_app.state.active = false;
- camera_screensaver_retry.delay_ms = -1;
- screensaver_download_error();
- assert(!camera_screensaver_use_sized_request && camera_screensaver_retry.delay_ms == -1);
  Image tile, modal; Widget widget;
  auto &ctx = contexts[0]; ctx.image = &tile; ctx.modal_image = &modal; ctx.widget = &widget;
  cache.image = &modal; cache.entity_id = ctx.entity_id; cache.source_url = ctx.source_url;
@@ -539,24 +493,6 @@ int main() {
  ctx.media_artwork = true; ctx.image_ready = true; tile_status.clear();
  image_card_handle_download_error(&ctx);
  assert(ctx.camera_download_errors == 0 && tile_status.empty());
- // A definitive unavailable state discards the displayed frame, then recovers.
- camera_screensaver_downloaded_image = &tile;
- auto camera_state = screensaver_callback("camera.front", 1);
- for (const auto *status : {"unavailable", "unknown"}) {
-   camera_screensaver_image_available = true;
-   camera_screensaver_request_pending = true;
-   const int cancelled = tile.cancelled;
-   camera_state(status);
-   assert(camera_screensaver_entity_unavailable && !camera_screensaver_image_available);
-   assert(!camera_screensaver_request_pending && tile.cancelled == cancelled + 1);
- }
- assert(camera_screensaver_show_unavailable.calls == 2);
- camera_state("idle");
- assert(!camera_screensaver_entity_unavailable && camera_screensaver_request_image.calls == 1);
- // Old subscriptions cannot hide the new entity's image or restart requests.
- screensaver_callback("camera.old", 1)("unavailable");
- screensaver_callback("camera.front", 0)("unavailable");
- assert(!camera_screensaver_entity_unavailable && camera_screensaver_show_unavailable.calls == 2);
  // Image entities must recover even when HA reuses the pre-outage timestamp.
  ctx.active = true; ctx.media_artwork = false; ctx.entity_id = "image.poster";
  ctx.revision = {}; ctx.camera_entity_unavailable = false;

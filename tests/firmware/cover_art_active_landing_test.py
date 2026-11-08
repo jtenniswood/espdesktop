@@ -61,7 +61,7 @@ int main() {
     display.end_takeover(kind); assert(rearm());
   }
   reset(); alarm = true; assert(!rearm()); alarm = false; assert(rearm());
-  for (auto mode : {DisplayMode::CLOCK, DisplayMode::DIMMED, DisplayMode::DISPLAY_OFF, DisplayMode::CAMERA}) {
+  for (auto mode : {DisplayMode::CLOCK, DisplayMode::DIMMED, DisplayMode::DISPLAY_OFF}) {
     reset(); espdesktop_app.display().request(DisplayRequestSource::IDLE_TIMER, mode);
     assert(!rearm());
   }

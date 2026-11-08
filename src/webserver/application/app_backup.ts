@@ -121,12 +121,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
     const {
         postPresenceSensorEntity,
-        postScreensaverCameraImageMode,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
         postCoverArtScreensaver,
         postCoverArtSource,
-        postClockOverlay,
         postCoverArtDelay,
         postCoverArtTrackOverlayDuration,
         postHomeAssistantArtworkProtocol,
@@ -293,17 +291,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
                 presence_sensor_entity: state.presenceEntity,
-                screensaver_camera_entity: state.screensaverCameraEntity,
-                screensaver_metadata_entity: state.screensaverMetadataEntity,
-                metadata_overlay: state.metadataOverlayOn,
-                screensaver_camera_dimming: state.screensaverCameraDimmingSupported ? state.screensaverCameraDimming : undefined,
-                screensaver_camera_image_mode: normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode),
                 media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
                 media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
                 clock_date: state.clockDateOn,
-                clock_overlay: state.clockOverlayOn,
                 cover_art_delay: state.coverArtDelay,
                 cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
                 home_assistant_artwork_protocol: normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol),
@@ -591,24 +583,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var importedScreensaverMode: any = importedSettings.screensaverMode;
                     postScreensaverMode(importedScreensaverMode);
                     postPresenceSensorEntity(importedSettings.presenceSensorEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postText(entityName("screen_saver_camera_entity"), importedSettings.screensaverCameraEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postText(entityName("screen_saver_metadata_entity"), importedSettings.screensaverMetadataEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
-                    const hasCameraDimming = s.screensaver_camera_dimming !== undefined;
-                    if (hasCameraDimming && controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraDimmingSupported)
-                        controllers.artworkPostApi.postScreensaverCameraDimming(importedSettings.screensaverCameraDimming);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
                     postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
                     if (controllers.layout.config.features?.companion)
                         postCoverArtSource(importedSettings.coverArtSource);
                     if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
-                    if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        controllers.artworkPostApi.postMetadataOverlay(importedSettings.metadataOverlay);
                     postCoverArtDelay(importedSettings.coverArtDelay);
                     postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
                     postHomeAssistantArtworkProtocol(importedSettings.coverArtHomeAssistantProtocol);
@@ -678,8 +658,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverCameraEntity = importedSettings.screensaverCameraEntity;
                     state.screensaverMetadataEntity = importedSettings.screensaverMetadataEntity;
                     state.metadataOverlayOn = importedSettings.metadataOverlay;
-                    if (hasCameraDimming && state.screensaverCameraDimmingSupported)
-                        state.screensaverCameraDimming = importedSettings.screensaverCameraDimming;
                     state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
                     state.mediaPlayerSleepPreventionOn = importedSettings.mediaPlayerSleepPrevention;
                     state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;

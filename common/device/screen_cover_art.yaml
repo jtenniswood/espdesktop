@@ -835,8 +835,6 @@ script:
                 else:
                   - script.execute: cover_art_show_black_screen
       - script.execute: cover_art_refresh_progress
-      - script.execute: clock_overlay_hide
-
   - id: cover_art_prepare_activation
     mode: restart
     parameters:
@@ -878,28 +876,6 @@ script:
       - lvgl.widget.hide: cover_art_accent_overlay
       - lvgl.widget.hide: cover_art_track_panel
       - lvgl.widget.hide: cover_art_progress_bar
-      - if:
-          condition:
-            lambda: |-
-              return target_mode == static_cast<int>(espdesktop::DisplayMode::CAMERA);
-          then:
-            - lambda: 'id(cover_art_downloaded_image)->cancel_update();'
-            - script.execute: cover_art_clear_image_source
-            - script.wait: cover_art_clear_image_source
-            - lambda: |-
-                if (!id(espdesktop_app).display().transition_is_current(
-                      static_cast<uint32_t>(generation),
-                      static_cast<espdesktop::DisplayMode>(target_mode))) {
-                  id(cover_art_hide_effect).stop();
-                }
-            - artwork_image.release: cover_art_downloaded_image
-            - lambda: |-
-                id(cover_art_runtime).image_available = false;
-                id(cover_art_runtime).loaded_url.clear();
-                id(cover_art_runtime).effective_download_url.clear();
-                id(cover_art_runtime).active_download_source_url.clear();
-                ESP_LOGD("display_mode", "Cover art cleanup complete for generation %u",
-                         static_cast<unsigned>(generation));
       - script.execute: clock_bar_apply
 
   - id: cover_art_start_delay

@@ -183,34 +183,6 @@ for name in ("image_card_page_visible", "image_card_context_visible_on_active_sc
     assert match, name
     source += "\n" + match[0] + "\n"
 
-# Compile the camera screensaver's actual visibility/redraw binding as well.
-screensaver = (ROOT / "common/device/screen_camera_screensaver.yaml").read_text()
-binding = re.search(r"id\(camera_screensaver_downloaded_image\)->set_animation_callbacks\(.*?\}, true\);",
-                    screensaver, re.S)
-assert binding
-source += r'''
-namespace espdesktop { enum class DisplayMode { CAMERA, OTHER }; }
-struct Display {
-  espdesktop::DisplayMode mode = espdesktop::DisplayMode::CAMERA;
-  uint32_t generation = 1;
-  Display &display() { return *this; }
-  bool target_mode_is(espdesktop::DisplayMode expected) { return mode == expected; }
-  bool transition_is_current(uint32_t expected_generation, espdesktop::DisplayMode expected) {
-    return generation == expected_generation && target_mode_is(expected);
-  }
-};
-struct ScreensaverIds {
-  Artwork *camera_screensaver_downloaded_image = nullptr;
-  uint32_t camera_screensaver_transition_generation = 1;
-  Display espdesktop_app;
-  bool camera_screensaver_entity_unavailable = false, camera_screensaver_image_available = false;
-  lv_obj_t *camera_screensaver = nullptr, *camera_screensaver_image = nullptr;
-} firmware_ids;
-#define id(name) firmware_ids.name
-void bind_screensaver_animation() {
-'''
-source += binding[0] + "\n}\n#undef id\n"
-
 main = r'''
 using namespace esphome::artwork_image;
 static std::vector<uint8_t> read(const std::string &path) {
@@ -374,77 +346,7 @@ int main() {
   assert(fake_esphome_allocator::external_pointers.empty());
 
 
-  // Full-screen playback must work even with a dashboard GIF and a cached
-  // expanded GIF. It shares the second slot without changing transfer priority.
-  {
-    ArtworkImage dashboard, cached_modal, screensaver;
-    bool dashboard_visible = true, modal_visible = true;
-    dashboard.set_animation_callbacks([&]() { return dashboard_visible; }, []() {}, []() { return true; });
-    cached_modal.p4_pipeline_priority_ = P4_PIPELINE_MODAL;
-    cached_modal.set_animation_callbacks([&]() { return modal_visible; }, []() {});
-    load(dashboard, file, false);
-    const auto *dashboard_decoder = dashboard.animation_.get();
-    load(cached_modal, file, false);
-    lv_obj_t overlay, widget{&overlay};
-    firmware_ids = ScreensaverIds{};
-    firmware_ids.camera_screensaver_downloaded_image = &screensaver;
-    firmware_ids.camera_screensaver = &overlay;
-    firmware_ids.camera_screensaver_image = &widget;
-    bind_screensaver_animation();
-    load(screensaver, file, false, false);
-    assert(cached_modal.animation_ && gif_slots[1] == &cached_modal);  // Visible views keep ownership.
-    dashboard_visible = modal_visible = false;
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::OTHER;
-    load(screensaver, file, false, false);
-    assert(cached_modal.animation_ && gif_slots[1] == &cached_modal);  // Hidden screensavers cannot evict.
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::CAMERA;
-    load(screensaver, file, true);
-    assert(gif_slots[0] == &dashboard && gif_slots[1] == &screensaver);
-    assert(dashboard.animation_.get() == dashboard_decoder && !cached_modal.animation_);
-    assert(!screensaver.animation_needs_reload());
-    firmware_ids.camera_screensaver_image_available = true;
-    assert(screensaver.animation_visible_());
-    now_ms += 1000;
-    for (int i = 0; i < 100 && !widget.invalidations; ++i) screensaver.loop_animation_();
-    assert(widget.invalidations == 1 && screensaver.cache_invalidations == 1);
-    assert(std::equal(screensaver.active.begin(), screensaver.active.end(), expected.begin() + 6 + 128));
-    // Hidden widgets, unavailable entities, stale transitions and other modes
-    // must pause playback without updating the displayed surface.
-    auto check_paused = [&]() {
-      assert(!screensaver.animation_visible_());
-      const auto previous = screensaver.active;
-      const int redraws = widget.invalidations;
-      now_ms += 1000;
-      for (int i = 0; i < 100; ++i) screensaver.loop_animation_();
-      assert(screensaver.active == previous && widget.invalidations == redraws);
-      assert(!esphome::HighFrequencyLoopRequester::is_high_frequency());
-    };
-    widget.hidden = true; check_paused(); widget.hidden = false;
-    overlay.hidden = true; check_paused(); overlay.hidden = false;
-    firmware_ids.camera_screensaver_entity_unavailable = true; check_paused();
-    firmware_ids.camera_screensaver_entity_unavailable = false;
-    firmware_ids.camera_screensaver_image_available = false; check_paused();
-    firmware_ids.camera_screensaver_image_available = true;
-    firmware_ids.espdesktop_app.generation = 2; check_paused();
-    firmware_ids.espdesktop_app.generation = 1;
-    firmware_ids.camera_screensaver_transition_generation = 0; check_paused();
-    firmware_ids.camera_screensaver_transition_generation = 1;
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::OTHER; check_paused();
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::CAMERA;
-    screensaver.stop_animation_();  // Called by ArtworkImage::release() on wake.
-    assert(gif_slots[0] == &dashboard && !gif_slots[1]);
-    dashboard_visible = true;
-    now_ms += 1000;
-    for (int i = 0; i < 100 && !dashboard.cache_invalidations; ++i) dashboard.loop_animation_();
-    assert(dashboard.cache_invalidations == 1);
-    // Entering again reserves playback afresh; still replacements release it.
-    dashboard_visible = false;
-    load(screensaver, file, false);
-    assert(screensaver.animation_ && gif_slots[1] == &screensaver);
-    load(screensaver, still_file, false, false);
-    assert(!screensaver.animation_ && !gif_slots[1]);
-    dashboard.stop_animation_();
-  }
+
   assert(fake_esphome_allocator::external_pointers.empty());
 
 

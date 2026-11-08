@@ -234,8 +234,7 @@ int main() {
   assert(!pin.locked() && !ui.overlay);
   // Cancel restores the actual previous mode, rather than the current
   // configured screensaver preference. Unlocking is still required on wake.
-  for (auto mode : {espdesktop::DisplayMode::CLOCK, espdesktop::DisplayMode::DIMMED,
-                    espdesktop::DisplayMode::CAMERA, espdesktop::DisplayMode::DISPLAY_OFF,
+  for (auto mode : {espdesktop::DisplayMode::CLOCK, espdesktop::DisplayMode::DIMMED, espdesktop::DisplayMode::DISPLAY_OFF,
                     espdesktop::DisplayMode::COVER_ART}) {
     assert(pin.lock());
     pin.arm(mode);

@@ -10,10 +10,6 @@ globals:
     type: bool
     restore_value: yes
     initial_value: 'false'
-  - id: metadata_overlay_toggle_migrated
-    type: bool
-    restore_value: yes
-    initial_value: 'false'
   - id: screen_rotation_ready
     type: bool
     restore_value: no
@@ -116,11 +112,12 @@ esphome:
       then:
         - lambda: |-
             bool preferences_changed = false;
-            if (!id(metadata_overlay_toggle_migrated)) {
-              // Preserve metadata already enabled by the previous entity-only setting.
-              if (id(screensaver_metadata_entity).state.rfind("sensor.", 0) == 0)
-                id(metadata_overlay_enabled).turn_on();
-              id(metadata_overlay_toggle_migrated) = true;
+            size_t legacy_action_index = 0;
+            auto action_preference = id(screensaver_action).make_entity_preference<size_t>();
+            if (action_preference.load(&legacy_action_index) && legacy_action_index == 3) {
+              auto call = id(screensaver_action).make_call();
+              call.set_option("Display Off");
+              call.perform();
               preferences_changed = true;
             }
             if (!id(media_player_sleep_prevention_default_on_migrated)) {
@@ -651,40 +648,6 @@ switch:
     on_turn_off:
       - script.execute: clock_screensaver_update_time
 
-  - platform: template
-    name: "${entity_screen_saver_clock_overlay}"
-    internal: true
-    id: clock_overlay_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    icon: "mdi:clock-digital"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - script.execute:
-          id: clock_overlay_apply
-          target_mode: !lambda 'return static_cast<int>(id(espdesktop_app).display().current_mode());'
-    on_turn_off:
-      - script.execute:
-          id: clock_overlay_apply
-          target_mode: !lambda 'return static_cast<int>(id(espdesktop_app).display().current_mode());'
-
-  - platform: template
-    name: "${entity_screen_saver_metadata_overlay}"
-    internal: true
-    id: metadata_overlay_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    icon: "mdi:information-outline"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - script.execute: photo_metadata_refresh_subscription
-    on_turn_off:
-      - script.execute: photo_metadata_refresh_subscription
-
 select:
   - platform: template
     name: "${entity_screen_default_icon_size}"
@@ -744,7 +707,6 @@ select:
       - "Display Off"
       - "Screen Dimmed"
       - "Clock"
-      - "Camera"
     web_server:
       sorting_group_id: sg_screensaver
     on_value:
@@ -753,8 +715,6 @@ select:
             std::string action = id(screensaver_action).current_option();
             id(screensaver_action_clock) = screensaver_action_clock_mode(action);
             id(screensaver_action_dimmed) = screensaver_action_dimmed_mode(action);
-            id(screensaver_action_camera) =
-                ${screensaver_camera_supported} && screensaver_action_camera_mode(action);
         - if:
             condition:
               lambda: |-
@@ -769,44 +729,9 @@ select:
               - switch.turn_off: clock_screensaver_enabled
         - if:
             condition:
-              lambda: |-
-                return screensaver_action_camera_mode(id(screensaver_action).current_option()) &&
-                       !${screensaver_camera_supported};
-            then:
-              - lambda: |-
-                  auto call = id(screensaver_action).make_call();
-                  call.set_option("Display Off");
-                  call.perform();
-        - if:
-            condition:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
             then:
               - script.execute: screensaver_idle_check
-
-  - platform: template
-    name: "${entity_screen_saver_camera_image_mode}"
-    internal: true
-    id: screensaver_camera_image_mode
-    entity_category: config
-    icon: "mdi:arrow-expand"
-    optimistic: true
-    restore_value: true
-    initial_option: "Fit"
-    options:
-      - "Fit"
-      - "Fill"
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                return id(espdesktop_app).display().target_mode_is(
-                  espdesktop::DisplayMode::CAMERA);
-            then:
-              - script.execute: camera_screensaver_cancel_request
-              - script.execute: camera_screensaver_request_image
 
   - platform: template
     name: "${entity_screen_temperature_unit}"
@@ -970,45 +895,6 @@ text:
         - script.execute: refresh_button_grid
 
   - platform: template
-    name: "${entity_screen_saver_camera_entity}"
-    internal: true
-    id: screensaver_camera_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:camera"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - script.execute: camera_screensaver_config_changed
-
-  - platform: template
-    name: "${entity_screen_saver_metadata_entity}"
-    internal: true
-    id: screensaver_metadata_entity
-    optimistic: true
-    restore_value: true
-    initial_value: ""
-    min_length: 0
-    max_length: 100
-    mode: text
-    entity_category: config
-    icon: "mdi:information-outline"
-    update_interval: never
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - script.execute: photo_metadata_refresh_subscription
-
-  # Optional media player that keeps the screensaver awake while playing.
-  - platform: template
     name: "${entity_media_player_sleep_prevention_entity}"
     internal: true
     id: media_player_sleep_prevention_entity
@@ -1033,26 +919,6 @@ text:
               - script.execute: screensaver_idle_check
 
 number:
-  - platform: template
-    name: "${entity_screen_saver_camera_dimming}"
-    internal: true
-    id: screensaver_camera_dimming
-    min_value: 0
-    max_value: 100
-    step: 1
-    initial_value: 0
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "%"
-    entity_category: config
-    icon: "mdi:brightness-6"
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - script.execute: camera_screensaver_apply_dimming
-        - lambda: 'global_preferences->sync();'
-
   - platform: template
     name: "${entity_screen_saver_daytime_dimmed_brightness}"
     internal: true

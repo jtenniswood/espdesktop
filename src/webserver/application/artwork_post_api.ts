@@ -1,17 +1,12 @@
-import { normalizeCoverArtDelay, normalizeHomeAssistantArtworkEndpointMode, normalizeHomeAssistantArtworkProtocol, normalizeScreensaverCameraImageMode, normalizeScreensaverCameraDimming } from "../model/settings";
+import { normalizeCoverArtDelay, normalizeHomeAssistantArtworkEndpointMode, normalizeHomeAssistantArtworkProtocol } from "../model/settings";
 import type { EntityStateFeature } from "./entity_state";
 import type { ApplicationApiFeature } from "./api";
 export interface ArtworkPostApiFeature {
     postPresenceSensorEntity(value?: any): any;
-    postScreensaverCameraEntity(value?: any): any;
-    postScreensaverCameraImageMode(value?: any): any;
-    postScreensaverCameraDimming(value?: any): any;
     postMediaPlayerSleepPrevention(on?: any): any;
     postMediaPlayerSleepPreventionEntity(value?: any): any;
     postCoverArtScreensaver(on?: any): any;
     postCoverArtSource(value?: any): any;
-    postClockOverlay(on?: any): any;
-    postMetadataOverlay(on?: any): any;
     coverArtDelayPostUrls(value?: any): any;
     postCoverArtDelay(value?: any): any;
     coverArtTrackOverlayDurationPostUrls(value?: any): any;
@@ -33,15 +28,6 @@ export function createArtworkPostApiFeature(
     function postPresenceSensorEntity(this: any, value?: any) {
         return postTextWithObjectIds(entityName("presence_sensor_entity"), entityObjectIds("presence_sensor_entity"), value);
     }
-    function postScreensaverCameraEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_saver_camera_entity"), entityObjectIds("screen_saver_camera_entity"), value);
-    }
-    function postScreensaverCameraDimming(this: any, value?: any) {
-        return post(entityPostUrls("number", entityName("screen_saver_camera_dimming"), entityObjectIds("screen_saver_camera_dimming"), "set?value=" + encodeURIComponent(normalizeScreensaverCameraDimming(value))));
-    }
-    function postScreensaverCameraImageMode(this: any, value?: any) {
-        return postSelectWithObjectIds(entityName("screen_saver_camera_image_mode"), entityObjectIds("screen_saver_camera_image_mode"), normalizeScreensaverCameraImageMode(value));
-    }
     function postMediaPlayerSleepPrevention(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("screen_saver_media_player_sleep_prevention"), entityObjectIds("screen_saver_media_player_sleep_prevention"), on);
     }
@@ -54,12 +40,6 @@ export function createArtworkPostApiFeature(
     function postCoverArtSource(this: any, value?: any) {
         const source = "Mac Companion";
         return postSelectWithObjectIds(entityName("cover_art_source"), entityObjectIds("cover_art_source"), source);
-    }
-    function postClockOverlay(this: any, on?: any) {
-        return postSwitchWithObjectIds(entityName("screen_saver_clock_overlay"), entityObjectIds("screen_saver_clock_overlay"), on);
-    }
-    function postMetadataOverlay(this: any, on?: any) {
-        return postSwitchWithObjectIds(entityName("screen_saver_metadata_overlay"), entityObjectIds("screen_saver_metadata_overlay"), on);
     }
     function coverArtDelayPostUrls(this: any, value?: any) {
         return entityPostUrls("number", entityName("screen_saver_cover_art_delay"), entityObjectIds("screen_saver_cover_art_delay"), "set?value=" + encodeURIComponent(normalizeCoverArtDelay(value)));
@@ -90,15 +70,10 @@ export function createArtworkPostApiFeature(
     }
     return {
         postPresenceSensorEntity,
-        postScreensaverCameraEntity,
-        postScreensaverCameraImageMode,
-        postScreensaverCameraDimming,
         postMediaPlayerSleepPrevention,
         postMediaPlayerSleepPreventionEntity,
         postCoverArtScreensaver,
         postCoverArtSource,
-        postClockOverlay,
-        postMetadataOverlay,
         coverArtDelayPostUrls,
         postCoverArtDelay,
         coverArtTrackOverlayDurationPostUrls,

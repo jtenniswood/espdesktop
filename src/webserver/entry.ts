@@ -631,7 +631,7 @@ function composeApplicationContext(): ApplicationContext {
     statusPreview,
     clockBarPostApi,
     fields,
-    artworkPostApi,
+
   });
   selection = createButtonSettingsSelectionFeature(
     runtime,

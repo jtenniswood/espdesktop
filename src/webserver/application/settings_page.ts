@@ -50,7 +50,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity" | "postClockOverlay" | "postMetadataOverlay">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postAutoOpenAppSubpages" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "infoPanel" | "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout" | "postHomeScreenTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo" | "updateTempPreview">, artworkPostApi: Pick<ArtworkPostApiFeature, "postPresenceSensorEntity">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postAutoOpenAppSubpages" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "infoPanel" | "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">, scheduleSection: SettingsScheduleSectionFeature, coverArtSection: SettingsCoverArtSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { infoPanel, appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -64,7 +64,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { appendTimezoneOption, syncInput, updateClock, updateSunInfo, updateTempPreview } = statusPreview;
     const { syncPreviewOrientation } = core;
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
-    const { postPresenceSensorEntity, postClockOverlay } = artworkPostApi;
+    const { postPresenceSensorEntity } = artworkPostApi;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
     const { postClockBar, postBatteryStatus, postAutoOpenAppSubpages, postReturnHomeOnAppSwitch } = clockBarPostApi;
     const els = runtime.els;
@@ -474,11 +474,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         timerPanel.appendChild(timerClockControls.brightnessField);
         els.setClockSelect = timerClockControls.clockSelect;
         els.setClockField = timerClockControls.clockField;
-        els.setScreensaverCameraField = timerClockControls.cameraField;
-        els.setScreensaverCamera = timerClockControls.cameraInput;
-        els.setScreensaverCameraImageModeField = timerClockControls.cameraImageModeField;
-        els.setScreensaverCameraImageMode = timerClockControls.cameraImageModeSelect;
-        els.setScreensaverCameraDimming = timerClockControls.cameraDimming;
         els.setDimBrightnessField = timerClockControls.dimBrightnessField;
         els.setManualDimBrightnessField = timerClockControls.manualDimBrightnessField;
         els.setAutomaticDimBrightnessField = timerClockControls.automaticDimBrightnessField;
@@ -513,56 +508,9 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         sensorPanel.appendChild(sensorClockControls.dimBrightnessField);
         sensorPanel.appendChild(sensorClockControls.brightnessField);
         ssBody.appendChild(sensorPanel);
-        var cameraPanel: any = document.createElement("section");
-        cameraPanel.id = "sp-set-screensaver-camera-panel";
-        cameraPanel.className = "sp-panel sp-camera-settings";
-        cameraPanel.setAttribute("aria-label", "Camera screensaver settings");
-        var timerCameraFields: any = document.createElement("div");
-        timerCameraFields.append(timerClockControls.cameraField, timerClockControls.cameraImageModeField, timerClockControls.cameraDimmingField);
-        var sensorCameraFields: any = document.createElement("div");
-        sensorCameraFields.append(sensorClockControls.cameraField, sensorClockControls.cameraImageModeField, sensorClockControls.cameraDimmingField);
-        cameraPanel.append(timerCameraFields, sensorCameraFields);
-        els.setScreensaverCameraPanel = cameraPanel;
-        var metadataField: any = document.createElement("div");
-        metadataField.className = "sp-field";
-        metadataField.appendChild(fieldLabel("Photo Metadata Entity", "sp-set-screensaver-metadata"));
-        var metadataInput: any = entityInput("sp-set-screensaver-metadata", state.screensaverMetadataEntity,
-            "Optional sensor entity (leave empty to hide)", ["sensor"]);
-        metadataField.appendChild(metadataInput);
-        bindTextPost(metadataInput, entityName("screen_saver_metadata_entity"), {
-            onBlur: function (value: any) { state.screensaverMetadataEntity = value; },
-        });
-        els.setScreensaverMetadataField = metadataField;
-        els.setScreensaverMetadata = metadataInput;
-        var clockOverlayToggle: any = toggleRow("Display Clock", "sp-set-ss-clock-overlay", state.clockOverlayOn);
-        cameraPanel.appendChild(clockOverlayToggle.row);
-        clockOverlayToggle.input.addEventListener("change", function (this: any) {
-            state.clockOverlayOn = this.checked;
-            syncCoverArtScreensaverUi();
-            postClockOverlay(state.clockOverlayOn);
-        });
-        els.setClockOverlayToggle = clockOverlayToggle.input;
-        els.setClockOverlayRow = clockOverlayToggle.row;
-        var metadataToggle: any = toggleRow("Display Metadata", "sp-set-ss-metadata-overlay", state.metadataOverlayOn);
-        if (layout.config.features?.cameraScreensaver) {
-            cameraPanel.appendChild(metadataToggle.row);
-            cameraPanel.appendChild(metadataField);
-        }
-        metadataToggle.input.addEventListener("change", function (this: any) {
-            state.metadataOverlayOn = this.checked;
-            syncClockScreensaverControls();
-            artworkPostApi.postMetadataOverlay(state.metadataOverlayOn);
-        });
-        els.setMetadataOverlayToggle = metadataToggle.input;
-        els.setMetadataOverlayRow = metadataToggle.row;
         els.setPresence = presInp;
         els.setSensorClockSelect = sensorClockControls.clockSelect;
         els.setSensorClockField = sensorClockControls.clockField;
-        els.setSensorScreensaverCameraField = sensorClockControls.cameraField;
-        els.setSensorScreensaverCamera = sensorClockControls.cameraInput;
-        els.setSensorScreensaverCameraImageModeField = sensorClockControls.cameraImageModeField;
-        els.setSensorScreensaverCameraImageMode = sensorClockControls.cameraImageModeSelect;
-        els.setSensorScreensaverCameraDimming = sensorClockControls.cameraDimming;
         els.setSensorDimBrightnessField = sensorClockControls.dimBrightnessField;
         els.setSensorManualDimBrightnessField = sensorClockControls.manualDimBrightnessField;
         els.setSensorAutomaticDimBrightnessField = sensorClockControls.automaticDimBrightnessField;
@@ -621,10 +569,6 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             timerPanel.style.display = mode === "timer" ? "" : "none";
             sensorPanel.style.display = mode === "sensor" ? "" : "none";
             companionPanel.style.display = mode === "companion" ? "" : "none";
-            timerCameraFields.style.display = mode === "timer" || mode === "companion" ? "" : "none";
-            sensorCameraFields.style.display = mode === "sensor" ? "" : "none";
-            if (layout.config.features?.cameraScreensaver)
-                (mode === "sensor" ? sensorPanel : mode === "companion" ? companionPanel : timerPanel).appendChild(cameraPanel);
             if (els.setScreensaverBadge) {
                 els.setScreensaverBadge.className = "sp-card-badge" + (mode === "disabled" ? " sp-hidden" : "");
             }

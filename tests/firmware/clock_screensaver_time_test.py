@@ -114,7 +114,7 @@ int main() {
   assert(date.hidden);
   assert(label.writes == writes); // Invalid time does not replace the last valid clock.
   panel_time.value = {8, 2, true};
-  for (auto mode : {DisplayMode::ACTIVE, DisplayMode::COVER_ART, DisplayMode::CAMERA,
+  for (auto mode : {DisplayMode::ACTIVE, DisplayMode::COVER_ART,
                     DisplayMode::DIMMED, DisplayMode::SETUP_DIMMED, DisplayMode::DISPLAY_OFF}) {
     espdesktop_app.mode = mode;
     time_update();
@@ -136,7 +136,7 @@ print('Screensaver minute-boundary refresh, entry, format, invalid-time and visi
 
 # Exercise the production positioning helper across panel sizes and rotations.
 layout_header = (root / 'components/espdesktop/backlight.h').read_text()
-layout_helper = layout_header[layout_header.index('inline void position_clock_screensaver_label'):layout_header.index('inline void position_clock_image_overlay')]
+layout_helper = layout_header[layout_header.index('inline void position_clock_screensaver_label'):layout_header.index('inline bool should_check_update')]
 layout_source = r'''
 #include <algorithm>
 #include <cassert>

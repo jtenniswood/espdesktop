@@ -21,9 +21,6 @@ esphome:
           id(screen_active_timezone_sensor).publish_state(active_timezone);
       - script.execute: network_setup_text_refresh
       - script.execute: button_setup_text_refresh
-      - script.execute: camera_screensaver_text_refresh
-
-# Timezone selector also drives sunrise and sunset calculations.
 select:
   - platform: template
     name: "${entity_screen_timezone}"
@@ -255,7 +252,6 @@ select:
         - script.execute: time_update
         - script.execute: network_setup_text_refresh
         - script.execute: button_setup_text_refresh
-        - script.execute: camera_screensaver_text_refresh
         - script.execute: refresh_button_grid
         - script.execute: network_status_refresh
 

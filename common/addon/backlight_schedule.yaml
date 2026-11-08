@@ -501,18 +501,13 @@ text:
             condition:
               lambda: |-
                 const auto mode = id(espdesktop_app).display().current_mode();
-                return mode == espdesktop::DisplayMode::CLOCK ||
-                       ((mode == espdesktop::DisplayMode::COVER_ART ||
-                         mode == espdesktop::DisplayMode::CAMERA) &&
-                        id(clock_overlay_enabled).state);
+                return mode == espdesktop::DisplayMode::CLOCK;
             then:
               - lambda: |-
                   apply_clock_screensaver_text_color(
                       id(clock_label), id(schedule_clock_text_color).state);
                   apply_clock_screensaver_text_color(
                       id(clock_date_label), id(schedule_clock_text_color).state);
-                  apply_clock_screensaver_text_color(
-                      id(clock_image_overlay_label), id(schedule_clock_text_color).state);
 
   - platform: template
     name: "${entity_screen_brightness_dawn_time}"
@@ -1019,9 +1014,7 @@ script:
           if (!id(espdesktop_app).display().target_mode_is(
                 espdesktop::DisplayMode::ACTIVE) &&
               !id(espdesktop_app).display().target_mode_is(
-                espdesktop::DisplayMode::COVER_ART) &&
-              !id(espdesktop_app).display().target_mode_is(
-                espdesktop::DisplayMode::CAMERA)) return;
+                espdesktop::DisplayMode::COVER_ART)) return;
           const bool onboarding = id(espdesktop_app).display().target_source_is(
               espdesktop::DisplayRequestSource::ONBOARDING);
           auto now = id(panel_time).now();

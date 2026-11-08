@@ -183,7 +183,6 @@ export function normalizeScreensaverAction(value: unknown): string {
   const action = String(value || "").toLowerCase().replace(/[\s-]+/g, "_");
   if (action === "screen_dimmed" || action === "dimmed" || action === "dim") return "dim";
   if (action === "clock") return "clock";
-  if (action === "camera") return "camera";
   return "off";
 }
 
@@ -191,7 +190,6 @@ export function screensaverActionOption(value: unknown): string {
   const action = normalizeScreensaverAction(value);
   if (action === "dim") return "Screen Dimmed";
   if (action === "clock") return "Clock";
-  if (action === "camera") return "Camera";
   return "Display Off";
 }
 

@@ -90,3 +90,15 @@ test("backup audit keeps both Mac volume slider modes without hiding legacy enti
   assert.deepEqual(report.map(card => card.location), ["Card 3"]);
   assert.deepEqual(encodePanelConfig(document), before);
 });
+
+
+test("retired camera screensaver choices fall back safely while local modes remain available", () => {
+  const { normalizeScreensaverAction, screensaverActionOption } = loadTypescriptTest("src/webserver/model/settings.ts");
+  for (const saved of ["Camera", "camera"]) {
+    assert.equal(normalizeScreensaverAction(saved), "off");
+    assert.equal(screensaverActionOption(saved), "Display Off");
+  }
+  assert.equal(normalizeScreensaverAction("Clock"), "clock");
+  assert.equal(normalizeScreensaverAction("Screen Dimmed"), "dim");
+  assert.equal(normalizeScreensaverAction("Display Off"), "off");
+});

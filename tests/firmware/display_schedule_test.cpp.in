@@ -193,12 +193,11 @@ int main() {
   for (bool fast_first : {false, true}) {
     for (bool sensor : {false, true}) {
       for (auto action : {DisplayMode::DISPLAY_OFF, DisplayMode::CLOCK,
-                          DisplayMode::DIMMED, DisplayMode::CAMERA}) {
+                          DisplayMode::DIMMED}) {
         reset();
         screensaver_mode.state = sensor ? "sensor" : "timer";
         screensaver_action_clock = action == DisplayMode::CLOCK;
         screensaver_action_dimmed = action == DisplayMode::DIMMED;
-        screensaver_action_camera = action == DisplayMode::CAMERA;
         const int active_effects = display_mode_effect_active.calls;
         const int brightness_writes = backlight_apply_brightness.calls;
         clock_time.hour = 9;
