@@ -185,23 +185,6 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
                 "components/espdesktop/button_grid_navigation.h: preserve alarm controls only during an active alarm takeover"
             )
 
-    if not image_path.exists():
-        errors.append("components/espdesktop/button_grid_image.h: wire image modals to display-takeover guards")
-    else:
-        text = image_path.read_text(encoding="utf-8")
-        if "pause_home_idle" in text or "resume_home_idle" in text:
-            errors.append(
-                "components/espdesktop/button_grid_image.h: name image modal guards after display takeover, not home idle"
-            )
-        if (
-            "begin_display_takeover" not in text
-            or "end_display_takeover" not in text
-            or "DisplayTakeoverKind::INTERACTIVE" not in text
-        ):
-            errors.append(
-                "components/espdesktop/button_grid_image.h: use typed interactive takeover hooks"
-            )
-
     if not alarm_path.exists():
         errors.append("components/espdesktop/button_grid_alarm.h: wire critical display takeovers")
     else:
@@ -603,13 +586,6 @@ def firmware_modal_tab_layout_errors(root: Path) -> list[str]:
             "ControlModalTabLayout tabs_layout = control_modal_calc_tab_layout(layout, tab_count, show_tab_bar);",
             "ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);",
             "control_modal_layout_tab_button(tab_btn, layout, tabs_layout, i, active);",
-            "control_modal_calc_content_layout(",
-            "ui.tab_row = control_modal_create_tab_row(ui.panel);",
-        ),
-        "button_grid_media.h": (
-            "control_modal_calc_tab_layout(layout, media_control_tab_count, true)",
-            "ui.tab_row, layout, tabs_layout, ctx->width_compensation_percent);",
-            "control_modal_layout_tab_button(tabs[i].btn, layout, tabs_layout, i, active);",
             "control_modal_calc_content_layout(",
             "ui.tab_row = control_modal_create_tab_row(ui.panel);",
         ),
@@ -2254,11 +2230,11 @@ def run_self_test() -> int:
         ("keep modal tab sizing in button_grid_modal_layout.h",),
     )
     missing_shared_tab_helper = valid_modal_tab_layout_files()
-    missing_shared_tab_helper["components/espdesktop/button_grid_media.h"] = (
+    missing_shared_tab_helper["components/espdesktop/button_grid_climate.h"] = (
         "lv_coord_t selected_tab_size = tab_size + tab_size / 8;\n"
     )
     expect_modal_tab_layout_errors(
-        "media modal stops using shared tab helper",
+        "climate modal stops using shared tab helper",
         missing_shared_tab_helper,
         ("use shared modal tab layout helpers",),
     )

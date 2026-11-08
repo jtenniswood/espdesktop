@@ -53,13 +53,11 @@ for file, name in [
 for file, name in [
     ('button_grid_sliders.h', 'light_control'),
     ('button_grid_sliders.h', 'cover_control'),
-    ('button_grid_sliders.h', 'media_volume'),
     ('button_grid_climate.h', 'climate_control'),
     ('button_grid_media.h', 'media_control'),
     ('button_grid_alarm.h', 'alarm_control'),
     ('button_grid_option_select.h', 'option_select'),
     ('button_grid_fan.h', 'fan_control'),
-    ('button_grid_image.h', 'image_card'),
 ]:
     helpers += function(file, name + '_can_open_modal')
 helpers += function('button_grid_fan.h', 'fan_control_supported')
