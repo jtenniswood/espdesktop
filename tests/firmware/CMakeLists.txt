@@ -263,9 +263,6 @@ target_compile_options(media_volume_capability_test PRIVATE -Wall -Wextra -Werro
 target_include_directories(media_volume_capability_test PRIVATE ../../components/espdesktop)
 add_test(NAME media_volume_capability_test COMMAND media_volume_capability_test)
 
-add_test(NAME weather_forecast_queue_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_forecast_queue_test.py)
 
 add_executable(media_control_tabs_test media_control_tabs_test.cpp)
 target_compile_features(media_control_tabs_test PRIVATE cxx_std_17)
@@ -483,25 +480,7 @@ target_include_directories(image_pipeline_policy_test PRIVATE ../../components/a
 add_test(NAME image_pipeline_policy_test COMMAND image_pipeline_policy_test)
 
 
-set(CLIMATE_SUBSCRIPTION_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/climate_subscription_runtime_test.cpp)
-add_custom_command(
-  OUTPUT ${CLIMATE_SUBSCRIPTION_TEST_SOURCE}
-  COMMAND ${Python3_EXECUTABLE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_climate_subscription_runtime_test.py
-    --output ${CLIMATE_SUBSCRIPTION_TEST_SOURCE}
-  DEPENDS
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/generate_climate_subscription_runtime_test.py
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../components/espdesktop/button_grid_climate.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/../../components/espdesktop/button_grid_climate_subscriptions.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/climate_subscription_runtime_test.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/fixtures/issue_1837_climate_subpage.json
-  VERBATIM
-)
-add_executable(climate_subscription_runtime_test ${CLIMATE_SUBSCRIPTION_TEST_SOURCE})
-target_compile_features(climate_subscription_runtime_test PRIVATE cxx_std_17)
-target_compile_options(climate_subscription_runtime_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
-target_include_directories(climate_subscription_runtime_test PRIVATE stubs ../../components/espdesktop)
-add_test(NAME climate_subscription_runtime_test COMMAND climate_subscription_runtime_test)
+
 
 add_test(NAME display_schedule_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/display_schedule_test.py
@@ -566,24 +545,7 @@ add_executable(settings_backlight_test settings_backlight_test.cpp)
 target_compile_features(settings_backlight_test PRIVATE cxx_std_17)
 target_compile_options(settings_backlight_test PRIVATE -Wall -Wextra -Werror)
 add_test(NAME settings_backlight_test COMMAND settings_backlight_test)
-set(CLIMATE_UPDATE_TEST_SOURCE ${CMAKE_CURRENT_BINARY_DIR}/climate_update_test.cpp)
-add_custom_command(
-  OUTPUT ${CLIMATE_UPDATE_TEST_SOURCE}
-  COMMAND ${Python3_EXECUTABLE}
-    ${CMAKE_CURRENT_SOURCE_DIR}/generate_climate_update_test.py
-    --header ${CMAKE_CURRENT_SOURCE_DIR}/../../components/espdesktop/button_grid_climate.h
-    --output ${CLIMATE_UPDATE_TEST_SOURCE}
-  DEPENDS
-    generate_climate_update_test.py
-    climate_update_test.cpp.in
-    ../../components/espdesktop/button_grid_climate.h
-  VERBATIM
-)
-add_executable(climate_update_test ${CLIMATE_UPDATE_TEST_SOURCE})
-target_compile_features(climate_update_test PRIVATE cxx_std_17)
-target_compile_options(climate_update_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(climate_update_test PRIVATE stubs ../../components/espdesktop)
-add_test(NAME climate_update_test COMMAND climate_update_test)
+
 add_executable(companion_discovery_test companion_discovery_test.cpp)
 target_compile_features(companion_discovery_test PRIVATE cxx_std_17)
 target_compile_options(companion_discovery_test PRIVATE -Wall -Wextra -Werror)
@@ -660,10 +622,6 @@ add_test(NAME wifi_setup_address_test COMMAND
 add_test(NAME wifi_setup_package_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/wifi_setup_package_test.py)
 
-add_test(NAME cover_confirmation_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_confirmation_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_stop_failure_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_stop_failure_test.py ${CMAKE_CXX_COMPILER})
 
 
 add_test(NAME remote_modal_test COMMAND
@@ -708,19 +666,9 @@ add_test(NAME screensaver_pin_ui_test COMMAND
 add_test(NAME screensaver_pin_cover_art_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screensaver_pin_cover_art_test.py ${CMAKE_CXX_COMPILER})
 
-add_executable(weather_daily_forecast_test weather_daily_forecast_test.cpp)
-target_compile_features(weather_daily_forecast_test PRIVATE cxx_std_17)
-target_compile_options(weather_daily_forecast_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(weather_daily_forecast_test PRIVATE ../../components/espdesktop)
-add_test(NAME weather_daily_forecast_test COMMAND weather_daily_forecast_test)
-
-add_test(NAME weather_daily_template_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_daily_template_test.py)
 
 
-add_test(NAME weather_daily_requests_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/weather_daily_requests_test.py)
+
 
 
 add_test(NAME app_icon_store_test COMMAND
@@ -758,9 +706,6 @@ add_test(NAME special_page_gesture_test COMMAND ${Python3_EXECUTABLE}
 
 add_test(NAME default_icon_size_boot_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/default_icon_size_boot_test.py)
-add_test(NAME climate_option_values_test COMMAND
-  ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/climate_option_values_test.py)
 
 add_test(NAME multipart_header_fragments_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"

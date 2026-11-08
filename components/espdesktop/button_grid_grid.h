@@ -602,13 +602,7 @@ inline void grid_refresh_layout(
 
 // ── Phase 1: Visual setup ────────────────────────────────────────────
 
-inline bool grid_card_uses_secondary_surface(
-    const espdesktop::cards::Context &context, const ParsedCfg &config) {
-  if (context.family != espdesktop::cards::Family::MEDIA) return false;
-  const std::string mode = media_card_mode(config.sensor);
-  return mode == "position" ||
-         (mode == "now_playing" && media_now_playing_progress_enabled(config));
-}
+
 
 inline bool grid_card_uses_sensor_surface(
     const espdesktop::cards::Context &context, const ParsedCfg &config) {
@@ -695,9 +689,6 @@ inline void grid_phase1(
   bump_ha_subscription_generation();
   reset_calendar_cards();
   reset_timezone_cards();
-  weather_forecast_cancel_pending_requests(false);
-  reset_weather_forecast_cards();
-  reset_climate_control_refs();
   screen_lock_reset_registry();
 
   for (int pos = 0; pos < NS; pos++) {
@@ -721,7 +712,7 @@ inline void grid_phase1(
     const bool custom_background = card_palette_for_config(palette, p, display).custom_background;
     neutral_buttons[idx - 1] = context.family != espdesktop::cards::Family::IMAGE;
     sensor_surfaces[idx - 1] = !custom_background && grid_card_uses_sensor_surface(context, p);
-    secondary_surfaces[idx - 1] = grid_card_uses_secondary_surface(context, p);
+    secondary_surfaces[idx - 1] = false;
     image_cards[idx - 1] = context.family == espdesktop::cards::Family::IMAGE;
     display_apply_main_width(s.icon_lbl, display);
     display_apply_slot_text_width(s, display);
@@ -1175,8 +1166,6 @@ inline void grid_phase2(
   set_display_temperature_unit(cfg.temperature_unit, cfg.timezone);
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
-  set_switch_confirmation_message_font(display_switch_confirmation_message_font(display));
-  set_switch_confirmation_icon_font(display_icon_font(display));
   set_wifi_qr_icon_font(display_icon_font(display));
   network_status_card_icon_font() = display_icon_font(display);
   set_wifi_qr_heading_font(display_media_title_font(display));
@@ -1198,19 +1187,14 @@ inline void grid_phase2(
   static const char* icon_off_cp[MAX_GRID_SLOTS] = {};
   static const char* icon_on_cp[MAX_GRID_SLOTS] = {};
 
-  static std::string sp_entity_ids[MAX_SUBPAGE_ITEMS];
-  static int sp_entity_alloc_idx = 0;
   static espdesktop::cards::NavigationDriverChildIndicators
     navigation_child_indicators;
   espdesktop::cards::navigation_driver_reset_child_indicators(
     navigation_child_indicators);
-  sp_entity_alloc_idx = 0;
   memset(has_sensor, 0, sizeof(has_sensor));
   memset(sensor_text_mode, 0, sizeof(sensor_text_mode));
   memset(has_icon_on, 0, sizeof(has_icon_on));
   bump_ha_subscription_generation();
-  weather_forecast_cancel_pending_requests(false);
-  reset_climate_control_refs();
   clear_internal_relay_watchers();
   local_sensor_registry().clear();
   grid_release_main_runtime_allocations(slots, NS);
@@ -1437,29 +1421,6 @@ inline void grid_phase2(
         entity_id, is_active_state);
     };
 
-    auto add_subpage_toggle_click = [&](lv_obj_t *btn, const std::string &entity_id, bool set_checked) {
-      if (entity_id.empty()) return;
-      int eid_idx = sp_entity_alloc_idx++;
-      if (eid_idx >= MAX_SUBPAGE_ITEMS) {
-        ESP_LOGW("sensors", "Too many subpage click handlers; skipping %s", entity_id.c_str());
-        return;
-      }
-      sp_entity_ids[eid_idx] = entity_id;
-      if (set_checked) {
-        bind_immediate_button_action(btn, [](lv_event_t *e) {
-          lv_obj_t *target = static_cast<lv_obj_t *>(lv_event_get_target(e));
-          set_card_checked_state(target, true);
-          std::string *en = (std::string *)lv_event_get_user_data(e);
-          if (en && !en->empty()) send_toggle_action(*en);
-        }, &sp_entity_ids[eid_idx]);
-      } else {
-        bind_immediate_button_action(btn, [](lv_event_t *e) {
-          std::string *en = (std::string *)lv_event_get_user_data(e);
-          if (en && !en->empty()) send_toggle_action(*en);
-        }, &sp_entity_ids[eid_idx]);
-      }
-    };
-
     for (int gp = 0; gp < NS; gp++) {
       int bn = sp_ord.positions[gp];
       if (bn < 1 || bn > (int)sp_btns.size()) continue;
@@ -1486,7 +1447,7 @@ inline void grid_phase2(
           navigation_slot, bn, sub_slot, sb,
           context.family != espdesktop::cards::Family::IMAGE,
           !card_palette.custom_background && grid_card_uses_sensor_surface(context, sb_cfg),
-          grid_card_uses_secondary_surface(context, sb_cfg),
+          false,
           context.family == espdesktop::cards::Family::IMAGE);
       display_apply_main_width(sub_slot.icon_lbl, display);
       display_apply_slot_text_width(sub_slot, display);
@@ -1556,7 +1517,6 @@ inline void grid_phase2(
     ha_reannounce_state_subscriptions();
     refresh_image_cards();
   }
-  refresh_weather_forecast_cards();
   ha_log_subscription_diagnostics("grid-complete");
     grid_phase2_complete_state() = true;
     refresh_theme_grid_after_rebuild();

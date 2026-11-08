@@ -508,7 +508,7 @@ def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
     out = {card_type: [] for card_type in card_types}
     runtime_boundary = "components/espdesktop/button_grid_card_runtime.h"
     extra_by_type = {
-        "weather": ["components/espdesktop/button_grid_weather_forecast.h"],
+        "weather": ["components/espdesktop/retired_home_assistant_cards.h"],
     }
     headers = [
         path for path in sorted((ROOT / "components/espdesktop").glob("button_grid*.h"))

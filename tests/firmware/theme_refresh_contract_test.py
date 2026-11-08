@@ -52,7 +52,6 @@ phase2 = grid[grid.index("inline void grid_phase2("):grid.index("// Secondary-pa
 assert phase2.count("refresh_theme_grid_after_rebuild();") == 2
 info_exit = phase2[phase2.index("if (cfg.info_only)"):phase2.index("// --- Subpage creation ---")]
 assert info_exit.index("refresh_theme_grid_after_rebuild();") < info_exit.index("return;")
-assert phase2.rindex("refresh_weather_forecast_cards();") < phase2.rindex("refresh_theme_grid_after_rebuild();")
 assert phase2.rindex("refresh_theme_grid_after_rebuild();") < phase2.rindex('grid_log_memory("end");')
 
 firmware = ROOT / "components" / "espdesktop"
@@ -61,7 +60,6 @@ registration = runtime[runtime.index("inline void register_theme_grid("):runtime
 assert "apply_current_theme();" not in registration
 modal = (firmware / "button_grid_modal.h").read_text(encoding="utf-8")
 network = (firmware / "network_status.h").read_text(encoding="utf-8")
-climate = (firmware / "button_grid_climate.h").read_text(encoding="utf-8")
 for marker in ("register_theme_grid", "register_theme_hud", "navigation_subpages()",
                "theme_restyle_tree(entry.back_button", "theme_restyle_tree(card.button",
                "readable_text_color_for_bg(current_button_primary_color())",
@@ -75,6 +73,5 @@ for marker in ("register_theme_refresh(ui.overlay, network_status_apply_theme",
                "unregister_theme_refresh(lv_event_get_target(event))",
                "theme_display_color(theme.surface_card)", "theme.text_primary"):
     assert marker in network, marker
-assert "control_modal_track_theme_disabled(btn)" in climate
 
 print("Theme refresh ownership checks passed.")

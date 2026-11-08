@@ -63,8 +63,6 @@ api:
           return;
         }
         ha_invalidate_retained_state();
-        weather_forecast_cancel_pending_requests();
-        cover_stop_cancel_pending_request();
 
 script:
   # Only one connection's delayed recovery work may be alive at a time.
@@ -91,7 +89,6 @@ script:
                 ESP_LOGI("api", "Home Assistant connected: %s", client_info.c_str());
                 id(ha_restore_after_api).execute();
                 if (ha_api_state_connected()) {
-                  refresh_weather_forecast_cards();
                   ha_log_subscription_diagnostics("client-connected");
                   ha_flush_deferred_state_requests();
                 }
@@ -109,34 +106,25 @@ script:
             - lambda: |-
                 if (ha_api_connected()) refresh_image_cards();
                 if (ha_api_state_connected()) {
-                  refresh_weather_forecast_cards();
                   ha_flush_deferred_state_requests();
                 }
             - delay: 20s
             - lambda: |-
                 if (ha_api_connected()) refresh_image_cards();
                 if (ha_api_state_connected()) {
-                  refresh_weather_forecast_cards();
                   ha_flush_deferred_state_requests();
                 }
             - delay: 25s
             - lambda: |-
                 if (ha_api_state_connected()) {
-                  refresh_weather_forecast_cards();
                   ha_flush_deferred_state_requests();
                 }
 interval:
   - interval: 5s
     then:
       - lambda: |-
-          weather_forecast_cancel_stale_requests();
-          weather_forecast_send_next_queued();
           ha_flush_deferred_state_requests();
 
-  - interval: 1h
-    then:
-      - lambda: |-
-          refresh_weather_forecast_cards();
 
 logger:
   logs:

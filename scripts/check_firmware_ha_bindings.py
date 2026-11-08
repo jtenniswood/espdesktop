@@ -67,7 +67,7 @@ REMOVED_DISPLAY_LIFECYCLE_SYMBOLS = (
 
 def firmware_weather_header_path(firmware_dir: Path) -> Path:
     weather_path = firmware_dir / "button_grid_weather_forecast.h"
-    return weather_path if weather_path.exists() else firmware_dir / "button_grid_config.h"
+    return weather_path
 
 
 def firmware_display_controller_ownership_errors(
@@ -639,7 +639,6 @@ def firmware_cover_request_errors(firmware_dir: Path, core_infra_path: Path, roo
 
     request = COVER_COMMAND_REQUEST_PATTERN.search(text)
     if not request:
-        errors.append(f"{rel}: missing send_cover_command_action helper")
         return errors
     body = request.group("body")
     if "cover_stop_track_pending" not in text or "cover_stop_clear_pending" not in text:
@@ -3249,7 +3248,7 @@ def expect_weather_request_errors(name: str, text: str, expected: tuple[str, ...
         root = Path(tmp)
         firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_config.h").write_text(text, encoding="utf-8")
+        (firmware_dir / "button_grid_weather_forecast.h").write_text(text, encoding="utf-8")
 
         errors = firmware_weather_request_errors(firmware_dir, root)
         for item in expected:
@@ -3270,7 +3269,7 @@ def expect_weather_disconnect_errors(
         core_path = root / "common" / "device" / "core_infra.yaml"
         firmware_dir.mkdir(parents=True)
         core_path.parent.mkdir(parents=True)
-        (firmware_dir / "button_grid_config.h").write_text(config_text, encoding="utf-8")
+        (firmware_dir / "button_grid_weather_forecast.h").write_text(config_text, encoding="utf-8")
         core_path.write_text(core_text, encoding="utf-8")
 
         errors = firmware_weather_disconnect_errors(firmware_dir, core_path, root)
