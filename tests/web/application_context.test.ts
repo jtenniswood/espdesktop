@@ -306,8 +306,9 @@ export function runApplicationContextTests(): void {
     appendTimezoneOption() {},
     monthNameForIndex: () => "January",
   });
+  equal(dateTimeOptions.metadata.mode.options.map((option: any) => option.label).join(","), "Clock,World Clock", "date/time picker only offers clock cards");
   equal(dateTimeOptions.normalizeDateTimeCardMode("clock"), "clock", "date/time options preserve clock mode");
-  equal(dateTimeOptions.normalizeDateTimeCardMode("invalid"), "", "date/time options reject unknown modes");
+  equal(dateTimeOptions.normalizeDateTimeCardMode("invalid"), "clock", "date/time options reject unknown modes");
   equal(dateTimeOptions.dateTimeCardTimeParts().value, "09:05", "date/time options format the shared current time");
   equal(dateTimeOptions.defaultTimezoneCardEntity(), "Europe/London (GMT+0)", "date/time options use the active timezone");
 
