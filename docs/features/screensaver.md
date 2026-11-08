@@ -51,7 +51,7 @@ Saved Home Assistant Sensor screensaver modes become **Disabled**. Choose **Time
 
 ### Home Assistant wake {#wake-from-home-assistant}
 
-Home Assistant wake automations are being retired with the integration. Use the touchscreen to wake the panel.
+Home Assistant wake automations are retired with the integration. Use the touchscreen to wake the panel.
 
 ## Mac Cover Art
 

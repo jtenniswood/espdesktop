@@ -32,4 +32,4 @@ esphome:
 
 When the setup page can reach the panel, it lists registered actions. Otherwise enter the action key exactly as registered. Tapping the card flashes it briefly and runs the callback; a missing key is logged and does nothing.
 
-Use [Trigger](/card-types/buttons) when Home Assistant should react to the tap, or another [Action](/card-types/actions) mode to run a Home Assistant action.
+Home Assistant action and trigger modes are retired. Local callbacks continue to run on the panel.

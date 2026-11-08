@@ -6,7 +6,7 @@ description:
 
 # Local Sensor
 
-Local Sensor is a **Sensor** card source for a sensor or text sensor running on the display device. It is read-only and continues to work while Home Assistant is unavailable.
+Local Sensor is a **Sensor** card source for a sensor or text sensor running on the display device. It is read-only and uses the panel’s own sensor registry.
 
 ## Set Up a Local Sensor
 
@@ -19,4 +19,4 @@ The picker normally shows your own sensors. Turn on **Show internal sensors** to
 
 The card updates at the sensor's normal ESPHome update rate. It shows `--` until the first reading arrives.
 
-For values already in Home Assistant, keep the standard [Sensor](/card-types/sensors) source instead.
+Saved Home Assistant sensor sources are retired. Replace them with a local sensor or a supported Mac statistic.

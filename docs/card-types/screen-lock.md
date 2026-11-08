@@ -6,7 +6,7 @@ description:
 
 # Screen Lock
 
-A Screen Lock card locks and unlocks the panel's touchscreen controls locally. It does not need a Home Assistant entity and does not send a Home Assistant action.
+A Screen Lock card locks and unlocks the panel’s touchscreen controls locally.
 
 Use this when a panel is in a shared area and you want to require a PIN before its controls can be used.
 
@@ -33,12 +33,11 @@ After saving a PIN, you can also lock the screen from the **Screen Lock** button
 - The lock state is local to the panel.
 - Other cards and local controls are protected while the screen is locked; the keypad remains responsive.
 - The card can be used on the home screen or inside a subpage.
-- It does not depend on Home Assistant availability.
 
-Screen Lock is different from a [Lock](/card-types/locks) card. **Lock** controls a Home Assistant `lock` entity such as a door lock. **Screen Lock** controls the touchscreen's local interaction state.
+Saved Home Assistant Lock cards are retired. Screen Lock protects the panel’s local interaction state.
 
 ## When to Use It
 
 Screen Lock is useful for hallway panels, bedside panels, child-accessible panels, or any location where accidental control changes would be annoying.
 
-For security-sensitive actions such as unlocking a door, use the Home Assistant lock's own security features, a Home Assistant script, or card-level confirmation where available. Screen Lock is a local interaction guard, not a replacement for Home Assistant permissions.
+Screen Lock guards local interaction with the touchscreen. It does not secure another device or replace that device’s own access controls.

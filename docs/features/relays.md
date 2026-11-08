@@ -1,7 +1,7 @@
 ---
 title: Built-in Relay Controls
 description:
-  How EspDesktop exposes built-in panel relays in Home Assistant.
+  How to control built-in panel relays locally.
 ---
 
 # Built-in Relays
@@ -10,26 +10,9 @@ Some supported panels include physical relays that can switch external low-volta
 
 The relays are exposed by the standard firmware for each supported relay panel.
 
-## Home Assistant Entities
+## Local Controls
 
-EspDesktop exposes each relay in two ways:
-
-- **Relay switches** stay on until you turn them off again.
-- **Relay push buttons** turn the relay on for 200 ms, then turn it off again.
-
-| Panel | Relay | Switch entity | Push button entity | Relay pin |
-|---|---|---|---|---|
-| 4848S040C | **Relay 1** | `switch.<device_name>_relay_1` | `button.<device_name>_relay_1_push` | GPIO40 |
-| 4848S040C | **Relay 2** | `switch.<device_name>_relay_2` | `button.<device_name>_relay_2_push` | GPIO2 |
-| 4848S040C | **Relay 3** | `switch.<device_name>_relay_3` | `button.<device_name>_relay_3_push` | GPIO1 |
-| ETH-2RO | **Relay 1** | `switch.<device_name>_relay_1` | `button.<device_name>_relay_1_push` | GPIO32 |
-| ETH-2RO | **Relay 2** | `switch.<device_name>_relay_2` | `button.<device_name>_relay_2_push` | GPIO46 |
-
-They appear as normal Home Assistant entities on the EspDesktop device. You can control them from Home Assistant dashboards, automations, scripts, and Home Assistant voice assistants.
-
-![Home Assistant controls card showing Display Backlight plus Relay 1, Relay 2, and Relay 3 switches](/images/relay-controls.svg)
-
-Home Assistant may adjust the exact entity ID if you have renamed the device or if another entity already used the same name. To find them, open **Settings > Devices & services**, select your EspDesktop device, then look for the relay switches and relay push buttons under the device entities.
+Relay switches stay on until turned off. Relay push buttons pulse the output for 200 ms, then turn it off. The firmware no longer exposes these controls through the Home Assistant native API.
 
 ## Switches vs Push Buttons
 
@@ -44,7 +27,7 @@ Use the switch version when the relay should represent an ongoing on/off state. 
 
 ## Using Relays on the Touchscreen
 
-Relay controls on the touchscreen can work locally on the panel. Use an **Internal Switches** card when you want the touchscreen to control the physical relay even if Home Assistant is offline.
+Use an **Internal Switches** card to control the physical relay directly on the panel.
 
 Internal Switches cards have two modes:
 
@@ -58,19 +41,15 @@ Internal Switches cards have two modes:
 5. Choose **Switch** or **Push Button** mode.
 6. Save the card configuration.
 
-The relay entities are still exposed to Home Assistant. You can keep using normal [Switch](/card-types/switches) cards with relay entity IDs if you prefer Home Assistant to stay in the middle, but those cards need Home Assistant to be connected.
-
 The push button entities are useful when the relay is wired in parallel with existing momentary wall switches, for example when it is driving a dimmer or lighting controller that expects a short button press rather than a permanent on/off output.
 
 ## Startup Behaviour
 
 The relay outputs default to **off** after startup or restart. This helps avoid a relay turning on unexpectedly when the panel reboots.
 
-If you need a relay to return to a particular state after restart, handle that with a Home Assistant automation once the EspDesktop device reconnects.
-
 ## Testing
 
-After updating the firmware, test each relay from Home Assistant before connecting it to anything important. You should hear or feel each relay click when it changes state.
+After updating the firmware, test each relay using a local Internal Switches card before connecting it to anything important. You should hear or feel each relay click when it changes state.
 
 ## Safety
 
