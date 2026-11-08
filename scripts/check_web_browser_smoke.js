@@ -9239,11 +9239,21 @@ async function assertImageLibrarySettings(browser, testCase) {
 }
 
 async function assertCardBackgroundTabs(browser, testCase) {
-  for (const subpage of [false, true]) {
+  for (const scenario of [
+    { subpage: false, companion: false }, { subpage: true, companion: false },
+    { subpage: false, companion: true }, { subpage: true, companion: true },
+  ]) {
+    const { subpage, companion } = scenario;
     const context = await browser.newContext({ viewport: testCase.viewport });
     const nativeState = nativeConfigState(testCase.slug);
     const fields = ["light.kitchen", "Kitchen", "Lightbulb", "Lightbulb", "", "", "", "",
       "bg_image=test-image,card_off_color=3F51B5"];
+    if (companion) {
+      fields[0] = "app.com.apple.finder";
+      fields[1] = "Finder";
+      fields[2] = fields[3] = "Auto";
+      fields[6] = "companion";
+    }
     if (subpage) nativeState.document.subpages[3] = "B,1|" + fields.join(":");
     else nativeState.document.buttons[1] = fields.join(";");
     const saved = () => subpage ? nativeState.document.subpages[3] : nativeState.document.buttons[1];
