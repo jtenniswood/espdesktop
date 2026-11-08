@@ -474,8 +474,6 @@ inline std::vector<MediaPlaybackState *> &media_playback_states() {
   return states;
 }
 
-template<typename T>
-
 inline void media_playback_reset_state(MediaPlaybackState *state,
                                        const std::string &entity_id) {
   if (!state) return;
