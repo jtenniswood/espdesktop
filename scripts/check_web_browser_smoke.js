@@ -8824,7 +8824,7 @@ async function assertRetiredCardRemoval(browser) {
       assert(!/Home Assistant/i.test(await page.locator(".sp-settings-modal").innerText()),
         `${testCase.name}: new-card picker offers no HA integration or wording`);
       await page.getByRole("button", { name: "Subpage card type", exact: true }).click();
-      await page.locator(".sp-settings-modal .sp-edit-subpage-btn").waitFor({ state: "visible" });
+      await page.getByPlaceholder("e.g. Folder Name", { exact: true }).waitFor({ state: "visible" });
     } finally { await context.close(); }
   }
   console.log(`Action/HA picker absence passed for ${ACTIVE_CASES.length} layouts.`);
