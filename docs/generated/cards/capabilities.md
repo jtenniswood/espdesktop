@@ -42,7 +42,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label; Large icon with title | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
 | Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Visible |
-| Subpage | subpage | None | No | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
+| Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
 | Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, datetime, default, timezone; Large Clock | Visible |
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Visible |
 | Camera Card | image | camera, image | Yes | Own picker item | Show Label; Show Icon; Image fit: fill, fit; Camera refresh: off, periodic, activity; Refresh interval: 5, 10, 30; Trigger entity | Visible |

@@ -3209,7 +3209,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "subpage": {
     "label": "Subpage",
-    "allowInSubpage": false,
+    "allowInSubpage": true,
     "domains": [],
     "options": [
       {
@@ -4097,7 +4097,7 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "numericControl": false,
       "modal": false,
       "runtimeAllocation": true,
-      "subpage": false
+      "subpage": true
     }
   },
   "timezone": {

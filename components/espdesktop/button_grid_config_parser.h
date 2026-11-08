@@ -13,6 +13,9 @@
 #include "button_grid_card_runtime.h"
 #include "media_control_tabs.h"
 #include "button_grid_string.h"
+#include "config_field_decode.h"
+#include "display_utf8_case.h"
+#include "ha_state_limits.h"
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
 #include "app_shortcuts_generated.h"
@@ -82,72 +85,6 @@ inline std::vector<std::string> split_config_fields(const std::string &value, ch
     start = end + 1;
   }
   return out;
-}
-
-inline int hex_digit(char c) {
-  if (c >= '0' && c <= '9') return c - '0';
-  if (c >= 'A' && c <= 'F') return c - 'A' + 10;
-  if (c >= 'a' && c <= 'f') return c - 'a' + 10;
-  return -1;
-}
-
-inline bool valid_utf8_bytes(const std::string &value) {
-  size_t index = 0;
-  while (index < value.size()) {
-    const unsigned char first = static_cast<unsigned char>(value[index]);
-    if (first <= 0x7F) { ++index; continue; }
-    size_t count = 0;
-    if (first >= 0xC2 && first <= 0xDF) count = 1;
-    else if (first >= 0xE0 && first <= 0xEF) count = 2;
-    else if (first >= 0xF0 && first <= 0xF4) count = 3;
-    else return false;
-    if (index + count >= value.size()) return false;
-    const unsigned char second = static_cast<unsigned char>(value[index + 1]);
-    if ((second & 0xC0) != 0x80) return false;
-    if (first == 0xE0 && second < 0xA0) return false;
-    if (first == 0xED && second > 0x9F) return false;
-    if (first == 0xF0 && second < 0x90) return false;
-    if (first == 0xF4 && second > 0x8F) return false;
-    for (size_t offset = 2; offset <= count; ++offset) {
-      if ((static_cast<unsigned char>(value[index + offset]) & 0xC0) != 0x80) return false;
-    }
-    index += count + 1;
-  }
-  return true;
-}
-
-inline std::string decode_compact_field(const std::string &value, size_t start, size_t len) {
-  if (start > value.size()) return "";
-  size_t end = start + len;
-  if (end < start || end > value.size()) end = value.size();
-  std::string out;
-  out.reserve(end - start);
-  for (size_t i = start; i < end;) {
-    if (value[i] == '%' && i + 2 < end) {
-      size_t run_end = i;
-      std::string decoded;
-      while (run_end + 2 < end && value[run_end] == '%') {
-        int hi = hex_digit(value[run_end + 1]);
-        int lo = hex_digit(value[run_end + 2]);
-        if (hi < 0 || lo < 0) break;
-        decoded.push_back(static_cast<char>((hi << 4) | lo));
-        run_end += 3;
-      }
-      if (run_end > i) {
-        if (valid_utf8_bytes(decoded)) out += decoded;
-        else out.append(value, i, run_end - i);
-        i = run_end;
-        continue;
-      }
-    }
-    out.push_back(value[i]);
-    ++i;
-  }
-  return out;
-}
-
-inline std::string decode_compact_field(const std::string &value) {
-  return decode_compact_field(value, 0, value.size());
 }
 
 inline char compact_hex_char(uint8_t value) {
@@ -1804,179 +1741,7 @@ constexpr uint32_t HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS = 1u << 3;
 #define ESPDESKTOP_HA_SUBSCRIPTION_SCOPE_CONSTANTS_DEFINED 1
 #endif
 
-constexpr size_t HA_STATE_TEXT_MAX_LEN = 96;
-constexpr size_t HA_SHORT_STATE_MAX_LEN = 32;
-constexpr size_t HA_FRIENDLY_NAME_MAX_LEN = 64;
 
-enum class Utf8DecodeStatus : uint8_t {
-  VALID,
-  INVALID,
-  INCOMPLETE,
-};
-
-struct Utf8CasePair {
-  uint32_t upper;
-  uint32_t lower;
-};
-
-inline Utf8DecodeStatus decode_utf8_codepoint(const std::string &text, size_t offset,
-                                               uint32_t &codepoint, size_t &length) {
-  codepoint = 0;
-  length = 0;
-  if (offset >= text.size()) return Utf8DecodeStatus::INCOMPLETE;
-
-  const unsigned char lead = static_cast<unsigned char>(text[offset]);
-  if (lead < 0x80) {
-    codepoint = lead;
-    length = 1;
-    return Utf8DecodeStatus::VALID;
-  }
-
-  size_t expected = 0;
-  uint32_t value = 0;
-  uint32_t minimum = 0;
-  if (lead >= 0xC2 && lead <= 0xDF) {
-    expected = 2;
-    value = lead & 0x1F;
-    minimum = 0x80;
-  } else if (lead >= 0xE0 && lead <= 0xEF) {
-    expected = 3;
-    value = lead & 0x0F;
-    minimum = 0x800;
-  } else if (lead >= 0xF0 && lead <= 0xF4) {
-    expected = 4;
-    value = lead & 0x07;
-    minimum = 0x10000;
-  } else {
-    length = 1;
-    return Utf8DecodeStatus::INVALID;
-  }
-
-  for (size_t i = 1; i < expected; i++) {
-    if (offset + i >= text.size()) return Utf8DecodeStatus::INCOMPLETE;
-    const unsigned char continuation = static_cast<unsigned char>(text[offset + i]);
-    if ((continuation & 0xC0) != 0x80) {
-      length = 1;
-      return Utf8DecodeStatus::INVALID;
-    }
-    value = (value << 6) | (continuation & 0x3F);
-  }
-  if (value < minimum || value > 0x10FFFF || (value >= 0xD800 && value <= 0xDFFF)) {
-    length = 1;
-    return Utf8DecodeStatus::INVALID;
-  }
-
-  codepoint = value;
-  length = expected;
-  return Utf8DecodeStatus::VALID;
-}
-
-inline void append_utf8_codepoint(std::string &out, uint32_t codepoint) {
-  if (codepoint <= 0x7F) {
-    out.push_back(static_cast<char>(codepoint));
-  } else if (codepoint <= 0x7FF) {
-    out.push_back(static_cast<char>(0xC0 | (codepoint >> 6)));
-    out.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-  } else if (codepoint <= 0xFFFF) {
-    out.push_back(static_cast<char>(0xE0 | (codepoint >> 12)));
-    out.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-    out.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-  } else {
-    out.push_back(static_cast<char>(0xF0 | (codepoint >> 18)));
-    out.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
-    out.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
-    out.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
-  }
-}
-
-inline const Utf8CasePair *utf8_latin_case_pairs(size_t &count) {
-  // Locale-dependent Turkish dotted/dotless I are deliberately left unchanged.
-  static const Utf8CasePair pairs[] = {
-    {0x00C0, 0x00E0}, {0x00C1, 0x00E1}, {0x00C2, 0x00E2}, {0x00C3, 0x00E3},
-    {0x00C4, 0x00E4}, {0x00C5, 0x00E5}, {0x00C6, 0x00E6}, {0x00C7, 0x00E7},
-    {0x00C8, 0x00E8}, {0x00C9, 0x00E9}, {0x00CA, 0x00EA}, {0x00CB, 0x00EB},
-    {0x00CC, 0x00EC}, {0x00CD, 0x00ED}, {0x00CE, 0x00EE}, {0x00CF, 0x00EF},
-    {0x00D0, 0x00F0}, {0x00D1, 0x00F1}, {0x00D2, 0x00F2}, {0x00D3, 0x00F3},
-    {0x00D4, 0x00F4}, {0x00D5, 0x00F5}, {0x00D6, 0x00F6}, {0x00D8, 0x00F8},
-    {0x00D9, 0x00F9}, {0x00DA, 0x00FA}, {0x00DB, 0x00FB}, {0x00DC, 0x00FC},
-    {0x00DD, 0x00FD}, {0x00DE, 0x00FE}, {0x0102, 0x0103}, {0x0104, 0x0105},
-    {0x0106, 0x0107}, {0x010C, 0x010D}, {0x010E, 0x010F}, {0x0110, 0x0111},
-    {0x0118, 0x0119}, {0x011A, 0x011B}, {0x011E, 0x011F}, {0x0139, 0x013A}, {0x013D, 0x013E}, {0x0141, 0x0142},
-    {0x0143, 0x0144}, {0x0147, 0x0148}, {0x0150, 0x0151}, {0x0154, 0x0155},
-    {0x0158, 0x0159}, {0x015A, 0x015B}, {0x015E, 0x015F}, {0x0160, 0x0161},
-    {0x0164, 0x0165}, {0x016E, 0x016F}, {0x0170, 0x0171}, {0x0179, 0x017A},
-    {0x017B, 0x017C}, {0x017D, 0x017E}, {0x0218, 0x0219}, {0x021A, 0x021B},
-    {0x1E62, 0x1E63},
-  };
-  count = sizeof(pairs) / sizeof(pairs[0]);
-  return pairs;
-}
-
-inline uint32_t utf8_latin_case(uint32_t codepoint, bool uppercase) {
-  size_t count = 0;
-  const Utf8CasePair *pairs = utf8_latin_case_pairs(count);
-  for (size_t i = 0; i < count; i++) {
-    if (codepoint == pairs[i].upper || codepoint == pairs[i].lower) {
-      return uppercase ? pairs[i].upper : pairs[i].lower;
-    }
-  }
-  return codepoint;
-}
-
-inline bool utf8_letter_like(uint32_t codepoint) {
-  if (codepoint < 0x80) {
-    return std::isalpha(static_cast<unsigned char>(codepoint));
-  }
-  // Latin ranges exclude the multiplication and division symbols.
-  if ((codepoint >= 0x00C0 && codepoint <= 0x00D6) ||
-      (codepoint >= 0x00D8 && codepoint <= 0x00F6) ||
-      (codepoint >= 0x00F8 && codepoint <= 0x02AF) ||
-      (codepoint >= 0x1E00 && codepoint <= 0x1EFF)) {
-    return true;
-  }
-  // Unicode 16.0 Letter-category ranges within the supported script blocks.
-  // Punctuation, symbols, combining marks and unassigned positions must not
-  // consume a pending capital letter (for example Greek U+037E or Hebrew U+05BE).
-  return (codepoint >= 0x0370 && codepoint <= 0x0374) ||
-         (codepoint >= 0x0376 && codepoint <= 0x0377) ||
-         (codepoint >= 0x037A && codepoint <= 0x037D) ||
-         codepoint == 0x037F || codepoint == 0x0386 ||
-         (codepoint >= 0x0388 && codepoint <= 0x038A) ||
-         codepoint == 0x038C ||
-         (codepoint >= 0x038E && codepoint <= 0x03A1) ||
-         (codepoint >= 0x03A3 && codepoint <= 0x03F5) ||
-         (codepoint >= 0x03F7 && codepoint <= 0x03FF) ||
-         (codepoint >= 0x0400 && codepoint <= 0x0481) ||
-         (codepoint >= 0x048A && codepoint <= 0x052F) ||
-         (codepoint >= 0x05D0 && codepoint <= 0x05EA) ||
-         (codepoint >= 0x05EF && codepoint <= 0x05F2);
-}
-
-inline bool append_title_case_character(const std::string &text, size_t &offset,
-                                        std::string &out, bool &cap_next) {
-  uint32_t codepoint = 0;
-  size_t length = 0;
-  const Utf8DecodeStatus status = decode_utf8_codepoint(text, offset, codepoint, length);
-  if (status == Utf8DecodeStatus::INCOMPLETE) return false;
-  if (status == Utf8DecodeStatus::INVALID) {
-    out.push_back(text[offset]);
-    offset += length;
-    return true;
-  }
-
-  if (utf8_letter_like(codepoint)) {
-    if (codepoint < 0x80) {
-      const unsigned char ascii = static_cast<unsigned char>(codepoint);
-      codepoint = static_cast<uint32_t>(cap_next ? std::toupper(ascii) : std::tolower(ascii));
-    } else {
-      codepoint = utf8_latin_case(codepoint, cap_next);
-    }
-    cap_next = false;
-  }
-  append_utf8_codepoint(out, codepoint);
-  offset += length;
-  return true;
-}
 
 inline std::string normalized_state_text(esphome::StringRef value,
                                          size_t max_len = HA_SHORT_STATE_MAX_LEN) {
@@ -1986,8 +1751,6 @@ inline std::string normalized_state_text(esphome::StringRef value,
   }
   return text;
 }
-
-constexpr size_t HA_TEXT_SENSOR_STATE_MAX_LEN = 256;
 
 inline std::string text_sensor_display_text(esphome::StringRef value,
                                             size_t max_len = HA_TEXT_SENSOR_STATE_MAX_LEN) {
@@ -2036,10 +1799,12 @@ inline std::string text_sensor_display_text(esphome::StringRef value,
 
 
 
+#ifndef ESPDESKTOP_CONFIG_PARSER_ONLY
 inline void lv_label_set_text_limited(lv_obj_t *label, esphome::StringRef value, size_t max_len) {
   std::string text = normalize_display_text(string_ref_limited(value, max_len));
   lv_label_set_text(label, text.c_str());
 }
+#endif
 
 inline bool parse_float_ref(esphome::StringRef value, float &out) {
   char *end;

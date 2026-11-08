@@ -98,7 +98,7 @@ TASKS = (
          ("cmake", "--build", "build/tests/firmware"),
          ("ctest", "--test-dir", "build/tests/firmware", "--output-on-failure"), profiles=FAST + RELEASE,
          domains=("firmware",),
-         inputs=(
+         inputs=("src/webserver/model/**", "src/webserver/generated/card_contract.ts", "scripts/check_native_document_conversion.js", "scripts/check_nested_page_document.js",
              "tests/firmware/**",
              "components/web_server_idf/**",
              "components/gsl3680/**",

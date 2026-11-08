@@ -16,6 +16,8 @@ export interface ConfigPersistenceFeature {
     subpageEntityKeys(): string[];
     specialPageEntityKeys(): string[];
     buttonConfigByteLimit(): number;
+    writableNavigationDepth(): number;
+    beginAtomicEdit?(): { finish(ok: boolean): Promise<boolean>; cancel(): void } | undefined;
     subpageConfigFits(value: string, slot?: number): boolean;
     saveButtonConfig(slot: number): Promise<any>;
     saveButtonConfigAndOrder(slot: number, order: string): Promise<any>;
@@ -29,7 +31,7 @@ export function createConfigPersistenceFeature(
     runtime: UiRuntimeState,
     layout: ApplicationLayoutState,
     entityState: Pick<EntityStateFeature, "entityName" | "entityNameForSlot" | "hasRememberedPostPath">,
-    shell: Pick<ControlsShellFeature, "showBanner">,
+    shell: Pick<ControlsShellFeature, "showBanner"> & Partial<Pick<ControlsShellFeature, "syncConfigLockUi">>,
 ): ConfigPersistenceFeature {
     const { entityName, entityNameForSlot, hasRememberedPostPath } = entityState;
     const { showBanner } = shell;
@@ -194,6 +196,7 @@ export function createConfigPersistenceFeature(
         return publishAfter(saveSubpageEntityLegacy(slot, full, true));
     }
     function scheduleSliderSubpageMigration(this: any, slot?: any) {
+        if (state.nativeConfigLoading || state.nativeTransferActive || state.nativeHasNestedPages) return;
         runtime.pendingSliderSubpageMigrations[slot] = true;
         clearTimeout(runtime.sliderMigrationTimer as any);
         runtime.sliderMigrationTimer = setTimeout(function (this: any) {
@@ -205,13 +208,26 @@ export function createConfigPersistenceFeature(
             }
         }, 5000);
     }
+    function beginAtomicEdit() {
+        const edit = nativePanelConfig?.beginAtomicEdit();
+        if (!edit) return undefined;
+        state.nativeTransferActive = true;
+        shell.syncConfigLockUi?.();
+        const unlock = () => { state.nativeTransferActive = false; shell.syncConfigLockUi?.(); };
+        return {
+            cancel: () => { edit.cancel(); unlock(); },
+            finish: async (ok: boolean) => { try { return await edit.finish(ok); } finally { unlock(); } },
+        };
+    }
     return {
         connectCodec,
+        beginAtomicEdit,
         connectRequestApi,
         connectFocusRegistrationPublisher,
         subpageEntityKeys,
         specialPageEntityKeys,
         buttonConfigByteLimit,
+        writableNavigationDepth: () => nativePanelConfig?.writableNavigationDepth() ?? 1,
         subpageConfigFits,
         saveButtonConfig: (slot) => saveButtonConfig(slot),
         saveButtonConfigAndOrder: (slot, order) => saveButtonConfigAndOrder(slot, order),

@@ -2382,7 +2382,7 @@
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": true,
-            "subpage": false
+            "subpage": true
           }
         },
         "timezone": {
@@ -5544,7 +5544,7 @@
       },
       "subpage": {
         "label": "Subpage",
-        "allowInSubpage": false,
+        "allowInSubpage": true,
         "domains": [],
         "options": [
           {

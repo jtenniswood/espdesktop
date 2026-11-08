@@ -33,6 +33,7 @@ struct NavigationHomeTargetEntry {
 };
 
 struct NavigationSubpageEntry {
+  int parent_slot = 0;
   int slot = 0;
   int display_order = 0;
   std::string kind;
@@ -56,6 +57,7 @@ bool neutral_background = true;
 };
 
 inline NavigationSubpageEntry *navigation_find_slot(int slot);
+inline bool navigation_restore_subpage_slot(int slot);
 inline void navigation_register_subpage(int slot, int display_order,
                                         const std::string &kind,
                                         lv_obj_t *screen);
@@ -161,6 +163,18 @@ inline void navigation_consume_touch_press(lv_obj_t *button) {
   consume_button_touch_press(button);
 }
 
+// Present the new page before image recovery can run cached HA callbacks or
+// start a camera/artwork request. Otherwise that work delays the first frame.
+inline void navigation_present_page_before_image_refresh() {
+  lv_obj_t *screen = lv_scr_act();
+  if (screen == nullptr) return;
+  ESP_LOGD("ui_latency", "Navigation draw start at=%u", unsigned(esphome::millis()));
+  lv_refr_now(lv_obj_get_display(screen));
+  ESP_LOGD("ui_latency", "Navigation draw done at=%u", unsigned(esphome::millis()));
+  refresh_visible_image_cards();
+  ESP_LOGD("ui_latency", "Navigation images done at=%u", unsigned(esphome::millis()));
+}
+
 inline bool navigation_return_from_special_page() {
   navigation_hide_modals();
   lv_obj_t *previous = navigation_special_page_previous_screen();
@@ -172,7 +186,7 @@ inline bool navigation_return_from_special_page() {
   if (lv_scr_act() != previous) {
     lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
   }
-  refresh_visible_image_cards();
+  navigation_present_page_before_image_refresh();
   return true;
 }
 
@@ -183,7 +197,7 @@ inline bool navigation_open_special_page() {
     navigation_special_page_previous_screen() = lv_scr_act();
     navigation_hide_modals();
     lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-    refresh_visible_image_cards();
+    navigation_present_page_before_image_refresh();
   }
   return true;
 }
@@ -200,11 +214,31 @@ inline bool navigation_display_mode_allows_grid_gesture() {
          is_interactive_grid_mode(core->display().target_mode());
 }
 
+struct NavigationGridGesturePress {
+  lv_indev_t *device = nullptr;
+  lv_obj_t *screen = nullptr;
+  lv_point_t start{};
+};
+
+inline NavigationGridGesturePress &navigation_grid_gesture_press(lv_indev_t *device) {
+  static std::vector<NavigationGridGesturePress> presses;
+  for (auto &press : presses) {
+    if (press.device == device) return press;
+  }
+  presses.push_back({device, nullptr, {}});
+  return presses.back();
+}
+
 inline void navigation_grid_screen_gesture(lv_event_t *event) {
-  if (event == nullptr || lv_event_get_code(event) != LV_EVENT_GESTURE) return;
+  if (event == nullptr) return;
+  const auto code = lv_event_get_code(event);
+  if (code != LV_EVENT_PRESSED && code != LV_EVENT_RELEASED && code != LV_EVENT_GESTURE) return;
   lv_indev_t *indev = lv_indev_active();
-  if (indev == nullptr ||
-      !navigation_display_mode_allows_grid_gesture() ||
+  if (indev == nullptr) return;
+  auto &press = navigation_grid_gesture_press(indev);
+  if (code == LV_EVENT_PRESSED || code == LV_EVENT_RELEASED) press.screen = nullptr;
+  if (code == LV_EVENT_RELEASED) return;
+  if (!navigation_display_mode_allows_grid_gesture() ||
       screen_lock_enabled() || control_modal_active().overlay != nullptr ||
       control_modal_nested_active().overlay != nullptr) return;
 
@@ -213,26 +247,47 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
       std::find(navigation_grid_screens().begin(), navigation_grid_screens().end(),
                 screen) == navigation_grid_screens().end()) return;
 
-  lv_point_t point{};
-  lv_point_t vector{};
-  lv_indev_get_point(indev, &point);
-  lv_indev_get_vect(indev, &vector);
-  const lv_coord_t screen_height = lv_obj_get_height(screen);
-  const lv_coord_t swipe_start_y = point.y - vector.y;
-  if (screen_height <= 0) return;
-
-  const auto direction = lv_indev_get_gesture_dir(indev);
-  const auto *special_page = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
-  if (special_page && special_page->screen == screen) {
-    // Mirror the bottom-edge opening gesture at the top of the swipe-up page.
-    if (direction != LV_DIR_BOTTOM || swipe_start_y < 0 ||
-        swipe_start_y > screen_height / 6) return;
-    if (navigation_return_from_special_page()) lv_indev_wait_release(indev);
+  if (code == LV_EVENT_PRESSED) {
+    press.screen = screen;
+    lv_indev_get_point(indev, &press.start);
     return;
   }
+  if (press.screen != screen) return;
+  const lv_point_t start = press.start;
+  press.screen = nullptr;
+  const auto direction = lv_indev_get_gesture_dir(indev);
+  if (direction == LV_DIR_RIGHT) {
+    const lv_coord_t screen_width = lv_obj_get_width(screen);
+    const lv_coord_t swipe_start_x = start.x;
+    if (screen_width <= 0 || swipe_start_x < 0 ||
+        swipe_start_x > screen_width / 6) return;
 
-  if (direction != LV_DIR_TOP || swipe_start_y < screen_height * 5 / 6) return;
-  if (navigation_open_special_page()) lv_indev_wait_release(indev);
+    for (const auto &entry : navigation_subpages()) {
+      if (entry.screen != screen || entry.back_button == nullptr ||
+          !lv_obj_is_valid(entry.back_button)) continue;
+      // Use the page's Back/Close action so special pages return to their
+      // previous screen and ordinary/app subpages keep their existing behavior.
+      lv_indev_wait_release(indev);
+      ESP_LOGD("ui_latency", "Swipe back recognized at=%u", unsigned(esphome::millis()));
+      lv_obj_send_event(entry.back_button, LV_EVENT_PRESSED, nullptr);
+      ESP_LOGD("ui_latency", "Swipe back finished at=%u", unsigned(esphome::millis()));
+      return;
+    }
+  } else {
+    const lv_coord_t screen_height = lv_obj_get_height(screen);
+    const lv_coord_t swipe_start_y = start.y;
+    if (screen_height <= 0) return;
+    const auto *special_page = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+    if (special_page && special_page->screen == screen) {
+      // Preserve the top-edge dismissal added on main, using touch-down too.
+      if (direction != LV_DIR_BOTTOM || swipe_start_y < 0 ||
+          swipe_start_y > screen_height / 6) return;
+      if (navigation_return_from_special_page()) lv_indev_wait_release(indev);
+      return;
+    }
+    if (direction != LV_DIR_TOP || swipe_start_y < screen_height * 5 / 6) return;
+    if (navigation_open_special_page()) lv_indev_wait_release(indev);
+  }
 }
 
 inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
@@ -253,6 +308,11 @@ inline void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
     // LVGL defaults to 50 px and resets gesture travel below 3 px per sample.
     lv_indev_set_gesture_min_distance(indev, 24);
     lv_indev_set_gesture_min_velocity(indev, 1);
+    // Record the real touch-down point; get_vect() is only the last sample.
+    lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
+                          LV_EVENT_PRESSED, nullptr);
+    lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
+                          LV_EVENT_RELEASED, nullptr);
     lv_indev_add_event_cb(indev, navigation_grid_screen_gesture,
                           LV_EVENT_GESTURE, nullptr);
     registered_devices.push_back(indev);
@@ -309,9 +369,11 @@ inline std::function<void()> &navigation_subpage_clock_bar_refresh() {
 inline void navigation_subpage_screen_changed(lv_event_t *) {
   // The device refresh includes the title and icon visibility pass. Do not
   // repeat it here while the new page is waiting to draw.
+  ESP_LOGD("ui_latency", "Subpage refresh start at=%u", unsigned(esphome::millis()));
   auto &refresh = navigation_subpage_clock_bar_refresh();
   if (refresh) refresh();
   else navigation_refresh_subpage_label();
+  ESP_LOGD("ui_latency", "Subpage refresh done at=%u", unsigned(esphome::millis()));
 }
 
 inline void navigation_register_subpage(int slot, int display_order,
@@ -488,7 +550,7 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
   // The following navigation check can load the destination directly. Loading
   // Home first runs its screen/icon refresh work before the new page can draw.
   if (navigation_companion_subpage_for_action(companion_pending_auto_subpage_action())) return false;
-  return navigation_return_home(main_page_obj);
+  return entry->parent_slot > 0 ? navigation_restore_subpage_slot(entry->parent_slot) : navigation_return_home(main_page_obj);
 }
 
 inline bool navigation_open_companion_subpage_if_requested(

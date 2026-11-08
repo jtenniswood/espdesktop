@@ -197,9 +197,26 @@ inline bool navigation_driver_bind_main(
   return true;
 }
 
+// Nested owners need the same data subscriptions as home cards, with any
+// callback state retained for the lifetime of their dynamic button.
+inline bool navigation_driver_bind_subpage(
+    BtnSlot &slot, const ParsedCfg &config, const Context &context) {
+  if (!navigation_driver_matches(context)) return false;
+  if (!navigation_driver_parent_entity_state_enabled(config, context))
+    return navigation_driver_bind_main(slot, config, context, {});
+  struct OwnedState {
+    bool has_sensor{false}, text_mode{false}, has_icon_on{false};
+    const char *icon_off{nullptr}, *icon_on{nullptr};
+  };
+  auto *owned = grid_delete_with_owner(slot.btn, new OwnedState());
+  return navigation_driver_bind_main(slot, config, context, {
+    &owned->has_sensor, &owned->text_mode, &owned->has_icon_on,
+    &owned->icon_off, &owned->icon_on});
+}
+
 struct NavigationDriverChildIndicators {
   bool child_was_on[MAX_SUBPAGE_ITEMS] = {};
-  int parent_on_count[MAX_GRID_SLOTS] = {};
+  int parent_on_count[MAX_SUBPAGE_ITEMS] = {};
   int next_child = 0;
 };
 

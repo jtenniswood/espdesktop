@@ -78,6 +78,15 @@ inline void subscribe_control_availability(lv_obj_t *visual_obj, lv_obj_t *input
 }
 
 // Subscribe to a HA sensor entity and update an LVGL label with its numeric value.
+// Text state is also used by folder cards, independently of retired Sensor cards.
+inline void subscribe_text_sensor_value(lv_obj_t *text_lbl,
+                                        const std::string &sensor_id) {
+  ha_subscribe_state(sensor_id,
+    std::function<void(esphome::StringRef)>([text_lbl](esphome::StringRef state) {
+      set_wrapped_button_label_text(text_lbl, text_sensor_display_text(state));
+    }));
+}
+
 inline void subscribe_sensor_value(lv_obj_t *sensor_lbl, const std::string &sensor_id,
                                    int precision = 0,
                                    lv_obj_t *unit_lbl = nullptr,
