@@ -361,8 +361,6 @@ inline void grid_prepare_timer_visual_reset(lv_obj_t *owner);
 #include "button_grid_cover_modal_driver.h"
 #include "button_grid_navigation_driver.h"
 #include "button_grid_image_driver.h"
-#include "button_grid_wifi_qr.h"
-#include "button_grid_wifi_qr_driver.h"
 #include "button_grid_light_control_driver.h"
 #include "button_grid_fan_control_driver.h"
 #include "button_grid_climate_control_driver.h"
@@ -664,7 +662,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   espdesktop::cards::cover_modal_driver_cleanup(s, p, context);
   espdesktop::cards::navigation_driver_cleanup(s, p, context);
   espdesktop::cards::image_driver_cleanup(s, p, context);
-  espdesktop::cards::wifi_qr_driver_cleanup(s, p, context);
   espdesktop::cards::light_control_driver_cleanup(s, p, context);
   espdesktop::cards::fan_control_driver_cleanup(s, p, context);
   espdesktop::cards::climate_control_driver_cleanup(s, p, context);
@@ -709,8 +706,6 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     espdesktop::cards::image_driver_refresh_layout(s, p, context);
     return;
   }
-  if (espdesktop::cards::wifi_qr_driver_setup_visual(
-        s, p, context, row_span, col_span)) return;
   if (espdesktop::cards::light_control_driver_setup_visual(s, p, context)) {
     espdesktop::cards::light_control_driver_attach_interaction(s, p, context);
     espdesktop::cards::light_control_driver_refresh_layout(s, p, context);
@@ -1080,9 +1075,6 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
 
   if (espdesktop::cards::image_driver_refresh_layout(
         s, p, context)) {
-    return;
-  } else if (espdesktop::cards::wifi_qr_driver_refresh_layout(
-               s, p, context, row_span, col_span)) {
     return;
   } else if (espdesktop::cards::light_control_driver_refresh_layout(
                s, p, context)) {
@@ -2187,9 +2179,7 @@ inline void grid_phase2(
   display_activate_profile(display);
   set_switch_confirmation_message_font(display_switch_confirmation_message_font(display));
   set_switch_confirmation_icon_font(display_icon_font(display));
-  set_wifi_qr_icon_font(display_icon_font(display));
   network_status_card_icon_font() = display_icon_font(display);
-  set_wifi_qr_heading_font(display_media_title_font(display));
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   grid_navigation_service().layout_slots = NS;
@@ -2276,7 +2266,6 @@ inline void grid_phase2(
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
     if (espdesktop::cards::image_driver_bind_main(
           s, p, context, cfg, palette)) continue;
-    if (espdesktop::cards::wifi_qr_driver_bind_main(s, p, context)) continue;
     auto light_control_environment =
       espdesktop::cards::light_control_driver_environment(
         card_palette, display, s);
@@ -2544,8 +2533,6 @@ inline void grid_phase2(
 
       if (espdesktop::cards::image_driver_bind_subpage(
             sub_slot, sb_cfg, context, cfg, palette)) continue;
-      if (espdesktop::cards::wifi_qr_driver_bind_subpage(
-            sub_slot, sb_cfg, context)) continue;
       auto light_control_environment =
         espdesktop::cards::light_control_driver_environment(
           card_palette, display, sub_slot);

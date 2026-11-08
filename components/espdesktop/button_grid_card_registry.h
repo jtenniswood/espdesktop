@@ -19,7 +19,6 @@ enum class Family : uint8_t {
   FAN,
   ACCESS,
   IMAGE,
-  WIFI_QR,
   INTERNAL,
   MOWER,
   LIGHT_CONTROL,

@@ -93,6 +93,8 @@ int main() {
   const auto raw_text_sensor_alias = card_runtime_context("text_sensor");
   const auto weather = card_runtime_context("weather");
   const auto weather_forecast = card_runtime_context("weather_forecast");
+  if (card_runtime_context("wifi_qr").known ||
+      card_runtime_context("wifi_qr_card").known) return EXIT_FAILURE;
   const auto toggle = card_runtime_context("");
   const auto action = card_runtime_context("action");
   const auto alarm_action = card_runtime_context("alarm_action");

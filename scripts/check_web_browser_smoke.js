@@ -3206,7 +3206,7 @@ async function assertContextColourPicker(browser, testCase) {
       assert.deepStrictEqual(await Promise.all([1, 2].map(slot => card(slot).evaluate(el => el.style.backgroundColor))), originalBackgrounds,
         `${label}: oversized bulk recolouring leaves every selected card unchanged`);
       await page.locator(".sp-brand").click();
-      for (const type of ["image", "wifi_qr_card"]) {
+      for (const type of ["image"]) {
         await page.evaluate(type => window.__seedEspState([
           { id: "text-button_1_config", state: `camera.garden;Fixed Background;Auto;Auto;;;${type}` },
         ]), type);
@@ -5974,30 +5974,6 @@ async function seedNativeDocument(page, nativeState) {
   await page.waitForSelector('.sp-main [data-slot="2"]');
 }
 
-async function assertWifiSharingHidesHomeAssistantControls(browser, testCase) {
-  const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, {
-    homeAssistantSupport: false,
-    nativeState: nativeConfigState(testCase.slug),
-  });
-  const page = await context.newPage();
-  await installFakeEventSource(page);
-  try {
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, {
-      waitUntil: "domcontentloaded",
-    });
-    await page.waitForSelector("#sp-app");
-    await page.waitForFunction(
-      () => window.__eventSources && window.__eventSources.length > 0,
-    );
-    await page.evaluate((events) => window.__seedEspState(events), seededEvents());
-    await page.waitForSelector(".sp-main > .sp-btn");
-    await assertWifiSharingGuestControlsHidden(page, testCase.name);
-  } finally {
-    await context.close();
-  }
-}
-
 async function assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { homeAssistantSupport: false });
@@ -6175,24 +6151,6 @@ async function assertInlineCardNames(page, nativeState, label) {
   await seedNativeDocument(page, nativeState);
 }
 
-async function assertWifiSharingGuestControlsHidden(page, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  const emptyCell = page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first();
-  assert(await emptyCell.count(), `${label}: guest Wi-Fi test needs an empty slot`);
-  await emptyCell.click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page.locator('[data-card-type="wifi_qr"]').click();
-  await page.waitForSelector(".sp-settings-modal");
-  assert.strictEqual(
-    await page.locator("#sp-inp-wifi-tab-guest").count(),
-    0,
-    `${label}: newly added Wifi Sharing cards do not expose Guest Wi-Fi controls`,
-  );
-  assert.strictEqual(await page.locator("#sp-inp-wifi-guest-entity").count(), 0);
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay.sp-visible"));
-}
-
 async function assertNativeProfileJourney(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -6220,7 +6178,6 @@ async function assertNativeProfileJourney(browser, testCase) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await seedNativeDocument(page, nativeState);
-    if (testCase.exerciseInteractions) await assertWifiSharingHidesHomeAssistantControls(browser, testCase);
 
     await assertInlineCardNames(page, nativeState, testCase.name);
     await assertSubpageBackCard(page, testCase.name, nativeState);
@@ -7952,7 +7909,6 @@ async function assertPreviewOutlinePixels(page, card, label) {
       continuous: style.clipPath.startsWith("path("), dashed: card.classList.contains("sp-empty-cell") };
   });
 
-
   const thicknesses = await page.evaluate(async ({ geometry: g, png }) => {
     const image = new Image(); image.src = png; await image.decode();
     const canvas = document.createElement("canvas"); canvas.width = image.width; canvas.height = image.height;
@@ -8025,7 +7981,7 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
       const hooks = window.__ESPDESKTOP_TEST_HOOKS__.config;
       const keys = exhaustive
         ? [...new Set([...hooks.cardContractCardKeys(), ...hooks.buttonTypePickerKeysFor(false), "media_cover_art"])]
-        : ["weather", "image", "media_cover_art", "light_brightness", "wifi_qr_card"];
+        : ["weather", "image", "media_cover_art", "light_brightness"];
       return keys.map(key => {
         const config = hooks.buttonTypeDefaultConfig(key);
         return config ? { key, config: hooks.serializeButtonConfig(config) } : null;
@@ -8362,7 +8318,6 @@ async function assertS3ForecastEditorLayout(browser) {
 
   } finally { await context.close(); }
 }
-
 
 async function assertCameraScreensaverDimming(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });

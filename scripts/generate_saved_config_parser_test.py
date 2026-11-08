@@ -184,57 +184,6 @@ def generate() -> str:
                         '    assert(cfg_option_value(config.options, "large_numbers") == "off");',
                     ))
                 lines.append("  }")
-    # Issue 1946: both Wi-Fi card styles must retain options on subpages.
-    for card_type in ("wifi_qr", "wifi_qr_card"):
-        for security in ("wpa", "open"):
-            options = (
-                "ssid64=R3Vlc3QgV2lmaQ,security=" + security
-                + (",pass64=UGFzczt3b3JkOjEyMw" if security == "wpa" else "")
-                + ",hidden,wifi_tabs=credentials%7Cqr"
-            )
-            encodings = (
-                "1|:Connect:Wifi:Auto:::" + card_type + "::" + options,
-                "~1|" + card_type + ",,Connect,Wifi,Auto,,,," + quote(options, safe=""),
-            )
-            for encoded in encodings:
-                lines.extend((
-                    "  { // Issue 1946: " + card_type + " " + security,
-                    f"    const auto buttons = parse_subpage_config({cpp_string(encoded)});",
-                    "    assert(buttons.size() == 1);",
-                    f"    assert(buttons[0].options == {cpp_string(options)});",
-                    "    const auto config = parsed_cfg_from_subpage_btn(buttons[0]);",
-                    f"    assert(config.type == {cpp_string(card_type)});",
-                    f"    assert(config.options == {cpp_string(options)});",
-                    '    assert(cfg_option_value(config.options, "ssid64") == "R3Vlc3QgV2lmaQ");',
-                    '    assert(cfg_option_value(config.options, "wifi_tabs") == "credentials|qr");',
-                    "  }",
-                ))
-    # Guest Wi-Fi: preserve the switch and ordered tabs on both subpage encodings.
-    for card_type in ("wifi_qr", "wifi_qr_card"):
-        for security in ("wpa", "open"):
-            options = (
-                "ssid64=R3Vlc3QgV2lmaQ,security=" + security
-                + (",pass64=UGFzczt3b3JkOjEyMw" if security == "wpa" else "")
-                + ",hidden,wifi_tabs=guest%7Ccredentials%7Cqr"
-            )
-            encodings = (
-                "1|switch.guest_wifi:Connect:Wifi:Auto:::" + card_type + "::" + options,
-                "~1|" + card_type + ",switch.guest_wifi,Connect,Wifi,Auto,,,," + quote(options, safe=""),
-            )
-            for encoded in encodings:
-                lines.extend((
-                    "  { // Guest Wi-Fi: " + card_type + " " + security,
-                    f"    const auto buttons = parse_subpage_config({cpp_string(encoded)});",
-                    "    assert(buttons.size() == 1);",
-                    f"    assert(buttons[0].options == {cpp_string(options)});",
-                    "    const auto config = parsed_cfg_from_subpage_btn(buttons[0]);",
-                    '    assert(config.entity == "switch.guest_wifi");',
-                    f"    assert(config.type == {cpp_string(card_type)});",
-                    f"    assert(config.options == {cpp_string(options)});",
-                    '    assert(cfg_option_value(config.options, "ssid64") == "R3Vlc3QgV2lmaQ");',
-                    '    assert(cfg_option_value(config.options, "wifi_tabs") == "guest|credentials|qr");',
-                    "  }",
-                ))
     issue_248 = (
         "~B,,4,2,3,,,,8,9,,,1,6,5|X,,Office,Window Closed,Window Open,binary_sensor.office_window_sensor_opening,,window,active_color"
         "|X,,Linnea 1,Window Closed,Window Open,binary_sensor.linnea_br_window_sensor_opening,,window,active_color"
@@ -274,10 +223,6 @@ def generate() -> str:
     # Recognize serialized editor defaults; preserve distinct custom labels.
     lines.extend((
         '  set_espdesktop_language("de");',
-        '  assert(parse_cfg(";;;;;;wifi_qr").label == "Verbinden");',
-        '  assert(parse_cfg(";;;;;;wifi_qr_card").label == "Verbinden");',
-        '  assert(parse_cfg(";Connect;;;;;wifi_qr").label == "Verbinden");',
-        '  assert(parse_cfg(";Guest Wi-Fi;;;;;wifi_qr").label == "Guest Wi-Fi");',
         '  assert(parse_cfg(";;;;;;subpage;;subpage_kind=lights").label == "Beleuchtung");',
         '  assert(parse_cfg(";Lighting;;;;;subpage;;subpage_kind=lights").label == "Beleuchtung");',
         '  assert(parse_cfg(";;;;volume;;media").label == "Lautstärke");',
@@ -291,18 +236,6 @@ def generate() -> str:
         '  assert(translated_alarm.size() == 1 && translated_alarm[0].label == "Entschärfen");',
         '  assert(std::string(espdesktop_i18n_key("label_local_action")) == "Lokale Aktion");',
     ))
-    # Both compact and legacy encodings must handle the editor's saved labels.
-    for card_type in ("wifi_qr", "wifi_qr_card"):
-        for label, expected in (("Connect", "Verbinden"), ("Visitor network", "Visitor network")):
-            for config in (f"1|:{label}:Wifi:Auto:::{card_type}",
-                           f"~1|{card_type},,{quote(label, safe='')},Wifi,Auto"):
-                lines.extend((
-                    "  {",
-                    f"    const auto buttons = parse_subpage_config({cpp_string(config)});",
-                    "    assert(buttons.size() == 1);",
-                    f"    assert(parsed_cfg_from_subpage_btn(buttons[0]).label == {cpp_string(expected)});",
-                    "  }",
-                ))
     for kind, label, expected in (
         ("switch", "Switch", "Schalter"), ("lights", "Lighting", "Beleuchtung"),
         ("garage", "Garage", "Garage"), ("sensor", "Sensor", "Sensor"),

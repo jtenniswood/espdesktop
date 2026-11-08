@@ -130,7 +130,6 @@ OPEN(option_select_open_modal, OPTION_SELECT)
 OPEN(weather_daily_open_modal, WEATHER_FORECAST)
 size_t weather_daily_selected_day(const Runtime &card) { return card.selected_day; }
 Runtime *weather_daily_card_for(lv_obj_t *button) { return button ? button->runtime : nullptr; }
-void wifi_qr_open_modal(const ParsedCfg &, lv_obj_t *) { show(nullptr, ControlModalKind::WIFI_QR); }
 // Any accidental re-use of a command/click path must fail these tests.
 void handle_button_click(const std::string &, int, lv_obj_t *) { ++commands; }
 void send_toggle_action(const std::string &) { ++commands; }
@@ -150,10 +149,6 @@ espdesktop::media::ControlTabs media_control_visible_tabs(Runtime *runtime) {
   return tabs;
 }
 Runtime *grid_media_control_runtime_for_owner(lv_obj_t *button) { return button ? button->runtime : nullptr; }
-bool wifi_qr_payload_from_config(const ParsedCfg &config, std::string *payload,
-                                 std::string *ssid, std::string *) {
-  return payload && ssid && config.options == "valid";
-}
 void control_modal_close_nested_menu() {}
 void control_modal_force_close_active() { navigation_hide_modals(); }
 void control_modal_close_for_display_takeover(bool preserve) {
@@ -224,7 +219,6 @@ int main() {
     {"image", "", "camera.office", ControlModalKind::IMAGE_CARD},
     {"alarm", "", "alarm_control_panel.office", ControlModalKind::ALARM_CONTROL},
     {"option_select", "", "select.office", ControlModalKind::OPTION_SELECT},
-    {"wifi_qr", "", "switch.guest", ControlModalKind::WIFI_QR},
   };
   {
     Runtime runtime; runtime.entity_id = "weather.home";
@@ -265,7 +259,7 @@ int main() {
       assert(!espdesktop_open_modal(test.entity, true));
       ha_connected = true;
     }
-    if (test.kind != ControlModalKind::WIFI_QR) {
+    {
       const int old_opens = opens, old_closes = closes;
       runtime.available = false; runtime.image_ready = false;
       assert(!espdesktop_open_modal(test.entity, true));
@@ -292,12 +286,6 @@ int main() {
       runtime.image_ready = false; runtime.source_url = "http://example.test/image";
       assert(espdesktop_open_modal(test.entity, true));
       runtime.image_ready = true; runtime.source_url.clear();
-    }
-    if (test.kind == ControlModalKind::WIFI_QR) {
-      configs["test"].options = "invalid";
-      const int old_closes = closes;
-      assert(!espdesktop_open_modal(test.entity, true) && closes == old_closes);
-      configs["test"].options = "valid";
     }
     // Same production hook on a different, currently inactive subpage.
     configs["parent"] = {"", "subpage", "", ""};

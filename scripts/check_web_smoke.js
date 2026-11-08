@@ -540,16 +540,6 @@ assert(
   cardStylesSource.includes(".sp-image-preview-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad)"),
   "image card icons use the same top-left placement",
 );
-const wifiSharePickerOption = pickerOptions.find((option) => option.key === "wifi_qr");
-assert.strictEqual(
-  wifiSharePickerOption,
-  undefined,
-  "Wifi Sharing stays hidden until native configuration support is confirmed",
-);
-assert(
-  !pickerOptions.some((option) => option.key === "wifi_qr_card"),
-  "QR Card is selected as a Wifi Sharing subtype rather than a top-level card",
-);
 assert(
   hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Security", type: "alarm" }).iconHtml.includes("mdi-shield-off"),
   "alarm preview defaults to the status icon"

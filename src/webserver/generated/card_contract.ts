@@ -4108,214 +4108,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "wifi_qr": {
-    "label": "Wifi Sharing",
-    "allowInSubpage": true,
-    "domains": [
-      "switch"
-    ],
-    "options": [
-      {
-        "name": "ssid64",
-        "label": "Network name",
-        "kind": "text",
-        "omitDefault": true
-      },
-      {
-        "name": "security",
-        "label": "Security",
-        "kind": "choice",
-        "values": [
-          "wpa",
-          "open"
-        ],
-        "defaultValue": "wpa",
-        "omitDefault": true
-      },
-      {
-        "name": "pass64",
-        "label": "Password",
-        "kind": "text",
-        "omitDefault": true
-      },
-      {
-        "name": "hidden",
-        "label": "Hidden network",
-        "kind": "flag",
-        "omitDefault": true
-      },
-      {
-        "name": "wifi_tabs",
-        "label": "Visible Tabs",
-        "kind": "text",
-        "values": [
-          "qr",
-          "credentials",
-          "guest"
-        ],
-        "defaultValue": "qr|credentials",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "default_if_empty",
-          "value": "Connect"
-        },
-        "icon": {
-          "policy": "default_if_empty",
-          "value": "Wifi"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "wifi_qr"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "keep"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "ssid64",
-        "security",
-        "pass64",
-        "hidden",
-        "wifi_tabs"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "Connect",
-      "icon": "Wifi",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr",
-      "precision": "",
-      "options": ""
-    }
-  },
-  "wifi_qr_card": {
-    "label": "QR Card",
-    "allowInSubpage": true,
-    "pickerKey": "wifi_qr",
-    "domains": [
-      "switch"
-    ],
-    "options": [
-      {
-        "name": "ssid64",
-        "label": "Network name",
-        "kind": "text",
-        "omitDefault": true
-      },
-      {
-        "name": "security",
-        "label": "Security",
-        "kind": "choice",
-        "values": [
-          "wpa",
-          "open"
-        ],
-        "defaultValue": "wpa",
-        "omitDefault": true
-      },
-      {
-        "name": "pass64",
-        "label": "Password",
-        "kind": "text",
-        "omitDefault": true
-      },
-      {
-        "name": "hidden",
-        "label": "Hidden network",
-        "kind": "flag",
-        "omitDefault": true
-      },
-      {
-        "name": "wifi_tabs",
-        "label": "Visible Tabs",
-        "kind": "text",
-        "values": [
-          "qr",
-          "credentials",
-          "guest"
-        ],
-        "defaultValue": "qr|credentials",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "wifi_qr_card"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "keep"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "ssid64",
-        "security",
-        "pass64",
-        "hidden",
-        "wifi_tabs"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr_card",
-      "precision": "",
-      "options": ""
-    }
-  },
   "weather_forecast": {
     "label": "Weather Forecast",
     "allowInSubpage": true,
@@ -4907,30 +4699,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "wifi_qr": {
-    "driver": "wifi_qr",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": true,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
-  "wifi_qr_card": {
-    "driver": "wifi_qr",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": true,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
   "weather_forecast": {
     "driver": "weather",
     "capabilities": {
@@ -5122,7 +4890,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "finder_open_override": "finder_open_override",
   "garage_mode": "garage_mode",
   "gate_mode": "gate_mode",
-  "hidden": "hidden",
   "icon_display": "icon_display",
   "image_icon": "image_icon",
   "image_label": "image_label",
@@ -5143,7 +4910,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "media_tabs": "media_tabs",
   "number_display": "number_display",
   "on_pattern": "on_pattern",
-  "pass64": "pass64",
   "pin_arm": "pin_arm",
   "pin_disarm": "pin_disarm",
   "playlist_content_id": "playlist_content_id",
@@ -5153,9 +4919,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "rainfall_source": "rainfall_source",
   "screensaver_on_lock": "screensaver_on_lock",
   "script_fields": "script_fields",
-  "security": "security",
   "speaker_group_entity": "speaker_group_entity",
-  "ssid64": "ssid64",
   "stat_labels_off": "stat_labels_off",
   "state_entity": "state_entity",
   "state_high_label": "state_high_label",
@@ -5176,7 +4940,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "weather_mode": "weather_mode",
   "webapp_icon_title": "webapp_icon_title",
   "webhook_headers": "webhook_headers",
-  "wifi_tabs": "wifi_tabs",
   "wind_source": "wind_source"
 };
 

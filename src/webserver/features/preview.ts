@@ -3,7 +3,6 @@ import { configOptionValue } from "../model/config_primitives";
 
 const SUBPAGE_CONNECTOR_OPTION = cardContractOptionName("subpage_connector");
 const SUBPAGE_KIND_OPTION = cardContractOptionName("subpage_kind");
-const WIFI_QR_TABS_OPTION = cardContractOptionName("wifi_tabs");
 
 import { activeCardColor, lighterCardColor } from "../model/config_primitives";
 
@@ -85,7 +84,6 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   garage: { icon: "garage", description: "Show and control a garage door." },
   gate: { icon: "gate", description: "Show and control a gate." },
   image: { icon: "image", description: "Display an image card where supported." },
-  wifi_qr: { icon: "wifi", description: "Share a Wifi network using a Connect Card or QR Card." },
   internal: { icon: "power-plug", description: "Control built-in device relays." },
   light_brightness: { icon: "lightbulb", description: "Configure light switch, brightness, or temperature controls." },
   lawn_mower: { icon: "robot-mower", description: "Show or control a robotic lawn mower." },
@@ -130,7 +128,7 @@ const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
 ]);
 
 const LOCAL_CARD_TYPES = new Set([
-  "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone", "wifi_qr", "wifi_qr_card",
+  "clock", "internal", "local_sensor", "screen_lock", "screensaver", "timezone",
 ]);
 
 export type CardPickerConnector = "home_assistant" | "mac_companion";
@@ -172,10 +170,6 @@ export function cardRequiresHomeAssistant(
     // An unconfigured folder is only navigation; presets and state bindings
     // use Home Assistant, including on an otherwise plain folder card.
     return connector === "home_assistant" || !!kind || hasState;
-  }
-  if (key === "wifi_qr" || key === "wifi_qr_card") {
-    const tabs = configOptionValue(card?.options, WIFI_QR_TABS_OPTION).split("|");
-    return tabs.includes("guest") || /^switch\./.test(String(card?.entity || ""));
   }
   const source = cardTypeConnector(key);
   if (source === "home_assistant") return true;

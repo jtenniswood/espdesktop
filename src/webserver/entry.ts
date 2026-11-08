@@ -113,7 +113,6 @@ import { registerFanCardTypes } from "./cards/fan";
 import { registerGarageCardTypes } from "./cards/garage";
 import { registerGateCardTypes } from "./cards/gate";
 import { registerImageCardTypes } from "./cards/image";
-import { registerWifiQrCardTypes } from "./cards/wifi_qr";
 import { registerInternalCardTypes } from "./cards/internal";
 import { registerLawnMowerCardTypes } from "./cards/lawn_mower";
 import { registerLightTemperatureCardTypes } from "./cards/light_temperature";
@@ -201,7 +200,6 @@ function registerCards(context: ApplicationContext) {
     fields,
     cardUi,
   );
-  registerWifiQrCardTypes(registry, context.configuration.modalTabs, fields, cardUi, context.configuration.native);
   registerInternalCardTypes(
     registry,
     context.configuration.internalRelayOptions,
@@ -1086,8 +1084,7 @@ function startEspDesktop(): void {
   // Native configuration is initialized after the display on P4 devices, so
   // the first capabilities request can legitimately receive a temporary 503.
   // Retry after the UI has started and redraw an open card picker once support
-  // is confirmed. Otherwise Wifi Sharing remains hidden for the whole page
-  // session even though the API becomes available a few seconds later.
+  // is confirmed after the API becomes available.
   const discoverNativeCards = () => {
     void context.configuration.native.waitForDiscovery().then((result) => {
       if (result === true) context.controllers.buttonSettings.render();

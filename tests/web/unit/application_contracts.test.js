@@ -122,7 +122,6 @@ describe("browserless application contracts", () => {
   test("rejects Home Assistant card imports and clipboard pastes", () => {
     const clipboard = fs.readFileSync(path.join(ROOT, "src/webserver/application/preview_clipboard.ts"), "utf8");
     const interactions = fs.readFileSync(path.join(ROOT, "src/webserver/application/preview_interactions.ts"), "utf8");
-    const wifiCard = fs.readFileSync(path.join(ROOT, "src/webserver/cards/wifi_qr.ts"), "utf8");
     assert.match(clipboard, /cardRequiresHomeAssistant\(type, normalized\)/);
     assert.match(clipboard, /clipboardEntryRequiresHomeAssistant\(entries\[entryIndex\]\)/);
     assert.match(clipboard, /function clipboardEntryRequiresHomeAssistant\(entry: any\): boolean/);
@@ -130,9 +129,7 @@ describe("browserless application contracts", () => {
     assert.match(clipboard, /typeof button\.type === "string"/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src, state\.subpages\[srcSlot\]\)/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src\)/);
-    assert.match(wifiCard, /if \(!nativePanelConfig\.homeAssistantSupportEnabled\(\) && !wifiQrTabs\(b\)\.includes\("guest"\)\)/);
     assert.match(clipboard, /function cutSlot[\s\S]*clipboardEntryRequiresHomeAssistant\(buildClipboardEntry\(slot\)\)[\s\S]*deleteSlot\(slot\)/);
-    assert.match(wifiCard, /return definition\.value !== "guest"/);
   });
 
   test("owns entity catalogue helpers as one explicit service", () => {
@@ -459,109 +456,6 @@ describe("browserless application contracts", () => {
     }
   });
 
-  test("groups Connect and QR cards under Wifi Sharing", () => {
-    const source = fs.readFileSync(path.join(ROOT, "src/webserver/cards/wifi_qr.ts"), "utf8");
-    const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    const { registerWifiQrCardTypes } = loadTypescriptTest("src/webserver/cards/wifi_qr.ts");
-    const definitions = {};
-    const modalTabs = {
-      wifiQrTabDefinitions() { return [{ value: "qr", label: "QR Code" }, { value: "credentials", label: "Connection Details" }]; },
-      wifiQrTabs(b) {
-        const match = String(b && b.options || "").match(/(?:^|,)wifi_tabs=([^,]+)/);
-        return match ? match[1].split("|") : ["qr", "credentials"];
-      },
-      normalizeWifiQrTabOptions(options) { return options || ""; },
-      setWifiQrTabs(b, tabs) {
-        b.options = String(b.options || "").replace(/(?:^|,)wifi_tabs=[^,]+/, "");
-        if (tabs.join("|") !== "qr|credentials") b.options += (b.options ? "," : "") + "wifi_tabs=" + tabs.join("|");
-        return b.options;
-      },
-      renderModalTabSettings() {},
-    };
-    let rerenders = 0;
-    let nativeSupported = false;
-    registerWifiQrCardTypes({
-      register(key, value) {
-        definitions[key] = value;
-      },
-    }, modalTabs, { cardBadgePreview() {} }, { renderButtonSettings() { rerenders += 1; } }, {
-      supported() { return nativeSupported; },
-    });
-    assert.deepEqual(Object.keys(definitions), ["wifi_qr", "wifi_qr_card"]);
-    assert.equal(definitions.wifi_qr.label(), "Wifi Sharing");
-    assert.equal(definitions.wifi_qr.pickerKey(), "");
-    assert.equal(definitions.wifi_qr_card.pickerKey(), "wifi_qr");
-    assert.equal(definitions.wifi_qr.hideLabel, true);
-    assert.equal(definitions.wifi_qr_card.hideLabel, true);
-    assert.equal(definitions.wifi_qr.isAvailable(), false);
-    nativeSupported = true;
-    assert.equal(definitions.wifi_qr.isAvailable(), true);
-    assert.match(source, /labelField:\s*\{\s*label:\s*"Name"/);
-    assert.match(source, /renderBasicCardFields\([^\n]+label:\s*false/);
-    assert.match(source, /disclosureSection\("Wifi Network"/);
-    assert.match(source, /disclosureSection\("Modal Settings"/);
-    assert.match(source, /wifiQrTabDefinitions/);
-    assert.doesNotMatch(source, /Show password|wifi-reveal|input\.type\s*=\s*"password"/);
-    assert.match(source, /hasCredentialBytes/);
-    assert.match(source, /requireField\(ssidField\.input,[^\n]+hasCredentialBytes\)/);
-    assert.match(source, /requireField\(passwordField\.input,[^\n]+hasCredentialBytes\)/);
-    const legacy = { label: "Guests Wifi", options: "" };
-    definitions.wifi_qr.normalizeConfig(legacy);
-    assert.equal(legacy.label, "Connect");
-    const custom = { label: "Visitors", options: "" };
-    definitions.wifi_qr.normalizeConfig(custom);
-    assert.equal(custom.label, "Visitors");
-    const guest = { type: "wifi_qr", entity: "switch.guest_wifi", label: "Visitors", options: "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials" };
-    definitions.wifi_qr.normalizeConfig(guest);
-    assert.equal(guest.entity, "switch.guest_wifi");
-    assert.equal(guest.options, "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials");
-    definitions.wifi_qr.cardMetadata.mode.onChange.call(
-      { value: "wifi_qr_card" }, guest, { saveField() {} },
-    );
-    assert.equal(guest.entity, "switch.guest_wifi");
-    assert.equal(guest.options, "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials");
-    rerenders = 0;
-    const qrCard = { type: "wifi_qr_card", label: "Visitors", icon: "Wifi", options: "" };
-    definitions.wifi_qr_card.normalizeConfig(qrCard);
-    assert.equal(qrCard.type, "wifi_qr_card");
-    assert.equal(qrCard.label, "Visitors");
-    assert.equal(qrCard.icon, "Auto");
-    const qrPreview = definitions.wifi_qr_card.renderPreview(qrCard, {});
-    assert.equal(qrPreview.labelHtml, "");
-    assert.equal(qrPreview.buttonClass, "sp-wifi-qr-card");
-    assert.match(qrPreview.iconHtml, /viewBox="4 4 29 29"/);
-    assert.match(qrPreview.iconHtml, /shape-rendering="crispEdges"/);
-    assert.doesNotMatch(qrPreview.iconHtml, /viewBox="0 0 21 21"/);
-    assert.match(styles, /\.sp-wifi-qr-preview\{[^}]*width:84%;height:84%/);
-    assert.match(styles, /\.sp-wifi-qr-card:hover\{filter:none\}/);
-    assert.match(styles, /\.sp-wifi-qr-card\.sp-btn-big \.sp-wifi-qr-preview,[^}]*width:97%;height:97%/);
-    definitions.wifi_qr_card.cardMetadata.mode.onChange.call(
-      { value: "wifi_qr" }, qrCard, { saveField() {} },
-    );
-    assert.equal(qrCard.type, "wifi_qr");
-    assert.equal(qrCard.label, "Visitors");
-    assert.equal(qrCard.icon, "Wifi");
-    assert.equal(rerenders, 1);
-    assert.match(source, /\[\["wifi_qr", "Connect Card"\], \["wifi_qr_card", "QR Card"\]\]/);
-    assert.match(source, /renderCardModeSelector\(panel, b, helpers, WIFI_QR_CARD_TYPE_METADATA\)/);
-  });
-
-  test("keeps Wifi Sharing available without web authentication", () => {
-    const nativeRead = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_read_endpoint.h"), "utf8");
-    const nativeWrite = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_write_endpoint.h"), "utf8");
-    const webServer = fs.readFileSync(path.join(ROOT, "components/web_server_idf/web_server_idf.cpp"), "utf8");
-    const app = fs.readFileSync(path.join(ROOT, "components/espdesktop/espdesktop_app.cpp"), "utf8");
-    const nativeController = fs.readFileSync(path.join(ROOT, "src/webserver/controllers/native_panel_config_controller.ts"), "utf8");
-    const docs = fs.readFileSync(path.join(ROOT, "docs/card-types/wifi-share.md"), "utf8");
-
-    assert.doesNotMatch(nativeRead, /panel_config_contains_wifi_password|Wifi Sharing passwords require web authentication/);
-    assert.doesNotMatch(nativeWrite, /panel_config_contains_wifi_password|Wifi Sharing passwords require web authentication/);
-    assert.doesNotMatch(webServer, /event_payload_is_legacy_panel_config/);
-    assert.doesNotMatch(app, /panel_config_legacy_entity_guard/);
-    assert.match(nativeController, /Sign in, enable web_server_auth, or update the panel firmware/);
-    assert.match(docs, /Wifi Sharing works without web authentication/);
-  });
-
   test("authenticates native configuration bodies before receiving and before saving", () => {
     const nativeWrite = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_write_endpoint.h"), "utf8");
     const webServer = fs.readFileSync(path.join(ROOT, "components/web_server_idf/web_server_idf.cpp"), "utf8");
@@ -609,20 +503,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(authenticate, /get_header\("Cookie"\)/);
     assert.doesNotMatch(webServer, /EspDesktopAuth|Set-Cookie|authenticate_digest_session|issue_digest_session/);
     assert.match(authenticate, /check_digest_auth\(username, password/);
-  });
-
-  test("normalizes and preserves Wifi modal tab settings", () => {
-    const modalTabs = createConfigModalTabOptionsFeature({ document: {}, renderButtonSettings() {} });
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("credentials|qr")), ["credentials", "qr"]);
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("credentials|credentials|invalid")), ["credentials"]);
-    assert.deepEqual(Array.from(modalTabs.wifiQrDefaultTabs()), ["qr", "credentials"]);
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("guest|qr|credentials|guest")), ["guest", "qr", "credentials"]);
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("guest")), ["guest"]);
-    const card = { options: "ssid64=R3Vlc3Q" };
-    modalTabs.setWifiQrTabs(card, ["credentials"]);
-    assert.equal(card.options, "ssid64=R3Vlc3Q,wifi_tabs=credentials");
-    modalTabs.setWifiQrTabs(card, ["qr", "credentials"]);
-    assert.equal(card.options, "ssid64=R3Vlc3Q");
   });
 
   test("registers garage and gate through the explicit cover-card factory", () => {
@@ -1162,7 +1042,6 @@ describe("browserless application contracts", () => {
     assert.match(buttonSettings, /restoreDraftState\(\);[\s\S]*return false/);
     assert.match(buttonSettings, /configPersistence\.saveButtonConfigAndOrder\(slot, serializeGrid\(state\.grid\)\)/);
     assert.match(persistence, /nativePanelConfig\.writeButtonAndOrder/);
-    assert.match(persistence, /Wifi Sharing requires current device firmware/);
     assert.match(persistence, /connectFocusRegistrationPublisher/);
     assert.match(persistence, /publishFocusRegistrations\?\.\(\)/);
     assert.match(entry, /connectFocusRegistrationPublisher\(\(\) =>/);

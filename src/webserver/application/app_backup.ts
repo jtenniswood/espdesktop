@@ -65,7 +65,6 @@ import type { SettingsPageHelpersFeature } from "./settings_page_helpers";
 import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../features/legacy_layout_restore";
-import { panelConfigDocumentContainsWifiSharing } from "../features/wifi_sharing_config";
 
 export interface AppBackupControllers {
     readonly identity?: PanelIdentityFeature;
@@ -431,10 +430,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     throw Object.assign(new Error(message), { backupMessage: message });
                 }
                 function queueLegacyLayoutRestore() {
-                    if (panelConfigDocumentContainsWifiSharing(nativeDocument)) {
-                        const message = "This backup contains Wifi Sharing cards, which require current device firmware. Update the panel before restoring this backup.";
-                        rejectBackup(message);
-                    }
                     const keys = specialPageEntityKeys();
                     const specialPageValue = nativeDocument.settings.special_page || "";
                     const specialPageEntities = Promise.all(keys.map((key) =>
