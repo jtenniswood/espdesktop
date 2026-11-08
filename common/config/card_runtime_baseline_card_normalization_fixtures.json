@@ -61,7 +61,7 @@
   },
   {
     "name": "action: local",
-    "input": "~zoom_mute,,Flash,Auto,local,,action,,",
+    "input": "~zoom_mute,,Gesture%20Tap,Auto,local,,action,,",
     "expected": {
       "entity": "zoom_mute",
       "label": "",

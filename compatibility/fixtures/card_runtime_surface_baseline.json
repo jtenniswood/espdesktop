@@ -121,10 +121,10 @@
       },
       "lifecycle": {
         "subscriptions": [
-          "state"
+          "none"
         ],
         "actions": [
-          "home_assistant_service"
+          "none"
         ],
         "modalOwner": "none"
       }
@@ -152,7 +152,7 @@
       },
       "lifecycle": {
         "subscriptions": [
-          "local"
+          "none"
         ],
         "actions": [
           "local"
@@ -2160,7 +2160,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "bc1a8d0fd70da6f2"
+          "fingerprint": "e8d6d1f2fe669e99"
         }
       },
       "firmware": {

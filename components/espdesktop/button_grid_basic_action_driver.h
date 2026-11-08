@@ -9,7 +9,7 @@
 namespace espdesktop::cards {
 
 inline bool basic_action_driver_matches(const Context &context,
-                                        const ParsedCfg &config) {
+                                        const ParsedCfg &) {
   using Driver = card_runtime::CardDriverId;
   using Type = card_runtime::CardTypeId;
   switch (context.runtime.driver) {
@@ -60,8 +60,9 @@ inline bool basic_action_driver_setup_visual(
       if (config.type == "local" || action_card_local_action(config)) {
         setup_local_action_card(slot, config);
       } else {
-        lv_label_set_display_text(slot.icon_lbl, find_icon("Alert Circle Outline"));
-        const std::string label = config.label.empty() ? espdesktop_i18n("Unavailable") : config.label;
+        lv_label_set_display_text(slot.icon_lbl, find_icon("Monitor Off"));
+        const std::string label = config.label.empty() ? espdesktop_i18n("Unavailable")
+            : config.label + "\n" + espdesktop_i18n("Unavailable");
         lv_label_set_display_text(slot.text_lbl, label.c_str());
         lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
       }

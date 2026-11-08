@@ -329,27 +329,18 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "action": {
-    "label": "Action",
+    "label": "Local Action",
     "allowInSubpage": true,
-    "domains": [
-      "scene",
-      "script",
-      "automation",
-      "button",
-      "input_button",
-      "input_boolean",
-      "number",
-      "input_number",
-      "input_select",
-      "select"
-    ],
+    "domains": [],
     "options": [
       {
         "name": "large_numbers",
         "label": "Large State Numbers",
         "kind": "flag",
         "omitDefault": true,
-        "applicabilityHook": "action_large_numbers_supported"
+        "applicabilityHook": "action_large_numbers_supported",
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "state_entity",
@@ -423,7 +414,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "script.turn_on"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "script_fields",
@@ -437,7 +430,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "script.turn_on"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "confirm_message",
@@ -457,7 +452,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "name": "confirm_on",
             "operator": "present"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "confirm_yes",
@@ -477,7 +474,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "name": "confirm_on",
             "operator": "present"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "confirm_no",
@@ -497,7 +496,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "name": "confirm_on",
             "operator": "present"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       }
     ],
     "normalization": {
@@ -560,9 +561,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     "default": {
       "entity": "",
       "label": "",
-      "icon": "Flash",
+      "icon": "Gesture Tap",
       "icon_on": "Auto",
-      "sensor": "scene.turn_on",
+      "sensor": "local",
       "unit": "",
       "type": "action",
       "precision": "",
@@ -4417,7 +4418,7 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
     "driver": "action",
     "capabilities": {
       "informationOnly": false,
-      "subscriptions": true,
+      "subscriptions": false,
       "actions": true,
       "numericControl": false,
       "modal": false,

@@ -182,7 +182,7 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
   switch (type) {
     case CardTypeId::TIMER: return {type, CardDriverId::TIMER, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::SWITCH: return {type, CardDriverId::TOGGLE, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
-    case CardTypeId::ACTION: return {type, CardDriverId::ACTION, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
+    case CardTypeId::ACTION: return {type, CardDriverId::ACTION, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::VACUUM: return {type, CardDriverId::VACUUM, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::LAWN_MOWER: return {type, CardDriverId::LAWN_MOWER, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::ALARM: return {type, CardDriverId::ALARM, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
@@ -592,7 +592,7 @@ inline bool card_contract_alarm_action_legacy_icon_name(const std::string &mode,
 inline const char *card_contract_card_label(const std::string &type) {
   if (type == "timer") return "Timer";
   if (type == "") return "Switch";
-  if (type == "action") return "Action";
+  if (type == "action") return "Local Action";
   if (type == "vacuum") return "Vacuum";
   if (type == "lawn_mower") return "Lawn Mower";
   if (type == "alarm") return "Alarm";
@@ -690,7 +690,7 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
 inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "timer") return "Auto";
   if (type == "") return "Auto";
-  if (type == "action") return "Flash";
+  if (type == "action") return "Gesture Tap";
   if (type == "vacuum") return "Robot Vacuum";
   if (type == "lawn_mower") return "Robot Mower";
   if (type == "alarm") return "Security";

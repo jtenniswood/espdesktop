@@ -52,10 +52,49 @@
       "canonicalType": "action",
       "webRegistration": "action",
       "firmwareFamily": "ACTION",
-      "lifecycle": { "subscriptions": ["state"], "actions": ["home_assistant_service"], "modalOwner": "none" },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      },
       "modes": [
-        { "name": "service", "config": { "entity": "scene.example", "sensor": "scene.turn_on" } },
-        { "name": "local", "config": { "entity": "zoom_mute", "sensor": "local" }, "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" } }
+        {
+          "name": "service",
+          "config": {
+            "entity": "scene.example",
+            "sensor": "scene.turn_on",
+            "icon": "Flash"
+          },
+          "lifecycle": {
+            "subscriptions": [
+              "none"
+            ],
+            "actions": [
+              "none"
+            ],
+            "modalOwner": "none"
+          }
+        },
+        {
+          "name": "local",
+          "config": {
+            "entity": "zoom_mute",
+            "sensor": "local"
+          },
+          "lifecycle": {
+            "subscriptions": [
+              "none"
+            ],
+            "actions": [
+              "local"
+            ],
+            "modalOwner": "none"
+          }
+        }
       ]
     },
     "vacuum": {

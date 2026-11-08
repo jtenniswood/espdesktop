@@ -1986,7 +1986,7 @@
           "driver": "action",
           "capabilities": {
             "informationOnly": false,
-            "subscriptions": true,
+            "subscriptions": false,
             "actions": true,
             "numericControl": false,
             "modal": false,
@@ -2681,23 +2681,14 @@
         }
       },
       "action": {
-        "label": "Action",
+        "label": "Local Action",
         "allowInSubpage": true,
-        "domains": [
-          "scene",
-          "script",
-          "automation",
-          "button",
-          "input_button",
-          "input_boolean",
-          "number",
-          "input_number",
-          "input_select",
-          "select"
-        ],
+        "domains": [],
         "options": [
           {
             "name": "large_numbers",
+            "hidden": true,
+            "docsHidden": true,
             "label": "Large State Numbers",
             "kind": "flag",
             "omitDefault": true,
@@ -2762,6 +2753,8 @@
           },
           {
             "name": "confirmation_required",
+            "hidden": true,
+            "docsHidden": true,
             "label": "Confirmation Required",
             "kind": "flag",
             "storage": [
@@ -2779,6 +2772,8 @@
           },
           {
             "name": "script_fields",
+            "hidden": true,
+            "docsHidden": true,
             "label": "Fields",
             "kind": "text",
             "omitDefault": true,
@@ -2793,6 +2788,8 @@
           },
           {
             "name": "confirm_message",
+            "hidden": true,
+            "docsHidden": true,
             "label": "Message",
             "kind": "text",
             "defaultValue": "Run this script?",
@@ -2813,6 +2810,8 @@
           },
           {
             "name": "confirm_yes",
+            "hidden": true,
+            "docsHidden": true,
             "label": "Confirm Button",
             "kind": "text",
             "defaultValue": "Yes",
@@ -2833,6 +2832,8 @@
           },
           {
             "name": "confirm_no",
+            "hidden": true,
+            "docsHidden": true,
             "label": "Cancel Button",
             "kind": "text",
             "defaultValue": "No",
@@ -2912,9 +2913,9 @@
         "default": {
           "entity": "",
           "label": "",
-          "icon": "Flash",
+          "icon": "Gesture Tap",
           "icon_on": "Auto",
-          "sensor": "scene.turn_on",
+          "sensor": "local",
           "unit": "",
           "type": "action",
           "precision": "",

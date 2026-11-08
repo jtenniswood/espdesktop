@@ -11,7 +11,7 @@ It records the pre-migration baseline; it does not move executable behaviour int
 |---|---|---|---|---|---|---|---:|
 | timer | canonical | timer | subscriptions, actions, runtimeAllocation, subpage | timer | timer | TIMER | 2 |
 | (switch) | canonical | toggle | subscriptions, actions, subpage | (switch) | (switch) | TOGGLE | 1 |
-| action | canonical | action | subscriptions, actions, runtimeAllocation, subpage | action | action | ACTION | 2 |
+| action | canonical | action | actions, runtimeAllocation, subpage | action | action | ACTION | 2 |
 | vacuum | canonical | vacuum | subscriptions, actions, runtimeAllocation, subpage | vacuum | vacuum | VACUUM | 7 |
 | lawn_mower | canonical | lawn_mower | subscriptions, actions, runtimeAllocation, subpage | lawn_mower | lawn_mower | MOWER | 4 |
 | alarm | canonical | alarm | subscriptions, actions, modal, runtimeAllocation, subpage | alarm | alarm | ALARM | 1 |
