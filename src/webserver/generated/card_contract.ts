@@ -201,6 +201,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "": {
+    "hidden": true,
     "label": "Switch",
     "allowInSubpage": true,
     "domains": [

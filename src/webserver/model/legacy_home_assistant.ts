@@ -16,7 +16,7 @@ const SUBPAGE_KIND_OPTION = "subpage_kind";
 const WIFI_QR_TABS_OPTION = "wifi_tabs";
 
 const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
-  "push", "slider",
+  "push",
 ]);
 
 const LOCAL_CARD_TYPES = new Set([
@@ -24,7 +24,7 @@ const LOCAL_CARD_TYPES = new Set([
 ]);
 
 export function cardTypeConnector(key: string): SavedCardConnector {
-  if (key === "companion" || key.startsWith("companion_")) return "mac_companion";
+  if (key === "slider" || key === "companion" || key.startsWith("companion_")) return "mac_companion";
   if (HOME_ASSISTANT_ONLY_CARD_TYPES.has(key)) return "home_assistant";
   if (key === "action" || key === "sensor") {
     return "home_assistant_or_local";
@@ -42,9 +42,7 @@ export function cardRequiresHomeAssistant(
     readonly sensor?: string | null;
   } | null | undefined,
 ): boolean {
-  if (key === "slider" && (card?.entity === "media.output_volume" || card?.entity === "media.input_volume")) {
-    return false;
-  }
+  if (key === "slider") return card?.entity !== "media.output_volume" && card?.entity !== "media.input_volume";
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
     const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);

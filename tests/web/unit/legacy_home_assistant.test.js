@@ -40,12 +40,12 @@ test("keeps Mac, local controls and ordinary folders available while identifying
     ["action", { sensor: "local" }], ["sensor", { sensor: "local" }],
     ["subpage", {}], ["subpage", { options: "subpage_connector=mac_companion" }],
     ["subpage", { options: "subpage_kind=companion_stat" }],
-    ["clock", {}], ["timezone", {}], ["screensaver", {}],
+    ["calendar", { entity: "sensor.date" }], ["clock", {}], ["timezone", {}], ["screensaver", {}],
     ["wifi_qr", { options: "wifi_tabs=qr%7Ccredentials" }], ["webhook", {}],
   ]) assert.equal(cardRequiresHomeAssistant(type, data), false, type);
   for (const [type, data] of [
     ["slider", { entity: "light.desk" }], ["slider", { entity: "number.volume" }],
-    ["", { entity: "switch.desk" }], ["calendar", { entity: "sensor.date" }],
+    ["", { entity: "switch.desk" }],
     ["action", { sensor: "scene.turn_on" }], ["sensor", { entity: "sensor.room" }],
     ["subpage", { options: "subpage_kind=climate" }],
     ["subpage", { entity: "light.desk" }],

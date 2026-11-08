@@ -15,12 +15,12 @@ Date and clock cards are read-only — tapping them does nothing.
 1. Select a card and change its type to **Date & Time**.
 2. Choose **Clock**, **Date**, or **Time & Date** from the **Type** dropdown.
 3. In **Clock** mode, **Large Clock** is available at every card size. Wide and Large cards use it by default, as do cards wider than two columns; you can turn it off. On wider clocks, **Center Clock** centers the large display. For Date and Time & Date modes, the existing Large-card option remains available.
-4. Apply the configuration so the panel restarts with the new card.
+4. Save the card.
 
 ## How It Works on the Panel
 
 - In **Clock** mode, the card uses the panel's own synced time source and shows no date label.
-- In **Date only** mode, the card reads `sensor.date`, and it also falls back to the panel's own time source.
+- In **Date only** mode, the card uses the panel's NTP-synced date. It does not subscribe to a Home Assistant sensor.
 - In **Date & time** mode, the large time display follows the timezone and 12/24-hour setting selected in [Time Settings](/features/clock).
 - The label underneath follows the same local timezone, so it stays matched to the time shown above.
 - The panel publishes a **Screen: Date** diagnostic value, so you can check whether the device currently knows the date.

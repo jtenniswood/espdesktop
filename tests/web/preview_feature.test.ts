@@ -60,12 +60,12 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("subpage", "mac_companion"), false, "Home Assistant subpages are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_subpage", "home_assistant"), false, "Companion subpages are hidden from Home Assistant");
   equal(cardTypeVisibleForConnector("companion_subpage", "mac_companion"), true, "Companion subpages remain in the Companion picker");
-  for (const key of ["calendar", "push", "slider", "timer"]) {
+  for (const key of ["push", "timer"]) {
     equal(cardTypeConnector(key), "home_assistant", `${key} is classified as Home Assistant-only`);
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
   }
-  for (const key of ["internal", "screen_lock", "wifi_qr", "wifi_qr_card"]) {
+  for (const key of ["calendar", "internal", "screen_lock", "wifi_qr", "wifi_qr_card"]) {
     equal(cardTypeConnector(key), "local", `${key} is classified as a local card`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), true, `${key} remains available without Home Assistant`);
   }
@@ -138,7 +138,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "companion_app", "calendar", "internal", "companion_shortcut", "companion_folder", "companion_url", "screen_lock", "sensor", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "wifi_qr", "companion_window"],
+    ["action", "companion_app", "calendar", "internal", "companion_shortcut", "companion_folder", "companion_url", "screen_lock", "sensor", "slider", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "wifi_qr", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

@@ -2553,6 +2553,7 @@
         }
       },
       "": {
+        "hidden": true,
         "label": "Switch",
         "allowInSubpage": true,
         "domains": [

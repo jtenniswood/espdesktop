@@ -10,7 +10,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Card | Type | Entity domains | Subpages | Picker grouping | Main modes and options | Status |
 |---|---|---|---|---|---|---|
 | Timer | timer | timer | Yes | Own picker item | None | Hidden |
-| Switch | switch | light, switch, input_boolean, fan | Yes | Own picker item | Large Active Display Numbers; Confirmation Required: default, off, on, both; On State Pattern: default, stripes; Message; Confirm Button; Cancel Button | Visible |
+| Switch | switch | light, switch, input_boolean, fan | Yes | Own picker item | Large Active Display Numbers; Confirmation Required: default, off, on, both; On State Pattern: default, stripes; Message; Confirm Button; Cancel Button | Hidden |
 | Local Action | action | None | Yes | Own picker item | None | Visible |
 | Vacuum | vacuum | vacuum | Yes | Own picker item | Type: status, start_stop, start_dock, dock, pause_resume, clean_spot, locate, clean_area | Hidden |
 | Lawn Mower | lawn_mower | lawn_mower | Yes | Own picker item | Type: status, start_mowing, dock, pause_resume | Hidden |

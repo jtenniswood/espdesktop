@@ -529,7 +529,6 @@ def check_root(root: Path) -> list[str]:
             "context.runtime.type == Type::CLOCK",
             "context.runtime.type == Type::TIMEZONE",
             "register_calendar_card",
-            "subscribe_calendar_date_source",
             "register_timezone_card",
         )
         for needle in required:
