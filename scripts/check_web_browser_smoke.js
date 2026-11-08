@@ -4532,6 +4532,9 @@ async function openBackupControls(page) {
 
 async function importBackup(page, data, name) {
   const file = writeJsonFixture(name, data);
+  // An earlier export or import can leave a success banner visible. Waiters
+  // below must observe this import's completion rather than the previous one.
+  await page.locator(".sp-banner").evaluate(node => node.classList.remove("sp-success"));
   await openBackupControls(page);
   const chooserPromise = page.waitForEvent("filechooser");
   await page.getByRole("button", { name: "Import" }).click();
@@ -8616,7 +8619,10 @@ async function assertGlobalIconSize(browser, testCase) {
       assert.strictEqual(defaultPosts.length, previousPosts, "older backups preserve the current default");
       backup.screen.default_icon_size = "medium";
       await page.locator(".sp-banner").evaluate(node => { node.className = "sp-banner"; });
+      const restoredDefault = page.waitForResponse(response =>
+        response.url().includes("/select/screen__default_icon_size/set?option=Medium"));
       await importBackup(page, backup, "default-icon-size-restore");
+      await restoredDefault;
       await page.waitForSelector(".sp-banner.sp-success", { timeout: 30000 });
       assert.strictEqual(savedDefault, "Medium", "backup restore restores the global size");
       assert.deepStrictEqual(errors, []);
@@ -9452,6 +9458,10 @@ async function assertForecastImageText(browser, testCase) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_GLOBAL_ICON_SIZE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertGlobalIconSize(browser, testCase);
+      return;
+    }
     await assertAllImageCardText(browser, ACTIVE_CASES[0]);
     if (process.env.ESPDESKTOP_IMAGE_TEXT_ONLY === "1") return;
     await assertForecastImageText(browser, ACTIVE_CASES[0]);
