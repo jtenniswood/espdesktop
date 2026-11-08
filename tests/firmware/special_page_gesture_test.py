@@ -73,6 +73,9 @@ int main() {
   assert(navigation_active_subpage_label().empty());
   selected_slot = 1; entry.kind = "subpage"; has_parent = true; parent.label = "Rooms";
   assert(navigation_active_subpage_label() == "Rooms");
+  entry.kind = "app_shortcuts";
+  assert(navigation_active_subpage_label().empty());
+  entry.kind = "subpage";
   navigation_grid_screen_gesture(nullptr);
   locked=true; navigation_grid_screen_gesture(&event); locked=false;
   allowed=false; navigation_grid_screen_gesture(&event); allowed=true;
