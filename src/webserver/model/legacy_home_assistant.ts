@@ -42,7 +42,10 @@ export function cardRequiresHomeAssistant(
     readonly sensor?: string | null;
   } | null | undefined,
 ): boolean {
-  if (key === "slider") return card?.entity !== "media.output_volume" && card?.entity !== "media.input_volume";
+  if (key === "slider") {
+    return !["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]
+      .includes(card?.entity || "");
+  }
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
     const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);

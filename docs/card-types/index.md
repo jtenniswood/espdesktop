@@ -12,7 +12,7 @@ Cards show information and controls on the display. Mac controls use the paired 
 | Goal | Card |
 |---|---|
 | Launch apps, shortcuts, websites and folders, arrange windows, or show Mac statistics | [Companion](./companion) |
-| Adjust Mac output or microphone volume | [Slider](./sliders) |
+| Adjust or mute Mac output and microphone audio | [Volume](./sliders) |
 | Show the local clock or another timezone | [Date & Time](./calendar) |
 | Open another page of cards | [Subpage](/features/subpages) |
 

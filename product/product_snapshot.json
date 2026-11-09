@@ -5152,7 +5152,7 @@
         }
       },
       "slider": {
-        "label": "Slider",
+        "label": "Volume",
         "allowInSubpage": true,
         "domains": [
           "light",

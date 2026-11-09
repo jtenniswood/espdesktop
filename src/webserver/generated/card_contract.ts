@@ -2835,7 +2835,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "slider": {
-    "label": "Slider",
+    "label": "Volume",
     "allowInSubpage": true,
     "domains": [
       "light",

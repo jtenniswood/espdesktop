@@ -14,6 +14,9 @@ inline bool retired_home_assistant_card(const Config &config) {
       type == "wifi_qr" || type == "wifi_qr_card" || type == "companion" ||
       type.rfind("companion_", 0) == 0) return false;
   if (type == "action" || type == "sensor") return config.sensor != "local";
-  if (type == "slider") return config.entity != "media.output_volume" && config.entity != "media.input_volume";
+  if (type == "slider") {
+    return config.entity != "media.output_volume" && config.entity != "media.input_volume" &&
+           config.entity != "media.output_mute" && config.entity != "media.input_mute";
+  }
   return true;
 }

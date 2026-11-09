@@ -745,3 +745,6 @@ add_test(NAME nested_folder_state_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CUR
 
 add_test(NAME application_shutdown_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/application_shutdown_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME companion_mute_cleanup_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/companion_mute_cleanup_test.py ${CMAKE_CXX_COMPILER})

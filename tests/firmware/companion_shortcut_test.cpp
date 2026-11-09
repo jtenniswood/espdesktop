@@ -36,6 +36,8 @@ int main() {
     runtime.set_connected(false);
     assert(!runtime.snapshot().application_highlight_known);
   }
+  assert(std::string(companion_volume_control_label("media.output_volume")) == "Volume");
+  assert(std::string(companion_volume_control_label("media.input_volume")) == "Mic");
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
@@ -55,9 +57,12 @@ int main() {
   assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
 
   // Exercise the real translation tables at the device-label boundary.
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");
+  assert(std::string(companion_volume_control_label("media.output_mute")) == "Mute");
   set_espdesktop_language("de");
-  assert(std::string(companion_volume_control_label("media.output_volume")) == "Ausgabelautstärke");
-  assert(std::string(companion_volume_control_label("media.input_volume")) == "Eingabelautstärke");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Stumm");
+  assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
+  assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("window.minimize") == "Minimieren");
   assert(companion_default_action_label("window.arrange.left-right") == "Links und rechts");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
@@ -361,6 +366,28 @@ int main() {
   assert(!volume_invoked);
   assert(invoke_companion_value("media.output_volume", 64, "volume-1"));
   assert(volume_invoked);
+  std::string mute_control, mute_request;
+  int mute_value = -1;
+  register_companion_value_sender([&](const std::string &control, int value, const std::string &request) {
+    mute_control = control; mute_value = value; mute_request = request; return true;
+  });
+  assert(!companion_toggle_mute("media.input_mute")); // No confirmed state yet.
+  for (const auto *control : {"media.input_mute", "media.output_mute"}) {
+    companion_set_value(control, 0);
+    assert(companion_toggle_mute(control));
+    assert(mute_control == control && mute_value == 100 && !mute_request.empty());
+    companion_set_value(control, 100);
+    assert(companion_toggle_mute(control));
+    assert(mute_value == 0);
+    assert(!invoke_companion_value(control, 50, "invalid-mute"));
+    companion_remove_value(control);
+    assert(!companion_toggle_mute(control));
+  }
+  companion_set_value("media.input_mute", 100);
+  companion_set_connected(false);
+  assert(!companion_toggle_mute("media.input_mute"));
+  companion_set_connected(true);
+
   assert(companion_url_available("com.apple.Safari", url_config));
   assert(companion_url_available("com.google.Chrome", url_config));
   assert(companion_url_available("system.default_browser", url_config));
