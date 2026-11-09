@@ -358,7 +358,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         return disabled.indexOf(key || "") !== -1;
     }
     function buttonConfigDisabledForDevice(this: any, button?: any) {
-        return isButtonConfigDisabledForDevice(
+        // Restrict card transfers while keeping saved slider records restorable.
+        return audioSliderUnavailable(button?.type) || isButtonConfigDisabledForDevice(
             dependencies.cards.definitions,
             dependencies.layout.config.disabledCardTypes || [],
             button,

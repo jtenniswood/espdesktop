@@ -108,7 +108,7 @@ export function runPreviewFeatureTests(): void {
     "legacy firmware opt-in cannot restore HA cards");
   const audioControlsAvailable = COMPANION_CAPABILITY_VERSION >= 7;
   equal(cardTypeVisibleForConnector("slider", "mac_companion"), audioControlsAvailable, "the picker requires complete Mac audio controls");
-  equal(buttonConfigDisabledForDevice({}, [], { type: "slider" }), !audioControlsAvailable, "audio card transfers require complete Mac audio controls");
+  equal(buttonConfigDisabledForDevice({}, [], { type: "slider" }), false, "saved audio records can be restored in backups");
   const companionOptions = cardTypePickerOptions({
       ...definitions,
       calendar: { label: "Date & Time", allowInSubpage: true },

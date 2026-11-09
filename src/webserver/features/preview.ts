@@ -247,7 +247,7 @@ export function buttonConfigDisabledForDevice(
   button: { readonly type?: string | null } | null | undefined,
 ): boolean {
   const type = button?.type || "";
-  if (disabledCardTypes.includes(type) || audioSliderUnavailable(type)) return true;
+  if (disabledCardTypes.includes(type)) return true;
   const definition = definitions[type] as Record<string, unknown> | undefined;
   const pickerKey = registryValue(definition, "pickerKey", "");
   return !!pickerKey && disabledCardTypes.includes(pickerKey);
