@@ -11,6 +11,7 @@ enum class Family : uint8_t {
   ACTION,
   ALARM,
   ALARM_ACTION,
+  DATE_TIME,
   TIMER,
   CLIMATE,
   COVER,

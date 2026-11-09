@@ -34,6 +34,8 @@ Use this page when you know what you want the panel to do but are not sure which
 | Lock or unlock a door lock | [Lock](/card-types/locks) | `lock` |
 | Arm, disarm, or show an alarm panel | [Alarm](/card-types/alarms) | `alarm_control_panel` |
 | Start, cancel, or resume a countdown | [Timer](/card-types/timers) | `timer` |
+| Show the local time | [Date & Time](/card-types/calendar) | No entity required |
+| Show another city or timezone | [World Clock](/card-types/timezones) | No entity required |
 | Show current weather or daily high/low temperatures | [Weather](/card-types/weather) | `weather` |
 | Show a still image from Home Assistant | [Camera](/card-types/cameras) | `camera` or `image` |
 | Control media playback, volume, progress, or now-playing display | [Media](/card-types/media) | `media_player` |
@@ -41,8 +43,6 @@ Use this page when you know what you want the panel to do but are not sure which
 | Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
 
 Sensor cards are no longer supported, including in saved layouts.
-
-Date & Time cards have been removed. Existing Date, Time & Date, Clock, and World Clock cards leave empty spaces when the panel loads a layout or restores a backup.
 
 ## Mac Cards
 
@@ -63,7 +63,7 @@ Some cards do not need a Home Assistant entity:
 - **Local Sensor** shows a value supplied by the panel firmware.
 - **Webhook** sends a direct HTTP request.
 - **Action > Local Action** runs a registered callback on the panel itself.
-- **Subpage** can work from the panel itself.
+- **Date & Time**, **World Clock**, and **Subpage** can work from the panel itself.
 
 ## Grouped Card Types
 
@@ -77,6 +77,7 @@ Some names in the setup page group several related modes:
 | **Vacuum** | Status, Start / Stop, Dock, Pause / Resume, Spot Clean, Locate, Clean Area |
 | **Lawn Mower** | Status, Start Mowing, Dock, Pause / Resume |
 | **Alarm** | All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, Disarm |
+| **Date & Time** | Clock, World Clock |
 | **Media** | All Controls, Speaker Group, Play/Pause, Previous, Next, Volume, Track Position, Now Playing, Cover Art, Media Content |
 | **Companion** | Applications, Keyboard shortcut, Open URL, Open folder, Stats, Window control |
 | **Cover** | All Controls, Position, Tilt, Toggle, Open, Close, Stop, Set Position |
@@ -88,7 +89,7 @@ Older configurations may also show **Weather Forecast**. It is kept for compatib
 
 Cards that control Home Assistant need the panel to be allowed to perform Home Assistant actions. If a control card displays correctly but tapping it does nothing, check [Enable Actions](/getting-started/home-assistant-actions).
 
-Read-only display cards such as Presence and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
+Read-only display cards such as Sensor, Presence, Date & Time, and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
 
 Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and add statistics cards to show the readings shared automatically while connected.
 

@@ -60,7 +60,7 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("subpage", "mac_companion"), false, "Home Assistant subpages are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_subpage", "home_assistant"), false, "Companion subpages are hidden from Home Assistant");
   equal(cardTypeVisibleForConnector("companion_subpage", "mac_companion"), true, "Companion subpages remain in the Companion picker");
-  for (const key of ["push", "slider", "timer"]) {
+  for (const key of ["calendar", "push", "slider", "timer"]) {
     equal(cardTypeConnector(key), "home_assistant", `${key} is classified as Home Assistant-only`);
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
@@ -80,16 +80,19 @@ export function runPreviewFeatureTests(): void {
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
+    calendar: { label: "Date & Time", allowInSubpage: true },
     climate: { label: "Climate", allowInSubpage: false },
     climate_control: { label: "Climate controls", pickerKey: "climate", allowInSubpage: false },
     subpage: { label: "Subpage", allowInSubpage: false },
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    ["action"],
-    "subpage picker retains available local cards",
+    ["action", "calendar"],
+    "subpage picker retains local cards and the Date & Time route",
   );
   const defaultPicker = cardTypePickerOptions(definitions, [], false, false, null);
+  equal(defaultPicker.some((option) => option.key === "calendar"), true,
+    "the Date & Time route remains available for local Clock and World Clock modes");
   equal(defaultPicker.some((option) => option.key === "climate"), false,
     "Home Assistant cards stay hidden while support is disabled");
   equal(defaultPicker.some((option) => option.key === "subpage"), true,
@@ -99,6 +102,7 @@ export function runPreviewFeatureTests(): void {
     "firmware opt-in restores Home Assistant cards to the picker");
   const companionOptions = cardTypePickerOptions({
       ...definitions,
+      calendar: { label: "Date & Time", allowInSubpage: true },
       companion: { label: "Companion", allowInSubpage: true },
       companion_app: { label: "Applications", allowInSubpage: true },
       companion_webapp: { label: "Web App", allowInSubpage: true },
@@ -114,7 +118,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "companion_app", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "companion_window"],
+    ["action", "companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

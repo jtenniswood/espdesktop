@@ -689,6 +689,69 @@
       }
     },
     {
+      "name": "calendar: date",
+      "sourceKind": "contract",
+      "sourceType": "calendar",
+      "mode": "date",
+      "canonicalType": "calendar",
+      "web": {
+        "registration": "calendar",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": true
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "9b48d48a5064589a"
+        }
+      },
+      "firmware": {
+        "family": "DATE_TIME"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state",
+          "time"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "clock: local_time",
+      "sourceKind": "contract",
+      "sourceType": "clock",
+      "mode": "local_time",
+      "canonicalType": "clock",
+      "web": {
+        "registration": "clock",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "dd7881f7dc8a14d8"
+        }
+      },
+      "firmware": {
+        "family": "DATE_TIME"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "time"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "climate: status",
       "sourceKind": "contract",
       "sourceType": "climate",
@@ -2234,6 +2297,37 @@
         ],
         "actions": [
           "navigation"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "timezone: timezone",
+      "sourceKind": "contract",
+      "sourceType": "timezone",
+      "mode": "timezone",
+      "canonicalType": "timezone",
+      "web": {
+        "registration": "timezone",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "118506d650ffa83f"
+        }
+      },
+      "firmware": {
+        "family": "DATE_TIME"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "time"
+        ],
+        "actions": [
+          "none"
         ],
         "modalOwner": "none"
       }

@@ -2765,9 +2765,9 @@ async function assertNewMediaCardDefaults(page, posts, label) {
     `${label}: opted-in Home Assistant Media cards are available to add`,
   );
   assert.strictEqual(
-    await page.getByRole("button", { name: "Date & Time card type" }).count(),
-    0,
-    `${label}: Date & Time is absent even with Home Assistant enabled`,
+    await page.locator('[data-card-type="calendar"]').count(),
+    1,
+    `${label}: opted-in Home Assistant-only card types are available in the picker`,
   );
 
   await page.locator(".sp-settings-close").click();
@@ -6040,6 +6040,10 @@ async function assertInlineCardNames(page, nativeState, label) {
     ["gate status", "cover.gate;Hidden name;Gate;Auto;;;gate;;label_display=status"],
     ["weather condition", "weather.home;Hidden name;Auto;Auto;;;weather"],
     ["legacy weather forecast", "weather.home;Hidden name;Auto;Auto;;;weather_forecast"],
+    ["calendar", "sensor.date;;Auto;Auto;;;calendar"],
+    ["calendar datetime", "sensor.date;;Auto;Auto;;;calendar;datetime"],
+    ["clock", ";;Auto;Auto;;;clock"],
+    ["timezone", "Europe/London;;Auto;Auto;;;timezone"],
   ]) {
     nativeState.document.buttons[1] = config;
     await seedNativeDocument(page, nativeState);
@@ -6703,9 +6707,9 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       `${testCase.name}: Companion-only picker hides the Home Assistant tab`,
     );
     assert.strictEqual(
-      await page.getByRole("button", { name: "Date & Time card type" }).count(),
+      await page.locator('[data-card-type="calendar"]').count(),
       0,
-      `${testCase.name}: Date & Time is absent from the Companion-only picker`,
+      `${testCase.name}: Companion-only picker hides Home Assistant card types`,
     );
     assert(
       await page.locator('[data-card-type="companion_app"]').isVisible(),
@@ -8760,13 +8764,7 @@ async function assertRetiredCardRemoval(browser) {
   const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
   const types = [...(contract.retiredCardTypes || []), ...contract.retiredSubpageTypeCodes];
   const testCase = ACTIVE_CASES[0];
-  const compactDateTypes = Object.entries(contract.subpageTypeCodes)
-    .filter(([type]) => ["calendar", "clock", "timezone"].includes(type));
-  const cases = [
-    ...types.map(type => ({ type, subpageType: type, nativeV2: false })),
-    ...compactDateTypes.map(([type, code]) => ({ type, subpageType: code, nativeV2: true })),
-  ];
-  for (const { type, subpageType, nativeV2 } of cases) {
+  for (const type of types) {
     const nativeState = nativeConfigState(testCase.slug);
     nativeState.document.buttons = {
       1: `old.entity;Retired;Gauge;Auto;sensor.old;C;${type};1;old=value`,
@@ -8775,10 +8773,10 @@ async function assertRetiredCardRemoval(browser) {
     };
     nativeState.document.settings.button_order = "1,2,3";
     nativeState.document.subpages = {
-      3: `~B,1w,,2|${subpageType},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
+      3: `~B,1w,,2|${type},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
     };
     const context = await browser.newContext({ viewport: testCase.viewport });
-    await installRoutes(context, testCase.slug, { nativeState, nativeV2, homeAssistantSupport: true });
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
     const page = await context.newPage();
     await installFakeEventSource(page);
     try {
@@ -8799,7 +8797,7 @@ async function assertRetiredCardRemoval(browser) {
 
     } finally { await context.close(); }
   }
-  console.log(`Retired-card browser checks passed for ${cases.length} saved layouts.`);
+  console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
 }
 
 async function assertNestedCompanionPages(browser) {

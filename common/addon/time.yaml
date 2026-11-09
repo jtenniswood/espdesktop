@@ -269,6 +269,7 @@ select:
       then:
         - lambda: |-
             set_espdesktop_language(id(language_select).current_option());
+            refresh_calendar_cards();
         - script.execute: time_update
         - script.execute: network_setup_text_refresh
         - script.execute: ha_setup_text_refresh
@@ -340,7 +341,8 @@ text:
         - script.execute: ntp_servers_apply_after_network
 
 text_sensor:
-  # Diagnostic date from the active time source.
+  # Diagnostic value published from the active time source. This makes
+  # the date visible as an ESPHome state and gives Date cards a clear source.
   - platform: template
     name: "Screen: Date"
     id: screen_date_sensor
@@ -358,6 +360,20 @@ text_sensor:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
+
+  # Optional direct Home Assistant Date & Time integration source. When
+  # Home Assistant has sensor.date, use it immediately; otherwise the active
+  # panel time source below remains the fallback.
+  - platform: homeassistant
+    id: homeassistant_date_sensor
+    entity_id: sensor.date
+    internal: true
+    on_value:
+      then:
+        - lambda: |-
+            if (update_calendar_cards_from_date_text(x)) {
+              id(screen_date_sensor).publish_state(x);
+            }
 
 # ---------------------------------------------------------------------------
 # SNTP primary time source and Home Assistant fallback. SNTP sync refreshes
@@ -460,16 +476,30 @@ script:
                                              now.hour, now.minute, use_12h);
             return time_buf;
       - lambda: |-
+          const std::string timezone_option = id(timezone_select).current_option();
+          const std::string active_timezone = effective_timezone_option(timezone_option);
           auto now = panel_time_or_fallback(id(panel_time).now(),
                                             id(homeassistant_time).now());
+          bool use_12h = id(clock_format_12h);
           if (now.is_valid()) {
             static char date_buf[16];
             snprintf(date_buf, sizeof(date_buf), "%04d-%02d-%02d",
                      now.year, now.month, now.day_of_month);
             id(screen_date_sensor).publish_state(date_buf);
-          } else {
+            update_calendar_cards(true, now.day_of_month, now.month);
+            update_calendar_cards_time(
+                true, now.day_of_month, now.month, now.hour, now.minute, use_12h);
+            update_timezone_cards(true, now.timestamp, active_timezone, use_12h);
+          } else if (!calendar_date_valid()) {
             if (ha_api_state_connected()) id(homeassistant_time).update();
             id(screen_date_sensor).publish_state("");
+            update_calendar_cards(false, 0, 0);
+            update_calendar_cards_time(false, 0, 0, 0, 0, false);
+            update_timezone_cards(false, 0, active_timezone, use_12h);
+          } else {
+            if (ha_api_state_connected()) id(homeassistant_time).update();
+            update_calendar_cards_time(false, 0, 0, 0, 0, false);
+            update_timezone_cards(false, 0, active_timezone, use_12h);
           }
       - script.execute: theme_settings_refresh
 

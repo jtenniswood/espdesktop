@@ -741,13 +741,6 @@ def validate_subpage_type_codes(data: dict[str, Any], cards: Any, errors: list[s
         errors.append(path_error("subpageTypeCodes", "must be a non-empty object"))
         return
 
-    retired_types = data.get("retiredCardTypes", [])
-    if not isinstance(retired_types, list) or not all(isinstance(value, str) and value for value in retired_types):
-        errors.append(path_error("retiredCardTypes", "must be a list of non-empty strings"))
-        retired_types = []
-    elif len(retired_types) != len(set(retired_types)) or (isinstance(cards, dict) and set(retired_types).intersection(cards)):
-        errors.append(path_error("retiredCardTypes", "must be unique and cannot include active card types"))
-
     seen: dict[str, str] = {}
     for card_type, code in codes.items():
         code_path = f"subpageTypeCodes.{card_type}"
@@ -757,8 +750,14 @@ def validate_subpage_type_codes(data: dict[str, Any], cards: Any, errors: list[s
         if code in seen:
             errors.append(path_error(code_path, f"duplicates code {code!r} used by {seen[code]!r}"))
         seen[code] = card_type
-        if isinstance(cards, dict) and card_type not in cards and card_type not in retired_types:
-            errors.append(path_error(code_path, "must reference an active or retired card type"))
+        if isinstance(cards, dict) and card_type not in cards:
+            errors.append(path_error(code_path, "must also be defined in cards"))
+
+    retired_types = data.get("retiredCardTypes", [])
+    if not isinstance(retired_types, list) or not all(isinstance(value, str) and value for value in retired_types):
+        errors.append(path_error("retiredCardTypes", "must be a list of non-empty strings"))
+    elif len(retired_types) != len(set(retired_types)) or set(retired_types) & set(cards):
+        errors.append(path_error("retiredCardTypes", "must be unique and cannot include active card types"))
 
     retired = data.get("retiredSubpageTypeCodes")
     if not isinstance(retired, list) or not all(isinstance(code, str) and code for code in retired):

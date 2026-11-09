@@ -1714,7 +1714,7 @@ script:
           if (show_date) {
             char date_buf[96];
             snprintf(date_buf, sizeof(date_buf), "%d %s %d", time.day_of_month,
-                     clock_month_name(time.month), time.year);
+                     calendar_month_name(time.month), time.year);
             lv_label_set_display_text(id(clock_date_label), date_buf);
             lv_obj_clear_flag(id(clock_date_label), LV_OBJ_FLAG_HIDDEN);
           } else {
