@@ -320,24 +320,26 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
+          { text: 'Where to Buy', link: '/#where-to-buy' },
           { text: 'Install Screen', link: '/getting-started/install' },
-          { text: 'Companion App', link: '/getting-started/mac-app' },
         ],
       },
       {
-        text: 'Mac Control',
+        text: 'Companion App',
         items: [
-          { text: 'Overview', link: '/card-types/companion' },
-          { text: 'Configure', link: '/features/setup' },
+          { text: 'Install & Pair', link: '/getting-started/mac-app' },
+          { text: 'Permissions & Security', link: '/mac-controls/security' },
+        ],
+      },
+      {
+        text: 'Device Features',
+        items: [
+          { text: 'Configure the Display', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps & Websites', link: '/mac-controls/apps' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
-          { text: 'Improve App Shortcuts', link: '/mac-controls/improve-shortcuts' },
           { text: 'Window Controls', link: '/mac-controls/windows' },
-          { text: 'Existing Stats Cards', link: '/mac-controls/statistics' },
-          { text: 'Permissions & Security', link: '/mac-controls/security' },
-          { text: 'Where to Buy', link: 'https://jtenniswood.github.io/espcontrol/screens/4848s040#where-to-buy' },
         ],
       },
       {
@@ -345,6 +347,12 @@ export default defineConfig({
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
+        ],
+      },
+      {
+        text: 'Contribute',
+        items: [
+          { text: 'App Shortcuts', link: '/mac-controls/improve-shortcuts' },
           { text: 'Request an Icon', link: '/reference/request-icons' },
         ],
       },

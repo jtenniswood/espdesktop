@@ -138,6 +138,28 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.finder"))
     }
 
+    func testBooksExtendedShortcutsReplayOnlyTheirExactKeys() throws {
+        let expected: [(String, CGKeyCode, CGEventFlags)] = [
+            ("left", 123, []), ("right", 124, []), ("space", 49, []),
+            ("function+f", 3, [.maskSecondaryFn]),
+        ]
+        for (keys, keyCode, flags) in expected {
+            let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys))
+            XCTAssertEqual(shortcut.keyCode, keyCode)
+            XCTAssertEqual(shortcut.flags, flags)
+        }
+        for keys in ["a", "shift+right", "function+g", "command++f", "+space"] {
+            XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys), keys)
+        }
+    }
+
+    func testChatGPTClearUnreadsUsesShiftEscape() throws {
+        let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut.shift+escape"))
+        XCTAssertEqual(shortcut.keyCode, 53)
+        XCTAssertEqual(shortcut.flags, [.maskShift])
+        XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.shift+tab"))
+    }
+
     func testGatesOnlyTilingActionsToMacOS15() throws {
         let macOS13 = OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0)
         let macOS15 = OperatingSystemVersion(majorVersion: 15, minorVersion: 0, patchVersion: 0)

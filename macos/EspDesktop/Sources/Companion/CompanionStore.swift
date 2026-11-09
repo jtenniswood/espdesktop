@@ -910,11 +910,25 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
             return false
         }
+        if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
+           NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
+            updateStatus("Bring Books to the front to use this shortcut")
+            return false
+        }
         guard shortcut.isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else {
             updateStatus("Window tiling requires macOS 15 or later")
             return false
         }
-        guard shortcut.replay() else {
+        var targetPID: pid_t?
+        if actionIdentifier == CompanionKeyboardShortcut.actionPrefix + CompanionKeyboardShortcut.chatGPTClearUnreads {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier else {
+                updateStatus("Bring ChatGPT Desktop to the front to clear unread chats")
+                return false
+            }
+            targetPID = application.processIdentifier
+        }
+        guard shortcut.replay(to: targetPID) else {
             updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
             return false
         }

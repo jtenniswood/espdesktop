@@ -68,6 +68,21 @@ struct CompanionKeyboardShortcut {
         return appId.hasPrefix(prefix) && UUID(uuidString: String(appId.dropFirst(prefix.count))) != nil
     }
 
+    static let booksBundleIdentifier = "com.apple.iBooksX"
+    static let chatGPTDesktopBundleIdentifier = "com.openai.codex"
+    static let chatGPTClearUnreads = "shift+escape"
+
+    static func isBooksExtendedShortcut(_ shortcut: String) -> Bool {
+        booksExtendedKeys[shortcut] != nil
+    }
+
+    private static let booksExtendedKeys: [String: (key: String, flags: CGEventFlags)] = [
+        "left": ("left", []),
+        "right": ("right", []),
+        "space": ("space", []),
+        "function+f": ("f", [.maskSecondaryFn]),
+    ]
+
     let keyCode: CGKeyCode
     let flags: CGEventFlags
     let requiresMacOS15: Bool
@@ -82,7 +97,19 @@ struct CompanionKeyboardShortcut {
             return
         }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
-        let shortcut = actionIdentifier.dropFirst(Self.actionPrefix.count)
+        let shortcut = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
+        if let extended = Self.booksExtendedKeys[shortcut], let keyCode = Self.keyCodes[extended.key] {
+            self.keyCode = keyCode
+            self.flags = extended.flags
+            self.requiresMacOS15 = false
+            return
+        }
+        if shortcut == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
+            self.keyCode = keyCode
+            self.flags = .maskShift
+            self.requiresMacOS15 = false
+            return
+        }
         var parts = shortcut.split(separator: "+", omittingEmptySubsequences: false)
         guard parts.count <= 5, let key = parts.popLast().map(String.init),
               let keyCode = Self.keyCodes[key] else { return nil }
@@ -113,7 +140,7 @@ struct CompanionKeyboardShortcut {
     }
 
     @MainActor
-    func replay() -> Bool {
+    func replay(to processID: pid_t? = nil) -> Bool {
         guard isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else { return false }
         guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
         guard let source = CGEventSource(stateID: .hidSystemState),
@@ -123,8 +150,13 @@ struct CompanionKeyboardShortcut {
         }
         keyDown.flags = flags
         keyUp.flags = flags
-        keyDown.post(tap: .cghidEventTap)
-        keyUp.post(tap: .cghidEventTap)
+        if let processID {
+            keyDown.postToPid(processID)
+            keyUp.postToPid(processID)
+        } else {
+            keyDown.post(tap: .cghidEventTap)
+            keyUp.post(tap: .cghidEventTap)
+        }
         return true
     }
 

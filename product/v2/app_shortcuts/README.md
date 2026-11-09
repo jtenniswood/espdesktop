@@ -45,6 +45,10 @@ Supported shortcut strings use lowercase modifiers `command`, `control`, `option
 
 The Safari templates use `extendedShortcuts` for unmodified Tab and Escape. Both lists share IDs and the 64-entry limit. Older Companion versions can still read the regular list. The `com.apple.Safari.WebApp` template applies to approved Safari web apps with a macOS-generated UUID suffix on their bundle ID.
 
+Books also has an optional `extendedShortcuts` list for its Left Arrow, Right Arrow, Space and Fn–F presets. These entries require updated Companion and display firmware and only run when Books is active. Older Companion versions can still read the regular `shortcuts` list. Both lists share the same shortcut IDs and 64-entry limit.
+
+The ChatGPT Desktop subpage uses the `com.openai.codex` bundle ID and supports up to 96 presets with its optional `additionalShortcuts` list. IDs remain unique across both lists, and older Companion versions can read the regular list. Shift–Escape only runs while ChatGPT Desktop is active.
+
 The current live files are useful examples too: Safari is in the standalone catalog; the other app templates provide shortcuts on their matching app subpages.
 
 Research-based starter templates cover supported native apps from the shortcut research index. Each includes up to ten confirmed, highlighted shortcuts that this controller can send. Spotlight controls are system-wide, OpenCode shortcuts are for a terminal interface, Finder uses its dedicated folder page, and Onshape is a separate browser-based app; those pages do not have native app templates.

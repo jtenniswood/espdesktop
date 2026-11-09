@@ -82,6 +82,12 @@ int main() {
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));
   assert(companion_shortcut_label("shortcut.control+shift+tab") == "\U000F0634\U000F0636" "Tab");
   assert(companion_shortcut_action_valid("shortcut.option+f20"));
+  assert(companion_shortcut_label("shortcut.left") == "\U000F004D");
+  assert(companion_shortcut_label("shortcut.right") == "\U000F0054");
+  assert(companion_shortcut_label("shortcut.space") == "Space");
+  assert(companion_shortcut_label("shortcut.function+f") == "Fn F");
+  assert(!companion_shortcut_action_valid("shortcut.a"));
+  assert(!companion_shortcut_action_valid("shortcut.function+g"));
   assert(companion_shortcut_label("shortcut.option+f20") == "\U000F0635" "F20");
   assert(companion_shortcut_label("shortcut.command+left") == "\U000F0633\U000F004D");
 
@@ -102,6 +108,8 @@ int main() {
     assert(companion_action_available(keyboard_only, "shortcut.tab"));
     assert(companion_action_available(keyboard_only, "shortcut.escape"));
   }
+  assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
 
   ParsedCfg finder_launch;
   finder_launch.type = "companion";

@@ -26,6 +26,51 @@ test("Safari web apps use their own presets and keep their actual app identity",
   assert.deepEqual(api.companionShortcutPresetCards(installedId), webPresets);
 });
 
+test("ChatGPT Desktop uses the installed app identifier and keeps its numbered shortcuts distinct", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const app = require("../../../product/v2/app_shortcuts/codex.json");
+  const legacy = require("../../../product/v2/app_shortcuts/chatgpt.json");
+  assert.equal(app.appId, "com.openai.codex");
+  assert.equal(api.companionShortcutFolderAppLabel(app.appId), "ChatGPT Desktop");
+  const presets = api.companionShortcutPresetCards(app.appId);
+  assert.equal(presets.length, 72);
+  assert.equal(api.companionShortcutPresetCards(legacy.appId).length, legacy.shortcuts.length);
+  assert(presets.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.shift+tab"));
+  const keys = ["command+9", "command+option+6", "control+9", "shift+escape"];
+  const entries = [...app.shortcuts, ...app.additionalShortcuts];
+  const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
+  const page = api.createCompanionShortcutSubpage(app.appId, ids);
+  assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
+  const custom = { ...page.buttons[0], entity: "shortcut.command+w", label: "My Close Card", options: "" };
+  page.buttons.push(custom);
+  page.order.push(String(page.buttons.length));
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
+  api.syncCompanionShortcutSubpage(app.appId, ids, page);
+  assert(page.buttons.includes(custom), "a pre-existing custom shortcut must survive the new matching preset");
+  api.replaceCompanionDefinitions([app]);
+  assert.deepEqual(api.companionShortcutPresetCards(app.appId), presets);
+  api.replaceCompanionDefinitions([{ ...app, additionalShortcuts: undefined }]);
+  assert.equal(api.companionShortcutPresetCards(app.appId).length, 62);
+});
+
+test("Books presets work from both the bundled and Companion catalogues", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const books = require("../../../product/v2/app_shortcuts/books.json");
+  const bundled = api.companionShortcutPresetCards(books.appId);
+  assert.equal(bundled.length, 33);
+  assert.deepEqual(bundled.slice(0, 4).map(card => card.entity),
+    ["shortcut.right", "shortcut.left", "shortcut.function+f", "shortcut.space"]);
+  assert(bundled.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.a"));
+  assert(!api.companionShortcutActionIdValid("shortcut.function+g"));
+  api.replaceCompanionDefinitions([books]);
+  assert.deepEqual(api.companionShortcutPresetCards(books.appId), bundled);
+  api.replaceCompanionDefinitions([{ ...books, extendedShortcuts: undefined }]);
+  assert.equal(api.companionShortcutPresetCards(books.appId).length, 29);
+});
+
 test("file-defined apps and stable shortcut IDs drive subpages without code registration", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = {

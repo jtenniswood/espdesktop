@@ -57,6 +57,16 @@ class AppShortcutTests(unittest.TestCase):
         example = json.loads((ROOT / 'product/v2/app_shortcuts/examples/example-editor.json').read_text())
         validate_app(example, self.icons)
 
+    def test_chatgpt_extra_presets_preserve_the_regular_list(self):
+        app = json.loads((ROOT / 'product/v2/app_shortcuts/codex.json').read_text())
+        validate_app(app, self.icons)
+        validate_app({key: value for key, value in app.items() if key != 'additionalShortcuts'}, self.icons)
+        with self.assertRaisesRegex(ValueError, 'only on the ChatGPT Desktop'):
+            validate_app(dict(app, appId='org.example.Editor'), self.icons)
+        app['additionalShortcuts'][0]['shortcut'] = 'escape'
+        with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
+            validate_app(app, self.icons)
+
     def test_new_file_is_discovered_and_reordering_preserves_ids(self):
         with TemporaryDirectory() as temp:
             root = Path(temp)
