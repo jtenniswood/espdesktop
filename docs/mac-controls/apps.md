@@ -9,7 +9,7 @@ Companion cards can bring an approved application to the front or open a website
 
 ## Launch an App
 
-1. In the Mac app, open **Apps** and approve the applications the display may launch.
+1. In the Mac app, open **Apps**. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
 2. In the display's setup page, add a **Companion → Applications** card.
 3. Select an approved application and save the display configuration.
 
