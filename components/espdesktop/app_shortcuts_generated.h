@@ -110,7 +110,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.apple.iCal") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.openai.chat") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "com.anthropic.claudefordesktop") return id == "0" || id == "1" || id == "2" || id == "3";
-  if (app == "com.openai.codex") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
+  if (app == "com.openai.codex") return id == "7" || id == "0" || id == "8" || id == "9" || id == "6" || id == "10" || id == "11" || id == "2" || id == "3" || id == "12" || id == "13" || id == "14" || id == "15" || id == "5" || id == "4" || id == "16" || id == "17" || id == "18";
   if (app == "com.todesktop.230313mzl4w4u92") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.blackmagic-design.DaVinciResolve") return id == "0" || id == "1" || id == "2";
   if (app == "com.hnc.Discord") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";

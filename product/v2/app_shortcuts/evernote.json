@@ -6,45 +6,45 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Search in Evernote",
+      "label": "Search Notes",
       "shortcut": "command+shift+k",
-      "icon": "Application"
+      "icon": "Note Search"
     },
     {
       "id": "1",
-      "label": "New note",
+      "label": "New Note",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Note Plus"
     },
     {
       "id": "2",
-      "label": "New notebook",
+      "label": "New Notebook",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "Folder Plus"
     },
     {
       "id": "3",
-      "label": "New space",
+      "label": "New Space",
       "shortcut": "command+shift+s",
-      "icon": "Application"
+      "icon": "Plus"
     },
     {
       "id": "4",
-      "label": "New task",
+      "label": "New Task",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Task List"
     },
     {
       "id": "5",
-      "label": "New event",
+      "label": "New Event",
       "shortcut": "command+e",
-      "icon": "Application"
+      "icon": "Calendar Plus"
     },
     {
       "id": "6",
       "label": "Search",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Search"
     }
   ]
 }

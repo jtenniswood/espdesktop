@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open an existing library or a new library",
+      "label": "Open Library",
       "shortcut": "command+o",
-      "icon": "Plus"
+      "icon": "Folder Play"
     },
     {
       "id": "1",
-      "label": "Create audition from timeline clip",
+      "label": "Clip Audition",
       "shortcut": "option+y",
-      "icon": "Plus"
+      "icon": "Filmstrip Stack"
     },
     {
       "id": "2",
-      "label": "Create audition from selection",
+      "label": "Audition Selection",
       "shortcut": "command+y",
-      "icon": "Plus"
+      "icon": "Compare Selection"
     },
     {
       "id": "3",
-      "label": "Create storyline from selection",
+      "label": "New Storyline",
       "shortcut": "command+g",
-      "icon": "Plus"
+      "icon": "Timeline Plus"
     },
     {
       "id": "4",
-      "label": "Create compound clip",
+      "label": "Compound Clip",
       "shortcut": "option+g",
-      "icon": "Plus"
+      "icon": "Group Selection"
     },
     {
       "id": "5",
-      "label": "Delete selection",
+      "label": "Delete Selection",
       "shortcut": "command+delete",
-      "icon": "Search"
+      "icon": "Trash Can Outline"
     },
     {
       "id": "6",
-      "label": "Create a new project",
+      "label": "New Project",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Movie Plus"
     },
     {
       "id": "7",
-      "label": "Reveal the selected event clip’s source media",
+      "label": "Reveal Media",
       "shortcut": "shift+command+r",
-      "icon": "Search"
+      "icon": "Folder Open Outline"
     }
   ]
 }

@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Go to next tab",
+      "label": "Next Tab",
       "shortcut": "control+tab",
-      "icon": "Tab"
-    },
-    {
-      "id": "1",
-      "label": "Go to previous tab",
-      "shortcut": "shift+control+tab",
-      "icon": "Tab"
-    },
-    {
-      "id": "2",
-      "label": "Move to next document in the window",
-      "shortcut": "option+pagedown",
       "icon": "Chevron Right"
     },
     {
-      "id": "3",
-      "label": "Move to previous document in the window",
-      "shortcut": "option+pageup",
+      "id": "1",
+      "label": "Previous Tab",
+      "shortcut": "shift+control+tab",
       "icon": "Chevron Left"
+    },
+    {
+      "id": "2",
+      "label": "Next Document",
+      "shortcut": "option+pagedown",
+      "icon": "Arrow Right"
+    },
+    {
+      "id": "3",
+      "label": "Previous Document",
+      "shortcut": "option+pageup",
+      "icon": "Arrow Left"
     }
   ]
 }

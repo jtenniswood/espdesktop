@@ -6,7 +6,7 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "New reminder",
+      "label": "New Reminder",
       "shortcut": "command+n",
       "icon": "Plus"
     },
@@ -14,37 +14,37 @@
       "id": "1",
       "label": "New List",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "2",
-      "label": "New section",
+      "label": "New Section",
       "shortcut": "option+command+n",
       "icon": "Plus"
     },
     {
       "id": "3",
-      "label": "New section with selection",
+      "label": "Group Selection",
       "shortcut": "control+command+n",
-      "icon": "Plus"
+      "icon": "Folder Plus"
     },
     {
       "id": "4",
-      "label": "Mark a reminder completed or incomplete",
+      "label": "Toggle Complete",
       "shortcut": "shift+command+c",
-      "icon": "Application"
+      "icon": "Check"
     },
     {
       "id": "5",
-      "label": "Set due date to this weekend",
+      "label": "This Weekend",
       "shortcut": "command+k",
-      "icon": "Chevron Right"
+      "icon": "Calendar Week"
     },
     {
       "id": "6",
-      "label": "Set reminder as due next week",
+      "label": "Next Week",
       "shortcut": "option+command+k",
-      "icon": "Chevron Right"
+      "icon": "Calendar Week"
     }
   ]
 }

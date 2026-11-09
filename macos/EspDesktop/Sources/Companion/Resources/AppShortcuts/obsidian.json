@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open the Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "1",
-      "label": "Open the Quick Switcher",
+      "label": "Quick Switch",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Swap Horizontal"
     },
     {
       "id": "2",
-      "label": "Open the selected Quick Switcher note in a ne…",
+      "label": "Open Note",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "3",
-      "label": "Search all files in the vault",
+      "label": "Search Vault",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Folder Search"
     },
     {
       "id": "4",
-      "label": "Toggle Reading view and Editing view",
+      "label": "Toggle Reading",
       "shortcut": "command+e",
-      "icon": "Application"
+      "icon": "Book"
     },
     {
       "id": "5",
-      "label": "Open a new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "6",
-      "label": "Switch to the next tab",
+      "label": "Next Tab",
       "shortcut": "control+tab",
-      "icon": "Application"
+      "icon": "Chevron Right"
     },
     {
       "id": "7",
-      "label": "Switch to the previous tab",
+      "label": "Previous Tab",
       "shortcut": "control+shift+tab",
-      "icon": "Application"
+      "icon": "Chevron Left"
     },
     {
       "id": "8",
-      "label": "Switch directly to a tab by position",
+      "label": "Jump Tab",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Tab"
     },
     {
       "id": "9",
-      "label": "Reopen the recently closed tab",
+      "label": "Reopen Tab",
       "shortcut": "command+shift+t",
-      "icon": "Application"
+      "icon": "Tab Restore"
     }
   ]
 }

@@ -6305,7 +6305,7 @@ async function assertAppSubpageCapacity(browser, testCase) {
       assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
       await page.locator(".sp-back-btn .sp-back-hit").click();
       let app = await openAppSettings();
-      for (const id of ["1", "2", "4"]) {
+      for (const id of ["7", "2", "4"]) {
         await page.locator("#sp-inp-companion-shortcut-" + id).evaluate(input => input.click());
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "available shortcut enables");
         assert.strictEqual(await app.getByText(/No free subpage space/).count(), 0, "three empty cells do not produce a full-page warning");
@@ -6314,12 +6314,12 @@ async function assertAppSubpageCapacity(browser, testCase) {
       const saved = () => native ? fixture.document.subpages[1] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_1")).map(([,value]) => value).join("");
       const deadline = Date.now() + 10000;
-      while ((!saved()?.includes("shortcut.command+enter") || !saved()?.includes("shortcut.option+command+b")) && Date.now() < deadline)
+      while ((!saved()?.includes("shortcut.command+n") || !saved()?.includes("shortcut.option+command+b")) && Date.now() < deadline)
         await new Promise(resolve => setTimeout(resolve, 25));
-      assert(saved().includes("shortcut.command+enter") && saved().includes("shortcut.command+t") && saved().includes("shortcut.option+command+b"), "all three added shortcuts are saved");
+      assert(saved().includes("shortcut.command+n") && saved().includes("shortcut.command+t") && saved().includes("shortcut.option+command+b"), "all three added shortcuts are saved");
       assert(saved().includes("Custom shortcut"), "the existing custom card is retained");
       app = await openAppSettings();
-      for (const id of ["1", "2", "4"])
+      for (const id of ["7", "2", "4"])
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "saved shortcut remains enabled when reopened");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }

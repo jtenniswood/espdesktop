@@ -6,31 +6,31 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Quick search",
+      "label": "Quick Search",
       "shortcut": "command+k",
       "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Search this chat",
+      "label": "Search Chat",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Search all chats",
+      "label": "Search All",
       "shortcut": "shift+command+f",
       "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Previous chat",
+      "label": "Previous Chat",
       "shortcut": "option+command+up",
       "icon": "Chevron Up"
     },
     {
       "id": "4",
-      "label": "Next chat",
+      "label": "Next Chat",
       "shortcut": "option+command+down",
       "icon": "Chevron Down"
     }

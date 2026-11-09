@@ -6,13 +6,13 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Compose a new message",
+      "label": "New Message",
       "shortcut": "command+n",
-      "icon": "Message Video"
+      "icon": "Chat Plus"
     },
     {
       "id": "1",
-      "label": "Start a search",
+      "label": "Search",
       "shortcut": "command+g",
       "icon": "Search"
     },
@@ -20,19 +20,19 @@
       "id": "2",
       "label": "Browse DMs",
       "shortcut": "command+shift+k",
-      "icon": "Account"
+      "icon": "Chat"
     },
     {
       "id": "3",
-      "label": "Jump to most recent unread",
+      "label": "Jump Unread",
       "shortcut": "command+j",
       "icon": "Bell"
     },
     {
       "id": "4",
-      "label": "Open the All Unread view",
+      "label": "All Unread",
       "shortcut": "command+shift+a",
-      "icon": "View Headline"
+      "icon": "Message Unread"
     },
     {
       "id": "5",
@@ -42,27 +42,27 @@
     },
     {
       "id": "6",
-      "label": "Show keyboard shortcuts",
+      "label": "Shortcuts",
       "shortcut": "command+keyslash",
-      "icon": "Shortcut Command"
+      "icon": "Keyboard"
     },
     {
       "id": "7",
-      "label": "Previous unread conversation",
+      "label": "Previous Unread",
       "shortcut": "option+shift+up",
       "icon": "Chevron Up"
     },
     {
       "id": "8",
-      "label": "Next unread conversation",
+      "label": "Next Unread",
       "shortcut": "option+shift+down",
       "icon": "Chevron Down"
     },
     {
       "id": "9",
-      "label": "Quick switch to channel or DM",
+      "label": "Quick Switch",
       "shortcut": "command+k",
-      "icon": "Account"
+      "icon": "Search"
     }
   ]
 }

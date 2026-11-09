@@ -5,46 +5,112 @@
   "catalog": false,
   "shortcuts": [
     {
-      "id": "0",
-      "label": "Command",
-      "shortcut": "command+k",
-      "icon": "Application"
+      "id": "7",
+      "label": "New Chat",
+      "shortcut": "command+n",
+      "icon": "Chat Plus"
     },
     {
-      "id": "1",
-      "label": "Approve",
-      "shortcut": "command+enter",
-      "icon": "Check"
+      "id": "0",
+      "label": "Command Menu",
+      "shortcut": "command+k",
+      "icon": "Shortcut Command"
+    },
+    {
+      "id": "8",
+      "label": "Needs Attention",
+      "shortcut": "option+command+a",
+      "icon": "Message Alert"
+    },
+    {
+      "id": "9",
+      "label": "Review Changes",
+      "shortcut": "control+shift+g",
+      "icon": "File Compare"
+    },
+    {
+      "id": "6",
+      "label": "Terminal",
+      "shortcut": "control+keybackquote",
+      "icon": "Terminal"
+    },
+    {
+      "id": "10",
+      "label": "Find Text",
+      "shortcut": "command+f",
+      "icon": "Search"
+    },
+    {
+      "id": "11",
+      "label": "Find Files",
+      "shortcut": "command+p",
+      "icon": "File Search"
     },
     {
       "id": "2",
-      "label": "Browser",
+      "label": "Browser Tab",
       "shortcut": "command+t",
-      "icon": "Web"
+      "icon": "Web Plus"
     },
     {
       "id": "3",
       "label": "Sidebar",
       "shortcut": "command+b",
-      "icon": "View Headline"
+      "icon": "Dock Left"
     },
     {
-      "id": "4",
-      "label": "Terminal (Bottom)",
-      "shortcut": "option+command+b",
-      "icon": "Dock Bottom"
+      "id": "12",
+      "label": "File Tree",
+      "shortcut": "command+shift+e",
+      "icon": "File Tree"
+    },
+    {
+      "id": "13",
+      "label": "Project Picker",
+      "shortcut": "option+command+shift+o",
+      "icon": "Folder Search"
+    },
+    {
+      "id": "14",
+      "label": "Model Picker",
+      "shortcut": "control+shift+m",
+      "icon": "Robot"
+    },
+    {
+      "id": "15",
+      "label": "Open Folder",
+      "shortcut": "command+o",
+      "icon": "Folder Open Outline"
     },
     {
       "id": "5",
-      "label": "Terminal (Side)",
+      "label": "Bottom Panel",
       "shortcut": "command+j",
-      "icon": "Dock Right"
+      "icon": "Dock Bottom"
     },
     {
-      "id": "6",
-      "label": "Terminal (Side)",
-      "shortcut": "control+keybackquote",
-      "icon": "Dock Right"
+      "id": "4",
+      "label": "Chat / Tabs",
+      "shortcut": "option+command+b",
+      "icon": "Swap Horizontal"
+    },
+    {
+      "id": "16",
+      "label": "Copy Link",
+      "shortcut": "option+command+l",
+      "icon": "Link"
+    },
+    {
+      "id": "17",
+      "label": "Previous Chat",
+      "shortcut": "control+shift+tab",
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "18",
+      "label": "Next Chat",
+      "shortcut": "control+tab",
+      "icon": "Chevron Right"
     }
   ]
 }

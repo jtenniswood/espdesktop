@@ -298,13 +298,24 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const codexPreset = codexShortcutPresetCards();
   const expectedCodexShortcuts = [
+    "shortcut.command+n",
     "shortcut.command+k",
-    "shortcut.command+enter",
+    "shortcut.option+command+a",
+    "shortcut.control+shift+g",
+    "shortcut.control+keybackquote",
+    "shortcut.command+f",
+    "shortcut.command+p",
     "shortcut.command+t",
     "shortcut.command+b",
-    "shortcut.option+command+b",
+    "shortcut.command+shift+e",
+    "shortcut.option+command+shift+o",
+    "shortcut.control+shift+m",
+    "shortcut.command+o",
     "shortcut.command+j",
-    "shortcut.control+keybackquote",
+    "shortcut.option+command+b",
+    "shortcut.option+command+l",
+    "shortcut.control+shift+tab",
+    "shortcut.control+tab",
   ];
   if (codexPreset.map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
     throw new Error("Codex shortcut defaults changed");
@@ -312,7 +323,11 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!codexPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Codex presets must contain only Companion keyboard shortcuts");
   }
-  const expectedCodexLabels = ["Command", "Approve", "Browser", "Sidebar", "Terminal (Bottom)", "Terminal (Side)", "Terminal (Side)"];
+  const expectedCodexLabels = [
+    "New Chat", "Command Menu", "Needs Attention", "Review Changes", "Terminal", "Find Text", "Find Files",
+    "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model Picker", "Open Folder", "Bottom Panel",
+    "Chat / Tabs", "Copy Link", "Previous Chat", "Next Chat",
+  ];
   if (codexPreset.map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
     throw new Error("Codex shortcut labels should stay short");
   }
@@ -343,10 +358,12 @@ export function runCompanionShortcutFeatureTests(): void {
   if (!slackPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Slack presets must contain only Companion keyboard shortcuts");
   }
+  if (slackPreset[0]?.icon !== "Chat Plus") {
+    throw new Error("The Slack New Message preset should use the compose icon");
+  }
   const expectedSlackLabels = [
-    "Compose a new message", "Start a search", "Browse DMs", "Jump to most recent unread",
-    "Open the All Unread view", "Search chat", "Show keyboard shortcuts",
-    "Previous unread conversation", "Next unread conversation", "Quick switch to channel or DM",
+    "New Message", "Search", "Browse DMs", "Jump Unread", "All Unread",
+    "Search chat", "Shortcuts", "Previous Unread", "Next Unread", "Quick Switch",
   ];
   if (slackPreset.map((card) => card.label).join("|") !== expectedSlackLabels.join("|")) {
     throw new Error("Slack shortcut labels should stay short");
@@ -381,7 +398,7 @@ export function runCompanionShortcutFeatureTests(): void {
   });
   selectedSafariSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["3", "0"], selectedSafariSubpage);
-  if (selectedSafariSubpage.buttons.map((card: any) => card.label).join("|") !== "Open a new tab|Previous|Custom" ||
+  if (selectedSafariSubpage.buttons.map((card: any) => card.label).join("|") !== "New Tab|Previous|Custom" ||
       selectedSafariSubpage.order.join("|") !== "B|1|2||||3" ||
       companionShortcutTabsFromSubpage(SAFARI_BUNDLE_ID, selectedSafariSubpage).join("|") !== "3|0") {
     throw new Error("Changing shortcut choices must preserve custom cards and edited preset cards: " +
@@ -408,7 +425,8 @@ export function runCompanionShortcutFeatureTests(): void {
   const crossAppSubpage = createSafariShortcutSubpage();
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0", "1", "2", "3", "4"], crossAppSubpage);
   crossAppSubpage.order = ["B", "1", "2", "3", "4", "5"];
-  crossAppSubpage.buttons.push({ ...codexPreset[2], label: "Pasted Browser" });
+  const codexBrowserPreset = codexPreset.find((card) => card.entity === "shortcut.command+t");
+  crossAppSubpage.buttons.push({ ...codexBrowserPreset, label: "Pasted Browser" });
   crossAppSubpage.order.push("6");
   syncCompanionShortcutSubpage(SAFARI_BUNDLE_ID, ["0"], crossAppSubpage);
   if (!crossAppSubpage.buttons.some((card: any) =>
@@ -458,9 +476,20 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Users must be able to turn off every preset shortcut");
   }
   const codexSubpage = createCodexShortcutSubpage();
-  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.join("|") !== "B|1|2|3|4|5|6|7" ||
+  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== expectedCodexShortcuts.length + 1 ||
+      codexSubpage.order[0] !== "B" ||
       codexSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
     throw new Error("Codex app subpage layout changed");
+  }
+  const savedApprove = {
+    ...codexPreset[0], entity: "shortcut.command+enter", label: "Approve", icon: "Check",
+    options: "app_shortcut_preset=com.openai.codex%3A1",
+  };
+  const existingCodexSubpage = { ...codexSubpage, buttons: [savedApprove], order: ["B", "1"] };
+  syncCompanionShortcutSubpage(CODEX_BUNDLE_ID, ["7"], existingCodexSubpage, 9);
+  if (existingCodexSubpage.buttons[0] !== savedApprove ||
+      existingCodexSubpage.buttons[1]?.entity !== "shortcut.command+n") {
+    throw new Error("Adding New Chat must preserve a previously saved Approve card");
   }
   const slackSubpage = createSlackShortcutSubpage();
   if (slackSubpage.backLabel !== "Back" || slackSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10" ||

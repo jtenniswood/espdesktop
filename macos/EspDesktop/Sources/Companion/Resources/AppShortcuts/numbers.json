@@ -6,45 +6,45 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Add a new sheet",
+      "label": "New Sheet",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "Table Plus"
     },
     {
       "id": "1",
-      "label": "Find the selected item in the spreadsheet",
+      "label": "Find Selection",
       "shortcut": "command+e",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Insert a new line after the insertion point",
+      "label": "Line Break",
       "shortcut": "control+o",
-      "icon": "Application"
+      "icon": "Shortcut Return"
     },
     {
       "id": "3",
       "label": "Find",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Find next (while in the Find window)",
+      "label": "Next Match",
       "shortcut": "command+g",
-      "icon": "Application"
+      "icon": "Chevron Down"
     },
     {
       "id": "5",
-      "label": "Find previous (while in the Find window)",
+      "label": "Previous Match",
       "shortcut": "command+shift+g",
-      "icon": "Application"
+      "icon": "Chevron Up"
     },
     {
       "id": "6",
-      "label": "Open a new comment for the selected text, obj…",
+      "label": "New Comment",
       "shortcut": "command+shift+k",
-      "icon": "Application"
+      "icon": "Comment Plus"
     }
   ]
 }

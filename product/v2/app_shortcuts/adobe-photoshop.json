@@ -8,37 +8,37 @@
       "id": "0",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "1",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     },
     {
       "id": "2",
       "label": "Deselect",
       "shortcut": "command+d",
-      "icon": "Application"
+      "icon": "Deselect"
     },
     {
       "id": "3",
       "label": "Free Transform",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Vector"
     },
     {
       "id": "4",
-      "label": "New layer via copy",
+      "label": "Copy Layer",
       "shortcut": "command+j",
-      "icon": "Application"
+      "icon": "Layers"
     },
     {
       "id": "5",
-      "label": "Create or release clipping mask",
+      "label": "Clipping Mask",
       "shortcut": "command+option+g",
-      "icon": "Application"
+      "icon": "Clipping Mask"
     }
   ]
 }

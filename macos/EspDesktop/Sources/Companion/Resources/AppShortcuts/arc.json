@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open a new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "1",
-      "label": "Close the current tab or window",
+      "label": "Close Tab",
       "shortcut": "command+w",
-      "icon": "Application"
+      "icon": "Close Tab"
     },
     {
       "id": "2",
-      "label": "Reopen the last closed tab",
+      "label": "Reopen Tab",
       "shortcut": "command+shift+t",
-      "icon": "Application"
+      "icon": "Tab Restore"
     },
     {
       "id": "3",
-      "label": "Pin or unpin the current tab",
+      "label": "Pin Tab",
       "shortcut": "command+d",
-      "icon": "Application"
+      "icon": "Pin"
     },
     {
       "id": "4",
-      "label": "Change the current tab URL",
+      "label": "Edit URL",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Link"
     },
     {
       "id": "5",
-      "label": "Show or hide the sidebar",
+      "label": "Toggle Sidebar",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Dock Left"
     },
     {
       "id": "6",
-      "label": "Go directly to tab N",
+      "label": "Jump Tab",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Tab"
     },
     {
       "id": "7",
-      "label": "Switch between the five most recent tabs",
+      "label": "Recent Tabs",
       "shortcut": "control+tab",
-      "icon": "Application"
+      "icon": "History"
     },
     {
       "id": "8",
-      "label": "Reload the webpage",
+      "label": "Reload",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Refresh"
     },
     {
       "id": "9",
-      "label": "Find text on the webpage",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     }
   ]
 }

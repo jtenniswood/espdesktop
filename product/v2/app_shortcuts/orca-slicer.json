@@ -8,49 +8,49 @@
       "id": "0",
       "label": "New Project",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "New File"
     },
     {
       "id": "1",
       "label": "Open Project",
       "shortcut": "command+o",
-      "icon": "Folder"
+      "icon": "Folder Open Outline"
     },
     {
       "id": "2",
       "label": "Save Project",
       "shortcut": "command+s",
-      "icon": "Download"
+      "icon": "Save"
     },
     {
       "id": "3",
-      "label": "Save Project as",
+      "label": "Save As",
       "shortcut": "command+shift+s",
-      "icon": "Download"
+      "icon": "Save As"
     },
     {
       "id": "4",
-      "label": "Import geometry data from STL/STEP/3MF/OBJ/AMF",
+      "label": "Import Model",
       "shortcut": "command+i",
-      "icon": "Folder"
+      "icon": "Import"
     },
     {
       "id": "5",
-      "label": "Slice plate",
+      "label": "Slice Plate",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Layers"
     },
     {
       "id": "6",
-      "label": "Export plate sliced file",
+      "label": "Export Slice",
       "shortcut": "command+g",
-      "icon": "Folder"
+      "icon": "Export"
     },
     {
       "id": "7",
-      "label": "Print plate",
+      "label": "Print Plate",
       "shortcut": "command+shift+g",
-      "icon": "Application"
+      "icon": "Printer 3D"
     },
     {
       "id": "8",

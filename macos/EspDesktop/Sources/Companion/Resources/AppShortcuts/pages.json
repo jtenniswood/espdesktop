@@ -6,57 +6,57 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new document (open the template choo…",
+      "label": "New Document",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "1",
-      "label": "Open the next tab in the sidebar",
+      "label": "Next Sidebar",
       "shortcut": "control+keybackquote",
-      "icon": "Application"
+      "icon": "Chevron Right"
     },
     {
       "id": "2",
-      "label": "Open the previous tab in the sidebar",
+      "label": "Previous Sidebar",
       "shortcut": "control+shift+keybackquote",
-      "icon": "Application"
+      "icon": "Chevron Left"
     },
     {
       "id": "3",
-      "label": "Insert a new line after the insertion point",
+      "label": "Line Break",
       "shortcut": "control+o",
-      "icon": "Application"
+      "icon": "Shortcut Return"
     },
     {
       "id": "4",
       "label": "Find",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "5",
-      "label": "Find next (while in the Find window)",
+      "label": "Next Match",
       "shortcut": "command+g",
-      "icon": "Application"
+      "icon": "Chevron Down"
     },
     {
       "id": "6",
-      "label": "Find previous (while in the Find window)",
+      "label": "Previous Match",
       "shortcut": "command+shift+g",
-      "icon": "Application"
+      "icon": "Chevron Up"
     },
     {
       "id": "7",
-      "label": "Place the selected text in the Find & Replace…",
+      "label": "Find Selection",
       "shortcut": "command+e",
-      "icon": "Application"
+      "icon": "Find Replace"
     },
     {
       "id": "8",
-      "label": "Open a new comment for the selected text, obj…",
+      "label": "New Comment",
       "shortcut": "command+shift+k",
-      "icon": "Application"
+      "icon": "Comment Plus"
     }
   ]
 }

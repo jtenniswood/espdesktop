@@ -6,57 +6,57 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Start a new email",
+      "label": "New Email",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Email Plus"
     },
     {
       "id": "1",
-      "label": "Open a new Mail viewer window",
+      "label": "New Window",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "New Window"
     },
     {
       "id": "2",
-      "label": "Open a new tab in the Mail viewer window",
+      "label": "New Tab",
       "shortcut": "option+shift+command+n",
-      "icon": "Tab"
+      "icon": "New Tab"
     },
     {
       "id": "3",
-      "label": "Show the Reply-To address field in your email",
+      "label": "Reply-To",
       "shortcut": "option+command+r",
-      "icon": "Message Video"
+      "icon": "Email"
     },
     {
       "id": "4",
-      "label": "Get new emails",
+      "label": "Check Mail",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Email Sync"
     },
     {
       "id": "5",
-      "label": "Send emails",
+      "label": "Send",
       "shortcut": "shift+command+d",
-      "icon": "Application"
+      "icon": "Send"
     },
     {
       "id": "6",
-      "label": "Unsend email",
+      "label": "Undo Send",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "7",
-      "label": "Reply to the selected email",
+      "label": "Reply",
       "shortcut": "command+r",
-      "icon": "Message Video"
+      "icon": "Reply"
     },
     {
       "id": "8",
-      "label": "Archive emails",
+      "label": "Archive",
       "shortcut": "control+command+a",
-      "icon": "Application"
+      "icon": "Archive"
     }
   ]
 }

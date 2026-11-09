@@ -6,39 +6,39 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "New movie recording",
+      "label": "Record Video",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "Video"
     },
     {
       "id": "1",
-      "label": "New audio recording",
+      "label": "Record Audio",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Microphone"
     },
     {
       "id": "2",
-      "label": "New screen recording",
+      "label": "Record Screen",
       "shortcut": "control+command+n",
-      "icon": "Plus"
+      "icon": "Screen Record"
     },
     {
       "id": "3",
-      "label": "Play or pause all movies",
+      "label": "Play All",
       "shortcut": "command+enter",
-      "icon": "Play"
+      "icon": "Play Pause"
     },
     {
       "id": "4",
-      "label": "Display movie at actual size",
+      "label": "Actual Size",
       "shortcut": "command+1",
-      "icon": "Play"
+      "icon": "Fit to Screen"
     },
     {
       "id": "5",
-      "label": "Display the movie in panoramic mode",
+      "label": "Panorama",
       "shortcut": "command+5",
-      "icon": "Play"
+      "icon": "Panorama"
     }
   ]
 }

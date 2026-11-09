@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Show Transfers",
+      "label": "Transfers",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Swap Horizontal"
     },
     {
       "id": "1",
       "label": "Refresh",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Refresh"
     },
     {
       "id": "2",
       "label": "Back",
       "shortcut": "command+keybracketleft",
-      "icon": "Application"
+      "icon": "Back"
     },
     {
       "id": "3",
       "label": "Forward",
       "shortcut": "command+keybracketright",
-      "icon": "Application"
+      "icon": "Forward"
     }
   ]
 }

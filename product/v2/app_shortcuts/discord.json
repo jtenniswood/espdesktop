@@ -6,45 +6,45 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Keyboard Shortcuts menu",
+      "label": "Shortcuts",
       "shortcut": "command+keyslash",
-      "icon": "Application"
+      "icon": "Keyboard"
     },
     {
       "id": "1",
-      "label": "Search within the current channel",
+      "label": "Search Channel",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Search across channels",
+      "label": "Search All",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Open the Quick Switcher",
+      "label": "Quick Switch",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Swap Horizontal"
     },
     {
       "id": "4",
-      "label": "Mute or unmute microphone",
+      "label": "Toggle Mic",
       "shortcut": "command+shift+m",
-      "icon": "Application"
+      "icon": "Microphone Off"
     },
     {
       "id": "5",
-      "label": "Deafen or undeafen audio",
+      "label": "Toggle Deafen",
       "shortcut": "command+shift+d",
-      "icon": "Application"
+      "icon": "Headphones"
     },
     {
       "id": "6",
-      "label": "Upload a file",
+      "label": "Upload File",
       "shortcut": "command+shift+u",
-      "icon": "Application"
+      "icon": "Upload"
     }
   ]
 }
