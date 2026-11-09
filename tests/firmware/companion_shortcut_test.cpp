@@ -68,6 +68,16 @@ int main() {
   assert(finder_append_folder_tiles(added, {true, true, true, true}, folders) == added);
   assert(finder_append_folder_tiles(page, {true, true, true, true}, folders) == page);
   assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
+  const auto capacity = finder_append_folder_tiles(page, {true, true, false, false},
+      folders, 65535, "same_window").size();
+  const auto plan = finder_plan_folder_tiles_for_grid("B,1,,", parse_subpage_config(page), 4, 2,
+      {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}, {"folder.two", "Duplicate"}},
+      capacity, "same_window");
+  assert(plan.order == "B,1,2," && plan.added.size() == 1);
+  assert(plan.added[0].label == "A,B|C");
+  assert(plan.added[0].options == "finder_open_behavior=same_window");
+  assert(finder_plan_folder_tiles_for_grid("B,1,,", parse_subpage_config(page), 4, 2,
+      folders, capacity - 1, "same_window").added.empty());
 
   // Exercise the real translation tables at the device-label boundary.
   assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");

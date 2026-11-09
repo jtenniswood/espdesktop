@@ -22,7 +22,7 @@ struct NavigationHomeTargetEntry { int slot; std::string config; };
 lv_obj_t home, app, other;
 lv_obj_t *screen = &app;
 std::vector<NavigationSubpageEntry> pages{{1, "app_shortcuts", &app}, {2, "app_shortcuts", &other}};
-std::vector<NavigationHomeTargetEntry> parents{{1, "first.app"}, {2, "second.app"}};
+std::vector<NavigationHomeTargetEntry> parents{{1, "stale.first"}, {2, "stale.second"}};
 std::atomic<bool> pending_return{false};
 std::string pending_open;
 bool return_home = true;
@@ -38,7 +38,7 @@ int navigation_active_subpage_slot() { return screen == &app ? 1 : screen == &ot
 NavigationSubpageEntry *navigation_find_slot(int slot) { return slot ? &pages[slot - 1] : nullptr; }
 NavigationHomeTargetEntry *navigation_find_slot_target(int slot) { return slot ? &parents[slot - 1] : nullptr; }
 auto &navigation_home_targets() { return parents; }
-ParsedCfg parse_cfg(const std::string &s) { return {s}; }
+ParsedCfg grid_layout_card_config(int slot, const std::string &) { return {slot == 1 ? "first.app" : "second.app"}; }
 bool companion_app_shortcuts_enabled(const ParsedCfg &) { return true; }
 bool navigation_restore_subpage_slot(int slot) { screen = pages[slot - 1].screen; return true; }
 bool navigation_return_home(lv_obj_t *) { screen = &home; return true; }
