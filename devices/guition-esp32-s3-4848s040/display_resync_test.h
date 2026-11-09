@@ -8,6 +8,7 @@
 
 #include <esp_heap_caps.h>
 
+#include "esphome/components/espdesktop/companion_controls.h"
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "esphome/components/mipi_rgb/mipi_rgb.h"
 #include "esphome/components/web_server_base/web_server_base.h"
@@ -29,6 +30,7 @@ class DisplayResyncTestHandler final : public esphome::web_server_idf::AsyncWebH
   }
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
+    if (!companion_authorize_web_request(request)) return;
     char path[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
     if (request->url_to(path) == "/display-test/frame") {
       this->send_frame_(request);
