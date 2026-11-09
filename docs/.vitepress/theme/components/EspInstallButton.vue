@@ -14,7 +14,7 @@
       Checking the latest firmware...
     </div>
     <div v-else-if="!manifestAvailable" class="installer-status warning">
-      Browser installation will be available after firmware for this display is published.
+      Browser-installable firmware for this display has not been published yet.
       Check the <a href="https://github.com/jtenniswood/espdesktop/releases">EspDesktop releases</a> for updates.
     </div>
     <div v-else-if="!ready" class="installer-status">
