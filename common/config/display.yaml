@@ -31,7 +31,7 @@ esphome:
       then:
         - lambda: |-
             if (espdesktop::active_espdesktop_app_core() != nullptr) {
-              id(espdesktop_app).bind_app_subpage_preference_switch(id(companion_auto_open_app_subpages_enabled));
+              id(espdesktop_app).bind_app_subpage_preference_switch(*id(companion_auto_open_app_subpages_enabled));
               companion_set_return_home_on_app_switch(id(companion_return_home_on_app_switch_enabled).state);
             }
     - priority: -100

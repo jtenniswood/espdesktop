@@ -41,6 +41,8 @@ inline int *active_espdesktop_app_core() { return ready ? &core : nullptr; }
 namespace esphome::switch_ {
 struct Switch {
   bool state = true;
+  // ESPHome resolves bare id() references in lambdas to pointers.
+  Switch &operator*() { return *this; }
   void publish_state(bool enabled) { state = enabled; }
 };
 }
