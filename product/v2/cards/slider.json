@@ -1,5 +1,5 @@
 {
-  "label": "Slider",
+  "label": "Volume",
   "allowInSubpage": true,
   "domains": ["light", "fan", "number", "input_number"],
   "normalization": {
