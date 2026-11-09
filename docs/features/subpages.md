@@ -9,6 +9,8 @@ Subpages are folders that open another page of cards. Add a **Subpage**, choose 
 
 A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards. On app subpages, the Back card shows the app’s large icon and returns to its parent page when touched. Its saved name remains editable in card settings, while the icon fills the card on the display. Regular subpages keep their Back arrow and label.
 
+All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
+
 ## Mac statistics
 
 Choose **Companion Stat** to show a Mac statistic on the folder tile while keeping the tap action as navigation. Select the statistic and, where available, used/free display or a storage device. A paired Mac provides the readings.
@@ -47,27 +49,13 @@ Drag cards to change their order. To move or copy a card between the home screen
 
 Open **Screen** or **System** and choose **Apply Configuration** to apply your changes to the display.
 
-To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage, Back and Close buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
+To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage and Back buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
 
 Returning with **Back** or a swipe shows the destination page before loading any missing app artwork. Cached icons appear straight away; other icons can appear shortly afterward.
 
 ## Swipe back
 
 Swipe right from the left edge of a subpage to use its **Back** action. This also
-works on app subpages. On the Special Page, it uses **Close** and returns to the
-screen you came from. A short swipe is enough, using the same sensitivity as the
-bottom-edge swipe. Swiping right on the home screen does nothing.
+works on app subpages. A short swipe is enough. Swiping right on the home screen does nothing.
 
-Screen Lock blocks both edge swipes. They are unavailable on setup screens,
-screensavers and while a popup is open.
-
-## Swipe-up page
-
-Swipe up from the bottom edge of the home screen or a card subpage to open a
-separate page. A short upward swipe from the bottom edge opens it; a long drag
-is not needed. Choose **Configure swipe-up page** below the display preview in the web layout editor to add cards.
-The page has no title above the preview or on the display.
-It starts empty, supports ordinary cards, and cannot contain nested subpages.
-Swipe down from the top edge to close it and return to the screen you came
-from. Its **Close** button, marked with a cross icon, does the same. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
-The page is saved on the display and included in backups.
+Screen Lock blocks the gesture. It is unavailable on setup screens, screensavers and while a popup is open.

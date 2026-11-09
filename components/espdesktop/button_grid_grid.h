@@ -1322,6 +1322,8 @@ inline void grid_phase2(
     const bool is_nested_page = si > NS;
     const NestedPageTask task = is_nested_page ? nested_pages[si - NS - 1] : NestedPageTask{};
     const bool is_special_page = si == NS;
+    // Preserve saved swipe-up layouts without creating a display page for them.
+    if (is_special_page) continue;
     const int parent_index = is_special_page ? 0 : is_nested_page ? si - 1 : si;
     BtnSlot owner_slot = is_nested_page ? task.owner : slots[is_special_page ? 0 : si];
     const int navigation_slot = is_special_page

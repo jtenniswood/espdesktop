@@ -413,10 +413,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.title = "Click to rename; Enter to save";
     }
     function renderPreview(this: any) {
-        if (els.specialPageEntry) {
-            els.specialPageEntry.hidden = state.editingSubpage === -1;
-            els.specialPageEntry.disabled = state.configLocked;
-        }
         appIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
