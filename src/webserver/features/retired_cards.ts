@@ -84,3 +84,7 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
 export function isRetiredWebApp(type: string | null | undefined): boolean {
   return type === "companion_webapp";
 }
+
+export function isRetiredWebAppOrWifiCard(type: string | null | undefined): boolean {
+  return isRetiredWebApp(type) || type === "wifi_qr" || type === "wifi_qr_card";
+}

@@ -1,4 +1,4 @@
-import { isRetiredWebApp, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
+import { isRetiredWebAppOrWifiCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
@@ -844,7 +844,7 @@ export function createConfigCodecFeature(
         if (combined) {
             var migrateConfig: any = subpageConfigNeedsMigration(combined);
             var sp: any = parseSubpageConfig(combined);
-            const retired = removeRetiredSubpageRecords(combined, sp.buttons, isRetiredWebApp);
+            const retired = removeRetiredSubpageRecords(combined, sp.buttons, isRetiredWebAppOrWifiCard);
             sp.sizes = sp.sizes || {};
             var layoutNormalized: any = buildSubpageGridAndNormalizeOrder(sp);
             state.subpages[slot] = sp;
@@ -875,7 +875,7 @@ export function createConfigCodecFeature(
         var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.totalSlots, layout.gridCols, layout.previewSlots);
         sp.grid = result.grid;
         sp.sizes = result.sizes;
-        if (removeRetiredCards(sp.grid, sp.sizes, sp.buttons, layout.gridCols, isRetiredWebApp).length) {
+        if (removeRetiredCards(sp.grid, sp.sizes, sp.buttons, layout.gridCols, isRetiredWebAppOrWifiCard).length) {
             sp.order = serializeSubpageGrid(sp);
         }
         return sp.grid;
