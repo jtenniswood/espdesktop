@@ -1,5 +1,3 @@
-# Mac volume sliders
+# Mac audio controls
 
-A Slider card controls the paired Mac's output volume or microphone input level. Choose **Slider**, then select **Mac output volume** or **Mac input volume** under **Control**. Save the card and drag its fill bar to adjust the level.
-
-Saved Home Assistant light, fan and number sliders are retired. Their configuration remains available in layouts and backups, but they no longer control those entities. Replace the card to select a Mac volume control.
+Choose **Volume** in the Mac Companion card picker. The **Volume** and **Mic** sliders adjust Mac output and input levels. **Output mute** and **Microphone mute** add tap controls labelled **Mute**, with speaker and microphone icons. See [Mac Controls](./companion) for device requirements and mute behaviour.

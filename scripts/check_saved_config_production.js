@@ -31,7 +31,6 @@ function checkCompiledHelper() {
 #include "button_grid_saved_config_image_generated.h"
 #include "button_grid_saved_config_climate_generated.h"
 #include "button_grid_saved_config_light_control_generated.h"
-#include "button_grid_saved_config_webhook_generated.h"
 #include "button_grid_saved_config_subpage_generated.h"
 #include "button_grid_saved_config_switch_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
@@ -327,30 +326,6 @@ int main() {
   assert(!normalize_saved_config_light_control(
     unrelated, [](const std::string &options, const Config &) { return options; }
   ));
-  Config webhook{"webhook", " post ", "payload", "stale", "webhook_headers=Content-Type%3A%20application%2Fjson,unknown=1", "Custom", "http://example.local/hook", "Gate", ""};
-  bool webhook_fields_called = false;
-  bool webhook_options_called = false;
-  assert(normalize_saved_config_webhook(
-    webhook,
-    [&](Config &config) {
-      webhook_fields_called = true;
-      config.sensor = "POST";
-      config.icon = "Auto";
-    },
-    [&](const std::string &, const Config &config) {
-      webhook_options_called = config.sensor == "POST" && config.precision.empty();
-      return std::string("webhook_headers=Content-Type%3A%20application%2Fjson");
-    }
-  ));
-  assert(webhook_fields_called && webhook_options_called);
-  assert(webhook.entity == "http://example.local/hook" && webhook.label == "Gate");
-  assert(webhook.icon == "Auto" && webhook.icon_on == "Auto");
-  assert(webhook.sensor == "POST" && webhook.unit == "payload" && webhook.precision.empty());
-  assert(webhook.options == "webhook_headers=Content-Type%3A%20application%2Fjson");
-  assert(!normalize_saved_config_webhook(
-    unrelated, [](Config &) {},
-    [](const std::string &options, const Config &) { return options; }
-  ));
   Config subpage{"subpage", "sensor.temperature", "C", "2", "subpage_kind=climate,large_numbers,unknown=1", "Custom", "", "", "Auto"};
   bool subpage_fields_called = false;
   bool subpage_options_called = false;
@@ -596,19 +571,6 @@ function main() {
   assert.deepStrictEqual(lightControlCard, { type: "light_control", entity: "light.kitchen", label: "Kitchen", icon: "Lightbulb Outline", icon_on: "Lightbulb", sensor: "", unit: "", precision: "", options: "light_tabs=brightness%7Cpower" });
   assert.strictEqual(generatedLightControl.normalizeSavedConfigLightControl({ type: "sensor" }, (options) => options), false);
 
-  const generatedWebhook = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_webhook.ts"));
-  const webhookCard = { type: "webhook", entity: "http://example.local/hook", label: "Gate", icon: "", icon_on: "Custom", sensor: " post ", unit: "payload", precision: "stale", options: "webhook_headers=Content-Type%3A%20application%2Fjson,unknown=1" };
-  let webhookFieldsCalled = false;
-  let webhookOptionsCalled = false;
-  assert.strictEqual(generatedWebhook.normalizeSavedConfigWebhook(
-    webhookCard,
-    (config) => { webhookFieldsCalled = true; config.sensor = "POST"; config.icon = "Auto"; },
-    (_options, config) => { webhookOptionsCalled = config.sensor === "POST" && config.precision === ""; return "webhook_headers=Content-Type%3A%20application%2Fjson"; },
-  ), true);
-  assert(webhookFieldsCalled && webhookOptionsCalled);
-  assert.deepStrictEqual(webhookCard, { type: "webhook", entity: "http://example.local/hook", label: "Gate", icon: "Auto", icon_on: "Auto", sensor: "POST", unit: "payload", precision: "", options: "webhook_headers=Content-Type%3A%20application%2Fjson" });
-  assert.strictEqual(generatedWebhook.normalizeSavedConfigWebhook({ type: "sensor" }, () => {}, (options) => options), false);
-
   const generatedSubpage = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_subpage.ts"));
   const subpageCard = { type: "subpage", entity: "", label: "", icon: "Auto", icon_on: "Custom", sensor: "sensor.temperature", unit: "C", precision: "2", options: "subpage_kind=climate,large_numbers,unknown=1" };
   let subpageFieldsCalled = false;
@@ -697,9 +659,6 @@ function main() {
   assert.match(browser, /from "\.\.\/generated\/saved_config_light_control";/);
   assert.match(browser, /normalizeSavedConfigLightControl\(b, normalizeSavedConfigLightControlOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "light_control"\)/);
-  assert.match(browser, /from "\.\.\/generated\/saved_config_webhook";/);
-  assert.match(browser, /normalizeSavedConfigWebhook\(b, normalizeSavedConfigWebhookFields, normalizeSavedConfigWebhookOptions\)/);
-  assert.doesNotMatch(browser, /if \(b && b\.type === "webhook"\)/);
   assert.match(browser, /from "\.\.\/generated\/saved_config_subpage";/);
   assert.match(browser, /normalizeSavedConfigSubpage\(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "subpage"\)/);
@@ -778,9 +737,6 @@ function main() {
   assert.match(firmware, /#include "button_grid_saved_config_light_control_generated\.h"/);
   assert.match(firmware, /normalize_saved_config_light_control\(p, normalize_saved_config_light_control_options\)/);
   assert.doesNotMatch(normalizeParser, /if \(p\.type == "light_control"\)/);
-  assert.match(firmware, /#include "button_grid_saved_config_webhook_generated\.h"/);
-  assert.match(firmware, /normalize_saved_config_webhook\(\s*p, normalize_saved_config_webhook_fields, normalize_saved_config_webhook_options\)/);
-  assert.doesNotMatch(normalizeParser, /if \(p\.type == "webhook"\)/);
   assert.match(firmware, /#include "button_grid_saved_config_subpage_generated\.h"/);
   assert.match(firmware, /normalize_saved_config_subpage\(\s*p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options\)/);
   assert.doesNotMatch(normalizeParser, /if \(p\.type == "subpage"\)/);
@@ -789,7 +745,7 @@ function main() {
   assert.doesNotMatch(normalizeParser, /if \(p\.type\.empty\(\)\) \{\s*p\.options = switch_card_options_normalized/);
 
   checkCompiledHelper();
-  console.log("Saved-config production check passed: Access, Climate, Fan, Image, Lawn Mower, Light Control, Media, Occupancy, Security, Subpage, Switch, Vacuum, Weather, Webhook, and static card normalization use generated browser and compiled firmware helpers.");
+  console.log("Saved-config production check passed: Access, Climate, Fan, Image, Lawn Mower, Light Control, Media, Occupancy, Security, Subpage, Switch, Vacuum, Weather, and static card normalization use generated browser and compiled firmware helpers.");
 }
 
 main();

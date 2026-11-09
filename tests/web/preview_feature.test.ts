@@ -74,8 +74,6 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("action", "mac_companion"), false, "Action cards cannot return through the Companion picker");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_stats", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
-  equal(cardTypeVisibleForConnector("webhook", "home_assistant"), false, "shared webhook cards appear for Home Assistant");
-  equal(cardTypeVisibleForConnector("webhook", "mac_companion"), true, "shared webhook cards appear for Companion");
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
@@ -107,12 +105,11 @@ export function runPreviewFeatureTests(): void {
       companion_subpage: { label: "Subpage", pickerKey: "subpage", allowInSubpage: false },
       companion_window: { label: "Window control", allowInSubpage: true },
       push: { label: "Trigger", allowInSubpage: true },
-      webhook: { label: "Webhook", allowInSubpage: true },
       slider: { label: "Slider", allowInSubpage: true },
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "slider", "companion_stats", "subpage", "webhook", "companion_window"],
+    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "slider", "companion_stats", "subpage", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

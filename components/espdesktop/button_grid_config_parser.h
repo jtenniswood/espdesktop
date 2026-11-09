@@ -25,7 +25,6 @@
 #include "button_grid_saved_config_image_generated.h"
 #include "button_grid_saved_config_climate_generated.h"
 #include "button_grid_saved_config_light_control_generated.h"
-#include "button_grid_saved_config_webhook_generated.h"
 #include "button_grid_saved_config_subpage_generated.h"
 #include "button_grid_saved_config_switch_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
@@ -113,7 +112,7 @@ struct ParsedCfg {
   std::string icon_on;     // 3  icon name for on state (blank = no swap)
   std::string sensor;      // 4  sensor entity, cover mode, or action name for Action cards
   std::string unit;        // 5  unit suffix for sensor display
-  std::string type;        // 6  button type: "" (toggle), action, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, webhook, subpage
+  std::string type;        // 6  button type: "" (toggle), action, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, climate, push, subpage
   std::string precision;   // 7  decimal places for sensors; "text" = text sensor mode
   std::string options;     // 8  comma-delimited card options
 };
@@ -958,22 +957,6 @@ inline std::string alarm_card_options_normalized(const std::string &options) {
   return out;
 }
 
-inline std::string normalize_webhook_method(const std::string &value) {
-  std::string method;
-  method.reserve(value.size());
-  for (char ch : value) {
-    method.push_back(static_cast<char>(std::toupper(static_cast<unsigned char>(ch))));
-  }
-  if (method == "POST" || method == "PUT" || method == "PATCH" ||
-      method == "DELETE") return method;
-  return "GET";
-}
-
-inline std::string webhook_card_options_normalized(const std::string &options) {
-  std::string headers = cfg_option_value(options, "webhook_headers");
-  return headers.empty() ? std::string() : "webhook_headers=" + encode_compact_field(headers);
-}
-
 inline std::string normalize_card_on_pattern(const std::string &value) {
   return value == "stripes" ? std::string("stripes") : std::string();
 }
@@ -1180,17 +1163,6 @@ inline std::string normalize_saved_config_climate_options(
 inline std::string normalize_saved_config_light_control_options(
     const std::string &options, const ParsedCfg &) {
   return light_control_card_options_normalized(options);
-}
-
-inline void normalize_saved_config_webhook_fields(ParsedCfg &p) {
-  p.sensor = normalize_webhook_method(p.sensor);
-  if (p.sensor == "GET" || p.sensor == "DELETE") p.unit.clear();
-  if (p.icon.empty()) p.icon = "Auto";
-}
-
-inline std::string normalize_saved_config_webhook_options(
-    const std::string &options, const ParsedCfg &) {
-  return webhook_card_options_normalized(options);
 }
 
 inline const char *saved_config_subpage_default_label_key(const std::string &kind) {
@@ -1411,8 +1383,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
       p, normalize_saved_config_access_fields, normalize_saved_config_access_options);
   normalize_saved_config_security(
       p, normalize_saved_config_security_fields, normalize_saved_config_security_options);
-  normalize_saved_config_webhook(
-      p, normalize_saved_config_webhook_fields, normalize_saved_config_webhook_options);
   normalize_saved_config_image(
       p, normalize_saved_config_image_fields, normalize_saved_config_image_options);
   const bool normalized_saved_static = normalize_saved_config_static(p);
@@ -1455,7 +1425,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   const bool normalized_saved_occupancy = normalize_saved_config_occupancy(
       p, normalize_saved_config_occupancy_fields,
       normalize_saved_config_occupancy_options);
-  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "webhook" && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
+  if (!normalized_saved_static && !normalized_saved_fan && !normalized_saved_mower && !normalized_saved_occupancy && !normalized_saved_access && !p.type.empty() && p.type != "action" && p.type != "alarm" && p.type != "alarm_action" && !climate_card_type(p.type) && p.type != "media" && p.type != "companion" && p.type != "subpage" && p.type != "image" && p.type != "light_control" && p.type != "vacuum" && p.type != "weather" && !card_large_numbers_supported(p)) {
     p.options.clear();
   }
   if (!card_colors.empty()) {
@@ -1558,10 +1528,6 @@ inline bool action_card_state_icon_mode(const ParsedCfg &p) {
 inline bool action_card_state_text_mode(const ParsedCfg &p) {
   return action_card_state_display_enabled(p) &&
          action_card_state_precision(p) == "text";
-}
-
-inline std::string webhook_card_headers(const ParsedCfg &p) {
-  return p.type == "webhook" ? cfg_option_value(p.options, "webhook_headers") : "";
 }
 
 inline bool action_card_state_numeric_mode(const ParsedCfg &p) {
