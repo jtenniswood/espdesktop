@@ -914,6 +914,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "calendar": {
     "label": "Date & Time",
     "allowInSubpage": true,
+    "hidden": true,
     "domains": [
       "sensor"
     ],
@@ -998,6 +999,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "clock": {
     "label": "Date & Time",
     "allowInSubpage": true,
+    "hidden": true,
     "pickerKey": "calendar",
     "domains": [],
     "options": [
@@ -3313,6 +3315,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timezone": {
     "label": "Date & Time",
     "allowInSubpage": true,
+    "hidden": true,
     "pickerKey": "calendar",
     "domains": [],
     "options": [

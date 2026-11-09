@@ -697,9 +697,9 @@
       "web": {
         "registration": "calendar",
         "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
         },
         "preview": {
           "available": true,

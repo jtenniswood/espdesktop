@@ -1,6 +1,7 @@
 {
   "label": "Date & Time",
   "allowInSubpage": true,
+  "hidden": true,
   "domains": ["sensor"],
   "options": [
     {

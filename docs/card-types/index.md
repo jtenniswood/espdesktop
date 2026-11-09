@@ -34,8 +34,6 @@ Use this page when you know what you want the panel to do but are not sure which
 | Lock or unlock a door lock | [Lock](/card-types/locks) | `lock` |
 | Arm, disarm, or show an alarm panel | [Alarm](/card-types/alarms) | `alarm_control_panel` |
 | Start, cancel, or resume a countdown | [Timer](/card-types/timers) | `timer` |
-| Show the local time | [Date & Time](/card-types/calendar) | No entity required |
-| Show another city or timezone | [World Clock](/card-types/timezones) | No entity required |
 | Show current weather or daily high/low temperatures | [Weather](/card-types/weather) | `weather` |
 | Show a still image from Home Assistant | [Camera](/card-types/cameras) | `camera` or `image` |
 | Control media playback, volume, progress, or now-playing display | [Media](/card-types/media) | `media_player` |
@@ -43,6 +41,8 @@ Use this page when you know what you want the panel to do but are not sure which
 | Open another page of cards | [Subpage](/features/subpages) | No entity required, optional state entity |
 
 Sensor cards are no longer supported, including in saved layouts.
+
+Existing [Date & Time](/card-types/calendar) cards remain supported in saved layouts and backups.
 
 ## Mac Cards
 
@@ -63,7 +63,7 @@ Some cards do not need a Home Assistant entity:
 - **Local Sensor** shows a value supplied by the panel firmware.
 - **Webhook** sends a direct HTTP request.
 - **Action > Local Action** runs a registered callback on the panel itself.
-- **Date & Time**, **World Clock**, and **Subpage** can work from the panel itself.
+- **Subpage** can work from the panel itself.
 
 ## Grouped Card Types
 
@@ -77,7 +77,6 @@ Some names in the setup page group several related modes:
 | **Vacuum** | Status, Start / Stop, Dock, Pause / Resume, Spot Clean, Locate, Clean Area |
 | **Lawn Mower** | Status, Start Mowing, Dock, Pause / Resume |
 | **Alarm** | All Controls, Arm Away, Arm Home, Arm Night, Arm Vacation, Disarm |
-| **Date & Time** | Clock, World Clock |
 | **Media** | All Controls, Speaker Group, Play/Pause, Previous, Next, Volume, Track Position, Now Playing, Cover Art, Media Content |
 | **Companion** | Applications, Keyboard shortcut, Open URL, Open folder, Stats, Window control |
 | **Cover** | All Controls, Position, Tilt, Toggle, Open, Close, Stop, Set Position |

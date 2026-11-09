@@ -6,14 +6,11 @@ description:
 
 # Date & Time
 
-Use a Clock card to show the local time, or a [World Clock](/card-types/timezones) card to show the time in another city or timezone. Clock cards are read-only: tapping them does nothing.
+The card picker no longer offers **Date & Time**. Existing **Clock**, [**World Clock**](/card-types/timezones), **Date**, and **Time & Date** cards still load from saved layouts and backups. To show the time on a new layout, use the [clock bar settings](/features/clock).
 
-## Setting Up a Clock Card
+## Editing an Existing Clock Card
 
-1. Select a card and change its type to **Date & Time**. New cards start in **Clock** mode.
-2. Choose **Clock** or **World Clock** from the **Type** dropdown.
-3. **Large Clock** is available at every card size. Wide and Large cards use it by default, as do cards wider than two columns; you can turn it off. On wider clocks, **Center Clock** centers the large display.
-4. Apply the configuration so the panel restarts with the new card.
+Open a saved **Clock** card to adjust **Large Clock** or switch to **World Clock**. Wide and Large cards use **Large Clock** by default, as do cards wider than two columns. On wider clocks, **Center Clock** centers the large display.
 
 ## How It Works on the Panel
 
@@ -21,7 +18,3 @@ Use a Clock card to show the local time, or a [World Clock](/card-types/timezone
 - The time follows the timezone and 12/24-hour setting selected in [Time Settings](/features/clock).
 - The card uses the fixed **tertiary** background colour, like Sensor, World Clock, and Weather cards.
 - If the panel has not synced time yet, the card shows `--` until time becomes available.
-
-## Existing Date Cards
-
-**Date** and **Time & Date** are no longer offered when choosing a card type. Existing cards and backups still load and display as before. To replace one with a clock, open its settings and choose **Clock** or **World Clock**.

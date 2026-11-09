@@ -3249,6 +3249,7 @@
       "calendar": {
         "label": "Date & Time",
         "allowInSubpage": true,
+        "hidden": true,
         "domains": [
           "sensor"
         ],
@@ -3333,6 +3334,7 @@
       "clock": {
         "label": "Date & Time",
         "allowInSubpage": true,
+        "hidden": true,
         "pickerKey": "calendar",
         "domains": [],
         "options": [
@@ -5648,6 +5650,7 @@
       "timezone": {
         "label": "Date & Time",
         "allowInSubpage": true,
+        "hidden": true,
         "pickerKey": "calendar",
         "domains": [],
         "options": [

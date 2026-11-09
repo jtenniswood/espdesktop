@@ -2765,9 +2765,9 @@ async function assertNewMediaCardDefaults(page, posts, label) {
     `${label}: opted-in Home Assistant Media cards are available to add`,
   );
   assert.strictEqual(
-    await page.locator('[data-card-type="calendar"]').count(),
-    1,
-    `${label}: opted-in Home Assistant-only card types are available in the picker`,
+    await page.getByRole("button", { name: "Date & Time card type" }).count(),
+    0,
+    `${label}: Date & Time is absent even with Home Assistant enabled`,
   );
 
   await page.locator(".sp-settings-close").click();
@@ -6707,9 +6707,9 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       `${testCase.name}: Companion-only picker hides the Home Assistant tab`,
     );
     assert.strictEqual(
-      await page.locator('[data-card-type="calendar"]').count(),
+      await page.getByRole("button", { name: "Date & Time card type" }).count(),
       0,
-      `${testCase.name}: Companion-only picker hides Home Assistant card types`,
+      `${testCase.name}: Date & Time is absent from the Companion-only picker`,
     );
     assert(
       await page.locator('[data-card-type="companion_app"]').isVisible(),

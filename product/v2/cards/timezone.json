@@ -1,6 +1,7 @@
 {
   "label": "Date & Time",
   "allowInSubpage": true,
+  "hidden": true,
   "pickerKey": "calendar",
   "domains": [],
   "options": [

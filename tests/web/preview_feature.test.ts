@@ -80,19 +80,19 @@ export function runPreviewFeatureTests(): void {
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
-    calendar: { label: "Date & Time", allowInSubpage: true },
+    calendar: { label: "Date & Time", allowInSubpage: true, isAvailable: () => false },
     climate: { label: "Climate", allowInSubpage: false },
     climate_control: { label: "Climate controls", pickerKey: "climate", allowInSubpage: false },
     subpage: { label: "Subpage", allowInSubpage: false },
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    ["action", "calendar"],
-    "subpage picker retains local cards and the Date & Time route",
+    ["action"],
+    "subpage picker retains available local cards",
   );
   const defaultPicker = cardTypePickerOptions(definitions, [], false, false, null);
-  equal(defaultPicker.some((option) => option.key === "calendar"), true,
-    "the Date & Time route remains available for local Clock and World Clock modes");
+  equal(defaultPicker.some((option) => option.key === "calendar"), false,
+    "compatibility-only Date & Time cards are unavailable when adding a card");
   equal(defaultPicker.some((option) => option.key === "climate"), false,
     "Home Assistant cards stay hidden while support is disabled");
   equal(defaultPicker.some((option) => option.key === "subpage"), true,
@@ -102,7 +102,6 @@ export function runPreviewFeatureTests(): void {
     "firmware opt-in restores Home Assistant cards to the picker");
   const companionOptions = cardTypePickerOptions({
       ...definitions,
-      calendar: { label: "Date & Time", allowInSubpage: true },
       companion: { label: "Companion", allowInSubpage: true },
       companion_app: { label: "Applications", allowInSubpage: true },
       companion_webapp: { label: "Web App", allowInSubpage: true },
@@ -118,7 +117,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "companion_window"],
+    ["action", "companion_app", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

@@ -30,6 +30,7 @@ export function registerCalendarCardTypes(
         allowInSubpage: function () { return cardContractAllowInSubpage("calendar"); },
         pickerKey: function () { return cardContractPickerKey("calendar"); },
         hidden: function () { return cardContractHidden("calendar"); },
+        isAvailable: function () { return !cardContractHidden("calendar"); },
         hideLabel: true,
         defaultConfig: function () { return cardContractDefaultConfig("calendar"); },
         cardMetadata: metadata,
