@@ -989,12 +989,6 @@
       "label": "Window control",
       "capability": "window_actions",
       "defaultIcon": "Monitor"
-    },
-    {
-      "id": "webapp",
-      "label": "Web App",
-      "capability": "applications",
-      "defaultIcon": "Web"
     }
   ],
   "windowActions": [

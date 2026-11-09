@@ -35,7 +35,7 @@ int main() {
     }
   }
   for (const auto &entity : {"com.apple.finder", "shortcut.command+c", "folder.Documents",
-                             "webapp.example", "window.close", "stat.cpu"}) {
+                             "window.close", "stat.cpu"}) {
     for (const auto &size : {"small", "medium", "large"}) {
       const auto card = parse_cfg(std::string(entity) + ";App;Monitor;;;;companion;;icon_size=" + size);
       assert(cfg_option_value(card.options, "icon_size") ==
