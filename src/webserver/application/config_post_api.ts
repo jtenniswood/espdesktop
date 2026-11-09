@@ -143,7 +143,7 @@ export function createConfigPersistenceFeature(
         count = Math.max(1, Math.min(keys.length, parseInt(count, 10) || keys.length));
         return keys.slice(0, count);
     }
-    var SUBPAGE_RAW_CHUNK_FIELDS: any = ["main", "ext", "ext2", "ext3", "ext4", "ext5", "ext6", "ext7"];
+    const SUBPAGE_RAW_CHUNK_FIELDS = ["main", "ext", "ext2", "ext3", "ext4", "ext5", "ext6", "ext7"];
     function subpageChunkShouldPost(this: any, slot?: any, keys?: any, chunks?: any, index?: any, previousPendingChunks?: any) {
         if (chunks[index] || index === 0)
             return true;
@@ -182,6 +182,7 @@ export function createConfigPersistenceFeature(
             });
     }
     function saveSubpageEntity(this: any, slot?: any, cleanedValue?: string) {
+        delete runtime.pendingSliderSubpageMigrations?.[slot];
         var sp: any = state.subpages[slot];
         var full: any = cleanedValue ?? (sp ? serializeSubpageConfig(sp) : "");
         if (!subpageConfigFits(full)) return rejectOversizedSubpage();
@@ -206,16 +207,21 @@ export function createConfigPersistenceFeature(
         }
         return publishAfter(saveSubpageEntityLegacy(slot, full, true));
     }
+    function savedSubpageRaw(slot: number | string): string {
+        return SUBPAGE_RAW_CHUNK_FIELDS.map(field => state.subpageRaw[slot]?.[field] || "").join("");
+    }
     function scheduleSliderSubpageMigration(this: any, slot?: any, cleanedValue?: string) {
         if (state.nativeConfigLoading || state.nativeTransferActive || state.nativeHasNestedPages) return;
-        runtime.pendingSliderSubpageMigrations[slot] = cleanedValue ?? true;
+        runtime.pendingSliderSubpageMigrations[slot] = cleanedValue === undefined
+            ? true : { source: savedSubpageRaw(slot), cleaned: cleanedValue };
         clearTimeout(runtime.sliderMigrationTimer as any);
         runtime.sliderMigrationTimer = setTimeout(function (this: any) {
-            var pending: any = runtime.pendingSliderSubpageMigrations;
+            const pending = runtime.pendingSliderSubpageMigrations;
             runtime.pendingSliderSubpageMigrations = {};
-            for (var key in pending) {
-                if (state.subpages[key] && !state.subpageSavePending[key])
-                    saveSubpageEntity(key, typeof pending[key] === "string" ? pending[key] : undefined);
+            for (const [key, migration] of Object.entries(pending)) {
+                if (!state.subpages[key] || state.subpageSavePending[key]) continue;
+                if (migration === true) saveSubpageEntity(key);
+                else if (migration.source === savedSubpageRaw(key)) saveSubpageEntity(key, migration.cleaned);
             }
         }, 5000);
     }
