@@ -3409,7 +3409,8 @@ async function openPasteCardCodeDialog(page) {
 
 async function assertCardTransferSmoke(page, posts, label) {
   await page.getByRole("tab", { name: "Layout" }).click();
-  await page.locator('.sp-main [data-slot="1"]').click({ button: "right", force: true });
+  const sourceCard = page.locator('.sp-main [data-slot="1"]');
+  await sourceCard.click({ button: "right" });
   await page.locator(".sp-ctx-menu").waitFor({ state: "visible" });
   assert(
     await page.locator(".sp-ctx-menu").getByText("Copy Code", { exact: true }).isVisible(),
@@ -3436,7 +3437,8 @@ async function assertCardTransferSmoke(page, posts, label) {
       document.querySelector(".sp-banner").textContent = "";
     }, mode);
     if (mode !== "modern") {
-      await page.locator('.sp-main [data-slot="1"]').click({ button: "right", force: true });
+      // The toast viewport check can redraw the card before the next copy.
+      await sourceCard.click({ button: "right" });
       await page.locator(".sp-ctx-menu").waitFor({ state: "visible" });
     }
     await page.locator(".sp-ctx-menu").getByText("Copy Code", { exact: true }).click();
