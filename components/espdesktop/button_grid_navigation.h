@@ -190,18 +190,6 @@ inline bool navigation_return_from_special_page() {
   return true;
 }
 
-inline bool navigation_open_special_page() {
-  NavigationSubpageEntry *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
-  if (entry == nullptr || entry->screen == nullptr) return false;
-  if (lv_scr_act() != entry->screen) {
-    navigation_special_page_previous_screen() = lv_scr_act();
-    navigation_hide_modals();
-    lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-    navigation_present_page_before_image_refresh();
-  }
-  return true;
-}
-
 inline bool navigation_display_mode_allows_grid_gesture() {
   espdesktop::EspDesktopAppCore *core =
       espdesktop::active_espdesktop_app_core();
@@ -265,28 +253,13 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
     for (const auto &entry : navigation_subpages()) {
       if (entry.screen != screen || entry.back_button == nullptr ||
           !lv_obj_is_valid(entry.back_button)) continue;
-      // Use the page's Back/Close action so special pages return to their
-      // previous screen and ordinary/app subpages keep their existing behavior.
+      // Use the same Back action as a direct press on the subpage.
       lv_indev_wait_release(indev);
       ESP_LOGD("ui_latency", "Swipe back recognized at=%u", unsigned(esphome::millis()));
       lv_obj_send_event(entry.back_button, LV_EVENT_PRESSED, nullptr);
       ESP_LOGD("ui_latency", "Swipe back finished at=%u", unsigned(esphome::millis()));
       return;
     }
-  } else {
-    const lv_coord_t screen_height = lv_obj_get_height(screen);
-    const lv_coord_t swipe_start_y = start.y;
-    if (screen_height <= 0) return;
-    const auto *special_page = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
-    if (special_page && special_page->screen == screen) {
-      // Preserve the top-edge dismissal added on main, using touch-down too.
-      if (direction != LV_DIR_BOTTOM || swipe_start_y < 0 ||
-          swipe_start_y > screen_height / 6) return;
-      if (navigation_return_from_special_page()) lv_indev_wait_release(indev);
-      return;
-    }
-    if (direction != LV_DIR_TOP || swipe_start_y < screen_height * 5 / 6) return;
-    if (navigation_open_special_page()) lv_indev_wait_release(indev);
   }
 }
 

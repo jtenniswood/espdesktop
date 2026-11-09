@@ -20,7 +20,7 @@ stubs = r'''
 #include <string>
 using lv_coord_t = int;
 constexpr int NAVIGATION_SPECIAL_PAGE_SLOT=49, LV_SCR_LOAD_ANIM_NONE=0;
-constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1, LV_DIR_RIGHT=2, LV_DIR_LEFT=3, LV_DIR_BOTTOM=4, LV_EVENT_PRESSED=4, LV_EVENT_RELEASED=5, LV_INDEV_TYPE_POINTER=1;
+constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1, LV_DIR_RIGHT=2, LV_DIR_LEFT=3, LV_EVENT_PRESSED=4, LV_EVENT_RELEASED=5, LV_INDEV_TYPE_POINTER=1;
 struct lv_obj_t { int height=480, width=480; bool valid=true; } grid, other, overlay, back_button, special, subgrid;
 struct lv_point_t { int x=0,y=0; };
 struct lv_indev_t { int direction=LV_DIR_TOP; lv_point_t point{0,420}, vector{0,-50}; } device;
@@ -131,58 +131,28 @@ int main() {
   subpages[0].back_button=&back_button;
   begin(240,100); gesture(240,70,LV_DIR_TOP);
   assert(returned==0 && opened==0 && waited==0);
-  for (const auto &kind : {"subpage", "app_shortcuts", "special"}) {
+  for (const auto &kind : {"subpage", "app_shortcuts"}) {
     subpages[0].kind=kind;
     begin(40,240); gesture(70,240,LV_DIR_RIGHT);
   }
-  assert(returned==3 && waited==3);
+  assert(returned==2 && waited==2);
   // A slow swipe crosses the edge zone before LVGL recognizes 24 px travel.
   begin(70,240);
   for (int x=72; x<=96; x+=2) { device.vector={2,0}; device.point={x,240}; }
   gesture(96,240,LV_DIR_RIGHT);
-  assert(returned==4 && waited==4);
+  assert(returned==3 && waited==3);
   // A second gesture from the same held touch cannot navigate again.
   gesture(100,240,LV_DIR_RIGHT);
-  assert(returned==4 && waited==4);
+  assert(returned==3 && waited==3);
   // Moving toward the edge from outside never qualifies.
   begin(81,240); gesture(70,240,LV_DIR_RIGHT);
-  assert(returned==4);
+  assert(returned==3);
   grid.width=800; begin(130,240); gesture(156,240,LV_DIR_RIGHT);
-  assert(returned==5 && waited==5);
+  assert(returned==4 && waited==4);
   begin(134,240); gesture(160,240,LV_DIR_RIGHT);
-  assert(returned==5);
-  // Bottom swipes use the same touch-down rule when crossing their edge zone.
-  begin(240,410);
-  for (int y=408; y>=384; y-=2) { device.vector={0,-2}; device.point={240,y}; }
-  gesture(240,384,LV_DIR_TOP);
-  assert(opened==1 && waited==6);
-  begin(240,399); gesture(240,373,LV_DIR_TOP);
-  assert(opened==1 && waited==6);
-
-  // Preserve top-edge dismissal and the previous-screen fallback from main.
-  navigation_register_grid_screen_gesture(&special);
-  navigation_register_grid_screen_gesture(&subgrid);
-  special_entry.screen=&special;
-  active=&special; previous=&subgrid;
-  begin(240,40); locked=true; gesture(240,70,LV_DIR_BOTTOM); locked=false;
-  begin(240,40); modal.overlay=&overlay; gesture(240,70,LV_DIR_BOTTOM); modal.overlay=nullptr;
-  begin(240,100); gesture(240,130,LV_DIR_BOTTOM);
+  assert(returned==4);
   begin(240,440); gesture(240,410,LV_DIR_TOP);
-  assert(active==&special && restored==0 && waited==6);
-  begin(240,70); gesture(240,96,LV_DIR_BOTTOM);
-  assert(active==&subgrid && previous==nullptr && restored==1 && waited==7);
-  active=&special; previous=&grid;
-  begin(240,80); gesture(240,106,LV_DIR_BOTTOM);
-  assert(active==&grid && restored==2 && waited==8);
-  active=&special; previous=&other; other.valid=false;
-  begin(240,40); gesture(240,70,LV_DIR_BOTTOM);
-  assert(active==&grid && restored==3 && waited==9);
-  active=&special; previous=nullptr;
-  begin(240,40); gesture(240,70,LV_DIR_BOTTOM);
-  assert(active==&grid && restored==4 && waited==10);
-  active=&special; previous=nullptr; home=nullptr;
-  begin(240,40); gesture(240,70,LV_DIR_BOTTOM);
-  assert(active==&special && restored==4 && waited==10);
+  assert(opened==0 && returned==4 && waited==4);
 }
 '''
 with tempfile.TemporaryDirectory() as tmp:
@@ -191,4 +161,4 @@ with tempfile.TemporaryDirectory() as tmp:
     source.write_text(stubs+press_state+return_handler+handler+registration+label_handler+checks)
     subprocess.run([sys.argv[1] if len(sys.argv)>1 else 'c++','-std=c++17','-Wall','-Wextra','-Werror',str(source),'-o',str(binary)],check=True)
     subprocess.run([str(binary)],check=True)
-print('Special-page gesture guards passed for Screen Lock, modals, setup/screensaver modes and bottom/left-edge swipes.')
+print('Left-edge Back and gesture guards passed. Bottom-edge swipes do not navigate.')
