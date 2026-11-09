@@ -11,10 +11,10 @@ After pairing the Mac app, open the display's address in a browser and use its b
 
 1. Open the **Layout** tab in the display's web page.
 2. Select an empty tile and choose **Companion**.
-3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, **Open URL**, or **Window control**.
+3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, or **Open URL**.
 4. Set the options and choose **Apply Configuration** to save the layout.
 
-Apps and folders must first be approved in the Mac app. Keyboard shortcuts and window controls need Accessibility permission. See [Mac Controls](/#what-you-can-control) for the available actions and requirements.
+Apps and folders must first be approved in the Mac app. Keyboard shortcuts and Mac Lock need Accessibility permission. See [Mac Controls](/#what-you-can-control) for the available actions and requirements.
 
 ## Arrange and Personalise Cards
 
@@ -31,6 +31,8 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 ## Screen and System Settings
 
 Use **Screen** for appearance, backlight, rotation and sleep settings. Use **System** for Mac Companion pairing and connection status, preferences, backups, firmware updates and reset controls.
+
+On a new display, **Screen → Sleep & Schedule → Night Schedule** dims the screen to **15%** from **7:00 PM to 7:00 AM** in the display’s local time. You can change the hours, brightness or mode there.
 
 ## Mac Screen Lock {#protect-the-touchscreen}
 

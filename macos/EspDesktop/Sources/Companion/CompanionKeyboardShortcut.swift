@@ -49,7 +49,6 @@ final class CompanionAccessibilityAuthorizer {
 
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
-    static let windowActionPrefix = "window."
     static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
     private static let claudeEscapeShortcut = "claude-escape"
     static let claudeRewindShortcut = "escape-twice"
@@ -96,23 +95,13 @@ struct CompanionKeyboardShortcut {
 
     let keyCode: CGKeyCode
     let flags: CGEventFlags
-    let requiresMacOS15: Bool
 
     init?(actionIdentifier: String) {
-        if let action = CompanionCapabilities.windowActions[actionIdentifier],
-           let key = action.key,
-           let keyCode = Self.keyCodes[key] {
-            self.keyCode = keyCode
-            self.flags = action.flags
-            self.requiresMacOS15 = action.minimumMacOS >= 15
-            return
-        }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
         let keys = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
         if let extended = Self.booksExtendedKeys[keys], let keyCode = Self.keyCodes[extended.key] {
             self.keyCode = keyCode
             self.flags = extended.flags
-            self.requiresMacOS15 = false
             return
         }
         if Self.isClaudeScopedShortcut(keys) {
@@ -124,13 +113,11 @@ struct CompanionKeyboardShortcut {
             guard let keyCode = Self.keyCodes[key] else { return nil }
             self.keyCode = keyCode
             self.flags = keys == "shift+f6" ? .maskShift : []
-            self.requiresMacOS15 = false
             return
         }
         if keys == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
             self.keyCode = keyCode
             self.flags = .maskShift
-            self.requiresMacOS15 = false
             return
         }
         var parts = keys.split(separator: "+", omittingEmptySubsequences: false)
@@ -155,16 +142,10 @@ struct CompanionKeyboardShortcut {
         }
         self.keyCode = keyCode
         self.flags = flags
-        self.requiresMacOS15 = false
-    }
-
-    func isSupported(on version: OperatingSystemVersion) -> Bool {
-        !requiresMacOS15 || version.majorVersion >= 15
     }
 
     @MainActor
     func replay(to processID: pid_t? = nil) -> Bool {
-        guard isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else { return false }
         guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
         guard let source = CGEventSource(stateID: .hidSystemState),
               let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true),

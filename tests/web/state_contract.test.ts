@@ -50,6 +50,12 @@ export function runStateContractTests(): void {
   equal(first.screenRotationInitialReady, false, "rotation-capable devices wait for the initial event");
   equal(first.timezoneOptions.length, 2, "startup copies embedded timezone options");
   equal(first.autoOpenAppSubpages, true, "app subpages open on focus by default");
+  equal(first.scheduleEnabled, true, "the night schedule starts enabled");
+  equal(first.scheduleTrigger, "time", "the night schedule uses local hours by default");
+  equal(first.scheduleOnHour, 7, "daytime starts at 7 AM");
+  equal(first.scheduleOffHour, 19, "night time starts at 7 PM");
+  equal(first.scheduleMode, "screen_dimmed", "the screen dims overnight by default");
+  equal(first.scheduleDimmedBrightness, 15, "default overnight brightness is 15 percent");
   equal(first.returnHomeOnAppSwitch, true, "app switching returns home by default");
   const backupCurrent = {
     timezone: "UTC",

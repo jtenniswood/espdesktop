@@ -15,9 +15,19 @@ config = yaml.load(schedule, Loader)
 migration = next(hook for hook in config["esphome"]["on_boot"]
                  if any("local_display_policy_ready) = true" in str(action) for action in hook["then"]))
 assert migration["priority"] > -190, "Migrate before the schedule's restored-enabled fallback"
+boot = next(hook for hook in config["esphome"]["on_boot"] if hook["priority"] == -190)
+restore_trigger = next(action["if"] for action in boot["then"]
+                       if "screen_schedule_trigger" in action.get("if", {}).get("condition", {}).get("lambda", ""))
+assert next(text for text in config["text"] if text["id"] == "screen_schedule_trigger")["initial_value"] == ""
+assert next(select for select in config["select"] if select["id"] == "schedule_mode")["initial_option"] == "Screen Dimmed"
+defaults = {number["id"]: number.get("initial_value") for number in config["number"]}
+assert defaults["schedule_on_hour"] == 7
+assert defaults["schedule_off_hour"] == 19
+assert defaults["schedule_dimmed_brightness"] == 15
 for switch in config["switch"]:
     if switch["id"] != "schedule_enabled":
         continue
+    assert switch["restore_mode"] == "RESTORE_DEFAULT_ON"
     for handler in ("on_turn_on", "on_turn_off"):
         assert len(switch[handler]) == 1
         assert switch[handler][0]["if"]["condition"]["lambda"] == "return id(local_display_policy_ready);"
@@ -66,6 +76,13 @@ bool local_display_policy_ready = false;
 void migrate() {
 ''' + migration["then"][0]["lambda"] + r'''
 }
+void restore_missing_trigger() {
+ if ([&]() {
+''' + restore_trigger["condition"]["lambda"] + r'''
+ }()) {
+''' + restore_trigger["then"][0]["lambda"] + r'''
+ }
+}
 int main() {
  lv_obj_t label, page; lv_obj_t *labels[] = {&label};
  for (bool visible : {false, true}) {
@@ -92,6 +109,24 @@ int main() {
    }
   }
  }
+ // Fresh settings start in Time mode. Older switches can still restore Off.
+ for (const bool enabled : {false, true}) {
+  schedule_enabled = {enabled, 0};
+  screen_schedule_trigger = {"", 0};
+  restore_missing_trigger();
+  assert(screen_schedule_trigger.state == (enabled ? "time" : "disabled"));
+  assert(screen_schedule_trigger.writes == 1);
+ }
+ for (const auto *trigger : {"time", "disabled"}) {
+  schedule_enabled = {std::string(trigger) == "time", 0};
+  screen_schedule_trigger = {trigger, 0};
+  restore_missing_trigger();
+  assert(screen_schedule_trigger.state == trigger && screen_schedule_trigger.writes == 0);
+ }
+ assert(!screen_schedule_night_active("time", true, false, true, 18, 7, 19));
+ assert(screen_schedule_night_active("time", true, false, true, 19, 7, 19));
+ assert(screen_schedule_night_active("time", true, false, true, 6, 7, 19));
+ assert(!screen_schedule_night_active("time", true, false, true, 7, 7, 19));
  // Raw values from an older client must never block the display.
  for (const auto &trigger : {"sensor", "Sensor"}) {
   for (bool presence : {false, true}) {

@@ -14,21 +14,16 @@ import {
     CARD_RUNTIME_SPECS,
 } from "../generated/card_contract";
 import {
-    COMPANION_CARD_MODES,
     COMPANION_SYSTEM_METRICS,
-    COMPANION_WINDOW_ACTIONS,
 } from "../generated/companion_capabilities";
 import {
     companionCardDefaultIcon,
     companionCardModeOptions,
+    companionCardModeValid,
     type CompanionCardModeId,
 } from "../model/companion_card";
-export {
-    COMPANION_SYSTEM_METRICS,
-    COMPANION_WINDOW_ACTIONS,
-} from "../generated/companion_capabilities";
+export { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
-import type { SettingsUiFeature } from "../features/settings";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
@@ -78,41 +73,7 @@ const COMPANION_URL_PREFIX = "url.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
-const COMPANION_WINDOW_PREFIX = "window.";
-const COMPANION_WINDOW_ACTION_ICONS: Readonly<Record<string, string>> = {
-    "window.close": "Window Close",
-    "window.minimize": "Window Minimise",
-    "window.hide": "Eye Off",
-    "window.fullscreen": "Full Screen",
-    "window.fill": "Fit to Screen",
-    "window.center": "Target",
-    "window.left": "Dock Left",
-    "window.right": "Dock Right",
-    "window.top": "Dock Top",
-    "window.bottom": "Dock Bottom",
-    "window.top-left": "Arrow Top Left",
-    "window.top-right": "Arrow Top Right",
-    "window.bottom-left": "Arrow Bottom Left",
-    "window.bottom-right": "Arrow Bottom Right",
-    "window.restore": "Window Restore",
-    "window.arrange.left-right": "Split Vertical",
-    "window.arrange.right-left": "Arrow Left Right",
-    "window.arrange.top-bottom": "Split Horizontal",
-    "window.arrange.bottom-top": "Arrow Up Down",
-    "window.arrange.left-quarters": "Arrow Left Bold Box Outline",
-    "window.arrange.right-quarters": "Arrow Right Bold Box Outline",
-    "window.arrange.top-quarters": "Arrow Up Bold Box Outline",
-    "window.arrange.bottom-quarters": "Arrow Down Bold Box Outline",
-    "window.arrange.quarters": "View Grid",
-    "window.fullscreen.enter": "Arrow Expand",
-    "window.fullscreen.exit": "Arrow Collapse",
-    "window.split.left": "Dock Left",
-    "window.split.right": "Dock Right",
-};
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
-export const COMPANION_SUBTYPE_DEFAULT_ICONS = {
-    ...Object.fromEntries(COMPANION_CARD_MODES.map((mode) => [mode.id, mode.defaultIcon])),
-} as Readonly<Record<CompanionCardModeId, string>>;
 export const COMPANION_STATS_OPTIONS = COMPANION_SYSTEM_METRICS
     .map((metric) => [metric.mode, metric.label] as const)
     .sort((first, second) => first[1].localeCompare(second[1]));
@@ -214,10 +175,6 @@ export function companionAppLabel(
     return !trimmedLabel || trimmedLabel === previousAppLabel ? selectedAppLabel : currentLabel;
 }
 
-export function companionWindowActionLabel(actionId: string): string {
-    return COMPANION_WINDOW_ACTIONS.find((action) => action.id === actionId)?.label || "";
-}
-
 export function companionGeneratedIcon(
     currentIcon: string,
     previousGeneratedIcon: string,
@@ -227,17 +184,14 @@ export function companionGeneratedIcon(
         ? selectedGeneratedIcon : currentIcon;
 }
 
-export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
+export function companionSubtypeDefaultIcon(mode: string): string {
     if (mode === "ip_address") return "Laptop";
 
     if (COMPANION_STATS_MODES.includes(mode)) {
         return companionCardDefaultIcon("stats");
     }
-    if (mode === "window") {
-        return COMPANION_WINDOW_ACTION_ICONS[entity] || companionCardDefaultIcon("window");
-    }
-    return COMPANION_CARD_MODES.some((candidate) => candidate.id === mode)
-        ? companionCardDefaultIcon(mode as CompanionCardModeId)
+    return companionCardModeValid(mode)
+        ? companionCardDefaultIcon(mode)
         : companionCardDefaultIcon("app");
 }
 
@@ -245,14 +199,12 @@ export function companionSubtypeIcon(
     currentIcon: string,
     previousMode: string,
     nextMode: string,
-    previousEntity = "",
-    nextEntity = "",
 ): string {
-    const previousGeneratedIcon = companionSubtypeDefaultIcon(previousMode, previousEntity);
+    const previousGeneratedIcon = companionSubtypeDefaultIcon(previousMode);
     const legacyFolderIcon = previousMode === "folder" && currentIcon === "Folder";
     return !currentIcon || currentIcon === "Auto" || currentIcon === "Monitor" ||
         currentIcon === previousGeneratedIcon || legacyFolderIcon
-        ? companionSubtypeDefaultIcon(nextMode, nextEntity) : currentIcon;
+        ? companionSubtypeDefaultIcon(nextMode) : currentIcon;
 }
 
 export function companionPreviousAppLabel(
@@ -356,7 +308,6 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
-    if (mode === "window") return COMPANION_WINDOW_ACTIONS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
 
@@ -437,7 +388,7 @@ function normalizeCompanionCardFields(card: any): void {
         if (metric.mode === "ip_address") card.options = normalizedCardColorOptions(card.options);
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
-            card.icon = companionSubtypeDefaultIcon(metric.mode, card.entity);
+            card.icon = companionSubtypeDefaultIcon(metric.mode);
         }
         return;
     }
@@ -456,7 +407,7 @@ function normalizeCompanionCardFields(card: any): void {
         card.options = options;
         card.icon_on = "Auto";
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor" || card.icon === "Folder") {
-            card.icon = companionSubtypeDefaultIcon("folder", card.entity);
+            card.icon = companionSubtypeDefaultIcon("folder");
         }
         return;
     }
@@ -466,7 +417,7 @@ function normalizeCompanionCardFields(card: any): void {
     if (!card.icon || card.icon === "Auto" ||
         (card.icon === "Monitor" && mode !== "app") ||
         (card.icon === "Folder" && mode === "folder")) {
-        card.icon = companionSubtypeDefaultIcon(mode, card.entity);
+        card.icon = companionSubtypeDefaultIcon(mode);
     }
 }
 
@@ -482,7 +433,6 @@ export function registerCompanionCardTypes(
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
-    { infoPanel }: Pick<SettingsUiFeature, "infoPanel">,
 ): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
@@ -551,7 +501,7 @@ export function registerCompanionCardTypes(
             card.unit = metric.unit;
             card.precision = "0";
         }
-        card.icon = companionSubtypeDefaultIcon(mode, card.entity);
+        card.icon = companionSubtypeDefaultIcon(mode);
     }
 
     const companionDefinition: any = {
@@ -957,50 +907,6 @@ export function registerCompanionCardTypes(
                         card.entity === currentEntity);
             });
 
-            const windowField = document.createElement("div");
-            windowField.className = "sp-field";
-            windowField.appendChild(fieldLabel("Window action", helpers.idPrefix + "companion-window-action"));
-            const windowSelect = document.createElement("select");
-            windowSelect.className = "sp-select";
-            windowSelect.id = helpers.idPrefix + "companion-window-action";
-            // Keep saved legacy actions visible without offering them for new cards.
-            if (card.entity === "window.fullscreen.enter" || card.entity === "window.fullscreen.exit") {
-                const savedOption = document.createElement("option");
-                savedOption.value = card.entity;
-                savedOption.textContent = companionWindowActionLabel(card.entity) + " (existing action)";
-                savedOption.selected = true;
-                savedOption.disabled = true;
-                windowSelect.appendChild(savedOption);
-            }
-            const groups = new Map<string, HTMLOptGroupElement>();
-            COMPANION_WINDOW_ACTIONS.filter((action) =>
-                action.id !== "window.fullscreen.enter" && action.id !== "window.fullscreen.exit"
-            ).sort((first, second) =>
-                first.group.localeCompare(second.group, undefined, { sensitivity: "base" }) ||
-                first.label.localeCompare(second.label, undefined, { sensitivity: "base" })).forEach(function (action) {
-                let group = groups.get(action.group);
-                if (!group) {
-                    group = document.createElement("optgroup");
-                    group.label = action.group;
-                    groups.set(action.group, group);
-                    windowSelect.appendChild(group);
-                }
-                const option = document.createElement("option");
-                option.value = action.id;
-                option.textContent = action.label;
-                option.selected = action.id === card.entity;
-                group.appendChild(option);
-            });
-            windowField.appendChild(windowSelect);
-            const windowNote = infoPanel(
-                helpers.idPrefix + "companion-window-note",
-                "Controls the active Mac window. Tiling actions require macOS 15 or later.",
-            );
-            windowSelect.setAttribute("aria-describedby", windowNote.id);
-            windowField.appendChild(windowNote);
-            panel?.appendChild(windowField);
-            helpers.markCardPrimaryField(windowField, "window");
-
             const urlField = document.createElement("div");
             urlField.className = "sp-field";
             urlField.appendChild(fieldLabel("URL", helpers.idPrefix + "companion-url"));
@@ -1222,7 +1128,6 @@ export function registerCompanionCardTypes(
                 appFieldLabel.textContent = "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
-                windowField.style.display = mode === "window" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
                 urlBehaviorField.style.display = urlField.style.display;
                 appSubpageDisclosure.panel.style.display = canAddSubpage && mode === "app" &&
@@ -1232,30 +1137,6 @@ export function registerCompanionCardTypes(
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
             }
             syncMode(initialMode);
-
-            windowSelect.addEventListener("change", function () {
-                const currentLabel = typeof card.label === "string" ? card.label : "";
-                const previousLabel = companionWindowActionLabel(card.entity);
-                const nextLabel = companionWindowActionLabel(windowSelect.value);
-                const previousIcon = companionSubtypeDefaultIcon("window", card.entity);
-                const currentIcon = card.icon === "Monitor" ? previousIcon : card.icon || "";
-                card.entity = windowSelect.value;
-                card.icon = companionGeneratedIcon(
-                    currentIcon,
-                    previousIcon,
-                    companionSubtypeDefaultIcon("window", card.entity),
-                );
-                helpers.saveField("entity", card.entity);
-                helpers.saveField("icon", card.icon);
-                const updatedLabel = companionAppLabel(currentLabel, previousLabel, nextLabel);
-                if (updatedLabel !== currentLabel) {
-                    card.label = updatedLabel;
-                    const labelInput = document.getElementById(helpers.idPrefix + "label") as HTMLInputElement | null;
-                    if (labelInput) labelInput.value = updatedLabel;
-                    helpers.saveField("label", updatedLabel);
-                }
-                renderButtonSettings();
-            });
 
             function saveUrl(): void {
                 const config = companionUrlConfig(urlInput.value);
@@ -1415,7 +1296,7 @@ export function registerCompanionCardTypes(
                     selectedAction?.label || "",
                 );
                 card.entity = folderSelect.value;
-                card.icon = companionSubtypeIcon(card.icon, "folder", "folder", card.entity, card.entity);
+                card.icon = companionSubtypeIcon(card.icon, "folder", "folder");
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("icon", card.icon);
                 if (nextLabel !== currentLabel) {
@@ -1466,15 +1347,14 @@ export function registerCompanionCardTypes(
                 });
             }
             const shortcutLabel = formatCompanionShortcutActionId(card.entity);
-            const windowLabel = companionWindowActionLabel(card.entity);
             const appLabel = mode === "app" || mode === "url"
                 ? companionApplicationLabel(card.entity) : "";
             let urlLabel = "";
             try { urlLabel = new URL(companionUrlValue(card.sensor || "")).hostname; } catch { /* incomplete URL */ }
             const preview = cardBadgePreview(card, helpers, {
-                label: card.label || shortcutLabel || windowLabel || urlLabel || appLabel || card.entity ||
+                label: card.label || shortcutLabel || urlLabel || appLabel || card.entity ||
                     (mode === "folder" ? "Folder" : "Mac App"),
-                iconFallback: companionSubtypeDefaultIcon(mode, card.entity),
+                iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
             if (companionAppIconEnabled(card)) {
@@ -1556,13 +1436,38 @@ export function registerCompanionCardTypes(
     };
     registry.register("companion", companionDefinition);
 
+    const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
+    const macLockMetadata = {
+        icon: { fallback: macLockDefaults.icon },
+        preview: { iconFallback: macLockDefaults.icon, badge: COMPANION_CARD_METADATA.preview.badge },
+    };
+    registry.register("companion_mac_lock", {
+        label: macLockDefaults.label,
+        cardMetadata: macLockMetadata,
+        allowInSubpage: cardContractAllowInSubpage("companion_mac_lock"),
+        isAvailable: () => supported,
+        labelPlaceholder: macLockDefaults.label,
+        defaultConfig: () => macLockDefaults,
+        onSelect: (card) => Object.assign(card, macLockDefaults),
+        normalizeConfig: (card) => Object.assign(card, macLockDefaults, {
+            label: card.label || macLockDefaults.label,
+            icon: card.icon && card.icon !== "Auto" ? card.icon : macLockDefaults.icon,
+            options: normalizedCardColorOptions(card.options),
+        }),
+        renderSettings: (panel, card, _slot, helpers) => {
+            helpers.renderCardIconPicker(panel, card, helpers, macLockMetadata.icon);
+        },
+        renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+            ...macLockMetadata.preview,
+            label: card.label || macLockDefaults.label,
+        }),
+    });
+
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
-        ["companion_mac_lock", "Mac Lock", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],
-        ["companion_window", "Window control", "window"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
@@ -1576,11 +1481,6 @@ export function registerCompanionCardTypes(
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);
                 applyCompanionPickerPreset(card, mode);
-                if (card && key === "companion_mac_lock") {
-                    card.entity = "shortcut.command+control+q";
-                    card.label = "Mac Lock";
-                    card.icon = "Lock";
-                }
             },
         });
     });

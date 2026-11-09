@@ -39,7 +39,7 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
     // ── Settings Schedule Section ──────────────────────────────────────
     function buildScreenScheduleSettingsCard(this: any) {
         var scheduleBody: any = document.createElement("div");
-        scheduleBody.appendChild(infoPanel("sp-night-schedule-info", "Night Schedule overrides the screensaver and Mac Cover Art during its configured hours."));
+        scheduleBody.appendChild(infoPanel("sp-night-schedule-info", "Night Schedule overrides the screensaver during its configured hours."));
         scheduleBody.appendChild(fieldLabel("Mode"));
         var scheduleModeSegment: any = segmentControl([
             ["disabled", "Disabled"],

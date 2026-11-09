@@ -51,7 +51,8 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::LIGHT_TEMPERATURE: return Family::LIGHT_TEMPERATURE;
     case Type::MEDIA: return Family::MEDIA;
     case Type::PUSH: return Family::PUSH;
-    case Type::COMPANION: return Family::COMPANION;
+    case Type::COMPANION:
+    case Type::COMPANION_MAC_LOCK: return Family::COMPANION;
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;
     case Type::SUBPAGE: return Family::SUBPAGE;
@@ -612,4 +613,11 @@ inline bool card_runtime_is_mac_audio(const std::string &type, const std::string
 
 inline bool card_runtime_type_retired(const std::string &type) {
   return card_contract_type_retired(type);
+}
+
+inline std::string retired_saved_card_type(const std::string &type, const std::string &entity) {
+  if (type == "companion" && entity.rfind("window.", 0) == 0) return "companion_window";
+  if (type == "companion" && entity.rfind("webapp.", 0) == 0) return "companion_webapp";
+  if (card_runtime_is_mac_audio(type, entity)) return "companion_audio";
+  return card_runtime_type_retired(type) ? type : "";
 }

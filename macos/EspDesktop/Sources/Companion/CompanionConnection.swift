@@ -696,11 +696,7 @@ final class CompanionConnection: NSObject {
         guard resources.applicationCatalogueReady else { return }
         guard sessionAuthenticated || task != nil else { return }
         applicationFocusPublisher.reset()
-        let supportedWindowActions = Self.supportedWindowActionIDs(
-            for: ProcessInfo.processInfo.operatingSystemVersion
-        )
-        var capabilities = supportedWindowActions
-        capabilities.append("keyboard_shortcuts")
+        var capabilities = ["keyboard_shortcuts"]
         capabilities.append(CompanionCapabilities.appIconsCapability)
         capabilities.append(CompanionCapabilities.appIconsAlphaCapability)
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
@@ -745,12 +741,6 @@ final class CompanionConnection: NSObject {
             }
         }
         publishFocusedAction()
-    }
-
-    static func supportedWindowActionIDs(for version: OperatingSystemVersion) -> [String] {
-        CompanionCapabilities.windowActions.compactMap { identifier, capability in
-            capability.minimumMacOS <= version.majorVersion ? identifier : nil
-        }.sorted()
     }
 
     nonisolated static func supportsRemoteCatalogueDefinitions(capabilityVersion: UInt32) -> Bool {

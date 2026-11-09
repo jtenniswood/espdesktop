@@ -91,7 +91,6 @@ struct CompanionRuntimeSnapshot {
   std::string focused_action_id;
   std::vector<std::string> focused_action_ids;
   bool keyboard_actions_supported{false};
-  std::vector<std::string> window_actions;
   bool connected{false};
   CompanionSystemMetricsSnapshot system_metrics;
   std::vector<CompanionURLFocusTarget> url_focus_targets;
@@ -203,7 +202,7 @@ class CompanionRuntimeService {
 
   CompanionRuntimeSnapshot snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
+    return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_,
             connected_, system_metrics_, url_focus_targets_,
             url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
   }
@@ -244,12 +243,6 @@ class CompanionRuntimeService {
   void set_actions(std::vector<CompanionAction> actions) {
     std::lock_guard<std::mutex> lock(mutex_);
     actions_ = std::move(actions);
-    request_refresh_();
-  }
-
-  void set_window_actions(std::vector<std::string> actions) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    window_actions_ = std::move(actions);
     request_refresh_();
   }
 
@@ -381,7 +374,6 @@ class CompanionRuntimeService {
       focused_auto_subpage_id_.clear();
       pending_auto_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
-      window_actions_.clear();
       system_metrics_ = {};
     }
     request_refresh_();
@@ -411,7 +403,6 @@ class CompanionRuntimeService {
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
   bool keyboard_actions_supported_{false};
-  std::vector<std::string> window_actions_;
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
   std::atomic<bool> refresh_requested_{false};
