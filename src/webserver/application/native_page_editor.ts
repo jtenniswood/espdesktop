@@ -1,5 +1,6 @@
 import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
+import { isRetiredWebAppOrWifiCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { parseGridOrder } from "../model";
 import { NativePageEditorLoader, preparePageEditorDocument, restoredEditorPage } from "../features/page_editor";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
@@ -29,8 +30,10 @@ export function createNativePageEditorFeature(options: {
       runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
       !options.document.activeElement?.closest(".sp-card-name-input"),
     apply: (document) => {
-      const prepared = preparePageEditorDocument(document, layout.numSlots, codec);
-      const root = parseGridOrder(document.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
+      const cleaned = structuredClone(document);
+      const retired = removeRetiredPanelRecords(cleaned, codec, isRetiredWebAppOrWifiCard);
+      const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec);
+      const root = parseGridOrder(cleaned.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
       const editing = restoredEditorPage(state.editingSubpage, prepared);
       options.closeSettings();
       state.buttons = prepared.buttons;
@@ -42,7 +45,7 @@ export function createNativePageEditorFeature(options: {
       state.nativeConfigReadOnly = prepared.nested && native.writableNavigationDepth() < 2;
       state.subpageRaw = {};
       state.subpageSavePending = {};
-      state.pendingButtonOrderRaw = document.settings.button_order ?? "";
+      state.pendingButtonOrderRaw = cleaned.settings.button_order ?? "";
       state.grid = root.grid;
       state.sizes = root.sizes;
       state.onColor = document.settings.button_on_color || WEB_UI_COLORS.primary;
@@ -57,6 +60,13 @@ export function createNativePageEditorFeature(options: {
       if (state.nativeConfigReadOnly)
         options.shell.showBanner("This firmware can display nested pages, but cannot save changes to them.", "warning");
       options.render();
+      if (retired && !state.nativeConfigReadOnly) {
+        // Apply the same cleanup to the latest saved generation so concurrent edits survive.
+        void native.schedule(current => {
+          removeRetiredPanelRecords(current, codec, isRetiredWebAppOrWifiCard);
+          return current;
+        });
+      }
     },
     loading: active => {
       state.nativeConfigLoading = active && state.nativePanelDocument === null;
