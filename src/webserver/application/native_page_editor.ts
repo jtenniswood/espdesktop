@@ -3,7 +3,8 @@ import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { parseGridOrder } from "../model";
 import type { PanelConfigDocument } from "../model/panel_config";
-import { NativePageEditorLoader, preparePageEditorDocument, restoredEditorPage, type PageEditorDocument } from "../features/page_editor";
+import type { NativePageLayout } from "../model/panel_config_conversion";
+import { NativePageEditorLoader, preparePageEditorDocument, restoredEditorPage } from "../features/page_editor";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { ApplicationLayoutState } from "./application_context";
@@ -23,9 +24,9 @@ export function createNativePageEditorFeature(options: {
 }): NativePageEditorLoader {
   const { native, codec, layout, runtime } = options;
   let removingOldCards = false;
-  const cleanRetiredCards = (snapshot: PanelConfigDocument, prepared?: PageEditorDocument) => {
+  const cleanRetiredCards = (snapshot: PanelConfigDocument, nativeLayout?: NativePageLayout) => {
     const cleaned = structuredClone(snapshot);
-    return removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard, prepared) ? cleaned : snapshot;
+    return removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard, nativeLayout) ? cleaned : snapshot;
   };
   const loader = new NativePageEditorLoader({
     discover: () => native.waitForDiscovery(),
@@ -36,9 +37,8 @@ export function createNativePageEditorFeature(options: {
       runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
       !options.document.activeElement?.closest(".sp-card-name-input"),
     apply: (snapshot, nativeLayout) => {
-      const direct = nativeLayout && preparePageEditorDocument(snapshot, layout.numSlots, codec, nativeLayout);
-      const cleaned = cleanRetiredCards(snapshot, direct);
-      const prepared = cleaned === snapshot && direct ? direct : preparePageEditorDocument(cleaned, layout.numSlots, codec);
+      const cleaned = cleanRetiredCards(snapshot, nativeLayout);
+      const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec, cleaned === snapshot ? nativeLayout : undefined);
       const root = parseGridOrder(cleaned.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
       const editing = restoredEditorPage(state.editingSubpage, prepared);
       options.closeSettings();

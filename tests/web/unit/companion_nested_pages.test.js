@@ -160,4 +160,18 @@ test("a settings-only native save keeps nonsequential page and card identities",
   const mismatched = { ...restored, buttons: { 1: "light.kitchen;Kitchen" } };
   assert.equal(await controller.writeDocument(mismatched, savedBackup), "failed");
   assert.equal(generation, 7);
+
+  assert.equal(await controller.schedule(current => {
+    current.settings.automatic_switching = "1";
+    return current;
+  }, true), "saved");
+  assert.equal(codec.decodePanelPageDocument(persisted).settings.automatic_switching, "1");
+  assert.deepEqual(layoutRows(persisted), originalLayout);
+
+  assert.equal(await controller.schedule(current => {
+    current.subpages[33] = current.subpages[33].replace("Address", "Edited address");
+    return current;
+  }, true), "saved");
+  assert.match(codec.decodePanelPageDocument(persisted).subpages[33], /Edited address/);
+  assert.equal(generation, 9, "in-place changes are committed even when unchanged writes can be skipped");
 });

@@ -336,8 +336,13 @@ export class NativePanelConfigClient {
         const currentDocument = this.decodeDocument(input, version);
         const currentDepth = panelPageDocumentDepth(currentDocument);
         if (currentDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
-        const updated = update(currentDocument);
-        if (skipUnchanged && updated === currentDocument) {
+        const updated = update({
+          ...currentDocument, buttons: { ...currentDocument.buttons }, subpages: { ...currentDocument.subpages },
+          settings: { ...currentDocument.settings },
+        });
+        const layoutUnchanged = sameRecords(currentDocument.buttons, updated.buttons) &&
+          sameRecords(currentDocument.subpages, updated.subpages);
+        if (skipUnchanged && layoutUnchanged && sameRecords(currentDocument.settings, updated.settings)) {
           this.lastDocument_ = currentDocument;
           return "saved";
         }
@@ -361,7 +366,7 @@ export class NativePanelConfigClient {
           body = sameRecords(backedUp.settings, updated.settings) ? nativeBackup
             : updateNativePanelSettings(nativeBackup, backedUp.settings, updated.settings);
         } else if (version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2) {
-          body = updated.buttons === currentDocument.buttons && updated.subpages === currentDocument.subpages
+          body = layoutUnchanged
             ? updateNativePanelSettings(input, currentDocument.settings, updated.settings)
             : encodePanelPageDocument(updated);
         } else {

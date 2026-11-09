@@ -6610,8 +6610,9 @@ async function assertRetiredCardRemoval(browser) {
     ...compactDateTypes.map(([type, code]) => ({ type, subpageType: code, nativeV2: true })),
     { type: "companion_webapp", subpageType: "companion", nativeV2: true },
     { type: "companion_window", subpageType: contract.subpageTypeCodes.companion, nativeV2: true },
+    { type: "companion_window", subpageType: contract.subpageTypeCodes.companion, nativeV2: true, subpageOnly: true },
   ];
-  for (const { type: savedType, subpageType, nativeV2 } of cases) {
+  for (const { type: savedType, subpageType, nativeV2, subpageOnly } of cases) {
     const isWebApp = savedType === "companion_webapp";
     const removeSavedWindow = savedType === "companion_window";
     const type = isWebApp || removeSavedWindow ? "companion" : savedType;
@@ -6623,6 +6624,10 @@ async function assertRetiredCardRemoval(browser) {
       3: ";Room;Folder;Auto;;;subpage",
     };
     nativeState.document.settings.button_order = "1,2,3";
+    if (subpageOnly) {
+      delete nativeState.document.buttons[1];
+      nativeState.document.settings.button_order = ",2,3";
+    }
     nativeState.document.subpages = {
       3: `~B,1w,,2|${subpageType},${entity},Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
     };
