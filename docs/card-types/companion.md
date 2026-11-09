@@ -15,7 +15,7 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Open Finder folders](/mac-controls/folders)
 - [Run keyboard shortcuts](/mac-controls/shortcuts)
 - [Control and arrange windows](/mac-controls/windows)
-- [Show Mac statistics](/mac-controls/statistics)
+- [Use existing Stats cards](/mac-controls/statistics)
 - [Permissions and security](/mac-controls/security)
 
 Action cards are unavailable when the Mac is disconnected or the selected app, folder, command, or URL is unavailable. Open URL cards use the Mac's default browser. Statistics show `--` until a reading is available.

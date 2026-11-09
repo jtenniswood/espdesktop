@@ -43,7 +43,6 @@ export function runPreviewFeatureTests(): void {
   equal(infoOnlyCardVisible("sensor", true), false, "retired sensors are absent in info-only mode");
   equal(infoOnlyCardVisible("action", true), false, "actions are hidden in info-only mode");
   equal(defaultCardTypeForPicker("climate"), "climate_control", "picker aliases retain their defaults");
-  equal(defaultCardTypeForPicker("companion_stats"), "companion", "Companion subtype pickers use the Companion runtime card");
   equal(defaultCardTypeForPicker("companion_webapp"), "companion", "Web App picker entries use the Companion runtime card");
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
   deepEqual(
@@ -74,7 +73,7 @@ export function runPreviewFeatureTests(): void {
   equal(cardRequiresHomeAssistant("subpage", { options: "subpage_kind=companion_stat" }), false, "Companion Stat subpages remain transferable");
   equal(cardTypeVisibleForConnector("action", "mac_companion"), true, "local actions remain available with Companion");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
-  equal(cardTypeVisibleForConnector("companion_stats", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
+  equal(cardTypeVisibleForConnector("companion_app", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
   equal(cardTypeVisibleForConnector("webhook", "home_assistant"), true, "shared webhook cards appear for Home Assistant");
   equal(cardTypeVisibleForConnector("webhook", "mac_companion"), true, "shared webhook cards appear for Companion");
 
@@ -109,7 +108,6 @@ export function runPreviewFeatureTests(): void {
       companion_shortcut: { label: "Keyboard shortcut", allowInSubpage: true },
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
-      companion_stats: { label: "Stats", allowInSubpage: true },
       companion_subpage: { label: "Subpage", allowInSubpage: false },
       companion_window: { label: "Window control", allowInSubpage: true },
       push: { label: "Trigger", allowInSubpage: true },
@@ -118,7 +116,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["action", "companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "subpage", "companion_subpage", "companion_webapp", "webhook", "companion_window"],
+    ["action", "companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "subpage", "companion_subpage", "companion_webapp", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

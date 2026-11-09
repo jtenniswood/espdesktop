@@ -14,8 +14,7 @@ Use this page when you know what you want the panel to do but are not sure which
 
 | Goal | Use this card | Entity or target |
 |---|---|---|
-| Launch a Mac app, open a folder or website, run a shortcut, arrange windows, or show Mac statistics | [Companion](/card-types/companion) | Paired Mac action or statistic |
-| Open a page of Mac controls while showing one Mac statistic on its tile | [Subpage](/features/subpages) | Companion Stat |
+| Launch a Mac app, open a folder or website, run a shortcut, or arrange windows | [Companion](/card-types/companion) | Paired Mac action |
 | Toggle a light, switch, fan, or helper | [Switch](/card-types/switches) | `light`, `switch`, `input_boolean`, or `fan` |
 | Control a light as on/off, brightness, colour temperature, or colour presets | [Lights](/card-types/lights) | `light` |
 | Run a scene, script, automation, helper action, button press, or local panel action | [Action](/card-types/actions) | Depends on the selected action |
@@ -49,7 +48,6 @@ Sensor cards are no longer supported, including in saved layouts.
 Mac controls currently work on the 4-inch 4848S040 and need the [EspDesktop Mac app](/getting-started/mac-app). The Companion connector is enough to use them; Home Assistant is optional.
 
 - **Companion** includes Applications, Keyboard shortcut, Open URL, Open folder, Stats, and Window control.
-- **Subpage** includes Companion Stat for a processor, memory, storage, network, or battery reading on the folder tile.
 
 See [Mac Cards and Capabilities](/card-types/companion) for the complete list and its permissions.
 
@@ -81,7 +79,7 @@ Some names in the setup page group several related modes:
 | **Media** | All Controls, Speaker Group, Play/Pause, Previous, Next, Volume, Track Position, Now Playing, Cover Art, Media Content |
 | **Companion** | Applications, Keyboard shortcut, Open URL, Open folder, Stats, Window control |
 | **Cover** | All Controls, Position, Tilt, Toggle, Open, Close, Stop, Set Position |
-| **Subpage** | Generic, Switch, Lights, Climate, Presence, Media, Alarm, Cover, Garage Door, Gate, Lock, Vacuum, Lawn Mower, Weather, Sensor, Camera / Image, Companion Stat |
+| **Subpage** | Generic, Switch, Lights, Climate, Presence, Media, Alarm, Cover, Garage Door, Gate, Lock, Vacuum, Lawn Mower, Weather, Sensor, Camera / Image |
 
 Older configurations may also show **Weather Forecast**. It is kept for compatibility and is now set up as a **Weather** card with **Tomorrow's Forecast** selected.
 
@@ -91,7 +89,7 @@ Cards that control Home Assistant need the panel to be allowed to perform Home A
 
 Read-only display cards such as Sensor, Presence, Date & Time, and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
 
-Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and add statistics cards to show the readings shared automatically while connected.
+Approve applications and folders in the Mac app and enable Accessibility for keyboard and window controls. [Existing Stats cards](/mac-controls/statistics) receive readings automatically while the Mac is connected.
 
 ## Current Capability Reference
 
