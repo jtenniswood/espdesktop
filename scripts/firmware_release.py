@@ -153,8 +153,6 @@ def verify_manifest(
         raise FirmwareReleaseError(f"{manifest_path} version {actual_version!r} does not match {version!r}")
     if actual_version in PLACEHOLDER_STRINGS:
         raise FirmwareReleaseError(f"{manifest_path} contains placeholder version {actual_version}")
-    if manifest.get("home_assistant_domain") != "esphome":
-        raise FirmwareReleaseError(f"{manifest_path} home_assistant_domain must be esphome")
 
     build = first_build(manifest, manifest_path)
     chip_family = build.get("chipFamily")
@@ -224,8 +222,6 @@ def verify_recovery_manifest(
         )
     if str(manifest.get("version", "")).strip() != version:
         raise FirmwareReleaseError(f"{manifest_path} recovery version must be {version}")
-    if manifest.get("home_assistant_domain") != "esphome":
-        raise FirmwareReleaseError(f"{manifest_path} home_assistant_domain must be esphome")
     if manifest.get("new_install_prompt_erase") is not True:
         raise FirmwareReleaseError(
             f"{manifest_path} must offer the erase choice for unrecognised firmware"
@@ -748,7 +744,6 @@ def cmd_manifest(args: argparse.Namespace) -> None:
     data = {
         "name": "EspDesktop",
         "version": args.version,
-        "home_assistant_domain": "esphome",
         # WiFi is configured through the device hotspot, not over USB.
         "new_install_improv_wait_time": 0,
         "builds": [
@@ -778,7 +773,6 @@ def cmd_recovery_manifest(args: argparse.Namespace) -> None:
         # EspDesktop installation as an update rather than a different product.
         "name": "EspDesktop",
         "version": args.version,
-        "home_assistant_domain": "esphome",
         "new_install_prompt_erase": True,
         "new_install_improv_wait_time": 0,
         "builds": [

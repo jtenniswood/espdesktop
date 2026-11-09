@@ -4,7 +4,7 @@
 
 EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders and websites, run keyboard shortcuts, arrange windows, and view Mac statistics.
 
-Set up the display from a normal web browser. There is no YAML to write or Home Assistant account needed for Mac controls.
+Set up the display from a normal web browser.
 
 **Documentation and setup guides:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
 
@@ -52,16 +52,12 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 
 The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv), with a compatible [3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301).
 
-## Home Assistant and Other Displays
-
-You do not need Home Assistant to use Mac controls on the 4848S040. For Home Assistant panels and smart-home controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
-
 ## Project Links
 
 - [Install EspDesktop firmware](https://jtenniswood.github.io/espdesktop/getting-started/install)
 - [Install and pair the Mac app](https://jtenniswood.github.io/espdesktop/getting-started/mac-app)
 - [Supported display](https://jtenniswood.github.io/espdesktop/screens/4848s040)
-- [Mac controls](https://jtenniswood.github.io/espdesktop/card-types/companion)
+- [Mac controls](https://jtenniswood.github.io/espdesktop/#what-you-can-control)
 - [Companion compatibility](https://jtenniswood.github.io/espdesktop/reference/companion-compatibility)
 - [Report a bug or request a feature](https://github.com/jtenniswood/espdesktop/issues)
 

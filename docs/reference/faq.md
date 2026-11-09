@@ -12,10 +12,6 @@ outline: [2, 3]
 
 Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See [Supported Display](/screens/4848s040) for the model and [Install](/getting-started/install) for the firmware steps.
 
-### Do I need Home Assistant?
-
-EspDesktop pairs directly with your Mac over your local network. For Home Assistant panels and smart-home controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
-
 ### Why can't I see my display in the Mac app?
 
 Confirm that the Mac and display are on the same local network and allow EspDesktop local-network access if macOS asks. Some guest WiFi or network-isolation settings prevent discovery. Choose **Enter address manually** in the app and enter the display's IP address or `.local` name if needed.
@@ -40,4 +36,4 @@ Choose **Forget Display** in the Mac app, then reset pairing from **System → M
 
 ## More Help
 
-See [Troubleshooting](/getting-started/troubleshooting) or [report a problem](https://github.com/jtenniswood/espdesktop/issues). For Home Assistant content, visit [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+See [Troubleshooting](/getting-started/troubleshooting) or [report a problem](https://github.com/jtenniswood/espdesktop/issues).
