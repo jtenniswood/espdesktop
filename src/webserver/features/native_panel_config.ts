@@ -382,14 +382,22 @@ export class NativePanelConfigClient {
         if (directBody) {
           body = directBody;
         } else if (nativeBackup) {
-          if (version !== V2_DOCUMENT_VERSION || this.writableNavigationDepth() !== 2) return "firmware-update-required";
-          if (nativeBackup.length > this.maxV2DocumentBytes_) return "too-large";
+          const exactRestore = version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2;
+          if (exactRestore && nativeBackup.length > this.maxV2DocumentBytes_) return "too-large";
           const backedUp = decodePanelPageDocument(nativeBackup);
           if (backedUp.deviceProfile !== updated.deviceProfile ||
               !sameRecords(backedUp.buttons, updated.buttons) || !sameRecords(backedUp.subpages, updated.subpages))
             return "failed";
-          body = sameRecords(backedUp.settings, updated.settings) ? nativeBackup
+          const graph = sameRecords(backedUp.settings, updated.settings) ? nativeBackup
             : updateNativePanelSettings(nativeBackup, backedUp.settings, updated.settings);
+          if (exactRestore) {
+            body = graph;
+          } else {
+            let flat: Uint8Array;
+            try { flat = convertNativeV2ToV1(graph); }
+            catch { return "firmware-update-required"; }
+            body = version === V2_DOCUMENT_VERSION ? convertNativeV1ToV2(flat) : flat;
+          }
         } else if (version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2) {
           body = layoutUnchanged
             ? updateNativePanelSettings(input, currentDocument.settings, updated.settings)
