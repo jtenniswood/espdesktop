@@ -180,7 +180,7 @@ def test_release_workflow_uses_current_ota_output() -> None:
     firmware_job = workflow.split("\n  build-firmware:", 1)[1].split("\n  assemble-release:", 1)[0]
     editor_download = firmware_job.index("name: release-web-assets")
     editor_verify = firmware_job.index("sha256sum -c -", editor_download)
-    editor_install = firmware_job.index('install -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js', editor_verify)
+    editor_install = firmware_job.index('install -D -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js', editor_verify)
     assert editor_install < firmware_job.index("name: Compile firmware")
     assert "needs.preflight.outputs.embedded_editor_sha256" in firmware_job
     preflight = workflow.split("\n  preflight:", 1)[1].split("\n  device-matrix:", 1)[0]

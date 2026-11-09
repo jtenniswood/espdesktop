@@ -120,8 +120,10 @@ jobs:
           python3 scripts/build.py --self-test
           python3 scripts/build.py --check
 
-      - name: Verify checked-in web asset manifest
-        run: node scripts/check_web_asset_manifest.js
+      - name: Build and verify source revision web assets
+        run: |
+          npm run webserver:build
+          node scripts/check_web_asset_manifest.js
 
       - name: Prepare release web assets
         id: web-assets
@@ -270,7 +272,7 @@ jobs:
         run: |
           EDITOR="${GITHUB_WORKSPACE}/release-web-assets/embedded/www.js"
           printf '%s  %s\n' "${EXPECTED_EDITOR_SHA256}" "${EDITOR}" | sha256sum -c -
-          install -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js
+          install -D -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js
 
       - name: Load ESPHome version
         working-directory: espdesktop-${{ matrix.slug }}

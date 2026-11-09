@@ -26,3 +26,8 @@ wifi-secrets*.yaml
 
 # Temporary local ESPHome entry points used when flashing PR builds.
 devices/*/dev-pr*.yaml
+
+# Editor build outputs. Released compatibility bundles already tracked here
+# are retained until the published artifact no longer needs them.
+/docs/public/webserver/**/www.js
+/docs/public/webserver/web-assets.json

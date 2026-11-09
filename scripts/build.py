@@ -5,7 +5,7 @@ Combines icon synchronization and www.js generation into a single tool.
 
 Usage:
     python scripts/build.py               # run all generators
-    python scripts/build.py --check       # exit 1 if any output is stale
+    python scripts/build.py --check       # exit 1 if tracked generated source is stale
     python scripts/build.py devices       # sync public device capabilities only
     python scripts/build.py icons         # sync icons only
     python scripts/build.py i18n          # sync firmware translations only
@@ -4050,8 +4050,9 @@ def main():
                 companion_dirty = sync_companion_capabilities(check_only=check_only)
                 device_dirty = sync_device_capabilities(check_only=check_only)
                 icon_dirty = sync_icons(check_only=check_only)
-                www_dirty = build_www(
-                    check_only=check_only,
+                # Web bundles are build artifacts, so a fresh source checkout
+                # need not have them. Use `www --check` for staged artifacts.
+                www_dirty = [] if check_only else build_www(
                     retain_current_bundle=retain_current_bundle,
                     legacy_web_manifest=legacy_web_manifest,
                 )

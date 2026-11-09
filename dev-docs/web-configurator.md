@@ -34,6 +34,11 @@ keepalive requests, and JSON decoding.
 
 ## Build
 
+Run `npm ci` from the repository root, then `npm run webserver:build` to
+generate the editor. The generated editor, manifest and loaders are ignored
+by Git. The repository retains pinned compatibility bundles for release
+builds that cannot fetch their published predecessors.
+
 The web generator writes `docs/public/webserver/<slug>/www.js` for each supported
 device. The shared `docs/public/webserver/www.js` is a small hosted bridge: it
 uses `web-assets.json` to select an immutable content-addressed editor for the
@@ -46,8 +51,10 @@ local editor starts automatically.
 
 The configurator page itself is served by the device. New build entry points in
 `builds/*.yaml` bundle the matching JavaScript with `web_server.js_include`, so
-a flashed branch uses that branch's setup UI. The generated files are still
-published for older firmware that loads the hosted GitHub Pages copy:
+a flashed branch uses that branch's setup UI. The local ESPHome wrapper
+builds the editor before compilation. The PR firmware check also publishes
+factory and OTA binaries under the matching `pr-firmware-<slug>` artifact.
+GitHub Pages publishes the hosted version at:
 
 ```text
 https://jtenniswood.github.io/espdesktop/webserver/<slug>/www.js

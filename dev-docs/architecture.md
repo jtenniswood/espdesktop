@@ -57,12 +57,11 @@ The central generator is:
 python3 scripts/build.py
 ```
 
-Use `python3 scripts/build.py --check` to confirm generated files are current.
-
-Generated source files remain tracked because firmware and web compilation
-consume them. Publishable binaries are different: release jobs assemble those
-only under the ignored `dist/` directory. Nothing under `dist/` is an authored
-source or a committed generated input.
+Use `python3 scripts/build.py --check` to check tracked generated source.
+Use `python3 scripts/build.py www --check` to compare a staged editor with
+its source. CI, local firmware builds and Pages generate the editor from the
+checked-out revision. Release firmware and Pages use the verified release
+artifact. Git retains the pinned compatibility bundles used as a fallback.
 
 ## Runtime Flow
 
