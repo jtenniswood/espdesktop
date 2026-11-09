@@ -3,6 +3,22 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { loadTypeScriptModule } = require("../../../scripts/load_typescript_module");
 
+test("Books presets work from both the bundled and Companion catalogues", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const books = require("../../../product/v2/app_shortcuts/books.json");
+  const bundled = api.companionShortcutPresetCards(books.appId);
+  assert.equal(bundled.length, 33);
+  assert.deepEqual(bundled.slice(0, 4).map(card => card.entity),
+    ["shortcut.right", "shortcut.left", "shortcut.function+f", "shortcut.space"]);
+  assert(bundled.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.a"));
+  assert(!api.companionShortcutActionIdValid("shortcut.function+g"));
+  api.replaceCompanionDefinitions([books]);
+  assert.deepEqual(api.companionShortcutPresetCards(books.appId), bundled);
+  api.replaceCompanionDefinitions([{ ...books, extendedShortcuts: undefined }]);
+  assert.equal(api.companionShortcutPresetCards(books.appId).length, 29);
+});
+
 test("file-defined apps and stable shortcut IDs drive subpages without code registration", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = {
