@@ -15,7 +15,7 @@ bool card_runtime_type_retired(const std::string &type) { return card_contract_t
 #define ESP_LOGE(...) ((void)0)
 struct ParsedCfg { std::string type,entity,sensor,label,options; } current;
 struct lv_obj_t {};
-ParsedCfg parse_cfg(const std::string &) {return current;}
+ParsedCfg grid_layout_card_config(int, const std::string &) {return current;}
 int card_runtime_context(const ParsedCfg &) {return 0;}
 bool card_runtime_passive(int) {return false;}
 bool screen_lock_enabled() {return false;}

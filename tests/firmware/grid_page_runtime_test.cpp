@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 #include "button_grid_subpage_parser.h"
+#include "grid_layout_config.h"
 #include "grid_native_page_cards.h"
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
@@ -63,6 +64,18 @@ int main() {
     assert(native_buttons[0].label == "Address");
     assert(native_buttons[0].entity == "shortcut.command+l");
     assert(order.current == "1");
+    const std::string stale_card = "light.stale;Wrong card;;;;;switch";
+    const auto home_card = grid_layout_card_config(1, stale_card);
+    assert(home_card.type == "subpage" && home_card.label == "Work");
+    assert(grid_layout_card_config(2, stale_card).entity.empty());
+    assert(grid_layout_card_config(33, stale_card).entity == "com.apple.Safari");
+    assert(grid_layout_root_order("3") == "1");
+    std::string folder_order;
+    std::vector<SubpageBtn> folder_cards;
+    assert(grid_read_native_subpage(1, folder_order, folder_cards));
+    assert(folder_order == "B,1" && folder_cards.size() == 1);
+    assert(folder_cards[0].entity == "com.apple.Safari");
+    assert(!grid_read_native_subpage(2, folder_order, folder_cards));
     assert(order.persistent_writes == 0 && subpages[0].persistent_writes == 0);
     fail_allocation = true;
     assert(!runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
@@ -84,6 +97,8 @@ int main() {
     assert(grid_native_page(33)->config == expected);
   }
   assert(grid_native_pages() == nullptr);
+  assert(grid_layout_card_config(1, "light.stale;Legacy card").label == "Legacy card");
+  assert(grid_layout_root_order("3") == "3");
   {
     GridPageRuntime restored(limits, bindings, allocate, ConfigurationBuffer::release_host);
     assert(restored.prepare(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));

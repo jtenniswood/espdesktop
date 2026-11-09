@@ -1,6 +1,6 @@
 #pragma once
 
-#include "page_store.h"
+#include "grid_native_pages.h"
 
 // Internal to the grid renderer. Include after the subpage card definitions.
 // Keep the existing renderer's normalization while taking field values
@@ -22,4 +22,15 @@ inline std::vector<SubpageBtn> native_subpage_buttons(
         field(CardField::PRECISION), field(CardField::OPTIONS)}));
   }
   return buttons;
+}
+
+inline bool grid_read_native_subpage(int key, std::string &order, std::vector<SubpageBtn> &buttons) {
+  const auto *store = espdesktop::grid_native_page_store();
+  const auto *entry = espdesktop::grid_native_page(key);
+  if (!store || !entry) return false;
+  const auto *page = store->page(entry->id);
+  if (!page) return false;
+  order = store->string(page->order);
+  buttons = native_subpage_buttons(*store, *page);
+  return true;
 }

@@ -23,6 +23,10 @@ inline const GridNativePages *&grid_native_pages() {
   static const GridNativePages *pages = nullptr;
   return pages;
 }
+inline const pages::PageStore *grid_native_page_store() {
+  const auto *snapshot = grid_native_pages();
+  return snapshot ? snapshot->store : nullptr;
+}
 inline const GridNativePage *grid_native_page(int key) {
   const auto *snapshot = grid_native_pages();
   if (snapshot)

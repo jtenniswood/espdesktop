@@ -1,7 +1,7 @@
 #pragma once
 
 #include "grid_native_page_cards.h"
-#include "grid_native_pages.h"
+#include <initializer_list>
 
 #include "card_curve.h"
 #include "card_icon_layout.h"
@@ -527,7 +527,7 @@ inline void grid_refresh_layout(
   int ROWS = (NS + COLS - 1) / COLS;
 
   OrderResult parsed, order;
-  parse_order_for_layout(order_str, cfg.configured_slots, NS, parsed, COLS);
+  parse_order_for_layout(grid_layout_root_order(order_str), cfg.configured_slots, NS, parsed, COLS);
   clear_spanned_cells(parsed, NS, COLS, order);
   clock_bar_clear_responsive_grid_cards(main_page_obj);
   navigation_clear_home_targets();
@@ -545,7 +545,7 @@ inline void grid_refresh_layout(
     int idx = order.positions[pos];
     if (idx < 1 || idx > NS) continue;
     auto &s = slots[idx - 1];
-    if (card_runtime_type_retired(parse_cfg(s.config->state).type)) continue;
+    if (card_runtime_type_retired(grid_layout_card_config(idx, s.config->state).type)) continue;
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
     int col = pos % COLS, row = pos / COLS;
     int row_span = order.row_span[idx - 1] > 0 ? order.row_span[idx - 1] : 1;
@@ -560,7 +560,7 @@ inline void grid_refresh_layout(
     if (idx < 1 || idx > NS) continue;
     auto &s = slots[idx - 1];
     if (lv_obj_has_flag(s.btn, LV_OBJ_FLAG_HIDDEN)) continue;
-    ParsedCfg p = parse_cfg(s.config->state);
+    ParsedCfg p = grid_layout_card_config(idx, s.config->state);
     if (card_runtime_type_retired(p.type)) {
       lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
       lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
@@ -624,7 +624,7 @@ inline void grid_phase1(
       cfg.num_slots, MAX_GRID_SLOTS);
   }
 
-  if (!order_str.empty()) {
+  if (!espdesktop::grid_native_page_store() && !order_str.empty()) {
     bool all_empty = true;
     for (int i = 0; i < NS; i++) {
       if (!slots[i].config->state.empty()) { all_empty = false; break; }
@@ -637,7 +637,7 @@ inline void grid_phase1(
   }
 
   OrderResult parsed, order;
-  parse_order_for_layout(order_str, cfg.configured_slots, NS, parsed, COLS);
+  parse_order_for_layout(grid_layout_root_order(order_str), cfg.configured_slots, NS, parsed, COLS);
   clear_spanned_cells(parsed, NS, COLS, order);
   clock_bar_clear_responsive_grid_cards(main_page_obj);
 
@@ -663,8 +663,7 @@ inline void grid_phase1(
     int idx = order.positions[pos];
     if (idx < 1 || idx > NS) continue;
     auto &s = slots[idx - 1];
-    std::string scfg = s.config->state;
-    ParsedCfg p = parse_cfg(scfg);
+    ParsedCfg p = grid_layout_card_config(idx, s.config->state);
     if (card_runtime_type_retired(p.type)) {
       lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
       continue;
@@ -700,8 +699,18 @@ inline void grid_phase1(
 
 // ── Phase 2: HA subscriptions + subpage creation ─────────────────────
 
-inline std::string optional_text_state(esphome::text::Text **configs, int index) {
-  return (configs != nullptr && configs[index] != nullptr) ? configs[index]->state : "";
+inline bool grid_read_subpage(int slot, std::initializer_list<esphome::text::Text **> legacy_chunks,
+                              std::string &order, std::vector<SubpageBtn> &buttons) {
+  if (espdesktop::grid_native_page_store()) return grid_read_native_subpage(slot, order, buttons);
+  if (slot < 1 || slot > MAX_GRID_SLOTS) return false;
+  const int index = slot - 1;
+  std::string config;
+  for (auto **chunk : legacy_chunks)
+    if (chunk && chunk[index]) config += chunk[index]->state;
+  if (config.empty()) return false;
+  order = get_subpage_order(config);
+  buttons = parse_subpage_config(config);
+  return true;
 }
 
 // Moving a card changes only the saved order, not the card itself. Keep the
@@ -732,25 +741,20 @@ inline bool grid_refresh_subpage_layouts(
 
   bool refreshed = false;
   for (int si = 0; si < NS; si++) {
-    const auto parent_config = parse_cfg(slots[si].config->state);
+    const auto parent_config = grid_layout_card_config(si + 1, slots[si].config->state);
     const auto parent_context = card_runtime_context(parent_config);
     if (!espdesktop::cards::navigation_driver_owns_subpage(parent_context, parent_config)) {
       navigation_retire_subpage(si + 1, main_page_obj);
       continue;
     }
 
-    const std::string sp_cfg = optional_text_state(sp_configs, si) +
-      optional_text_state(sp_ext_configs, si) +
-      optional_text_state(sp_ext2_configs, si) +
-      optional_text_state(sp_ext3_configs, si) +
-      optional_text_state(sp_ext4_configs, si) +
-      optional_text_state(sp_ext5_configs, si) +
-      optional_text_state(sp_ext6_configs, si) +
-      optional_text_state(sp_ext7_configs, si);
-    if (sp_cfg.empty()) continue;
+    std::string order;
+    std::vector<SubpageBtn> sp_btns;
+    if (!grid_read_subpage(si + 1, {sp_configs, sp_ext_configs, sp_ext2_configs, sp_ext3_configs,
+                                   sp_ext4_configs, sp_ext5_configs, sp_ext6_configs, sp_ext7_configs},
+                          order, sp_btns)) continue;
 
     NavigationSubpageEntry *entry = navigation_find_slot(si + 1);
-    const auto sp_btns = parse_subpage_config(sp_cfg);
     if (entry == nullptr || entry->screen == nullptr || entry->back_button == nullptr) {
       ESP_LOGW("sensors", "Subpage %d is not ready for a layout refresh", si + 1);
       continue;
@@ -761,7 +765,6 @@ inline bool grid_refresh_subpage_layouts(
       ESP_LOGW("sensors", "Subpage %d card count changed; repositioning existing cards", si + 1);
     }
 
-    const std::string order = get_subpage_order(sp_cfg);
     SubpageOrder sp_order;
     parse_subpage_order(order, NS, sp_btns.size(), sp_order, cfg.configured_slots);
     normalize_subpage_order_spans(sp_order, NS, COLS);
@@ -1134,7 +1137,7 @@ inline void grid_release_main_runtime_allocations(BtnSlot *slots, int slot_count
 inline void grid_clear_navigation_targets(BtnSlot *slots, int slot_count) {
   if (slots == nullptr) return;
   for (int i = 0; i < slot_count; i++) {
-    ParsedCfg p = parse_cfg(slots[i].config->state);
+    ParsedCfg p = grid_layout_card_config(i + 1, slots[i].config->state);
     const auto context = card_runtime_context(p);
     espdesktop::cards::navigation_driver_cleanup(slots[i], p, context);
   }
@@ -1221,7 +1224,7 @@ inline void grid_phase2(
   set_current_button_primary_color(palette.on_val);
 
   OrderResult parsed, order;
-  parse_order_for_layout(order_str, cfg.configured_slots, NS, parsed, COLS);
+  parse_order_for_layout(grid_layout_root_order(order_str), cfg.configured_slots, NS, parsed, COLS);
   clear_spanned_cells(parsed, NS, COLS, order);
   lv_obj_t *first_card = nullptr;
   if (order.positions[0] >= 1 && order.positions[0] <= NS) {
@@ -1235,9 +1238,8 @@ inline void grid_phase2(
     int idx = order.positions[pos];
     if (idx < 1 || idx > NS) continue;
     auto &s = slots[idx - 1];
-    std::string scfg = s.config->state;
-
-    ParsedCfg p = parse_cfg(scfg);
+    const std::string &scfg = s.config->state;
+    ParsedCfg p = grid_layout_card_config(idx, scfg);
     if (card_runtime_type_retired(p.type)) continue;
     const auto context = card_runtime_context(p);
     const CardPalette card_palette = card_palette_for_config(palette, p, display);
@@ -1288,7 +1290,7 @@ inline void grid_phase2(
 
   lv_obj_t *ref_btn = slots[0].btn;
   for (int i = 0; i < NS; i++) {
-    ParsedCfg pc = parse_cfg(slots[i].config->state);
+    ParsedCfg pc = grid_layout_card_config(i + 1, slots[i].config->state);
     if (!brightness_slider_type(pc.type) && pc.type != "cover") {
       ref_btn = slots[i].btn;
       break;
@@ -1321,33 +1323,15 @@ inline void grid_phase2(
     const int parent_index = si;
     BtnSlot owner_slot = is_nested_page ? task.owner : slots[si];
     const int navigation_slot = is_nested_page ? task.key : si + 1;
-    ParsedCfg p = is_nested_page ? task.config : parse_cfg(slots[si].config->state);
+    ParsedCfg p = is_nested_page ? task.config : grid_layout_card_config(navigation_slot, owner_slot.config->state);
     const auto parent_context = card_runtime_context(p);
     if (!espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) continue;
 
-    const auto *native_page = is_nested_page ? espdesktop::grid_native_page(task.key) : nullptr;
     std::vector<SubpageBtn> sp_btns;
     std::string sp_order_str;
-    if (is_nested_page) {
-      const auto *native_pages = espdesktop::grid_native_pages();
-      if (!native_page || !native_pages || !native_pages->store) continue;
-      const auto &store = *native_pages->store;
-      const auto &page = *store.page(native_page->id);
-      sp_btns = native_subpage_buttons(store, page);
-      sp_order_str = store.string(page.order);
-    } else {
-      const std::string sp_cfg = optional_text_state(sp_configs, si) +
-        optional_text_state(sp_ext_configs, si) +
-        optional_text_state(sp_ext2_configs, si) +
-        optional_text_state(sp_ext3_configs, si) +
-        optional_text_state(sp_ext4_configs, si) +
-        optional_text_state(sp_ext5_configs, si) +
-        optional_text_state(sp_ext6_configs, si) +
-        optional_text_state(sp_ext7_configs, si);
-      if (sp_cfg.empty()) continue;
-      sp_btns = parse_subpage_config(sp_cfg);
-      sp_order_str = get_subpage_order(sp_cfg);
-    }
+    if (!grid_read_subpage(navigation_slot, {sp_configs, sp_ext_configs, sp_ext2_configs, sp_ext3_configs,
+                                            sp_ext4_configs, sp_ext5_configs, sp_ext6_configs, sp_ext7_configs},
+                          sp_order_str, sp_btns)) continue;
     std::string sp_back_label = get_subpage_back_label(sp_order_str);
 
     SubpageOrder sp_ord;
@@ -1366,7 +1350,7 @@ inline void grid_phase2(
     espdesktop::cards::navigation_driver_own_subpage(
       owner_slot, p, parent_context, navigation_slot, display_order, sub_scr);
     if (is_nested_page) {
-      navigation_register_home_target(navigation_slot, display_order, p.label, native_page->owner_config, owner_slot.btn);
+      navigation_register_home_target(navigation_slot, display_order, p.label, {}, owner_slot.btn);
       navigation_find_slot(navigation_slot)->parent_slot = task.parent;
     }
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);
