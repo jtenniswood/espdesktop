@@ -6,6 +6,8 @@
 #include <memory>
 #include <mutex>
 
+#include <esp_heap_caps.h>
+
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "esphome/components/mipi_rgb/mipi_rgb.h"
 #include "esphome/components/web_server_base/web_server_base.h"
@@ -40,10 +42,12 @@ class DisplayResyncTestHandler final : public esphome::web_server_idf::AsyncWebH
 <title>S3 display test</title>
 <h1>S3 display test</h1>
 <p>While the picture is shifted, take a photo and capture the current frame before trying a reset.</p>
+<p>Open this page from another device so the focused app on the Mac stays the same.</p>
 <button type="button" id="capture">Capture current frame</button>
 <button type="button" data-command="Resync S3 Display">Resync S3 display</button>
 <button type="button" data-command="Reset S3 LCD Controller">Reset LCD controller</button>
 <p id="result" role="status"></p>
+<pre id="memory" hidden></pre>
 <p><a id="download" download="s3-current-frame.png" hidden>Download capture</a></p>
 <canvas id="frame" aria-label="Captured S3 frame" style="max-width:100%;height:auto;border:1px solid" hidden></canvas>
 <script>
@@ -68,11 +72,22 @@ for (const button of document.querySelectorAll("button[data-command]")) {
 document.getElementById("capture").addEventListener("click", async () => {
   const canvas = document.getElementById("frame");
   const download = document.getElementById("download");
+  const memory = document.getElementById("memory");
   for (const control of buttons) control.disabled = true;
-  canvas.hidden = download.hidden = true;
+  canvas.hidden = download.hidden = memory.hidden = true;
   result.textContent = "Capturing the frame…";
   try {
     const response = await fetch("/display-test/frame", {cache: "no-store"});
+    const memoryHeader = response.headers.get("X-Frame-Memory");
+    if (memoryHeader) {
+      const [heap, heapLow, heapBlock, psram, psramLow, psramBlock] =
+        memoryHeader.split(",").map(value => Number(value).toLocaleString());
+      memory.textContent =
+        "Before capture\n" +
+        `Internal RAM: ${heap} B free, ${heapLow} B lowest since boot, ${heapBlock} B largest block\n` +
+        `PSRAM: ${psram} B free, ${psramLow} B lowest since boot, ${psramBlock} B largest block`;
+      memory.hidden = false;
+    }
     if (!response.ok) throw new Error(await response.text());
     const [width, height, rotation] = response.headers.get("X-Frame-Geometry").split(",").map(Number);
     const pixels = new DataView(await response.arrayBuffer());
@@ -83,7 +98,7 @@ document.getElementById("capture").addEventListener("click", async () => {
     const rawContext = raw.getContext("2d");
     const image = rawContext.createImageData(width, height);
     for (let i = 0; i < width * height; i++) {
-      const color = pixels.getUint16(i * 2, true);
+      const color = pixels.getUint16(i * 2, false); // The S3 RGB buffer stores the high byte first.
       image.data[i * 4] = ((color >> 11) & 31) * 255 / 31;
       image.data[i * 4 + 1] = ((color >> 5) & 63) * 255 / 63;
       image.data[i * 4 + 2] = (color & 31) * 255 / 31;
@@ -121,6 +136,17 @@ document.getElementById("capture").addEventListener("click", async () => {
   };
 
   void send_frame_(esphome::web_server_idf::AsyncWebServerRequest *request) {
+    // Collect memory readings before allocating the snapshot in PSRAM.
+    multi_heap_info_t heap{};
+    multi_heap_info_t psram{};
+    heap_caps_get_info(&heap, MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT);
+    heap_caps_get_info(&psram, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT);
+    char memory[96];
+    std::snprintf(memory, sizeof(memory), "%zu,%zu,%zu,%zu,%zu,%zu",
+                  heap.total_free_bytes, heap.minimum_free_bytes, heap.largest_free_block,
+                  psram.total_free_bytes, psram.minimum_free_bytes, psram.largest_free_block);
+    httpd_resp_set_hdr(*request, "X-Frame-Memory", memory);
+
     const int width = this->display_.get_width_internal();
     const int height = this->display_.get_height_internal();
     const size_t pixel_count = static_cast<size_t>(width) * height;
