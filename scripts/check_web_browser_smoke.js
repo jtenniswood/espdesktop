@@ -4453,10 +4453,11 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const appSubpage = panels.filter({ hasText: "App Subpage" }).first();
     await appSubpage.locator(".sp-disclosure-button").click();
     const rows = appSubpage.locator(".sp-light-tab-row");
-    const safariShortcuts = JSON.parse(fs.readFileSync(
+    const safariTemplate = JSON.parse(fs.readFileSync(
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
-    )).shortcuts;
+    ));
+    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.extendedShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
     assert.deepStrictEqual(
@@ -4476,9 +4477,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       "true",
       `${testCase.name}: App subpage stays open after toggling a shortcut`,
     );
+    const enabledOrder = ["0", "3", "2", "4", "5", "6", "7"];
+    const disabledLabels = safariShortcuts.filter(shortcut => !enabledOrder.includes(shortcut.id))
+      .map(shortcut => shortcut.label);
     assert.deepStrictEqual(
       await appSubpage.locator(".sp-light-tab-label").allTextContents(),
-      [0, 3, 2, 4, 5, 6, 7, 1, 8, 9].map(safariShortcutLabel),
+      [...enabledOrder.map(safariShortcutLabel), ...disabledLabels],
       `${testCase.name}: disabled shortcuts should follow enabled shortcuts after rerender`,
     );
     const beforeSave = nativeState.puts.length;
