@@ -207,7 +207,7 @@ int main() {
   lv_obj_t home, subpage;
   active_page = &subpage;
   auto *guard = ui.overlay;
-  assert(navigation_return_home(&home)); // The unchanged idle timer's navigation path.
+  assert(navigation_return_home(&home));
   assert(active_page == &home && ui.overlay == guard && !ui.label && pin.locked());
   lv_event_t released{""};
   ui.touch_blocked = true;
