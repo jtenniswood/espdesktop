@@ -1,11 +1,13 @@
 import {
   CARD_CONTRACT_MIGRATION_ALIASES,
+  CARD_RUNTIME_SPECS,
   cardContractCard,
   cardContractCardKeys,
   cardContractDefaultConfig,
   cardContractMigrationAlias,
   cardContractSubpageTypeCode,
   cardContractSubpageTypeFromCode,
+  cardContractTypeRetired,
   cardRuntimeSpec,
   resolveCardRuntimeSpec,
 } from "../../src/webserver/generated/card_contract";
@@ -16,7 +18,7 @@ function equal<T>(actual: T, expected: T, message: string): void {
 
 export function runCardContractTests(): void {
   const keys = cardContractCardKeys();
-  if (keys.length < 35) throw new Error(`expected the complete card contract, received ${keys.length} card types`);
+  equal(JSON.stringify(keys.sort()), JSON.stringify(Object.keys(CARD_RUNTIME_SPECS).sort()), "card and runtime type sets");
   for (const type of keys) {
     const card = cardContractCard(type);
     const runtime = cardRuntimeSpec(type);
@@ -30,6 +32,12 @@ export function runCardContractTests(): void {
     equal(cardContractSubpageTypeFromCode(code), type, `${type || "switch"} compact type code round-trip`);
     const resolved = resolveCardRuntimeSpec(defaults);
     if (!resolved?.driver) throw new Error(`${type || "switch"}: default runtime driver does not resolve`);
+  }
+
+  for (const [type, code] of [["calendar", "D"], ["clock", "CK"], ["timezone", "T"]] as const) {
+    equal(cardContractTypeRetired(type), true, `${type} is retired`);
+    equal(cardContractCard(type), null, `${type} has no active contract`);
+    equal(cardContractSubpageTypeFromCode(code), type, `${code} decodes to the retired type`);
   }
 
   for (const [legacyType, expected] of Object.entries(CARD_CONTRACT_MIGRATION_ALIASES)) {

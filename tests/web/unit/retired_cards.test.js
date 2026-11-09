@@ -35,13 +35,13 @@ test("native backup cleanup discards retired payloads before native or legacy re
     const retired = `old.entity;Old;Auto;Auto;old.sensor;;${type};;ssid64=old-network,pass64=old-secret`;
     for (const page of [`1b,,2|${retired.replaceAll(";", ":")}|${neighbour.replaceAll(";", ":")}`, `~1b,,2|${cardContractSubpageTypeCode(type)},old.entity,Old,,,old.sensor,,,pass64=old-secret|switch,switch.lamp,Lamp`]) {
       const document = { deviceProfile: "test", buttons: { 1: retired, 2: neighbour },
-        subpages: { 3: page, 4: "", 34: page }, settings: { button_order: "1b,,2", special_page: page } };
+        subpages: { 3: page, 4: "", 34: page }, settings: { button_order: "1b,,2" } };
       removeRetiredPanelRecords(document, codec);
       assert.equal(document.buttons[1], undefined);
       assert.equal(document.buttons[2], neighbour);
       assert.equal(document.settings.button_order, ",,2");
       assert.equal(document.subpages[4], "");
-      for (const cleaned of [document.subpages[3], document.subpages[34], document.settings.special_page]) {
+      for (const cleaned of [document.subpages[3], document.subpages[34]]) {
         assert.ok(!cleaned.includes("old.entity") && !cleaned.includes("old.sensor") && !cleaned.includes("old-secret"));
         const parsed = JSON.parse(cleaned);
         assert.deepEqual(parsed.order, ["", "", "2"]);

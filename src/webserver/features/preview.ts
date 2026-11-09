@@ -265,7 +265,6 @@ export function cardTypePickerOptions(
   selectedTypeKey: string | null | undefined,
   connector: CardPickerConnector = "home_assistant",
   _homeAssistantEnabled = false,
-  isSpecialPage = false,
 ): CardPickerOption[] {
   const homeAssistantEnabled = false;
   connector = "mac_companion";
@@ -296,12 +295,7 @@ export function cardTypePickerOptions(
       continue;
     }
     if (pickerKey && pickerKey !== typeKey) continue;
-    // The standalone page accepts every card type, but must never contain a
-    // card that opens another page.
-    if (isSpecialPage && (
-      typeKey === "subpage" || typeKey === "companion_subpage" || pickerKey === "subpage"
-    )) continue;
-    if (isSub && !isSpecialPage && !allowInSubpage) continue;
+    if (isSub && !allowInSubpage) continue;
     if (definition.isAvailable && !definition.isAvailable({ isSub }) && selectedTypeKey !== typeKey) continue;
     if (!cardTypeVisibleForConnector(typeKey, connector) && !localFolderPicker) continue;
     options.push({

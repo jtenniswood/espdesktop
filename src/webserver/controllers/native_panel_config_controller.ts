@@ -285,9 +285,4 @@ export class NativePanelConfigController {
     });
   }
 
-  writeSpecialPage(value: string): Promise<NativePanelConfigSaveOutcome> | null {
-    return this.schedule((current) => updateNativePanelConfigDocument(
-      current, this.dependencies.deviceProfile(), "settings", "special_page", value,
-    ));
-  }
 }
