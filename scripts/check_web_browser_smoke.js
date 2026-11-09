@@ -4281,9 +4281,11 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.waitForSelector("#sp-app");
     await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
     await seedNativeDocument(page, nativeState);
-    const commandIcon = page.locator('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
-    assert.strictEqual(await commandIcon.count(), 1, "saved Shortcut Command icon uses its actual MDI name");
-    assert((await commandIcon.evaluate((icon) => getComputedStyle(icon, "::before").content)).includes(String.fromCodePoint(0xF0633)), "shortcut icon has the expected browser glyph");
+    // The grid can replace the icon while loading the saved layout.
+    await page.waitForFunction(expectedGlyph => {
+      const icons = document.querySelectorAll('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
+      return icons.length === 1 && getComputedStyle(icons[0], "::before").content.includes(expectedGlyph);
+    }, String.fromCodePoint(0xF0633));
     await openCard();
     const type = page.locator('[id$="shortcut-type"]');
     const app = page.locator('[id$="shortcut-catalog-app"]');
