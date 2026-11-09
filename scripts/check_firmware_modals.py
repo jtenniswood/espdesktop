@@ -171,11 +171,6 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
         errors.append("common/addon/backlight.yaml: keep display-off modal guards")
     else:
         text = backlight_path.read_text(encoding="utf-8")
-        home_idle_body = yaml_script_body(text, "home_screen_idle_check")
-        if "home_screen_idle_suspended" in text:
-            errors.append(
-                "common/addon/backlight.yaml: keep display-takeover suspension separate from home-return idle"
-            )
         if "display_takeover_suspended" in text:
             errors.append("common/addon/backlight.yaml: remove the compatibility takeover boolean")
         begin_body = yaml_script_body(text, "display_takeover_begin")
@@ -204,18 +199,6 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
             errors.append(
                 "common/addon/backlight.yaml: record automatic requests beneath interactive takeovers"
             )
-        if home_idle_body is None:
-            errors.append("common/addon/backlight.yaml: keep the home-screen idle return script")
-        else:
-            if (
-                "display_takeover_suspended" in home_idle_body
-                or "home_screen_idle_suspended" in home_idle_body
-            ):
-                errors.append(
-                    "common/addon/backlight.yaml: do not gate home-return idle on display-takeover suspension"
-                )
-            if "navigation_return_home(id(main_page)->obj);" not in home_idle_body:
-                errors.append("common/addon/backlight.yaml: home-return idle must use navigation_return_home")
         controller_off_body = yaml_script_body(text, "display_mode_effect_off")
         controller_owns_automatic_off = (
             controller_off_body is not None
@@ -235,14 +218,6 @@ def firmware_modal_sleep_takeover_errors(root: Path) -> list[str]:
         errors.append("scripts/generate_device_slots.py: generate display-takeover modal guards")
     else:
         text = generator_path.read_text(encoding="utf-8")
-        if (
-            "cfg.pause_home_idle" in text
-            or "home_screen_idle_suspended" in text
-            or "id(home_screen_idle_check).stop();" in text
-        ):
-            errors.append(
-                "scripts/generate_device_slots.py: image modal display guard must not stop the home-return timer"
-            )
         if (
             "cfg.begin_display_takeover" not in text
             or "cfg.end_display_takeover" not in text
@@ -618,10 +593,6 @@ def valid_sleep_takeover_files() -> dict[str, str]:
             "    then:\n"
             "      - lambda: 'id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::INTERACTIVE);'\n"
             "      - script.execute: display_mode_request_automatic\n"
-            "  - id: home_screen_idle_check\n"
-            "    then:\n"
-            "      - lambda: |-\n"
-            "          navigation_return_home(id(main_page)->obj);\n"
             "Skipping automatic display-off while image modal is active\n"
             "backlight_close_modals_for_display_takeover();\n"
         ),
@@ -855,34 +826,6 @@ def run_self_test() -> int:
         "modal tab layout drifts back to local sizing",
         old_tab_layout,
         ("keep modal tab sizing in button_grid_modal_layout.h",),
-    )
-    home_idle_gated = valid_sleep_takeover_files()
-    home_idle_gated["common/addon/backlight.yaml"] = home_idle_gated[
-        "common/addon/backlight.yaml"
-    ].replace(
-        "          navigation_return_home(id(main_page)->obj);\n",
-        "          if (id(display_takeover_suspended)) return;\n"
-        "          navigation_return_home(id(main_page)->obj);\n",
-    )
-    expect_sleep_takeover_errors(
-        "home return gated by display takeover",
-        home_idle_gated,
-        ("do not gate home-return idle",),
-    )
-    image_guard_stops_home_idle = valid_sleep_takeover_files()
-    image_guard_stops_home_idle["scripts/generate_device_slots.py"] = (
-        "cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {\n"
-        "  id(display_takeover_begin).execute(static_cast<int>(kind));\n"
-        "  id(home_screen_idle_check).stop();\n"
-        "};\n"
-        "cfg.end_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {\n"
-        "  id(display_takeover_end).execute(static_cast<int>(kind));\n"
-        "};\n"
-    )
-    expect_sleep_takeover_errors(
-        "image modal display guard stops home return",
-        image_guard_stops_home_idle,
-        ("must not stop the home-return timer",),
     )
     missing_takeover_reconcile = valid_sleep_takeover_files()
     missing_takeover_reconcile["common/addon/backlight.yaml"] = (

@@ -87,20 +87,6 @@ esphome:
     - priority: -240
       then:
         - lambda: |-
-            show_screen_lock_pin() = []() { id(screensaver_pin_refresh_ui).execute(); };
-            return_screen_lock_view() = []() {
-              if (!screensaver_pin_restore_previous_mode(id(espdesktop_app).display())) {
-                id(screensaver_pin_refresh_ui).execute();
-                return;
-              }
-              id(manual_wake_ms) = 0;
-              id(screen_schedule_wake_timeout_check).stop();
-              id(cover_art_delay_timer).stop();
-              if (espdesktop::screensaver_pin().return_mode() == espdesktop::DisplayMode::COVER_ART) {
-                id(cover_art_manual_pause_until_ms) = 0;
-              }
-              id(display_mode_reconcile).execute();
-            };
             auto update_screensaver_action_cache = []() {
               std::string action = id(screensaver_action).current_option();
               id(screensaver_action_clock) = screensaver_action_clock_mode(action);
@@ -114,6 +100,7 @@ esphome:
             });
             register_screen_lock_changed_handler([](bool) {
               id(screensaver_companion_reconcile).execute();
+              id(screen_lock_refresh_ui).execute();
             });
             id(screensaver_companion_ready) = true;
 
@@ -185,21 +172,11 @@ esphome:
         - lambda: 'id(clock_brightness_legacy_sync_ready) = true;'
 
 script:
-  - id: screensaver_pin_refresh_ui
+  - id: screen_lock_refresh_ui
     mode: single
     then:
       - lambda: |-
-          const auto &controller = id(espdesktop_app).display();
-          const bool active = controller.target_mode_is(espdesktop::DisplayMode::ACTIVE);
-          if (!active && !controller.target_mode_is(espdesktop::DisplayMode::SETUP_DIMMED)) {
-            espdesktop::screensaver_pin().arm(controller.target_mode());
-          }
-          screensaver_pin_refresh(active, id(${cover_art_title_font})->get_lv_font(),
-                                 id(${media_title_font})->get_lv_font(),
-                                 id(${icon_font})->get_lv_font(),
-                                 id(screensaver_wake_touch_guard_active),
-                                 id(${label_font})->get_lv_font(),
-                                 {id(${setup_icon_font_id})->get_lv_font(),
+          refresh_screen_lock_overlay({id(${setup_icon_font_id})->get_lv_font(),
                                   id(${setup_title_font_id})->get_lv_font(),
                                   id(${setup_body_font_id})->get_lv_font(),
                                   ${content_width}, ${setup_pad_row}});
@@ -220,14 +197,6 @@ script:
                   static_cast<uint32_t>(generation),
                   static_cast<espdesktop::DisplayMode>(target_mode));
           then:
-            - lambda: |-
-                const auto mode = static_cast<espdesktop::DisplayMode>(target_mode);
-                if (mode != espdesktop::DisplayMode::ACTIVE &&
-                    mode != espdesktop::DisplayMode::SETUP_DIMMED) {
-                  espdesktop::screensaver_pin().arm(mode);
-                  screensaver_pin_hide();
-                }
-
             - lambda: |-
                 const auto transition = id(espdesktop_app).display().resolve();
                 const bool schedule_owned = transition.winning_source.has_value() &&
@@ -379,7 +348,7 @@ script:
       previous_mode: int
     then:
       - lvgl.resume:
-      - script.execute: screensaver_pin_refresh_ui
+      - script.execute: screen_lock_refresh_ui
       - lvgl.widget.hide: dim_screensaver_touch_guard
       - if:
           condition:
@@ -740,7 +709,6 @@ script:
                   - script.execute: backlight_apply_brightness
                   - script.wait: backlight_apply_brightness
             - script.execute: screensaver_idle_check
-            - script.execute: home_screen_idle_check
 
   # Typed takeover ownership is recorded directly in the controller. Requests
   # continue to update underneath a takeover, so ending it resolves current
@@ -991,7 +959,6 @@ script:
             id(display_mode_effect_off).stop();
           }
       - script.stop: screensaver_idle_check
-      - script.stop: home_screen_idle_check
       - script.stop: cover_art_delay_timer
       - lvgl.resume:
       - script.execute: clock_bar_hide
@@ -1123,48 +1090,6 @@ script:
                   - script.execute: display_mode_reconcile
                 else:
                   - script.execute: display_mode_request_setup_dimmed
-
-  # Home screen return timer (restartable)
-  - id: home_screen_idle_check
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: |-
-              float val = id(home_screen_timeout).state;
-              return !id(connectivity_setup_display_active) &&
-                     !id(button_order).state.empty() &&
-                     !std::isnan(val) && val > 0;
-          then:
-            - delay: !lambda |-
-                float val = id(home_screen_timeout).state;
-                if (std::isnan(val) || val <= 0) val = 60;
-                return (int)(val * 1000);
-            - lambda: |-
-                if (!id(connectivity_setup_display_active) &&
-                    !id(button_order).state.empty() &&
-                    !id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL)) {
-                  navigation_return_home(id(main_page)->obj);
-                }
-
-  - id: home_screen_idle_restore
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: |-
-              float val = id(home_screen_timeout).state;
-              if (id(connectivity_setup_display_active) ||
-                  id(button_order).state.empty() ||
-                  std::isnan(val) || val <= 0) return false;
-              return lv_disp_get_inactive_time(NULL) >= (uint32_t)(val * 1000);
-          then:
-            - lambda: |-
-                if (!id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL)) {
-                  navigation_return_home(id(main_page)->obj);
-                }
-          else:
-            - script.execute: home_screen_idle_check
 
   # Wake from screensaver
   - id: screensaver_wake
@@ -1304,7 +1229,6 @@ script:
             - script.execute: display_mode_clear_cover_art
             - script.wait: display_mode_clear_cover_art
       - script.execute: screensaver_idle_check
-      - script.execute: home_screen_idle_check
       - if:
           condition:
             lambda: |-
@@ -1662,10 +1586,10 @@ script:
 # Screensaver layering and brightness/image-overlay maintenance
 # -----------------------------------------------------------------------------
 interval:
-  # Web changes are applied on the firmware loop, never from an HTTP callback.
+  # Keep the Mac lock overlay sized to the display after rotation.
   - interval: 100ms
     then:
-      - script.execute: screensaver_pin_refresh_ui
+      - script.execute: screen_lock_refresh_ui
   - interval: 1s
     then:
       - script.execute: clock_screensaver_keep_on_top

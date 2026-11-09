@@ -234,8 +234,7 @@ script:
       - if:
           condition:
             lambda: |-
-              return espdesktop::screensaver_pin().locked() ||
-                     !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||
+              return !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||
                      lv_obj_has_flag(id(cover_art_screensaver), LV_OBJ_FLAG_HIDDEN) ||
                      id(screensaver_wake_touch_guard_active);
           then:
@@ -1131,4 +1130,3 @@ script:
           then:
             - script.execute: backlight_apply_brightness
             - script.execute: screensaver_idle_check
-            - script.execute: home_screen_idle_check

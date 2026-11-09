@@ -115,7 +115,7 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   display_mode_reconcile.stop(); screen_schedule_check.stop(); screen_schedule_wake.stop();
   display_mode_apply_transition.stop(); display_mode_effect_active.stop();
   display_active_finalize.stop(); screensaver_idle_check.stop();
-  screensaver_idle_check.calls = home_screen_idle_check.calls = 0;
+  screensaver_idle_check.calls = 0;
   clock_time = {6, true}; active_page = home.obj;
   schedule_enabled.state = true;
   screen_schedule_trigger.state = "time";
@@ -282,7 +282,6 @@ int main() {
   display_mode_reconcile.execute(); advance(301000);
   assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
   assert(screensaver_idle_check.calls == 0);
-  assert(home_screen_idle_check.calls == 0);
   button_order.state = "1";
   // Night boot and media ownership must not start a normal idle countdown.
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DISPLAY_OFF}) {

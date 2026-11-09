@@ -1,6 +1,7 @@
 import type { CardConfig } from "../contracts/types";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
+import { retiredSavedCardType } from "./card";
 
 export function companionMetricForEntity(entity: unknown) {
   const baseEntity = typeof entity === "string" ? entity.split(":", 1)[0] : entity;
@@ -10,7 +11,6 @@ export function companionMetricForEntity(entity: unknown) {
 export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCardModeId {
   const entity = config.entity || "";
   if (entity.startsWith("shortcut.")) return "shortcut";
-  if (entity.startsWith("window.")) return "window";
   if (entity.startsWith("folder.")) return "folder";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
   if (config.sensor?.startsWith("url.")) return "url";
@@ -20,7 +20,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
 // Only native application cards display app artwork with an adjustable size.
 export function companionCardHasAppIcon(config: Partial<CardConfig>): boolean {
   return config.type === "companion" && !!config.entity && !config.sensor &&
-    companionSavedCardMode(config) === "app";
+    !retiredSavedCardType(config) && companionSavedCardMode(config) === "app";
 }
 
 export function decodeCompanionCard(config: Partial<CardConfig>, mode = companionSavedCardMode(config)): CompanionCardModel {
@@ -30,7 +30,6 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "shortcut": return { mode, shortcutId: entity };
     case "folder": return { mode, folderId: entity };
     case "url": return { mode, applicationId: entity, encodedUrl: config.sensor || "" };
-    case "window": return { mode, actionId: entity };
     case "stats": return { mode, metricId: entity, precision: config.precision || "", unit: config.unit || "" };
   }
 }
@@ -44,7 +43,6 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "shortcut": config.entity = model.shortcutId; break;
     case "folder": config.entity = model.folderId; break;
     case "url": config.entity = model.applicationId; config.sensor = model.encodedUrl; break;
-    case "window": config.entity = model.actionId; break;
     case "stats":
       config.entity = model.metricId; config.precision = model.precision; config.unit = model.unit;
       break;

@@ -35,7 +35,6 @@
 #include "panel_identity_endpoint.h"
 #include "panel_diagnostics_endpoint.h"
 #include "companion_app_icon_endpoint.h"
-#include "screensaver_pin_endpoint.h"
 #include "button_grid.h"
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
@@ -64,7 +63,6 @@ extern "C" void espdesktop_register_web_server_handlers(
   espdesktop::reset::register_handlers(*server);
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_panel_diagnostics_endpoint(*server);
-  espdesktop::register_screensaver_pin_endpoint(*server);
   register_companion_actions_endpoint(*server);
   register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
@@ -563,7 +561,6 @@ void EspDesktopApp::retry_configuration_compatibility() {
 }
 
 void EspDesktopApp::setup() {
-  screensaver_pin().setup();
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {

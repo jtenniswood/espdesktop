@@ -31,7 +31,7 @@ export function normalizeThemeMode(value: unknown): string {
 
 export function normalizeCardCurve(value: unknown): string {
   const preset = String(value || "").trim().toLowerCase();
-  return preset === "small" ? "Small" : preset === "large" ? "Large" : "Medium";
+  return preset === "small" ? "Small" : preset === "medium" ? "Medium" : "Large";
 }
 
 export function cardCurveRadius(baseRadius: number, preset: unknown, radii?: Readonly<Record<string, number>>): number {
@@ -381,7 +381,6 @@ export interface BackupPanelSettingsState {
   screensaverDimmedBrightnessDay: number;
   screensaverDimmedBrightnessNight: number;
   screensaverTimeout: unknown;
-  homeScreenTimeout: unknown;
   screenRotation: string;
 }
 
@@ -542,7 +541,6 @@ export function normalizeBackupPanelSettings(
     screensaverDimmedBrightnessDay,
     screensaverDimmedBrightnessNight,
     screensaverTimeout: settings.screensaver_timeout || 300,
-    homeScreenTimeout: objectValue(settings, "home_screen_timeout") != null ? settings.home_screen_timeout : 60,
     screenRotation: normalizeScreenRotationValue(settings.screen_rotation, current.screenRotationOptions),
   };
 }

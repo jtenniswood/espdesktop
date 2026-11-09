@@ -239,7 +239,6 @@ export function createControlsFieldsFeature(
             "url-open-behavior": false,
             media: false,
             folder: false,
-            window: false,
         };
         var movable: any = [];
         var firstDisclosure: any = null;

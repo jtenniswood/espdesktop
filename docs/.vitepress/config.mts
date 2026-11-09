@@ -151,7 +151,7 @@ const screenProducts: Record<string, Record<string, string>> = {
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, run shortcuts, and arrange windows.',
+    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
   base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
@@ -163,7 +163,7 @@ export default defineConfig({
     'guides/**',
     'immich/**',
     'card-types/{actions,alarms,buttons,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,lawn-mower,lights,local-actions,locks,media,option-select,presence,sliders,switches,timers,vacuum,weather,weather-forecast}.md',
-    'features/{appearance,backlight,backup,battery,clock,clock-bar,firmware-updates,idle,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
+    'features/{appearance,backlight,backup,battery,clock,clock-bar,firmware-updates,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
     'getting-started/{c6-recovery,home-assistant-actions,manual-esphome-setup,migrate-esphome-media-player}.md',
     'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc4880p443-v3,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
     'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
@@ -339,7 +339,6 @@ export default defineConfig({
           { text: 'Apps & Websites', link: '/mac-controls/apps' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
-          { text: 'Window Controls', link: '/mac-controls/windows' },
         ],
       },
       {

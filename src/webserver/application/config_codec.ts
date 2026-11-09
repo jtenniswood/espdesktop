@@ -1,6 +1,6 @@
-import { isMacAudioCard } from "../model/legacy_home_assistant";
 import { isRetiredLayoutCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
-import { cardContractTypeRetired } from "../generated/card_contract";
+import { retiredSavedCardType } from "../model/card";
+import { isMacAudioCard } from "../model/legacy_home_assistant";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { childPageKey, pageDepth, parentPageKey } from "../model/page_keys";
@@ -27,6 +27,7 @@ import {
     sizeRowSpan,
 } from "../model/grid";
 import {
+    cardContractDefaultConfig,
     cardContractFanDefaultIcon,
     cardContractIsBrightnessSliderType,
     cardContractIsFanCardType,
@@ -399,12 +400,21 @@ export function createConfigCodecFeature(
     function normalizeSavedConfigSubpageOptions(this: any, options?: any, b?: any) {
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
+    const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
     function normalizeButtonConfig(this: any, b?: any) {
+        // The original picker used a regular shortcut with the Mac Lock label and icon.
+        // A saved card may have one of those fields customized.
+        if (b?.type === "companion" && b.entity === macLockDefaults.entity && !b.sensor &&
+            !configOptionValue(b.options, "app_shortcut_preset") &&
+            (b.label === macLockDefaults.label || b.icon === macLockDefaults.icon)) {
+            b.type = macLockDefaults.type;
+        }
         // Map legacy Web App records to the retired type before normalizing Companion cards.
         if (b?.type === "companion" && b.entity?.startsWith("webapp.")) b.type = "companion_webapp";
         if (b && isMacAudioCard(b.type, b.entity)) b.type = "companion_audio";
-        if (b && cardContractTypeRetired(b.type)) {
-            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: b.type });
+        const retiredType = retiredSavedCardType(b);
+        if (retiredType) {
+            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: retiredType });
         }
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
@@ -472,8 +482,9 @@ export function createConfigCodecFeature(
         return EspDesktopModel.trimConfigFields(fields);
     }
     function buttonConfigFields(this: any, b?: any) {
-        if (b && cardContractTypeRetired(b.type)) {
-            return trimConfigFields(["", "", "Auto", "Auto", "", "", b.type]);
+        const retiredType = retiredSavedCardType(b);
+        if (retiredType) {
+            return trimConfigFields(["", "", "Auto", "Auto", "", "", retiredType]);
         }
         var type: any = b && b.type || "";
         if (b && type === "subpage" && subpageKind(b)) {

@@ -364,12 +364,12 @@ describe("browserless application contracts", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const handlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const backup = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_backup.ts"), "utf8");
-    assert.doesNotMatch(entry, /install(?:Language|Ntp|Idle|Artwork|Screensaver)StateModule/);
+    assert.doesNotMatch(entry, /install(?:Language|Ntp|Artwork|Screensaver)StateModule/);
     assert.equal(fs.existsSync(path.join(ROOT, "src/webserver/application/artwork_state.ts")), false);
     for (const source of [settings, handlers, backup]) {
-      assert.match(source, /from "\.\/(?:language|ntp|idle|screensaver)_state"/);
+      assert.match(source, /from "\.\/(?:language|ntp|screensaver)_state"/);
     }
-    assert.doesNotMatch(globals, /\bvar (?:appendLanguageOption|getActiveScreensaverMode|hasCustomNtpServers|languageLabel|languageOptionsWithFallback|resetNtpServersToDefaults|syncIdleUi|syncLanguageSelect|syncNtpServerUi):/);
+    assert.doesNotMatch(globals, /\bvar (?:appendLanguageOption|getActiveScreensaverMode|hasCustomNtpServers|languageLabel|languageOptionsWithFallback|resetNtpServersToDefaults|syncLanguageSelect|syncNtpServerUi):/);
   });
 
   test("owns environment state without application globals", () => {
@@ -578,7 +578,7 @@ describe("browserless application contracts", () => {
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
-    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,\s*context\.controllers\.settingsUi,?\s*\);/);
+    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,?\s*\);/);
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
     assert.match(card, /createCompanionCatalogueMonitor\(\s*\(\) => loadCompanionActions\(true\)/);
     assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)[\s\S]*espdesktop:app-icon-cache-cleared/);
@@ -601,7 +601,7 @@ describe("browserless application contracts", () => {
     assert.match(card, /shortcutField[\s\S]*markCardPrimaryField\(shortcutField, "shortcut"\)/);
     assert.match(card, /urlField[\s\S]*markCardPrimaryField\(urlField, "url"\)/);
     assert.match(card, /folderField[\s\S]*markCardPrimaryField\(folderField, "folder"\)/);
-    assert.match(card, /windowField[\s\S]*markCardPrimaryField\(windowField, "window"\)/);
+    assert.doesNotMatch(card, /"companion_window"/);
     assert.match(card, /folderPlaceholder\.disabled = true/);
     assert.match(card, /folderPlaceholder\.hidden = true/);
     assert.doesNotMatch(card, /Unavailable folder/);
@@ -610,8 +610,6 @@ describe("browserless application contracts", () => {
     assert.match(fields, /url: false/);
     assert.match(fields, /media: false/);
     assert.match(fields, /folder: false/);
-    assert.match(fields, /window: false/);
-    assert.match(card, /first\.group\.localeCompare\(second\.group/);
   });
 
   test("imports entity-mode helpers without compatibility globals", () => {
@@ -1269,7 +1267,7 @@ describe("browserless application contracts", () => {
   test("injects display-state DOM references", () => {
     const modules = [
       "appearance_state.ts", "c6_firmware_ui.ts", "clock_bar_state.ts",
-      "firmware_update_state.ts", "firmware_version_state.ts", "idle_state.ts",
+      "firmware_update_state.ts", "firmware_version_state.ts",
       "language_state.ts", "ntp_state.ts", "screen_schedule_state.ts", "screensaver_timeout.ts",
     ];
     for (const moduleName of modules) {

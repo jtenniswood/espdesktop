@@ -36,7 +36,6 @@ import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
 import { languageOptionsWithFallback, syncLanguageSelect } from "./language_state";
 import { hasCustomNtpServers, syncNtpServerUi } from "./ntp_state";
-import { syncIdleUi } from "./idle_state";
 import { getActiveScreensaverMode } from "./screensaver_state";
 import type { EnvironmentStateFeature } from "./environment_state";
 import type { ScreenScheduleStateFeature } from "./screen_schedule_state";
@@ -181,10 +180,6 @@ export function createAppStateEventHandlersFeature(
 
             "number-screensaver_timeout": function (this: any, val?: any, d?: any) {
                 applyScreensaverTimeoutState(d);
-            },
-            "number-home_screen_timeout": function (this: any, val?: any) {
-                state.homeScreenTimeout = parseFloat(val) || 0;
-                syncIdleUi(runtime);
             },
             "switch-screen_saver__clock": function (this: any, val?: any, d?: any) {
                 state.clockScreensaverOn = d.value === true || val === "ON";
@@ -431,11 +426,11 @@ export function createAppStateEventHandlersFeature(
                 syncScreenScheduleUi();
             },
             "number-screen__schedule_on_hour": function (this: any, val?: any) {
-                state.scheduleOnHour = normalizeHour(val, 6);
+                state.scheduleOnHour = normalizeHour(val, 7);
                 syncScreenScheduleUi();
             },
             "number-screen__schedule_off_hour": function (this: any, val?: any) {
-                state.scheduleOffHour = normalizeHour(val, 23);
+                state.scheduleOffHour = normalizeHour(val, 19);
                 syncScreenScheduleUi();
             },
             "select-screen__schedule_mode": function (this: any, val?: any, d?: any) {

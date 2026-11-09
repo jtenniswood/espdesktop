@@ -11,10 +11,10 @@ After pairing the Mac app, open the display's address in a browser and use its b
 
 1. Open the **Layout** tab in the display's web page.
 2. Select an empty tile and choose **Companion**.
-3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, **Open URL**, or **Window control**.
+3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, or **Open URL**.
 4. Set the options and choose **Apply Configuration** to save the layout.
 
-Apps and folders must first be approved in the Mac app. Keyboard shortcuts and window controls need Accessibility permission. See [Mac Controls](/#what-you-can-control) for the available actions and requirements.
+Apps and folders must first be approved in the Mac app. Keyboard shortcuts and Mac Lock need Accessibility permission. See [Mac Controls](/#what-you-can-control) for the available actions and requirements.
 
 ## Arrange and Personalise Cards
 
@@ -32,17 +32,15 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 Use **Screen** for appearance, backlight, rotation and sleep settings. Use **System** for Mac Companion pairing and connection status, preferences, backups, firmware updates and reset controls.
 
+On a new display, **Screen → Sleep & Schedule → Night Schedule** dims the screen to **15%** from **7:00 PM to 7:00 AM** in the display’s local time. You can change the hours, brightness or mode there.
+
 ## Show Mac Cover Art
 
-After pairing, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and turn on **Show Cover Art**. When an app on the paired Mac supplies artwork through macOS Now Playing, the display can show it fullscreen. Set the delay with **Show After** and the length of time track information appears with **Show Track Details For**. Tap the screen to wake it, then enter your display PIN if prompted.
+After pairing, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and turn on **Show Cover Art**. When an app on the paired Mac supplies artwork through macOS Now Playing, the display can show it fullscreen. Set the delay with **Show After** and the length of time track information appears with **Show Track Details For**. Tap the screen to wake it.
 
-## Protect the Touchscreen
+## Mac Screen Lock {#protect-the-touchscreen}
 
-Open **Screen → Sleep & Schedule → Pin Protection**, turn on **Require PIN after wake**, enter a numeric PIN of 1–16 digits and choose **Save**. You can also randomize the keypad. **Clear** removes the saved PIN and unlocks the display.
-
-Unlock protection applies to local touch controls; web administration and Mac access keep their own authentication. The PIN is excluded from backups, and importing a backup clears the PIN on the destination display.
-
-Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. Unlock your Mac to use the touchscreen again. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that the Mac has unlocked. A separately configured display PIN still applies.
+Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. Unlock your Mac to use the touchscreen again. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that the Mac has unlocked.
 
 ## Back Up Your Layout
 

@@ -71,10 +71,13 @@ size_t EspIdfPanelConfigBlobStorage::partition_slot_offset(uint8_t slot) const {
   return static_cast<size_t>(slot) * partition_slot_stride();
 }
 
-bool EspIdfPanelConfigBlobStorage::erase_partition_slot(uint8_t slot) {
-  return partition_ != nullptr && slot < 2 &&
+bool EspIdfPanelConfigBlobStorage::erase_partition_slot(uint8_t slot, size_t size) {
+  const size_t bytes = PARTITION_SLOT_HEADER_SIZE + size;
+  const size_t erase_size = ((bytes + FLASH_ERASE_SIZE - 1) / FLASH_ERASE_SIZE) *
+                            FLASH_ERASE_SIZE;
+  return partition_ != nullptr && slot < CONFIGURATION_SLOT_COUNT &&
          esp_partition_erase_range(partition_, partition_slot_offset(slot),
-                                   partition_slot_stride()) == ESP_OK;
+                                   erase_size) == ESP_OK;
 }
 
 bool EspIdfPanelConfigBlobStorage::load_partition_blob(uint8_t slot,
@@ -103,7 +106,7 @@ bool EspIdfPanelConfigBlobStorage::save_partition_blob(uint8_t slot,
   const bool unpublished = size == sizeof(uint32_t) && data != nullptr &&
                            data[0] == 0 && data[1] == 0 && data[2] == 0 &&
                            data[3] == 0;
-  if (unpublished) return erase_partition_slot(slot);
+  if (unpublished) return erase_partition_slot(slot, partition_slot_capacity_);
   if (size < sizeof(uint32_t) || data == nullptr) return false;
 
   // ConfigurationStore persists payload, metadata and its own magic marker
@@ -214,6 +217,21 @@ bool EspIdfPanelConfigBlobStorage::supports_range_io() const {
 #endif
 }
 
+bool EspIdfPanelConfigBlobStorage::prepare_range_slot(uint8_t slot, size_t size) {
+#ifdef USE_ESP32
+  if (!supports_range_io() || size < CONFIGURATION_ENVELOPE_HEADER_SIZE ||
+      size > partition_slot_capacity_)
+    return false;
+  // The erase also clears the outer publication marker. Bytes past the new
+  // envelope are ignored by readers and erased if a later save needs them.
+  return erase_partition_slot(slot, size);
+#else
+  (void)slot;
+  (void)size;
+  return false;
+#endif
+}
+
 bool EspIdfPanelConfigBlobStorage::read_range(uint8_t slot, size_t offset,
                                               uint8_t *output, size_t size) {
 #ifdef USE_ESP32
@@ -260,7 +278,7 @@ bool EspIdfPanelConfigBlobStorage::write_range(uint8_t slot, size_t offset,
       return false;
     if (std::all_of(data, data + size,
                     [](uint8_t value) { return value == 0; }))
-      return erase_partition_slot(slot);
+      return erase_partition_slot(slot, partition_slot_capacity_);
     // Match the deployed full-blob writer: publish the outer marker only
     // after the complete inner envelope and payload have reached flash.
     if (esp_partition_write(partition_, base + PARTITION_SLOT_HEADER_SIZE, data,
