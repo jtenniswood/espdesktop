@@ -42,6 +42,14 @@ const GROUP_ORDER = [
 ]
 
 const ICON_GROUPS = {
+  'Book Alphabet': 'Applications & Desktop',
+  'Bookmark Multiple': 'Browser & Navigation',
+  'Bookmark Plus': 'Browser & Navigation',
+  'Card Text': 'Applications & Desktop',
+  'Font Size Decrease': 'Creative & Development',
+  'Font Size Increase': 'Creative & Development',
+  'Page Next': 'Browser & Navigation',
+  'Page Previous': 'Browser & Navigation',
   'File Search': 'Files & Folders',
   'File Tree': 'Creative & Development',
   'Message Alert': 'Applications & Desktop',
