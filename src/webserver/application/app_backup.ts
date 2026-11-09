@@ -354,9 +354,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 var backedUpNativeConfig: any = backupPlan.config.native_config;
                 const exactGraph = backedUpNativeConfig?.document_version === 2 &&
                     backedUpNativeConfig.device_profile === controllers.layout.deviceId;
+                let exactLayoutBytes: Uint8Array | undefined;
                 if (backedUpNativeConfig &&
                     backedUpNativeConfig.device_profile === controllers.layout.deviceId) {
-                    nativeDocument = decodeNativeConfigDocument(decodeNativeConfigBackupPayload(backedUpNativeConfig));
+                    const bytes = decodeNativeConfigBackupPayload(backedUpNativeConfig);
+                    nativeDocument = decodeNativeConfigDocument(bytes);
+                    if (exactGraph) exactLayoutBytes = bytes;
                 }
                 if (!exactGraph) {
                     nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
@@ -370,7 +373,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         parsedButtonOrder.grid,
                         parsedButtonOrder.sizes);
                 }
-                removeRetiredPanelRecords(nativeDocument, controllers.codec);
+                if (removeRetiredPanelRecords(nativeDocument, controllers.codec)) exactLayoutBytes = undefined;
 
                 function readLegacyText(name: string) {
                     return requestApi.getJsonFirst(requestApi.entityDetailPaths("text", [name], "state"));
@@ -422,7 +425,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     layoutRestoreResult = await queueLegacyLayoutRestore();
                 }
                 else {
-                    var nativeRestore: any = nativeController.writeDocument(nativeDocument);
+                    var nativeRestore: any = nativeController.writeDocument(nativeDocument, exactLayoutBytes);
                     layoutRestoreResult = nativeRestore ? await nativeRestore : "failed";
                     if (layoutRestoreResult === "legacy-fallback") {
                         layoutRestoreResult = await queueLegacyLayoutRestore();

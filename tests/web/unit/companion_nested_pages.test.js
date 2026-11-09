@@ -116,6 +116,7 @@ test("a settings-only native save keeps nonsequential page and card identities",
   const layoutRows = bytes => decodeNativeV2(bytes).filter(row =>
     row.kind === K.Card || row.kind === K.Navigation || (row.kind === K.Page && row.id));
   const originalLayout = layoutRows(persisted);
+  const savedBackup = persisted;
   let generation = 0;
   const response = (status, bytes = new Uint8Array()) => ({ ok: status < 300, status,
     headers: { get: name => name === "ETag" ? `"v2-${generation}"` : name === "X-Panel-Config-Version" ? "2" : null },
@@ -149,4 +150,14 @@ test("a settings-only native save keeps nonsequential page and card identities",
   assert.equal(codec.decodePanelPageDocument(persisted).settings.button_order, "1w");
   assert.deepEqual(layoutRows(persisted), originalLayout);
   assert.equal(generation, 5);
+  const restored = codec.decodePanelPageDocument(savedBackup);
+  assert.equal(await controller.writeDocument(restored, savedBackup), "saved");
+  assert.deepEqual(persisted, savedBackup, "an unchanged backup restores the exact native graph bytes");
+  const withSetting = { ...restored, settings: { ...restored.settings, automatic_switching: "0" } };
+  assert.equal(await controller.writeDocument(withSetting, savedBackup), "saved");
+  assert.deepEqual(layoutRows(persisted), originalLayout);
+  assert.equal(codec.decodePanelPageDocument(persisted).settings.automatic_switching, "0");
+  const mismatched = { ...restored, buttons: { 1: "light.kitchen;Kitchen" } };
+  assert.equal(await controller.writeDocument(mismatched, savedBackup), "failed");
+  assert.equal(generation, 7);
 });

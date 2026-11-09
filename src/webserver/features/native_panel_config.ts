@@ -55,6 +55,11 @@ export function nativeBackupHasInactiveRecords(document: PanelConfigDocument, sl
 }
 export type NativePanelConfigCollection = "buttons" | "subpages" | "settings";
 
+function sameRecords(left: Readonly<Record<string, string>>, right: Readonly<Record<string, string>>): boolean {
+  const keys = Object.keys(left);
+  return keys.length === Object.keys(right).length && keys.every(key => Object.hasOwn(right, key) && left[key] === right[key]);
+}
+
 interface Capabilities {
   home_assistant_support?: unknown;
   configuration?: {
@@ -301,7 +306,8 @@ export class NativePanelConfigClient {
     throw new Error("A compatible backup representation is unavailable.");
   }
 
-  async save(update: (document: PanelConfigDocument) => PanelConfigDocument, skipUnchanged = false): Promise<NativePanelConfigSaveResult> {
+  async save(update: (document: PanelConfigDocument) => PanelConfigDocument, skipUnchanged = false,
+      nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveResult> {
     if (!await this.discover()) return "unsupported";
     let conflicts = 0;
     while (conflicts < 2) {
@@ -345,7 +351,16 @@ export class NativePanelConfigClient {
           return "too-large";
         }
         let body: Uint8Array;
-        if (version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2) {
+        if (nativeBackup) {
+          if (version !== V2_DOCUMENT_VERSION || this.writableNavigationDepth() !== 2) return "firmware-update-required";
+          if (nativeBackup.length > this.maxV2DocumentBytes_) return "too-large";
+          const backedUp = decodePanelPageDocument(nativeBackup);
+          if (backedUp.deviceProfile !== updated.deviceProfile ||
+              !sameRecords(backedUp.buttons, updated.buttons) || !sameRecords(backedUp.subpages, updated.subpages))
+            return "failed";
+          body = sameRecords(backedUp.settings, updated.settings) ? nativeBackup
+            : updateNativePanelSettings(nativeBackup, backedUp.settings, updated.settings);
+        } else if (version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2) {
           body = updated.buttons === currentDocument.buttons && updated.subpages === currentDocument.subpages
             ? updateNativePanelSettings(input, currentDocument.settings, updated.settings)
             : encodePanelPageDocument(updated);

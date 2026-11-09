@@ -176,8 +176,10 @@ export class NativePanelConfigController {
     return this.waitForDiscovery(attempts + 1);
   }
 
-  schedule(update: NativePanelConfigUpdate, skipUnchanged = false): Promise<NativePanelConfigSaveOutcome> | null {
+  schedule(update: NativePanelConfigUpdate, skipUnchanged = false,
+      nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveOutcome> | null {
     if (this.atomicUpdates_) {
+      if (nativeBackup) return Promise.resolve(this.report("failed"));
       ++this.revision_;
       this.atomicUpdates_.push(update);
       return Promise.resolve("saved");
@@ -190,12 +192,12 @@ export class NativePanelConfigController {
       .then(async () => this.supported() || await this.waitForDiscovery())
       .then(async (supported) => supported === "legacy-fallback" || supported === "failed"
         ? supported
-        : supported ? client.save(update, skipUnchanged) : "unsupported" as const)
+        : supported ? client.save(update, skipUnchanged, nativeBackup) : "unsupported" as const)
       .then(async (result) => {
         if (result !== "unsupported" || !client.retryable()) return result;
         const supported = await this.waitForDiscovery();
         if (supported === "legacy-fallback" || supported === "failed") return supported;
-        return supported ? client.save(update, skipUnchanged) : result;
+        return supported ? client.save(update, skipUnchanged, nativeBackup) : result;
       })
       .then((result) => {
         const document = client.lastDocument();
@@ -260,7 +262,7 @@ export class NativePanelConfigController {
     });
   }
 
-  writeDocument(document: PanelConfigDocument): Promise<NativePanelConfigSaveOutcome> | null {
+  writeDocument(document: PanelConfigDocument, nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveOutcome> | null {
     if (!this.client_) return null;
     return this.schedule((current) => {
       if (current.deviceProfile !== document.deviceProfile) {
@@ -271,7 +273,7 @@ export class NativePanelConfigController {
         throw new NativePanelConfigCompatibilityError(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
       }
       return document;
-    });
+    }, false, nativeBackup);
   }
 
   writeSubpage(slot: number, value: string): Promise<NativePanelConfigSaveOutcome> | false | null {
