@@ -53,6 +53,16 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  if (b.type == "companion" && b.entity.rfind("webapp.", 0) == 0)
+    b.type = "companion_webapp";
+  if (b.type == "companion_webapp") {
+    const std::string type = b.type;
+    b = SubpageBtn{};
+    b.type = type;
+    b.icon = "Auto";
+    b.icon_on = "Auto";
+    return b;
+  }
   // Shared appearance options must survive the same cleanup as main cards.
   const std::string icon_size = cfg_option_value(b.options, "icon_size");
   std::string type_options;
