@@ -333,6 +333,7 @@ export default defineConfig({
           { text: 'Apps & Websites', link: '/mac-controls/apps' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Improve App Shortcuts', link: '/mac-controls/improve-shortcuts' },
           { text: 'Window Controls', link: '/mac-controls/windows' },
           { text: 'Existing Stats Cards', link: '/mac-controls/statistics' },
           { text: 'Permissions & Security', link: '/mac-controls/security' },

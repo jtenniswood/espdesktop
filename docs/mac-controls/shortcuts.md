@@ -27,25 +27,9 @@ An approved **Companion → Applications** card can offer an **App Subpage** whe
 
 The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and Codex. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
 
-## Add Templates for Another App
+## Improve the Shortcut Catalog {#add-templates-for-another-app}
 
-Anyone can contribute a template for an app that is not in the catalog. The matching key is the app's **bundle identifier**, not its display name or `.app` filename. To look it up, replace the example path with the actual location of the app and run this command in Terminal:
-
-```sh
-/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
-  "/Applications/Your App.app/Contents/Info.plist"
-```
-
-Use the returned value exactly as `appId` in the app's JSON file. The `label` field is the friendly name shown in EspDesktop. For example, the Safari definition uses `appId` `com.apple.Safari`; that exact identifier is how its shortcuts are matched to Safari. The Mac app must approve the app before its Applications card and subpage can be used.
-
-To add a template:
-
-1. Copy an app file from the [`product/v2/app_shortcuts` folder](https://github.com/jtenniswood/espdesktop/tree/main/product/v2/app_shortcuts) and add a new `app-name.json` file there.
-2. Set `appId`, `label`, `catalog`, and the shortcut entries. Set `catalog` to `true` to make the shortcuts available as standalone cards. Set it to `false` to offer them on that app's subpage only. All app definitions can supply matching app subpages.
-3. Use permanent numeric IDs, supported key names, and existing icon names. Verify each key combination in the target app.
-4. Open a pull request with the JSON file and generated outputs. The [contributor format and checks](https://github.com/jtenniswood/espdesktop/blob/main/product/v2/app_shortcuts/README.md) explain the details.
-
-The build automatically discovers every JSON file in the folder. After the PR is reviewed and merged, later builds and releases include the new templates; there is no separate app registration step. Templates are packaged with EspDesktop rather than downloaded live from GitHub.
+If a shortcut is missing or a preset needs correcting, see [Improve App Shortcuts](/mac-controls/improve-shortcuts) to suggest a change or contribute a template.
 
 ## Allow Accessibility Access
 
