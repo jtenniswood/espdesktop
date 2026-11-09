@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import {
     cardContractAllowInSubpage,
     cardContractCard,
@@ -165,130 +166,7 @@ export function registerSwitchCardTypes(
         hideLabel: true,
         defaultConfig: function (this: any) { return cardContractDefaultConfig(""); },
         cardMetadata: SWITCH_CARD_METADATA,
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            var showSensor: any = !!b.sensor;
-            var sensorMode: any = b.precision === "text" ? "text" : "numeric";
-            helpers.renderCardEntityField(panel, b, helpers, SWITCH_CARD_METADATA);
-            var cardSettingsDisclosure: any = helpers.disclosureSection("Card Settings", helpers.idPrefix + "switch-card-settings", false);
-            var cardSettings: any = cardSettingsDisclosure.section;
-            helpers.renderBasicCardFields(cardSettings, b, helpers, SWITCH_CARD_METADATA, {
-                entity: false,
-            });
-            var sensorToggle: any = helpers.renderCardOptionToggle(cardSettings, b, helpers, SWITCH_CARD_METADATA.activeDisplay);
-            var sensorSection: any = condField();
-            if (showSensor)
-                sensorSection.classList.add("sp-visible");
-            var mode: any = helpers.renderCardSegmentControl(sensorSection, b, helpers, Object.assign({}, SWITCH_CARD_METADATA.sensorMode, {
-                value: function (this: any) { return sensorMode; },
-                onSelect: function (this: any, b?: any, helpers?: any, value?: any) { setSensorMode(value, true); },
-            }));
-            var numericBtn: any = mode.buttons.numeric;
-            var textBtn: any = mode.buttons.text;
-            var sensorField: any = helpers.renderCardEntityField(sensorSection, b, helpers, {
-                entity: SWITCH_CARD_METADATA.sensorEntity,
-            });
-            var sensorInp: any = sensorField.input;
-            var numericSection: any = condField();
-            var unitField: any = helpers.renderCardTextField(numericSection, b, helpers, SWITCH_CARD_METADATA.unitField);
-            var unitInp: any = unitField.input;
-            var precisionField: any = helpers.precisionField(helpers.idPrefix + "precision", sensorMode === "numeric" ? (b.precision || "0") : "0", function (this: any) {
-                b.precision = this.value === "0" ? "" : this.value;
-                helpers.saveField("precision", b.precision);
-            });
-            var precisionSelect: any = precisionField.select;
-            numericSection.appendChild(precisionField.field);
-            helpers.renderCardLargeNumbersToggle(numericSection, b, helpers, SWITCH_CARD_METADATA);
-            sensorSection.appendChild(numericSection);
-            cardSettings.appendChild(sensorSection);
-            function setSensorMode(this: any, mode?: any, persist?: any) {
-                sensorMode = mode;
-                numericBtn.classList.toggle("active", mode === "numeric");
-                textBtn.classList.toggle("active", mode === "text");
-                numericSection.classList.toggle("sp-visible", mode === "numeric");
-                if (!persist)
-                    return;
-                if (mode === "text") {
-                    b.precision = "text";
-                    b.unit = "";
-                    unitInp.value = "";
-                    helpers.saveField("precision", "text");
-                    helpers.saveField("unit", "");
-                }
-                else {
-                    b.precision = "";
-                    helpers.saveField("precision", "");
-                    precisionSelect.value = "0";
-                }
-            }
-            setSensorMode(sensorMode, false);
-            sensorToggle.input.addEventListener("change", function (this: any) {
-                showSensor = this.checked;
-                sensorSection.classList.toggle("sp-visible", showSensor);
-                helpers.saveField("sensor", b.sensor || "");
-                if (showSensor) {
-                    setSensorMode(sensorMode, true);
-                    return;
-                }
-                b.sensor = "";
-                b.unit = "";
-                b.precision = "";
-                sensorInp.value = "";
-                unitInp.value = "";
-                helpers.saveField("sensor", "");
-                helpers.saveField("unit", "");
-                helpers.saveField("precision", "");
-                setSensorMode("numeric", false);
-            });
-            var confirmOn: any = switchConfirmationEnabled(b);
-            var confirmMode: any = switchConfirmationMode(b) || "off";
-            var confirmToggle: any = helpers.renderCardOptionToggle(cardSettings, b, helpers, SWITCH_CARD_METADATA.confirmationToggle);
-            var confirmSection: any = condField();
-            if (confirmOn)
-                confirmSection.classList.add("sp-visible");
-            helpers.renderCardSegmentControl(confirmSection, b, helpers, Object.assign({}, SWITCH_CARD_METADATA.confirmationMode, {
-                value: function (this: any) { return confirmMode; },
-                onSelect: function (this: any, b?: any, helpers?: any, value?: any) {
-                    var previousDefault: any = switchConfirmationDefaultMessageForMode(confirmMode);
-                    confirmMode = value;
-                    if (!messageInput.value || messageInput.value === previousDefault) {
-                        messageInput.value = switchConfirmationDefaultMessageForMode(confirmMode);
-                    }
-                    saveConfirmationOptions();
-                },
-            }));
-            var messageField: any = helpers.renderCardTextField(confirmSection, b, helpers, SWITCH_CARD_METADATA.confirmationMessage);
-            var messageInput: any = messageField.input;
-            messageInput.maxLength = 72;
-            var yesField: any = helpers.renderCardTextField(confirmSection, b, helpers, SWITCH_CARD_METADATA.confirmationYes);
-            var yesInput: any = yesField.input;
-            yesInput.maxLength = 20;
-            var noField: any = helpers.renderCardTextField(confirmSection, b, helpers, SWITCH_CARD_METADATA.confirmationNo);
-            var noInput: any = noField.input;
-            noInput.maxLength = 20;
-            cardSettings.appendChild(confirmSection);
-            panel.appendChild(cardSettingsDisclosure.panel);
-            function saveConfirmationOptions(this: any) {
-                setSwitchConfirmationOptions(b, confirmToggle.input.checked ? confirmMode : "", messageInput.value || switchConfirmationDefaultMessageForMode(confirmMode), yesInput.value || SWITCH_CONFIRM_DEFAULT_YES, noInput.value || SWITCH_CONFIRM_DEFAULT_NO);
-                helpers.saveField("options", b.options);
-            }
-            confirmToggle.input.addEventListener("change", function (this: any) {
-                confirmSection.classList.toggle("sp-visible", this.checked);
-                if (this.checked) {
-                    if (!messageInput.value)
-                        messageInput.value = switchConfirmationDefaultMessageForMode(confirmMode);
-                    if (!yesInput.value)
-                        yesInput.value = SWITCH_CONFIRM_DEFAULT_YES;
-                    if (!noInput.value)
-                        noInput.value = SWITCH_CONFIRM_DEFAULT_NO;
-                }
-                saveConfirmationOptions();
-            });
-            [messageInput, yesInput, noInput].forEach(function (this: any, input?: any) {
-                input.addEventListener("input", saveConfirmationOptions);
-                input.addEventListener("change", saveConfirmationOptions);
-                input.addEventListener("blur", saveConfirmationOptions);
-            });
-        },
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var label: any = b.label || b.entity || "Configure";
             var badgeIcon: any = b.sensor
@@ -316,18 +194,8 @@ export function registerSwitchCardTypes(
         },
         labelPlaceholder: "e.g. Living Room",
         cardMetadata: LIGHT_SWITCH_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "";
-            b.options = "";
-            b.icon = "Lightbulb Outline";
-            b.icon_on = "Lightbulb";
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            renderLightControlTypeField(panel, b, helpers);
-            helpers.renderBasicCardFields(panel, b, helpers, LIGHT_SWITCH_CARD_METADATA);
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var label: any = b.label || b.entity || "Configure";
             return {

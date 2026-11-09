@@ -1,6 +1,5 @@
 #include "espdesktop_app.h"
 #include "device_reset.h"
-#include "home_assistant_transport_runtime.h"
 #include "esphome/components/artwork_image/transfer_observer.h"
 
 #include <algorithm>
@@ -34,6 +33,7 @@
 #include "panel_config_transient_storage.h"
 #include "panel_config_write_endpoint.h"
 #include "panel_identity_endpoint.h"
+#include "panel_diagnostics_endpoint.h"
 #include "companion_app_icon_endpoint.h"
 #include "screensaver_pin_endpoint.h"
 #include "button_grid.h"
@@ -63,8 +63,8 @@ extern "C" void espdesktop_register_web_server_handlers(
   if (server == nullptr) return;
   espdesktop::reset::register_handlers(*server);
   espdesktop::register_panel_identity_endpoint(*server);
+  espdesktop::register_panel_diagnostics_endpoint(*server);
   espdesktop::register_screensaver_pin_endpoint(*server);
-  register_local_action_endpoint(*server);
   register_companion_actions_endpoint(*server);
   register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
@@ -584,32 +584,13 @@ void EspDesktopApp::retry_configuration_compatibility() {
 
 void EspDesktopApp::setup() {
   screensaver_pin().setup();
-  home_assistant_endpoint_.setup();
-  esphome::artwork_image::TransferObserver::instance().set(
-      [this](const std::string &origin) -> uint32_t {
-        return home_assistant_endpoint::parse_origin(origin) == home_assistant_endpoint_.origin()
-            ? home_assistant_endpoint_.generation() : 0;
-      },
-      [this](const esphome::artwork_image::TransferNotice &notice) {
-        using Failure = esphome::artwork_image::TransferFailure;
-        home_assistant_endpoint_.report_download(
-            home_assistant_endpoint::parse_origin(notice.request.origin),
-            notice.request.endpoint_generation, notice.status,
-            notice.failure == Failure::NONE, notice.failure == Failure::TRANSPORT);
-      });
-
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
     ESP_LOGE(TAG, "Application core failed to start");
   }
   connectors::connector_state_service().setup(
-      panel_config_button_order_ != nullptr &&
-          !panel_config_button_order_->state.empty(),
       web_auth_username_, web_auth_password_);
-  clock_bar_home_assistant_configured_provider() = []() {
-    return connectors::connector_state_service().status().home_assistant_configured;
-  };
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.
   // Give the display and restored text entities time to come up before
@@ -911,8 +892,7 @@ void EspDesktopApp::loop() {
     retry_configuration_compatibility();
   }
   if (shutting_down_) return;
-  home_assistant_endpoint_.loop();
-  trace_phase("HA endpoint");
+  trace_phase("configuration");
   core_.run_once();
   trace_phase("app core");
   // Transport callbacks only request a refresh; apply it on the UI loop.
@@ -930,19 +910,11 @@ void EspDesktopApp::loop() {
 #endif
   sync_finder_folders();
   trace_phase("Finder sync");
-  // The app core starts before WiFi so Home Assistant boot automations are
-  // safe. The IDF web server starts later, so retry idempotent registrations.
+  // The IDF web server starts later, so retry idempotent registrations.
   if (shutting_down_) return;
   register_panel_config_endpoints();
   trace_phase("HTTP registration");
   if (application_scene_ && application_scene_->maintenance_ready()) application_scene_->loop();
-}
-
-void EspDesktopApp::on_safe_shutdown() {
-  // ESPHome runs all safe-shutdown hooks before any on_shutdown hook. mDNS
-  // shuts down before this AFTER_WIFI component, freeing outstanding query
-  // handles, so release our discovery query while the service is still alive.
-  home_assistant_endpoint_.shutdown();
 }
 
 void EspDesktopApp::on_shutdown() {

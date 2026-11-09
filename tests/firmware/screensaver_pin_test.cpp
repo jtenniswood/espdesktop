@@ -204,7 +204,7 @@ int main() {
 
   using namespace espdesktop;
   for (auto mode : {DisplayMode::DISPLAY_OFF, DisplayMode::DIMMED,
-                    DisplayMode::CLOCK, DisplayMode::CAMERA}) {
+                    DisplayMode::CLOCK}) {
     DisplayModeController display;
     display.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART);
     assert(display.request(DisplayRequestSource::MANUAL_SLEEP, mode));

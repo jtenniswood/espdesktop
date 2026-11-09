@@ -1,5 +1,5 @@
 ---
-title: Home Assistant Entity and Card Capability Reference
+title: Card Capability and Saved-Format Reference
 description: Look up EspDesktop card entity domains, modes, options, and subpage support in the reference generated from the shared card contract.
 ---
 

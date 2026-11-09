@@ -11,9 +11,9 @@ export interface DeviceConfigFeatures {
   screenRotationDisplayOffset?: number;
   screenRotationOptions?: readonly string[];
   subpageConfigChunks?: number;
-  voiceServices?: boolean;
+
   battery?: boolean;
-  alarmDelayAudio?: boolean;
+
   companion?: boolean;
   cameraScreensaver?: boolean;
 }
@@ -125,32 +125,15 @@ export interface AppState {
   lastClickedSlot: number;
   clockBarSelectedItem: string;
   activeTab: string;
-  _indoorOn: boolean;
-  _outdoorOn: boolean;
-  _indoorVal: number | null;
-  _outdoorVal: number | null;
-  indoorEntity: string;
-  outdoorEntity: string;
-  clockBarTemperatureEntities: string[];
-  _clockBarTemperatureEntitiesReceived: boolean;
-  _clockBarTemperatureVisibilityReceived: boolean;
-  temperatureUnit: string;
   clockBarOn: boolean;
   _clockBarStateValues: Record<string, boolean>;
   clockBarTimeOn: boolean;
   clockBarNightModeOn: boolean;
   networkStatusOn: boolean;
   batteryStatusOn: boolean;
-  voiceServicesOn: boolean;
-  alarmDelayAudioOn: boolean;
-  alarmDelayTtsOn: boolean;
-  alarmDelayEntryAnnouncement: string;
-  alarmDelayExitAnnouncement: string;
-  alarmDelayBeepVolume: number;
-  alarmDelayFinalCountdown: number;
+
   networkTransport: string;
   wifiStrengthPercent: number;
-  temperatureDegreeSymbolOn: boolean;
   subpageChevronsOn: boolean;
   autoOpenAppSubpages: boolean;
   returnHomeOnAppSwitch: boolean;

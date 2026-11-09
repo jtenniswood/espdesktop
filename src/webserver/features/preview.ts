@@ -1,8 +1,7 @@
-import { cardContractOptionName } from "../generated/card_contract";
+import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
+export { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { configOptionValue } from "../model/config_primitives";
-
-const SUBPAGE_CONNECTOR_OPTION = cardContractOptionName("subpage_connector");
-const SUBPAGE_KIND_OPTION = cardContractOptionName("subpage_kind");
 
 import { activeCardColor, lighterCardColor } from "../model/config_primitives";
 
@@ -63,7 +62,6 @@ const INFO_ONLY_CARD_TYPES = new Set([
 
 const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   "": { icon: "toggle-switch", description: "Toggle lights, switches, helpers, or fans." },
-  action: { icon: "flash", description: "Run a Home Assistant or local action." },
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
   calendar: { icon: "calendar-clock", description: "Show date, time, or world clock values." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
@@ -114,65 +112,21 @@ const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
   "companion", "push",
 ]);
 
-// These card types can operate without Home Assistant, and their editors are
-// restricted to those local modes while Home Assistant is disabled.
-const LOCAL_ONLY_CARD_TYPES = new Set(["action"]);
 
-const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
-  "calendar", "push", "slider",
-]);
-
-const LOCAL_CARD_TYPES = new Set([
-  "clock", "timezone",
-]);
 
 export type CardPickerConnector = "home_assistant" | "mac_companion";
 
 export function cardPickerConnectors(
-  homeAssistantEnabled: boolean,
+  _homeAssistantEnabled: boolean,
   companionSupported: boolean,
 ): Array<[CardPickerConnector, string]> {
   const connectors: Array<[CardPickerConnector, string]> = [];
-  if (homeAssistantEnabled) connectors.push(["home_assistant", "Home Assistant"]);
   if (companionSupported) connectors.push(["mac_companion", "Mac Companion"]);
   return connectors;
 }
 
-export function cardTypeConnector(key: string): CardPickerOption["connector"] {
-  if (key === "companion" || key.startsWith("companion_")) return "mac_companion";
-  if (HOME_ASSISTANT_ONLY_CARD_TYPES.has(key)) return "home_assistant";
-  if (key === "action") {
-    return "home_assistant_or_local";
-  }
-  if (key === "webhook") return "network";
-  if (LOCAL_CARD_TYPES.has(key)) return "local";
-  return "home_assistant";
-}
-
-export function cardRequiresHomeAssistant(
-  key: string,
-  card: {
-    readonly entity?: string | null;
-    readonly options?: string | null;
-    readonly sensor?: string | null;
-  } | null | undefined,
-): boolean {
-  if (key === "subpage") {
-    const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);
-    const kind = configOptionValue(card?.options, SUBPAGE_KIND_OPTION);
-    if (connector === "mac_companion" || kind === "companion_stat") return false;
-    const hasState = !!(card?.sensor || card?.entity);
-    // An unconfigured folder is only navigation; presets and state bindings
-    // use Home Assistant, including on an otherwise plain folder card.
-    return connector === "home_assistant" || !!kind || hasState;
-  }
-  const source = cardTypeConnector(key);
-  if (source === "home_assistant") return true;
-  if (source !== "home_assistant_or_local") return false;
-  return card?.sensor !== "local";
-}
-
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
+  if (connector !== "mac_companion" || cardContractTypeRetired(key)) return false;
   if (connector === "mac_companion" && MAC_COMPANION_HIDDEN_CARD_TYPES.has(key)) return false;
   const source = cardTypeConnector(key);
   return connector === "mac_companion" ? source !== "home_assistant" : source !== "mac_companion";
@@ -314,20 +268,23 @@ export function cardTypePickerOptions(
   isSub: boolean,
   selectedTypeKey: string | null | undefined,
   connector: CardPickerConnector = "home_assistant",
-  homeAssistantEnabled = false,
+  _homeAssistantEnabled = false,
   isSpecialPage = false,
 ): CardPickerOption[] {
+  const homeAssistantEnabled = false;
+  connector = "mac_companion";
   const options: CardPickerOption[] = [];
   let selectedUnsupported: { key: string; label: string } | null = null;
   const hasSelectedType = selectedTypeKey !== null && selectedTypeKey !== undefined;
   for (const [typeKey, definition] of Object.entries(definitions)) {
+    if (cardContractTypeRetired(typeKey)) continue;
     const rawDefinition = definition as Record<string, unknown>;
     const pickerKey = String(registryValue(rawDefinition, "pickerKey", ""));
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
     const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
     const source = cardTypeConnector(typeKey);
     const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
-      (source === "home_assistant_or_local" && !LOCAL_ONLY_CARD_TYPES.has(typeKey)));
+      source === "home_assistant_or_local");
     const localDateTimePicker = !homeAssistantEnabled && typeKey === "calendar";
     const localFolderPicker = !homeAssistantEnabled && typeKey === "subpage";
     if (requiresHomeAssistant && !localDateTimePicker && !localFolderPicker) {

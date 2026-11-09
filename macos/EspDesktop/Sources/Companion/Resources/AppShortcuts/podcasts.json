@@ -20,7 +20,7 @@
       "id": "2",
       "label": "Search your library or all podcasts",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "3",

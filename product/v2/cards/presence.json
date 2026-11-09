@@ -1,4 +1,5 @@
 {
+  "hidden": true,
   "label": "Presence",
   "allowInSubpage": true,
   "domains": ["binary_sensor", "sensor", "text_sensor"],

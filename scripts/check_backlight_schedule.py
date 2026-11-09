@@ -57,7 +57,8 @@ def check_theme_entity_wiring(source: str) -> None:
     assert "apply_theme_resolution" in refresh
     assert "id(screen_active_theme).publish_state(active);" in refresh
     assert "parse_theme_sun_offset" in refresh and "&& offsets_valid" in refresh
-    migration = package["esphome"]["on_boot"][0]["then"][0]["lambda"]
+    migration = next(action["lambda"] for hook in package["esphome"]["on_boot"]
+                     for action in hook["then"] if "migrate_legacy_theme_index" in action.get("lambda", ""))
     assert "make_entity_preference<size_t>()" in migration
     assert "preference.load(&old_index)" in migration and "migrate_legacy_theme_index" in migration
     print("theme HA entity persistence and refresh wiring: ok")
