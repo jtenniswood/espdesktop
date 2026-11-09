@@ -475,7 +475,7 @@ add_test(NAME subpage_runtime_cleanup_test
 add_executable(panel_identity_runtime_beta_test panel_identity_runtime_test.cpp ../../components/espdesktop/panel_identity.cpp)
 target_compile_features(panel_identity_runtime_beta_test PRIVATE cxx_std_17)
 target_compile_options(panel_identity_runtime_beta_test PRIVATE -Wall -Wextra -Werror)
-target_compile_definitions(panel_identity_runtime_beta_test PRIVATE TEST_ESPHOME_MINOR=10)
+target_compile_definitions(panel_identity_runtime_beta_test PRIVATE TEST_ESPHOME_MINOR=11)
 target_include_directories(panel_identity_runtime_beta_test PRIVATE panel_identity_stubs ../../components/espdesktop)
 add_test(NAME panel_identity_runtime_beta_test COMMAND panel_identity_runtime_beta_test)
 

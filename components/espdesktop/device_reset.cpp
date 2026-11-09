@@ -283,14 +283,10 @@ void ResetBoot::setup() {
   // the empty/default SSID, after the generated WiFiAP has been populated.
   auto ap = wifi->get_ap();
   if (!ap.get_ssid().empty() && ap.get_ssid() != esphome::App.get_friendly_name()) return;
-  const std::string mac = esphome::get_mac_address();
-  std::string suffix;
-  for (char c : mac) {
-    if (c != ':' && c != '-') suffix.push_back(c);
-  }
-  if (suffix.size() > 4) suffix = suffix.substr(suffix.size() - 4);
-  if (suffix.empty()) suffix = "SETUP";
-  ap.set_ssid("EspDesktop_" + suffix);
+  char mac[esphome::MAC_ADDRESS_BUFFER_SIZE];
+  esphome::get_mac_address_into_buffer(mac);
+  const char *suffix = mac + sizeof(mac) - 5;  // Last four hex digits and the terminator.
+  ap.set_ssid(std::string("EspDesktop_") + suffix);
   wifi->set_ap(ap);
 #endif
 }
