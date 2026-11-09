@@ -268,5 +268,65 @@
       "precision": "",
       "options": ""
     }
+  },
+  {
+    "name": "retired Date card settings are discarded",
+    "input": "sensor.date;;;;;;calendar",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "calendar",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Time & Date card settings are discarded",
+    "input": "sensor.date;;;;;;calendar;datetime;large_numbers",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "calendar",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Clock card settings are discarded",
+    "input": ";;;;;;clock;;large_numbers,center_clock",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "clock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired World Clock card settings are discarded",
+    "input": "Europe/London;;;;;;timezone;;large_numbers",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "timezone",
+      "precision": "",
+      "options": ""
+    }
   }
 ]
