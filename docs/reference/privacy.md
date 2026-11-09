@@ -62,8 +62,7 @@ processed.
 Depending on the cards and options you enable, the device may also:
 
 - request media artwork from URLs supplied by Home Assistant or by your
-  configuration;
-- send requests to webhook URLs that you configure; and
+  configuration.
 
 These requests are initiated by your configuration and may expose information
 to the service named by the URL or integration. Review the privacy practices
@@ -141,12 +140,11 @@ that service's policy and retention practices.
 
 ## Your choices and privacy requests
 
-You can choose whether to use automatic firmware updates, configure optional
-webhooks, visit external links, or submit information to
-GitHub. To remove local device settings, use a full flash erase or another
+You can choose whether to use automatic firmware updates, visit external links, or submit
+information to GitHub. To remove local device settings, use a full flash erase or another
 verified factory-reset procedure that clears the device's storage. A normal
 reset or firmware re-flash may preserve saved configuration, including entity
-IDs, webhook credentials, and other settings. This does not remove copies you
+IDs and credentials saved by older firmware. This does not remove copies you
 have made elsewhere.
 
 For a question about this policy or a request concerning information directly

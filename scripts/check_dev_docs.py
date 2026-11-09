@@ -187,7 +187,6 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "media": "docs/card-types/media.md",
     "option_select": "docs/card-types/option-select.md",
     "push": "docs/card-types/buttons.md",
-    "webhook": "docs/card-types/webhooks.md",
     "slider": "docs/card-types/sliders.md",
     "subpage": "docs/features/subpages.md",
     "timer": "docs/card-types/timers.md",
@@ -573,7 +572,7 @@ def generated_card_map() -> str:
         firmware = ", ".join(f"`{path}`" for path in firmware_files.get(card_type, [])) or "No direct match"
         web = f"`{web_files[card_type]}`" if card_type in web_files else "No current web type"
         checks = ["Contract", "Codec", "Parser"]
-        if card.get("domains") or card_type in {"action", "push", "webhook", "weather", "image"}:
+        if card.get("domains") or card_type in {"action", "push", "weather", "image"}:
             checks.append("HA")
         if "modal" in " ".join(firmware_files.get(card_type, [])).lower() or card_type in {"alarm", "alarm_action", "climate", "climate_control", "media", "option_select", "image"}:
             checks.append("Modals")

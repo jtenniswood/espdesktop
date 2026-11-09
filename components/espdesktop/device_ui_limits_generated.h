@@ -36,7 +36,6 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"option_select", true},
     {"push", true},
     {"companion", true},
-    {"webhook", true},
     {"slider", true},
     {"subpage", true},
     {"timezone", true},

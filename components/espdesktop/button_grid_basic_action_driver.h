@@ -4,7 +4,7 @@
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
 // Contract coverage markers: type == "", "action", "alarm_action",
-// "companion", "fan_switch", "light_switch", "push", "webhook".
+// "companion", "fan_switch", "light_switch", "push".
 
 namespace espdesktop::cards {
 
@@ -18,7 +18,6 @@ inline bool basic_action_driver_matches(const Context &context,
     case Driver::ALARM_ACTION:
     case Driver::PUSH:
     case Driver::COMPANION:
-    case Driver::WEBHOOK:
       return !action_card_option_select(config);
     case Driver::FAN:
       return context.runtime.type == Type::FAN_SWITCH;
@@ -342,14 +341,6 @@ inline bool basic_action_driver_bind_subpage(
       }, stored_label);
       break;
     }
-    case Driver::WEBHOOK: {
-      ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
-      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
-        ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
-        if (card) send_webhook_action(*card);
-      }, click);
-      break;
-    }
     case Driver::ACTION: {
       basic_action_driver_bind_action_state(slot, config, context);
       if (!config.entity.empty() &&
@@ -509,9 +500,6 @@ inline bool basic_action_driver_handle_main_click(
       } else {
         send_action_card_action(config);
       }
-      break;
-    case Driver::WEBHOOK:
-      send_webhook_action(config);
       break;
     case Driver::TOGGLE:
       if (!config.entity.empty()) {

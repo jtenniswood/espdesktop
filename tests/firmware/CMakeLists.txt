@@ -215,9 +215,6 @@ target_compile_options(control_modal_service_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(control_modal_service_test PRIVATE ../../components/espdesktop)
 add_test(NAME control_modal_service_test COMMAND control_modal_service_test)
 
-add_test(NAME webhook_log_secrets_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/webhook_log_secrets_test.py ${CMAKE_CXX_COMPILER})
-
 add_executable(icons_legacy_alias_test icons_legacy_alias_test.cpp)
 target_compile_features(icons_legacy_alias_test PRIVATE cxx_std_17)
 target_compile_options(icons_legacy_alias_test PRIVATE -Wall -Wextra -Werror)

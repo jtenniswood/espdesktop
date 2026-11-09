@@ -42,7 +42,7 @@ export interface CardPickerOption {
   readonly description: string;
   readonly disabled: boolean;
   readonly connector: "home_assistant" | "mac_companion" | "mixed" |
-    "home_assistant_or_local" | "local" | "network";
+    "home_assistant_or_local" | "local";
 }
 
 interface PickerDetails {
@@ -90,7 +90,6 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   push: { icon: "gesture-tap-button", description: "Fire a momentary button event." },
   slider: { icon: "tune-vertical", description: "Adjust a numeric or brightness value." },
   subpage: { icon: "view-grid-plus", description: "Open a nested page of cards." },
-  webhook: { icon: "webhook", description: "Send a direct HTTP request." },
   vacuum: { icon: "robot-vacuum", description: "Show or control a vacuum cleaner." },
   weather: { icon: "weather-partly-cloudy", description: "Show weather or forecast data." },
 };
@@ -144,7 +143,6 @@ export function cardTypeConnector(key: string): CardPickerOption["connector"] {
   if (key === "action") {
     return "home_assistant_or_local";
   }
-  if (key === "webhook") return "network";
   if (LOCAL_CARD_TYPES.has(key)) return "local";
   return "home_assistant";
 }

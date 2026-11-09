@@ -2552,11 +2552,11 @@ async function assertEmptyCellSettings(page, posts, label, testCase) {
     );
   }
   const webhookType = page.getByRole("button", { name: "Webhook card type", exact: true });
-  assert.strictEqual(await webhookType.count(), 0, `${label}: Webhook is hidden from the add-card picker`);
+  assert.equal(await webhookType.count(), 0, `${label}: Webhook is absent from Add Card`);
   if (testCase.companionSupported) {
-    await pickerTabs.filter({ hasText: "Mac Companion" }).click();
-    assert.strictEqual(await webhookType.count(), 0, `${label}: Webhook is hidden on the Mac Companion tab`);
-    await pickerTabs.filter({ hasText: "Home Assistant" }).click();
+    await page.getByRole("tab", { name: "Mac Companion", exact: true }).click();
+    assert.equal(await webhookType.count(), 0, `${label}: Webhook is absent from the Mac Companion picker`);
+    await page.getByRole("tab", { name: "Home Assistant", exact: true }).click();
   }
   const switchTypeOption = page.getByRole("button", {
     name: "Switch card type",
@@ -3603,103 +3603,6 @@ async function assertFanOptionalLightSettings(page, label) {
     const overlay = document.querySelector(".sp-settings-overlay");
     return overlay && !overlay.classList.contains("sp-visible");
   });
-}
-
-async function assertWebhookSettingsPanel(page, posts, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  await page.waitForSelector("#sp-screen.sp-page.active");
-  const slot = page.locator('.sp-main [data-slot="1"]');
-  const seedSlot = (state) => page.evaluate(value => window.__seedEspState([
-    { id: "text-button_1_config", state: value },
-  ]), state);
-  await seedSlot(";Saved Webhook;Auto;Auto;GET;;webhook");
-  await slot.getByText("Saved Webhook", { exact: true }).waitFor();
-  const savedSlotPosts = () => posts.filter(post =>
-    postMatches(post, { domain: "text", name: "button_1_config", action: "set" }),
-  ).length;
-  const before = savedSlotPosts();
-  await slot.click();
-  await page.getByRole("button", { name: "Edit", exact: true }).click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-
-  const webhookSettingsButton = page.getByRole("button", {
-    name: "Webhook Settings",
-    exact: true,
-  });
-  assert(
-    await webhookSettingsButton.isVisible(),
-    `${label}: Webhook card should show a Webhook Settings panel`,
-  );
-  assert.strictEqual(
-    await webhookSettingsButton.getAttribute("aria-expanded"),
-    "false",
-    `${label}: Webhook Settings should start collapsed`,
-  );
-  assert.deepStrictEqual(
-    await page
-      .locator(".sp-settings-modal .sp-panel > .sp-disclosure > .sp-disclosure-button > span:first-child")
-      .evaluateAll((headings) => headings.map((heading) => heading.textContent)),
-    ["Webhook Settings", "Card Settings"],
-    `${label}: Webhook groups should show Webhook Settings before Card Settings`,
-  );
-  for (const fieldId of ["#sp-inp-webhook-method", "#sp-inp-webhook-url"]) {
-    assert.strictEqual(
-      await page.locator(fieldId).evaluate((element) => {
-        const disclosure = element.closest(".sp-disclosure");
-        const heading = disclosure && disclosure.querySelector(".sp-disclosure-button > span:first-child");
-        return heading && heading.textContent;
-      }),
-      "Webhook Settings",
-      `${label}: ${fieldId} should be inside Webhook Settings`,
-    );
-  }
-
-  await webhookSettingsButton.click();
-  assert(
-    await page.locator("#sp-inp-webhook-headers").isVisible(),
-    `${label}: Webhook Settings should contain Headers`,
-  );
-  await page.locator("#sp-inp-webhook-method").selectOption("POST");
-  assert.strictEqual(
-    await webhookSettingsButton.getAttribute("aria-expanded"),
-    "false",
-    `${label}: rerendered Webhook Settings should start collapsed`,
-  );
-  await webhookSettingsButton.click();
-  assert(
-    await page.locator("#sp-inp-webhook-body").isVisible(),
-    `${label}: POST Body should remain inside Webhook Settings`,
-  );
-  assert(
-    await page.locator("#sp-inp-webhook-headers").isVisible(),
-    `${label}: POST Headers should remain inside Webhook Settings`,
-  );
-
-  await webhookSettingsButton.click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  assert.strictEqual(
-    await webhookSettingsButton.getAttribute("aria-expanded"),
-    "true",
-    `${label}: missing URL validation should open Webhook Settings`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-inp-webhook-url").getAttribute("aria-invalid"),
-    "true",
-    `${label}: missing webhook URL should remain visibly invalid`,
-  );
-
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => {
-    const overlay = document.querySelector(".sp-settings-overlay");
-    return overlay && !overlay.classList.contains("sp-visible");
-  });
-  assert.strictEqual(
-    savedSlotPosts(),
-    before,
-    `${label}: Webhook Settings audit should not save a card`,
-  );
-  await seedSlot(BUTTON_FIXTURES[0]);
-  await slot.getByText("Kitchen", { exact: true }).waitFor();
 }
 
 async function assertCoverSettingsPanels(page, label) {
@@ -7064,7 +6967,6 @@ async function runCase(browser, testCase) {
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
       await assertFanOptionalLightSettings(page, testCase.name);
-      await assertWebhookSettingsPanel(page, posts, testCase.name);
       await assertCameraRefreshSettings(page, posts, testCase.name);
       await assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase);
     }

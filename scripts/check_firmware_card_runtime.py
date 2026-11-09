@@ -266,10 +266,10 @@ def check_root(root: Path) -> list[str]:
             'sb_cfg.type == "weather"', 'sb_cfg.type == "weather_forecast"',
             'p.type == "push"',
             'p.type == "alarm_action"',
-            'p.type == "local"', 'p.type == "webhook"',
+            'p.type == "local"',
             'sb_cfg.type == "push"',
             'sb_cfg.type == "alarm_action"',
-            'sb_cfg.type == "local"', 'sb_cfg.type == "webhook"',
+            'sb_cfg.type == "local"',
             'p.type == "slider"', 'p.type == "light_brightness"',
             'p.type == "light_temperature"', 'p.type == "fan_speed"',
             'p.type == "fan_oscillate"', 'p.type == "fan_direction"',
@@ -616,7 +616,6 @@ def check_root(root: Path) -> list[str]:
             "basic_action_driver_bind_action_state",
             "basic_action_driver_bind_alarm_action",
             "basic_action_driver_bind_fan_switch",
-            "send_webhook_action",
             "esphome.push_button_pressed",
         )
         for needle in required:

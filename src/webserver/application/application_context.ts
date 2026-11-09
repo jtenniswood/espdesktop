@@ -26,7 +26,6 @@ import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
 import type { ConfigMediaOptionsFeature } from "./config_media_options";
 import type { ConfigImageOptionsFeature } from "./config_image_options";
 import type { ConfigWeatherOptionsFeature } from "./config_weather_options";
-import type { ConfigWebhookOptionsFeature } from "./config_webhook_options";
 import type { ConfigRobotCardOptionsFeature } from "./config_robot_card_options";
 import type { ConfigLockOptionsFeature } from "./config_lock_options";
 import type { ConfigDateTimeOptionsFeature } from "./config_date_time_options";
@@ -112,7 +111,6 @@ export interface ApplicationContext {
     readonly mediaOptions: ConfigMediaOptionsFeature;
     readonly imageOptions: ConfigImageOptionsFeature;
     readonly weatherOptions: ConfigWeatherOptionsFeature;
-    readonly webhookOptions: ConfigWebhookOptionsFeature;
     readonly robotOptions: ConfigRobotCardOptionsFeature;
     readonly lockOptions: ConfigLockOptionsFeature;
     readonly dateTimeOptions: ConfigDateTimeOptionsFeature;
@@ -198,7 +196,6 @@ export interface ApplicationContextOptions {
   readonly mediaConfigurationOptions: ConfigMediaOptionsFeature;
   readonly imageConfigurationOptions: ConfigImageOptionsFeature;
   readonly weatherConfigurationOptions: ConfigWeatherOptionsFeature;
-  readonly webhookConfigurationOptions: ConfigWebhookOptionsFeature;
   readonly robotConfigurationOptions: ConfigRobotCardOptionsFeature;
   readonly lockConfigurationOptions: ConfigLockOptionsFeature;
   readonly dateTimeConfigurationOptions: ConfigDateTimeOptionsFeature;
@@ -297,7 +294,6 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       mediaOptions: options.mediaConfigurationOptions,
       imageOptions: options.imageConfigurationOptions,
       weatherOptions: options.weatherConfigurationOptions,
-      webhookOptions: options.webhookConfigurationOptions,
       robotOptions: options.robotConfigurationOptions,
       lockOptions: options.lockConfigurationOptions,
       dateTimeOptions: options.dateTimeConfigurationOptions,

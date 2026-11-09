@@ -10,6 +10,8 @@ Cards are the controls and information tiles shown on the EspDesktop screen. Eac
 
 Use this page when you know what you want the panel to do but are not sure which card type to choose.
 
+Webhook cards saved with older firmware appear as empty slots after updating.
+
 ## Choose a Card
 
 | Goal | Use this card | Entity or target |
@@ -23,7 +25,6 @@ Use this page when you know what you want the panel to do but are not sure which
 | Show or control a robotic lawn mower | [Lawn Mower](/card-types/lawn-mower) | `lawn_mower` |
 | Pick from a Home Assistant select list | [Option Select](/card-types/option-select) | `select` or `input_select` |
 | Fire a custom Home Assistant automation event | [Trigger](/card-types/buttons) | No entity required |
-| Call an HTTP URL directly from the panel | [Webhook](/card-types/webhooks) (existing cards) | URL |
 | Show a door or window contact sensor | [Doors & Windows](/card-types/doors-windows) | `binary_sensor` or `sensor` |
 | Show presence, motion, or occupancy state | [Presence](/card-types/presence) | `binary_sensor`, `sensor`, or `text_sensor` |
 | Drag to set light brightness, fan speed, or a number value | [Slider](/card-types/sliders) | `light`, `fan`, `number`, or `input_number` |
@@ -61,7 +62,6 @@ Some cards do not need a Home Assistant entity:
 
 - **Trigger** sends a custom event that Home Assistant automations can listen for.
 - **Local Sensor** shows a value supplied by the panel firmware.
-- **Webhook** sends a direct HTTP request.
 - **Action > Local Action** runs a registered callback on the panel itself.
 - **Date & Time**, **World Clock**, and **Subpage** can work from the panel itself.
 

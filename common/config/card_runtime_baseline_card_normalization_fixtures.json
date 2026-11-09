@@ -1035,36 +1035,6 @@
     }
   },
   {
-    "name": "webhook: get",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,GET,,webhook,,",
-    "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "GET",
-      "unit": "",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "webhook: post",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,POST,%7B%7D,webhook,,",
-    "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "POST",
-      "unit": "{}",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "slider: numeric",
     "input": "~input_number.example,,Auto,Auto,,,slider,,",
     "expected": {

@@ -285,14 +285,6 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "approved_app", "config": { "entity": "com.apple.Safari", "label": "Safari" } }]
     },
-    "webhook": {
-      "classification": "canonical", "canonicalType": "webhook", "webRegistration": "webhook", "firmwareFamily": "WEBHOOK",
-      "lifecycle": { "subscriptions": ["http"], "actions": ["http"], "modalOwner": "none" },
-      "modes": [
-        { "name": "get", "config": { "entity": "https://example.invalid/hook", "sensor": "GET" } },
-        { "name": "post", "config": { "entity": "https://example.invalid/hook", "sensor": "POST", "unit": "{}" } }
-      ]
-    },
     "slider": {
       "classification": "canonical", "canonicalType": "slider", "webRegistration": "slider", "firmwareFamily": "SLIDER",
       "lifecycle": { "subscriptions": ["state"], "actions": ["home_assistant_service"], "modalOwner": "none" },
