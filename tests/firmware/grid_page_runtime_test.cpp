@@ -3,6 +3,7 @@
 #include <cstring>
 #include <string>
 #include "button_grid_subpage_parser.h"
+#include "grid_native_page_cards.h"
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
 #include "page_store_goldens.h"

@@ -1,5 +1,7 @@
-#include "grid_native_pages.h"
 #pragma once
+
+#include "grid_native_page_cards.h"
+#include "grid_native_pages.h"
 
 #include "card_curve.h"
 #include "card_icon_layout.h"
