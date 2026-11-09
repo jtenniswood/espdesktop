@@ -21,6 +21,7 @@ class FrameBufferPair {
 
   bool available() const { return this->front_ && this->back_; }
   bool dirty() const { return this->dirty_; }
+  const uint16_t *front() const { return this->front_; }
   const uint16_t *pending() const { return this->back_; }
 
   bool write(int x, int y, int width, int height, const uint8_t *pixels,
