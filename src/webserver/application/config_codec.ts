@@ -1,6 +1,5 @@
 import { isRetiredLayoutCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
 import { retiredSavedCardType } from "../model/card";
-import { isMacAudioCard } from "../model/legacy_home_assistant";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { childPageKey, pageDepth, parentPageKey } from "../model/page_keys";
@@ -409,9 +408,6 @@ export function createConfigCodecFeature(
             (b.label === macLockDefaults.label || b.icon === macLockDefaults.icon)) {
             b.type = macLockDefaults.type;
         }
-        // Map legacy Web App records to the retired type before normalizing Companion cards.
-        if (b?.type === "companion" && b.entity?.startsWith("webapp.")) b.type = "companion_webapp";
-        if (b && isMacAudioCard(b.type, b.entity)) b.type = "companion_audio";
         const retiredType = retiredSavedCardType(b);
         if (retiredType) {
             return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: retiredType });

@@ -291,3 +291,30 @@ test("native transfers preserve existing card and page records and retain copied
   assert.equal(result.layout.pages.find(page => page.key === 65), undefined);
   assert.equal(result.layout.pages.find(page => page.key === 33).cards[0].config.label, "Address");
 });
+
+test("a flat native backup restores losslessly when the panel negotiates a flat format", async () => {
+  const { createNativePanelConfigClient } = loadTypescriptTest("src/webserver/features/native_panel_config.ts");
+  const { decodePanelConfig, encodePanelConfig } = loadTypescriptTest("src/webserver/model/panel_config.ts");
+  const flat = { deviceProfile: fixture.document.deviceProfile, buttons: { 1: ";Folder;;;;;subpage" },
+    subpages: { 1: "B,1|switch.lamp:Lamp:::::switch" }, settings: { button_order: "1", opaque: "value" } };
+  const backup = codec.encodePanelPageDocument(flat);
+  for (const version of [1, 2]) {
+    let saved;
+    const represent = document => version === 2 ? codec.convertNativeV1ToV2(encodePanelConfig(document)) : encodePanelConfig(document);
+    const response = (status, body = new Uint8Array()) => ({ ok: status < 300, status,
+      headers: { get: name => name === "ETag" ? '"1"' : name === "X-Panel-Config-Version" ? String(version) : null },
+      arrayBuffer: async () => Uint8Array.from(body).buffer, json: async () => ({}) });
+    const client = createNativePanelConfigClient(async (url, request) => {
+      if (url.endsWith("capabilities")) return { ...response(200), json: async () => ({ configuration: {
+        read: true, write: true, document_versions: [version], max_record_body_bytes: 4096,
+      } }) };
+      if (request?.method === "PUT") {
+        saved = version === 2 ? codec.convertNativeV2ToV1(request.body) : request.body;
+        return response(204);
+      }
+      return response(200, represent({ ...flat, buttons: {}, subpages: {}, settings: {} }));
+    });
+    assert.equal(await client.save(() => codec.decodePanelPageDocument(backup), false, backup), "saved");
+    assert.deepEqual(JSON.parse(JSON.stringify(decodePanelConfig(saved))), flat);
+  }
+});

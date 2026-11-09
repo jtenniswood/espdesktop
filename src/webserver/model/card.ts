@@ -26,12 +26,19 @@ export const CARD_CONFIG_FIELDS: readonly SavedConfigField[] = [
   "options",
 ];
 
+export function isMacAudioCard(type: string, entity: string | null | undefined): boolean {
+  return type === "slider" &&
+    (entity === "media.output_volume" || entity === "media.input_volume" ||
+     entity === "media.output_mute" || entity === "media.input_mute");
+}
+
 // Old Companion tiles can use the shared Companion type in saved layouts.
 export function retiredSavedCardType(card?: Partial<Pick<CardConfig, "type" | "entity">>): string {
   if (card?.type === "companion") {
     if (card.entity?.startsWith("window.")) return "companion_window";
     if (card.entity?.startsWith("webapp.")) return "companion_webapp";
   }
+  if (card?.type && isMacAudioCard(card.type, card.entity)) return "companion_audio";
   return card?.type && cardContractTypeRetired(card.type) ? card.type : "";
 }
 
