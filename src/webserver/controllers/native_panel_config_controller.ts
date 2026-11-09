@@ -83,10 +83,13 @@ export class NativePanelConfigController {
   }
 
   private withNativeEdit(update: NativePanelConfigUpdate, edit: (draft: NativeLayoutDraft) => void): NativePanelConfigUpdate {
-    return Object.assign(update, { editNative: (draft: NativeLayoutDraft) => {
-      if (draft.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
-      edit(draft);
-    } });
+    return Object.assign(update, {
+      checkAcceptedLayout: true,
+      editNative: (draft: NativeLayoutDraft) => {
+        if (draft.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
+        edit(draft);
+      },
+    });
   }
 
   maxConfigValueBytes(): number | null {
@@ -120,6 +123,7 @@ export class NativePanelConfigController {
         const update: NativePanelConfigUpdate = current => updates.reduce((document, apply) => apply(document), current);
         if (updates.every(apply => apply.editNative)) {
           update.editNative = (draft, current) => updates.forEach(apply => apply.editNative!(draft, current));
+          update.checkAcceptedLayout = updates.every(apply => apply.checkAcceptedLayout);
         }
         const result = await this.schedule(update);
         return result === "saved" || result === "mirror-failed";

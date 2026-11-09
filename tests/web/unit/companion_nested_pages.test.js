@@ -256,6 +256,16 @@ test("structured root and folder edits keep wire identities and retry the latest
   assert.equal(puts, 3, "an overlapping edit must not be retried");
   assert.equal(codec.decodePanelPageSnapshot(persisted).layout.pages.find(page => page.key === 34).cards[0].config.label,
     "Other browser");
+
+  assert.equal(await controller.writeSubpage(34, legacy, {
+    order: "B,1", cards: [{ ...address.config, label: "Stale edit" }],
+  }), "conflict");
+  assert.equal(puts, 3, "a change already saved before the first GET must not reach PUT");
+  assert.equal(await controller.writeSetting("unrelated", "local value"), "saved");
+  assert.equal(puts, 4);
+  assert.equal(codec.decodePanelPageDocument(persisted).settings.unrelated, "local value");
+  assert.equal(codec.decodePanelPageSnapshot(persisted).layout.pages.find(page => page.key === 34).cards[0].config.label,
+    "Other browser", "an independent setting save preserves the other browser's edit");
 });
 
 test("native transfers preserve existing card and page records and retain copied descendants", () => {
