@@ -41,6 +41,7 @@ import {
     COMPANION_SHORTCUT_APPS,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
+    isBooksExtendedShortcut,
     isClaudeScopedShortcut,
     companionShortcutFolderAppLabel,
     companionShortcutFolderEditorAvailable,
@@ -113,7 +114,6 @@ export const COMPANION_SUBTYPE_DEFAULT_ICONS = {
 export const COMPANION_STATS_OPTIONS = COMPANION_SYSTEM_METRICS
     .map((metric) => [metric.mode, metric.label] as const)
     .sort((first, second) => first[1].localeCompare(second[1]));
-const COMPANION_SHORTCUT_MODIFIERS = ["command", "control", "option", "shift"] as const;
 const COMPANION_SHORTCUT_KEYS: Readonly<Record<string, string>> = {
     Space: "space", Enter: "enter", Tab: "tab", Escape: "escape",
     Backspace: "delete", Delete: "forwarddelete",
@@ -163,10 +163,9 @@ export function formatCompanionShortcutActionId(actionId: string): string {
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     const key = parts.pop() || "";
     const symbols: Readonly<Record<string, string>> = {
-        command: "⌘", control: "⌃", option: "⌥", shift: "⇧",
+        command: "⌘", control: "⌃", option: "⌥", shift: "⇧", function: "Fn ",
     };
-    const keyLabel = COMPANION_SHORTCUT_KEY_LABELS[key]
-        || (/^[a-z]$/.test(key) ? key.toUpperCase() : key.toUpperCase());
+    const keyLabel = COMPANION_SHORTCUT_KEY_LABELS[key] || key.toUpperCase();
     return parts.map((part) => symbols[part]).join("") + keyLabel;
 }
 
@@ -791,13 +790,14 @@ export function registerCompanionCardTypes(
             modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
-            const selectedModifiers = new Set(shortcutParts.filter((part) =>
-                (COMPANION_SHORTCUT_MODIFIERS as readonly string[]).includes(part)));
-            const modifierControls = new Map<string, HTMLButtonElement>();
-            for (const [modifier, label] of [
+            const modifiers: [string, string][] = [
                 ["command", "⌘ Command"], ["control", "⌃ Control"],
                 ["option", "⌥ Option"], ["shift", "⇧ Shift"],
-            ] as const) {
+            ];
+            if (currentEntity === "shortcut.function+f") modifiers.push(["function", "Fn"]);
+            const selectedModifiers = new Set(shortcutParts.filter((part) => modifiers.some(([key]) => part === key)));
+            const modifierControls = new Map<string, HTMLButtonElement>();
+            for (const [modifier, label] of modifiers) {
                 const button = document.createElement("button");
                 button.type = "button";
                 button.textContent = label;
@@ -855,8 +855,8 @@ export function registerCompanionCardTypes(
                 keySelect.value = selectedKey;
             }
             function saveBuiltShortcut(): void {
-                const modifiers = COMPANION_SHORTCUT_MODIFIERS.filter((modifier) => selectedModifiers.has(modifier));
-                card.entity = COMPANION_SHORTCUT_PREFIX + [...modifiers, selectedKey].join("+");
+                const selected = modifiers.map(([modifier]) => modifier).filter((modifier) => selectedModifiers.has(modifier));
+                card.entity = COMPANION_SHORTCUT_PREFIX + [...selected, selectedKey].join("+");
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.clearFieldError(keySelect);
                 helpers.saveField("entity", card.entity);
@@ -948,7 +948,7 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
-                    (!isClaudeScopedShortcut(card.entity) || card.entity === currentEntity);
+                    ((!isBooksExtendedShortcut(card.entity) && !isClaudeScopedShortcut(card.entity)) || card.entity === currentEntity);
             });
 
             const windowField = document.createElement("div");

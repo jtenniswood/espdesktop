@@ -363,7 +363,9 @@
       "label": "Send to Fork",
       "shortcut": "command+option+enter",
       "icon": "Source Branch"
-    },
+    }
+  ],
+  "additionalShortcuts": [
     {
       "id": "60",
       "label": "Environment 1",
@@ -471,9 +473,7 @@
       "label": "Session 9",
       "shortcut": "command+9",
       "icon": "Chat"
-    }
-  ],
-  "extendedShortcuts": [
+    },
     {
       "id": "78",
       "label": "Next Area",

@@ -500,6 +500,8 @@ inline std::vector<std::string> companion_shortcut_parts(const std::string &acti
 }
 
 inline bool companion_shortcut_action_valid(const std::string &action_id) {
+  if (action_id == "shortcut.left" || action_id == "shortcut.right" ||
+      action_id == "shortcut.space" || action_id == "shortcut.function+f") return true;
   const auto parts = companion_shortcut_parts(action_id);
   if (action_id == "shortcut.shift+f6") return true;
   if (parts.size() == 1) {
@@ -543,6 +545,7 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
     else if (parts[i] == "control") label += "\U000F0634";
     else if (parts[i] == "option") label += "\U000F0635";
     else if (parts[i] == "shift") label += "\U000F0636";
+    else if (parts[i] == "function") label += "Fn ";
   }
   std::string key = parts.back();
   if (key.size() == 1 && key[0] >= 'a' && key[0] <= 'z') key[0] = static_cast<char>(key[0] - 'a' + 'A');

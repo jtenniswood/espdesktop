@@ -60,6 +60,19 @@ struct CompanionKeyboardShortcut {
         }
     }
 
+    static let booksBundleIdentifier = "com.apple.iBooksX"
+
+    static func isBooksExtendedShortcut(_ shortcut: String) -> Bool {
+        booksExtendedKeys[shortcut] != nil
+    }
+
+    private static let booksExtendedKeys: [String: (key: String, flags: CGEventFlags)] = [
+        "left": ("left", []),
+        "right": ("right", []),
+        "space": ("space", []),
+        "function+f": ("f", [.maskSecondaryFn]),
+    ]
+
     let keyCode: CGKeyCode
     let flags: CGEventFlags
     let requiresMacOS15: Bool
@@ -75,6 +88,12 @@ struct CompanionKeyboardShortcut {
         }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
         let keys = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
+        if let extended = Self.booksExtendedKeys[keys], let keyCode = Self.keyCodes[extended.key] {
+            self.keyCode = keyCode
+            self.flags = extended.flags
+            self.requiresMacOS15 = false
+            return
+        }
         if Self.isClaudeScopedShortcut(keys) {
             let key = keys == Self.claudeRewindShortcut ? "escape" : keys.replacingOccurrences(of: "shift+", with: "")
             guard let keyCode = Self.keyCodes[key] else { return nil }

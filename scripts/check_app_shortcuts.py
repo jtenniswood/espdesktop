@@ -46,15 +46,15 @@ class AppShortcutTests(unittest.TestCase):
         example = json.loads((ROOT / 'product/v2/app_shortcuts/examples/example-editor.json').read_text())
         validate_app(example, self.icons)
 
-    def test_claude_numbered_choices_and_extended_keys(self):
+    def test_claude_numbered_choices_and_additional_keys(self):
         claude = json.loads((ROOT / 'product/v2/app_shortcuts/claude-desktop.json').read_text())
         validate_app(claude, self.icons)
-        shortcuts = {item['shortcut'] for item in claude['shortcuts'] + claude['extendedShortcuts']}
+        shortcuts = {item['shortcut'] for item in claude['shortcuts'] + claude['additionalShortcuts']}
         for digit in '123456789':
             self.assertTrue({digit, f'command+{digit}', f'command+option+{digit}'} <= shortcuts)
         with self.assertRaisesRegex(ValueError, 'only on the Claude Desktop'):
             validate_app(dict(claude, appId='org.example.Editor'), self.icons)
-        claude['extendedShortcuts'][0]['shortcut'] = 'enter'
+        claude['additionalShortcuts'][0]['shortcut'] = 'enter'
         with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
             validate_app(claude, self.icons)
 

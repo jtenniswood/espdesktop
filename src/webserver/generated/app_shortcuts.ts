@@ -12,6 +12,7 @@ export interface AppShortcutApplication {
     readonly catalog: boolean;
     readonly shortcuts: readonly AppShortcutDefinition[];
     readonly extendedShortcuts?: readonly AppShortcutDefinition[];
+    readonly additionalShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {
@@ -757,16 +758,202 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "catalog": false,
     "shortcuts": [
       {
-        "id": "0",
-        "label": "New Collection",
-        "shortcut": "command+n",
-        "icon": "Folder Plus"
+        "id": "29",
+        "label": "Next Page",
+        "shortcut": "right",
+        "icon": "Page Next"
+      },
+      {
+        "id": "30",
+        "label": "Previous Page",
+        "shortcut": "left",
+        "icon": "Page Previous"
+      },
+      {
+        "id": "31",
+        "label": "Full Screen",
+        "shortcut": "function+f",
+        "icon": "Full Screen"
+      },
+      {
+        "id": "32",
+        "label": "Play/Pause",
+        "shortcut": "space",
+        "icon": "Play Pause"
+      },
+      {
+        "id": "2",
+        "label": "Bookmark Page",
+        "shortcut": "command+d",
+        "icon": "Bookmark Plus"
+      },
+      {
+        "id": "3",
+        "label": "Contents",
+        "shortcut": "command+t",
+        "icon": "View Headline"
+      },
+      {
+        "id": "4",
+        "label": "Bookmarks",
+        "shortcut": "command+shift+d",
+        "icon": "Bookmark Multiple"
       },
       {
         "id": "1",
         "label": "Search Books",
         "shortcut": "command+f",
         "icon": "Search"
+      },
+      {
+        "id": "5",
+        "label": "Next Chapter",
+        "shortcut": "option+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "6",
+        "label": "Previous Chapter",
+        "shortcut": "option+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "7",
+        "label": "Chapter Start",
+        "shortcut": "option+up",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "8",
+        "label": "Chapter End",
+        "shortcut": "option+down",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "9",
+        "label": "Notes",
+        "shortcut": "command+shift+n",
+        "icon": "Notes"
+      },
+      {
+        "id": "10",
+        "label": "Thumbnails",
+        "shortcut": "command+shift+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "11",
+        "label": "Study Cards",
+        "shortcut": "command+shift+s",
+        "icon": "Card Text"
+      },
+      {
+        "id": "12",
+        "label": "Glossary",
+        "shortcut": "command+shift+g",
+        "icon": "Book Alphabet"
+      },
+      {
+        "id": "13",
+        "label": "Larger Text",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Font Size Increase"
+      },
+      {
+        "id": "14",
+        "label": "Smaller Text",
+        "shortcut": "command+keyminus",
+        "icon": "Font Size Decrease"
+      },
+      {
+        "id": "15",
+        "label": "Reset Text",
+        "shortcut": "command+0",
+        "icon": "Format Size"
+      },
+      {
+        "id": "16",
+        "label": "Stop Audiobook",
+        "shortcut": "command+keyperiod",
+        "icon": "Stop"
+      },
+      {
+        "id": "17",
+        "label": "Skip Forward",
+        "shortcut": "command+right",
+        "icon": "Speed Up"
+      },
+      {
+        "id": "18",
+        "label": "Skip Back",
+        "shortcut": "command+left",
+        "icon": "Speed Down"
+      },
+      {
+        "id": "19",
+        "label": "Next Track",
+        "shortcut": "command+shift+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "20",
+        "label": "Previous Track",
+        "shortcut": "command+shift+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "21",
+        "label": "Volume Up",
+        "shortcut": "command+up",
+        "icon": "Volume Up"
+      },
+      {
+        "id": "22",
+        "label": "Volume Down",
+        "shortcut": "command+down",
+        "icon": "Volume Down"
+      },
+      {
+        "id": "23",
+        "label": "Open Book",
+        "shortcut": "command+o",
+        "icon": "Book"
+      },
+      {
+        "id": "0",
+        "label": "New Collection",
+        "shortcut": "command+n",
+        "icon": "Folder Plus"
+      },
+      {
+        "id": "24",
+        "label": "Books Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "25",
+        "label": "Close Window",
+        "shortcut": "command+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "26",
+        "label": "Hide Books",
+        "shortcut": "command+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "27",
+        "label": "Hide Others",
+        "shortcut": "command+option+h",
+        "icon": "Window Minimise"
+      },
+      {
+        "id": "28",
+        "label": "Quit Books",
+        "shortcut": "command+q",
+        "icon": "Logout"
       }
     ]
   },

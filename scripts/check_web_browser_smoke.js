@@ -4303,6 +4303,10 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await seedNativeDocument(page, nativeState);
     const commandIcon = page.locator('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
     assert.strictEqual(await commandIcon.count(), 1, "saved Shortcut Command icon uses its actual MDI name");
+    await page.waitForFunction(() => {
+      const icon = document.querySelector('.sp-main [data-slot="1"] .mdi-apple-keyboard-command');
+      return icon && getComputedStyle(icon, "::before").content.includes(String.fromCodePoint(0xF0633));
+    });
     assert((await commandIcon.evaluate((icon) => getComputedStyle(icon, "::before").content)).includes(String.fromCodePoint(0xF0633)), "shortcut icon has the expected browser glyph");
     await openCard();
     const type = page.locator('[id$="shortcut-type"]');

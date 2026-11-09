@@ -43,7 +43,9 @@ The manifest must list every top-level template JSON file in this folder exactly
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 
-The Claude Desktop subpage supports up to 96 entries to include its numbered environment, session and menu choices. Its optional `extendedShortcuts` list carries the Code tab's plain keys, Shift–F6 and double Escape. Both lists share the same IDs and the same 12,000-byte catalogue limit. Older Companion versions can still read the regular list.
+Books also has an optional `extendedShortcuts` list for its Left Arrow, Right Arrow, Space and Fn–F presets. These entries require updated Companion and display firmware and only run when Books is active. Older Companion versions can still read the regular `shortcuts` list. Both lists share the same shortcut IDs and 64-entry limit.
+
+The Claude Desktop subpage supports up to 96 entries to include its numbered environment, session and menu choices. The optional `additionalShortcuts` list contains those extra choices and app-scoped keys such as Shift–F6 and double Escape. Both Claude lists share the same IDs and the same 12,000-byte catalogue limit. Older Companion versions read the regular list.
 
 The current live files are useful examples too: Safari is in the standalone catalog; the other app templates provide shortcuts on their matching app subpages.
 

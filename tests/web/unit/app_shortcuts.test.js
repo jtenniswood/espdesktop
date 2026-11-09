@@ -13,13 +13,29 @@ test("Claude Desktop keeps its existing presets and exposes numbered and scoped 
   assert(presets.every(card => api.companionShortcutActionIdValid(card.entity)));
   assert(!api.companionShortcutActionIdValid("shortcut.enter"));
   const keys = ["command+option+9", "command+9", "9", "shift+f6", "escape-twice"];
-  const entries = [...claude.shortcuts, ...claude.extendedShortcuts];
+  const entries = [...claude.shortcuts, ...claude.additionalShortcuts];
   const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
   const page = api.createCompanionShortcutSubpage(claude.appId, ids);
   assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
   assert.deepEqual(api.companionShortcutTabsFromSubpage(claude.appId, page), ids);
   api.replaceCompanionDefinitions([claude]);
   assert.deepEqual(api.companionShortcutPresetCards(claude.appId), presets);
+});
+
+test("Books presets work from both the bundled and Companion catalogues", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const books = require("../../../product/v2/app_shortcuts/books.json");
+  const bundled = api.companionShortcutPresetCards(books.appId);
+  assert.equal(bundled.length, 33);
+  assert.deepEqual(bundled.slice(0, 4).map(card => card.entity),
+    ["shortcut.right", "shortcut.left", "shortcut.function+f", "shortcut.space"]);
+  assert(bundled.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.a"));
+  assert(!api.companionShortcutActionIdValid("shortcut.function+g"));
+  api.replaceCompanionDefinitions([books]);
+  assert.deepEqual(api.companionShortcutPresetCards(books.appId), bundled);
+  api.replaceCompanionDefinitions([{ ...books, extendedShortcuts: undefined }]);
+  assert.equal(api.companionShortcutPresetCards(books.appId).length, 29);
 });
 
 test("file-defined apps and stable shortcut IDs drive subpages without code registration", () => {

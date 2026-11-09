@@ -904,11 +904,16 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("Blocked an invalid keyboard shortcut")
             return false
         }
+        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
+           NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
+            updateStatus("Bring Books to the front to use this shortcut")
+            return false
+        }
         guard shortcut.isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else {
             updateStatus("Window tiling requires macOS 15 or later")
             return false
         }
-        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
         var targetPID: pid_t?
         if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix),
            CompanionKeyboardShortcut.isClaudeScopedShortcut(keys) {

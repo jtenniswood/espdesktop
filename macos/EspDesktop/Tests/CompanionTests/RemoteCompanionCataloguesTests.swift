@@ -16,9 +16,10 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         let claude = try XCTUnwrap(catalogue.applications.first {
             $0.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier
         })
-        XCTAssertEqual(claude.shortcuts.count, 78)
-        XCTAssertEqual(claude.extendedShortcuts?.count, 15)
-        XCTAssertTrue(claude.extendedShortcuts?.contains { $0.shortcut == "escape-twice" } == true)
+        XCTAssertEqual(claude.shortcuts.count, 60)
+        XCTAssertEqual(claude.additionalShortcuts?.count, 33)
+        XCTAssertNil(claude.extendedShortcuts)
+        XCTAssertTrue(claude.additionalShortcuts?.contains { $0.shortcut == "escape-twice" } == true)
 
         let json = String(decoding: try JSONEncoder().encode(claude), as: UTF8.self)
         let frame = try JSONSerialization.data(withJSONObject: [
@@ -28,6 +29,40 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         ])
         XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected))
     }
+    @MainActor
+    func testBundledBooksPresetsTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "BooksCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let books = try XCTUnwrap(catalogue.applications.first { $0.appId == "com.apple.iBooksX" })
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        XCTAssertEqual(books.extendedShortcuts?.map(\.shortcut), ["right", "left", "function+f", "space"])
+    }
+
+    func testExtendedShortcutsAreSeparateAndRestrictedToBooks() throws {
+        struct LegacyDefinition: Decodable {
+            let shortcuts: [RemoteShortcutDefinition]
+        }
+        let manifest = Data(#"{"formatVersion":1,"catalogueVersion":13,"minimumCompanionVersion":"1.0.0","entries":[{"path":"books.json"}]}"#.utf8)
+        let app = #"{"version":1,"appId":"com.apple.iBooksX","label":"Books","catalog":false,"shortcuts":[{"id":"0","label":"Collection","shortcut":"command+n","icon":"Folder Plus"}],"extendedShortcuts":[{"id":"29","label":"Next Page","shortcut":"right","icon":"Page Next"}]}"#
+        let decode: (String) throws -> RemoteCompanionCatalogues = { definition in
+            try RemoteCompanionCatalogues.decode(nativeManifest: manifest, nativeDefinitions: [Data(definition.utf8)],
+                                                 companionVersion: "1.0.0")
+        }
+
+        let catalogue = try decode(app)
+        XCTAssertEqual(catalogue.applications.first?.extendedShortcuts?.map(\.shortcut), ["right"])
+        XCTAssertEqual(try JSONDecoder().decode(LegacyDefinition.self, from: Data(app.utf8)).shortcuts.map(\.shortcut),
+                       ["command+n"])
+        XCTAssertThrowsError(try decode(app.replacingOccurrences(of: "com.apple.iBooksX", with: "com.example.Reader")))
+        XCTAssertThrowsError(try decode(app.replacingOccurrences(of: #""29""#, with: #""0""#)))
+        XCTAssertThrowsError(try decode(app.replacingOccurrences(of: #""right""#, with: #""a""#)))
+    }
+
     func testURLCardTargetsMatchFullConfiguredURLAndClearWhenUnavailable() throws {
         let target = try XCTUnwrap(URL(string: "https://example.com/docs?q=1#intro"))
         XCTAssertEqual(ActiveTabURLMatcher.matchingURLCardIDs(
