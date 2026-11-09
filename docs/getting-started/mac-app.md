@@ -25,8 +25,13 @@ On **Access and startup**, choose **Open Settings** to grant Accessibility acces
 
 ## 3. Try your first card {#check-the-connection}
 
-1. Open the display’s web page and add a **Companion → Applications** card in an empty slot.
-2. Pick an app and choose **Apply Configuration**.
-3. Tap the card on the display. The app should open or come to the front on your Mac.
+On an empty display, the web page guides you through app setup.
+
+1. Pick up to eight apps for the home screen. Setup leaves one slot free.
+2. Choose whether to add shortcut pages for apps with built-in shortcuts. If you add pages, choose whether they open automatically when you switch apps on your Mac.
+3. Choose **Done** or **Save setup**. Your cards appear on the display automatically.
+4. Tap a card to open its app or bring it to the front on your Mac.
+
+Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → Appearance → App Subpages → Setup Again**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
 
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)

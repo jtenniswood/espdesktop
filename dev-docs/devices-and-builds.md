@@ -168,6 +168,7 @@ or notes for a flag that no device uses.
 | `ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1` | `guition-esp32-s3-4848s040` | Uses the reduced-memory media modal path on the constrained S3 panel. | The full media path fits with safe runtime heap headroom. |
 | `ESPDESKTOP_MAX_GRID_SLOTS=6` | `guition-esp32-p4-jc4880p443`<br>`guition-esp32-p4-jc4880p443-v3` | Caps runtime grid allocation to six slots. | Grid slot capacity is generated from device profile data. |
 | `ESPDESKTOP_MAX_GRID_SLOTS=9` | `esp32-p4-86`<br>`guition-esp32-s3-4848s040` | Caps runtime grid allocation to nine slots. | Grid slot capacity is generated from device profile data. |
+| `ESPDESKTOP_S3_DISPLAY_RESET_TEST` | `guition-esp32-s3-4848s040` | Enables the S3 development build’s display capture, resync, and LCD reset diagnostics. | The shifted-image investigation is complete and the diagnostic page is removed. |
 | `LV_USE_BIDI=1` | `esp32-p4-86`<br>`guition-esp32-p4-jc1060p470`<br>`guition-esp32-p4-jc1060p470-v2`<br>`guition-esp32-p4-jc4880p443`<br>`guition-esp32-p4-jc4880p443-v3`<br>`guition-esp32-p4-jc8012p4a1`<br>`guition-esp32-p4-jc8012p4a1-v2`<br>`guition-esp32-p4-jc8012p4a1-v3`<br>`guition-esp32-p4-jc8012p4a1-v3-test`<br>`guition-esp32-s3-4848s040` | Enables LVGL bidirectional text ordering for right-to-left scripts such as Hebrew and Arabic. | ESPHome enables LVGL bidirectional text for every supported display without this compile definition. |
 <!-- END GENERATED DEVICE BUILD FLAGS -->
 
