@@ -67,13 +67,6 @@ class EspDesktopApp : public esphome::Component {
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
   void set_panel_config_button_on_color(esphome::text::Text *button_on_color);
-  void set_panel_config_special_page(
-      esphome::text::Text *chunk_0, esphome::text::Text *chunk_1,
-      esphome::text::Text *chunk_2, esphome::text::Text *chunk_3,
-      esphome::text::Text *chunk_4 = nullptr,
-      esphome::text::Text *chunk_5 = nullptr,
-      esphome::text::Text *chunk_6 = nullptr,
-      esphome::text::Text *chunk_7 = nullptr);
   // Code generation marks only restore-enabled TemplateText fields whose
   // configured initial value is empty. Missing preferences are equivalent to
   // empty values for those fields, including after a firmware downgrade.
@@ -163,7 +156,6 @@ class EspDesktopApp : public esphome::Component {
   const char *panel_config_device_profile_{nullptr};
   esphome::text::Text *panel_config_button_order_{nullptr};
   esphome::text::Text *panel_config_button_on_color_{nullptr};
-  std::array<esphome::text::Text *, 8> panel_config_special_page_chunks_{};
   bool panel_config_order_template_{false};
   bool panel_config_color_template_{false};
   uint8_t panel_config_chrome_empty_defaults_{0};

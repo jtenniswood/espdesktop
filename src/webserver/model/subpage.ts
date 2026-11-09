@@ -7,14 +7,12 @@ export interface BackOrderToken {
   token: string;
   label: string;
   color?: string;
-  title?: string;
 }
 
 export interface ParsedSubpageOrder {
   order: string[];
   backLabel: string;
   backColor?: string;
-  title?: string;
 }
 
 export interface ParsedSubpageConfig {
@@ -22,14 +20,12 @@ export interface ParsedSubpageConfig {
   buttons: CardConfig[];
   backLabel: string;
   backColor?: string;
-  title?: string;
 }
 
 export interface StructuredSubpageConfig {
   order: string[];
   back_label: string;
   back_color?: string;
-  title?: string;
   buttons: CardConfig[];
 }
 
@@ -40,7 +36,6 @@ export interface SubpageGridSource {
   buttons?: readonly unknown[];
   backLabel?: string;
   backColor?: string;
-  title?: string;
 }
 
 const BACK_TOKENS = new Set(["B", "Bd", "Bw", "Bb", "Bt", "Bx"]);
@@ -69,20 +64,17 @@ export function parseBackOrderToken(value: string | null | undefined): BackOrder
   const token = eq >= 0 ? raw.substring(0, eq) : raw;
   const separator = eq >= 0 ? raw.indexOf(":", eq + 1) : -1;
   const label = eq >= 0 ? decodeConfigField(raw.substring(eq + 1, separator < 0 ? undefined : separator)) : "Back";
-  const titleSeparator = separator >= 0 ? raw.indexOf(":", separator + 1) : -1;
-  const color = separator >= 0 ? normalizeBackColor(raw.substring(separator + 1, titleSeparator < 0 ? undefined : titleSeparator)) : "";
-  const title = titleSeparator >= 0 ? decodeConfigField(raw.substring(titleSeparator + 1)) : "";
+  const color = separator >= 0 ? normalizeBackColor(raw.substring(separator + 1)) : "";
   if (!BACK_TOKENS.has(token)) {
     return { token: raw, label: "Back" };
   }
-  return { token, label: label || "Back", ...(color ? { color } : {}), ...(title ? { title } : {}) };
+  return { token, label: label || "Back", ...(color ? { color } : {}) };
 }
 
-export function backOrderToken(baseToken: string, label: string | null | undefined, color?: string | null, title?: string | null): string {
+export function backOrderToken(baseToken: string, label: string | null | undefined, color?: string | null): string {
   const token = parseBackOrderToken(baseToken).token;
   const text = label || "Back";
   const hex = normalizeBackColor(color);
-  if (title) return token + "=" + (text === "Back" ? "" : encodeConfigField(text)) + ":" + hex + ":" + encodeConfigField(title);
   // An empty label keeps the firmware's translated Back text when a colour is set.
   if (text === "Back") return hex ? token + "=:" + hex : token;
   return token + "=" + encodeConfigField(text) + (hex ? ":" + hex : "");
@@ -102,7 +94,6 @@ export function parseSubpageOrder(orderStr: string | null | undefined): ParsedSu
   const order: string[] = [];
   let backLabel = "Back";
   let backColor = "";
-  let title = "";
   if (orderStr) {
     const parts = orderStr.split(",");
     for (const part of parts) {
@@ -111,24 +102,22 @@ export function parseSubpageOrder(orderStr: string | null | undefined): ParsedSu
       if (BACK_TOKENS.has(parsed.token)) {
         backLabel = parsed.label || "Back";
         backColor = parsed.color || "";
-        title = parsed.title || "";
       }
     }
   }
-  return { order, backLabel, ...(backColor ? { backColor } : {}), ...(title ? { title } : {}) };
+  return { order, backLabel, ...(backColor ? { backColor } : {}) };
 }
 
 export function subpageOrderForSerialize(
   order: readonly string[] | null | undefined,
   backLabel?: string | null,
   backColor?: string | null,
-  title?: string | null,
 ): string[] {
   const out: string[] = [];
   for (const item of order || []) {
     const parsed = parseBackOrderToken(item);
     if (BACK_TOKENS.has(parsed.token)) {
-      out.push(backOrderToken(parsed.token, backLabel || parsed.label || "Back", backColor ?? parsed.color, title ?? parsed.title));
+      out.push(backOrderToken(parsed.token, backLabel || parsed.label || "Back", backColor ?? parsed.color));
     } else {
       out.push(parsed.token);
     }
@@ -160,7 +149,6 @@ export function parseLegacySubpageConfig(value: string | null | undefined): Pars
     buttons,
     backLabel: parsedOrder.backLabel,
     ...(parsedOrder.backColor ? { backColor: parsedOrder.backColor } : {}),
-    ...(parsedOrder.title ? { title: parsedOrder.title } : {}),
   };
 }
 
@@ -191,7 +179,6 @@ export function parseCompactSubpageConfig(
     buttons,
     backLabel: parsedOrder.backLabel,
     ...(parsedOrder.backColor ? { backColor: parsedOrder.backColor } : {}),
-    ...(parsedOrder.title ? { title: parsedOrder.title } : {}),
   };
 }
 
@@ -209,7 +196,6 @@ export function structuredSubpageFromParsed(
   const backColor = normalizeBackColor(subpage?.backColor ?? parseSubpageOrder((subpage?.order || []).join(",")).backColor);
   return {
     ...(backColor ? { back_color: backColor } : {}),
-    ...(subpage?.title ? { title: subpage.title } : {}),
     order: (subpage?.order || []).map((item) => parseBackOrderToken(item).token),
     back_label: subpage?.backLabel || backLabelFromOrder(subpage?.order) || "Back",
     buttons: (subpage?.buttons || []).map((button) => cloneCardConfig(button)),
@@ -246,7 +232,6 @@ export function parseStructuredSubpageConfig(value: unknown): ParsedSubpageConfi
     buttons,
     backLabel: backLabel || "Back",
     ...(backColor ? { backColor } : {}),
-    ...(value.title || parsedOrder.title ? { title: String(value.title || parsedOrder.title) } : {}),
   };
 }
 
@@ -399,7 +384,6 @@ export function serializeSubpageGrid(
   sizes: SlotSizeMap,
   backLabel?: string | null,
   backColor?: string | null,
-  title?: string | null,
 ): string[] {
   let last = -1;
   for (let i = grid.length - 1; i >= 0; i -= 1) {
@@ -414,7 +398,7 @@ export function serializeSubpageGrid(
   for (let i = 0; i <= last; i += 1) {
     const slot = grid[i] ?? 0;
     if (slot === -2) {
-      order.push(backOrderToken("B" + sizeToken(sizes[String(-2)]), backLabel || "Back", backColor, title));
+      order.push(backOrderToken("B" + sizeToken(sizes[String(-2)]), backLabel || "Back", backColor));
     } else if (slot <= 0) {
       order.push("");
     } else {

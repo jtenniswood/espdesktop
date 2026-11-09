@@ -21,7 +21,7 @@ code = r'''#include <algorithm>
 using lv_coord_t = int;
 constexpr int LV_PART_MAIN = 0;
 struct lv_obj_t { int top = 4; };
-lv_obj_t home, subpage, app_page, special_page, screensaver;
+lv_obj_t home, subpage, app_page, screensaver;
 lv_obj_t *active = &home;
 lv_obj_t *lv_scr_act() { return active; }
 struct ClockBarVisibility { bool reserve_space = false, visible = false; };
@@ -56,7 +56,6 @@ int main() {
   using espdesktop::DisplayMode;
   clock_bar_register_button_grid_page(&subpage);
   clock_bar_register_button_grid_page(&app_page);
-  clock_bar_register_button_grid_page(&special_page);
   // Execute the production page-change wiring with the home bar turned off.
   refresh();
   assert(home.top == 4 && subpage.top == 4 && !settings_visible);
@@ -76,9 +75,7 @@ int main() {
   active = &home;
   refresh();
   assert(home.top == 40 && settings_visible);
-  active = &special_page;
   refresh();
-  assert(special_page.top == 4 && !settings_visible);
   active = &home;
   refresh();
   assert(home.top == 40 && settings_visible);
@@ -86,7 +83,7 @@ int main() {
     clock_bar_subpage_title_bar_enabled() = title_bar;
   for (bool enabled : {false, true}) {
     for (bool scheduled_off : {false, true}) {
-      for (auto *screen : {&home, &subpage, &app_page, &special_page, &screensaver}) {
+      for (auto *screen : {&home, &subpage, &app_page, &screensaver}) {
         active = screen;
         for (auto mode : {DisplayMode::ACTIVE, DisplayMode::DIMMED, DisplayMode::CLOCK}) {
           auto result = clock_bar_resolve_visibility(enabled, &home, mode, scheduled_off);

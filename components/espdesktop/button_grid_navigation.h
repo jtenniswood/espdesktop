@@ -37,7 +37,6 @@ struct NavigationSubpageEntry {
   int slot = 0;
   int display_order = 0;
   std::string kind;
-  std::string title;
   lv_obj_t *screen = nullptr;
   lv_obj_t *back_button = nullptr;
   bool back_neutral_background = true;
@@ -62,9 +61,6 @@ inline void navigation_register_subpage(int slot, int display_order,
                                         const std::string &kind,
                                         lv_obj_t *screen);
 inline void navigation_register_grid_screen_gesture(lv_obj_t *screen);
-
-// Keep the standalone page outside the range of home-card-owned subpages.
-constexpr int NAVIGATION_SPECIAL_PAGE_SLOT = MAX_GRID_SLOTS + 1;
 
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry);
 
@@ -93,24 +89,9 @@ inline std::vector<NavigationSubpageEntry> &navigation_subpages() {
   return grid_navigation_service().subpages();
 }
 
-inline lv_obj_t *&navigation_special_page_previous_screen() {
-  static lv_obj_t *screen = nullptr;
-  return screen;
-}
-
-inline lv_obj_t *&navigation_special_page_main_screen() {
-  static lv_obj_t *screen = nullptr;
-  return screen;
-}
-
 inline std::vector<lv_obj_t *> &navigation_grid_screens() {
   static std::vector<lv_obj_t *> screens;
   return screens;
-}
-
-inline bool &navigation_special_page_back_button_marker() {
-  static bool marker = false;
-  return marker;
 }
 
 inline std::string navigation_trim(const std::string &value) {
@@ -173,21 +154,6 @@ inline void navigation_present_page_before_image_refresh() {
   ESP_LOGD("ui_latency", "Navigation draw done at=%u", unsigned(esphome::millis()));
   refresh_visible_image_cards();
   ESP_LOGD("ui_latency", "Navigation images done at=%u", unsigned(esphome::millis()));
-}
-
-inline bool navigation_return_from_special_page() {
-  navigation_hide_modals();
-  lv_obj_t *previous = navigation_special_page_previous_screen();
-  navigation_special_page_previous_screen() = nullptr;
-  if (previous == nullptr || !lv_obj_is_valid(previous)) {
-    previous = navigation_special_page_main_screen();
-    if (previous == nullptr || !lv_obj_is_valid(previous)) return false;
-  }
-  if (lv_scr_act() != previous) {
-    lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-  }
-  navigation_present_page_before_image_refresh();
-  return true;
 }
 
 inline bool navigation_display_mode_allows_grid_gesture() {
@@ -359,23 +325,13 @@ inline void navigation_register_subpage(int slot, int display_order,
   entry.kind = navigation_lower(navigation_trim(kind));
   entry.screen = screen;
   navigation_subpages().push_back(entry);
-  // The swipe-up page has no clock bar, independent of clock-bar settings.
-  if (entry.kind != "special") clock_bar_register_button_grid_page(screen);
+  clock_bar_register_button_grid_page(screen);
   // Both events run after LVGL has changed the active screen. Unloading also
   // restores temperatures immediately when returning home or opening another UI.
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,
                       LV_EVENT_SCREEN_LOADED, nullptr);
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,
                       LV_EVENT_SCREEN_UNLOADED, nullptr);
-}
-
-inline void navigation_register_special_page(lv_obj_t *screen,
-                                             lv_obj_t *main_page_obj,
-                                             const std::string &title = "") {
-  navigation_special_page_main_screen() = main_page_obj;
-  navigation_register_subpage(NAVIGATION_SPECIAL_PAGE_SLOT, 0, "special", screen);
-  if (auto *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT)) entry->title = title;
-  navigation_register_grid_screen_gesture(screen);
 }
 
 inline int navigation_slot_from_target(const std::string &target) {
@@ -454,7 +410,6 @@ inline std::string navigation_active_subpage_label() {
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
-  if (entry && entry->kind == "special") return "";
   if (entry == nullptr || parent == nullptr) return "";
   // The app's identity is shown on its return-home card instead of the clock bar.
   if (entry->kind == "app_shortcuts") return "";

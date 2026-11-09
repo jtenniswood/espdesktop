@@ -19,7 +19,7 @@ function fixture(t, read) {
       getJsonQuietly: read,
       entityDetailPath: (domain, name) => `/${domain}/${name}`,
       entityInitialDetail: () => "state",
-    }, { schedule() {} }, { subpageEntityKeys: () => ["subpage"], specialPageEntityKeys: () => [], connectEvents() {} });
+    }, { schedule() {} }, { subpageEntityKeys: () => ["subpage"], connectEvents() {} });
 }
 test("backup waits for both delayed settings and subpages after the layout is available", async t => {
   const settings = deferred(), subpage = deferred();
