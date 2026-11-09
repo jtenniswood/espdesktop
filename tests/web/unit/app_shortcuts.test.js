@@ -36,7 +36,7 @@ test("Safari web apps use their own presets and keep their actual app identity",
   assert(webPresets.every(card => api.companionShortcutActionIdValid(card.entity)));
   assert(!api.companionShortcutActionIdValid("shortcut.a"));
   const copyLink = webApp.shortcuts.find(item => item.label === "Copy Link");
-  const tab = webApp.extendedShortcuts.find(item => item.shortcut === "tab");
+  const tab = webApp.safariShortcuts.find(item => item.shortcut === "tab");
   const page = api.createCompanionShortcutSubpage(installedId, [copyLink.id, tab.id]);
   assert.deepEqual(page.buttons.map(card => card.entity), ["shortcut.command+option+c", "shortcut.tab"]);
   assert.equal(page.buttons[0].options, "app_shortcut_preset=" + installedId + "%3A" + copyLink.id);

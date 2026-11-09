@@ -4333,7 +4333,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.extendedShortcuts?.length || 0);
+    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0);
     assert.strictEqual(
       await action.locator("option").count(),
       safariShortcutCount + 1,
@@ -4463,7 +4463,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.extendedShortcuts ?? [])];
+    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
     assert.deepStrictEqual(

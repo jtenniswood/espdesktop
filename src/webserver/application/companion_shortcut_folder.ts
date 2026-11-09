@@ -3,7 +3,7 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, claudeShortcuts, ...app }) => {
+    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, claudeShortcuts, safariShortcuts, ...app }) => {
         if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
             const additional = additionalShortcuts.filter((item) => {
                 const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
@@ -12,9 +12,9 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
             });
             return { ...app, shortcuts: [...app.shortcuts, ...additional] };
         }
-        if ((app.appId === SAFARI_BUNDLE_ID || app.appId === SAFARI_WEB_APP_TEMPLATE) &&
-            Array.isArray(extendedShortcuts)) {
-            const extended = extendedShortcuts.filter((item) =>
+        const safari = safariShortcuts ?? extendedShortcuts;
+        if ((app.appId === SAFARI_BUNDLE_ID || app.appId === SAFARI_WEB_APP_TEMPLATE) && Array.isArray(safari)) {
+            const extended = safari.filter((item) =>
                 isSafariUnmodifiedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
             return { ...app, shortcuts: [...app.shortcuts, ...extended] };
         }

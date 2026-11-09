@@ -15,7 +15,7 @@ class AppShortcutTests(unittest.TestCase):
     def setUp(self):
         self.icons = icon_names(json.loads((ROOT / 'product/v2/icons.json').read_text()))
         self.app = json.loads((ROOT / 'product/v2/app_shortcuts/safari.json').read_text())
-        self.app.pop('extendedShortcuts', None)
+        self.app.pop('safariShortcuts', None)
 
     def test_existing_files_and_legacy_ids(self):
         apps = load_apps(ROOT)
@@ -26,11 +26,11 @@ class AppShortcutTests(unittest.TestCase):
 
     def test_safari_plain_keys_are_reserved_for_the_safari_templates(self):
         safari = copy.deepcopy(self.app)
-        safari['extendedShortcuts'] = [{'id': '90', 'label': 'Next Field', 'shortcut': 'tab', 'icon': 'Shortcut Tab'}]
+        safari['safariShortcuts'] = [{'id': '90', 'label': 'Next Field', 'shortcut': 'tab', 'icon': 'Shortcut Tab'}]
         validate_app(safari, self.icons)
         with self.assertRaisesRegex(ValueError, 'only in Safari'):
             validate_app(dict(safari, appId='org.example.Editor'), self.icons)
-        safari['extendedShortcuts'][0]['shortcut'] = 'enter'
+        safari['safariShortcuts'][0]['shortcut'] = 'enter'
         with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
             validate_app(safari, self.icons)
 

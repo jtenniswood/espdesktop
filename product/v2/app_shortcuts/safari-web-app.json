@@ -95,7 +95,7 @@
       "icon": "Book"
     }
   ],
-  "extendedShortcuts": [
+  "safariShortcuts": [
     {
       "id": "15",
       "label": "Next Field",

@@ -14,6 +14,7 @@ export interface AppShortcutApplication {
     readonly extendedShortcuts?: readonly AppShortcutDefinition[];
     readonly additionalShortcuts?: readonly AppShortcutDefinition[];
     readonly claudeShortcuts?: readonly AppShortcutDefinition[];
+    readonly safariShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {

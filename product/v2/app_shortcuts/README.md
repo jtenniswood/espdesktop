@@ -43,7 +43,7 @@ The manifest must list every top-level template JSON file in this folder exactly
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 
-The Safari templates use `extendedShortcuts` for unmodified Tab and Escape. Both lists share IDs and the 64-entry limit. Older Companion versions can still read the regular list. The `com.apple.Safari.WebApp` template applies to approved Safari web apps with a macOS-generated UUID suffix on their bundle ID.
+The Safari templates use `safariShortcuts` for unmodified Tab and Escape. Both lists share IDs and the 64-entry limit. Older Companion versions can still read the regular list. The `com.apple.Safari.WebApp` template applies to approved Safari web apps with a macOS-generated UUID suffix on their bundle ID.
 
 Books also has an optional `extendedShortcuts` list for its Left Arrow, Right Arrow, Space and Fn–F presets. These entries require updated Companion and display firmware and only run when Books is active. Older Companion versions can still read the regular `shortcuts` list. Both lists share the same shortcut IDs and 64-entry limit.
 

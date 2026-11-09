@@ -16,6 +16,7 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     let extendedShortcuts: [RemoteShortcutDefinition]?
     let additionalShortcuts: [RemoteShortcutDefinition]?
     let claudeShortcuts: [RemoteShortcutDefinition]?
+    let safariShortcuts: [RemoteShortcutDefinition]?
 }
 
 struct RemoteCatalogueManifest: Decodable, Sendable {
@@ -101,7 +102,11 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
         let extended = app.extendedShortcuts ?? []
         let additional = app.additionalShortcuts ?? []
         let claude = app.claudeShortcuts ?? []
-        let allShortcuts = app.shortcuts + extended + additional + claude
+        let safari = app.safariShortcuts ?? []
+        let allShortcuts = app.shortcuts + extended + additional + claude + safari
+        let validSafari = safari.isEmpty ||
+            (extended.isEmpty && CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
+                safari.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isSafariUnmodifiedShortcut($0.shortcut) })
         let validAdditional = additional.isEmpty ||
             (app.appId == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier && !app.catalog &&
                 additional.allSatisfy {
@@ -114,14 +119,14 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
                 })
         return app.version == 1 && !app.label.isEmpty && app.label.utf8.count <= 48 &&
         app.appId.range(of: #"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil &&
-        !app.shortcuts.isEmpty && app.shortcuts.count + extended.count <= 64 && allShortcuts.count <= 96 &&
+        !app.shortcuts.isEmpty && app.shortcuts.count + extended.count + safari.count <= 64 && allShortcuts.count <= 96 &&
         app.shortcuts.allSatisfy(validRegularShortcut) &&
         (extended.isEmpty ||
             (CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
                 extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isSafariUnmodifiedShortcut($0.shortcut) }) ||
             (app.appId == CompanionKeyboardShortcut.booksBundleIdentifier && !app.catalog &&
                 extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isBooksExtendedShortcut($0.shortcut) })) &&
-        validAdditional && validClaude &&
+        validAdditional && validClaude && validSafari &&
         Set(allShortcuts.map(\.id)).count == allShortcuts.count && encodedSize <= 12_000
     }
 

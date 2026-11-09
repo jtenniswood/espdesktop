@@ -112,7 +112,8 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         XCTAssertGreaterThan(catalogue.version, cached.version)
         for appId in ["com.apple.Safari", "com.apple.Safari.WebApp"] {
             let app = try XCTUnwrap(catalogue.applications.first { $0.appId == appId })
-            XCTAssertEqual(app.extendedShortcuts?.map(\.shortcut), ["tab", "escape"])
+            XCTAssertNil(app.extendedShortcuts)
+            XCTAssertEqual(app.safariShortcuts?.map(\.shortcut), ["tab", "escape"])
         }
     }
 
