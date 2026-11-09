@@ -31,7 +31,7 @@ export function normalizeThemeMode(value: unknown): string {
 
 export function normalizeCardCurve(value: unknown): string {
   const preset = String(value || "").trim().toLowerCase();
-  return preset === "small" ? "Small" : preset === "large" ? "Large" : "Medium";
+  return preset === "small" ? "Small" : preset === "medium" ? "Medium" : "Large";
 }
 
 export function cardCurveRadius(baseRadius: number, preset: unknown, radii?: Readonly<Record<string, number>>): number {
