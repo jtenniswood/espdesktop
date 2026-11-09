@@ -17,7 +17,7 @@ To build a standalone app bundle for local testing:
 ALLOW_ADHOC=1 ./Packaging/build_standalone.sh
 ```
 
-The output is `./.build/standalone/EspDesktop.app`. For distribution, set `CODE_SIGN_IDENTITY` to a Developer ID Application certificate and notarize the resulting app. This bundle is not App Sandbox-restricted, so keyboard shortcut cards can use macOS Accessibility after the user grants permission.
+The output is `./.build/standalone/EspDesktop.app`. For distribution, set `CODE_SIGN_IDENTITY` to a Developer ID Application certificate and notarize the resulting app. This bundle is not App Sandbox-restricted, so shortcut and window-control cards can use macOS Accessibility after the user grants permission.
 
 To build a drag-to-Applications disk image from the local app bundle:
 
@@ -31,7 +31,7 @@ The manual release workflow signs and notarizes this standalone app and its disk
 
 For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run. Installed applications are available to launch or to open validated `http://` and `https://` links. Finder folders are separate: add folders with the native picker in the app's **Folders** page, then select one for each Open folder card in the panel web editor. The app can replay keyboard shortcuts created in the panel's web editor; macOS Accessibility permission is required the first time a shortcut is used.
 
-On first launch, the setup guide walks through Accessibility for keyboard shortcut cards, and opening EspDesktop at login. Use **General → Run Setup Guide…** to review these choices later.
+On first launch, the setup guide walks through Accessibility for shortcut and window-control cards, and opening EspDesktop at login. Use **General → Run Setup Guide…** to review these choices later.
 
 Click the EspDesktop icon in the macOS menu bar to see the display address and connection status, connect or disconnect, open display settings in your browser, or open EspDesktop settings. About EspDesktop is in the application menu.
 When EspDesktop is installed as a packaged `.app`, its Display tab includes a Permissions section with an **Open EspDesktop at Login** switch. The local Swift launcher does not create an app bundle, so it shows the setting as unavailable with installation guidance. macOS may require approval under **System Settings → General → Login Items**.

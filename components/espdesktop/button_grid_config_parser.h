@@ -1262,6 +1262,7 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
   return p.type == "companion" && !p.entity.empty() && p.sensor.empty() &&
          p.entity.rfind("folder.", 0) != 0 &&
          p.entity.rfind("shortcut.", 0) != 0 &&
+         p.entity.rfind("window.", 0) != 0 &&
          p.entity.rfind("stat.", 0) != 0;
 }
 
@@ -1345,10 +1346,14 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
-  const std::string retired_type = retired_saved_card_type(p.type, p.entity);
-  if (!retired_type.empty()) {
+  if (p.type == "companion" && p.entity.rfind("webapp.", 0) == 0)
+    p.type = "companion_webapp";
+  if (card_runtime_is_mac_audio(p.type, p.entity))
+    p.type = "companion_audio";
+  if (card_runtime_type_retired(p.type)) {
+    const std::string type = p.type;
     p = ParsedCfg{};
-    p.type = retired_type;
+    p.type = type;
     p.icon = "Auto";
     p.icon_on = "Auto";
     return p;

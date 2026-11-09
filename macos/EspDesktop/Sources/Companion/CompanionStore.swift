@@ -834,6 +834,7 @@ final class CompanionStore: NSObject, ObservableObject {
         guard performed else { return "not_allowed" }
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
+            && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
         return isApplicationLaunch ? "activated" : "performed"
     }
 
@@ -882,10 +883,21 @@ final class CompanionStore: NSObject, ObservableObject {
             return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }
 
-        // Keep legacy window identifiers from falling through to application launch.
-        guard !actionIdentifier.hasPrefix("window.") else { return false }
+        if CompanionNativeWindowAction.supports(actionIdentifier) {
+            guard let error = CompanionNativeWindowAction.perform(actionIdentifier) else { return true }
+            updateStatus(error)
+            return false
+        }
 
-        guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) else {
+        if let performed = CompanionWindowArrangement.perform(identifier: actionIdentifier) {
+            if !performed {
+                updateStatus("Select an available app window and allow Accessibility access")
+            }
+            return performed
+        }
+
+        guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) ||
+              actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) else {
             return await launch(bundleIdentifier: actionIdentifier)
         }
         guard let shortcut = CompanionKeyboardShortcut(actionIdentifier: actionIdentifier) else {
@@ -901,6 +913,10 @@ final class CompanionStore: NSObject, ObservableObject {
         if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
            NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
             updateStatus("Bring Books to the front to use this shortcut")
+            return false
+        }
+        guard shortcut.isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else {
+            updateStatus("Window tiling requires macOS 15 or later")
             return false
         }
         var targetPID: pid_t?

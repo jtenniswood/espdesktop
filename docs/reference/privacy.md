@@ -97,7 +97,7 @@ display certificate. **Forget Display** removes those saved pairing values.
 
 Folder access is granted through the native folder picker. Finder automation
 can identify an approved folder in the frontmost Finder window; optional
-Accessibility access enables requested keyboard shortcuts. Remove
+Accessibility access enables requested keyboard and window actions. Remove
 approved folders in EspDesktop or revoke permissions in macOS System Settings.
 Removing the application may leave preferences or Keychain items behind, so
 forget the display before uninstalling when you want to remove its pairing.

@@ -48,3 +48,5 @@ New shortcut icons need a display firmware version that includes them.
 ## Allow Accessibility Access
 
 macOS requires Accessibility access so EspDesktop can replay keyboard input. In the Mac app, choose **Open Settings**, then enable EspDesktop in **System Settings → Privacy & Security → Accessibility**.
+
+For the currently active window, see [Window controls](/mac-controls/windows).

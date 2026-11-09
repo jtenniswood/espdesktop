@@ -76,6 +76,8 @@ int main() {
   assert(std::string(companion_volume_control_label("media.input_mute")) == "Stumm");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
+  assert(companion_default_action_label("window.minimize") == "Minimieren");
+  assert(companion_default_action_label("window.arrange.left-right") == "Links und rechts");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
   assert(companion_default_action_label("") == "Mac-App");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
@@ -198,6 +200,7 @@ int main() {
   assert(companion_encoded_url("url.javascript%3Aalert(1)").empty());
   assert(companion_encoded_url("url.https%3A%2F%2Fexample.com|INVOKE").empty());
   assert(companion_encoded_url("url." + std::string(129, 'a')).empty());
+  assert(companion_default_action_label("window.arrange.left-right") == "Left & Right");
   assert(companion_default_action_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_default_action_label("com.apple.Safari") == "com.apple.Safari");
   assert(companion_default_action_label("com.apple.Safari", url_config) == "Open URL");
@@ -225,20 +228,16 @@ int main() {
   assert(companion_default_action_label_with_fallback("com.apple.Safari", "", resolved_label) == "Safari");
   companion_set_actions({});
   assert(companion_default_action_label_with_fallback("com.apple.Safari", "", resolved_label) == "Safari");
-  const auto retired_window = parse_cfg("window.minimize;Old;Monitor;Auto;;;companion");
-  assert(card_runtime_type_retired(retired_window.type) && retired_window.entity.empty());
-  const auto window_subpage = parse_subpage_config("~B,1,2|CP,window.minimize,Old|CP,shortcut.command%2Ba,Keep");
-  assert(window_subpage.size() == 2);
-  assert(card_runtime_type_retired(window_subpage[0].type) && window_subpage[0].entity.empty());
-  assert(window_subpage[1].type == "companion" && window_subpage[1].entity == "shortcut.command+a");
-  // A saved window action stays unavailable even if an older peer supplies its identifier.
-  companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}, {"window.left", "Left"}});
+  companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
+  companion_set_window_actions({"window.left"});
   companion_set_keyboard_actions_supported(true);
   assert(companion_card_refresh_requested().load());
   companion_set_connected(true);
   assert(companion_connected());
   assert(companion_action_available("shortcut.command+a"));
-  assert(!companion_action_available("window.left"));
+  assert(companion_window_action_valid("window.left"));
+  assert(companion_action_available("window.left"));
+  assert(companion_action_available("shortcut.command+a"));
   companion_set_keyboard_actions_supported(false);
   assert(!companion_action_available("shortcut.command+a"));
   assert(!companion_action_available("window.close"));
