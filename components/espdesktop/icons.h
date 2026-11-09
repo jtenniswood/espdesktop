@@ -395,6 +395,14 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Message Alert",                "\U000F0A04"},
     {"Robot",                        "\U000F167A"},
     {"Web Plus",                     "\U000F0033"},
+    {"Book Alphabet",                "\U000F061D"},
+    {"Bookmark Multiple",            "\U000F0E15"},
+    {"Bookmark Plus",                "\U000F00C5"},
+    {"Card Text",                    "\U000F0B77"},
+    {"Font Size Decrease",           "\U000F09F3"},
+    {"Font Size Increase",           "\U000F09F4"},
+    {"Page Next",                    "\U000F0BB0"},
+    {"Page Previous",                "\U000F0BB2"},
     // --- GENERATED:ICONS END ---
 };
 

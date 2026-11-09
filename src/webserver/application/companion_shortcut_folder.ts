@@ -3,8 +3,13 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(apps);
-    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...apps);
+    const normalized = apps.map(({ extendedShortcuts, ...app }) => {
+        if (app.appId !== "com.apple.iBooksX" || app.catalog || !Array.isArray(extendedShortcuts)) return app;
+        const extended = extendedShortcuts.filter((item) => isBooksExtendedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
+        return { ...app, shortcuts: [...extended, ...app.shortcuts] };
+    });
+    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(normalized);
+    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...normalized);
     return shortcutChanged;
 }
 
@@ -239,8 +244,14 @@ export function companionShortcutSelectionMatchesSavedParent(draftCard: any, sav
         draftCard.entity === savedCard.entity;
 }
 
+export function isBooksExtendedShortcut(actionId: string): boolean {
+    return actionId === "shortcut.left" || actionId === "shortcut.right" ||
+        actionId === "shortcut.space" || actionId === "shortcut.function+f";
+}
+
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
     if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX)) return false;
+    if (isBooksExtendedShortcut(actionId)) return true;
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     if (parts.length < 2 || parts.length > 5) return false;
     const key = parts.pop() || "";
