@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -124,7 +125,6 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
-                        ["home_assistant", "Home Assistant light or fan"],
                         ["mac_output", "Mac output volume"],
                         ["mac_input", "Mac input volume"],
                     ],
@@ -148,12 +148,14 @@ export function registerSliderCardTypes(
             defaultConfig: function (this: any) { return cardContractDefaultConfig(opts.type); },
             cardMetadata: metadata,
             onSelect: function (this: any, b?: any) {
+                if (opts.companionVolumeModes) { b.entity = COMPANION_OUTPUT_VOLUME_ID; if (!b.label) b.label = "Output Volume"; }
                 b.sensor = opts.type === "cover" ? "modal" : "";
                 b.unit = "";
                 b.icon = opts.defaultIcon;
                 b.icon_on = opts.defaultIconOn;
             },
             renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
+                if (opts.type !== "slider" || companionSliderMode(b) === "home_assistant") return renderRetiredCardSettings(panel);
                 var cardSettingsPanel: any = null;
                 var modalSettingsPanel: any = null;
                 var modalSettingsDisclosure: any = null;

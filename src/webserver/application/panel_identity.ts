@@ -72,7 +72,7 @@ export function createPanelIdentityFeature(deps: PanelIdentityDependencies): Pan
     title.textContent = "Panel name saved";
     dialog.append(title);
     const note = document.createElement("p");
-    note.textContent = "The panel is restarting. Reopen it at the new address. Home Assistant action names may need updating.";
+    note.textContent = "The panel is restarting. Reopen it at the new address.";
     dialog.append(note);
     const address = document.createElement("a");
     address.href = `http://${value.hostname}.local${location.port ? ":" + location.port : ""}/`;

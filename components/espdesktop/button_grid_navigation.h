@@ -142,7 +142,7 @@ inline void navigation_hide_modals() {
 
 inline void navigation_close_modals_for_display_takeover() {
   control_modal_close_nested_menu();
-  control_modal_close_for_display_takeover(alarm_display_takeover_active());
+  control_modal_force_close_active();
 }
 
 inline bool navigation_return_home(lv_obj_t *main_page_obj) {
@@ -528,8 +528,6 @@ inline NavigationSubpageEntry *navigation_companion_subpage_for_action(
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(
     lv_obj_t *main_page_obj) {
-  // Automatic Companion navigation must not dismiss active alarm controls.
-  if (alarm_display_takeover_active()) return false;
   if (!companion_subpage_return_requested().load()) return false;
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
@@ -568,8 +566,6 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
 
 inline bool navigation_open_companion_subpage_if_requested(
     lv_obj_t *main_page_obj) {
-  // Automatic app navigation must never dismiss alarm disarm/countdown UI.
-  if (alarm_display_takeover_active()) return false;
   const std::string requested = companion_pending_auto_subpage_action();
   if (requested.empty()) return false;
   NavigationSubpageEntry *active = navigation_find_slot(navigation_active_subpage_slot());

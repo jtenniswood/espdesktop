@@ -11,7 +11,6 @@ substitutions:
   device_slug: "esp32-p4-86"
   firmware_manifest_slug: "esp32-p4-86"
   firmware_version: "dev"
-  screensaver_camera_supported: "true"
   screen_width: "720"
   screen_height: "720"
   content_width: "570"
@@ -43,11 +42,6 @@ substitutions:
   screen_saver_clock_default_brightness: "35"
   screen_schedule_clock_min_brightness: "1"
   screen_schedule_clock_default_brightness: "10"
-  voice_wake_chime_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_wake_chime.flac"
-  voice_timer_alert_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac"
-  voice_stt_failure_chime_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac"
-  alarm_delay_entry_beep_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac"
-  alarm_delay_exit_beep_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac"
   button_radius: 12px
   speaker_amplifier_pin: "GPIO53"
   network_transport: "wifi"
@@ -134,9 +128,6 @@ packages:
   # Addons
   # ---------------------------------------------------------------------------
   connectivity:    !include ../../common/addon/connectivity${network_package_suffix}.yaml
-  api_remote_actions: !include ../../common/device/api_remote_actions.yaml
-  api_open_modal:  !include ../../common/device/api_open_modal.yaml
-  api_navigate:    !include ../../common/device/api_navigate.yaml
   time_sync:       !include ../../common/addon/time.yaml
   backlight:       !include ../../common/addon/backlight.yaml
   bl_schedule:     !include ../../common/addon/backlight_schedule.yaml
@@ -150,12 +141,9 @@ packages:
   # ---------------------------------------------------------------------------
   screen_loading:  !include ../../common/device/screen_loading${network_package_suffix}.yaml
   screen_network:  !include ../../common/device/screen_${network_transport}_setup.yaml
-  screen_ha:       !include ../../common/device/screen_ha_setup.yaml
-  screen_ha_act:   !include ../../common/device/screen_ha_actions.yaml
   screen_setup:    !include ../../common/device/screen_button_setup.yaml
   screen_clock:    !include ../../common/device/screen_clock.yaml
   screen_art:      !include ../../common/device/screen_cover_art.yaml
-  screen_camera:   !include ../../common/device/screen_camera_screensaver.yaml
   image_cards:     !include ../../common/device/image_cards_6.yaml
   # ---------------------------------------------------------------------------
   # Main page and dynamic sensor subscriptions (after setup screens)

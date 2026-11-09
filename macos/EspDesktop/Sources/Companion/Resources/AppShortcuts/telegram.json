@@ -8,19 +8,19 @@
       "id": "0",
       "label": "Quick search",
       "shortcut": "command+k",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "1",
       "label": "Search this chat",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "2",
       "label": "Search all chats",
       "shortcut": "shift+command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "3",

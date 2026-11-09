@@ -30,10 +30,8 @@ def generate(root):
     # Only script blocks are needed; other sections contain ESPHome-only tags.
     scripts = yaml.load(text[text.index("script:\n"):], Loader)["script"]
     scripts = {s["id"]: s for s in scripts}
-    selected = {"display_mode_effect_cover_art", "cover_art_prepare_activation",
-                "cover_art_request_artwork", "cover_art_use_cached_artwork",
-                "cover_art_prepare_download", "cover_art_deferred_download", "cover_art_hide_effect",
-                "cover_art_release_stopped_artwork", "cover_art_return_home_after_playback",
+    selected = {"display_mode_effect_cover_art", "cover_art_prepare_activation", "cover_art_request_artwork",
+                "cover_art_hide_effect", "cover_art_release_stopped_artwork", "cover_art_return_home_after_playback",
                 "cover_art_playback_stopped", "cover_art_delayed_playback_stopped"}
     declarations = set(scripts)
     setups = []
@@ -103,7 +101,7 @@ def generate(root):
             elif kind == "artwork_image.release":
                 body = f"{value}->release();"
             # Other LVGL/widget actions remain real chained action nodes with fake I/O.
-            setups.append(f"auto *{name} = make_action({owner}, [&]() {{ {context}{body} }});")
+            setups.append(f"auto *{name} = make_action({owner}, [&]() {{ {context}{body}\n }});")
             output.append(name)
         return output
 
@@ -155,12 +153,9 @@ def main():
             "transition-guard": ("cover_art_prepare_activation",
                 "!id(espdesktop_app).display().transition_is_current(\n"
                 "                  static_cast<uint32_t>(generation), espdesktop::DisplayMode::COVER_ART)", "false"),
-            "subscription-guard": ("cover_art_prepare_activation",
-                "subscription_generation != id(cover_art_subscription_generation)", "false"),
-            "entity-guard": ("cover_art_prepare_activation",
-                "cover_entity != id(cover_art_active_media_player_entity)", "false"),
-            "companion-source-guard": ("cover_art_prepare_activation",
-                "companion_source != id(cover_art_companion_source_active)", "false"),
+            "source-guard": ("cover_art_prepare_activation",
+                "static_cast<uint32_t>(source_generation) != id(cover_art_content_fingerprint)", "false"),
+            "playing-guard": ("cover_art_prepare_activation", "!id(cover_art_media_playing)", "false"),
             "stale-hide": ("cover_art_hide_effect", "    then:\n      - if:\n",
                 "    then:\n      - script.stop: cover_art_prepare_activation\n      - if:\n"),
         }

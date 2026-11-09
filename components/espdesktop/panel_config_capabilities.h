@@ -64,11 +64,7 @@ inline bool write_panel_config_capabilities_json(char *output,
       "\"read\":%s,\"write\":%s,\"max_record_body_bytes\":%u,\"preserves_inactive_records\":%s},\"web_assets\":{\"versions\":[%u],"
       "\"delivery\":\"%s\"},\"reset\":{\"modes\":[\"customization\",\"factory\"],\"status\":\"/api/v1/reset\"}}",
       static_cast<unsigned>(PANEL_CONFIG_API_VERSION),
-#ifdef ESPDESKTOP_HOME_ASSISTANT_SUPPORT
-      "true",
-#else
-      "false",
-#endif
+      "false",  // Saved HA controls stay unavailable.
       panel_config_read_supported() && panel_config_write_supported() ? "1,2" : "1",
       static_cast<unsigned>(PANEL_CONFIG_DURABLE_WRITE_VERSION),
       static_cast<unsigned>(PANEL_CONFIG_V2_HTTP_MAX_BYTES),

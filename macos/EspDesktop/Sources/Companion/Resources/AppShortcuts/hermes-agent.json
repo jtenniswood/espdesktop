@@ -20,7 +20,7 @@
       "id": "2",
       "label": "Search sessions",
       "shortcut": "command+shift+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "3",
@@ -56,7 +56,7 @@
       "id": "8",
       "label": "Find in chat transcript",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "9",

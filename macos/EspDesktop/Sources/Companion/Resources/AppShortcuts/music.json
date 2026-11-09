@@ -32,13 +32,13 @@
       "id": "4",
       "label": "Select the search field",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "5",
       "label": "Search the iTunes Store",
       "shortcut": "option+enter",
-      "icon": "Spotlight"
+      "icon": "Search"
     }
   ]
 }

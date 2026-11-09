@@ -8,6 +8,8 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "i18n_generated.h"
 #include "button_grid_config_parser.h"
 #include "card_icon_size.h"
+#define ESPDESKTOP_SUBPAGE_PARSER_ONLY
+#include "button_grid_subpages.h"
 
 int main() {
   using espdesktop::card_icon_zoom;
@@ -23,6 +25,13 @@ int main() {
       const auto card = parse_cfg(entity + ";Kitchen;Lightbulb;;;;" + type + ";;icon_size=" + size);
       assert(cfg_option_value(card.options, "icon_size").empty());
       assert(normalize_parsed_cfg(card).options == card.options);
+      SubpageBtn nested;
+      nested.type = type;
+      nested.entity = "app.example";
+      nested.options = std::string("icon_size=") + size;
+      const auto normalized = normalize_subpage_btn(nested);
+      assert(cfg_option_value(normalized.options, "icon_size") == size);
+      assert(normalize_subpage_btn(normalized).options == normalized.options);
     }
   }
   for (const auto &entity : {"com.apple.finder", "shortcut.command+c", "folder.Documents",
