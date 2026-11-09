@@ -6954,6 +6954,7 @@ async function assertFirstRunSetup(browser) {
     failSwitch = false;
     await dialog.getByRole("button", { name: "Save setup", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
+    await page.getByText("Setup saved.", { exact: true }).waitFor();
     assert.equal(Object.keys(fixture.document.buttons).length, appLimit);
     assert.equal(fixture.document.buttons[9], undefined, "setup leaves the ninth slot free");
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");

@@ -947,7 +947,7 @@ function composeApplicationContext(): ApplicationContext {
       nativePages.invalidate();
       void nativePages.refresh();
       if (!mirrorFailed) {
-        shell.showBanner("Setup saved. Choose Apply Configuration to show your new cards on the display.", "success");
+        shell.showBanner("Setup saved.", "success");
       }
     },
   });

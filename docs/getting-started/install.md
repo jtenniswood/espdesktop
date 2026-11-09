@@ -44,7 +44,7 @@ On an empty display, the web page guides you through app setup.
 2. Choose whether to add shortcut subpages for all selected apps with built-in shortcuts. Each page reserves one card for **Back**.
 3. If you add shortcut pages, choose whether they open automatically when you switch apps on your Mac.
 
-Choose **Done** or **Save setup**, then **Apply Configuration** in Layout to restart the display and show your cards. Keyboard shortcuts need Accessibility access in the Mac app.
+Choose **Done** or **Save setup**. Your new cards appear on the display automatically. Keyboard shortcuts need Accessibility access in the Mac app.
 
 **Skip setup** opens the normal editor for a custom layout. Setup completion is saved on the display, so reopening the page or using another browser does not restart it. Existing layouts are left intact. Resetting the display’s customization makes setup available again.
 
