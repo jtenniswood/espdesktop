@@ -17,7 +17,7 @@ You’ll need a Mac and a **4-inch Guition ESP32-S3 4848S040** display on the sa
 
 1. Select your display in the Mac app. Allow local network access if macOS asks.
 2. Choose **Continue** to open the display’s **System → Mac Companion** page in your browser.
-3. Copy the pairing code into the Mac app and choose **Connect**. When connected, a monitor icon appears beside WiFi on the display.
+3. Copy the pairing code into the Mac app and choose **Connect**. When connected, the Mac Companion panel in your browser collapses and a monitor icon appears beside WiFi on the display.
 
 **Display missing?** Choose **Enter address manually** and enter its IP address or `.local` name.
 
