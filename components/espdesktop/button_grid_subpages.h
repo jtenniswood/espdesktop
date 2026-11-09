@@ -348,8 +348,8 @@ inline std::string get_subpage_back_custom_label(const std::string &order_str) {
   return std::string{};
 }
 
-inline std::string get_subpage_back_label(const std::string &order_str, bool is_special_page = false) {
-  const std::string default_label = espdesktop_i18n(std::string(is_special_page ? "Close" : "Back"));
+inline std::string get_subpage_back_label(const std::string &order_str) {
+  const std::string default_label = espdesktop_i18n(std::string("Back"));
   if (order_str.empty()) return default_label;
   size_t st = 0;
   while (st <= order_str.length()) {
@@ -363,7 +363,7 @@ inline std::string get_subpage_back_label(const std::string &order_str, bool is_
           size_t label_end = order_str.find(':', label_start);
           if (label_end == std::string::npos || label_end > cm) label_end = cm;
           std::string label = decode_compact_subpage_field(order_str, label_start, label_end - label_start);
-          return label.empty() || (is_special_page && (label == "Back" || label == "Close")) ? default_label : label;
+          return label.empty() ? default_label : label;
         }
         return default_label;
       }
@@ -385,8 +385,8 @@ inline std::string get_subpage_back_color(const std::string &order_str) {
       if (label_start == std::string::npos) return "";
       const size_t separator = order_str.find(':', label_start);
       if (separator == std::string::npos || separator >= end) return "";
-      const size_t title_separator = order_str.find(':', separator + 1);
-      const size_t color_end = title_separator < end ? title_separator : end;
+      const size_t metadata_separator = order_str.find(':', separator + 1);
+      const size_t color_end = metadata_separator < end ? metadata_separator : end;
       return normalize_card_color_value(order_str.substr(separator + 1, color_end - separator - 1));
     }
     start = end + 1;
@@ -503,26 +503,6 @@ inline void normalize_subpage_order_spans(SubpageOrder &order, int num_slots,
   }
 }
 
-
-inline std::string get_subpage_title(const std::string &order_str) {
-  size_t start = 0;
-  while (start < order_str.size()) {
-    size_t end = order_str.find(',', start);
-    if (end == std::string::npos) end = order_str.size();
-    char suffix = '\0';
-    size_t label_start = std::string::npos;
-    if (subpage_back_token_span(order_str, start, end, suffix, &label_start) &&
-        label_start != std::string::npos) {
-      const size_t color = order_str.find(':', label_start);
-      if (color >= end) return "";
-      const size_t title = order_str.find(':', color + 1);
-      if (title >= end) return "";
-      return decode_compact_subpage_field(order_str, title + 1, end - title - 1);
-    }
-    start = end + 1;
-  }
-  return "";
-}
 
 #ifndef ESPDESKTOP_SUBPAGE_PARSER_ONLY
 
