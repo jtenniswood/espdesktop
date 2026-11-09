@@ -382,6 +382,14 @@ export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {
     "Message Alert": "message-alert-outline",
     "Robot": "robot-outline",
     "Web Plus": "web-plus",
+    "Book Alphabet": "book-alphabet",
+    "Bookmark Multiple": "bookmark-multiple",
+    "Bookmark Plus": "bookmark-plus",
+    "Card Text": "card-text",
+    "Font Size Decrease": "format-font-size-decrease",
+    "Font Size Increase": "format-font-size-increase",
+    "Page Next": "page-next",
+    "Page Previous": "page-previous",
 };
 export const GENERATED_ICON_NAMES: readonly string[] = [
     "Shortcut Command", "Account", "Application", "Battery", "Battery Alert", "Battery Charging",
@@ -440,7 +448,8 @@ export const GENERATED_ICON_NAMES: readonly string[] = [
     "Speed Up", "Star", "Tab Restore", "Table Plus", "Tag Plus", "Template",
     "Theme", "Train", "Underline", "Zoom In", "Zoom Out", "Compare Selection",
     "Filmstrip Stack", "Group Selection", "Movie Plus", "Timeline Plus", "File Search", "File Tree",
-    "Message Alert", "Robot", "Web Plus",
+    "Message Alert", "Robot", "Web Plus", "Book Alphabet", "Bookmark Multiple", "Bookmark Plus",
+    "Card Text", "Font Size Decrease", "Font Size Increase", "Page Next", "Page Previous",
   ];
 // --- GENERATED:ICONS END ---
 

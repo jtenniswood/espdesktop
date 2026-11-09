@@ -25,6 +25,8 @@ Shortcuts must include Command, Control, or Option with a supported letter, numb
 
 An approved **Companion → Applications** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. Shortcut tiles start with a short action label and a matching icon. You can edit both on the card. Template updates apply to new cards and subpages. Existing cards keep the labels and icons saved in their layout.
 
+The **Books** app subpage offers shortcuts for reading, library management and audiobooks. Page turns, full screen and audiobook play/pause require updated display firmware and a matching version of the Mac Companion.
+
 The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and Codex. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
 
 ## Improve the Shortcut Catalog {#add-templates-for-another-app}

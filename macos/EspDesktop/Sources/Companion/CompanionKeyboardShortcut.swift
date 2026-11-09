@@ -50,6 +50,18 @@ final class CompanionAccessibilityAuthorizer {
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
     static let windowActionPrefix = "window."
+    static let booksBundleIdentifier = "com.apple.iBooksX"
+
+    static func isBooksExtendedShortcut(_ shortcut: String) -> Bool {
+        booksExtendedKeys[shortcut] != nil
+    }
+
+    private static let booksExtendedKeys: [String: (key: String, flags: CGEventFlags)] = [
+        "left": ("left", []),
+        "right": ("right", []),
+        "space": ("space", []),
+        "function+f": ("f", [.maskSecondaryFn]),
+    ]
 
     let keyCode: CGKeyCode
     let flags: CGEventFlags
@@ -65,7 +77,14 @@ struct CompanionKeyboardShortcut {
             return
         }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
-        var parts = actionIdentifier.dropFirst(Self.actionPrefix.count).split(separator: "+").map(String.init)
+        let shortcut = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
+        if let extended = Self.booksExtendedKeys[shortcut], let keyCode = Self.keyCodes[extended.key] {
+            self.keyCode = keyCode
+            self.flags = extended.flags
+            self.requiresMacOS15 = false
+            return
+        }
+        var parts = shortcut.split(separator: "+", omittingEmptySubsequences: false).map(String.init)
         guard parts.count >= 2, parts.count <= 5, let key = parts.popLast(),
               let keyCode = Self.keyCodes[key] else { return nil }
 
