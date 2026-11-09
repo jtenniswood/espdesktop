@@ -6659,14 +6659,16 @@ async function assertRetiredCardRemoval(browser) {
   const compactDateTypes = Object.entries(contract.subpageTypeCodes)
     .filter(([type]) => ["calendar", "clock", "timezone"].includes(type));
   const cases = [
-    ...types.map(type => ({ type, subpageType: type === "companion_webapp" ? "companion" : type, nativeV2: false })),
+    ...types.filter(type => type !== "companion_window").map(type => ({ type, subpageType: type === "companion_webapp" ? "companion" : type, nativeV2: false })),
     ...compactDateTypes.map(([type, code]) => ({ type, subpageType: code, nativeV2: true })),
     { type: "companion_webapp", subpageType: "companion", nativeV2: true },
+    { type: "companion_window", subpageType: contract.subpageTypeCodes.companion, nativeV2: true },
   ];
   for (const { type: savedType, subpageType, nativeV2 } of cases) {
     const isWebApp = savedType === "companion_webapp";
-    const type = isWebApp ? "companion" : savedType;
-    const entity = isWebApp ? "webapp.google-docs" : "old.entity";
+    const removeSavedWindow = savedType === "companion_window";
+    const type = isWebApp || removeSavedWindow ? "companion" : savedType;
+    const entity = removeSavedWindow ? "window.minimize" : isWebApp ? "webapp.google-docs" : "old.entity";
     const nativeState = nativeConfigState(testCase.slug);
     nativeState.document.buttons = {
       1: `${entity};Retired;Gauge;Auto;sensor.old;C;${type};1;old=value`,
@@ -6689,7 +6691,17 @@ async function assertRetiredCardRemoval(browser) {
     try {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
       await page.waitForSelector("#sp-app");
+      const saved = removeSavedWindow ? page.waitForResponse(response =>
+        new URL(response.url()).pathname === "/api/v1/config" &&
+        response.request().method() === "PUT" && response.ok()) : null;
       await seedNativeDocument(page, nativeState);
+      if (saved) {
+        await saved;
+        assert.equal(nativeState.document.buttons[1], undefined, "the old Window Control card is removed from storage");
+        assert.equal(nativeState.document.settings.button_order, ",2,3", "the saved order frees the retired home slot");
+        assert.equal(nativeState.document.subpages[3], "~B,,,2||,light.lamp,Neighbour,Lightbulb");
+        assert.equal(nativeState.puts.length, 1, "one transaction cleans the home and subpage records");
+      }
       assert.equal(await page.locator('.sp-main [data-slot="1"]').count(), 0, `${type}: old main tile is removed`);
       if (isWebApp) {
         await waitForNativeState(nativeState, () => nativeState.puts.length > 0 &&

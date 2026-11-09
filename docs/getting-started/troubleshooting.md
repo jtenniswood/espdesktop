@@ -27,10 +27,11 @@ To go through first-run setup again, open **Support → Restart Setup** in the M
 ## A Card Does Not Work
 
 - **App or folder:** confirm it is still approved in the Mac app’s **Apps** or **Folders** page.
-- **Keyboard shortcut or window:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**. If these cards stopped working after replacing the app, remove the old EspDesktop entry and add the installed app again.
-- **Window arrangement:** requires macOS 15 or newer; some applications do not support every window action.
+- **Keyboard shortcut or Mac Lock:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**. If these cards stopped working after replacing the app, remove the old EspDesktop entry and add the installed app again.
 
-If an older card is marked unavailable, replace or remove it in the web editor. EspDesktop keeps the card’s settings in saved layouts and backups so you can identify it.
+Opening the layout editor removes saved Window Control cards and frees their slots. Restoring an older backup skips those cards.
+
+If another older card is marked unavailable, replace or remove it in the web editor. EspDesktop keeps the card’s settings in saved layouts and backups so you can identify it.
 
 For the control's exact requirements, see [Mac Controls](/#what-you-can-control).
 

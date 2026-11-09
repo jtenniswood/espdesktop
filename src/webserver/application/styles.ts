@@ -571,7 +571,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-info-panel{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;margin-bottom:16px;" +
         "background:var(--accent-soft);border:1px solid rgba(92,115,231,.22);border-radius:10px;" +
         "color:var(--text2);font-size:.82rem;line-height:1.35}" +
-        ".sp-field>.sp-info-panel{margin:10px 0 0}" +
         ".sp-info-panel .mdi{font-size:18px;color:var(--accent);line-height:1.1;flex:0 0 auto;margin-top:1px}" +
         ".sp-info-panel a{color:var(--accent);font-weight:600;text-decoration:none}" +
         ".sp-info-panel a:hover{text-decoration:underline}" +

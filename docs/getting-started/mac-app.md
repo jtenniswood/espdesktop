@@ -21,7 +21,7 @@ You’ll need a Mac and a **4-inch Guition ESP32-S3 4848S040** display on the sa
 
 **Display missing?** Choose **Enter address manually** and enter its IP address or `.local` name.
 
-On **Access and startup**, choose **Open Settings** to grant Accessibility access if you want keyboard shortcuts or window controls. Turn on **Launch at login** if you want EspDesktop to open when you sign in. Choose **Finish**.
+On **Access and startup**, choose **Open Settings** to grant Accessibility access if you want keyboard shortcuts or Mac Lock. Turn on **Launch at login** if you want EspDesktop to open when you sign in. Choose **Finish**.
 
 ## 3. Try your first card {#check-the-connection}
 

@@ -101,14 +101,13 @@ export function runPreviewFeatureTests(): void {
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
       companion_subpage: { label: "Subpage", pickerKey: "subpage", allowInSubpage: false },
-      companion_window: { label: "Window control", allowInSubpage: true },
       push: { label: "Trigger", allowInSubpage: true },
       slider: { label: "Slider", allowInSubpage: true },
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "subpage", "companion_window"],
-    "Companion picker excludes the removed Volume group and Home Assistant-only controls",
+    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "subpage"],
+    "Companion picker excludes retired controls and Home Assistant-only controls",
   );
   equal(
     companionOptions.find((option) => option.key === "companion_shortcut")?.icon,
