@@ -1,6 +1,6 @@
 ---
 title: Mac Controls
-description: Overview of EspDesktop Mac Companion controls for apps, folders, shortcuts, and windows.
+description: Overview of EspDesktop Mac Companion controls for apps, folders, websites, and shortcuts.
 ---
 
 # Mac Controls
@@ -14,7 +14,6 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Launch apps and open websites](/mac-controls/apps)
 - [Open Finder folders](/mac-controls/folders)
 - [Run keyboard shortcuts](/mac-controls/shortcuts)
-- [Control and arrange windows](/mac-controls/windows)
 
 Choose **Companion → Mac Lock** to add a button that locks the paired Mac with Control–Command–Q. Enable EspDesktop under **System Settings → Privacy & Security → Accessibility** to use it.
 
@@ -23,3 +22,5 @@ Action cards are unavailable when the Mac is disconnected or the selected app, f
 See [Permissions and security](/mac-controls/security) for app and folder access. If your layout already contains a Stats card, see [Existing Stats Cards](/mac-controls/statistics).
 
 For protocol details and matching release versions, see [Companion Compatibility](/reference/companion-compatibility).
+
+The display hides old Window Control cards. Opening the layout editor removes them from the display's saved layout and frees their slots. Importing a backup skips any Window Control cards it contains.

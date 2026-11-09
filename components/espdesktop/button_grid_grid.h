@@ -466,6 +466,10 @@ inline void refresh_card_layout(BtnSlot &s, const ParsedCfg &p,
                                 const GridConfig &cfg,
                                 int row_span = 1,
                                 int col_span = 1) {
+  if (card_runtime_type_retired(p.type)) {
+    lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
+    return;
+  }
   if (retired_home_assistant_card(p)) return;
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const auto context = card_runtime_context(p);

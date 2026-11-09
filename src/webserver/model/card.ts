@@ -1,4 +1,5 @@
 import type { CardConfig, SavedConfigField } from "../contracts/types";
+import { cardContractTypeRetired } from "../generated/card_contract";
 import {
   decodeConfigField,
   encodeConfigField,
@@ -24,6 +25,12 @@ export const CARD_CONFIG_FIELDS: readonly SavedConfigField[] = [
   "precision",
   "options",
 ];
+
+// Old Companion window tiles use the shared Companion type in saved layouts.
+export function retiredSavedCardType(card?: Partial<Pick<CardConfig, "type" | "entity">>): string {
+  if (card?.type === "companion" && card.entity?.startsWith("window.")) return "companion_window";
+  return card?.type && cardContractTypeRetired(card.type) ? card.type : "";
+}
 
 export function emptyCardConfig(type?: string): CardConfig {
   return {

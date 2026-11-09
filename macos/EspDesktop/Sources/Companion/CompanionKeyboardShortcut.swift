@@ -49,21 +49,11 @@ final class CompanionAccessibilityAuthorizer {
 
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
-    static let windowActionPrefix = "window."
 
     let keyCode: CGKeyCode
     let flags: CGEventFlags
-    let requiresMacOS15: Bool
 
     init?(actionIdentifier: String) {
-        if let action = CompanionCapabilities.windowActions[actionIdentifier],
-           let key = action.key,
-           let keyCode = Self.keyCodes[key] {
-            self.keyCode = keyCode
-            self.flags = action.flags
-            self.requiresMacOS15 = action.minimumMacOS >= 15
-            return
-        }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
         var parts = actionIdentifier.dropFirst(Self.actionPrefix.count).split(separator: "+").map(String.init)
         guard parts.count >= 2, parts.count <= 5, let key = parts.popLast(),
@@ -86,16 +76,10 @@ struct CompanionKeyboardShortcut {
         }
         self.keyCode = keyCode
         self.flags = flags
-        self.requiresMacOS15 = false
-    }
-
-    func isSupported(on version: OperatingSystemVersion) -> Bool {
-        !requiresMacOS15 || version.majorVersion >= 15
     }
 
     @MainActor
     func replay() -> Bool {
-        guard isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else { return false }
         guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
         guard let source = CGEventSource(stateID: .hidSystemState),
               let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true),

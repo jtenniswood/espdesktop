@@ -26,9 +26,9 @@ Use the Mac app and display firmware from the same EspDesktop release. A newer d
 
 ## Mac Controls
 
-### Why don't keyboard shortcuts or window controls work?
+### Why don't keyboard shortcuts work?
 
-Enable EspDesktop in **System Settings → Privacy & Security → Accessibility**. The app must have permission for keyboard shortcuts and window actions. Window tiling and arrangement require macOS 15 or newer.
+Enable EspDesktop in **System Settings → Privacy & Security → Accessibility**.
 
 ### Why can't the display open an app or folder?
 

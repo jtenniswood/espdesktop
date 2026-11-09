@@ -545,7 +545,6 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       bool app_icons_alpha_supported = false;
       bool app_icons_high_resolution_supported = false;
       bool focus_targets_supported = false;
-      std::vector<std::string> window_actions;
       for (const auto &capability : payload->values) {
         if (capability == COMPANION_APP_ICONS_CAPABILITY) {
           app_icons_supported = true;
@@ -561,8 +560,6 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
           keyboard_actions_capability_received = true;
         } else if (capability == "url_card_focus") {
           focus_targets_supported = true;
-        } else if (companion_window_action_valid(capability)) {
-          window_actions.push_back(capability);
         }
       }
       this->app_icons_supported_.store(app_icons_supported && app_icons_alpha_supported &&
@@ -573,10 +570,8 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if (app_icon_catalogue_ready) configured_icons = app_icon_requests;
       }
       for (const auto &id : configured_icons) this->request_app_icon(id);
-      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported,
-                            window_actions = std::move(window_actions)]() mutable {
+      this->defer_session_([this, keyboard_actions, keyboard_actions_capability_received, focus_targets_supported]() {
         if (keyboard_actions_capability_received) companion_set_keyboard_actions_supported(keyboard_actions);
-        companion_set_window_actions(std::move(window_actions));
         this->focus_targets_supported_.store(focus_targets_supported);
         if (focus_targets_supported) this->focus_targets_generation_.store(0xFFFFFFFFu);
       });
