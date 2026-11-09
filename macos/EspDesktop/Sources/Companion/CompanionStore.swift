@@ -507,8 +507,15 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String]) {
         companionURLFocusTargets = Array(targets.prefix(64))
-        companionWebAppFocusIDs = Set(webAppIDs.prefix(64))
-        if isConnected { connection.publishFocusedAction() }
+        let configuredWebApps = Set(webAppIDs.prefix(64))
+        let catalogueChanged = configuredWebApps != companionWebAppFocusIDs
+        companionWebAppFocusIDs = configuredWebApps
+        guard isConnected else { return }
+        if catalogueChanged && applicationCatalogueReady {
+            connection.publishCatalogue()
+        } else {
+            connection.publishFocusedAction()
+        }
     }
 
     private func activeBrowserTabURL(bundleIdentifier: String) async -> URL? {
