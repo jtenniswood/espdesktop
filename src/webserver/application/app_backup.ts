@@ -44,7 +44,6 @@ import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
 import { syncLanguageSelect } from "./language_state";
 import { hasCustomNtpServers, syncNtpServerUi } from "./ntp_state";
-import { syncIdleUi } from "./idle_state";
 import { getActiveScreensaverMode } from "./screensaver_state";
 import type { ScreenScheduleStateFeature } from "./screen_schedule_state";
 import type { ScreensaverTimeoutFeature } from "./screensaver_timeout";
@@ -169,7 +168,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postScreensaverDimmedBrightnessDay,
         postScreensaverDimmedBrightnessNight,
         postScreensaverTimeout,
-        postHomeScreenTimeout,
         postNumber,
     } = requestApi;
     const { syncPreviewOrientation } = controllers.core;
@@ -299,7 +297,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 screensaver_dimmed_brightness_day: normalizeScreensaverDimmedBrightness(state.screensaverDimmedBrightnessDay),
                 screensaver_dimmed_brightness_night: normalizeScreensaverDimmedBrightness(state.screensaverDimmedBrightnessNight),
                 screensaver_timeout: state.screensaverTimeout,
-                home_screen_timeout: state.homeScreenTimeout,
                 screen_rotation: state.screenRotation,
             },
             screen: {
@@ -554,7 +551,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postScreensaverDimmedBrightnessDay(importedScreensaverDimmedBrightnessDay);
                     postScreensaverDimmedBrightnessNight(importedScreensaverDimmedBrightnessNight);
                     postScreensaverTimeout(importedSettings.screensaverTimeout);
-                    postHomeScreenTimeout(importedSettings.homeScreenTimeout);
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
@@ -611,7 +607,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverDimmedBrightnessDay = importedScreensaverDimmedBrightnessDay;
                     state.screensaverDimmedBrightnessNight = importedScreensaverDimmedBrightnessNight;
                     state.screensaverTimeout = importedSettings.screensaverTimeout;
-                    state.homeScreenTimeout = importedSettings.homeScreenTimeout;
                     state.screenRotation = importedScreenRotation;
 
                     syncClockBarUi();
@@ -638,7 +633,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncNtpServerUi(controllers.runtime, syncInput);
                     syncClockScreensaverControls();
                     syncScreensaverTimeoutUi();
-                    syncIdleUi(controllers.runtime);
                     if (els.setScreenRotation)
                         els.setScreenRotation.value = state.screenRotation;
                     syncPreviewOrientation();

@@ -852,20 +852,3 @@ number:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
             then:
               - script.execute: screensaver_idle_check
-
-  # Home screen return timeout (0 = disabled)
-  - platform: template
-    name: "${entity_home_screen_timeout}"
-    internal: true
-    id: home_screen_timeout
-    min_value: 0
-    max_value: 300
-    step: 1
-    initial_value: 60
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "s"
-    entity_category: config
-    icon: "mdi:home-clock"
-    web_server:
-      sorting_group_id: sg_screensaver
