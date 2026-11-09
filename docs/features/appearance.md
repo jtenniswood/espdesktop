@@ -15,7 +15,8 @@ setup-page preview. Choose **Card curve → Small, Medium or Large** in
 is saved on the display and survives restarts.
 
 All supported displays use continuous corners that ease gradually into the
-card edges. **Medium** is the default. Corner sizes in pixels are:
+card edges. **Large** is the default when the display has no saved choice.
+Corner sizes in pixels are:
 
 | Display | Small | Medium | Large |
 | --- | ---: | ---: | ---: |
@@ -33,9 +34,6 @@ support, and scales the card gaps to match the physical display. Selection
 outlines stay visible above every card type, including Cover Art. Selected-card
 and dashed empty-card outlines follow the chosen curve with even thickness.
 
-On the first boot after installing this update, new and existing displays switch
-to Medium once. Choices made afterward are saved across restarts and future updates.
-
 The curve setting is included in configuration backups. Restoring an older
 backup without it keeps the current choice. Change **Card Curve** in the web editor. Changes update the preview immediately
 and redraw the physical cards after the display's brief refresh delay.
@@ -46,6 +44,7 @@ Find these controls in **Screen → Appearance** on the [Setup](/features/setup)
 
 Set **Screen → Appearance → Card Style → Default app icon size** to choose the
 starting size for Mac application artwork, including apps inside subpages.
+The default is **Large** when the display has no saved choice.
 Small keeps the original size; Medium enlarges it to 1.5× above the label;
 Large fills the available card area and hides the label.
 
