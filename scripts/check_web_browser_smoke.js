@@ -5856,33 +5856,33 @@ async function assertContinuousPreview(browser, testCase) {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), seededEvents());
-    await page.waitForFunction(() => [...document.querySelectorAll(".sp-btn")].some(card => getComputedStyle(card).clipPath.startsWith("path(")));
-    const checkShape = async () => {
-      const shape = await page.locator(".sp-btn").first().evaluate(card => {
-        const style = getComputedStyle(card);
+    const checkShape = async (previousClip = "") => {
+      // Resizing may replace the card node. Read its path and geometry together
+      // from the live grid after the replacement has received its new outline.
+      const result = await page.waitForFunction(old => {
+        const card = document.querySelector(".sp-main > .sp-btn");
         const screen = document.querySelector(".sp-screen");
+        if (!card || !screen) return null;
+        const { clipPath: clip, width, height } = getComputedStyle(card);
+        if (!clip.startsWith("path(") || clip === old || !parseFloat(width) || !parseFloat(height)) return null;
         const radius = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--btn-r")) * screen.clientWidth / 100;
-        const clip = style.clipPath;
         const path = new Path2D(clip.slice(6, -2));
         const ctx = document.createElement("canvas").getContext("2d");
-        return { clip, radius, width: style.width, height: style.height,
+        return { clip, radius, width, height,
           edgeClear: !ctx.isPointInPath(path, radius, radius * .02),
           interiorSolid: ctx.isPointInPath(path, radius, radius * .1),
           cornerClear: !ctx.isPointInPath(path, 0, 0),
-          centerSolid: ctx.isPointInPath(path, parseFloat(style.width) / 2, parseFloat(style.height) / 2) };
-      });
-      const { clip, ...geometry } = shape;
+          centerSolid: ctx.isPointInPath(path, parseFloat(width) / 2, parseFloat(height) / 2) };
+      }, previousClip);
+      const { clip, ...geometry } = await result.jsonValue();
+      await result.dispose();
       assert(geometry.edgeClear && geometry.interiorSolid && geometry.cornerClear && geometry.centerSolid,
         `${testCase.slug}: the clip path follows the firmware curve (${JSON.stringify(geometry)})`);
       return clip;
     };
     const before = await checkShape();
     await page.setViewportSize({ width: 700, height: 900 });
-    await page.waitForFunction(old => {
-      const clip = getComputedStyle(document.querySelector(".sp-btn")).clipPath;
-      return clip.startsWith("path(") && clip !== old;
-    }, before);
-    await checkShape();
+    await checkShape(before);
     const gaps = await page.locator(".sp-main").evaluate(grid => ({
       row: parseFloat(getComputedStyle(grid).rowGap),
       column: parseFloat(getComputedStyle(grid).columnGap),
