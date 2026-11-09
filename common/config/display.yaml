@@ -31,7 +31,7 @@ esphome:
       then:
         - lambda: |-
             if (espdesktop::active_espdesktop_app_core() != nullptr) {
-              companion_set_auto_open_app_subpages(id(companion_auto_open_app_subpages_enabled).state);
+              id(espdesktop_app).bind_app_subpage_preference_switch(*id(companion_auto_open_app_subpages_enabled));
               companion_set_return_home_on_app_switch(id(companion_return_home_on_app_switch_enabled).state);
             }
     - priority: -100
@@ -334,20 +334,20 @@ switch:
     name: "${entity_companion_auto_open_app_subpages}"
     internal: true
     id: companion_auto_open_app_subpages_enabled
-    optimistic: true
+    optimistic: false
     restore_mode: RESTORE_DEFAULT_ON
     entity_category: config
     icon: "mdi:application"
     web_server:
       sorting_group_id: sg_display
-    on_turn_on:
+    turn_on_action:
       - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_auto_open_app_subpages(true);
-    on_turn_off:
+          if (espdesktop::active_espdesktop_app_core() == nullptr)
+            id(companion_auto_open_app_subpages_enabled).publish_state(true);
+    turn_off_action:
       - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_auto_open_app_subpages(false);
+          if (espdesktop::active_espdesktop_app_core() == nullptr)
+            id(companion_auto_open_app_subpages_enabled).publish_state(false);
 
   - platform: template
     name: "${entity_companion_return_home_on_app_switch}"

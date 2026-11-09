@@ -1,3 +1,10 @@
+export const APP_SUBPAGE_PREFERENCE = "companion_auto_open_app_subpages";
+
+export function nativeAppSubpagePreference(settings?: Readonly<Record<string, string>>): boolean | undefined {
+  const saved = settings?.[APP_SUBPAGE_PREFERENCE];
+  return saved === "1" ? true : saved === "0" ? false : undefined;
+}
+
 export function normalizeLanguage(value: unknown): string {
   const language = String(value == null ? "" : value).trim().toLowerCase();
   return language || "en";

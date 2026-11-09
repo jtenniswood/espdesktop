@@ -367,6 +367,7 @@ async function installRoutes(context, slug, options = {}) {
             durable_document_version: options.nativeV2 ? 2 : 1,
             max_navigation_depth: options.nativeV2 ? 2 : 1, writable_navigation_depth: options.nativeV2 ? 2 : 1,
             max_v2_document_bytes: 524288, preserves_inactive_records: true,
+            companion_auto_open_app_subpages: options.nativeAppSubpagePreference === true,
             max_record_body_bytes: nativeState.maxRecordBodyBytes },
           web_assets: { versions: [1] },
         }),
@@ -414,6 +415,10 @@ async function installRoutes(context, slug, options = {}) {
           generation: nativeState.generation,
           document: JSON.parse(JSON.stringify(nativeState.document)),
         });
+        if (nativeState.loseWriteResponse) {
+          await route.abort("connectionreset");
+          return;
+        }
         await route.fulfill({
           status: nativeState.writeStatus ?? 204,
           headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
@@ -6475,15 +6480,11 @@ async function assertAppSubpageOpeningPreference(browser) {
   const testCase = ACTIVE_CASES[0];
   const fixture = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState: fixture });
-  const posts = [];
+  const routes = { nativeState: fixture, nativeAppSubpagePreference: true };
+  await installRoutes(context, testCase.slug, routes);
   const returnPosts = [];
   await context.route("**/switch/*return_home_on_app_switch*/**", async route => {
     returnPosts.push(new URL(route.request().url()).pathname.split("/").pop());
-    await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
-  });
-  await context.route("**/switch/*auto_open_app_subpages*/**", async route => {
-    posts.push(new URL(route.request().url()).pathname.split("/").pop());
     await route.fulfill({ status: 200, contentType: "text/plain", body: "" });
   });
   const page = await context.newPage();
@@ -6506,21 +6507,17 @@ async function assertAppSubpageOpeningPreference(browser) {
     await open();
     const toggle = page.locator("#sp-set-auto-open-app-subpages");
     assert(await toggle.isChecked(), "automatic opening remains the default");
-    await Promise.all([
-      page.waitForResponse(response => response.url().includes("auto_open_app_subpages") && response.url().endsWith("/turn_off")),
-      toggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    assert.deepStrictEqual(posts, ["turn_off"], "manual opening is saved as a global device preference");
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
+      "save automatic app switching with the layout");
     await open();
     await page.evaluate(() => window.__seedEspState([
       { id: "switch-companion_auto_open_app_subpages_enabled", state: "OFF", value: false },
     ]));
     await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").checked);
-    await Promise.all([
-      page.waitForResponse(response => response.url().includes("auto_open_app_subpages") && response.url().endsWith("/turn_on")),
-      toggle.locator("..").locator(".sp-toggle-track").click(),
-    ]);
-    assert.deepStrictEqual(posts, ["turn_off", "turn_on"]);
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "1",
+      "save automatic app switching with the layout");
     const returnToggle = page.locator("#sp-set-return-home-on-app-switch");
     assert(await returnToggle.isChecked(), "returning home remains the default");
     await Promise.all([
@@ -6538,6 +6535,23 @@ async function assertAppSubpageOpeningPreference(browser) {
       returnToggle.locator("..").locator(".sp-toggle-track").click(),
     ]);
     assert.deepStrictEqual(returnPosts, ["turn_off", "turn_on"]);
+    const backup = backupFixture(testCase.slug, testCase.slots);
+    backup.settings = { auto_open_app_subpages: false };
+    delete backup.screen;
+    const backupLayout = structuredClone(fixture.document);
+    delete backupLayout.settings.companion_auto_open_app_subpages;
+    backup.native_config = createPanelConfigBackupPayload(encodePanelConfig(backupLayout));
+    await importBackup(page, backup, "restore-app-switching");
+    await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor();
+    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0", "backup restores switching with the layout");
+
+    routes.nativeAppSubpagePreference = false;
+    await open();
+    const before = fixture.puts.length;
+    await importBackup(page, backup, "restore-app-switching-requires-update");
+    await page.locator(".sp-banner").filter({ hasText: "Update the panel firmware before restoring the automatic app switching setting" }).waitFor();
+    assert.equal(fixture.puts.length, before, "an incompatible backup leaves the saved layout alone");
+
     assert.deepStrictEqual(errors, [], "the setting and device events cause no browser errors");
     console.log("Global app subpage preference browser checks passed.");
   } finally { await context.close(); }
@@ -6825,7 +6839,9 @@ async function assertFirstRunSetup(browser) {
     mac_companion: { available: true, configured: true, paired: true, connected: true },
   };
   const context = await browser.newContext({ viewport: { width: 900, height: 800 } });
-  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus: status, nativeV2: true });
+  await installRoutes(context, testCase.slug, {
+    nativeState: fixture, connectorsStatus: status, nativeV2: true, nativeAppSubpagePreference: true,
+  });
   const actions = [
     { id: "com.apple.Safari", label: "Safari" },
     { id: "com.apple.Notes", label: "Notes" },
@@ -6838,15 +6854,16 @@ async function assertFirstRunSetup(browser) {
   await context.route("**/button/**", route => route.request().method() === "GET"
     ? route.fulfill({ status: 200, json: {} }) : route.fallback());
   const switches = [];
-  let failSwitch = false;
   let failLayout = false;
-  await context.route(/\/api\/v1\/config(?:\/.*)?$/, route => failLayout && route.request().method() === "PUT"
-    ? route.fulfill({ status: 500, body: "Failed save" }) : route.fallback());
+  await context.route(/\/api\/v1\/config(?:\/.*)?$/, route => {
+    if (!failLayout || route.request().method() !== "PUT") return route.fallback();
+    return route.abort("connectionreset");
+  });
   await context.route("**/switch/**", route => {
     if (route.request().method() === "GET") return route.fulfill({ status: 200, json: { state: "ON", value: true } });
     if (!/auto.*open.*app.*subpages/i.test(decodeURIComponent(route.request().url()))) return route.fallback();
     switches.push(new URL(route.request().url()).pathname.split("/").pop());
-    return route.fulfill({ status: failSwitch ? 500 : 200, body: "" });
+    return route.fulfill({ status: 200, body: "" });
   });
   const page = await context.newPage();
   const errors = [];
@@ -6910,7 +6927,8 @@ async function assertFirstRunSetup(browser) {
     assert(bounds.x >= 0 && bounds.x + bounds.width <= 375, "setup fits a phone viewport");
     const saveBounds = await dialog.getByRole("button", { name: "Save setup", exact: true }).boundingBox();
     assert(saveBounds.y + saveBounds.height <= 650, "save remains visible without scrolling the dialog");
-    failSwitch = true;
+    const beforeInitialSave = JSON.stringify(fixture.document);
+    failLayout = true;
     await dialog.getByRole("button", { name: "Save setup", exact: true }).click();
     await dialog.getByRole("alert").waitFor({ timeout: 10000 }).catch(async error => {
       console.log("Setup diagnostic", await page.locator("body").innerText(), switches, fixture.puts);
@@ -6918,8 +6936,9 @@ async function assertFirstRunSetup(browser) {
       await page.screenshot({ path: path.join(FAILURE_DIR, "first-run-failure.png") });
       throw error;
     });
-    assert.equal(fixture.puts.length, 0, "failed switch save must not complete setup");
-    failSwitch = false;
+    assert.equal(fixture.puts.length, 0, "an interrupted save must not complete setup");
+    assert.equal(JSON.stringify(fixture.document), beforeInitialSave);
+    failLayout = false;
     await dialog.getByRole("button", { name: "Save setup", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     await page.getByText("Setup saved.", { exact: true }).waitFor();
@@ -6932,7 +6951,9 @@ async function assertFirstRunSetup(browser) {
     const notesSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Notes;"));
     assert(fixture.document.subpages[notesSlot].includes("shortcut."), "the global choice also adds a page for Notes");
     assert.equal(Object.keys(fixture.document.subpages).length, 2, "unsupported apps remain launch cards");
-    assert.equal(switches.at(-1), "turn_off", "manual page opening was chosen");
+    assert.equal(fixture.puts.length, 1);
+    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0");
+    assert.deepEqual(switches, [], "setup uses only the layout PUT");
     await open();
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "completion survives page reload");
@@ -6949,6 +6970,15 @@ async function assertFirstRunSetup(browser) {
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
     const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    const toggle = page.locator("#sp-set-auto-open-app-subpages");
+    await setChecked(toggle, true);
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "1",
+      "save the editor toggle through native configuration");
+    await page.waitForFunction(() => !document.querySelector("#sp-set-auto-open-app-subpages").disabled);
+    await setChecked(toggle, false);
+    await waitForNativeState(fixture, () => fixture.document.settings.companion_auto_open_app_subpages === "0",
+      "restore the editor toggle through native configuration");
+    assert.deepEqual(switches, []);
     await page.getByRole("button", { name: "Setup Again", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores home apps");
@@ -6967,14 +6997,15 @@ async function assertFirstRunSetup(browser) {
     const beforeFailure = JSON.stringify(fixture.document);
     await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.getByRole("alert").waitFor();
-    assert.deepEqual(switches.slice(-2), ["turn_on", "turn_off"], "failed replacement restores the previous switching setting");
+    assert.deepEqual(switches, []);
     assert.equal(JSON.stringify(fixture.document), beforeFailure, "failed replacement keeps the saved layout");
     failLayout = false;
     fixture.writeStatus = 202;
     await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert(fixture.puts.length >= 2, "the committed replacement finishes setup");
-    assert.equal(switches.at(-1), "turn_on", "a committed replacement keeps the chosen switching setting");
+    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "1");
+    assert.deepEqual(switches, []);
     await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
     fixture.writeStatus = 204;
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
@@ -6982,7 +7013,14 @@ async function assertFirstRunSetup(browser) {
     await page.getByRole("button", { name: "Setup Again", exact: true }).click();
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
     await launchOnly.check();
+    fixture.loseWriteResponse = true;
     await dialog.getByRole("button", { name: "Done", exact: true }).click();
+    await dialog.getByRole("alert").waitFor();
+    fixture.loseWriteResponse = false;
+    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0",
+      "a lost response after commit leaves the entire new setup in place");
+    assert.deepEqual(switches, []);
+    await open();
     await dialog.waitFor({ state: "detached" });
     assert.equal(Object.keys(fixture.document.subpages).length, 0, "Done saves launch-only cards directly from step two");
     // Pairing links remain usable before connecting; connection offers setup.
@@ -6998,7 +7036,7 @@ async function assertFirstRunSetup(browser) {
     assert.equal(Object.keys(fixture.document.buttons).length, 0);
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
     assert.deepEqual(errors, []);
-    console.log("First-run app selection, capacity, shortcuts, mobile layout, failed save, retry, reload, pairing and skip passed.");
+    console.log("First-run setup with interrupted and confirmed layout saves passed.");
   } finally { await context.close(); }
 }
 

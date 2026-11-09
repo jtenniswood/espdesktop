@@ -19,6 +19,10 @@ switch = display.split('    id: companion_auto_open_app_subpages_enabled\n', 1)[
     '\n  - platform:', 1,
 )[0]
 assert 'restore_mode: RESTORE_DEFAULT_ON' in switch
+assert 'optimistic: false' in switch
+app = (ROOT / "components/espdesktop/espdesktop_app.cpp").read_text()
+publish_start = app.index("void EspDesktopApp::publish_app_subpage_preference")
+publish_end = app.index("void EspDesktopApp::retry_configuration_compatibility", publish_start)
 
 def callback(event: str) -> str:
     match = re.search(rf"    {event}:\n      - lambda: \|-\n((?:          [^\n]*\n?)+)", switch)
@@ -34,7 +38,15 @@ inline bool ready = false;
 inline int core;
 inline int *active_espdesktop_app_core() { return ready ? &core : nullptr; }
 }
-struct { bool state = true; } companion_auto_open_app_subpages_enabled, companion_return_home_on_app_switch_enabled;
+namespace esphome::switch_ {
+struct Switch {
+  bool state = true;
+  // ESPHome resolves bare id() references in lambdas to pointers.
+  Switch &operator*() { return *this; }
+  void publish_state(bool enabled) { state = enabled; }
+};
+}
+esphome::switch_::Switch companion_auto_open_app_subpages_enabled, companion_return_home_on_app_switch_enabled;
 bool return_home = true;
 void companion_set_return_home_on_app_switch(bool enabled) { return_home = enabled; }
 #define id(value) value
@@ -45,9 +57,19 @@ void companion_set_auto_open_app_subpages(bool enabled) {
   applied_value = enabled;
   ++writes;
 }
+namespace espdesktop {
+struct EspDesktopApp {
+  int &core_ = core;
+  esphome::switch_::Switch *app_subpage_switch_ = nullptr;
+  void publish_app_subpage_preference(bool);
+  void bind_app_subpage_preference_switch(esphome::switch_::Switch &);
+};
+}
+espdesktop::EspDesktopApp espdesktop_app;
 '''
-source += "void turn_on() {\n" + callback("on_turn_on") + "}\n"
-source += "void turn_off() {\n" + callback("on_turn_off") + "}\n"
+source += "namespace espdesktop {\n" + app[publish_start:publish_end] + "}\n"
+source += "void turn_on() {\n" + callback("turn_on_action") + "}\n"
+source += "void turn_off() {\n" + callback("turn_off_action") + "}\n"
 source += "void restore() {\n" + textwrap.dedent(boot[2]) + "}\n"
 source += r'''
 int main() {
@@ -55,17 +77,17 @@ int main() {
     espdesktop::ready = false;
     writes = 0;
     companion_return_home_on_app_switch_enabled.state = saved;
-    companion_auto_open_app_subpages_enabled.state = saved;
+    companion_auto_open_app_subpages_enabled.state = !saved;
     if (saved) turn_on(); else turn_off();
     assert(writes == 0); // Early template-switch restore must not touch the core.
     espdesktop::ready = true;
     restore();
     assert(writes == 1 && applied_value == saved);
     assert(return_home == saved);
-    turn_off();
-    assert(writes == 2 && !applied_value);
-    turn_on();
-    assert(writes == 3 && applied_value);
+    if (saved) turn_off(); else turn_on();
+    assert(writes == 1 && applied_value == saved && companion_auto_open_app_subpages_enabled.state == saved);
+    espdesktop_app.publish_app_subpage_preference(!saved);
+    assert(writes == 2 && applied_value != saved && companion_auto_open_app_subpages_enabled.state != saved);
   }
 }
 '''

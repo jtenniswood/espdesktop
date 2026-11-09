@@ -1,6 +1,8 @@
 #pragma once
 
 #include <array>
+#include <functional>
+#include <optional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -28,6 +30,7 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
     std::vector<Value> values;
     configuration::PanelConfigRecord *records{nullptr};
     size_t record_count{0};
+    std::optional<bool> app_subpage_preference;
   };
   class Resources final : public pages::PageRuntimeResources {
   public:
@@ -61,8 +64,10 @@ public:
   GridPageRuntime(const DeviceUiLimits &limits,
       configuration::PanelConfigTextBindings &bindings,
       configuration::ConfigurationBuffer::Allocate allocate,
-      configuration::ConfigurationBuffer::Release release)
+      configuration::ConfigurationBuffer::Release release,
+      std::function<void(bool)> publish_app_subpage_preference = {})
       : limits_(limits), bindings_(bindings), allocate_(allocate), release_(release),
+        publish_app_subpage_preference_(std::move(publish_app_subpage_preference)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
   bool ready() const override { return bindings_.configured() && !stopped_; }
   bool maintenance_ready() const override { return ready(); }
@@ -187,6 +192,10 @@ private:
       staged_->pages.push_back(std::move(next));
     }
     auto setting = [&](std::string_view name, std::string_view value) {
+      if (name == "companion_auto_open_app_subpages") {
+        if (value != "0" && value != "1") return false;
+        staged_->app_subpage_preference = value == "1";
+      }
       staged_->values.push_back({Kind::SETTING, 0, std::string(name), std::string(value)});
       return true;
     };
@@ -232,6 +241,10 @@ private:
     active_->store = &store;
     grid_native_pages() = active_.get();
     published_ = bindings_.publish_runtime_records(active_->records, active_->record_count);
+    // Apply only after the configuration service commits and activates this
+    // snapshot. Old documents omit the setting and retain their switch value.
+    if (active_->app_subpage_preference && publish_app_subpage_preference_)
+      publish_app_subpage_preference_(*active_->app_subpage_preference);
     if (published_) bindings_.refresh_runtime_pages();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
@@ -239,6 +252,7 @@ private:
   configuration::PanelConfigTextBindings &bindings_;
   configuration::ConfigurationBuffer::Allocate allocate_;
   configuration::ConfigurationBuffer::Release release_;
+  std::function<void(bool)> publish_app_subpage_preference_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;

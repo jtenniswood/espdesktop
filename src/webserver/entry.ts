@@ -3,6 +3,7 @@ import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
 import * as DeviceConfig from "./device_config";
 import * as Model from "./model";
+import { APP_SUBPAGE_PREFERENCE } from "./model/settings";
 import { createDeviceApi } from "./api/device_api";
 import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
@@ -907,18 +908,19 @@ function composeApplicationContext(): ApplicationContext {
     shell, requestApi, statusPreview, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection,
     systemSection, preview, connectorsPage, () => firstRunSetup.open(),
+    async enabled => {
+      if (await nativePanelConfig.waitForDiscovery() !== true || !nativePanelConfig.client?.supportsAppSubpagePreference()) {
+        shell.showBanner("Could not save automatic app switching. Check the display’s connection and firmware.", "error");
+        return false;
+      }
+      const result = await nativePanelConfig.writeSetting(APP_SUBPAGE_PREFERENCE, enabled ? "1" : "0");
+      return result === "saved" || result === "mirror-failed";
+    },
   );
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
     native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, fields, shell,
     autoSwitchEnabled: () => state.autoOpenAppSubpages,
-    saveAutoSwitch: async (enabled) => {
-      await requestApi.postQueueIdle();
-      requestApi.resetPostQueueError();
-      clockBarPostApi.postAutoOpenAppSubpages(enabled);
-      await requestApi.postQueueIdle();
-      return !requestApi.postQueueHadError();
-    },
     onSaved: (mirrorFailed) => {
       shell.switchTab("screen");
       nativePages.invalidate();
