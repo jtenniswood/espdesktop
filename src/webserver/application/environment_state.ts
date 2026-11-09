@@ -61,13 +61,13 @@ export function createEnvironmentStateFeature(
         var monthIndex: any = parseInt(index, 10);
         if (!isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11)
             return "Date";
+        const referenceDate = new Date(Date.UTC(2000, monthIndex, 1));
+        const formatOptions = { month: "long", timeZone: "UTC" } as const;
         try {
-            return new Intl.DateTimeFormat(normalizeLanguage(state.language), { month: "long" })
-                .format(new Date(Date.UTC(2000, monthIndex, 1)));
+            return new Intl.DateTimeFormat(normalizeLanguage(state.language), formatOptions).format(referenceDate);
         }
         catch (_) {
-            return new Intl.DateTimeFormat("en", { month: "long" })
-                .format(new Date(Date.UTC(2000, monthIndex, 1)));
+            return new Intl.DateTimeFormat("en", formatOptions).format(referenceDate);
         }
     }
     return {

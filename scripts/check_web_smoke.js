@@ -713,7 +713,7 @@ const datePreview = hooks.buttonTypePreviewFor("calendar", {
 });
 assert(!datePreview.labelHtml.includes("sp-type-badge"), "date preview omits the card-type badge");
 assert(datePreview.iconHtml.includes("sp-sensor-preview"), "date preview uses the shared sensor preview");
-const frenchMonth = new Intl.DateTimeFormat("fr", { month: "long" }).format(hooks.webserverMockNow());
+const frenchMonth = new Intl.DateTimeFormat("fr", { month: "long", timeZone: "UTC" }).format(hooks.webserverMockNow());
 const frenchDatePreview = hooks.buttonTypePreviewForMockNow("calendar", {
   type: "calendar",
   precision: "",
