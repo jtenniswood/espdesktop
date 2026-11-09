@@ -601,7 +601,7 @@ describe("browserless application contracts", () => {
     assert.match(card, /shortcutField[\s\S]*markCardPrimaryField\(shortcutField, "shortcut"\)/);
     assert.match(card, /urlField[\s\S]*markCardPrimaryField\(urlField, "url"\)/);
     assert.match(card, /folderField[\s\S]*markCardPrimaryField\(folderField, "folder"\)/);
-    assert.doesNotMatch(card, /"companion_window"/);
+    assert.match(card, /windowField[\s\S]*markCardPrimaryField\(windowField, "window"\)/);
     assert.match(card, /folderPlaceholder\.disabled = true/);
     assert.match(card, /folderPlaceholder\.hidden = true/);
     assert.doesNotMatch(card, /Unavailable folder/);
@@ -610,6 +610,8 @@ describe("browserless application contracts", () => {
     assert.match(fields, /url: false/);
     assert.match(fields, /media: false/);
     assert.match(fields, /folder: false/);
+    assert.match(fields, /window: false/);
+    assert.match(card, /first\.group\.localeCompare\(second\.group/);
   });
 
   test("imports entity-mode helpers without compatibility globals", () => {

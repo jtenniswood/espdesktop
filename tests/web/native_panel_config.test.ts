@@ -214,9 +214,6 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
   const put = requests.find((entry) => entry.request?.method === "PUT");
   equal(put?.path, "/api/v1/config", "native save uses the versioned configuration endpoint");
   equal(put?.request?.headers?.["If-Match"], '"7"', "native save checks the exact configuration generation");
-  requests.length = 0;
-  equal(await client.save(current => current, true), "saved", "a migration can skip a layout already cleaned by another editor");
-  equal(requests.some(entry => entry.request?.method === "PUT"), false, "the unchanged migration does not write to the device");
 
   let retries = 0;
   const retryClient = createNativePanelConfigClient(async (path, request) => {

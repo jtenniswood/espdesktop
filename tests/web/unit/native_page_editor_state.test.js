@@ -12,7 +12,3 @@ test("flat native snapshots own root order and accent while older readers retain
 test("background snapshot discovery preserves the transfer lock", async () => {
   await loadTypescriptTest("tests/web/native_page_editor_state.test.ts").runNativeEditorTransferLockTests();
 });
-
-test("the native editor removes saved Window Control cards through a guarded save", async () => {
-  await loadTypescriptTest("tests/web/native_page_editor_state.test.ts").runNativeEditorWindowCleanupTests();
-});
