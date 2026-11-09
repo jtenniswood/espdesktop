@@ -50,6 +50,35 @@ final class CompanionAccessibilityAuthorizer {
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
     static let windowActionPrefix = "window."
+    static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
+    private static let claudeEscapeShortcut = "claude-escape"
+    static let claudeRewindShortcut = "escape-twice"
+
+    static func isClaudeScopedShortcut(_ keys: String) -> Bool {
+        switch keys {
+        case "f6", "shift+f6", claudeEscapeShortcut, claudeRewindShortcut, "up", "down": return true
+        default: return keys.utf8.count == 1 && ("1"..."9").contains(keys)
+        }
+    }
+
+    private static let safariBundleIdentifier = "com.apple.Safari"
+    private static let safariWebAppTemplate = "com.apple.Safari.WebApp"
+
+    static func isSafariUnmodifiedShortcut(_ shortcut: String) -> Bool {
+        shortcut == "tab" || shortcut == "escape"
+    }
+
+    static func isSafariTemplate(_ appId: String) -> Bool {
+        appId == safariBundleIdentifier || appId == safariWebAppTemplate
+    }
+
+    static func isSafariApplication(_ appId: String?) -> Bool {
+        guard let appId else { return false }
+        if appId == safariBundleIdentifier { return true }
+        let prefix = safariWebAppTemplate + "."
+        return appId.hasPrefix(prefix) && UUID(uuidString: String(appId.dropFirst(prefix.count))) != nil
+    }
+
     static let booksBundleIdentifier = "com.apple.iBooksX"
     static let chatGPTDesktopBundleIdentifier = "com.openai.codex"
     static let chatGPTClearUnreads = "shift+escape"
@@ -79,25 +108,37 @@ struct CompanionKeyboardShortcut {
             return
         }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
-        let shortcut = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
-        if let extended = Self.booksExtendedKeys[shortcut], let keyCode = Self.keyCodes[extended.key] {
+        let keys = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
+        if let extended = Self.booksExtendedKeys[keys], let keyCode = Self.keyCodes[extended.key] {
             self.keyCode = keyCode
             self.flags = extended.flags
             self.requiresMacOS15 = false
             return
         }
-        if shortcut == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
+        if Self.isClaudeScopedShortcut(keys) {
+            let key = if keys == Self.claudeEscapeShortcut || keys == Self.claudeRewindShortcut {
+                "escape"
+            } else {
+                keys.replacingOccurrences(of: "shift+", with: "")
+            }
+            guard let keyCode = Self.keyCodes[key] else { return nil }
+            self.keyCode = keyCode
+            self.flags = keys == "shift+f6" ? .maskShift : []
+            self.requiresMacOS15 = false
+            return
+        }
+        if keys == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
             self.keyCode = keyCode
             self.flags = .maskShift
             self.requiresMacOS15 = false
             return
         }
-        var parts = shortcut.split(separator: "+", omittingEmptySubsequences: false).map(String.init)
-        guard parts.count >= 2, parts.count <= 5, let key = parts.popLast(),
+        var parts = keys.split(separator: "+", omittingEmptySubsequences: false)
+        guard parts.count <= 5, let key = parts.popLast().map(String.init),
               let keyCode = Self.keyCodes[key] else { return nil }
 
         var flags: CGEventFlags = []
-        var seen = Set<String>()
+        var seen = Set<Substring>()
         for modifier in parts {
             guard seen.insert(modifier).inserted else { return nil }
             switch modifier {
@@ -108,7 +149,8 @@ struct CompanionKeyboardShortcut {
             default: return nil
             }
         }
-        guard flags.contains(.maskCommand) || flags.contains(.maskControl) || flags.contains(.maskAlternate) else {
+        guard (parts.isEmpty && Self.isSafariUnmodifiedShortcut(key)) ||
+              flags.contains(.maskCommand) || flags.contains(.maskControl) || flags.contains(.maskAlternate) else {
             return nil
         }
         self.keyCode = keyCode

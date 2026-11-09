@@ -4,6 +4,43 @@ import XCTest
 
 final class RemoteCompanionCataloguesTests: XCTestCase {
     @MainActor
+    func testBundledClaudePresetsTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "ClaudeCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        let claude = try XCTUnwrap(catalogue.applications.first {
+            $0.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier
+        })
+        XCTAssertEqual(claude.shortcuts.count, 60)
+        XCTAssertEqual(claude.claudeShortcuts?.count, 33)
+        XCTAssertTrue(claude.claudeShortcuts?.contains { $0.shortcut == "escape-twice" } == true)
+
+        struct LegacyDefinition: Decodable {
+            let shortcuts: [RemoteShortcutDefinition]
+            let extendedShortcuts: [RemoteShortcutDefinition]?
+            let additionalShortcuts: [RemoteShortcutDefinition]?
+        }
+        let data = try JSONEncoder().encode(claude)
+        let legacy = try JSONDecoder().decode(LegacyDefinition.self, from: data)
+        XCTAssertEqual(legacy.shortcuts.count, 60)
+        XCTAssertNil(legacy.extendedShortcuts)
+        XCTAssertNil(legacy.additionalShortcuts)
+
+        let json = String(decoding: data, as: UTF8.self)
+        let frame = try JSONSerialization.data(withJSONObject: [
+            "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+            "page": 0, "generation": 1, "complete": false,
+            "items": [["kind": "application", "json": json]],
+        ])
+        XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected))
+    }
+
+    @MainActor
     func testBundledChatGPTPresetsFitInOneFrameAndKeepLegacyShortcutsReadable() throws {
         struct LegacyDefinition: Decodable {
             let shortcuts: [RemoteShortcutDefinition]
@@ -61,6 +98,23 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         XCTAssertThrowsError(try decode(app.replacingOccurrences(of: "com.apple.iBooksX", with: "com.example.Reader")))
         XCTAssertThrowsError(try decode(app.replacingOccurrences(of: #""29""#, with: #""0""#)))
         XCTAssertThrowsError(try decode(app.replacingOccurrences(of: #""right""#, with: #""a""#)))
+    }
+
+    @MainActor
+    func testBundledSafariTemplatesTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "SafariCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        for appId in ["com.apple.Safari", "com.apple.Safari.WebApp"] {
+            let app = try XCTUnwrap(catalogue.applications.first { $0.appId == appId })
+            XCTAssertNil(app.extendedShortcuts)
+            XCTAssertEqual(app.safariShortcuts?.map(\.shortcut), ["tab", "escape"])
+        }
     }
 
     func testURLCardTargetsMatchFullConfiguredURLAndClearWhenUnavailable() throws {
