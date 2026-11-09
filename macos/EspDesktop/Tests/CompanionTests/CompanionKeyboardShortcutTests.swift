@@ -134,6 +134,13 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         }
     }
 
+    func testChatGPTClearUnreadsUsesShiftEscape() throws {
+        let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut.shift+escape"))
+        XCTAssertEqual(shortcut.keyCode, 53)
+        XCTAssertEqual(shortcut.flags, [.maskShift])
+        XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.shift+tab"))
+    }
+
     func testGatesOnlyTilingActionsToMacOS15() throws {
         let macOS13 = OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0)
         let macOS15 = OperatingSystemVersion(majorVersion: 15, minorVersion: 0, patchVersion: 0)

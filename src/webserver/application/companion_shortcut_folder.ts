@@ -3,7 +3,14 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const normalized = apps.map(({ extendedShortcuts, ...app }) => {
+    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, ...app }) => {
+        if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
+            const additional = additionalShortcuts.filter((item) => {
+                const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
+                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action);
+            });
+            return { ...app, shortcuts: [...app.shortcuts, ...additional] };
+        }
         if (app.appId !== "com.apple.iBooksX" || app.catalog || !Array.isArray(extendedShortcuts)) return app;
         const extended = extendedShortcuts.filter((item) => isBooksExtendedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
         return { ...app, shortcuts: [...extended, ...app.shortcuts] };
@@ -33,6 +40,8 @@ export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
+export const CHATGPT_CLEAR_UNREADS_ACTION = "shortcut.shift+escape";
+const LAST_LEGACY_CHATGPT_PRESET_ID = 18;
 export const SLACK_BUNDLE_ID = "com.tinyspeck.slackmacgap";
 export const COMPANION_SHORTCUT_PREFIX = "shortcut.";
 const COMPANION_SHORTCUT_MODIFIERS = new Set(["command", "control", "option", "shift"]);
@@ -251,7 +260,7 @@ export function isBooksExtendedShortcut(actionId: string): boolean {
 
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
     if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX)) return false;
-    if (isBooksExtendedShortcut(actionId)) return true;
+    if (isBooksExtendedShortcut(actionId) || actionId === CHATGPT_CLEAR_UNREADS_ACTION) return true;
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     if (parts.length < 2 || parts.length > 5) return false;
     const key = parts.pop() || "";
@@ -453,10 +462,7 @@ export function companionShortcutTabsFromSubpage(
         const key = companionShortcutPresetKey(bundleIdentifier, index);
         return [key, key.slice(bundleIdentifier.length + 1)] as const;
     }));
-    const legacyPresetIndex = new Map(presets.map(function (card, index) {
-        const key = companionShortcutPresetKey(bundleIdentifier, index);
-        return [card.entity, key.slice(bundleIdentifier.length + 1)] as const;
-    }));
+    const legacyPresetKeys = legacyCompanionShortcutPresetKeys(bundleIdentifier, presets);
     const tabs: string[] = [];
     const visited = new Set<number>();
     (subpage?.grid?.length ? subpage.grid : subpage?.order || []).forEach(function (token: unknown) {
@@ -467,10 +473,27 @@ export function companionShortcutTabsFromSubpage(
         const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
         const identity = companionShortcutPresetIdentity(card);
         const value = identity ? presetIndex.get(identity) :
-            marker ? undefined : legacyPresetIndex.get(card?.entity);
+            marker ? undefined : presetIndex.get(legacyPresetKeys.get(card?.entity) || "");
         if (value != null && tabs.indexOf(value) < 0) tabs.push(value);
     });
     return tabs;
+}
+
+function legacyCompanionShortcutPresetKeys(
+    bundleIdentifier: string,
+    presets: readonly CompanionShortcutPresetCard[],
+): Map<string, string> {
+    const keys = new Map<string, string>();
+    presets.forEach((card, index) => {
+        const key = companionShortcutPresetKey(bundleIdentifier, index);
+        const id = Number(key.slice(bundleIdentifier.length + 1));
+        // New ChatGPT presets always save an ID. A markerless card for one of
+        // these keys predates the preset and must keep its custom layout.
+        if (bundleIdentifier !== CODEX_BUNDLE_ID || id <= LAST_LEGACY_CHATGPT_PRESET_ID) {
+            keys.set(card.entity, key);
+        }
+    });
+    return keys;
 }
 
 export function syncCompanionShortcutSubpage(
@@ -481,9 +504,7 @@ export function syncCompanionShortcutSubpage(
 ): any {
     if (!subpage) return createCompanionShortcutSubpage(bundleIdentifier, tabs);
     const presets = companionShortcutPresetCards(bundleIdentifier);
-    const presetKeyByEntity = new Map(presets.map(function (card, index) {
-        return [card.entity, companionShortcutPresetKey(bundleIdentifier, index)] as const;
-    }));
+    const presetKeyByEntity = legacyCompanionShortcutPresetKeys(bundleIdentifier, presets);
     function presetKey(card: any): string {
         const marker = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
         const identity = companionShortcutPresetIdentity(card);

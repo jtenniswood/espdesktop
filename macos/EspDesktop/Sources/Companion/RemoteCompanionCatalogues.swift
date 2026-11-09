@@ -14,6 +14,7 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     let catalog: Bool
     let shortcuts: [RemoteShortcutDefinition]
     let extendedShortcuts: [RemoteShortcutDefinition]?
+    let additionalShortcuts: [RemoteShortcutDefinition]?
 }
 
 struct RemoteCatalogueManifest: Decodable, Sendable {
@@ -97,17 +98,26 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     fileprivate static func valid(_ app: RemoteMacApplicationDefinition) -> Bool {
         let encodedSize = (try? JSONEncoder().encode(app).count) ?? Int.max
         let extended = app.extendedShortcuts ?? []
-        let allShortcuts = app.shortcuts + extended
+        let additional = app.additionalShortcuts ?? []
+        let allShortcuts = app.shortcuts + extended + additional
         return app.version == 1 && !app.label.isEmpty && app.label.utf8.count <= 48 &&
         app.appId.range(of: #"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil &&
-        !app.shortcuts.isEmpty && allShortcuts.count <= 64 &&
-        app.shortcuts.allSatisfy {
-            validMetadata($0) && !CompanionKeyboardShortcut.isBooksExtendedShortcut($0.shortcut) &&
-                CompanionKeyboardShortcut(actionIdentifier: CompanionKeyboardShortcut.actionPrefix + $0.shortcut) != nil
-        } &&
+        !app.shortcuts.isEmpty && app.shortcuts.count + extended.count <= 64 && allShortcuts.count <= 96 &&
+        app.shortcuts.allSatisfy(validRegularShortcut) &&
         (extended.isEmpty || (app.appId == CompanionKeyboardShortcut.booksBundleIdentifier && !app.catalog &&
             extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isBooksExtendedShortcut($0.shortcut) })) &&
+        (additional.isEmpty || (app.appId == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier && !app.catalog &&
+            additional.allSatisfy {
+                $0.shortcut == CompanionKeyboardShortcut.chatGPTClearUnreads ? validMetadata($0) : validRegularShortcut($0)
+            })) &&
         Set(allShortcuts.map(\.id)).count == allShortcuts.count && encodedSize <= 12_000
+    }
+
+    private static func validRegularShortcut(_ shortcut: RemoteShortcutDefinition) -> Bool {
+        validMetadata(shortcut) &&
+            !CompanionKeyboardShortcut.isBooksExtendedShortcut(shortcut.shortcut) &&
+            shortcut.shortcut != CompanionKeyboardShortcut.chatGPTClearUnreads &&
+            CompanionKeyboardShortcut(actionIdentifier: CompanionKeyboardShortcut.actionPrefix + shortcut.shortcut) != nil
     }
 
     private static func validMetadata(_ shortcut: RemoteShortcutDefinition) -> Bool {

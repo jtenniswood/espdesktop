@@ -41,6 +41,7 @@ import {
     COMPANION_SHORTCUT_APPS,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
+    CHATGPT_CLEAR_UNREADS_ACTION,
     isBooksExtendedShortcut,
     companionShortcutFolderAppLabel,
     companionShortcutFolderEditorAvailable,
@@ -788,7 +789,6 @@ export function registerCompanionCardTypes(
             modifierButtons.style.minWidth = "0";
             modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
-            const savedBooksShortcut = isBooksExtendedShortcut(currentEntity);
             let selectedKey = shortcutParts.pop() || "";
             const modifiers: [string, string][] = [
                 ["command", "⌘ Command"], ["control", "⌃ Control"],
@@ -947,7 +947,8 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
-                    (!isBooksExtendedShortcut(card.entity) || (savedBooksShortcut && card.entity === currentEntity));
+                    ((!isBooksExtendedShortcut(card.entity) && card.entity !== CHATGPT_CLEAR_UNREADS_ACTION) ||
+                        card.entity === currentEntity);
             });
 
             const windowField = document.createElement("div");
