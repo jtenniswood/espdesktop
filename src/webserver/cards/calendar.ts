@@ -21,8 +21,6 @@ export function registerCalendarCardTypes(
         dateTimeCardDateParts,
         metadataForHomeAssistantSupport,
         metadata,
-        monthNameForIndex,
-        now,
     } = dateTimeOptions;
 
     registry.register("calendar", {
@@ -46,17 +44,12 @@ export function registerCalendarCardTypes(
             helpers.renderCardLargeNumbersToggle(panel, button, helpers, metadata);
         },
         renderPreview: function (button?: any, helpers?: any) {
-            const current = now();
             const isDateTime = button.precision === "datetime";
             const hideLabel = cardLargeNumbersHidePreviewLabel(button, helpers, metadata);
             const buttonClass = hideLabel
                 ? (isDateTime ? "sp-clock-wide-large" : "sp-date-time-wide-large")
                 : undefined;
-            const date = isDateTime
-                ? dateTimeCardDateParts()
-                : { day: String(current.getUTCDate()), month: monthNameForIndex(current.getUTCMonth()) };
-            const day = date.day;
-            const month = date.month;
+            const { day, month } = dateTimeCardDateParts();
             if (isDateTime) {
                 const time = dateTimeCardTimeParts();
                 return {

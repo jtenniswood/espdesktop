@@ -184,8 +184,6 @@ export function createConfigDateTimeOptionsFeature(dependencies: ConfigDateTimeO
         defaultTimezoneCardEntity,
         metadata,
         metadataForHomeAssistantSupport,
-        monthNameForIndex: dependencies.monthNameForIndex,
-        now: dependencies.now,
         normalizeDateTimeCardMode,
         setDateTimeCardMode,
         timezoneCardCityLabel,

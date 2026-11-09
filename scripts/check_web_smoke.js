@@ -657,6 +657,7 @@ const frenchDatePreview = hooks.buttonTypePreviewForMockNow("calendar", {
   options: "",
 }, {
   language: "fr",
+  timezone: "UTC",
 });
 assert(frenchDatePreview.labelHtml.includes(frenchMonth), "date preview follows selected language month names");
 assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "calendar", precision: "" }), "Large Date");
@@ -683,6 +684,16 @@ const dateTimePreview = hooks.buttonTypePreviewFor("calendar", {
 });
 assert(dateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time 2x2 preview defaults to large numbers");
 assert(previewSensorValue(dateTimePreview).includes(":"), "date/time preview renders a time value");
+
+const timezoneDatePreview = hooks.buttonTypePreviewForMockNow("calendar", {
+  type: "calendar",
+  precision: "",
+}, {
+  timezone: "Pacific/Honolulu",
+  language: "en",
+});
+assert.strictEqual(previewSensorValue(timezoneDatePreview), "31", "date preview uses the day in the panel timezone");
+assert(timezoneDatePreview.labelHtml.includes("December"), "date preview uses the month in the panel timezone");
 
 const timezoneDateTimePreview = hooks.buttonTypePreviewForMockNow("calendar", {
   type: "calendar",
