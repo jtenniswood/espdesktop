@@ -11,7 +11,7 @@
   "summary": {
     "deviceProfiles": 9,
     "cardTypes": 33,
-    "entityNames": 104,
+    "entityNames": 103,
     "icons": 347,
     "structuralIcons": 39,
     "compatibilityFixtureGroups": 2
@@ -6201,17 +6201,6 @@
         "name": "Screensaver Timeout",
         "objectIds": [
           "screensaver_timeout"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_screen_timeout",
-        "domain": "number",
-        "name": "Home Screen Timeout",
-        "objectIds": [
-          "home_screen_timeout"
         ],
         "groups": [
           "settings"

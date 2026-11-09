@@ -888,7 +888,6 @@ script:
       - globals.set: { id: manual_wake_ms, value: '0' }
       - script.execute: display_mode_reconcile
       - script.wait: display_mode_apply_transition
-      - script.execute: home_screen_idle_check
 
   # ---------------------------------------------------------------------------
   # Show the clock during the scheduled night period
@@ -897,7 +896,6 @@ script:
     mode: restart
     then:
       - script.stop: screensaver_idle_check
-      - script.stop: home_screen_idle_check
       - script.stop: screen_schedule_wake_timeout_check
       - lambda: |-
           id(espdesktop_app).display().clear(
