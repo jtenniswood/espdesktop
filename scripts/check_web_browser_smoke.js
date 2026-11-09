@@ -1296,32 +1296,23 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   const settingsPlacement = await page.locator("#sp-settings .sp-config").evaluate((config) => {
     let section = "";
     const placement = {};
-    Array.from(config.children).forEach((child, index) => {
+    Array.from(config.children).forEach((child) => {
       if (child.classList.contains("sp-settings-status-header")) {
         section = child.querySelector(".sp-settings-status-title")?.textContent || "";
         return;
       }
       const title = child.querySelector(":scope > .card-header h3")?.textContent || "";
-      if (title) placement[title] = { section, index };
+      if (title) placement[title] = section;
     });
     return placement;
   });
   assert.strictEqual(
-    settingsPlacement["Cover Art Screen Saver"]?.section,
+    settingsPlacement["Cover Art Screen Saver"],
     "Sleep & Schedule",
     `${label}: cover art settings should be grouped with sleep and schedule controls`,
   );
-  assert.strictEqual(
-    settingsPlacement.Idle?.section,
-    "Appearance",
-    `${label}: idle settings should be grouped with appearance controls`,
-  );
-  assert.strictEqual(
-    settingsPlacement.Idle?.index,
-    settingsPlacement.Theme?.index + 1,
-    `${label}: idle settings should appear immediately below Theme`,
-  );
-  assert.strictEqual(settingsPlacement["Clock Bar"]?.section, "Appearance",
+  assert(!Object.hasOwn(settingsPlacement, "Idle"), `${label}: Screen settings omit the retired Idle card`);
+  assert.strictEqual(settingsPlacement["Clock Bar"], "Appearance",
     `${label}: clock bar settings should be grouped with appearance controls`);
   assert.deepStrictEqual(await page.locator(".sp-nav [role='tab']").allTextContents(),
     ["Layout", "Screen", "System"], `${label}: primary navigation follows the current tab order`);
@@ -1344,9 +1335,9 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     }
     return placement;
   });
-  assert.strictEqual(settingsPlacement.Backlight?.section, "Display", `${label}: Backlight is under Screen > Display`);
+  assert.strictEqual(settingsPlacement.Backlight, "Display", `${label}: Backlight is under Screen > Display`);
   if (settingsPlacement.Rotation) {
-    assert.strictEqual(settingsPlacement.Rotation.section, "Display", `${label}: Rotation is under Screen > Display`);
+    assert.strictEqual(settingsPlacement.Rotation, "Display", `${label}: Rotation is under Screen > Display`);
   }
   assert(!devicePlacement.Backlight && !devicePlacement.Rotation, `${label}: System does not duplicate display controls`);
   assert.strictEqual(devicePlacement.Language, "Preferences", `${label}: Language is under System > Preferences`);
@@ -3210,10 +3201,6 @@ async function assertBackupImportSmoke(page, posts, testCase) {
       { domain: "number", name: "screensaver_timeout", action: "set", value: "60" },
       "backup screensaver timeout import",
     ],
-    [
-      { domain: "number", name: "home_screen_timeout", action: "set", value: "120" },
-      "backup home screen timeout import",
-    ],
   ];
   for (const [expected, label] of screensaverImportPosts) {
     await waitForPost(posts, expected, label, before);
@@ -3236,6 +3223,8 @@ async function assertBackupImportSmoke(page, posts, testCase) {
     before,
   );
   const importPosts = posts.slice(before);
+  assert(!importPosts.some(post => /home_screen_timeout|Home Screen Timeout/.test(post.name)),
+    "restore ignores the retired home screen timeout");
   assert(!importPosts.some(post => /home_assistant_artwork|presence_sensor|screen_schedule_sensor/.test(post.name)),
     "restore skips retired Home Assistant settings");
   assert(
@@ -5324,6 +5313,7 @@ async function assertNamingOfflineBackups(browser) {
       "alarm_delay_beep_volume", "alarm_delay_final_countdown"]) {
       assert(!Object.hasOwn(exported.settings, key), `new backup omits retired audio setting ${key}`);
     }
+    assert(!Object.hasOwn(exported.settings, "home_screen_timeout"), "new backup omits the retired home screen timeout");
     assert(!Object.hasOwn(exported, "identity"), "naming outage omits optional metadata");
     assert(exported.native_config, "naming outage still exports configuration");
     await page.getByText("Backup exported without the panel name because naming is unavailable.").waitFor();
@@ -6715,7 +6705,7 @@ async function assertRetiredSettingsStayUnavailable(browser, testCase) {
     assert.strictEqual(await page.locator("#sp-set-voice-services,#sp-set-alarm-delay-audio,#sp-set-temperature-unit,.sp-clockbar-voice").count(), 0,
       `${testCase.name}: retired events cannot recreate HA settings or clock-bar items`);
     const headers = await page.locator("#sp-settings .card-header h3").allTextContents();
-    for (const retired of ["Voice Services", "Alarm Audio", "Alarm Delay Audio", "Temperature"]) {
+    for (const retired of ["Voice Services", "Alarm Audio", "Alarm Delay Audio", "Temperature", "Idle"]) {
       assert(!headers.includes(retired), `${testCase.name}: retired ${retired} settings are absent`);
     }
     assert(headers.includes("Clock Bar"), `${testCase.name}: local clock-bar settings remain`);
