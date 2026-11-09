@@ -3,7 +3,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()

@@ -2,7 +2,7 @@ import type { CardConfig } from "../contracts/types";
 import { WEB_UI_COLORS } from "./ui_tokens";
 import type { AppState, DeviceConfig } from "./types";
 
-export const AUTO_TIMEZONE_OPTION = "Auto (Home Assistant)";
+export const AUTO_TIMEZONE_OPTION = "Auto (Mac Companion)";
 export const FALLBACK_TIMEZONE_OPTION = "UTC (GMT+0)";
 export const NTP_SERVER_DEFAULTS = ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"] as const;
 export const LANGUAGE_LABELS: Readonly<Record<string, string>> = {
@@ -30,25 +30,19 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
   return {
     grid, sizes: {}, buttons, onColor: WEB_UI_COLORS.primary, cardCurve: "Medium", cardCurveSupported: false, defaultIconSize: "small", defaultIconSizeSupported: false,
     selectedSlots: [], lastClickedSlot: -1, clockBarSelectedItem: "", activeTab: "screen",
-    _indoorOn: false, _outdoorOn: false, _indoorVal: null, _outdoorVal: null,
-    indoorEntity: "", outdoorEntity: "", clockBarTemperatureEntities: [],
-    _clockBarTemperatureEntitiesReceived: false, _clockBarTemperatureVisibilityReceived: false,
-    temperatureUnit: "Auto", clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
+    clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
     clockBarNightModeOn: false,
-    networkStatusOn: true, batteryStatusOn: false, voiceServicesOn: false,
-    alarmDelayAudioOn: false, alarmDelayTtsOn: true,
-    alarmDelayEntryAnnouncement: "Please disarm the alarm",
-    alarmDelayExitAnnouncement: "Alarm arming, please leave the house",
-    alarmDelayBeepVolume: 0.45, alarmDelayFinalCountdown: 10,
+    networkStatusOn: true, batteryStatusOn: false,
+
     networkTransport: "wifi", wifiStrengthPercent: 100,
-    temperatureDegreeSymbolOn: true, subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",
+    subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",
     screensaverCameraEntity: "", screensaverCameraImageMode: "Fit", screensaverCameraDimming: 0, screensaverCameraDimmingSupported: false, screensaverCameraSupported: false,
     clockDateSupported: false, clockDateOn: false,
     clockOverlaySupported: false,
     screensaverMetadataEntity: "",
     metadataOverlayOn: false,
     mediaPlayerSleepPreventionOn: true, mediaPlayerSleepPreventionEntity: "",
-    coverArtScreensaverOn: false, clockOverlayOn: false, coverArtSource: "Home Assistant", coverArtMediaPlayerEntity: "", coverArtSecondaryMediaPlayerEntity: "", coverArtAttributeConditions: "",
+    coverArtScreensaverOn: false, clockOverlayOn: false, coverArtSource: "Mac Companion", coverArtMediaPlayerEntity: "", coverArtSecondaryMediaPlayerEntity: "", coverArtAttributeConditions: "",
     coverArtPlaybackControlOn: true, coverArtFilteringEnabled: false, coverArtDelay: 10, coverArtTrackOverlayDuration: 5,
     homeAssistantArtworkEndpointMode: "Automatic", homeAssistantArtworkEndpointStatus: "Discovering", homeAssistantArtworkEndpointHealth: "",
     coverArtHideExternalInputOn: true, homeAssistantArtworkProtocol: "http", homeAssistantArtworkHost: "", coverArtHomeAssistantPort: 8123,

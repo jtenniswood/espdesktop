@@ -4,7 +4,7 @@ import subprocess
 import sys
 import tempfile
 
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 root = Path(__file__).resolve().parents[2]
 header = (root / 'components/espdesktop/instant_button_style.h').read_text()

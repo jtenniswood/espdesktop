@@ -118,7 +118,7 @@ def generate() -> str:
     )
     for card_type in ("", "light_switch", "light_control", "fan_switch", "fan_control",
                       "media", "climate", "cover", "alarm", "weather",
-                      "calendar", "action", "presence"):
+                      "calendar", "presence"):
         for colour_options, expected_colour, expected_mode, expected_on in colour_cases:
             options = ("large_numbers=off," if card_type == "sensor" else "") + colour_options
             encodings = (

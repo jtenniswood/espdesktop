@@ -765,7 +765,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "1",
         "label": "Search books",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -821,7 +821,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "7",
         "label": "Search for events",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -1237,7 +1237,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "5",
         "label": "Delete selection",
         "shortcut": "command+delete",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "6",
@@ -1249,7 +1249,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "7",
         "label": "Reveal the selected event clip’s source media",
         "shortcut": "shift+command+r",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -1331,7 +1331,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "2",
         "label": "Search boards",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
@@ -1513,25 +1513,25 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "3",
         "label": "Open the Find Bar to search the current page",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "4",
         "label": "Jump to the next match to your Find Bar search",
         "shortcut": "command+g",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "5",
         "label": "Jump to the previous match to your Find Bar",
         "shortcut": "command+shift+g",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "6",
         "label": "When Find Bar is open, search for selected text",
         "shortcut": "command+e",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "7",
@@ -1549,7 +1549,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "9",
         "label": "Search the web",
         "shortcut": "command+option+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -1575,7 +1575,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "2",
         "label": "Search sessions",
         "shortcut": "command+shift+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
@@ -1611,7 +1611,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "8",
         "label": "Find in chat transcript",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "9",
@@ -1707,7 +1707,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "3",
         "label": "Search the current session",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -1947,7 +1947,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "3",
         "label": "Search all conversations",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "4",
@@ -2265,13 +2265,13 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "4",
         "label": "Select the search field",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "5",
         "label": "Search the iTunes Store",
         "shortcut": "option+enter",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -2297,7 +2297,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "2",
         "label": "Search all notes",
         "shortcut": "option+command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
@@ -2601,7 +2601,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "8",
         "label": "Search",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -2683,7 +2683,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "1",
         "label": "Find photos",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "2",
@@ -2751,7 +2751,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "6",
         "label": "Fit image to window",
         "shortcut": "command+0",
-        "icon": "Window Open"
+        "icon": "Fit to Screen"
       },
       {
         "id": "7",
@@ -2783,7 +2783,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "2",
         "label": "Search your library or all podcasts",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
@@ -3009,13 +3009,13 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "5",
         "label": "Search the current webpage",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "6",
         "label": "Select the Smart Search field",
         "shortcut": "command+l",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "7",
@@ -3165,7 +3165,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "1",
         "label": "Start a search",
         "shortcut": "command+g",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "2",
@@ -3227,7 +3227,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "Open Search",
         "shortcut": "command+k",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "1",
@@ -3271,19 +3271,19 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "Quick search",
         "shortcut": "command+k",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "1",
         "label": "Search this chat",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "2",
         "label": "Search all chats",
         "shortcut": "shift+command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
@@ -3665,7 +3665,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "7",
         "label": "Open Extended Search",
         "shortcut": "command+k",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "8",
@@ -3715,7 +3715,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "5",
         "label": "Find in the workspace",
         "shortcut": "command+shift+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "6",
@@ -3765,7 +3765,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "4",
         "label": "Search in chat or channel",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "5",
@@ -3777,7 +3777,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "6",
         "label": "Global search",
         "shortcut": "command+e",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "7",

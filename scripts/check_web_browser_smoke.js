@@ -3750,38 +3750,9 @@ async function assertCameraRefreshSettings(page, posts, label) {
   const before = posts.length;
   await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page.getByRole("button", { name: "Camera Card card type", exact: true }).click();
-  await page.locator("#sp-inp-entity").fill("camera.front_door");
-  await page.locator("#sp-inp-entity").dispatchEvent("change");
-  await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Refresh Settings" })
-    .locator("> .sp-disclosure-button").click();
-  const mode = page.locator("#sp-inp-image-refresh-mode");
-  const interval = page.locator("#sp-inp-image-refresh-interval");
-  const trigger = page.locator("#sp-inp-image-refresh-trigger");
-  assert.strictEqual(await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Modal Settings" })
-    .locator("#sp-inp-image-refresh-mode").count(), 0,
-    `${label}: refresh controls must sit outside Modal Settings`);
-  assert(await page.getByText("On activity refreshes them every 5 seconds for 30 seconds.", { exact: false }).count() === 1);
-  assert.strictEqual(await mode.inputValue(), "off", `${label}: camera refresh is opt-in`);
-  assert(!(await interval.isVisible()));
-  await mode.selectOption("periodic");
-  assert.strictEqual(await interval.inputValue(), "10");
-  await interval.selectOption("5");
-  assert(!(await trigger.isVisible()));
-  await mode.selectOption("activity");
-  assert(await trigger.isVisible());
-  assert(!(await interval.isVisible()));
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  const error = page.getByText("Choose a binary sensor or event entity for activity refresh.", { exact: true });
-  assert(await error.isVisible());
-  await trigger.fill("camera.other");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  assert(await error.isVisible());
-  await trigger.fill("event.doorbell");
-  assert.strictEqual(await error.count(), 0);
-  assert.strictEqual(posts.length, before, `${label}: invalid refresh drafts must not save`);
-  await page.locator("#sp-inp-entity").fill("image.front_door");
-  assert(!(await mode.isVisible()), `${label}: image entities use revision events instead of polling controls`);
+  assert.strictEqual(await page.getByRole("button", { name: "Camera Card card type", exact: true }).count(), 0,
+    `${label}: retired camera cards must not appear in the picker`);
+  assert.strictEqual(posts.length, before, `${label}: checking retired picker entries must not save`);
   await page.locator(".sp-settings-close").click();
   await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay").classList.contains("sp-visible"));
 }
@@ -7222,7 +7193,7 @@ async function assertResetControls(browser) {
         await page.setViewportSize({ width: 320, height: 700 });
         assert(await confirmation.evaluate(el => el.scrollWidth <= el.clientWidth), "confirmation must fit a narrow phone");
         await page.setViewportSize(testCase.viewport);
-        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and the Home Assistant API key will be erased."));
+        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and Mac pairing will be erased."));
         for (const text of ["", "reset", " RESET", "RESET ", "RESE"]) {
           await confirmationInput.fill(text);
           await confirmationInput.press("Enter");
@@ -7291,7 +7262,9 @@ async function assertNamingOfflineBackups(browser) {
     const offlineBackup = backupFixture(testCase.slug, testCase.slots);
     offlineBackup.identity = { version: 1, name: "Other panel", hostname: "other-panel-ffffff", mac_suffix: "ffffff" };
     await importBackup(page, offlineBackup, "identity-offline-restore");
-    await page.waitForSelector(".sp-banner.sp-success");
+    await page.locator(".sp-banner.sp-warning").filter({ hasText: "Configuration imported successfully" }).waitFor();
+    assert.match(await page.locator(".sp-banner.sp-warning").innerText(), /Home Assistant, which is unavailable/,
+      "offline restore retains its unavailable-card warning in the final result");
     assert.strictEqual(identityState.posts.length, 0, "offline restore cannot rename the destination");
     assert.strictEqual(restartRequests.length, 0, "offline restore cannot restart for naming");
     assert.strictEqual(await page.locator("dialog[open]").count(), 0, "offline restore skips the optional name dialog");
@@ -8736,7 +8709,66 @@ async function assertRetiredCardRemoval(browser) {
 
     } finally { await context.close(); }
   }
+  for (const testCase of ACTIVE_CASES) {
+    const nativeState = nativeConfigState(testCase.slug);
+    nativeState.document.buttons = { 2: ";Clock;Clock;Auto;;;clock" };
+    nativeState.document.subpages = {};
+    nativeState.document.settings.button_order = "2";
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    // Even a stale device capability cannot restore the retired connector/cards.
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
+      await page.waitForSelector(".sp-settings-modal");
+      assert.strictEqual(await page.getByRole("button", { name: "Action card type", exact: true }).count(), 0);
+      assert.strictEqual(await page.getByRole("button", { name: "Local Action card type", exact: true }).count(), 0);
+      assert.strictEqual(await page.getByRole("button", { name: "Subpage card type", exact: true }).count(), 1,
+        `${testCase.name}: the picker offers one shared Subpage choice`);
+      assert(!/Home Assistant/i.test(await page.locator(".sp-settings-modal").innerText()),
+        `${testCase.name}: new-card picker offers no HA integration or wording`);
+      await page.getByRole("button", { name: "Subpage card type", exact: true }).click();
+      await page.getByPlaceholder("e.g. Folder Name", { exact: true }).waitFor({ state: "attached" });
+      await page.locator(".sp-settings-modal .sp-save-btn").waitFor({ state: "visible" });
+    } finally { await context.close(); }
+  }
+  console.log(`Action/HA picker absence passed for ${ACTIVE_CASES.length} layouts.`);
   console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
+}
+
+async function assertRetiredSettingsStayUnavailable(browser, testCase) {
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  const nativeState = nativeConfigState(testCase.slug);
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-voice_services", state: "ON", value: true },
+      { id: "switch-alarm_delay__audio", state: "ON", value: true },
+      { id: "switch-indoor_temp_enable", state: "ON", value: true },
+      { id: "select-temperature_unit", state: "°F", value: "°F" },
+    ]));
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.locator("#sp-set-voice-services,#sp-set-alarm-delay-audio,#sp-set-temperature-unit,.sp-clockbar-voice").count(), 0,
+      `${testCase.name}: retired events cannot recreate HA settings or clock-bar items`);
+    const headers = await page.locator("#sp-settings .card-header h3").allTextContents();
+    for (const retired of ["Voice Services", "Alarm Audio", "Alarm Delay Audio", "Temperature"]) {
+      assert(!headers.includes(retired), `${testCase.name}: retired ${retired} settings are absent`);
+    }
+    assert(headers.includes("Clock Bar"), `${testCase.name}: local clock-bar settings remain`);
+    assert.deepStrictEqual(errors, [], `${testCase.name}: browser composition and retired events raise no errors`);
+    console.log(`${testCase.name}: retired settings remain unavailable; local Clock Bar is available.`);
+  } finally { await context.close(); }
 }
 
 async function assertNestedCompanionPages(browser) {
@@ -8825,6 +8857,12 @@ async function assertNestedCompanionPages(browser) {
     }
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
+    if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
+      await assertNamingOfflineBackups(browser);
+      console.log(`Retired HA settings and backup export checks passed for ${ACTIVE_CASES.length} layouts.`);
+      return;
+    }
     if (process.env.ESPDESKTOP_COMPANION_SHORTCUTS_ONLY === "1") {
       const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
       await assertCompanionShortcutSettings(browser, testCase);

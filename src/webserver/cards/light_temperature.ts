@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -224,70 +225,8 @@ export function registerLightTemperatureCardTypes(
         },
         labelPlaceholder: "e.g. Living Room",
         cardMetadata: LIGHT_TEMPERATURE_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            b.sensor = "";
-            b.unit = "2000-6500";
-            b.precision = "";
-            b.icon = "Lightbulb";
-            b.icon_on = "Auto";
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            renderLightControlTypeField(panel, b, helpers);
-            helpers.renderBasicCardFields(panel, b, helpers, LIGHT_TEMPERATURE_CARD_METADATA, {
-                icon: false,
-            });
-            if (lightTempSensorNeedsCleanup(b.sensor)) {
-                b.sensor = "";
-                helpers.saveField("sensor", "");
-            }
-            // Kelvin range
-            var range: any = lightTempParseRange(b.unit);
-            var curMin: any = range[0], curMax: any = range[1];
-            function saveRange(this: any, mn?: any, mx?: any) {
-                b.unit = mn + "-" + mx;
-                helpers.saveField("unit", b.unit);
-            }
-            var minF: any = document.createElement("div");
-            minF.className = "sp-field";
-            minF.appendChild(helpers.fieldLabel("Min Color Temp (K)", helpers.idPrefix + "kmin"));
-            var minInp: any = document.createElement("input");
-            minInp.type = "number";
-            minInp.className = "sp-input";
-            minInp.id = helpers.idPrefix + "kmin";
-            minInp.min = "1000";
-            minInp.max = "9900";
-            minInp.step = "100";
-            minInp.placeholder = "2000";
-            minInp.value = curMin;
-            minF.appendChild(minInp);
-            panel.appendChild(minF);
-            var maxF: any = document.createElement("div");
-            maxF.className = "sp-field";
-            maxF.appendChild(helpers.fieldLabel("Max Color Temp (K)", helpers.idPrefix + "kmax"));
-            var maxInp: any = document.createElement("input");
-            maxInp.type = "number";
-            maxInp.className = "sp-input";
-            maxInp.id = helpers.idPrefix + "kmax";
-            maxInp.min = "1100";
-            maxInp.max = "10000";
-            maxInp.step = "100";
-            maxInp.placeholder = "6500";
-            maxInp.value = curMax;
-            maxF.appendChild(maxInp);
-            panel.appendChild(maxF);
-            function onRangeChange(this: any) {
-                var mn: any = lightTempClampMin(minInp.value, lightTempMinLimit());
-                var mx: any = lightTempClampMax(maxInp.value, mn);
-                minInp.value = mn;
-                maxInp.value = mx;
-                saveRange(mn, mx);
-            }
-            minInp.addEventListener("change", onRangeChange);
-            maxInp.addEventListener("change", onRangeChange);
-            minInp.addEventListener("blur", onRangeChange);
-            maxInp.addEventListener("blur", onRangeChange);
-            helpers.renderCardIconPicker(panel, b, helpers, LIGHT_TEMPERATURE_CARD_METADATA.icon);
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var label: any = b.label || b.entity || "Light Temp";
             return cardBadgePreview(b, helpers, {
@@ -312,25 +251,8 @@ export function registerLightTemperatureCardTypes(
         },
         labelPlaceholder: "e.g. Living Room",
         cardMetadata: LIGHT_FULL_CONTROL_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "";
-            b.options = "";
-            b.icon = "Lightbulb Outline";
-            b.icon_on = "Lightbulb";
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            renderLightControlTypeField(panel, b, helpers);
-            b.options = normalizeLightControlOptions(b.options);
-            helpers.renderCardEntityField(panel, b, helpers, LIGHT_FULL_CONTROL_CARD_METADATA);
-            var cardSettingsDisclosure: any = helpers.disclosureSection("Card Settings", helpers.idPrefix + "light-card-settings", false);
-            var cardSettings: any = cardSettingsDisclosure.section;
-            helpers.renderCardTextField(cardSettings, b, helpers, LIGHT_FULL_CONTROL_CARD_METADATA.labelField);
-            helpers.renderCardIconPair(cardSettings, b, helpers, LIGHT_FULL_CONTROL_CARD_METADATA.iconOff, LIGHT_FULL_CONTROL_CARD_METADATA.iconOn);
-            panel.appendChild(cardSettingsDisclosure.panel);
-            renderLightControlTabSettings(panel, b, helpers);
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var label: any = b.label || b.entity || "Light";
             return cardBadgePreview(b, helpers, {

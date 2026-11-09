@@ -1,4 +1,5 @@
 {
+  "hidden": true,
   "label": "Doors & Windows",
   "allowInSubpage": true,
   "domains": ["binary_sensor", "sensor"],

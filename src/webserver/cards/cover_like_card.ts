@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import {
     cardContractAllowInSubpage,
     cardContractCard,
@@ -42,14 +43,7 @@ export function createCoverLikeCardRegistration(registry: CardRegistry, renderQu
         if (!isCommandMode) {
             helpers.renderCardSegmentControl(confirmSection, b, helpers, Object.assign({}, metadata.confirmationMode, {
                 value: function (this: any) { return confirmMode; },
-                onSelect: function (this: any, b?: any, helpers?: any, value?: any) {
-                    var previousDefault: any = confirmConfig.defaultMessageForMode(confirmMode);
-                    confirmMode = value;
-                    if (!messageInput.value || messageInput.value === previousDefault) {
-                        messageInput.value = confirmConfig.defaultMessageForMode(confirmMode);
-                    }
-                    saveConfirmationOptions();
-                },
+                onSelect: null,
             }));
         }
         var messageField: any = helpers.renderCardTextField(confirmSection, b, helpers, metadata.confirmationMessage);
@@ -120,103 +114,8 @@ export function createCoverLikeCardRegistration(registry: CardRegistry, renderQu
             hideLabel: true,
             defaultConfig: function (this: any) { return cardContractDefaultConfig(config.type); },
             cardMetadata: metadata,
-            onSelect: function (this: any, b?: any) {
-                b.label = "";
-                b.sensor = "";
-                b.unit = "";
-                b.precision = "";
-                b.icon = config.closedIcon;
-                b.icon_on = config.openIcon;
-                b.options = "";
-            },
-            renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-                var mode: any = normalizeMode(b.sensor);
-                if (b.sensor !== mode) {
-                    b.sensor = mode;
-                    helpers.saveField("sensor", mode);
-                }
-                syncModeFields(b, helpers, mode);
-                helpers.renderCardModeSelector(panel, b, helpers, Object.assign({}, metadata, {
-                    mode: Object.assign({}, metadata.mode, {
-                        value: function (this: any) { return mode; },
-                        onChange: function (this: any) {
-                            var oldMode: any = mode;
-                            var hadDefaultIcon: any = config.usesDefaultIcon(b.icon);
-                            mode = normalizeMode(this.value);
-                            b.sensor = mode;
-                            helpers.saveField("sensor", mode);
-                            b.unit = "";
-                            b.precision = "";
-                            helpers.saveField("unit", "");
-                            helpers.saveField("precision", "");
-                            b.options = config.normalizeOptions(b.options, mode);
-                            helpers.saveField("options", b.options);
-                            if (hadDefaultIcon || b.icon === config.defaultIcon(oldMode)) {
-                                b.icon = config.defaultIcon(mode);
-                                helpers.saveField("icon", b.icon);
-                            }
-                            b.icon_on = commandMode(mode) ? "Auto" : (b.icon_on && b.icon_on !== "Auto" ? b.icon_on : config.openIcon);
-                            helpers.saveField("icon_on", b.icon_on);
-                            renderButtonSettings();
-                        },
-                    }),
-                }));
-                var labelHost: any = document.createElement("div");
-                var labelControl: any = helpers.renderCardTextField(labelHost, b, helpers, Object.assign({}, metadata.labelField, {
-                    placeholder: commandMode(mode) ? commandPlaceholder(mode) : config.labelPlaceholder,
-                }));
-                function setLabelVisible(this: any, value?: any) {
-                    labelControl.field.style.display = value === "label" ? "" : "none";
-                }
-                var labelMode: any = config.labelDisplayMode(b);
-                helpers.renderCardSegmentControl(panel, b, helpers, {
-                    segment: Object.assign({}, metadata.display, {
-                        value: function (this: any) { return labelMode; },
-                        onSelect: function (this: any, button?: any, cardHelpers?: any, value?: any) {
-                            labelMode = value;
-                            config.setLabelDisplayMode(button, value);
-                            cardHelpers.saveField("options", button.options);
-                            setLabelVisible(value);
-                            renderQueue.schedule();
-                        },
-                    }),
-                });
-                setLabelVisible(labelMode);
-                panel.appendChild(labelControl.field);
-                helpers.renderCardEntityField(panel, b, helpers, metadata);
-                var closedIconVal: any = b.icon && b.icon !== "Auto" ? b.icon : config.closedIcon;
-                var iconOnVal: any = b.icon_on && b.icon_on !== "Auto" ? b.icon_on : config.openIcon;
-                if (commandMode(mode)) {
-                    helpers.renderCardIconPicker(panel, b, helpers, {
-                        pickerIdSuffix: "icon-picker",
-                        idSuffix: "icon",
-                        field: "icon",
-                        value: b.icon && b.icon !== "Auto" ? b.icon : config.defaultIcon(mode),
-                        fallback: config.defaultIcon(mode),
-                        label: "Icon",
-                    });
-                }
-                else {
-                    helpers.renderCardIconPair(panel, b, helpers, {
-                        pickerIdSuffix: "icon-picker",
-                        idSuffix: "icon",
-                        field: "icon",
-                        value: closedIconVal,
-                        fallback: config.closedIcon,
-                        label: "Closed Icon",
-                    }, {
-                        pickerIdSuffix: "icon-on-picker",
-                        idSuffix: "icon-on",
-                        field: "icon_on",
-                        value: iconOnVal,
-                        fallback: config.openIcon,
-                        label: "Open Icon",
-                    });
-                }
-                if (config.confirmation) {
-                    renderCoverLikeConfirmationSettings(panel, b, helpers, config.confirmation, commandMode(mode), mode === "open" ? "on" : "off");
-                }
-            },
+            onSelect: null,
+            renderSettings: renderRetiredCardSettings,
             renderPreview: function (this: any, b?: any, helpers?: any) {
                 var mode: any = normalizeMode(b.sensor);
                 var label: any = b.label || (commandMode(mode) ? config.defaultLabel(mode) : b.entity || config.defaultCardLabel);
