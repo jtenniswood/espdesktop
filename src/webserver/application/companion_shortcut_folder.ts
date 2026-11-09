@@ -21,6 +21,7 @@ import { isBackOrderToken } from "../model/subpage";
 
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
+export const COMPANION_URL_OPEN_BEHAVIOR = "url_open_behavior";
 export const FINDER_OPEN_BEHAVIOR_OPTION = "finder_open_behavior";
 export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
@@ -111,8 +112,14 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
 /** Normalize the saved options owned by each Companion card mode. */
 export function normalizeCompanionCardOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
+    const mode = companionSavedCardMode(card);
+    if (mode === "url") {
+        const behavior = configOptionValue(card.options, COMPANION_URL_OPEN_BEHAVIOR);
+        return preserveCardColorOptions(card.options, setConfigOptionValue("", COMPANION_URL_OPEN_BEHAVIOR,
+            behavior === "new_window" ? behavior : ""));
+    }
     let options = normalizeCompanionAppShortcutOptions(card);
-    if (companionSavedCardMode(card) !== "app") return options;
+    if (mode !== "app") return options;
 
     // App launch cards now always use the Mac app icon. Drop the legacy opt-out
     // token while preserving other saved app appearance settings.

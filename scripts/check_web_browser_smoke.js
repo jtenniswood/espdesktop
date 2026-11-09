@@ -6267,6 +6267,45 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   }
 }
 
+async function assertCompanionURLOpenBehavior(browser, testCase) {
+  if (!testCase.companionSupported) return;
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[2] =
+    "~system.default_browser,Bookmark,Bookmark,Auto,url.https%253A%252F%252Fexample.com%252F,,companion";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, nativeState);
+    const urlMode = page.getByRole("combobox", { name: "Open in", exact: true });
+    async function openURLCard() {
+      await page.locator('.sp-main [data-slot="2"]').click();
+      await page.getByRole("button", { name: "Edit", exact: true }).click();
+      await urlMode.waitFor({ state: "visible" });
+    }
+    await openURLCard();
+    assert.strictEqual(await urlMode.inputValue(), "new_tab", "existing URL cards default to a new tab");
+    await urlMode.selectOption("new_window");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => nativeState.document.buttons[2].includes("url_open_behavior=new_window"),
+      "Open URL saves the new window option");
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await seedNativeDocument(page, nativeState);
+    await openURLCard();
+    assert.strictEqual(await urlMode.inputValue(), "new_window", "the new window choice survives reload");
+    await urlMode.selectOption("new_tab");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () => !nativeState.document.buttons[2].includes("url_open_behavior"),
+      "Open URL removes the override when switching back to a new tab");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertAppSubpageCapacity(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const shortcuts = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
@@ -8775,6 +8814,7 @@ async function assertNestedCompanionPages(browser) {
     }
     if (process.env.ESPDESKTOP_COMPANION_SHORTCUTS_ONLY === "1") {
       const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+      await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);
@@ -8955,6 +8995,7 @@ async function assertNestedCompanionPages(browser) {
       await assertNativeProfileJourney(browser, testCase);
       await assertStandardIconSizes(browser, testCase);
       await assertGlobalIconSize(browser, testCase);
+      await assertCompanionURLOpenBehavior(browser, testCase);
       await assertCompanionShortcutSettings(browser, testCase);
       await assertAppSubpageCapacity(browser, testCase);
       await assertShortcutCatalogSettings(browser, testCase);

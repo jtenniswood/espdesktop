@@ -26,7 +26,7 @@ protocol CompanionSessionResources: AnyObject {
     func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)])
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String
-    func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool
+    func openURL(encodedURL: String, newWindow: Bool) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
 }
 

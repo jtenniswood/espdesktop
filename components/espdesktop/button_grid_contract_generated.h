@@ -315,6 +315,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_LOW_LABEL = "state_low_lab
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_CONNECTOR = "subpage_connector";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_KIND = "subpage_kind";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_TEMPERATURE_STEP = "temperature_step";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_URL_OPEN_BEHAVIOR = "url_open_behavior";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VACUUM_MODE = "vacuum_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VOLUME_MAX = "volume_max";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEATHER_MODE = "weather_mode";

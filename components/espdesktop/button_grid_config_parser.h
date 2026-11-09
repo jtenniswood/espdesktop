@@ -1270,6 +1270,10 @@ inline bool companion_app_icon_enabled(const ParsedCfg &p) {
   return companion_app_launch_card(p);
 }
 
+inline bool companion_url_opens_new_window(const ParsedCfg &p) {
+  return p.sensor.rfind("url.", 0) == 0 && cfg_option_value(p.options, "url_open_behavior") == "new_window";
+}
+
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
   if (p.entity.rfind("folder.", 0) == 0 &&
       cfg_option_value(p.options, "finder_open_behavior") == "same_window") {
@@ -1309,6 +1313,9 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
 }
 
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {
+  if (p.sensor.rfind("url.", 0) == 0) {
+    return companion_url_opens_new_window(p) ? "url_open_behavior=new_window" : "";
+  }
   std::string out;
   const std::string preset = companion_shortcut_preset_normalized(p);
   if (!preset.empty()) {

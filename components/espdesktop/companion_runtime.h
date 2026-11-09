@@ -135,7 +135,8 @@ inline std::string companion_network_address(const CompanionRuntimeSnapshot &sna
 }
 
 using CompanionActionSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
-using CompanionUrlSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
+using CompanionUrlSender = std::function<bool(const std::string &encoded_url, const std::string &request_id,
+                                              bool new_window)>;
 using CompanionValueSender = std::function<bool(const std::string &, int, const std::string &)>;
 using CompanionActionResultHandler = std::function<void()>;
 using CompanionConnectionChangedHandler = std::function<void(bool)>;

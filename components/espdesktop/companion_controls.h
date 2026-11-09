@@ -1073,13 +1073,12 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   return invoke_companion_action(action_id, request_id, folder_open_behavior);
 }
 
-inline bool invoke_companion_url(const std::string &app_id,
-                                 const std::string &url_config,
-                                 const std::string &request_id) {
+inline bool invoke_companion_url(const std::string &url_config,
+                                 const std::string &request_id,
+                                 bool new_window = false) {
   const std::string encoded_url = companion_encoded_url(url_config);
-  (void) app_id;  // Older cards store a browser ID; URL actions no longer use it.
   if (encoded_url.empty() || !companion_connected() || !companion_url_sender()) return false;
-  return companion_url_sender()("system.default_browser", encoded_url, request_id);
+  return companion_url_sender()(encoded_url, request_id, new_window);
 }
 
 inline bool invoke_companion_value(const std::string &control_id, int value,

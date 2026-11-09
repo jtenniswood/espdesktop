@@ -2526,6 +2526,19 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": true
       },
       {
+        "name": "url_open_behavior",
+        "label": "Open URL in",
+        "kind": "choice",
+        "values": [
+          "new_tab",
+          "new_window"
+        ],
+        "defaultValue": "new_tab",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
+      },
+      {
         "name": "finder_open_behavior",
         "label": "Finder Folder Open Behavior",
         "kind": "choice",
@@ -2636,6 +2649,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "canonicalOptionOrder": [
         "custom_icon",
         "app_shortcuts",
+        "url_open_behavior",
         "finder_open_behavior",
         "finder_open_override",
         "app_shortcuts_tabs",
@@ -3677,6 +3691,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "subpage_connector": "subpage_connector",
   "subpage_kind": "subpage_kind",
   "temperature_step": "temperature_step",
+  "url_open_behavior": "url_open_behavior",
   "vacuum_mode": "vacuum_mode",
   "volume_max": "volume_max",
   "weather_mode": "weather_mode",
