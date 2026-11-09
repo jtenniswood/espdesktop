@@ -43,7 +43,6 @@ export function runPreviewFeatureTests(): void {
   equal(infoOnlyCardVisible("sensor", true), false, "retired sensors are absent in info-only mode");
   equal(infoOnlyCardVisible("action", true), false, "actions are hidden in info-only mode");
   equal(defaultCardTypeForPicker("climate"), "climate_control", "picker aliases retain their defaults");
-  equal(defaultCardTypeForPicker("companion_stats"), "companion", "Companion subtype pickers use the Companion runtime card");
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
   deepEqual(
     cardPickerConnectors(true, true),
@@ -73,7 +72,7 @@ export function runPreviewFeatureTests(): void {
   equal(cardRequiresHomeAssistant("subpage", { options: "subpage_kind=companion_stat" }), false, "Companion Stat subpages remain transferable");
   equal(cardTypeVisibleForConnector("action", "mac_companion"), false, "Action cards cannot return through the Companion picker");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
-  equal(cardTypeVisibleForConnector("companion_stats", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
+  equal(cardTypeVisibleForConnector("companion_app", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
@@ -101,7 +100,6 @@ export function runPreviewFeatureTests(): void {
       companion_shortcut: { label: "Keyboard shortcut", allowInSubpage: true },
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
-      companion_stats: { label: "Stats", allowInSubpage: true },
       companion_subpage: { label: "Subpage", pickerKey: "subpage", allowInSubpage: false },
       companion_window: { label: "Window control", allowInSubpage: true },
       push: { label: "Trigger", allowInSubpage: true },
@@ -109,7 +107,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "slider", "companion_stats", "subpage", "companion_window"],
+    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "slider", "subpage", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(
