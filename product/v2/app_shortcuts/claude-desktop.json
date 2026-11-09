@@ -489,7 +489,7 @@
     {
       "id": "80",
       "label": "Stop Response",
-      "shortcut": "escape",
+      "shortcut": "claude-escape",
       "icon": "Stop"
     },
     {

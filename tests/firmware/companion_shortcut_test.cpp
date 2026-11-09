@@ -103,6 +103,20 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.0"));
   assert(!companion_shortcut_action_valid("shortcut.shift+f7"));
   assert(!companion_shortcut_action_valid("shortcut.escape-thrice"));
+  assert(companion_shortcut_label("shortcut.tab") == "Tab");
+  assert(companion_shortcut_label("shortcut.escape") == "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.enter"));
+  {
+    CompanionRuntimeSnapshot keyboard_only;
+    keyboard_only.connected = true;
+    assert(!companion_action_available(keyboard_only, "shortcut.tab"));
+    keyboard_only.keyboard_actions_supported = true;
+    // The Mac verifies Safari is active. A standalone keyboard card does not need app-launch approval.
+    assert(companion_action_available(keyboard_only, "shortcut.tab"));
+    assert(companion_action_available(keyboard_only, "shortcut.escape"));
+  }
+  assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
 
   ParsedCfg finder_launch;
   finder_launch.type = "companion";

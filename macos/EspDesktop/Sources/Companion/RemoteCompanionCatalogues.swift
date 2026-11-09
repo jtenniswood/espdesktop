@@ -104,19 +104,39 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
         app.appId.range(of: #"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil &&
         !app.shortcuts.isEmpty && app.shortcuts.count + extended.count <= 64 && allShortcuts.count <= 96 &&
         app.shortcuts.allSatisfy(validRegularShortcut) &&
-        (extended.isEmpty || (app.appId == CompanionKeyboardShortcut.booksBundleIdentifier && !app.catalog &&
-            extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isBooksExtendedShortcut($0.shortcut) })) &&
-        (additional.isEmpty || (app.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier && !app.catalog &&
-            additional.allSatisfy {
-                validRegularShortcut($0) || (validMetadata($0) && CompanionKeyboardShortcut.isClaudeScopedShortcut($0.shortcut))
-            })) &&
+        (extended.isEmpty ||
+            (CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
+                extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isSafariUnmodifiedShortcut($0.shortcut) }) ||
+            (app.appId == CompanionKeyboardShortcut.booksBundleIdentifier && !app.catalog &&
+                extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isBooksExtendedShortcut($0.shortcut) })) &&
+        validAdditionalShortcuts(additional, for: app) &&
         Set(allShortcuts.map(\.id)).count == allShortcuts.count && encodedSize <= 12_000
+    }
+
+    private static func validAdditionalShortcuts(_ shortcuts: [RemoteShortcutDefinition],
+                                                 for app: RemoteMacApplicationDefinition) -> Bool {
+        if shortcuts.isEmpty { return true }
+        guard !app.catalog else { return false }
+        switch app.appId {
+        case CompanionKeyboardShortcut.claudeDesktopBundleIdentifier:
+            return shortcuts.allSatisfy {
+                validRegularShortcut($0) || (validMetadata($0) && CompanionKeyboardShortcut.isClaudeScopedShortcut($0.shortcut))
+            }
+        case CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier:
+            return shortcuts.allSatisfy {
+                $0.shortcut == CompanionKeyboardShortcut.chatGPTClearUnreads ? validMetadata($0) : validRegularShortcut($0)
+            }
+        default:
+            return false
+        }
     }
 
     private static func validRegularShortcut(_ shortcut: RemoteShortcutDefinition) -> Bool {
         validMetadata(shortcut) &&
             !CompanionKeyboardShortcut.isBooksExtendedShortcut(shortcut.shortcut) &&
             !CompanionKeyboardShortcut.isClaudeScopedShortcut(shortcut.shortcut) &&
+            !CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(shortcut.shortcut) &&
+            shortcut.shortcut != CompanionKeyboardShortcut.chatGPTClearUnreads &&
             CompanionKeyboardShortcut(actionIdentifier: CompanionKeyboardShortcut.actionPrefix + shortcut.shortcut) != nil
     }
 

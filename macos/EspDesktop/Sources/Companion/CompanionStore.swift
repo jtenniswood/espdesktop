@@ -905,6 +905,11 @@ final class CompanionStore: NSObject, ObservableObject {
             return false
         }
         let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
+           !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
+            return false
+        }
         if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
            NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
             updateStatus("Bring Books to the front to use this shortcut")
@@ -920,6 +925,13 @@ final class CompanionStore: NSObject, ObservableObject {
             guard let application = NSWorkspace.shared.frontmostApplication,
                   application.bundleIdentifier == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier else {
                 updateStatus("Bring Claude Desktop to the front to use this shortcut")
+                return false
+            }
+            targetPID = application.processIdentifier
+        } else if actionIdentifier == CompanionKeyboardShortcut.actionPrefix + CompanionKeyboardShortcut.chatGPTClearUnreads {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier else {
+                updateStatus("Bring ChatGPT Desktop to the front to clear unread chats")
                 return false
             }
             targetPID = application.processIdentifier

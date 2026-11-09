@@ -22,6 +22,58 @@ test("Claude Desktop keeps its existing presets and exposes numbered and scoped 
   assert.deepEqual(api.companionShortcutPresetCards(claude.appId), presets);
 });
 
+test("Safari web apps use their own presets and keep their actual app identity", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const safari = require("../../../product/v2/app_shortcuts/safari.json");
+  const webApp = require("../../../product/v2/app_shortcuts/safari-web-app.json");
+  const installedId = "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef";
+  const browserPresets = api.companionShortcutPresetCards(safari.appId);
+  const webPresets = api.companionShortcutPresetCards(installedId);
+  assert.equal(browserPresets.length, 22);
+  assert.equal(webPresets.length, 17);
+  assert(!browserPresets.some(card => card.label === "Copy Link"));
+  assert.deepEqual(api.companionShortcutPresetCards("com.apple.Safari.WebApp.invalid"), []);
+  assert(webPresets.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.a"));
+  const copyLink = webApp.shortcuts.find(item => item.label === "Copy Link");
+  const tab = webApp.extendedShortcuts.find(item => item.shortcut === "tab");
+  const page = api.createCompanionShortcutSubpage(installedId, [copyLink.id, tab.id]);
+  assert.deepEqual(page.buttons.map(card => card.entity), ["shortcut.command+option+c", "shortcut.tab"]);
+  assert.equal(page.buttons[0].options, "app_shortcut_preset=" + installedId + "%3A" + copyLink.id);
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(installedId, page), [copyLink.id, tab.id]);
+  api.replaceCompanionDefinitions([safari, webApp]);
+  assert.deepEqual(api.companionShortcutPresetCards(installedId), webPresets);
+});
+
+test("ChatGPT Desktop uses the installed app identifier and keeps its numbered shortcuts distinct", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const app = require("../../../product/v2/app_shortcuts/codex.json");
+  const legacy = require("../../../product/v2/app_shortcuts/chatgpt.json");
+  assert.equal(app.appId, "com.openai.codex");
+  assert.equal(api.companionShortcutFolderAppLabel(app.appId), "ChatGPT Desktop");
+  const presets = api.companionShortcutPresetCards(app.appId);
+  assert.equal(presets.length, 72);
+  assert.equal(api.companionShortcutPresetCards(legacy.appId).length, legacy.shortcuts.length);
+  assert(presets.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.shift+tab"));
+  const keys = ["command+9", "command+option+6", "control+9", "shift+escape"];
+  const entries = [...app.shortcuts, ...app.additionalShortcuts];
+  const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
+  const page = api.createCompanionShortcutSubpage(app.appId, ids);
+  assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
+  const custom = { ...page.buttons[0], entity: "shortcut.command+w", label: "My Close Card", options: "" };
+  page.buttons.push(custom);
+  page.order.push(String(page.buttons.length));
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(app.appId, page), ids);
+  api.syncCompanionShortcutSubpage(app.appId, ids, page);
+  assert(page.buttons.includes(custom), "a pre-existing custom shortcut must survive the new matching preset");
+  api.replaceCompanionDefinitions([app]);
+  assert.deepEqual(api.companionShortcutPresetCards(app.appId), presets);
+  api.replaceCompanionDefinitions([{ ...app, additionalShortcuts: undefined }]);
+  assert.equal(api.companionShortcutPresetCards(app.appId).length, 62);
+});
+
 test("Books presets work from both the bundled and Companion catalogues", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const books = require("../../../product/v2/app_shortcuts/books.json");

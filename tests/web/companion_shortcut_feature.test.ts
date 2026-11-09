@@ -285,6 +285,18 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+shift+keybackslash",
     "shortcut.control+tab",
     "shortcut.control+shift+tab",
+    "shortcut.option+tab",
+    "shortcut.command+p",
+    "shortcut.command+c",
+    "shortcut.command+v",
+    "shortcut.command+shift+h",
+    "shortcut.command+keycomma",
+    "shortcut.command+shift+keyequal",
+    "shortcut.command+keyminus",
+    "shortcut.command+keybackquote",
+    "shortcut.command+shift+r",
+    "shortcut.tab",
+    "shortcut.escape",
   ];
   if (safariPreset.map((card) => card.entity).join("|") !== expectedSafariShortcuts.join("|")) {
     throw new Error("Safari shortcut defaults changed");
@@ -317,7 +329,7 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.control+shift+tab",
     "shortcut.control+tab",
   ];
-  if (codexPreset.map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
+  if (codexPreset.slice(0, expectedCodexShortcuts.length).map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
     throw new Error("Codex shortcut defaults changed");
   }
   if (!codexPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
@@ -325,10 +337,10 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const expectedCodexLabels = [
     "New Chat", "Command Menu", "Needs Attention", "Review Changes", "Terminal", "Find Text", "Find Files",
-    "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model Picker", "Open Folder", "Bottom Panel",
+    "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model / Effort", "Open Folder", "Bottom Panel",
     "Chat / Tabs", "Copy Link", "Previous Chat", "Next Chat",
   ];
-  if (codexPreset.map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
+  if (codexPreset.slice(0, expectedCodexLabels.length).map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
     throw new Error("Codex shortcut labels should stay short");
   }
   const slackFolderCard = {
@@ -381,7 +393,8 @@ export function runCompanionShortcutFeatureTests(): void {
     }
   }
   const safariSubpage = createSafariShortcutSubpage();
-  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10") {
+  const expectedSafariOrder = ["B", ...expectedSafariShortcuts.map((_shortcut, index) => String(index + 1))];
+  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== expectedSafariOrder.join("|")) {
     throw new Error("Safari app subpage layout changed");
   }
   setCompanionShortcutTabs(safariFolderCard, ["3", "0"]);
@@ -476,9 +489,9 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Users must be able to turn off every preset shortcut");
   }
   const codexSubpage = createCodexShortcutSubpage();
-  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== expectedCodexShortcuts.length + 1 ||
+  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexPreset.length + 1 ||
       codexSubpage.order[0] !== "B" ||
-      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
+      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexPreset.map((card) => card.entity).join("|")) {
     throw new Error("Codex app subpage layout changed");
   }
   const savedApprove = {

@@ -162,7 +162,7 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "": "docs/card-types/switches.md",
     "alarm": "docs/card-types/alarms.md",
     "alarm_action": "docs/card-types/alarms.md",
-    "companion": "docs/card-types/companion.md",
+    "companion": "docs/index.md",
     "climate": "docs/card-types/climate.md",
     "climate_control": "docs/card-types/climate.md",
     "cover": "docs/card-types/covers.md",
