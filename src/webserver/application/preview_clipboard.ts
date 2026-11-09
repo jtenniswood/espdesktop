@@ -1,3 +1,4 @@
+import { copyTextToClipboard } from "../features/browser_clipboard";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { sizeFromToken } from "../model/grid";
@@ -641,87 +642,14 @@ export function createPreviewClipboardFeature(
         return dialog;
     }
     async function showCopyCardCode(slots: any) {
-        var code: any;
         try {
-            code = await cardTransferCodeForSlots(slots);
+            const code = await cardTransferCodeForSlots(slots);
+            await copyTextToClipboard(document, document.defaultView!.navigator, code);
+            showBanner("Card code copied to clipboard.", "success");
         }
         catch (error: any) {
-            showBanner(error.cardTransferMessage || error.message || "Could not create card code.", "error");
-            return;
+            showBanner(error.cardTransferMessage || "Could not copy card code. Try again or allow clipboard access in your browser.", "error");
         }
-        var dialog: any = createCardTransferDialog("Copy Code");
-        var intro: any = document.createElement("p");
-        intro.textContent = "Copy this code to another controller.";
-        dialog.appendChild(intro);
-        var textarea: any = document.createElement("textarea");
-        textarea.className = "sp-input sp-textarea sp-transfer-code";
-        textarea.readOnly = true;
-        textarea.value = code;
-        textarea.setAttribute("aria-label", "Card transfer code");
-        dialog.appendChild(textarea);
-        var status = document.createElement("p");
-        status.className = "sp-transfer-note";
-        status.setAttribute("role", "status");
-        dialog.appendChild(status);
-        var actions = document.createElement("div");
-        actions.className = "sp-transfer-actions sp-btn-row";
-        var copy = createActionButton("sp-action-btn sp-transfer-copy-btn", "", "content-copy");
-        var copyLabel: any = document.createTextNode("Copy");
-        copy.appendChild(copyLabel);
-        var copyIcon: any = copy.querySelector(".mdi");
-        var copyResetTimer: any;
-        function setCopyButtonState(copied: any) {
-            copy.classList.toggle("sp-copied", copied);
-            copyIcon.className = copied ? "mdi mdi-check" : "mdi mdi-content-copy";
-            copyLabel.textContent = copied ? "Copied" : "Copy";
-        }
-        copy.addEventListener("click", async function () {
-            if (copyResetTimer) {
-                clearTimeout(copyResetTimer);
-                copyResetTimer = null;
-            }
-            copy.disabled = true;
-            setCopyButtonState(false);
-            status.textContent = "";
-            var copied = false;
-            try {
-                var clipboard = document.defaultView?.navigator.clipboard;
-                if (clipboard) {
-                    await clipboard.writeText(code);
-                    copied = true;
-                }
-            }
-            catch (_) {
-                // Local HTTP pages and browser permissions may require selection-based copying.
-            }
-            if (!copied && dialog.isConnected) {
-                textarea.focus();
-                textarea.select();
-                try {
-                    copied = document.execCommand("copy");
-                }
-                catch (_) {
-                    // Leave the code selected for manual copying.
-                }
-            }
-            status.textContent = copied
-                ? ""
-                : "Could not copy automatically. Copy the selected code manually.";
-            copy.disabled = false;
-            if (copied && dialog.isConnected) {
-                setCopyButtonState(true);
-                copyResetTimer = setTimeout(function () {
-                    copyResetTimer = null;
-                    if (dialog.isConnected)
-                        setCopyButtonState(false);
-                }, 2000);
-                copy.focus();
-            }
-        });
-        actions.appendChild(copy);
-        dialog.appendChild(actions);
-        textarea.focus();
-        textarea.select();
     }
     function showPasteCardCode(pos: any, targetIsSubpage: any) {
         const targetPage = targetIsSubpage ? state.editingSubpage : null;
