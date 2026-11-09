@@ -144,7 +144,7 @@ const importedPortraitSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, 3));
 assert.strictEqual(importedPortraitSubpage.subpages["1"].order[0], "1", "a portrait backup import normalizes a subpage 4x3 card before saving");
 assert.strictEqual(importedPortraitSubpage.subpages["1"].sizes["1"], undefined, "a portrait backup import removes the invalid subpage 4x3 size");
@@ -159,7 +159,7 @@ const restoredLandscapeSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1l",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
   settings: { screen_rotation: "0" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, restoredLandscapeCols));
 assert.strictEqual(restoredLandscapeSubpage.subpages["1"].order[0], "1l", "restoring landscape preserves a valid subpage 4x3 card");
