@@ -1,6 +1,6 @@
 import { cardContractTypeRetired } from "../generated/card_contract";
 import type { CardConfig } from "../contracts/types";
-import { emptyCardConfig, retiredSavedCardType } from "../model/card";
+import { emptyCardConfig } from "../model/card";
 import { childPageKey, pageDepth, parentPageKey, PAGE_OWNER_SLOTS } from "../model/page_keys";
 import { coveredCells } from "../model/grid";
 
@@ -12,7 +12,7 @@ export function removeRetiredCards(
   const removed: number[] = [];
   for (let position = 0; position < grid.length; position++) {
     const slot = grid[position] ?? 0;
-    if (slot <= 0 || !isRetired(retiredSavedCardType(buttons[slot - 1]) || buttons[slot - 1]?.type)) continue;
+    if (slot <= 0 || !isRetired(buttons[slot - 1]?.type)) continue;
     for (const cell of coveredCells(position, sizes[slot] || 1, grid.length, columns, true)) {
       if (cell < grid.length && (grid[cell] === slot || grid[cell] === -1)) grid[cell] = 0;
     }
@@ -33,7 +33,7 @@ export function removeRetiredSubpageRecords(
 ): { value: string; slots: Set<number> } {
   const slots = new Set<number>();
   buttons.forEach((button, index) => {
-    if (isRetired(retiredSavedCardType(button) || button.type)) slots.add(index + 1);
+    if (isRetired(button.type)) slots.add(index + 1);
   });
   if (!slots.size) return { value, slots };
   const compact = value.startsWith("~");
@@ -56,9 +56,7 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
   };
   const retiredSlots = new Set<number>();
   for (const [slot, value] of Object.entries(document.buttons)) {
-    const card = codec.parseButtonConfig(value);
-    const type = retiredSavedCardType(card) || card.type;
-    if (!isRetired(type)) continue;
+    if (!isRetired(codec.parseButtonConfig(value).type)) continue;
     retiredSlots.add(Number(slot));
     if (Number(slot) <= PAGE_OWNER_SLOTS) removeOwnedPages(Number(slot));
     delete document.buttons[Number(slot)];
@@ -80,14 +78,6 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
       if (retiredSlot <= PAGE_OWNER_SLOTS) removeOwnedPages(childPageKey(page, retiredSlot));
     }
   }
-  const special = document.settings.special_page;
-  if (special) {
-    const cleaned = removeRetiredSubpageRecords(special, codec.parseSubpageConfig(special).buttons, isRetired);
-    if (cleaned.slots.size) {
-      document.settings.special_page = cleaned.value;
-      changed = true;
-    }
-  }
   return changed;
 }
 
@@ -97,5 +87,5 @@ export function isRetiredWebApp(type: string | null | undefined): boolean {
 
 export function isRetiredLayoutCard(type: string | null | undefined): boolean {
   return isRetiredWebApp(type) || type === "wifi_qr" || type === "wifi_qr_card" ||
-    type === "companion_audio" || type === "companion_window";
+    type === "companion_audio";
 }

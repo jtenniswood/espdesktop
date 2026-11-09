@@ -5,7 +5,7 @@ description: Install EspDesktop on macOS, pair a 4848S040 display, approve apps 
 
 # Install and Pair the EspDesktop Mac App
 
-The EspDesktop menu-bar app connects one Mac to one supported display over your local network. It powers Mac cards for launching apps, opening folders and websites, and replaying shortcuts.
+The EspDesktop menu-bar app connects one Mac to one supported display over your local network. It powers Mac cards for launching apps, opening folders and websites, replaying shortcuts, and arranging windows.
 
 Mac Companion currently supports the **4-inch Guition ESP32-S3 4848S040** display. For Home Assistant panels and smart-home controls, visit the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
@@ -40,14 +40,14 @@ When the connection is ready, a monitor icon appears beside WiFi in the display'
 
 ## Choose the First-Run Options
 
-First-run setup has three steps: choose your display, enter the pairing code, then review **Access and startup**. After pairing, enable Accessibility if you want to use keyboard shortcuts, and choose whether EspDesktop should open when you sign in. These options are also available in the **Display** tab.
+First-run setup has three steps: choose your display, enter the pairing code, then review **Access and startup**. After pairing, enable Accessibility if you want to use keyboard shortcuts or window controls, and choose whether EspDesktop should open when you sign in. These options are also available in the **Display** tab.
 
 | Option | What it enables | Required? |
 |---|---|---|
-| **Accessibility** | Keyboard shortcuts | Only for those controls |
+| **Accessibility** | Keyboard shortcut and window controls | Only for those controls |
 | **Open at Startup** | Starts EspDesktop when you sign in so the display can reconnect | Optional |
 
-Keyboard shortcuts need macOS Accessibility access. Choose **Open Settings**, then turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, and websites do not need Accessibility permission.
+Keyboard shortcuts and window controls need macOS Accessibility access. Choose **Open Settings**, then turn on **EspDesktop** in **System Settings → Privacy & Security → Accessibility**. App launching, folders, and websites do not need Accessibility permission.
 
 ## Approve Apps and Folders
 
@@ -76,7 +76,7 @@ The **Accessibility** and startup settings sit below the connection panel in the
 - **Open at Startup** keeps the local connector available after you sign in.
 - **Enable Shortcuts** opens the macOS Accessibility setting; the app reports whether access is available.
 
-If shortcuts stop working after replacing the app, remove the old EspDesktop entry from Accessibility, add the installed app again, and retry the card.
+If shortcuts or window cards stop working after replacing the app, remove the old EspDesktop entry from Accessibility, add the installed app again, and retry the card.
 
 ## Support
 
