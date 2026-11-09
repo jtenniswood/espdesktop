@@ -5427,6 +5427,13 @@ async function assertHomeAssistantConnectorLayout(browser) {
       },
     };
     await installRoutes(context, testCase.slug, { connectorsStatus: connectorStatus });
+    const pairingState = {
+      available: true, active: true, paired: false, connected: false,
+      expires_in_seconds: 900, pairing_code: "123456",
+    };
+    if (testCase.companionSupported) {
+      await context.route("**/companion/pairing", route => route.fulfill({ json: pairingState }));
+    }
     const page = await context.newPage();
     await installFakeEventSource(page);
     try {
@@ -5481,6 +5488,35 @@ async function assertHomeAssistantConnectorLayout(browser) {
           assert(await page.locator("#sp-connectors").getByText("Connect your Mac").isVisible(),
             `${testCase.name}: pairing link opens Mac Companion in System`);
         }
+      }
+      if (testCase.companionSupported) {
+        const companion = connectors.locator(".card").filter({ hasText: "Mac Companion" });
+        const status = companion.getByRole("status").filter({ hasText: "Pairing is open" });
+        await status.waitFor({ state: "visible" });
+
+        Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
+        await companion.getByText("Mac paired, but not connected", { exact: true }).waitFor({ state: "visible" });
+        pairingState.connected = true;
+        await companion.locator(".card-body").waitFor({ state: "hidden" });
+
+        await companion.getByRole("heading", { name: "Mac Companion", exact: true }).click();
+        const clearIcons = companion.getByRole("button", { name: "Clear downloaded app icons" });
+        const reset = companion.getByRole("button", { name: "Reset Mac Companion pairing" });
+        await clearIcons.waitFor({ state: "visible" });
+        await reset.waitFor({ state: "visible" });
+        await page.setViewportSize(testCase.viewport);
+        const [clearBox, resetBox] = await Promise.all([clearIcons.boundingBox(), reset.boundingBox()]);
+        assert(resetBox.x >= clearBox.x + clearBox.width + 8,
+          `${testCase.name}: maintenance buttons have a visible gap`);
+        assert.strictEqual(await clearIcons.evaluate(button => getComputedStyle(button).backgroundColor),
+          "rgb(46, 46, 50)", `${testCase.name}: clear icons uses the dark secondary button style`);
+
+        await page.setViewportSize({ width: 320, height: 740 });
+        await page.waitForResponse(response => new URL(response.url()).pathname === "/companion/pairing");
+        assert(await clearIcons.isVisible() && await reset.isVisible(),
+          `${testCase.name}: maintenance buttons remain accessible after reopening and polling`);
+        assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
+          `${testCase.name}: maintenance buttons fit on a narrow screen`);
       }
     } finally {
       await context.close();
