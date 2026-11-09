@@ -734,6 +734,29 @@ def test_release_inventory_rejects_extra_files() -> None:
             raise AssertionError("release inventory accepted an unexpected build file")
 
 
+def test_release_provenance_accepts_extra_development_profiles() -> None:
+    with TemporaryDirectory() as tmp:
+        base = Path(tmp) / "firmware"
+        base.mkdir()
+        make_release_files(base)
+        web_manifest = web_manifest_for(base, [SLUG, RECOVERY_SLUG])
+        manifest = firmware_release.release_manifest_data(
+            base, [SLUG], VERSION, SOURCE_REVISION, RELEASE_CONTRACT, web_manifest, WEB_ROOT
+        )
+        assert manifest["webBundle"]["deviceProfiles"] == [SLUG, RECOVERY_SLUG]
+        assert manifest["firmwareAssets"].keys() == firmware_release.expected_release_asset_names([SLUG])
+
+        web_manifest_for(base, [RECOVERY_SLUG])
+        try:
+            firmware_release.release_manifest_data(
+                base, [SLUG], VERSION, SOURCE_REVISION, RELEASE_CONTRACT, web_manifest, WEB_ROOT
+            )
+        except firmware_release.FirmwareReleaseError as error:
+            assert f"missing release device profiles: {SLUG}" in str(error)
+        else:
+            raise AssertionError("release manifest accepted a bundle missing the released device")
+
+
 def test_release_provenance_rejects_a_different_source_revision() -> None:
     with TemporaryDirectory() as tmp:
         base = Path(tmp)
@@ -900,6 +923,7 @@ def main() -> int:
     test_wrong_md5_fails()
     test_missing_asset_fails()
     test_release_inventory_rejects_extra_files()
+    test_release_provenance_accepts_extra_development_profiles()
     test_recovery_manifest_and_payload_verification()
     test_c6_dependency_preparation_is_verified_and_atomic()
     test_recovery_sources_and_documentation_stay_complete()
