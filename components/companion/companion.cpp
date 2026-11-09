@@ -1,4 +1,5 @@
 #include "companion.h"
+#include "../espdesktop/screen_lock_state.h"
 #include "companion_discovery.h"
 #include "now_playing_protocol.h"
 #include "../espdesktop/companion_protocol_generated.h"
@@ -800,6 +801,15 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (const auto *payload = std::get_if<companion_protocol::SessionLock>(&*decoded)) {
+      // Serialize queueing with explicit pairing revocation so an in-flight
+      // message cannot restore the lock after the former Mac loses trust.
+      std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+      if (!this->identity_.paired || socket_fd != this->session_.authenticated_socket()) return false;
+      this->defer_session_([locked = payload->locked]() { screen_lock_set_mac_locked(locked); });
+      return true;
+    }
+
     if (const auto *payload = std::get_if<companion_protocol::TimezoneChanged>(&*decoded)) {
       const std::string timezone = payload->identifier;
       if (!safe_field(timezone, 96)) return false;
@@ -1340,6 +1350,8 @@ void CompanionService::revoke_pairing() {
   this->preferences_.save(&this->identity_);
   this->sequence_preferences_.save(&this->last_sequence_);
   this->set_connected_(false);
+  // Revoking trust also clears the Mac's lock. Ordinary disconnects retain it.
+  this->defer([]() { screen_lock_set_mac_locked(false); });
   if (previous_socket >= 0) httpd_sess_trigger_close(this->server_, previous_socket);
 }
 
