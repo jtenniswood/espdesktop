@@ -1089,6 +1089,7 @@ inline void grid_release_runtime_allocations(
 
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;
+  image_card_release_owner(entry.back_button);
   grid_release_runtime_allocations(entry.back_button);
   for (const auto &card : entry.cards) {
     image_card_release_owner(card.button);

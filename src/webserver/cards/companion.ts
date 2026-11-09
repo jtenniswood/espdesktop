@@ -1506,7 +1506,7 @@ export function registerCompanionCardTypes(
                 iconFallback: companionSubtypeDefaultIcon(mode, card.entity),
                 badge: COMPANION_CARD_METADATA.preview.badge,
             });
-            if (companionAppIconEnabled(card)) {
+            if (mode === "webapp" || companionAppIconEnabled(card)) {
                 preview.appIconId = card.entity;
                 const background = configOptionValue(card.options, "app_bg_color").toUpperCase();
                 if (/^[0-9A-F]{6}$/.test(background)) preview.appIconBackgroundColor = background;

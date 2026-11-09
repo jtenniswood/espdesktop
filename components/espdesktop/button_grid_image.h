@@ -28,6 +28,7 @@ struct ImageCardCtx {
   std::string entity_id, source_url, url, cached_entity_id;
   uint32_t next_download_retry_ms = 0;
   uint8_t download_errors = 0;
+  lv_coord_t web_app_icon_size = 0;
   bool active = false;
   bool image_ready = false;
   bool download_active = false;
@@ -211,7 +212,7 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
   ctx->download_errors = 0;
   ctx->next_download_retry_ms = 0;
   image_card_set_widget_source(ctx->widget, ctx->image);
-  lv_obj_move_foreground(ctx->widget);
+  if (!ctx->web_app_icon_size) lv_obj_move_foreground(ctx->widget);
   if (ctx->fallback_icon_label) lv_obj_add_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
   if (ctx->btn) lv_obj_invalidate(ctx->btn);
   notify_dashboard_content_changed();
@@ -358,14 +359,19 @@ inline bool image_card_position_widget(lv_obj_t *btn, lv_obj_t *widget,
 
 inline void image_card_request_source_url(ImageCardCtx *ctx, bool source_changed) {
   if (!ctx || !ctx->active || !ctx->image || ctx->download_active ||
-      !ctx->widget || !ctx->btn ||
-      ctx->source_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return;
+      !ctx->widget || !ctx->btn) return;
+  if (ctx->web_app_icon_size && ctx->source_url.empty())
+    ctx->source_url = companion_web_app_icon_url(ctx->entity_id);
+  if (ctx->source_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) {
+    ctx->next_download_retry_ms = esphome::millis() + IMAGE_CARD_RETRY_INTERVAL_MS;
+    return;
+  }
   if (ctx->image_ready && !source_changed && ctx->image->get_url() == ctx->source_url) {
     image_card_apply_downloaded(ctx);
     return;
   }
-  lv_coord_t width = 0, height = 0;
-  if (!image_card_position_widget(ctx->btn, ctx->widget, &width, &height)) return;
+  lv_coord_t width = ctx->web_app_icon_size, height = ctx->web_app_icon_size;
+  if (width == 0 && !image_card_position_widget(ctx->btn, ctx->widget, &width, &height)) return;
   if (!image_card_memory_available(ctx, "app-icon", width, height)) {
     ctx->next_download_retry_ms = esphome::millis() + IMAGE_CARD_RETRY_INTERVAL_MS;
     return;
@@ -374,7 +380,8 @@ inline void image_card_request_source_url(ImageCardCtx *ctx, bool source_changed
   ctx->download_active = true;
   ctx->next_download_retry_ms = 0;
   ctx->image->set_target_size(width, height);
-  ctx->image->set_resize_mode(esphome::artwork_image::ImageResizeMode::COVER);
+  ctx->image->set_resize_mode(ctx->web_app_icon_size ? esphome::artwork_image::ImageResizeMode::FIT
+                                                     : esphome::artwork_image::ImageResizeMode::COVER);
   const std::string effective_url = ctx->image->request_update_url(ctx->url, std::max(width, height));
   if (effective_url.empty()) {
     if (ctx->download_active) image_card_handle_download_error(ctx);
@@ -436,11 +443,12 @@ inline void image_card_refresh_theme(uint32_t /* background_color */) {
 inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p,
                                                    const GridConfig &cfg,
                                                    bool large_icon = false) {
-  if (p.type != "companion" || p.entity.rfind("webapp.", 0) != 0) return false;
+  if (!s.btn || p.type != "companion" || p.entity.rfind("webapp.", 0) != 0) return false;
   const std::string source = companion_web_app_icon_url(p.entity);
-  if (source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return false;
+  if (!source.empty() && source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return false;
+  // The Mac may send the definition after the grid has already been built.
   ImageCardCtx *ctx = acquire_image_card_context(cfg, p.entity);
-  if (!ctx || !ctx->image || !s.btn) return false;
+  if (!ctx || !ctx->image) return false;
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
   lv_obj_t *widget = lv_image_create(s.btn);
 #else
@@ -451,6 +459,7 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
   lv_obj_set_style_pad_all(widget, 0, LV_PART_MAIN);
   lv_obj_set_style_border_width(widget, 0, LV_PART_MAIN);
   lv_obj_set_style_bg_opa(widget, LV_OPA_TRANSP, LV_PART_MAIN);
+  lv_obj_update_layout(s.btn);
   const bool icon_with_title = cfg_option_token_present(p.options, "webapp_icon_title");
   const int button_width = static_cast<int>(lv_obj_get_width(s.btn));
   const int button_height = static_cast<int>(lv_obj_get_height(s.btn));
@@ -484,8 +493,9 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
     lv_obj_set_style_text_align(s.text_lbl, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     lv_obj_align(s.text_lbl, LV_ALIGN_BOTTOM_LEFT, padding_left, -padding_bottom);
     lv_obj_move_foreground(s.text_lbl);
-  } else if (s.text_lbl) {
+  } else if (s.text_lbl && !large_icon) {
     configure_button_label_wrap(s.text_lbl);
+    lv_obj_move_foreground(s.text_lbl);
   }
   lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
   ctx->widget = widget;
@@ -494,14 +504,13 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
   ctx->source_url = source;
   ctx->fallback_icon_label = s.icon_lbl;
   ctx->diagnostics_enabled = cfg.image_card_diagnostics;
-  ctx->image->set_target_size(icon_size, icon_size);
+  ctx->web_app_icon_size = icon_size;
   image_card_log_diagnostics(ctx, "bind-companion-webapp-icon");
-  image_card_request_source_url(ctx, true);
-  if (ctx->image_ready) {
-    image_card_set_widget_source(ctx->widget, ctx->image);
-    lv_obj_clear_flag(ctx->widget, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_move_foreground(ctx->widget);
-    if (ctx->fallback_icon_label) lv_obj_add_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+  if (!source.empty() && ctx->image_ready && ctx->image->get_url() == source) {
+    ctx->url = source;
+    image_card_apply_downloaded(ctx);
+  } else {
+    image_card_request_source_url(ctx, true);
   }
   return true;
 }
