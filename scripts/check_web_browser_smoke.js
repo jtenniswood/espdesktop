@@ -8928,13 +8928,13 @@ async function assertFirstRunSetup(browser) {
     await followApp.check();
     failLayout = true;
     const beforeFailure = JSON.stringify(fixture.document);
-    await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();
+    await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.getByRole("alert").waitFor();
     assert.deepEqual(switches.slice(-2), ["turn_on", "turn_off"], "failed replacement restores the previous switching setting");
     assert.equal(JSON.stringify(fixture.document), beforeFailure, "failed replacement keeps the saved layout");
     failLayout = false;
     fixture.writeStatus = 202;
-    await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();
+    await dialog.getByRole("button", { name: "Done", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert(fixture.puts.length >= 2, "the committed replacement finishes setup");
     assert.equal(switches.at(-1), "turn_on", "a committed replacement keeps the chosen switching setting");
