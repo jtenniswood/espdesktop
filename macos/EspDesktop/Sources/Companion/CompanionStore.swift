@@ -147,6 +147,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private let remoteCatalogueStore = RemoteCompanionCatalogueStore()
     private var latestNowPlayingSnapshot: CompanionNowPlayingSnapshot?
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
+    private let sessionLock = MacSessionLockMonitor()
     private var mediaControlTimer: Timer?
     private var focusTimer: Timer?
     private var activatedApplicationPID: pid_t?
@@ -188,6 +189,10 @@ final class CompanionStore: NSObject, ObservableObject {
             ?? (savedPairingAccounts.contains(configuredPanelHost) ? configuredPanelHost : nil)
             ?? (savedPairingAccounts.count == 1 ? savedPairingAccounts[0] : "")
         super.init()
+        sessionLock.onChange = { [weak self] locked in
+            self?.connection.publishSessionLock(locked)
+        }
+        sessionLock.start()
         NSWorkspace.shared.notificationCenter.addObserver(
             self,
             selector: #selector(frontmostApplicationDidChange(_:)),
@@ -696,6 +701,7 @@ final class CompanionStore: NSObject, ObservableObject {
         case let .status(message): updateStatus(message)
         case let .capabilities(systemMetrics): setSystemMetricsSupported(systemMetrics)
         case .publishCurrentState:
+            connection.publishSessionLock(sessionLock.refresh())
             republishCurrentNowPlaying()
             republishCurrentSystemMetrics()
         case let .artworkRequested(generation): republishNowPlayingArtwork(generation: generation)
@@ -826,6 +832,7 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func performResultStatus(actionIdentifier: String,
                              folderOpenBehavior: String = "new_window") async -> String {
+        guard !sessionLock.refresh() else { return "not_allowed" }
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior)
         if performed, actionIdentifier.hasPrefix("webapp.") {
@@ -951,6 +958,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool {
+        guard !sessionLock.refresh() else { return false }
         guard mediaController.setValue(value, controlIdentifier: controlIdentifier) else { return false }
         publishMediaControlValues(force: true)
         return true
@@ -991,6 +999,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool {
+        guard !sessionLock.refresh() else { return false }
         _ = bundleIdentifier  // Older firmware sends the previously selected app; URLs now use the system default.
         guard encodedURL.utf8.count <= 128,
               let value = encodedURL.removingPercentEncoding,

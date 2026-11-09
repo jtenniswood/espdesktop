@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -921,6 +921,19 @@
               "maxLength": 64,
               "pattern": "^[a-z0-9][a-z0-9-]*$"
             }
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "session.lock",
+        "direction": "mac_to_panel",
+        "authorization": "paired",
+        "fields": {
+          "locked": {
+            "type": "boolean"
           }
         },
         "states": [

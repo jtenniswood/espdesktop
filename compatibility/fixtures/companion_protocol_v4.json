@@ -1196,5 +1196,71 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": false
+  },
+  {
+    "name": "Mac session locked",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Mac session unlocked",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Mac session unauthenticated",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true
+    },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
+    "name": "Mac session wrong direction",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "Mac session string lock",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": "true"
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "Mac session null lock",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": null
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
   }
 ]

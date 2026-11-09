@@ -1,8 +1,18 @@
 #pragma once
 #include "screensaver_pin.h"
 #include "display_text.h"
+#include "icons.h"
 #include "screen_lock_state.h"
 #include "pin_keypad.h"
+#include <algorithm>
+
+struct MacLockScreenStyle {
+  const lv_font_t *icon_font{nullptr};
+  const lv_font_t *title_font{nullptr};
+  const lv_font_t *body_font{nullptr};
+  lv_coord_t content_width{380};
+  lv_coord_t gap{20};
+};
 
 struct ScreensaverPinUi {
   lv_obj_t *overlay{nullptr};
@@ -11,6 +21,7 @@ struct ScreensaverPinUi {
   lv_coord_t screen_h{0};
   std::string entry;
   bool touch_blocked{false};
+  bool mac_locked{false};
 };
 inline ScreensaverPinUi &screensaver_pin_ui() {
   static ScreensaverPinUi ui;
@@ -45,13 +56,13 @@ inline bool screensaver_pin_restore_previous_mode(espdesktop::DisplayModeControl
 inline void screensaver_pin_key_cb(lv_event_t *event) {
   auto &ui = screensaver_pin_ui();
   const char *key = static_cast<const char *>(lv_event_get_user_data(event));
-  if (!key || !ui.label || ui.touch_blocked) return;
+  if (!key || !ui.label || ui.touch_blocked || screen_lock_mac_locked()) return;
   if (std::strcmp(key, "submit") == 0) {
     if (espdesktop::screensaver_pin().submit(ui.entry)) {
       screen_lock_apply();
       // Defer deletion until LVGL has finished dispatching this click.
       lv_async_call([](void *) {
-        if (!espdesktop::screensaver_pin().locked()) screensaver_pin_hide();
+        if (!screen_lock_enabled()) screensaver_pin_hide();
       }, nullptr);
       return;
     }
@@ -77,7 +88,7 @@ inline void screensaver_pin_key_cb(lv_event_t *event) {
   screensaver_pin_update_entry_label();
 }
 inline void screensaver_pin_guard_cb(lv_event_t *) {
-  if (screensaver_pin_ui().touch_blocked) return;
+  if (screensaver_pin_ui().touch_blocked || screen_lock_mac_locked()) return;
   espdesktop::screensaver_pin().request_keypad();
   // Consume the whole gesture before replacing the guard with keys, so this
   // first touch cannot also become a digit or activate an underlying control.
@@ -87,21 +98,23 @@ inline void screensaver_pin_guard_cb(lv_event_t *) {
 }
 inline void screensaver_pin_refresh(bool active, const lv_font_t *label_font,
                                     const lv_font_t *key_font, const lv_font_t *icon_font,
-                                    bool touch_blocked, const lv_font_t *title_font = nullptr) {
+                                    bool touch_blocked, const lv_font_t *title_font = nullptr,
+                                    MacLockScreenStyle mac_style = {}) {
   if (active) espdesktop::screensaver_pin().wake();
   screen_lock_apply();
-  if (!active || !espdesktop::screensaver_pin().locked()) {
+  const bool mac_locked = screen_lock_mac_locked();
+  if ((!active && !mac_locked) || !screen_lock_enabled()) {
     screensaver_pin_hide();
     return;
   }
   auto &ui = screensaver_pin_ui();
   // The tap that woke a dark screen must finish before it can enter a digit.
   ui.touch_blocked = touch_blocked;
-  const bool keypad_requested = espdesktop::screensaver_pin().keypad_requested();
+  const bool keypad_requested = !mac_locked && espdesktop::screensaver_pin().keypad_requested();
   auto *display = lv_disp_get_default();
   const lv_coord_t screen_w = display ? lv_disp_get_hor_res(display) : 480;
   const lv_coord_t screen_h = display ? lv_disp_get_ver_res(display) : 480;
-  if (ui.overlay && (ui.label != nullptr) == keypad_requested &&
+  if (ui.overlay && ui.mac_locked == mac_locked && (ui.label != nullptr) == keypad_requested &&
       ui.screen_w == screen_w && ui.screen_h == screen_h) return;
   std::string entry = ui.label && keypad_requested ? ui.entry : "";
   if (ui.overlay) screensaver_pin_hide();
@@ -116,6 +129,36 @@ inline void screensaver_pin_refresh(bool active, const lv_font_t *label_font,
   ui.overlay = lv_obj_create(lv_layer_sys());
   control_modal_style_overlay(ui.overlay);
   lv_obj_add_flag(ui.overlay, LV_OBJ_FLAG_CLICKABLE);
+  ui.mac_locked = mac_locked;
+  if (mac_locked) {
+    // Use the same palette and centered content stack as the setup pages.
+    const auto &theme = current_theme();
+    lv_obj_set_style_bg_color(ui.overlay, lv_color_hex(theme.background), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(ui.overlay, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(ui.overlay, mac_style.gap, LV_PART_MAIN);
+    lv_obj_set_flex_flow(ui.overlay, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui.overlay, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    auto *icon = lv_label_create(ui.overlay);
+    if (mac_style.icon_font) lv_obj_set_style_text_font(icon, mac_style.icon_font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(icon, lv_color_hex(theme.text_primary), LV_PART_MAIN);
+    lv_label_set_text(icon, find_icon("Lock"));
+
+    const lv_coord_t content_width = std::min(mac_style.content_width, screen_w);
+    auto *title = lv_label_create(ui.overlay);
+    if (mac_style.title_font) lv_obj_set_style_text_font(title, mac_style.title_font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(title, lv_color_hex(theme.text_primary), LV_PART_MAIN);
+    lv_obj_set_width(title, content_width);
+    lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_label_set_display_text(title, espdesktop_i18n_key("locked"));
+
+    auto *instruction = lv_label_create(ui.overlay);
+    if (mac_style.body_font) lv_obj_set_style_text_font(instruction, mac_style.body_font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(instruction, lv_color_hex(theme.text_muted), LV_PART_MAIN);
+    lv_obj_set_width(instruction, content_width);
+    lv_obj_set_style_text_align(instruction, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_label_set_display_text(instruction, espdesktop_i18n_key("unlock_mac_to_use_screen"));
+    return;
+  }
   if (!keypad_requested) {
     lv_obj_add_event_cb(ui.overlay, screensaver_pin_guard_cb, LV_EVENT_RELEASED, nullptr);
     return;

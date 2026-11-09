@@ -11,7 +11,7 @@ struct CompanionWindowActionCapability {
 }
 
 enum CompanionCapabilities {
-    static let version = 6
+    static let version = 7
     static let protocolVersion = 4
     static let protocolPath = "/companion/v4"
     static let maximumTextFrameBytes = 16384
@@ -57,6 +57,7 @@ enum CompanionCapabilities {
         "error",
         "catalogue.definitions.page",
         "focus.targets",
+        "session.lock",
     ]
     static let cardModes: [String: String] = [
         "app": "Applications",
