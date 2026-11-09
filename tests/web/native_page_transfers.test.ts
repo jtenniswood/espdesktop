@@ -61,25 +61,30 @@ export async function runNativePageTransferTests(): Promise<void> {
   });
   layout.gridCols = 3; // Orientation changes after application composition.
   check(await feature.copy([1], true), "cut captures the whole saved tree");
-  check(writes === 0 && clipboard()?.native?.cut, "cut cannot delete before its paste transaction");
+  check(writes === 1 && published === 1 && clipboard()?.native?.cut, "cut immediately saves deletion and keeps its clipboard");
+  check(!persisted.subpages[1] && !persisted.subpages[33] && !persisted.settings.button_order?.includes("1"),
+    "cut removes the card and its descendants from saved storage before paste");
+  check(JSON.stringify(visible) === JSON.stringify(persisted), "cut immediately updates the visible layout");
+  check(clipboard()?.native?.entries[0]?.subtree?.children[1]?.includes("light.leaf"), "clipboard retains nested pages");
   const before = JSON.stringify(persisted); rejected = true;
   check(!(await feature.paste(2)).ok, "rejected PUT fails the transfer");
-  check(JSON.stringify(persisted) === before && JSON.stringify(visible) === before && published === 0,
+  check(JSON.stringify(persisted) === before && JSON.stringify(visible) === before && published === 1,
     "rejection changes neither storage nor visible state and cannot announce a successful save");
   check(clipboard()?.native?.cut && !state.nativeConfigLoading && !state.nativeTransferActive, "rejection retains the cut clipboard and unlocks retry");
-  check(!!await feature.capture([1]), "copy can read a source after an explicit rejection");
+  check(!await feature.capture([1]), "a cut card is already absent when reading the saved source");
   await native.readSnapshot();
   await native.readForBackup().catch(() => null);
   check(await native.saveQueue === "nested-pages-unavailable", "read-only operations preserve the rejected outcome");
   check((await feature.paste(2)).ok, "retry succeeds without silently resetting the previous failure outcome");
-  check(writes === 2 && published === 1 && !state.clipboard, "retry has exactly one successful whole-document transaction");
+  check(writes === 3 && published === 2 && !state.clipboard, "retry has exactly one successful whole-document transaction");
+  check(persisted.subpages[1]?.includes("Child") && persisted.subpages[33]?.includes("light.leaf"), "paste restores the complete cut tree");
   check(JSON.stringify(visible) === JSON.stringify(persisted), "editor applies the complete committed document only after success");
   persisted = snapshot(); visible = persisted; native.client!.acceptSnapshot(persisted);
   conflict = true;
   check(!await feature.delete([1]), "concurrent source change rejects deletion");
-  check(writes === 3 && persisted.buttons[1]!.includes("External edit") && persisted.subpages[33]!.includes("light.leaf"),
+  check(writes === 4 && persisted.buttons[1]!.includes("External edit") && persisted.subpages[33]!.includes("light.leaf"),
     "stale retry cannot erase a newly changed folder or descendants");
-  check(JSON.stringify(visible) === before, "conflict cannot publish the discarded candidate");
+  check(JSON.stringify(visible) === JSON.stringify(snapshot()), "conflict cannot publish the discarded candidate");
   check(banners.some(message => message.includes("changed")), "conflict is explained");
   const cached = native.client!.lastDocument();
   await native.readSnapshot();
@@ -87,11 +92,11 @@ export async function runNativePageTransferTests(): Promise<void> {
   persisted = snapshot(); visible = persisted; native.client!.acceptSnapshot(persisted);
   native.saveQueue = Promise.resolve("saved"); lostAck = true;
   check(!await feature.duplicate(1), "lost acknowledgement is an uncertain save");
-  check(writes === 4 && persisted.subpages[65] && JSON.stringify(visible) === before,
+  check(writes === 5 && persisted.subpages[65] && JSON.stringify(visible) === JSON.stringify(snapshot()),
     "server may have published even though the editor could not confirm the transfer");
   await native.readSnapshot();
   await native.readForBackup().catch(() => null);
-  check(!await feature.duplicate(1) && writes === 4, "uncertain publication cannot be retried into an accidental duplicate");
+  check(!await feature.duplicate(1) && writes === 5, "uncertain publication cannot be retried into an accidental duplicate");
   check(banners.some(message => message.includes("Could not confirm")), "uncertain publication requires a saved-state reload");
   persisted = snapshot();
   for (let slot = 2; slot <= 8; ++slot) persisted.buttons[slot] = `light.existing_${slot};Existing`;
@@ -100,7 +105,7 @@ export async function runNativePageTransferTests(): Promise<void> {
   const copied = await feature.capture([1]);
   check(!!copied, "resize fixture captures its source");
   const pasted = await feature.paste(8, 0, [{ ...copied!.entries[0]!, size: 4 }]);
-  check(pasted.ok && pasted.resized === 1 && writes === 5, "paste reports the successful size adjustment so its caller can explain it");
+  check(pasted.ok && pasted.resized === 1 && writes === 6, "paste reports the successful size adjustment so its caller can explain it");
   // A wide unrelated card at a portrait row boundary exposes stale columns:
   // startup geometry would retain a two-cell span across the wrong row.
   persisted = snapshot(); persisted.buttons[2] = "light.wide;Wide";
@@ -131,6 +136,48 @@ export async function runNativePageTransferTests(): Promise<void> {
   check(await feature.delete([2]), "a locally rejected duplicate must allow deleting a card to make room");
   check(await feature.duplicate(1), "duplicate succeeds after making room");
   check(writes === beforeLocalFailure + 2, "only the two valid edits are written");
+
+  persisted = snapshot(); visible = persisted; native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
+  const oldClipboard = state.clipboard, beforeRejectedCut = JSON.stringify(persisted);
+  rejected = true;
+  check(!await feature.copy([1], true), "a rejected cut reports failure");
+  check(JSON.stringify(persisted) === beforeRejectedCut && JSON.stringify(visible) === beforeRejectedCut && state.clipboard === oldClipboard,
+    "failed cut preserves the saved layout and previous clipboard");
+  check(await feature.copy([1], true), "cut can be retried after an explicit rejection");
+  persisted = { ...persisted, buttons: { ...persisted.buttons, 1: "light.replacement;Replacement" },
+    settings: { ...persisted.settings, button_order: "1" } };
+  native.client!.acceptSnapshot(persisted);
+  check((await feature.paste(2)).ok && persisted.buttons[1] === "light.replacement;Replacement",
+    "paste does not delete a replacement card in the original slot");
+  check(Object.values(persisted.subpages).some(raw => raw.includes("light.leaf")), "paste retains descendants after the original slot is reused");
+
+  persisted = snapshot(); visible = persisted; native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
+  state.editingSubpage = 1;
+  check(await feature.copy([1], true), "a folder can be cut from inside a subpage");
+  check(!persisted.subpages[33] && !persisted.subpages[1]?.includes("Child"), "nested cut immediately removes its card and owned page");
+  state.editingSubpage = null;
+  check((await feature.paste(2)).ok && Object.values(persisted.subpages).some(raw => raw.includes("light.leaf")),
+    "a nested cut can be pasted onto the home page with its contents");
+
+  persisted = snapshot(); visible = persisted; native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
+  lostAck = true;
+  check(!await feature.copy([1], true), "cut reports an unconfirmed save when its acknowledgement is lost");
+  check(!persisted.subpages[1] && !persisted.subpages[33], "the server may already have deleted the cut tree");
+  check(clipboard()?.native?.entries[0]?.subtree?.children[1]?.includes("light.leaf"),
+    "an unconfirmed cut retains the entire captured tree for recovery");
+  const uncertainCutWrites = writes;
+  check(!(await feature.paste(2)).ok && writes === uncertainCutWrites, "uncertain cut requires saved-state reconciliation before pasting");
+  native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
+  check((await feature.paste(2)).ok && persisted.subpages[33]?.includes("light.leaf"),
+    "the retained clipboard restores a cut tree after reconciliation");
+
+  persisted = snapshot(); persisted.buttons[2] = "light.other;Other"; persisted.settings.button_order = "1,2";
+  visible = persisted; native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
+  check(await feature.copy([1, 2], true), "multiple cards can be cut together");
+  check(!persisted.settings.button_order?.includes("1") && !persisted.settings.button_order.includes("2") && Object.keys(persisted.subpages).length === 0,
+    "unpasted cuts remain deleted with their descendants");
+  state.clipboard = null;
+  check(!persisted.settings.button_order?.includes("1"), "discarding the clipboard cannot restore a cut card");
 
   persisted = snapshot(); native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
   rejected = true;
