@@ -15,7 +15,7 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Open Finder folders](/mac-controls/folders)
 - [Run keyboard shortcuts](/mac-controls/shortcuts)
 - [Control and arrange windows](/mac-controls/windows)
-- [Show Mac statistics](/mac-controls/statistics)
+- [Use existing Stats cards](/mac-controls/statistics)
 - [Permissions and security](/mac-controls/security)
 
 Choose the **Volume** group to add a slider for the paired Mac’s output or input volume. The output control is labelled **Volume** and the input control **Mic** by default; existing custom labels are kept. Mac volume controls have one **Icon** setting, with a speaker for output and a microphone for input by default. The setup preview and display use the same icon at every volume level. Dragging a volume slider does not trigger swipe navigation. Mac volume and mute cards can be cut, copied, and pasted without Home Assistant enabled, including inside Mac folders.

@@ -1527,7 +1527,6 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],
-        ["companion_stats", "Stats", "stats"],
         ["companion_window", "Window control", "window"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
