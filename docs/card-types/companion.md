@@ -18,6 +18,8 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Use existing Stats cards](/mac-controls/statistics)
 - [Permissions and security](/mac-controls/security)
 
+Choose **Mac Companion → Mac Lock** to add a button that locks the paired Mac. It uses the standard Control–Command–Q shortcut. Allow EspDesktop under **System Settings → Privacy & Security → Accessibility**.
+
 Action cards are unavailable when the Mac is disconnected or the selected app, folder, command, or URL is unavailable. Open URL cards use the Mac's default browser. Statistics show `--` until a reading is available.
 
 Companion cards are currently offered only on the 4848S040 profile. For Home Assistant controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
