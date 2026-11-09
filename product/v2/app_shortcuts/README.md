@@ -43,9 +43,11 @@ The manifest must list every top-level template JSON file in this folder exactly
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 
-The Safari templates use `extendedShortcuts` for unmodified Tab and Escape. Both lists share IDs and the 64-entry limit. Older Companion versions can still read the regular list. The `com.apple.Safari.WebApp` template applies to approved Safari web apps with a macOS-generated UUID suffix on their bundle ID.
+The Safari templates use `safariShortcuts` for unmodified Tab and Escape. Both lists share IDs and the 64-entry limit. Older Companion versions can still read the regular list. The `com.apple.Safari.WebApp` template applies to approved Safari web apps with a macOS-generated UUID suffix on their bundle ID.
 
 Books also has an optional `extendedShortcuts` list for its Left Arrow, Right Arrow, Space and Fn–F presets. These entries require updated Companion and display firmware and only run when Books is active. Older Companion versions can still read the regular `shortcuts` list. Both lists share the same shortcut IDs and 64-entry limit.
+
+The Claude Desktop subpage supports up to 96 entries to include its numbered environment, session and menu choices. The optional `claudeShortcuts` list contains those extra choices and app-scoped keys such as Shift–F6 and double Escape. Both Claude lists share the same IDs and the same 12,000-byte catalogue limit. Older Companion versions read the regular list.
 
 The ChatGPT Desktop subpage uses the `com.openai.codex` bundle ID and supports up to 96 presets with its optional `additionalShortcuts` list. IDs remain unique across both lists, and older Companion versions can read the regular list. Shift–Escape only runs while ChatGPT Desktop is active.
 

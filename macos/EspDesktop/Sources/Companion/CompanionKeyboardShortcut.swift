@@ -50,6 +50,17 @@ final class CompanionAccessibilityAuthorizer {
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
     static let windowActionPrefix = "window."
+    static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
+    private static let claudeEscapeShortcut = "claude-escape"
+    static let claudeRewindShortcut = "escape-twice"
+
+    static func isClaudeScopedShortcut(_ keys: String) -> Bool {
+        switch keys {
+        case "f6", "shift+f6", claudeEscapeShortcut, claudeRewindShortcut, "up", "down": return true
+        default: return keys.utf8.count == 1 && ("1"..."9").contains(keys)
+        }
+    }
+
     private static let safariBundleIdentifier = "com.apple.Safari"
     private static let safariWebAppTemplate = "com.apple.Safari.WebApp"
 
@@ -97,20 +108,32 @@ struct CompanionKeyboardShortcut {
             return
         }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
-        let shortcut = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
-        if let extended = Self.booksExtendedKeys[shortcut], let keyCode = Self.keyCodes[extended.key] {
+        let keys = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
+        if let extended = Self.booksExtendedKeys[keys], let keyCode = Self.keyCodes[extended.key] {
             self.keyCode = keyCode
             self.flags = extended.flags
             self.requiresMacOS15 = false
             return
         }
-        if shortcut == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
+        if Self.isClaudeScopedShortcut(keys) {
+            let key = if keys == Self.claudeEscapeShortcut || keys == Self.claudeRewindShortcut {
+                "escape"
+            } else {
+                keys.replacingOccurrences(of: "shift+", with: "")
+            }
+            guard let keyCode = Self.keyCodes[key] else { return nil }
+            self.keyCode = keyCode
+            self.flags = keys == "shift+f6" ? .maskShift : []
+            self.requiresMacOS15 = false
+            return
+        }
+        if keys == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
             self.keyCode = keyCode
             self.flags = .maskShift
             self.requiresMacOS15 = false
             return
         }
-        var parts = shortcut.split(separator: "+", omittingEmptySubsequences: false)
+        var parts = keys.split(separator: "+", omittingEmptySubsequences: false)
         guard parts.count <= 5, let key = parts.popLast().map(String.init),
               let keyCode = Self.keyCodes[key] else { return nil }
 

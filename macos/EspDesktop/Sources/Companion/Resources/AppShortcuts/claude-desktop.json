@@ -27,6 +27,542 @@
       "label": "Next Session",
       "shortcut": "control+tab",
       "icon": "Chevron Right"
+    },
+    {
+      "id": "4",
+      "label": "Session Search",
+      "shortcut": "command+k",
+      "icon": "Find Tab"
+    },
+    {
+      "id": "5",
+      "label": "Search",
+      "shortcut": "command+shift+k",
+      "icon": "Search"
+    },
+    {
+      "id": "6",
+      "label": "Sidebar",
+      "shortcut": "command+b",
+      "icon": "Dock Left"
+    },
+    {
+      "id": "7",
+      "label": "Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "8",
+      "label": "Reuse Settings",
+      "shortcut": "command+shift+n",
+      "icon": "Template"
+    },
+    {
+      "id": "9",
+      "label": "New Environment",
+      "shortcut": "command+option+0",
+      "icon": "Folder Plus"
+    },
+    {
+      "id": "10",
+      "label": "Close Session",
+      "shortcut": "command+w",
+      "icon": "Close Tab"
+    },
+    {
+      "id": "11",
+      "label": "Reopen Session",
+      "shortcut": "command+shift+t",
+      "icon": "Tab Restore"
+    },
+    {
+      "id": "12",
+      "label": "Previous Session",
+      "shortcut": "control+shift+tab",
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "13",
+      "label": "Back",
+      "shortcut": "command+keybracketleft",
+      "icon": "Back"
+    },
+    {
+      "id": "14",
+      "label": "Forward",
+      "shortcut": "command+keybracketright",
+      "icon": "Forward"
+    },
+    {
+      "id": "15",
+      "label": "Next Sidebar",
+      "shortcut": "command+option+right",
+      "icon": "Arrow Right"
+    },
+    {
+      "id": "16",
+      "label": "Previous Sidebar",
+      "shortcut": "command+option+left",
+      "icon": "Arrow Left"
+    },
+    {
+      "id": "17",
+      "label": "Split Right",
+      "shortcut": "command+control+keybackslash",
+      "icon": "Split Vertical"
+    },
+    {
+      "id": "18",
+      "label": "Split Below",
+      "shortcut": "command+control+keyminus",
+      "icon": "Split Horizontal"
+    },
+    {
+      "id": "19",
+      "label": "Next Split",
+      "shortcut": "control+keybracketright",
+      "icon": "Dock Right"
+    },
+    {
+      "id": "20",
+      "label": "Previous Split",
+      "shortcut": "control+keybracketleft",
+      "icon": "Dock Left"
+    },
+    {
+      "id": "21",
+      "label": "Close Split",
+      "shortcut": "command+control+w",
+      "icon": "Window Close"
+    },
+    {
+      "id": "22",
+      "label": "Toggle Pin",
+      "shortcut": "command+option+p",
+      "icon": "Pin"
+    },
+    {
+      "id": "23",
+      "label": "Rename Session",
+      "shortcut": "command+option+r",
+      "icon": "Rename"
+    },
+    {
+      "id": "24",
+      "label": "Archive Session",
+      "shortcut": "command+option+a",
+      "icon": "Archive"
+    },
+    {
+      "id": "25",
+      "label": "Toggle Unread",
+      "shortcut": "command+option+u",
+      "icon": "Message Unread"
+    },
+    {
+      "id": "26",
+      "label": "Copy Link",
+      "shortcut": "command+l",
+      "icon": "Link"
+    },
+    {
+      "id": "27",
+      "label": "Open PR",
+      "shortcut": "command+option+g",
+      "icon": "Source Pull Request"
+    },
+    {
+      "id": "28",
+      "label": "Fork Session",
+      "shortcut": "command+option+o",
+      "icon": "Source Branch"
+    },
+    {
+      "id": "29",
+      "label": "Transcript",
+      "shortcut": "control+o",
+      "icon": "Notes"
+    },
+    {
+      "id": "30",
+      "label": "Find",
+      "shortcut": "command+f",
+      "icon": "Search"
+    },
+    {
+      "id": "31",
+      "label": "Find Next",
+      "shortcut": "command+g",
+      "icon": "Chevron Down"
+    },
+    {
+      "id": "32",
+      "label": "Find Previous",
+      "shortcut": "command+shift+g",
+      "icon": "Chevron Up"
+    },
+    {
+      "id": "33",
+      "label": "Changes",
+      "shortcut": "command+shift+d",
+      "icon": "Source Compare"
+    },
+    {
+      "id": "34",
+      "label": "File List",
+      "shortcut": "command+shift+y",
+      "icon": "File Tree"
+    },
+    {
+      "id": "35",
+      "label": "Next Change",
+      "shortcut": "option+f5",
+      "icon": "Arrow Down"
+    },
+    {
+      "id": "36",
+      "label": "Previous Change",
+      "shortcut": "option+shift+f5",
+      "icon": "Arrow Up"
+    },
+    {
+      "id": "37",
+      "label": "Next Comment",
+      "shortcut": "option+f9",
+      "icon": "Comment Plus"
+    },
+    {
+      "id": "38",
+      "label": "Previous Comment",
+      "shortcut": "option+shift+f9",
+      "icon": "Message Alert"
+    },
+    {
+      "id": "39",
+      "label": "Go to File",
+      "shortcut": "command+p",
+      "icon": "File Search"
+    },
+    {
+      "id": "40",
+      "label": "Preview",
+      "shortcut": "command+shift+p",
+      "icon": "Web"
+    },
+    {
+      "id": "41",
+      "label": "Select Element",
+      "shortcut": "command+shift+s",
+      "icon": "Target"
+    },
+    {
+      "id": "42",
+      "label": "Annotate Preview",
+      "shortcut": "command+shift+x",
+      "icon": "Draw"
+    },
+    {
+      "id": "43",
+      "label": "Reload Preview",
+      "shortcut": "command+r",
+      "icon": "Refresh"
+    },
+    {
+      "id": "44",
+      "label": "Files",
+      "shortcut": "command+shift+f",
+      "icon": "Folder Outline"
+    },
+    {
+      "id": "45",
+      "label": "Attach Context",
+      "shortcut": "command+shift+l",
+      "icon": "Paperclip"
+    },
+    {
+      "id": "46",
+      "label": "Terminal",
+      "shortcut": "command+j",
+      "icon": "Terminal"
+    },
+    {
+      "id": "47",
+      "label": "New Terminal",
+      "shortcut": "control+shift+keybackquote",
+      "icon": "New Window"
+    },
+    {
+      "id": "48",
+      "label": "Next Terminal",
+      "shortcut": "control+shift+keybracketright",
+      "icon": "Arrow Right"
+    },
+    {
+      "id": "49",
+      "label": "Previous Terminal",
+      "shortcut": "control+shift+keybracketleft",
+      "icon": "Arrow Left"
+    },
+    {
+      "id": "50",
+      "label": "Close Pane",
+      "shortcut": "command+keybackslash",
+      "icon": "Window Close"
+    },
+    {
+      "id": "51",
+      "label": "Toggle Pane",
+      "shortcut": "command+shift+keybackslash",
+      "icon": "Arrow Expand"
+    },
+    {
+      "id": "52",
+      "label": "Side Chat",
+      "shortcut": "command+keysemicolon",
+      "icon": "Chat"
+    },
+    {
+      "id": "53",
+      "label": "Mode Menu",
+      "shortcut": "command+shift+m",
+      "icon": "Settings"
+    },
+    {
+      "id": "54",
+      "label": "Model Menu",
+      "shortcut": "command+shift+i",
+      "icon": "Robot"
+    },
+    {
+      "id": "55",
+      "label": "Effort Menu",
+      "shortcut": "command+shift+e",
+      "icon": "Gauge"
+    },
+    {
+      "id": "56",
+      "label": "Attach Files",
+      "shortcut": "command+u",
+      "icon": "Paperclip"
+    },
+    {
+      "id": "57",
+      "label": "Prompt Search",
+      "shortcut": "control+r",
+      "icon": "History"
+    },
+    {
+      "id": "58",
+      "label": "Queue / Send",
+      "shortcut": "command+enter",
+      "icon": "Send"
+    },
+    {
+      "id": "59",
+      "label": "Send to Fork",
+      "shortcut": "command+option+enter",
+      "icon": "Source Branch"
+    }
+  ],
+  "claudeShortcuts": [
+    {
+      "id": "60",
+      "label": "Environment 1",
+      "shortcut": "command+option+1",
+      "icon": "Applications"
+    },
+    {
+      "id": "61",
+      "label": "Session 1",
+      "shortcut": "command+1",
+      "icon": "Chat"
+    },
+    {
+      "id": "62",
+      "label": "Environment 2",
+      "shortcut": "command+option+2",
+      "icon": "Applications"
+    },
+    {
+      "id": "63",
+      "label": "Session 2",
+      "shortcut": "command+2",
+      "icon": "Chat"
+    },
+    {
+      "id": "64",
+      "label": "Environment 3",
+      "shortcut": "command+option+3",
+      "icon": "Applications"
+    },
+    {
+      "id": "65",
+      "label": "Session 3",
+      "shortcut": "command+3",
+      "icon": "Chat"
+    },
+    {
+      "id": "66",
+      "label": "Environment 4",
+      "shortcut": "command+option+4",
+      "icon": "Applications"
+    },
+    {
+      "id": "67",
+      "label": "Session 4",
+      "shortcut": "command+4",
+      "icon": "Chat"
+    },
+    {
+      "id": "68",
+      "label": "Environment 5",
+      "shortcut": "command+option+5",
+      "icon": "Applications"
+    },
+    {
+      "id": "69",
+      "label": "Session 5",
+      "shortcut": "command+5",
+      "icon": "Chat"
+    },
+    {
+      "id": "70",
+      "label": "Environment 6",
+      "shortcut": "command+option+6",
+      "icon": "Applications"
+    },
+    {
+      "id": "71",
+      "label": "Session 6",
+      "shortcut": "command+6",
+      "icon": "Chat"
+    },
+    {
+      "id": "72",
+      "label": "Environment 7",
+      "shortcut": "command+option+7",
+      "icon": "Applications"
+    },
+    {
+      "id": "73",
+      "label": "Session 7",
+      "shortcut": "command+7",
+      "icon": "Chat"
+    },
+    {
+      "id": "74",
+      "label": "Environment 8",
+      "shortcut": "command+option+8",
+      "icon": "Applications"
+    },
+    {
+      "id": "75",
+      "label": "Session 8",
+      "shortcut": "command+8",
+      "icon": "Chat"
+    },
+    {
+      "id": "76",
+      "label": "Environment 9",
+      "shortcut": "command+option+9",
+      "icon": "Applications"
+    },
+    {
+      "id": "77",
+      "label": "Session 9",
+      "shortcut": "command+9",
+      "icon": "Chat"
+    },
+    {
+      "id": "78",
+      "label": "Next Area",
+      "shortcut": "f6",
+      "icon": "Arrow Right"
+    },
+    {
+      "id": "79",
+      "label": "Previous Area",
+      "shortcut": "shift+f6",
+      "icon": "Arrow Left"
+    },
+    {
+      "id": "80",
+      "label": "Stop Response",
+      "shortcut": "claude-escape",
+      "icon": "Stop"
+    },
+    {
+      "id": "81",
+      "label": "Rewind Session",
+      "shortcut": "escape-twice",
+      "icon": "History"
+    },
+    {
+      "id": "82",
+      "label": "Older Prompt",
+      "shortcut": "up",
+      "icon": "Arrow Up"
+    },
+    {
+      "id": "83",
+      "label": "Newer Prompt",
+      "shortcut": "down",
+      "icon": "Arrow Down"
+    },
+    {
+      "id": "84",
+      "label": "Menu Item 1",
+      "shortcut": "1",
+      "icon": "Menu"
+    },
+    {
+      "id": "85",
+      "label": "Menu Item 2",
+      "shortcut": "2",
+      "icon": "Menu"
+    },
+    {
+      "id": "86",
+      "label": "Menu Item 3",
+      "shortcut": "3",
+      "icon": "Menu"
+    },
+    {
+      "id": "87",
+      "label": "Menu Item 4",
+      "shortcut": "4",
+      "icon": "Menu"
+    },
+    {
+      "id": "88",
+      "label": "Menu Item 5",
+      "shortcut": "5",
+      "icon": "Menu"
+    },
+    {
+      "id": "89",
+      "label": "Menu Item 6",
+      "shortcut": "6",
+      "icon": "Menu"
+    },
+    {
+      "id": "90",
+      "label": "Menu Item 7",
+      "shortcut": "7",
+      "icon": "Menu"
+    },
+    {
+      "id": "91",
+      "label": "Menu Item 8",
+      "shortcut": "8",
+      "icon": "Menu"
+    },
+    {
+      "id": "92",
+      "label": "Menu Item 9",
+      "shortcut": "9",
+      "icon": "Menu"
     }
   ]
 }

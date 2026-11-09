@@ -3,19 +3,28 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, ...app }) => {
+    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, claudeShortcuts, safariShortcuts, ...app }) => {
         if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
             const additional = additionalShortcuts.filter((item) => {
                 const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
-                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) && !isSafariUnmodifiedShortcut(action);
+                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) &&
+                    !isSafariUnmodifiedShortcut(action) && !isClaudeScopedShortcut(action);
             });
             return { ...app, shortcuts: [...app.shortcuts, ...additional] };
         }
-        if ((app.appId === SAFARI_BUNDLE_ID || app.appId === SAFARI_WEB_APP_TEMPLATE) &&
-            Array.isArray(extendedShortcuts)) {
-            const extended = extendedShortcuts.filter((item) =>
+        const safari = safariShortcuts ?? extendedShortcuts;
+        if ((app.appId === SAFARI_BUNDLE_ID || app.appId === SAFARI_WEB_APP_TEMPLATE) && Array.isArray(safari)) {
+            const extended = safari.filter((item) =>
                 isSafariUnmodifiedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
             return { ...app, shortcuts: [...app.shortcuts, ...extended] };
+        }
+        if (app.appId === CLAUDE_DESKTOP_BUNDLE_ID && !app.catalog && Array.isArray(claudeShortcuts)) {
+            const additional = claudeShortcuts.filter((item) => {
+                const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
+                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) &&
+                    !isSafariUnmodifiedShortcut(action) && action !== CHATGPT_CLEAR_UNREADS_ACTION;
+            });
+            return { ...app, shortcuts: [...app.shortcuts, ...additional] };
         }
         if (app.appId !== "com.apple.iBooksX" || app.catalog || !Array.isArray(extendedShortcuts)) return app;
         const extended = extendedShortcuts.filter((item) => isBooksExtendedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
@@ -45,6 +54,7 @@ export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
+const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
 const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
 const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
 export const CODEX_BUNDLE_ID = "com.openai.codex";
@@ -264,6 +274,12 @@ export function companionShortcutSelectionMatchesSavedParent(draftCard: any, sav
         draftCard.entity === savedCard.entity;
 }
 
+const CLAUDE_SCOPED_SHORTCUT_PATTERN = /^shortcut\.(?:f6|shift\+f6|claude-escape|escape-twice|up|down|[1-9])$/;
+
+export function isClaudeScopedShortcut(actionId: string): boolean {
+    return CLAUDE_SCOPED_SHORTCUT_PATTERN.test(actionId);
+}
+
 export function isSafariUnmodifiedShortcut(actionId: string): boolean {
     return actionId === "shortcut.tab" || actionId === "shortcut.escape";
 }
@@ -275,7 +291,7 @@ export function isBooksExtendedShortcut(actionId: string): boolean {
 
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
     if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX)) return false;
-    if (isSafariUnmodifiedShortcut(actionId)) return true;
+    if (isSafariUnmodifiedShortcut(actionId) || isClaudeScopedShortcut(actionId)) return true;
     if (isBooksExtendedShortcut(actionId) || actionId === CHATGPT_CLEAR_UNREADS_ACTION) return true;
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     if (parts.length < 2 || parts.length > 5) return false;

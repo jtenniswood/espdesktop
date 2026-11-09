@@ -96,6 +96,13 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.command+volumeup"));
   assert(!companion_shortcut_action_valid("shortcut.command+f21"));
   assert(!companion_shortcut_action_valid("com.apple.Safari"));
+  assert(companion_shortcut_label("shortcut.f6") == "F6");
+  assert(companion_shortcut_label("shortcut.shift+f6") == "\U000F0636" "F6");
+  assert(companion_shortcut_label("shortcut.escape-twice") == "Esc Esc");
+  assert(companion_shortcut_label("shortcut.9") == "9");
+  assert(!companion_shortcut_action_valid("shortcut.0"));
+  assert(!companion_shortcut_action_valid("shortcut.shift+f7"));
+  assert(!companion_shortcut_action_valid("shortcut.escape-thrice"));
   assert(companion_shortcut_label("shortcut.tab") == "Tab");
   assert(companion_shortcut_label("shortcut.escape") == "Esc");
   assert(!companion_shortcut_action_valid("shortcut.enter"));

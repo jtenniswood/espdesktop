@@ -11,6 +11,9 @@ SAFARI_UNMODIFIED_KEYS = {'tab', 'escape'}
 BOOKS_EXTENDED_SHORTCUTS = {'right', 'left', 'space', 'function+f'}
 CHATGPT_DESKTOP_ID = 'com.openai.codex'
 CHATGPT_CLEAR_UNREADS = 'shift+escape'
+BOOKS_ID = 'com.apple.iBooksX'
+CLAUDE_DESKTOP_ID = 'com.anthropic.claudefordesktop'
+CLAUDE_SCOPED_SHORTCUTS = {'f6', 'shift+f6', 'claude-escape', 'escape-twice', 'up', 'down', *'123456789'}
 
 
 def shortcut_valid(value):
@@ -42,24 +45,36 @@ def validate_app(data, icons):
 
     require(isinstance(data, dict), 'expected an app object')
     fields = {'version', 'appId', 'label', 'catalog', 'shortcuts'}
-    require(set(data) - {'extendedShortcuts', 'additionalShortcuts'} == fields,
-            'expected version, appId, label, catalog, shortcuts and optional extendedShortcuts or additionalShortcuts')
+    optional = {'extendedShortcuts', 'additionalShortcuts', 'claudeShortcuts', 'safariShortcuts'}
+    require(set(data) - optional == fields,
+            'expected version, appId, label, catalog, shortcuts and supported optional shortcut lists')
     require(type(data['version']) is int and data['version'] == 1, 'version must be 1')
     require(text(data['appId'], 96) and re.fullmatch(r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+', data['appId']), 'appId must be a Mac bundle identifier (maximum 96 bytes)')
     require(text(data['label'], 48), 'label must contain 1–48 bytes of text')
     require(type(data['catalog']) is bool, 'catalog must be true or false')
+    is_books = data['appId'] == BOOKS_ID and not data['catalog']
+    is_claude = data['appId'] == CLAUDE_DESKTOP_ID and not data['catalog']
+    is_safari = data['appId'] in SAFARI_TEMPLATES
+    is_chatgpt = data['appId'] == CHATGPT_DESKTOP_ID and not data['catalog']
+    extended_keys = SAFARI_UNMODIFIED_KEYS if is_safari else BOOKS_EXTENDED_SHORTCUTS
     extended = data.get('extendedShortcuts', [])
     additional = data.get('additionalShortcuts', [])
-    require(isinstance(extended, list) and (not extended or data['appId'] in SAFARI_TEMPLATES
-             or (data['appId'] == 'com.apple.iBooksX' and not data['catalog'])),
-            'extendedShortcuts are supported only in Safari and Books templates')
-    require(isinstance(additional, list) and (not additional or (data['appId'] == CHATGPT_DESKTOP_ID and not data['catalog'])),
+    require(isinstance(extended, list) and (not extended or is_books),
+            'extendedShortcuts are supported only on the Books app subpage')
+    safari = data.get('safariShortcuts', [])
+    require(isinstance(safari, list) and (not safari or is_safari),
+            'safariShortcuts are supported only in Safari templates')
+    require(isinstance(additional, list) and (not additional or is_chatgpt),
             'additionalShortcuts are supported only on the ChatGPT Desktop app subpage')
-    require(isinstance(data['shortcuts'], list) and 1 <= len(data['shortcuts']) <= 64 - len(extended),
-            'shortcuts must contain at least one entry and at most 64 entries including extendedShortcuts')
-    require(len(data['shortcuts']) + len(additional) <= 96, 'ChatGPT Desktop supports at most 96 shortcuts')
+    claude = data.get('claudeShortcuts', [])
+    require(isinstance(claude, list) and (not claude or is_claude),
+            'claudeShortcuts are supported only on the Claude Desktop app subpage')
+    regular = data['shortcuts']
+    require(isinstance(regular, list) and 1 <= len(regular) <= 64 - len(extended) - len(safari),
+            'shortcuts must contain at least one entry and at most 64 including extended or Safari shortcuts')
+    require(len(regular) + len(additional) + len(claude) <= 96, 'app subpages support at most 96 shortcuts')
     ids = set()
-    for index, item in enumerate(extended + data['shortcuts'] + additional):
+    for index, item in enumerate(regular + extended + safari + additional + claude):
         require(isinstance(item, dict) and set(item) == {'id', 'label', 'shortcut', 'icon'}, 'each shortcut needs id, label, shortcut, icon only')
         ident = item['id']
         require(isinstance(ident, str) and re.fullmatch(r'0|[1-9][0-9]{0,2}', ident), 'shortcut id must be a permanent numeric string from "0" to "999"')
@@ -67,11 +82,14 @@ def validate_app(data, icons):
         ids.add(ident)
         require(text(item['label'], 48), f'{ident}: label must contain 1–48 bytes of text')
         shortcut = item['shortcut']
-        extended_keys = SAFARI_UNMODIFIED_KEYS if data['appId'] in SAFARI_TEMPLATES else BOOKS_EXTENDED_SHORTCUTS
-        valid = (isinstance(shortcut, str) and shortcut in extended_keys
-                 if index < len(extended) else shortcut_valid(shortcut))
-        if index >= len(extended) + len(data['shortcuts']):
-            valid = valid or shortcut == CHATGPT_CLEAR_UNREADS
+        if index < len(regular):
+            valid = shortcut_valid(shortcut)
+        elif index < len(regular) + len(extended) + len(safari):
+            valid = isinstance(shortcut, str) and shortcut in extended_keys
+        else:
+            valid = (shortcut_valid(shortcut) or
+                     (is_claude and isinstance(shortcut, str) and shortcut in CLAUDE_SCOPED_SHORTCUTS) or
+                     (is_chatgpt and shortcut == CHATGPT_CLEAR_UNREADS))
         require(valid, f'{ident}: invalid keyboard shortcut: {shortcut!r}')
         require(isinstance(item['icon'], str) and item['icon'] in icons, f'{ident}: icon must be a name from product/v2/icons.json')
     require(len(json.dumps(data, ensure_ascii=False, separators=(',', ':')).encode('utf-8')) <= 12000,
@@ -132,10 +150,9 @@ def outputs(root):
     apps = load_apps(root)
     for app in apps:
         extended = app.pop('extendedShortcuts', [])
-        if app['appId'] in SAFARI_TEMPLATES:
-            app['shortcuts'] = app['shortcuts'] + extended
-        else:
-            app['shortcuts'] = extended + app['shortcuts'] + app.pop('additionalShortcuts', [])
+        additional = app.pop('additionalShortcuts', []) + app.pop('claudeShortcuts', [])
+        safari = app.pop('safariShortcuts', [])
+        app['shortcuts'] = extended + app['shortcuts'] + safari + additional
     ts = '''// Generated by scripts/build.py companion from product/v2/app_shortcuts/*.json. Do not edit.
 export interface AppShortcutDefinition {
     readonly id: string;
@@ -151,6 +168,8 @@ export interface AppShortcutApplication {
     readonly shortcuts: readonly AppShortcutDefinition[];
     readonly extendedShortcuts?: readonly AppShortcutDefinition[];
     readonly additionalShortcuts?: readonly AppShortcutDefinition[];
+    readonly claudeShortcuts?: readonly AppShortcutDefinition[];
+    readonly safariShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = ''' + json.dumps(apps, indent=2, ensure_ascii=False) + ';\n'
     cpp = ['#pragma once', '// Generated by scripts/build.py companion from product/v2/app_shortcuts/*.json. Do not edit.', '#include <string>', 'namespace companion_shortcut_catalog {', 'inline bool is_versioned_premiere_pro(const std::string &app) {', '  const std::string prefix = "com.adobe.PremierePro.";', '  if (app.compare(0, prefix.size(), prefix) != 0 || app.size() == prefix.size()) return false;', '  for (std::string::size_type i = prefix.size(); i < app.size(); ++i) {', '    if (app[i] < \'0\' || app[i] > \'9\') return false;', '  }', '  return true;', '}']

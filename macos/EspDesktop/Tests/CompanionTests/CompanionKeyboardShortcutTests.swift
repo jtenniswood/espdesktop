@@ -119,6 +119,22 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.fn+control+f"))
     }
 
+    func testClaudeScopedShortcutsUseTheDocumentedKeys() throws {
+        let expected: [(String, CGKeyCode, CGEventFlags)] = [
+            ("f6", 97, []), ("shift+f6", 97, [.maskShift]), ("claude-escape", 53, []),
+            ("escape-twice", 53, []), ("up", 126, []), ("down", 125, []), ("1", 18, []), ("9", 25, []),
+        ]
+        for (keys, keyCode, flags) in expected {
+            XCTAssertTrue(CompanionKeyboardShortcut.isClaudeScopedShortcut(keys))
+            let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys))
+            XCTAssertEqual(shortcut.keyCode, keyCode)
+            XCTAssertEqual(shortcut.flags, flags)
+        }
+        for keys in ["0", "a", "enter", "escape-thrice", "shift+f7", "command++f6"] {
+            XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys), keys)
+        }
+    }
+
     func testSafariUnmodifiedKeysAndApplicationScope() throws {
         let expected: [(String, CGKeyCode)] = [("tab", 48), ("escape", 53)]
         for (keys, keyCode) in expected {

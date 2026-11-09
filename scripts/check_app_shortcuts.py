@@ -15,7 +15,7 @@ class AppShortcutTests(unittest.TestCase):
     def setUp(self):
         self.icons = icon_names(json.loads((ROOT / 'product/v2/icons.json').read_text()))
         self.app = json.loads((ROOT / 'product/v2/app_shortcuts/safari.json').read_text())
-        self.app.pop('extendedShortcuts', None)
+        self.app.pop('safariShortcuts', None)
 
     def test_existing_files_and_legacy_ids(self):
         apps = load_apps(ROOT)
@@ -26,11 +26,11 @@ class AppShortcutTests(unittest.TestCase):
 
     def test_safari_plain_keys_are_reserved_for_the_safari_templates(self):
         safari = copy.deepcopy(self.app)
-        safari['extendedShortcuts'] = [{'id': '90', 'label': 'Next Field', 'shortcut': 'tab', 'icon': 'Shortcut Tab'}]
+        safari['safariShortcuts'] = [{'id': '90', 'label': 'Next Field', 'shortcut': 'tab', 'icon': 'Shortcut Tab'}]
         validate_app(safari, self.icons)
         with self.assertRaisesRegex(ValueError, 'only in Safari'):
             validate_app(dict(safari, appId='org.example.Editor'), self.icons)
-        safari['extendedShortcuts'][0]['shortcut'] = 'enter'
+        safari['safariShortcuts'][0]['shortcut'] = 'enter'
         with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
             validate_app(safari, self.icons)
 
@@ -56,6 +56,18 @@ class AppShortcutTests(unittest.TestCase):
     def test_reference_example_is_valid(self):
         example = json.loads((ROOT / 'product/v2/app_shortcuts/examples/example-editor.json').read_text())
         validate_app(example, self.icons)
+
+    def test_claude_numbered_choices_and_additional_keys(self):
+        claude = json.loads((ROOT / 'product/v2/app_shortcuts/claude-desktop.json').read_text())
+        validate_app(claude, self.icons)
+        shortcuts = {item['shortcut'] for item in claude['shortcuts'] + claude['claudeShortcuts']}
+        for digit in '123456789':
+            self.assertTrue({digit, f'command+{digit}', f'command+option+{digit}'} <= shortcuts)
+        with self.assertRaisesRegex(ValueError, 'only on the Claude Desktop'):
+            validate_app(dict(claude, appId='org.example.Editor'), self.icons)
+        claude['claudeShortcuts'][0]['shortcut'] = 'enter'
+        with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
+            validate_app(claude, self.icons)
 
     def test_chatgpt_extra_presets_preserve_the_regular_list(self):
         app = json.loads((ROOT / 'product/v2/app_shortcuts/codex.json').read_text())
