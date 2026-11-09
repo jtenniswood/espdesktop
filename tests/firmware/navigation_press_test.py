@@ -63,7 +63,7 @@ code += function("button_grid_navigation_driver.h", "inline bool navigation_driv
 # Compile the production companion dispatch arm without unrelated action drivers.
 basic = (HEADERS / "button_grid_basic_action_driver.h").read_text()
 start = basic.index("    case Driver::COMPANION: {", basic.index("inline bool basic_action_driver_handle_main_click("))
-end = basic.index("    case Driver::ALARM_ACTION:", start)
+end = basic.index("    case Driver::WEBHOOK:", start)
 code += r'''
 bool basic_action_driver_handle_main_click(const Context &, const ParsedCfg &config,
                                          int slot_number, lv_obj_t *button) {
@@ -87,15 +87,10 @@ void *lv_event_get_target(lv_event_t *e) { return e->target; }
 void *lv_event_get_user_data(lv_event_t *e) { return e->data; }
 void (*back_callback)(lv_event_t *) = nullptr;
 void *back_data = nullptr;
-bool &navigation_special_page_back_button_marker() { static bool marker; return marker; }
-lv_obj_t *previous = nullptr;
-void navigation_return_from_special_page() {
-  lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-}
 void lv_obj_add_event_cb(lv_obj_t *, void (*cb)(lv_event_t *), int filter, void *data) {
   assert(filter == LV_EVENT_PRESSED); back_callback = cb; back_data = data;
 }
-void bind_back(lv_obj_t *back_btn, bool is_special_page, lv_obj_t *main_page_obj,
+void bind_back(lv_obj_t *back_btn, lv_obj_t *main_page_obj,
                bool is_nested_page=false, lv_obj_t *parent_screen=nullptr) {
   struct { lv_obj_t *parent_screen; } task{parent_screen};
 ''' + back + "\n}\n"
@@ -107,17 +102,14 @@ int main() {
   assert(navigation_handle_button_press(config, 1, &button));
   assert(active == &page && button.state == 0);
   assert((order == std::vector<int>{1, 2, 3}));
-  // Execute the real Back/Close callback with LVGL's void* target signature.
-  for (bool special : {false, true}) {
-    order.clear(); previous = &page;
-    bind_back(&button, special, &home);
-    lv_event_t event{&button, back_data}; back_callback(&event);
-    assert(active == (special ? &page : &home));
-    assert((order == std::vector<int>{1, 2, 3}));
-  }
+  // Execute the real Back callback with LVGL's void* target signature.
+  order.clear();
+  bind_back(&button, &home);
+  lv_event_t event{&button, back_data}; back_callback(&event);
+  assert(active == &home && (order == std::vector<int>{1, 2, 3}));
   // Nested folders go to their parent instead of skipping back to Home.
   order.clear(); active=&home;
-  bind_back(&button, false, &home, true, &page);
+  bind_back(&button, &home, true, &page);
   lv_event_t nested_event{&button, back_data}; back_callback(&nested_event);
   assert(active==&page && (order==std::vector<int>{1,2,3}));
   // Invalid/missing targets must not swallow unrelated interactions.
@@ -151,7 +143,6 @@ int main() {
 # Guard the actual event hookups, not just the routing helpers.
 assert "navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)))" in back
 assert "LV_EVENT_PRESSED" in back and "LV_EVENT_CLICKED" not in back
-assert "navigation_return_from_special_page();" in back
 press = function("button_grid_actions.h", "inline void handle_button_press(")
 assert press.index("navigation_handle_button_press(p, slot_num, btn_obj)") < press.index("handle_button_click(cfg, slot_num, btn_obj)")
 assert press.index("screensaver_pin().locked()") < press.index("navigation_handle_button_press(p, slot_num, btn_obj)")
