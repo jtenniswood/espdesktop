@@ -54,7 +54,6 @@ export function createSettingsCompanionSectionFeature(
 ): SettingsCompanionSectionFeature {
     const { document, window, fetch } = dom;
     const { createActionButton, showBanner } = shell;
-    let latestState: CompanionPairingState | null = null;
 
     async function requestPairing(): Promise<CompanionPairingState> {
         const options: RequestInit = {
@@ -71,6 +70,7 @@ export function createSettingsCompanionSectionFeature(
         onStatus?: (state: CompanionPairingState) => void,
         defaultCollapsed = true,
     ): HTMLElement {
+        let latestState: CompanionPairingState | null = null;
         const body = document.createElement("div");
         const instructions = document.createElement("div");
         instructions.className = "sp-connector-instructions";
@@ -145,14 +145,17 @@ export function createSettingsCompanionSectionFeature(
         iconCacheNote.className = "sp-setting-note sp-companion-note";
         iconCacheNote.textContent = "Clear downloaded app icons if you need to refresh them. Icons used by your cards will be requested again from the Mac app.";
         body.appendChild(iconCacheNote);
+        const actions = document.createElement("div");
+        actions.className = "sp-companion-actions";
+        body.appendChild(actions);
         const clearIconCacheButton = createActionButton(
-            "sp-action-btn sp-companion-cache-clear",
+            "sp-action-btn sp-delete-btn",
             "Clear app icon cache",
-            "delete",
+            "trash-can-outline",
             "Clear downloaded app icons",
         );
         clearIconCacheButton.classList.add("sp-hidden");
-        body.appendChild(clearIconCacheButton);
+        actions.appendChild(clearIconCacheButton);
         let clearingIconCache = false;
 
         async function clearIconCache(): Promise<void> {
@@ -186,7 +189,7 @@ export function createSettingsCompanionSectionFeature(
             "Reset Mac Companion pairing",
         );
         resetButton.classList.add("sp-hidden");
-        body.appendChild(resetButton);
+        actions.appendChild(resetButton);
         let resetInProgress = false;
 
         async function resetPairing(): Promise<void> {
@@ -220,7 +223,12 @@ export function createSettingsCompanionSectionFeature(
         badge.appendChild(badgeDot);
         badge.appendChild(document.createTextNode("ON"));
 
+        const card: HTMLElement = fields.makeCollapsibleCard("Mac Companion", body, defaultCollapsed, badge);
+
         function render(value: CompanionPairingState): void {
+            if (value.connected && !latestState?.connected) {
+                card.classList.add("collapsed");
+            }
             if (latestState?.pairing_code !== value.pairing_code || !companionPairingCodeVisible(value)) {
                 copyFeedback.textContent = "";
             }
@@ -247,11 +255,12 @@ export function createSettingsCompanionSectionFeature(
             }
         }
 
+        let refreshInProgress = true;
         requestPairing().then(render).catch(function () {
             status.textContent = "Companion pairing is unavailable";
+        }).finally(function () {
+            refreshInProgress = false;
         });
-        const card = fields.makeCollapsibleCard("Mac Companion", body, defaultCollapsed, badge);
-        let refreshInProgress = false;
         const refreshTimer = window.setInterval(async function () {
             if (!card.isConnected) {
                 window.clearInterval(refreshTimer);
