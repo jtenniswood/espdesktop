@@ -35,7 +35,7 @@ function placeholderOutline(textMuted: string, background: string): string {
 }
 
 export function runSettingsFeatureTests(): void {
-  equal(normalizeCardCurve(undefined), "Medium", "new curve settings default to Medium");
+  equal(normalizeCardCurve(undefined), "Large", "new curve settings default to Large");
   equal(normalizeCardCurve("medium"), "Medium", "curve values normalize for backup restore");
   for (const [large, small, medium] of [[20, 12, 16], [22, 13, 18], [35, 21, 28], [26, 16, 21]]) {
     equal(cardCurveRadius(large!, "Small"), small, "Small radius matches firmware rounding");
