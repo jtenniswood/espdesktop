@@ -212,6 +212,51 @@ inline CardPalette card_palette_for_config(const CardPalette &defaults,
   return palette;
 }
 
+inline void draw_large_app_back_tab(lv_event_t *event) {
+  auto *button = static_cast<lv_obj_t *>(lv_event_get_current_target(event));
+  auto *layer = lv_event_get_layer(event);
+  lv_area_t card{};
+  lv_obj_get_coords(button, &card);
+  const int width = lv_area_get_width(&card) * 22 / 100;
+  const int height = lv_area_get_height(&card) * 24 / 100;
+  if (width < 8 || height < 8) return;
+  const int left = card.x1;
+  const int top = card.y1 + (lv_area_get_height(&card) - height) / 2;
+  const int middle = top + height / 2;
+
+  lv_draw_rect_dsc_t tab;
+  lv_draw_rect_dsc_init(&tab);
+  tab.bg_color = lv_color_hex(0x303030);
+  tab.radius = std::min(width, height) / 4;
+  const lv_area_t bounds{left, top, left + width - 1, top + height - 1};
+  lv_draw_rect(layer, &tab, &bounds);
+  // Square off the left corners so the tab joins the edge of the card.
+  const lv_area_t edge{left, top, left + tab.radius, bounds.y2};
+  tab.radius = 0;
+  lv_draw_rect(layer, &tab, &edge);
+
+  lv_draw_line_dsc_t arrow;
+  lv_draw_line_dsc_init(&arrow);
+  arrow.color = lv_color_white();
+  arrow.width = std::max(1, std::min(width, height) / 11);
+  arrow.p1 = {left + width * 4 / 10, middle};
+  arrow.p2 = {left + width * 63 / 100, top + height * 3 / 10};
+  arrow.round_start = true;
+  lv_draw_line(layer, &arrow);
+  arrow.p2.y = top + height * 7 / 10;
+  lv_draw_line(layer, &arrow);
+}
+
+inline void update_app_back_tab(lv_obj_t *button, bool app_back, const SubpageOrder &order) {
+  const bool had_tab = lv_obj_remove_event_cb(button, draw_large_app_back_tab) != 0;
+  const bool show_tab = app_back && card_span_is_large(order.back_row_span, order.back_col_span);
+  if (show_tab) {
+    // Draw above the fallback glyph and any downloaded app artwork.
+    lv_obj_add_event_cb(button, draw_large_app_back_tab, LV_EVENT_DRAW_POST, nullptr);
+  }
+  if (had_tab || show_tab) lv_obj_invalidate(button);
+}
+
 inline bool apply_subpage_back_colors(lv_obj_t *button, const std::string &order,
                                       const DisplayProfile &display) {
   ParsedCfg config;
@@ -797,6 +842,7 @@ inline bool grid_refresh_subpage_layouts(
     apply_card_label_line_clamp(entry->back_slot.text_lbl, cfg,
                                 sp_order.back_row_span);
     configure_button_label_wrap(entry->back_slot.text_lbl);
+    update_app_back_tab(entry->back_button, companion_app_shortcuts_enabled(parent_config), sp_order);
 
     // Preserve card instances (and their HA subscriptions), but hide cards
     // removed from the saved order so stale content is never left visible.
@@ -1385,6 +1431,7 @@ inline void grid_phase2(
     apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
     configure_button_label_wrap(back_slot.text_lbl);
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
+    update_app_back_tab(back_btn, app_back, sp_ord);
     if (app_back) {
       espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
           "large", display_main_width_percent(display), cfg.width_compensation_vertical);

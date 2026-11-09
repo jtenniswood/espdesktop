@@ -8,6 +8,8 @@ import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
+import { CARD_SIZE_LARGE } from "../model/grid";
+import { pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml } from "./ui_primitives";
 import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
@@ -438,16 +440,25 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
                 var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                const parent = state.editingSubpage != null
-                    ? state.buttons[state.editingSubpage - 1] : null;
+                const page = state.editingSubpage;
+                const ownerPage = page && parentPageKey(page);
+                const ownerCards = ownerPage ? getSubpage(ownerPage).buttons : state.buttons;
+                const parent = page ? ownerCards[pageOwnerSlot(page) - 1] : null;
                 const appBack = companionAppShortcutFolderEnabled(parent);
+                const backChevron = appBack && bkSz === CARD_SIZE_LARGE
+                    ? '<svg class="sp-back-badge sp-app-back-tab" viewBox="0 0 22 24" preserveAspectRatio="none" aria-hidden="true">' +
+                        '<path fill="#303030" d="M0 0h17a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H0z"/>' +
+                        '<path fill="none" stroke="#fff" stroke-width="2" d="m14 7-5 5 5 5"/></svg>'
+                    : appBack
+                        ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>'
+                        : '';
                 var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
                     '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
-                        (appBack ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
+                        backChevron +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor
@@ -461,7 +472,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 main.appendChild(backBtn);
                 if (appBack) {
                     backBtn.setAttribute("data-icon-size", "large");
-                    backBtn.setAttribute("aria-label", backLabel + " — Home");
+                    backBtn.setAttribute("aria-label", ownerPage ? backLabel : backLabel + " — Home");
                     resizeCardIcon(backBtn);
                     appIconResizeObserver?.observe(backBtn);
                     loadCardAppIcon(backBtn, parent!.entity, subpage?.backColor || "",

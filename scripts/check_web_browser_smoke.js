@@ -2784,7 +2784,8 @@ async function assertAutomaticAppIcons(browser, testCase) {
     const fixture = nativeConfigState(testCase.slug);
     fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;card_off_color=123ABC";
     fixture.document.buttons[2] = "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts";
-    fixture.document.subpages[2] = "~B,1|companion,com.apple.Safari,Safari,Auto,Auto";
+    const backOrder = native ? "Bb,0,1" : "B,1";
+    fixture.document.subpages[2] = `~${backOrder}|companion,com.apple.Safari,Safari,Auto,Auto`;
     const legacyTextState = {};
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: native ? fixture : null, legacyTextState });
@@ -2889,8 +2890,22 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await backAppIcon.waitFor();
       assert.strictEqual(await page.locator(".sp-back-btn").getAttribute("data-icon-size"), "large");
       assert(!(await page.locator(".sp-back-btn .sp-btn-label").isVisible()), "app Back card hides its label");
-      assert(await page.locator(".sp-back-btn .sp-back-badge.mdi-chevron-left").isVisible(),
-        "app Back card shows the opposite chevron to the subpage link");
+      const backTab = page.locator(".sp-back-btn .sp-app-back-tab");
+      if (native) {
+        const cardBounds = await page.locator(".sp-back-btn").boundingBox();
+        const tabBounds = await backTab.boundingBox();
+        assert(tabBounds && Math.abs(tabBounds.x - cardBounds.x) < 1 &&
+          Math.abs(tabBounds.y + tabBounds.height / 2 - cardBounds.y - cardBounds.height / 2) < 1,
+          "large app Back tab is flush with the left edge and vertically centred");
+        assert(await backTab.evaluate(el => {
+          const bounds = el.getBoundingClientRect();
+          return el.contains(document.elementFromPoint(bounds.right - 3, bounds.top + bounds.height / 2));
+        }), "large app Back tab sits above the app icon and receives clicks");
+      } else {
+        assert.strictEqual(await backTab.count(), 0, "single app Back card has no overlay");
+        assert(await page.locator(".sp-back-btn .sp-back-badge.mdi-chevron-left").isVisible(),
+          "single app Back card retains its existing chevron");
+      }
       assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0,
         "app subpage identity moves from the clock bar to the return-home card");
       if (process.env.ESPDESKTOP_APP_BACK_SCREENSHOT) {
