@@ -183,7 +183,6 @@ inline void network_status_hide_modal() {
     // App subpages repaint when their screen unloads. Settings is an overlay,
     // so update the title before revealing home and repaint the clock bar too.
     navigation_subpage_screen_changed(nullptr);
-    screen_lock_unregister_tree(overlay);
     lv_obj_del(overlay);
     lv_obj_invalidate(lv_layer_top());
   }

@@ -1,21 +1,5 @@
 [
   {
-    "name": "compact delimiter card canonicalizes for firmware",
-    "input": "~sensor.energy,Energy%3B%20Now,Gauge,Auto,sensor.energy,kWh,sensor,1,large_numbers",
-    "canonical": "~sensor.energy,Energy%3B Now,Gauge,Auto,sensor.energy,kWh,sensor,1,large_numbers",
-    "expected": {
-      "entity": "sensor.energy",
-      "label": "Energy; Now",
-      "icon": "Gauge",
-      "icon_on": "Auto",
-      "sensor": "sensor.energy",
-      "unit": "kWh",
-      "type": "sensor",
-      "precision": "1",
-      "options": "large_numbers"
-    }
-  },
-  {
     "name": "media playlist canonical output is firmware readable",
     "input": "media_player.living_room;Morning Mix;Music;Auto;playlist;;media;;playlist_content_id=media-source%3A//music/morning%2Cmix,playlist_content_type=music,volume_max=40",
     "canonical": "media_player.living_room;Morning Mix;Music;Auto;playlist;;media;;playlist_content_id=media-source%3A//music/morning%2Cmix,playlist_content_type=music",
@@ -64,22 +48,6 @@
     }
   },
   {
-    "name": "compact sensor labels canonicalize for firmware",
-    "input": "~sensor.bin_level,Bin,Trash Can,Auto,sensor.bin_level,,sensor,text,state_labels%2Cstate_input=high%2Cstate_output=Please%20empty%2Cstate_input_2=low%2Cstate_output_2=Full",
-    "canonical": "sensor.bin_level;Bin;Trash Can;Auto;sensor.bin_level;;sensor;text;state_labels,state_input=high,state_output=Please empty,state_input_2=low,state_output_2=Full",
-    "expected": {
-      "entity": "sensor.bin_level",
-      "label": "Bin",
-      "icon": "Trash Can",
-      "icon_on": "Auto",
-      "sensor": "sensor.bin_level",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
-      "options": "state_labels,state_input=high,state_output=Please empty,state_input_2=low,state_output_2=Full"
-    }
-  },
-  {
     "name": "existing card colour takes priority over legacy active override",
     "input": "input_boolean.therapist;Therapist;Account;Auto;;;;;card_on_color=E91E63,card_off_color=3F51B5",
     "canonical": "input_boolean.therapist;Therapist;Account;Auto;;;;;card_off_color=3F51B5",
@@ -93,22 +61,6 @@
       "type": "",
       "precision": "",
       "options": "card_off_color=3F51B5"
-    }
-  },
-  {
-    "name": "legacy active-only sensor colour migrates to single card colour",
-    "input": "sensor.office;Office;Gauge;Auto;binary_sensor.office;;sensor;text;active_color,card_on_color=00BCD4",
-    "canonical": "sensor.office;Office;Gauge;Auto;binary_sensor.office;;sensor;text;active_color,card_off_color=00BCD4",
-    "expected": {
-      "entity": "sensor.office",
-      "label": "Office",
-      "icon": "Gauge",
-      "icon_on": "Auto",
-      "sensor": "binary_sensor.office",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
-      "options": "active_color,card_off_color=00BCD4"
     }
   },
   {

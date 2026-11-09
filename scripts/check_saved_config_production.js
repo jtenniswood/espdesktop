@@ -25,7 +25,6 @@ function checkCompiledHelper() {
     fs.writeFileSync(source, `
 #include <cassert>
 #include <string>
-#include "button_grid_saved_config_action_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
 #include "button_grid_saved_config_weather_generated.h"
@@ -35,12 +34,10 @@ function checkCompiledHelper() {
 #include "button_grid_saved_config_webhook_generated.h"
 #include "button_grid_saved_config_subpage_generated.h"
 #include "button_grid_saved_config_switch_generated.h"
-#include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
 #include "button_grid_saved_config_mower_generated.h"
 #include "button_grid_saved_config_occupancy_generated.h"
-#include "button_grid_saved_config_sensor_generated.h"
 #include "button_grid_saved_config_static_generated.h"
 #include "button_grid_saved_config_vacuum_generated.h"
 struct Config {
@@ -55,35 +52,6 @@ struct Config {
   std::string icon;
 };
 int main() {
-  Config local_action{"local", "stale", "unit", "2", "unknown=1", "Custom", "", "", ""};
-  assert(migrate_saved_config_action_legacy(local_action));
-  assert(local_action.type == "action" && local_action.sensor == "local");
-  assert(local_action.unit.empty() && local_action.precision.empty() && local_action.options.empty());
-  assert(local_action.icon_on == "Auto");
-  Config option_select{"option_select", "stale", "unit", "2", "unknown=1", "Custom", "", "", ""};
-  assert(migrate_saved_config_action_legacy(option_select));
-  assert(option_select.type == "action" && option_select.sensor == "input_select.select_option");
-  assert(option_select.unit.empty() && option_select.precision.empty() && option_select.options.empty());
-  assert(option_select.icon_on == "Auto");
-  Config regular_action{"action", "scene.turn_on", "", "", "", "Auto", "", "", ""};
-  assert(!migrate_saved_config_action_legacy(regular_action));
-  bool action_fields_called = false;
-  bool action_options_called = false;
-  regular_action.precision = "2";
-  regular_action.options = "unknown=1";
-  assert(normalize_saved_config_action(
-    regular_action,
-    [&](Config &config) {
-      action_fields_called = true;
-      config.precision.clear();
-    },
-    [&](const std::string &options, const std::string &action) {
-      action_options_called = action == "scene.turn_on";
-      return options + "option-hook";
-    }
-  ));
-  assert(action_fields_called && action_options_called);
-  assert(regular_action.precision.empty() && regular_action.options == "unknown=1option-hook");
   Config media{"media", "controls", "", "state", "unknown=1", "Auto", "media_player.living_room", "Media", ""};
   bool media_fields_called = false;
   bool media_options_called = false;
@@ -120,44 +88,6 @@ int main() {
   assert(normalize_saved_config_vacuum_precision("2").empty());
   assert(normalize_saved_config_vacuum_options("").empty());
   assert(normalize_saved_config_vacuum_options("unknown=1").empty());
-  Config local_sensor{"local_sensor", "stale", "unit", "7", "unknown=1", "Custom", "", "", ""};
-  assert(migrate_saved_config_sensor_legacy(local_sensor));
-  assert(local_sensor.type == "sensor" && local_sensor.sensor == "local");
-  assert(local_sensor.icon_on == "Auto" && local_sensor.options.empty());
-  Config regular_sensor{"sensor", "", "", "", "", "Auto", "", "", ""};
-  assert(!migrate_saved_config_sensor_legacy(regular_sensor));
-  Config text_sensor{"text_sensor", "stale", "unit", "7", "unknown=1", "Custom", "sensor.old", "Old label", ""};
-  assert(migrate_saved_config_sensor_legacy(text_sensor));
-  assert(text_sensor.type == "sensor" && text_sensor.precision == "text");
-  assert(text_sensor.entity.empty() && text_sensor.label.empty() && text_sensor.unit.empty());
-  assert(text_sensor.icon_on == "Auto");
-  bool fields_called = false;
-  bool options_called = false;
-  assert(normalize_saved_config_sensor(
-    text_sensor, true,
-    [&](Config &config, bool was_legacy_text_sensor) {
-      fields_called = was_legacy_text_sensor;
-      if (was_legacy_text_sensor) config.sensor = "field-hook";
-    },
-    [&](const std::string &options, const std::string &precision) {
-      options_called = precision == "text";
-      return options + "option-hook";
-    }
-  ));
-  assert(fields_called && options_called);
-  assert(text_sensor.sensor == "field-hook" && text_sensor.options == "unknown=1option-hook");
-  assert(!normalize_saved_config_sensor(
-    unrelated, false,
-    [](Config &, bool) {},
-    [](const std::string &options, const std::string &) { return options; }
-  ));
-  Config screen_lock{"screen_lock", "stale", "unit", "2", "unknown=1", "Auto", "switch.stale", "Stale", "Security"};
-  assert(normalize_saved_config_static(screen_lock));
-  assert(screen_lock.entity.empty() && screen_lock.label.empty() && screen_lock.sensor.empty());
-  assert(screen_lock.unit.empty() && screen_lock.precision.empty() && screen_lock.options.empty());
-  assert(screen_lock.icon == "Lock" && screen_lock.icon_on == "Lock Open");
-  screen_lock.options = "unknown=1,screensaver_on_lock,screensaver_on_lock";
-  assert(normalize_saved_config_static(screen_lock) && screen_lock.options == "screensaver_on_lock");
   Config light_switch{"light_switch", "stale", "unit", "2", "unknown=1", "Custom", "light.kitchen", "Kitchen", "Custom"};
   assert(normalize_saved_config_static(light_switch));
   assert(light_switch.sensor.empty() && light_switch.unit.empty());
@@ -201,38 +131,6 @@ int main() {
   assert(fan_switch.options.empty() && fan_switch.icon == "Fan Off" && fan_switch.icon_on == "Fan");
   assert(!normalize_saved_config_fan(
     unrelated, [](Config &) {}, [](const std::string &options) { return options; }
-  ));
-  Config calendar{"calendar", "stale", "unit", "datetime", "large_numbers,unknown=1", "Custom", "", "Old", "Custom"};
-  bool date_time_fields_called = false;
-  bool date_time_options_called = false;
-  assert(normalize_saved_config_date_time(
-    calendar,
-    [&](Config &config) {
-      date_time_fields_called = true;
-      if (config.entity.empty()) config.entity = "sensor.date";
-    },
-    [&](const std::string &options, const Config &config) {
-      date_time_options_called = config.type == "calendar" && config.precision == "datetime";
-      return options + ",normalized";
-    }
-  ));
-  assert(date_time_fields_called && date_time_options_called);
-  assert(calendar.entity == "sensor.date" && calendar.label.empty());
-  assert(calendar.icon == "Auto" && calendar.icon_on == "Auto");
-  assert(calendar.sensor.empty() && calendar.unit.empty() && calendar.precision == "datetime");
-  assert(calendar.options == "large_numbers,unknown=1,normalized");
-  Config clock{"clock", "stale", "unit", "2", "large_numbers", "Custom", "sensor.old", "Old", "Custom"};
-  date_time_fields_called = false;
-  assert(normalize_saved_config_date_time(
-    clock,
-    [&](Config &) { date_time_fields_called = true; },
-    [](const std::string &options, const Config &) { return options; }
-  ));
-  assert(!date_time_fields_called);
-  assert(clock.entity.empty() && clock.label.empty() && clock.sensor.empty());
-  assert(clock.unit.empty() && clock.precision.empty() && clock.options == "large_numbers");
-  assert(!normalize_saved_config_date_time(
-    unrelated, [](Config &) {}, [](const std::string &options, const Config &) { return options; }
   ));
   Config mower{"lawn_mower", "bad_mode", "unit", "2", "unknown=1", "Custom", "lawn_mower.backyard", "Backyard", "Auto"};
   bool mower_fields_called = false;
@@ -517,31 +415,6 @@ int main() {
 
 function main() {
   const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
-  assert.deepStrictEqual(contract.cards.action.normalization.migrationActions.slice(0, 2), ["legacy_local_action", "legacy_option_select"]);
-  const generatedAction = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_action.ts"));
-  const localAction = { type: "local", sensor: "stale", unit: "unit", precision: "2", options: "unknown=1", icon_on: "Custom" };
-  assert.strictEqual(generatedAction.migrateSavedConfigActionLegacy(localAction), true);
-  assert.deepStrictEqual(localAction, { type: "action", sensor: "local", unit: "", precision: "", options: "", icon_on: "Auto" });
-  const optionSelect = { type: "option_select", sensor: "stale", unit: "unit", precision: "2", options: "unknown=1", icon_on: "Custom" };
-  assert.strictEqual(generatedAction.migrateSavedConfigActionLegacy(optionSelect), true);
-  assert.deepStrictEqual(optionSelect, { type: "action", sensor: "input_select.select_option", unit: "", precision: "", options: "", icon_on: "Auto" });
-  assert.strictEqual(generatedAction.migrateSavedConfigActionLegacy({ type: "action", sensor: "scene.turn_on" }), false);
-  const normalizedAction = { type: "action", sensor: "scene.turn_on", precision: "2", options: "unknown=1" };
-  let actionFieldsCalled = false;
-  let actionOptionsCalled = false;
-  assert.strictEqual(generatedAction.normalizeSavedConfigAction(
-    normalizedAction,
-    (config) => {
-      actionFieldsCalled = true;
-      config.precision = "";
-    },
-    (options, action) => {
-      actionOptionsCalled = action === "scene.turn_on";
-      return options + "option-hook";
-    },
-  ), true);
-  assert(actionFieldsCalled && actionOptionsCalled);
-  assert.deepStrictEqual(normalizedAction, { type: "action", sensor: "scene.turn_on", precision: "", options: "unknown=1option-hook" });
   const generatedMedia = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_media.ts"));
   const normalizedMedia = { type: "media", sensor: "controls", label: "Media", options: "unknown=1" };
   let mediaFieldsCalled = false;
@@ -591,49 +464,7 @@ function main() {
   assert.strictEqual(generated.normalizeSavedConfigVacuumOptions(""), "");
   assert.strictEqual(generated.normalizeSavedConfigVacuumOptions("unknown=1"), "");
 
-  assert.deepStrictEqual(contract.cards.sensor.normalization.migrationActions.slice(0, 2), ["legacy_local_sensor", "legacy_text_sensor"]);
-  const generatedSensor = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_sensor.ts"));
-  const localSensor = { type: "local_sensor", sensor: "stale", precision: "7", options: "unknown=1", icon_on: "Custom" };
-  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy(localSensor), true);
-  assert.deepStrictEqual(localSensor, { type: "sensor", sensor: "local", precision: "7", options: "", icon_on: "Auto" });
-  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy({ type: "sensor", sensor: "local" }), false);
-  const textSensor = { type: "text_sensor", entity: "sensor.old", label: "Old label", unit: "°C", precision: "7", icon_on: "Custom" };
-  assert.strictEqual(generatedSensor.migrateSavedConfigSensorLegacy(textSensor), true);
-  assert.deepStrictEqual(textSensor, { type: "sensor", entity: "", label: "", unit: "", precision: "text", icon_on: "Auto" });
-  let sensorFieldsCalled = false;
-  let sensorOptionsCalled = false;
-  assert.strictEqual(generatedSensor.normalizeSavedConfigSensor(
-    textSensor,
-    true,
-    (config, wasLegacyTextSensor) => {
-      sensorFieldsCalled = wasLegacyTextSensor;
-      config.sensor = "field-hook";
-    },
-    (options, precision) => {
-      sensorOptionsCalled = precision === "text";
-      return options + "option-hook";
-    },
-  ), true);
-  assert(sensorFieldsCalled && sensorOptionsCalled);
-  assert.strictEqual(textSensor.sensor, "field-hook");
-  assert.strictEqual(textSensor.options, "option-hook");
-  assert.strictEqual(generatedSensor.normalizeSavedConfigSensor(
-    { type: "action", options: "keep", precision: "" }, false, () => {}, (options) => options,
-  ), false);
-
   const generatedStatic = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_static.ts"));
-  const screenLock = {
-    type: "screen_lock", entity: "switch.stale", label: "Stale", icon: "Security", icon_on: "Auto",
-    sensor: "stale", unit: "unit", precision: "2", options: "unknown=1",
-  };
-  assert.strictEqual(generatedStatic.normalizeSavedConfigStatic(screenLock), true);
-  assert.deepStrictEqual(screenLock, {
-    type: "screen_lock", entity: "", label: "", icon: "Lock", icon_on: "Lock Open",
-    sensor: "", unit: "", precision: "", options: "",
-  });
-  screenLock.options = "unknown=1,screensaver_on_lock,screensaver_on_lock";
-  generatedStatic.normalizeSavedConfigStatic(screenLock);
-  assert.strictEqual(screenLock.options, "screensaver_on_lock");
   const slider = { type: "slider", sensor: "stale", unit: "%", precision: "2", options: "unknown=1" };
   assert.strictEqual(generatedStatic.normalizeSavedConfigStatic(slider), true);
   assert.deepStrictEqual(slider, { type: "slider", sensor: "", unit: "%", precision: "2", options: "" });
@@ -661,26 +492,6 @@ function main() {
   ), true);
   assert.deepStrictEqual(fanSwitch, { type: "fan_switch", sensor: "", unit: "", precision: "", icon: "Fan Off", icon_on: "Fan", options: "" });
   assert.strictEqual(generatedFan.normalizeSavedConfigFan({ type: "sensor", options: "keep" }, () => {}, (options) => options), false);
-
-  const generatedDateTime = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_date_time.ts"));
-  const calendar = { type: "calendar", entity: "", label: "Old", icon: "Custom", icon_on: "Custom", sensor: "stale", unit: "unit", precision: "datetime", options: "large_numbers,unknown=1" };
-  let dateTimeFieldsCalled = false;
-  let dateTimeOptionsCalled = false;
-  assert.strictEqual(generatedDateTime.normalizeSavedConfigDateTime(
-    calendar,
-    (config) => { dateTimeFieldsCalled = true; if (!config.entity) config.entity = "sensor.date"; },
-    (options, config) => { dateTimeOptionsCalled = config.type === "calendar" && config.precision === "datetime"; return options + ",normalized"; },
-  ), true);
-  assert(dateTimeFieldsCalled && dateTimeOptionsCalled);
-  assert.deepStrictEqual(calendar, { type: "calendar", entity: "sensor.date", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "", precision: "datetime", options: "large_numbers,unknown=1,normalized" });
-  const clock = { type: "clock", entity: "sensor.old", label: "Old", icon: "Custom", icon_on: "Custom", sensor: "stale", unit: "unit", precision: "2", options: "large_numbers" };
-  dateTimeFieldsCalled = false;
-  assert.strictEqual(generatedDateTime.normalizeSavedConfigDateTime(
-    clock, () => { dateTimeFieldsCalled = true; }, (options) => options,
-  ), true);
-  assert.strictEqual(dateTimeFieldsCalled, false);
-  assert.deepStrictEqual(clock, { type: "clock", entity: "", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "", precision: "", options: "large_numbers" });
-  assert.strictEqual(generatedDateTime.normalizeSavedConfigDateTime({ type: "sensor", options: "keep" }, () => {}, (options) => options), false);
 
   const generatedMower = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_mower.ts"));
   const mower = { type: "lawn_mower", entity: "lawn_mower.backyard", label: "Backyard", icon: "Auto", icon_on: "Custom", sensor: "bad_mode", unit: "unit", precision: "2", options: "unknown=1" };
@@ -834,15 +645,9 @@ function main() {
   assert.match(browser, /iconOn = normalizeSavedConfigVacuumIconOn\(iconOn\);/);
   assert.match(browser, /type === "vacuum"[\s\S]*?normalizeSavedConfigVacuumOptions\(options\)/);
   assert.doesNotMatch(browser, /type === "vacuum" \|\| type === "lawn_mower"/);
-  assert.match(browser, /from "\.\.\/generated\/saved_config_sensor";/);
-  assert.match(browser, /migrateSavedConfigSensorLegacy\(b\)/);
-  assert.match(browser, /normalizeSavedConfigSensor\(b, wasLegacyTextSensor, normalizeSavedConfigSensorFields, normalizeSensorOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "local_sensor"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "text_sensor"\)/);
   assert.doesNotMatch(browser, /else if \(b && b\.type === "sensor"\)/);
-  assert.match(browser, /from "\.\.\/generated\/saved_config_action";/);
-  assert.match(browser, /migrateSavedConfigActionLegacy\(b\)/);
-  assert.match(browser, /normalizeSavedConfigAction\(b, normalizeSavedConfigActionFields, normalizeActionOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "local"\) \{\s*b\.type = "action"/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "option_select"\) \{\s*b\.type = "action"/);
   assert.doesNotMatch(browser, /else if \(b && b\.type === "action"\)/);
@@ -858,8 +663,6 @@ function main() {
   assert.match(browser, /normalizeSavedConfigFan\(b, normalizeSavedConfigFanFields, normalizeFanControlOptions\)/);
   assert.doesNotMatch(browser, /if \(b && isFanCardType\(b\.type\)\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "fan_control"\)/);
-  assert.match(browser, /from "\.\.\/generated\/saved_config_date_time";/);
-  assert.match(browser, /normalizeSavedConfigDateTime\(b, normalizeSavedConfigDateTimeFields, normalizeSavedConfigDateTimeOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "calendar"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "clock"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "timezone"\)/);
@@ -924,14 +727,8 @@ function main() {
   assert.match(vacuumBlock, /p\.icon_on = normalize_saved_config_vacuum_icon_on\(p\.icon_on\);/);
   assert.match(vacuumBlock, /p\.options = normalize_saved_config_vacuum_options\(p\.options\);/);
   assert.doesNotMatch(vacuumBlock, /p\.options\.clear\(\);/);
-  assert.match(firmware, /#include "button_grid_saved_config_sensor_generated\.h"/);
-  assert.match(firmware, /migrate_saved_config_sensor_legacy\(p\)/);
-  assert.match(firmware, /normalize_saved_config_sensor\(p, was_legacy_text_sensor,/);
   assert.doesNotMatch(firmware, /p\.type == "local_sensor"/);
   assert.doesNotMatch(firmware, /if \(p\.type == "text_sensor"\)/);
-  assert.match(firmware, /#include "button_grid_saved_config_action_generated\.h"/);
-  assert.match(firmware, /migrate_saved_config_action_legacy\(p\)/);
-  assert.match(firmware, /normalize_saved_config_action\(p, normalize_saved_config_action_fields,/);
   assert.doesNotMatch(firmware, /if \(p\.type == "local"\)/);
   assert.doesNotMatch(firmware, /if \(p\.type == "option_select"\)/);
   assert.doesNotMatch(firmware, /if \(p\.type == "action"\) \{\s*p\.precision\.clear\(\);/);
@@ -946,8 +743,6 @@ function main() {
   assert.match(firmware, /#include "button_grid_saved_config_fan_generated\.h"/);
   assert.match(firmware, /normalize_saved_config_fan\(\s*p, normalize_saved_config_fan_fields, fan_control_card_options_normalized\)/);
   assert.doesNotMatch(firmware, /if \(fan_card_type\(p\.type\)\)/);
-  assert.match(firmware, /#include "button_grid_saved_config_date_time_generated\.h"/);
-  assert.match(firmware, /normalize_saved_config_date_time\(\s*p, normalize_saved_config_date_time_fields, date_time_card_options_normalized\)/);
   assert.doesNotMatch(firmware, /if \(p\.type == "calendar"\) \{/);
   assert.doesNotMatch(firmware, /if \(p\.type == "clock"\) \{/);
   assert.doesNotMatch(firmware, /if \(p\.type == "timezone"\) \{/);
@@ -994,7 +789,7 @@ function main() {
   assert.doesNotMatch(normalizeParser, /if \(p\.type\.empty\(\)\) \{\s*p\.options = switch_card_options_normalized/);
 
   checkCompiledHelper();
-  console.log("Saved-config production check passed: Access, Action, Climate, Date/Time, Fan, Image, Lawn Mower, Light Control, Media, Occupancy, Security, Sensor, Subpage, Switch, Vacuum, Weather, Webhook, and static card normalization use generated browser and compiled firmware helpers.");
+  console.log("Saved-config production check passed: Access, Climate, Fan, Image, Lawn Mower, Light Control, Media, Occupancy, Security, Subpage, Switch, Vacuum, Weather, Webhook, and static card normalization use generated browser and compiled firmware helpers.");
 }
 
 main();

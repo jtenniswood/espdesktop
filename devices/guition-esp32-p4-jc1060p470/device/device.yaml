@@ -76,7 +76,6 @@ espdesktop:
     device_profile: ${device_slug}
     button_order: button_order
     button_on_color: button_on_color
-    special_page_chunks: [special_page_config, special_page_config_ext, special_page_config_ext_2, special_page_config_ext_3, special_page_config_ext_4, special_page_config_ext_5, special_page_config_ext_6, special_page_config_ext_7]
     buttons:
       - config: button_1_config
         subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3, subpage_1_config_ext_4, subpage_1_config_ext_5, subpage_1_config_ext_6, subpage_1_config_ext_7]
@@ -158,12 +157,6 @@ esphome:
       then:
         - lambda: 'id(screen_rotation_ready) = true;'
         - script.execute: apply_screen_rotation
-
-# The P4 panel has enough memory for additional native API clients. Allow
-# Home Assistant, ESPHome logs, and browser/configuration sessions to overlap
-# without rejecting connections at ESPHome's default five-client limit.
-api:
-  max_connections: 8
 
 # ---------------------------------------------------------------------------
 # PSRAM (video frame buffer memory)
@@ -250,7 +243,7 @@ light:
         - if:
             condition:
               lambda: |-
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto now = id(panel_time).now();
                 return (id(espdesktop_app).display().target_source_is(
                             espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
                         id(espdesktop_app).display().target_mode_is(
@@ -359,7 +352,6 @@ script:
           const auto rotation = id(screen_rotation_select).current_option();
           set_width_compensation_vertical_axis(rotation == "90" || rotation == "270");
       - script.execute: cover_art_apply_responsive_layout
-      - script.execute: camera_screensaver_request_image
 
 select:
   - platform: template

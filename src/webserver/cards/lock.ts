@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import {
     cardContractAllowInSubpage,
     cardContractCard,
@@ -67,92 +68,8 @@ export function registerLockCardTypes(
         hideLabel: true,
         defaultConfig: function (this: any) { return cardContractDefaultConfig("lock"); },
         cardMetadata: LOCK_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            b.label = "";
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "";
-            b.icon = "Lock";
-            b.icon_on = "Lock Open";
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            var mode: any = normalizeLockMode(b.sensor);
-            if (b.sensor !== mode) {
-                b.sensor = mode;
-                helpers.saveField("sensor", mode);
-            }
-            b.unit = "";
-            b.precision = "";
-            if (lockCommandMode(mode) && b.icon_on !== "Auto") {
-                b.icon_on = "Auto";
-                helpers.saveField("icon_on", "Auto");
-            }
-            else if (!lockCommandMode(mode) && (!b.icon_on || b.icon_on === "Auto")) {
-                b.icon_on = "Lock Open";
-                helpers.saveField("icon_on", "Lock Open");
-            }
-            helpers.renderCardModeSelector(panel, b, helpers, Object.assign({}, LOCK_CARD_METADATA, {
-                mode: Object.assign({}, LOCK_CARD_METADATA.mode, {
-                    value: function (this: any) { return mode; },
-                    onChange: function (this: any) {
-                        var oldMode: any = mode;
-                        var hadDefaultIcon: any = lockUsesDefaultIcon(b.icon);
-                        mode = normalizeLockMode(this.value);
-                        b.sensor = mode;
-                        helpers.saveField("sensor", mode);
-                        b.unit = "";
-                        b.precision = "";
-                        helpers.saveField("unit", "");
-                        helpers.saveField("precision", "");
-                        if (hadDefaultIcon || b.icon === lockModeDefaultIcon(oldMode)) {
-                            b.icon = lockModeDefaultIcon(mode);
-                            helpers.saveField("icon", b.icon);
-                        }
-                        if (lockCommandMode(mode)) {
-                            b.icon_on = "Auto";
-                        }
-                        else if (!b.icon_on || b.icon_on === "Auto") {
-                            b.icon_on = "Lock Open";
-                        }
-                        helpers.saveField("icon_on", b.icon_on);
-                        renderButtonSettings();
-                    },
-                }),
-            }));
-            helpers.renderCardTextField(panel, b, helpers, Object.assign({}, LOCK_CARD_METADATA.labelField, {
-                placeholder: lockCommandMode(mode) ? "e.g. " + lockModeDefaultLabel(mode) + " Front Door" : "e.g. Front Door",
-            }));
-            helpers.renderCardEntityField(panel, b, helpers, LOCK_CARD_METADATA);
-            var lockedIconVal: any = b.icon && b.icon !== "Auto" ? b.icon : "Lock";
-            var unlockedIconVal: any = b.icon_on && b.icon_on !== "Auto" ? b.icon_on : "Lock Open";
-            if (lockCommandMode(mode)) {
-                helpers.renderCardIconPicker(panel, b, helpers, {
-                    pickerIdSuffix: "icon-picker",
-                    idSuffix: "icon",
-                    field: "icon",
-                    value: b.icon && b.icon !== "Auto" ? b.icon : lockModeDefaultIcon(mode),
-                    fallback: lockModeDefaultIcon(mode),
-                    label: "Icon",
-                });
-            }
-            else {
-                helpers.renderCardIconPair(panel, b, helpers, {
-                    pickerIdSuffix: "icon-picker",
-                    idSuffix: "icon",
-                    field: "icon",
-                    value: lockedIconVal,
-                    fallback: "Lock",
-                    label: "Locked Icon",
-                }, {
-                    pickerIdSuffix: "icon-on-picker",
-                    idSuffix: "icon-on",
-                    field: "icon_on",
-                    value: unlockedIconVal,
-                    fallback: "Lock Open",
-                    label: "Unlocked Icon",
-                });
-            }
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var mode: any = normalizeLockMode(b.sensor);
             var label: any = b.label || (lockCommandMode(mode) ? lockModeDefaultLabel(mode) : b.entity || "Lock");

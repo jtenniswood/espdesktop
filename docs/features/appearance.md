@@ -37,8 +37,7 @@ On the first boot after installing this update, new and existing displays switch
 to Medium once. Choices made afterward are saved across restarts and future updates.
 
 The curve setting is included in configuration backups. Restoring an older
-backup without it keeps the current choice. Home Assistant can also change
-the **Screen: Card Curve** select. Changes update the preview immediately
+backup without it keeps the current choice. Change **Card Curve** in the web editor. Changes update the preview immediately
 and redraw the physical cards after the display's brief refresh delay.
 
 Find these controls in **Screen → Appearance** on the [Setup](/features/setup) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
@@ -69,9 +68,9 @@ over large artwork, without a background. These arrows are not shown on the phys
 - Under **Automatic theme**, **Sunrise & Sunset** switches to Light at sunrise and Dark at sunset. The panel shows the calculated sunrise and sunset times when this method is selected. It uses its existing on-device calculation based on the configured timezone and approximate location. Set the correct timezone under **System → Preferences → Time**. A Home Assistant `sun.sun` entity is not required.
 - Under **Automatic theme**, **Manual** uses the panel's local clock. Set **Light from** and **Dark from** in 24-hour `HH:MM` format. The Light period can cross midnight. If both times are the same, Dark remains active.
 
-When clock or solar data is temporarily unavailable, Automatic keeps the last active appearance. A fresh boot falls back to Dark until the required data is known. The **Screen: Active Theme** Home Assistant sensor reports the effective Dark or Light palette even while Automatic is selected.
+When clock or solar data is temporarily unavailable, Automatic keeps the last active appearance. A fresh boot falls back to Dark until the required data is known. The local **Screen: Active Theme** diagnostic reports the effective Dark or Light palette even while Automatic is selected.
 
-Home Assistant can also change the saved settings through **Screen: Theme Mode**, **Screen: Theme Auto Method**, **Screen: Theme Light Start**, **Screen: Theme Dark Start**, **Screen: Theme Sunrise Offset**, and **Screen: Theme Sunset Offset**. Changes apply without a reboot. The setup-page preview follows the chosen manual theme or, in Automatic, the reported Active Theme.
+Change theme mode, timing and sunrise/sunset offsets in the web editor. Changes apply without a reboot. The preview follows the chosen manual theme or, in Automatic, the reported Active Theme.
 
 The theme changes the panel's neutral backgrounds, controls and text, including setup and loading screens. Primary/accent, artwork, camera images, cover art, QR codes and status colours keep their own colours. The clock screensaver keeps a black background and its saved text colour in both themes; theme changes do not wake the panel or reset navigation.
 

@@ -176,8 +176,7 @@
           "card_curve_small_radius": "16px",
           "card_curve_medium_radius": "21px",
           "button_radius": "8px"
-        },
-        "apiNavigateAction": true
+        }
       }
     }
   }

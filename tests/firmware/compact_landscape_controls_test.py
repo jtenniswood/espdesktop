@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 root = Path(__file__).resolve().parents[2]
 display = (root / "components/espdesktop/button_grid_display.h").read_text()

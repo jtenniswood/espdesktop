@@ -14,7 +14,7 @@
       "id": "1",
       "label": "Search books",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     }
   ]
 }

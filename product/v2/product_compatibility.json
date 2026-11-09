@@ -54,11 +54,11 @@
       ],
       "buttons": [
         {
-          "entity": "scene.movie",
-          "label": "Movie",
-          "icon": "Flash",
+          "entity": "",
+          "label": "",
+          "icon": "Auto",
           "icon_on": "Auto",
-          "sensor": "scene.turn_on",
+          "sensor": "",
           "unit": "",
           "type": "action",
           "precision": "",
@@ -150,7 +150,6 @@
       ],
       "requiredCards": [
         "",
-        "sensor",
         "weather",
         "media",
         "alarm",
@@ -168,10 +167,6 @@
         "weather_forecast": {
           "type": "weather",
           "precision": "tomorrow"
-        },
-        "text_sensor": {
-          "type": "sensor",
-          "precision": "text"
         }
       }
     },
@@ -203,20 +198,6 @@
           "type": "weather",
           "precision": "tomorrow",
           "options": ""
-        }
-      },
-      "text_sensor_alias": {
-        "input": "sensor.washer;Washer;Washer;Auto;;;text_sensor;;active_color",
-        "expected": {
-          "entity": "",
-          "label": "",
-          "icon": "Washer",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "sensor",
-          "precision": "text",
-          "options": "active_color"
         }
       },
       "media_controls_alias": {

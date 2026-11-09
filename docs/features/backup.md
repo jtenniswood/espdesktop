@@ -8,16 +8,16 @@ description:
 
 You can save your entire panel configuration as a file and restore it later. You'll find these options in the **System** tab on the [Setup](/features/setup) page, under **System > Backup**.
 
-- **Export** - saves your entire setup (cards, subpages, colours, brightness, screen schedule, display settings, Home Assistant artwork settings, and firmware update preferences) as a file you can keep as a backup.
+- **Export** - saves your entire setup (cards, subpages, colours, brightness, screen schedule, display settings, Mac artwork settings, and firmware update preferences) as a file you can keep as a backup.
 - **Import** - loads a previously saved file to restore your setup. If you're loading a backup from a different-sized panel, the cards are rearranged to fit automatically.
 
-Restored presence and screen-schedule sensors reconnect automatically without restarting the display.
+Saved Home Assistant cards stay in the restored layout as unavailable records, with a warning that their configuration has been kept. Retired sensor schedules become Disabled. Temperature, voice and alarm-audio settings are ignored; they are not sent back to the panel.
 
 Backup files are versioned so newer EspDesktop releases can keep importing older backups safely. Older version 1 backups still import, and new exports use version 2 while keeping the same readable layout fields for compatibility.
 
 ## Compatibility Notes
 
-EspDesktop keeps old saved card strings readable during upgrades. That means cards created before newer card options or compact subpage storage were added should still load, display, and export correctly after an update.
+EspDesktop keeps old saved card strings readable during upgrades. That means cards created before newer card options or compact subpage storage were added remain readable and exportable after an update. Retired cards do not regain their old controls.
 
 New backup exports continue to use `version: 2` with `format: "espdesktop.backup"`. The readable JSON file also includes a `native_config` section. It records the panel profile, document version, and an encoded copy of the configuration so a firmware version with the native configuration service can restore it exactly. Older panels continue to import the same file through the compatible JSON fields.
 
@@ -29,10 +29,10 @@ Current firmware supports up to 4 KB of settings per card or subpage on both S3 
 
 Open **System > Factory Reset** on the [Setup](/features/setup) page. Choose **Save backup** to keep a copy of your settings, then choose a reset option and confirm:
 
-- **Partial reset** removes cards, layouts, subpages, actions, the custom device name and device preferences, while keeping the saved Wi-Fi connection and Home Assistant encryption key. The display restarts into card setup.
-- **Complete reset** also removes saved Wi-Fi credentials and the Home Assistant encryption key. Confirm the reset in the web dialog, then follow the display's first-time setup instructions. Ethernet displays remain accessible through their wired network. Home Assistant may need to be configured again; its integration records and automations are not deleted.
+- **Partial reset** removes cards, layouts, subpages, actions, the custom device name and device preferences, while keeping the saved Wi-Fi connection and Mac pairing. The display restarts into card setup.
+- **Complete reset** also removes saved Wi-Fi credentials and Mac pairing. Confirm the reset in the web dialog, then follow the display's first-time setup instructions. Ethernet displays remain accessible through their wired network.
 
-Backups do not restore the display's Wi-Fi login or Home Assistant encryption key. They can still contain passwords saved in [Wifi Sharing cards](/card-types/wifi-share). Both options keep the installed firmware and its built-in defaults. Names, credentials and other settings compiled into a custom ESPHome YAML remain; install stock firmware to restore stock defaults.
+Backups do not restore the display’s Wi-Fi login, Mac pairing credential or PIN. Older backups can still contain sensitive saved card settings. Both options keep the installed firmware and its built-in defaults. Names, credentials and other settings compiled into a custom ESPHome YAML remain; install stock firmware to restore stock defaults.
 
 The **Factory Reset** section appears only on firmware that supports it. After reset, reload any other open setup pages before editing. A reset interrupted by power loss resumes at startup. If storage cleanup fails, startup remains paused and the serial log reports `Reset recovery`; cleanup retries every ten seconds. Do not restore a backup until reset has completed.
 

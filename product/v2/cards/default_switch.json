@@ -1,4 +1,5 @@
 {
+  "hidden": true,
   "label": "Switch",
   "allowInSubpage": true,
   "domains": ["light", "switch", "input_boolean", "fan"],

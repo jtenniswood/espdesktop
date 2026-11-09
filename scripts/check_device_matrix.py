@@ -81,9 +81,32 @@ def test_pr_matrix_uses_one_representative_per_chip_family() -> None:
     assert len(matrix["include"]) < len(manifest_data()["devices"])
 
 
-def test_release_matrix_includes_every_manifest_slug() -> None:
+def test_release_matrix_includes_only_public_devices() -> None:
     matrix = run_ok(["release"])
-    assert [entry["slug"] for entry in matrix["include"]] == list(manifest_data()["devices"].keys())
+    assert [entry["slug"] for entry in matrix["include"]] == ["guition-esp32-s3-4848s040"]
+    assert len(run_ok(["nightly"])["include"]) > len(matrix["include"])
+    try:
+        device_matrix.release_matrix({})
+    except device_matrix.DeviceMatrixError:
+        pass
+    else:
+        raise AssertionError("Unknown release device was accepted")
+
+
+def test_release_device_selection_validation() -> None:
+    from release_devices import load_release_devices
+    with TemporaryDirectory() as tmp:
+        path = Path(tmp) / "release_devices.json"
+        for invalid in ([], ["panel", "panel"], [None], "panel"):
+            path.write_text(json.dumps({"devices": invalid}))
+            try:
+                load_release_devices(path)
+            except ValueError:
+                pass
+            else:
+                raise AssertionError(f"Invalid release selection accepted: {invalid!r}")
+        path.write_text(json.dumps({"devices": ["future-panel"]}))
+        assert load_release_devices(path) == ["future-panel"]
 
 
 def test_missing_chip_metadata_fails() -> None:
@@ -148,7 +171,8 @@ def main() -> int:
         test_release_matrix_shape,
         test_nightly_matrix_includes_every_manifest_slug,
         test_pr_matrix_uses_one_representative_per_chip_family,
-        test_release_matrix_includes_every_manifest_slug,
+        test_release_matrix_includes_only_public_devices,
+        test_release_device_selection_validation,
         test_missing_chip_metadata_fails,
         test_matrix_build_files_are_required,
         test_matrix_build_files_accept_standard_outputs,

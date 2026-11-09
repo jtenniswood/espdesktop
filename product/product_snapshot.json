@@ -10,10 +10,10 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 44,
-    "entityNames": 125,
-    "icons": 401,
-    "structuralIcons": 37,
+    "cardTypes": 33,
+    "entityNames": 104,
+    "icons": 259,
+    "structuralIcons": 39,
     "compatibilityFixtureGroups": 2
   },
   "deviceProfiles": {
@@ -221,8 +221,7 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -433,8 +432,7 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -634,8 +632,7 @@
             "card_curve_medium_radius": "20px"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -835,8 +832,7 @@
             "card_curve_medium_radius": "20px"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -1034,8 +1030,7 @@
           "esp32C6FirmwareUpdate": true,
           "extraPackages": {
             "battery": "!include device/battery.yaml"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -1230,8 +1225,7 @@
             "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -1428,8 +1422,7 @@
             "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       },
       "settings": {
@@ -1619,11 +1612,6 @@
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
             "screen_schedule_clock_default_brightness": "\"10\"",
-            "voice_wake_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_wake_chime.flac\"",
-            "voice_timer_alert_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac\"",
-            "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
-            "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
-            "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\"",
             "button_radius": "12px",
             "speaker_amplifier_pin": "\"GPIO53\""
           },
@@ -1638,8 +1626,7 @@
           "backlightPwmFrequency": {
             "wifi": "100Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       },
       "settings": {
@@ -1845,9 +1832,7 @@
             "card_curve_medium_radius": "21px",
             "button_radius": "8px"
           },
-          "deviceFontPackageKey": "fonts_device",
-          "apiNavigateAction": true,
-          "apiOpenModalAction": true
+          "deviceFontPackageKey": "fonts_device"
         }
       },
       "settings": {
@@ -1865,7 +1850,6 @@
       "normalize_media_options",
       "normalize_fan_fields",
       "normalize_fan_options",
-      "normalize_date_time_fields",
       "normalize_date_time_options",
       "normalize_mower_fields",
       "normalize_occupancy_fields",
@@ -1886,8 +1870,6 @@
       "normalize_subpage_fields",
       "normalize_subpage_options",
       "normalize_switch_options",
-      "normalize_sensor_fields",
-      "normalize_sensor_options",
       "normalize_vacuum_fields"
     ],
     "fields": [
@@ -1904,12 +1886,10 @@
     "runtime": {
       "drivers": [
         "toggle",
-        "action",
         "vacuum",
         "lawn_mower",
         "alarm",
         "alarm_action",
-        "date_time",
         "climate",
         "cover",
         "cover_modal",
@@ -1934,18 +1914,13 @@
         "media_now_playing",
         "media_cover_art",
         "media_playlist",
-        "option_select",
         "push",
         "companion",
-        "screen_lock",
         "webhook",
-        "sensor",
         "subpage",
         "weather",
         "image",
-        "wifi_qr",
-        "timer",
-        "screensaver"
+        "timer"
       ],
       "capabilities": [
         "informationOnly",
@@ -1978,18 +1953,6 @@
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "action": {
-          "driver": "action",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": true,
             "subpage": true
           }
         },
@@ -2038,30 +2001,6 @@
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": true,
-            "subpage": true
-          }
-        },
-        "calendar": {
-          "driver": "date_time",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "clock": {
-          "driver": "date_time",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
             "subpage": true
           }
         },
@@ -2319,18 +2258,6 @@
             "playlist": "media_playlist"
           }
         },
-        "option_select": {
-          "driver": "option_select",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": true,
-            "subpage": true
-          }
-        },
         "push": {
           "driver": "push",
           "capabilities": {
@@ -2355,48 +2282,12 @@
             "subpage": true
           }
         },
-        "screen_lock": {
-          "driver": "screen_lock",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
         "webhook": {
           "driver": "webhook",
           "capabilities": {
             "informationOnly": false,
             "subscriptions": true,
             "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "sensor": {
-          "driver": "sensor",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": true,
-            "subpage": true
-          }
-        },
-        "local_sensor": {
-          "driver": "sensor",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": false,
@@ -2424,18 +2315,6 @@
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": true,
-            "subpage": false
-          }
-        },
-        "timezone": {
-          "driver": "date_time",
-          "capabilities": {
-            "informationOnly": true,
-            "subscriptions": true,
-            "actions": false,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
             "subpage": true
           }
         },
@@ -2463,30 +2342,6 @@
             "subpage": true
           }
         },
-        "wifi_qr": {
-          "driver": "wifi_qr",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": true,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "wifi_qr_card": {
-          "driver": "wifi_qr",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
-            "actions": true,
-            "numericControl": false,
-            "modal": true,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
         "weather_forecast": {
           "driver": "weather",
           "capabilities": {
@@ -2496,18 +2351,6 @@
             "numericControl": false,
             "modal": true,
             "runtimeAllocation": true,
-            "subpage": true
-          }
-        },
-        "screensaver": {
-          "driver": "screensaver",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": false,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
             "subpage": true
           }
         }
@@ -2520,6 +2363,7 @@
     ],
     "cards": {
       "timer": {
+        "hidden": true,
         "label": "Timer",
         "allowInSubpage": true,
         "domains": [
@@ -2539,6 +2383,7 @@
         }
       },
       "": {
+        "hidden": true,
         "label": "Switch",
         "allowInSubpage": true,
         "domains": [
@@ -2667,248 +2512,8 @@
           "options": ""
         }
       },
-      "action": {
-        "label": "Action",
-        "allowInSubpage": true,
-        "domains": [
-          "scene",
-          "script",
-          "automation",
-          "button",
-          "input_button",
-          "input_boolean",
-          "number",
-          "input_number",
-          "input_select",
-          "select"
-        ],
-        "options": [
-          {
-            "name": "large_numbers",
-            "label": "Large State Numbers",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicabilityHook": "action_large_numbers_supported"
-          },
-          {
-            "name": "state_entity",
-            "label": "State Entity",
-            "kind": "text",
-            "hidden": true,
-            "docsHidden": true,
-            "omitDefault": true
-          },
-          {
-            "name": "state_unit",
-            "label": "State Unit",
-            "kind": "text",
-            "hidden": true,
-            "docsHidden": true,
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "option",
-                "name": "state_entity",
-                "operator": "present"
-              },
-              {
-                "source": "option",
-                "name": "state_precision",
-                "operator": "in",
-                "value": [
-                  "icon",
-                  "text"
-                ],
-                "negate": true
-              }
-            ]
-          },
-          {
-            "name": "state_precision",
-            "label": "State Precision",
-            "kind": "choice",
-            "values": [
-              "",
-              "0",
-              "1",
-              "2",
-              "icon",
-              "text"
-            ],
-            "defaultValue": "",
-            "hidden": true,
-            "docsHidden": true,
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "option",
-                "name": "state_entity",
-                "operator": "present"
-              }
-            ]
-          },
-          {
-            "name": "confirmation_required",
-            "label": "Confirmation Required",
-            "kind": "flag",
-            "storage": [
-              "confirm_on"
-            ],
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "sensor",
-                "operator": "equals",
-                "value": "script.turn_on"
-              }
-            ]
-          },
-          {
-            "name": "script_fields",
-            "label": "Fields",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "sensor",
-                "operator": "equals",
-                "value": "script.turn_on"
-              }
-            ]
-          },
-          {
-            "name": "confirm_message",
-            "label": "Message",
-            "kind": "text",
-            "defaultValue": "Run this script?",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "sensor",
-                "operator": "equals",
-                "value": "script.turn_on"
-              },
-              {
-                "source": "option",
-                "name": "confirm_on",
-                "operator": "present"
-              }
-            ]
-          },
-          {
-            "name": "confirm_yes",
-            "label": "Confirm Button",
-            "kind": "text",
-            "defaultValue": "Yes",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "sensor",
-                "operator": "equals",
-                "value": "script.turn_on"
-              },
-              {
-                "source": "option",
-                "name": "confirm_on",
-                "operator": "present"
-              }
-            ]
-          },
-          {
-            "name": "confirm_no",
-            "label": "Cancel Button",
-            "kind": "text",
-            "defaultValue": "No",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "sensor",
-                "operator": "equals",
-                "value": "script.turn_on"
-              },
-              {
-                "source": "option",
-                "name": "confirm_on",
-                "operator": "present"
-              }
-            ]
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "keep"
-            },
-            "icon": {
-              "policy": "hook",
-              "hook": "normalize_action_fields"
-            },
-            "icon_on": {
-              "policy": "hook",
-              "hook": "normalize_action_fields"
-            },
-            "sensor": {
-              "policy": "hook",
-              "hook": "normalize_action_fields"
-            },
-            "unit": {
-              "policy": "hook",
-              "hook": "normalize_action_fields"
-            },
-            "type": {
-              "policy": "hook",
-              "hook": "normalize_action_fields"
-            },
-            "precision": {
-              "policy": "hook",
-              "hook": "normalize_action_fields"
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_action_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "state_entity",
-            "state_unit",
-            "state_precision",
-            "large_numbers",
-            "script_fields",
-            "confirm_on",
-            "confirm_message",
-            "confirm_yes",
-            "confirm_no"
-          ],
-          "optionHook": "normalize_action_options",
-          "migrationActions": [
-            "legacy_local_action",
-            "legacy_option_select",
-            "legacy_vacuum_start",
-            "legacy_vacuum_dock"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Flash",
-          "icon_on": "Auto",
-          "sensor": "scene.turn_on",
-          "unit": "",
-          "type": "action",
-          "precision": "",
-          "options": ""
-        }
-      },
       "vacuum": {
+        "hidden": true,
         "label": "Vacuum",
         "allowInSubpage": true,
         "domains": [
@@ -3017,6 +2622,7 @@
         }
       },
       "lawn_mower": {
+        "hidden": true,
         "label": "Lawn Mower",
         "allowInSubpage": true,
         "domains": [
@@ -3088,6 +2694,7 @@
         }
       },
       "alarm": {
+        "hidden": true,
         "label": "Alarm",
         "allowInSubpage": true,
         "domains": [
@@ -3266,6 +2873,7 @@
         }
       },
       "alarm_action": {
+        "hidden": true,
         "label": "Alarm",
         "allowInSubpage": true,
         "pickerKey": "alarm",
@@ -3324,179 +2932,8 @@
           "options": ""
         }
       },
-      "calendar": {
-        "label": "Date & Time",
-        "allowInSubpage": true,
-        "domains": [
-          "sensor"
-        ],
-        "options": [
-          {
-            "name": "date_time_mode",
-            "label": "Type",
-            "kind": "choice",
-            "values": [
-              "clock",
-              "datetime",
-              "",
-              "timezone"
-            ],
-            "defaultValue": "",
-            "storageField": "type",
-            "omitDefault": false
-          },
-          {
-            "name": "large_numbers",
-            "label": "Large Clock",
-            "kind": "flag",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "hook",
-              "hook": "normalize_date_time_fields"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "calendar"
-            },
-            "precision": {
-              "policy": "allowed",
-              "values": [
-                "",
-                "datetime"
-              ],
-              "fallback": ""
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_date_time_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "large_numbers"
-          ],
-          "optionHook": "normalize_date_time_options"
-        },
-        "default": {
-          "entity": "sensor.date",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "calendar",
-          "precision": "",
-          "options": ""
-        }
-      },
-      "clock": {
-        "label": "Date & Time",
-        "allowInSubpage": true,
-        "pickerKey": "calendar",
-        "domains": [],
-        "options": [
-          {
-            "name": "date_time_mode",
-            "label": "Type",
-            "kind": "choice",
-            "values": [
-              "clock",
-              "datetime",
-              "",
-              "timezone"
-            ],
-            "defaultValue": "clock",
-            "storageField": "type",
-            "omitDefault": false
-          },
-          {
-            "name": "large_numbers",
-            "label": "Large Clock",
-            "kind": "flag",
-            "omitDefault": true
-          },
-          {
-            "name": "center_clock",
-            "label": "Center Clock",
-            "kind": "flag",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "clear"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "clock"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_date_time_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "large_numbers",
-            "center_clock"
-          ],
-          "optionHook": "normalize_date_time_options"
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "clock",
-          "precision": "",
-          "options": ""
-        }
-      },
       "climate": {
+        "hidden": true,
         "label": "Climate",
         "allowInSubpage": true,
         "domains": [
@@ -3749,6 +3186,7 @@
         }
       },
       "cover": {
+        "hidden": true,
         "label": "Cover",
         "allowInSubpage": true,
         "domains": [
@@ -3861,6 +3299,7 @@
         }
       },
       "door_window": {
+        "hidden": true,
         "label": "Doors & Windows",
         "allowInSubpage": true,
         "domains": [
@@ -3929,6 +3368,7 @@
         }
       },
       "presence": {
+        "hidden": true,
         "label": "Presence",
         "allowInSubpage": true,
         "domains": [
@@ -3997,6 +3437,7 @@
         }
       },
       "fan_direction": {
+        "hidden": true,
         "label": "Fans",
         "allowInSubpage": true,
         "pickerKey": "fan_speed",
@@ -4052,6 +3493,7 @@
         }
       },
       "fan_oscillate": {
+        "hidden": true,
         "label": "Fans",
         "allowInSubpage": true,
         "pickerKey": "fan_speed",
@@ -4107,6 +3549,7 @@
         }
       },
       "fan_preset": {
+        "hidden": true,
         "label": "Fans",
         "allowInSubpage": true,
         "pickerKey": "fan_speed",
@@ -4162,6 +3605,7 @@
         }
       },
       "fan_speed": {
+        "hidden": true,
         "label": "Fans",
         "allowInSubpage": true,
         "domains": [
@@ -4216,6 +3660,7 @@
         }
       },
       "fan_control": {
+        "hidden": true,
         "label": "Fans",
         "allowInSubpage": true,
         "pickerKey": "fan_speed",
@@ -4299,6 +3744,7 @@
         }
       },
       "fan_switch": {
+        "hidden": true,
         "label": "Fans",
         "allowInSubpage": true,
         "pickerKey": "fan_speed",
@@ -4354,6 +3800,7 @@
         }
       },
       "garage": {
+        "hidden": true,
         "label": "Garage Door",
         "allowInSubpage": true,
         "domains": [
@@ -4486,6 +3933,7 @@
         }
       },
       "gate": {
+        "hidden": true,
         "label": "Gate",
         "allowInSubpage": true,
         "domains": [
@@ -4571,6 +4019,7 @@
         }
       },
       "light_brightness": {
+        "hidden": true,
         "label": "Lights",
         "allowInSubpage": true,
         "domains": [
@@ -4623,6 +4072,7 @@
         }
       },
       "light_switch": {
+        "hidden": true,
         "label": "Lights",
         "allowInSubpage": true,
         "pickerKey": "light_brightness",
@@ -4676,6 +4126,7 @@
         }
       },
       "light_temperature": {
+        "hidden": true,
         "label": "Lights",
         "allowInSubpage": true,
         "pickerKey": "light_brightness",
@@ -4814,6 +4265,7 @@
         }
       },
       "lock": {
+        "hidden": true,
         "label": "Lock",
         "allowInSubpage": true,
         "domains": [
@@ -4922,7 +4374,9 @@
             "omitDefault": false,
             "aliases": {
               "controls": "play_pause"
-            }
+            },
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "media_display",
@@ -4945,7 +4399,9 @@
                   "position"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "media_now_playing_controls",
@@ -4966,7 +4422,9 @@
                 "operator": "equals",
                 "value": "now_playing"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "cover_art_details",
@@ -4980,7 +4438,9 @@
                 "operator": "equals",
                 "value": "cover_art"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "cover_art_secondary_entity",
@@ -4994,7 +4454,9 @@
                 "operator": "equals",
                 "value": "cover_art"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "volume_max",
@@ -5017,7 +4479,9 @@
                   "volume"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "speaker_group_entity",
@@ -5035,7 +4499,9 @@
                   "speaker_group"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "power_entity",
@@ -5052,7 +4518,9 @@
                   "cover_art"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "media_tabs",
@@ -5077,7 +4545,9 @@
                   "cover_art"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "label_display",
@@ -5096,7 +4566,9 @@
                 "operator": "equals",
                 "value": "control_modal"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "number_display",
@@ -5115,7 +4587,9 @@
                 "operator": "equals",
                 "value": "control_modal"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "playlist_content_id",
@@ -5129,7 +4603,9 @@
                 "operator": "equals",
                 "value": "playlist"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "playlist_content_type",
@@ -5160,7 +4636,9 @@
                 "operator": "equals",
                 "value": "playlist"
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "large_numbers",
@@ -5177,7 +4655,9 @@
                   "position"
                 ]
               }
-            ]
+            ],
+            "hidden": true,
+            "docsHidden": true
           }
         ],
         "normalization": {
@@ -5260,29 +4740,11 @@
           "type": "media",
           "precision": "",
           "options": ""
-        }
-      },
-      "option_select": {
-        "label": "Option Select",
-        "allowInSubpage": true,
-        "hidden": true,
-        "domains": [
-          "select",
-          "input_select"
-        ],
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Flash",
-          "icon_on": "Auto",
-          "sensor": "input_select.select_option",
-          "unit": "",
-          "type": "action",
-          "precision": "",
-          "options": ""
-        }
+        },
+        "hidden": true
       },
       "push": {
+        "hidden": true,
         "label": "Trigger",
         "allowInSubpage": true,
         "domains": [],
@@ -5498,68 +4960,6 @@
           "options": ""
         }
       },
-      "screen_lock": {
-        "label": "Screen Lock",
-        "allowInSubpage": true,
-        "domains": [],
-        "options": [
-          {
-            "name": "screensaver_on_lock",
-            "label": "Screensaver on lock",
-            "kind": "flag",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "clear"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Lock"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Lock Open"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "screen_lock"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "keep"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "screensaver_on_lock"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Lock",
-          "icon_on": "Lock Open",
-          "sensor": "",
-          "unit": "",
-          "type": "screen_lock",
-          "precision": "",
-          "options": ""
-        }
-      },
       "webhook": {
         "label": "Webhook",
         "allowInSubpage": true,
@@ -5627,274 +5027,6 @@
           "options": ""
         }
       },
-      "sensor": {
-        "label": "Sensor",
-        "allowInSubpage": true,
-        "domains": [
-          "sensor",
-          "binary_sensor",
-          "text_sensor"
-        ],
-        "options": [
-          {
-            "name": "large_numbers",
-            "label": "Large Sensor Numbers",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "in",
-                "value": [
-                  "icon",
-                  "text",
-                  "time"
-                ],
-                "negate": true
-              }
-            ],
-            "supportedWhen": {
-              "precisionNot": [
-                "icon",
-                "text",
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "time_unit",
-            "label": "Incoming Value Unit",
-            "kind": "choice",
-            "values": [
-              "",
-              "seconds",
-              "minutes",
-              "hours",
-              "days"
-            ],
-            "defaultValue": "",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "time"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "active_color",
-            "label": "Lit When Active",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "in",
-                "value": [
-                  "time"
-                ],
-                "negate": true
-              }
-            ],
-            "supportedWhen": {
-              "precisionNot": [
-                "time"
-              ]
-            }
-          },
-          {
-            "name": "state_labels",
-            "label": "Status Translation",
-            "kind": "flag",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_input",
-            "label": "Input Status",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_output",
-            "label": "Display Text",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_input_2",
-            "label": "Input Status 2",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          },
-          {
-            "name": "state_output_2",
-            "label": "Display Text 2",
-            "kind": "text",
-            "omitDefault": true,
-            "applicability": [
-              {
-                "source": "field",
-                "name": "precision",
-                "operator": "equals",
-                "value": "text"
-              }
-            ],
-            "supportedWhen": {
-              "precision": [
-                "text"
-              ]
-            }
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "keep"
-            },
-            "icon": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "icon_on": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "sensor": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "unit": {
-              "policy": "keep"
-            },
-            "type": {
-              "policy": "default",
-              "value": "sensor"
-            },
-            "precision": {
-              "policy": "hook",
-              "hook": "normalize_sensor_fields"
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_sensor_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "large_numbers",
-            "time_unit",
-            "active_color",
-            "state_labels",
-            "state_input",
-            "state_output",
-            "state_input_2",
-            "state_output_2"
-          ],
-          "optionHook": "normalize_sensor_options",
-          "migrationActions": [
-            "legacy_local_sensor",
-            "legacy_text_sensor",
-            "legacy_sensor_state_high_label",
-            "legacy_sensor_state_low_label"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "sensor",
-          "precision": "",
-          "options": ""
-        }
-      },
-      "local_sensor": {
-        "label": "Local Sensor",
-        "allowInSubpage": true,
-        "pickerKey": "sensor",
-        "hidden": true,
-        "domains": [
-          "sensor",
-          "text_sensor"
-        ],
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "local",
-          "unit": "",
-          "type": "sensor",
-          "precision": "",
-          "options": ""
-        }
-      },
       "slider": {
         "label": "Slider",
         "allowInSubpage": true,
@@ -5952,7 +5084,7 @@
       },
       "subpage": {
         "label": "Subpage",
-        "allowInSubpage": false,
+        "allowInSubpage": true,
         "domains": [],
         "options": [
           {
@@ -6057,87 +5189,8 @@
           "options": ""
         }
       },
-      "timezone": {
-        "label": "Date & Time",
-        "allowInSubpage": true,
-        "pickerKey": "calendar",
-        "domains": [],
-        "options": [
-          {
-            "name": "date_time_mode",
-            "label": "Type",
-            "kind": "choice",
-            "values": [
-              "clock",
-              "datetime",
-              "",
-              "timezone"
-            ],
-            "defaultValue": "timezone",
-            "storageField": "type",
-            "omitDefault": false
-          },
-          {
-            "name": "large_numbers",
-            "label": "Large Clock",
-            "kind": "flag",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "hook",
-              "hook": "normalize_date_time_fields"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "timezone"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_date_time_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "large_numbers"
-          ],
-          "optionHook": "normalize_date_time_options"
-        },
-        "default": {
-          "entity": "UTC (GMT+0)",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "timezone",
-          "precision": "",
-          "options": ""
-        }
-      },
       "weather": {
+        "hidden": true,
         "label": "Weather",
         "allowInSubpage": true,
         "domains": [
@@ -6271,6 +5324,7 @@
       "image": {
         "label": "Camera Card",
         "allowInSubpage": true,
+        "hidden": true,
         "domains": [
           "camera",
           "image"
@@ -6280,13 +5334,17 @@
             "name": "image_label",
             "label": "Show Label",
             "kind": "flag",
-            "omitDefault": true
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "image_icon",
             "label": "Show Icon",
             "kind": "flag",
-            "omitDefault": true
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "image_modal_mode",
@@ -6297,7 +5355,9 @@
               "fit"
             ],
             "defaultValue": "fill",
-            "omitDefault": true
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "image_modal_refresh_mode",
@@ -6309,7 +5369,9 @@
               "activity"
             ],
             "defaultValue": "off",
-            "omitDefault": true
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "image_modal_refresh_interval",
@@ -6321,13 +5383,17 @@
               "30"
             ],
             "defaultValue": "10",
-            "omitDefault": true
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           },
           {
             "name": "image_modal_refresh_trigger",
             "label": "Trigger entity",
             "kind": "text",
-            "omitDefault": true
+            "omitDefault": true,
+            "hidden": true,
+            "docsHidden": true
           }
         ],
         "normalization": {
@@ -6388,214 +5454,6 @@
           "options": ""
         }
       },
-      "wifi_qr": {
-        "label": "Wifi Sharing",
-        "allowInSubpage": true,
-        "domains": [
-          "switch"
-        ],
-        "options": [
-          {
-            "name": "ssid64",
-            "label": "Network name",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "security",
-            "label": "Security",
-            "kind": "choice",
-            "values": [
-              "wpa",
-              "open"
-            ],
-            "defaultValue": "wpa",
-            "omitDefault": true
-          },
-          {
-            "name": "pass64",
-            "label": "Password",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "hidden",
-            "label": "Hidden network",
-            "kind": "flag",
-            "omitDefault": true
-          },
-          {
-            "name": "wifi_tabs",
-            "label": "Visible Tabs",
-            "kind": "text",
-            "values": [
-              "qr",
-              "credentials",
-              "guest"
-            ],
-            "defaultValue": "qr|credentials",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "default_if_empty",
-              "value": "Connect"
-            },
-            "icon": {
-              "policy": "default_if_empty",
-              "value": "Wifi"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "wifi_qr"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "keep"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "ssid64",
-            "security",
-            "pass64",
-            "hidden",
-            "wifi_tabs"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "Connect",
-          "icon": "Wifi",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "wifi_qr",
-          "precision": "",
-          "options": ""
-        }
-      },
-      "wifi_qr_card": {
-        "label": "QR Card",
-        "allowInSubpage": true,
-        "pickerKey": "wifi_qr",
-        "domains": [
-          "switch"
-        ],
-        "options": [
-          {
-            "name": "ssid64",
-            "label": "Network name",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "security",
-            "label": "Security",
-            "kind": "choice",
-            "values": [
-              "wpa",
-              "open"
-            ],
-            "defaultValue": "wpa",
-            "omitDefault": true
-          },
-          {
-            "name": "pass64",
-            "label": "Password",
-            "kind": "text",
-            "omitDefault": true
-          },
-          {
-            "name": "hidden",
-            "label": "Hidden network",
-            "kind": "flag",
-            "omitDefault": true
-          },
-          {
-            "name": "wifi_tabs",
-            "label": "Visible Tabs",
-            "kind": "text",
-            "values": [
-              "qr",
-              "credentials",
-              "guest"
-            ],
-            "defaultValue": "qr|credentials",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "wifi_qr_card"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "keep"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "ssid64",
-            "security",
-            "pass64",
-            "hidden",
-            "wifi_tabs"
-          ]
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "wifi_qr_card",
-          "precision": "",
-          "options": ""
-        }
-      },
       "weather_forecast": {
         "label": "Weather Forecast",
         "allowInSubpage": true,
@@ -6614,98 +5472,22 @@
           "precision": "tomorrow",
           "options": ""
         }
-      },
-      "screensaver": {
-        "label": "Screensaver",
-        "allowInSubpage": true,
-        "domains": [],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "clear"
-            },
-            "label": {
-              "policy": "clear"
-            },
-            "icon": {
-              "policy": "default",
-              "value": "Monitor"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "clear"
-            },
-            "unit": {
-              "policy": "clear"
-            },
-            "type": {
-              "policy": "default",
-              "value": "screensaver"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "clear"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": []
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Monitor",
-          "icon_on": "Auto",
-          "sensor": "",
-          "unit": "",
-          "type": "screensaver",
-          "precision": "",
-          "options": ""
-        }
       }
     },
     "migrationActions": {
-      "legacy_local_action": {
+      "legacy_weather_forecast": {
         "when": [
           {
             "source": "field",
             "name": "type",
             "operator": "equals",
-            "value": "local"
+            "value": "weather_forecast"
           }
         ],
         "set": {
-          "type": "action",
-          "sensor": "local",
-          "unit": "",
-          "precision": "",
-          "options": "",
-          "icon_on": "Auto"
-        },
-        "hook": "normalize_action_fields"
-      },
-      "legacy_option_select": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "option_select"
-          }
-        ],
-        "set": {
-          "type": "action",
-          "sensor": "input_select.select_option",
-          "unit": "",
-          "precision": "",
-          "options": "",
-          "icon_on": "Auto"
-        },
-        "hook": "normalize_action_fields"
+          "type": "weather",
+          "precision": "tomorrow"
+        }
       },
       "legacy_vacuum_start": {
         "when": [
@@ -6756,100 +5538,12 @@
           "icon_on": "Auto"
         },
         "hook": "normalize_vacuum_fields"
-      },
-      "legacy_local_sensor": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "local_sensor"
-          }
-        ],
-        "set": {
-          "type": "sensor",
-          "sensor": "local",
-          "icon_on": "Auto",
-          "options": ""
-        },
-        "hook": "normalize_sensor_fields"
-      },
-      "legacy_text_sensor": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "text_sensor"
-          }
-        ],
-        "set": {
-          "type": "sensor",
-          "entity": "",
-          "label": "",
-          "unit": "",
-          "precision": "text",
-          "icon_on": "Auto"
-        },
-        "hook": "normalize_sensor_fields"
-      },
-      "legacy_weather_forecast": {
-        "when": [
-          {
-            "source": "field",
-            "name": "type",
-            "operator": "equals",
-            "value": "weather_forecast"
-          }
-        ],
-        "set": {
-          "type": "weather",
-          "precision": "tomorrow"
-        }
-      },
-      "legacy_sensor_state_high_label": {
-        "when": [
-          {
-            "source": "option",
-            "name": "state_high_label",
-            "operator": "present"
-          }
-        ],
-        "set": {
-          "type": "sensor"
-        },
-        "hook": "normalize_sensor_options"
-      },
-      "legacy_sensor_state_low_label": {
-        "when": [
-          {
-            "source": "option",
-            "name": "state_low_label",
-            "operator": "present"
-          }
-        ],
-        "set": {
-          "type": "sensor"
-        },
-        "hook": "normalize_sensor_options"
       }
     },
     "migrationAliases": {
-      "option_select": {
-        "type": "action",
-        "sensor": "input_select.select_option"
-      },
-      "text_sensor": {
-        "type": "sensor",
-        "precision": "text"
-      },
       "weather_forecast": {
         "type": "weather",
         "precision": "tomorrow"
-      },
-      "local_sensor": {
-        "type": "sensor",
-        "sensor": "local"
       }
     },
     "optionSelect": {
@@ -6889,37 +5583,29 @@
     },
     "largeNumbers": {
       "": true,
-      "action": true,
-      "sensor": {
-        "excludedPrecisions": [
-          "icon",
-          "text"
-        ]
-      },
-      "calendar": true,
-      "clock": true,
       "climate": true,
       "climate_control": true,
       "media": true,
-      "subpage": true,
-      "timezone": true
+      "subpage": true
     },
     "retiredSubpageTypeCodes": [
-      "I"
+      "S",
+      "LS",
+      "I",
+      "SL",
+      "SS",
+      "A",
+      "U"
     ],
     "subpageTypeCodes": {
       "timer": "TM",
-      "action": "A",
       "calendar": "D",
       "clock": "CK",
       "timezone": "T",
-      "sensor": "S",
-      "local_sensor": "LS",
       "door_window": "X",
       "presence": "PR",
       "weather": "W",
       "weather_forecast": "F",
-      "option_select": "U",
       "fan_switch": "B",
       "fan_speed": "J",
       "fan_control": "FC",
@@ -6944,13 +5630,24 @@
       "climate_control": "HC",
       "push": "P",
       "companion": "CP",
-      "screen_lock": "SL",
       "webhook": "WH",
-      "subpage": "G",
-      "screensaver": "SS"
+      "subpage": "G"
     },
     "retiredCardTypes": [
-      "internal"
+      "sensor",
+      "local_sensor",
+      "text_sensor",
+      "internal",
+      "wifi_qr",
+      "wifi_qr_card",
+      "screen_lock",
+      "screensaver",
+      "action",
+      "local",
+      "option_select",
+      "calendar",
+      "clock",
+      "timezone"
     ]
   },
   "entityNames": {
@@ -7044,70 +5741,6 @@
         ]
       },
       {
-        "key": "special_page_config",
-        "domain": "text",
-        "name": "Special Page Config",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
-        "key": "special_page_config_ext",
-        "domain": "text",
-        "name": "Special Page Config Ext",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
-        "key": "special_page_config_ext_2",
-        "domain": "text",
-        "name": "Special Page Config Ext 2",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
-        "key": "special_page_config_ext_3",
-        "domain": "text",
-        "name": "Special Page Config Ext 3",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
-        "key": "special_page_config_ext_4",
-        "domain": "text",
-        "name": "Special Page Config Ext 4",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
-        "key": "special_page_config_ext_5",
-        "domain": "text",
-        "name": "Special Page Config Ext 5",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
-        "key": "special_page_config_ext_6",
-        "domain": "text",
-        "name": "Special Page Config Ext 6",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
-        "key": "special_page_config_ext_7",
-        "domain": "text",
-        "name": "Special Page Config Ext 7",
-        "groups": [
-          "special_page"
-        ]
-      },
-      {
         "key": "display_restart",
         "domain": "button",
         "name": "Restart"
@@ -7119,22 +5752,6 @@
         "objectIds": [
           "screen__wake",
           "screen_wake"
-        ]
-      },
-      {
-        "key": "indoor_temp_enable",
-        "domain": "switch",
-        "name": "Indoor Temp Enable",
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "outdoor_temp_enable",
-        "domain": "switch",
-        "name": "Outdoor Temp Enable",
-        "groups": [
-          "settings"
         ]
       },
       {
@@ -7158,17 +5775,6 @@
           "screen__clock_bar_time",
           "screen_clock_bar_time",
           "clock_bar_time_enabled"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "clock_bar_temperature_entities",
-        "domain": "text",
-        "name": "Clock Bar: Temperature Entities",
-        "objectIds": [
-          "clock_bar__temperature_entities"
         ],
         "groups": [
           "settings"
@@ -7222,19 +5828,6 @@
         ]
       },
       {
-        "key": "screen_temperature_degree_symbol",
-        "domain": "switch",
-        "name": "Screen: Temperature Degree Symbol",
-        "objectIds": [
-          "screen__temperature_degree_symbol",
-          "screen_temperature_degree_symbol",
-          "temperature_degree_symbol_enabled"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
         "key": "companion_auto_open_app_subpages",
         "domain": "switch",
         "name": "Companion: Auto Open App Subpages",
@@ -7282,30 +5875,6 @@
           "screen_subpage_chevron",
           "subpage_chevrons_enabled"
         ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "screen_temperature_unit",
-        "domain": "select",
-        "name": "Screen: Temperature Unit",
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "indoor_temp_entity",
-        "domain": "text",
-        "name": "Indoor Temp Entity",
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "outdoor_temp_entity",
-        "domain": "text",
-        "name": "Outdoor Temp Entity",
         "groups": [
           "settings"
         ]
@@ -7558,73 +6127,6 @@
           "hide_cover_art_on_external_input",
           "cover_art_hide_external_input",
           "screen_saver__hide_for_external_sources"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_endpoint_mode",
-        "domain": "select",
-        "name": "Home Assistant Artwork Connection",
-        "objectIds": [
-          "home_assistant_artwork_endpoint_mode"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_endpoint_status",
-        "domain": "text_sensor",
-        "name": "Home Assistant Artwork Endpoint",
-        "objectIds": [
-          "home_assistant_artwork_endpoint_status"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_endpoint_health",
-        "domain": "text_sensor",
-        "name": "Home Assistant Artwork Connection Health",
-        "objectIds": [
-          "home_assistant_artwork_endpoint_health"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_protocol",
-        "domain": "select",
-        "name": "Home Assistant Artwork Protocol",
-        "objectIds": [
-          "home_assistant_artwork_protocol",
-          "cover_art_home_assistant_artwork_protocol"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_port",
-        "domain": "number",
-        "name": "Home Assistant Artwork Port",
-        "objectIds": [
-          "home_assistant_artwork_port"
-        ],
-        "groups": [
-          "settings"
-        ]
-      },
-      {
-        "key": "home_assistant_artwork_host",
-        "domain": "text",
-        "name": "Home Assistant Artwork Host",
-        "objectIds": [
-          "home_assistant_artwork_host"
         ],
         "groups": [
           "settings"
@@ -8302,12 +6804,6 @@
     },
     "structural": [
       {
-        "name": "Wifi Off",
-        "codepoint": "F05AA",
-        "mdi": "wifi-off",
-        "comment": "Guest Wi-Fi disabled"
-      },
-      {
         "name": "Close",
         "codepoint": "F0156",
         "mdi": "close",
@@ -8318,12 +6814,6 @@
         "codepoint": "F024B",
         "mdi": "folder",
         "comment": "Default subpage indicator"
-      },
-      {
-        "name": "Download",
-        "codepoint": "F01DA",
-        "mdi": "download",
-        "comment": "Firmware install update entity"
       },
       {
         "name": "Tag",
@@ -8386,18 +6876,6 @@
         "comment": "Network status"
       },
       {
-        "name": "Ethernet",
-        "codepoint": "F0200",
-        "mdi": "ethernet",
-        "comment": "Setup screens"
-      },
-      {
-        "name": "Home Assistant",
-        "codepoint": "F07D0",
-        "mdi": "home-assistant",
-        "comment": "Setup screens"
-      },
-      {
         "name": "Image Card Loading",
         "codepoint": "F02E9",
         "mdi": "image",
@@ -8428,24 +6906,6 @@
         "comment": "Image card unavailable state"
       },
       {
-        "name": "Shortcut Control",
-        "codepoint": "F0634",
-        "mdi": "apple-keyboard-control",
-        "comment": "Companion shortcut labels"
-      },
-      {
-        "name": "Shortcut Option",
-        "codepoint": "F0635",
-        "mdi": "apple-keyboard-option",
-        "comment": "Companion shortcut labels"
-      },
-      {
-        "name": "Shortcut Shift",
-        "codepoint": "F0636",
-        "mdi": "apple-keyboard-shift",
-        "comment": "Companion shortcut labels"
-      },
-      {
         "name": "Shortcut Left",
         "codepoint": "F004D",
         "mdi": "arrow-left",
@@ -8462,12 +6922,6 @@
         "codepoint": "F0D90",
         "comment": "Disconnected Mac connector",
         "name": "Monitor Off"
-      },
-      {
-        "name": "Memory",
-        "codepoint": "F035B",
-        "mdi": "memory",
-        "comment": "Build information card"
       },
       {
         "name": "Shield Link Variant",
@@ -8516,6 +6970,66 @@
         "name": "Wind arrow-top-left",
         "codepoint": "F005B",
         "mdi": "arrow-top-left"
+      },
+      {
+        "name": "Battery Status Unknown",
+        "codepoint": "F0091",
+        "mdi": "battery-unknown",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 10%",
+        "codepoint": "F007A",
+        "mdi": "battery-10",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 20%",
+        "codepoint": "F007B",
+        "mdi": "battery-20",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 30%",
+        "codepoint": "F007C",
+        "mdi": "battery-30",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 40%",
+        "codepoint": "F007D",
+        "mdi": "battery-40",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 50%",
+        "codepoint": "F007E",
+        "mdi": "battery-50",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 60%",
+        "codepoint": "F007F",
+        "mdi": "battery-60",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 70%",
+        "codepoint": "F0080",
+        "mdi": "battery-70",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 80%",
+        "codepoint": "F0081",
+        "mdi": "battery-80",
+        "comment": "Battery status indicator"
+      },
+      {
+        "name": "Battery Status 90%",
+        "codepoint": "F0082",
+        "mdi": "battery-90",
+        "comment": "Battery status indicator"
       }
     ],
     "icons": [
@@ -8525,64 +7039,9 @@
         "mdi": "apple-keyboard-command"
       },
       {
-        "name": "Chevron Left",
-        "codepoint": "F0141",
-        "mdi": "chevron-left"
-      },
-      {
-        "name": "Chevron Right",
-        "codepoint": "F0142",
-        "mdi": "chevron-right"
-      },
-      {
         "name": "Account",
         "codepoint": "F0004",
         "mdi": "account"
-      },
-      {
-        "name": "Air Conditioner",
-        "codepoint": "F001B",
-        "mdi": "air-conditioner"
-      },
-      {
-        "name": "Air Filter",
-        "codepoint": "F0D43",
-        "mdi": "air-filter"
-      },
-      {
-        "name": "Air Purifier",
-        "codepoint": "F0D44",
-        "mdi": "air-purifier"
-      },
-      {
-        "name": "Air Purifier Off",
-        "codepoint": "F1B57",
-        "mdi": "air-purifier-off"
-      },
-      {
-        "name": "Airplane",
-        "codepoint": "F001D",
-        "mdi": "airplane"
-      },
-      {
-        "name": "Alarm",
-        "codepoint": "F009E",
-        "mdi": "bell-ring"
-      },
-      {
-        "name": "Alarm Bell",
-        "codepoint": "F078E",
-        "mdi": "alarm-bell"
-      },
-      {
-        "name": "Alarm Clock",
-        "codepoint": "F0020",
-        "mdi": "alarm"
-      },
-      {
-        "name": "Alarm Light",
-        "codepoint": "F078F",
-        "mdi": "alarm-light"
       },
       {
         "name": "Application",
@@ -8590,79 +7049,9 @@
         "mdi": "application-outline"
       },
       {
-        "name": "Arrow Down",
-        "codepoint": "F0045",
-        "mdi": "arrow-down"
-      },
-      {
-        "name": "Arrow Up",
-        "codepoint": "F005D",
-        "mdi": "arrow-up"
-      },
-      {
-        "name": "Arrow Up Down",
-        "codepoint": "F0E79",
-        "mdi": "arrow-up-down"
-      },
-      {
-        "name": "Awning",
-        "codepoint": "F1B87",
-        "mdi": "awning"
-      },
-      {
-        "name": "Awning Outline",
-        "codepoint": "F1B88",
-        "mdi": "awning-outline"
-      },
-      {
         "name": "Battery",
         "codepoint": "F0079",
         "mdi": "battery"
-      },
-      {
-        "name": "Battery 10%",
-        "codepoint": "F007A",
-        "mdi": "battery-10"
-      },
-      {
-        "name": "Battery 20%",
-        "codepoint": "F007B",
-        "mdi": "battery-20"
-      },
-      {
-        "name": "Battery 30%",
-        "codepoint": "F007C",
-        "mdi": "battery-30"
-      },
-      {
-        "name": "Battery 40%",
-        "codepoint": "F007D",
-        "mdi": "battery-40"
-      },
-      {
-        "name": "Battery 50%",
-        "codepoint": "F007E",
-        "mdi": "battery-50"
-      },
-      {
-        "name": "Battery 60%",
-        "codepoint": "F007F",
-        "mdi": "battery-60"
-      },
-      {
-        "name": "Battery 70%",
-        "codepoint": "F0080",
-        "mdi": "battery-70"
-      },
-      {
-        "name": "Battery 80%",
-        "codepoint": "F0081",
-        "mdi": "battery-80"
-      },
-      {
-        "name": "Battery 90%",
-        "codepoint": "F0082",
-        "mdi": "battery-90"
       },
       {
         "name": "Battery Alert",
@@ -8673,16 +7062,6 @@
         "name": "Battery Charging",
         "codepoint": "F0084",
         "mdi": "battery-charging"
-      },
-      {
-        "name": "Battery Charging 100",
-        "codepoint": "F0085",
-        "mdi": "battery-charging-100"
-      },
-      {
-        "name": "Battery Charging 70",
-        "codepoint": "F089E",
-        "mdi": "battery-charging-70"
       },
       {
         "name": "Battery High",
@@ -8700,104 +7079,9 @@
         "mdi": "battery-medium"
       },
       {
-        "name": "Battery Off",
-        "codepoint": "F125D",
-        "mdi": "battery-off"
-      },
-      {
-        "name": "Battery Outline",
-        "codepoint": "F008E",
-        "mdi": "battery-outline"
-      },
-      {
-        "name": "Battery Unknown",
-        "codepoint": "F0091",
-        "mdi": "battery-unknown"
-      },
-      {
-        "name": "Bathtub",
-        "codepoint": "F1818",
-        "mdi": "bathtub"
-      },
-      {
-        "name": "Bathtub Outline",
-        "codepoint": "F1819",
-        "mdi": "bathtub-outline"
-      },
-      {
-        "name": "Bed",
-        "codepoint": "F02E3",
-        "mdi": "bed"
-      },
-      {
-        "name": "Bed King",
-        "codepoint": "F0FD2",
-        "mdi": "bed-king"
-      },
-      {
-        "name": "Bed Queen",
-        "codepoint": "F0FD0",
-        "mdi": "bed-queen"
-      },
-      {
-        "name": "Bell",
-        "codepoint": "F009A",
-        "mdi": "bell"
-      },
-      {
-        "name": "Bird",
-        "codepoint": "F15C6",
-        "mdi": "bird"
-      },
-      {
-        "name": "Blinds",
-        "codepoint": "F00AC",
-        "mdi": "blinds"
-      },
-      {
-        "name": "Blinds Horizontal",
-        "codepoint": "F1A2B",
-        "mdi": "blinds-horizontal"
-      },
-      {
-        "name": "Blinds Horizontal Closed",
-        "codepoint": "F1A2C",
-        "mdi": "blinds-horizontal-closed"
-      },
-      {
-        "name": "Blinds Open",
-        "codepoint": "F1011",
-        "mdi": "blinds-open"
-      },
-      {
         "name": "Bluetooth",
         "codepoint": "F00AF",
         "mdi": "bluetooth"
-      },
-      {
-        "name": "Broom",
-        "codepoint": "F00E2",
-        "mdi": "broom"
-      },
-      {
-        "name": "Bunk Bed",
-        "codepoint": "F1302",
-        "mdi": "bunk-bed"
-      },
-      {
-        "name": "Bus",
-        "codepoint": "F00E7",
-        "mdi": "bus"
-      },
-      {
-        "name": "Camera",
-        "codepoint": "F0100",
-        "mdi": "camera"
-      },
-      {
-        "name": "Car Electric",
-        "codepoint": "F0B6C",
-        "mdi": "car-electric"
       },
       {
         "name": "Cast",
@@ -8805,79 +7089,9 @@
         "mdi": "cast"
       },
       {
-        "name": "Cat",
-        "codepoint": "F011B",
-        "mdi": "cat"
-      },
-      {
-        "name": "CCTV",
-        "codepoint": "F07AE",
-        "mdi": "cctv"
-      },
-      {
-        "name": "Ceiling Fan",
-        "codepoint": "F1797",
-        "mdi": "ceiling-fan"
-      },
-      {
-        "name": "Ceiling Fan Light",
-        "codepoint": "F1798",
-        "mdi": "ceiling-fan-light"
-      },
-      {
-        "name": "Ceiling Light",
-        "codepoint": "F0769",
-        "mdi": "ceiling-light"
-      },
-      {
-        "name": "Ceiling Lights Multiple",
-        "codepoint": "F18DD",
-        "mdi": "ceiling-light-multiple"
-      },
-      {
-        "name": "Ceiling Light Multiple Outline",
-        "codepoint": "F18DE",
-        "mdi": "ceiling-light-multiple-outline"
-      },
-      {
-        "name": "Chandelier",
-        "codepoint": "F1793",
-        "mdi": "chandelier"
-      },
-      {
         "name": "Check",
         "codepoint": "F012C",
         "mdi": "check"
-      },
-      {
-        "name": "Chair Rolling",
-        "codepoint": "F0F48",
-        "mdi": "chair-rolling"
-      },
-      {
-        "name": "Chef Hat",
-        "codepoint": "F0B7C",
-        "mdi": "chef-hat"
-      },
-      {
-        "name": "Chevron Down",
-        "codepoint": "F0140",
-        "mdi": "chevron-down"
-      },
-      {
-        "name": "Chevron Up",
-        "codepoint": "F0143",
-        "mdi": "chevron-up"
-      },
-      {
-        "name": "Coach Lamp",
-        "codepoint": "F1020",
-        "mdi": "coach-lamp"
-      },
-      {
-        "name": "Coach Lamp Variant",
-        "codepoint": "F1A37",
-        "mdi": "coach-lamp-variant"
       },
       {
         "name": "Clock",
@@ -8888,36 +7102,6 @@
         "name": "Circle Outline",
         "codepoint": "F0766",
         "mdi": "circle-outline"
-      },
-      {
-        "name": "Coffee Maker",
-        "codepoint": "F109F",
-        "mdi": "coffee-maker"
-      },
-      {
-        "name": "Countertop",
-        "codepoint": "F181C",
-        "mdi": "countertop"
-      },
-      {
-        "name": "Current AC",
-        "codepoint": "F1480",
-        "mdi": "current-ac"
-      },
-      {
-        "name": "Current DC",
-        "codepoint": "F095C",
-        "mdi": "current-dc"
-      },
-      {
-        "name": "Curtains",
-        "codepoint": "F1846",
-        "mdi": "curtains"
-      },
-      {
-        "name": "Curtains Closed",
-        "codepoint": "F1847",
-        "mdi": "curtains-closed"
       },
       {
         "name": "Delete",
@@ -8940,79 +7124,9 @@
         "mdi": "delete-variant"
       },
       {
-        "name": "Desk",
-        "codepoint": "F1239",
-        "mdi": "desk"
-      },
-      {
-        "name": "Desk Lamp",
-        "codepoint": "F095F",
-        "mdi": "desk-lamp"
-      },
-      {
-        "name": "Desk Lamp Off",
-        "codepoint": "F1B1F",
-        "mdi": "desk-lamp-off"
-      },
-      {
-        "name": "Desk Lamp On",
-        "codepoint": "F1B20",
-        "mdi": "desk-lamp-on"
-      },
-      {
-        "name": "Dishwasher",
-        "codepoint": "F0AAC",
-        "mdi": "dishwasher"
-      },
-      {
-        "name": "Dishwasher Off",
-        "codepoint": "F11B9",
-        "mdi": "dishwasher-off"
-      },
-      {
-        "name": "Dog",
-        "codepoint": "F0A43",
-        "mdi": "dog"
-      },
-      {
-        "name": "Downlight",
-        "codepoint": "F179B",
-        "mdi": "light-recessed"
-      },
-      {
-        "name": "Door",
-        "codepoint": "F081A",
-        "mdi": "door"
-      },
-      {
-        "name": "Door Open",
-        "codepoint": "F081C",
-        "mdi": "door-open"
-      },
-      {
-        "name": "Doorbell",
-        "codepoint": "F0869",
-        "mdi": "doorbell-video"
-      },
-      {
         "name": "Dots Horizontal",
         "codepoint": "F01D8",
         "mdi": "dots-horizontal"
-      },
-      {
-        "name": "Dryer",
-        "codepoint": "F0917",
-        "mdi": "tumble-dryer"
-      },
-      {
-        "name": "Dryer Off",
-        "codepoint": "F11BB",
-        "mdi": "tumble-dryer-off"
-      },
-      {
-        "name": "EV Charger",
-        "codepoint": "F05F1",
-        "mdi": "ev-station"
       },
       {
         "name": "Fan",
@@ -9020,54 +7134,9 @@
         "mdi": "fan"
       },
       {
-        "name": "Fan Off",
-        "codepoint": "F081D",
-        "mdi": "fan-off"
-      },
-      {
-        "name": "Fan Auto",
-        "codepoint": "F171D",
-        "mdi": "fan-auto"
-      },
-      {
-        "name": "Fan Speed 1",
-        "codepoint": "F1472",
-        "mdi": "fan-speed-1"
-      },
-      {
-        "name": "Fan Speed 2",
-        "codepoint": "F1473",
-        "mdi": "fan-speed-2"
-      },
-      {
-        "name": "Fan Speed 3",
-        "codepoint": "F1474",
-        "mdi": "fan-speed-3"
-      },
-      {
-        "name": "Fire",
-        "codepoint": "F0238",
-        "mdi": "fire"
-      },
-      {
-        "name": "Fire Off",
-        "codepoint": "F1722",
-        "mdi": "fire-off"
-      },
-      {
-        "name": "Fireplace",
-        "codepoint": "F0E2E",
-        "mdi": "fireplace"
-      },
-      {
         "name": "Flash",
         "codepoint": "F0241",
         "mdi": "flash"
-      },
-      {
-        "name": "Floor Lamp",
-        "codepoint": "F08DD",
-        "mdi": "floor-lamp"
       },
       {
         "name": "Folder Music Outline",
@@ -9105,49 +7174,9 @@
         "mdi": "folder-open-outline"
       },
       {
-        "name": "Fountain",
-        "codepoint": "F096B",
-        "mdi": "fountain"
-      },
-      {
-        "name": "Fridge",
-        "codepoint": "F0290",
-        "mdi": "fridge"
-      },
-      {
         "name": "Gamepad",
         "codepoint": "F0297",
         "mdi": "gamepad-variant"
-      },
-      {
-        "name": "Garage",
-        "codepoint": "F06D9",
-        "mdi": "garage"
-      },
-      {
-        "name": "Garage Open",
-        "codepoint": "F06DA",
-        "mdi": "garage-open"
-      },
-      {
-        "name": "Garage Open Variant",
-        "codepoint": "F12D4",
-        "mdi": "garage-open-variant"
-      },
-      {
-        "name": "Garage Variant",
-        "codepoint": "F12D3",
-        "mdi": "garage-variant"
-      },
-      {
-        "name": "Gate",
-        "codepoint": "F0299",
-        "mdi": "gate"
-      },
-      {
-        "name": "Gate Open",
-        "codepoint": "F116A",
-        "mdi": "gate-open"
       },
       {
         "name": "Gesture Tap",
@@ -9160,54 +7189,9 @@
         "mdi": "harddisk"
       },
       {
-        "name": "Gauge",
-        "codepoint": "F029A",
-        "mdi": "gauge"
-      },
-      {
-        "name": "Gauge Empty",
-        "codepoint": "F0873",
-        "mdi": "gauge-empty"
-      },
-      {
-        "name": "Gauge Full",
-        "codepoint": "F0874",
-        "mdi": "gauge-full"
-      },
-      {
-        "name": "Gauge Low",
-        "codepoint": "F0875",
-        "mdi": "gauge-low"
-      },
-      {
-        "name": "Grid Export",
-        "codepoint": "F192C",
-        "mdi": "transmission-tower-export"
-      },
-      {
-        "name": "Grid Import",
-        "codepoint": "F192D",
-        "mdi": "transmission-tower-import"
-      },
-      {
-        "name": "Grid Off",
-        "codepoint": "F19DD",
-        "mdi": "transmission-tower-off"
-      },
-      {
         "name": "Headphones",
         "codepoint": "F02CB",
         "mdi": "headphones"
-      },
-      {
-        "name": "Radiator",
-        "codepoint": "F0438",
-        "mdi": "radiator"
-      },
-      {
-        "name": "Radiator Off",
-        "codepoint": "F0AD8",
-        "mdi": "radiator-off"
       },
       {
         "name": "Home",
@@ -9215,214 +7199,14 @@
         "mdi": "home"
       },
       {
-        "name": "Home Lightbulb",
-        "codepoint": "F1251",
-        "mdi": "home-lightbulb"
-      },
-      {
-        "name": "Home Lightbulb Outline",
-        "codepoint": "F1252",
-        "mdi": "home-lightbulb-outline"
-      },
-      {
-        "name": "Heat Pump",
-        "codepoint": "F1A43",
-        "mdi": "heat-pump"
-      },
-      {
-        "name": "Heat Wave",
-        "codepoint": "F1A45",
-        "mdi": "heat-wave"
-      },
-      {
-        "name": "Heating Coil",
-        "codepoint": "F1AAF",
-        "mdi": "heating-coil"
-      },
-      {
-        "name": "HVAC",
-        "codepoint": "F1352",
-        "mdi": "hvac"
-      },
-      {
-        "name": "HVAC Off",
-        "codepoint": "F159E",
-        "mdi": "hvac-off"
-      },
-      {
-        "name": "Hot Tub",
-        "codepoint": "F0828",
-        "mdi": "hot-tub"
-      },
-      {
-        "name": "Humidifier",
-        "codepoint": "F1099",
-        "mdi": "air-humidifier"
-      },
-      {
-        "name": "Humidity Alert",
-        "codepoint": "F1509",
-        "mdi": "water-percent-alert"
-      },
-      {
-        "name": "Iron",
-        "codepoint": "F1824",
-        "mdi": "iron"
-      },
-      {
-        "name": "Kettle",
-        "codepoint": "F05FA",
-        "mdi": "kettle"
-      },
-      {
         "name": "Key",
         "codepoint": "F030B",
         "mdi": "key-variant"
       },
       {
-        "name": "Lamp",
-        "codepoint": "F06B5",
-        "mdi": "lamp"
-      },
-      {
-        "name": "Lamp Outline",
-        "codepoint": "F17D0",
-        "mdi": "lamp-outline"
-      },
-      {
-        "name": "Lava Lamp",
-        "codepoint": "F07D5",
-        "mdi": "lava-lamp"
-      },
-      {
         "name": "LAN",
         "codepoint": "F0317",
         "mdi": "lan"
-      },
-      {
-        "name": "Lawnmower",
-        "codepoint": "F11F7",
-        "mdi": "robot-mower"
-      },
-      {
-        "name": "Robot Mower",
-        "codepoint": "F11F7",
-        "mdi": "robot-mower"
-      },
-      {
-        "name": "Robot Mower Outline",
-        "codepoint": "F11F3",
-        "mdi": "robot-mower-outline"
-      },
-      {
-        "name": "Leaf",
-        "codepoint": "F032A",
-        "mdi": "leaf"
-      },
-      {
-        "name": "LED Strip",
-        "codepoint": "F07D6",
-        "mdi": "led-strip"
-      },
-      {
-        "name": "LED Strip Variant",
-        "codepoint": "F1051",
-        "mdi": "led-strip-variant"
-      },
-      {
-        "name": "LED Strip Variant Off",
-        "codepoint": "F1A4B",
-        "mdi": "led-strip-variant-off"
-      },
-      {
-        "name": "Light Switch",
-        "codepoint": "F097E",
-        "mdi": "light-switch"
-      },
-      {
-        "name": "Flood Light Down",
-        "codepoint": "F1987",
-        "mdi": "light-flood-down"
-      },
-      {
-        "name": "Lightbulb",
-        "codepoint": "F0335",
-        "mdi": "lightbulb"
-      },
-      {
-        "name": "Lightbulb Auto",
-        "codepoint": "F1800",
-        "mdi": "lightbulb-auto"
-      },
-      {
-        "name": "Lightbulb Auto Outline",
-        "codepoint": "F1801",
-        "mdi": "lightbulb-auto-outline"
-      },
-      {
-        "name": "Lightbulb Fluorescent Tube Outline",
-        "codepoint": "F1805",
-        "mdi": "lightbulb-fluorescent-tube-outline"
-      },
-      {
-        "name": "Lightbulb Group",
-        "codepoint": "F1253",
-        "mdi": "lightbulb-group"
-      },
-      {
-        "name": "Lightbulb Group Outline",
-        "codepoint": "F1254",
-        "mdi": "lightbulb-group-outline"
-      },
-      {
-        "name": "Lightbulb Night",
-        "codepoint": "F1A4C",
-        "mdi": "lightbulb-night"
-      },
-      {
-        "name": "Lightbulb Night Outline",
-        "codepoint": "F1A4D",
-        "mdi": "lightbulb-night-outline"
-      },
-      {
-        "name": "Lightbulb Off",
-        "codepoint": "F0E4F",
-        "mdi": "lightbulb-off"
-      },
-      {
-        "name": "Lightbulb On 50",
-        "codepoint": "F1A52",
-        "mdi": "lightbulb-on-50"
-      },
-      {
-        "name": "Lightbulb On Outline",
-        "codepoint": "F06E9",
-        "mdi": "lightbulb-on-outline"
-      },
-      {
-        "name": "Lightbulb Spot",
-        "codepoint": "F17F4",
-        "mdi": "lightbulb-spot"
-      },
-      {
-        "name": "Lightbulb Spot Off",
-        "codepoint": "F17F5",
-        "mdi": "lightbulb-spot-off"
-      },
-      {
-        "name": "Lightbulb Variant",
-        "codepoint": "F1802",
-        "mdi": "lightbulb-variant"
-      },
-      {
-        "name": "Lightbulb Variant Outline",
-        "codepoint": "F1803",
-        "mdi": "lightbulb-variant-outline"
-      },
-      {
-        "name": "Lightbulb Outline",
-        "codepoint": "F0336",
-        "mdi": "lightbulb-outline"
       },
       {
         "name": "Lightning Bolt",
@@ -9445,19 +7229,9 @@
         "mdi": "lock-open-outline"
       },
       {
-        "name": "Lock Open Variant",
-        "codepoint": "F0FC6",
-        "mdi": "lock-open-variant"
-      },
-      {
         "name": "Lock Outline",
         "codepoint": "F0341",
         "mdi": "lock-outline"
-      },
-      {
-        "name": "Mailbox",
-        "codepoint": "F06EE",
-        "mdi": "mailbox"
       },
       {
         "name": "Menu",
@@ -9468,26 +7242,6 @@
         "name": "Message Video",
         "codepoint": "F036B",
         "mdi": "message-video"
-      },
-      {
-        "name": "Medication",
-        "codepoint": "F1B14",
-        "mdi": "medication"
-      },
-      {
-        "name": "Medication Outline",
-        "codepoint": "F1B15",
-        "mdi": "medication-outline"
-      },
-      {
-        "name": "Meter Electric",
-        "codepoint": "F1A57",
-        "mdi": "meter-electric"
-      },
-      {
-        "name": "Meter Gas",
-        "codepoint": "F1A59",
-        "mdi": "meter-gas"
       },
       {
         "name": "Microphone",
@@ -9505,11 +7259,6 @@
         "mdi": "microsoft-xbox"
       },
       {
-        "name": "Microwave",
-        "codepoint": "F0C99",
-        "mdi": "microwave"
-      },
-      {
         "name": "Minus",
         "codepoint": "F0374",
         "mdi": "minus"
@@ -9518,16 +7267,6 @@
         "name": "Monitor",
         "codepoint": "F0379",
         "mdi": "monitor"
-      },
-      {
-        "name": "Motion Sensor",
-        "codepoint": "F0D91",
-        "mdi": "motion-sensor"
-      },
-      {
-        "name": "Motion Sensor Off",
-        "codepoint": "F1435",
-        "mdi": "motion-sensor-off"
       },
       {
         "name": "Movie Roll",
@@ -9560,41 +7299,6 @@
         "mdi": "nintendo-switch"
       },
       {
-        "name": "Outdoor Lamp",
-        "codepoint": "F1054",
-        "mdi": "outdoor-lamp"
-      },
-      {
-        "name": "Oven",
-        "codepoint": "F04DE",
-        "mdi": "stove"
-      },
-      {
-        "name": "Palette",
-        "codepoint": "F03D8",
-        "mdi": "palette"
-      },
-      {
-        "name": "Package",
-        "codepoint": "F03D6",
-        "mdi": "package-variant"
-      },
-      {
-        "name": "Package Closed",
-        "codepoint": "F03D7",
-        "mdi": "package-variant-closed"
-      },
-      {
-        "name": "Pill",
-        "codepoint": "F0402",
-        "mdi": "pill"
-      },
-      {
-        "name": "Pill Multiple",
-        "codepoint": "F1B4C",
-        "mdi": "pill-multiple"
-      },
-      {
         "name": "Plus",
         "codepoint": "F0415",
         "mdi": "plus"
@@ -9618,16 +7322,6 @@
         "name": "PlayStation",
         "codepoint": "F0414",
         "mdi": "sony-playstation"
-      },
-      {
-        "name": "Pool",
-        "codepoint": "F0606",
-        "mdi": "pool"
-      },
-      {
-        "name": "Post Lamp",
-        "codepoint": "F1A60",
-        "mdi": "post-lamp"
       },
       {
         "name": "Power",
@@ -9685,11 +7379,6 @@
         "mdi": "arrow-down-bold-circle"
       },
       {
-        "name": "Remote Home",
-        "codepoint": "F07D2",
-        "mdi": "home-circle"
-      },
-      {
         "name": "Remote Left",
         "codepoint": "F004F",
         "mdi": "arrow-left-bold-circle"
@@ -9710,51 +7399,6 @@
         "mdi": "arrow-up-bold-circle"
       },
       {
-        "name": "Remote TV",
-        "codepoint": "F0EC5",
-        "mdi": "remote-tv"
-      },
-      {
-        "name": "Robot Vacuum",
-        "codepoint": "F070D",
-        "mdi": "robot-vacuum"
-      },
-      {
-        "name": "Robot Vacuum Alert",
-        "codepoint": "F1B5D",
-        "mdi": "robot-vacuum-alert"
-      },
-      {
-        "name": "Robot Vacuum Off",
-        "codepoint": "F1C01",
-        "mdi": "robot-vacuum-off"
-      },
-      {
-        "name": "Robot Vacuum Variant",
-        "codepoint": "F0908",
-        "mdi": "robot-vacuum-variant"
-      },
-      {
-        "name": "Robot Vacuum Variant Alert",
-        "codepoint": "F1B5E",
-        "mdi": "robot-vacuum-variant-alert"
-      },
-      {
-        "name": "Robot Vacuum Variant Off",
-        "codepoint": "F1C02",
-        "mdi": "robot-vacuum-variant-off"
-      },
-      {
-        "name": "Roller Shade",
-        "codepoint": "F1A6B",
-        "mdi": "roller-shade"
-      },
-      {
-        "name": "Roller Shade Closed",
-        "codepoint": "F1A6C",
-        "mdi": "roller-shade-closed"
-      },
-      {
         "name": "Router",
         "codepoint": "F0469",
         "mdi": "router-wireless"
@@ -9765,36 +7409,6 @@
         "mdi": "router-network"
       },
       {
-        "name": "Security",
-        "codepoint": "F068A",
-        "mdi": "shield-home"
-      },
-      {
-        "name": "Shield Home",
-        "codepoint": "F068A",
-        "mdi": "shield-home"
-      },
-      {
-        "name": "Shield Lock",
-        "codepoint": "F099D",
-        "mdi": "shield-lock"
-      },
-      {
-        "name": "Shield Off",
-        "codepoint": "F099E",
-        "mdi": "shield-off"
-      },
-      {
-        "name": "Shower",
-        "codepoint": "F09A0",
-        "mdi": "shower"
-      },
-      {
-        "name": "Shower Head",
-        "codepoint": "F09A1",
-        "mdi": "shower-head"
-      },
-      {
         "name": "Skip Next",
         "codepoint": "F04AD",
         "mdi": "skip-next"
@@ -9803,66 +7417,6 @@
         "name": "Skip Previous",
         "codepoint": "F04AE",
         "mdi": "skip-previous"
-      },
-      {
-        "name": "Smoke Detector",
-        "codepoint": "F0392",
-        "mdi": "smoke-detector"
-      },
-      {
-        "name": "Snowflake",
-        "codepoint": "F0717",
-        "mdi": "snowflake"
-      },
-      {
-        "name": "Snowflake Alert",
-        "codepoint": "F0F29",
-        "mdi": "snowflake-alert"
-      },
-      {
-        "name": "Snowflake Thermometer",
-        "codepoint": "F1A71",
-        "mdi": "snowflake-thermometer"
-      },
-      {
-        "name": "Silverware",
-        "codepoint": "F04A3",
-        "mdi": "silverware"
-      },
-      {
-        "name": "Sofa",
-        "codepoint": "F04B9",
-        "mdi": "sofa"
-      },
-      {
-        "name": "Sofa Outline",
-        "codepoint": "F156D",
-        "mdi": "sofa-outline"
-      },
-      {
-        "name": "Sofa Single Outline",
-        "codepoint": "F156F",
-        "mdi": "sofa-single-outline"
-      },
-      {
-        "name": "Solar Panel",
-        "codepoint": "F0D9B",
-        "mdi": "solar-panel"
-      },
-      {
-        "name": "Solar Panel Large",
-        "codepoint": "F0D9C",
-        "mdi": "solar-panel-large"
-      },
-      {
-        "name": "Solar Power",
-        "codepoint": "F0A72",
-        "mdi": "solar-power"
-      },
-      {
-        "name": "Solar Power Variant",
-        "codepoint": "F1A73",
-        "mdi": "solar-power-variant"
       },
       {
         "name": "Speaker",
@@ -9900,99 +7454,9 @@
         "mdi": "magnify"
       },
       {
-        "name": "Spotlight",
-        "codepoint": "F04C8",
-        "mdi": "spotlight"
-      },
-      {
-        "name": "Spotlight Beam",
-        "codepoint": "F04C9",
-        "mdi": "spotlight-beam"
-      },
-      {
-        "name": "Sprinkler",
-        "codepoint": "F105F",
-        "mdi": "sprinkler"
-      },
-      {
-        "name": "Sprinkler Variant",
-        "codepoint": "F1060",
-        "mdi": "sprinkler-variant"
-      },
-      {
-        "name": "Stairs",
-        "codepoint": "F04CD",
-        "mdi": "stairs"
-      },
-      {
-        "name": "Stop",
-        "codepoint": "F04DB",
-        "mdi": "stop"
-      },
-      {
-        "name": "String Lights",
-        "codepoint": "F12BA",
-        "mdi": "string-lights"
-      },
-      {
-        "name": "String Lights Off",
-        "codepoint": "F12BB",
-        "mdi": "string-lights-off"
-      },
-      {
-        "name": "Stove",
-        "codepoint": "F04DE",
-        "mdi": "stove"
-      },
-      {
-        "name": "Swap Horizontal",
-        "codepoint": "F04E1",
-        "mdi": "swap-horizontal"
-      },
-      {
-        "name": "Swap Vertical",
-        "codepoint": "F04E2",
-        "mdi": "swap-vertical"
-      },
-      {
-        "name": "Power Socket UK",
-        "codepoint": "F07E8",
-        "mdi": "power-socket-uk"
-      },
-      {
-        "name": "Power Socket EU",
-        "codepoint": "F07E7",
-        "mdi": "power-socket-eu"
-      },
-      {
-        "name": "Power Socket US",
-        "codepoint": "F07E9",
-        "mdi": "power-socket-us"
-      },
-      {
         "name": "Sun",
         "codepoint": "F05A8",
         "mdi": "white-balance-sunny"
-      },
-      {
-        "name": "Table",
-        "codepoint": "F05BC",
-        "mdi": "table-furniture"
-      },
-      {
-        "name": "Table Chair",
-        "codepoint": "F1061",
-        "mdi": "table-chair"
-      },
-      {
-        "name": "Television",
-        "codepoint": "F0502",
-        "mdi": "television"
-      },
-      {
-        "name": "Television Off",
-        "codepoint": "F083B",
-        "mdi": "television-off"
       },
       {
         "name": "Thermometer",
@@ -10000,84 +7464,9 @@
         "mdi": "thermometer"
       },
       {
-        "name": "Thermometer Alert",
-        "codepoint": "F0E01",
-        "mdi": "thermometer-alert"
-      },
-      {
-        "name": "Thermometer High",
-        "codepoint": "F10C2",
-        "mdi": "thermometer-high"
-      },
-      {
-        "name": "Thermometer Low",
-        "codepoint": "F10C3",
-        "mdi": "thermometer-low"
-      },
-      {
-        "name": "Thermometer Off",
-        "codepoint": "F1531",
-        "mdi": "thermometer-off"
-      },
-      {
-        "name": "Thermostat",
-        "codepoint": "F0393",
-        "mdi": "thermostat"
-      },
-      {
-        "name": "Thermostat Box",
-        "codepoint": "F0891",
-        "mdi": "thermostat-box"
-      },
-      {
-        "name": "Home-Thermostat",
-        "codepoint": "F0F54",
-        "mdi": "home-thermometer"
-      },
-      {
-        "name": "Thermostat Auto",
-        "codepoint": "F1B17",
-        "mdi": "thermostat-auto"
-      },
-      {
-        "name": "Thermometer Water",
-        "codepoint": "F1A80",
-        "mdi": "thermometer-water"
-      },
-      {
         "name": "Timer",
         "codepoint": "F051B",
         "mdi": "timer-outline"
-      },
-      {
-        "name": "Toilet",
-        "codepoint": "F09AB",
-        "mdi": "toilet"
-      },
-      {
-        "name": "Toy Brick",
-        "codepoint": "F1288",
-        "mdi": "toy-brick"
-      },
-      {
-        "name": "Track Light",
-        "codepoint": "F0914",
-        "mdi": "track-light"
-      },
-      {
-        "name": "Track Light Off",
-        "codepoint": "F1B01",
-        "mdi": "track-light-off"
-      },
-      {
-        "name": "Train",
-        "codepoint": "F052C",
-        "mdi": "train"
-      },
-      {
-        "name": "Transmission Tower",
-        "codepoint": "F0D3E",
-        "mdi": "transmission-tower"
       },
       {
         "name": "Trash Can",
@@ -10088,26 +7477,6 @@
         "name": "Trash Can Outline",
         "codepoint": "F0A7A",
         "mdi": "trash-can-outline"
-      },
-      {
-        "name": "Vacuum",
-        "codepoint": "F19A1",
-        "mdi": "vacuum"
-      },
-      {
-        "name": "Vacuum Outline",
-        "codepoint": "F19A2",
-        "mdi": "vacuum-outline"
-      },
-      {
-        "name": "Vanity Light",
-        "codepoint": "F11E1",
-        "mdi": "vanity-light"
-      },
-      {
-        "name": "View Headline",
-        "codepoint": "F0571",
-        "mdi": "view-headline"
       },
       {
         "name": "Video",
@@ -10130,216 +7499,6 @@
         "mdi": "volume-off"
       },
       {
-        "name": "Wall Outlet",
-        "codepoint": "F0427",
-        "mdi": "power-socket"
-      },
-      {
-        "name": "Wall Sconce",
-        "codepoint": "F091C",
-        "mdi": "wall-sconce"
-      },
-      {
-        "name": "Washing Machine",
-        "codepoint": "F072A",
-        "mdi": "washing-machine"
-      },
-      {
-        "name": "Washing Machine Off",
-        "codepoint": "F11BD",
-        "mdi": "washing-machine-off"
-      },
-      {
-        "name": "Water",
-        "codepoint": "F058C",
-        "mdi": "water"
-      },
-      {
-        "name": "Water Boiler",
-        "codepoint": "F0F92",
-        "mdi": "water-boiler"
-      },
-      {
-        "name": "Water Boiler Off",
-        "codepoint": "F11B4",
-        "mdi": "water-boiler-off"
-      },
-      {
-        "name": "Water Percent",
-        "codepoint": "F058E",
-        "mdi": "water-percent"
-      },
-      {
-        "name": "Water Pump",
-        "codepoint": "F058F",
-        "mdi": "water-pump"
-      },
-      {
-        "name": "Water Pump Off",
-        "codepoint": "F0F93",
-        "mdi": "water-pump-off"
-      },
-      {
-        "name": "Water Alert",
-        "codepoint": "F1502",
-        "mdi": "water-alert"
-      },
-      {
-        "name": "Weather Cloudy",
-        "codepoint": "F0590",
-        "mdi": "weather-cloudy"
-      },
-      {
-        "name": "Weather Cloudy Alert",
-        "codepoint": "F0F2F",
-        "mdi": "weather-cloudy-alert"
-      },
-      {
-        "name": "Weather Cloudy Clock",
-        "codepoint": "F18F6",
-        "mdi": "weather-cloudy-clock"
-      },
-      {
-        "name": "Weather Dust",
-        "codepoint": "F1B5A",
-        "mdi": "weather-dust"
-      },
-      {
-        "name": "Weather Fog",
-        "codepoint": "F0591",
-        "mdi": "weather-fog"
-      },
-      {
-        "name": "Weather Hail",
-        "codepoint": "F0592",
-        "mdi": "weather-hail"
-      },
-      {
-        "name": "Weather Hazy",
-        "codepoint": "F0F30",
-        "mdi": "weather-hazy"
-      },
-      {
-        "name": "Weather Hurricane",
-        "codepoint": "F0898",
-        "mdi": "weather-hurricane"
-      },
-      {
-        "name": "Weather Lightning",
-        "codepoint": "F0593",
-        "mdi": "weather-lightning"
-      },
-      {
-        "name": "Weather Lightning Rainy",
-        "codepoint": "F067E",
-        "mdi": "weather-lightning-rainy"
-      },
-      {
-        "name": "Weather Night",
-        "codepoint": "F0594",
-        "mdi": "weather-night"
-      },
-      {
-        "name": "Weather Night Cloudy",
-        "codepoint": "F0F31",
-        "mdi": "weather-night-partly-cloudy"
-      },
-      {
-        "name": "Weather Partly Cloudy",
-        "codepoint": "F0595",
-        "mdi": "weather-partly-cloudy"
-      },
-      {
-        "name": "Weather Partly Lightning",
-        "codepoint": "F0F32",
-        "mdi": "weather-partly-lightning"
-      },
-      {
-        "name": "Weather Partly Rainy",
-        "codepoint": "F0F33",
-        "mdi": "weather-partly-rainy"
-      },
-      {
-        "name": "Weather Partly Snowy",
-        "codepoint": "F0F34",
-        "mdi": "weather-partly-snowy"
-      },
-      {
-        "name": "Weather Partly Snowy Rainy",
-        "codepoint": "F0F35",
-        "mdi": "weather-partly-snowy-rainy"
-      },
-      {
-        "name": "Weather Pouring",
-        "codepoint": "F0596",
-        "mdi": "weather-pouring"
-      },
-      {
-        "name": "Weather Rainy",
-        "codepoint": "F0597",
-        "mdi": "weather-rainy"
-      },
-      {
-        "name": "Weather Snowy",
-        "codepoint": "F0598",
-        "mdi": "weather-snowy"
-      },
-      {
-        "name": "Weather Snowy Heavy",
-        "codepoint": "F0F36",
-        "mdi": "weather-snowy-heavy"
-      },
-      {
-        "name": "Weather Snowy Rainy",
-        "codepoint": "F067F",
-        "mdi": "weather-snowy-rainy"
-      },
-      {
-        "name": "Weather Sunny",
-        "codepoint": "F0599",
-        "mdi": "weather-sunny"
-      },
-      {
-        "name": "Weather Sunny Alert",
-        "codepoint": "F0F37",
-        "mdi": "weather-sunny-alert"
-      },
-      {
-        "name": "Weather Sunny Off",
-        "codepoint": "F14E4",
-        "mdi": "weather-sunny-off"
-      },
-      {
-        "name": "Weather Sunset",
-        "codepoint": "F059A",
-        "mdi": "weather-sunset"
-      },
-      {
-        "name": "Weather Sunset Down",
-        "codepoint": "F059B",
-        "mdi": "weather-sunset-down"
-      },
-      {
-        "name": "Weather Sunset Up",
-        "codepoint": "F059C",
-        "mdi": "weather-sunset-up"
-      },
-      {
-        "name": "Weather Tornado",
-        "codepoint": "F0F38",
-        "mdi": "weather-tornado"
-      },
-      {
-        "name": "Weather Windy",
-        "codepoint": "F059D",
-        "mdi": "weather-windy"
-      },
-      {
-        "name": "Weather Windy Variant",
-        "codepoint": "F059E",
-        "mdi": "weather-windy-variant"
-      },
-      {
         "name": "Web",
         "codepoint": "F059F",
         "mdi": "web"
@@ -10348,46 +7507,6 @@
         "name": "Wifi",
         "codepoint": "F05A9",
         "mdi": "wifi"
-      },
-      {
-        "name": "Wind Power",
-        "codepoint": "F1A88",
-        "mdi": "wind-power"
-      },
-      {
-        "name": "Wind Turbine",
-        "codepoint": "F0DA5",
-        "mdi": "wind-turbine"
-      },
-      {
-        "name": "Wind Turbine Alert",
-        "codepoint": "F19AB",
-        "mdi": "wind-turbine-alert"
-      },
-      {
-        "name": "Wind Turbine Check",
-        "codepoint": "F19AC",
-        "mdi": "wind-turbine-check"
-      },
-      {
-        "name": "Window Closed",
-        "codepoint": "F05AE",
-        "mdi": "window-closed"
-      },
-      {
-        "name": "Window Open",
-        "codepoint": "F05B1",
-        "mdi": "window-open"
-      },
-      {
-        "name": "Window Shutter",
-        "codepoint": "F111C",
-        "mdi": "window-shutter"
-      },
-      {
-        "name": "Window Shutter Open",
-        "codepoint": "F111E",
-        "mdi": "window-shutter-open"
       },
       {
         "name": "Tab",
@@ -10523,19 +7642,706 @@
         "name": "Arrow Collapse",
         "codepoint": "F0615",
         "mdi": "arrow-collapse"
+      },
+      {
+        "name": "Apple",
+        "codepoint": "F0035",
+        "mdi": "apple"
+      },
+      {
+        "name": "Windows",
+        "codepoint": "F05B3",
+        "mdi": "microsoft-windows"
+      },
+      {
+        "name": "Linux",
+        "codepoint": "F033D",
+        "mdi": "linux"
+      },
+      {
+        "name": "Desktop",
+        "codepoint": "F07C0",
+        "mdi": "desktop-classic"
+      },
+      {
+        "name": "Applications",
+        "codepoint": "F003B",
+        "mdi": "apps"
+      },
+      {
+        "name": "Application Settings",
+        "codepoint": "F1577",
+        "mdi": "application-cog-outline"
+      },
+      {
+        "name": "Application Launch",
+        "codepoint": "F0DAE",
+        "mdi": "application-import"
+      },
+      {
+        "name": "Application Exit",
+        "codepoint": "F0DAD",
+        "mdi": "application-export"
+      },
+      {
+        "name": "Dock",
+        "codepoint": "F10AC",
+        "mdi": "dock-window"
+      },
+      {
+        "name": "Desktop Dashboard",
+        "codepoint": "F056E",
+        "mdi": "view-dashboard"
+      },
+      {
+        "name": "Task List",
+        "codepoint": "F0756",
+        "mdi": "format-list-checks"
+      },
+      {
+        "name": "Calendar",
+        "codepoint": "F00ED",
+        "mdi": "calendar"
+      },
+      {
+        "name": "Email",
+        "codepoint": "F01F0",
+        "mdi": "email-outline"
+      },
+      {
+        "name": "Chat",
+        "codepoint": "F0EDE",
+        "mdi": "chat-outline"
+      },
+      {
+        "name": "Notes",
+        "codepoint": "F11D7",
+        "mdi": "note-text-outline"
+      },
+      {
+        "name": "Calculator",
+        "codepoint": "F00EC",
+        "mdi": "calculator"
+      },
+      {
+        "name": "Contacts",
+        "codepoint": "F0007",
+        "mdi": "account-box-outline"
+      },
+      {
+        "name": "Help",
+        "codepoint": "F0625",
+        "mdi": "help-circle-outline"
+      },
+      {
+        "name": "Information",
+        "codepoint": "F02FD",
+        "mdi": "information-outline"
+      },
+      {
+        "name": "Keyboard",
+        "codepoint": "F097B",
+        "mdi": "keyboard-outline"
+      },
+      {
+        "name": "Keyboard Settings",
+        "codepoint": "F09FA",
+        "mdi": "keyboard-settings-outline"
+      },
+      {
+        "name": "Shortcut Control",
+        "codepoint": "F0634",
+        "mdi": "apple-keyboard-control",
+        "comment": "Companion shortcut labels"
+      },
+      {
+        "name": "Shortcut Option",
+        "codepoint": "F0635",
+        "mdi": "apple-keyboard-option",
+        "comment": "Companion shortcut labels"
+      },
+      {
+        "name": "Shortcut Shift",
+        "codepoint": "F0636",
+        "mdi": "apple-keyboard-shift",
+        "comment": "Companion shortcut labels"
+      },
+      {
+        "name": "Shortcut Escape",
+        "codepoint": "F12B7",
+        "mdi": "keyboard-esc"
+      },
+      {
+        "name": "Shortcut Return",
+        "codepoint": "F0311",
+        "mdi": "keyboard-return"
+      },
+      {
+        "name": "Shortcut Tab",
+        "codepoint": "F0312",
+        "mdi": "keyboard-tab"
+      },
+      {
+        "name": "Shortcut Backspace",
+        "codepoint": "F0B5C",
+        "mdi": "backspace-outline"
+      },
+      {
+        "name": "Shortcut Space",
+        "codepoint": "F1050",
+        "mdi": "keyboard-space"
+      },
+      {
+        "name": "Undo",
+        "codepoint": "F054C",
+        "mdi": "undo"
+      },
+      {
+        "name": "Redo",
+        "codepoint": "F044E",
+        "mdi": "redo"
+      },
+      {
+        "name": "Copy",
+        "codepoint": "F018F",
+        "mdi": "content-copy"
+      },
+      {
+        "name": "Cut",
+        "codepoint": "F0190",
+        "mdi": "content-cut"
+      },
+      {
+        "name": "Paste",
+        "codepoint": "F0192",
+        "mdi": "content-paste"
+      },
+      {
+        "name": "Select All",
+        "codepoint": "F0486",
+        "mdi": "select-all"
+      },
+      {
+        "name": "Find Replace",
+        "codepoint": "F06D4",
+        "mdi": "find-replace"
+      },
+      {
+        "name": "Arrow Left",
+        "codepoint": "F004D",
+        "mdi": "arrow-left"
+      },
+      {
+        "name": "Arrow Right",
+        "codepoint": "F0054",
+        "mdi": "arrow-right"
+      },
+      {
+        "name": "File",
+        "codepoint": "F0224",
+        "mdi": "file-outline"
+      },
+      {
+        "name": "New File",
+        "codepoint": "F0EED",
+        "mdi": "file-plus-outline"
+      },
+      {
+        "name": "Open File",
+        "codepoint": "F09EE",
+        "mdi": "file-document-outline"
+      },
+      {
+        "name": "Save",
+        "codepoint": "F0818",
+        "mdi": "content-save-outline"
+      },
+      {
+        "name": "Save All",
+        "codepoint": "F0F44",
+        "mdi": "content-save-all-outline"
+      },
+      {
+        "name": "Rename",
+        "codepoint": "F0455",
+        "mdi": "rename-box"
+      },
+      {
+        "name": "Upload",
+        "codepoint": "F0552",
+        "mdi": "upload"
+      },
+      {
+        "name": "Download",
+        "codepoint": "F01DA",
+        "mdi": "download",
+        "comment": "Firmware install update entity"
+      },
+      {
+        "name": "Archive",
+        "codepoint": "F120E",
+        "mdi": "archive-outline"
+      },
+      {
+        "name": "Zip File",
+        "codepoint": "F07B9",
+        "mdi": "folder-zip-outline"
+      },
+      {
+        "name": "Cloud",
+        "codepoint": "F0163",
+        "mdi": "cloud-outline"
+      },
+      {
+        "name": "Cloud Sync",
+        "codepoint": "F12D6",
+        "mdi": "cloud-sync-outline"
+      },
+      {
+        "name": "Link",
+        "codepoint": "F0339",
+        "mdi": "link-variant"
+      },
+      {
+        "name": "Link Off",
+        "codepoint": "F033A",
+        "mdi": "link-variant-off"
+      },
+      {
+        "name": "Share",
+        "codepoint": "F0497",
+        "mdi": "share-variant"
+      },
+      {
+        "name": "Bookmark",
+        "codepoint": "F00C3",
+        "mdi": "bookmark-outline"
+      },
+      {
+        "name": "History",
+        "codepoint": "F02DA",
+        "mdi": "history"
+      },
+      {
+        "name": "New Tab",
+        "codepoint": "F075C",
+        "mdi": "tab-plus"
+      },
+      {
+        "name": "Close Tab",
+        "codepoint": "F0B4C",
+        "mdi": "tab-remove"
+      },
+      {
+        "name": "Find Tab",
+        "codepoint": "F199E",
+        "mdi": "tab-search"
+      },
+      {
+        "name": "Refresh",
+        "codepoint": "F0450",
+        "mdi": "refresh"
+      },
+      {
+        "name": "Back",
+        "codepoint": "F0CDE",
+        "mdi": "arrow-left-circle-outline"
+      },
+      {
+        "name": "Forward",
+        "codepoint": "F0CE0",
+        "mdi": "arrow-right-circle-outline"
+      },
+      {
+        "name": "Open External",
+        "codepoint": "F03CC",
+        "mdi": "open-in-new"
+      },
+      {
+        "name": "Incognito",
+        "codepoint": "F05F9",
+        "mdi": "incognito"
+      },
+      {
+        "name": "Home Page",
+        "codepoint": "F06A1",
+        "mdi": "home-outline"
+      },
+      {
+        "name": "Volume Low",
+        "codepoint": "F057F",
+        "mdi": "volume-low"
+      },
+      {
+        "name": "Volume Medium",
+        "codepoint": "F0580",
+        "mdi": "volume-medium"
+      },
+      {
+        "name": "Volume Up",
+        "codepoint": "F075D",
+        "mdi": "volume-plus"
+      },
+      {
+        "name": "Volume Down",
+        "codepoint": "F075E",
+        "mdi": "volume-minus"
+      },
+      {
+        "name": "Mute",
+        "codepoint": "F075F",
+        "mdi": "volume-mute"
+      },
+      {
+        "name": "Headset",
+        "codepoint": "F02CE",
+        "mdi": "headset"
+      },
+      {
+        "name": "Audio Settings",
+        "codepoint": "F062E",
+        "mdi": "tune"
+      },
+      {
+        "name": "Equalizer",
+        "codepoint": "F0EA3",
+        "mdi": "equalizer-outline"
+      },
+      {
+        "name": "Video Off",
+        "codepoint": "F0568",
+        "mdi": "video-off"
+      },
+      {
+        "name": "Video Call",
+        "codepoint": "F0919",
+        "mdi": "video-account"
+      },
+      {
+        "name": "Screen Share",
+        "codepoint": "F1483",
+        "mdi": "monitor-share"
+      },
+      {
+        "name": "Screen Record",
+        "codepoint": "F044B",
+        "mdi": "record-rec"
+      },
+      {
+        "name": "Record",
+        "codepoint": "F0EC3",
+        "mdi": "record-circle-outline"
+      },
+      {
+        "name": "Meeting",
+        "codepoint": "F0B58",
+        "mdi": "account-group-outline"
+      },
+      {
+        "name": "Hand Raise",
+        "codepoint": "F182D",
+        "mdi": "hand-back-right-outline"
+      },
+      {
+        "name": "Do Not Disturb",
+        "codepoint": "F0A91",
+        "mdi": "bell-off-outline"
+      },
+      {
+        "name": "Notifications",
+        "codepoint": "F009C",
+        "mdi": "bell-outline"
+      },
+      {
+        "name": "Terminal",
+        "codepoint": "F018D",
+        "mdi": "console"
+      },
+      {
+        "name": "Code",
+        "codepoint": "F0169",
+        "mdi": "code-braces"
+      },
+      {
+        "name": "Code Tags",
+        "codepoint": "F0174",
+        "mdi": "code-tags"
+      },
+      {
+        "name": "Source Branch",
+        "codepoint": "F062C",
+        "mdi": "source-branch"
+      },
+      {
+        "name": "Git",
+        "codepoint": "F02A2",
+        "mdi": "git"
+      },
+      {
+        "name": "Bug",
+        "codepoint": "F0A30",
+        "mdi": "bug-outline"
+      },
+      {
+        "name": "Run",
+        "codepoint": "F040D",
+        "mdi": "play-circle-outline"
+      },
+      {
+        "name": "Build",
+        "codepoint": "F1323",
+        "mdi": "hammer-wrench"
+      },
+      {
+        "name": "Database",
+        "codepoint": "F1632",
+        "mdi": "database-outline"
+      },
+      {
+        "name": "API",
+        "codepoint": "F109B",
+        "mdi": "api"
+      },
+      {
+        "name": "Screenshot",
+        "codepoint": "F0E51",
+        "mdi": "monitor-screenshot"
+      },
+      {
+        "name": "Crop",
+        "codepoint": "F019E",
+        "mdi": "crop"
+      },
+      {
+        "name": "Draw",
+        "codepoint": "F0CB6",
+        "mdi": "pencil-outline"
+      },
+      {
+        "name": "Brush",
+        "codepoint": "F00E3",
+        "mdi": "brush"
+      },
+      {
+        "name": "Color Picker",
+        "codepoint": "F020A",
+        "mdi": "eyedropper"
+      },
+      {
+        "name": "Layers",
+        "codepoint": "F09FE",
+        "mdi": "layers-outline"
+      },
+      {
+        "name": "Image",
+        "codepoint": "F0976",
+        "mdi": "image-outline"
+      },
+      {
+        "name": "Vector",
+        "codepoint": "F0001",
+        "mdi": "vector-square"
+      },
+      {
+        "name": "Timeline",
+        "codepoint": "F0BD2",
+        "mdi": "timeline-outline"
+      },
+      {
+        "name": "Video Edit",
+        "codepoint": "F1123",
+        "mdi": "movie-edit-outline"
+      },
+      {
+        "name": "Animation",
+        "codepoint": "F0A8F",
+        "mdi": "animation-outline"
+      },
+      {
+        "name": "CPU",
+        "codepoint": "F0EE0",
+        "mdi": "cpu-64-bit"
+      },
+      {
+        "name": "Memory",
+        "codepoint": "F035B",
+        "mdi": "memory",
+        "comment": "Build information card"
+      },
+      {
+        "name": "USB",
+        "codepoint": "F0553",
+        "mdi": "usb"
+      },
+      {
+        "name": "USB Drive",
+        "codepoint": "F129F",
+        "mdi": "usb-flash-drive-outline"
+      },
+      {
+        "name": "Mouse",
+        "codepoint": "F037D",
+        "mdi": "mouse"
+      },
+      {
+        "name": "Restart",
+        "codepoint": "F0709",
+        "mdi": "restart"
+      },
+      {
+        "name": "Sleep",
+        "codepoint": "F0904",
+        "mdi": "power-sleep"
+      },
+      {
+        "name": "Logout",
+        "codepoint": "F0343",
+        "mdi": "logout"
+      },
+      {
+        "name": "Brightness Up",
+        "codepoint": "F00E0",
+        "mdi": "brightness-7"
+      },
+      {
+        "name": "Brightness Down",
+        "codepoint": "F00DE",
+        "mdi": "brightness-5"
+      },
+      {
+        "name": "Display Settings",
+        "codepoint": "F0A07",
+        "mdi": "monitor-dashboard"
+      },
+      {
+        "name": "Monitor Multiple",
+        "codepoint": "F037A",
+        "mdi": "monitor-multiple"
+      },
+      {
+        "name": "Network",
+        "codepoint": "F0C9D",
+        "mdi": "network-outline"
+      },
+      {
+        "name": "Ethernet",
+        "codepoint": "F0200",
+        "mdi": "ethernet",
+        "comment": "Setup screens"
+      },
+      {
+        "name": "VPN",
+        "codepoint": "F0BC5",
+        "mdi": "shield-key-outline"
+      },
+      {
+        "name": "Wifi Off",
+        "codepoint": "F05AA",
+        "mdi": "wifi-off",
+        "comment": "Wi-Fi disabled"
+      },
+      {
+        "name": "Bluetooth Off",
+        "codepoint": "F00B2",
+        "mdi": "bluetooth-off"
+      },
+      {
+        "name": "Sync",
+        "codepoint": "F04E6",
+        "mdi": "sync"
+      },
+      {
+        "name": "Eject",
+        "codepoint": "F0B91",
+        "mdi": "eject-outline"
+      },
+      {
+        "name": "Settings",
+        "codepoint": "F08BB",
+        "mdi": "cog-outline"
+      },
+      {
+        "name": "Window Maximise",
+        "codepoint": "F05AF",
+        "mdi": "window-maximize"
+      },
+      {
+        "name": "Full Screen Exit",
+        "codepoint": "F0294",
+        "mdi": "fullscreen-exit"
+      },
+      {
+        "name": "Picture in Picture",
+        "codepoint": "F0E58",
+        "mdi": "picture-in-picture-bottom-right-outline"
+      },
+      {
+        "name": "Arrow Down",
+        "codepoint": "F0045",
+        "mdi": "arrow-down"
+      },
+      {
+        "name": "Arrow Up",
+        "codepoint": "F005D",
+        "mdi": "arrow-up"
+      },
+      {
+        "name": "Chevron Left",
+        "codepoint": "F0141",
+        "mdi": "chevron-left"
+      },
+      {
+        "name": "Chevron Right",
+        "codepoint": "F0142",
+        "mdi": "chevron-right"
+      },
+      {
+        "name": "Chevron Up",
+        "codepoint": "F0143",
+        "mdi": "chevron-up"
+      },
+      {
+        "name": "Chevron Down",
+        "codepoint": "F0140",
+        "mdi": "chevron-down"
+      },
+      {
+        "name": "Palette",
+        "codepoint": "F03D8",
+        "mdi": "palette"
+      },
+      {
+        "name": "Bell",
+        "codepoint": "F009A",
+        "mdi": "bell"
+      },
+      {
+        "name": "View Headline",
+        "codepoint": "F0571",
+        "mdi": "view-headline"
+      },
+      {
+        "name": "Stop",
+        "codepoint": "F04DB",
+        "mdi": "stop"
+      },
+      {
+        "name": "Swap Horizontal",
+        "codepoint": "F04E1",
+        "mdi": "swap-horizontal"
+      },
+      {
+        "name": "Gauge",
+        "codepoint": "F029A",
+        "mdi": "gauge"
       }
     ],
     "domain_defaults": {
-      "light": "Lightbulb",
       "switch": "Power Plug",
       "fan": "Fan",
       "lock": "Lock",
-      "cover": "Blinds Horizontal",
-      "climate": "Air Conditioner",
       "media_player": "Speaker",
-      "camera": "Camera",
-      "button": "Gesture Tap",
-      "binary_sensor": "Motion Sensor"
+      "button": "Gesture Tap"
     }
   },
   "compatibilityFixtures": {
@@ -10594,11 +8400,11 @@
         ],
         "buttons": [
           {
-            "entity": "scene.movie",
-            "label": "Movie",
-            "icon": "Flash",
+            "entity": "",
+            "label": "",
+            "icon": "Auto",
             "icon_on": "Auto",
-            "sensor": "scene.turn_on",
+            "sensor": "",
             "unit": "",
             "type": "action",
             "precision": "",
@@ -10690,7 +8496,6 @@
         ],
         "requiredCards": [
           "",
-          "sensor",
           "weather",
           "media",
           "alarm",
@@ -10708,10 +8513,6 @@
           "weather_forecast": {
             "type": "weather",
             "precision": "tomorrow"
-          },
-          "text_sensor": {
-            "type": "sensor",
-            "precision": "text"
           }
         }
       },
@@ -10743,20 +8544,6 @@
             "type": "weather",
             "precision": "tomorrow",
             "options": ""
-          }
-        },
-        "text_sensor_alias": {
-          "input": "sensor.washer;Washer;Washer;Auto;;;text_sensor;;active_color",
-          "expected": {
-            "entity": "",
-            "label": "",
-            "icon": "Washer",
-            "icon_on": "Auto",
-            "sensor": "",
-            "unit": "",
-            "type": "sensor",
-            "precision": "text",
-            "options": "active_color"
           }
         },
         "media_controls_alias": {

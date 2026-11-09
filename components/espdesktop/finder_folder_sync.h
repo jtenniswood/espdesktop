@@ -53,3 +53,29 @@ inline std::string finder_append_folder_tiles(
   }
   return result;
 }
+
+inline std::string finder_append_folder_tiles_for_grid(
+    const std::string &config, int slots, int columns,
+    const std::vector<CompanionAction> &folders, size_t capacity,
+    const std::string &behavior) {
+  const auto buttons = parse_subpage_config(config);
+  SubpageOrder order;
+  parse_subpage_order(get_subpage_order(config), slots, buttons.size(), order);
+  if (!order.has_back_token) return config;
+  normalize_subpage_order_spans(order, slots, columns);
+  std::vector<bool> occupied(slots, false);
+  auto occupy = [&](int position, int rows, int cols) {
+    for (int row = 0; row < rows; ++row)
+      for (int col = 0; col < cols; ++col) {
+        const int cell = position + row * columns + col;
+        if (cell >= 0 && cell < slots) occupied[cell] = true;
+      }
+  };
+  occupy(order.back_pos, order.back_row_span, order.back_col_span);
+  for (int position = 0; position < slots; ++position) {
+    const int index = order.positions[position];
+    if (index > 0 && index <= static_cast<int>(buttons.size()))
+      occupy(position, order.row_span[index - 1], order.col_span[index - 1]);
+  }
+  return finder_append_folder_tiles(config, occupied, folders, capacity, behavior);
+}

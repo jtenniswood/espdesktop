@@ -167,19 +167,6 @@ export function createControlsShellFeature(
         selectionBar.className = "sp-selection-bar";
         els.selectionBar = selectionBar;
         page.appendChild(selectionBar);
-        var specialPageEntry: any = document.createElement("button");
-        specialPageEntry.className = "sp-special-page-entry";
-        specialPageEntry.type = "button";
-        specialPageEntry.textContent = "Configure Special Page";
-        els.specialPageEntry = specialPageEntry;
-        page.appendChild(specialPageEntry);
-        const specialPageRename = document.createElement("button");
-        specialPageRename.type = "button";
-        specialPageRename.className = "sp-special-page-entry";
-        specialPageRename.setAttribute("aria-label", "Rename Special Page");
-        specialPageRename.hidden = true;
-        els.specialPageRename = specialPageRename;
-        page.appendChild(specialPageRename);
         var wrap: any = document.createElement("div");
         wrap.className = "sp-wrap";
         wrap.innerHTML =
@@ -205,7 +192,7 @@ export function createControlsShellFeature(
         els.previewMain.setAttribute("aria-label", "Button grid");
         var hint: any = document.createElement("div");
         hint.className = "sp-hint";
-        hint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
+        hint.style.display = "none";
         els.previewHint = hint;
         page.appendChild(hint);
         var overlay: any = document.createElement("div");
@@ -227,7 +214,6 @@ export function createControlsShellFeature(
         overlay.appendChild(modal);
         page.appendChild(overlay);
         els.settingsOverlay = overlay;
-        page.appendChild(buildApplyBar());
         parent.appendChild(page);
         els.screenPage = page;
     }
@@ -298,17 +284,20 @@ export function createControlsShellFeature(
             support.classList.remove("sp-support-hidden");
     }
     function isConfigLocked(this: any) {
-        return !!state.configLocked;
+        return !!state.configLocked || !!state.nativeConfigReadOnly || !!state.nativeConfigLoading || !!state.nativeTransferActive;
     }
     function syncConfigLockUi(this: any) {
+        const previewLocked = !!state.configLocked || !!state.nativeConfigLoading ||
+            (!!state.nativeConfigReadOnly && !state.nativePanelDocument);
         if (els.root) {
-            els.root.classList.toggle("sp-config-locked", isConfigLocked());
+            els.root.classList.toggle("sp-config-locked", previewLocked);
+            els.root.classList.toggle("sp-config-busy", !!state.nativeTransferActive);
         }
         if (els.previewMain) {
-            els.previewMain.setAttribute("aria-disabled", isConfigLocked() ? "true" : "false");
+            els.previewMain.setAttribute("aria-disabled", previewLocked || state.nativeTransferActive ? "true" : "false");
         }
         if (els.root) {
-            var text: any = "Waiting for device\u2026";
+            var text: any = state.nativeConfigReadOnly ? "Read-only configuration" : state.nativeTransferActive ? "Updating cards\u2026" : state.nativeConfigLoading ? "Loading pages\u2026" : "Waiting for device\u2026";
             if ((state.configLockReason || "").indexOf("Restarting") !== -1)
                 text = "Restarting\u2026";
             els.root.querySelectorAll(".sp-apply-btn").forEach(function (this: any, btn?: any) {

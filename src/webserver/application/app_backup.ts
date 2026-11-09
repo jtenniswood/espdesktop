@@ -1,4 +1,5 @@
 import { removeRetiredPanelRecords } from "../features/retired_cards";
+import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
@@ -6,13 +7,11 @@ import { resetAwareFetch } from "../api/reset_session";
 import type { PanelIdentityBackup } from "../model/panel_identity";
 import type { PanelIdentityFeature } from "./panel_identity";
 import { state } from "../state/app_instance";
+import { WEB_UI_COLORS } from "../state/ui_tokens";
 import * as EspDesktopModel from "../model";
 import {
     normalizeBrightnessMode,
     normalizeHexColor,
-    normalizeHomeAssistantArtworkPort,
-    normalizeHomeAssistantArtworkProtocol,
-    normalizeHomeAssistantArtworkEndpointMode,
     normalizeHour,
     normalizeLanguage,
     normalizeScheduleClockBrightness,
@@ -25,7 +24,6 @@ import {
     normalizeScreensaverAction,
     normalizeScreensaverCameraImageMode,
     normalizeScreensaverDimmedBrightness,
-    normalizeTemperatureUnit,
     normalizeTimeOfDay,
     normalizeThemeMode,
     normalizeThemeAutoMethod,
@@ -66,10 +64,13 @@ import type { SettingsPageHelpersFeature } from "./settings_page_helpers";
 import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../features/legacy_layout_restore";
-import { panelConfigDocumentContainsWifiSharing } from "../features/wifi_sharing_config";
+import { NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE, nativeBackupHasInactiveRecords } from "../features/native_panel_config";
+import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument } from "../model/native_config_backup";
+import { panelPageDocumentDepth } from "../model/panel_config_conversion";
 
 export interface AppBackupControllers {
     readonly identity?: PanelIdentityFeature;
+    readonly waitForInitialState: () => Promise<void>;
     readonly layout: ApplicationLayoutState;
     readonly backupExport: BackupExportController;
     readonly backupImport: BackupImportController<any, any, any>;
@@ -79,7 +80,7 @@ export interface AppBackupControllers {
     readonly gridColsForImportedSettings: (settings: any) => number;
     readonly nativePanelConfig?: NativePanelConfigController;
     readonly codec: ConfigCodecFeature;
-    readonly configPersistence: Pick<ConfigPersistenceFeature, "subpageEntityKeys" | "specialPageEntityKeys">;
+    readonly configPersistence: Pick<ConfigPersistenceFeature, "subpageEntityKeys">;
     readonly backupContract: Pick<BackupContractFeature, "createBackupConfig" | "normalizeButtonConfig">;
     readonly runtime: UiRuntimeState;
     readonly core: Pick<CoreFeature, "syncPreviewOrientation">;
@@ -90,12 +91,12 @@ export interface AppBackupControllers {
     readonly entityState: Pick<EntityStateFeature, "entityName" | "entityNameForSlot">;
     readonly shell: Pick<ControlsShellFeature, "switchTab"> & Partial<Pick<ControlsShellFeature, "showBanner">>;
     readonly requestApi: ApplicationApiFeature;
-    readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput" | "updateTempPreview">;
-    readonly grid: Pick<GridFeature, "applyImportedButtonOrder" | "cancelMainGridSave" | "serializeGrid">;
+    readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
+    readonly grid: Pick<GridFeature, "applyImportedButtonOrder" | "cancelMainGridSave" | "flushMainGridSave" | "serializeGrid">;
     readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
     readonly clockBarPostApi: ClockBarPostApiFeature;
-    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncAlarmDelayAudioUi" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
+    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
     readonly preview: Pick<PreviewRenderFeature, "render">;
     readonly buttonSettings: Pick<ButtonSettingsFeature, "render">;
 }
@@ -104,40 +105,27 @@ export interface AppBackupFeature {
     backupExportFileName(value?: unknown): string;
     normalizeImportedPanelSettings(settings?: unknown): unknown;
     gridColsForImportedSettings(settings?: unknown): number;
-    exportConfig(): void;
+    exportConfig(): Promise<void>;
     importConfig(): void;
 }
 
 export function createAppBackupFeature(controllers: AppBackupControllers): AppBackupFeature {
-    const { syncAlarmDelayAudioUi, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
+    const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
     const { render: renderPreview } = controllers.preview;
     const { render: renderButtonSettings } = controllers.buttonSettings;
-    const { subpageEntityKeys, specialPageEntityKeys } = controllers.configPersistence;
+    const { subpageEntityKeys } = controllers.configPersistence;
     const { createBackupConfig, normalizeButtonConfig: backupNormalizeButtonConfig } = controllers.backupContract;
     const { entityName, entityNameForSlot } = controllers.entityState;
     const { switchTab } = controllers.shell;
     const requestApi = controllers.requestApi;
-    const { syncInput, updateTempPreview } = controllers.statusPreview;
+    const { syncInput,  } = controllers.statusPreview;
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
     const {
-        postPresenceSensorEntity,
-        postScreensaverCameraImageMode,
         postMediaPlayerSleepPrevention,
-        postMediaPlayerSleepPreventionEntity,
-        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
-        postClockOverlay,
-        postCoverArtMediaPlayerEntity,
-        postCoverArtSecondaryMediaPlayerEntity,
-        postCoverArtConditions,
         postCoverArtDelay,
         postCoverArtTrackOverlayDuration,
-        postCoverArtHideExternalInput,
-        postHomeAssistantArtworkProtocol,
-        postHomeAssistantArtworkHost,
-        postHomeAssistantArtworkPort,
-        postHomeAssistantArtworkEndpointMode,
     } = controllers.artworkPostApi;
     const {
         postBrightnessMode,
@@ -146,8 +134,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postBrightnessDuskTime,
         postScreenScheduleEnabled,
         postScreenScheduleTrigger,
-        postScreenScheduleSensorActivation,
-        postScreenScheduleSensorEntity,
         postScreenScheduleOnHour,
         postScreenScheduleOffHour,
         postScreenScheduleMode,
@@ -161,18 +147,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postClockBrightnessNight,
         postClockScreensaver,
         postClockBar,
-        postClockBarTemperatureEntities,
+
         postClockBarTime,
         postClockBarNightMode,
         postNetworkStatusIcon,
-        postVoiceServices,
-        postAlarmDelayAudio,
-        postAlarmDelayTts,
-        postAlarmDelayEntryAnnouncement,
-        postAlarmDelayExitAnnouncement,
-        postAlarmDelayBeepVolume,
-        postAlarmDelayFinalCountdown,
-        postTemperatureDegreeSymbol,
+
         postSubpageChevron,
         postAutoOpenAppSubpages,
         postReturnHomeOnAppSwitch,
@@ -206,11 +185,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { syncUi: syncScreensaverTimeoutUi } = controllers.screensaverTimeout;
     const { controlsVisible: firmwareUpdateControlsVisible, syncUi: syncFirmwareUpdateUi } = controllers.firmwareUpdate;
     const {
-        applyTemperatureEntities: applyClockBarTemperatureEntities,
-        temperatureEntities: clockBarTemperatureEntities,
-        serializeTemperatureEntities: serializeClockBarTemperatureEntities,
+
         syncUi: syncClockBarUi,
-        syncTemperatureUi,
+
     } = controllers.clockBar;
     // ── Export / Import ────────────────────────────────────────────────────
     var backupExportController: BackupExportController = controllers.backupExport;
@@ -222,16 +199,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     }
     function backupExportFileName(this: any, value?: any) {
         return backupExportController.fileName(controllers.layout.config.screenSize, value, controllers.identity?.backup());
-    }
-    function backupSubpages(this: any) {
-        var pages: any = {};
-        for (var key in state.subpages) {
-            if (key !== "-1") pages[key] = state.subpages[key];
-        }
-        return pages;
-    }
-    function specialPageConfig(this: any) {
-        return state.subpages[-1] ? serializeSubpageConfig(state.subpages[-1]) : "";
     }
     function normalizeImportedPanelSettings(this: any, settings?: any) {
         return controllers.normalizeImportedPanelSettings(settings);
@@ -246,14 +213,14 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         if (identity) data.identity = identity;
         backupFileController.download(data, backupExportController.fileName(controllers.layout.config.screenSize, undefined, identity));
     }
-    function addNativeConfigToBackup(this: any, data?: any) {
+    function addNativeConfigToBackup(this: any, data: any, nativeDocumentBytes?: Uint8Array) {
         return backupExportController.addNativeConfig(data, {
             "deviceProfile": controllers.layout.deviceId,
             "buttons": state.buttons,
-            "subpages": backupSubpages(),
-            "specialPage": specialPageConfig(),
+            "subpages": state.subpages,
             "buttonOrder": data.button_order,
             "buttonOnColor": data.button_on_color,
+            ...(nativeDocumentBytes ? { nativeDocumentBytes } : {}),
         });
     }
     async function exportConfig(this: any) {
@@ -263,29 +230,40 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             await controllers.identity?.load();
             identity = controllers.identity?.backup();
         } catch { identityUnavailable = true; }
+        let nativeDocumentBytes: Uint8Array | undefined;
+        let nativeDocument: PanelConfigDocument | undefined;
+        try {
+            await controllers.waitForInitialState();
+            nativeDocumentBytes = await controllers.nativePanelConfig?.readForBackup() ?? undefined;
+            if (nativeDocumentBytes) nativeDocument = decodeNativeConfigDocument(nativeDocumentBytes);
+        } catch {
+            controllers.shell.showBanner?.("Could not export the backup. Check that changes have saved and the panel is connected, then try again.", "error");
+            return;
+        }
+        // Project the same saved layout into the portable part of the backup.
+        // SSE state can still be arriving or can lag another browser's edits.
+        const nativeGrid = nativeDocument ? EspDesktopModel.parseGridOrder(
+            nativeDocument.settings.button_order, controllers.layout.numSlots, controllers.layout.gridCols,
+        ) : undefined;
         var data: any = createBackupConfig({
             device: controllers.layout.deviceId,
             slots: controllers.layout.numSlots,
             exported_at: new Date().toISOString(),
-            grid: state.grid,
-            sizes: state.sizes,
-            button_order: serializeGrid(state.grid),
-            button_on_color: state.onColor,
-            buttons: state.buttons,
-            subpages: backupSubpages(),
+            grid: nativeGrid?.grid ?? state.grid,
+            sizes: nativeGrid?.sizes ?? state.sizes,
+            button_order: nativeDocument ? nativeDocument.settings.button_order || "" : serializeGrid(state.grid),
+            button_on_color: nativeDocument ? nativeDocument.settings.button_on_color || "" : state.onColor,
+            buttons: nativeDocument ? Array.from({ length: controllers.layout.numSlots }, (_, index) =>
+                parseButtonConfig(nativeDocument.buttons[index + 1] || "")) : state.buttons,
+            subpages: nativeDocument ? Object.fromEntries(Object.entries(nativeDocument.subpages).map(
+                ([slot, value]) => [slot, parseSubpageConfig(value)],
+            )) : state.subpages,
             settings: {
-                special_page: specialPageConfig(),
-                indoor_temp_enable: state._indoorOn,
-                outdoor_temp_enable: state._outdoorOn,
-                clock_bar_temperature_entities: serializeClockBarTemperatureEntities(clockBarTemperatureEntities()),
-                indoor_temp_entity: state.indoorEntity,
-                outdoor_temp_entity: state.outdoorEntity,
-                temperature_unit: normalizeTemperatureUnit(state.temperatureUnit),
                 clock_bar: state.clockBarOn,
                 clock_bar_time: state.clockBarTimeOn,
                 clock_bar_night_mode: state.clockBarNightModeOn,
                 network_status_icon: state.networkStatusOn,
-                temperature_degree_symbol: state.temperatureDegreeSymbolOn,
+
                 subpage_chevron: state.subpageChevronsOn,
                 auto_open_app_subpages: state.autoOpenAppSubpages,
                 return_home_on_app_switch: state.returnHomeOnAppSwitch,
@@ -297,32 +275,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_2: state.ntpServer2,
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
-                presence_sensor_entity: state.presenceEntity,
-                screensaver_camera_entity: state.screensaverCameraEntity,
-                screensaver_metadata_entity: state.screensaverMetadataEntity,
-                metadata_overlay: state.metadataOverlayOn,
-                screensaver_camera_dimming: state.screensaverCameraDimmingSupported ? state.screensaverCameraDimming : undefined,
-                screensaver_camera_image_mode: normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode),
                 media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
-                media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity || state.coverArtMediaPlayerEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
                 clock_date: state.clockDateOn,
-                clock_overlay: state.clockOverlayOn,
-                cover_art_media_player_entity: state.coverArtMediaPlayerEntity,
-                cover_art_secondary_media_player_entity: state.coverArtSecondaryMediaPlayerEntity,
-                cover_art_attribute_conditions: state.coverArtAttributeConditions,
                 cover_art_delay: state.coverArtDelay,
-                cover_art_playback_control: state.coverArtPlaybackControlOn,
                 cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
-                cover_art_hide_external_input: state.coverArtHideExternalInputOn,
-                home_assistant_artwork_protocol: normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol),
-                home_assistant_artwork_host: String(state.homeAssistantArtworkHost || "").trim().slice(0, 253),
-                home_assistant_artwork_port: normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort),
-                home_assistant_artwork_endpoint_mode: normalizeHomeAssistantArtworkEndpointMode(
-                    state.homeAssistantArtworkEndpointMode,
-                    state.homeAssistantArtworkProtocol,
-                    state.coverArtHomeAssistantPort),
                 firmware_auto_update: !!state.autoUpdate,
                 firmware_update_frequency: state.updateFrequency,
                 screensaver_action: normalizeScreensaverAction(state.screensaverAction),
@@ -354,8 +312,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
                 schedule_trigger: normalizeScheduleTrigger(state.scheduleTrigger, state.scheduleEnabled),
                 schedule_enabled: !!state.scheduleEnabled,
-                schedule_sensor_activation: normalizeScheduleSensorActivation(state.scheduleSensorActivation),
-                schedule_sensor_entity: state.scheduleSensorEntity,
                 schedule_on_hour: normalizeHour(state.scheduleOnHour, 6),
                 schedule_off_hour: normalizeHour(state.scheduleOffHour, 23),
                 schedule_mode: normalizeScheduleMode(state.scheduleMode),
@@ -366,7 +322,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 schedule_clock_text_color: normalizeHexColor(state.scheduleClockTextColor, "FFFFFF"),
             },
         } as any);
-        downloadBackupConfig(addNativeConfigToBackup(data), identity);
+        downloadBackupConfig(addNativeConfigToBackup(data, nativeDocumentBytes), identity);
         if (identityUnavailable) controllers.shell.showBanner?.(
             "Backup exported without the panel name because naming is unavailable.", "warning");
     }
@@ -406,24 +362,25 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         nativeDocument.subpages[Number(nativeSubpageKey)] = nativeSubpageValue;
                 }
                 var backedUpNativeConfig: any = backupPlan.config.native_config;
+                const exactGraph = backedUpNativeConfig?.document_version === 2 &&
+                    backedUpNativeConfig.device_profile === controllers.layout.deviceId;
                 if (backedUpNativeConfig &&
                     backedUpNativeConfig.device_profile === controllers.layout.deviceId) {
-                    nativeDocument = EspDesktopModel.decodePanelConfig(
-                        EspDesktopModel.decodePanelConfigBackupPayload(backedUpNativeConfig));
+                    nativeDocument = decodeNativeConfigDocument(decodeNativeConfigBackupPayload(backedUpNativeConfig));
                 }
-                nativeDocument.settings.special_page = String(
-                    nativeDocument.settings.special_page || backupPlan.config.settings?.special_page || "");
-                nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
-                nativeDocument.settings.button_on_color = String(nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || "");
+                if (!exactGraph) {
+                    nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
+                    nativeDocument.settings.button_on_color = String(nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || "");
+                    var parsedButtonOrder: any = EspDesktopModel.parseGridOrder(
+                        nativeDocument.settings.button_order,
+                        controllers.layout.numSlots,
+                        importedGridCols,
+                        {});
+                    nativeDocument.settings.button_order = EspDesktopModel.serializeGridOrder(
+                        parsedButtonOrder.grid,
+                        parsedButtonOrder.sizes);
+                }
                 removeRetiredPanelRecords(nativeDocument, controllers.codec);
-                var parsedButtonOrder: any = EspDesktopModel.parseGridOrder(
-                    nativeDocument.settings.button_order,
-                    controllers.layout.numSlots,
-                    importedGridCols,
-                    {});
-                nativeDocument.settings.button_order = EspDesktopModel.serializeGridOrder(
-                    parsedButtonOrder.grid,
-                    parsedButtonOrder.sizes);
 
                 function readLegacyText(name: string) {
                     return requestApi.getJsonFirst(requestApi.entityDetailPaths("text", [name], "state"));
@@ -433,58 +390,28 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     throw Object.assign(new Error(message), { backupMessage: message });
                 }
                 function queueLegacyLayoutRestore() {
-                    if (panelConfigDocumentContainsWifiSharing(nativeDocument)) {
-                        const message = "This backup contains Wifi Sharing cards, which require current device firmware. Update the panel before restoring this backup.";
-                        rejectBackup(message);
+                    if (Object.keys(nativeDocument.settings)
+                        .some(key => key !== "button_order" && key !== "button_on_color")) {
+                        rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                     }
-                    const keys = specialPageEntityKeys();
-                    const specialPageValue = nativeDocument.settings.special_page || "";
-                    const specialPageEntities = Promise.all(keys.map((key) =>
-                        requestApi.getJsonFirst(
-                            requestApi.entityDetailPaths("text", [entityName(key)], "state"),
-                        )
-                    ));
-                    return specialPageEntities.then((available) => {
-                        const allSpecialPageEntitiesAvailable = available.every(Boolean);
-                        if (specialPageValue && !allSpecialPageEntitiesAvailable) {
-                            rejectBackup("This device does not support restoring the special page. Update its firmware and try again.");
+                    return restoreLegacyLayoutDocument(nativeDocument, {
+                        slotCount: controllers.layout.numSlots,
+                        subpageEntityKeys: subpageEntityKeys(),
+                        entityName: entityName,
+                        entityNameForSlot: entityNameForSlot,
+                        splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
+                        postText: requestApi.postTextLegacy,
+                        readText: readLegacyText,
+                    }).then(function (result: any) {
+                        if (!result.ok) {
+                            rejectBackup(legacyRestoreFailureMessage(result));
                         }
-                        return restoreLegacyLayoutDocument(nativeDocument, {
-                            slotCount: controllers.layout.numSlots,
-                            subpageEntityKeys: subpageEntityKeys(),
-                            entityName: entityName,
-                            entityNameForSlot: entityNameForSlot,
-                            splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
-                            postText: requestApi.postTextLegacy,
-                            readText: readLegacyText,
-                        }).then(function (result: any) {
-                            if (!result.ok) {
-                                requestApi.postQueueError = true;
-                                throw Object.assign(new Error(legacyRestoreFailureMessage(result)), {
-                                    backupMessage: legacyRestoreFailureMessage(result),
-                                });
-                            }
-                            if (!allSpecialPageEntitiesAvailable) return "legacy-fallback";
-                            const chunks = EspDesktopModel.splitSubpageConfigChunks(
-                                specialPageValue, keys.length, 255,
-                            );
-                            if (!chunks) {
-                                rejectBackup("The special page is too large to restore.");
-                            }
-                            return Promise.all(keys.map((key, index) =>
-                                requestApi.postTextLegacy(entityName(key), chunks[index] || "")
-                            )).then(function (results: any[]) {
-                                if (!results.every(function (result: any) {
-                                    return result !== null && result !== undefined &&
-                                        (typeof result.ok !== "boolean" || result.ok);
-                                })) {
-                                    rejectBackup("The special page could not be restored to this device.");
-                                }
-                                return "legacy-fallback";
-                            });
-                        });
+                        return "legacy-fallback";
                     });
                 }
+                // Finish a pending grid move before the replacement so its
+                // debounce cannot publish the old order after the restore.
+                controllers.grid.flushMainGridSave();
                 await requestApi.postQueue;
                 var nativeController: any = controllers.nativePanelConfig;
                 var nativeAvailability: any = nativeController && nativeController.client
@@ -492,6 +419,13 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     : "legacy-fallback";
                 if (nativeAvailability === "failed") {
                     rejectBackup("Could not confirm that this device can safely restore the layout. Check the connection and try again.");
+                }
+                if (panelPageDocumentDepth(nativeDocument) > 1 &&
+                    (nativeAvailability !== true || nativeController.writableNavigationDepth() < 2))
+                    rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
+                if (nativeBackupHasInactiveRecords(nativeDocument, controllers.layout.numSlots) &&
+                    nativeController?.client?.preservesInactiveRecords() !== true) {
+                    rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                 }
                 var layoutRestoreResult: any;
                 if (nativeAvailability === "legacy-fallback") {
@@ -502,6 +436,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     layoutRestoreResult = nativeRestore ? await nativeRestore : "failed";
                     if (layoutRestoreResult === "legacy-fallback") {
                         layoutRestoreResult = await queueLegacyLayoutRestore();
+                    }
+                    else if (layoutRestoreResult === "firmware-update-required") {
+                        rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                     }
                     else if (layoutRestoreResult === "mirror-failed") {
                         // The native document is durable, but the controller has
@@ -529,52 +466,33 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         buildSubpageGrid(canonicalSubpage);
                         state.subpages[canonicalSubpageKey] = canonicalSubpage;
                     }
-                    if (nativeDocument.settings.special_page) {
-                        var specialPage: any = parseSubpageConfig(nativeDocument.settings.special_page);
-                        buildSubpageGrid(specialPage);
-                        state.subpages[-1] = specialPage;
-                    }
-                    nativeDocument.settings.button_order = applyImportedButtonOrder(
-                        nativeDocument.settings.button_order, {});
+                    const displayOrder = applyImportedButtonOrder(nativeDocument.settings.button_order || "", {});
+                    if (!exactGraph) nativeDocument.settings.button_order = displayOrder;
                 }
                 finally {
                     controllers.layout.gridCols = activeGridCols;
                 }
-                state.onColor = nativeDocument.settings.button_on_color;
+                state.nativePanelDocument = { ...nativeDocument, buttons: { ...nativeDocument.buttons }, subpages: { ...nativeDocument.subpages }, settings: { ...nativeDocument.settings } };
+                state.nativeHasNestedPages = panelPageDocumentDepth(nativeDocument) > 1;
+                state.nativeConfigReadOnly = false;
+                state.subpageSavePending = {};
+                state.pendingButtonOrderRaw = nativeDocument.settings.button_order || "";
+                state.onColor = nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || WEB_UI_COLORS.primary;
                 if (els.setOnColor && els.setOnColor._syncColor)
                     els.setOnColor._syncColor(state.onColor);
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
-                    state._clockBarTemperatureVisibilityReceived = true;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    applyClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities, false);
-                    postClockBarTemperatureEntities(serializeClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities));
-                    postSwitch(entityName("outdoor_temp_enable"), importedSettings.outdoorTempEnable);
-                    postSwitch(entityName("indoor_temp_enable"), importedSettings.indoorTempEnable);
-                    postText(entityName("outdoor_temp_entity"), importedSettings.outdoorTempEntity);
-                    postText(entityName("indoor_temp_entity"), importedSettings.indoorTempEntity);
+
                     postClockBar(importedSettings.clockBar);
                     postClockBarTime(importedSettings.clockBarTime);
                     postClockBarNightMode(importedSettings.clockBarNightMode);
                     postNetworkStatusIcon(importedSettings.networkStatusIcon);
-                    if (controllers.layout.config.features && controllers.layout.config.features.voiceServices)
-                        postVoiceServices(importedSettings.voiceServices);
-                    if (controllers.layout.config.features && controllers.layout.config.features.alarmDelayAudio) {
-                        postAlarmDelayAudio(importedSettings.alarmDelayAudio);
-                        postAlarmDelayTts(importedSettings.alarmDelayTts);
-                        postAlarmDelayEntryAnnouncement(importedSettings.alarmDelayEntryAnnouncement);
-                        postAlarmDelayExitAnnouncement(importedSettings.alarmDelayExitAnnouncement);
-                        postAlarmDelayBeepVolume(importedSettings.alarmDelayBeepVolume);
-                        postAlarmDelayFinalCountdown(importedSettings.alarmDelayFinalCountdown);
-                    }
-                    postTemperatureDegreeSymbol(importedSettings.temperatureDegreeSymbol);
+
                     postSubpageChevron(importedSettings.subpageChevron);
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
                     postReturnHomeOnAppSwitch(importedSettings.returnHomeOnAppSwitch);
                     postSubpageTitleBar(importedSettings.subpageTitleBar);
                     var importedTimezone: any = importedSettings.timezone;
-                    var importedTemperatureUnit: any = importedSettings.temperatureUnit;
                     var importedLanguage: any = importedSettings.language;
                     var importedClockFormat: any = importedSettings.clockFormat;
                     var hasNtpServer1: any = importedSettings.hasNtpServer1;
@@ -587,7 +505,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postSelect(entityName("screen_timezone"), importedTimezone);
                     if (s.language)
                         postSelect(entityName("screen_language"), importedLanguage);
-                    postSelect(entityName("screen_temperature_unit"), importedTemperatureUnit);
+
                     if (s.clock_format)
                         postSelect(entityName("screen_clock_format"), importedClockFormat);
                     if (hasNtpServer1) {
@@ -601,35 +519,13 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     }
                     var importedScreensaverMode: any = importedSettings.screensaverMode;
                     postScreensaverMode(importedScreensaverMode);
-                    postPresenceSensorEntity(importedSettings.presenceSensorEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postText(entityName("screen_saver_camera_entity"), importedSettings.screensaverCameraEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postText(entityName("screen_saver_metadata_entity"), importedSettings.screensaverMetadataEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
-                    const hasCameraDimming = s.screensaver_camera_dimming !== undefined;
-                    if (hasCameraDimming && controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraDimmingSupported)
-                        controllers.artworkPostApi.postScreensaverCameraDimming(importedSettings.screensaverCameraDimming);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
-                    postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
-                    postCoverArtPlaybackControl(importedSettings.coverArtPlaybackControl);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
-                    postCoverArtSource(importedSettings.coverArtSource);
+                    if (controllers.layout.config.features?.companion)
+                        postCoverArtSource(importedSettings.coverArtSource);
                     if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
-                    if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        controllers.artworkPostApi.postMetadataOverlay(importedSettings.metadataOverlay);
-                    postCoverArtMediaPlayerEntity(importedSettings.coverArtMediaPlayerEntity);
-                    postCoverArtSecondaryMediaPlayerEntity(importedSettings.coverArtSecondaryMediaPlayerEntity);
-                    postCoverArtConditions(importedSettings.coverArtAttributeConditions);
                     postCoverArtDelay(importedSettings.coverArtDelay);
                     postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
-                    postCoverArtHideExternalInput(importedSettings.coverArtHideExternalInput);
-                    postHomeAssistantArtworkProtocol(importedSettings.coverArtHomeAssistantProtocol);
-                    postHomeAssistantArtworkHost(importedSettings.coverArtHomeAssistantHost);
-                    postHomeAssistantArtworkPort(importedSettings.coverArtHomeAssistantPort);
-                    postHomeAssistantArtworkEndpointMode(importedSettings.coverArtHomeAssistantEndpointMode);
                     if (firmwareUpdateControlsVisible()) {
                         postFirmwareAutoUpdate(importedSettings.autoUpdate);
                         postFirmwareUpdateFrequency(importedSettings.updateFrequency);
@@ -655,25 +551,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
-                    state.clockBarTemperatureEntities = importedSettings.clockBarTemperatureEntities;
-                    state._clockBarTemperatureEntitiesReceived = true;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state.indoorEntity = importedSettings.indoorTempEntity;
-                    state.outdoorEntity = importedSettings.outdoorTempEntity;
-                    state.temperatureUnit = importedTemperatureUnit;
+
                     state.clockBarOn = importedSettings.clockBar;
                     state.clockBarTimeOn = importedSettings.clockBarTime;
                     state.clockBarNightModeOn = importedSettings.clockBarNightMode;
                     state.networkStatusOn = importedSettings.networkStatusIcon;
-                    state.voiceServicesOn = importedSettings.voiceServices;
-                    state.alarmDelayAudioOn = importedSettings.alarmDelayAudio;
-                    state.alarmDelayTtsOn = importedSettings.alarmDelayTts;
-                    state.alarmDelayEntryAnnouncement = importedSettings.alarmDelayEntryAnnouncement;
-                    state.alarmDelayExitAnnouncement = importedSettings.alarmDelayExitAnnouncement;
-                    state.alarmDelayBeepVolume = importedSettings.alarmDelayBeepVolume;
-                    state.alarmDelayFinalCountdown = importedSettings.alarmDelayFinalCountdown;
-                    state.temperatureDegreeSymbolOn = importedSettings.temperatureDegreeSymbol;
+
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
@@ -693,8 +576,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverCameraEntity = importedSettings.screensaverCameraEntity;
                     state.screensaverMetadataEntity = importedSettings.screensaverMetadataEntity;
                     state.metadataOverlayOn = importedSettings.metadataOverlay;
-                    if (hasCameraDimming && state.screensaverCameraDimmingSupported)
-                        state.screensaverCameraDimming = importedSettings.screensaverCameraDimming;
                     state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
                     state.mediaPlayerSleepPreventionOn = importedSettings.mediaPlayerSleepPrevention;
                     state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
@@ -706,7 +587,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
                     state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
                     state.coverArtDelay = importedSettings.coverArtDelay;
-                    state.coverArtPlaybackControlOn = importedSettings.coverArtPlaybackControl;
                     state.coverArtTrackOverlayDuration = importedSettings.coverArtTrackOverlayDuration;
                     state.coverArtHideExternalInputOn = importedSettings.coverArtHideExternalInput;
                     state.homeAssistantArtworkProtocol = importedSettings.coverArtHomeAssistantProtocol;
@@ -726,11 +606,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverTimeout = importedSettings.screensaverTimeout;
                     state.homeScreenTimeout = importedSettings.homeScreenTimeout;
                     state.screenRotation = importedScreenRotation;
-                    syncTemperatureUi();
+
                     syncClockBarUi();
-                    syncAlarmDelayAudioUi();
-                    if (els.setTemperatureUnit)
-                        els.setTemperatureUnit.value = state.temperatureUnit;
+
                     syncInput(els.setPresence, state.presenceEntity);
                     syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
                     syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
@@ -759,7 +637,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncPreviewOrientation();
                     if (els.setSsMode)
                         els.setSsMode(getActiveScreensaverMode());
-                    updateTempPreview();
+
                 }
                 var screenSettings: any = backupPlan.screen;
                 if (screenSettings) {
@@ -838,8 +716,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postBrightnessDawnTime(state.brightnessDawnTime);
                     postBrightnessDuskTime(state.brightnessDuskTime);
                     postScreenScheduleTrigger(state.scheduleTrigger);
-                    postScreenScheduleSensorActivation(state.scheduleSensorActivation);
-                    postScreenScheduleSensorEntity(state.scheduleSensorEntity);
                     postScreenScheduleOnHour(state.scheduleOnHour);
                     postScreenScheduleOffHour(state.scheduleOffHour);
                     postScreenScheduleMode(state.scheduleMode);
@@ -877,6 +753,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                             backupMessage: "Configuration restored, but panel naming or restart failed: " + (error as Error).message,
                         });
                     }
+                }
+                if (!controllers.nativePanelConfig?.homeAssistantSupportEnabled() && !requestApi.postQueueError) {
+                    const warning = legacyHomeAssistantWarning(legacyHomeAssistantCards(nativeDocument));
+                    if (warning) backupPlan.warnings.push(warning);
                 }
                 return layoutRestoreResult;
                 }

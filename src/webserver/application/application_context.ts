@@ -5,14 +5,14 @@ import type { CardEditorDraftController } from "../features/card_editor_draft_co
 import type { CardEditorSaveController } from "../features/card_editor_save_controller";
 import type { CardEditorValidationController } from "../features/card_editor_validation_controller";
 import type { PreviewPlacementController } from "../features/preview_placement_controller";
-import type { AlarmDelayAudioController } from "../features/alarm_delay_audio_controller";
+
 import type { ClockBarController } from "../features/clock_bar_controller";
 import type { CoverArtScreensaverController } from "../features/cover_art_screensaver_controller";
 import type { MediaPlaybackController } from "../features/media_playback_controller";
 import type { ScreenScheduleController } from "../features/screen_schedule_controller";
 import type { ScreensaverController } from "../features/screensaver_controller";
 import type { SettingsUiFeature } from "../features/settings";
-import type { VoiceServicesController } from "../features/voice_services_controller";
+
 import type { BackupFeature } from "../features/backup";
 import type { BackupExportController } from "../features/backup_export_controller";
 import type { BackupFileController } from "../features/backup_file_controller";
@@ -29,7 +29,6 @@ import type { ConfigWeatherOptionsFeature } from "./config_weather_options";
 import type { ConfigWebhookOptionsFeature } from "./config_webhook_options";
 import type { ConfigRobotCardOptionsFeature } from "./config_robot_card_options";
 import type { ConfigLockOptionsFeature } from "./config_lock_options";
-import type { ConfigDateTimeOptionsFeature } from "./config_date_time_options";
 import type { ConfigModalTabOptionsFeature } from "./config_modal_tab_options";
 import type { ConfigAccessClimateAlarmOptionsFeature } from "./config_access_climate_alarm_options";
 import type { ConfigConfirmationOptionsFeature } from "./config_confirmation_options";
@@ -115,7 +114,6 @@ export interface ApplicationContext {
     readonly webhookOptions: ConfigWebhookOptionsFeature;
     readonly robotOptions: ConfigRobotCardOptionsFeature;
     readonly lockOptions: ConfigLockOptionsFeature;
-    readonly dateTimeOptions: ConfigDateTimeOptionsFeature;
     readonly modalTabs: ConfigModalTabOptionsFeature;
     readonly accessClimateAlarm: ConfigAccessClimateAlarmOptionsFeature;
     readonly confirmationOptions: ConfigConfirmationOptionsFeature;
@@ -150,7 +148,7 @@ export interface ApplicationContext {
     readonly appEvents: AppEventsFeature;
     readonly statusPreview: AppStatusPreviewFeature;
     readonly grid: GridFeature;
-    readonly alarmDelayAudio: AlarmDelayAudioController;
+
     readonly cardEditorDraft: CardEditorDraftController;
     readonly cardEditorSave: CardEditorSaveController;
     readonly cardEditorValidation: CardEditorValidationController;
@@ -166,7 +164,7 @@ export interface ApplicationContext {
     readonly screensaver: ScreensaverController;
     readonly screensaverTimeout: ScreensaverTimeoutFeature;
     readonly settingsUi: SettingsUiFeature;
-    readonly voiceServices: VoiceServicesController;
+
     readonly environment: EnvironmentStateFeature;
     readonly iconPicker: ButtonSettingsIconPickerFeature;
     readonly renderQueue: ButtonSettingsRenderQueueFeature;
@@ -201,7 +199,6 @@ export interface ApplicationContextOptions {
   readonly webhookConfigurationOptions: ConfigWebhookOptionsFeature;
   readonly robotConfigurationOptions: ConfigRobotCardOptionsFeature;
   readonly lockConfigurationOptions: ConfigLockOptionsFeature;
-  readonly dateTimeConfigurationOptions: ConfigDateTimeOptionsFeature;
   readonly modalTabOptions: ConfigModalTabOptionsFeature;
   readonly accessClimateAlarmOptions: ConfigAccessClimateAlarmOptionsFeature;
   readonly confirmationOptions: ConfigConfirmationOptionsFeature;
@@ -232,7 +229,7 @@ export interface ApplicationContextOptions {
   readonly appEvents: AppEventsFeature;
   readonly statusPreview: AppStatusPreviewFeature;
   readonly grid: GridFeature;
-  readonly alarmDelayAudio: AlarmDelayAudioController;
+
   readonly cardEditorDraft: CardEditorDraftController;
   readonly cardEditorSave: CardEditorSaveController;
   readonly cardEditorValidation: CardEditorValidationController;
@@ -248,7 +245,7 @@ export interface ApplicationContextOptions {
   readonly screensaver: ScreensaverController;
   readonly screensaverTimeout: ScreensaverTimeoutFeature;
   readonly settingsUi: SettingsUiFeature;
-  readonly voiceServices: VoiceServicesController;
+
   readonly environment: EnvironmentStateFeature;
   readonly iconPicker: ButtonSettingsIconPickerFeature;
   readonly renderQueue: ButtonSettingsRenderQueueFeature;
@@ -300,7 +297,6 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       webhookOptions: options.webhookConfigurationOptions,
       robotOptions: options.robotConfigurationOptions,
       lockOptions: options.lockConfigurationOptions,
-      dateTimeOptions: options.dateTimeConfigurationOptions,
       modalTabs: options.modalTabOptions,
       accessClimateAlarm: options.accessClimateAlarmOptions,
       confirmationOptions: options.confirmationOptions,
@@ -335,7 +331,7 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       appEvents: options.appEvents,
       statusPreview: options.statusPreview,
       grid: options.grid,
-      alarmDelayAudio: options.alarmDelayAudio,
+
       cardEditorDraft: options.cardEditorDraft,
       cardEditorSave: options.cardEditorSave,
       cardEditorValidation: options.cardEditorValidation,
@@ -351,7 +347,7 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       screensaver: options.screensaver,
       screensaverTimeout: options.screensaverTimeout,
       settingsUi: options.settingsUi,
-      voiceServices: options.voiceServices,
+
       environment: options.environment,
       iconPicker: options.iconPicker,
       renderQueue: options.renderQueue,
