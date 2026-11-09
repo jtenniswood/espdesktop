@@ -42,6 +42,18 @@ const GROUP_ORDER = [
 ]
 
 const ICON_GROUPS = {
+  'Arrow Down': 'Keyboard & Shortcuts',
+  'Arrow Up': 'Keyboard & Shortcuts',
+  'Chevron Left': 'Browser & Navigation',
+  'Chevron Right': 'Browser & Navigation',
+  'Chevron Up': 'Browser & Navigation',
+  'Chevron Down': 'Browser & Navigation',
+  'Palette': 'Creative & Development',
+  'Bell': 'Audio & Meetings',
+  'View Headline': 'Window Management',
+  'Stop': 'Audio & Meetings',
+  'Swap Horizontal': 'Window Management',
+  'Gauge': 'System & Hardware',
   'Auto': 'General',
   'Shortcut Command': 'Keyboard & Shortcuts',
   'Account': 'General',

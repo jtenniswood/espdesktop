@@ -822,8 +822,6 @@ def validate_icon_registry(data: dict[str, Any]) -> list[str]:
             errors.append(path_error(f"{entry_path}.codepoint", "must be a non-empty string"))
         if not isinstance(mdi, str) or not mdi:
             errors.append(path_error(f"{entry_path}.mdi", "must be a non-empty string"))
-        if "picker" in entry and not isinstance(entry["picker"], bool):
-            errors.append(path_error(f"{entry_path}.picker", "must be a boolean"))
         comment = entry.get("comment")
         if comment is not None and not isinstance(comment, str):
             errors.append(path_error(f"{entry_path}.comment", "must be a string"))

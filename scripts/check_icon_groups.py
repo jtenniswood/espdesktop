@@ -18,7 +18,7 @@ GALLERY_VUE = ROOT / "docs" / ".vitepress" / "theme" / "components" / "IconGalle
 
 def main():
     with open(ICONS_JSON) as f:
-        icon_names = {"Auto"} | {icon["name"] for icon in json.load(f)["icons"] if icon.get("picker", True)}
+        icon_names = {"Auto"} | {icon["name"] for icon in json.load(f)["icons"]}
 
     vue_text = GALLERY_VUE.read_text()
 

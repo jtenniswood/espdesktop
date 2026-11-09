@@ -21,15 +21,13 @@ test("Command is selectable and shortcut icon names retain their glyphs", () => 
   assert.equal(iconSlug("Shortcut Right"), "arrow-right");
 });
 
-
-test("desktop picker offers PC and Mac controls while legacy home icons still render", () => {
+test("desktop picker offers PC and Mac controls and removed icons fall back", () => {
   for (const name of ["Apple", "Windows", "Keyboard", "Shortcut Option", "Copy", "Paste",
     "Terminal", "Screenshot", "Screen Share", "Video Call", "CPU", "USB", "Sleep", "Window Maximise"]) {
     assert.ok(iconOptions.includes(name), `${name} is selectable`);
   }
   for (const name of ["Ceiling Light", "Air Conditioner", "Bathtub", "Robot Vacuum", "Robot Mower", "Weather Rainy", "Washing Machine"]) {
     assert.ok(!iconOptions.includes(name), `${name} is absent from the desktop picker`);
-    const legacy = icons.icons.find(icon => icon.name === name);
-    assert.equal(iconSlug(name), legacy.mdi, `${name} keeps its saved glyph`);
+    assert.equal(iconSlug(name), "cog", `${name} uses the fallback icon`);
   }
 });

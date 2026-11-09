@@ -141,9 +141,6 @@ run:
 python3 scripts/build.py icons
 ```
 
-Set `picker: false` to hide a legacy icon from the picker and icon reference.
-Keep its name and glyph so saved cards still render on the panel and in the editor.
-
 The web configurator references icons by Material Design Icon name and renders
 them with the MDI webfont/CSS.
 

@@ -7,7 +7,7 @@ description: Browse all available icons for your EspDesktop cards.
 
 Click any icon to copy its name to the clipboard, then paste it into the icon field on your panel's web page.
 
-The selection focuses on desktop and application controls: keyboard shortcuts, windows, files, audio, meetings and system tools. Home automation icons are no longer offered for new cards; existing saved cards keep their icons.
+The selection focuses on desktop and application controls, including keyboard shortcuts, windows, files, audio, meetings and system tools. If a saved card uses an icon removed from the catalog, it displays a cog until you select a replacement.
 
 This reference uses the same icon list as the app's icon picker. Choose **Auto** to let the card select its icon automatically; the cog shown here is its fallback preview.
 

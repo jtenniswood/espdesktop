@@ -91,6 +91,23 @@ WEB_FIXED_MDI_ICON_CODEPOINTS = {
     "toggle-switch": "F0521", "toggle-switch-variant": "F1A25", "toggle-switch-variant-off": "F1A26",
     "tune-vertical": "F066A", "tune-vertical-variant": "F1543", "upload": "F0552", "video": "F0567",
     "view-grid-plus": "F0F8D", "webhook": "F062F",
+    # Fixed browser badges and previews, including previews of old layouts.
+    "air-conditioner": "F001B", "air-humidifier": "F1099", "battery-outline": "F008E",
+    "bell-ring": "F009E", "blinds": "F00AC", "blinds-horizontal": "F1A2B",
+    "camera": "F0100", "ceiling-light-multiple": "F18DD", "door": "F081A",
+    "door-open": "F081C", "doorbell-video": "F0869", "ev-station": "F05F1",
+    "fan-auto": "F171D", "fan-speed-2": "F1473", "garage": "F06D9",
+    "gate": "F0299", "home-circle": "F07D2", "home-thermometer": "F0F54",
+    "light-flood-down": "F1987", "light-recessed": "F179B", "lightbulb": "F0335",
+    "motion-sensor": "F0D91", "package-variant": "F03D6", "package-variant-closed": "F03D7",
+    "power-socket": "F0427", "robot-mower": "F11F7", "robot-vacuum": "F070D",
+    "shield-home": "F068A", "stove": "F04DE", "table-furniture": "F05BC",
+    "thermostat": "F0393", "transmission-tower-export": "F192C", "transmission-tower-import": "F192D",
+    "transmission-tower-off": "F19DD", "tumble-dryer": "F0917", "tumble-dryer-off": "F11BB",
+    "vacuum": "F19A1", "water-percent-alert": "F1509", "weather-cloudy": "F0590",
+    "weather-night-partly-cloudy": "F0F31", "weather-partly-cloudy": "F0595", "weather-rainy": "F0597",
+    "weather-sunny": "F0599", "window-closed": "F05AE", "window-open": "F05B1",
+    "window-shutter": "F111C",
 }
 
 # ---------------------------------------------------------------------------
@@ -3903,22 +3920,12 @@ def gen_icons_h_domain_icons(data):
 
 
 def gen_web_icon_module(data):
-    """Typed icon names and exception map for the web bundle."""
-    fb = data["fallback"]
-    exceptions = [f'    Auto: "{fb["mdi"]}",\n']
-    names = [icon["name"] for icon in data["icons"] if icon.get("picker", True)]
-
-    # Saved cards can also reference structural icons used by firmware defaults.
-    for icon in icon_items(data):
-        name = icon["name"]
-        mdi = icon["mdi"]
-        expected = re.sub(r"[^a-z0-9 ]", "", name.lower()).replace(" ", "-")
-        if expected != mdi:
-            key = name if re.match(r"^[A-Za-z_$][A-Za-z0-9_$]*$", name) else f'"{name}"'
-            exceptions.append(f'    {key}: "{mdi}",\n')
-
-    lines = ["export const GENERATED_ICON_EXCEPTIONS: Readonly<Record<string, string>> = {\n"]
-    lines.extend(exceptions)
+    """Typed icon names and slug lookup for the web bundle."""
+    names = [icon["name"] for icon in data["icons"]]
+    slugs = {"Auto": data["fallback"]["mdi"]}
+    slugs.update((icon["name"], icon["mdi"]) for icon in icon_items(data))
+    lines = ["export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {\n"]
+    lines.extend(f"    {json.dumps(name)}: {json.dumps(mdi)},\n" for name, mdi in slugs.items())
     lines.append("};\n")
     lines.append("export const GENERATED_ICON_NAMES: readonly string[] = [\n")
     for i in range(0, len(names), 6):

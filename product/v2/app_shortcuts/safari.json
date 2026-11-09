@@ -38,13 +38,13 @@
       "id": "5",
       "label": "Search the current webpage",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "6",
       "label": "Select the Smart Search field",
       "shortcut": "command+l",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "7",

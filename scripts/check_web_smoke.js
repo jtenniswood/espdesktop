@@ -494,8 +494,8 @@ assert(
   "image card icons use the same top-left placement",
 );
 assert(
-  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Security", type: "alarm" }).iconHtml.includes("mdi-shield-off"),
-  "alarm preview defaults to the status icon"
+  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Security", type: "alarm" }).iconHtml.includes("mdi-cog"),
+  "removed alarm status icon uses the fallback"
 );
 assert(
   !pickerOptions.some((option) => option.key === "media_control"),
@@ -565,8 +565,8 @@ assert(
   "media control status label preview uses player state text"
 );
 assert(
-  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Alarm", type: "alarm", options: "icon_display=static" }).iconHtml.includes("mdi-bell-ring"),
-  "alarm preview uses the selected Alarm icon"
+  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Alarm", type: "alarm", options: "icon_display=static" }).iconHtml.includes("mdi-cog"),
+  "removed Alarm icon uses the fallback"
 );
 
 assert.deepStrictEqual(Array.from(hooks.alarmCardTypeOptionValues(false)), ["control_panel", "away", "home", "night", "vacation", "disarm"]);
@@ -634,7 +634,7 @@ const climateIconPreview = hooks.buttonTypePreviewFor("climate", {
 }, {
   temperatureUnit: "\u00b0C",
 });
-assert(climateIconPreview.iconHtml.includes("mdi-thermostat"), "climate icon mode preview uses the selected icon");
+assert(climateIconPreview.iconHtml.includes("mdi-cog"), "removed thermostat icon uses the fallback");
 assert.strictEqual(climateIconPreview.buttonClass, undefined, "climate icon mode uses a standard card wrapper");
 assert(!climateIconPreview.iconHtml.includes("sp-climate-card-icon"), "climate icon mode uses standard card icon layout");
 assert(!climateIconPreview.iconHtml.includes("\u00b0C"), "climate icon mode preview does not show a large temperature");
@@ -882,7 +882,7 @@ const doorPreview = hooks.buttonTypePreviewFor("door_window", {
   type: "door_window",
   precision: "door",
 });
-assert(doorPreview.iconHtml.includes("mdi-door"), "door/window door preview uses the closed door icon");
+assert(doorPreview.iconHtml.includes("mdi-cog"), "removed door icon uses the fallback");
 assert(!doorPreview.labelHtml.includes("sp-type-badge"), "door/window door preview omits the card-type badge");
 
 const windowPreview = hooks.buttonTypePreviewFor("door_window", {
@@ -948,7 +948,7 @@ const alarmActionPreview = hooks.buttonTypePreviewFor("alarm_action", {
   sensor: "away",
   type: "alarm_action",
 });
-assert(alarmActionPreview.iconHtml.includes("mdi-shield-lock"), "alarm action preview uses its action icon");
+assert(alarmActionPreview.iconHtml.includes("mdi-cog"), "removed alarm action icon uses the fallback");
 
 const fanSpeedPreview = hooks.buttonTypePreviewFor("fan_speed", {
   entity: "fan.bedroom",
@@ -1067,7 +1067,7 @@ const coverModalPreview = hooks.buttonTypePreviewFor("cover", {
   type: "cover",
 });
 assert(coverModalPreview.iconHtml.includes("sp-slider-preview"), "cover modal preview shows read-only position track");
-assert(coverModalPreview.iconHtml.includes("mdi-blinds"), "cover modal preview uses the cover icon");
+assert(coverModalPreview.iconHtml.includes("mdi-cog"), "removed blinds icon uses the fallback");
 assert(!coverModalPreview.labelHtml.includes("sp-type-badge"), "cover modal preview omits the card-type badge");
 
 const coverCommandPreview = hooks.buttonTypePreviewFor("cover", {
@@ -1079,7 +1079,7 @@ const coverCommandPreview = hooks.buttonTypePreviewFor("cover", {
   type: "cover",
 });
 assert(!coverCommandPreview.iconHtml.includes("sp-slider-preview"), "cover command preview uses icon-only layout");
-assert(coverCommandPreview.iconHtml.includes("mdi-blinds-open"), "cover command preview uses the command icon");
+assert(coverCommandPreview.iconHtml.includes("mdi-cog"), "removed blinds command icon uses the fallback");
 assert(!coverCommandPreview.labelHtml.includes("sp-type-badge"), "cover command preview omits the card-type badge");
 
 const coverSetPositionPreview = hooks.buttonTypePreviewFor("cover", {
@@ -1133,7 +1133,7 @@ const garageStatusPreview = hooks.buttonTypePreviewFor("garage", {
   type: "garage",
   options: "label_display=status",
 });
-assert(garageStatusPreview.iconHtml.includes("mdi-garage"), "garage status preview uses the garage icon");
+assert(garageStatusPreview.iconHtml.includes("mdi-cog"), "removed garage icon uses the fallback");
 assert(garageStatusPreview.labelHtml.includes("Closed"), "garage status preview uses the status label");
 assert(!garageStatusPreview.labelHtml.includes("sp-type-badge"), "garage status preview omits the card-type badge");
 
@@ -1145,7 +1145,7 @@ const garageOpenPreview = hooks.buttonTypePreviewFor("garage", {
   sensor: "open",
   type: "garage",
 });
-assert(garageOpenPreview.iconHtml.includes("mdi-garage-open"), "garage open command preview uses the open icon");
+assert(garageOpenPreview.iconHtml.includes("mdi-cog"), "removed open garage icon uses the fallback");
 assert(!garageOpenPreview.labelHtml.includes("sp-type-badge"), "garage open preview omits the card-type badge");
 
 const garageClosePreview = hooks.buttonTypePreviewFor("garage", {
@@ -1156,7 +1156,7 @@ const garageClosePreview = hooks.buttonTypePreviewFor("garage", {
   sensor: "close",
   type: "garage",
 });
-assert(garageClosePreview.iconHtml.includes("mdi-garage"), "garage close command preview uses the closed icon");
+assert(garageClosePreview.iconHtml.includes("mdi-cog"), "removed closed garage icon uses the fallback");
 
 const pushPreview = hooks.buttonTypePreviewFor("push", {
   label: "Doorbell",
@@ -1182,7 +1182,7 @@ const subpageIconPreview = hooks.buttonTypePreviewFor("subpage", {
   sensor: "indicator",
   type: "subpage",
 });
-assert(subpageIconPreview.iconHtml.includes("mdi-blinds"), "subpage icon-state preview uses the configured icon");
+assert(subpageIconPreview.iconHtml.includes("mdi-cog"), "removed subpage icon uses the fallback");
 assert(subpageIconPreview.labelHtml.includes("mdi-chevron-right"), "subpage icon-state preview shows the chevron badge");
 
 const subpageLightsPreview = hooks.buttonTypePreviewFor("subpage", {
@@ -1191,7 +1191,7 @@ const subpageLightsPreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "subpage_kind=lights",
 });
-assert(subpageLightsPreview.iconHtml.includes("mdi-lightbulb"), "lights subpage preset preview uses the lightbulb icon");
+assert(subpageLightsPreview.iconHtml.includes("mdi-cog"), "removed lights subpage icon uses the fallback");
 assert(subpageLightsPreview.labelHtml.includes("Lighting"), "lights subpage preset preview uses the Lighting label");
 assert(subpageLightsPreview.labelHtml.includes("mdi-chevron-right"), "lights subpage preset preview shows the chevron badge");
 
@@ -1211,7 +1211,7 @@ const subpageClimatePreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "subpage_kind=climate",
 });
-assert(subpageClimatePreview.iconHtml.includes("mdi-thermostat"), "climate subpage preset preview uses the thermostat icon");
+assert(subpageClimatePreview.iconHtml.includes("mdi-cog"), "removed climate subpage icon uses the fallback");
 assert(subpageClimatePreview.labelHtml.includes("Climate"), "climate subpage preset preview uses the Climate label");
 assert(subpageClimatePreview.labelHtml.includes("mdi-chevron-right"), "climate subpage preset preview shows the chevron badge");
 
@@ -1238,10 +1238,10 @@ assert(subpageCompanionStatPreview.labelHtml.includes("% free"), "Companion Stat
 assert(subpageCompanionStatPreview.labelHtml.includes("mdi-chevron-right"), "Companion Stat subpage preview shows the chevron badge");
 
 [
-  ["alarm", "alarm_control_panel.home", "mdi-shield-home", "Alarm"],
-  ["vacuum", "vacuum.downstairs", "mdi-robot-vacuum", "Vacuum"],
-  ["lawn_mower", "lawn_mower.backyard", "mdi-robot-mower", "Lawn Mower"],
-  ["weather", "weather.home", "mdi-weather-partly-cloudy", "Weather"],
+  ["alarm", "alarm_control_panel.home", "mdi-cog", "Alarm"],
+  ["vacuum", "vacuum.downstairs", "mdi-cog", "Vacuum"],
+  ["lawn_mower", "lawn_mower.backyard", "mdi-cog", "Lawn Mower"],
+  ["weather", "weather.home", "mdi-cog", "Weather"],
 ].forEach(([kind, entity, iconClass, label]) => {
   const preview = hooks.buttonTypePreviewFor("subpage", {
     entity,
@@ -1283,7 +1283,7 @@ const lawnMowerPreview = hooks.buttonTypePreviewFor("lawn_mower", {
   precision: "2",
   options: "ignored",
 });
-assert(lawnMowerPreview.iconHtml.includes("mdi-robot-mower"), "lawn mower preview uses the robot mower icon");
+assert(lawnMowerPreview.iconHtml.includes("mdi-cog"), "removed robot mower icon uses the fallback");
 assert(!lawnMowerPreview.labelHtml.includes("sp-type-badge"), "lawn mower preview omits the card-type badge");
 
 const subpageCustomPresetPreview = hooks.buttonTypePreviewFor("subpage", {
