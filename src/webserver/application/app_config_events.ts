@@ -140,15 +140,6 @@ export function createAppConfigEventsFeature(
                 },
             },
         ];
-        var fields: any = ["main", "ext", "ext2", "ext3", "ext4", "ext5", "ext6", "ext7"];
-        configPersistence.specialPageEntityKeys().forEach(function (this: any, key?: any, index?: any) {
-            patterns.push({
-                re: new RegExp("^text-" + key + "$"),
-                fn: function (this: any, _match?: any, val?: any) {
-                    applySubpageConfigStateEvent(-1, fields[index], val);
-                },
-            });
-        });
         return patterns;
     }
     return {

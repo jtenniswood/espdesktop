@@ -16,7 +16,6 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
-  splitSubpageConfigChunks,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
 const { encodePanelPageDocument, decodePanelPageDocument } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
@@ -697,10 +696,6 @@ function nativeDocumentEvents(document) {
   });
   Object.entries(document.subpages).forEach(([slot, state]) => {
     events.push({ id: `text-subpage_${slot}_config`, state });
-  });
-  const specialPageChunks = splitSubpageConfigChunks(document.settings.special_page || "", 8, 255) || [];
-  ["", "_ext", "_ext_2", "_ext_3", "_ext_4", "_ext_5", "_ext_6", "_ext_7"].forEach((suffix, index) => {
-    events.push({ id: `text-special_page_config${suffix}`, state: specialPageChunks[index] || "" });
   });
   return events;
 }
@@ -8615,23 +8610,6 @@ async function assertSubpageClockBar(browser, testCase) {
   await assertSubpageTitleBarSetting(browser, testCase);
 }
 
-async function assertSwipeUpUnavailable(browser, testCase) {
-  const nativeState = nativeConfigState(testCase.slug);
-  nativeState.document.buttons[2] = "light.office;Office;Lightbulb;Auto";
-  nativeState.document.settings.special_page = "~B,1|,light.kitchen,Kitchen,Lightbulb,Auto";
-  const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
-  const page = await context.newPage();
-  await installFakeEventSource(page);
-  try {
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
-    await page.waitForSelector("#sp-app");
-    await seedNativeDocument(page, nativeState);
-    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
-    assert.strictEqual(await entry.count(), 0, "a saved swipe-up page has no editor entry");
-  } finally { await context.close(); }
-}
-
 async function assertRetiredCardRemoval(browser) {
   const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
   const types = [...(contract.retiredCardTypes || []), ...contract.retiredSubpageTypeCodes];
@@ -8863,10 +8841,6 @@ async function assertNestedCompanionPages(browser) {
       await assertAppSubpageOpeningPreference(browser);
       return;
     }
-    if (process.env.ESPDESKTOP_SPECIAL_PAGE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertSwipeUpUnavailable(browser, testCase);
-      return;
-    }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
@@ -8896,7 +8870,6 @@ async function assertNestedCompanionPages(browser) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
-    await assertSwipeUpUnavailable(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RAINFALL_ONLY === "1") { await assertRainfallEditor(browser); return; }

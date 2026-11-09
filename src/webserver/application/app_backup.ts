@@ -80,7 +80,7 @@ export interface AppBackupControllers {
     readonly gridColsForImportedSettings: (settings: any) => number;
     readonly nativePanelConfig?: NativePanelConfigController;
     readonly codec: ConfigCodecFeature;
-    readonly configPersistence: Pick<ConfigPersistenceFeature, "subpageEntityKeys" | "specialPageEntityKeys">;
+    readonly configPersistence: Pick<ConfigPersistenceFeature, "subpageEntityKeys">;
     readonly backupContract: Pick<BackupContractFeature, "createBackupConfig" | "normalizeButtonConfig">;
     readonly runtime: UiRuntimeState;
     readonly core: Pick<CoreFeature, "syncPreviewOrientation">;
@@ -113,7 +113,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
     const { render: renderPreview } = controllers.preview;
     const { render: renderButtonSettings } = controllers.buttonSettings;
-    const { subpageEntityKeys, specialPageEntityKeys } = controllers.configPersistence;
+    const { subpageEntityKeys } = controllers.configPersistence;
     const { createBackupConfig, normalizeButtonConfig: backupNormalizeButtonConfig } = controllers.backupContract;
     const { entityName, entityNameForSlot } = controllers.entityState;
     const { switchTab } = controllers.shell;
@@ -200,16 +200,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     function backupExportFileName(this: any, value?: any) {
         return backupExportController.fileName(controllers.layout.config.screenSize, value, controllers.identity?.backup());
     }
-    function backupSubpages(this: any) {
-        var pages: any = {};
-        for (var key in state.subpages) {
-            if (key !== "-1") pages[key] = state.subpages[key];
-        }
-        return pages;
-    }
-    function specialPageConfig(this: any) {
-        return state.subpages[-1] ? serializeSubpageConfig(state.subpages[-1]) : "";
-    }
     function normalizeImportedPanelSettings(this: any, settings?: any) {
         return controllers.normalizeImportedPanelSettings(settings);
     }
@@ -227,8 +217,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         return backupExportController.addNativeConfig(data, {
             "deviceProfile": controllers.layout.deviceId,
             "buttons": state.buttons,
-            "subpages": backupSubpages(),
-            "specialPage": specialPageConfig(),
+            "subpages": state.subpages,
             "buttonOrder": data.button_order,
             "buttonOnColor": data.button_on_color,
             ...(nativeDocumentBytes ? { nativeDocumentBytes } : {}),
@@ -277,8 +266,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ([slot, value]) => [slot, parseSubpageConfig(value)],
             )) : state.subpages,
             settings: {
-                special_page: specialPageConfig(),
-
                 clock_bar: state.clockBarOn,
                 clock_bar_time: state.clockBarTimeOn,
                 clock_bar_night_mode: state.clockBarNightModeOn,
@@ -389,7 +376,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     nativeDocument = decodeNativeConfigDocument(decodeNativeConfigBackupPayload(backedUpNativeConfig));
                 }
                 if (!exactGraph) {
-                    nativeDocument.settings.special_page = String(nativeDocument.settings.special_page || backupPlan.config.settings?.special_page || "");
                     nativeDocument.settings.button_order = String(nativeDocument.settings.button_order || backupPlan.button_order || "");
                     nativeDocument.settings.button_on_color = String(nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || "");
                     var parsedButtonOrder: any = EspDesktopModel.parseGridOrder(
@@ -411,52 +397,23 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     throw Object.assign(new Error(message), { backupMessage: message });
                 }
                 function queueLegacyLayoutRestore() {
-                    const keys = specialPageEntityKeys();
-                    const specialPageValue = nativeDocument.settings.special_page || "";
-                    const specialPageEntities = Promise.all(keys.map((key) =>
-                        requestApi.getJsonFirst(
-                            requestApi.entityDetailPaths("text", [entityName(key)], "state"),
-                        )
-                    ));
-                    return specialPageEntities.then((available) => {
-                        const allSpecialPageEntitiesAvailable = available.every(Boolean);
-                        if (specialPageValue && !allSpecialPageEntitiesAvailable) {
-                            rejectBackup("This device does not support restoring the special page. Update its firmware and try again.");
+                    if (Object.keys(nativeDocument.settings)
+                        .some(key => key !== "button_order" && key !== "button_on_color")) {
+                        rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
+                    }
+                    return restoreLegacyLayoutDocument(nativeDocument, {
+                        slotCount: controllers.layout.numSlots,
+                        subpageEntityKeys: subpageEntityKeys(),
+                        entityName: entityName,
+                        entityNameForSlot: entityNameForSlot,
+                        splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
+                        postText: requestApi.postTextLegacy,
+                        readText: readLegacyText,
+                    }).then(function (result: any) {
+                        if (!result.ok) {
+                            rejectBackup(legacyRestoreFailureMessage(result));
                         }
-                        return restoreLegacyLayoutDocument(nativeDocument, {
-                            slotCount: controllers.layout.numSlots,
-                            subpageEntityKeys: subpageEntityKeys(),
-                            entityName: entityName,
-                            entityNameForSlot: entityNameForSlot,
-                            splitSubpageConfigChunks: EspDesktopModel.splitSubpageConfigChunks,
-                            postText: requestApi.postTextLegacy,
-                            readText: readLegacyText,
-                        }).then(function (result: any) {
-                            if (!result.ok) {
-                                requestApi.postQueueError = true;
-                                throw Object.assign(new Error(legacyRestoreFailureMessage(result)), {
-                                    backupMessage: legacyRestoreFailureMessage(result),
-                                });
-                            }
-                            if (!allSpecialPageEntitiesAvailable) return "legacy-fallback";
-                            const chunks = EspDesktopModel.splitSubpageConfigChunks(
-                                specialPageValue, keys.length, 255,
-                            );
-                            if (!chunks) {
-                                rejectBackup("The special page is too large to restore.");
-                            }
-                            return Promise.all(keys.map((key, index) =>
-                                requestApi.postTextLegacy(entityName(key), chunks[index] || "")
-                            )).then(function (results: any[]) {
-                                if (!results.every(function (result: any) {
-                                    return result !== null && result !== undefined &&
-                                        (typeof result.ok !== "boolean" || result.ok);
-                                })) {
-                                    rejectBackup("The special page could not be restored to this device.");
-                                }
-                                return "legacy-fallback";
-                            });
-                        });
+                        return "legacy-fallback";
                     });
                 }
                 // Finish a pending grid move before the replacement so its
@@ -473,10 +430,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 if (panelPageDocumentDepth(nativeDocument) > 1 &&
                     (nativeAvailability !== true || nativeController.writableNavigationDepth() < 2))
                     rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
-                if ((nativeBackupHasInactiveRecords(nativeDocument, controllers.layout.numSlots) &&
-                     nativeController?.client?.preservesInactiveRecords() !== true) ||
-                    (nativeAvailability === "legacy-fallback" && Object.keys(nativeDocument.settings)
-                      .some(key => key !== "button_order" && key !== "button_on_color" && key !== "special_page"))) {
+                if (nativeBackupHasInactiveRecords(nativeDocument, controllers.layout.numSlots) &&
+                    nativeController?.client?.preservesInactiveRecords() !== true) {
                     rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                 }
                 var layoutRestoreResult: any;

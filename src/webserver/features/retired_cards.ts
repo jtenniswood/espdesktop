@@ -67,7 +67,6 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
     const raw = document.subpages[Number(slot)];
     if (raw !== undefined) document.subpages[Number(slot)] = cleanSubpage(raw, Number(slot));
   }
-  if (document.settings.special_page) document.settings.special_page = cleanSubpage(document.settings.special_page, -1);
   return changed;
 }
 

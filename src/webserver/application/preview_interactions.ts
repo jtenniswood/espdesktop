@@ -107,7 +107,7 @@ export function createPreviewInteractionsFeature(
         input.className = "sp-card-name-input";
         input.setAttribute("aria-label", "Card name");
         input.dataset.homeSlot = String(homeSlot || "");
-        const defaultBackLabel = homeSlot === -1 ? "Close" : "Back";
+        const defaultBackLabel = "Back";
         input.value = back ? back.backLabel || defaultBackLabel : button.label || "";
         input.placeholder = title.textContent || "Card name";
         let finished = false;
