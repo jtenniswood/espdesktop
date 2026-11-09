@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Show Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "1",
-      "label": "Quick Open, Go to File…",
+      "label": "Quick Open",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Folder Search"
     },
     {
       "id": "2",
-      "label": "New window/instance",
+      "label": "New Window",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "New Window"
     },
     {
       "id": "3",
-      "label": "Undo last cursor operation",
+      "label": "Cursor Undo",
       "shortcut": "command+u",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "4",
-      "label": "Open File...",
+      "label": "Open File",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Open File"
     },
     {
       "id": "5",
       "label": "Save",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Save"
     },
     {
       "id": "6",
-      "label": "Save As...",
+      "label": "Save As",
       "shortcut": "command+shift+s",
-      "icon": "Application"
+      "icon": "Save As"
     },
     {
       "id": "7",
       "label": "Save All",
       "shortcut": "command+option+s",
-      "icon": "Application"
+      "icon": "Save All"
     },
     {
       "id": "8",
-      "label": "Show Search",
+      "label": "Search",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "9",
-      "label": "Toggle Search details",
+      "label": "Search Details",
       "shortcut": "command+shift+j",
-      "icon": "Application"
+      "icon": "Filter Plus"
     }
   ]
 }

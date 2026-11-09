@@ -6,39 +6,39 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new board",
+      "label": "New Board",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "New File"
     },
     {
       "id": "1",
-      "label": "Create a copy of a board (duplicate)",
+      "label": "Duplicate Board",
       "shortcut": "shift+command+d",
-      "icon": "Plus"
+      "icon": "Copy"
     },
     {
       "id": "2",
-      "label": "Search boards",
+      "label": "Search Boards",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Apply Bold format to selected text",
+      "label": "Bold",
       "shortcut": "command+b",
-      "icon": "Palette"
+      "icon": "Bold"
     },
     {
       "id": "4",
-      "label": "Apply Italic format to selected text",
+      "label": "Italic",
       "shortcut": "command+i",
-      "icon": "Palette"
+      "icon": "Italic"
     },
     {
       "id": "5",
-      "label": "Apply Underline format to selected text",
+      "label": "Underline",
       "shortcut": "command+u",
-      "icon": "Palette"
+      "icon": "Underline"
     }
   ]
 }

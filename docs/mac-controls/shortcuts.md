@@ -23,13 +23,15 @@ Shortcuts must include Command, Control, or Option with a supported letter, numb
 
 ## Use a Template on an App Subpage
 
-An approved **Companion → Applications** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. These are the same definitions used by the standalone Shortcut Catalog.
+An approved **Companion → Applications** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. Shortcut tiles start with a short action label and a matching icon. You can edit both on the card. Template updates apply to new cards and subpages. Existing cards keep the labels and icons saved in their layout.
 
 The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and Codex. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
 
 ## Improve the Shortcut Catalog {#add-templates-for-another-app}
 
 If a shortcut is missing or a preset needs correcting, see [Improve App Shortcuts](/mac-controls/improve-shortcuts) to suggest a change or contribute a template.
+
+New shortcut icons need a display firmware version that includes them.
 
 ## Allow Accessibility Access
 

@@ -6,43 +6,43 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Start a new message",
+      "label": "New Message",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Chat Plus"
     },
     {
       "id": "1",
-      "label": "Show conversations from known senders",
+      "label": "Known Senders",
       "shortcut": "control+command+2",
-      "icon": "Application"
+      "icon": "Contacts"
     },
     {
       "id": "2",
-      "label": "Show conversations from unknown senders",
+      "label": "Unknown Senders",
       "shortcut": "control+command+3",
-      "icon": "Application"
+      "icon": "Account Question"
     },
     {
       "id": "3",
-      "label": "Search all conversations",
+      "label": "Search Chats",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Go to the first unpinned conversation",
+      "label": "First Unpinned",
       "shortcut": "option+command+1",
-      "icon": "Application"
+      "icon": "Pin Off"
     },
     {
       "id": "5",
-      "label": "Select the next conversation",
+      "label": "Next Chat",
       "shortcut": "control+tab",
       "icon": "Chevron Right"
     },
     {
       "id": "6",
-      "label": "Select the previous conversation",
+      "label": "Previous Chat",
       "shortcut": "control+shift+tab",
       "icon": "Chevron Left"
     }

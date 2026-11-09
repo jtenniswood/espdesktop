@@ -6,57 +6,57 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Save presentation",
+      "label": "Save",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Save"
     },
     {
       "id": "1",
-      "label": "Undo last action",
+      "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "2",
-      "label": "Copy selected content",
+      "label": "Copy",
       "shortcut": "command+c",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "3",
-      "label": "Find in presentation",
+      "label": "Find",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Find and replace",
+      "label": "Find Replace",
       "shortcut": "command+shift+h",
-      "icon": "Application"
+      "icon": "Find Replace"
     },
     {
       "id": "5",
-      "label": "Add a new slide",
+      "label": "New Slide",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "6",
-      "label": "Start slideshow from beginning",
+      "label": "Play All",
       "shortcut": "command+shift+enter",
-      "icon": "Application"
+      "icon": "Slideshow"
     },
     {
       "id": "7",
-      "label": "Start slideshow from current slide",
+      "label": "Play Here",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Play"
     },
     {
       "id": "8",
-      "label": "Duplicate selected slide",
+      "label": "Duplicate Slide",
       "shortcut": "command+shift+d",
-      "icon": "Application"
+      "icon": "Copy"
     }
   ]
 }

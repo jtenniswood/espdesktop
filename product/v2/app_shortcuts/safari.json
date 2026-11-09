@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Go back to the previous webpage",
+      "label": "Back",
       "shortcut": "command+keybracketleft",
       "icon": "Chevron Left"
     },
     {
       "id": "1",
-      "label": "Go forward to the next webpage",
+      "label": "Forward",
       "shortcut": "command+keybracketright",
       "icon": "Chevron Right"
     },
     {
       "id": "2",
-      "label": "Reload the current webpage",
+      "label": "Reload",
       "shortcut": "command+r",
-      "icon": "Repeat"
+      "icon": "Refresh"
     },
     {
       "id": "3",
-      "label": "Open a new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Plus"
+      "icon": "New Tab"
     },
     {
       "id": "4",
-      "label": "Close the active tab",
+      "label": "Close Tab",
       "shortcut": "command+w",
-      "icon": "Close"
+      "icon": "Close Tab"
     },
     {
       "id": "5",
-      "label": "Search the current webpage",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "6",
-      "label": "Select the Smart Search field",
+      "label": "Search Bar",
       "shortcut": "command+l",
       "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Show tab overview",
+      "label": "Tab Overview",
       "shortcut": "command+shift+keybackslash",
       "icon": "View Grid"
     },
     {
       "id": "8",
-      "label": "Go to the next tab",
+      "label": "Next Tab",
       "shortcut": "control+tab",
-      "icon": "Tab"
+      "icon": "Chevron Right"
     },
     {
       "id": "9",
-      "label": "Go to the previous tab",
+      "label": "Previous Tab",
       "shortcut": "control+shift+tab",
-      "icon": "Tab"
+      "icon": "Chevron Left"
     }
   ]
 }

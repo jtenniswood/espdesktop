@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create branch",
+      "label": "New Branch",
       "shortcut": "command+b",
-      "icon": "Application"
+      "icon": "Source Branch"
     },
     {
       "id": "1",
-      "label": "Search commits",
+      "label": "Search Commits",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Search file to view history and blame",
+      "label": "File History",
       "shortcut": "command+shift+h",
-      "icon": "Application"
+      "icon": "History"
     },
     {
       "id": "3",
       "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "New Tab"
     }
   ]
 }

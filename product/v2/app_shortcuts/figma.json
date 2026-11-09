@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Actions menu",
+      "label": "Actions",
       "shortcut": "command+k",
-      "icon": "Folder"
+      "icon": "Shortcut Command"
     },
     {
       "id": "1",
-      "label": "Frame selection",
+      "label": "Frame",
       "shortcut": "option+command+g",
-      "icon": "Application"
+      "icon": "Vector"
     },
     {
       "id": "2",
-      "label": "Duplicate selection",
+      "label": "Duplicate",
       "shortcut": "command+d",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "3",
-      "label": "Create component",
+      "label": "New Component",
       "shortcut": "option+command+k",
-      "icon": "Plus"
+      "icon": "Component"
     }
   ]
 }

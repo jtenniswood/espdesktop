@@ -6,33 +6,33 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Halve playback speed",
+      "label": "Half Speed",
       "shortcut": "command+keybracketleft",
-      "icon": "Application"
+      "icon": "Speed Down"
     },
     {
       "id": "1",
-      "label": "Double playback speed",
+      "label": "Double Speed",
       "shortcut": "command+keybracketright",
-      "icon": "Application"
+      "icon": "Speed Up"
     },
     {
       "id": "2",
-      "label": "Decrease playback speed slightly",
+      "label": "Slower",
       "shortcut": "command+option+keybracketleft",
-      "icon": "Application"
+      "icon": "Speed Down"
     },
     {
       "id": "3",
-      "label": "Increase playback speed slightly",
+      "label": "Faster",
       "shortcut": "command+option+keybracketright",
-      "icon": "Application"
+      "icon": "Speed Up"
     },
     {
       "id": "4",
-      "label": "Reset playback speed",
+      "label": "Reset Speed",
       "shortcut": "command+keybackslash",
-      "icon": "Application"
+      "icon": "Gauge"
     }
   ]
 }

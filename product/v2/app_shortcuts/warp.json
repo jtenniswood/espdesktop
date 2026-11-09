@@ -8,49 +8,49 @@
       "id": "0",
       "label": "Command Search",
       "shortcut": "control+r",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Focus terminal input",
+      "label": "Focus Input",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Terminal"
     },
     {
       "id": "2",
-      "label": "Open Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "3",
-      "label": "Copy selected command output",
+      "label": "Copy Output",
       "shortcut": "command+option+shift+c",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "4",
-      "label": "Clear blocks",
+      "label": "Clear Blocks",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Delete"
     },
     {
       "id": "5",
-      "label": "Open new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "6",
-      "label": "Reopen closed tab",
+      "label": "Reopen Tab",
       "shortcut": "command+shift+t",
-      "icon": "Application"
+      "icon": "Tab Restore"
     },
     {
       "id": "7",
-      "label": "Close current tab",
+      "label": "Close Tab",
       "shortcut": "command+w",
-      "icon": "Application"
+      "icon": "Close Tab"
     }
   ]
 }

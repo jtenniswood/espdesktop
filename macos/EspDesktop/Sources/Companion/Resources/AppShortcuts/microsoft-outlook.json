@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new folder in the folder pane.",
+      "label": "New Folder",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "Folder Plus"
     },
     {
       "id": "1",
-      "label": "Create a new email (in Mail view).",
+      "label": "New Email",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Email Plus"
     },
     {
       "id": "2",
-      "label": "Search the current folder",
+      "label": "Search Folder",
       "shortcut": "command+option+f",
-      "icon": "Application"
+      "icon": "Folder Search"
     },
     {
       "id": "3",
-      "label": "Do an advanced search in Outlook (add Item Co…",
+      "label": "Advanced Search",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Filter Plus"
     },
     {
       "id": "4",
-      "label": "Find text within an item.",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "5",
-      "label": "Find the next instance of the text you search…",
+      "label": "Next Match",
       "shortcut": "command+g",
-      "icon": "Application"
+      "icon": "Chevron Down"
     },
     {
       "id": "6",
-      "label": "Find the previous instance of the text you se…",
+      "label": "Previous Match",
       "shortcut": "command+shift+g",
-      "icon": "Application"
+      "icon": "Chevron Up"
     },
     {
       "id": "7",
-      "label": "Switch to the Search tab.",
+      "label": "Search Tab",
       "shortcut": "command+2",
-      "icon": "Application"
+      "icon": "Find Tab"
     }
   ]
 }

@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Go to today’s date",
+      "label": "Today",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Calendar Today"
     },
     {
       "id": "1",
-      "label": "Go to a specific date",
+      "label": "Jump Date",
       "shortcut": "shift+command+t",
-      "icon": "Application"
+      "icon": "Calendar Search"
     },
     {
       "id": "2",
-      "label": "Switch to Day view",
+      "label": "Day View",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Calendar Today"
     },
     {
       "id": "3",
-      "label": "Switch to Week view",
+      "label": "Week View",
       "shortcut": "command+2",
-      "icon": "Application"
+      "icon": "Calendar Week"
     },
     {
       "id": "4",
-      "label": "Add a new calendar group",
+      "label": "Calendar Group",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Calendar Multiple"
     },
     {
       "id": "5",
-      "label": "Add a new subscribed calendar",
+      "label": "Subscribe",
       "shortcut": "option+command+s",
-      "icon": "Plus"
+      "icon": "Calendar Plus"
     },
     {
       "id": "6",
-      "label": "Add a new event",
+      "label": "New Event",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Calendar Plus"
     },
     {
       "id": "7",
-      "label": "Search for events",
+      "label": "Search Events",
       "shortcut": "command+f",
-      "icon": "Search"
+      "icon": "Calendar Search"
     }
   ]
 }

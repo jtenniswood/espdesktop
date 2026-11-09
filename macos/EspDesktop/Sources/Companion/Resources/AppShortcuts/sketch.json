@@ -6,57 +6,57 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Settings",
+      "label": "Settings",
       "shortcut": "command+keycomma",
-      "icon": "Application"
+      "icon": "Settings"
     },
     {
       "id": "1",
-      "label": "New document",
+      "label": "New Document",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "2",
-      "label": "Save new or local document",
+      "label": "Save",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Save"
     },
     {
       "id": "3",
       "label": "Save As",
       "shortcut": "command+option+shift+s",
-      "icon": "Application"
+      "icon": "Save As"
     },
     {
       "id": "4",
-      "label": "New page",
+      "label": "New Page",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "5",
-      "label": "Copy link to page or frame",
+      "label": "Copy Link",
       "shortcut": "command+shift+c",
-      "icon": "Application"
+      "icon": "Link"
     },
     {
       "id": "6",
-      "label": "Zoom out",
+      "label": "Zoom Out",
       "shortcut": "command+keyminus",
-      "icon": "Application"
+      "icon": "Zoom Out"
     },
     {
       "id": "7",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "8",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     }
   ]
 }

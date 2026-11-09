@@ -6,21 +6,21 @@
   "shortcuts": [
     {
       "id": "1",
-      "label": "Find in document",
+      "label": "Find",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Move to the next search result and highlight…",
+      "label": "Next Match",
       "shortcut": "command+g",
-      "icon": "Application"
+      "icon": "Chevron Down"
     },
     {
       "id": "3",
-      "label": "Pause reading out loud",
+      "label": "Pause Reading",
       "shortcut": "command+shift+c",
-      "icon": "Application"
+      "icon": "Pause"
     }
   ]
 }

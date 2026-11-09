@@ -8,49 +8,49 @@
       "id": "0",
       "label": "New Document",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "1",
-      "label": "New from Clipboard",
+      "label": "From Clipboard",
       "shortcut": "command+option+shift+n",
-      "icon": "Application"
+      "icon": "Paste"
     },
     {
       "id": "2",
-      "label": "Close Document/Close App (when no documents o…",
+      "label": "Close Document",
       "shortcut": "command+w",
-      "icon": "Application"
+      "icon": "Window Close"
     },
     {
       "id": "3",
-      "label": "Close All Documents",
+      "label": "Close All",
       "shortcut": "command+option+w",
-      "icon": "Application"
+      "icon": "Close"
     },
     {
       "id": "4",
-      "label": "New Pixel Layer",
+      "label": "Pixel Layer",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "Layers"
     },
     {
       "id": "5",
-      "label": "Switch to Next View",
+      "label": "Next View",
       "shortcut": "command+keybackquote",
-      "icon": "Application"
+      "icon": "Tab"
     },
     {
       "id": "6",
       "label": "Select Next",
       "shortcut": "command+option+keybracketright",
-      "icon": "Application"
+      "icon": "Chevron Right"
     },
     {
       "id": "7",
       "label": "Select Previous",
       "shortcut": "command+option+keybracketleft",
-      "icon": "Application"
+      "icon": "Chevron Left"
     }
   ]
 }

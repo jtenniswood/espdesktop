@@ -6,15 +6,15 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Send message",
+      "label": "Send",
       "shortcut": "command+enter",
-      "icon": "Message Video"
+      "icon": "Send"
     },
     {
       "id": "1",
-      "label": "Insert a link",
+      "label": "Insert Link",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Link"
     }
   ]
 }

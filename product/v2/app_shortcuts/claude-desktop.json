@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Quick Entry (alternative)",
+      "label": "Quick Entry",
       "shortcut": "option+space",
-      "icon": "Application"
+      "icon": "Flash"
     },
     {
       "id": "1",
-      "label": "Show Code-tab shortcuts",
+      "label": "Code Shortcuts",
       "shortcut": "command+keyslash",
-      "icon": "Application"
+      "icon": "Keyboard"
     },
     {
       "id": "2",
-      "label": "New Code session",
+      "label": "New Session",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Chat Plus"
     },
     {
       "id": "3",
-      "label": "Next Code session",
+      "label": "Next Session",
       "shortcut": "control+tab",
-      "icon": "Application"
+      "icon": "Chevron Right"
     }
   ]
 }

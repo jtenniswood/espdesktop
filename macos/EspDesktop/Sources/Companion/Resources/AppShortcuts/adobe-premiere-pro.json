@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "New Project …",
+      "label": "New Project",
       "shortcut": "command+option+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "1",
-      "label": "New Sequence…",
+      "label": "New Sequence",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Timeline"
     },
     {
       "id": "2",
-      "label": "Open Project...",
+      "label": "Open Project",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Folder Open Outline"
     },
     {
       "id": "3",
       "label": "Save",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Save"
     },
     {
       "id": "4",
-      "label": "Save As...",
+      "label": "Save As",
       "shortcut": "command+shift+s",
-      "icon": "Application"
+      "icon": "Save As"
     },
     {
       "id": "5",
-      "label": "Save a Copy...",
+      "label": "Save Copy",
       "shortcut": "command+option+s",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "6",
-      "label": "Import...",
+      "label": "Import",
       "shortcut": "command+i",
-      "icon": "Application"
+      "icon": "Import"
     },
     {
       "id": "7",
       "label": "Export Media",
       "shortcut": "command+m",
-      "icon": "Application"
+      "icon": "Export"
     },
     {
       "id": "8",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "9",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     }
   ]
 }

@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Heading levels 1–6",
+      "label": "Heading",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Heading"
     },
     {
       "id": "1",
       "label": "Bold",
       "shortcut": "command+b",
-      "icon": "Application"
+      "icon": "Bold"
     },
     {
       "id": "2",
-      "label": "Insert link",
+      "label": "Insert Link",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Link"
     },
     {
       "id": "3",
-      "label": "Unordered list",
+      "label": "Bullet List",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Bullet List"
     },
     {
       "id": "4",
-      "label": "Create todo",
+      "label": "New To-do",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Task List"
     },
     {
       "id": "5",
-      "label": "Toggle todo completion",
+      "label": "Toggle To-do",
       "shortcut": "command+keyperiod",
-      "icon": "Application"
+      "icon": "Check"
     },
     {
       "id": "6",
-      "label": "Search current note",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Search note list",
+      "label": "Search Notes",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Note Search"
     },
     {
       "id": "8",
-      "label": "New note",
+      "label": "New Note",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Note Plus"
     },
     {
       "id": "9",
       "label": "Quick Open",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Folder Search"
     }
   ]
 }

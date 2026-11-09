@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new station",
+      "label": "New Station",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "1",
-      "label": "Refresh RSS feed updates",
+      "label": "Refresh Feeds",
       "shortcut": "command+r",
-      "icon": "Repeat"
+      "icon": "Refresh"
     },
     {
       "id": "2",
-      "label": "Search your library or all podcasts",
+      "label": "Search Podcasts",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Go to the Show page for the current podcast",
+      "label": "Show Page",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Podcast"
     }
   ]
 }

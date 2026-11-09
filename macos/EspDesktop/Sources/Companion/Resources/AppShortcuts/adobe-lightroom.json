@@ -8,61 +8,61 @@
       "id": "0",
       "label": "Cut",
       "shortcut": "command+x",
-      "icon": "Application"
+      "icon": "Cut"
     },
     {
       "id": "1",
       "label": "Copy",
       "shortcut": "command+c",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "2",
       "label": "Paste",
       "shortcut": "command+v",
-      "icon": "Application"
+      "icon": "Paste"
     },
     {
       "id": "3",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "4",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     },
     {
       "id": "5",
-      "label": "Rotate Left (CCW)",
+      "label": "Rotate Left",
       "shortcut": "command+keybracketleft",
-      "icon": "Application"
+      "icon": "Rotate Left"
     },
     {
       "id": "6",
       "label": "Zoom In",
       "shortcut": "command+keyequal",
-      "icon": "Application"
+      "icon": "Zoom In"
     },
     {
       "id": "7",
       "label": "Zoom Out",
       "shortcut": "command+keyminus",
-      "icon": "Application"
+      "icon": "Zoom Out"
     },
     {
       "id": "8",
       "label": "Preferences",
       "shortcut": "command+keycomma",
-      "icon": "Application"
+      "icon": "Settings"
     },
     {
       "id": "9",
       "label": "Search",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     }
   ]
 }

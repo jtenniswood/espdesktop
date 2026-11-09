@@ -6,45 +6,45 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open or close Raycast (default global hotkey)",
+      "label": "Toggle Raycast",
       "shortcut": "option+space",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Return to root search",
+      "label": "Root Search",
       "shortcut": "command+escape",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Open action panel",
+      "label": "Actions",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "3",
-      "label": "Open settings",
+      "label": "Settings",
       "shortcut": "command+keycomma",
-      "icon": "Application"
+      "icon": "Settings"
     },
     {
       "id": "4",
-      "label": "Submit a form",
+      "label": "Submit",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Check"
     },
     {
       "id": "5",
-      "label": "Add selected result to favorites",
+      "label": "Favourite",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Star"
     },
     {
       "id": "6",
-      "label": "Open user guide",
+      "label": "User Guide",
       "shortcut": "command+shift+keyslash",
-      "icon": "Application"
+      "icon": "Help"
     }
   ]
 }
