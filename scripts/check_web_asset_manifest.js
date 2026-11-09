@@ -244,7 +244,7 @@ async function verifyBridge() {
 
 async function main() {
   verifyManifest(WEB_ROOT);
-  await verifyBridge();
+  if (!process.argv.includes("--manifest-only")) await verifyBridge();
   console.log("Web asset manifest checks passed.");
 }
 

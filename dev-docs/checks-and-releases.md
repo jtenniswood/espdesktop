@@ -102,7 +102,9 @@ preflight is still required before tagging.
 Firmware releases start as private GitHub drafts. The manually dispatched build
 workflow checks out one immutable tag in every job, materializes the selected
 tag's web compatibility entry in the private checkout, builds every public release
-target, and writes only publishable files to the distribution. Generated source
+target, and writes only publishable files to the distribution. The firmware compile
+embeds the offline editor from the same verified web artifact that Pages
+receives. Its SHA-256 is checked before compilation. Generated source
 and build caches are not assets.
 
 The workflow verifies every manifest, embedded version, expected filename,

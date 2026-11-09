@@ -26,6 +26,7 @@ jobs:
     runs-on: self-hosted
     outputs:
       source_sha: ${{ steps.source.outputs.sha }}
+      embedded_editor_sha256: ${{ steps.web-assets.outputs.embedded_editor_sha256 }}
     steps:
       - name: Prepare self-hosted workspace
         run: |
@@ -123,6 +124,7 @@ jobs:
         run: node scripts/check_web_asset_manifest.js
 
       - name: Prepare release web assets
+        id: web-assets
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
@@ -172,6 +174,9 @@ jobs:
           fi
           python3 scripts/build.py www --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
           python3 scripts/build.py www --check --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
+          node scripts/check_web_asset_manifest.js --manifest-only
+          EDITOR_HASH=$(sha256sum docs/public/webserver/embedded/www.js)
+          echo "embedded_editor_sha256=${EDITOR_HASH%% *}" >> "$GITHUB_OUTPUT"
 
           # Ship every verified bundle referenced by either compatibility alias,
           # together with retained release bundles, loaders and the offline editor.
@@ -251,6 +256,21 @@ jobs:
             echo "::error::Expected C6 recovery build file is missing: builds/${{ matrix.slug }}.recovery.yaml"
             exit 1
           fi
+
+      - name: Download the verified release editor
+        uses: actions/download-artifact@v8
+        with:
+          name: release-web-assets
+          path: release-web-assets
+
+      - name: Install the verified offline editor before compilation
+        working-directory: espdesktop-${{ matrix.slug }}
+        env:
+          EXPECTED_EDITOR_SHA256: ${{ needs.preflight.outputs.embedded_editor_sha256 }}
+        run: |
+          EDITOR="${GITHUB_WORKSPACE}/release-web-assets/embedded/www.js"
+          printf '%s  %s\n' "${EXPECTED_EDITOR_SHA256}" "${EDITOR}" | sha256sum -c -
+          install -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js
 
       - name: Load ESPHome version
         working-directory: espdesktop-${{ matrix.slug }}
