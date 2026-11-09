@@ -168,10 +168,6 @@
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/whatsapp.json",
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/xcode.json",
     "macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/zoom.json",
-    "src/webserver/generated/web_apps.ts",
-    "components/espdesktop/web_apps_generated.h",
-    "macos/EspDesktop/Sources/Companion/Resources/WebApps/manifest.json",
-    "macos/EspDesktop/Sources/Companion/Resources/WebApps/google-docs.json",
     "product/generated/companion_compatibility.json",
     "docs/reference/companion-compatibility.md"
   ]

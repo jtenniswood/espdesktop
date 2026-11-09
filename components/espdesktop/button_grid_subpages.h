@@ -53,6 +53,8 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  if (b.type == "companion" && b.entity.rfind("webapp.", 0) == 0)
+    b.type = "companion_webapp";
   if (card_runtime_type_retired(b.type)) {
     const std::string type = b.type;
     b = SubpageBtn{};

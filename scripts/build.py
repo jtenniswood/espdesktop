@@ -954,7 +954,6 @@ def gen_companion_capabilities_swift(data):
 def sync_companion_capabilities(check_only=False):
     from companion_protocol_codegen import outputs as protocol_outputs
     from app_shortcuts_codegen import outputs as shortcut_outputs
-    from web_apps_codegen import outputs as web_app_outputs
     from companion_release import compatibility
     data = load_companion_capabilities_data()
     outputs = [
@@ -964,7 +963,6 @@ def sync_companion_capabilities(check_only=False):
     ]
     outputs.extend(protocol_outputs(ROOT, data))
     outputs.extend(shortcut_outputs(ROOT))
-    outputs.extend(web_app_outputs(ROOT))
     release_compatibility = compatibility(ROOT)
     outputs.append((ROOT / "product/generated/companion_compatibility.json", json.dumps(release_compatibility, indent=2) + "\n"))
     outputs.append((ROOT / "docs/reference/companion-compatibility.md",

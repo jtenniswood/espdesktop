@@ -39,7 +39,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Media | media | media_player | Yes | Own picker item | Type: control_modal, speaker_group, play_pause, previous, next, volume, position, now_playing, cover_art, playlist; Type: default, state; Controls: default, progress, play_pause; Show Track Details; External Source Media Entity; Maximum Volume: 1-100; Speaker Discovery Entity; Power Entity; Modal Tabs: controls, progress, volume, speakers, power; Label Display: label, status; Top Left Display: icon, volume; Media Content ID / URI; Player Source / Input; Large Media Numbers | Visible |
 | Option Select | option_select | select, input_select | Yes | Own picker item | None | Hidden |
 | Trigger | push | None | Yes | Own picker item | None | Visible |
-| Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label; Large icon with title | Visible |
+| Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Visible |
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
 | Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |

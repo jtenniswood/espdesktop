@@ -28,7 +28,7 @@ Approve **Finder** in the Mac app to use its launch card. Touching an app card s
 
 Addresses containing an embedded username or password are rejected. Other URL types, including `file://`, are not accepted.
 
-Previously saved **Web App** cards still open their configured websites and can be edited. Use **Open URL** when adding a new card for a website.
+Saved **Web App** cards are removed from layouts when upgrading or restoring a backup. Use **Open URL** to add a card for a website.
 
 ## Ready-Made App Subpages
 

@@ -81,12 +81,6 @@
       "omitDefault": true,
       "hidden": true,
       "docsHidden": true
-    },
-    {
-      "name": "webapp_icon_title",
-      "label": "Large icon with title",
-      "kind": "flag",
-      "omitDefault": true
     }
   ],
   "normalization": {
@@ -140,7 +134,6 @@
       "app_shortcut_preset",
       "large_numbers",
       "stat_labels_off",
-      "webapp_icon_title",
       "app_bg_color",
       "app_hide_label"
     ],

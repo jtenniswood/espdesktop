@@ -1,3 +1,4 @@
+import { isRetiredWebApp, removeRetiredPanelRecords } from "../features/retired_cards";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
 import { ENTITY_CATALOG } from "../generated/entity_catalog";
@@ -9,8 +10,10 @@ import type { EntityStateFeature } from "./entity_state";
 import type { ControlsShellFeature } from "./controls_shell";
 import type { ApplicationApiFeature } from "./api";
 
+type PersistenceCodec = Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig" | "parseButtonConfig" | "parseSubpageConfig">;
+
 export interface ConfigPersistenceFeature {
-    connectCodec(codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">): void;
+    connectCodec(codec: PersistenceCodec): void;
     connectRequestApi(requestApi: ApplicationApiFeature): void;
     connectFocusRegistrationPublisher(publish: () => void): void;
     subpageEntityKeys(): string[];
@@ -35,10 +38,10 @@ export function createConfigPersistenceFeature(
 ): ConfigPersistenceFeature {
     const { entityName, entityNameForSlot, hasRememberedPostPath } = entityState;
     const { showBanner } = shell;
-    let codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig"> | undefined;
+    let codec: PersistenceCodec | undefined;
     let requestApi: ApplicationApiFeature | undefined;
     let publishFocusRegistrations: (() => void) | undefined;
-    function connectCodec(value: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">) {
+    function connectCodec(value: PersistenceCodec) {
         codec = value;
     }
     function connectRequestApi(value: ApplicationApiFeature) {
@@ -103,6 +106,15 @@ export function createConfigPersistenceFeature(
     function saveButtonConfig(this: any, slot?: any) {
         var b: any = state.buttons[slot - 1];
         var value: any = serializeButtonConfig(b);
+        if (isRetiredWebApp(b?.type) && codec && nativePanelConfig) {
+            const configCodec = codec;
+            const cleanup = nativePanelConfig.schedule(current => {
+                removeRetiredPanelRecords(current, configCodec, isRetiredWebApp);
+                return current;
+            });
+            if (cleanup) return publishAfter(queueNativeSave(cleanup, () =>
+                requests().postTextLegacy(entityNameForSlot("button_config", slot), value)));
+        }
         return publishAfter(requests().postText(entityNameForSlot("button_config", slot), value));
     }
     function saveButtonConfigAndOrder(this: any, slot?: any, order?: any) {

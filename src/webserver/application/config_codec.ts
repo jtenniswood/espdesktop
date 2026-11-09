@@ -1,3 +1,4 @@
+import { isRetiredWebApp, removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
@@ -434,6 +435,8 @@ export function createConfigCodecFeature(
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
     function normalizeButtonConfig(this: any, b?: any) {
+        // Map legacy Web App records to the retired type before normalizing Companion cards.
+        if (b?.type === "companion" && b.entity?.startsWith("webapp.")) b.type = "companion_webapp";
         if (b && cardContractTypeRetired(b.type)) {
             return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: b.type });
         }
@@ -961,6 +964,9 @@ export function createConfigCodecFeature(
         var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.totalSlots, layout.gridCols, layout.previewSlots);
         sp.grid = result.grid;
         sp.sizes = result.sizes;
+        if (removeRetiredCards(sp.grid, sp.sizes, sp.buttons, layout.gridCols, isRetiredWebApp).length) {
+            sp.order = serializeSubpageGrid(sp);
+        }
         return sp.grid;
     }
     function buildSubpageGridAndNormalizeOrder(this: any, sp?: any) {

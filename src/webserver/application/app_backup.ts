@@ -1,4 +1,4 @@
-import { removeRetiredPanelRecords } from "../features/retired_cards";
+import { isRetiredWebApp, removeRetiredPanelRecords } from "../features/retired_cards";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
@@ -68,8 +68,8 @@ import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../features/legacy_layout_restore";
 import { NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE, nativeBackupHasInactiveRecords } from "../features/native_panel_config";
-import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument } from "../model/native_config_backup";
-import { panelPageDocumentDepth } from "../model/panel_config_conversion";
+import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument, nativeConfigDocumentVersion } from "../model/native_config_backup";
+import { encodePanelPageDocument, panelPageDocumentDepth } from "../model/panel_config_conversion";
 
 export interface AppBackupControllers {
     readonly identity?: PanelIdentityFeature;
@@ -273,7 +273,14 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         try {
             await controllers.waitForInitialState();
             nativeDocumentBytes = await controllers.nativePanelConfig?.readForBackup() ?? undefined;
-            if (nativeDocumentBytes) nativeDocument = decodeNativeConfigDocument(nativeDocumentBytes);
+            if (nativeDocumentBytes) {
+                nativeDocument = decodeNativeConfigDocument(nativeDocumentBytes);
+                if (removeRetiredPanelRecords(nativeDocument, controllers.codec, isRetiredWebApp)) {
+                    nativeDocumentBytes = nativeConfigDocumentVersion(nativeDocumentBytes) === 2
+                        ? encodePanelPageDocument(nativeDocument)
+                        : EspDesktopModel.encodePanelConfig(nativeDocument);
+                }
+            }
         } catch {
             controllers.shell.showBanner?.("Could not export the backup. Check that changes have saved and the panel is connected, then try again.", "error");
             return;
