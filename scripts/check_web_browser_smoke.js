@@ -2546,12 +2546,8 @@ async function assertEmptyCellSettings(page, posts, label, testCase) {
       `${label}: a single connector does not need source tabs`,
     );
   }
-  if (testCase.companionSupported) {
-    assert(
-      await page.getByRole("button", { name: "Webhook card type" }).isVisible(),
-      `${label}: shared webhook card appears in the Companion picker`,
-    );
-  }
+  const webhookType = page.getByRole("button", { name: "Webhook card type", exact: true });
+  assert.equal(await webhookType.count(), 0, `${label}: Webhook is absent from Add Card`);
   const switchTypeOption = page.getByRole("button", {
     name: "Switch card type",
   });
@@ -2891,21 +2887,15 @@ async function assertAutomaticAppIcons(browser, testCase) {
       assert.strictEqual(await page.locator(".sp-back-btn").getAttribute("data-icon-size"), "large");
       assert(!(await page.locator(".sp-back-btn .sp-btn-label").isVisible()), "app Back card hides its label");
       const backTab = page.locator(".sp-back-btn .sp-app-back-tab");
-      if (native) {
-        const cardBounds = await page.locator(".sp-back-btn").boundingBox();
-        const tabBounds = await backTab.boundingBox();
-        assert(tabBounds && Math.abs(tabBounds.x - cardBounds.x) < 1 &&
-          Math.abs(tabBounds.y + tabBounds.height / 2 - cardBounds.y - cardBounds.height / 2) < 1,
-          "large app Back tab is flush with the left edge and vertically centred");
-        assert(await backTab.evaluate(el => {
-          const bounds = el.getBoundingClientRect();
-          return el.contains(document.elementFromPoint(bounds.right - 3, bounds.top + bounds.height / 2));
-        }), "large app Back tab sits above the app icon and receives clicks");
-      } else {
-        assert.strictEqual(await backTab.count(), 0, "single app Back card has no overlay");
-        assert(await page.locator(".sp-back-btn .sp-back-badge.mdi-chevron-left").isVisible(),
-          "single app Back card retains its existing chevron");
-      }
+      const cardBounds = await page.locator(".sp-back-btn").boundingBox();
+      const tabBounds = await backTab.boundingBox();
+      assert(tabBounds && Math.abs(tabBounds.x - cardBounds.x) < 1 &&
+        Math.abs(tabBounds.y + tabBounds.height / 2 - cardBounds.y - cardBounds.height / 2) < 1,
+        "app Back tab is flush with the left edge and vertically centred");
+      assert(await backTab.evaluate(el => {
+        const bounds = el.getBoundingClientRect();
+        return el.contains(document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2));
+      }), "app Back tab sits above the app icon and receives clicks");
       assert.strictEqual(await page.locator(".sp-clockbar-subpage-title").count(), 0,
         "app subpage identity moves from the clock bar to the return-home card");
       if (process.env.ESPDESKTOP_APP_BACK_SCREENSHOT) {
@@ -3566,96 +3556,6 @@ async function assertFanOptionalLightSettings(page, label) {
     const overlay = document.querySelector(".sp-settings-overlay");
     return overlay && !overlay.classList.contains("sp-visible");
   });
-}
-
-async function assertWebhookSettingsPanel(page, posts, label) {
-  await page.getByRole("tab", { name: "Layout" }).click();
-  await page.waitForSelector("#sp-screen.sp-page.active");
-  const emptyCell = page
-    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
-    .first();
-  if ((await emptyCell.count()) === 0) return;
-  const before = posts.length;
-  await emptyCell.click();
-  await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await chooseCardType(page, "Webhook");
-
-  const webhookSettingsButton = page.getByRole("button", {
-    name: "Webhook Settings",
-    exact: true,
-  });
-  assert(
-    await webhookSettingsButton.isVisible(),
-    `${label}: Webhook card should show a Webhook Settings panel`,
-  );
-  assert.strictEqual(
-    await webhookSettingsButton.getAttribute("aria-expanded"),
-    "false",
-    `${label}: Webhook Settings should start collapsed`,
-  );
-  assert.deepStrictEqual(
-    await page
-      .locator(".sp-settings-modal .sp-panel > .sp-disclosure > .sp-disclosure-button > span:first-child")
-      .evaluateAll((headings) => headings.map((heading) => heading.textContent)),
-    ["Webhook Settings", "Card Settings"],
-    `${label}: Webhook groups should show Webhook Settings before Card Settings`,
-  );
-  for (const fieldId of ["#sp-inp-webhook-method", "#sp-inp-webhook-url"]) {
-    assert.strictEqual(
-      await page.locator(fieldId).evaluate((element) => {
-        const disclosure = element.closest(".sp-disclosure");
-        const heading = disclosure && disclosure.querySelector(".sp-disclosure-button > span:first-child");
-        return heading && heading.textContent;
-      }),
-      "Webhook Settings",
-      `${label}: ${fieldId} should be inside Webhook Settings`,
-    );
-  }
-
-  await webhookSettingsButton.click();
-  assert(
-    await page.locator("#sp-inp-webhook-headers").isVisible(),
-    `${label}: Webhook Settings should contain Headers`,
-  );
-  await page.locator("#sp-inp-webhook-method").selectOption("POST");
-  assert.strictEqual(
-    await webhookSettingsButton.getAttribute("aria-expanded"),
-    "false",
-    `${label}: rerendered Webhook Settings should start collapsed`,
-  );
-  await webhookSettingsButton.click();
-  assert(
-    await page.locator("#sp-inp-webhook-body").isVisible(),
-    `${label}: POST Body should remain inside Webhook Settings`,
-  );
-  assert(
-    await page.locator("#sp-inp-webhook-headers").isVisible(),
-    `${label}: POST Headers should remain inside Webhook Settings`,
-  );
-
-  await webhookSettingsButton.click();
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  assert.strictEqual(
-    await webhookSettingsButton.getAttribute("aria-expanded"),
-    "true",
-    `${label}: missing URL validation should open Webhook Settings`,
-  );
-  assert.strictEqual(
-    await page.locator("#sp-inp-webhook-url").getAttribute("aria-invalid"),
-    "true",
-    `${label}: missing webhook URL should remain visibly invalid`,
-  );
-
-  await page.locator(".sp-settings-close").click();
-  await page.waitForFunction(() => {
-    const overlay = document.querySelector(".sp-settings-overlay");
-    return overlay && !overlay.classList.contains("sp-visible");
-  });
-  assert.strictEqual(
-    posts.length,
-    before,
-    `${label}: Webhook Settings audit should not save a card`,
-  );
 }
 
 async function assertCoverSettingsPanels(page, label) {
@@ -6587,6 +6487,11 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       await page.locator('[data-card-type="companion_app"]').isVisible(),
       `${testCase.name}: Companion-only picker opens on Mac Companion card types`,
     );
+    assert.strictEqual(
+      await page.locator('[data-card-type="companion_stats"]').count(),
+      0,
+      `${testCase.name}: Stats is unavailable when adding a new card`,
+    );
   } finally {
     await context.close();
   }
@@ -6932,7 +6837,6 @@ async function runCase(browser, testCase) {
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
       await assertAllCardSettingsGrouped(page, posts, testCase.name);
       await assertFanOptionalLightSettings(page, testCase.name);
-      await assertWebhookSettingsPanel(page, posts, testCase.name);
       await assertCameraRefreshSettings(page, posts, testCase.name);
       await assertOnlyLocalActionsAvailableWithoutHomeAssistant(browser, testCase);
     }

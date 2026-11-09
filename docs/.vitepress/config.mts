@@ -162,7 +162,7 @@ export default defineConfig({
     'generated/**',
     'guides/**',
     'immich/**',
-    'card-types/{actions,alarms,buttons,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,lawn-mower,lights,local-actions,locks,media,option-select,presence,sliders,switches,timers,vacuum,weather,weather-forecast,webhooks}.md',
+    'card-types/{actions,alarms,buttons,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,lawn-mower,lights,local-actions,locks,media,option-select,presence,sliders,switches,timers,vacuum,weather,weather-forecast}.md',
     'features/{appearance,backlight,backup,battery,clock,clock-bar,firmware-updates,idle,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
     'getting-started/{c6-recovery,home-assistant-actions,manual-esphome-setup,migrate-esphome-media-player}.md',
     'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc4880p443-v3,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',

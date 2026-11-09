@@ -1,6 +1,6 @@
 import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
-import { isRetiredWebApp, removeRetiredPanelRecords } from "../features/retired_cards";
+import { isRetiredWebAppOrWifiCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { parseGridOrder } from "../model";
 import { NativePageEditorLoader, preparePageEditorDocument, restoredEditorPage } from "../features/page_editor";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
@@ -31,7 +31,7 @@ export function createNativePageEditorFeature(options: {
       !options.document.activeElement?.closest(".sp-card-name-input"),
     apply: (document) => {
       const cleaned = structuredClone(document);
-      const retired = removeRetiredPanelRecords(cleaned, codec, isRetiredWebApp);
+      const retired = removeRetiredPanelRecords(cleaned, codec, isRetiredWebAppOrWifiCard);
       const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec);
       const root = parseGridOrder(cleaned.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
       const editing = restoredEditorPage(state.editingSubpage, prepared);
@@ -63,7 +63,7 @@ export function createNativePageEditorFeature(options: {
       if (retired && !state.nativeConfigReadOnly) {
         // Apply the same cleanup to the latest saved generation so concurrent edits survive.
         void native.schedule(current => {
-          removeRetiredPanelRecords(current, codec, isRetiredWebApp);
+          removeRetiredPanelRecords(current, codec, isRetiredWebAppOrWifiCard);
           return current;
         });
       }

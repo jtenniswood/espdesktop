@@ -5,14 +5,17 @@ description: "Choose Mac controls, local panel actions, information cards and fo
 
 # Card Types
 
+Webhook cards saved with older firmware appear as empty slots after updating.
+
 Cards show information and controls on the display. Mac controls use the paired [EspDesktop Mac app](/getting-started/mac-app); local cards run on the panel.
 
 | Goal | Card |
 |---|---|
-| Launch apps, shortcuts, websites and folders, arrange windows, or show Mac statistics | [Companion](./companion) |
-| Adjust Mac output or microphone volume | [Slider](./sliders) |
+| Launch apps, run shortcuts, open websites and folders, or arrange windows | [Companion](./companion) |
+| Adjust or mute Mac output and microphone audio | [Volume](./sliders) |
 | Open another page of cards | [Subpage](/features/subpages) |
-| Send an HTTP request | [Webhook](./webhooks) |
+
+[Existing Stats cards](/mac-controls/statistics) continue to show readings from the paired Mac.
 
 ## Saved Home Assistant cards
 

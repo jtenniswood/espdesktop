@@ -7,7 +7,7 @@ description: "Use local Subpages for Mac and panel controls, with optional Mac s
 
 Subpages are folders that open another page of cards. Add a **Subpage**, choose a label and icon, then use **Edit Subpage** to arrange its child cards. Navigation remains local to the panel.
 
-A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards. On app subpages, the Back card shows the app’s large icon and returns to its parent page when touched. Its saved name remains editable in card settings, while the icon fills the card on the display. Regular subpages keep their Back arrow and label.
+A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards. On app subpages, the Back card shows the app’s large icon with a back arrow on its left edge. Tap the card to return to its parent page. Its saved name remains editable in card settings, while the icon fills the card on the display. Regular subpages keep their Back arrow and label.
 
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 

@@ -8,7 +8,6 @@ import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
-import { CARD_SIZE_LARGE } from "../model/grid";
 import { pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml } from "./ui_primitives";
@@ -445,13 +444,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 const ownerCards = ownerPage ? getSubpage(ownerPage).buttons : state.buttons;
                 const parent = page ? ownerCards[pageOwnerSlot(page) - 1] : null;
                 const appBack = companionAppShortcutFolderEnabled(parent);
-                const backChevron = appBack && bkSz === CARD_SIZE_LARGE
-                    ? '<svg class="sp-back-badge sp-app-back-tab" viewBox="0 0 22 24" preserveAspectRatio="none" aria-hidden="true">' +
+                const backChevron = appBack
+                    ? '<svg class="sp-back-badge sp-app-back-tab" viewBox="0 0 22 24" preserveAspectRatio="xMinYMid meet" aria-hidden="true">' +
                         '<path fill="#303030" d="M0 0h17a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H0z"/>' +
                         '<path fill="none" stroke="#fff" stroke-width="2" d="m14 7-5 5 5 5"/></svg>'
-                    : appBack
-                        ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>'
-                        : '';
+                    : '';
                 var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
