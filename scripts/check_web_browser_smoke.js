@@ -5722,17 +5722,32 @@ async function assertCardCurveSettings(browser, testCase) {
 
 // Read the actual rasterized border so covered outlines and thin clipped
 // corners fail even when the CSS reports the expected selection state.
-async function assertPreviewOutlinePixels(page, card, label) {
+async function assertPreviewOutlinePixels(page, selector, label) {
+  await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  const png = await page.screenshot({ animations: "disabled", scale: "device", fullPage: true });
-  const geometry = await card.evaluate(card => {
+  // Measure and capture in viewport coordinates. A full-page capture can
+  // reflow the preview and leave its responsive SVG out of sync with the pixels.
+  const ready = await page.waitForFunction(selector => {
+    // A preview redraw replaces the card. Query the live card and its outline
+    // on each frame instead of waiting for an old element to stabilize.
+    const card = document.querySelector(selector);
+    const outline = card?.querySelector(":scope > .sp-card-outline");
+    if (!outline?.firstElementChild || getComputedStyle(outline).display === "none") return null;
+    const bounds = card.getBoundingClientRect();
+    if (!bounds.width || !bounds.height) return null;
+    if (bounds.left < 0 || bounds.top < 0 || bounds.right > innerWidth || bounds.bottom > innerHeight) {
+      card.scrollIntoView({ block: "center", inline: "center", behavior: "instant" });
+      return null;
+    }
     const style = getComputedStyle(card);
     const radiusName = card.classList.contains("sp-empty-cell") ? "--empty-r" : "--btn-r";
-    const bounds = card.getBoundingClientRect();
-    return { width: bounds.width, height: bounds.height, left: bounds.left + window.scrollX, top: bounds.top + window.scrollY, scale: window.devicePixelRatio,
+    return { width: bounds.width, height: bounds.height, left: bounds.left, top: bounds.top, scale: window.devicePixelRatio,
       radius: parseFloat(getComputedStyle(document.documentElement).getPropertyValue(radiusName)) * document.querySelector(".sp-screen").clientWidth / 100,
       continuous: style.clipPath.startsWith("path("), dashed: card.classList.contains("sp-empty-cell") };
-  });
+  }, selector);
+  const geometry = await ready.jsonValue();
+  await ready.dispose();
+  const png = await page.screenshot({ animations: "disabled", scale: "device" });
 
   const thicknesses = await page.evaluate(async ({ geometry: g, png }) => {
     const image = new Image(); image.src = png; await image.decode();
@@ -5823,11 +5838,10 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
         const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
         // Info-only profiles deliberately hide unsupported cards.
         if (!(await card.count())) continue;
-        await page.waitForSelector('.sp-main > .sp-btn[data-slot="1"].sp-selected');
-        await assertPreviewOutlinePixels(page, page.locator('.sp-main > .sp-btn[data-slot="1"]'), `${testCase.slug}/${preset}/${fixture.key}`);
+        await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/${preset}/${fixture.key}`);
       }
-      const empty = page.locator(".sp-main > .sp-empty-cell:not(.sp-info-only-hidden)").first();
-      await empty.hover();
+      const empty = ".sp-main > .sp-empty-cell:not(.sp-info-only-hidden)";
+      await page.locator(empty).first().hover();
       await assertPreviewOutlinePixels(page, empty, `${testCase.slug}/${preset}/empty`);
     }
     // A resized, large artwork card exercises mask regeneration as well as layering.
@@ -5839,8 +5853,7 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
       await page.setViewportSize({ width: 700, height: 900 });
       const card = page.locator('.sp-main > .sp-btn[data-slot="1"]');
       if (!(await card.evaluate(card => card.classList.contains("sp-selected")))) await card.click();
-      await page.waitForSelector('.sp-main > .sp-btn[data-slot="1"].sp-selected');
-      await assertPreviewOutlinePixels(page, page.locator('.sp-main > .sp-btn[data-slot="1"]'), `${testCase.slug}/resized artwork`);
+      await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"].sp-selected', `${testCase.slug}/resized artwork`);
     }
     await outlineStyle.evaluate(style => style.remove());
     if (process.env.ESPDESKTOP_OUTLINE_SCREENSHOT) await page.locator(".sp-screen").screenshot({ path: process.env.ESPDESKTOP_OUTLINE_SCREENSHOT });
