@@ -34,6 +34,10 @@ class BlobStorage {
   // Raw-flash bindings can serve the store's byte ranges directly. Blob-only
   // NVS keeps its existing keys/layout and uses a transient slot image.
   virtual bool supports_range_io() const { return false; }
+  virtual bool prepare_range_slot(uint8_t slot, size_t) {
+    constexpr uint8_t invalid_magic[sizeof(uint32_t)]{};
+    return write_range(slot, 0, invalid_magic, sizeof(invalid_magic));
+  }
   virtual bool read_range(uint8_t, size_t, uint8_t *, size_t) { return false; }
   virtual bool write_range(uint8_t, size_t, const uint8_t *, size_t) {
     return false;

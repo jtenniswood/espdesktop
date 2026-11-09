@@ -62,6 +62,12 @@ class StorageBackend {
   virtual StoreStatus operation_failure() const {
     return StoreStatus::READ_FAILED;
   }
+  // Withdraw the slot before writing a new envelope of this total size.
+  // Flash-backed storage can erase just the sectors the envelope will use.
+  virtual bool prepare_slot(uint8_t slot, size_t) {
+    constexpr uint8_t invalid_magic[sizeof(uint32_t)]{};
+    return write(slot, 0, invalid_magic, sizeof(invalid_magic));
+  }
   virtual bool read(uint8_t slot, size_t offset, uint8_t *output,
                     size_t size) = 0;
   virtual bool write(uint8_t slot, size_t offset, const uint8_t *data,
