@@ -27,6 +27,7 @@ import {
     sizeRowSpan,
 } from "../model/grid";
 import {
+    cardContractDefaultConfig,
     cardContractFanDefaultIcon,
     cardContractIsBrightnessSliderType,
     cardContractIsFanCardType,
@@ -399,7 +400,14 @@ export function createConfigCodecFeature(
     function normalizeSavedConfigSubpageOptions(this: any, options?: any, b?: any) {
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
+    const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
     function normalizeButtonConfig(this: any, b?: any) {
+        // The original picker used a regular shortcut with the Mac Lock label and icon.
+        // A saved card may have one of those fields customized.
+        if (b?.type === "companion" && b.entity === macLockDefaults.entity && !b.sensor &&
+            (b.label === macLockDefaults.label || b.icon === macLockDefaults.icon)) {
+            b.type = macLockDefaults.type;
+        }
         // Map legacy Web App records to the retired type before normalizing Companion cards.
         if (b?.type === "companion" && b.entity?.startsWith("webapp.")) b.type = "companion_webapp";
         if (b && isMacAudioCard(b.type, b.entity)) b.type = "companion_audio";

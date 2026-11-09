@@ -4247,8 +4247,8 @@ async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons = {
-    1: "shortcut.command+a;Select All;Shortcut Command;Auto;;;companion",
-    2: "shortcut.command+c;Copy;Shortcut Command;Auto;;;companion",
+    1: "shortcut.command+control+q;Mac Lock;Lock;Auto;;;companion",
+    2: "shortcut.command+control+q;Custom Lock Shortcut;Shortcut Command;Auto;;;companion",
   };
   nativeState.document.settings.button_order = "1,2";
   nativeState.document.subpages = {};
@@ -4256,6 +4256,17 @@ async function assertMacLockCard(browser) {
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
   await installFakeEventSource(page);
+  const modal = page.locator(".sp-settings-overlay.sp-visible .sp-settings-modal");
+  const assertLockEditor = async () => {
+    await modal.getByText("Mac Lock", { exact: true }).first().waitFor();
+    assert.strictEqual(await modal.locator('[id$="shortcut-type"], [id$="shortcut-panel"], #sp-card-type-picker').count(), 0);
+    await modal.getByRole("button", { name: "Card Settings", exact: true }).waitFor();
+    await modal.getByRole("button", { name: "Custom Colours", exact: true }).waitFor();
+  };
+  const editCard = async slot => {
+    await page.locator('.sp-main [data-slot="' + slot + '"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+  };
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
     await page.waitForFunction(() => window.__eventSources?.length > 0);
@@ -4263,18 +4274,25 @@ async function assertMacLockCard(browser) {
     await seedNativeDocument(page, nativeState);
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Mac Lock card type", exact: true }).click();
+    await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () =>
-      Object.values(nativeState.document.buttons).some(raw =>
-        String(raw).startsWith("shortcut.command+control+q;Mac Lock;Lock;")),
-    "Mac Lock saves with the standard shortcut and icon");
+      nativeState.document.buttons[3] === "shortcut.command+control+q;Mac Lock;Lock;Auto;;;companion_mac_lock",
+    "Mac Lock saves as a dedicated card type");
+    await editCard(1);
+    await assertLockEditor();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
     await page.reload();
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await seedNativeDocument(page, nativeState);
-    await page.locator(".sp-main .sp-btn-icon.mdi-lock").waitFor();
-    assert.strictEqual(await page.locator(".sp-main").getByText("Mac Lock", { exact: true }).count(), 1);
-    console.log("Mac Lock card picker, save and reload passed.");
+    await page.locator('.sp-main [data-slot="3"] .sp-btn-icon.mdi-lock').waitFor();
+    await editCard(3);
+    await assertLockEditor();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await editCard(2);
+    await modal.getByLabel("Type", { exact: true }).waitFor();
+    console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
   } finally {
     await context.close();
   }

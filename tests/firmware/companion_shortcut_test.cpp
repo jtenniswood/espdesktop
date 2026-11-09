@@ -14,6 +14,20 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 using namespace esphome::companion;
 
 int main() {
+  const auto mac_lock = normalize_parsed_cfg(
+      ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
+  assert(mac_lock.entity == "shortcut.command+control+q" && mac_lock.sensor.empty());
+  assert(mac_lock.label == "Mac Lock" && mac_lock.icon == "Lock");
+  const auto mac_lock_subpage = parse_subpage_config("~1|ML,,Lock Work Mac,Shield");
+  assert(mac_lock_subpage.size() == 1);
+  const auto subpage_lock = parsed_cfg_from_subpage_btn(mac_lock_subpage.front());
+  assert(subpage_lock.type == mac_lock.type && subpage_lock.entity == mac_lock.entity);
+  assert(subpage_lock.label == "Lock Work Mac" && subpage_lock.icon == "Shield");
+  const auto lock_runtime = espdesktop::cards::card_runtime_registry_service().context_for(
+      mac_lock.type, mac_lock.sensor);
+  assert(lock_runtime.runtime.driver == espdesktop::card_runtime::CardDriverId::COMPANION);
+  assert(lock_runtime.allow_in_subpage && companion_shortcut_action_valid(mac_lock.entity));
+
   // Fast app colour is visual-only, independent of the slower contextual focus.
   {
     CompanionRuntimeService runtime;

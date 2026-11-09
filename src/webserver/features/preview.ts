@@ -93,7 +93,6 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   media_control: "media",
   companion_app: "companion",
   companion_folder: "companion",
-  companion_mac_lock: "companion",
   companion_shortcut: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",

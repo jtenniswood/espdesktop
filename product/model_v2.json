@@ -66,6 +66,7 @@
       "lock": "product/v2/cards/lock.json",
       "push": "product/v2/cards/push.json",
       "companion": "product/v2/cards/companion.json",
+      "companion_mac_lock": "product/v2/cards/companion_mac_lock.json",
       "slider": "product/v2/cards/slider.json",
       "subpage": "product/v2/cards/subpage.json",
       "climate": "product/v2/cards/climate.json",
