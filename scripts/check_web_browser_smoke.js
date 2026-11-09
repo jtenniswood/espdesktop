@@ -16,7 +16,6 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
-  splitSubpageConfigChunks,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
 const { encodePanelPageDocument, decodePanelPageDocument } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
@@ -697,10 +696,6 @@ function nativeDocumentEvents(document) {
   });
   Object.entries(document.subpages).forEach(([slot, state]) => {
     events.push({ id: `text-subpage_${slot}_config`, state });
-  });
-  const specialPageChunks = splitSubpageConfigChunks(document.settings.special_page || "", 8, 255) || [];
-  ["", "_ext", "_ext_2", "_ext_3", "_ext_4", "_ext_5", "_ext_6", "_ext_7"].forEach((suffix, index) => {
-    events.push({ id: `text-special_page_config${suffix}`, state: specialPageChunks[index] || "" });
   });
   return events;
 }
@@ -3750,38 +3745,9 @@ async function assertCameraRefreshSettings(page, posts, label) {
   const before = posts.length;
   await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await page.getByRole("button", { name: "Camera Card card type", exact: true }).click();
-  await page.locator("#sp-inp-entity").fill("camera.front_door");
-  await page.locator("#sp-inp-entity").dispatchEvent("change");
-  await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Refresh Settings" })
-    .locator("> .sp-disclosure-button").click();
-  const mode = page.locator("#sp-inp-image-refresh-mode");
-  const interval = page.locator("#sp-inp-image-refresh-interval");
-  const trigger = page.locator("#sp-inp-image-refresh-trigger");
-  assert.strictEqual(await page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Modal Settings" })
-    .locator("#sp-inp-image-refresh-mode").count(), 0,
-    `${label}: refresh controls must sit outside Modal Settings`);
-  assert(await page.getByText("On activity refreshes them every 5 seconds for 30 seconds.", { exact: false }).count() === 1);
-  assert.strictEqual(await mode.inputValue(), "off", `${label}: camera refresh is opt-in`);
-  assert(!(await interval.isVisible()));
-  await mode.selectOption("periodic");
-  assert.strictEqual(await interval.inputValue(), "10");
-  await interval.selectOption("5");
-  assert(!(await trigger.isVisible()));
-  await mode.selectOption("activity");
-  assert(await trigger.isVisible());
-  assert(!(await interval.isVisible()));
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  const error = page.getByText("Choose a binary sensor or event entity for activity refresh.", { exact: true });
-  assert(await error.isVisible());
-  await trigger.fill("camera.other");
-  await page.getByRole("button", { name: "Save", exact: true }).click();
-  assert(await error.isVisible());
-  await trigger.fill("event.doorbell");
-  assert.strictEqual(await error.count(), 0);
-  assert.strictEqual(posts.length, before, `${label}: invalid refresh drafts must not save`);
-  await page.locator("#sp-inp-entity").fill("image.front_door");
-  assert(!(await mode.isVisible()), `${label}: image entities use revision events instead of polling controls`);
+  assert.strictEqual(await page.getByRole("button", { name: "Camera Card card type", exact: true }).count(), 0,
+    `${label}: retired camera cards must not appear in the picker`);
+  assert.strictEqual(posts.length, before, `${label}: checking retired picker entries must not save`);
   await page.locator(".sp-settings-close").click();
   await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay").classList.contains("sp-visible"));
 }
@@ -5087,58 +5053,7 @@ async function assertCardTransferSmoke(page, posts, label) {
     await page.locator(".sp-ctx-menu").getByText("Copy Code", { exact: true }).isVisible(),
     `${label}: card context menu exposes transfer-code copying`,
   );
-  await page.locator(".sp-ctx-menu").getByText("Copy Code", { exact: true }).click();
-  const copyDialog = page.locator(".sp-transfer-dialog");
-  await copyDialog.waitFor({ state: "visible" });
-  assert.strictEqual(
-    await copyDialog.getByRole("heading", { name: "Copy Code", exact: true }).count(),
-    1,
-    `${label}: copy dialog uses the concise title`,
-  );
-  const code = await copyDialog.locator("textarea").inputValue();
-  const envelope = JSON.parse(code);
-  assert.strictEqual(envelope.format, "espdesktop.cards", `${label}: copied card code has the format marker`);
-  assert.strictEqual(envelope.version, 1, `${label}: copied card code uses version 1`);
-  assert.strictEqual(envelope.cards.length, 1, `${label}: single-card code contains one card`);
-  assert(
-    String(envelope.cards[0].entity || "").includes("."),
-    `${label}: copied code preserves the configured entity`,
-  );
-  assert.strictEqual(
-    await copyDialog.getByText("Copy this code to another controller.", { exact: true }).count(),
-    1,
-    `${label}: copy dialog uses concise guidance`,
-  );
-  const copyButton = copyDialog.getByRole("button", { name: "Copy", exact: true });
-  assert.strictEqual(await copyButton.count(), 1, `${label}: copy dialog exposes a clipboard copy button`);
-  assert(
-    await copyButton.evaluate((button) =>
-      button.classList.contains("sp-action-btn") &&
-      button.classList.contains("sp-transfer-copy-btn") &&
-      button.querySelector(".mdi-content-copy"),
-    ),
-    `${label}: copy button uses the copy icon and transfer button style`,
-  );
-  assert.strictEqual(
-    await copyDialog.locator(".sp-transfer-actions").count(),
-    1,
-    `${label}: copy dialog shows footer actions`,
-  );
-  assert.strictEqual(
-    await copyDialog.getByText(/Press (Command|Ctrl)\+C to copy\./).count(),
-    0,
-    `${label}: copy dialog does not show a clipboard shortcut instruction`,
-  );
-  const copySelection = await copyDialog.locator("textarea").evaluate((textarea) => ({
-    start: textarea.selectionStart,
-    end: textarea.selectionEnd,
-    length: textarea.value.length,
-  }));
-  assert.deepStrictEqual(
-    copySelection,
-    { start: 0, end: copySelection.length, length: copySelection.length },
-    `${label}: card code is selected for manual copying`,
-  );
+  let code;
   for (const mode of ["modern", "http", "denied", "blocked"]) {
     await page.evaluate((mode) => {
       window.__copyTestOriginalClipboard = Object.getOwnPropertyDescriptor(navigator, "clipboard");
@@ -5152,31 +5067,32 @@ async function assertCardTransferSmoke(page, posts, label) {
       } });
       document.execCommand = (command) => {
         if (command !== "copy" || mode === "blocked") return false;
-        const textarea = document.querySelector(".sp-transfer-code");
+        const textarea = document.querySelector("textarea[readonly]");
         window.__copiedCode = textarea.value.slice(textarea.selectionStart, textarea.selectionEnd);
         return true;
       };
+      document.querySelector(".sp-banner").textContent = "";
     }, mode);
-    await copyDialog.getByRole("button", { name: "Copy", exact: true }).click();
-    await page.waitForFunction(() => !document.querySelector(".sp-transfer-actions .sp-transfer-copy-btn").disabled);
-    assert.strictEqual(await copyDialog.getByRole("status").textContent(), mode === "blocked"
-      ? "Could not copy automatically. Copy the selected code manually."
-      : "", `${label}: copying only shows a message when it fails`);
-    assert.strictEqual(await page.evaluate(() => window.__copiedCode), mode === "blocked" ? null : code,
-      `${label}: ${mode} clipboard path copies the exact code or reports failure`);
+    if (mode !== "modern") {
+      await page.locator('.sp-main [data-slot="1"]').click({ button: "right", force: true });
+      await page.locator(".sp-ctx-menu").waitFor({ state: "visible" });
+    }
+    await page.locator(".sp-ctx-menu").getByText("Copy Code", { exact: true }).click();
+    await page.waitForFunction(() => !!document.querySelector(".sp-banner").textContent);
+    assert.strictEqual(await page.locator(".sp-transfer-dialog").count(), 0,
+      `${label}: Copy Code copies directly without a modal`);
+    assert.strictEqual(await page.locator("textarea[readonly]").count(), 0,
+      `${label}: copying cleans up its temporary field`);
+    const copied = await page.evaluate(() => window.__copiedCode);
     if (mode === "blocked") {
-      assert.strictEqual(await copyDialog.getByRole("button", { name: "Copy", exact: true }).count(), 1,
-        `${label}: failed copying keeps the default button state`);
+      assert.strictEqual(copied, null, `${label}: blocked copying does not claim success`);
+      assert(await page.locator(".sp-banner.sp-error").isVisible(), `${label}: blocked copying shows an error toast`);
+      assert((await page.locator(".sp-banner").textContent()).includes("Could not copy card code"));
     } else {
-      const copiedButton = copyDialog.getByRole("button", { name: "Copied", exact: true });
-      assert.strictEqual(await copiedButton.count(), 1, `${label}: successful copying shows the copied state`);
-      assert(
-        await copiedButton.evaluate((button) =>
-          button.classList.contains("sp-copied") && button.querySelector(".mdi-check"),
-        ),
-        `${label}: successful copying uses the check icon and accent state`,
-      );
-      await copyDialog.getByRole("button", { name: "Copy", exact: true }).waitFor({ state: "visible" });
+      if (!code) code = copied;
+      assert.strictEqual(copied, code, `${label}: ${mode} copies the exact card code`);
+      assert(await page.locator(".sp-banner.sp-success").isVisible(), `${label}: copying shows a success toast`);
+      assert.strictEqual(await page.locator(".sp-banner").textContent(), "Card code copied to clipboard.");
     }
     await page.evaluate(() => {
       if (window.__copyTestOriginalClipboard) Object.defineProperty(navigator, "clipboard", window.__copyTestOriginalClipboard);
@@ -5187,27 +5103,11 @@ async function assertCardTransferSmoke(page, posts, label) {
       delete window.__copiedCode;
     });
   }
-  const dialogFont = await copyDialog.evaluate((element) => getComputedStyle(element).fontFamily);
-  assert(/Inter|Segoe UI|Roboto|sans-serif/i.test(dialogFont), `${label}: copy dialog uses the web UI font stack`);
-  const codeFont = await copyDialog.locator("textarea").evaluate((element) => getComputedStyle(element).fontFamily);
-  assert(/ui-monospace|SFMono|Menlo|Consolas|monospace/i.test(codeFont), `${label}: transfer code uses a monospace font`);
-  const closeControl = await copyDialog.locator(".sp-transfer-close").evaluate((button) => {
-    const rect = button.getBoundingClientRect();
-    const icon = button.querySelector(".sp-transfer-close-icon path");
-    return {
-      buttonType: button.type,
-      hasInlineIcon: !!icon,
-      width: rect.width,
-      height: rect.height,
-      touchAction: getComputedStyle(button).touchAction,
-    };
-  });
-  assert.strictEqual(closeControl.buttonType, "button", `${label}: close control cannot submit another form`);
-  assert(closeControl.hasInlineIcon, `${label}: close control uses a self-contained icon`);
-  assert(closeControl.width >= 36 && closeControl.height >= 36, `${label}: close control has a usable target size`);
-  assert.strictEqual(closeControl.touchAction, "manipulation", `${label}: close control responds promptly to touch`);
-  await copyDialog.locator(".sp-transfer-close").click();
-  await copyDialog.waitFor({ state: "detached" });
+  const envelope = JSON.parse(code);
+  assert.strictEqual(envelope.format, "espdesktop.cards", `${label}: copied card code has the format marker`);
+  assert.strictEqual(envelope.version, 1, `${label}: copied card code uses version 1`);
+  assert.strictEqual(envelope.cards.length, 1, `${label}: single-card code contains one card`);
+  assert(String(envelope.cards[0].entity || "").includes("."), `${label}: copied code preserves the configured entity`);
 
   const beforePaste = posts.length;
   const destination = await openPasteCardCodeDialog(page);
@@ -6994,6 +6894,11 @@ async function runCase(browser, testCase) {
     await page.waitForSelector(".sp-main > .sp-btn");
     await page.waitForTimeout(100);
 
+    if (process.env.ESPDESKTOP_CARD_TRANSFER_ONLY === "1") {
+      await assertCardTransferSmoke(page, posts, testCase.name);
+      console.log(`${testCase.name}: direct clipboard, toast, failure and Paste Code checks passed.`);
+      return;
+    }
     assert.deepStrictEqual(
       errors,
       [],
@@ -7283,7 +7188,7 @@ async function assertResetControls(browser) {
         await page.setViewportSize({ width: 320, height: 700 });
         assert(await confirmation.evaluate(el => el.scrollWidth <= el.clientWidth), "confirmation must fit a narrow phone");
         await page.setViewportSize(testCase.viewport);
-        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and the Home Assistant API key will be erased."));
+        assert((await confirmation.innerText()).includes("Saved Wi-Fi credentials and Mac pairing will be erased."));
         for (const text of ["", "reset", " RESET", "RESET ", "RESE"]) {
           await confirmationInput.fill(text);
           await confirmationInput.press("Enter");
@@ -7352,7 +7257,9 @@ async function assertNamingOfflineBackups(browser) {
     const offlineBackup = backupFixture(testCase.slug, testCase.slots);
     offlineBackup.identity = { version: 1, name: "Other panel", hostname: "other-panel-ffffff", mac_suffix: "ffffff" };
     await importBackup(page, offlineBackup, "identity-offline-restore");
-    await page.waitForSelector(".sp-banner.sp-success");
+    await page.locator(".sp-banner.sp-warning").filter({ hasText: "Configuration imported successfully" }).waitFor();
+    assert.match(await page.locator(".sp-banner.sp-warning").innerText(), /Home Assistant, which is unavailable/,
+      "offline restore retains its unavailable-card warning in the final result");
     assert.strictEqual(identityState.posts.length, 0, "offline restore cannot rename the destination");
     assert.strictEqual(restartRequests.length, 0, "offline restore cannot restart for naming");
     assert.strictEqual(await page.locator("dialog[open]").count(), 0, "offline restore skips the optional name dialog");
@@ -8732,8 +8639,6 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
           assert.strictEqual(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), !clockOn,
             "returning home restores its own Clock Bar setting");
         }
-        await page.getByRole("button", { name: "Configure swipe-up page", exact: true }).click();
-        await checkSubpage(compactTop);
       }
     }
     assert.deepStrictEqual(errors, []);
@@ -8743,52 +8648,6 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
 
 async function assertSubpageClockBar(browser, testCase) {
   await assertSubpageTitleBarSetting(browser, testCase);
-}
-
-async function assertSpecialPageEntry(browser, testCase) {
-  const nativeState = nativeConfigState(testCase.slug);
-  const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
-    ? { width: 390, height: 844 } : testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
-  const page = await context.newPage();
-  await installFakeEventSource(page);
-  async function openPage() {
-    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
-    await entry.waitFor();
-    assert.strictEqual(await page.locator("#sp-screen .sp-apply-bar").count(), 0, "Layout has no Apply button or restart note");
-    const screenBounds = await page.locator(".sp-screen").boundingBox();
-    const entryBounds = await entry.boundingBox();
-    assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
-    assert(entryBounds.y - screenBounds.y - screenBounds.height <= 11, "swipe-up entry stays close to the display");
-    assert(Math.abs(entryBounds.width - screenBounds.width) < 1, "swipe-up entry matches the display width");
-    assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
-    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "home preview has no grab handle");
-    assert.strictEqual(await entry.innerText(), "Configure swipe-up page");
-    assert(entryBounds.height >= 48, "Configure swipe-up page has a taller click target");
-    assert(!(await page.locator("#sp-screen .sp-hint").isVisible()), "idle editing instructions are hidden without blank spacing");
-    assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
-    if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
-    await entry.focus();
-    await entry.press("Enter");
-    await page.locator(".sp-main .sp-back-btn").waitFor();
-    assert.strictEqual(await entry.count(), 0, "entry is hidden while editing the swipe-up page");
-    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "swipe-up page has no clock bar");
-    assert.strictEqual(await page.locator(".sp-topbar .sp-clockbar-subpage-title").count(), 0, "swipe-up page has no title inside the display");
-    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "special page preview has no grab handle");
-    assert.strictEqual(await page.getByRole("button", { name: "Rename Special Page", exact: true }).count(), 0, "page title is absent above the preview");
-    if (process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT, fullPage: true });
-  }
-  try {
-    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
-    await page.waitForSelector("#sp-app");
-    await seedNativeDocument(page, nativeState);
-    await openPage();
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await openPage();
-
-    console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
-
-  } finally { await context.close(); }
 }
 
 async function assertRetiredCardRemoval(browser) {
@@ -8828,7 +8687,66 @@ async function assertRetiredCardRemoval(browser) {
 
     } finally { await context.close(); }
   }
+  for (const testCase of ACTIVE_CASES) {
+    const nativeState = nativeConfigState(testCase.slug);
+    nativeState.document.buttons = { 2: ";Clock;Clock;Auto;;;clock" };
+    nativeState.document.subpages = {};
+    nativeState.document.settings.button_order = "2";
+    const context = await browser.newContext({ viewport: testCase.viewport });
+    // Even a stale device capability cannot restore the retired connector/cards.
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    try {
+      await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+      await page.waitForSelector("#sp-app");
+      await seedNativeDocument(page, nativeState);
+      await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
+      await page.waitForSelector(".sp-settings-modal");
+      assert.strictEqual(await page.getByRole("button", { name: "Action card type", exact: true }).count(), 0);
+      assert.strictEqual(await page.getByRole("button", { name: "Local Action card type", exact: true }).count(), 0);
+      assert.strictEqual(await page.getByRole("button", { name: "Subpage card type", exact: true }).count(), 1,
+        `${testCase.name}: the picker offers one shared Subpage choice`);
+      assert(!/Home Assistant/i.test(await page.locator(".sp-settings-modal").innerText()),
+        `${testCase.name}: new-card picker offers no HA integration or wording`);
+      await page.getByRole("button", { name: "Subpage card type", exact: true }).click();
+      await page.getByPlaceholder("e.g. Folder Name", { exact: true }).waitFor({ state: "attached" });
+      await page.locator(".sp-settings-modal .sp-save-btn").waitFor({ state: "visible" });
+    } finally { await context.close(); }
+  }
+  console.log(`Action/HA picker absence passed for ${ACTIVE_CASES.length} layouts.`);
   console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
+}
+
+async function assertRetiredSettingsStayUnavailable(browser, testCase) {
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  const nativeState = nativeConfigState(testCase.slug);
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  const errors = [];
+  page.on("pageerror", error => errors.push(error.message));
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-voice_services", state: "ON", value: true },
+      { id: "switch-alarm_delay__audio", state: "ON", value: true },
+      { id: "switch-indoor_temp_enable", state: "ON", value: true },
+      { id: "select-temperature_unit", state: "°F", value: "°F" },
+    ]));
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    assert.strictEqual(await page.locator("#sp-set-voice-services,#sp-set-alarm-delay-audio,#sp-set-temperature-unit,.sp-clockbar-voice").count(), 0,
+      `${testCase.name}: retired events cannot recreate HA settings or clock-bar items`);
+    const headers = await page.locator("#sp-settings .card-header h3").allTextContents();
+    for (const retired of ["Voice Services", "Alarm Audio", "Alarm Delay Audio", "Temperature"]) {
+      assert(!headers.includes(retired), `${testCase.name}: retired ${retired} settings are absent`);
+    }
+    assert(headers.includes("Clock Bar"), `${testCase.name}: local clock-bar settings remain`);
+    assert.deepStrictEqual(errors, [], `${testCase.name}: browser composition and retired events raise no errors`);
+    console.log(`${testCase.name}: retired settings remain unavailable; local Clock Bar is available.`);
+  } finally { await context.close(); }
 }
 
 async function assertNestedCompanionPages(browser) {
@@ -8911,8 +8829,18 @@ async function assertNestedCompanionPages(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_CARD_TRANSFER_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
+      return;
+    }
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
+    if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
+      await assertNamingOfflineBackups(browser);
+      console.log(`Retired HA settings and backup export checks passed for ${ACTIVE_CASES.length} layouts.`);
+      return;
+    }
     if (process.env.ESPDESKTOP_COMPANION_SHORTCUTS_ONLY === "1") {
       const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
       await assertCompanionShortcutSettings(browser, testCase);
@@ -8933,10 +8861,6 @@ async function assertNestedCompanionPages(browser) {
     }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
       await assertAppSubpageOpeningPreference(browser);
-      return;
-    }
-    if (process.env.ESPDESKTOP_SPECIAL_PAGE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertSpecialPageEntry(browser, testCase);
       return;
     }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
@@ -8968,7 +8892,6 @@ async function assertNestedCompanionPages(browser) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
-    await assertSpecialPageEntry(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RAINFALL_ONLY === "1") { await assertRainfallEditor(browser); return; }

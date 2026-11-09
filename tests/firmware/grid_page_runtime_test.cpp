@@ -27,13 +27,11 @@ static uint8_t *allocate(size_t size) {
 }
 int main() {
   const auto &limits = DEVICE_UI_PROFILES[8];
-  Text order, color, special;
+  Text order, color;
   std::array<Text, 9> buttons, subpages;
   PanelConfigTextBindings bindings;
   bindings.set_device_profile(limits.device_profile);
   bindings.set_button_order(&order); bindings.set_button_on_color(&color);
-  std::array<PanelConfigTextValue *, 8> special_chunks{}; special_chunks[0] = &special;
-  bindings.set_special_page_chunks(special_chunks);
   for (size_t i = 0; i < buttons.size(); ++i) {
     std::array<PanelConfigTextValue *, 8> chunks{}; chunks[0] = &subpages[i];
     assert(bindings.set_button(i + 1, &buttons[i], chunks));
@@ -50,7 +48,7 @@ int main() {
     assert(grid_native_page(33)->owner_config.find("com.apple.Safari") != std::string::npos);
     assert(grid_native_page(33)->config.find("shortcut.command+l") != std::string::npos);
     expected = grid_native_page(33)->config;
-    assert(!special.current.empty() && order.current == "1");
+    assert(order.current == "1");
     assert(order.persistent_writes == 0 && subpages[0].persistent_writes == 0);
     fail_allocation = true;
     assert(!runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));

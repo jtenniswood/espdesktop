@@ -1,5 +1,6 @@
 import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
@@ -380,7 +381,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             selectedTypeKey,
             connector,
             dependencies.homeAssistantSupported(),
-            state.editingSubpage === -1,
         );
     }
     function buttonTypePickerKeys(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
@@ -412,10 +412,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.title = "Click to rename; Enter to save";
     }
     function renderPreview(this: any) {
-        if (els.specialPageEntry) {
-            els.specialPageEntry.hidden = state.editingSubpage === -1;
-            els.specialPageEntry.disabled = state.configLocked;
-        }
         appIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
@@ -454,16 +450,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
                 var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                var isSpecialPage = state.editingSubpage === -1;
-                const parent = !isSpecialPage && state.editingSubpage != null
+                const parent = state.editingSubpage != null
                     ? state.buttons[state.editingSubpage - 1] : null;
                 const appBack = companionAppShortcutFolderEnabled(parent);
-                var backLabel = subpage?.backLabel || (isSpecialPage ? "Close" : "Back");
+                var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
                         (appBack ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
@@ -568,6 +563,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     sensorBadge +
                         iconHtml +
                         labelHtml;
+                if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {
+                    const warning = "Home Assistant unavailable. Saved configuration kept; replace or remove this card.";
+                    btn.title = warning;
+                    const badge = document.createElement("span");
+                    badge.className = "sp-sensor-badge mdi mdi-alert";
+                    badge.setAttribute("role", "img");
+                    badge.setAttribute("aria-label", warning);
+                    btn.appendChild(badge);
+                }
                 // Offer renaming only when the preview displays a name that can be saved.
                 if (cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
                     previewHtmlValue(typePreview, "labelEditable", true)) {

@@ -1,6 +1,5 @@
 #include "espdesktop_app.h"
 #include "device_reset.h"
-#include "home_assistant_transport_runtime.h"
 #include "esphome/components/artwork_image/transfer_observer.h"
 
 #include <algorithm>
@@ -34,6 +33,7 @@
 #include "panel_config_transient_storage.h"
 #include "panel_config_write_endpoint.h"
 #include "panel_identity_endpoint.h"
+#include "panel_diagnostics_endpoint.h"
 #include "companion_app_icon_endpoint.h"
 #include "screensaver_pin_endpoint.h"
 #include "button_grid.h"
@@ -63,8 +63,8 @@ extern "C" void espdesktop_register_web_server_handlers(
   if (server == nullptr) return;
   espdesktop::reset::register_handlers(*server);
   espdesktop::register_panel_identity_endpoint(*server);
+  espdesktop::register_panel_diagnostics_endpoint(*server);
   espdesktop::register_screensaver_pin_endpoint(*server);
-  register_local_action_endpoint(*server);
   register_companion_actions_endpoint(*server);
   register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
@@ -219,7 +219,6 @@ class EspDesktopApp::NativeConfigurationRuntime {
    configuration::ConfigurationCompatibilityRetry compatibility_retry;
    uint32_t finder_poll_ms{0};
    std::string finder_catalogue;
-   std::array<configuration::EspHomePanelConfigTextValue, configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> special_page{};
    bool document_available{false};
    bool service_configured{false};
    bool storage_ready{false};
@@ -291,16 +290,6 @@ void EspDesktopApp::set_panel_config_button_on_color(
   panel_config_chrome_empty_defaults_ &= ~uint8_t{2};
 }
 
-void EspDesktopApp::set_panel_config_special_page(
-    esphome::text::Text *chunk_0, esphome::text::Text *chunk_1,
-    esphome::text::Text *chunk_2, esphome::text::Text *chunk_3,
-    esphome::text::Text *chunk_4, esphome::text::Text *chunk_5,
-    esphome::text::Text *chunk_6, esphome::text::Text *chunk_7) {
-  panel_config_special_page_chunks_ = {
-      chunk_0, chunk_1, chunk_2, chunk_3,
-      chunk_4, chunk_5, chunk_6, chunk_7};
-}
-
 void EspDesktopApp::set_panel_config_button(
     uint8_t slot, esphome::text::Text *button,
     esphome::text::Text *subpage_0, esphome::text::Text *subpage_1,
@@ -361,15 +350,6 @@ bool EspDesktopApp::create_native_configuration_runtime() {
       panel_config_button_on_color_, panel_config_color_template_,
       (panel_config_chrome_empty_defaults_ & 2u) != 0);
   runtime->text_bindings.set_button_on_color(&runtime->button_on_color);
-  std::array<configuration::PanelConfigTextValue *,
-             configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS>
-      special_page_chunks{};
-  for (size_t index = 0; index < panel_config_special_page_chunks_.size(); ++index) {
-    if (panel_config_special_page_chunks_[index] == nullptr) continue;
-    runtime->special_page[index].bind(panel_config_special_page_chunks_[index]);
-    special_page_chunks[index] = &runtime->special_page[index];
-  }
-  runtime->text_bindings.set_special_page_chunks(special_page_chunks);
   for (size_t index = 0; index < panel_config_button_texts_.size(); ++index) {
     const PanelConfigTextSources &sources = panel_config_button_texts_[index];
     // Device profiles only provide text entities for their real panel slots.
@@ -584,32 +564,13 @@ void EspDesktopApp::retry_configuration_compatibility() {
 
 void EspDesktopApp::setup() {
   screensaver_pin().setup();
-  home_assistant_endpoint_.setup();
-  esphome::artwork_image::TransferObserver::instance().set(
-      [this](const std::string &origin) -> uint32_t {
-        return home_assistant_endpoint::parse_origin(origin) == home_assistant_endpoint_.origin()
-            ? home_assistant_endpoint_.generation() : 0;
-      },
-      [this](const esphome::artwork_image::TransferNotice &notice) {
-        using Failure = esphome::artwork_image::TransferFailure;
-        home_assistant_endpoint_.report_download(
-            home_assistant_endpoint::parse_origin(notice.request.origin),
-            notice.request.endpoint_generation, notice.status,
-            notice.failure == Failure::NONE, notice.failure == Failure::TRANSPORT);
-      });
-
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
     ESP_LOGE(TAG, "Application core failed to start");
   }
   connectors::connector_state_service().setup(
-      panel_config_button_order_ != nullptr &&
-          !panel_config_button_order_->state.empty(),
       web_auth_username_, web_auth_password_);
-  clock_bar_home_assistant_configured_provider() = []() {
-    return connectors::connector_state_service().status().home_assistant_configured;
-  };
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.
   // Give the display and restored text entities time to come up before
@@ -911,8 +872,7 @@ void EspDesktopApp::loop() {
     retry_configuration_compatibility();
   }
   if (shutting_down_) return;
-  home_assistant_endpoint_.loop();
-  trace_phase("HA endpoint");
+  trace_phase("configuration");
   core_.run_once();
   trace_phase("app core");
   // Transport callbacks only request a refresh; apply it on the UI loop.
@@ -930,19 +890,11 @@ void EspDesktopApp::loop() {
 #endif
   sync_finder_folders();
   trace_phase("Finder sync");
-  // The app core starts before WiFi so Home Assistant boot automations are
-  // safe. The IDF web server starts later, so retry idempotent registrations.
+  // The IDF web server starts later, so retry idempotent registrations.
   if (shutting_down_) return;
   register_panel_config_endpoints();
   trace_phase("HTTP registration");
   if (application_scene_ && application_scene_->maintenance_ready()) application_scene_->loop();
-}
-
-void EspDesktopApp::on_safe_shutdown() {
-  // ESPHome runs all safe-shutdown hooks before any on_shutdown hook. mDNS
-  // shuts down before this AFTER_WIFI component, freeing outstanding query
-  // handles, so release our discovery query while the service is still alive.
-  home_assistant_endpoint_.shutdown();
 }
 
 void EspDesktopApp::on_shutdown() {

@@ -53,5 +53,4 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
   for (const slot of Object.keys(document.subpages)) {
     document.subpages[Number(slot)] = cleanSubpage(document.subpages[Number(slot)]!);
   }
-  if (document.settings.special_page) document.settings.special_page = cleanSubpage(document.settings.special_page);
 }

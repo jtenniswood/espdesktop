@@ -38,7 +38,7 @@
       "id": "5",
       "label": "Find in the workspace",
       "shortcut": "command+shift+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "6",

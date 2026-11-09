@@ -135,7 +135,7 @@ int main() {
       calendar.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
       weather.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       weather_forecast.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
-      !toggle.known || !action.known || !alarm_action.known ||
+      !toggle.known || action.known || !alarm_action.known ||
       !fan_switch.known || !light_switch.known ||
       raw_local_action_alias.known ||
       !push.known || !webhook.known ||
@@ -148,7 +148,7 @@ int main() {
       fan_direction.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
       fan_preset.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
       option_select.runtime.driver !=
-        espdesktop::card_runtime::CardDriverId::OPTION_SELECT ||
+        espdesktop::card_runtime::CardDriverId::UNKNOWN ||
       vacuum.runtime.driver != espdesktop::card_runtime::CardDriverId::VACUUM ||
       mower.runtime.driver != espdesktop::card_runtime::CardDriverId::LAWN_MOWER ||
       garage.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
@@ -236,7 +236,7 @@ int main() {
     return EXIT_FAILURE;
   }
   if (option_select_compatibility.runtime.driver !=
-        espdesktop::card_runtime::CardDriverId::ACTION) {
+        espdesktop::card_runtime::CardDriverId::UNKNOWN) {
     return EXIT_FAILURE;
   }
   // Modal-opening cards skip the temporary pressed-card repaint. Direct
@@ -251,7 +251,7 @@ int main() {
       !card_runtime_main_click_opens_modal(media_control) ||
       !card_runtime_main_click_opens_modal(media_volume) ||
       !card_runtime_main_click_opens_modal(media_cover_art) ||
-      !card_runtime_main_click_opens_modal(option_select) ||
+      card_runtime_main_click_opens_modal(option_select) ||
       card_runtime_main_click_opens_modal(media_play_pause) ||
       card_runtime_main_click_opens_modal(media_transport) ||
       card_runtime_main_click_opens_modal(media_position) ||
@@ -259,12 +259,12 @@ int main() {
     return EXIT_FAILURE;
   }
   const char *contract_card_types[] = {
-    "", "action", "alarm", "alarm_action", "calendar", "climate",
+    "", "alarm", "alarm_action", "calendar", "climate",
     "climate_control", "clock", "cover", "door_window", "fan_control",
     "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_switch",
     "garage", "gate", "image", "lawn_mower", "light_brightness",
     "light_control", "light_switch", "light_temperature", "lock",
-    "media", "option_select", "presence", "push",
+    "media", "presence", "push",
     "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
     "webhook",
   };

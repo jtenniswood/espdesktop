@@ -11,13 +11,12 @@
 #include "espdesktop_app_core.h"
 #include "esphome/components/text/text.h"
 #include "esphome/core/component.h"
-#include "home_assistant_endpoint_resolver.h"
-#include "panel_config_text_storage.h"
+
 #include "panel_identity.h"
+#include "panel_config_text_storage.h"
 namespace esphome::template_ {
 class TemplateText;
 }
-
 namespace espdesktop {
 
 // The main ESPHome component boundary for EspDesktop runtime services.
@@ -34,7 +33,6 @@ class EspDesktopApp : public esphome::Component {
 
   void setup() override;
   void loop() override;
-  void on_safe_shutdown() override;
   void on_shutdown() override;
   float get_setup_priority() const override {
     // The native configuration wiring binds restored ESPHome text entities.
@@ -47,9 +45,6 @@ class EspDesktopApp : public esphome::Component {
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
-  HomeAssistantEndpointResolver &home_assistant_endpoint() {
-    return home_assistant_endpoint_;
-  }
   bool connector_onboarding_complete() const;
 
   // The scene belongs to the firmware application's UI owner and outlives this
@@ -67,13 +62,6 @@ class EspDesktopApp : public esphome::Component {
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
   void set_panel_config_button_on_color(esphome::text::Text *button_on_color);
-  void set_panel_config_special_page(
-      esphome::text::Text *chunk_0, esphome::text::Text *chunk_1,
-      esphome::text::Text *chunk_2, esphome::text::Text *chunk_3,
-      esphome::text::Text *chunk_4 = nullptr,
-      esphome::text::Text *chunk_5 = nullptr,
-      esphome::text::Text *chunk_6 = nullptr,
-      esphome::text::Text *chunk_7 = nullptr);
   // Code generation marks only restore-enabled TemplateText fields whose
   // configured initial value is empty. Missing preferences are equivalent to
   // empty values for those fields, including after a firmware downgrade.
@@ -163,7 +151,6 @@ class EspDesktopApp : public esphome::Component {
   const char *panel_config_device_profile_{nullptr};
   esphome::text::Text *panel_config_button_order_{nullptr};
   esphome::text::Text *panel_config_button_on_color_{nullptr};
-  std::array<esphome::text::Text *, 8> panel_config_special_page_chunks_{};
   bool panel_config_order_template_{false};
   bool panel_config_color_template_{false};
   uint8_t panel_config_chrome_empty_defaults_{0};
@@ -176,7 +163,6 @@ class EspDesktopApp : public esphome::Component {
   // the framework's allocators and component setup are ready.
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
   EspDesktopAppCore core_{};
-  HomeAssistantEndpointResolver home_assistant_endpoint_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
   bool application_scene_required_{false};
   bool configuration_text_refresh_pending_{false};

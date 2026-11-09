@@ -1,6 +1,6 @@
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
-import { normalizeLanguage, normalizeScreensaverAction, normalizeTemperatureUnit } from "../model/settings";
+import { normalizeLanguage, normalizeScreensaverAction } from "../model/settings";
 import { escHtml } from "../application/ui_primitives";
 import type { AppTestHookRegistrar } from "./app_test_hooks";
 import type { CardRegistry } from "../application/card_registry";
@@ -55,7 +55,6 @@ export function installAppTestHooksPreview(
             buttonTypePreviewFor: function (this: any, type?: any, button?: any, options?: any) {
                 var oldTimezone: any = state.timezone;
                 var oldActiveTimezone: any = state.activeTimezone;
-                var oldUnit: any = state.temperatureUnit;
                 var oldClockFormat: any = state.clockFormat;
                 var oldLanguage: any = state.language;
                 options = options || {};
@@ -63,9 +62,6 @@ export function installAppTestHooksPreview(
                     state.timezone = options.timezone;
                 if (options.activeTimezone != null)
                     state.activeTimezone = options.activeTimezone;
-                if (options.temperatureUnit != null) {
-                    state.temperatureUnit = normalizeTemperatureUnit(options.temperatureUnit);
-                }
                 if (options.clockFormat != null)
                     state.clockFormat = options.clockFormat;
                 if (options.language != null)
@@ -76,7 +72,6 @@ export function installAppTestHooksPreview(
                     : null;
                 state.timezone = oldTimezone;
                 state.activeTimezone = oldActiveTimezone;
-                state.temperatureUnit = oldUnit;
                 state.clockFormat = oldClockFormat;
                 state.language = oldLanguage;
                 return preview;

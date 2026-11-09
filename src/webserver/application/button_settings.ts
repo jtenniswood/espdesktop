@@ -165,7 +165,7 @@ export function createButtonSettingsFeature(
         var sp: any = getSubpage(state.editingSubpage);
         var title: any = document.createElement("div");
         title.className = "sp-section-title";
-        const defaultLabel = state.editingSubpage === -1 ? "Close" : "Back";
+        const defaultLabel = "Back";
         title.textContent = defaultLabel + " Button";
         container.appendChild(title);
         var panel: any = document.createElement("div");

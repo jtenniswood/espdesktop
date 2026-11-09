@@ -22,7 +22,8 @@ time = load('time.yaml')
 backlight = load('backlight.yaml')
 scripts = {s['id']: s for config in (time, backlight) for s in config['script']}
 
-# Both clock sources must refresh at second zero, regardless of boot/interval phase.
+# The NTP clock must refresh at second zero, regardless of boot/interval phase.
+assert len(time["time"]) == 1 and time["time"][0]["platform"] == "sntp"
 for source in time['time']:
     event = next(e for e in source['on_time'] if e.get('seconds') == 0)
     assert event['minutes'] == '*'
@@ -108,17 +109,12 @@ int main() {
   assert(date.hidden);
   clock_screensaver_show_date.state = true;
   panel_time.value.valid = false;
-  homeassistant_time.value = {7, 1, true};
-  time_update();
-  assert(label.text == "07:01" && drift_minute == 1);
-  assert(date.text == "9 October 2026" && !date.hidden);
-  homeassistant_time.value.valid = false;
   const int writes = label.writes;
   time_update();
   assert(date.hidden);
   assert(label.writes == writes); // Invalid time does not replace the last valid clock.
   panel_time.value = {8, 2, true};
-  for (auto mode : {DisplayMode::ACTIVE, DisplayMode::COVER_ART, DisplayMode::CAMERA,
+  for (auto mode : {DisplayMode::ACTIVE, DisplayMode::COVER_ART,
                     DisplayMode::DIMMED, DisplayMode::SETUP_DIMMED, DisplayMode::DISPLAY_OFF}) {
     espdesktop_app.mode = mode;
     time_update();
@@ -136,11 +132,11 @@ with tempfile.TemporaryDirectory(prefix='clock-screensaver-time-') as directory:
     subprocess.run(['c++', '-std=c++17', '-Wall', '-Wextra', '-Werror',
                     '-I', str(root / 'components/espdesktop'), str(cpp), '-o', str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print('Screensaver minute-boundary refresh, entry, format, fallback and visibility checks passed.')
+print('Screensaver minute-boundary refresh, entry, format, invalid-time and visibility checks passed.')
 
 # Exercise the production positioning helper across panel sizes and rotations.
 layout_header = (root / 'components/espdesktop/backlight.h').read_text()
-layout_helper = layout_header[layout_header.index('inline void position_clock_screensaver_label'):layout_header.index('inline void position_clock_image_overlay')]
+layout_helper = layout_header[layout_header.index('inline void position_clock_screensaver_label'):layout_header.index('inline bool should_check_update')]
 layout_source = r'''
 #include <algorithm>
 #include <cassert>

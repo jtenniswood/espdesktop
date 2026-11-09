@@ -4,7 +4,7 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 ROOT = Path(__file__).resolve().parents[2]
 ui = (ROOT / 'components/espdesktop/screensaver_pin_ui.h').read_text()
@@ -243,8 +243,7 @@ int main() {
   assert(!ui.overlay && other_card.flags == LV_OBJ_FLAG_CLICKABLE);
   // Cancel restores the actual previous mode, rather than the current
   // configured screensaver preference. Unlocking is still required on wake.
-  for (auto mode : {espdesktop::DisplayMode::CLOCK, espdesktop::DisplayMode::DIMMED,
-                    espdesktop::DisplayMode::CAMERA, espdesktop::DisplayMode::DISPLAY_OFF,
+  for (auto mode : {espdesktop::DisplayMode::CLOCK, espdesktop::DisplayMode::DIMMED, espdesktop::DisplayMode::DISPLAY_OFF,
                     espdesktop::DisplayMode::COVER_ART}) {
     assert(pin.lock());
     pin.arm(mode);
