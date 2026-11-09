@@ -26,7 +26,7 @@ export async function runBackupRestoreControllerTests(): Promise<void> {
   resolveIdle?.();
   await Promise.resolve();
   await Promise.resolve();
-  equal(events.at(-1), "success:Configuration imported successfully", "successful queue completion is reported");
+  equal(events.at(-1), "warning:Configuration imported successfully Different device", "successful queue completion preserves migration warnings");
 
   const combinedWarningEvents: string[] = [];
   const combinedWarnings = createBackupRestoreController<{ warnings: string[] }, undefined>({
@@ -45,6 +45,26 @@ export async function runBackupRestoreControllerTests(): Promise<void> {
     "warning:Native configuration will be skipped Backup has 19 slots, current config has 20 - adapting",
     "multiple restore warnings stay visible in one banner",
   );
+
+  const discoveredWarnings: string[] = [];
+  const discoveredEvents: string[] = [];
+  const discovered = createBackupRestoreController<{ warnings: string[] }, undefined>({
+    plan: () => ({ warnings: discoveredWarnings }),
+    warnings: (plan) => plan.warnings,
+    showBanner: (message, kind) => discoveredEvents.push(`${kind}:${message}`),
+    setPostThrottle: () => undefined,
+    resetPostQueueError: () => undefined,
+    postQueueIdle: async () => undefined,
+    postQueueHadError: () => false,
+  });
+  discovered.restore({}, undefined, async (plan) => {
+    await Promise.resolve();
+    plan.warnings.push("1 saved card needs Home Assistant. Saved configuration kept.");
+  });
+  for (let tick = 0; tick < 8; tick++) await Promise.resolve();
+  equal(discoveredEvents.at(-1),
+    "warning:Configuration imported successfully 1 saved card needs Home Assistant. Saved configuration kept.",
+    "warnings discovered during asynchronous native restore survive the completion banner");
 
   const delayedEvents: string[] = [];
   let finishApply: (() => void) | undefined;

@@ -6,7 +6,7 @@ EspDesktopApp owns long-lived firmware services while YAML continues to supply
 device-specific wiring.
 """
 import esphome.codegen as cg
-from esphome.components.esp32 import VARIANT_ESP32S3, get_esp32_variant
+from esphome.components.esp32 import VARIANT_ESP32P4, VARIANT_ESP32S3, get_esp32_variant
 from esphome.components import text
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
@@ -16,7 +16,6 @@ import os
 CODEOWNERS = ["@jtenniswood"]
 AUTO_LOAD = ["mdns", "json", "socket"]
 
-CONF_ACTION_RESPONSES = "action_responses"
 CONF_PANEL_CONFIG = "panel_config"
 CONF_DEVICE_PROFILE = "device_profile"
 CONF_BUTTON_ORDER = "button_order"
@@ -24,11 +23,9 @@ CONF_BUTTON_ON_COLOR = "button_on_color"
 CONF_BUTTONS = "buttons"
 CONF_CONFIG = "config"
 CONF_SUBPAGE_CHUNKS = "subpage_chunks"
-CONF_SPECIAL_PAGE_CHUNKS = "special_page_chunks"
 CONF_STORAGE = "storage"
 CONF_WEB_AUTH_USERNAME = "web_auth_username"
 CONF_WEB_AUTH_PASSWORD = "web_auth_password"
-CONF_HOME_ASSISTANT_SUPPORT = "home_assistant_support"
 
 espdesktop_ns = cg.global_ns.namespace("espdesktop")
 EspDesktopApp = espdesktop_ns.class_("EspDesktopApp", cg.Component)
@@ -49,9 +46,6 @@ PANEL_CONFIG_SCHEMA = cv.Schema(
         cv.Required(CONF_DEVICE_PROFILE): cv.string_strict,
         cv.Required(CONF_BUTTON_ORDER): cv.use_id(text.Text),
         cv.Optional(CONF_BUTTON_ON_COLOR): cv.use_id(text.Text),
-        cv.Optional(CONF_SPECIAL_PAGE_CHUNKS): cv.All(
-            cv.ensure_list(cv.use_id(text.Text)), cv.Length(min=4, max=8)
-        ),
         cv.Required(CONF_BUTTONS): cv.All(
             cv.ensure_list(PANEL_CONFIG_BUTTON_SCHEMA), cv.Length(min=1, max=32)
         ),
@@ -66,10 +60,6 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_ID): cv.declare_id(EspDesktopApp),
         cv.GenerateID("identity_id"): cv.declare_id(PanelIdentity),
         cv.GenerateID("reset_boot_id"): cv.declare_id(ResetBoot),
-        cv.Optional(CONF_ACTION_RESPONSES, default=True): cv.boolean,
-        # Home Assistant features stay out of the web editor unless the
-        # device owner explicitly opts in from their ESPHome YAML.
-        cv.Optional(CONF_HOME_ASSISTANT_SUPPORT, default=False): cv.boolean,
         cv.Optional(CONF_PANEL_CONFIG): PANEL_CONFIG_SCHEMA,
         cv.Optional(CONF_WEB_AUTH_USERNAME, default=""): cv.string_strict,
         cv.Optional(CONF_WEB_AUTH_PASSWORD, default=""): cv.sensitive(cv.string_strict),
@@ -77,16 +67,16 @@ CONFIG_SCHEMA = cv.Schema(
 ).extend(cv.COMPONENT_SCHEMA)
 
 
-def _consume_endpoint_socket(config):
-    from esphome.components import socket
-
-    consume = getattr(socket, "consume_sockets", None)
-    if consume is not None:
-        consume(1, "ha_endpoint_probe")(config)
-    return config
-
-
-CONFIG_SCHEMA = cv.All(CONFIG_SCHEMA, _consume_endpoint_socket)
+def _empty_template_preference_ids(text_configs):
+    """Only missing preferences which the pinned SDK restores as empty."""
+    return {
+        str(entry[CONF_ID])
+        for entry in text_configs
+        if entry.get("platform") == "template"
+        and entry.get("restore_value", False)
+        and entry.get("initial_value", "") == ""
+        and "lambda" not in entry
+    }
 
 
 @coroutine_with_priority(CoroPriority.DIAGNOSTICS)
@@ -116,25 +106,33 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     cg.add(var.set_web_auth_credentials(username, password))
-    if config[CONF_HOME_ASSISTANT_SUPPORT]:
-        cg.add_define("ESPDESKTOP_HOME_ASSISTANT_SUPPORT")
 
     panel_config = config.get(CONF_PANEL_CONFIG)
     if panel_config is not None:
+        # Every translation unit includes these generated defines through the
+        # component header, so the application's field layout stays consistent.
+        cg.add_define(
+            "ESPDESKTOP_PANEL_CONFIG_TEXT_SLOT_COUNT", len(panel_config[CONF_BUTTONS])
+        )
+        cg.add_define(
+            "ESPDESKTOP_PANEL_CONFIG_TEXT_CHUNK_COUNT",
+            max(
+                len(button[CONF_SUBPAGE_CHUNKS])
+                for button in panel_config[CONF_BUTTONS]
+            ),
+        )
         if panel_config[CONF_STORAGE] == "card_images":
             cg.add(var.set_panel_config_card_images_storage(True))
         cg.add(var.set_panel_config_device_profile(panel_config[CONF_DEVICE_PROFILE]))
+        cg.add_define("ESPDESKTOP_UI_PROFILE_" + panel_config[CONF_DEVICE_PROFILE].replace("-", "_").upper())
         button_order = await cg.get_variable(panel_config[CONF_BUTTON_ORDER])
         cg.add(var.set_panel_config_button_order(button_order))
         if CONF_BUTTON_ON_COLOR in panel_config:
             button_on_color = await cg.get_variable(panel_config[CONF_BUTTON_ON_COLOR])
             cg.add(var.set_panel_config_button_on_color(button_on_color))
-        if CONF_SPECIAL_PAGE_CHUNKS in panel_config:
-            special_page_chunks = [
-                await cg.get_variable(source)
-                for source in panel_config[CONF_SPECIAL_PAGE_CHUNKS]
-            ]
-            cg.add(var.set_panel_config_special_page(*special_page_chunks))
+        referenced_texts = [panel_config[CONF_BUTTON_ORDER]]
+        if CONF_BUTTON_ON_COLOR in panel_config:
+            referenced_texts.append(panel_config[CONF_BUTTON_ON_COLOR])
         for slot, button_sources in enumerate(panel_config[CONF_BUTTONS], start=1):
             button = await cg.get_variable(button_sources[CONF_CONFIG])
             subpages = [
@@ -142,6 +140,13 @@ async def to_code(config):
                 for source in button_sources[CONF_SUBPAGE_CHUNKS]
             ]
             cg.add(var.set_panel_config_button(slot, button, *subpages))
+            referenced_texts.extend(
+                [button_sources[CONF_CONFIG], *button_sources[CONF_SUBPAGE_CHUNKS]]
+            )
+        empty_defaults = _empty_template_preference_ids(CORE.config.get("text", []))
+        for source in referenced_texts:
+            if str(source) in empty_defaults:
+                cg.add(var.set_panel_config_text_empty_default(await cg.get_variable(source)))
 
     for update_config in CORE.config.get("update", []):
         update_entity = await cg.get_variable(update_config[CONF_ID])
@@ -168,6 +173,3 @@ async def to_code(config):
         prepend=True,
     )
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/cover_art.h"'), prepend=True)
-    if config[CONF_ACTION_RESPONSES]:
-        cg.add_define("USE_API_HOMEASSISTANT_ACTION_RESPONSES")
-        cg.add_define("USE_API_HOMEASSISTANT_ACTION_RESPONSES_JSON")

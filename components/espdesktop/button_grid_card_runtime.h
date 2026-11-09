@@ -27,15 +27,11 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
   switch (type) {
     case Type::SWITCH:
     case Type::LIGHT_SWITCH: return Family::TOGGLE;
-    case Type::ACTION: return Family::ACTION;
     case Type::VACUUM: return Family::VACUUM;
     case Type::LAWN_MOWER: return Family::MOWER;
     case Type::ALARM: return Family::ALARM;
     case Type::ALARM_ACTION: return Family::ALARM_ACTION;
     case Type::TIMER: return Family::TIMER;
-    case Type::CALENDAR:
-    case Type::CLOCK:
-    case Type::TIMEZONE: return Family::DATE_TIME;
     case Type::CLIMATE:
     case Type::CLIMATE_CONTROL: return Family::CLIMATE;
     case Type::COVER: return Family::COVER;
@@ -51,17 +47,11 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::GATE:
     case Type::LOCK: return Family::ACCESS;
     case Type::IMAGE: return Family::IMAGE;
-    case Type::WIFI_QR:
-    case Type::WIFI_QR_CARD: return Family::WIFI_QR;
-    case Type::INTERNAL: return Family::INTERNAL;
     case Type::LIGHT_CONTROL: return Family::LIGHT_CONTROL;
     case Type::LIGHT_TEMPERATURE: return Family::LIGHT_TEMPERATURE;
-    case Type::LOCAL_SENSOR: return Family::LOCAL_SENSOR;
     case Type::MEDIA: return Family::MEDIA;
-    case Type::OPTION_SELECT: return Family::OPTION_SELECT;
     case Type::PUSH: return Family::PUSH;
     case Type::COMPANION: return Family::COMPANION;
-    case Type::SENSOR: return Family::SENSOR;
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;
     case Type::SUBPAGE: return Family::SUBPAGE;
@@ -179,13 +169,11 @@ inline bool card_runtime_main_click_opens_modal(
     case Driver::COVER_MODAL:
     case Driver::FAN_CONTROL:
     case Driver::IMAGE:
-    case Driver::WIFI_QR:
     case Driver::LIGHT_CONTROL:
     case Driver::MEDIA_CONTROL:
     case Driver::MEDIA_GROUP:
     case Driver::MEDIA_VOLUME:
     case Driver::MEDIA_COVER_ART:
-    case Driver::OPTION_SELECT:
       return true;
     case Driver::FAN:
       return context.runtime.type == Type::FAN_PRESET;
@@ -238,37 +226,13 @@ inline const char *card_runtime_option_select_canonical_action() {
   return CARD_CONTRACT_OPTION_SELECT_ACTION;
 }
 
-constexpr const char *card_runtime_option_name_state_labels() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_LABELS;
-}
 
-constexpr const char *card_runtime_option_name_state_input() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_INPUT;
-}
 
-constexpr const char *card_runtime_option_name_state_output() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT;
-}
 
-constexpr const char *card_runtime_option_name_state_input_2() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_INPUT_2;
-}
 
-constexpr const char *card_runtime_option_name_state_output_2() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_OUTPUT_2;
-}
 
-constexpr const char *card_runtime_option_name_time_unit() {
-  return CARD_CONTRACT_OPTION_NAME_TIME_UNIT;
-}
 
-constexpr const char *card_runtime_option_name_state_low_label() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_LOW_LABEL;
-}
 
-constexpr const char *card_runtime_option_name_state_high_label() {
-  return CARD_CONTRACT_OPTION_NAME_STATE_HIGH_LABEL;
-}
 
 constexpr const char *card_runtime_option_name_image_label() {
   return CARD_CONTRACT_OPTION_NAME_IMAGE_LABEL;
@@ -436,9 +400,6 @@ inline const char *card_runtime_lock_toggle_service(const std::string &state) {
   return card_contract_lock_toggle_service(state);
 }
 
-inline bool card_runtime_internal_push_mode(const std::string &mode) {
-  return mode == "push" && card_contract_internal_mode_valid(mode);
-}
 
 inline std::string card_runtime_media_mode(const std::string &mode) {
   if (card_contract_media_mode_valid(mode)) return mode;

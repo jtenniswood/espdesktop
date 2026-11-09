@@ -1,3 +1,4 @@
+import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
@@ -48,7 +49,6 @@ import {
     companionShortcutTabsFitSubpage,
     companionShortcutTabsFromSubpage,
     replaceCompanionDefinitions,
-    COMPANION_WEB_APPS,
     finderFolderTabs,
     syncFinderFolderSelection,
     addFinderFolderTiles,
@@ -69,7 +69,6 @@ import {
 } from "../application/companion_shortcut_folder";
 
 const COMPANION_URL_PREFIX = "url.";
-const COMPANION_WEB_APP_PREFIX = "webapp.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
 export const COMPANION_FOLDER_PREFIX = "folder.";
@@ -231,7 +230,6 @@ export function companionSubtypeDefaultIcon(mode: string, entity = ""): string {
     if (COMPANION_STATS_MODES.includes(mode)) {
         return companionCardDefaultIcon("stats");
     }
-    if (mode === "webapp") return "Web";
     if (mode === "window") {
         return COMPANION_WINDOW_ACTION_ICONS[entity] || companionCardDefaultIcon("window");
     }
@@ -259,10 +257,8 @@ export function companionPreviousAppLabel(
     previousMode: string,
     previousEntity: string,
 ): string | null {
-    if ((previousMode !== "app" && previousMode !== "url" && previousMode !== "webapp") || !previousEntity) return "";
-    return previousMode === "webapp"
-        ? COMPANION_WEB_APPS.find((app) => "webapp." + app.id === previousEntity)?.label ?? null
-        : actions.find((action) => action.id === previousEntity)?.label ?? null;
+    if ((previousMode !== "app" && previousMode !== "url") || !previousEntity) return "";
+    return actions.find((action) => action.id === previousEntity)?.label ?? null;
 }
 
 const COMPANION_CARD_METADATA = {
@@ -354,7 +350,6 @@ function companionAppLaunchCard(card: any): boolean {
 
 export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
-    if (mode === "webapp") return COMPANION_WEB_APP_PREFIX;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
@@ -480,7 +475,7 @@ export function registerCompanionCardTypes(
     fields: ControlsFieldsFeature,
     cardUi: CardUiServices,
     modalTabs: Pick<ConfigModalTabOptionsFeature, "renderModalTabSettings">,
-    codec: Pick<ConfigCodecFeature, "buildSubpageGrid" | "enterSubpage" | "saveSubpageConfig">,
+    codec: Pick<ConfigCodecFeature, "buildSubpageGrid" | "enterSubpage" | "enterChildSubpage" | "canCreateSubpage" | "getSubpage" | "saveSubpageConfig">,
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
@@ -575,10 +570,13 @@ export function registerCompanionCardTypes(
             const currentEntity = typeof card.entity === "string" ? card.entity : "";
             card.entity = currentEntity;
             const initialMode = companionCardMode(card);
-            const savedParent = !helpers.isSub && slot ? state.buttons[slot - 1] : null;
+            const parentPage = helpers.isSub ? state.editingSubpage : null;
+            const canAddSubpage = codec.canCreateSubpage(parentPage);
+            const subpageKey = canAddSubpage && slot ? childPageKey(parentPage ?? 0, Number(slot)) : null;
+            const savedParent = slot ? (helpers.isSub ? codec.getSubpage(parentPage).buttons[slot - 1] : state.buttons[slot - 1]) : null;
             let companionActions: readonly CompanionAction[] = [];
             void catalogue.loadDefinitions(true).then((definitions) => {
-                if (replaceCompanionDefinitions(definitions.applications, definitions.webApplications)) renderButtonSettings();
+                if (replaceCompanionDefinitions(definitions.applications)) renderButtonSettings();
             }).catch(() => { /* Keep the bundled starter definitions while the Mac app is offline. */ });
             let availableCompanionApps: readonly CompanionAction[] = [];
             let availableCompanionFolders: readonly CompanionAction[] = [];
@@ -722,40 +720,6 @@ export function registerCompanionCardTypes(
             if (initialMode === "app") {
                 helpers.markCardPrimaryField(appField, "entity");
             }
-            const webAppField = document.createElement("div");
-            webAppField.className = "sp-field";
-            webAppField.appendChild(fieldLabel("Web App", helpers.idPrefix + "companion-webapp"));
-            const webAppSelect = document.createElement("select");
-            webAppSelect.className = "sp-select";
-            webAppSelect.id = helpers.idPrefix + "companion-webapp";
-            const webAppPlaceholder = document.createElement("option");
-            webAppPlaceholder.value = "";
-            webAppPlaceholder.textContent = "Choose a Web App…";
-            webAppSelect.appendChild(webAppPlaceholder);
-            COMPANION_WEB_APPS.forEach((app) => {
-                const option = document.createElement("option");
-                option.value = app.id;
-                option.textContent = app.label;
-                webAppSelect.appendChild(option);
-            });
-            webAppSelect.value = card.entity.startsWith(COMPANION_WEB_APP_PREFIX)
-                ? card.entity.slice(COMPANION_WEB_APP_PREFIX.length) : "";
-            webAppField.appendChild(webAppSelect);
-            panel?.appendChild(webAppField);
-            const webAppIconTitle = helpers.toggleRow(
-                "Large icon with title", helpers.idPrefix + "companion-webapp-icon-title",
-                configOptionEnabled(card.options, "webapp_icon_title"));
-            webAppIconTitle.input.addEventListener("change", function (this: HTMLInputElement) {
-                card.options = setConfigOption(card.options, "webapp_icon_title", this.checked);
-                helpers.saveField("options", card.options);
-            });
-            panel?.appendChild(webAppIconTitle.row);
-            helpers.markCardPrimaryField(webAppField, "entity");
-            helpers.requireField(webAppSelect, "Choose a Web App before saving.", function () {
-                return initialMode === "webapp";
-            }, function (value: string) {
-                return COMPANION_WEB_APPS.some((app) => app.id === value) || card.entity === COMPANION_WEB_APP_PREFIX + value;
-            });
             helpers.requireField(select, "Choose a Mac app before saving.", function () {
                 return initialMode === "app";
             }, function (value: string) {
@@ -1063,7 +1027,7 @@ export function registerCompanionCardTypes(
                 card._modalSettingsOpen = appSubpageDisclosure.panel.classList.contains("sp-open");
             });
             panel?.appendChild(appSubpageDisclosure.panel);
-            const savedShortcutSubpage = !helpers.isSub && slot ? state.subpages[slot] : null;
+            const savedShortcutSubpage = subpageKey ? state.subpages[subpageKey] : null;
             if (savedShortcutSubpage &&
                 companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
                 card._appShortcutSelectionChanged !== true) {
@@ -1077,7 +1041,7 @@ export function registerCompanionCardTypes(
             const folderToggle = helpers.toggleRow(
                 "Add app subpage",
                 helpers.idPrefix + "companion-app-shortcuts",
-                !helpers.isSub && companionAppShortcutFolderEnabled(card),
+                canAddSubpage && companionAppShortcutFolderEnabled(card),
             );
             shortcutFolderField.appendChild(folderToggle.row);
             const shortcutFolderNote = document.createElement("div");
@@ -1222,41 +1186,18 @@ export function registerCompanionCardTypes(
 
             function syncMode(mode: string): void {
                 appField.style.display = mode === "app" ? "" : "none";
-                webAppField.style.display = mode === "webapp" ? "" : "none";
                 appFieldLabel.textContent = "Application";
                 folderField.style.display = mode === "folder" ? "" : "none";
-                webAppIconTitle.row.style.display = mode === "webapp" ? "" : "none";
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
-                appSubpageDisclosure.panel.style.display = !helpers.isSub && (mode === "app" || mode === "webapp") &&
+                appSubpageDisclosure.panel.style.display = canAddSubpage && mode === "app" &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
-                finderOpenBehaviorField.style.display = !helpers.isSub && mode === "app" &&
+                finderOpenBehaviorField.style.display = canAddSubpage && mode === "app" &&
                     card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card) ? "" : "none";
                 advancedFolderSettings.panel.style.display = mode === "folder" ? "" : "none";
             }
             syncMode(initialMode);
-
-            webAppSelect.addEventListener("change", function () {
-                const previousEntity = card.entity;
-                const previousLabel = String(card.label || "");
-                const previousDefinition = COMPANION_WEB_APPS.find((app) => "webapp." + app.id === previousEntity);
-                const selected = COMPANION_WEB_APPS.find((app) => app.id === webAppSelect.value);
-                if (!selected) return;
-                card.entity = COMPANION_WEB_APP_PREFIX + selected.id;
-                card.sensor = "";
-                card.icon = "Web";
-                card.icon_on = "Auto";
-                card.options = setConfigOption(card.options, "app_shortcuts", false);
-                card.label = companionAppLabel(previousLabel, previousDefinition?.label || "", selected.label);
-                helpers.saveField("entity", card.entity);
-                helpers.saveField("sensor", "");
-                helpers.saveField("icon", card.icon);
-                helpers.saveField("icon_on", card.icon_on);
-                helpers.saveField("label", card.label);
-                helpers.saveField("options", card.options);
-                renderButtonSettings();
-            });
 
             windowSelect.addEventListener("change", function () {
                 const currentLabel = typeof card.label === "string" ? card.label : "";
@@ -1458,13 +1399,13 @@ export function registerCompanionCardTypes(
             } else {
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
             }
-            if (companionShortcutFolderEditorAvailable(card, savedParent)) {
+            if (canAddSubpage && companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";
                 editButton.textContent = "Edit Subpage";
                 editButton.addEventListener("click", function () {
                     selection.closeSettings();
-                    codec.enterSubpage(slot);
+                    codec.enterChildSubpage(parentPage, Number(slot));
                 });
                 panel?.appendChild(editButton);
             }
@@ -1528,13 +1469,16 @@ export function registerCompanionCardTypes(
             return preview;
         },
         contextMenuItems: function (slot?: any, card?: any, helpers?: any) {
-            if (helpers?.isSub || !companionAppShortcutFolderEnabled(card)) return;
+            const parent = helpers?.isSub ? state.editingSubpage : null;
+            if (!codec.canCreateSubpage(parent) || !companionAppShortcutFolderEnabled(card)) return;
             helpers.addCtxItem("cog", "Edit Subpage", function () {
-                codec.enterSubpage(slot);
+                codec.enterChildSubpage(parent, Number(slot));
             });
         },
         afterSave: async function (card?: any, slot?: any, context?: any) {
-            if (context?.isSub) return "saved";
+            const parent = context?.isSub ? context.page ?? state.editingSubpage : null;
+            if (!codec.canCreateSubpage(parent)) return "saved";
+            slot = childPageKey(parent ?? 0, Number(slot));
             const folderSelection = card._finderFolderTabs;
             delete card._finderFolderTabs;
             const selectionChanged = card._appShortcutSelectionChanged === true;
@@ -1580,7 +1524,6 @@ export function registerCompanionCardTypes(
 
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
-        ["companion_webapp", "Web App", "webapp"],
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],

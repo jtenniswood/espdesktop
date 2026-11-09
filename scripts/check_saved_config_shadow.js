@@ -72,45 +72,6 @@ function shadowCases() {
       expected: config({}),
     },
   ]);
-  const sensor = JSON.parse(fs.readFileSync(path.join(ROOT, "common/config/sensor_card_normalization_fixtures.json"), "utf8"));
-  sensor.push({
-    name: "short sensor config receives default icons",
-    input: "sensor.x;;;;sensor.x;;sensor;1;large_numbers",
-    expected: {
-      entity: "sensor.x", label: "", icon: "Auto", icon_on: "Auto", sensor: "sensor.x",
-      unit: "", type: "sensor", precision: "1", options: "large_numbers",
-    },
-  }, {
-    name: "text sensor trims padded state translations",
-    input: "sensor.x;State;Auto;Auto;sensor.x;;sensor;text;state_labels,state_input=%20on%20,state_output=%20On%20,state_input_2=%20off%20,state_output_2=%20Off%20",
-    expected: {
-      entity: "sensor.x", label: "State", icon: "Auto", icon_on: "Auto", sensor: "sensor.x",
-      unit: "", type: "sensor", precision: "text", options: "state_labels,state_input=on,state_output=On,state_input_2=off,state_output_2=Off",
-    },
-  });
-  const sensorAliases = JSON.parse(fs.readFileSync(path.join(ROOT, "common/config/baseline_card_normalization_fixtures.json"), "utf8"))
-    .filter((fixture) => fixture.expected.type === "sensor");
-  const confirmation = JSON.parse(fs.readFileSync(path.join(ROOT, "common/config/confirmation_card_normalization_fixtures.json"), "utf8"))
-    .filter((fixture) => fixture.expected.type === "action");
-  const baseline = JSON.parse(fs.readFileSync(path.join(ROOT, "common/config/baseline_card_normalization_fixtures.json"), "utf8"))
-    .filter((fixture) => fixture.expected.type === "action");
-  const action = confirmation.concat(baseline, [
-    {
-      name: "legacy local action receives safe action defaults",
-      input: "local.tap;Tap;Flash;Swap;ignored;unit;local;2;unknown=1",
-      expected: config({ entity: "local.tap", label: "Tap", icon: "Gesture Tap", sensor: "local", type: "action" }),
-    },
-    {
-      name: "action icon state drops numeric-only state options",
-      input: "scene.movie;Movie;Flash;Auto;scene.turn_on;;action;;state_entity=sensor.mode,state_unit=W,state_precision=icon,large_numbers",
-      expected: config({ entity: "scene.movie", label: "Movie", icon: "Flash", sensor: "scene.turn_on", type: "action", options: "state_entity=sensor.mode,state_precision=icon" }),
-    },
-    {
-      name: "short action receives default icons",
-      input: "scene.movie;Movie;;;scene.turn_on;;action;;",
-      expected: config({ entity: "scene.movie", label: "Movie", icon: "Auto", sensor: "scene.turn_on", type: "action" }),
-    },
-  ]);
   const media = JSON.parse(fs.readFileSync(path.join(ROOT, "common/config/media_card_normalization_fixtures.json"), "utf8")).concat([
     {
       name: "media control modal preserves non-default controls",
@@ -128,7 +89,7 @@ function shadowCases() {
       expected: config({ entity: "media_player.x", label: "", icon: "Auto", sensor: "play_pause", type: "media" }),
     },
   ]);
-  return vacuum.concat(sensor, sensorAliases, action, media);
+  return vacuum.concat(media);
 }
 
 function compiler() {
@@ -196,7 +157,7 @@ function main() {
   const codec = loadBrowserCodec();
   const shadow = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_shadow.ts"));
   const firmwareShadow = compiledShadow(cases);
-  assert.deepStrictEqual(Object.keys(shadow.SAVED_CONFIG_SHADOW_PILOT_POLICIES), ["action", "sensor", "media", "vacuum"]);
+  assert.deepStrictEqual(Object.keys(shadow.SAVED_CONFIG_SHADOW_PILOT_POLICIES), ["media", "vacuum"]);
   cases.forEach((fixture, index) => {
     const expected = shape(fixture.expected);
     const production = shape(codec.parseButtonConfig(fixture.input));
@@ -211,7 +172,7 @@ function main() {
     .filter((name) => name.endsWith(".h") && name !== "button_grid_saved_config_shadow_generated.h")
     .filter((name) => fs.readFileSync(path.join(ROOT, "components/espdesktop", name), "utf8").includes("button_grid_saved_config_shadow_generated"));
   assert.deepStrictEqual(firmwareUsers, [], "shadow header must remain outside production firmware");
-  console.log(`Saved-config shadow agreement passed for ${cases.length} Vacuum, Sensor, Action, and Media inputs across browser and compiled C++ helpers.`);
+  console.log(`Saved-config shadow agreement passed for ${cases.length} Vacuum and Media inputs across browser and compiled C++ helpers.`);
   console.log("Production firmware footprint delta: 0 bytes flash / 0 bytes RAM (test-only shadow; 8 KiB guard passed).");
 }
 

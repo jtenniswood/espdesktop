@@ -69,9 +69,6 @@ test("card colours survive other editor option changes", () => {
   assert(media.options.includes("cover_art_details"));
   codec.setMediaCoverArtDetailsEnabled(media, false);
   assert.equal(media.options, colour);
-  const sensor = { type: "sensor", precision: "time", options: colour };
-  codec.setSensorTimeUnit(sensor, "seconds");
-  assert(sensor.options.includes(colour));
   for (const normalize of [
     () => codec.normalizeMediaOptions(colour, "play_pause"),
     () => codec.normalizeMediaOptions(colour, "control_modal"),
@@ -80,7 +77,6 @@ test("card colours survive other editor option changes", () => {
     () => codec.normalizeFanControlOptions(colour),
     () => codec.normalizeCoverOptions(colour),
     () => codec.normalizeLightControlOptions(colour),
-    () => codec.normalizeSensorOptions(colour, "text"),
   ]) {
     assert(normalize().includes(colour));
   }
@@ -156,7 +152,6 @@ test("only native app artwork retains saved icon sizes", () => {
     { type: "companion", entity: "shortcut.command+c" },
     { type: "companion", entity: "stat.cpu" },
     { type: "companion", entity: "folder.Documents" },
-    { type: "companion", entity: "webapp.example" },
     { type: "companion", entity: "window.close" },
     { type: "companion", entity: "com.apple.safari", sensor: "url.https%3A%2F%2Fexample.com" },
     { type: "companion", entity: "com.apple.finder", app: true },

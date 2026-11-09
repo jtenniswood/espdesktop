@@ -2,7 +2,7 @@
 from pathlib import Path
 import re,subprocess,tempfile
 root=Path(__file__).resolve().parents[2]
-layout=(root/'components/espdesktop/button_grid_layout.h').read_text()
+layout=(root/'components/espdesktop/button_grid_order_parser.h').read_text()
 subpage=(root/'components/espdesktop/button_grid_subpages.h').read_text()
 def function(name):
  m=re.search(r'^inline (?:bool|void) '+name+r'\([^;{]*\) \{\n.*?^\}',subpage,re.M|re.S)

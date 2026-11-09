@@ -20,7 +20,7 @@ function confirmCompleteReset(): Promise<boolean> {
     icon.innerHTML = '<circle cx="12" cy="12" r="9"/><path d="M12 7v6m0 4h.01"/>';
     const warningText = document.createElement("p");
     warningText.id = "sp-reset-confirm-warning";
-    warningText.textContent = "Saved Wi-Fi credentials and the Home Assistant API key will be erased. Wi-Fi compiled into the firmware will stay disabled. Use Wi-Fi setup to save your network again.";
+    warningText.textContent = "Saved Wi-Fi credentials and Mac pairing will be erased. Wi-Fi compiled into the firmware will stay disabled. Use Wi-Fi setup to save your network again.";
     warning.append(icon, warningText);
     const backupNote = document.createElement("p");
     backupNote.textContent = "Save a backup first. This reset cannot be undone.";
@@ -123,9 +123,9 @@ export function buildResetSettings(exportBackup: () => void, makeCard: (title: s
         await session.reset(mode);
         heading.textContent = "Restarting…";
         if (mode === "factory") {
-          message.textContent = "Follow the display's Wifi setup instructions to reconnect. You may need to set up its Home Assistant connection and pair the Mac app again.";
+          message.textContent = "Follow the display's Wi-Fi setup instructions to reconnect, then pair the Mac app again.";
         } else {
-          message.textContent = "Your Wifi, Home Assistant connection and Mac pairing will be retained. This page will reload when the display is ready.";
+          message.textContent = "Your Wi-Fi configuration and Mac pairing will be retained. This page will reload when the display is ready.";
           const started = Date.now();
           const poll = async () => {
             try { if (await session.restarted()) { window.location.reload(); return; } } catch (_) { /* Restart disconnects HTTP. */ }
@@ -153,7 +153,7 @@ export function buildResetSettings(exportBackup: () => void, makeCard: (title: s
       backup.disabled = true;
       return;
     }
-    if (status.modes.includes("customization")) addAction("customization", "Partial reset", "Reset cards and preferences. Retains your configuration for Wifi, Home Assistant and Mac pairing");
+    if (status.modes.includes("customization")) addAction("customization", "Partial reset", "Reset cards and preferences. Retains your Wi-Fi configuration and Mac pairing");
     if (status.modes.includes("factory")) addAction("factory", "Complete reset", "Remove all existing configuration and return this display to first-time setup.");
   }).catch(() => { /* Leave unavailable actions hidden; write transport fails closed. */ });
   return card;

@@ -1,5 +1,6 @@
-import { showSpecialPageTitleDialog } from "./special_page_title";
+import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { state } from "../state/app_instance";
+import type { NativePageTransfersFeature } from "./native_page_transfers";
 import * as EspDesktopModel from "../model";
 import { coveredCells } from "../model/grid";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
@@ -18,6 +19,7 @@ import type { PreviewContextMenuFeature } from "./preview_context_menu";
 import { cardRequiresHomeAssistant } from "../features/preview";
 export interface PreviewInteractionsDependencies {
     readonly homeAssistantSupported: () => boolean;
+    readonly nativeTransfers?: NativePageTransfersFeature;
     readonly cardEditorDraft: CardEditorDraftController;
     readonly configPersistence: ConfigPersistenceFeature;
     readonly layout: ApplicationLayoutState;
@@ -86,45 +88,11 @@ export function createPreviewInteractionsFeature(
         getSubpage,
         buildSubpageGrid,
         serializeSubpageGrid,
-        enterSubpage,
+        enterChildSubpage,
         exitSubpage,
         saveSubpageConfig,
         subpageFirstFreeSlot,
     } = dependencies.codec;
-    function renameSpecialPage() {
-        showSpecialPageTitleDialog({
-            document,
-            title: getSubpage(-1).title || "",
-            locked: isConfigLocked,
-            restoreFocus: () => els.specialPageRename?.focus(),
-            save: async title => {
-                const subpage = getSubpage(-1);
-                const previous = subpage.title;
-                const previousOrder = subpage.order;
-                const previousPending = state.subpageSavePending[-1];
-                const candidate = { ...subpage, title };
-                if (!configPersistence.subpageConfigFits(serializeSubpageConfig(candidate), -1)) {
-                    throw new Error("This page is too full to save that name. Use a shorter name or remove a card.");
-                }
-                subpage.title = title;
-                try {
-                    const result = await saveSubpageConfig(-1);
-                    if (result !== "saved") {
-                        throw new Error("Could not save the page name. Check the connection and try again.");
-                    }
-                } catch (error) {
-                    subpage.order = previousOrder;
-                    if (previousPending === undefined) delete state.subpageSavePending[-1];
-                    else state.subpageSavePending[-1] = previousPending;
-                    if (previous === undefined) delete subpage.title;
-                    else subpage.title = previous;
-                    renderPreview();
-                    throw error;
-                }
-                renderPreview();
-            },
-        });
-    }
     function editCardTitle(title: HTMLElement) {
         if (title.querySelector("input")) return;
         const card = title.closest<HTMLElement>("[data-slot]");
@@ -139,7 +107,7 @@ export function createPreviewInteractionsFeature(
         input.className = "sp-card-name-input";
         input.setAttribute("aria-label", "Card name");
         input.dataset.homeSlot = String(homeSlot || "");
-        const defaultBackLabel = homeSlot === -1 ? "Close" : "Back";
+        const defaultBackLabel = "Back";
         input.value = back ? back.backLabel || defaultBackLabel : button.label || "";
         input.placeholder = title.textContent || "Card name";
         let finished = false;
@@ -206,18 +174,6 @@ export function createPreviewInteractionsFeature(
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
         state.clockBarDragItem = "";
-        if (els.specialPageEntry) {
-            els.specialPageEntry.addEventListener("click", function (this: any, e?: any) {
-                if (isConfigLocked()) {
-                    e.preventDefault();
-                    return;
-                }
-                enterSubpage(-1);
-            });
-        }
-        els.specialPageRename?.addEventListener("click", () => {
-            if (!isConfigLocked() && state.editingSubpage === -1) renameSpecialPage();
-        });
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
@@ -255,6 +211,7 @@ export function createPreviewInteractionsFeature(
             });
         }
         function isBackExitTarget(this: any, e?: any, target?: any) {
+            if (e.target.closest(".sp-back-badge")) return true;
             var icon: any = target.querySelector(".sp-back-hit:not([hidden])");
             if (!icon)
                 return false;
@@ -287,6 +244,13 @@ export function createPreviewInteractionsFeature(
             if (isConfigLocked()) {
                 e.preventDefault();
                 e.stopPropagation();
+                if (state.nativeConfigReadOnly && state.nativePanelDocument && !state.configLocked && !state.nativeConfigLoading && !state.nativeTransferActive) {
+                    const target = e.target.closest("[data-slot]");
+                    const slot = Number(target?.getAttribute("data-slot"));
+                    if (slot === -2) exitSubpage();
+                    else if (slot > 0 && cardTransferOwnsSubpage(ctx().buttons[slot - 1]))
+                        enterChildSubpage(state.editingSubpage, slot);
+                }
                 return;
             }
             if (e.target.closest(".sp-card-name-input")) return;
@@ -301,8 +265,10 @@ export function createPreviewInteractionsFeature(
                 var btnEl: any = e.target.closest("[data-slot]");
                 if (btnEl) {
                     var badgeSlot: any = parseInt(btnEl.getAttribute("data-slot"), 10);
-                    enterSubpage(badgeSlot);
-                    return;
+                    if (badgeSlot > 0) {
+                        enterChildSubpage(state.editingSubpage, badgeSlot);
+                        return;
+                    }
                 }
             }
             var target: any = e.target.closest("[data-pos]");
@@ -642,6 +608,7 @@ export function createPreviewInteractionsFeature(
         renderButtonSettings(true);
     }
     function duplicateButton(this: any, srcSlot?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.duplicate(Number(srcSlot)); return; }
         if (isConfigLocked())
             return;
         var src: any = state.buttons[srcSlot - 1];
@@ -692,6 +659,7 @@ export function createPreviewInteractionsFeature(
         renderPreview();
     }
     function duplicateSubpageButton(this: any, srcSlot?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.duplicate(Number(srcSlot)); return; }
         if (isConfigLocked())
             return;
         var homeSlot: any = state.editingSubpage;
@@ -734,6 +702,7 @@ export function createPreviewInteractionsFeature(
         renderPreview();
     }
     function deleteSlot(this: any, slot?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.delete([Number(slot)]); return; }
         if (isConfigLocked())
             return;
         var c: any = ctx();
@@ -772,6 +741,7 @@ export function createPreviewInteractionsFeature(
         renderButtonSettings();
     }
     function deleteButtons(this: any, slots?: any) {
+        if (dependencies.nativeTransfers?.available()) { void dependencies.nativeTransfers.delete(slots.filter((slot: number) => slot > 0).map(Number)); return; }
         if (isConfigLocked())
             return;
         var c: any = ctx();

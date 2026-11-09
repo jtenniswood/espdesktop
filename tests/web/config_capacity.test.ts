@@ -1,7 +1,7 @@
 import { NativePanelConfigController } from "../../src/webserver/controllers/native_panel_config_controller";
 import { createConfigPersistenceFeature } from "../../src/webserver/application/config_post_api";
 import { createNativePanelConfigClient, type NativePanelConfigResponse } from "../../src/webserver/features/native_panel_config";
-import { decodePanelConfig, encodePanelConfig, parseLegacySubpageConfig, serializeLegacySubpageConfig } from "../../src/webserver/model";
+import { decodePanelConfig, encodePanelConfig, parseRawButtonConfig, parseLegacySubpageConfig, serializeLegacySubpageConfig } from "../../src/webserver/model";
 import { initializeDeviceConfig } from "../../src/webserver/device_config";
 import { initializeAppState, state } from "../../src/webserver/state/app_instance";
 
@@ -32,7 +32,7 @@ export async function runConfigCapacityTests(): Promise<void> {
   let putCount = 0;
   const response = (status: number): NativePanelConfigResponse => ({
     ok: status >= 200 && status < 300, status,
-    headers: { get: () => '"1"' },
+    headers: { get: (name) => name === "ETag" ? '"1"' : null },
     json: async () => ({ configuration: { read: true, write: true, document_versions: [1],
       ...(legacy ? {} : { max_record_body_bytes: 4096 }) } }),
     arrayBuffer: async () => encodePanelConfig(document).buffer as ArrayBuffer,
@@ -63,7 +63,8 @@ export async function runConfigCapacityTests(): Promise<void> {
     { showBanner: (message) => banners.push(message) });
   persistence.connectRequestApi(api as any);
   persistence.connectCodec({ serializeButtonConfig: () => "light.kitchen",
-    serializeSubpageConfig: () => largeSubpage });
+    serializeSubpageConfig: () => largeSubpage,
+    parseButtonConfig: parseRawButtonConfig, parseSubpageConfig: parseLegacySubpageConfig });
   equal(persistence.buttonConfigByteLimit(), 255, "undiscovered firmware keeps the safe card limit");
   equal(persistence.subpageConfigFits(largeSubpage), false, "undiscovered firmware keeps the configured chunk limit");
   await controller.begin();
@@ -72,9 +73,6 @@ export async function runConfigCapacityTests(): Promise<void> {
   equal(persistence.subpageConfigFits("x".repeat(4095)), true, "the complete 4 KB record budget fits");
   equal(persistence.subpageConfigFits("x".repeat(4096)), false, "the slot byte counts towards the 4 KB record limit");
   equal(persistence.subpageConfigFits("é".repeat(2048)), false, "native capacity counts UTF-8 bytes");
-  equal(persistence.subpageConfigFits("x".repeat(4083), -1), true, "special-page records reserve space for their setting key");
-  equal(persistence.subpageConfigFits("x".repeat(4084), -1), false, "special pages cannot overflow the native setting record");
-  equal(persistence.subpageConfigFits("é".repeat(2042), -1), false, "special-page capacity counts UTF-8 bytes");
   state.subpages[1] = {} as any;
   equal(await persistence.saveSubpageEntity(1), "saved", "large subpages use native storage");
   equal(postedValue, largeSubpage, "native saves retain every byte");

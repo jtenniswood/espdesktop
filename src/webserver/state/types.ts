@@ -1,18 +1,19 @@
+import type { PanelConfigDocument } from "../model/panel_config";
 import type { CardConfig } from "../contracts/types";
 import type { ClipboardEntry } from "../features/clipboard";
+import type { PageCardClipboard } from "../model/page_card_transfer";
 import type { SlotSizeMap } from "../model/grid";
 
 export interface DeviceConfigFeatures {
-  internalRelays?: readonly { readonly key: string; readonly label: string }[];
   screenRotation?: boolean;
   screenRotationDefault?: string;
   screenRotationDisplayLabels?: Readonly<Record<string, string>>;
   screenRotationDisplayOffset?: number;
   screenRotationOptions?: readonly string[];
   subpageConfigChunks?: number;
-  voiceServices?: boolean;
+
   battery?: boolean;
-  alarmDelayAudio?: boolean;
+
   companion?: boolean;
   cameraScreensaver?: boolean;
 }
@@ -99,6 +100,7 @@ export interface RuntimeSubpage {
 
 export interface AppClipboard {
   buttons: ClipboardEntry[];
+  native?: PageCardClipboard & { readonly cut: boolean };
 }
 
 export interface SettingsDraft {
@@ -123,32 +125,15 @@ export interface AppState {
   lastClickedSlot: number;
   clockBarSelectedItem: string;
   activeTab: string;
-  _indoorOn: boolean;
-  _outdoorOn: boolean;
-  _indoorVal: number | null;
-  _outdoorVal: number | null;
-  indoorEntity: string;
-  outdoorEntity: string;
-  clockBarTemperatureEntities: string[];
-  _clockBarTemperatureEntitiesReceived: boolean;
-  _clockBarTemperatureVisibilityReceived: boolean;
-  temperatureUnit: string;
   clockBarOn: boolean;
   _clockBarStateValues: Record<string, boolean>;
   clockBarTimeOn: boolean;
   clockBarNightModeOn: boolean;
   networkStatusOn: boolean;
   batteryStatusOn: boolean;
-  voiceServicesOn: boolean;
-  alarmDelayAudioOn: boolean;
-  alarmDelayTtsOn: boolean;
-  alarmDelayEntryAnnouncement: string;
-  alarmDelayExitAnnouncement: string;
-  alarmDelayBeepVolume: number;
-  alarmDelayFinalCountdown: number;
+
   networkTransport: string;
   wifiStrengthPercent: number;
-  temperatureDegreeSymbolOn: boolean;
   subpageChevronsOn: boolean;
   autoOpenAppSubpages: boolean;
   returnHomeOnAppSwitch: boolean;
@@ -286,6 +271,12 @@ export interface AppState {
   clockBarTempRestoreIndoor: boolean;
   clockBarTempRestoreOutdoor: boolean;
   clockBarTempRestoreEntities: string[];
+  nativePanelDocument: PanelConfigDocument | null;
+  nativePageSnapshotLoaded: boolean;
+  nativeHasNestedPages: boolean;
+  nativeConfigReadOnly: boolean;
+  nativeConfigLoading: boolean;
+  nativeTransferActive: boolean;
   subpages: Record<string, RuntimeSubpage>;
   subpageRaw: Record<string, Record<string, string>>;
   subpageSavePending: Record<string, string>;

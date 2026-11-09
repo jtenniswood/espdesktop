@@ -47,21 +47,13 @@ describe("browserless application contracts", () => {
 
   test("models connector onboarding and card sources", runConnectorsFeatureTests);
 
-  test("gates Home Assistant connector setup behind firmware opt-in and keeps Companion guidance", () => {
+  test("removes Home Assistant connector setup and keeps Companion guidance", () => {
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
     const companion = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_companion_section.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    assert.match(connectors, /if \(homeAssistantSupported\(\)\) \{\s*homeAssistantCard = buildHomeAssistantCard\(\)/);
-    assert.match(connectors, /function homeAssistantConnected\(\): boolean \{[\s\S]*!homeAssistantSupported\(\)/);
-    assert.match(connectors, /function homeAssistantCardPickerEnabled\(\): boolean \{\s*return homeAssistantSupported\(\) &&/);
-    assert.match(connectors, /setHidden\(unavailableMessage, homeAssistantSupported\(\)\)/);
+    assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
-    const component = fs.readFileSync(path.join(ROOT, "components/espdesktop/__init__.py"), "utf8");
-    assert.match(component, /CONF_HOME_ASSISTANT_SUPPORT = "home_assistant_support"/);
-    assert.match(component, /cv.Optional\(CONF_HOME_ASSISTANT_SUPPORT, default=False\)/);
-    assert.match(component, /if config\[CONF_HOME_ASSISTANT_SUPPORT\]:\s+cg.add_define\("ESPDESKTOP_HOME_ASSISTANT_SUPPORT"\)/);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
-    assert.match(connectors, /connectors\/home-assistant\/complete|connectors\/home-assistant\/forget/);
     assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);
@@ -72,19 +64,19 @@ describe("browserless application contracts", () => {
     assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
 
-  test("gates Home Assistant and Companion screensaver modes by live connector state", () => {
+  test("offers local screensaver modes and follows Companion availability", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const screensaver = fs.readFileSync(path.join(ROOT, "src/webserver/application/screensaver_state.ts"), "utf8");
     const eventHandlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const connectors = fs.readFileSync(path.join(ROOT, "src/webserver/application/connectors_page.ts"), "utf8");
-    assert.match(settings, /\["sensor", "Home Assistant"\]/);
+    assert.doesNotMatch(settings, /\["sensor", "Home Assistant"\]/);
     assert.match(settings, /\["companion", "App Connection"\]/);
-    assert.match(settings, /sensorBtn\.hidden = !haConnected/);
+    assert.doesNotMatch(settings, /sensorBtn|Presence sensor entity/);
     assert.match(settings, /companionBtn\.hidden = !companionAvailable/);
     assert.match(settings, /onStatusChange\(syncScreensaverModeOptions\)/);
-    assert.match(screensaver, /state\.screensaverMode === "companion"/);
-    assert.match(eventHandlers, /val === "companion"/);
-    assert.match(connectors, /homeAssistantConnected\(\)/);
+    assert.match(screensaver, /normalizeScreensaverMode\(state\.screensaverMode\)/);
+    assert.match(eventHandlers, /normalizeScreensaverMode\(val\)/);
+    assert.match(connectors, /homeAssistantConnected: \(\) => false/);
     assert.match(connectors, /companionConfigured\(\)/);
   });
 
@@ -122,7 +114,6 @@ describe("browserless application contracts", () => {
   test("rejects Home Assistant card imports and clipboard pastes", () => {
     const clipboard = fs.readFileSync(path.join(ROOT, "src/webserver/application/preview_clipboard.ts"), "utf8");
     const interactions = fs.readFileSync(path.join(ROOT, "src/webserver/application/preview_interactions.ts"), "utf8");
-    const wifiCard = fs.readFileSync(path.join(ROOT, "src/webserver/cards/wifi_qr.ts"), "utf8");
     assert.match(clipboard, /cardRequiresHomeAssistant\(type, normalized\)/);
     assert.match(clipboard, /clipboardEntryRequiresHomeAssistant\(entries\[entryIndex\]\)/);
     assert.match(clipboard, /function clipboardEntryRequiresHomeAssistant\(entry: any\): boolean/);
@@ -130,16 +121,13 @@ describe("browserless application contracts", () => {
     assert.match(clipboard, /typeof button\.type === "string"/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src, state\.subpages\[srcSlot\]\)/);
     assert.match(interactions, /duplicateRequiresHomeAssistant\(src\)/);
-    assert.match(wifiCard, /if \(!nativePanelConfig\.homeAssistantSupportEnabled\(\) && !wifiQrTabs\(b\)\.includes\("guest"\)\)/);
     assert.match(clipboard, /function cutSlot[\s\S]*clipboardEntryRequiresHomeAssistant\(buildClipboardEntry\(slot\)\)[\s\S]*deleteSlot\(slot\)/);
-    assert.match(wifiCard, /return definition\.value !== "guest"/);
   });
 
   test("owns entity catalogue helpers as one explicit service", () => {
     const entities = createEntityStateFeature({
       actionCardStateEntity: () => "",
       totalSlots: () => 12,
-      clockBarTemperatureEntities: () => [],
       textInput: () => ({}),
     });
     assert.equal(entities.entityName("button_order"), "Button Order");
@@ -262,6 +250,7 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.match(preview, /export interface AppStatusPreviewFeature/);
     assert.match(preview, /export function createAppStatusPreviewFeature/);
+    assert.doesNotMatch(preview, /state\.buttons\[state\.editingSubpage - 1\]/);
     assert.match(entry, /statusPreview = createAppStatusPreviewFeature\(runtime, core, layout, environment, clockBarState\)/);
     assert.doesNotMatch(entry, /installAppStatusPreviewModule|appStatusPreviewCompatibilityGlobals/);
     assert.doesNotMatch(preview, /GlobalDescriptors|staticGlobal|appStatusPreviewCompatibilityGlobals/);
@@ -274,15 +263,14 @@ describe("browserless application contracts", () => {
     const handlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     assert.match(entry, /createAppStateEventHandlersFeature\([\s\S]*clockBarState,[\s\S]*statusPreview/);
     assert.match(entry, /app = createAppFeature\([\s\S]*appEvents, statusPreview/);
-    assert.match(entry, /timezoneId: \(value\) => statusPreview\.getTzId\(value\)/);
     assert.match(app, /statusPreview\.updateClock\(\)/);
     assert.match(handlers, /statusPreview: Pick<AppStatusPreviewFeature,/);
-    assert.match(handlers, /updateNetworkPreview,[\s\S]*updateSunInfo,[\s\S]*updateTempPreview,[\s\S]*\} = statusPreview/);
+    assert.match(handlers, /updateNetworkPreview,[\s\S]*updateSunInfo,[\s\S]*\} = statusPreview/);
   });
 
   test("injects status preview into settings and backup consumers", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    for (const relativePath of ["settings_page.ts", "settings_page_helpers.ts", "settings_cover_art_section.ts", "app_backup.ts"]) {
+    for (const relativePath of ["settings_page.ts", "settings_page_helpers.ts", "app_backup.ts"]) {
       const source = fs.readFileSync(path.join(ROOT, "src/webserver/application", relativePath), "utf8");
       assert.match(source, /AppStatusPreviewFeature/, `${relativePath} should declare its status-preview dependency`);
     }
@@ -333,7 +321,7 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.equal(fs.existsSync(path.join(ROOT, "src/webserver/runtime/layout_compatibility.ts")), false);
     assert.doesNotMatch(globals, /\bvar (?:NUM_SLOTS|TOTAL_SLOTS|GRID_COLS|GRID_ROWS):/);
-    assert.match(entry, /grid = createGridFeature\(configurationCodec, runtime, layout, entityState, requestApi, renderQueue\)/);
+    assert.match(entry, /grid = createGridFeature\(configurationCodec, runtime, layout, entityState, requestApi, renderQueue, \(\) => nativePanelConfig\.markLocalEdit\(\)\)/);
     assert.doesNotMatch(entry, /gridCompatibilityGlobals/);
     assert.doesNotMatch(grid, /GlobalDescriptors|staticGlobal|gridCompatibilityGlobals/);
     assert.doesNotMatch(globals, /\bvar (?:ctx|scheduleMainGridSave|cancelMainGridSave|applyButtonOrderValue|applyImportedButtonOrder|parseOrder|resolveIcon|serializeGrid|sizeClass|btnDisplayName):/);
@@ -364,7 +352,7 @@ describe("browserless application contracts", () => {
     const nativeWrite = backup.indexOf("await nativeRestore");
     const legacyWrite = backup.indexOf("await queueLegacyLayoutRestore()");
     const editorMutation = backup.indexOf("state.buttons = []");
-    const settingsPost = backup.indexOf("postClockBarTemperatureEntities(");
+    const settingsPost = backup.indexOf("postClockBar(importedSettings.clockBar)");
     assert.ok(discovery >= 0 && nativeWrite > discovery && legacyWrite > discovery);
     assert.ok(editorMutation > nativeWrite && editorMutation > legacyWrite);
     assert.ok(settingsPost > editorMutation);
@@ -384,7 +372,7 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:appendLanguageOption|getActiveScreensaverMode|hasCustomNtpServers|languageLabel|languageOptionsWithFallback|resetNtpServersToDefaults|syncIdleUi|syncLanguageSelect|syncNtpServerUi):/);
   });
 
-  test("owns environment and voice-services state without application globals", () => {
+  test("owns environment state without application globals", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const environment = fs.readFileSync(path.join(ROOT, "src/webserver/application/environment_state.ts"), "utf8");
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
@@ -430,14 +418,12 @@ describe("browserless application contracts", () => {
 
   test("registers migrated card families through the typed registry", () => {
     const migratedCards = [
-      ["sensor", "registerSensorCardTypes"],
       ["switch", "registerSwitchCardTypes"],
       ["door_window", "registerDoorWindowCardTypes"],
       ["image", "registerImageCardTypes"],
       ["lawn_mower", "registerLawnMowerCardTypes"],
       ["presence", "registerPresenceCardTypes"],
       ["push", "registerPushCardTypes"],
-      ["action", "registerActionCardTypes"],
       ["alarm", "registerAlarmCardTypes"],
       ["climate", "registerClimateCardTypes"],
       ["fan", "registerFanCardTypes"],
@@ -456,109 +442,6 @@ describe("browserless application contracts", () => {
         `${registrationFunction}\\(\\s*registry,[\\s\\S]*?\\);`,
       ));
     }
-  });
-
-  test("groups Connect and QR cards under Wifi Sharing", () => {
-    const source = fs.readFileSync(path.join(ROOT, "src/webserver/cards/wifi_qr.ts"), "utf8");
-    const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
-    const { registerWifiQrCardTypes } = loadTypescriptTest("src/webserver/cards/wifi_qr.ts");
-    const definitions = {};
-    const modalTabs = {
-      wifiQrTabDefinitions() { return [{ value: "qr", label: "QR Code" }, { value: "credentials", label: "Connection Details" }]; },
-      wifiQrTabs(b) {
-        const match = String(b && b.options || "").match(/(?:^|,)wifi_tabs=([^,]+)/);
-        return match ? match[1].split("|") : ["qr", "credentials"];
-      },
-      normalizeWifiQrTabOptions(options) { return options || ""; },
-      setWifiQrTabs(b, tabs) {
-        b.options = String(b.options || "").replace(/(?:^|,)wifi_tabs=[^,]+/, "");
-        if (tabs.join("|") !== "qr|credentials") b.options += (b.options ? "," : "") + "wifi_tabs=" + tabs.join("|");
-        return b.options;
-      },
-      renderModalTabSettings() {},
-    };
-    let rerenders = 0;
-    let nativeSupported = false;
-    registerWifiQrCardTypes({
-      register(key, value) {
-        definitions[key] = value;
-      },
-    }, modalTabs, { cardBadgePreview() {} }, { renderButtonSettings() { rerenders += 1; } }, {
-      supported() { return nativeSupported; },
-    });
-    assert.deepEqual(Object.keys(definitions), ["wifi_qr", "wifi_qr_card"]);
-    assert.equal(definitions.wifi_qr.label(), "Wifi Sharing");
-    assert.equal(definitions.wifi_qr.pickerKey(), "");
-    assert.equal(definitions.wifi_qr_card.pickerKey(), "wifi_qr");
-    assert.equal(definitions.wifi_qr.hideLabel, true);
-    assert.equal(definitions.wifi_qr_card.hideLabel, true);
-    assert.equal(definitions.wifi_qr.isAvailable(), false);
-    nativeSupported = true;
-    assert.equal(definitions.wifi_qr.isAvailable(), true);
-    assert.match(source, /labelField:\s*\{\s*label:\s*"Name"/);
-    assert.match(source, /renderBasicCardFields\([^\n]+label:\s*false/);
-    assert.match(source, /disclosureSection\("Wifi Network"/);
-    assert.match(source, /disclosureSection\("Modal Settings"/);
-    assert.match(source, /wifiQrTabDefinitions/);
-    assert.doesNotMatch(source, /Show password|wifi-reveal|input\.type\s*=\s*"password"/);
-    assert.match(source, /hasCredentialBytes/);
-    assert.match(source, /requireField\(ssidField\.input,[^\n]+hasCredentialBytes\)/);
-    assert.match(source, /requireField\(passwordField\.input,[^\n]+hasCredentialBytes\)/);
-    const legacy = { label: "Guests Wifi", options: "" };
-    definitions.wifi_qr.normalizeConfig(legacy);
-    assert.equal(legacy.label, "Connect");
-    const custom = { label: "Visitors", options: "" };
-    definitions.wifi_qr.normalizeConfig(custom);
-    assert.equal(custom.label, "Visitors");
-    const guest = { type: "wifi_qr", entity: "switch.guest_wifi", label: "Visitors", options: "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials" };
-    definitions.wifi_qr.normalizeConfig(guest);
-    assert.equal(guest.entity, "switch.guest_wifi");
-    assert.equal(guest.options, "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials");
-    definitions.wifi_qr.cardMetadata.mode.onChange.call(
-      { value: "wifi_qr_card" }, guest, { saveField() {} },
-    );
-    assert.equal(guest.entity, "switch.guest_wifi");
-    assert.equal(guest.options, "ssid64=R3Vlc3Q,wifi_tabs=guest|qr|credentials");
-    rerenders = 0;
-    const qrCard = { type: "wifi_qr_card", label: "Visitors", icon: "Wifi", options: "" };
-    definitions.wifi_qr_card.normalizeConfig(qrCard);
-    assert.equal(qrCard.type, "wifi_qr_card");
-    assert.equal(qrCard.label, "Visitors");
-    assert.equal(qrCard.icon, "Auto");
-    const qrPreview = definitions.wifi_qr_card.renderPreview(qrCard, {});
-    assert.equal(qrPreview.labelHtml, "");
-    assert.equal(qrPreview.buttonClass, "sp-wifi-qr-card");
-    assert.match(qrPreview.iconHtml, /viewBox="4 4 29 29"/);
-    assert.match(qrPreview.iconHtml, /shape-rendering="crispEdges"/);
-    assert.doesNotMatch(qrPreview.iconHtml, /viewBox="0 0 21 21"/);
-    assert.match(styles, /\.sp-wifi-qr-preview\{[^}]*width:84%;height:84%/);
-    assert.match(styles, /\.sp-wifi-qr-card:hover\{filter:none\}/);
-    assert.match(styles, /\.sp-wifi-qr-card\.sp-btn-big \.sp-wifi-qr-preview,[^}]*width:97%;height:97%/);
-    definitions.wifi_qr_card.cardMetadata.mode.onChange.call(
-      { value: "wifi_qr" }, qrCard, { saveField() {} },
-    );
-    assert.equal(qrCard.type, "wifi_qr");
-    assert.equal(qrCard.label, "Visitors");
-    assert.equal(qrCard.icon, "Wifi");
-    assert.equal(rerenders, 1);
-    assert.match(source, /\[\["wifi_qr", "Connect Card"\], \["wifi_qr_card", "QR Card"\]\]/);
-    assert.match(source, /renderCardModeSelector\(panel, b, helpers, WIFI_QR_CARD_TYPE_METADATA\)/);
-  });
-
-  test("keeps Wifi Sharing available without web authentication", () => {
-    const nativeRead = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_read_endpoint.h"), "utf8");
-    const nativeWrite = fs.readFileSync(path.join(ROOT, "components/espdesktop/panel_config_write_endpoint.h"), "utf8");
-    const webServer = fs.readFileSync(path.join(ROOT, "components/web_server_idf/web_server_idf.cpp"), "utf8");
-    const app = fs.readFileSync(path.join(ROOT, "components/espdesktop/espdesktop_app.cpp"), "utf8");
-    const nativeController = fs.readFileSync(path.join(ROOT, "src/webserver/controllers/native_panel_config_controller.ts"), "utf8");
-    const docs = fs.readFileSync(path.join(ROOT, "docs/card-types/wifi-share.md"), "utf8");
-
-    assert.doesNotMatch(nativeRead, /panel_config_contains_wifi_password|Wifi Sharing passwords require web authentication/);
-    assert.doesNotMatch(nativeWrite, /panel_config_contains_wifi_password|Wifi Sharing passwords require web authentication/);
-    assert.doesNotMatch(webServer, /event_payload_is_legacy_panel_config/);
-    assert.doesNotMatch(app, /panel_config_legacy_entity_guard/);
-    assert.match(nativeController, /Sign in, enable web_server_auth, or update the panel firmware/);
-    assert.match(docs, /Wifi Sharing works without web authentication/);
   });
 
   test("authenticates native configuration bodies before receiving and before saving", () => {
@@ -590,10 +473,8 @@ describe("browserless application contracts", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const migration = fs.readFileSync(path.join(ROOT, "src/webserver/application/native_panel_config_migration.ts"), "utf8");
     const deviceConfig = fs.readFileSync(path.join(ROOT, "src/webserver/device_config.ts"), "utf8");
-    const sensor = fs.readFileSync(path.join(ROOT, "src/webserver/cards/sensor.ts"), "utf8");
-    const action = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
     assert.match(entry, /new EventSource\("\/events", \{ withCredentials: true \}\)/);
-    for (const source of [migration, deviceConfig, sensor, action]) {
+    for (const source of [migration, deviceConfig]) {
       assert.match(source, /credentials: "include"/);
     }
   });
@@ -608,20 +489,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(authenticate, /get_header\("Cookie"\)/);
     assert.doesNotMatch(webServer, /EspDesktopAuth|Set-Cookie|authenticate_digest_session|issue_digest_session/);
     assert.match(authenticate, /check_digest_auth\(username, password/);
-  });
-
-  test("normalizes and preserves Wifi modal tab settings", () => {
-    const modalTabs = createConfigModalTabOptionsFeature({ document: {}, renderButtonSettings() {} });
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("credentials|qr")), ["credentials", "qr"]);
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("credentials|credentials|invalid")), ["credentials"]);
-    assert.deepEqual(Array.from(modalTabs.wifiQrDefaultTabs()), ["qr", "credentials"]);
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("guest|qr|credentials|guest")), ["guest", "qr", "credentials"]);
-    assert.deepEqual(Array.from(modalTabs.normalizeWifiQrTabs("guest")), ["guest"]);
-    const card = { options: "ssid64=R3Vlc3Q" };
-    modalTabs.setWifiQrTabs(card, ["credentials"]);
-    assert.equal(card.options, "ssid64=R3Vlc3Q,wifi_tabs=credentials");
-    modalTabs.setWifiQrTabs(card, ["qr", "credentials"]);
-    assert.equal(card.options, "ssid64=R3Vlc3Q");
   });
 
   test("registers garage and gate through the explicit cover-card factory", () => {
@@ -700,8 +567,8 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(weather, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
     assert.doesNotMatch(forecast, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|WEATHER_CARD_METADATA)\b/);
-    assert.match(entry, /const weatherCards = registerWeatherCardTypes\(registry, context\.configuration\.weatherOptions, context\.controllers\.clockBarState, fields, cardUi\);/);
-    assert.match(entry, /registerWeatherForecastCardTypes\(registry, weatherCards, context\.controllers\.clockBarState, fields\);/);
+    assert.match(entry, /const weatherCards = registerWeatherCardTypes\(registry, context\.configuration\.weatherOptions, fields, cardUi\);/);
+    assert.match(entry, /registerWeatherForecastCardTypes\(registry, weatherCards, fields\);/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerWeather/);
     assert.doesNotMatch(globals, /\bvar (?:WEATHER_CARD_METADATA|WEATHER_FORECAST_CARD_METADATA|normalizeWeatherCardMode|weatherCardDefaultForecastLabel|weatherCardIsForecastMode|weatherForecastCardsSupported|weatherModeOptionValues|weatherModeOptions):/);
   });
@@ -757,16 +624,6 @@ describe("browserless application contracts", () => {
     assert.match(card, /first\.group\.localeCompare\(second\.group/);
   });
 
-  test("registers the internal relay card with profile-owned options", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/internal.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
-    assert.match(entry, /registerInternalCardTypes\(\s*registry,\s*context\.configuration\.internalRelayOptions,\s*context\.dom\.document,\s*fields,?\s*\);/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerInternalCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:INTERNAL_CARD_METADATA|internalRelayDefaultIcon|internalRelayDefaultOnIcon|internalRelayLabelFor|internalRelayMode|internalRelayModeOptionValues|internalRelayOptions|internalRelaySpec|internalRelayUsesDefaultIcon|internalRelayUsesDefaultOnIcon|normalizeInternalRelayMode):/);
-  });
-
   test("imports entity-mode helpers without compatibility globals", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const helpers = fs.readFileSync(path.join(ROOT, "src/webserver/cards/entity_mode_card.ts"), "utf8");
@@ -803,20 +660,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:LOCK_CARD_METADATA|lockCommandMode|lockModeDefaultIcon|lockModeDefaultLabel|lockModeOptionValues|lockUsesDefaultIcon|normalizeLockMode):/);
   });
 
-  test("registers date/time cards through one explicit service", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    for (const card of ["calendar", "clock", "timezone"]) {
-      const source = fs.readFileSync(path.join(ROOT, `src/webserver/cards/${card}.ts`), "utf8");
-      assert.doesNotMatch(source, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|DATE_TIME_CARD_METADATA)\b/);
-    }
-    assert.match(entry, /registerCalendarCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.match(entry, /registerClockCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.match(entry, /registerTimezoneCardTypes\(registry, context\.configuration\.dateTimeOptions, context\.dom\.document, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerCalendarCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:DATE_TIME_CARD_METADATA|dateTimeCardMode|dateTimeCardTimeParts|dateTimeLargeNumbersLabel|dateTimeModeOptionValues|defaultTimezoneCardEntity|normalizeDateTimeCardMode|setDateTimeCardMode):/);
-  });
-
   test("registers slider card families without compatibility descriptors", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/slider.ts"), "utf8");
@@ -850,17 +693,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:ALARM_CARD_METADATA|ALARM_CONTROL_PANEL_VALUE|alarmCardTypeOptions|alarmCardTypeOptionsForSettings|alarmControlPanelValue|alarmIconIsGenerated|alarmLabelIsGenerated|alarmUsesDefaultIcon|renderAlarmCardTypeField|renderAlarmVisibleActionsField|setAlarmCardType):/);
   });
 
-  test("registers sensor cards through context-owned source options", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/sensor.ts"), "utf8");
-    const options = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_sensor_options.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
-    assert.match(options, /sensorCardLocalSource = LOCAL_SENSOR_SOURCE/);
-    assert.match(entry, /registerSensorCardTypes\(registry, context\.configuration\.options, fields, cardUi,[\s\S]*homeAssistantSupportEnabled/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerSensorCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:SENSOR_CARD_LOCAL_SENSOR|SENSOR_CARD_METADATA|renderSensorLocalSettings|sensorCardIsLocal|sensorLocalPreview):/);
-  });
 
   test("registers media cards through context-owned media options", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
@@ -869,7 +701,7 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
     assert.match(options, /mediaPlaylistSourceDefinitions/);
-    assert.match(entry, /registerMediaCardTypes\(registry, context\.configuration\.mediaOptions, context\.configuration\.modalTabs, context\.device\.id, fields, context\.controllers\.settingsUi, cardUi\);/);
+    assert.match(entry, /registerMediaCardTypes\(registry, context\.configuration\.mediaOptions, context\.device\.id, fields\);/);
     assert.match(card, /deviceId: string/);
     assert.doesNotMatch(card, /\bDEVICE_ID\b/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerMediaCardTypes/);
@@ -883,33 +715,18 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
     assert.match(entry, /registerSubpageCardTypes\(registry, context\.configuration\.codec, context\.core, context\.controllers\.selection, fields, cardUi\);/);
     assert.match(card, /core: Pick<CoreFeature, "subpageStateDisplayMode">/);
-    assert.match(card, /const \{ subpageStateDisplayMode \} = core;/);
+    assert.doesNotMatch(card, /const \{ subpageStateDisplayMode \} = core;/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerSubpageCardTypes/);
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_CARD_METADATA|appendEditSubpageButton|subpageBadgeLabelHtml):/);
   });
 
-  test("registers action cards through context-owned action options", () => {
+  test("does not register Action cards or their local action endpoint", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
-    const options = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_confirmation_options.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    const { createConfigConfirmationOptionsFeature } = loadTypescriptTest(
-      "src/webserver/application/config_confirmation_options.ts",
-    );
-    const actionOptions = createConfigConfirmationOptionsFeature({
-      normalizeGarageOptions: (value) => value,
-      connectGarageConfirmationNormalizer: () => {},
-    });
-    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
-    assert.match(options, /const actionCardActions/);
-    assert.equal(actionOptions.actionCardEntityMatchesAction("number.target_level", "number.set_value"), true);
-    assert.equal(actionOptions.actionCardEntityMatchesAction("number.target_level", "input_number.set_value"), false);
-    assert.equal(actionOptions.actionCardEntityMatchesAction("", "input_number.set_value"), true);
-    assert.match(card, /actionCardEntityMatchesAction\(b\.entity, this\.value\)/);
-    assert.match(entry, /registerActionCardTypes\(registry, context\.configuration\.confirmationOptions, context\.controllers\.entityState, fields, cardUi,[\s\S]*homeAssistantSupportEnabled/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerActionCardTypes/);
-    assert.match(entry, /actionCardStateEntity: \(button\) => confirmationOptions\.actionCardStateEntity\(button\)/);
-    assert.doesNotMatch(globals, /\bvar (?:ACTION_CARD_ACTIONS|ACTION_CARD_METADATA|actionCardInfo|actionCardIsLocal|actionCardIsOptionSelect|actionCardNeedsExtraValue|actionCardStateDisplayMode|actionCardStateEntity|actionCardStatePrecision|actionCardStateUnit|normalizeActionCardConfig|normalizeSavedConfigActionFields|renderActionCardLocalSettings|setActionCardStateOptions):/);
+    const runtime = fs.readFileSync(path.join(ROOT, "components/espdesktop/espdesktop_app.cpp"), "utf8");
+    assert.doesNotMatch(entry, /registerActionCardTypes/);
+    assert.doesNotMatch(runtime, /register_local_action_endpoint/);
+    assert.equal(fs.existsSync(path.join(ROOT, "src/webserver/cards/action.ts")), false);
+    assert.equal(fs.existsSync(path.join(ROOT, "components/espdesktop/button_grid_local_controls.h")), false);
   });
 
   test("preserves number action changes during editor rerenders", () => {
@@ -997,17 +814,6 @@ describe("browserless application contracts", () => {
     assert.match(core, /export \{/);
   });
 
-  test("imports action-card option storage without mutable globals", () => {
-    const contract = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_action_contract.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/action.ts"), "utf8");
-    const options = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_confirmation_options.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    assert.match(contract, /export const ACTION_CARD_LOCAL_ACTION/);
-    assert.match(card, /from "\.\.\/application\/config_confirmation_options"/);
-    assert.match(options, /from "\.\/config_action_contract"/);
-    assert.doesNotMatch(card, /liveGlobal\(\(\) => ACTION_CARD_(?:LOCAL_ACTION|OPTION_SELECT_ACTION|STATE_)/);
-    assert.doesNotMatch(globals, /var ACTION_CARD_(?:LOCAL_ACTION|OPTION_SELECT_ACTION|STATE_)/);
-  });
 
   test("imports cover mode and position rules without card globals", () => {
     const contract = fs.readFileSync(path.join(ROOT, "src/webserver/application/config_cover_contract.ts"), "utf8");
@@ -1119,7 +925,6 @@ describe("browserless application contracts", () => {
       "src/webserver/application/settings_page.ts",
       "src/webserver/application/settings_page_helpers.ts",
       "src/webserver/application/settings_schedule_section.ts",
-      "src/webserver/application/settings_cover_art_section.ts",
     ];
     for (const relativePath of consumers) {
       const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -1161,21 +966,12 @@ describe("browserless application contracts", () => {
     assert.match(buttonSettings, /restoreDraftState\(\);[\s\S]*return false/);
     assert.match(buttonSettings, /configPersistence\.saveButtonConfigAndOrder\(slot, serializeGrid\(state\.grid\)\)/);
     assert.match(persistence, /nativePanelConfig\.writeButtonAndOrder/);
-    assert.match(persistence, /Wifi Sharing requires current device firmware/);
     assert.match(persistence, /connectFocusRegistrationPublisher/);
     assert.match(persistence, /publishFocusRegistrations\?\.\(\)/);
     assert.match(entry, /connectFocusRegistrationPublisher\(\(\) =>/);
     assert.match(entry, /companionFocusRegistrationValues\(state\.buttons, state\.subpages\)/);
     assert.doesNotMatch(companion, /saveFocusRegistrations|syncURLCardFocusTargets/);
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_RAW_CHUNK_FIELDS|saveButtonConfig|saveSubpageEntity|saveSubpageEntityLegacy|scheduleSliderSubpageMigration|subpageChunkShouldPost|subpageEntityKeys):/);
-  });
-
-  test("offers Web Apps directly in the Companion card picker", () => {
-    const companion = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
-    const preview = fs.readFileSync(path.join(ROOT, "src/webserver/features/preview.ts"), "utf8");
-    assert.match(companion, /\["companion_webapp", "Web App", "webapp"\]/);
-    assert.match(preview, /companion_webapp: \{ icon: "web"/);
-    assert.match(preview, /companion_webapp: "companion"/);
   });
 
   test("composes the backup contract without compatibility globals", () => {
@@ -1305,7 +1101,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /fields = createControlsFieldsFeature\(cards, configurationOptions, shell, requestApi\)/);
     assert.doesNotMatch(entry, /fields\.globals|installControlsFieldsModule/);
     assert.doesNotMatch(globals, /\bvar (?:makeCollapsibleCard|fieldLabel|textInput|fieldWithControl|selectField|segmentControl|colorField|toggleRow|applyCardMetadataFields|renderBasicCardFields|cardSensorPreviewHtml|cardBadgeLabelHtml|cardBadgePreview|condField|createRangeSlider):/);
-    for (const file of ["action.ts", "calendar.ts", "sensor.ts", "switch.ts", "weather.ts"]) {
+    for (const file of ["switch.ts", "weather.ts"]) {
       const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards", file), "utf8");
       assert.match(card, /ControlsFieldsFeature/, `${file} should receive the shared-fields service`);
     }
@@ -1607,7 +1403,6 @@ describe("browserless application contracts", () => {
       "application/preview_render.ts",
       "application/settings_page.ts",
       "application/styles.ts",
-      "cards/media.ts",
       "state/app_state.ts",
     ];
     for (const consumer of consumers) {

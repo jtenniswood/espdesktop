@@ -1,5 +1,140 @@
 [
   {
+    "name": "retired sensor bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;sensor;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "sensor",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired local_sensor bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;local_sensor;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "local_sensor",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired text_sensor bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;text_sensor;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "text_sensor",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired S bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;S;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "S",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired LS bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;LS;2;large_numbers,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "LS",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired internal bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;internal;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "internal",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired I bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;I;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "I",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired wifi_qr bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;wifi_qr;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "wifi_qr",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired wifi_qr_card bindings are discarded",
+    "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;wifi_qr_card;2;secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "wifi_qr_card",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "retired screen_lock bindings are discarded",
     "input": "old.entity;Old;Gauge;Lightbulb;sensor.old;C;screen_lock;2;secret=value",
     "expected": {
@@ -55,6 +190,141 @@
       "sensor": "",
       "unit": "",
       "type": "SS",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired A action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;A;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "A",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired U action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;U;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "U",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired action action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;action;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "action",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired local action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;local;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "local",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired option_select action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;option_select;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "option_select",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Date card settings are discarded",
+    "input": "sensor.date;;;;;;calendar",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "calendar",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Time & Date card settings are discarded",
+    "input": "sensor.date;;;;;;calendar;datetime;large_numbers",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "calendar",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Clock card settings are discarded",
+    "input": ";;;;;;clock;;large_numbers,center_clock",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "clock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired World Clock card settings are discarded",
+    "input": "Europe/London;;;;;;timezone;;large_numbers",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "timezone",
       "precision": "",
       "options": ""
     }

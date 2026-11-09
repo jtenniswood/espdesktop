@@ -1,11 +1,20 @@
 {
   "schemaVersion": 1,
   "productModelVersion": 2,
-  "panelConfigDocumentVersion": 1,
+  "panelConfigDocumentVersion": 2,
+  "panelConfigReadVersions": [
+    1,
+    2
+  ],
+  "panelConfigWriteVersion": 2,
+  "panelConfigReadNavigationDepth": 2,
+  "panelConfigWriteNavigationDepth": 2,
+  "panelConfigMinimumReaderRelease": null,
   "webAssetVersion": 2,
   "panelConfigCompatibility": {
-    "phase": "dual-write",
+    "phase": "read-import-only",
     "dualWriteStableReleases": 2,
     "readImportOnlyStableReleases": 1
-  }
+  },
+  "panelConfigDowngradePolicy": "current-release-only"
 }

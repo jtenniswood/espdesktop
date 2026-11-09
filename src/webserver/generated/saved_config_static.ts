@@ -7,11 +7,6 @@ import type { CardConfig } from "../contracts/types";
 import { configOptionEnabled } from "../model/config_primitives";
 
 export function normalizeSavedConfigStatic(config: CardConfig): boolean {
-  if (config.type === "internal") {
-    config.type = "internal";
-    config.options = "";
-    return true;
-  }
   if (config.type === "light_brightness") {
     config.sensor = "";
     config.type = "light_brightness";

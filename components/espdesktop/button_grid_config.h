@@ -41,10 +41,7 @@ inline void notify_dashboard_content_changed() {
 #include "button_grid_card_runtime.h"
 #include <cstdlib>
 
-inline int bounded_grid_slots(int num_slots) {
-  if (num_slots < 0) return 0;
-  return num_slots > MAX_GRID_SLOTS ? MAX_GRID_SLOTS : num_slots;
-}
+
 
 // LVGL widget handles for one button slot on the main grid
 struct BtnSlot {
@@ -65,26 +62,4 @@ inline void set_card_checked_state(lv_obj_t *btn, bool checked);
 
 #include "button_grid_config_parser.h"
 
-#include "button_grid_weather_forecast.h"
-
-struct ClimateControlCtx;
-inline ClimateControlCtx **climate_control_refs();
-inline int &climate_control_ref_count();
-inline void climate_update_card(ClimateControlCtx *ctx);
-inline void climate_control_set_modal_value(ClimateControlCtx *ctx);
-
-inline void refresh_temperature_unit_labels() {
-  ClimateControlCtx **climate_refs = climate_control_refs();
-  int climate_count = climate_control_ref_count();
-  for (int i = 0; i < climate_count; i++) {
-    if (!climate_refs[i]) continue;
-    climate_update_card(climate_refs[i]);
-    climate_control_set_modal_value(climate_refs[i]);
-  }
-  refresh_weather_forecast_card_visuals();
-  if (climate_count > 0) notify_dashboard_content_changed();
-}
-
 #include "button_grid_access_cards.h"
-
-#include "button_grid_local_controls.h"

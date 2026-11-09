@@ -43,15 +43,15 @@ export interface PreviewContextMenuDependencies {
     readonly configPersistence: Pick<ConfigPersistenceFeature, "saveButtonConfig" | "buttonConfigByteLimit" | "subpageConfigFits">;
     readonly clockBar: Pick<ClockBarFeature, "setItemVisible">;
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "showBanner">;
-    readonly statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "isClockBarTemperatureItem" | "updateClockBarItemUi">;
+    readonly statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "updateClockBarItemUi">;
     readonly grid: Pick<GridFeature, "ctx" | "scheduleMainGridSave">;
-    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "openClockBarTemperatureSettings">;
+    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay">;
     readonly preview: Pick<PreviewRenderFeature, "registryValue">;
     readonly clipboard: Pick<PreviewClipboardFeature, "copyButtons" | "copySlot" | "cutButtons" | "cutSlot" | "pasteButton" | "pasteSubpageButton" | "showCopyCode" | "showPasteCode">;
     readonly renderPreview: () => void;
     readonly renderButtonSettings: () => void;
     readonly openCardSettings: (slot: number) => void;
-    readonly openVoiceServicesSettings: () => void;
+
     readonly addSlot: (position: number) => void;
     readonly addSubpageSlot: (position: number) => void;
     readonly duplicateButton: (slot: number) => void;
@@ -75,15 +75,13 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     const window = dependencies.window;
     const { isConfigLocked, showBanner } = dependencies.shell;
     const { setItemVisible: setClockBarItemVisible } = dependencies.clockBar;
-    const { clockBarItemActive, clockBarItemLabel, clockBarItems, isClockBarTemperatureItem, updateClockBarItemUi } = dependencies.statusPreview;
+    const { clockBarItemActive, clockBarItemLabel, clockBarItems,  updateClockBarItemUi } = dependencies.statusPreview;
     const { ctx, scheduleMainGridSave } = dependencies.grid;
-    const { hideSettingsOverlay, openClockBarTemperatureSettings } = dependencies.selection;
+    const { hideSettingsOverlay,  } = dependencies.selection;
     const { registryValue: buttonTypeRegistryValue } = dependencies.preview;
     const { copyButtons, copySlot, cutButtons, cutSlot, pasteButton, pasteSubpageButton, showCopyCode: showCopyCardCode, showPasteCode: showPasteCardCode } = dependencies.clipboard;
-    const { renderPreview, renderButtonSettings, openCardSettings, openVoiceServicesSettings, addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
+    const { renderPreview, renderButtonSettings, openCardSettings,  addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
     const {
-        cardIsWifiSharing,
-        cardSupportsWifiPortraitSizes,
         cardSupportsExtraLargeSize,
         cardSupportsMaxSize,
         cardSupportsSquareMaxSizes,
@@ -161,7 +159,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         const c = ctx();
         if (slot === -2) return c.isSub;
         const button = c.buttons[slot - 1];
-        return !!button && button.type !== "image" && button.type !== "wifi_qr_card";
+        return !!button && button.type !== "image";
     }
     function addColourMenuItem(slots: number[]) {
         const colourSlots = slots.filter(supportsCardColour);
@@ -415,21 +413,15 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
             return sizeColSpan(size) <= dependencies.layout.gridCols &&
                 sizeRowSpan(size) <= dependencies.layout.gridRows;
         }
-        if (!cardIsWifiSharing(b)) {
-            if (fitsScreen(CARD_SIZE_TALL)) options.push({ size: CARD_SIZE_TALL, label: "Tall (2x1)" });
-            if (fitsScreen(CARD_SIZE_EXTRA_TALL)) options.push({ size: CARD_SIZE_EXTRA_TALL, label: "Extra Tall (3x1)" });
-            if (fitsScreen(CARD_SIZE_WIDE)) options.push({ size: CARD_SIZE_WIDE, label: "Wide (1x2)" });
-            if (fitsScreen(CARD_SIZE_EXTRA_WIDE)) options.push({ size: CARD_SIZE_EXTRA_WIDE, label: "Extra Wide (1x3)" });
-            if (cardSupportsUltraWideSize(b))
-                options.push({ size: CARD_SIZE_ULTRA_WIDE, label: "Ultra Wide (1x5)" });
-        }
+        if (fitsScreen(CARD_SIZE_TALL)) options.push({ size: CARD_SIZE_TALL, label: "Tall (2x1)" });
+        if (fitsScreen(CARD_SIZE_EXTRA_TALL)) options.push({ size: CARD_SIZE_EXTRA_TALL, label: "Extra Tall (3x1)" });
+        if (fitsScreen(CARD_SIZE_WIDE)) options.push({ size: CARD_SIZE_WIDE, label: "Wide (1x2)" });
+        if (fitsScreen(CARD_SIZE_EXTRA_WIDE)) options.push({ size: CARD_SIZE_EXTRA_WIDE, label: "Extra Wide (1x3)" });
+        if (cardSupportsUltraWideSize(b))
+            options.push({ size: CARD_SIZE_ULTRA_WIDE, label: "Ultra Wide (1x5)" });
         if (fitsScreen(CARD_SIZE_LARGE)) options.push({ size: CARD_SIZE_LARGE, label: "Large (2x2)" });
         if (cardSupportsExtraLargeSize(b) && fitsScreen(CARD_SIZE_EXTRA_LARGE))
             options.push({ size: CARD_SIZE_EXTRA_LARGE, label: "Extra Large (3x3)" });
-        if (cardSupportsWifiPortraitSizes(b)) {
-            if (fitsScreen(CARD_SIZE_MAX_TALL)) options.push({ size: CARD_SIZE_MAX_TALL, label: "Max Tall (2x3)" });
-            if (fitsScreen(CARD_SIZE_PORTRAIT_LARGE)) options.push({ size: CARD_SIZE_PORTRAIT_LARGE, label: "Massive (3x4)" });
-        }
         if (cardSupportsMaxSize(b) || cardSupportsSquareMaxSizes(b)) {
             if (fitsScreen(CARD_SIZE_MAX_WIDE)) options.push({ size: CARD_SIZE_MAX_WIDE, label: "Max Wide (3x2)" });
             if (fitsScreen(CARD_SIZE_MAX_TALL)) options.push({ size: CARD_SIZE_MAX_TALL, label: "Max tall (2x3)" });
@@ -470,14 +462,6 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("delete", "Delete", function (this: any) { deleteSlot(slot); }, true);
     }
     function addClockBarMenuItems(this: any, item?: any) {
-        if (isClockBarTemperatureItem(item)) {
-            addCtxItem("pencil", "Edit Temperature", function (this: any) { openClockBarTemperatureSettings(); });
-            addCtxDivider();
-        }
-        else if (item === "voice") {
-            addCtxItem("pencil", "Edit Voice Services", function (this: any) { openVoiceServicesSettings(); });
-            addCtxDivider();
-        }
         var visible: any = clockBarItemActive(item);
         var label: any = clockBarItemLabel(item);
         addCtxItem(visible ? "eye-off-outline" : "eye-outline", (visible ? "Hide " : "Show ") + label, function (this: any) {

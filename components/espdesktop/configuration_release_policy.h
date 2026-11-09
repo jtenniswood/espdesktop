@@ -1,5 +1,7 @@
 #pragma once
 
+#include <array>
+
 #include "configuration_service.h"
 
 namespace espdesktop::configuration {
@@ -8,6 +10,16 @@ namespace espdesktop::configuration {
 // Keep this value in lock-step with that declaration; check_release_contract.py
 // protects the relationship before a release is published.
 constexpr LegacyConfigurationMode PANEL_CONFIG_LEGACY_MODE =
-    LegacyConfigurationMode::DUAL_WRITE;
+    LegacyConfigurationMode::READ_IMPORT_ONLY;
+constexpr std::array<uint16_t, 2> PANEL_CONFIG_STORAGE_READ_VERSIONS = {1, 2};
+constexpr uint16_t PANEL_CONFIG_DURABLE_WRITE_VERSION = 2;
+constexpr uint16_t PANEL_CONFIG_STORAGE_READ_NAVIGATION_DEPTH = 2;
+constexpr uint16_t PANEL_CONFIG_STORAGE_WRITE_NAVIGATION_DEPTH = 2;
+static_assert(PANEL_CONFIG_DURABLE_WRITE_VERSION == CURRENT_CONFIGURATION_DOCUMENT_VERSION);
+static_assert(PANEL_CONFIG_STORAGE_READ_NAVIGATION_DEPTH >= 1 && PANEL_CONFIG_STORAGE_READ_NAVIGATION_DEPTH <= 2);
+static_assert(PANEL_CONFIG_STORAGE_WRITE_NAVIGATION_DEPTH >= 1 &&
+              PANEL_CONFIG_STORAGE_WRITE_NAVIGATION_DEPTH <= PANEL_CONFIG_STORAGE_READ_NAVIGATION_DEPTH);
+static_assert(PANEL_CONFIG_STORAGE_WRITE_NAVIGATION_DEPTH == 1 ||
+              (PANEL_CONFIG_DURABLE_WRITE_VERSION == 2 && PANEL_CONFIG_LEGACY_MODE == LegacyConfigurationMode::READ_IMPORT_ONLY));
 
 }  // namespace espdesktop::configuration

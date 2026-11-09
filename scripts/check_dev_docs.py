@@ -160,11 +160,8 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
 
 PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "": "docs/card-types/switches.md",
-    "action": "docs/card-types/actions.md",
     "alarm": "docs/card-types/alarms.md",
     "alarm_action": "docs/card-types/alarms.md",
-    "calendar": "docs/card-types/calendar.md",
-    "clock": "docs/card-types/calendar.md",
     "companion": "docs/card-types/companion.md",
     "climate": "docs/card-types/climate.md",
     "climate_control": "docs/card-types/climate.md",
@@ -179,26 +176,19 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "fan_switch": "docs/card-types/fans.md",
     "garage": "docs/card-types/garage-doors.md",
     "gate": "docs/card-types/gates.md",
-    "internal": "docs/card-types/internal-relays.md",
     "light_brightness": "docs/card-types/lights.md",
     "light_control": "docs/card-types/lights.md",
     "light_switch": "docs/card-types/lights.md",
     "light_temperature": "docs/card-types/lights.md",
-    "local_sensor": "docs/card-types/local-sensors.md",
     "lock": "docs/card-types/locks.md",
     "media": "docs/card-types/media.md",
-    "option_select": "docs/card-types/option-select.md",
     "push": "docs/card-types/buttons.md",
     "webhook": "docs/card-types/webhooks.md",
-    "sensor": "docs/card-types/sensors.md",
     "slider": "docs/card-types/sliders.md",
     "subpage": "docs/features/subpages.md",
     "timer": "docs/card-types/timers.md",
-    "timezone": "docs/card-types/timezones.md",
     "vacuum": "docs/card-types/vacuum.md",
     "lawn_mower": "docs/card-types/lawn-mower.md",
-    "wifi_qr": "docs/card-types/wifi-share.md",
-    "wifi_qr_card": "docs/card-types/wifi-share.md",
     "weather": "docs/card-types/weather.md",
     "image": "docs/card-types/cameras.md",
     "weather_forecast": "docs/card-types/weather.md",
@@ -506,7 +496,7 @@ def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
     out = {card_type: [] for card_type in card_types}
     runtime_boundary = "components/espdesktop/button_grid_card_runtime.h"
     extra_by_type = {
-        "weather": ["components/espdesktop/button_grid_weather_forecast.h"],
+        "weather": ["components/espdesktop/retired_home_assistant_cards.h"],
     }
     headers = [
         path for path in sorted((ROOT / "components/espdesktop").glob("button_grid*.h"))

@@ -16,6 +16,7 @@ code = r'''
 #include <algorithm>
 #include <array>
 #include <cassert>
+#define ESP_LOGD(...) ((void)0)
 #include <cstddef>
 #include <cstdint>
 #include <functional>
@@ -64,6 +65,25 @@ lv_obj_t *lv_obj_get_screen(lv_obj_t *o) { return o->screen; }
 size_t lv_obj_get_child_cnt(lv_obj_t *o) { return o->children.size(); }
 lv_obj_t *lv_obj_get_child(lv_obj_t *o, int32_t i) { return o->children[i]; }
 void *lv_obj_get_user_data(lv_obj_t *o) { return o->data; }
+// Model a costly image refresh: it must see the destination frame presented.
+lv_obj_t *last_presented = nullptr;
+unsigned frames_presented = 0, image_refreshes = 0;
+struct lv_display_t {} display;
+constexpr int LV_EVENT_REFR_READY = 100;
+void (*frame_callback)(lv_event_t *) = nullptr;
+unsigned frame_callback_registrations = 0;
+void lv_display_add_event_cb(lv_display_t *d, void (*cb)(lv_event_t *), int event, void *) {
+  assert(d == &display && event == LV_EVENT_REFR_READY);
+  frame_callback = cb; ++frame_callback_registrations;
+}
+lv_display_t *lv_obj_get_display(lv_obj_t *) { return &display; }
+void lv_refr_now(lv_display_t *d) {
+  assert(d == &display); last_presented = active; ++frames_presented;
+}
+void refresh_visible_image_cards() {
+  assert(last_presented == active && frames_presented == image_refreshes + 1);
+  ++image_refreshes;
+}
 unsigned applies = 0, title_refreshes = 0;
 constexpr int LV_STATE_CHECKED = 1;
 bool lv_obj_has_state(lv_obj_t *obj, int) { return obj->checked; }
@@ -87,17 +107,41 @@ void navigation_refresh_subpage_label() {
 code = code.replace("void navigation_refresh_subpage_label()", "void companion_refresh_app_icon_visibility();\nvoid navigation_refresh_subpage_label()")
 code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *grid_find_companion_app_icon_image_for_data(")
 code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {")
+for signature in ("inline bool &companion_app_icon_work_pending() {",
+                  "inline bool &companion_app_icon_waiting_for_frame() {",
+                  "inline void companion_app_icon_frame_presented(lv_event_t *) {",
+                  "inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {"):
+    code += function("components/espdesktop/button_grid_grid.h", signature)
 code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline std::function<void()> &navigation_subpage_clock_bar_refresh() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_subpage_screen_changed(lv_event_t *) {")
-for signature in ("inline bool &companion_app_icon_work_pending() {",
-                  "inline bool companion_app_icon_pixels_current(",
+code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_present_page_before_image_refresh() {")
+for signature in ("inline bool companion_app_icon_pixels_current(",
                   "inline void companion_refresh_cached_app_icon(",
                   "inline void companion_refresh_app_icon_connection_state(",
                   "inline void companion_process_pending_app_icon_refresh() {"):
     code += function("components/espdesktop/button_grid_grid.h", signature)
 code += r'''
+void present_icon_frame() { if (frame_callback) frame_callback(nullptr); }
+void settle_icon_work() {
+  unsigned turns = 0;
+  while (companion_app_icon_work_pending()) {
+    assert(++turns < 32);
+    present_icon_frame();
+    companion_process_pending_app_icon_refresh();
+  }
+}
 int main() {
+  // Both return destinations are drawn before camera/artwork recovery runs.
+  for (auto *destination : {&home, &subpage}) {
+    active = destination;
+    navigation_present_page_before_image_refresh();
+    assert(last_presented == destination);
+  }
+  active = nullptr;
+  navigation_present_page_before_image_refresh();
+  assert(frames_presented == 2 && image_refreshes == 2);
+  active = &home;
   CompanionAppIconImageData main_icon, child_icon;
   lv_obj_t home_owner{&home, {&home_image}}, subpage_owner{&subpage, {&subpage_image}};
   home_image.data = &main_icon;
@@ -106,41 +150,56 @@ int main() {
                  {&subpage_owner, &child_icon, grid_delete_runtime_ptr<CompanionAppIconImageData>}};
   navigation_subpage_clock_bar_refresh() = [] { navigation_refresh_subpage_label(); };
   navigation_subpage_screen_changed(nullptr);
+  assert(applies == 0 && main_icon.refresh_pending);
+  companion_process_pending_app_icon_refresh();
+  assert(applies == 0); // No icon decode before the destination's first frame.
+  settle_icon_work();
+  assert(frame_callback_registrations == 1);
   assert(title_refreshes == 1 && applies == 1 && main_icon.image_loaded);
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(title_refreshes == 2 && applies == 2 && child_icon.image_loaded && main_icon.image_loaded);
   // Duplicate events and returning home reuse both decoded and scaled pixels.
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   active = &home;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(title_refreshes == 4 && applies == 2);
   navigation_subpage_clock_bar_refresh() = nullptr;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(title_refreshes == 5 && applies == 2);
   // Existing icon update/connection callbacks release stale hidden pixels.
   companion_apply_cached_app_icon(child_icon, &subpage_image);
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(child_icon.image_loaded && applies == 4);
   // Failed loads must release their leftover allocation when hidden.
   child_icon.image_loaded = false;
   active = &home;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(child_icon.pixels == nullptr && applies == 5);
   // Scaled pixels count toward the hidden budget as well as source pixels.
   main_icon.display_bytes = 2 * 1024 * 1024;
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(!main_icon.pixels && child_icon.image_loaded && applies == 7);
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(applies == 7);
   // Camera, sleep, and other non-grid screens reclaim the complete cache.
   lv_obj_t camera{};
   active = &camera;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(!main_icon.pixels && !child_icon.pixels && applies == 8);
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(applies == 8);
   // Several individually small entries must share the same total budget.
   CompanionAppIconImageData icons[13];
@@ -226,6 +285,9 @@ int main() {
   companion_process_pending_app_icon_refresh();
   assert(applies == before + 1 && cached[0].refresh_pending && !cached[1].refresh_pending);
   assert(cached[1].loaded_hash[0] == 5);
+  companion_process_pending_app_icon_refresh();
+  assert(applies == before + 1); // At most one icon between presented frames.
+  present_icon_frame();
   companion_process_pending_app_icon_refresh();
   assert(applies == before + 2 && !companion_app_icon_work_pending());
   companion_refresh_cached_app_icon("");

@@ -23,9 +23,8 @@ protocol CompanionSessionResources: AnyObject {
     func focusedCompanionActionIdentifier() async -> String
     func immediateFocusedApplicationIdentifier() -> String?
     func focusedCompanionActionIdentifiers() async -> [String]
-    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String])
+    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)])
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
-    func configuredWebAppIDs() -> [String]
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
@@ -59,10 +58,9 @@ extension CompanionSessionResources {
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
-    func configuredWebAppIDs() -> [String] { [] }
     func focusedCompanionActionIdentifiers() async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()
         return identifier.isEmpty ? [] : [identifier]
     }
-    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String]) {}
+    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)]) {}
 }
