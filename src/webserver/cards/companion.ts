@@ -28,6 +28,7 @@ export {
     COMPANION_WINDOW_ACTIONS,
 } from "../generated/companion_capabilities";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
+import type { SettingsUiFeature } from "../features/settings";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
@@ -477,6 +478,7 @@ export function registerCompanionCardTypes(
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
+    { infoPanel }: Pick<SettingsUiFeature, "infoPanel">,
 ): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
@@ -983,9 +985,11 @@ export function registerCompanionCardTypes(
                 group.appendChild(option);
             });
             windowField.appendChild(windowSelect);
-            const windowNote = document.createElement("div");
-            windowNote.className = "sp-field-info-text sp-visible";
-            windowNote.textContent = "Controls the active Mac window. Tiling actions require macOS 15 or later.";
+            const windowNote = infoPanel(
+                helpers.idPrefix + "companion-window-note",
+                "Controls the active Mac window. Tiling actions require macOS 15 or later.",
+            );
+            windowSelect.setAttribute("aria-describedby", windowNote.id);
             windowField.appendChild(windowNote);
             panel?.appendChild(windowField);
             helpers.markCardPrimaryField(windowField, "window");
