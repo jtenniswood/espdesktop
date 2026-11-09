@@ -154,6 +154,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka ztlumena";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(text, "Locked") == 0) return "Zamčeno";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Chcete-li používat tuto obrazovku, odemkněte svůj Mac";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(text, "Skip Next") == 0) return "Přeskočit další";
   if (std::strcmp(text, "Skip Previous") == 0) return "Přeskočit předchozí";
@@ -456,6 +458,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skærm neddæmpet";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skærmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skærm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås din Mac op for at bruge denne skærm";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(text, "Skip Next") == 0) return "Spring til næste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Spring til forrige";
@@ -751,6 +755,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Bildschirm gedimmt";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(text, "Screen Locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(text, "Locked") == 0) return "Gesperrt";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Entsperre deinen Mac, um diesen Bildschirm zu verwenden";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(text, "Skip Next") == 0) return "Weiter springen";
   if (std::strcmp(text, "Skip Previous") == 0) return "Zurück springen";
@@ -1056,6 +1062,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Pantalla atenuada";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(text, "Screen Locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueada";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloquea tu Mac para usar esta pantalla";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar siguiente";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
@@ -1374,6 +1382,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Näyttö himmennetty";
   if (std::strcmp(text, "Screen Lock") == 0) return "Näytön lukitus";
   if (std::strcmp(text, "Screen Locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(text, "Locked") == 0) return "Lukittu";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Avaa Macin lukitus, niin voit käyttää tätä näyttöä";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(text, "Skip Next") == 0) return "Seuraava kappale";
   if (std::strcmp(text, "Skip Previous") == 0) return "Edellinen kappale";
@@ -1674,6 +1684,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Écran tamisé";
   if (std::strcmp(text, "Screen Lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(text, "Locked") == 0) return "Verrouillé";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Déverrouillez votre Mac pour utiliser cet écran";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(text, "Skip Next") == 0) return "Passer au suivant";
   if (std::strcmp(text, "Skip Previous") == 0) return "Passer au précédent";
@@ -1998,6 +2010,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(text, "Screen Lock") == 0) return "נעילת מסך";
   if (std::strcmp(text, "Screen Locked") == 0) return "המסך נעול";
+  if (std::strcmp(text, "Locked") == 0) return "נעול";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "יש לבטל את נעילת ה-Mac כדי להשתמש במסך הזה";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "נעילת המסך בוטלה";
   if (std::strcmp(text, "Skip Next") == 0) return "הרצועה הבאה";
   if (std::strcmp(text, "Skip Previous") == 0) return "הרצועה הקודמת";
@@ -2313,6 +2327,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Képernyő halványítva";
   if (std::strcmp(text, "Screen Lock") == 0) return "Képernyőzár";
   if (std::strcmp(text, "Screen Locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(text, "Locked") == 0) return "Zárolva";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Oldja fel a Mac zárolását a képernyő használatához";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(text, "Skip Next") == 0) return "Ugrás a következőre";
   if (std::strcmp(text, "Skip Previous") == 0) return "Ugrás az előzőre";
@@ -2622,6 +2638,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Schermo attenuato";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blocco schermo";
   if (std::strcmp(text, "Screen Locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(text, "Locked") == 0) return "Bloccato";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Sblocca il Mac per usare questo schermo";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(text, "Skip Next") == 0) return "Salta avanti";
   if (std::strcmp(text, "Skip Previous") == 0) return "Salta indietro";
@@ -2928,6 +2946,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skjerm neddimmet";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skjermlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skjerm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås opp Macen for å bruke denne skjermen";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(text, "Skip Next") == 0) return "Hopp til neste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hopp til forrige";
@@ -3234,6 +3254,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Scherm gedimd";
   if (std::strcmp(text, "Screen Lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(text, "Screen Locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(text, "Locked") == 0) return "Vergrendeld";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Ontgrendel je Mac om dit scherm te gebruiken";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(text, "Skip Next") == 0) return "Volgende overslaan";
   if (std::strcmp(text, "Skip Previous") == 0) return "Vorige overslaan";
@@ -3532,6 +3554,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran przyciemniony";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blokada ekranu";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(text, "Locked") == 0) return "Zablokowany";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Odblokuj Maca, aby użyć tego ekranu";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(text, "Skip Next") == 0) return "Pomiń następny";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pomiń poprzedni";
@@ -3837,6 +3861,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Tela escurecida";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(text, "Screen Locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueada";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloqueie o Mac para usar esta tela";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Pular próximo";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pular anterior";
@@ -4141,6 +4167,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecrã escurecido";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueado";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloqueie o Mac para usar este ecrã";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar seguinte";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
@@ -4455,6 +4483,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecran estompat";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blocare ecran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecran blocat";
+  if (std::strcmp(text, "Locked") == 0) return "Blocat";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Deblochează Mac-ul pentru a folosi acest ecran";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(text, "Skip Next") == 0) return "Următorul";
   if (std::strcmp(text, "Skip Previous") == 0) return "Anteriorul";
@@ -4773,6 +4803,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Экран приглушён";
   if (std::strcmp(text, "Screen Lock") == 0) return "Блокировка экрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Экран заблокирован";
+  if (std::strcmp(text, "Locked") == 0) return "Заблокировано";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Разблокируйте Mac, чтобы использовать этот экран";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(text, "Skip Next") == 0) return "Следующий трек";
   if (std::strcmp(text, "Skip Previous") == 0) return "Предыдущий трек";
@@ -5082,6 +5114,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka stlmená";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(text, "Locked") == 0) return "Uzamknuté";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Ak chcete používať túto obrazovku, odomknite svoj Mac";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskočiť predchádzajúce";
@@ -5391,6 +5425,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Zaslon zatemnjen";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(text, "Screen Locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(text, "Locked") == 0) return "Zaklenjeno";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Odklenite svoj Mac za uporabo tega zaslona";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskoči naprej";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskoči nazaj";
@@ -5696,6 +5732,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skärm nedtonad";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skärmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skärm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås upp din Mac för att använda den här skärmen";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(text, "Skip Next") == 0) return "Hoppa till nästa";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hoppa till föregående";
@@ -6004,6 +6042,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran kısılmış";
   if (std::strcmp(text, "Screen Lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(text, "Locked") == 0) return "Kilitli";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Bu ekranı kullanmak için Mac'inizin kilidini açın";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(text, "Skip Next") == 0) return "Sonrakine geç";
   if (std::strcmp(text, "Skip Previous") == 0) return "Öncekine geç";
@@ -6320,6 +6360,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Екран приглушено";
   if (std::strcmp(text, "Screen Lock") == 0) return "Блокування екрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(text, "Locked") == 0) return "Заблоковано";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Розблокуйте Mac, щоб користуватися цим екраном";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(text, "Skip Next") == 0) return "Наступний";
   if (std::strcmp(text, "Skip Previous") == 0) return "Попередній";
@@ -6641,6 +6683,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Screen Dimmed";
   if (std::strcmp(key, "screen_lock") == 0) return "Screen Lock";
   if (std::strcmp(key, "screen_locked") == 0) return "Screen Locked";
+  if (std::strcmp(key, "locked") == 0) return "Locked";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Unlock your Mac to use this screen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Screen Unlocked";
   if (std::strcmp(key, "skip_next") == 0) return "Skip Next";
   if (std::strcmp(key, "skip_previous") == 0) return "Skip Previous";
@@ -6977,6 +7021,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka ztlumena";
   if (std::strcmp(key, "screen_lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(key, "locked") == 0) return "Zamčeno";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Chcete-li používat tuto obrazovku, odemkněte svůj Mac";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(key, "skip_next") == 0) return "Přeskočit další";
   if (std::strcmp(key, "skip_previous") == 0) return "Přeskočit předchozí";
@@ -7289,6 +7335,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skærm neddæmpet";
   if (std::strcmp(key, "screen_lock") == 0) return "Skærmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skærm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås din Mac op for at bruge denne skærm";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(key, "skip_next") == 0) return "Spring til næste";
   if (std::strcmp(key, "skip_previous") == 0) return "Spring til forrige";
@@ -7592,6 +7640,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Bildschirm gedimmt";
   if (std::strcmp(key, "screen_lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(key, "screen_locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(key, "locked") == 0) return "Gesperrt";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Entsperre deinen Mac, um diesen Bildschirm zu verwenden";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(key, "skip_next") == 0) return "Weiter springen";
   if (std::strcmp(key, "skip_previous") == 0) return "Zurück springen";
@@ -7905,6 +7955,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Pantalla atenuada";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(key, "screen_locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueada";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloquea tu Mac para usar esta pantalla";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar siguiente";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
@@ -8232,6 +8284,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Näyttö himmennetty";
   if (std::strcmp(key, "screen_lock") == 0) return "Näytön lukitus";
   if (std::strcmp(key, "screen_locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(key, "locked") == 0) return "Lukittu";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Avaa Macin lukitus, niin voit käyttää tätä näyttöä";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(key, "skip_next") == 0) return "Seuraava kappale";
   if (std::strcmp(key, "skip_previous") == 0) return "Edellinen kappale";
@@ -8542,6 +8596,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Écran tamisé";
   if (std::strcmp(key, "screen_lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(key, "screen_locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(key, "locked") == 0) return "Verrouillé";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Déverrouillez votre Mac pour utiliser cet écran";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(key, "skip_next") == 0) return "Passer au suivant";
   if (std::strcmp(key, "skip_previous") == 0) return "Passer au précédent";
@@ -8875,6 +8931,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(key, "screen_lock") == 0) return "נעילת מסך";
   if (std::strcmp(key, "screen_locked") == 0) return "המסך נעול";
+  if (std::strcmp(key, "locked") == 0) return "נעול";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "יש לבטל את נעילת ה-Mac כדי להשתמש במסך הזה";
   if (std::strcmp(key, "screen_unlocked") == 0) return "נעילת המסך בוטלה";
   if (std::strcmp(key, "skip_next") == 0) return "הרצועה הבאה";
   if (std::strcmp(key, "skip_previous") == 0) return "הרצועה הקודמת";
@@ -9200,6 +9258,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Képernyő halványítva";
   if (std::strcmp(key, "screen_lock") == 0) return "Képernyőzár";
   if (std::strcmp(key, "screen_locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(key, "locked") == 0) return "Zárolva";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Oldja fel a Mac zárolását a képernyő használatához";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(key, "skip_next") == 0) return "Ugrás a következőre";
   if (std::strcmp(key, "skip_previous") == 0) return "Ugrás az előzőre";
@@ -9519,6 +9579,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Schermo attenuato";
   if (std::strcmp(key, "screen_lock") == 0) return "Blocco schermo";
   if (std::strcmp(key, "screen_locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(key, "locked") == 0) return "Bloccato";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Sblocca il Mac per usare questo schermo";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(key, "skip_next") == 0) return "Salta avanti";
   if (std::strcmp(key, "skip_previous") == 0) return "Salta indietro";
@@ -9834,6 +9896,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skjerm neddimmet";
   if (std::strcmp(key, "screen_lock") == 0) return "Skjermlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skjerm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås opp Macen for å bruke denne skjermen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(key, "skip_next") == 0) return "Hopp til neste";
   if (std::strcmp(key, "skip_previous") == 0) return "Hopp til forrige";
@@ -10148,6 +10212,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Scherm gedimd";
   if (std::strcmp(key, "screen_lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(key, "screen_locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(key, "locked") == 0) return "Vergrendeld";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Ontgrendel je Mac om dit scherm te gebruiken";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(key, "skip_next") == 0) return "Volgende overslaan";
   if (std::strcmp(key, "skip_previous") == 0) return "Vorige overslaan";
@@ -10453,6 +10519,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran przyciemniony";
   if (std::strcmp(key, "screen_lock") == 0) return "Blokada ekranu";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(key, "locked") == 0) return "Zablokowany";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Odblokuj Maca, aby użyć tego ekranu";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(key, "skip_next") == 0) return "Pomiń następny";
   if (std::strcmp(key, "skip_previous") == 0) return "Pomiń poprzedni";
@@ -10768,6 +10836,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Tela escurecida";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(key, "screen_locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueada";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloqueie o Mac para usar esta tela";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Pular próximo";
   if (std::strcmp(key, "skip_previous") == 0) return "Pular anterior";
@@ -11081,6 +11151,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecrã escurecido";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueado";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloqueie o Mac para usar este ecrã";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar seguinte";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
@@ -11404,6 +11476,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecran estompat";
   if (std::strcmp(key, "screen_lock") == 0) return "Blocare ecran";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecran blocat";
+  if (std::strcmp(key, "locked") == 0) return "Blocat";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Deblochează Mac-ul pentru a folosi acest ecran";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(key, "skip_next") == 0) return "Următorul";
   if (std::strcmp(key, "skip_previous") == 0) return "Anteriorul";
@@ -11732,6 +11806,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Экран приглушён";
   if (std::strcmp(key, "screen_lock") == 0) return "Блокировка экрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Экран заблокирован";
+  if (std::strcmp(key, "locked") == 0) return "Заблокировано";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Разблокируйте Mac, чтобы использовать этот экран";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(key, "skip_next") == 0) return "Следующий трек";
   if (std::strcmp(key, "skip_previous") == 0) return "Предыдущий трек";
@@ -12051,6 +12127,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka stlmená";
   if (std::strcmp(key, "screen_lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(key, "locked") == 0) return "Uzamknuté";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Ak chcete používať túto obrazovku, odomknite svoj Mac";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(key, "skip_next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskočiť predchádzajúce";
@@ -12370,6 +12448,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Zaslon zatemnjen";
   if (std::strcmp(key, "screen_lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(key, "screen_locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(key, "locked") == 0) return "Zaklenjeno";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Odklenite svoj Mac za uporabo tega zaslona";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(key, "skip_next") == 0) return "Preskoči naprej";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskoči nazaj";
@@ -12685,6 +12765,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skärm nedtonad";
   if (std::strcmp(key, "screen_lock") == 0) return "Skärmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skärm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås upp din Mac för att använda den här skärmen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(key, "skip_next") == 0) return "Hoppa till nästa";
   if (std::strcmp(key, "skip_previous") == 0) return "Hoppa till föregående";
@@ -13001,6 +13083,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran kısılmış";
   if (std::strcmp(key, "screen_lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(key, "locked") == 0) return "Kilitli";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Bu ekranı kullanmak için Mac'inizin kilidini açın";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(key, "skip_next") == 0) return "Sonrakine geç";
   if (std::strcmp(key, "skip_previous") == 0) return "Öncekine geç";
@@ -13327,6 +13411,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Екран приглушено";
   if (std::strcmp(key, "screen_lock") == 0) return "Блокування екрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(key, "locked") == 0) return "Заблоковано";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Розблокуйте Mac, щоб користуватися цим екраном";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(key, "skip_next") == 0) return "Наступний";
   if (std::strcmp(key, "skip_previous") == 0) return "Попередній";

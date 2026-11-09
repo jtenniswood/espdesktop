@@ -206,6 +206,11 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
     id: "focus.targets",
     direction: "panel_to_mac",
     authorization: "session"
+  },
+  {
+    id: "session.lock",
+    direction: "mac_to_panel",
+    authorization: "paired"
   }
 ];
 export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = [

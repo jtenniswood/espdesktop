@@ -57,6 +57,7 @@ enum CompanionCapabilities {
         "error",
         "catalogue.definitions.page",
         "focus.targets",
+        "session.lock",
     ]
     static let cardModes: [String: String] = [
         "app": "Applications",

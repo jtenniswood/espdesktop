@@ -66,6 +66,7 @@ final class CompanionConnection: NSObject {
     private var supportsAlphaAppIcons = false
     private var supportsHighResolutionAppIcons = false
     private var supportsImmediateApplicationFocus = false
+    private var supportsSessionLock = false
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
     private var artworkData: Data?
@@ -461,6 +462,7 @@ final class CompanionConnection: NSObject {
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
+            supportsSessionLock = payload.capabilityVersion >= 7
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -789,6 +791,11 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "app_icon.begin", "appId": payload.appId,
                   "generation": appIconGeneration, "byteLength": transferPixels.count,
                   "sha256": hash, "format": transferFormat])
+    }
+
+    func publishSessionLock(_ locked: Bool) {
+        guard sessionAuthenticated, supportsSessionLock else { return }
+        sendJSON(["type": "session.lock", "locked": locked])
     }
 
     private func sendJSON(_ object: [String: Any]) {

@@ -930,6 +930,19 @@
         "states": [
           "connected"
         ]
+      },
+      {
+        "id": "session.lock",
+        "direction": "mac_to_panel",
+        "authorization": "paired",
+        "fields": {
+          "locked": {
+            "type": "boolean"
+          }
+        },
+        "states": [
+          "connected"
+        ]
       }
     ],
     "appIconLegacySide": 144,

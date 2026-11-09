@@ -56,6 +56,7 @@ inline constexpr CompanionProtocolMessagePolicy COMPANION_PROTOCOL_MESSAGES[] = 
   {"error", "bidirectional", "public"},
   {"catalogue.definitions.page", "mac_to_panel", "session"},
   {"focus.targets", "panel_to_mac", "session"},
+  {"session.lock", "mac_to_panel", "paired"},
 };
 
 struct CompanionCardModeCapability { const char *id; const char *label; const char *capability; const char *default_icon; };
