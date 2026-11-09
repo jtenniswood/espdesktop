@@ -1556,10 +1556,36 @@ export function registerCompanionCardTypes(
     };
     registry.register("companion", companionDefinition);
 
+    const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
+    const macLockMetadata = {
+        icon: { fallback: macLockDefaults.icon },
+        preview: { iconFallback: macLockDefaults.icon, badge: COMPANION_CARD_METADATA.preview.badge },
+    };
+    registry.register("companion_mac_lock", {
+        label: macLockDefaults.label,
+        cardMetadata: macLockMetadata,
+        allowInSubpage: cardContractAllowInSubpage("companion_mac_lock"),
+        isAvailable: () => supported,
+        labelPlaceholder: macLockDefaults.label,
+        defaultConfig: () => macLockDefaults,
+        onSelect: (card) => Object.assign(card, macLockDefaults),
+        normalizeConfig: (card) => Object.assign(card, macLockDefaults, {
+            label: card.label || macLockDefaults.label,
+            icon: card.icon && card.icon !== "Auto" ? card.icon : macLockDefaults.icon,
+            options: normalizedCardColorOptions(card.options),
+        }),
+        renderSettings: (panel, card, _slot, helpers) => {
+            helpers.renderCardIconPicker(panel, card, helpers, macLockMetadata.icon);
+        },
+        renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+            ...macLockMetadata.preview,
+            label: card.label || macLockDefaults.label,
+        }),
+    });
+
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
-        ["companion_mac_lock", "Mac Lock", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],
         ["companion_window", "Window control", "window"],
@@ -1576,11 +1602,6 @@ export function registerCompanionCardTypes(
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);
                 applyCompanionPickerPreset(card, mode);
-                if (card && key === "companion_mac_lock") {
-                    card.entity = "shortcut.command+control+q";
-                    card.label = "Mac Lock";
-                    card.icon = "Lock";
-                }
             },
         });
     });
