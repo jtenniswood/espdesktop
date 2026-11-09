@@ -218,33 +218,33 @@ inline void draw_app_back_tab(lv_event_t *event) {
   lv_area_t card{};
   lv_obj_get_coords(button, &card);
   const int side = std::min(lv_area_get_width(&card), lv_area_get_height(&card));
-  const int width = side * 22 / 100;
-  const int height = side * 24 / 100;
-  if (width < 8 || height < 8) return;
+  const int size = side * 28 / 100;
+  if (size < 8) return;
   const int left = card.x1;
-  const int top = card.y1 + (lv_area_get_height(&card) - height) / 2;
-  const int middle = top + height / 2;
+  const int top = card.y2 - size + 1;
 
   lv_draw_rect_dsc_t tab;
   lv_draw_rect_dsc_init(&tab);
   tab.bg_color = lv_color_hex(0x303030);
-  tab.radius = std::min(width, height) / 4;
-  const lv_area_t bounds{left, top, left + width - 1, top + height - 1};
+  tab.radius = size / 3;
+  const lv_area_t bounds{left, top, left + size - 1, card.y2};
   lv_draw_rect(layer, &tab, &bounds);
-  // Square off the left corners so the tab joins the edge of the card.
-  const lv_area_t edge{left, top, left + tab.radius, bounds.y2};
+  // Keep the upper-right corner rounded. The card clips the bottom-left edge.
+  const lv_area_t left_fill{left, top, bounds.x2 - tab.radius, bounds.y2};
+  const lv_area_t bottom_fill{left, top + tab.radius, bounds.x2, bounds.y2};
   tab.radius = 0;
-  lv_draw_rect(layer, &tab, &edge);
+  lv_draw_rect(layer, &tab, &left_fill);
+  lv_draw_rect(layer, &tab, &bottom_fill);
 
   lv_draw_line_dsc_t arrow;
   lv_draw_line_dsc_init(&arrow);
   arrow.color = lv_color_white();
-  arrow.width = std::max(1, std::min(width, height) / 11);
-  arrow.p1 = {left + width * 4 / 10, middle};
-  arrow.p2 = {left + width * 63 / 100, top + height * 3 / 10};
+  arrow.width = std::max(1, size / 14);
+  arrow.p1 = {left + size * 12 / 28, top + size * 12 / 28};
+  arrow.p2 = {left + size * 18 / 28, top + size * 7 / 28};
   arrow.round_start = true;
   lv_draw_line(layer, &arrow);
-  arrow.p2.y = top + height * 7 / 10;
+  arrow.p2.y = top + size * 17 / 28;
   lv_draw_line(layer, &arrow);
 }
 
@@ -1422,7 +1422,8 @@ inline void grid_phase2(
     configure_button_label_wrap(back_slot.text_lbl);
     const bool back_neutral_background = apply_subpage_back_colors(back_btn, sp_order_str, display);
     if (app_back) {
-      // App Back cards use a large icon at every grid size.
+      // Clip the tab to the card's rounded outline.
+      lv_obj_set_style_clip_corner(back_btn, true, LV_PART_MAIN);
       lv_obj_add_event_cb(back_btn, draw_app_back_tab, LV_EVENT_DRAW_POST, nullptr);
       espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
           "large", display_main_width_percent(display), cfg.width_compensation_vertical);

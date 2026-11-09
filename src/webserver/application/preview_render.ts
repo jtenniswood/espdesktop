@@ -445,9 +445,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 const parent = page ? ownerCards[pageOwnerSlot(page) - 1] : null;
                 const appBack = companionAppShortcutFolderEnabled(parent);
                 const backChevron = appBack
-                    ? '<svg class="sp-back-badge sp-app-back-tab" viewBox="0 0 22 24" preserveAspectRatio="xMinYMid meet" aria-hidden="true">' +
-                        '<path fill="#303030" d="M0 0h17a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H0z"/>' +
-                        '<path fill="none" stroke="#fff" stroke-width="2" d="m14 7-5 5 5 5"/></svg>'
+                    ? '<svg class="sp-back-badge sp-app-back-tab" viewBox="0 0 28 28" preserveAspectRatio="xMinYMax meet" aria-hidden="true">' +
+                        '<path fill="#303030" d="M0 0h19a9 9 0 0 1 9 9v19H0z"/>' +
+                        '<path fill="none" stroke="#fff" stroke-width="2" d="m18 7-6 5 6 5"/></svg>'
                     : '';
                 var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;

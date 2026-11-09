@@ -2890,8 +2890,8 @@ async function assertAutomaticAppIcons(browser, testCase) {
       const cardBounds = await page.locator(".sp-back-btn").boundingBox();
       const tabBounds = await backTab.boundingBox();
       assert(tabBounds && Math.abs(tabBounds.x - cardBounds.x) < 1 &&
-        Math.abs(tabBounds.y + tabBounds.height / 2 - cardBounds.y - cardBounds.height / 2) < 1,
-        "app Back tab is flush with the left edge and vertically centred");
+        Math.abs(tabBounds.y + tabBounds.height - cardBounds.y - cardBounds.height) < 1,
+        "app Back tab is flush with the bottom-left corner");
       assert(await backTab.evaluate(el => {
         const bounds = el.getBoundingClientRect();
         return el.contains(document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2));
