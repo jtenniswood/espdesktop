@@ -75,11 +75,6 @@ wifi:
   password: !secret wifi_password
 
 packages:
-  api_encryption:
-    url: https://github.com/jtenniswood/espdesktop/
-    ref: test-jc8012p4a1-v3
-    file: common/addon/api_encryption_dynamic.yaml
-    refresh: 1s
   setup:
     url: https://github.com/jtenniswood/espdesktop/
     ref: test-jc8012p4a1-v3
@@ -105,7 +100,7 @@ should load `webserver/embedded/www.js`, not `webserver/www.js`. Keep a unique
 ## Physical test checklist
 
 - Capture startup logs: P4 v3.2, PSRAM detected, no repeating watchdog reset.
-- Connect Wi-Fi, open the web interface and pair with Home Assistant.
+- Connect Wi-Fi, open the web interface and pair with the EspDesktop Mac app.
 - Check display image, brightness and rotation; touch the centre and all corners.
 - Test sleep/wake, several cold starts and at least 30 minutes of operation.
 - Verify a multipart POST to `/update` is rejected with HTTP 403, both while the

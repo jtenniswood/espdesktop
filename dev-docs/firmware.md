@@ -148,31 +148,27 @@ yield at the start of `display_mode_effect_cover_art`: layout and logging must
 not inherit the controller's nested action stack. Keep artwork preparation in
 the restartable `cover_art_prepare_activation` script with its own yield. The
 parent waits for preparation before completing the transition. After the yield,
-validate transition generation, subscription generation, media entity, source
-(Home Assistant or Mac Companion) and feature eligibility; obsolete work must not select or download artwork.
+validate the display transition generation and Mac artwork generation, and
+confirm playback and the feature are still enabled. Obsolete work must not
+rebind an older track’s pixels.
 
-`cover_art_request_artwork` already selects cached candidates. Do not add a
-second cached-selection call to activation. Mac Companion can activate without
-a Home Assistant entity and reuses its decoded image; it must not enter the
-Home Assistant URL download/retry pipeline. Image consumers continue sharing
-the existing serialized download queue.
+The authenticated Mac Companion connection pushes fullscreen artwork bytes.
+`cover_art_request_artwork` reuses its decoded image while requesting the current
+Mac artwork generation. Fullscreen artwork has no Home Assistant subscriptions,
+URL downloads, entity filters, or playback commands. Camera/image consumers
+continue using their separate download queue until their integration is retired.
 
 `tests/firmware/cover_art_activation_test.py` executes the production scheduling
-and artwork-selection bodies with an ESPHome action-chain excerpt and simulated
-LVGL/network/scheduler boundaries. Its `--mutations` option verifies the yields
-and ownership guards. Use `--esphome-source <generated-src>/esphome` after a
-toolchain update to verify the excerpt against the installed automation code.
-Run it with a Python environment containing PyYAML (the pinned ESPHome
-environment provides this dependency and CI reuses it).
+and presentation bodies with an ESPHome action-chain excerpt and simulated
+LVGL/scheduler boundaries. Its `--mutations` option verifies the yields,
+stale-track cancellation and image ownership. Use `--esphome-source
+<generated-src>/esphome` after a toolchain update to verify the automation excerpt.
+Run it with the pinned ESPHome Python environment for PyYAML.
+`check_companion_artwork.py` guards the stream-only transport and pixel ownership.
 
-The anonymized `tests/firmware/fixtures/issue1854-cover-art.json` backup preserves
-the reporter's tile, 60-second Cover Art delay, presence dimming, music sleep
-prevention and 90-degree rotation. Replace all `media_player.issue1854` and
-`binary_sensor.issue1854_presence` values with bench entities before importing.
-The native payload is omitted so it cannot override the anonymized legacy
-fields. Test five cold boots, 20 playback/track changes, 20 screensaver/wake
-cycles and 30 minutes of playback on the 4-inch S3, followed by a 7-inch P4
-smoke test. Check both crashes and text corruption.
+The anonymized `tests/firmware/fixtures/issue1854-cover-art.json` backup is retained
+for compatibility/import checks. Its former Home Assistant artwork and presence
+settings are not a supported playback test setup.
 
 Home Assistant reconnect recovery lives in the restartable
 `ha_refresh_after_connect` script. A Home Assistant disconnect cancels its delayed

@@ -1,20 +1,29 @@
 ---
-title: Subpages
-description: Create extra pages on your EspDesktop display to organise cards into simple groups.
+title: "Organize Cards in Local Folders"
+description: "Use local Subpages for Mac and panel controls, with optional Mac statistics on folder tiles."
 ---
 
 # Subpages
 
-![A subpage with a Back card and grouped controls](/images/screen-subpage.png)
+Subpages are folders that open another page of cards. Add a **Subpage**, choose a label and icon, then use **Edit Subpage** to arrange its child cards. Navigation remains local to the panel.
 
 A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards. On app subpages, the Back card shows the app’s large icon and returns to its parent page when touched. Its saved name remains editable in card settings, while the icon fills the card on the display. Regular subpages keep their Back arrow and label.
 
-Cards on the home screen and subpages act as soon as you touch them. Fixed control buttons, tabs, PIN keys and panel close buttons also respond on touch-down. Confirmation prompts still require an explicit choice. Sliders and scrollable choices keep their drag and release behavior so scrolling does not accidentally select an item.
+All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 
-All subpages, including app subpages, hide their top title and clock bar so cards use the full screen. Clock Bar settings apply to the home screen only. App subpages show their app artwork on the return-home card.
+## Mac statistics
 
-Under **Device settings → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app subpage open when you switch apps on your Mac. With it on, the display leaves that page: it opens the new app’s subpage when **Open app subpages on focus** is enabled and a matching page exists, or returns to its parent page otherwise. The setting is saved on the display and included in backups.
+Choose **Companion Stat** to show a Mac statistic on the folder tile while keeping the tap action as navigation. Select the statistic and, where available, used/free display or a storage device. A paired Mac provides the readings.
 
+## App page behavior
+
+Under **Device settings → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
+
+## Saved Home Assistant folders
+
+Home Assistant sensor labels, status icons, presets and aggregated child-state indicators are retired. Their saved configuration remains in layouts and backups, but the folder no longer subscribes to those entities. The folder still opens its cards; Mac and local children continue to work.
+
+Opening the editor keeps the old settings. Choosing a new folder type explicitly replaces the old bindings. Replace retired child cards individually when updating a layout.
 ## Create a Subpage
 
 1. Open the display's setup page in a browser and choose the **Layout** tab.
@@ -33,8 +42,6 @@ For an app inside a folder, edit its app card, enable **Add app subpage**, and s
 Pages share the display's existing total card and saved-layout limits. A layout that exceeds them is rejected without replacing the saved layout.
 
 Nested layouts use the new saved-layout format and require firmware with two-level support. Keep a backup before upgrading. After saving with this release, downgrading to older firmware is unsupported. The new firmware still imports older flat layouts and backups.
-
-Home Assistant type presets are available after a Home Assistant connection is configured. Until then, Subpage cards stay as regular **Folder** pages.
 
 ## Organise Cards
 

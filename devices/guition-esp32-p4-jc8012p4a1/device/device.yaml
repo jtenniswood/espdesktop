@@ -253,10 +253,6 @@ safe_mode:
 packages:
   core_infra: !include ../../../common/device/core_infra.yaml
 
-# Keep additional native-API capacity local to this large panel.
-api:
-  max_connections: 5
-
 # The 10.1" panel's USB-C serial output is exposed through a UART0 bridge.
 # ESPHome defaults ESP32-P4 logging to USB_SERIAL_JTAG, which leaves this port
 # showing only early ROM boot text and no application logs.
@@ -294,7 +290,7 @@ light:
         - if:
             condition:
               lambda: |-
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto now = id(panel_time).now();
                 return (id(espdesktop_app).display().target_source_is(
                             espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
                         id(espdesktop_app).display().target_mode_is(
@@ -409,7 +405,6 @@ script:
                       else:
                         - lvgl.display.set_rotation: 90
       - script.execute: cover_art_apply_responsive_layout
-      - script.execute: camera_screensaver_request_image
 
 select:
   - platform: template

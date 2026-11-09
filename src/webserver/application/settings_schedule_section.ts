@@ -22,8 +22,6 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
     const {
         postScreenScheduleEnabled,
         postScreenScheduleTrigger,
-        postScreenScheduleSensorActivation,
-        postScreenScheduleSensorEntity,
         postScreenScheduleOnHour,
         postScreenScheduleOffHour,
         postScreenScheduleMode,
@@ -41,12 +39,11 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
     // ── Settings Schedule Section ──────────────────────────────────────
     function buildScreenScheduleSettingsCard(this: any) {
         var scheduleBody: any = document.createElement("div");
-        scheduleBody.appendChild(infoPanel("sp-night-schedule-info", "Time-based Night Schedule overrides screensaver presence wake and Media Cover Art while it is active."));
+        scheduleBody.appendChild(infoPanel("sp-night-schedule-info", "Night Schedule overrides the screensaver and Mac Cover Art during its configured hours."));
         scheduleBody.appendChild(fieldLabel("Mode"));
         var scheduleModeSegment: any = segmentControl([
             ["disabled", "Disabled"],
             ["time", "Time"],
-            ["sensor", "Home Assistant"],
         ], state.scheduleTrigger, function (this: any, mode?: any) {
             setScheduleTrigger(mode);
         }, "sp-segment sp-screensaver-mode");
@@ -54,7 +51,6 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
         els.setScheduleModeButtons = {
             disabled: scheduleModeSegment.buttons.disabled,
             time: scheduleModeSegment.buttons.time,
-            sensor: scheduleModeSegment.buttons.sensor,
         };
         var scheduleTimes: any = document.createElement("div");
         scheduleTimes.className = "sp-schedule-times";
@@ -74,30 +70,6 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
         els.setScheduleOffHour = offHour.select;
         scheduleBody.appendChild(scheduleTimes);
         els.setScheduleTimes = scheduleTimes;
-        var scheduleSensor: any = document.createElement("div");
-        scheduleSensor.className = "sp-schedule-times sp-schedule-sensor";
-        var schedulePresenceField: any = document.createElement("div");
-        schedulePresenceField.className = "sp-field";
-        schedulePresenceField.appendChild(fieldLabel("Sensor Entity", "sp-set-schedule-presence"));
-        var schedulePresInp: any = entityInput("sp-set-schedule-presence", state.scheduleSensorEntity, "Sensor Entity", ["binary_sensor", "sensor"]);
-        schedulePresenceField.appendChild(schedulePresInp);
-        scheduleSensor.appendChild(schedulePresenceField);
-        bindTextPost(schedulePresInp, entityName("screen_schedule_sensor_entity"), {
-            post: postScreenScheduleSensorEntity,
-        });
-        var sensorActivationControl: any = selectField("Activate Night Schedule When", "sp-set-schedule-sensor-activation", [
-            { value: "off", label: "Sensor Is Off" },
-            { value: "on", label: "Sensor Is On" },
-        ], state.scheduleSensorActivation, function (this: any) {
-            applyScreenScheduleControllerState(_screenScheduleController.setSensorActivation(screenScheduleControllerState(), this.value));
-            postScreenScheduleSensorActivation(state.scheduleSensorActivation);
-            syncScreenScheduleUi();
-        });
-        scheduleSensor.appendChild(sensorActivationControl.field);
-        els.setScheduleSensorActivation = sensorActivationControl.select;
-        scheduleBody.appendChild(scheduleSensor);
-        els.setScheduleSensor = scheduleSensor;
-        els.setSchedulePresence = schedulePresInp;
         var scheduleActions: any = document.createElement("div");
         scheduleActions.className = "sp-schedule-times";
         scheduleActions.id = "sp-set-schedule-actions";

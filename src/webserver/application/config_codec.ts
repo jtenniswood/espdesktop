@@ -40,7 +40,6 @@ import {
     normalizeSavedConfigVacuumPrecision,
     normalizeSavedConfigVacuumSensor,
 } from "../generated/saved_config_vacuum";
-import { migrateSavedConfigActionLegacy, normalizeSavedConfigAction } from "../generated/saved_config_action";
 import { normalizeSavedConfigMedia } from "../generated/saved_config_media";
 import { normalizeSavedConfigStatic } from "../generated/saved_config_static";
 import { normalizeSavedConfigFan } from "../generated/saved_config_fan";
@@ -169,7 +168,6 @@ export function createConfigCodecFeature(
     } = accessOptions;
     const {
         actionCardIsOptionSelect,
-        normalizeSavedConfigActionFields,
         normalizeActionOptions,
         normalizeSwitchConfirmationOptions,
     } = confirmationOptions;
@@ -446,8 +444,6 @@ export function createConfigCodecFeature(
         }
         if (b)
             b.options = setConfigOptionValue(withoutCardColorOptions(b.options || ""), "icon_size", "");
-        if (b)
-            migrateSavedConfigActionLegacy(b);
         if (b && migrateSavedConfigVacuumLegacy(b)) {
             if (!b.icon || b.icon === "Auto")
                 b.icon = vacuumModeDefaultIcon(b.sensor);
@@ -476,8 +472,6 @@ export function createConfigCodecFeature(
             normalizeSavedConfigLightControl(b, normalizeSavedConfigLightControlOptions);
         if (b)
             normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
-        if (b)
-            normalizeSavedConfigAction(b, normalizeSavedConfigActionFields, normalizeActionOptions);
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
         var normalizedSavedSwitch: any = !!(b && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
         if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
@@ -511,6 +505,9 @@ export function createConfigCodecFeature(
         return EspDesktopModel.trimConfigFields(fields);
     }
     function buttonConfigFields(this: any, b?: any) {
+        if (b && cardContractTypeRetired(b.type)) {
+            return trimConfigFields(["", "", "Auto", "Auto", "", "", b.type]);
+        }
         var type: any = b && b.type || "";
         if (b && type === "subpage" && subpageKind(b)) {
             b = EspDesktopModel.cloneCardConfig(b);

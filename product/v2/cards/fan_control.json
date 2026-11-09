@@ -1,4 +1,5 @@
 {
+  "hidden": true,
   "label": "Fans",
   "allowInSubpage": true,
   "pickerKey": "fan_speed",

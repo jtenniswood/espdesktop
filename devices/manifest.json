@@ -205,8 +205,7 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       }
     },
@@ -412,8 +411,7 @@
           "backlightPwmFrequency": {
             "wifi": "1000Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       }
     },
@@ -608,8 +606,7 @@
             "card_curve_medium_radius": "20px"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       }
     },
@@ -804,8 +801,7 @@
             "card_curve_medium_radius": "20px"
           },
           "deviceFontPackageKey": "fonts_lg",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       }
     },
@@ -998,8 +994,7 @@
           "esp32C6FirmwareUpdate": true,
           "extraPackages": {
             "battery": "!include device/battery.yaml"
-          },
-          "apiOpenModalAction": true
+          }
         }
       }
     },
@@ -1189,8 +1184,7 @@
             "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       }
     },
@@ -1382,8 +1376,7 @@
             "button_radius": "11px"
           },
           "deviceFontPackageKey": "fonts_device",
-          "esp32C6FirmwareUpdate": true,
-          "apiOpenModalAction": true
+          "esp32C6FirmwareUpdate": true
         }
       }
     },
@@ -1569,11 +1562,6 @@
             "screen_saver_clock_default_brightness": "\"35\"",
             "screen_schedule_clock_min_brightness": "\"1\"",
             "screen_schedule_clock_default_brightness": "\"10\"",
-            "voice_wake_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_wake_chime.flac\"",
-            "voice_timer_alert_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac\"",
-            "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
-            "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
-            "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\"",
             "button_radius": "12px",
             "speaker_amplifier_pin": "\"GPIO53\""
           },
@@ -1588,8 +1576,7 @@
           "backlightPwmFrequency": {
             "wifi": "100Hz",
             "ethernet": "20000Hz"
-          },
-          "apiOpenModalAction": true
+          }
         }
       }
     },
@@ -1791,9 +1778,7 @@
             "card_curve_medium_radius": "21px",
             "button_radius": "8px"
           },
-          "deviceFontPackageKey": "fonts_device",
-          "apiNavigateAction": true,
-          "apiOpenModalAction": true
+          "deviceFontPackageKey": "fonts_device"
         }
       }
     }

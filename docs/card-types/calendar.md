@@ -13,13 +13,13 @@ Use a Clock card to show the local time, or a [World Clock](/card-types/timezone
 1. Select a card and change its type to **Date & Time**. New cards start in **Clock** mode.
 2. Choose **Clock** or **World Clock** from the **Type** dropdown.
 3. **Large Clock** is available at every card size. Wide and Large cards use it by default, as do cards wider than two columns; you can turn it off. On wider clocks, **Center Clock** centers the large display.
-4. Apply the configuration so the panel restarts with the new card.
+4. Save the card.
 
 ## How It Works on the Panel
 
 - The card uses the panel's own synced time source and shows no date label.
 - The time follows the timezone and 12/24-hour setting selected in [Time Settings](/features/clock).
-- The card uses the fixed **tertiary** background colour, like Sensor, World Clock, and Weather cards.
+- The card uses the fixed **tertiary** background colour.
 - If the panel has not synced time yet, the card shows `--` until time becomes available.
 
 ## Existing Date Cards

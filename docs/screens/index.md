@@ -1,36 +1,30 @@
 ---
-title: Choose an ESP32 Touchscreen for Home Assistant
-description: Compare supported EspDesktop touchscreens by size, card capacity, cameras, networking, and hardware revision before buying or installing.
+title: Supported EspDesktop Firmware Profiles
+description: Identify EspDesktop firmware profiles and match the panel hardware revision.
 ---
 
-# Choose a Home Assistant Touchscreen
+# Supported EspDesktop Firmware Profiles
 
-EspDesktop turns a supported ESP32 touchscreen into a dedicated Home Assistant controller. Choose the **4-inch S3 for a compact, lower-cost panel** or a **7- or 10.1-inch P4 for more controls at once**. All use the same browser-based card editor.
+The Mac Companion product currently supports the **4-inch Guition ESP32-S3 4848S040**. Other profiles below retain firmware builds for local panel features; a successful build does not establish Mac Companion support on that device.
 
-You need a working Home Assistant installation, a supported screen, a suitable power supply, and a USB data cable for the first install. EspDesktop has its own interface; it cannot display or import your existing Lovelace dashboard cards.
+Home Assistant integration is retired. For a Home Assistant panel, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
 ## Compare Supported Screens
 
 These are the standard home-screen layouts. A larger card occupies several slots. Each [subpage](/features/subpages) reserves one slot for Back.
 
-<p class="screen-comparison-hint">Swipe the table sideways to compare card capacity and image slots.</p>
+<p class="screen-comparison-hint">Swipe the table sideways to compare layouts.</p>
 
-| Screen and installation guide | Processor | Resolution and default layout | Home slots | Shared image slots |
-| --- | --- | --- | --- | --- |
-| [4-inch Guition 4848S040](/screens/4848s040) | ESP32-S3 | 480 × 480, square | 9 | 2 |
-| [4.3-inch Guition JC4880P443](/screens/jc4880p443) | ESP32-P4 | 480 × 800, portrait | 6 | 6 |
-| [4.3-inch Guition JC4880P443 V3](/screens/jc4880p443-v3) | ESP32-P4 v3.x | 480 × 800, portrait | 6 | 6 |
-| [4-inch P4 86 Panel, ETH-2RO](/screens/p4-86) | ESP32-P4 | 720 × 720, square | 9 | 6 |
-| [7-inch Guition JC1060P470](/screens/jc1060p470) | ESP32-P4 | 1024 × 600, landscape | 15 | 6 |
-| [10.1-inch Guition JC8012P4A1](/screens/jc8012p4a1) | ESP32-P4 | 1280 × 800, landscape | 20 | 6 |
+| Screen and installation guide | Processor | Resolution and default layout | Home slots |
+| --- | --- | --- | --- |
+| [4-inch Guition 4848S040](/screens/4848s040) | ESP32-S3 | 480 × 480, square | 9 |
+| [4.3-inch Guition JC4880P443](/screens/jc4880p443) | ESP32-P4 | 480 × 800, portrait | 6 |
+| [4.3-inch Guition JC4880P443 V3](/screens/jc4880p443-v3) | ESP32-P4 v3.x | 480 × 800, portrait | 6 |
+| [4-inch P4 86 Panel, ETH-2RO](/screens/p4-86) | ESP32-P4 | 720 × 720, square | 9 |
+| [7-inch Guition JC1060P470](/screens/jc1060p470) | ESP32-P4 | 1024 × 600, landscape | 15 |
+| [10.1-inch Guition JC8012P4A1](/screens/jc8012p4a1) | ESP32-P4 | 1280 × 800, landscape | 20 |
 
-Camera and Media Cover Art cards share the image-slot limit **across all pages**. Moving one into a subpage does not free a slot. Cameras display still snapshots, not live video. Read the [camera limits](/card-types/cameras#practical-limits) before planning a camera-heavy layout.
-
-## S3 or P4?
-
-The S3 supports lights, climate, media controls, speaker groups, and camera snapshots. It suits a bedside panel or a small set of everyday controls. Its two image slots allow one Camera card alongside one Media Cover Art card.
-
-Choose a P4 when you need more image cards or a larger screen. The 4.3-inch model fits a narrow portrait layout; the 7- and 10.1-inch models provide more room for rooms, scenes, and sensor readings. Media cards control external Home Assistant players.
+Camera, media-player, climate and other Home Assistant cards are no longer available. Saved records remain in layouts and backups with unavailable-card warnings. Mac app icons and fullscreen Mac artwork remain available on the Companion profile.
 
 ## Networking and Power
 
@@ -52,4 +46,4 @@ Matching screen size, resolution, or processor is not sufficient. The common Che
 
 Each model guide above links to its seller and installation instructions. Seller prices and revisions can change; confirm the exact model before ordering. Match [printable stands and mounts](/reference/3d-printable-stands) to the rear board and cable clearance as well as the screen size.
 
-Once you have the correct screen, follow **[Install EspDesktop](/getting-started/install)**. After pairing it with Home Assistant, add one control and confirm it works before building the rest of your layout.
+Once you have the correct screen, follow **[Install EspDesktop](/getting-started/install)**. On the 4848S040, pair the Mac app and test one control before building the rest of your layout.

@@ -32,7 +32,14 @@ class Device(http.server.BaseHTTPRequestHandler):
             return
         if self.path == "/espdesktop/version":
             body = json.dumps({"device_slug": "test-panel", "version": "dev"}).encode()
+        elif self.path == "/api/v1/capabilities":
+            body = json.dumps({"configuration": {"document_versions": state.get("versions", [1])}}).encode()
         elif self.path == "/api/v1/config":
+            version = self.headers.get("X-Panel-Config-Version")
+            state.setdefault("config_versions", []).append(version)
+            if version != str(max(state.get("versions", [1]))):
+                self.send_error(422)
+                return
             state["config_reads"] += 1
             body = b"private configuration"
             if state.get("config_changes") and state["config_reads"] > 1:
@@ -90,28 +97,15 @@ def device(**options):
         thread.join(2)
 
 
-class Monitor:
-    def __init__(self, **values):
-        self.started = self.stopped = False
-        self.result = {"status": "passed", "checks": 2, "disconnects": 0,
-                       "error_logs": 0, "stalled_closures": 2, **values}
-
-    def start(self):
-        self.started = True
-
-    def stop(self):
-        self.stopped = True
-
-
 class DeviceWebTests(unittest.TestCase):
     def args(self, server, *extra):
         return runner.parse_args(["--host", "127.0.0.1", "--port", str(server.server_port),
                                   "--reconnects", "3", "--stall-seconds", "0.02",
                                   "--interval", "0.01", "--timeout", "1", *extra])
 
-    def run_device(self, server, monitor=None, *extra):
+    def run_device(self, server, *extra):
         with redirect_stdout(io.StringIO()):
-            return runner.run_suite(self.args(server, *extra), monitor=monitor)
+            return runner.run_suite(self.args(server, *extra))
 
     def test_chunked_streams_health_and_configuration_preservation(self):
         with device() as server:
@@ -120,10 +114,24 @@ class DeviceWebTests(unittest.TestCase):
             self.assertGreaterEqual(report["metrics"]["event_reconnects"], 16)
             self.assertEqual(server.state["config_reads"], 2)
             self.assertEqual(set(server.state["requests"]),
-                             {"/", "/events", "/espdesktop/version", "/api/v1/config"})
-            self.assertEqual(report["native_api"]["status"], "not_requested")
+                             {"/", "/events", "/espdesktop/version", "/api/v1/capabilities", "/api/v1/config"})
+            self.assertNotIn("native_api", report)
+            self.assertIn("not observed", " ".join(report["coverage_limitations"]))
             self.assertEqual(report["metrics"]["uptime_start"], 101)
             self.assertGreater(report["metrics"]["uptime_end"], 101)
+
+    def test_v2_configuration_is_preserved_without_lossy_v1_export(self):
+        with device(versions=[1, 2]) as server:
+            report = self.run_device(server)
+            self.assertEqual(report["status"], "passed")
+            self.assertEqual(report["configuration_version"], 2)
+            self.assertEqual(server.state["config_versions"], ["2", "2"])
+
+    def test_unknown_configuration_version_fails_before_reading(self):
+        with device(versions=[3]) as server:
+            report = self.run_device(server)
+            self.assertEqual(report["status"], "failed")
+            self.assertEqual(server.state["config_reads"], 0)
 
     def test_configuration_change_fails(self):
         with device(config_changes=True) as server:
@@ -146,13 +154,6 @@ class DeviceWebTests(unittest.TestCase):
                 self.assertEqual(report["status"], "failed")
                 self.assertEqual(report["metrics"]["event_reconnects"], 0)
 
-    def test_native_errors_and_missing_cleanup_coverage_fail(self):
-        for values in ({"status": "failed", "error_logs": 1}, {"checks": 0}, {"stalled_closures": 0}):
-            with self.subTest(values=values), device() as server:
-                monitor = Monitor(**values)
-                report = self.run_device(server, monitor, "--native-api", "--require-stall-cleanup")
-                self.assertEqual(report["status"], "failed")
-                self.assertTrue(monitor.started and monitor.stopped)
 
     def test_invalid_ping_ids_fail_preflight(self):
         for identifier in ("", "invalid", -1, 0x100000000):
@@ -176,20 +177,12 @@ class DeviceWebTests(unittest.TestCase):
                     held.append(stream)
                 return stream
 
-            monitor = Monitor()
             with patch.object(client, "stream", interrupted), redirect_stdout(io.StringIO()):
-                report = runner.run_suite(args, client, monitor)
+                report = runner.run_suite(args, client)
             self.assertEqual(report["status"], "interrupted")
             self.assertTrue(held and all(stream.closed for stream in held))
-            self.assertTrue(monitor.stopped)
             self.assertEqual(server.state["config_reads"], 2)
 
-    def test_one_timeout_message_proves_cleanup_path_coverage(self):
-        with device() as server:
-            report = self.run_device(server, Monitor(stalled_closures=1),
-                                     "--native-api", "--require-stall-cleanup")
-            self.assertEqual(report["status"], "passed")
-            self.assertEqual(report["stall_cleanup_observed"], 1)
 
     def test_reports_and_exit_status_include_failures_without_configuration(self):
         with device(config_changes=True) as server, tempfile.TemporaryDirectory() as tmp:
@@ -207,23 +200,17 @@ class DeviceWebTests(unittest.TestCase):
     def test_invalid_targets_and_timings_are_rejected(self):
         for options in (["--host", "http://example.test"], ["--host", "user:pass@device"],
                         ["--timeout", "nan"], ["--interval", "0"], ["--stall-seconds", "inf"],
-                        ["--reconnects", "0"], ["--require-stall-cleanup"], ["--port", "0"]):
+                        ["--reconnects", "0"], ["--require-stall-cleanup"], ["--native-api"], ["--api-port", "6053"], ["--port", "0"]):
             with self.subTest(options=options), redirect_stdout(io.StringIO()), patch("sys.stderr", io.StringIO()):
                 with self.assertRaises(SystemExit) as error:
                     runner.parse_args(["--host", "127.0.0.1", *options])
                 self.assertEqual(error.exception.code, 2)
 
-    def test_credentials_are_not_serialized(self):
-        with device() as server, patch.dict("os.environ", {"TEST_DEVICE_KEY": "private-api-key"}):
-            args = self.args(server, "--native-api", "--api-noise-psk-env", "TEST_DEVICE_KEY")
-            with redirect_stdout(io.StringIO()):
-                report = runner.run_suite(args, monitor=Monitor())
-            self.assertNotIn("private-api-key", json.dumps(report))
 
     def test_authenticated_requests_and_streams_use_existing_credentials(self):
         with device(auth="tester:private-password") as server, patch.dict("os.environ", {
                 "TEST_DEVICE_USER": "tester", "TEST_DEVICE_PASSWORD": "private-password"}):
-            report = self.run_device(server, None, "--web-username-env", "TEST_DEVICE_USER",
+            report = self.run_device(server, "--web-username-env", "TEST_DEVICE_USER",
                                      "--web-password-env", "TEST_DEVICE_PASSWORD")
             self.assertEqual(report["status"], "passed")
             self.assertNotIn("private-password", json.dumps(report))
