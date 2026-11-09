@@ -1525,6 +1525,7 @@ export function registerCompanionCardTypes(
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
+        ["companion_mac_lock", "Mac Lock", "shortcut"],
         ["companion_url", "Open URL", "url"],
         ["companion_folder", "Open folder", "folder"],
         ["companion_window", "Window control", "window"],
@@ -1541,6 +1542,11 @@ export function registerCompanionCardTypes(
             onSelect: function (card?: any) {
                 companionDefinition.onSelect(card);
                 applyCompanionPickerPreset(card, mode);
+                if (card && key === "companion_mac_lock") {
+                    card.entity = "shortcut.command+control+q";
+                    card.label = "Mac Lock";
+                    card.icon = "Lock";
+                }
             },
         });
     });
