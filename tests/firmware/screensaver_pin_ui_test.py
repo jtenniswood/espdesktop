@@ -8,9 +8,9 @@ from production_source import definition
 
 ROOT = Path(__file__).resolve().parents[2]
 ui = (ROOT / 'components/espdesktop/screensaver_pin_ui.h').read_text()
-ui = ui[ui.index('struct ScreensaverPinUi'):]
+ui = ui[ui.index('struct MacLockScreenStyle'):]
 lock = (ROOT / 'components/espdesktop/screen_lock_state.h').read_text()
-lock = lock[lock.index('inline bool screen_lock_enabled()'):]
+lock = lock[lock.index('inline bool &screen_lock_mac_locked()'):]
 navigation = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
 navigation = definition(navigation, 'navigation_return_home')[1]
 settings = (ROOT / 'components/espdesktop/network_status.h').read_text()
@@ -32,7 +32,7 @@ lv_disp_t *lv_disp_get_default() { return &display; }
 int lv_disp_get_hor_res(lv_disp_t *value) { return value->width; }
 int lv_disp_get_ver_res(lv_disp_t *value) { return value->height; }
 struct lv_event_t { const char *key; };
-struct lv_obj_t { lv_obj_t *parent{}; bool full_screen{}; unsigned flags{}; std::string text; void (*on_release)(lv_event_t *){}; const lv_font_t *font{}; int align{}, text_align{}, x{}, y{}; };
+struct lv_obj_t { lv_obj_t *parent{}; bool full_screen{}; unsigned flags{}; std::string text; void (*on_release)(lv_event_t *){}; const lv_font_t *font{}; int align{}, text_align{}, text_color{}, x{}, y{}; };
 struct ControlModalLayout { int panel_w{720}; int inset{18}; };
 constexpr unsigned LV_OBJ_FLAG_CLICKABLE = 1;
 constexpr unsigned LV_EVENT_RELEASED = 2;
@@ -40,6 +40,11 @@ constexpr unsigned LV_OBJ_FLAG_HIDDEN = 8;
 constexpr int LV_GRID_TEMPLATE_LAST = -1;
 int LV_GRID_FR(int value) { return value; }
 constexpr int LV_TEXT_ALIGN_RIGHT = 3, LV_ALIGN_TOP_RIGHT = 4, LV_PART_MAIN = 0;
+constexpr int LV_OPA_COVER = 255, LV_FLEX_FLOW_COLUMN = 1, LV_FLEX_ALIGN_CENTER = 2;
+constexpr int LV_TEXT_ALIGN_CENTER = 1;
+struct Theme { int background{0}, text_primary{0xFFFFFF}, text_muted{0xBBBBBB}; };
+Theme current_theme() { return {}; }
+int lv_color_hex(int color) { return color; }
 lv_obj_t system_layer;
 lv_obj_t *active_page;
 constexpr int LV_SCR_LOAD_ANIM_NONE = 0;
@@ -59,6 +64,17 @@ lv_obj_t *lv_layer_sys() { return &system_layer; }
 lv_obj_t *lv_obj_create(lv_obj_t *parent) {
   auto *obj = new lv_obj_t; obj->parent = parent; objects.push_back(obj); return obj;
 }
+lv_obj_t *lv_label_create(lv_obj_t *parent) { return lv_obj_create(parent); }
+void lv_label_set_text(lv_obj_t *label, const char *text) { label->text = text; }
+void lv_obj_set_style_bg_color(lv_obj_t *, int, int) {}
+void lv_obj_set_style_bg_opa(lv_obj_t *, int, int) {}
+void lv_obj_set_style_pad_row(lv_obj_t *, int, int) {}
+void lv_obj_set_flex_flow(lv_obj_t *, int) {}
+void lv_obj_set_flex_align(lv_obj_t *, int, int, int) {}
+void lv_obj_set_style_text_font(lv_obj_t *label, const lv_font_t *font, int) { label->font = font; }
+void lv_obj_set_style_text_color(lv_obj_t *label, int color, int) { label->text_color = color; }
+void lv_obj_set_width(lv_obj_t *, int) {}
+const char *find_icon(const char *name) { return std::strcmp(name, "Lock") == 0 ? "\U000F033E" : ""; }
 void lv_obj_del(lv_obj_t *root) {
   for (auto *obj : objects) delete obj;
   objects.clear(); (void) root; ++deleted;
@@ -94,6 +110,11 @@ void lv_obj_update_layout(lv_obj_t *) {}
 int lv_obj_get_height(lv_obj_t *) { return 30; }
 void *lv_event_get_user_data(lv_event_t *event) { return const_cast<char *>(event->key); }
 const char *espdesktop_i18n(const char *text) { return text; }
+const char *espdesktop_i18n_key(const char *key) {
+  if (std::strcmp(key, "locked") == 0) return "Locked";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Unlock your Mac to use this screen";
+  return key;
+}
 struct BtnSlot {};
 struct ParsedCfg {};
 lv_obj_t *lv_obj_get_parent(lv_obj_t *obj) { return obj->parent; }
@@ -168,7 +189,11 @@ int main() {
   // transparent guard; its opening touch must not enter a keypad digit.
   lv_obj_t card, other_card;
   card.flags = other_card.flags = LV_OBJ_FLAG_CLICKABLE;
-  show_screen_lock_pin() = [] { screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false); };
+  lv_font_t setup_icon_font, setup_title_font, setup_body_font;
+  const MacLockScreenStyle mac_style{&setup_icon_font, &setup_title_font, &setup_body_font, 380, 20};
+  show_screen_lock_pin() = [mac_style] {
+    screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false, nullptr, mac_style);
+  };
   espdesktop::DisplayModeController controller;
   return_screen_lock_view() = [&] {
     if (screensaver_pin_restore_previous_mode(controller)) {
@@ -265,6 +290,41 @@ int main() {
   screensaver_pin_key_cb(&submit);
   deferred.front()(nullptr); deferred.clear();
   assert(!pin.locked() && !ui.overlay);
+  assert(pin.save(false, &empty));
+
+  // Mac lock needs no local PIN, consumes touches, and cannot be bypassed.
+  screen_lock_set_mac_locked(true);
+  assert(screen_lock_enabled() && ui.overlay && ui.mac_locked && !ui.label);
+  assert(objects.size() == 4 && !ui.overlay->on_release);
+  assert(objects[1]->parent == ui.overlay && objects[1]->text == "\U000F033E");
+  assert(objects[1]->font == &setup_icon_font);
+  assert(objects[2]->parent == ui.overlay && objects[2]->text == "Locked");
+  assert(objects[2]->font == &setup_title_font && objects[2]->text_align == LV_TEXT_ALIGN_CENTER);
+  assert(objects[3]->parent == ui.overlay && objects[3]->text == "Unlock your Mac to use this screen");
+  assert(objects[3]->font == &setup_body_font && objects[3]->text_align == LV_TEXT_ALIGN_CENTER);
+  assert(objects[3]->text_color == current_theme().text_muted);
+  screensaver_pin_guard_cb(&released);
+  assert(deferred.empty() && !pin.keypad_requested());
+  screensaver_pin_refresh(false, nullptr, nullptr, nullptr, false);
+  assert(ui.overlay && ui.mac_locked); // Idle clock remains protected too.
+  screen_lock_set_mac_locked(false);
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  assert(!screen_lock_enabled() && !ui.overlay);
+  // Mac unlock preserves a separately configured local PIN lock.
+  assert(pin.save(false, &code));
+  assert(pin.lock());
+  screen_lock_set_mac_locked(true);
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  screensaver_pin_key_cb(&zero);
+  screensaver_pin_key_cb(&four);
+  screensaver_pin_key_cb(&submit);
+  assert(pin.locked());
+  screen_lock_set_mac_locked(false);
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  assert(pin.locked() && ui.label && !ui.mac_locked);
+  assert(pin.submit(code));
+  screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
+  assert(!ui.overlay);
   assert(pin.save(false, &empty));
 
   // Settings follows the saved PIN even when automatic wake protection is off.
