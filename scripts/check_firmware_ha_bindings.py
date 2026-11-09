@@ -1108,13 +1108,12 @@ def firmware_display_active_finalization_errors(
             "script.execute: backlight_apply_brightness",
             "script.wait: backlight_apply_brightness",
             "script.execute: screensaver_idle_check",
-            "script.execute: home_screen_idle_check",
         )
         indexes = [finalize_body.find(token) for token in ordered_tokens]
         if any(index == -1 for index in indexes) or indexes != sorted(indexes):
             errors.append(
                 f"{backlight_rel}: finalize active display after page settle with clock bar, "
-                "configured brightness, and idle timers"
+                "configured brightness, and the screensaver timer"
             )
 
     schedule_rel = schedule_path.relative_to(root)
@@ -1156,7 +1155,7 @@ def firmware_display_active_finalization_errors(
         finalize_index = navigation_body.find("script.execute: display_active_finalize")
         if not (0 <= page_index < finalize_index):
             errors.append(
-                f"{connectivity_rel}: finalize brightness, clock bar, and idle timers after main-page navigation"
+                f"{connectivity_rel}: finalize brightness, clock bar, and the screensaver timer after main-page navigation"
             )
 
     return errors
@@ -1629,14 +1628,13 @@ def firmware_open_modal_api_errors(root: Path, package_paths: tuple[Path, ...]) 
     api_required = ("action: open_modal", "entity_id: string", "id: open_entity_modal")
     script_required = ("mode: restart", "espdesktop_can_prepare_modal(entity_id,",
                       "script.execute: screensaver_wake", "script.wait: screensaver_wake",
-                      "espdesktop_open_modal(entity_id,", "script.execute: screensaver_idle_check",
-                      "script.execute: home_screen_idle_check")
+                      "espdesktop_open_modal(entity_id,", "script.execute: screensaver_idle_check")
     api_positions = [api_text.find(value) for value in api_required]
     script_positions = [modal_script.find(value) for value in script_required]
     if (modal_script_start < 0 or -1 in api_positions or api_positions != sorted(api_positions)
             or -1 in script_positions or script_positions != sorted(script_positions)
             or modal_script.count("grid_phase2_complete()") < 2):
-        errors.append("common/device/api_open_modal.yaml: validate, wake, revalidate, open, then reset idle timers")
+        errors.append("common/device/api_open_modal.yaml: validate, wake, revalidate, open, then reset the screensaver timer")
     for path in package_paths:
         has_modal = package_api_open_modal_enabled(path, root)
         has_navigate = package_api_navigate_enabled(path, root)
@@ -3422,7 +3420,6 @@ def run_self_test() -> int:
         "                  - script.execute: backlight_apply_brightness\n"
         "                  - script.wait: backlight_apply_brightness\n"
         "            - script.execute: screensaver_idle_check\n"
-        "            - script.execute: home_screen_idle_check\n"
     )
     valid_schedule_wake = (
         "script:\n"

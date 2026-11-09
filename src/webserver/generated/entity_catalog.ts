@@ -270,13 +270,6 @@ export const ENTITY_CATALOG = {
         "screensaver_timeout"
       ]
     },
-    "home_screen_timeout": {
-      "domain": "number",
-      "name": "Home Screen Timeout",
-      "objectIds": [
-        "home_screen_timeout"
-      ]
-    },
     "screen_saver_clock": {
       "domain": "switch",
       "name": "Screen Saver: Clock",
@@ -682,7 +675,6 @@ export const ENTITY_CATALOG = {
       "screen_saver_nighttime_dimmed_brightness",
       "screen_saver_dimmed_brightness",
       "screensaver_timeout",
-      "home_screen_timeout",
       "screen_saver_clock",
       "screen_saver_show_date",
       "screen_saver_clock_overlay",

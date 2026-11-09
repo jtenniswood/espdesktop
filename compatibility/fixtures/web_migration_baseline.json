@@ -31,6 +31,7 @@
   },
   "settings": {
     "panelInput": {
+      "home_screen_timeout": 120,
       "timezone": "Europe/London (GMT+0)",
       "temperature_unit": "fahrenheit",
       "language": "en",
@@ -70,7 +71,6 @@
       "screensaverDimmedBrightnessDay": 10,
       "screensaverDimmedBrightnessNight": 10,
       "screensaverTimeout": 300,
-      "homeScreenTimeout": 60,
       "screenRotation": "90",
       "screensaverCameraEntity": "",
       "screensaverMetadataEntity": "",

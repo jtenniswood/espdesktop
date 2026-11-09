@@ -359,12 +359,12 @@ describe("browserless application contracts", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const handlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const backup = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_backup.ts"), "utf8");
-    assert.doesNotMatch(entry, /install(?:Language|Ntp|Idle|Artwork|Screensaver)StateModule/);
+    assert.doesNotMatch(entry, /install(?:Language|Ntp|Artwork|Screensaver)StateModule/);
     assert.equal(fs.existsSync(path.join(ROOT, "src/webserver/application/artwork_state.ts")), false);
     for (const source of [settings, handlers, backup]) {
-      assert.match(source, /from "\.\/(?:language|ntp|idle|screensaver)_state"/);
+      assert.match(source, /from "\.\/(?:language|ntp|screensaver)_state"/);
     }
-    assert.doesNotMatch(globals, /\bvar (?:appendLanguageOption|getActiveScreensaverMode|hasCustomNtpServers|languageLabel|languageOptionsWithFallback|resetNtpServersToDefaults|syncIdleUi|syncLanguageSelect|syncNtpServerUi):/);
+    assert.doesNotMatch(globals, /\bvar (?:appendLanguageOption|getActiveScreensaverMode|hasCustomNtpServers|languageLabel|languageOptionsWithFallback|resetNtpServersToDefaults|syncLanguageSelect|syncNtpServerUi):/);
   });
 
   test("owns environment state without application globals", () => {
@@ -1262,7 +1262,7 @@ describe("browserless application contracts", () => {
   test("injects display-state DOM references", () => {
     const modules = [
       "appearance_state.ts", "c6_firmware_ui.ts", "clock_bar_state.ts",
-      "firmware_update_state.ts", "firmware_version_state.ts", "idle_state.ts",
+      "firmware_update_state.ts", "firmware_version_state.ts",
       "language_state.ts", "ntp_state.ts", "screen_schedule_state.ts", "screensaver_timeout.ts",
     ];
     for (const moduleName of modules) {
