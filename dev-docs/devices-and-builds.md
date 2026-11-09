@@ -1,12 +1,13 @@
 # Devices and Builds
 
-Device support is authored in `product/v2/device_catalog.json` plus per-device ESPHome YAML
-under `devices/<slug>/`. `devices/manifest.json` is a generated, committed
-compatibility copy for existing tools.
+Device support is authored in `product/v2/devices/`, shared profiles in
+`product/v2/device_catalog_shared.json`, and per-device ESPHome YAML under
+`devices/<slug>/`. The generated catalogue and `devices/manifest.json` are
+committed for existing tools.
 
 ## Device Catalog and Compatibility Manifest
 
-`product/v2/device_catalog.json` defines:
+The generated `product/v2/device_catalog.json` combines:
 
 - public name and docs path
 - screen size, resolution, and orientation
