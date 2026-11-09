@@ -26,7 +26,7 @@ EspDesktop pairs one Mac with a [4-inch Guition 4848S040 touchscreen](/screens/4
 
 Keyboard shortcuts, window controls and Mac Lock need [Accessibility permission](/mac-controls/security).
 
-You can group controls into [subpages](/features/subpages) and show [cover art from your Mac](/features/setup#show-mac-cover-art). If you already use Stats cards, see [Existing Mac Stats Cards](/mac-controls/statistics).
+You can group controls into [subpages](/features/subpages) and show [cover art from your Mac](/features/setup#show-mac-cover-art).
 
 ## Home Assistant panels
 

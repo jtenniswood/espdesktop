@@ -43,7 +43,7 @@ An approved **Applications** card can offer an editable subpage when EspDesktop 
 
 The page uses the same templates as standalone **Shortcut Catalog** cards and remains editable. Turning the app subpage option off preserves your changes.
 
-To add your own shortcuts or improve the shared templates, see [Improve App Shortcuts](/mac-controls/improve-shortcuts).
+You can [add a custom shortcut](/mac-controls/shortcuts#create-a-shortcut-card) in an empty tile on the app subpage.
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
 

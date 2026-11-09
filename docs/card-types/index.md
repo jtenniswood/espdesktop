@@ -11,10 +11,8 @@ Cards show information and controls on the display. Mac controls use the paired 
 
 | Goal | Card |
 |---|---|
-| Launch apps, run shortcuts, open websites and folders, or arrange windows | [Companion](./companion) |
+| Launch apps, run shortcuts, open websites and folders, or arrange windows | [Companion](/#what-you-can-control) |
 | Open another page of cards | [Subpage](/features/subpages) |
-
-[Existing Stats cards](/mac-controls/statistics) continue to show readings from the paired Mac.
 
 ## Removed Mac audio cards
 
