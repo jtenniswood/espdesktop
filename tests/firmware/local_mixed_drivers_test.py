@@ -41,7 +41,7 @@ void refresh_slider_card_layout(BtnSlot &) { ++layouts; }
 void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
 bool companion_mute_control_valid(const std::string &key) { return key == "media.output_mute" || key == "media.input_mute"; }
 bool companion_volume_control_valid(const std::string &key) { return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key); }
-const char *companion_volume_control_label(const std::string &key) { return companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Volume" : "Mic"; }
+const char *companion_volume_control_label(const std::string &key) { return companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Lautstärke" : "Mic"; }
 bool companion_forget_mute(lv_obj_t *) { return false; }
 void set_card_checked_state(lv_obj_t *, bool) {}
 void set_card_disabled_state(lv_obj_t *, bool) {}
@@ -80,7 +80,7 @@ int main() {
  lv_obj_t button, container, slider, icon, label; container.data = &slider;
  BtnSlot slot{&button,&container,&icon,&label}; CardPalette palette; DisplayProfile display;
  for (const char *key : {"media.output_volume","media.input_volume"}) {
-  config = {"slider",key,"","","",""};
+  config = {"slider",key,"","","",std::string(key) == "media.output_volume" ? "Volume" : "Mic"};
   assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
   assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));

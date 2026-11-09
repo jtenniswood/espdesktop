@@ -834,13 +834,23 @@ inline void companion_apply_mute_state(const CompanionMuteRef &ref,
     lv_label_set_text(ref.icon_label, icon);
 }
 
-inline bool companion_forget_mute(lv_obj_t *button) {
+inline bool companion_erase_mute_ref(lv_obj_t *button) {
   auto &refs = companion_view_registry().mutes;
   const auto previous_size = refs.size();
   refs.erase(std::remove_if(refs.begin(), refs.end(), [button](const auto &ref) {
     return ref.button == button;
   }), refs.end());
   return refs.size() != previous_size;
+}
+
+inline void companion_mute_deleted(lv_event_t *event) {
+  companion_erase_mute_ref(static_cast<lv_obj_t *>(lv_event_get_target(event)));
+}
+
+inline bool companion_forget_mute(lv_obj_t *button) {
+  if (!companion_erase_mute_ref(button)) return false;
+  lv_obj_remove_event_cb(button, companion_mute_deleted);
+  return true;
 }
 
 inline void companion_track_mute(lv_obj_t *button, const std::string &control_id,
@@ -851,9 +861,7 @@ inline void companion_track_mute(lv_obj_t *button, const std::string &control_id
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
     {button, control_id, icon_label, icon_unmuted, icon_muted});
-  lv_obj_add_event_cb(button, [](lv_event_t *event) {
-    companion_forget_mute(static_cast<lv_obj_t *>(lv_event_get_target(event)));
-  }, LV_EVENT_DELETE, nullptr);
+  lv_obj_add_event_cb(button, companion_mute_deleted, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
 }
 
