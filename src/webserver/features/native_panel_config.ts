@@ -47,6 +47,7 @@ export type NativePanelConfigFetch = (
 
 export type NativePanelConfigUpdate = ((document: PanelConfigDocument) => PanelConfigDocument) & {
   editNative?: (draft: NativeLayoutDraft) => void;
+  checkAcceptedLayout?: boolean;
 };
 
 export type NativePanelConfigSaveResult = "saved" | "unsupported" | "conflict" | "mirror-failed" | "authentication-required" | "too-large" | "firmware-update-required" | "nested-pages-unavailable" | "failed";
@@ -133,6 +134,7 @@ export class NativePanelConfigClient {
   private durableVersion_ = 1;
   private lastDocument_: PanelConfigDocument | null = null;
   private lastLayout_: NativePageLayout | undefined;
+  private readonly layoutVersions_ = new WeakMap<NativePageLayout, { input: Uint8Array; etag: string | null }>();
 
   constructor(private readonly fetch_: NativePanelConfigFetch) {}
 
@@ -273,6 +275,7 @@ export class NativePanelConfigClient {
       const snapshot = version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
         ? decodePanelPageSnapshot(input) : { document: this.decodeDocument(input, version) };
       if (snapshot.document.deviceProfile !== deviceProfile) throw new Error("The device configuration profile changed.");
+      if ("layout" in snapshot) this.layoutVersions_.set(snapshot.layout, { input, etag });
       return { ...snapshot, etag, version };
     }
     throw new Error("A compatible configuration representation is unavailable.");
@@ -320,6 +323,10 @@ export class NativePanelConfigClient {
       nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveResult> {
     if (!await this.discover()) return "unsupported";
     let conflicts = 0;
+    // The most recently displayed snapshot can predate the first GET of
+    // this save. Queued writes also advance it after their own successful PUT.
+    const accepted = update.checkAcceptedLayout && this.lastLayout_
+      ? this.layoutVersions_.get(this.lastLayout_) : undefined;
     let priorScope: readonly string[] | undefined;
     while (conflicts < 2) {
       try {
@@ -349,6 +356,11 @@ export class NativePanelConfigClient {
         if (currentDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
         let directBody: Uint8Array | undefined;
         if (!nativeBackup && version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2 && update.editNative) {
+          if (!priorScope && accepted && generation !== accepted.etag) {
+            const baseline = new NativeLayoutDraft(accepted.input);
+            update.editNative(baseline);
+            priorScope = baseline.editScope;
+          }
           const draft = new NativeLayoutDraft(input);
           update.editNative(draft);
           const previous = priorScope;
@@ -365,8 +377,10 @@ export class NativePanelConfigClient {
         const layoutUnchanged = sameRecords(currentDocument.buttons, updated.buttons) &&
           sameRecords(currentDocument.subpages, updated.subpages);
         if (skipUnchanged && layoutUnchanged && sameRecords(currentDocument.settings, updated.settings)) {
-          this.acceptSnapshot(currentDocument, version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
-            ? decodePanelPageSnapshot(input).layout : undefined);
+          const layout = version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
+            ? decodePanelPageSnapshot(input).layout : undefined;
+          if (layout) this.layoutVersions_.set(layout, { input, etag: generation });
+          this.acceptSnapshot(currentDocument, layout);
           return "saved";
         }
         const updatedDepth = panelPageDocumentDepth(updated);
@@ -439,6 +453,7 @@ export class NativePanelConfigClient {
         // save so callers do not claim that an older firmware can restore it.
         if (next.status === 413) return "too-large";
         if (next.ok) {
+          if (savedLayout) this.layoutVersions_.set(savedLayout, { input: body, etag: next.headers.get("ETag") });
           this.acceptSnapshot(updated, savedLayout);
           return next.status === 202 ? "mirror-failed" : "saved";
         }
