@@ -1,5 +1,5 @@
 #pragma once
-#include "screensaver_pin.h"
+#include "screen_lock_state.h"
 
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
@@ -22,7 +22,7 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
 
 inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
-  if (espdesktop::screensaver_pin().locked()) return;
+  if (screen_lock_enabled()) return;
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
   ParsedCfg p = parse_cfg(cfg);
   if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
@@ -45,7 +45,7 @@ inline bool navigation_driver_handle_main_click(
 // Dispatch supported local and Mac card actions.
 inline void handle_button_click(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
-  if (espdesktop::screensaver_pin().locked()) return;
+  if (screen_lock_enabled()) return;
   (void) btn_obj;
   ParsedCfg p = parse_cfg(cfg);
   if (card_runtime_type_retired(p.type) || retired_home_assistant_card(p)) return;
