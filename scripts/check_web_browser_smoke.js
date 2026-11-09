@@ -8850,7 +8850,7 @@ async function assertFirstRunSetup(browser) {
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
     await setChecked(dialog.getByLabel("Notes", { exact: true }), true);
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-    const addPages = dialog.getByLabel("Add shortcut pages for supported apps", { exact: true });
+    const addPages = dialog.getByLabel("Add shortcut pages", { exact: true });
     assert.equal(await dialog.getByRole("checkbox").count(), 1, "step two has one global choice");
     await setChecked(addPages, true);
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
@@ -8858,7 +8858,7 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     assert(await addPages.isChecked(), "Back keeps the global shortcut choice");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-    await setChecked(dialog.getByLabel("Open shortcut pages when apps are in focus"), false);
+    await setChecked(dialog.getByLabel("Open pages on app focus"), false);
     await page.setViewportSize({ width: 375, height: 650 });
     fs.mkdirSync(FAILURE_DIR, { recursive: true });
     await page.screenshot({ path: path.join(FAILURE_DIR, "first-run-mobile.png") });
@@ -8914,8 +8914,8 @@ async function assertFirstRunSetup(browser) {
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     assert(await addPages.isChecked(), "settings restores the global shortcut choice");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-    assert.equal(await dialog.getByLabel("Open shortcut pages when apps are in focus").isChecked(), false);
-    await setChecked(dialog.getByLabel("Open shortcut pages when apps are in focus"), true);
+    assert.equal(await dialog.getByLabel("Open pages on app focus").isChecked(), false);
+    await setChecked(dialog.getByLabel("Open pages on app focus"), true);
     failLayout = true;
     const beforeFailure = JSON.stringify(fixture.document);
     await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();

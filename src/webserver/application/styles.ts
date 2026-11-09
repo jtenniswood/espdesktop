@@ -38,6 +38,11 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-first-run[open]{display:flex;flex-direction:column;overflow:hidden}.sp-first-run>h1,.sp-first-run>p,.sp-setup-footer{flex-shrink:0}" +
         ".sp-first-run::backdrop{background:#0008;backdrop-filter:blur(4px)}" +
         ".sp-settings-modal.sp-first-run .sp-section-title{margin-bottom:8px}.sp-setup-content{margin:12px 0;overflow:auto;min-height:0;flex:1 1 auto}" +
+        ".sp-setup-progress{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:14px;flex-shrink:0}.sp-setup-progress span{height:3px;border-radius:3px;background:var(--border)}.sp-setup-progress .sp-active{background:var(--accent)}" +
+        ".sp-setup-preview{display:flex;align-items:center;gap:16px;padding:12px;margin-bottom:14px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}" +
+        ".sp-setup-grid{display:grid;grid-template-columns:repeat(var(--sp-setup-columns,3),minmax(0,1fr));gap:4px;width:112px;flex-shrink:0}.sp-setup-tile{display:grid;place-items:center;aspect-ratio:1;min-width:0;border:1px solid var(--border);border-radius:6px;background:var(--surface2);font-size:var(--text-sm);font-weight:600}.sp-setup-tile:empty{background:transparent;border-style:dashed}.sp-setup-tile img{width:90%;height:90%;object-fit:contain}" +
+        ".sp-setup-summary{display:grid;gap:4px;font-size:var(--text-sm);color:var(--text2)}.sp-setup-summary strong{font-size:var(--text-lg);color:var(--text)}" +
+        ".sp-setup-example{justify-content:center}.sp-setup-example>.sp-setup-tile{width:48px;font-size:var(--text-lg)}.sp-setup-example .sp-setup-grid{--sp-setup-columns:2;width:68px}.sp-setup-example.sp-inactive .sp-setup-grid{opacity:.45}" +
         ".sp-setup-toolbar{display:flex;align-items:center;gap:8px;margin:3px 3px 14px}.sp-setup-toolbar .sp-input{flex:1;min-width:0}" +
         ".sp-first-run .sp-setup-list{max-height:280px;overflow:auto;margin:0}.sp-setup-list .sp-light-tab-row{grid-template-columns:minmax(0,1fr) auto;margin:0}" +
         ".sp-first-run .sp-toggle-row:has(input:disabled){opacity:.55}.sp-first-run .sp-toggle input:focus-visible+.sp-toggle-track{outline:2px solid var(--accent);outline-offset:2px}" +
