@@ -13,7 +13,7 @@ test("Claude Desktop keeps its existing presets and exposes numbered and scoped 
   assert(presets.every(card => api.companionShortcutActionIdValid(card.entity)));
   assert(!api.companionShortcutActionIdValid("shortcut.enter"));
   const keys = ["command+option+9", "command+9", "9", "shift+f6", "escape-twice"];
-  const entries = [...claude.shortcuts, ...claude.additionalShortcuts];
+  const entries = [...claude.shortcuts, ...claude.claudeShortcuts];
   const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
   const page = api.createCompanionShortcutSubpage(claude.appId, ids);
   assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));

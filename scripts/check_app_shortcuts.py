@@ -60,12 +60,12 @@ class AppShortcutTests(unittest.TestCase):
     def test_claude_numbered_choices_and_additional_keys(self):
         claude = json.loads((ROOT / 'product/v2/app_shortcuts/claude-desktop.json').read_text())
         validate_app(claude, self.icons)
-        shortcuts = {item['shortcut'] for item in claude['shortcuts'] + claude['additionalShortcuts']}
+        shortcuts = {item['shortcut'] for item in claude['shortcuts'] + claude['claudeShortcuts']}
         for digit in '123456789':
             self.assertTrue({digit, f'command+{digit}', f'command+option+{digit}'} <= shortcuts)
         with self.assertRaisesRegex(ValueError, 'only on the Claude Desktop'):
             validate_app(dict(claude, appId='org.example.Editor'), self.icons)
-        claude['additionalShortcuts'][0]['shortcut'] = 'enter'
+        claude['claudeShortcuts'][0]['shortcut'] = 'enter'
         with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
             validate_app(claude, self.icons)
 
@@ -73,7 +73,7 @@ class AppShortcutTests(unittest.TestCase):
         app = json.loads((ROOT / 'product/v2/app_shortcuts/codex.json').read_text())
         validate_app(app, self.icons)
         validate_app({key: value for key, value in app.items() if key != 'additionalShortcuts'}, self.icons)
-        with self.assertRaisesRegex(ValueError, 'only on the .*ChatGPT Desktop'):
+        with self.assertRaisesRegex(ValueError, 'only on the ChatGPT Desktop'):
             validate_app(dict(app, appId='org.example.Editor'), self.icons)
         app['additionalShortcuts'][0]['shortcut'] = 'escape'
         with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):

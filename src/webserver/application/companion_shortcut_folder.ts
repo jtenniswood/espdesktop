@@ -3,7 +3,7 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, ...app }) => {
+    const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, claudeShortcuts, ...app }) => {
         if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
             const additional = additionalShortcuts.filter((item) => {
                 const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
@@ -18,8 +18,8 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
                 isSafariUnmodifiedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
             return { ...app, shortcuts: [...app.shortcuts, ...extended] };
         }
-        if (app.appId === CLAUDE_DESKTOP_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
-            const additional = additionalShortcuts.filter((item) => {
+        if (app.appId === CLAUDE_DESKTOP_BUNDLE_ID && !app.catalog && Array.isArray(claudeShortcuts)) {
+            const additional = claudeShortcuts.filter((item) => {
                 const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
                 return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) &&
                     !isSafariUnmodifiedShortcut(action) && action !== CHATGPT_CLEAR_UNREADS_ACTION;

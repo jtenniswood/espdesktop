@@ -365,7 +365,7 @@
       "icon": "Source Branch"
     }
   ],
-  "additionalShortcuts": [
+  "claudeShortcuts": [
     {
       "id": "60",
       "label": "Environment 1",

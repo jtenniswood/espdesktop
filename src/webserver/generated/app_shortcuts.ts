@@ -13,6 +13,7 @@ export interface AppShortcutApplication {
     readonly shortcuts: readonly AppShortcutDefinition[];
     readonly extendedShortcuts?: readonly AppShortcutDefinition[];
     readonly additionalShortcuts?: readonly AppShortcutDefinition[];
+    readonly claudeShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {

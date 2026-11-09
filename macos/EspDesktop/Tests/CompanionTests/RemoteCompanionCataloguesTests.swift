@@ -17,11 +17,21 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
             $0.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier
         })
         XCTAssertEqual(claude.shortcuts.count, 60)
-        XCTAssertEqual(claude.additionalShortcuts?.count, 33)
-        XCTAssertNil(claude.extendedShortcuts)
-        XCTAssertTrue(claude.additionalShortcuts?.contains { $0.shortcut == "escape-twice" } == true)
+        XCTAssertEqual(claude.claudeShortcuts?.count, 33)
+        XCTAssertTrue(claude.claudeShortcuts?.contains { $0.shortcut == "escape-twice" } == true)
 
-        let json = String(decoding: try JSONEncoder().encode(claude), as: UTF8.self)
+        struct LegacyDefinition: Decodable {
+            let shortcuts: [RemoteShortcutDefinition]
+            let extendedShortcuts: [RemoteShortcutDefinition]?
+            let additionalShortcuts: [RemoteShortcutDefinition]?
+        }
+        let data = try JSONEncoder().encode(claude)
+        let legacy = try JSONDecoder().decode(LegacyDefinition.self, from: data)
+        XCTAssertEqual(legacy.shortcuts.count, 60)
+        XCTAssertNil(legacy.extendedShortcuts)
+        XCTAssertNil(legacy.additionalShortcuts)
+
+        let json = String(decoding: data, as: UTF8.self)
         let frame = try JSONSerialization.data(withJSONObject: [
             "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
             "page": 0, "generation": 1, "complete": false,
