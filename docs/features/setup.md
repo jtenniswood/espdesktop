@@ -34,15 +34,11 @@ Use **Screen** for appearance, backlight, rotation and sleep settings. Use **Sys
 
 ## Show Mac Cover Art
 
-After pairing, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and turn on **Show Cover Art**. When an app on the paired Mac supplies artwork through macOS Now Playing, the display can show it fullscreen. Set the delay with **Show After** and the length of time track information appears with **Show Track Details For**. Tap the screen to wake it, then enter your display PIN if prompted.
+After pairing, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and turn on **Show Cover Art**. When an app on the paired Mac supplies artwork through macOS Now Playing, the display can show it fullscreen. Set the delay with **Show After** and the length of time track information appears with **Show Track Details For**. Tap the screen to wake it.
 
-## Protect the Touchscreen
+## Mac Screen Lock
 
-Open **Screen → Sleep & Schedule → Pin Protection**, turn on **Require PIN after wake**, enter a numeric PIN of 1–16 digits and choose **Save**. You can also randomize the keypad. **Clear** removes the saved PIN and unlocks the display.
-
-Unlock protection applies to local touch controls; web administration and Mac access keep their own authentication. The PIN is excluded from backups, and importing a backup clears the PIN on the destination display.
-
-Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. Unlock your Mac to use the touchscreen again. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that the Mac has unlocked. A separately configured display PIN still applies.
+Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. Unlock your Mac to use the touchscreen again. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that the Mac has unlocked.
 
 ## Back Up Your Layout
 

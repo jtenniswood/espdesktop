@@ -689,7 +689,6 @@ inline void grid_phase1(
     setup_card_visual(s, p, context, cfg, palette, row_span, col_span);
     refresh_card_layout(s, p, cfg, row_span, col_span);
   }
-  screen_lock_apply();
   register_theme_grid(main_page_obj, slots, neutral_buttons, NS, sensor_surfaces,
                       cfg.color_correction_red_percent,
                       cfg.color_correction_green_percent,
@@ -1516,7 +1515,6 @@ inline void grid_phase2(
     }
 
   }
-  screen_lock_apply();
   refresh_image_cards();
     grid_phase2_complete_state() = true;
     refresh_theme_grid_after_rebuild();

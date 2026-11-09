@@ -1123,7 +1123,6 @@ def main() -> int:
         shutil.copy2(PARSER_HEADER.parent / "app_shortcuts_generated.h", tmp_path / "app_shortcuts_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")
         shutil.copy2(SCREEN_LOCK_STATE_HEADER, tmp_path / "screen_lock_state.h")
-        shutil.copy2(SCREEN_LOCK_STATE_HEADER.with_name("screensaver_pin.h"), tmp_path / "screensaver_pin.h")
         shutil.copy2(CONTRACT_HEADER, tmp_path / "button_grid_contract_generated.h")
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
         shutil.copy2(CARD_REGISTRY_HEADER, tmp_path / "button_grid_card_registry.h")
