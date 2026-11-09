@@ -14,7 +14,7 @@
       "id": "1",
       "label": "Start a search",
       "shortcut": "command+g",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "2",

@@ -1,19 +1,16 @@
 ---
-title: "Temperature Display"
-description:
-  How to show temperature sensors on your EspDesktop panel's top bar.
+layout: doc
+outline: false
+description: Home Assistant temperature displays have been retired.
 ---
 
-# Temperature Display
+# Temperature Displays
 
-The top bar of your panel can show one temperature sensor from Home Assistant.
+Home Assistant temperature cards and clock-bar readings are no longer supported.
+The Temperature settings panel, unit selector and sensor inputs have been removed.
+Older backups can still be opened; retired settings are ignored and saved HA
+cards remain unavailable without changing their stored card configuration.
 
-- **Temperature** — select the temperature item in the **Layout** tab preview and choose **Edit** to pick the sensor.
-- **Show Degree Symbol** — edit the temperature item and turn this off if you want the clock bar to show only the temperature numbers, with no `°C` or `°F` suffix.
-- **Temperature Unit** — choose **Auto**, **°C**, or **°F** in **System > Preferences > Temperature** for the temperature labels. Auto uses the timezone setting and selects °F for US and US-territory timezones, otherwise °C.
-
-Older configurations that saved more than one clock-bar temperature are still accepted, but current firmware only displays the first one.
-
-If you hide the temperature item in the preview, the device screen hides it but keeps the chosen sensor so you can show it again later. If you turn off **Show Clock Bar** in the **Clock Bar** settings, the temperature display is hidden along with the top bar.
-
-The clock bar temperature is hidden on the display and web preview until Home Assistant is set up. Once configured, temporary Home Assistant disconnections do not hide it.
+The [Clock Bar](/features/clock-bar) still supports the clock, local folder titles,
+Mac app titles/icons and connectivity controls. [Time Settings](/features/clock)
+control the clock format and timezone.
