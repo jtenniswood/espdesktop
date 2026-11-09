@@ -89,11 +89,8 @@ subpage visual setup, data binding, passive interaction, layout refresh, and
 cleanup.
 Weather and forecast compatibility use the shared `WEATHER` driver
 while retaining the specialised forecast request registry. All of these paths
-are shared by the main grid and subpages. Switch, Light Switch, Fan Switch,
-Webhook and Mac Companion
-Alarm Action use the shared `BASIC_ACTION` lifecycle boundary while retaining
-their existing confirmation, service, local relay, HTTP, PIN, and state-display
-implementations. Slider, Light Brightness, Light Temperature, Fan Speed, Fan
+are shared by the main grid and subpages. Mac Companion uses the shared
+`BASIC_ACTION` lifecycle boundary. Slider, Light Brightness, Light Temperature, Fan Speed, Fan
 Oscillate, Fan Direction, Fan Preset, canonical Option Select, and Action
 option-select compatibility use the shared `NUMERIC_SELECTABLE` lifecycle
 boundary while retaining their existing slider, fan-action, and selection-modal
@@ -302,8 +299,6 @@ their named icon/precision and climate-option hooks kept by hand; the legacy
 `climate` saved type remains compatible and normalizes to `climate_control`.
 Light Control also uses generated production routing, with only its named
 visible-tab option hook kept by hand.
-Webhook also uses generated production routing, with only its named HTTP-method,
-request-body, empty-icon, and Headers option hooks kept by hand.
 Subpage also uses generated production routing, with only its named preset-field
 and supported state-display option hooks kept by hand.
 Basic Switch also uses generated production routing, with only its named
