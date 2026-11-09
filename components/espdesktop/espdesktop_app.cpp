@@ -12,6 +12,7 @@
 #endif
 
 #include "esphome/core/log.h"
+#include "esphome/components/switch/switch.h"
 
 #include "button_grid.h"
 #include "grid_page_runtime.h"
@@ -382,7 +383,8 @@ bool EspDesktopApp::create_native_configuration_runtime() {
     if (std::strcmp(profile.device_profile, panel_config_device_profile_) == 0) limits = &profile;
   if (!limits) { native_configuration_runtime_.reset(); return false; }
   runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits, runtime->text_bindings,
-      allocate_configuration_slot, release_configuration_slot));
+      allocate_configuration_slot, release_configuration_slot,
+      [this](bool enabled) { publish_app_subpage_preference(enabled); }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
   }
@@ -521,6 +523,18 @@ void EspDesktopApp::apply_configuration_text_refresh() {
   if (!synchronized.ok())
     ESP_LOGE(TAG, "Configuration text edits could not be applied (%u)",
              static_cast<unsigned>(synchronized.status));
+}
+
+void EspDesktopApp::publish_app_subpage_preference(bool enabled) {
+  if (app_subpage_switch_) app_subpage_switch_->publish_state(enabled);
+  if (active_espdesktop_app_core() == &core_) companion_set_auto_open_app_subpages(enabled);
+}
+
+void EspDesktopApp::bind_app_subpage_preference_switch(esphome::switch_::Switch &setting) {
+  app_subpage_switch_ = &setting;
+  // Existing panels retain their preference until it is first saved in the
+  // layout document. Native activation publishes the new value after commit.
+  publish_app_subpage_preference(setting.state);
 }
 
 void EspDesktopApp::retry_configuration_compatibility() {

@@ -65,6 +65,7 @@ interface Capabilities {
     writable_navigation_depth?: unknown;
     durable_document_version?: unknown;
     preserves_inactive_records?: unknown;
+    companion_auto_open_app_subpages?: unknown;
   };
 }
 
@@ -115,6 +116,7 @@ export class NativePanelConfigClient {
   private maxV2DocumentBytes_ = MAX_V2_DOCUMENT_BYTES;
   private maxDurableDocumentBytes_: number | null = null;
   private preservesInactiveRecords_ = false;
+  private appSubpagePreference_ = false;
   private readDepth_ = 1;
   private writeDepth_ = 1;
   private durableVersion_ = 1;
@@ -126,6 +128,7 @@ export class NativePanelConfigClient {
   lastDocument(): PanelConfigDocument | null { return this.lastDocument_; }
   acceptSnapshot(document: PanelConfigDocument): void { this.lastDocument_ = document; }
   preservesInactiveRecords(): boolean { return this.supported_ && this.preservesInactiveRecords_; }
+  supportsAppSubpagePreference(): boolean { return this.supported_ && this.appSubpagePreference_; }
   readNavigationDepth(): number {
     return this.supported_ && this.documentVersion_ === V2_DOCUMENT_VERSION ? this.readDepth_ : 1;
   }
@@ -173,6 +176,7 @@ export class NativePanelConfigClient {
           ? Math.min(Number(limit), PANEL_CONFIG_MAX_RECORD_BODY_BYTES) : null;
         const configuration = (value as Capabilities | null)?.configuration;
         this.preservesInactiveRecords_ = supported === true && configuration?.preserves_inactive_records === true;
+        this.appSubpagePreference_ = supported === true && configuration?.companion_auto_open_app_subpages === true;
         // A readable/readonly/newer native contract must not be mistaken for
         // firmware that only stores legacy text entities.
         const versions = Array.isArray(configuration?.document_versions) ? configuration.document_versions : [];

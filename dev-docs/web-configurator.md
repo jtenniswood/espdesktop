@@ -83,6 +83,17 @@ curl -s "http://<device-ip>/text/Button%20On%20Color?detail=all"
 The setup page writes to these same text/select/number/switch entities, so the
 REST response shows the exact compact string firmware will parse.
 
+### Mac app setup
+
+Firmware that advertises `configuration.companion_auto_open_app_subpages`
+applies the automatic switching preference from the native layout document.
+The first-run wizard submits the home cards, shortcut pages, preference, and
+completion marker in the same generation-checked save. The Screen settings
+toggle edits that field through the same API. A layout without the field
+retains the panel's previously saved preference. The switch publishes the
+live value to the editor after the layout commit. Existing backups can supply
+the preference through their portable settings.
+
 ### Reset and editing sessions
 
 Reset-capable firmware advertises `reset.modes` in capabilities. Read

@@ -14,6 +14,7 @@ import {
     setCompanionAppShortcutFolderEnabled,
 } from "./companion_shortcut_folder";
 import { parseRawButtonConfig } from "../model";
+import { APP_SUBPAGE_PREFERENCE, nativeAppSubpagePreference } from "../model/settings";
 import { configOptionEnabled, setConfigOptionValue } from "../model/config_primitives";
 
 export const FIRST_RUN_COMPLETE = "web_onboarding_complete";
@@ -44,7 +45,8 @@ function layoutSignature(document: PanelConfigDocument): string {
     return JSON.stringify([document.deviceProfile,
         Object.entries(document.buttons).sort(([a], [b]) => Number(a) - Number(b)),
         Object.entries(document.subpages).sort(([a], [b]) => Number(a) - Number(b)),
-        document.settings.button_order || "", document.settings.special_page || ""]);
+        document.settings.button_order || "", document.settings.special_page || "",
+        nativeAppSubpagePreference(document.settings)]);
 }
 
 function setupAppLimit(capacity: number): number {
@@ -59,6 +61,7 @@ export function firstRunDocument(
     capacity: number,
     codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">,
     replacing?: PanelConfigDocument,
+    automaticSwitch?: boolean,
 ): PanelConfigDocument {
     if (replacing && layoutSignature(current) !== layoutSignature(replacing)) {
         throw new Error("The layout changed while setup was open. Close and reopen setup to keep those changes.");
@@ -81,7 +84,9 @@ export function firstRunDocument(
     });
     return { ...current, buttons, subpages,
         settings: { ...current.settings, button_order: apps.map((_app, index) => String(index + 1)).join(","),
-            [FIRST_RUN_COMPLETE]: "1" } };
+            [FIRST_RUN_COMPLETE]: "1",
+            ...(automaticSwitch === undefined ? {} : { [APP_SUBPAGE_PREFERENCE]: automaticSwitch ? "1" : "0" }),
+        } };
 }
 
 interface FirstRunSetupDependencies {
@@ -95,7 +100,6 @@ interface FirstRunSetupDependencies {
     connectors: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">;
     fields: Pick<ControlsFieldsFeature, "textInput" | "toggleRow">;
     shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner" | "createMdiIcon">;
-    saveAutoSwitch: (enabled: boolean) => Promise<boolean>;
     onSaved: (mirrorFailed: boolean) => void;
     autoSwitchEnabled: () => boolean;
 }
@@ -203,22 +207,14 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         busy = true;
         error = "";
         render();
-        const previousAutoSwitch = deps.autoSwitchEnabled();
-        let switchAttempted = false;
-        let layoutSaved = false;
         try {
-            // Save the global switch first. A failure must not mark setup complete.
-            if (!skip) {
-                switchAttempted = true;
-                if (!await deps.saveAutoSwitch(addShortcutPages && supportedApps().length > 0 && autoSwitch)) {
-                    throw new Error("Could not save automatic switching. Check the connection and try again.");
-                }
-            }
+            if (await deps.native.waitForDiscovery() !== true || !deps.native.client?.supportsAppSubpagePreference())
+                throw new Error("Could not confirm the display can save app setup. Check its connection and firmware.");
             const chosen = skip ? [] : selectedApps();
+            const automaticSwitch = skip ? undefined : addShortcutPages && supportedApps().length > 0 && autoSwitch;
             const result = await deps.native.schedule(current =>
-                firstRunDocument(current, chosen, addShortcutPages, deps.capacity, deps.codec, replacing));
+                firstRunDocument(current, chosen, addShortcutPages, deps.capacity, deps.codec, replacing, automaticSwitch));
             if (result !== "saved" && result !== "mirror-failed") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
-            layoutSaved = true;
             eligible = false;
             close();
             if (skip) {
@@ -228,10 +224,6 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             }
         } catch (failure) {
             error = failure instanceof Error ? failure.message : "Could not save setup. Please try again.";
-            if (switchAttempted && !layoutSaved) {
-                const restored = await deps.saveAutoSwitch(previousAutoSwitch).catch(() => false);
-                if (!restored) error += " Could not restore automatic switching. Check Screen → App Subpages after reconnecting.";
-            }
         } finally {
             busy = false;
             render();
@@ -397,7 +389,8 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             if (!deps.supported || dialog || opening) return;
             opening = true;
             void (async () => {
-                if (await deps.native.waitForDiscovery() !== true) throw new Error("Update the display firmware to use app setup.");
+                if (await deps.native.waitForDiscovery() !== true || !deps.native.client?.supportsAppSubpagePreference())
+                    throw new Error("Update the display firmware to use app setup.");
                 const saved = (await deps.native.readSnapshot())?.document;
                 if (!saved) throw new Error("Could not load the display’s layout. Check the connection and try again.");
                 replacing = saved;
@@ -409,7 +402,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                     selected.add(card.entity);
                     if (configOptionEnabled(card.options, "app_shortcuts")) addShortcutPages = true;
                 }
-                autoSwitch = deps.autoSwitchEnabled();
+                autoSwitch = nativeAppSubpagePreference(saved.settings) ?? deps.autoSwitchEnabled();
                 query = "";
                 error = "";
                 step = 1;
@@ -422,7 +415,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             if (!deps.supported || started) return;
             started = true;
             void (async () => {
-                if (await deps.native.waitForDiscovery() !== true) return;
+                if (await deps.native.waitForDiscovery() !== true || !deps.native.client?.supportsAppSubpagePreference()) return;
                 const saved = (await deps.native.readSnapshot())?.document;
                 if (!saved || !needsFirstRunSetup(saved)) return;
                 eligible = true;

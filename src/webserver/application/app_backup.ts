@@ -10,6 +10,8 @@ import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import * as EspDesktopModel from "../model";
 import {
+    APP_SUBPAGE_PREFERENCE,
+    nativeAppSubpagePreference,
     normalizeBrightnessMode,
     normalizeHexColor,
     normalizeHour,
@@ -143,7 +145,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postNetworkStatusIcon,
 
         postSubpageChevron,
-        postAutoOpenAppSubpages,
         postReturnHomeOnAppSwitch,
         postSubpageTitleBar,
     } = controllers.clockBarPostApi;
@@ -261,7 +262,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 network_status_icon: state.networkStatusOn,
 
                 subpage_chevron: state.subpageChevronsOn,
-                auto_open_app_subpages: state.autoOpenAppSubpages,
+                auto_open_app_subpages: nativeAppSubpagePreference(nativeDocument?.settings) ?? state.autoOpenAppSubpages,
                 return_home_on_app_switch: state.returnHomeOnAppSwitch,
                 subpage_title_bar: state.subpageTitleBarOn,
                 timezone: state.timezone,
@@ -417,6 +418,19 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     nativeController?.client?.preservesInactiveRecords() !== true) {
                     rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                 }
+                const savedAppSubpagePreference = nativeAppSubpagePreference(nativeDocument.settings);
+                if (Object.hasOwn(nativeDocument.settings, APP_SUBPAGE_PREFERENCE) && savedAppSubpagePreference === undefined)
+                    rejectBackup("Invalid backup value for automatic app switching.");
+                const appSubpagePreference = savedAppSubpagePreference ??
+                    (backupPlan.settings ? importedSettings.autoOpenAppSubpages : undefined);
+                let saveAppSubpagePreferenceWithLayout = nativeAvailability === true &&
+                    nativeController?.client?.supportsAppSubpagePreference?.() === true &&
+                    appSubpagePreference !== undefined;
+                if (saveAppSubpagePreferenceWithLayout) {
+                    nativeDocument.settings[APP_SUBPAGE_PREFERENCE] = appSubpagePreference ? "1" : "0";
+                } else {
+                    delete nativeDocument.settings[APP_SUBPAGE_PREFERENCE];
+                }
                 var layoutRestoreResult: any;
                 if (nativeAvailability === "legacy-fallback") {
                     layoutRestoreResult = await queueLegacyLayoutRestore();
@@ -425,6 +439,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var nativeRestore: any = nativeController.writeDocument(nativeDocument);
                     layoutRestoreResult = nativeRestore ? await nativeRestore : "failed";
                     if (layoutRestoreResult === "legacy-fallback") {
+                        saveAppSubpagePreferenceWithLayout = false;
+                        delete nativeDocument.settings[APP_SUBPAGE_PREFERENCE];
                         layoutRestoreResult = await queueLegacyLayoutRestore();
                     }
                     else if (layoutRestoreResult === "firmware-update-required") {
@@ -470,6 +486,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 state.onColor = nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || WEB_UI_COLORS.primary;
                 if (els.setOnColor && els.setOnColor._syncColor)
                     els.setOnColor._syncColor(state.onColor);
+                if (saveAppSubpagePreferenceWithLayout && appSubpagePreference !== undefined) {
+                    state.autoOpenAppSubpages = appSubpagePreference;
+                    if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = appSubpagePreference;
+                }
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
 
@@ -479,7 +499,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postNetworkStatusIcon(importedSettings.networkStatusIcon);
 
                     postSubpageChevron(importedSettings.subpageChevron);
-                    postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
                     postReturnHomeOnAppSwitch(importedSettings.returnHomeOnAppSwitch);
                     postSubpageTitleBar(importedSettings.subpageTitleBar);
                     var importedTimezone: any = importedSettings.timezone;
@@ -541,10 +560,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.networkStatusOn = importedSettings.networkStatusIcon;
 
                     state.subpageChevronsOn = importedSettings.subpageChevron;
-                    state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
                     state.subpageTitleBarOn = importedSettings.subpageTitleBar;
-                    if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
                     if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
                     state.timezone = importedTimezone;
                     state.language = importedLanguage;

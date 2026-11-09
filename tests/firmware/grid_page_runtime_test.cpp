@@ -122,4 +122,51 @@ int main() {
   assert(grid_native_page(33)->config.find("shortcut.command+l") != std::string::npos);
   assert(grid_native_page(33)->parent == 1);
 
+  constexpr std::string_view preference_key = "companion_auto_open_app_subpages";
+  auto write_preference = [&](std::string_view value) {
+    using Kind = PanelConfigV2Kind;
+    PanelConfigV2Writer writer(updated.data(), updated.size());
+    assert(writer.begin() == PanelConfigStatus::OK);
+    for (size_t i = 0; i < reader.record_count(); ++i) {
+      PanelConfigV2Record row;
+      assert(reader.record(i, &row));
+      assert(writer.append(row) == PanelConfigStatus::OK);
+    }
+    PanelConfigV2Record key;
+    key.kind = Kind::STRING; key.id = 1000; key.text = preference_key;
+    assert(writer.append(key) == PanelConfigStatus::OK);
+    PanelConfigV2Record text;
+    text.kind = Kind::STRING; text.id = 1001; text.text = value;
+    assert(writer.append(text) == PanelConfigStatus::OK);
+    PanelConfigV2Record setting;
+    setting.kind = Kind::SETTING; setting.id = key.id; setting.first = text.id;
+    assert(writer.append(setting) == PanelConfigStatus::OK);
+    std::vector<uint64_t> scratch((writer.workspace_bytes() + 7) / 8);
+    assert(writer.finish(scratch.data(), scratch.size() * 8, &size) == PanelConfigStatus::OK);
+  };
+
+  std::vector<bool> applied;
+  GridPageRuntime preference(limits, bindings, allocate, ConfigurationBuffer::release_host,
+      [&](bool enabled) { applied.push_back(enabled); });
+  write_preference("0");
+  assert(preference.prepare_write(2, updated.data(), size));
+  assert(applied.empty());
+  assert(preference.activate_prepared(9, 2, updated.data(), size));
+  assert(applied == std::vector<bool>{false});
+  write_preference("invalid");
+  assert(!preference.prepare_write(2, updated.data(), size));
+  assert(applied == std::vector<bool>{false});
+
+  PanelConfigWriter v1(updated.data(), updated.size());
+  assert(v1.begin() == PanelConfigStatus::OK);
+  assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
+      std::strlen(limits.device_profile)) == PanelConfigStatus::OK);
+  const uint8_t enabled[] = "1";
+  assert(v1.append_setting(reinterpret_cast<const uint8_t *>(preference_key.data()), preference_key.size(),
+      enabled, sizeof(enabled) - 1) == PanelConfigStatus::OK);
+  assert(v1.finish(&size) == PanelConfigStatus::OK);
+  assert(preference.prepare_write(1, updated.data(), size));
+  assert(applied == std::vector<bool>{false});
+  assert(preference.activate_prepared(10, 1, updated.data(), size));
+  assert((applied == std::vector<bool>{false, true}));
 }
