@@ -904,6 +904,12 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("Blocked an invalid keyboard shortcut")
             return false
         }
+        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
+           !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
+            return false
+        }
         guard shortcut.isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else {
             updateStatus("Window tiling requires macOS 15 or later")
             return false

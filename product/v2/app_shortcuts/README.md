@@ -43,6 +43,8 @@ The manifest must list every top-level template JSON file in this folder exactly
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 
+The Safari templates use `extendedShortcuts` for unmodified Tab and Escape. Both lists share IDs and the 64-entry limit. Older Companion versions can still read the regular list. The `com.apple.Safari.WebApp` template applies to approved Safari web apps with a macOS-generated UUID suffix on their bundle ID.
+
 The current live files are useful examples too: Safari is in the standalone catalog; the other app templates provide shortcuts on their matching app subpages.
 
 Research-based starter templates cover supported native apps from the shortcut research index. Each includes up to ten confirmed, highlighted shortcuts that this controller can send. Spotlight controls are system-wide, OpenCode shortcuts are for a terminal interface, Finder uses its dedicated folder page, and Onshape is a separate browser-based app; those pages do not have native app templates.

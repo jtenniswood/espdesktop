@@ -90,6 +90,23 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.command+volumeup"));
   assert(!companion_shortcut_action_valid("shortcut.command+f21"));
   assert(!companion_shortcut_action_valid("com.apple.Safari"));
+  assert(companion_shortcut_label("shortcut.tab") == "Tab");
+  assert(companion_shortcut_label("shortcut.escape") == "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.enter"));
+  {
+    CompanionRuntimeSnapshot safari;
+    safari.connected = true;
+    safari.keyboard_actions_supported = true;
+    safari.focused_action_id = "com.apple.Safari";
+    assert(companion_action_available(safari, "shortcut.tab"));
+    safari.application_highlight_known = true;
+    safari.application_highlight_id = "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef";
+    assert(companion_action_available(safari, "shortcut.escape"));
+    safari.application_highlight_id = "com.apple.finder";
+    assert(!companion_action_available(safari, "shortcut.escape"));
+    safari.application_highlight_id = "com.apple.Safari.WebApp.invalid";
+    assert(!companion_action_available(safari, "shortcut.tab"));
+  }
 
   ParsedCfg finder_launch;
   finder_launch.type = "companion";

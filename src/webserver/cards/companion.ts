@@ -41,6 +41,7 @@ import {
     COMPANION_SHORTCUT_APPS,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
+    isSafariUnmodifiedShortcut,
     companionShortcutFolderAppLabel,
     companionShortcutFolderEditorAvailable,
     companionShortcutSelectionMatchesSavedParent,
@@ -161,8 +162,6 @@ export function formatCompanionShortcutActionId(actionId: string): string {
     if (!companionShortcutActionIdValid(actionId)) return "";
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     const key = parts.pop() || "";
-    if (!key || !parts.length || parts.some((part) =>
-        !(COMPANION_SHORTCUT_MODIFIERS as readonly string[]).includes(part))) return "";
     const symbols: Readonly<Record<string, string>> = {
         command: "⌘", control: "⌃", option: "⌥", shift: "⇧",
     };
@@ -948,8 +947,7 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
-                    COMPANION_SHORTCUT_MODIFIERS.some((modifier) =>
-                        modifier !== "shift" && selectedModifiers.has(modifier));
+                    (!isSafariUnmodifiedShortcut(card.entity) || card.entity === currentEntity);
             });
 
             const windowField = document.createElement("div");

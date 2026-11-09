@@ -4323,10 +4323,11 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await action.isDisabled(), true, "choose an app first");
     assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
     await app.selectOption("com.apple.Safari");
-    const safariShortcutCount = JSON.parse(fs.readFileSync(
+    const safariTemplate = JSON.parse(fs.readFileSync(
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
-    )).shortcuts.length;
+    ));
+    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.extendedShortcuts?.length || 0);
     assert.strictEqual(
       await action.locator("option").count(),
       safariShortcutCount + 1,

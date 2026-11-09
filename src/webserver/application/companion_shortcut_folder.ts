@@ -3,8 +3,15 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(apps);
-    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...apps);
+    const normalized = apps.map(({ extendedShortcuts, ...app }) => {
+        if ((app.appId !== SAFARI_BUNDLE_ID && app.appId !== SAFARI_WEB_APP_TEMPLATE) ||
+            !Array.isArray(extendedShortcuts)) return app;
+        const extended = extendedShortcuts.filter((item) =>
+            isSafariUnmodifiedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
+        return { ...app, shortcuts: [...app.shortcuts, ...extended] };
+    });
+    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(normalized);
+    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...normalized);
     return shortcutChanged;
 }
 
@@ -27,6 +34,8 @@ export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
+const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
+const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const SLACK_BUNDLE_ID = "com.tinyspeck.slackmacgap";
 export const COMPANION_SHORTCUT_PREFIX = "shortcut.";
@@ -62,6 +71,9 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
 }
 
 function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
+    if (SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)) {
+        return COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE);
+    }
     return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier ||
         (app.appId === "com.adobe.PremierePro" &&
             /^com\.adobe\.PremierePro\.\d+$/.test(bundleIdentifier)));
@@ -239,8 +251,13 @@ export function companionShortcutSelectionMatchesSavedParent(draftCard: any, sav
         draftCard.entity === savedCard.entity;
 }
 
+export function isSafariUnmodifiedShortcut(actionId: string): boolean {
+    return actionId === "shortcut.tab" || actionId === "shortcut.escape";
+}
+
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
     if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX)) return false;
+    if (isSafariUnmodifiedShortcut(actionId)) return true;
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     if (parts.length < 2 || parts.length > 5) return false;
     const key = parts.pop() || "";

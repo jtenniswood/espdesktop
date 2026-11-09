@@ -119,6 +119,25 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.fn+control+f"))
     }
 
+    func testSafariUnmodifiedKeysAndApplicationScope() throws {
+        let expected: [(String, CGKeyCode)] = [("tab", 48), ("escape", 53)]
+        for (keys, keyCode) in expected {
+            let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys))
+            XCTAssertEqual(shortcut.keyCode, keyCode)
+            XCTAssertTrue(shortcut.flags.isEmpty)
+        }
+        for keys in ["enter", "a", "shift+tab", "+tab", "command++tab"] {
+            XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys), keys)
+        }
+        XCTAssertTrue(CompanionKeyboardShortcut.isSafariApplication("com.apple.Safari"))
+        XCTAssertTrue(CompanionKeyboardShortcut.isSafariApplication(
+            "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef"
+        ))
+        XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.Safari.WebApp"))
+        XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.Safari.WebApp.invalid"))
+        XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.finder"))
+    }
+
     func testGatesOnlyTilingActionsToMacOS15() throws {
         let macOS13 = OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0)
         let macOS15 = OperatingSystemVersion(majorVersion: 15, minorVersion: 0, patchVersion: 0)

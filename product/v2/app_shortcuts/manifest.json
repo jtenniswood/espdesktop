@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 12,
+  "catalogueVersion": 13,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -191,6 +191,9 @@
     },
     {
       "path": "safari.json"
+    },
+    {
+      "path": "safari-web-app.json"
     },
     {
       "path": "signal.json"

@@ -15,13 +15,24 @@ class AppShortcutTests(unittest.TestCase):
     def setUp(self):
         self.icons = icon_names(json.loads((ROOT / 'product/v2/icons.json').read_text()))
         self.app = json.loads((ROOT / 'product/v2/app_shortcuts/safari.json').read_text())
+        self.app.pop('extendedShortcuts', None)
 
     def test_existing_files_and_legacy_ids(self):
         apps = load_apps(ROOT)
         self.assertEqual([app['label'] for app in apps if app['catalog']], ['Safari'])
         safari = next(app for app in apps if app['appId'] == 'com.apple.Safari')
-        self.assertEqual([item['id'] for item in safari['shortcuts']], [str(index) for index in range(10)])
+        self.assertEqual([item['id'] for item in safari['shortcuts'][:10]], [str(index) for index in range(10)])
         self.assertEqual(safari['shortcuts'][2]['shortcut'], 'command+r')
+
+    def test_safari_plain_keys_are_reserved_for_the_safari_templates(self):
+        safari = copy.deepcopy(self.app)
+        safari['extendedShortcuts'] = [{'id': '90', 'label': 'Next Field', 'shortcut': 'tab', 'icon': 'Shortcut Tab'}]
+        validate_app(safari, self.icons)
+        with self.assertRaisesRegex(ValueError, 'only in Safari'):
+            validate_app(dict(safari, appId='org.example.Editor'), self.icons)
+        safari['extendedShortcuts'][0]['shortcut'] = 'enter'
+        with self.assertRaisesRegex(ValueError, 'invalid keyboard shortcut'):
+            validate_app(safari, self.icons)
 
     def test_invalid_definitions(self):
         for field, value in [('appId', 'invalid/id'), ('catalog', 'yes'), ('version', True), ('label', '')]:
@@ -53,14 +64,14 @@ class AppShortcutTests(unittest.TestCase):
             directory.mkdir(parents=True)
             (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
             self.app.update(appId='org.example.Editor', label='Example Editor', catalog=True)
-            self.app['shortcuts'][0]['id'] = '12'
+            self.app['shortcuts'][0]['id'] = '99'
             self.app['shortcuts'].reverse()
             (directory / 'example.json').write_text(json.dumps(self.app))
             apps = load_apps(root)
-            self.assertEqual(apps[0]['shortcuts'][-1]['id'], '12')
+            self.assertEqual(apps[0]['shortcuts'][-1]['id'], '99')
             generated = dict((path.suffix, content) for path, content in outputs(root))
             self.assertIn('org.example.Editor', generated['.ts'])
-            self.assertIn('id == "12"', generated['.h'])
+            self.assertIn('id == "99"', generated['.h'])
             self.assertIn('Example Editor', generated['.h'])
             (directory / 'duplicate.json').write_text(json.dumps(self.app))
             with self.assertRaisesRegex(ValueError, 'duplicate appId'):

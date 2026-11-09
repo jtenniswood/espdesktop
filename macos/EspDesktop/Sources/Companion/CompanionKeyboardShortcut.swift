@@ -50,6 +50,23 @@ final class CompanionAccessibilityAuthorizer {
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
     static let windowActionPrefix = "window."
+    private static let safariBundleIdentifier = "com.apple.Safari"
+    private static let safariWebAppTemplate = "com.apple.Safari.WebApp"
+
+    static func isSafariUnmodifiedShortcut(_ shortcut: String) -> Bool {
+        shortcut == "tab" || shortcut == "escape"
+    }
+
+    static func isSafariTemplate(_ appId: String) -> Bool {
+        appId == safariBundleIdentifier || appId == safariWebAppTemplate
+    }
+
+    static func isSafariApplication(_ appId: String?) -> Bool {
+        guard let appId else { return false }
+        if appId == safariBundleIdentifier { return true }
+        let prefix = safariWebAppTemplate + "."
+        return appId.hasPrefix(prefix) && UUID(uuidString: String(appId.dropFirst(prefix.count))) != nil
+    }
 
     let keyCode: CGKeyCode
     let flags: CGEventFlags
@@ -65,12 +82,13 @@ struct CompanionKeyboardShortcut {
             return
         }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
-        var parts = actionIdentifier.dropFirst(Self.actionPrefix.count).split(separator: "+").map(String.init)
-        guard parts.count >= 2, parts.count <= 5, let key = parts.popLast(),
+        let shortcut = actionIdentifier.dropFirst(Self.actionPrefix.count)
+        var parts = shortcut.split(separator: "+", omittingEmptySubsequences: false)
+        guard parts.count <= 5, let key = parts.popLast().map(String.init),
               let keyCode = Self.keyCodes[key] else { return nil }
 
         var flags: CGEventFlags = []
-        var seen = Set<String>()
+        var seen = Set<Substring>()
         for modifier in parts {
             guard seen.insert(modifier).inserted else { return nil }
             switch modifier {
@@ -81,7 +99,8 @@ struct CompanionKeyboardShortcut {
             default: return nil
             }
         }
-        guard flags.contains(.maskCommand) || flags.contains(.maskControl) || flags.contains(.maskAlternate) else {
+        guard (parts.isEmpty && Self.isSafariUnmodifiedShortcut(key)) ||
+              flags.contains(.maskCommand) || flags.contains(.maskControl) || flags.contains(.maskAlternate) else {
             return nil
         }
         self.keyCode = keyCode
