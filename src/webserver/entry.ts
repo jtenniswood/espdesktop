@@ -1,3 +1,4 @@
+import { createFirstRunSetup } from "./application/first_run_setup";
 import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
 import * as DeviceConfig from "./device_config";
@@ -927,17 +928,32 @@ function composeApplicationContext(): ApplicationContext {
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
     shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
     clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
-    systemSection, preview, connectorsPage,
+    systemSection, preview, connectorsPage, () => firstRunSetup.open(),
   );
+  const firstRunSetup = createFirstRunSetup({
+    ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
+    native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, fields, shell,
+    autoSwitchEnabled: () => state.autoOpenAppSubpages,
+    saveAutoSwitch: async (enabled) => {
+      await requestApi.postQueueIdle();
+      requestApi.resetPostQueueError();
+      clockBarPostApi.postAutoOpenAppSubpages(enabled);
+      await requestApi.postQueueIdle();
+      return !requestApi.postQueueHadError();
+    },
+    onSaved: (mirrorFailed) => {
+      shell.switchTab("screen");
+      nativePages.invalidate();
+      void nativePages.refresh();
+      if (!mirrorFailed) {
+        shell.showBanner("Setup saved.", "success");
+      }
+    },
+  });
   app = createAppFeature(
     pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
     clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
-  );
-  app = createAppFeature(
-    pageTitle, createWebStyles(layout.config.dragAnimation), core, screenRotation,
-    clockBarState, shell, appEvents, statusPreview, selection, contextMenu,
-    interactions, preview, buttonSettings, connectorsPage,
+    interactions, preview, buttonSettings, connectorsPage, firstRunSetup,
   );
   requestApi.connectReconnect(appEvents.connect);
   dom.schedule(() => { void identity.load().catch(() => {}); }, 0);
