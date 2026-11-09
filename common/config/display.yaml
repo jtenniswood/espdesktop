@@ -340,11 +340,11 @@ switch:
     icon: "mdi:application"
     web_server:
       sorting_group_id: sg_display
-    on_turn_on:
+    turn_on_action:
       - lambda: |-
           if (espdesktop::active_espdesktop_app_core() == nullptr)
             id(companion_auto_open_app_subpages_enabled).publish_state(true);
-    on_turn_off:
+    turn_off_action:
       - lambda: |-
           if (espdesktop::active_espdesktop_app_core() == nullptr)
             id(companion_auto_open_app_subpages_enabled).publish_state(false);

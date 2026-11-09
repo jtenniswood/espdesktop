@@ -66,8 +66,8 @@ struct EspDesktopApp {
 espdesktop::EspDesktopApp espdesktop_app;
 '''
 source += "namespace espdesktop {\n" + app[publish_start:publish_end] + "}\n"
-source += "void turn_on() {\n" + callback("on_turn_on") + "}\n"
-source += "void turn_off() {\n" + callback("on_turn_off") + "}\n"
+source += "void turn_on() {\n" + callback("turn_on_action") + "}\n"
+source += "void turn_off() {\n" + callback("turn_off_action") + "}\n"
 source += "void restore() {\n" + textwrap.dedent(boot[2]) + "}\n"
 source += r'''
 int main() {
