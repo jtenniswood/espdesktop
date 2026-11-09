@@ -20,6 +20,13 @@ esp32:
 # across DHCP changes and firmware updates.
 esphome:
   name_add_mac_suffix: true
+  includes:
+    - display_resync_test.h
+  on_boot:
+    # Register before the web server starts accepting requests.
+    - priority: 250
+      then:
+        - lambda: espdesktop::register_display_resync_test();
 
 wifi:
   ssid: !secret wifi_ssid
@@ -31,3 +38,11 @@ packages:
 web_server:
   js_url: ""
   js_include: "../../docs/public/webserver/embedded/www.js"
+
+button:
+  - platform: template
+    name: Resync S3 Display
+    internal: true
+    entity_category: diagnostic
+    on_press:
+      - lambda: id(my_display).resync_scanout();

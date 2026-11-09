@@ -238,6 +238,21 @@ void MipiRgb::end_frame() {
   this->frames_.complete();
 }
 
+#if defined(USE_ESP32_VARIANT_ESP32S3)
+void MipiRgb::resync_scanout() {
+  if (this->handle_ == nullptr || this->is_failed()) {
+    ESP_LOGW(TAG, "Cannot resync an unavailable RGB panel");
+    return;
+  }
+  const esp_err_t result = esp_lcd_rgb_panel_restart(this->handle_);
+  if (result != ESP_OK) {
+    ESP_LOGW(TAG, "RGB scanout resync failed: %s", esp_err_to_name(result));
+    return;
+  }
+  ESP_LOGI(TAG, "RGB scanout resync requested for the next frame");
+}
+#endif
+
 void MipiRgb::loop() {
   // The ESP-IDF RGB driver already restarts on real DMA underflow when needed.
   // Continuously requesting restarts can cause visible one-frame shifts and flicker.
