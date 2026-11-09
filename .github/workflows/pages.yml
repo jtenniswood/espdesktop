@@ -6,6 +6,8 @@ on:
     paths:
       - 'docs/**'
       - 'devices/manifest.json'
+      - 'product/release_devices.json'
+      - 'scripts/release_devices.py'
       - 'scripts/check_public_firmware.py'
       - 'scripts/check_docs_site.py'
       - 'scripts/check_docs_installer.js'
@@ -135,13 +137,15 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
         with:
-          sparse-checkout: devices/manifest.json
+          sparse-checkout: |
+            devices/manifest.json
+            product/release_devices.json
           sparse-checkout-cone-mode: false
 
       - name: Set device slugs
         run: |
-          DEVICE_SLUGS=$(jq -r '.devices | keys | join(" ")' devices/manifest.json)
-          RECOVERY_SLUGS=$(jq -r '[.devices | to_entries[] | select(.value.firmware.build.chip == "ESP32-P4") | .key] | join(" ")' devices/manifest.json)
+          DEVICE_SLUGS=$(jq -r '.devices | join(" ")' product/release_devices.json)
+          RECOVERY_SLUGS=$(jq -r --slurpfile release product/release_devices.json '[.devices | to_entries[] | select(.key as $slug | $release[0].devices | index($slug)) | select(.value.firmware.build.chip == "ESP32-P4") | .key] | join(" ")' devices/manifest.json)
           echo "DEVICE_SLUGS=${DEVICE_SLUGS}" >> "$GITHUB_ENV"
           echo "RECOVERY_SLUGS=${RECOVERY_SLUGS}" >> "$GITHUB_ENV"
 
@@ -413,6 +417,8 @@ jobs:
         with:
           sparse-checkout: |
             devices/manifest.json
+            product/release_devices.json
+            scripts/release_devices.py
             scripts/check_public_firmware.py
           sparse-checkout-cone-mode: false
 
