@@ -32,6 +32,9 @@ class MipiRgb : public display::Display {
   void set_double_buffered(bool enabled) { this->double_buffered_ = enabled; }
   void begin_frame();
   void end_frame();
+#if defined(USE_ESP32_VARIANT_ESP32S3)
+  void resync_scanout();
+#endif
   void setup() override;
   void loop() override;
   void update() override;
