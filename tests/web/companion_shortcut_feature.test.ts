@@ -24,6 +24,8 @@ import {
   companionSubtypeIcon,
   companionUrlConfig,
   companionUrlValue,
+  COMPANION_WINDOW_ACTIONS,
+  companionWindowActionLabel,
   formatCompanionShortcutActionId,
   normalizeCompanionCard,
   resetCompanionMetricPresentation,
@@ -161,8 +163,8 @@ export function runCompanionShortcutFeatureTests(): void {
   const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
   if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats" ||
-      companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
+  if (companionModes.length !== 6 || new Set(companionModes.map(([mode]) => mode)).size !== 6 ||
+      !companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
@@ -175,7 +177,7 @@ export function runCompanionShortcutFeatureTests(): void {
   if (typedCard.mode !== "app" || typedCard.applicationId !== "") {
     throw new Error("Companion cards must have a typed in-memory model without changing saved config");
   }
-  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "stat.memory_free", "stat.storage:external-volume", "stat.storage_free:external-volume"]) {
+  for (const entity of ["com.example.Offline", "shortcut.command+a", "folder.saved-id", "media.play_pause", "window.left", "stat.memory_free", "stat.storage:external-volume", "stat.storage_free:external-volume"]) {
     const saved = { ...emptyCardConfig("companion"), entity, label: "Keep", options: "future_option=keep", precision: "2", unit: "%" };
     if (JSON.stringify(encodeCompanionCard(decodeCompanionCard(saved), saved)) !== JSON.stringify(saved)) {
       throw new Error("Companion variants must round-trip offline cards and unknown options");
@@ -692,6 +694,27 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Leaving a generated statistic card must clear its generated presentation");
   }
 
+  if (COMPANION_WINDOW_ACTIONS.length !== 28) {
+    throw new Error("Companion window controls must expose the complete approved preset list");
+  }
+  const windowIds = new Set(COMPANION_WINDOW_ACTIONS.map((action) => action.id));
+  const additionalWindowIds = [
+    "window.top-left", "window.top-right", "window.bottom-left", "window.bottom-right",
+    "window.arrange.quarters", "window.fullscreen.enter", "window.fullscreen.exit",
+    "window.split.left", "window.split.right",
+  ];
+  if (windowIds.size !== COMPANION_WINDOW_ACTIONS.length || !windowIds.has("window.close")
+      || !windowIds.has("window.arrange.bottom-quarters")
+      || additionalWindowIds.some((id) => !windowIds.has(id))) {
+    throw new Error("Companion window action identifiers must be unique and complete");
+  }
+  if (companionCardMode({ entity: "window.left", sensor: "" }) !== "window") {
+    throw new Error("Window actions must restore as the Window controls subtype");
+  }
+  if (companionWindowActionLabel("window.center") !== "Centre"
+      || companionWindowActionLabel("window.unknown") !== "") {
+    throw new Error("Window actions must use allow-listed display labels");
+  }
   const offlineSavedApp = "com.apple.Safari";
   if (!companionApplicationActionIdCanSave([], offlineSavedApp, offlineSavedApp)
       || companionApplicationActionIdCanSave([], "com.apple.TextEdit", offlineSavedApp)) {

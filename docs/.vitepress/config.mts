@@ -151,7 +151,7 @@ const screenProducts: Record<string, Record<string, string>> = {
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
+    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, run shortcuts, and arrange windows.',
   base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
@@ -339,6 +339,7 @@ export default defineConfig({
           { text: 'Apps & Websites', link: '/mac-controls/apps' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Window Controls', link: '/mac-controls/windows' },
         ],
       },
       {

@@ -12,7 +12,8 @@ export type CompanionCardModel =
   | { readonly mode: "shortcut"; readonly shortcutId: string }
   | { readonly mode: "url"; readonly applicationId: string; readonly encodedUrl: string }
   | { readonly mode: "folder"; readonly folderId: string }
-  | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string };
+  | { readonly mode: "stats"; readonly metricId: string; readonly precision: string; readonly unit: string }
+  | { readonly mode: "window"; readonly actionId: string };
 
 export function companionCardModeContract(mode: unknown): CompanionCardMode | undefined {
   return COMPANION_CARD_MODES.find((candidate) => candidate.id === mode);

@@ -2,7 +2,6 @@ import { state } from "../state/app_instance";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { parseGridOrder } from "../model";
-import type { PanelConfigDocument } from "../model/panel_config";
 import { NativePageEditorLoader, preparePageEditorDocument, restoredEditorPage } from "../features/page_editor";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { ConfigCodecFeature } from "./config_codec";
@@ -22,12 +21,7 @@ export function createNativePageEditorFeature(options: {
   canApply(): boolean;
 }): NativePageEditorLoader {
   const { native, codec, layout, runtime } = options;
-  let removingOldCards = false;
-  const cleanRetiredCards = (snapshot: PanelConfigDocument) => {
-    const cleaned = structuredClone(snapshot);
-    return removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard) ? cleaned : snapshot;
-  };
-  const loader = new NativePageEditorLoader({
+  return new NativePageEditorLoader({
     discover: () => native.waitForDiscovery(),
     readDepth: () => native.readNavigationDepth(),
     revision: () => native.changeRevision(),
@@ -35,8 +29,9 @@ export function createNativePageEditorFeature(options: {
     canApply: () => options.canApply() && !state.configLocked && !state.nativeTransferActive && !state.settingsDraft?.dirty && !state.settingsDraft?.isNew &&
       runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
       !options.document.activeElement?.closest(".sp-card-name-input"),
-    apply: (snapshot) => {
-      const cleaned = cleanRetiredCards(snapshot);
+    apply: (document) => {
+      const cleaned = structuredClone(document);
+      const retired = removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard);
       const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec);
       const root = parseGridOrder(cleaned.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
       const editing = restoredEditorPage(state.editingSubpage, prepared);
@@ -53,7 +48,7 @@ export function createNativePageEditorFeature(options: {
       state.pendingButtonOrderRaw = cleaned.settings.button_order ?? "";
       state.grid = root.grid;
       state.sizes = root.sizes;
-      state.onColor = cleaned.settings.button_on_color || WEB_UI_COLORS.primary;
+      state.onColor = document.settings.button_on_color || WEB_UI_COLORS.primary;
       state.editingSubpage = editing;
       state.selectedSlots = []; state.subpageSelectedSlots = [];
       state.lastClickedSlot = state.subpageLastClicked = -1;
@@ -64,19 +59,14 @@ export function createNativePageEditorFeature(options: {
       options.shell.syncConfigLockUi();
       if (state.nativeConfigReadOnly)
         options.shell.showBanner("This firmware can display nested pages, but cannot save changes to them.", "warning");
-      if (cleaned !== snapshot && !state.nativeConfigReadOnly && !removingOldCards) {
-        // Reapply the cleanup to the current device generation so concurrent
-        // changes to neighbouring cards survive the write.
-        const pending = native.schedule(cleanRetiredCards, true);
-        if (pending) {
-          removingOldCards = true;
-          void pending.then(result => {
-            removingOldCards = false;
-            if ((result === "saved" || result === "mirror-failed") && !state.configLocked) loader.refreshAfterChange();
-          });
-        }
-      }
       options.render();
+      if (retired && !state.nativeConfigReadOnly) {
+        // Apply the same cleanup to the latest saved generation so concurrent edits survive.
+        void native.schedule(current => {
+          removeRetiredPanelRecords(current, codec, isRetiredLayoutCard);
+          return current;
+        });
+      }
     },
     loading: active => {
       state.nativeConfigLoading = active && state.nativePanelDocument === null;
@@ -87,5 +77,4 @@ export function createNativePageEditorFeature(options: {
       options.shell.showBanner("Could not load the saved pages. Reload before editing.", "error");
     },
   });
-  return loader;
 }

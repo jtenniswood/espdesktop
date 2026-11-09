@@ -1,7 +1,7 @@
 ---
 title: EspDesktop — Touch Controls for Your Mac
 titleTemplate: :title
-description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to launch apps, open folders and websites, and run shortcuts."
+description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to launch apps, open folders and websites, run shortcuts, and manage windows."
 ---
 
 # EspDesktop
@@ -26,8 +26,9 @@ EspDesktop pairs one Mac with a [4-inch Guition 4848S040 touchscreen](/screens/4
 - [Launch apps and open websites](/mac-controls/apps).
 - [Open Finder folders](/mac-controls/folders) you’ve chosen in the Mac app.
 - [Run keyboard shortcuts](/mac-controls/shortcuts) from the touchscreen.
+- [Control and arrange windows](/mac-controls/windows). Window arrangement requires macOS 15 or newer.
 - Lock your Mac with **Companion → Mac Lock**.
 
-Keyboard shortcuts and Mac Lock need [Accessibility permission](/mac-controls/security).
+Keyboard shortcuts, window controls and Mac Lock need [Accessibility permission](/mac-controls/security).
 
 You can group controls into [subpages](/features/subpages) and show [cover art from your Mac](/features/setup#show-mac-cover-art).

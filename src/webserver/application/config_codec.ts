@@ -1,6 +1,6 @@
-import { isRetiredLayoutCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
-import { retiredSavedCardType } from "../model/card";
 import { isMacAudioCard } from "../model/legacy_home_assistant";
+import { isRetiredLayoutCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
+import { cardContractTypeRetired } from "../generated/card_contract";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { childPageKey, pageDepth, parentPageKey } from "../model/page_keys";
@@ -403,9 +403,8 @@ export function createConfigCodecFeature(
         // Map legacy Web App records to the retired type before normalizing Companion cards.
         if (b?.type === "companion" && b.entity?.startsWith("webapp.")) b.type = "companion_webapp";
         if (b && isMacAudioCard(b.type, b.entity)) b.type = "companion_audio";
-        const retiredType = retiredSavedCardType(b);
-        if (retiredType) {
-            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: retiredType });
+        if (b && cardContractTypeRetired(b.type)) {
+            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: b.type });
         }
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
@@ -473,9 +472,8 @@ export function createConfigCodecFeature(
         return EspDesktopModel.trimConfigFields(fields);
     }
     function buttonConfigFields(this: any, b?: any) {
-        const retiredType = retiredSavedCardType(b);
-        if (retiredType) {
-            return trimConfigFields(["", "", "Auto", "Auto", "", "", retiredType]);
+        if (b && cardContractTypeRetired(b.type)) {
+            return trimConfigFields(["", "", "Auto", "Auto", "", "", b.type]);
         }
         var type: any = b && b.type || "";
         if (b && type === "subpage" && subpageKind(b)) {
