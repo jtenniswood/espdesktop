@@ -116,6 +116,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let autoSwitch = true;
     let busy = false;
     let loading = false;
+    let catalogueRetry: number | undefined;
     let started = false;
     let error = "";
     let query = "";
@@ -138,6 +139,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         return node;
     }
     function close(): void {
+        window.clearTimeout(catalogueRetry);
         dialog?.close();
         dialog?.remove();
         dialog = null;
@@ -162,21 +164,27 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         dialog.showModal();
         if (connected) void refresh();
     }
-    async function refresh(): Promise<void> {
-        if (loading || busy) return;
+    async function refresh(retry = false): Promise<void> {
+        if (!dialog || !connected || loading || busy) return;
+        window.clearTimeout(catalogueRetry);
         loading = true;
         error = "";
         render();
         try {
             const [actions] = await Promise.all([
                 catalogue.load(true),
-                catalogue.loadDefinitions(true).then(definitions => {
+                catalogue.loadDefinitions(!retry).then(definitions => {
                     replaceCompanionDefinitions(definitions.applications);
                 }).catch(() => { /* Bundled shortcuts remain available on older firmware. */ }),
             ]);
             apps = firstRunApplications(actions);
-            const ids = new Set(apps.map(app => app.id));
-            for (const id of selected) if (!ids.has(id)) selected.delete(id);
+            if (apps.length > 0) {
+                const ids = new Set(apps.map(app => app.id));
+                for (const id of selected) if (!ids.has(id)) selected.delete(id);
+            } else if (dialog && connected) {
+                // The Mac may still be building its catalogue just after pairing.
+                catalogueRetry = window.setTimeout(() => { void refresh(true); }, 1500);
+            }
         } catch {
             error = "Could not load apps. Check the Mac connection, then reopen setup.";
         } finally {
@@ -362,7 +370,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const next = button(busy ? "Saving…" : isFinalStep ? finishLabel : "Next", () => {
             if (isFinalStep) void finish(); else { ++step; render(); }
         }, true);
-        next.disabled = busy || loading || !connected || selected.size === 0;
+        next.disabled = busy || loading || !connected || selectedApps().length === 0;
         actions.appendChild(next);
         footer.appendChild(actions);
         dialog.appendChild(footer);

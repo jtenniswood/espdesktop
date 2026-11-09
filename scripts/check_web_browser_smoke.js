@@ -8807,7 +8807,8 @@ async function assertFirstRunSetup(browser) {
     { id: "com.apple.Notes", label: "Notes" },
     ...Array.from({ length: testCase.slots + 1 }, (_, i) => ({ id: `org.example.app${i}`, label: `App ${i}` })),
   ];
-  await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: actions }));
+  let catalogueReady = false;
+  await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: catalogueReady ? actions : [] }));
   // Model readable firmware metadata instead of the generic empty HTTP response.
   await context.route("**/text_sensor/**", route => route.fulfill({ status: 200, json: { state: "" } }));
   await context.route("**/button/**", route => route.request().method() === "GET"
@@ -8847,6 +8848,8 @@ async function assertFirstRunSetup(browser) {
       if (await input.isChecked() !== checked) await track.click();
       assert.equal(await input.isChecked(), checked);
     };
+    await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
+    catalogueReady = true;
     await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
     // The selection cap disables remaining apps while allowing deselection.
     for (let i = 0; i < appLimit - 1; i++) await setChecked(dialog.getByLabel(`App ${i}`, { exact: true }), true);
