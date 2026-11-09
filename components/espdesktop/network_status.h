@@ -37,9 +37,6 @@ struct NetworkStatusModalUi {
   lv_obj_t *pairing_ip = nullptr;
   lv_obj_t *pairing_button = nullptr;
   lv_obj_t *pairing_label = nullptr;
-  lv_obj_t *lock_button = nullptr;
-  int grid_columns = 1;
-  int configured_rows = 1;
   lv_obj_t *wifi_label = nullptr;
   float (*wifi_quality)() = nullptr;
   const lv_font_t *text_font = nullptr;
@@ -258,31 +255,9 @@ inline void network_status_open_pairing() {
   network_status_refresh_page();
 }
 
-inline void network_status_refresh_lock_button() {
-  auto &ui = network_status_modal_ui();
-  if (!ui.overlay || !ui.lock_button) return;
-  const bool has_pin = espdesktop::screensaver_pin().has_pin();
-  const bool hidden = lv_obj_has_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
-  if (hidden == !has_pin) return;
-  if (has_pin) lv_obj_clear_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
-  else lv_obj_add_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
-
-  // The optional lock button is last, so hiding it leaves no gap between cards.
-  const int visible_cards = ui.card_count - (has_pin ? 0 : 1);
-  const int rows = network_status_grid_rows(ui.grid_columns, ui.configured_rows, visible_cards);
-  for (int i = 0; i < rows; ++i) ui.rows[i] = LV_GRID_FR(1);
-  ui.rows[rows] = LV_GRID_TEMPLATE_LAST;
-  lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
-}
-
-inline void network_status_lock_cb(lv_event_t *) {
-  screen_lock_activate();
-}
-
 inline void network_status_refresh_page() {
   auto &ui = network_status_modal_ui();
   if (!ui.overlay) return;
-  network_status_refresh_lock_button();
   if (ui.wifi_label && ui.wifi_quality) {
     const float quality = ui.wifi_quality();
     const std::string label = std::isfinite(quality)
@@ -369,8 +344,6 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_style_pad_column(ui.overlay, lv_obj_get_style_pad_column(page, LV_PART_MAIN), LV_PART_MAIN);
 
   const int cols = std::max(1, std::min(metrics.cols, MAX_GRID_SLOTS));
-  ui.grid_columns = cols;
-  ui.configured_rows = std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS));
   const int card_count = NETWORK_STATUS_CARD_COUNT - (wifi_quality ? 0 : 1);
   const int rows = network_status_grid_rows(cols,
       std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS)), card_count);
@@ -381,8 +354,8 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", "", device_name.c_str(), espdesktop_i18n("Screen Lock")};
-  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B", "\U000F0200", find_icon("Lock")};
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", "", device_name.c_str()};
+  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B", "\U000F0200"};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   int visible_index = 0;
@@ -413,11 +386,6 @@ inline void network_status_open_modal(const std::string &device_name,
       ui.pairing_button = button;
       ui.pairing_label = slot.text_lbl;
       bind_immediate_button_action(button, [](lv_event_t *) { network_status_open_pairing(); }, nullptr);
-      continue;
-    }
-    if (i == NETWORK_STATUS_LOCK_CARD_INDEX) {
-      ui.lock_button = button;
-      bind_immediate_button_action(button, network_status_lock_cb, nullptr);
       continue;
     }
     lv_obj_clear_flag(button, LV_OBJ_FLAG_CLICKABLE);

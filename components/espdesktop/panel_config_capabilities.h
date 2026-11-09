@@ -59,7 +59,7 @@ inline bool write_panel_config_capabilities_json(char *output,
     return false;
   const int written = std::snprintf(
       output, output_capacity,
-      "{\"screensaver_pin\":{\"version\":1},\"identity\":{\"version\":1},\"api\":{\"version\":%u},\"home_assistant_support\":%s,\"configuration\":{\"document_versions\":[%s],\"default_document_version\":1,\"durable_document_version\":%u,\"max_v2_document_bytes\":%u,\"max_navigation_depth\":%u,\"writable_navigation_depth\":%u,"
+      "{\"identity\":{\"version\":1},\"api\":{\"version\":%u},\"home_assistant_support\":%s,\"configuration\":{\"document_versions\":[%s],\"default_document_version\":1,\"durable_document_version\":%u,\"max_v2_document_bytes\":%u,\"max_navigation_depth\":%u,\"writable_navigation_depth\":%u,"
       "\"max_durable_document_bytes\":%u,\"max_runtime_cards\":%u,\"max_runtime_pages\":%u,\"max_page_store_bytes\":%u,"
       "\"read\":%s,\"write\":%s,\"max_record_body_bytes\":%u,\"preserves_inactive_records\":%s},\"web_assets\":{\"versions\":[%u],"
       "\"delivery\":\"%s\"},\"reset\":{\"modes\":[\"customization\",\"factory\"],\"status\":\"/api/v1/reset\"}}",
