@@ -320,8 +320,8 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
+          { text: 'Where to Buy', link: '/#where-to-buy' },
           { text: 'Install Screen', link: '/getting-started/install' },
-          { text: 'Where to Buy', link: 'https://jtenniswood.github.io/espcontrol/screens/4848s040#where-to-buy' },
         ],
       },
       {

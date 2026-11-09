@@ -10,6 +10,11 @@ description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to lau
 
 EspDesktop pairs one Mac with a [4-inch Guition 4848S040 touchscreen](/screens/4848s040) using a menu-bar app.
 
+## Where to Buy
+
+- [Guition 4848S040 on AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv) has a guide price of about £16. The current price and shipping depend on the listing.
+- [3D-printable case stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301) fits this display.
+
 ## Get Started
 
 1. [Install the display firmware](/getting-started/install) and connect the display to WiFi.
