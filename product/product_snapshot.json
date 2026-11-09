@@ -4939,7 +4939,8 @@
         }
       },
       "slider": {
-        "label": "Volume",
+        "label": "Legacy Slider",
+        "hidden": true,
         "allowInSubpage": true,
         "domains": [
           "light",
@@ -5560,7 +5561,8 @@
       "clock",
       "timezone",
       "webhook",
-      "companion_webapp"
+      "companion_webapp",
+      "companion_audio"
     ]
   },
   "entityNames": {

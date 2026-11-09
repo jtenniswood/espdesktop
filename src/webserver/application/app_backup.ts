@@ -1,4 +1,4 @@
-import { isRetiredWebAppOrWifiCard, removeRetiredPanelRecords } from "../features/retired_cards";
+import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
@@ -237,7 +237,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             nativeDocumentBytes = await controllers.nativePanelConfig?.readForBackup() ?? undefined;
             if (nativeDocumentBytes) {
                 nativeDocument = decodeNativeConfigDocument(nativeDocumentBytes);
-                if (removeRetiredPanelRecords(nativeDocument, controllers.codec, isRetiredWebAppOrWifiCard)) {
+                if (removeRetiredPanelRecords(nativeDocument, controllers.codec, isRetiredLayoutCard)) {
                     nativeDocumentBytes = nativeConfigDocumentVersion(nativeDocumentBytes) === 2
                         ? encodePanelPageDocument(nativeDocument)
                         : EspDesktopModel.encodePanelConfig(nativeDocument);

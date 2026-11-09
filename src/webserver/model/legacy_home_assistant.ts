@@ -34,6 +34,12 @@ export function cardTypeConnector(key: string): SavedCardConnector {
   return "home_assistant";
 }
 
+export function isMacAudioCard(type: string, entity: string | null | undefined): boolean {
+  return type === "slider" &&
+    (entity === "media.output_volume" || entity === "media.input_volume" ||
+     entity === "media.output_mute" || entity === "media.input_mute");
+}
+
 export function cardRequiresHomeAssistant(
   key: string,
   card: {
@@ -43,8 +49,7 @@ export function cardRequiresHomeAssistant(
   } | null | undefined,
 ): boolean {
   if (key === "slider") {
-    return !["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]
-      .includes(card?.entity || "");
+    return !isMacAudioCard(key, card?.entity);
   }
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);

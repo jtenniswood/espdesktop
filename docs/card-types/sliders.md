@@ -1,3 +1,3 @@
-# Mac audio controls
+# Removed Mac audio cards
 
-Choose **Volume** in the Mac Companion card picker. The **Volume** and **Mic** sliders adjust Mac output and input levels. **Output mute** and **Microphone mute** add tap controls labelled **Mute**, with speaker and microphone icons. See [Mac Controls](./companion) for device requirements and mute behaviour.
+Volume, Mic, Output mute, and Microphone mute cards have been removed. Saved cards leave empty spaces when a layout is loaded or restored.

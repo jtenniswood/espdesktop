@@ -12,10 +12,13 @@ Cards show information and controls on the display. Mac controls use the paired 
 | Goal | Card |
 |---|---|
 | Launch apps, run shortcuts, open websites and folders, or arrange windows | [Companion](./companion) |
-| Adjust or mute Mac output and microphone audio | [Volume](./sliders) |
 | Open another page of cards | [Subpage](/features/subpages) |
 
 [Existing Stats cards](/mac-controls/statistics) continue to show readings from the paired Mac.
+
+## Removed Mac audio cards
+
+Saved Volume, Mic, and mute cards leave empty spaces when the display loads a layout or restores a backup.
 
 ## Saved Home Assistant cards
 

@@ -1341,6 +1341,8 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   if (p.type == "companion" && p.entity.rfind("webapp.", 0) == 0)
     p.type = "companion_webapp";
+  if (card_runtime_is_mac_audio(p.type, p.entity))
+    p.type = "companion_audio";
   if (card_runtime_type_retired(p.type)) {
     const std::string type = p.type;
     p = ParsedCfg{};
