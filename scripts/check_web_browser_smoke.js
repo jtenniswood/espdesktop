@@ -8854,7 +8854,7 @@ async function assertFirstRunSetup(browser) {
     await setChecked(dialog.getByLabel("App 0", { exact: true }), false);
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
     await setChecked(dialog.getByLabel("Notes", { exact: true }), true);
-    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
     const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
     const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     assert.equal(await dialog.getByRole("radio").count(), 2, "step two offers two exclusive modes");
@@ -8863,9 +8863,9 @@ async function assertFirstRunSetup(browser) {
     assert(await addPages.isChecked(), "clicking the choice card selects it");
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps selected apps");
-    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
     assert(await addPages.isChecked(), "Back keeps the global shortcut choice");
-    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
     await dialog.getByRole("radio", { name: "Open from the display", exact: true }).check();
     await page.setViewportSize({ width: 375, height: 650 });
     fs.mkdirSync(FAILURE_DIR, { recursive: true });
@@ -8920,9 +8920,9 @@ async function assertFirstRunSetup(browser) {
     assert.equal(JSON.stringify(fixture.document), beforeClose, "closing setup preserves the layout");
     await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
-    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
     assert(await addPages.isChecked(), "settings restores the global shortcut choice");
-    await dialog.getByRole("button", { name: "Continue", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
     const followApp = dialog.getByRole("radio", { name: "Follow the active app", exact: true });
     assert.equal(await followApp.isChecked(), false);
     await followApp.check();

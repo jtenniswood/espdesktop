@@ -358,7 +358,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
         const actions = element("div", "", "sp-btn-group-right");
         if (step > 1) actions.appendChild(button("Back", () => { --step; render(); }));
-        const next = button(busy ? "Saving…" : step === 3 ? (replacing ? "Done" : "Save setup") : "Continue", () => {
+        const next = button(busy ? "Saving…" : step === 3 ? (replacing ? "Done" : "Save setup") : "Next", () => {
             if (step === 3) void finish(); else { ++step; render(); }
         }, true);
         next.disabled = busy || loading || !connected || selected.size === 0;
