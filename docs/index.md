@@ -27,7 +27,3 @@ EspDesktop pairs one Mac with a [4-inch Guition 4848S040 touchscreen](/screens/4
 Keyboard shortcuts, window controls and Mac Lock need [Accessibility permission](/mac-controls/security).
 
 You can group controls into [subpages](/features/subpages) and show [cover art from your Mac](/features/setup#show-mac-cover-art).
-
-## Home Assistant panels
-
-Looking for lights, media players, sensors, or other Home Assistant controls? See the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).

@@ -193,8 +193,6 @@ def check_build(dist):
     unexpected_pages = set(pages) - mac_docs
     if unexpected_pages:
         errors.append(f'Non-Mac guide is still published: {sorted(unexpected_pages)}')
-    if not any(link == 'https://jtenniswood.github.io/espcontrol/' for link in pages[BASE].links):
-        errors.append('Homepage is missing the EspControl Home Assistant documentation link')
     for field in ('duplicate_titles', 'duplicate_descriptions'):
         if report[field]:
             errors.append(f'{field}: {report[field]}')

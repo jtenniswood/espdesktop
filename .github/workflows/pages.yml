@@ -435,6 +435,16 @@ jobs:
           name: firmware
           path: dist/firmware
 
+      - name: Remove retired integration metadata from public installer manifests
+        if: needs.download-firmware.outputs.has_firmware == 'true'
+        shell: bash
+        run: |
+          find dist/firmware -type f -name manifest.json -print0 |
+            while IFS= read -r -d '' manifest; do
+              jq 'del(.home_assistant_domain)' "$manifest" > "${manifest}.tmp"
+              mv "${manifest}.tmp" "$manifest"
+            done
+
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
