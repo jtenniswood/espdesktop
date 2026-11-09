@@ -43,7 +43,7 @@ test("setup respects home and subpage capacity and preserves unrelated settings"
   assert.equal(page.order[0], "B");
   assert.equal(page.buttons.length, 3, "Back reserves one of the four cards");
   assert.equal(result.subpages[2], undefined);
-  assert.throws(() => firstRunDocument(empty(), [safari, custom], false, 1, codec));
+  assert.throws(() => firstRunDocument(empty(), [safari, custom], false, 2, codec));
   assert.throws(() => firstRunDocument(empty(), [safari, safari], false, 4, codec));
   assert.throws(() => firstRunDocument(result, [safari], false, 4, codec), /already has a layout/);
 });

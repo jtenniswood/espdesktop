@@ -40,7 +40,7 @@ Open that address in a browser to reach the display's setup page. Choose **Syste
 
 On an empty display, the web page offers a three-step setup:
 
-1. Connect the Mac app, then select apps for the home screen, up to your display’s card limit.
+1. Connect the Mac app, then select up to eight apps for the home screen. Setup leaves one slot free.
 2. Choose whether to add shortcut subpages for all selected apps with built-in shortcuts. Each page reserves one card for **Back**.
 3. Choose whether shortcut pages open automatically when their app is in focus on your Mac.
 

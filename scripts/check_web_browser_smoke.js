@@ -8836,6 +8836,7 @@ async function assertFirstRunSetup(browser) {
   try {
     await open();
     const dialog = page.getByRole("dialog");
+    const appLimit = 8;
     await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert.equal(fixture.puts.length, 0, "closing setup leaves it available on reload");
@@ -8848,7 +8849,7 @@ async function assertFirstRunSetup(browser) {
     };
     await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
     // The selection cap disables remaining apps while allowing deselection.
-    for (let i = 0; i < testCase.slots - 1; i++) await setChecked(dialog.getByLabel(`App ${i}`, { exact: true }), true);
+    for (let i = 0; i < appLimit - 1; i++) await setChecked(dialog.getByLabel(`App ${i}`, { exact: true }), true);
     assert(await dialog.getByLabel("Notes", { exact: true }).isDisabled());
     await setChecked(dialog.getByLabel("App 0", { exact: true }), false);
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
@@ -8885,7 +8886,8 @@ async function assertFirstRunSetup(browser) {
     failSwitch = false;
     await dialog.getByRole("button", { name: "Save setup", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
-    assert.equal(Object.keys(fixture.document.buttons).length, testCase.slots);
+    assert.equal(Object.keys(fixture.document.buttons).length, appLimit);
+    assert.equal(fixture.document.buttons[9], undefined, "setup leaves the ninth slot free");
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
     const safariSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Safari;"));
     assert(fixture.document.buttons[safariSlot].includes("app_shortcuts"));

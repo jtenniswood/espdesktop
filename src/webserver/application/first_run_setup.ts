@@ -47,6 +47,10 @@ function layoutSignature(document: PanelConfigDocument): string {
         document.settings.button_order || "", document.settings.special_page || ""]);
 }
 
+function setupAppLimit(capacity: number): number {
+    return Math.min(8, capacity - 1);
+}
+
 /** Build one atomic layout update, rechecking the live document before saving. */
 export function firstRunDocument(
     current: PanelConfigDocument,
@@ -60,8 +64,8 @@ export function firstRunDocument(
         throw new Error("The layout changed while setup was open. Cancel and reopen setup to keep those changes.");
     }
     if (!replacing && !needsFirstRunSetup(current)) throw new Error("This display already has a layout. Reload to keep its changes.");
-    if (!Number.isInteger(capacity) || capacity < 1 || apps.length > capacity ||
-        new Set(apps.map(app => app.id)).size !== apps.length) throw new Error("Choose apps within the display’s card limit.");
+    if (!Number.isInteger(capacity) || capacity < 1 || apps.length > setupAppLimit(capacity) ||
+        new Set(apps.map(app => app.id)).size !== apps.length) throw new Error("Choose apps within the setup limit.");
     const buttons: Record<number, string> = {};
     const subpages: Record<number, string> = {};
     apps.forEach((app, index) => {
@@ -98,6 +102,7 @@ interface FirstRunSetupDependencies {
 
 export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start(): void; open(): void } {
     const { document, window } = deps;
+    const appLimit = setupAppLimit(deps.capacity);
     const catalogue = createCompanionCatalogue(deps.fetch);
     let dialog: HTMLDialogElement | null = null;
     let eligible = false;
@@ -267,7 +272,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const title = element("h1", step === 1 ? "Choose your apps" : step === 2 ? "Shortcut pages" : "Finish setup", "sp-setup-title");
         title.id = "sp-setup-title";
         const explanations = [
-            `Pick up to ${deps.capacity} apps. Each gets a card on your display’s home screen.`,
+            `Get started by picking your favourite apps to display (up to ${appLimit} apps)`,
             "Choose what you can do from your app cards.",
             shortcutPageCount > 0 ? "Choose when the display opens a shortcut page."
                 : "Review your app selection before saving it to the display.",
@@ -292,7 +297,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 search.setAttribute("data-setup-key", "search");
                 search.disabled = busy;
                 search.addEventListener("input", () => { query = search.value; render(); });
-                const count = element("p", loading ? "Loading apps…" : `${selected.size} of ${deps.capacity} selected`, "sp-setup-count");
+                const count = element("p", loading ? "Loading apps…" : `${selected.size} of ${appLimit} selected`, "sp-setup-count");
                 count.setAttribute("role", "status");
                 const searchField = element("div", "", "sp-setup-search");
                 searchField.append(deps.shell.createMdiIcon("magnify"), search);
@@ -301,10 +306,10 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 const list = element("div", "", "sp-light-tab-list sp-setup-list");
                 for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
                     const row = toggle(`sp-setup-app-${app.id}`, app.label, selected.has(app.id), enabled => {
-                        if (enabled && selected.size < deps.capacity) selected.add(app.id);
+                        if (enabled && selected.size < appLimit) selected.add(app.id);
                         else selected.delete(app.id);
                         render();
-                    }, loading || (!selected.has(app.id) && selected.size >= deps.capacity));
+                    }, loading || (!selected.has(app.id) && selected.size >= appLimit));
                     row.classList.add("sp-light-tab-row");
                     row.querySelector(".sp-toggle-label")?.classList.add("sp-light-tab-label");
                     list.appendChild(row);
@@ -397,7 +402,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 addShortcutPages = false;
                 for (const value of Object.values(saved.buttons)) {
                     const card = parseRawButtonConfig(value);
-                    if (card.type !== "companion" || !card.entity || card.sensor || selected.size >= deps.capacity) continue;
+                    if (card.type !== "companion" || !card.entity || card.sensor || selected.size >= appLimit) continue;
                     selected.add(card.entity);
                     if (configOptionEnabled(card.options, "app_shortcuts")) addShortcutPages = true;
                 }
