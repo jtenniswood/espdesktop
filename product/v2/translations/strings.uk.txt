@@ -350,3 +350,4 @@ wind_north_west=North West
 output_mute=Вимкнути звук
 microphone_mute=Вимкнути мікрофон
 mic=Мікрофон
+mute=Без звуку

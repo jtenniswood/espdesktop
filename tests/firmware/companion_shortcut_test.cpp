@@ -57,10 +57,10 @@ int main() {
   assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
 
   // Exercise the real translation tables at the device-label boundary.
-  assert(std::string(companion_volume_control_label("media.input_mute")) == "Microphone Mute");
-  assert(std::string(companion_volume_control_label("media.output_mute")) == "Output Mute");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");
+  assert(std::string(companion_volume_control_label("media.output_mute")) == "Mute");
   set_espdesktop_language("de");
-  assert(std::string(companion_volume_control_label("media.input_mute")) == "Mikrofon stummschalten");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Stumm");
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("window.minimize") == "Minimieren");

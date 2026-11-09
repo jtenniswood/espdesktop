@@ -151,7 +151,7 @@ test("Webhook editors preserve colour when reopening and editing or clearing hea
 
 
 test("Volume controls offer microphone and output mute as tap cards and preserve custom labels", () => {
-  for (const [mode, id, label, icon] of [
+  for (const [mode, id, previousLabel, icon] of [
     ["mac_input_mute", "media.input_mute", "Microphone Mute", "Microphone"],
     ["mac_output_mute", "media.output_mute", "Output Mute", "Volume High"],
   ]) {
@@ -163,10 +163,12 @@ test("Volume controls offer microphone and output mute as tap cards and preserve
       assert(e.modes[0].options.some(option => option[0] === mode));
       e.modes[0].onChange.call({ value: mode });
       assert.equal(button.entity, id);
-      assert.equal(button.label, custom || label);
+      assert.equal(button.label, custom || "Mute");
       assert.equal(button.icon, icon);
       const preview = definition.renderPreview(button, e.helpers);
       assert(!JSON.stringify(preview).includes("sp-slider-track"));
+      assert.equal(preview.labelHtml, custom || "Mute");
+      assert.equal(definition.renderPreview({ ...button, label: previousLabel }, e.helpers).labelHtml, "Mute");
       definition.renderSettings(element(), button, 1, e.helpers);
       assert.equal(e.modes.at(-1).value(), mode);
     }

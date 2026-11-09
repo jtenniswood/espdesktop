@@ -160,11 +160,11 @@ inline void numeric_selectable_driver_bind_slider(
     BtnSlot &slot, const ParsedCfg &config) {
   if (config.entity.empty()) return;
   if (companion_mute_control_valid(config.entity)) {
-    if (slot.text_lbl && (config.label.empty() ||
-        (config.entity == "media.input_mute" && config.label == "Microphone Mute") ||
-        (config.entity == "media.output_mute" && config.label == "Output Mute")))
-      lv_label_set_display_text(slot.text_lbl, companion_volume_control_label(config.entity));
     const bool microphone = config.entity == "media.input_mute";
+    const char *previous_default_label = microphone ? "Microphone Mute" : "Output Mute";
+    if (slot.text_lbl && (config.label.empty() || config.label == "Mute" ||
+                         config.label == previous_default_label))
+      lv_label_set_display_text(slot.text_lbl, companion_volume_control_label(config.entity));
     const char *muted_icon_name = microphone ? "Microphone Off" : "Volume Off";
     // Older cards saved the muted glyph as their default icon.
     const bool default_icon = config.icon.empty() || config.icon == "Auto" ||

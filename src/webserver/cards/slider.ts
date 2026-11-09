@@ -37,8 +37,7 @@ export function companionSliderMode(card: any): string {
 function companionSliderDefaultLabel(mode: string): string {
     if (mode === "mac_output") return "Volume";
     if (mode === "mac_input") return "Mic";
-    if (mode === "mac_output_mute") return "Output Mute";
-    if (mode === "mac_input_mute") return "Microphone Mute";
+    if (mode === "mac_output_mute" || mode === "mac_input_mute") return "Mute";
     return "";
 }
 
@@ -195,7 +194,7 @@ export function registerSliderCardTypes(
                                 var previousMode: any = companionSliderMode(b);
                                 b.icon = companionSliderIcon(b.icon, previousMode, sliderMode);
                                 b.icon_on = companionSliderIcon(b.icon_on, previousMode, sliderMode);
-                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Output Mute", "Microphone Mute"];
+                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Mute", "Output Mute", "Microphone Mute"];
                                 const identifiers: Record<string, string> = {
                                     mac_output: COMPANION_OUTPUT_VOLUME_ID,
                                     mac_input: COMPANION_INPUT_VOLUME_ID,
@@ -477,7 +476,9 @@ export function registerSliderCardTypes(
                 var defaultIcon: any = sliderMode !== "home_assistant"
                     ? iconSlug(companionSliderDefaultIcon(sliderMode)) : opts.fallbackIcon;
                 var oldDefaultLabel = (sliderMode === "mac_output" && b.label === "Output Volume") ||
-                    (sliderMode === "mac_input" && (b.label === "Input Volume" || b.label === "Input volume"));
+                    (sliderMode === "mac_input" && (b.label === "Input Volume" || b.label === "Input volume")) ||
+                    (sliderMode === "mac_output_mute" && b.label === "Output Mute") ||
+                    (sliderMode === "mac_input_mute" && b.label === "Microphone Mute");
                 var label: any = oldDefaultLabel ? defaultLabel : b.label || defaultLabel;
                 var iconName: any = sliderMode !== "home_assistant"
                     ? iconSlug(companionSliderNormalIcon(b.icon, sliderMode))

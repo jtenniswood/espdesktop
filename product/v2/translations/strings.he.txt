@@ -351,3 +351,4 @@ wind_north_west=North West
 output_mute=השתקת פלט
 microphone_mute=השתקת מיקרופון
 mic=מיקרופון
+mute=השתקה

@@ -350,3 +350,4 @@ wind_north_west=North West
 output_mute=Ztlumit výstup
 microphone_mute=Ztlumit mikrofon
 mic=Mikrofon
+mute=Ztlumit

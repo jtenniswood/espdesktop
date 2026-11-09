@@ -354,8 +354,7 @@ inline bool companion_volume_control_valid(const std::string &control_id) {
 inline const char *companion_volume_control_label(const std::string &control_id) {
   if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
   if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
-  if (control_id == "media.output_mute") return espdesktop_i18n("Output Mute");
-  if (control_id == "media.input_mute") return espdesktop_i18n("Microphone Mute");
+  if (companion_mute_control_valid(control_id)) return espdesktop_i18n("Mute");
   return espdesktop_i18n("Volume");
 }
 

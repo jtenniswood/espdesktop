@@ -316,6 +316,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Ztlumit výstup";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Ztlumit mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Ztlumit";
   return text;
 }
 
@@ -611,6 +612,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Slå lyd fra";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Slå mikrofon fra";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Slå lyd fra";
   return text;
 }
 
@@ -910,6 +912,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Ausgabe stummschalten";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon stummschalten";
   if (std::strcmp(text, "Mic") == 0) return "Mikro";
+  if (std::strcmp(text, "Mute") == 0) return "Stumm";
   return text;
 }
 
@@ -1220,6 +1223,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar salida";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar micrófono";
   if (std::strcmp(text, "Mic") == 0) return "Micrófono";
+  if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   return text;
 }
 
@@ -1533,6 +1537,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Mykistä ääni";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mykistä mikrofoni";
   if (std::strcmp(text, "Mic") == 0) return "Mikki";
+  if (std::strcmp(text, "Mute") == 0) return "Mykistä";
   return text;
 }
 
@@ -1837,6 +1842,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Couper le son";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Couper le microphone";
   if (std::strcmp(text, "Mic") == 0) return "Micro";
+  if (std::strcmp(text, "Mute") == 0) return "Muet";
   return text;
 }
 
@@ -2157,6 +2163,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "השתקת פלט";
   if (std::strcmp(text, "Microphone Mute") == 0) return "השתקת מיקרופון";
   if (std::strcmp(text, "Mic") == 0) return "מיקרופון";
+  if (std::strcmp(text, "Mute") == 0) return "השתקה";
   return text;
 }
 
@@ -2469,6 +2476,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Kimenet némítása";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon némítása";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Némítás";
   return text;
 }
 
@@ -2778,6 +2786,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Disattiva audio";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Disattiva microfono";
   if (std::strcmp(text, "Mic") == 0) return "Microfono";
+  if (std::strcmp(text, "Mute") == 0) return "Muto";
   return text;
 }
 
@@ -3079,6 +3088,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Demp lyd";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Demp mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Demp";
   return text;
 }
 
@@ -3380,6 +3390,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Uitvoer dempen";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Microfoon dempen";
   if (std::strcmp(text, "Mic") == 0) return "Microfoon";
+  if (std::strcmp(text, "Mute") == 0) return "Dempen";
   return text;
 }
 
@@ -3681,6 +3692,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Wycisz wyjście";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Wycisz mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Wycisz";
   return text;
 }
 
@@ -3983,6 +3995,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
+  if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   return text;
 }
 
@@ -4292,6 +4305,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
+  if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   return text;
 }
 
@@ -4604,6 +4618,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Dezactivează sunetul";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Dezactivează microfonul";
   if (std::strcmp(text, "Mic") == 0) return "Microfon";
+  if (std::strcmp(text, "Mute") == 0) return "Mut";
   return text;
 }
 
@@ -4923,6 +4938,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Выключить звук";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Выключить микрофон";
   if (std::strcmp(text, "Mic") == 0) return "Микрофон";
+  if (std::strcmp(text, "Mute") == 0) return "Без звука";
   return text;
 }
 
@@ -5228,6 +5244,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Stlmiť výstup";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Stlmiť mikrofón";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofón";
+  if (std::strcmp(text, "Mute") == 0) return "Stlmiť";
   return text;
 }
 
@@ -5537,6 +5554,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Utišaj zvok";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Utišaj mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Utišaj";
   return text;
 }
 
@@ -5836,6 +5854,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Stäng av ljud";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Stäng av mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Tysta";
   return text;
 }
 
@@ -6149,6 +6168,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Çıkışı sessize al";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofonu sessize al";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Sessiz";
   return text;
 }
 
@@ -6463,6 +6483,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Output Mute") == 0) return "Вимкнути звук";
   if (std::strcmp(text, "Microphone Mute") == 0) return "Вимкнути мікрофон";
   if (std::strcmp(text, "Mic") == 0) return "Мікрофон";
+  if (std::strcmp(text, "Mute") == 0) return "Без звуку";
   return text;
 }
 
@@ -6812,6 +6833,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Output Mute";
   if (std::strcmp(key, "microphone_mute") == 0) return "Microphone Mute";
   if (std::strcmp(key, "mic") == 0) return "Mic";
+  if (std::strcmp(key, "mute") == 0) return "Mute";
   return key;
 }
 
@@ -7126,6 +7148,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Ztlumit výstup";
   if (std::strcmp(key, "microphone_mute") == 0) return "Ztlumit mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Ztlumit";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7429,6 +7452,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Slå lyd fra";
   if (std::strcmp(key, "microphone_mute") == 0) return "Slå mikrofon fra";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Slå lyd fra";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7736,6 +7760,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Ausgabe stummschalten";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon stummschalten";
   if (std::strcmp(key, "mic") == 0) return "Mikro";
+  if (std::strcmp(key, "mute") == 0) return "Stumm";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8055,6 +8080,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar salida";
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar micrófono";
   if (std::strcmp(key, "mic") == 0) return "Micrófono";
+  if (std::strcmp(key, "mute") == 0) return "Silenciar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8378,6 +8404,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Mykistä ääni";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mykistä mikrofoni";
   if (std::strcmp(key, "mic") == 0) return "Mikki";
+  if (std::strcmp(key, "mute") == 0) return "Mykistä";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8691,6 +8718,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Couper le son";
   if (std::strcmp(key, "microphone_mute") == 0) return "Couper le microphone";
   if (std::strcmp(key, "mic") == 0) return "Micro";
+  if (std::strcmp(key, "mute") == 0) return "Muet";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9021,6 +9049,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "השתקת פלט";
   if (std::strcmp(key, "microphone_mute") == 0) return "השתקת מיקרופון";
   if (std::strcmp(key, "mic") == 0) return "מיקרופון";
+  if (std::strcmp(key, "mute") == 0) return "השתקה";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9343,6 +9372,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Kimenet némítása";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon némítása";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Némítás";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9661,6 +9691,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Disattiva audio";
   if (std::strcmp(key, "microphone_mute") == 0) return "Disattiva microfono";
   if (std::strcmp(key, "mic") == 0) return "Microfono";
+  if (std::strcmp(key, "mute") == 0) return "Muto";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9971,6 +10002,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Demp lyd";
   if (std::strcmp(key, "microphone_mute") == 0) return "Demp mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Demp";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10278,6 +10310,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Uitvoer dempen";
   if (std::strcmp(key, "microphone_mute") == 0) return "Microfoon dempen";
   if (std::strcmp(key, "mic") == 0) return "Microfoon";
+  if (std::strcmp(key, "mute") == 0) return "Dempen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10589,6 +10622,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Wycisz wyjście";
   if (std::strcmp(key, "microphone_mute") == 0) return "Wycisz mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Wycisz";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10900,6 +10934,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
   if (std::strcmp(key, "mic") == 0) return "Microfone";
+  if (std::strcmp(key, "mute") == 0) return "Silenciar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11218,6 +11253,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
   if (std::strcmp(key, "mic") == 0) return "Microfone";
+  if (std::strcmp(key, "mute") == 0) return "Silenciar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11540,6 +11576,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Dezactivează sunetul";
   if (std::strcmp(key, "microphone_mute") == 0) return "Dezactivează microfonul";
   if (std::strcmp(key, "mic") == 0) return "Microfon";
+  if (std::strcmp(key, "mute") == 0) return "Mut";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11869,6 +11906,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Выключить звук";
   if (std::strcmp(key, "microphone_mute") == 0) return "Выключить микрофон";
   if (std::strcmp(key, "mic") == 0) return "Микрофон";
+  if (std::strcmp(key, "mute") == 0) return "Без звука";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12184,6 +12222,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Stlmiť výstup";
   if (std::strcmp(key, "microphone_mute") == 0) return "Stlmiť mikrofón";
   if (std::strcmp(key, "mic") == 0) return "Mikrofón";
+  if (std::strcmp(key, "mute") == 0) return "Stlmiť";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12503,6 +12542,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Utišaj zvok";
   if (std::strcmp(key, "microphone_mute") == 0) return "Utišaj mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Utišaj";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12810,6 +12850,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Stäng av ljud";
   if (std::strcmp(key, "microphone_mute") == 0) return "Stäng av mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Tysta";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13133,6 +13174,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Çıkışı sessize al";
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofonu sessize al";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Sessiz";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13457,6 +13499,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "output_mute") == 0) return "Вимкнути звук";
   if (std::strcmp(key, "microphone_mute") == 0) return "Вимкнути мікрофон";
   if (std::strcmp(key, "mic") == 0) return "Мікрофон";
+  if (std::strcmp(key, "mute") == 0) return "Без звуку";
   return espdesktop_i18n_key_en(key);
 }
 
