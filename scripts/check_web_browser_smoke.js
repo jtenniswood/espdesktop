@@ -416,7 +416,7 @@ async function installRoutes(context, slug, options = {}) {
           document: JSON.parse(JSON.stringify(nativeState.document)),
         });
         await route.fulfill({
-          status: 204,
+          status: nativeState.writeStatus ?? 204,
           headers: { ETag: `"${nativeState.generation}"`, "X-Panel-Config-Version": options.nativeV2 ? "2" : "1" },
         });
         return;
@@ -8912,9 +8912,13 @@ async function assertFirstRunSetup(browser) {
     assert.deepEqual(switches.slice(-2), ["turn_on", "turn_off"], "failed replacement restores the previous switching setting");
     assert.equal(JSON.stringify(fixture.document), beforeFailure, "failed replacement keeps the saved layout");
     failLayout = false;
+    fixture.writeStatus = 202;
     await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
-    assert(fixture.puts.length >= 2, "explicit replacement saves through the same wizard");
+    assert(fixture.puts.length >= 2, "the committed replacement finishes setup");
+    assert.equal(switches.at(-1), "turn_on", "a committed replacement keeps the chosen switching setting");
+    await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
+    fixture.writeStatus = 204;
     // Pairing links remain usable before connecting; connection offers setup.
     fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
     status.mac_companion.connected = false;

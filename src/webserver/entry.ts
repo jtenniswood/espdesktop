@@ -941,11 +941,13 @@ function composeApplicationContext(): ApplicationContext {
       await requestApi.postQueueIdle();
       return !requestApi.postQueueHadError();
     },
-    onSaved: () => {
+    onSaved: (mirrorFailed) => {
       shell.switchTab("screen");
-      // Load the saved cards through the normal state loader before editing.
-      appEvents.connect();
-      shell.showBanner("Setup saved. Choose Apply Configuration to show your new cards on the display.", "success");
+      nativePages.invalidate();
+      void nativePages.refresh();
+      if (!mirrorFailed) {
+        shell.showBanner("Setup saved. Choose Apply Configuration to show your new cards on the display.", "success");
+      }
     },
   });
   app = createAppFeature(

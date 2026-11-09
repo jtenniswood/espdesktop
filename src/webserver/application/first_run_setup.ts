@@ -90,7 +90,7 @@ interface FirstRunSetupDependencies {
     connectors: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">;
     shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner">;
     saveAutoSwitch: (enabled: boolean) => Promise<boolean>;
-    onSaved: () => void;
+    onSaved: (mirrorFailed: boolean) => void;
     autoSwitchEnabled: () => boolean;
 }
 
@@ -198,14 +198,14 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             const chosen = skip ? [] : selectedApps();
             const result = await deps.native.schedule(current =>
                 firstRunDocument(current, chosen, shortcuts, deps.capacity, deps.codec, replacing));
-            if (result !== "saved") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
+            if (result !== "saved" && result !== "mirror-failed") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
             layoutSaved = true;
             eligible = false;
             close();
             if (skip) {
                 deps.shell.switchTab("screen");
             } else {
-                deps.onSaved();
+                deps.onSaved(result === "mirror-failed");
             }
         } catch (failure) {
             error = failure instanceof Error ? failure.message : "Could not save setup. Please try again.";
