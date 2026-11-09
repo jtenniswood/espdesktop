@@ -38,8 +38,6 @@ function editor() {
   loadTypescriptTest("src/webserver/cards/switch.ts").registerSwitchCardTypes(registry, confirmation, lightCards, fields);
   loadTypescriptTest("src/webserver/cards/slider.ts").registerSliderCardTypes(
     registry, tabs, lightCards, fields, { inlineDisclosure: () => element() }, true, ui);
-  loadTypescriptTest("src/webserver/cards/action.ts").registerActionCardTypes(
-    registry, confirmation, { refreshEntityDatalist() {} }, fields, ui, () => true);
   const saved = {}, inputs = {}, modes = [];
   function field(value = "") { return { field: element(), input: element(value), select: element(value) }; }
   const helpers = {
@@ -70,36 +68,28 @@ test("reopening robot, fan and cover editors keeps the chosen colour", () => {
       const button = { type, sensor, entity: "test.entity", icon: "Auto", icon_on: "Auto", options: "old_mode,card_off_color=00BCD4" };
       for (let reopen = 0; reopen < 2; reopen++) {
         e.registry.definitions[type].renderSettings(element(), button, 1, e.helpers);
-        assert.equal(button.options, "card_off_color=00BCD4", `${type}/${sensor}`);
+        assert.equal(button.options, "old_mode,card_off_color=00BCD4", `${type}/${sensor}`);
       }
     }
   } finally { global.document = previousDocument; }
 });
 
-test("robot and fan mode changes retain the colour in saved options", () => {
-  for (const [type, from, to] of [["vacuum", "start_stop", "dock"], ["lawn_mower", "start_mowing", "dock"], ["fan_speed", "", "fan_switch"]]) {
-    const e = editor();
-    const button = { type, sensor: from, options: "card_off_color=6633B9", icon: "Auto", icon_on: "Auto" };
-    e.registry.definitions[type].renderSettings(element(), button, 1, e.helpers);
-    e.modes[0].onChange.call({ value: to });
-    assert.equal(button.options, "card_off_color=6633B9", type);
-    assert.equal(e.saved.options, button.options, type);
-  }
+test("retired robot and fan editors keep their saved mode and colour", () => {
+  const previous=global.document;
+  try {
+    for (const type of ["vacuum", "lawn_mower", "fan_speed"]) {
+      const e=editor(); global.document=e.document;
+      const button={type, sensor:"legacy", options:"card_off_color=6633B9"};
+      const before=JSON.stringify(button);
+      e.registry.definitions[type].renderSettings(element(),button,1,e.helpers);
+      assert.equal(JSON.stringify(button),before);
+      assert.equal(e.modes.length,0);
+    }
+  } finally {global.document=previous;}
 });
 
-test("Action mode changes keep the colour while clearing obsolete mode options", () => {
-  for (const target of ["input_select.select_option", "local"]) {
-    const e = editor();
-    const button = { type: "action", sensor: "scene.turn_on", entity: "scene.movie", icon: "Flash", options: "state_entity=sensor.old,card_off_color=00BCD4" };
-    e.registry.definitions.action.renderSettingsBeforeLabel(element(), button, 1, e.helpers);
-    e.modes[0].onChange.call({ value: target });
-    assert.equal(button.sensor, target);
-    assert.equal(button.options, "card_off_color=00BCD4", target);
-    assert.equal(e.saved.options, button.options, target);
-    e.registry.definitions.action.renderSettingsBeforeLabel(element(), button, 1, e.helpers);
-    assert.equal(button.options, "card_off_color=00BCD4", target + " reopened");
-  }
-});
+
+
 
 test("Light mode initializers retain the colour across every supported mode", () => {
   const types = ["light_control", "light_switch", "light_brightness", "light_temperature"];

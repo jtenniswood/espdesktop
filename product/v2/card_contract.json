@@ -43,7 +43,6 @@
   "runtime": {
     "drivers": [
       "toggle",
-      "action",
       "vacuum",
       "lawn_mower",
       "alarm",
@@ -73,7 +72,6 @@
       "media_now_playing",
       "media_cover_art",
       "media_playlist",
-      "option_select",
       "push",
       "companion",
       "subpage",
@@ -112,18 +110,6 @@
           "numericControl": false,
           "modal": false,
           "runtimeAllocation": false,
-          "subpage": true
-        }
-      },
-      "action": {
-        "driver": "action",
-        "capabilities": {
-          "informationOnly": false,
-          "subscriptions": true,
-          "actions": true,
-          "numericControl": false,
-          "modal": false,
-          "runtimeAllocation": true,
           "subpage": true
         }
       },
@@ -453,18 +439,6 @@
           "playlist": "media_playlist"
         }
       },
-      "option_select": {
-        "driver": "option_select",
-        "capabilities": {
-          "informationOnly": false,
-          "subscriptions": true,
-          "actions": true,
-          "numericControl": false,
-          "modal": false,
-          "runtimeAllocation": true,
-          "subpage": true
-        }
-      },
       "push": {
         "driver": "push",
         "capabilities": {
@@ -570,6 +544,7 @@
   ],
   "cards": {
     "timer": {
+      "hidden": true,
       "label": "Timer",
       "allowInSubpage": true,
       "domains": [
@@ -589,6 +564,7 @@
       }
     },
     "": {
+      "hidden": true,
       "label": "Switch",
       "allowInSubpage": true,
       "domains": [
@@ -717,248 +693,8 @@
         "options": ""
       }
     },
-    "action": {
-      "label": "Action",
-      "allowInSubpage": true,
-      "domains": [
-        "scene",
-        "script",
-        "automation",
-        "button",
-        "input_button",
-        "input_boolean",
-        "number",
-        "input_number",
-        "input_select",
-        "select"
-      ],
-      "options": [
-        {
-          "name": "large_numbers",
-          "label": "Large State Numbers",
-          "kind": "flag",
-          "omitDefault": true,
-          "applicabilityHook": "action_large_numbers_supported"
-        },
-        {
-          "name": "state_entity",
-          "label": "State Entity",
-          "kind": "text",
-          "hidden": true,
-          "docsHidden": true,
-          "omitDefault": true
-        },
-        {
-          "name": "state_unit",
-          "label": "State Unit",
-          "kind": "text",
-          "hidden": true,
-          "docsHidden": true,
-          "omitDefault": true,
-          "applicability": [
-            {
-              "source": "option",
-              "name": "state_entity",
-              "operator": "present"
-            },
-            {
-              "source": "option",
-              "name": "state_precision",
-              "operator": "in",
-              "value": [
-                "icon",
-                "text"
-              ],
-              "negate": true
-            }
-          ]
-        },
-        {
-          "name": "state_precision",
-          "label": "State Precision",
-          "kind": "choice",
-          "values": [
-            "",
-            "0",
-            "1",
-            "2",
-            "icon",
-            "text"
-          ],
-          "defaultValue": "",
-          "hidden": true,
-          "docsHidden": true,
-          "omitDefault": true,
-          "applicability": [
-            {
-              "source": "option",
-              "name": "state_entity",
-              "operator": "present"
-            }
-          ]
-        },
-        {
-          "name": "confirmation_required",
-          "label": "Confirmation Required",
-          "kind": "flag",
-          "storage": [
-            "confirm_on"
-          ],
-          "omitDefault": true,
-          "applicability": [
-            {
-              "source": "field",
-              "name": "sensor",
-              "operator": "equals",
-              "value": "script.turn_on"
-            }
-          ]
-        },
-        {
-          "name": "script_fields",
-          "label": "Fields",
-          "kind": "text",
-          "omitDefault": true,
-          "applicability": [
-            {
-              "source": "field",
-              "name": "sensor",
-              "operator": "equals",
-              "value": "script.turn_on"
-            }
-          ]
-        },
-        {
-          "name": "confirm_message",
-          "label": "Message",
-          "kind": "text",
-          "defaultValue": "Run this script?",
-          "omitDefault": true,
-          "applicability": [
-            {
-              "source": "field",
-              "name": "sensor",
-              "operator": "equals",
-              "value": "script.turn_on"
-            },
-            {
-              "source": "option",
-              "name": "confirm_on",
-              "operator": "present"
-            }
-          ]
-        },
-        {
-          "name": "confirm_yes",
-          "label": "Confirm Button",
-          "kind": "text",
-          "defaultValue": "Yes",
-          "omitDefault": true,
-          "applicability": [
-            {
-              "source": "field",
-              "name": "sensor",
-              "operator": "equals",
-              "value": "script.turn_on"
-            },
-            {
-              "source": "option",
-              "name": "confirm_on",
-              "operator": "present"
-            }
-          ]
-        },
-        {
-          "name": "confirm_no",
-          "label": "Cancel Button",
-          "kind": "text",
-          "defaultValue": "No",
-          "omitDefault": true,
-          "applicability": [
-            {
-              "source": "field",
-              "name": "sensor",
-              "operator": "equals",
-              "value": "script.turn_on"
-            },
-            {
-              "source": "option",
-              "name": "confirm_on",
-              "operator": "present"
-            }
-          ]
-        }
-      ],
-      "normalization": {
-        "fields": {
-          "entity": {
-            "policy": "keep"
-          },
-          "label": {
-            "policy": "keep"
-          },
-          "icon": {
-            "policy": "hook",
-            "hook": "normalize_action_fields"
-          },
-          "icon_on": {
-            "policy": "hook",
-            "hook": "normalize_action_fields"
-          },
-          "sensor": {
-            "policy": "hook",
-            "hook": "normalize_action_fields"
-          },
-          "unit": {
-            "policy": "hook",
-            "hook": "normalize_action_fields"
-          },
-          "type": {
-            "policy": "hook",
-            "hook": "normalize_action_fields"
-          },
-          "precision": {
-            "policy": "hook",
-            "hook": "normalize_action_fields"
-          },
-          "options": {
-            "policy": "hook",
-            "hook": "normalize_action_options"
-          }
-        },
-        "unknownOptions": "drop",
-        "canonicalOptionOrder": [
-          "state_entity",
-          "state_unit",
-          "state_precision",
-          "large_numbers",
-          "script_fields",
-          "confirm_on",
-          "confirm_message",
-          "confirm_yes",
-          "confirm_no"
-        ],
-        "optionHook": "normalize_action_options",
-        "migrationActions": [
-          "legacy_local_action",
-          "legacy_option_select",
-          "legacy_vacuum_start",
-          "legacy_vacuum_dock"
-        ]
-      },
-      "default": {
-        "entity": "",
-        "label": "",
-        "icon": "Flash",
-        "icon_on": "Auto",
-        "sensor": "scene.turn_on",
-        "unit": "",
-        "type": "action",
-        "precision": "",
-        "options": ""
-      }
-    },
     "vacuum": {
+      "hidden": true,
       "label": "Vacuum",
       "allowInSubpage": true,
       "domains": [
@@ -1067,6 +803,7 @@
       }
     },
     "lawn_mower": {
+      "hidden": true,
       "label": "Lawn Mower",
       "allowInSubpage": true,
       "domains": [
@@ -1138,6 +875,7 @@
       }
     },
     "alarm": {
+      "hidden": true,
       "label": "Alarm",
       "allowInSubpage": true,
       "domains": [
@@ -1316,6 +1054,7 @@
       }
     },
     "alarm_action": {
+      "hidden": true,
       "label": "Alarm",
       "allowInSubpage": true,
       "pickerKey": "alarm",
@@ -1543,6 +1282,7 @@
       }
     },
     "climate": {
+      "hidden": true,
       "label": "Climate",
       "allowInSubpage": true,
       "domains": [
@@ -1795,6 +1535,7 @@
       }
     },
     "cover": {
+      "hidden": true,
       "label": "Cover",
       "allowInSubpage": true,
       "domains": [
@@ -1907,6 +1648,7 @@
       }
     },
     "door_window": {
+      "hidden": true,
       "label": "Doors & Windows",
       "allowInSubpage": true,
       "domains": [
@@ -1975,6 +1717,7 @@
       }
     },
     "presence": {
+      "hidden": true,
       "label": "Presence",
       "allowInSubpage": true,
       "domains": [
@@ -2043,6 +1786,7 @@
       }
     },
     "fan_direction": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2098,6 +1842,7 @@
       }
     },
     "fan_oscillate": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2153,6 +1898,7 @@
       }
     },
     "fan_preset": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2208,6 +1954,7 @@
       }
     },
     "fan_speed": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "domains": [
@@ -2262,6 +2009,7 @@
       }
     },
     "fan_control": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2345,6 +2093,7 @@
       }
     },
     "fan_switch": {
+      "hidden": true,
       "label": "Fans",
       "allowInSubpage": true,
       "pickerKey": "fan_speed",
@@ -2400,6 +2149,7 @@
       }
     },
     "garage": {
+      "hidden": true,
       "label": "Garage Door",
       "allowInSubpage": true,
       "domains": [
@@ -2532,6 +2282,7 @@
       }
     },
     "gate": {
+      "hidden": true,
       "label": "Gate",
       "allowInSubpage": true,
       "domains": [
@@ -2617,6 +2368,7 @@
       }
     },
     "light_brightness": {
+      "hidden": true,
       "label": "Lights",
       "allowInSubpage": true,
       "domains": [
@@ -2669,6 +2421,7 @@
       }
     },
     "light_switch": {
+      "hidden": true,
       "label": "Lights",
       "allowInSubpage": true,
       "pickerKey": "light_brightness",
@@ -2722,6 +2475,7 @@
       }
     },
     "light_temperature": {
+      "hidden": true,
       "label": "Lights",
       "allowInSubpage": true,
       "pickerKey": "light_brightness",
@@ -2860,6 +2614,7 @@
       }
     },
     "lock": {
+      "hidden": true,
       "label": "Lock",
       "allowInSubpage": true,
       "domains": [
@@ -2968,7 +2723,9 @@
           "omitDefault": false,
           "aliases": {
             "controls": "play_pause"
-          }
+          },
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "media_display",
@@ -2991,7 +2748,9 @@
                 "position"
               ]
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "media_now_playing_controls",
@@ -3012,7 +2771,9 @@
               "operator": "equals",
               "value": "now_playing"
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "cover_art_details",
@@ -3026,7 +2787,9 @@
               "operator": "equals",
               "value": "cover_art"
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "cover_art_secondary_entity",
@@ -3040,7 +2803,9 @@
               "operator": "equals",
               "value": "cover_art"
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "volume_max",
@@ -3063,7 +2828,9 @@
                 "volume"
               ]
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "speaker_group_entity",
@@ -3081,7 +2848,9 @@
                 "speaker_group"
               ]
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "power_entity",
@@ -3098,7 +2867,9 @@
                 "cover_art"
               ]
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "media_tabs",
@@ -3123,7 +2894,9 @@
                 "cover_art"
               ]
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "label_display",
@@ -3142,7 +2915,9 @@
               "operator": "equals",
               "value": "control_modal"
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "number_display",
@@ -3161,7 +2936,9 @@
               "operator": "equals",
               "value": "control_modal"
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "playlist_content_id",
@@ -3175,7 +2952,9 @@
               "operator": "equals",
               "value": "playlist"
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "playlist_content_type",
@@ -3206,7 +2985,9 @@
               "operator": "equals",
               "value": "playlist"
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "large_numbers",
@@ -3223,7 +3004,9 @@
                 "position"
               ]
             }
-          ]
+          ],
+          "hidden": true,
+          "docsHidden": true
         }
       ],
       "normalization": {
@@ -3306,29 +3089,11 @@
         "type": "media",
         "precision": "",
         "options": ""
-      }
-    },
-    "option_select": {
-      "label": "Option Select",
-      "allowInSubpage": true,
-      "hidden": true,
-      "domains": [
-        "select",
-        "input_select"
-      ],
-      "default": {
-        "entity": "",
-        "label": "",
-        "icon": "Flash",
-        "icon_on": "Auto",
-        "sensor": "input_select.select_option",
-        "unit": "",
-        "type": "action",
-        "precision": "",
-        "options": ""
-      }
+      },
+      "hidden": true
     },
     "push": {
+      "hidden": true,
       "label": "Trigger",
       "allowInSubpage": true,
       "domains": [],
@@ -3785,6 +3550,7 @@
       }
     },
     "weather": {
+      "hidden": true,
       "label": "Weather",
       "allowInSubpage": true,
       "domains": [
@@ -3918,6 +3684,7 @@
     "image": {
       "label": "Camera Card",
       "allowInSubpage": true,
+      "hidden": true,
       "domains": [
         "camera",
         "image"
@@ -3927,13 +3694,17 @@
           "name": "image_label",
           "label": "Show Label",
           "kind": "flag",
-          "omitDefault": true
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "image_icon",
           "label": "Show Icon",
           "kind": "flag",
-          "omitDefault": true
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "image_modal_mode",
@@ -3944,7 +3715,9 @@
             "fit"
           ],
           "defaultValue": "fill",
-          "omitDefault": true
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "image_modal_refresh_mode",
@@ -3956,7 +3729,9 @@
             "activity"
           ],
           "defaultValue": "off",
-          "omitDefault": true
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "image_modal_refresh_interval",
@@ -3968,13 +3743,17 @@
             "30"
           ],
           "defaultValue": "10",
-          "omitDefault": true
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "image_modal_refresh_trigger",
           "label": "Trigger entity",
           "kind": "text",
-          "omitDefault": true
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
         }
       ],
       "normalization": {
@@ -4056,43 +3835,19 @@
     }
   },
   "migrationActions": {
-    "legacy_local_action": {
+    "legacy_weather_forecast": {
       "when": [
         {
           "source": "field",
           "name": "type",
           "operator": "equals",
-          "value": "local"
+          "value": "weather_forecast"
         }
       ],
       "set": {
-        "type": "action",
-        "sensor": "local",
-        "unit": "",
-        "precision": "",
-        "options": "",
-        "icon_on": "Auto"
-      },
-      "hook": "normalize_action_fields"
-    },
-    "legacy_option_select": {
-      "when": [
-        {
-          "source": "field",
-          "name": "type",
-          "operator": "equals",
-          "value": "option_select"
-        }
-      ],
-      "set": {
-        "type": "action",
-        "sensor": "input_select.select_option",
-        "unit": "",
-        "precision": "",
-        "options": "",
-        "icon_on": "Auto"
-      },
-      "hook": "normalize_action_fields"
+        "type": "weather",
+        "precision": "tomorrow"
+      }
     },
     "legacy_vacuum_start": {
       "when": [
@@ -4143,27 +3898,9 @@
         "icon_on": "Auto"
       },
       "hook": "normalize_vacuum_fields"
-    },
-    "legacy_weather_forecast": {
-      "when": [
-        {
-          "source": "field",
-          "name": "type",
-          "operator": "equals",
-          "value": "weather_forecast"
-        }
-      ],
-      "set": {
-        "type": "weather",
-        "precision": "tomorrow"
-      }
     }
   },
   "migrationAliases": {
-    "option_select": {
-      "type": "action",
-      "sensor": "input_select.select_option"
-    },
     "weather_forecast": {
       "type": "weather",
       "precision": "tomorrow"
@@ -4206,7 +3943,6 @@
   },
   "largeNumbers": {
     "": true,
-    "action": true,
     "calendar": true,
     "clock": true,
     "climate": true,
@@ -4221,11 +3957,12 @@
     "I",
     "SL",
     "SS",
+    "A",
+    "U",
     "WH"
   ],
   "subpageTypeCodes": {
     "timer": "TM",
-    "action": "A",
     "calendar": "D",
     "clock": "CK",
     "timezone": "T",
@@ -4233,7 +3970,6 @@
     "presence": "PR",
     "weather": "W",
     "weather_forecast": "F",
-    "option_select": "U",
     "fan_switch": "B",
     "fan_speed": "J",
     "fan_control": "FC",
@@ -4269,6 +4005,9 @@
     "wifi_qr_card",
     "screen_lock",
     "screensaver",
+    "action",
+    "local",
+    "option_select",
     "webhook"
   ]
 }

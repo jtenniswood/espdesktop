@@ -1,5 +1,4 @@
 import { cloneCardConfig, parseRawButtonConfig } from "../../src/webserver/model";
-import { migrateSavedConfigActionLegacy } from "../../src/webserver/generated/saved_config_action";
 import { migrateSavedConfigVacuumLegacy } from "../../src/webserver/generated/saved_config_vacuum";
 import { migrateSavedConfigWeatherLegacy } from "../../src/webserver/generated/saved_config_weather";
 
@@ -30,18 +29,6 @@ export function runMigrationTests(fixtures: LegacyFixtures): void {
     for (const field of migration.fields) {
       equal(config[field], migration.fixture.expected[field], `${migration.name} ${field}`);
     }
-  }
-
-  const actionCases = [
-    { type: "local", expectedType: "action", expectedSensor: "local" },
-    { type: "option_select", expectedType: "action", expectedSensor: "input_select.select_option" },
-  ];
-  for (const migration of actionCases) {
-    const config = cloneCardConfig({ type: migration.type, sensor: "legacy", options: "stale" });
-    equal(migrateSavedConfigActionLegacy(config), true, `${migration.type} alias is detected`);
-    equal(config.type, migration.expectedType, `${migration.type} canonical type`);
-    equal(config.sensor, migration.expectedSensor, `${migration.type} canonical action`);
-    equal(config.options, "", `${migration.type} stale options are retired`);
   }
 
   const vacuumCases = [

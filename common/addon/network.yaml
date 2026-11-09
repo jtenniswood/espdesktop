@@ -1,18 +1,9 @@
 # =============================================================================
-# NETWORK - Connectivity diagnostics exposed to Home Assistant
+# NETWORK - Connectivity diagnostics for the local UI
 # =============================================================================
 # Online status, uptime, WiFi signal strength (dB + %), and IP address.
 # All sensors are diagnostic; signal dB is internal (used to derive %).
 # =============================================================================
-
-# ---------------------------------------------------------------------------
-# Online status (binary_sensor)
-# ---------------------------------------------------------------------------
-binary_sensor:
-  - platform: status
-    name: "Online"
-    id: ink_ha_connected
-    icon: mdi:check-network
 
 script:
   - id: network_status_refresh

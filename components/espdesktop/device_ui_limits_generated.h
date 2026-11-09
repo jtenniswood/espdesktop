@@ -7,7 +7,6 @@ namespace espdesktop {
 inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"timer", true},
     {"", true},
-    {"action", true},
     {"vacuum", true},
     {"lawn_mower", true},
     {"alarm", true},
@@ -33,7 +32,6 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"light_control", true},
     {"lock", true},
     {"media", true},
-    {"option_select", true},
     {"push", true},
     {"companion", true},
     {"slider", true},

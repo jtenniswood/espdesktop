@@ -79,10 +79,10 @@ import { createCardEditorValidationController } from "./features/card_editor_val
 import { createCardEditorSaveController } from "./features/card_editor_save_controller";
 import { createPreviewPlacementController } from "./features/preview_placement_controller";
 import { createClockBarController } from "./features/clock_bar_controller";
-import { createVoiceServicesController } from "./features/voice_services_controller";
+
 import { createScreenScheduleController } from "./features/screen_schedule_controller";
 import { createSettingsUiFeature } from "./features/settings";
-import { createAlarmDelayAudioController } from "./features/alarm_delay_audio_controller";
+
 import { createScreensaverController } from "./features/screensaver_controller";
 import { createCoverArtScreensaverController } from "./features/cover_art_screensaver_controller";
 import { createMediaPlaybackController } from "./features/media_playback_controller";
@@ -103,7 +103,6 @@ import { createAppFeature, type AppFeature } from "./application/app";
 import { startApp } from "./application/app_start";
 import { createNativePageEditorFeature } from "./application/native_page_editor";
 import { createReconnectController } from "./features/reconnect";
-import { registerActionCardTypes } from "./cards/action";
 import { registerTimerCardTypes } from "./cards/timer";
 import { registerAlarmCardTypes } from "./cards/alarm";
 import { registerCalendarCardTypes } from "./cards/calendar";
@@ -152,8 +151,6 @@ function registerCards(context: ApplicationContext) {
     renderButtonSettings: (force?: boolean) => context.controllers.buttonSettings.render(force),
   };
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
-  registerActionCardTypes(registry, context.configuration.confirmationOptions, context.controllers.entityState, fields, cardUi,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
   registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields,
@@ -175,7 +172,6 @@ function registerCards(context: ApplicationContext) {
     registry,
     context.configuration.modalTabs,
     context.configuration.accessClimateAlarm,
-    context.controllers.clockBarState,
     context.controllers.renderQueue,
     fields,
   );
@@ -195,13 +191,11 @@ function registerCards(context: ApplicationContext) {
   registerImageCardTypes(
     registry,
     context.configuration.imageOptions,
-    fields,
-    cardUi,
   );
   registerLawnMowerCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const lightCards = registerLightTemperatureCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
   registerLockCardTypes(registry, context.configuration.lockOptions, fields, cardUi);
-  registerMediaCardTypes(registry, context.configuration.mediaOptions, context.configuration.modalTabs, context.device.id, fields, context.controllers.settingsUi, cardUi);
+  registerMediaCardTypes(registry, context.configuration.mediaOptions, context.device.id, fields);
   registerPresenceCardTypes(registry, context.configuration.options, fields);
   registerPushCardTypes(registry, fields);
   registerSliderCardTypes(
@@ -218,8 +212,8 @@ function registerCards(context: ApplicationContext) {
   registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields,
     () => context.configuration.native.homeAssistantSupportEnabled());
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
-  const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, context.controllers.clockBarState, fields, cardUi);
-  registerWeatherForecastCardTypes(registry, weatherCards, context.controllers.clockBarState, fields);
+  const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, fields, cardUi);
+  registerWeatherForecastCardTypes(registry, weatherCards, fields);
   return lightCards;
 }
 
@@ -255,12 +249,10 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.controllers.screensaverTimeout,
     context.controllers.firmwareVersion,
     context.controllers.firmwareUpdate,
-    context.controllers.clockBarState,
     context.controllers.entityState,
     context.controllers.requestApi,
     context.controllers.statusPreview,
     context.controllers.artworkPostApi,
-    context.controllers.clockBarPostApi,
     context.controllers.publicFirmwareInstall,
     register,
   );
@@ -348,7 +340,7 @@ function composeApplicationContext(): ApplicationContext {
   const entityState = createEntityStateFeature({
     actionCardStateEntity: (button) => confirmationOptions.actionCardStateEntity(button),
     totalSlots: () => layout.totalSlots,
-    clockBarTemperatureEntities: () => clockBarState.temperatureEntities(),
+
     textInput: (id, value, placeholder) => fields.textInput(id, value, placeholder),
   });
   const screenRotation = createScreenRotationFeature(runtime, layout, {
@@ -376,11 +368,9 @@ function composeApplicationContext(): ApplicationContext {
     c6UpdateKnownAvailable: () => c6Firmware.updateKnownAvailable(),
   });
   c6Firmware = createC6FirmwareFeature(runtime, firmwareUpdate);
-  const voiceServices = createVoiceServicesController();
+
   const environment = createEnvironmentStateFeature(
-    voiceServices,
     () => defaultTimezoneOptionsForDevice(layout.config),
-    layout,
   );
   dom.document.addEventListener("espdesktop-reset-stale", () => {
     shell.setConfigLocked(true, "Device reset — reload this page before editing.");
@@ -556,24 +546,17 @@ function composeApplicationContext(): ApplicationContext {
     },
   );
   const clockBar = createClockBarController();
-  clockBarState = createClockBarFeature(clockBar, runtime, core, environment, {
-    homeAssistantConnected: () => !!connectorsPage?.homeAssistantConnected(),
+  clockBarState = createClockBarFeature(clockBar, runtime, core, {
     hideSettingsOverlay: () => selection.hideSettingsOverlay(),
-    timezoneId: (value) => statusPreview.getTzId(value),
-    postTemperatureEntities: (value) => clockBarPostApi.postClockBarTemperatureEntities(value),
-    postSwitch: (name, value) => requestApi.postSwitch(name, value),
-    entityName: (key) => entityState.entityName(key),
-    postText: (name, value) => requestApi.postText(name, value),
-    updateTemperaturePreview: () => statusPreview.updateTempPreview(),
+
     updateItemUi: () => statusPreview.updateClockBarItemUi(),
-    postTemperatureDegreeSymbol: (value) => clockBarPostApi.postTemperatureDegreeSymbol(value),
-    isTemperatureItem: (item) => statusPreview.isClockBarTemperatureItem(item),
+
     postTime: (value) => clockBarPostApi.postClockBarTime(value),
-    postVoiceServices: (value) => clockBarPostApi.postVoiceServices(value),
+
     postNetworkStatus: (value) => clockBarPostApi.postNetworkStatusIcon(value),
     renderSelectionBar: () => selection.renderSelectionBar(grid.ctx()),
     updateNetworkPreview: () => statusPreview.updateNetworkPreview(),
-    updateVoicePreview: () => statusPreview.updateVoicePreview(),
+
   });
   statusPreview = createAppStatusPreviewFeature(runtime, core, layout, environment, clockBarState);
   const settingsUi = createSettingsUiFeature({
@@ -581,11 +564,7 @@ function composeApplicationContext(): ApplicationContext {
     textSpan: (text, className) => textSpan(text, className),
     createDisclosureChevron: shell.createDisclosureChevron,
   });
-  const alarmDelayAudio = createAlarmDelayAudioController({
-    announcement: (value, fallback) => Model.normalizeAlarmDelayAnnouncement(value, fallback),
-    beepVolume: (value) => Model.normalizeAlarmDelayBeepVolume(value),
-    finalCountdown: (value) => Model.normalizeAlarmDelayFinalCountdown(value),
-  });
+
   const screensaver = createScreensaverController({
     action: (value) => {
       const action = Model.normalizeScreensaverAction(value);
@@ -601,7 +580,7 @@ function composeApplicationContext(): ApplicationContext {
   const mediaPlayback = createMediaPlaybackController();
   settingsHelpers = createSettingsPageHelpersFeature({
     settingsUiFeature: settingsUi,
-    alarmDelayAudio,
+
     screensaver,
     coverArtScreensaver,
     mediaPlayback,
@@ -616,7 +595,7 @@ function composeApplicationContext(): ApplicationContext {
     statusPreview,
     clockBarPostApi,
     fields,
-    artworkPostApi,
+
   });
   selection = createButtonSettingsSelectionFeature(
     runtime,
@@ -633,7 +612,7 @@ function composeApplicationContext(): ApplicationContext {
       renderButtonSettings: (force) => buttonSettings.render(force),
       showSelectionMenu: (event) => contextMenu.showSelection(event),
       contextMenuContains: (target) => contextMenu.contains(target),
-      openVoiceServicesSettings: () => settingsHelpers.openVoiceServicesSettings(),
+
     },
   );
   preview = createPreviewRenderFeature({
@@ -702,7 +681,7 @@ function composeApplicationContext(): ApplicationContext {
     renderPreview: () => preview.render(),
     renderButtonSettings: () => buttonSettings.render(),
     openCardSettings: (slot) => buttonSettings.openCardSettings(slot),
-    openVoiceServicesSettings: () => settingsHelpers.openVoiceServicesSettings(),
+
     addSlot: (position) => interactions.addSlot(position),
     addSubpageSlot: (position) => interactions.addSubpageSlot(position),
     duplicateButton: (slot) => interactions.duplicateButton(slot),
@@ -943,31 +922,19 @@ function composeApplicationContext(): ApplicationContext {
     schedulePostApi, fields, settingsHelpers,
   );
   const coverArtSection = createSettingsCoverArtSectionFeature(
-    configurationCodec, runtime, entityState, statusPreview, artworkPostApi,
-    fields, settingsHelpers, coverArtScreensaver, mediaPlayback,
+    runtime, artworkPostApi, fields, settingsHelpers, coverArtScreensaver,
   );
   const systemSection = createSettingsSystemSectionFeature({
     buildIdentityCard: identity.buildCard,
     exportBackup: backupApplication.exportConfig,
     importBackup: backupApplication.importConfig,
   }, runtime, firmwareVersion, firmwareUpdate, c6Firmware, shell, requestApi,
-  stateLoader, firmwarePostApi, artworkPostApi, publicFirmwareInstall, fields,
+  stateLoader, firmwarePostApi, publicFirmwareInstall, fields,
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
-    dom, shell, fields, companionSection, !!layout.config.features?.companion,
-    () => nativePanelConfig.homeAssistantSupportEnabled(),
+    dom, shell, companionSection, !!layout.config.features?.companion,
   );
-  let temperatureHomeAssistantConnected = connectorsPage.homeAssistantConnected();
-  connectorsPage.onStatusChange(() => {
-    const connected = connectorsPage.homeAssistantConnected();
-    if (connected === temperatureHomeAssistantConnected) return;
-    temperatureHomeAssistantConnected = connected;
-    if (!connected && statusPreview.isClockBarTemperatureItem(state.clockBarSelectedItem)) {
-      selection.clearCardSelection();
-    }
-    statusPreview.updateClockBarItemUi();
-  });
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
   connectorsPage.onStatusChange(() => {
@@ -1043,7 +1010,7 @@ function composeApplicationContext(): ApplicationContext {
     appEvents,
     statusPreview,
     grid,
-    alarmDelayAudio,
+
     cardEditorDraft,
     cardEditorSave,
     cardEditorValidation,
@@ -1059,7 +1026,7 @@ function composeApplicationContext(): ApplicationContext {
     screensaverTimeout,
     screensaver,
     settingsUi,
-    voiceServices,
+
     environment,
     iconPicker,
     renderQueue,

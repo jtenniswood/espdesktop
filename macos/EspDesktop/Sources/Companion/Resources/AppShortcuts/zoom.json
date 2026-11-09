@@ -32,7 +32,7 @@
       "id": "4",
       "label": "Search in chat or channel",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "5",
@@ -44,7 +44,7 @@
       "id": "6",
       "label": "Global search",
       "shortcut": "command+e",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "7",

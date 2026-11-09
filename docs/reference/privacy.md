@@ -6,7 +6,7 @@ description:
 
 # Privacy Policy
 
-**Effective date: September 5, 2026**
+**Effective date: November 8, 2026**
 
 EspDesktop is a source-available, non-commercial touchscreen control panel
 project maintained by [jtenniswood](https://github.com/jtenniswood). This
@@ -18,8 +18,8 @@ firmware, or built-in web configuration interface.
 
 EspDesktop does not operate an account system, advertising service, analytics
 platform, or central service that collects your smart-home data. The firmware is
-designed to communicate with your Home Assistant installation and other
-services you choose to configure. Your device configuration is stored on your
+designed to communicate with a paired Mac on your local network and with
+network services you choose to configure. Your device configuration is stored on your
 device or in your own backups.
 
 ## The documentation website
@@ -52,17 +52,14 @@ third-party websites. Those sites have their own terms and privacy practices.
 
 ## The EspDesktop firmware and device
 
-The firmware does not send your smart-home data to an EspDesktop server. It
-normally exchanges data directly with your Home Assistant instance over your
-local network, including entity states, names, media information, weather
-data, and commands needed for the cards you configure. Home Assistant and any
-integrations in your installation determine how that information is stored and
-processed.
+The firmware exchanges Mac controls, system statistics, app information and media
+metadata/artwork with the Mac you pair. It no longer provides a Home Assistant connector or subscribes to its entities. Local cards run on the panel. Saved configurations
+and backups may retain retired entity IDs or other old card fields so you can
+inspect or replace those cards; retaining those fields does not reactivate them.
 
 Depending on the cards and options you enable, the device may also:
 
-- request media artwork from URLs supplied by Home Assistant or by your
-  configuration.
+- request Mac web-app icons from the project’s pinned GitHub asset URLs.
 
 These requests are initiated by your configuration and may expose information
 to the service named by the URL or integration. Review the privacy practices
@@ -76,7 +73,7 @@ EspDesktop GitHub Pages site. Some builds also check the public ESPHome hosted
 firmware manifest for an ESP32-C6 co-processor. These requests contain normal
 network request information, such as the device's IP address and request time,
 as observed by the hosting provider. They are not intended to include your
-Home Assistant entity data or account credentials.
+saved card data or pairing credentials.
 
 You can disable EspDesktop's built-in update checker where the firmware build
 provides that option. Ethernet-only builds documented on this site omit the
@@ -134,8 +131,8 @@ confidential information.
 The project maintainer does not operate a database of EspDesktop users and
 does not sell or rent personal information. Information submitted through
 GitHub is retained and handled according to GitHub's policies and the
-project's public repository settings. Information handled by Home Assistant,
-Buy Me a Coffee, GitHub Pages, or another service you choose is governed by
+project's public repository settings. Information handled by Buy Me a Coffee,
+GitHub Pages, or another service you choose is governed by
 that service's policy and retention practices.
 
 ## Your choices and privacy requests
@@ -150,7 +147,7 @@ have made elsewhere.
 For a question about this policy or a request concerning information directly
 controlled by the project maintainer, contact [jtenniswood through GitHub](https://github.com/jtenniswood).
 Please do not include private information in a public issue. Requests about
-GitHub, Home Assistant, or another third-party service should be directed to
+GitHub or another third-party service should be directed to
 that service.
 
 ## Changes to this policy
