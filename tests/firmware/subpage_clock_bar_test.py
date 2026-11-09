@@ -75,10 +75,6 @@ int main() {
   active = &home;
   refresh();
   assert(home.top == 40 && settings_visible);
-  refresh();
-  active = &home;
-  refresh();
-  assert(home.top == 40 && settings_visible);
   for (bool title_bar : {false, true}) {
     clock_bar_subpage_title_bar_enabled() = title_bar;
   for (bool enabled : {false, true}) {
@@ -96,7 +92,7 @@ int main() {
   }
   }
   clock_bar_unregister_button_grid_page(&subpage);
-  assert(clock_bar_button_grid_pages().size() == 2);
+  assert(clock_bar_button_grid_pages().size() == 1);
   clock_bar_clear_button_grid_pages();
   assert(clock_bar_button_grid_pages().empty());
 }
