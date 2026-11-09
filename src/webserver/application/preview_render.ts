@@ -14,6 +14,7 @@ import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./compani
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
+    audioSliderUnavailable,
     cardPreviewTextColor,
     cardProgressColor,
     cardSliderFillColor,
@@ -501,7 +502,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (!c.isSub || state.settingsDraft.homeSlot === state.editingSubpage)) {
                     b = state.settingsDraft.button;
                 }
-                if (cardContractTypeRetired(b.type) || !buttonTypeInfoOnlyVisible(b.type || "")) {
+                if (cardContractTypeRetired(b.type) || audioSliderUnavailable(b.type) || !buttonTypeInfoOnlyVisible(b.type || "")) {
                     var hidden: any = document.createElement("div");
                     hidden.className = "sp-empty-cell sp-info-only-hidden";
                     hidden.setAttribute("data-pos", pos);

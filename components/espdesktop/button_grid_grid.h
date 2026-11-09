@@ -358,6 +358,11 @@ inline void clear_unsupported_card_slot_visuals(BtnSlot &s) {
   if (s.unit_lbl) lv_label_set_display_text(s.unit_lbl, "");
 }
 
+// Capability 7 introduces the complete Mac audio controls.
+inline bool grid_audio_slider_unavailable(const espdesktop::cards::Context &context) {
+  return COMPANION_CAPABILITY_VERSION < 7 && context.runtime.type == espdesktop::card_runtime::CardTypeId::SLIDER;
+}
+
 inline bool info_only_hidden_card_type(const espdesktop::cards::Context &context) {
   return !card_runtime_information_only(context);
 }
@@ -402,6 +407,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     cfg.subpage_chevron_text_width_percent);
 
   if (card_runtime_type_retired(p.type) ||
+      grid_audio_slider_unavailable(context) ||
       (cfg.info_only && info_only_hidden_card_type(context))) {
     lv_obj_add_flag(s.btn, LV_OBJ_FLAG_HIDDEN);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
@@ -1248,6 +1254,7 @@ inline void grid_phase2(
     int col_span = order.col_span[idx - 1] > 0 ? order.col_span[idx - 1] : 1;
     if (cfg.info_only && info_only_hidden_card_type(context)) continue;
     navigation_register_home_target(idx, pos, p.label, scfg, s.btn);
+    if (grid_audio_slider_unavailable(context)) continue;
     if (retired_home_assistant_card(p)) continue;
     if (bind_passive_card(s, p, context, card_palette)) continue;
     espdesktop::cards::ToggleDriverState toggle_state;
@@ -1474,6 +1481,7 @@ inline void grid_phase2(
       // cards remove button padding so their fill can reach the edges, so run
       // the card-specific refresh after clamping to restore the captured inset.
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
+      if (grid_audio_slider_unavailable(context)) continue;
       if (retired_home_assistant_card(sb_cfg)) continue;
 
       if (!is_special_page && !is_nested_page &&

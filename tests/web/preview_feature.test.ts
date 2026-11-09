@@ -1,4 +1,6 @@
+import { COMPANION_CAPABILITY_VERSION } from "../../src/webserver/generated/companion_capabilities";
 import {
+  buttonConfigDisabledForDevice,
   cardPreviewTextColor,
   cardProgressColor,
   cardPickerConnectors,
@@ -104,6 +106,9 @@ export function runPreviewFeatureTests(): void {
   const optedInPicker = cardTypePickerOptions(definitions, [], false, false, null, "home_assistant", true);
   equal(optedInPicker.some((option) => option.key === "climate"), false,
     "legacy firmware opt-in cannot restore HA cards");
+  const audioControlsAvailable = COMPANION_CAPABILITY_VERSION >= 7;
+  equal(cardTypeVisibleForConnector("slider", "mac_companion"), audioControlsAvailable, "the picker requires complete Mac audio controls");
+  equal(buttonConfigDisabledForDevice({}, [], { type: "slider" }), !audioControlsAvailable, "audio card transfers require complete Mac audio controls");
   const companionOptions = cardTypePickerOptions({
       ...definitions,
       calendar: { label: "Date & Time", allowInSubpage: true },
@@ -122,7 +127,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "slider", "companion_stats", "subpage", "companion_webapp", "webhook", "companion_window"],
+    ["companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "subpage", "companion_webapp", "webhook", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

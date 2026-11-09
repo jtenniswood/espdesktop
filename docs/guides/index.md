@@ -8,7 +8,6 @@ description: Set up Mac Companion and local panel controls.
 Start with [Install](/getting-started/install), then [connect the Mac app](/getting-started/mac-app). Configure your cards in the display's web editor.
 
 - Use [Mac Companion cards](/card-types/companion) for Mac actions and statistics.
-- Use [Slider cards](/card-types/sliders) for Mac output or microphone volume.
 - Organize cards into [Subpages](/features/subpages), including app pages and the swipe-up page.
 - Show [fullscreen Mac artwork](/features/media-cover-art), or configure local [clocks](/features/clock) and [screensavers](/features/screensaver).
 - [Back up your layout](/features/backup) before updates, and use [Troubleshooting](/getting-started/troubleshooting) if setup fails.

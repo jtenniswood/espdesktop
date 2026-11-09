@@ -1,4 +1,5 @@
 import { cardContractTypeRetired } from "../generated/card_contract";
+import { COMPANION_CAPABILITY_VERSION } from "../generated/companion_capabilities";
 import { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 export { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { configOptionValue } from "../model/config_primitives";
@@ -125,8 +126,14 @@ export function cardPickerConnectors(
   return connectors;
 }
 
+// Capability 7 introduces the Volume group with both sliders and mute cards.
+// Keep saved identifiers readable while older firmware hides its audio sliders.
+export function audioSliderUnavailable(type: string | null | undefined): boolean {
+  return type === "slider" && COMPANION_CAPABILITY_VERSION < 7;
+}
+
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
-  if (connector !== "mac_companion" || cardContractTypeRetired(key)) return false;
+  if (connector !== "mac_companion" || cardContractTypeRetired(key) || audioSliderUnavailable(key)) return false;
   if (connector === "mac_companion" && MAC_COMPANION_HIDDEN_CARD_TYPES.has(key)) return false;
   const source = cardTypeConnector(key);
   return connector === "mac_companion" ? source !== "home_assistant" : source !== "mac_companion";
@@ -240,7 +247,7 @@ export function buttonConfigDisabledForDevice(
   button: { readonly type?: string | null } | null | undefined,
 ): boolean {
   const type = button?.type || "";
-  if (disabledCardTypes.includes(type)) return true;
+  if (disabledCardTypes.includes(type) || audioSliderUnavailable(type)) return true;
   const definition = definitions[type] as Record<string, unknown> | undefined;
   const pickerKey = registryValue(definition, "pickerKey", "");
   return !!pickerKey && disabledCardTypes.includes(pickerKey);

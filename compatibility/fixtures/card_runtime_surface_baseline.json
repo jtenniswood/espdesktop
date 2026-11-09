@@ -2154,8 +2154,8 @@
       "web": {
         "registration": "slider",
         "picker": {
-          "main": true,
-          "subpage": true,
+          "main": false,
+          "subpage": false,
           "infoOnly": false
         },
         "preview": {
