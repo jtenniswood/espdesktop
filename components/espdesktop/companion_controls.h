@@ -16,7 +16,6 @@
 #include <vector>
 
 #include "companion_capabilities_generated.h"
-#include "app_shortcuts_generated.h"
 #include "companion_runtime_access.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
@@ -500,12 +499,8 @@ inline std::vector<std::string> companion_shortcut_parts(const std::string &acti
   return parts;
 }
 
-inline bool companion_safari_unmodified_shortcut(const std::string &action_id) {
-  return action_id == "shortcut.tab" || action_id == "shortcut.escape";
-}
-
 inline bool companion_shortcut_action_valid(const std::string &action_id) {
-  if (companion_safari_unmodified_shortcut(action_id)) return true;
+  if (action_id == "shortcut.tab" || action_id == "shortcut.escape") return true;
   const auto parts = companion_shortcut_parts(action_id);
   if (parts.size() < 2 || parts.size() > 5) return false;
   bool command = false, control = false, option = false, shift = false;
@@ -587,12 +582,6 @@ inline std::string companion_window_action_label(const std::string &action_id) {
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty()) return false;
   if (!snapshot.connected) return false;
-  if (companion_safari_unmodified_shortcut(action_id)) {
-    const auto &focused_app = snapshot.application_highlight_known
-      ? snapshot.application_highlight_id : snapshot.focused_action_id;
-    return snapshot.keyboard_actions_supported &&
-      (focused_app == "com.apple.Safari" || companion_shortcut_catalog::is_safari_web_app(focused_app));
-  }
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   if (companion_window_action_valid(action_id)) {
     return std::find(snapshot.window_actions.begin(), snapshot.window_actions.end(), action_id) !=
