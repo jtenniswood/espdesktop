@@ -176,12 +176,14 @@ private:
       next.id = id;
       const auto *owner = store.card(page->owner);
       next.owner_slot = owner->slot;
-      next.owner_config = card(store, *owner, false);
-      next.config = "~" + std::string(store.string(page->order));
-      for (size_t i = 0; i < page->card_count; ++i) {
-        next.config += '|'; next.config += card(store, *store.card(page->first_card + i), true);
+      if (!next.parent) {
+        std::string legacy_page = "~" + std::string(store.string(page->order));
+        for (size_t i = 0; i < page->card_count; ++i) {
+          legacy_page += '|';
+          legacy_page += card(store, *store.card(page->first_card + i), true);
+        }
+        value(Kind::SUBPAGE, next.owner_slot, "", std::move(legacy_page));
       }
-      if (!next.parent) value(Kind::SUBPAGE, next.owner_slot, "", next.config);
       staged_->pages.push_back(std::move(next));
     }
     auto setting = [&](std::string_view name, std::string_view value) {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include <vector>
 
 #include "page_store.h"
@@ -12,8 +11,6 @@ struct GridNativePage {
   int parent{0};
   int owner_slot{0};
   pages::PageId id{pages::NO_PAGE};
-  std::string owner_config;
-  std::string config;
 };
 struct GridNativePages {
   const pages::PageStore *store{nullptr};

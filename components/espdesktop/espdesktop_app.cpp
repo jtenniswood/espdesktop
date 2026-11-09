@@ -735,6 +735,8 @@ void EspDesktopApp::sync_finder_folders() {
   const auto loaded = service->load(input, capacity);
   if (!loaded.ok()) return;
   if (loaded.document_version == 2) {
+    const auto *active = grid_native_page_store();
+    if (!active || active->generation() != loaded.generation) return;
     PanelConfigV2Reader reader(input, loaded.document_size);
     size_t bytes = 0;
     if (reader.workspace_bytes(&bytes) != PanelConfigStatus::OK) return;
@@ -757,20 +759,21 @@ void EspDesktopApp::sync_finder_folders() {
             !reader.record(PanelConfigV2Kind::CARD, parent.second, &parent_owner)) return;
         path = 32 + (parent_owner.second - 1) * 32 + owner.second;
       }
-      const auto *page = grid_native_page(path);
-      if (!page) continue;
-      const auto parent = parse_cfg(page->owner_config);
-      const auto updated = finder_append_folder_tiles_for_grid(page->config, slots, columns,
-          folders, PANEL_CONFIG_MAX_RECORD_BODY_BYTES - 1, companion_folder_open_behavior(parent));
-      if (updated == page->config) continue;
-      const auto previous = parse_subpage_config(page->config), next = parse_subpage_config(updated);
+      std::string order;
+      std::vector<SubpageBtn> buttons;
+      if (!grid_read_native_subpage(path, order, buttons)) continue;
+      const auto parent = grid_layout_card_config(path, {});
+      auto plan = finder_plan_folder_tiles_for_grid(order, buttons, slots, columns, folders,
+          PANEL_CONFIG_MAX_RECORD_BODY_BYTES - 1, companion_folder_open_behavior(parent));
+      if (plan.added.empty()) continue;
       std::vector<std::array<std::string, 9>> appended;
-      for (size_t card = previous.size(); card < next.size(); ++card) {
-        const auto &value = next[card];
+      appended.reserve(plan.added.size());
+      for (auto &card : plan.added) {
+        const auto value = normalize_subpage_btn(std::move(card));
         appended.push_back({value.entity, value.label, value.icon, value.icon_on, value.sensor,
                             value.unit, value.type, value.precision, value.options});
       }
-      if (!edit.append(row.id, get_subpage_order(updated), appended)) return;
+      if (!edit.append(row.id, plan.order, appended)) return;
       changed = true;
     }
     size_t size = 0;
