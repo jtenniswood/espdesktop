@@ -43,6 +43,17 @@ class CheckMatrixRow:
     broaden_when: str
 
 
+# These files are staged at build time. The web asset and device profile
+# checks verify their presence and contents after the generator runs.
+WEB_BUILD_OUTPUTS = (
+    "docs/public/webserver/www.js",
+    "docs/public/webserver/web-assets.json",
+    "docs/public/webserver/embedded/www.js",
+    "docs/public/webserver/bundles/*/www.js",
+    "docs/public/webserver/*/www.js",
+)
+
+
 SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     SourceTruthRow(
         "product/v2/companion_capabilities.json, product/v2/devices/*.json, product/release_contract.json, compatibility/fixtures/companion_protocol_v4.json",
@@ -133,13 +144,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     ),
     SourceTruthRow(
         "src/webserver/",
-        (
-            "docs/public/webserver/www.js",
-            "docs/public/webserver/web-assets.json",
-            "docs/public/webserver/embedded/www.js",
-            "docs/public/webserver/bundles/*/www.js",
-            "docs/public/webserver/*/www.js",
-        ),
+        WEB_BUILD_OUTPUTS,
         "python3 scripts/build.py www",
         "`npm run check:web-smoke`, `npm run check:web-asset-manifest`, and `npm run check:product`",
     ),
@@ -742,6 +747,8 @@ def source_truth_path_targets(value: str) -> list[str]:
 
 def check_source_truth_path(value: str, label: str, errors: list[str]) -> None:
     for target in source_truth_path_targets(value):
+        if label == "output" and target in WEB_BUILD_OUTPUTS:
+            continue
         if any(marker in target for marker in ("<", ">", "...")):
             continue
         matches = sorted(ROOT.glob(target)) if "*" in target else []
@@ -990,6 +997,8 @@ def check_referenced_paths(errors: list[str]) -> None:
                 if any(marker in token for marker in ("*", "<", ">", "...")):
                     continue
                 if "/example." in token or token.endswith("/example"):
+                    continue
+                if token in WEB_BUILD_OUTPUTS or token == "docs/public/webserver/embedded":
                     continue
                 full = ROOT / token
                 if not full.exists():
