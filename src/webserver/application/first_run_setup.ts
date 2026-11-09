@@ -50,7 +50,7 @@ function layoutSignature(document: PanelConfigDocument): string {
 export function firstRunDocument(
     current: PanelConfigDocument,
     apps: readonly CompanionAction[],
-    shortcutIDs: ReadonlySet<string>,
+    addShortcutPages: boolean,
     capacity: number,
     codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">,
     replacing?: PanelConfigDocument,
@@ -66,7 +66,7 @@ export function firstRunDocument(
     apps.forEach((app, index) => {
         const card = { entity: app.id, label: app.label, icon: "Auto", icon_on: "Auto",
             sensor: "", unit: "", type: "companion", precision: "", options: "" };
-        if (shortcutIDs.has(app.id) && supportsSetupShortcuts(app.id)) {
+        if (addShortcutPages && supportsSetupShortcuts(app.id)) {
             const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
             setCompanionAppShortcutFolderEnabled(card, true);
             card.options = setConfigOptionValue(card.options, "app_shortcuts_tabs", tabs.join("|") || "none");
@@ -105,7 +105,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let step = 1;
     let apps: CompanionAction[] = [];
     const selected = new Set<string>();
-    const shortcuts = new Set<string>();
+    let addShortcutPages = false;
     let autoSwitch = true;
     let busy = false;
     let loading = false;
@@ -115,7 +115,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let previousFocus: HTMLElement | null = null;
 
     const selectedApps = () => apps.filter(app => selected.has(app.id));
-    const shortcutApps = () => selectedApps().filter(app => supportsSetupShortcuts(app.id));
+    const supportedAppCount = () => selectedApps().filter(app => supportsSetupShortcuts(app.id)).length;
 
     function element<K extends keyof HTMLElementTagNameMap>(tag: K, text = "", className = ""): HTMLElementTagNameMap[K] {
         const node = document.createElement(tag);
@@ -164,7 +164,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             ]);
             apps = firstRunApplications(actions);
             const ids = new Set(apps.map(app => app.id));
-            for (const id of selected) if (!ids.has(id)) { selected.delete(id); shortcuts.delete(id); }
+            for (const id of selected) if (!ids.has(id)) selected.delete(id);
         } catch {
             error = "Could not load apps. Check that EspDesktop is connected on your Mac, then try again.";
         } finally {
@@ -191,13 +191,13 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             // Save the global switch first. A failure must not mark setup complete.
             if (!skip) {
                 switchAttempted = true;
-                if (!await deps.saveAutoSwitch(shortcuts.size > 0 && autoSwitch)) {
+                if (!await deps.saveAutoSwitch(addShortcutPages && supportedAppCount() > 0 && autoSwitch)) {
                     throw new Error("Could not save automatic switching. Check the connection and try again.");
                 }
             }
             const chosen = skip ? [] : selectedApps();
             const result = await deps.native.schedule(current =>
-                firstRunDocument(current, chosen, shortcuts, deps.capacity, deps.codec, replacing));
+                firstRunDocument(current, chosen, addShortcutPages, deps.capacity, deps.codec, replacing));
             if (result !== "saved" && result !== "mirror-failed") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
             layoutSaved = true;
             eligible = false;
@@ -240,7 +240,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         dialog.append(progress, title);
         dialog.appendChild(element("p", step === 1
             ? `Choose up to ${deps.capacity} apps. You can change these later in Layout.`
-            : step === 2 ? "Choose which apps get a page of useful shortcuts. Other apps will simply launch from their card."
+            : step === 2 ? "Add shortcut pages for every selected app with built-in shortcuts. Apps without shortcuts launch from their cards."
             : "Automatically open an app’s shortcut page when that app is in focus on your Mac. This applies to all app shortcut pages."));
         const content = element("div", "", "sp-setup-content");
         if (step === 1) {
@@ -267,7 +267,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
                     const row = checkbox(app.label, selected.has(app.id), enabled => {
                         if (enabled && selected.size < deps.capacity) selected.add(app.id);
-                        else { selected.delete(app.id); shortcuts.delete(app.id); }
+                        else selected.delete(app.id);
                         render();
                     }, loading || (!selected.has(app.id) && selected.size >= deps.capacity));
                     row.querySelector("input")?.setAttribute("data-setup-key", app.id);
@@ -276,23 +276,20 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 content.appendChild(list);
             }
         } else if (step === 2) {
-            for (const app of shortcutApps()) {
-                const row = checkbox(app.label, shortcuts.has(app.id), enabled => {
-                    if (enabled) shortcuts.add(app.id); else shortcuts.delete(app.id);
-                });
-                content.appendChild(row);
-            }
-            if (shortcutApps().length === 0) content.appendChild(element("p", "Your selected apps don’t have built-in shortcut pages. You can add your own shortcuts later in Layout."));
-            const unsupported = selectedApps().filter(app => !supportsSetupShortcuts(app.id));
-            if (shortcutApps().length && unsupported.length) content.appendChild(element("p", `Launch only: ${unsupported.map(app => app.label).join(", ")}.`));
-            content.appendChild(element("p", `Each shortcut page includes a Back card and up to ${Math.max(0, deps.capacity - 1)} shortcuts. You can edit it later.`));
+            const hasSupportedApps = supportedAppCount() > 0;
+            content.appendChild(checkbox("Add shortcut pages for supported apps", addShortcutPages && hasSupportedApps,
+                enabled => { addShortcutPages = enabled; }, !hasSupportedApps));
+            content.appendChild(element("p", hasSupportedApps
+                ? `Each shortcut page includes a Back card and up to ${Math.max(0, deps.capacity - 1)} shortcuts. You can edit it later.`
+                : "Your selected apps don’t have built-in shortcut pages. You can add your own shortcuts later in Layout."));
         } else {
-            content.appendChild(checkbox("Open shortcut pages when apps are in focus", autoSwitch && shortcuts.size > 0,
-                enabled => { autoSwitch = enabled; }, shortcuts.size === 0));
-            content.appendChild(element("p", shortcuts.size > 0
+            const shortcutPageCount = addShortcutPages ? supportedAppCount() : 0;
+            content.appendChild(checkbox("Open shortcut pages when apps are in focus", autoSwitch && shortcutPageCount > 0,
+                enabled => { autoSwitch = enabled; }, shortcutPageCount === 0));
+            content.appendChild(element("p", shortcutPageCount > 0
                 ? "When this is off, tap an app card while the app is already in focus to open its shortcut page."
-                : "No shortcut pages selected. Your app cards will launch their apps."));
-            content.appendChild(element("p", `${selected.size} ${selected.size === 1 ? "home-screen app" : "home-screen apps"} · ${shortcuts.size} shortcut ${shortcuts.size === 1 ? "page" : "pages"}`));
+                : "Your app cards will launch their apps."));
+            content.appendChild(element("p", `${selected.size} ${selected.size === 1 ? "home-screen app" : "home-screen apps"} · ${shortcutPageCount} shortcut ${shortcutPageCount === 1 ? "page" : "pages"}`));
             content.appendChild(element("p", "After saving, choose Apply Configuration in Layout to restart the display and show your new cards."));
         }
         if (replacing) {
@@ -347,12 +344,12 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 if (!saved) throw new Error("Could not load the display’s layout. Check the connection and try again.");
                 replacing = saved;
                 selected.clear();
-                shortcuts.clear();
+                addShortcutPages = false;
                 for (const value of Object.values(saved.buttons)) {
                     const card = parseRawButtonConfig(value);
                     if (card.type !== "companion" || !card.entity || card.sensor || selected.size >= deps.capacity) continue;
                     selected.add(card.entity);
-                    if (configOptionEnabled(card.options, "app_shortcuts")) shortcuts.add(card.entity);
+                    if (configOptionEnabled(card.options, "app_shortcuts")) addShortcutPages = true;
                 }
                 autoSwitch = deps.autoSwitchEnabled();
                 query = "";

@@ -8844,11 +8844,13 @@ async function assertFirstRunSetup(browser) {
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
     await dialog.getByLabel("Notes", { exact: true }).check();
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-    await dialog.getByLabel("Safari", { exact: true }).check();
+    const addPages = dialog.getByLabel("Add shortcut pages for supported apps", { exact: true });
+    assert.equal(await dialog.getByRole("checkbox").count(), 1, "step two has one global choice");
+    await addPages.check();
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps selected apps");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps shortcut choices");
+    assert(await addPages.isChecked(), "Back keeps the global shortcut choice");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     await dialog.getByLabel("Open shortcut pages when apps are in focus").uncheck();
     await page.setViewportSize({ width: 375, height: 650 });
@@ -8875,6 +8877,9 @@ async function assertFirstRunSetup(browser) {
     const safariSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Safari;"));
     assert(fixture.document.buttons[safariSlot].includes("app_shortcuts"));
     assert(fixture.document.subpages[safariSlot].includes("shortcut."));
+    const notesSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Notes;"));
+    assert(fixture.document.subpages[notesSlot].includes("shortcut."), "the global choice also adds a page for Notes");
+    assert.equal(Object.keys(fixture.document.subpages).length, 2, "unsupported apps remain launch cards");
     assert.equal(switches.at(-1), "turn_off", "manual page opening was chosen");
     await open();
     await page.waitForTimeout(200);
@@ -8901,7 +8906,7 @@ async function assertFirstRunSetup(browser) {
     await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor();
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores shortcut pages");
+    assert(await addPages.isChecked(), "settings restores the global shortcut choice");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     assert.equal(await dialog.getByLabel("Open shortcut pages when apps are in focus").isChecked(), false);
     await dialog.getByLabel("Open shortcut pages when apps are in focus").check();

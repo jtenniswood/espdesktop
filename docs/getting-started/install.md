@@ -41,14 +41,14 @@ Open that address in a browser to reach the display's setup page. Choose **Syste
 On an empty display, the web page offers a three-step setup:
 
 1. Connect the Mac app, then select apps for the home screen, up to your display’s card limit.
-2. Choose which supported apps should have shortcut subpages. Each page reserves one card for **Back**.
+2. Choose whether to add shortcut subpages for all selected apps with built-in shortcuts. Each page reserves one card for **Back**.
 3. Choose whether shortcut pages open automatically when their app is in focus on your Mac.
 
 Choose **Save setup**, then **Apply Configuration** in Layout to restart the display and show your cards. Keyboard shortcuts need Accessibility access in the Mac app.
 
 **Skip setup** opens the normal editor for a custom layout. Setup completion is saved on the display, so reopening the page or using another browser does not restart it. Existing layouts are left intact. Resetting the display’s customization makes setup available again.
 
-To run the wizard again, open **Screen → App Subpages → Set up home-screen apps**. It selects your current apps and shortcut-page choices. **Cancel** leaves the layout untouched; **Replace layout** replaces the home-screen cards and their shortcut pages, keeping other display settings.
+To run the wizard again, open **Screen → App Subpages → Set up home-screen apps**. It selects your current apps and turns on the shortcut-page option if your layout already uses app shortcut pages. **Cancel** leaves the layout untouched; **Replace layout** replaces the home-screen cards and their shortcut pages, keeping other display settings.
 
 You can change apps and shortcut pages later in **Layout**, and automatic switching in **Screen → App Subpages**.
 
