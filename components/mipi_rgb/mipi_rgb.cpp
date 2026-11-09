@@ -47,8 +47,30 @@ void MipiRgbSpi::setup() {
   this->setup_enables_();
   this->spi_setup();
   this->write_init_sequence_();
+#ifndef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+  this->init_sequence_.clear();
+#endif
   this->common_setup_();
 }
+
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+void MipiRgbSpi::reset_lcd_controller() {
+  if (this->is_failed() || this->init_sequence_.empty()) {
+    ESP_LOGW(TAG, "Cannot reset an unavailable LCD controller");
+    return;
+  }
+  // Return to the default command set before replaying the software reset.
+  const uint8_t select_command_set_1[] = {0x77, 0x01, 0x00, 0x00, 0x00};
+  this->write_command_(CMD2_BKSEL);
+  for (const uint8_t byte : select_command_set_1)
+    this->write_data_(byte);
+  this->write_init_sequence_();
+  if (!this->is_failed()) {
+    ESP_LOGI(TAG, "LCD controller reset sequence sent");
+  }
+}
+#endif
+
 void MipiRgbSpi::write_command_(uint8_t value) {
   this->enable();
   if (this->dc_pin_ == nullptr) {
@@ -106,12 +128,16 @@ void MipiRgbSpi::write_init_sequence_() {
       this->write_command_(cmd);
       while (num_args-- != 0)
         this->write_data_(*ptr++);
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+      // The ST7701S needs time to reload its registers after software reset.
+      if (index == 2 && cmd == SW_RESET_CMD)
+        delay(5);
+#endif
       if (cmd == SLEEP_OUT)
         delay(10);
     }
   }
   // this->spi_teardown();  // SPI not needed after this
-  this->init_sequence_.clear();
   delay(10);
 }
 
@@ -250,6 +276,29 @@ void MipiRgb::resync_scanout() {
     return;
   }
   ESP_LOGI(TAG, "RGB scanout resync requested for the next frame");
+}
+#endif
+
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+bool MipiRgb::copy_presented_frame(uint16_t *pixels, size_t pixel_count) const {
+  if (this->handle_ == nullptr || this->is_failed() || this->frame_active_ ||
+      pixel_count != this->width_ * this->height_) {
+    return false;
+  }
+
+  const uint16_t *front = this->frames_.front();
+  if (!this->double_buffered_) {
+    void *buffer = nullptr;
+    if (esp_lcd_rgb_panel_get_frame_buffer(this->handle_, 1, &buffer) != ESP_OK) {
+      return false;
+    }
+    front = static_cast<const uint16_t *>(buffer);
+  }
+  if (front == nullptr) {
+    return false;
+  }
+  std::memcpy(pixels, front, pixel_count * sizeof(uint16_t));
+  return true;
 }
 #endif
 

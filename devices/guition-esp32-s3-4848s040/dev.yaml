@@ -20,13 +20,15 @@ esp32:
 # across DHCP changes and firmware updates.
 esphome:
   name_add_mac_suffix: true
+  build_flags:
+    - "-DESPDESKTOP_S3_DISPLAY_RESET_TEST"
   includes:
     - display_resync_test.h
   on_boot:
     # Register before the web server starts accepting requests.
     - priority: 250
       then:
-        - lambda: espdesktop::register_display_resync_test();
+        - lambda: espdesktop::register_display_resync_test(*id(my_display), *id(main_lvgl));
 
 wifi:
   ssid: !secret wifi_ssid
@@ -46,3 +48,10 @@ button:
     entity_category: diagnostic
     on_press:
       - lambda: id(my_display).resync_scanout();
+
+  - platform: template
+    name: Reset S3 LCD Controller
+    internal: true
+    entity_category: diagnostic
+    on_press:
+      - lambda: id(my_display).reset_lcd_controller();
