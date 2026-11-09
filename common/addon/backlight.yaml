@@ -740,7 +740,6 @@ script:
                   - script.execute: backlight_apply_brightness
                   - script.wait: backlight_apply_brightness
             - script.execute: screensaver_idle_check
-            - script.execute: home_screen_idle_check
 
   # Typed takeover ownership is recorded directly in the controller. Requests
   # continue to update underneath a takeover, so ending it resolves current
@@ -991,7 +990,6 @@ script:
             id(display_mode_effect_off).stop();
           }
       - script.stop: screensaver_idle_check
-      - script.stop: home_screen_idle_check
       - script.stop: cover_art_delay_timer
       - lvgl.resume:
       - script.execute: clock_bar_hide
@@ -1123,48 +1121,6 @@ script:
                   - script.execute: display_mode_reconcile
                 else:
                   - script.execute: display_mode_request_setup_dimmed
-
-  # Home screen return timer (restartable)
-  - id: home_screen_idle_check
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: |-
-              float val = id(home_screen_timeout).state;
-              return !id(connectivity_setup_display_active) &&
-                     !id(button_order).state.empty() &&
-                     !std::isnan(val) && val > 0;
-          then:
-            - delay: !lambda |-
-                float val = id(home_screen_timeout).state;
-                if (std::isnan(val) || val <= 0) val = 60;
-                return (int)(val * 1000);
-            - lambda: |-
-                if (!id(connectivity_setup_display_active) &&
-                    !id(button_order).state.empty() &&
-                    !id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL)) {
-                  navigation_return_home(id(main_page)->obj);
-                }
-
-  - id: home_screen_idle_restore
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: |-
-              float val = id(home_screen_timeout).state;
-              if (id(connectivity_setup_display_active) ||
-                  id(button_order).state.empty() ||
-                  std::isnan(val) || val <= 0) return false;
-              return lv_disp_get_inactive_time(NULL) >= (uint32_t)(val * 1000);
-          then:
-            - lambda: |-
-                if (!id(espdesktop_app).display().takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL)) {
-                  navigation_return_home(id(main_page)->obj);
-                }
-          else:
-            - script.execute: home_screen_idle_check
 
   # Wake from screensaver
   - id: screensaver_wake
@@ -1304,7 +1260,6 @@ script:
             - script.execute: display_mode_clear_cover_art
             - script.wait: display_mode_clear_cover_art
       - script.execute: screensaver_idle_check
-      - script.execute: home_screen_idle_check
       - if:
           condition:
             lambda: |-

@@ -7,7 +7,7 @@ description:
 # Appearance
 
 The **Appearance** section is at the top of **Screen**. Its panels are
-**Active Colour**, **Card Style** (curve), **Theme**, [Idle](/features/idle) and [Clock Bar](/features/clock-bar).
+**Active Colour**, **Card Style** (curve), **Theme**, and [Clock Bar](/features/clock-bar).
 
 Cards use continuous corners, with the same proportions on the panel and
 setup-page preview. Choose **Card curve → Small, Medium or Large** in
