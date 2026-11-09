@@ -8915,9 +8915,9 @@ async function assertFirstRunSetup(browser) {
     await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores home apps");
-    const beforeCancel = JSON.stringify(fixture.document);
-    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
-    assert.equal(JSON.stringify(fixture.document), beforeCancel, "cancel preserves the layout");
+    const beforeClose = JSON.stringify(fixture.document);
+    await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
+    assert.equal(JSON.stringify(fixture.document), beforeClose, "closing setup preserves the layout");
     await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();

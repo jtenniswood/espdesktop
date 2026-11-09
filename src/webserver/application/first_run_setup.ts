@@ -61,7 +61,7 @@ export function firstRunDocument(
     replacing?: PanelConfigDocument,
 ): PanelConfigDocument {
     if (replacing && layoutSignature(current) !== layoutSignature(replacing)) {
-        throw new Error("The layout changed while setup was open. Cancel and reopen setup to keep those changes.");
+        throw new Error("The layout changed while setup was open. Close and reopen setup to keep those changes.");
     }
     if (!replacing && !needsFirstRunSetup(current)) throw new Error("This display already has a layout. Reload to keep its changes.");
     if (!Number.isInteger(capacity) || capacity < 1 || apps.length > setupAppLimit(capacity) ||
@@ -185,10 +185,6 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
     }
     async function finish(skip = false): Promise<void> {
-        if (skip && replacing) {
-            dismiss();
-            return;
-        }
         if (busy || (loading && !skip)) return;
         if (deps.shell.isConfigLocked()) {
             error = "The display is reconnecting. Wait for it to reconnect, then try again.";
@@ -355,8 +351,11 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             message.setAttribute("role", "alert");
             dialog.appendChild(message);
         }
-        const footer = element("div", "", "sp-btn-row sp-btn-row--save sp-has-secondary sp-setup-footer");
-        footer.appendChild(button(replacing ? "Cancel" : "Skip setup", () => { void finish(true); }));
+        const footer = element("div", "", "sp-btn-row sp-btn-row--save sp-setup-footer");
+        if (!replacing) {
+            footer.classList.add("sp-has-secondary");
+            footer.appendChild(button("Skip setup", () => { void finish(true); }));
+        }
         const actions = element("div", "", "sp-btn-group-right");
         if (step > 1) actions.appendChild(button("Back", () => { --step; render(); }));
         const next = button(busy ? "Saving…" : step === 3 ? (replacing ? "Done" : "Save setup") : "Continue", () => {
