@@ -119,6 +119,22 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.fn+control+f"))
     }
 
+    func testClaudeScopedShortcutsUseTheDocumentedKeys() throws {
+        let expected: [(String, CGKeyCode, CGEventFlags)] = [
+            ("f6", 97, []), ("shift+f6", 97, [.maskShift]), ("escape", 53, []),
+            ("escape-twice", 53, []), ("up", 126, []), ("down", 125, []), ("1", 18, []), ("9", 25, []),
+        ]
+        for (keys, keyCode, flags) in expected {
+            XCTAssertTrue(CompanionKeyboardShortcut.isClaudeScopedShortcut(keys))
+            let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys))
+            XCTAssertEqual(shortcut.keyCode, keyCode)
+            XCTAssertEqual(shortcut.flags, flags)
+        }
+        for keys in ["0", "a", "enter", "escape-thrice", "shift+f7", "command++f6"] {
+            XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys), keys)
+        }
+    }
+
     func testGatesOnlyTilingActionsToMacOS15() throws {
         let macOS13 = OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0)
         let macOS15 = OperatingSystemVersion(majorVersion: 15, minorVersion: 0, patchVersion: 0)

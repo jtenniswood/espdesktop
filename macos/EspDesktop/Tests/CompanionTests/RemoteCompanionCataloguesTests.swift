@@ -3,6 +3,31 @@ import XCTest
 @testable import Companion
 
 final class RemoteCompanionCataloguesTests: XCTestCase {
+    @MainActor
+    func testBundledClaudePresetsTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "ClaudeCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        let claude = try XCTUnwrap(catalogue.applications.first {
+            $0.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier
+        })
+        XCTAssertEqual(claude.shortcuts.count, 78)
+        XCTAssertEqual(claude.extendedShortcuts?.count, 15)
+        XCTAssertTrue(claude.extendedShortcuts?.contains { $0.shortcut == "escape-twice" } == true)
+
+        let json = String(decoding: try JSONEncoder().encode(claude), as: UTF8.self)
+        let frame = try JSONSerialization.data(withJSONObject: [
+            "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+            "page": 0, "generation": 1, "complete": false,
+            "items": [["kind": "application", "json": json]],
+        ])
+        XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected))
+    }
     func testURLCardTargetsMatchFullConfiguredURLAndClearWhenUnavailable() throws {
         let target = try XCTUnwrap(URL(string: "https://example.com/docs?q=1#intro"))
         XCTAssertEqual(ActiveTabURLMatcher.matchingURLCardIDs(

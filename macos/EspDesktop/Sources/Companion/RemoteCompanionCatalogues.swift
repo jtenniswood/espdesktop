@@ -13,6 +13,7 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     let label: String
     let catalog: Bool
     let shortcuts: [RemoteShortcutDefinition]
+    let extendedShortcuts: [RemoteShortcutDefinition]?
 }
 
 struct RemoteCatalogueManifest: Decodable, Sendable {
@@ -95,23 +96,24 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
 
     fileprivate static func valid(_ app: RemoteMacApplicationDefinition) -> Bool {
         let encodedSize = (try? JSONEncoder().encode(app).count) ?? Int.max
+        let isClaudeDesktop = app.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier && !app.catalog
+        let extended = app.extendedShortcuts ?? []
+        let allShortcuts = app.shortcuts + extended
         return app.version == 1 && !app.label.isEmpty && app.label.utf8.count <= 48 &&
         app.appId.range(of: #"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil &&
-        !app.shortcuts.isEmpty && app.shortcuts.allSatisfy(valid) &&
-        Set(app.shortcuts.map(\.id)).count == app.shortcuts.count && encodedSize <= 12_000
+        !app.shortcuts.isEmpty && allShortcuts.count <= (isClaudeDesktop ? 96 : 64) &&
+        app.shortcuts.allSatisfy {
+            validMetadata($0) && !CompanionKeyboardShortcut.isClaudeScopedShortcut($0.shortcut) &&
+                CompanionKeyboardShortcut(actionIdentifier: CompanionKeyboardShortcut.actionPrefix + $0.shortcut) != nil
+        } &&
+        (extended.isEmpty || (isClaudeDesktop &&
+            extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isClaudeScopedShortcut($0.shortcut) })) &&
+        Set(allShortcuts.map(\.id)).count == allShortcuts.count && encodedSize <= 12_000
     }
 
-    fileprivate static func valid(_ shortcut: RemoteShortcutDefinition) -> Bool {
-        guard shortcut.id.range(of: #"^(0|[1-9][0-9]{0,2})$"#, options: .regularExpression) != nil,
-              !shortcut.label.isEmpty, shortcut.label.utf8.count <= 48, !shortcut.icon.isEmpty else { return false }
-        let parts = shortcut.shortcut.split(separator: "+").map(String.init)
-        guard let key = parts.last, parts.count >= 2 else { return false }
-        let modifiers = parts.dropLast()
-        let allowed = Set(["command", "control", "option", "shift"])
-        return Set(modifiers).count == modifiers.count && modifiers.allSatisfy(allowed.contains) &&
-            modifiers.contains(where: { $0 != "shift" }) &&
-            (key.range(of: #"^[a-z0-9]$|^f(?:[1-9]|1[0-9]|20)$"#, options: .regularExpression) != nil ||
-             Set("space enter tab escape delete forwarddelete left right up down home end pageup pagedown keycomma keyperiod keyslash keysemicolon keyquote keybackslash keyminus keyequal keybracketleft keybracketright keybackquote".split(separator: " ").map(String.init)).contains(key))
+    private static func validMetadata(_ shortcut: RemoteShortcutDefinition) -> Bool {
+        shortcut.id.range(of: #"^(0|[1-9][0-9]{0,2})$"#, options: .regularExpression) != nil &&
+            !shortcut.label.isEmpty && shortcut.label.utf8.count <= 48 && !shortcut.icon.isEmpty
     }
 
     enum CatalogueError: Error { case incompatible, invalid }
@@ -151,6 +153,7 @@ final class RemoteCompanionCatalogueStore {
         value = Self.bundled()
         if let cache = defaults.data(forKey: Self.cacheKey),
            let decoded = try? JSONDecoder().decode(RemoteCompanionCatalogues.self, from: cache),
+           decoded.version > value.version,
            Self.valid(decoded) {
             value = decoded
         }
@@ -171,12 +174,9 @@ final class RemoteCompanionCatalogueStore {
     }
 
     private func refreshOnce() async {
-        var next = value
-        if let native = try? await loadCatalogue(directory: "app_shortcuts") {
-            next = RemoteCompanionCatalogues(version: max(next.version, native.version),
-                                             applications: native.applications)
-        }
-        guard next != value, Self.valid(next), let encoded = try? JSONEncoder().encode(next) else { return }
+        guard let next = try? await loadCatalogue(directory: "app_shortcuts"),
+              next.version >= value.version, next != value,
+              Self.valid(next), let encoded = try? JSONEncoder().encode(next) else { return }
         defaults.set(encoded, forKey: Self.cacheKey)
         value = next
     }
@@ -218,25 +218,25 @@ final class RemoteCompanionCatalogueStore {
 
     private static func bundled() -> RemoteCompanionCatalogues {
         let companionVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-        func load<T: Decodable>(_ type: T.Type, folder: String) -> [T] {
-            guard let manifestURL = Bundle.module.url(
-                forResource: "manifest", withExtension: "json", subdirectory: folder
-            ), let manifestData = try? Data(contentsOf: manifestURL) else { return [] }
-            return decodeBundledCatalogueEntries(
-                manifestData: manifestData, companionVersion: companionVersion
-            ) { path in
-                let relative = URL(fileURLWithPath: path)
-                let parent = relative.deletingLastPathComponent().path
-                let subdirectory = parent == "." ? folder : "\(folder)/\(parent)"
-                return Bundle.module.url(
-                    forResource: relative.deletingPathExtension().lastPathComponent,
-                    withExtension: relative.pathExtension,
-                    subdirectory: subdirectory
-                ).flatMap { try? Data(contentsOf: $0) }
-            } ?? []
+        let folder = "AppShortcuts"
+        guard let manifestURL = Bundle.module.url(forResource: "manifest", withExtension: "json", subdirectory: folder),
+              let manifestData = try? Data(contentsOf: manifestURL),
+              let manifest = try? JSONDecoder().decode(RemoteCatalogueManifest.self, from: manifestData) else { return .empty }
+        let applications: [RemoteMacApplicationDefinition]? = decodeBundledCatalogueEntries(
+            manifestData: manifestData, companionVersion: companionVersion
+        ) { path in
+            let relative = path as NSString
+            let parent = relative.deletingLastPathComponent
+            let subdirectory = parent.isEmpty || parent == "." ? folder : "\(folder)/\(parent)"
+            let filename = relative.lastPathComponent as NSString
+            return Bundle.module.url(
+                forResource: filename.deletingPathExtension,
+                withExtension: filename.pathExtension,
+                subdirectory: subdirectory
+            ).flatMap { try? Data(contentsOf: $0) }
         }
-        let applications: [RemoteMacApplicationDefinition] = load(RemoteMacApplicationDefinition.self, folder: "AppShortcuts")
-        let result = RemoteCompanionCatalogues(version: 1, applications: applications)
+        guard let applications else { return .empty }
+        let result = RemoteCompanionCatalogues(version: manifest.catalogueVersion, applications: applications)
         return Self.valid(result) ? result : .empty
     }
 

@@ -41,6 +41,7 @@ import {
     COMPANION_SHORTCUT_APPS,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
+    isClaudeScopedShortcut,
     companionShortcutFolderAppLabel,
     companionShortcutFolderEditorAvailable,
     companionShortcutSelectionMatchesSavedParent,
@@ -123,7 +124,7 @@ const COMPANION_SHORTCUT_KEYS: Readonly<Record<string, string>> = {
     BracketLeft: "keybracketleft", BracketRight: "keybracketright", Backquote: "keybackquote",
 };
 const COMPANION_SHORTCUT_KEY_LABELS: Readonly<Record<string, string>> = {
-    space: "Space", enter: "Return", tab: "Tab", escape: "Esc",
+    space: "Space", enter: "Return", tab: "Tab", escape: "Esc", "escape-twice": "Esc Esc",
     delete: "Delete", forwarddelete: "Forward Delete",
     left: "←", right: "→", up: "↑", down: "↓",
     home: "Home", end: "End", pageup: "Page Up", pagedown: "Page Down",
@@ -161,8 +162,6 @@ export function formatCompanionShortcutActionId(actionId: string): string {
     if (!companionShortcutActionIdValid(actionId)) return "";
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     const key = parts.pop() || "";
-    if (!key || !parts.length || parts.some((part) =>
-        !(COMPANION_SHORTCUT_MODIFIERS as readonly string[]).includes(part))) return "";
     const symbols: Readonly<Record<string, string>> = {
         command: "⌘", control: "⌃", option: "⌥", shift: "⇧",
     };
@@ -821,13 +820,14 @@ export function registerCompanionCardTypes(
             keyPlaceholder.value = "";
             keyPlaceholder.textContent = "Choose a key…";
             keySelect.appendChild(keyPlaceholder);
-            const keyGroups: readonly [string, readonly string[]][] = [
+            const keyGroups: [string, readonly string[]][] = [
                 ["Letters", Array.from("abcdefghijklmnopqrstuvwxyz")],
                 ["Numbers", Array.from("0123456789")],
                 ["Navigation and editing", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => !key.startsWith("key"))],
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
+            if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {
                 const group = document.createElement("optgroup");
                 group.label = label;
@@ -948,8 +948,7 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
-                    COMPANION_SHORTCUT_MODIFIERS.some((modifier) =>
-                        modifier !== "shift" && selectedModifiers.has(modifier));
+                    (!isClaudeScopedShortcut(card.entity) || card.entity === currentEntity);
             });
 
             const windowField = document.createElement("div");

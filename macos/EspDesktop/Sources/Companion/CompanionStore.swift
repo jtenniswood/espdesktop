@@ -908,9 +908,30 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("Window tiling requires macOS 15 or later")
             return false
         }
-        guard shortcut.replay() else {
+        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        var targetPID: pid_t?
+        if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix),
+           CompanionKeyboardShortcut.isClaudeScopedShortcut(keys) {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier else {
+                updateStatus("Bring Claude Desktop to the front to use this shortcut")
+                return false
+            }
+            targetPID = application.processIdentifier
+        }
+        guard shortcut.replay(to: targetPID) else {
             updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
             return false
+        }
+        if keys == CompanionKeyboardShortcut.claudeRewindShortcut, let targetPID {
+            do {
+                try await Task.sleep(for: .milliseconds(80))
+            } catch {
+                return false
+            }
+            guard !sessionLock.refresh(),
+                  NSWorkspace.shared.frontmostApplication?.processIdentifier == targetPID else { return false }
+            return shortcut.replay(to: targetPID)
         }
         return true
     }

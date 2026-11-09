@@ -3,6 +3,25 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { loadTypeScriptModule } = require("../../../scripts/load_typescript_module");
 
+test("Claude Desktop keeps its existing presets and exposes numbered and scoped shortcuts", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const claude = require("../../../product/v2/app_shortcuts/claude-desktop.json");
+  const presets = api.companionShortcutPresetCards(claude.appId);
+  assert.equal(presets.length, 93);
+  assert.deepEqual(presets.slice(0, 4).map(card => card.entity),
+    ["shortcut.option+space", "shortcut.command+keyslash", "shortcut.command+n", "shortcut.control+tab"]);
+  assert(presets.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.enter"));
+  const keys = ["command+option+9", "command+9", "9", "shift+f6", "escape-twice"];
+  const entries = [...claude.shortcuts, ...claude.extendedShortcuts];
+  const ids = keys.map(key => entries.find(item => item.shortcut === key).id);
+  const page = api.createCompanionShortcutSubpage(claude.appId, ids);
+  assert.deepEqual(page.buttons.map(card => card.entity), keys.map(key => "shortcut." + key));
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(claude.appId, page), ids);
+  api.replaceCompanionDefinitions([claude]);
+  assert.deepEqual(api.companionShortcutPresetCards(claude.appId), presets);
+});
+
 test("file-defined apps and stable shortcut IDs drive subpages without code registration", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = {

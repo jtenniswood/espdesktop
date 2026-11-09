@@ -3,8 +3,14 @@ import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
-    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(apps);
-    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...apps);
+    const normalized = apps.map(({ extendedShortcuts, ...app }) => {
+        if (app.appId !== CLAUDE_DESKTOP_BUNDLE_ID || app.catalog || !Array.isArray(extendedShortcuts)) return app;
+        const extended = extendedShortcuts.filter((item) =>
+            isClaudeScopedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
+        return { ...app, shortcuts: [...app.shortcuts, ...extended] };
+    });
+    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(normalized);
+    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...normalized);
     return shortcutChanged;
 }
 
@@ -27,6 +33,7 @@ export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
+const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const SLACK_BUNDLE_ID = "com.tinyspeck.slackmacgap";
 export const COMPANION_SHORTCUT_PREFIX = "shortcut.";
@@ -239,8 +246,15 @@ export function companionShortcutSelectionMatchesSavedParent(draftCard: any, sav
         draftCard.entity === savedCard.entity;
 }
 
+const CLAUDE_SCOPED_SHORTCUT_PATTERN = /^shortcut\.(?:f6|shift\+f6|escape|escape-twice|up|down|[1-9])$/;
+
+export function isClaudeScopedShortcut(actionId: string): boolean {
+    return CLAUDE_SCOPED_SHORTCUT_PATTERN.test(actionId);
+}
+
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
     if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX)) return false;
+    if (isClaudeScopedShortcut(actionId)) return true;
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     if (parts.length < 2 || parts.length > 5) return false;
     const key = parts.pop() || "";

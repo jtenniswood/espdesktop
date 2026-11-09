@@ -50,6 +50,15 @@ final class CompanionAccessibilityAuthorizer {
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
     static let windowActionPrefix = "window."
+    static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
+    static let claudeRewindShortcut = "escape-twice"
+
+    static func isClaudeScopedShortcut(_ keys: String) -> Bool {
+        switch keys {
+        case "f6", "shift+f6", "escape", claudeRewindShortcut, "up", "down": return true
+        default: return keys.utf8.count == 1 && ("1"..."9").contains(keys)
+        }
+    }
 
     let keyCode: CGKeyCode
     let flags: CGEventFlags
@@ -65,7 +74,16 @@ struct CompanionKeyboardShortcut {
             return
         }
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
-        var parts = actionIdentifier.dropFirst(Self.actionPrefix.count).split(separator: "+").map(String.init)
+        let keys = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
+        if Self.isClaudeScopedShortcut(keys) {
+            let key = keys == Self.claudeRewindShortcut ? "escape" : keys.replacingOccurrences(of: "shift+", with: "")
+            guard let keyCode = Self.keyCodes[key] else { return nil }
+            self.keyCode = keyCode
+            self.flags = keys == "shift+f6" ? .maskShift : []
+            self.requiresMacOS15 = false
+            return
+        }
+        var parts = keys.split(separator: "+", omittingEmptySubsequences: false).map(String.init)
         guard parts.count >= 2, parts.count <= 5, let key = parts.popLast(),
               let keyCode = Self.keyCodes[key] else { return nil }
 
@@ -94,7 +112,7 @@ struct CompanionKeyboardShortcut {
     }
 
     @MainActor
-    func replay() -> Bool {
+    func replay(to processID: pid_t? = nil) -> Bool {
         guard isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else { return false }
         guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
         guard let source = CGEventSource(stateID: .hidSystemState),
@@ -104,8 +122,13 @@ struct CompanionKeyboardShortcut {
         }
         keyDown.flags = flags
         keyUp.flags = flags
-        keyDown.post(tap: .cghidEventTap)
-        keyUp.post(tap: .cghidEventTap)
+        if let processID {
+            keyDown.postToPid(processID)
+            keyUp.postToPid(processID)
+        } else {
+            keyDown.post(tap: .cghidEventTap)
+            keyUp.post(tap: .cghidEventTap)
+        }
         return true
     }
 

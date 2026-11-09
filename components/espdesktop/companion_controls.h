@@ -501,6 +501,12 @@ inline std::vector<std::string> companion_shortcut_parts(const std::string &acti
 
 inline bool companion_shortcut_action_valid(const std::string &action_id) {
   const auto parts = companion_shortcut_parts(action_id);
+  if (action_id == "shortcut.shift+f6") return true;
+  if (parts.size() == 1) {
+    const auto &key = parts.front();
+    return key == "f6" || key == "escape" || key == "escape-twice" || key == "up" || key == "down" ||
+           (key.size() == 1 && key[0] >= '1' && key[0] <= '9');
+  }
   if (parts.size() < 2 || parts.size() > 5) return false;
   bool command = false, control = false, option = false, shift = false;
   for (size_t i = 0; i + 1 < parts.size(); i++) {
@@ -547,6 +553,7 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
   else if (key == "end") key = espdesktop_i18n("End");
   else if (key == "enter") key = espdesktop_i18n("Return");
   else if (key == "escape") key = espdesktop_i18n("Esc");
+  else if (key == "escape-twice") key = std::string(espdesktop_i18n("Esc")) + " " + espdesktop_i18n("Esc");
   else if (key == "forwarddelete") key = espdesktop_i18n("Forward Delete");
   else if (key == "left") key = "\U000F004D";
   else if (key == "right") key = "\U000F0054";
