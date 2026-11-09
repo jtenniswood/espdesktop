@@ -317,7 +317,7 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.control+shift+tab",
     "shortcut.control+tab",
   ];
-  if (codexPreset.map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
+  if (codexPreset.slice(0, expectedCodexShortcuts.length).map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
     throw new Error("Codex shortcut defaults changed");
   }
   if (!codexPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
@@ -325,10 +325,10 @@ export function runCompanionShortcutFeatureTests(): void {
   }
   const expectedCodexLabels = [
     "New Chat", "Command Menu", "Needs Attention", "Review Changes", "Terminal", "Find Text", "Find Files",
-    "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model Picker", "Open Folder", "Bottom Panel",
+    "Browser Tab", "Sidebar", "File Tree", "Project Picker", "Model / Effort", "Open Folder", "Bottom Panel",
     "Chat / Tabs", "Copy Link", "Previous Chat", "Next Chat",
   ];
-  if (codexPreset.map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
+  if (codexPreset.slice(0, expectedCodexLabels.length).map((card) => card.label).join("|") !== expectedCodexLabels.join("|")) {
     throw new Error("Codex shortcut labels should stay short");
   }
   const slackFolderCard = {
@@ -476,9 +476,9 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Users must be able to turn off every preset shortcut");
   }
   const codexSubpage = createCodexShortcutSubpage();
-  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== expectedCodexShortcuts.length + 1 ||
+  if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexPreset.length + 1 ||
       codexSubpage.order[0] !== "B" ||
-      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
+      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexPreset.map((card) => card.entity).join("|")) {
     throw new Error("Codex app subpage layout changed");
   }
   const savedApprove = {

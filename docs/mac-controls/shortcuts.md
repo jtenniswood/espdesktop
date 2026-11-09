@@ -31,7 +31,9 @@ An approved **Companion → Applications** card can offer an **App Subpage** whe
 
 The **Books** app subpage offers shortcuts for reading, library management and audiobooks. Page turns, full screen and audiobook play/pause require updated display firmware and a matching version of the Mac Companion.
 
-The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and Codex. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
+The **ChatGPT Desktop** subpage includes chat and tab navigation, numbered chat shortcuts, and controls for the workspace and built-in browser. Some controls depend on the active mode or view. Use updated display firmware and Mac Companion to see the full list, including **Clear Unreads**.
+
+The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and ChatGPT Desktop. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
 
 ## Improve the Shortcut Catalog {#add-templates-for-another-app}
 

@@ -12,6 +12,7 @@ export interface AppShortcutApplication {
     readonly catalog: boolean;
     readonly shortcuts: readonly AppShortcutDefinition[];
     readonly extendedShortcuts?: readonly AppShortcutDefinition[];
+    readonly additionalShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {
@@ -1082,40 +1083,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
-    "appId": "com.anthropic.claudefordesktop",
-    "label": "Claude Desktop",
-    "catalog": false,
-    "shortcuts": [
-      {
-        "id": "0",
-        "label": "Quick Entry",
-        "shortcut": "option+space",
-        "icon": "Flash"
-      },
-      {
-        "id": "1",
-        "label": "Code Shortcuts",
-        "shortcut": "command+keyslash",
-        "icon": "Keyboard"
-      },
-      {
-        "id": "2",
-        "label": "New Session",
-        "shortcut": "command+n",
-        "icon": "Chat Plus"
-      },
-      {
-        "id": "3",
-        "label": "Next Session",
-        "shortcut": "control+tab",
-        "icon": "Chevron Right"
-      }
-    ]
-  },
-  {
-    "version": 1,
     "appId": "com.openai.codex",
-    "label": "Codex",
+    "label": "ChatGPT Desktop",
     "catalog": false,
     "shortcuts": [
       {
@@ -1186,7 +1155,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "14",
-        "label": "Model Picker",
+        "label": "Model / Effort",
         "shortcut": "control+shift+m",
         "icon": "Robot"
       },
@@ -1223,6 +1192,362 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       {
         "id": "18",
         "label": "Next Chat",
+        "shortcut": "control+tab",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "19",
+        "label": "Archive Chat",
+        "shortcut": "command+shift+a",
+        "icon": "Archive"
+      },
+      {
+        "id": "20",
+        "label": "Standalone Chat",
+        "shortcut": "command+option+o",
+        "icon": "New Window"
+      },
+      {
+        "id": "21",
+        "label": "Side Chat",
+        "shortcut": "command+option+s",
+        "icon": "Chat"
+      },
+      {
+        "id": "22",
+        "label": "Mark Unread",
+        "shortcut": "command+shift+u",
+        "icon": "Message Unread"
+      },
+      {
+        "id": "23",
+        "label": "Toggle Pin",
+        "shortcut": "command+option+p",
+        "icon": "Pin"
+      },
+      {
+        "id": "24",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Back"
+      },
+      {
+        "id": "25",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Forward"
+      },
+      {
+        "id": "26",
+        "label": "Next Sidebar",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "27",
+        "label": "Previous Sidebar",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "28",
+        "label": "Activity",
+        "shortcut": "command+option+u",
+        "icon": "Bell"
+      },
+      {
+        "id": "29",
+        "label": "Reopen Tab",
+        "shortcut": "command+shift+t",
+        "icon": "Tab Restore"
+      },
+      {
+        "id": "30",
+        "label": "Full View",
+        "shortcut": "command+shift+f",
+        "icon": "Full Screen"
+      },
+      {
+        "id": "31",
+        "label": "Cycle Layout",
+        "shortcut": "command+shift+b",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "32",
+        "label": "Show Mini",
+        "shortcut": "option+space",
+        "icon": "Picture in Picture"
+      },
+      {
+        "id": "33",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "34",
+        "label": "Close Others",
+        "shortcut": "command+option+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "35",
+        "label": "Close Tab",
+        "shortcut": "command+w",
+        "icon": "Close Tab"
+      },
+      {
+        "id": "36",
+        "label": "Recent Models",
+        "shortcut": "command+control+m",
+        "icon": "Robot"
+      },
+      {
+        "id": "37",
+        "label": "Voice Chat",
+        "shortcut": "control+shift+v",
+        "icon": "Microphone"
+      },
+      {
+        "id": "38",
+        "label": "Copy Chat Path",
+        "shortcut": "command+option+shift+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "39",
+        "label": "Copy Folder Path",
+        "shortcut": "command+shift+c",
+        "icon": "Folder Outline"
+      },
+      {
+        "id": "40",
+        "label": "Force Reload",
+        "shortcut": "command+shift+r",
+        "icon": "Restart"
+      },
+      {
+        "id": "41",
+        "label": "Mini Voice",
+        "shortcut": "option+v",
+        "icon": "Microphone"
+      },
+      {
+        "id": "42",
+        "label": "Reload Page",
+        "shortcut": "command+r",
+        "icon": "Refresh"
+      },
+      {
+        "id": "43",
+        "label": "Rename Chat",
+        "shortcut": "command+option+r",
+        "icon": "Rename"
+      },
+      {
+        "id": "44",
+        "label": "Screenshot Chat",
+        "shortcut": "control+shift+4",
+        "icon": "Screenshot"
+      },
+      {
+        "id": "45",
+        "label": "Screenshot New Chat",
+        "shortcut": "control+option+shift+4",
+        "icon": "Screenshot"
+      },
+      {
+        "id": "46",
+        "label": "Shortcut List",
+        "shortcut": "command+keyslash",
+        "icon": "Keyboard"
+      },
+      {
+        "id": "47",
+        "label": "Toggle Notch",
+        "shortcut": "option+c",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "48",
+        "label": "Tab 1",
+        "shortcut": "command+1",
+        "icon": "Tab"
+      },
+      {
+        "id": "49",
+        "label": "Tab 2",
+        "shortcut": "command+2",
+        "icon": "Tab"
+      },
+      {
+        "id": "50",
+        "label": "Tab 3",
+        "shortcut": "command+3",
+        "icon": "Tab"
+      },
+      {
+        "id": "51",
+        "label": "Tab 4",
+        "shortcut": "command+4",
+        "icon": "Tab"
+      },
+      {
+        "id": "52",
+        "label": "Tab 5",
+        "shortcut": "command+5",
+        "icon": "Tab"
+      },
+      {
+        "id": "53",
+        "label": "Tab 6",
+        "shortcut": "command+6",
+        "icon": "Tab"
+      },
+      {
+        "id": "54",
+        "label": "Tab 7",
+        "shortcut": "command+7",
+        "icon": "Tab"
+      },
+      {
+        "id": "55",
+        "label": "Tab 8",
+        "shortcut": "command+8",
+        "icon": "Tab"
+      },
+      {
+        "id": "56",
+        "label": "Tab 9",
+        "shortcut": "command+9",
+        "icon": "Tab"
+      },
+      {
+        "id": "57",
+        "label": "Recent 1",
+        "shortcut": "command+option+1",
+        "icon": "History"
+      },
+      {
+        "id": "58",
+        "label": "Recent 2",
+        "shortcut": "command+option+2",
+        "icon": "History"
+      },
+      {
+        "id": "59",
+        "label": "Recent 3",
+        "shortcut": "command+option+3",
+        "icon": "History"
+      },
+      {
+        "id": "60",
+        "label": "Recent 4",
+        "shortcut": "command+option+4",
+        "icon": "History"
+      },
+      {
+        "id": "61",
+        "label": "Recent 5",
+        "shortcut": "command+option+5",
+        "icon": "History"
+      },
+      {
+        "id": "62",
+        "label": "Recent 6",
+        "shortcut": "command+option+6",
+        "icon": "History"
+      },
+      {
+        "id": "63",
+        "label": "Clear Unreads",
+        "shortcut": "shift+escape",
+        "icon": "Check"
+      },
+      {
+        "id": "64",
+        "label": "Chat 1",
+        "shortcut": "control+1",
+        "icon": "Chat"
+      },
+      {
+        "id": "65",
+        "label": "Chat 2",
+        "shortcut": "control+2",
+        "icon": "Chat"
+      },
+      {
+        "id": "66",
+        "label": "Chat 3",
+        "shortcut": "control+3",
+        "icon": "Chat"
+      },
+      {
+        "id": "67",
+        "label": "Chat 4",
+        "shortcut": "control+4",
+        "icon": "Chat"
+      },
+      {
+        "id": "68",
+        "label": "Chat 5",
+        "shortcut": "control+5",
+        "icon": "Chat"
+      },
+      {
+        "id": "69",
+        "label": "Chat 6",
+        "shortcut": "control+6",
+        "icon": "Chat"
+      },
+      {
+        "id": "70",
+        "label": "Chat 7",
+        "shortcut": "control+7",
+        "icon": "Chat"
+      },
+      {
+        "id": "71",
+        "label": "Chat 8",
+        "shortcut": "control+8",
+        "icon": "Chat"
+      },
+      {
+        "id": "72",
+        "label": "Chat 9",
+        "shortcut": "control+9",
+        "icon": "Chat"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.anthropic.claudefordesktop",
+    "label": "Claude Desktop",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Quick Entry",
+        "shortcut": "option+space",
+        "icon": "Flash"
+      },
+      {
+        "id": "1",
+        "label": "Code Shortcuts",
+        "shortcut": "command+keyslash",
+        "icon": "Keyboard"
+      },
+      {
+        "id": "2",
+        "label": "New Session",
+        "shortcut": "command+n",
+        "icon": "Chat Plus"
+      },
+      {
+        "id": "3",
+        "label": "Next Session",
         "shortcut": "control+tab",
         "icon": "Chevron Right"
       }
