@@ -5723,16 +5723,21 @@ async function assertCardCurveSettings(browser, testCase) {
 // Read the actual rasterized border so covered outlines and thin clipped
 // corners fail even when the CSS reports the expected selection state.
 async function assertPreviewOutlinePixels(page, card, label) {
+  await page.evaluate(async () => { await document.fonts.ready; });
+  await card.scrollIntoViewIfNeeded();
+  await card.locator(":scope > .sp-card-outline > :is(path, rect)").waitFor({ state: "visible" });
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-  const png = await page.screenshot({ animations: "disabled", scale: "device", fullPage: true });
+  // Measure and capture in viewport coordinates. A full-page capture can
+  // reflow the preview and leave its responsive SVG out of sync with the pixels.
   const geometry = await card.evaluate(card => {
     const style = getComputedStyle(card);
     const radiusName = card.classList.contains("sp-empty-cell") ? "--empty-r" : "--btn-r";
     const bounds = card.getBoundingClientRect();
-    return { width: bounds.width, height: bounds.height, left: bounds.left + window.scrollX, top: bounds.top + window.scrollY, scale: window.devicePixelRatio,
+    return { width: bounds.width, height: bounds.height, left: bounds.left, top: bounds.top, scale: window.devicePixelRatio,
       radius: parseFloat(getComputedStyle(document.documentElement).getPropertyValue(radiusName)) * document.querySelector(".sp-screen").clientWidth / 100,
       continuous: style.clipPath.startsWith("path("), dashed: card.classList.contains("sp-empty-cell") };
   });
+  const png = await page.screenshot({ animations: "disabled", scale: "device" });
 
   const thicknesses = await page.evaluate(async ({ geometry: g, png }) => {
     const image = new Image(); image.src = png; await image.decode();
