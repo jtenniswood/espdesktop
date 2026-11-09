@@ -54,8 +54,7 @@ generated output.
   family.
 - `v2/cards/alarm.json`, `alarm_action.json`, and `presence.json` are the
   alert-card family.
-- `v2/cards/lawn_mower.json`, `vacuum.json`, and `webhook.json` are the
-  appliance-and-integration-card family.
+- `v2/cards/lawn_mower.json` and `vacuum.json` are the appliance-card family.
 - `v2/cards/default_switch.json` owns the contract's unnamed default-switch
   fallback entry.
 - `v2/devices/guition-esp32-p4-jc8012p4a1.json` and

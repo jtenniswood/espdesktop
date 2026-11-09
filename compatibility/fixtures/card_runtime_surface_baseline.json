@@ -2021,68 +2021,6 @@
       }
     },
     {
-      "name": "webhook: get",
-      "sourceKind": "contract",
-      "sourceType": "webhook",
-      "mode": "get",
-      "canonicalType": "webhook",
-      "web": {
-        "registration": "webhook",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "cf8dc0f94ab055bc"
-        }
-      },
-      "firmware": {
-        "family": "WEBHOOK"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "http"
-        ],
-        "actions": [
-          "http"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "webhook: post",
-      "sourceKind": "contract",
-      "sourceType": "webhook",
-      "mode": "post",
-      "canonicalType": "webhook",
-      "web": {
-        "registration": "webhook",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "cf8dc0f94ab055bc"
-        }
-      },
-      "firmware": {
-        "family": "WEBHOOK"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "http"
-        ],
-        "actions": [
-          "http"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "slider: numeric",
       "sourceKind": "contract",
       "sourceType": "slider",
@@ -2091,13 +2029,13 @@
       "web": {
         "registration": "slider",
         "picker": {
-          "main": true,
-          "subpage": true,
+          "main": false,
+          "subpage": false,
           "infoOnly": false
         },
         "preview": {
           "available": true,
-          "fingerprint": "58e3575a5df11b2d"
+          "fingerprint": "415c99b794e4dbf9"
         }
       },
       "firmware": {
