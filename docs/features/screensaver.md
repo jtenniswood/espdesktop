@@ -41,7 +41,7 @@ When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brig
 
 ## App Connection
 
-With the current Mac app and panel firmware, locking your Mac also locks the panel controls and shows a lock icon, **Locked**, and **Unlock your Mac to use this screen** while its backlight is on. Unlocking the Mac removes this lock automatically. No panel PIN is needed for this; a separately enabled panel PIN still applies. The Mac app must be running and paired. If the connection drops while locked, the panel keeps the lock until the app reconnects and reports that the Mac is unlocked.
+With the current Mac app and panel firmware, locking your Mac also locks the panel controls and shows a lock icon, **Locked**, and **Unlock your Mac to use this screen** while its backlight is on. Unlocking the Mac removes this lock automatically. The Mac app must be running and paired. If the connection drops while locked, the panel keeps the lock until the app reconnects and reports that the Mac is unlocked.
 
 The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
 
@@ -60,18 +60,3 @@ Home Assistant wake automations are retired with the integration. Use the touchs
 The [screen schedule](/features/screen-schedule) is separate from the screensaver. Use it when you want the panel to be fully dark, dimmed, or showing a clock overnight.
 
 Time-based Night Schedule has priority over the screensaver during night time. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled; choose Time to set local hours.
-
-## PIN protection after wake
-
-In **Screen > Sleep & Schedule > Pin Protection**, turn on **Require PIN after wake** to show the PIN controls. Enter a numeric **PIN** (1–16 digits) and choose **Save** to enable protection. Until a PIN is saved, turning on the toggle only opens setup; refreshing the page returns it to off.
-
-Use the same field and **Save** button to change the PIN. **Clear** removes it and disables protection; turning off the toggle keeps the saved PIN for later use. Saved settings survive a restart. Update the panel firmware if the controls are not shown.
-
-**Randomize keypad layout** is off by default. Turn it on to shuffle the digit layout each time the PIN keypad opens. The choice is saved on the panel.
-
-To lock manually, use the lock control in the panel’s status menu. It uses the same saved PIN. **Clear** in **Screen > Sleep & Schedule > Pin Protection** releases the lock and disables automatic PIN protection.
-
-After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake and scheduled wake use the same protection. With protection disabled or no PIN saved, wake works as before.
-
-This protects local touchscreen controls, including status buttons and alarm modals. It does not protect network, OTA, or web administration access. Someone with web setup access can change or clear the PIN; configure [web authentication](/getting-started/manual-esphome-setup#advanced-password-protect-the-web-page) separately if needed. The PIN is never returned by the settings API or included in backup JSON. Importing a backup clears the destination panel's PIN, so set a new PIN on its web setup page afterward.
-

@@ -179,4 +179,4 @@ complete checklist, generator order, stop conditions, and checks.
 
 ## Offline C6 Recovery Size
 
-Recovery firmware also embeds the C6 image. Its recovery-only package limits logging to INFO (including per-tag overrides) and uses two-bit PIN keypad title shading to fit the existing application partition. Recovery progress, warnings, errors, title glyphs, size and layout remain available. Normal factory and OTA builds retain their normal logging and font shading.
+Recovery firmware also embeds the C6 image. Its recovery-only package limits logging to INFO (including per-tag overrides) and uses two-bit media title shading to fit the existing application partition. Recovery progress, warnings, errors, title glyphs, size and layout remain available. Normal factory and OTA builds retain their normal logging and font shading.

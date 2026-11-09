@@ -32,13 +32,9 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 Use **Screen** for appearance, backlight, rotation and sleep settings. Use **System** for Mac Companion pairing and connection status, preferences, backups, firmware updates and reset controls.
 
-## Protect the Touchscreen
+## Mac Screen Lock {#protect-the-touchscreen}
 
-Open **Screen → Sleep & Schedule → Pin Protection**, turn on **Require PIN after wake**, enter a numeric PIN of 1–16 digits and choose **Save**. You can also randomize the keypad. **Clear** removes the saved PIN and unlocks the display.
-
-Unlock protection applies to local touch controls; web administration and Mac access keep their own authentication. The PIN is excluded from backups, and importing a backup clears the PIN on the destination display.
-
-Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. Unlock your Mac to use the touchscreen again. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that the Mac has unlocked. A separately configured display PIN still applies.
+Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. Unlock your Mac to use the touchscreen again. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that the Mac has unlocked.
 
 ## Back Up Your Layout
 

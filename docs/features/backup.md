@@ -32,7 +32,7 @@ Open **System > Factory Reset** on the [Setup](/features/setup) page. Choose **S
 - **Partial reset** removes cards, layouts, subpages, actions, the custom device name and device preferences, while keeping the saved Wi-Fi connection and Mac pairing. The display restarts into card setup.
 - **Complete reset** also removes saved Wi-Fi credentials and Mac pairing. Confirm the reset in the web dialog, then follow the display's first-time setup instructions. Ethernet displays remain accessible through their wired network.
 
-Backups do not restore the display’s Wi-Fi login, Mac pairing credential or PIN. Older backups can still contain sensitive saved card settings. Both options keep the installed firmware and its built-in defaults. Names, credentials and other settings compiled into a custom ESPHome YAML remain; install stock firmware to restore stock defaults.
+Backups do not restore the display’s Wi-Fi login or Mac pairing credential. Older backups can still contain sensitive saved card settings. Both options keep the installed firmware and its built-in defaults. Names, credentials and other settings compiled into a custom ESPHome YAML remain; install stock firmware to restore stock defaults.
 
 The **Factory Reset** section appears only on firmware that supports it. After reset, reload any other open setup pages before editing. A reset interrupted by power loss resumes at startup. If storage cleanup fails, startup remains paused and the serial log reports `Reset recovery`; cleanup retries every ten seconds. Do not restore a backup until reset has completed.
 
