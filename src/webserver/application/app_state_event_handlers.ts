@@ -426,11 +426,11 @@ export function createAppStateEventHandlersFeature(
                 syncScreenScheduleUi();
             },
             "number-screen__schedule_on_hour": function (this: any, val?: any) {
-                state.scheduleOnHour = normalizeHour(val, 6);
+                state.scheduleOnHour = normalizeHour(val, 7);
                 syncScreenScheduleUi();
             },
             "number-screen__schedule_off_hour": function (this: any, val?: any) {
-                state.scheduleOffHour = normalizeHour(val, 23);
+                state.scheduleOffHour = normalizeHour(val, 19);
                 syncScreenScheduleUi();
             },
             "select-screen__schedule_mode": function (this: any, val?: any, d?: any) {
