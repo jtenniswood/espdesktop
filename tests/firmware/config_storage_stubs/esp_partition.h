@@ -40,6 +40,7 @@ inline esp_err_t esp_partition_erase_range(const esp_partition_t *,
       size > flash.size() - offset)
     return ESP_FAIL;
   const size_t count = prefix(size);
+  erased_bytes += count;
   std::fill_n(flash.data() + offset, count, 0xFF);
   maybe_cut();
   return ESP_OK;
