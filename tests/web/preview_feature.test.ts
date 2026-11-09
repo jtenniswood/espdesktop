@@ -1,6 +1,4 @@
-import { COMPANION_CAPABILITY_VERSION } from "../../src/webserver/generated/companion_capabilities";
 import {
-  buttonConfigDisabledForDevice,
   cardPreviewTextColor,
   cardProgressColor,
   cardPickerConnectors,
@@ -46,7 +44,6 @@ export function runPreviewFeatureTests(): void {
   equal(infoOnlyCardVisible("action", true), false, "actions are hidden in info-only mode");
   equal(defaultCardTypeForPicker("climate"), "climate_control", "picker aliases retain their defaults");
   equal(defaultCardTypeForPicker("companion_stats"), "companion", "Companion subtype pickers use the Companion runtime card");
-  equal(defaultCardTypeForPicker("companion_webapp"), "companion", "Web App picker entries use the Companion runtime card");
   equal(defaultCardTypeForPicker("companion_subpage"), "subpage", "Companion subpages use the shared subpage runtime");
   deepEqual(
     cardPickerConnectors(true, true),
@@ -67,10 +64,6 @@ export function runPreviewFeatureTests(): void {
     equal(cardTypeVisibleForConnector(key, "home_assistant"), false, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
   }
-  for (const key of ["calendar"]) {
-    equal(cardTypeConnector(key), "local", `${key} is classified as a local card`);
-    equal(cardTypeVisibleForConnector(key, "mac_companion"), true, `${key} remains available without Home Assistant`);
-  }
   equal(cardRequiresHomeAssistant("climate", {}), true, "Home Assistant-only cards require Home Assistant");
   equal(cardRequiresHomeAssistant("", {}), true, "the canonical empty-string Switch type requires Home Assistant");
   equal(cardRequiresHomeAssistant("push", {}), true, "Trigger cards require the Home Assistant event bus");
@@ -81,24 +74,19 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("action", "mac_companion"), false, "Action cards cannot return through the Companion picker");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_stats", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
-  equal(cardTypeVisibleForConnector("webhook", "home_assistant"), false, "shared webhook cards appear for Home Assistant");
-  equal(cardTypeVisibleForConnector("webhook", "mac_companion"), true, "shared webhook cards appear for Companion");
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
-    calendar: { label: "Date & Time", allowInSubpage: true },
     climate: { label: "Climate", allowInSubpage: false },
     climate_control: { label: "Climate controls", pickerKey: "climate", allowInSubpage: false },
     subpage: { label: "Subpage", allowInSubpage: false },
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    ["calendar"],
-    "subpage picker retains local cards and the Date & Time route",
+    [],
+    "subpage picker excludes unavailable types",
   );
   const defaultPicker = cardTypePickerOptions(definitions, [], false, false, null);
-  equal(defaultPicker.some((option) => option.key === "calendar"), true,
-    "the Date & Time route remains available for local Clock and World Clock modes");
   equal(defaultPicker.some((option) => option.key === "climate"), false,
     "Home Assistant cards stay hidden while support is disabled");
   equal(defaultPicker.some((option) => option.key === "subpage"), true,
@@ -106,15 +94,10 @@ export function runPreviewFeatureTests(): void {
   const optedInPicker = cardTypePickerOptions(definitions, [], false, false, null, "home_assistant", true);
   equal(optedInPicker.some((option) => option.key === "climate"), false,
     "legacy firmware opt-in cannot restore HA cards");
-  const audioControlsAvailable = COMPANION_CAPABILITY_VERSION >= 7;
-  equal(cardTypeVisibleForConnector("slider", "mac_companion"), audioControlsAvailable, "the picker requires complete Mac audio controls");
-  equal(buttonConfigDisabledForDevice({}, [], { type: "slider" }), false, "saved audio records can be restored in backups");
   const companionOptions = cardTypePickerOptions({
       ...definitions,
-      calendar: { label: "Date & Time", allowInSubpage: true },
       companion: { label: "Companion", allowInSubpage: true },
       companion_app: { label: "Applications", allowInSubpage: true },
-      companion_webapp: { label: "Web App", allowInSubpage: true },
       companion_shortcut: { label: "Keyboard shortcut", allowInSubpage: true },
       companion_url: { label: "Open URL", allowInSubpage: true },
       companion_folder: { label: "Open folder", allowInSubpage: true },
@@ -122,12 +105,11 @@ export function runPreviewFeatureTests(): void {
       companion_subpage: { label: "Subpage", pickerKey: "subpage", allowInSubpage: false },
       companion_window: { label: "Window control", allowInSubpage: true },
       push: { label: "Trigger", allowInSubpage: true },
-      webhook: { label: "Webhook", allowInSubpage: true },
       slider: { label: "Slider", allowInSubpage: true },
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "calendar", "companion_shortcut", "companion_folder", "companion_url", "companion_stats", "subpage", "companion_webapp", "webhook", "companion_window"],
+    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "slider", "companion_stats", "subpage", "companion_window"],
     "Companion picker excludes Home Assistant-only controls",
   );
   equal(

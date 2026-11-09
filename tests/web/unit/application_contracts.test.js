@@ -263,7 +263,6 @@ describe("browserless application contracts", () => {
     const handlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     assert.match(entry, /createAppStateEventHandlersFeature\([\s\S]*clockBarState,[\s\S]*statusPreview/);
     assert.match(entry, /app = createAppFeature\([\s\S]*appEvents, statusPreview/);
-    assert.match(entry, /timezoneId: \(value\) => statusPreview\.getTzId\(value\)/);
     assert.match(app, /statusPreview\.updateClock\(\)/);
     assert.match(handlers, /statusPreview: Pick<AppStatusPreviewFeature,/);
     assert.match(handlers, /updateNetworkPreview,[\s\S]*updateSunInfo,[\s\S]*\} = statusPreview/);
@@ -574,16 +573,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:WEATHER_CARD_METADATA|WEATHER_FORECAST_CARD_METADATA|normalizeWeatherCardMode|weatherCardDefaultForecastLabel|weatherCardIsForecastMode|weatherForecastCardsSupported|weatherModeOptionValues|weatherModeOptions):/);
   });
 
-  test("registers the webhook card through explicit shared options", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/webhook.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
-    assert.match(entry, /registerWebhookCardTypes\(registry, context\.configuration\.webhookOptions, fields, cardUi\);/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerWebhookCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:WEBHOOK_CARD_METADATA|WEBHOOK_HEADERS_OPTION|WEBHOOK_METHODS|normalizeWebhookConfig|setWebhookHeaders|webhookHeaders|webhookMethod):/);
-  });
-
   test("registers the Companion card through profile and browser services", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
@@ -659,20 +648,6 @@ describe("browserless application contracts", () => {
     assert.match(entry, /registerLockCardTypes\(registry, context\.configuration\.lockOptions, fields, cardUi\);/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerLockCardTypes/);
     assert.doesNotMatch(globals, /\bvar (?:LOCK_CARD_METADATA|lockCommandMode|lockModeDefaultIcon|lockModeDefaultLabel|lockModeOptionValues|lockUsesDefaultIcon|normalizeLockMode):/);
-  });
-
-  test("registers date/time cards through one explicit service", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    for (const card of ["calendar", "clock", "timezone"]) {
-      const source = fs.readFileSync(path.join(ROOT, `src/webserver/cards/${card}.ts`), "utf8");
-      assert.doesNotMatch(source, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|DATE_TIME_CARD_METADATA)\b/);
-    }
-    assert.match(entry, /registerCalendarCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.match(entry, /registerClockCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.match(entry, /registerTimezoneCardTypes\(registry, context\.configuration\.dateTimeOptions, context\.dom\.document, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerCalendarCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:DATE_TIME_CARD_METADATA|dateTimeCardMode|dateTimeCardTimeParts|dateTimeLargeNumbersLabel|dateTimeModeOptionValues|defaultTimezoneCardEntity|normalizeDateTimeCardMode|setDateTimeCardMode):/);
   });
 
   test("registers slider card families without compatibility descriptors", () => {
@@ -989,14 +964,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_RAW_CHUNK_FIELDS|saveButtonConfig|saveSubpageEntity|saveSubpageEntityLegacy|scheduleSliderSubpageMigration|subpageChunkShouldPost|subpageEntityKeys):/);
   });
 
-  test("offers Web Apps directly in the Companion card picker", () => {
-    const companion = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
-    const preview = fs.readFileSync(path.join(ROOT, "src/webserver/features/preview.ts"), "utf8");
-    assert.match(companion, /\["companion_webapp", "Web App", "webapp"\]/);
-    assert.match(preview, /companion_webapp: \{ icon: "web"/);
-    assert.match(preview, /companion_webapp: "companion"/);
-  });
-
   test("composes the backup contract without compatibility globals", () => {
     const contract = fs.readFileSync(path.join(ROOT, "src/webserver/application/backup_contract.ts"), "utf8");
     const backup = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_backup.ts"), "utf8");
@@ -1124,7 +1091,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /fields = createControlsFieldsFeature\(cards, configurationOptions, shell, requestApi\)/);
     assert.doesNotMatch(entry, /fields\.globals|installControlsFieldsModule/);
     assert.doesNotMatch(globals, /\bvar (?:makeCollapsibleCard|fieldLabel|textInput|fieldWithControl|selectField|segmentControl|colorField|toggleRow|applyCardMetadataFields|renderBasicCardFields|cardSensorPreviewHtml|cardBadgeLabelHtml|cardBadgePreview|condField|createRangeSlider):/);
-    for (const file of ["calendar.ts", "switch.ts", "weather.ts"]) {
+    for (const file of ["switch.ts", "weather.ts"]) {
       const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards", file), "utf8");
       assert.match(card, /ControlsFieldsFeature/, `${file} should receive the shared-fields service`);
     }

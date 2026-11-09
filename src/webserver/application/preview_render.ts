@@ -10,11 +10,10 @@ import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml } from "./ui_primitives";
-import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
+import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
-    audioSliderUnavailable,
     cardPreviewTextColor,
     cardProgressColor,
     cardSliderFillColor,
@@ -312,18 +311,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 btn.classList.add("sp-companion-app-icon-card");
             }
         };
-        if (applicationId.startsWith("webapp.")) {
-            const url = COMPANION_WEB_APPS.find(app => "webapp." + app.id === applicationId)?.icon;
-            if (!url) return;
-            const source = document.createElement("img");
-            source.onload = () => applyIcon({
-                dataUrl: url, defaultColor: "", activeColor: "", online: true,
-                insetLeftPercent: 0, insetTopPercent: 0,
-                artworkWidthFraction: 1, artworkHeightFraction: 1,
-            });
-            source.src = url;
-            return;
-        }
         const loadAppIcon = function (attempt: number): void {
             if (!btn.isConnected) return;
             const cached = cachedAppIcon(JSON.stringify([applicationId, backgroundColor]));
@@ -358,8 +345,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         return disabled.indexOf(key || "") !== -1;
     }
     function buttonConfigDisabledForDevice(this: any, button?: any) {
-        // Restrict card transfers while keeping saved slider records restorable.
-        return audioSliderUnavailable(button?.type) || isButtonConfigDisabledForDevice(
+        return isButtonConfigDisabledForDevice(
             dependencies.cards.definitions,
             dependencies.layout.config.disabledCardTypes || [],
             button,
@@ -501,7 +487,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (!c.isSub || state.settingsDraft.homeSlot === state.editingSubpage)) {
                     b = state.settingsDraft.button;
                 }
-                if (cardContractTypeRetired(b.type) || audioSliderUnavailable(b.type) || !buttonTypeInfoOnlyVisible(b.type || "")) {
+                if (cardContractTypeRetired(b.type) || !buttonTypeInfoOnlyVisible(b.type || "")) {
                     var hidden: any = document.createElement("div");
                     hidden.className = "sp-empty-cell sp-info-only-hidden";
                     hidden.setAttribute("data-pos", pos);

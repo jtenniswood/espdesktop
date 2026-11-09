@@ -10,10 +10,13 @@ inline bool retired_home_assistant_card(const Config &config) {
   if (type.empty() && config.entity.empty() && config.label.empty() && config.sensor.empty()) return false;
   if (type == "local" || type == "local_sensor" || type == "internal" ||
       type == "calendar" || type == "clock" || type == "timezone" || type == "screen_lock" ||
-      type == "screensaver" || type == "webhook" || type == "subpage" ||
+      type == "screensaver" || type == "subpage" ||
       type == "wifi_qr" || type == "wifi_qr_card" || type == "companion" ||
       type.rfind("companion_", 0) == 0) return false;
   if (type == "action" || type == "sensor") return config.sensor != "local";
-  if (type == "slider") return config.entity != "media.output_volume" && config.entity != "media.input_volume";
+  if (type == "slider") {
+    return config.entity != "media.output_volume" && config.entity != "media.input_volume" &&
+           config.entity != "media.output_mute" && config.entity != "media.input_mute";
+  }
   return true;
 }

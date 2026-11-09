@@ -198,7 +198,11 @@ script:
                                  id(${media_title_font})->get_lv_font(),
                                  id(${icon_font})->get_lv_font(),
                                  id(screensaver_wake_touch_guard_active),
-                                 id(${label_font})->get_lv_font());
+                                 id(${label_font})->get_lv_font(),
+                                 {id(${setup_icon_font_id})->get_lv_font(),
+                                  id(${setup_title_font_id})->get_lv_font(),
+                                  id(${setup_body_font_id})->get_lv_font(),
+                                  ${content_width}, ${setup_pad_row}});
 
   # The controller owns decisions; this adapter is the only path that applies
   # migrated ACTIVE, SETUP_DIMMED, DIMMED, CLOCK, COVER_ART, and DISPLAY_OFF transitions.
@@ -1556,7 +1560,7 @@ script:
           if (show_date) {
             char date_buf[96];
             snprintf(date_buf, sizeof(date_buf), "%d %s %d", time.day_of_month,
-                     calendar_month_name(time.month), time.year);
+                     clock_month_name(time.month), time.year);
             lv_label_set_display_text(id(clock_date_label), date_buf);
             lv_obj_clear_flag(id(clock_date_label), LV_OBJ_FLAG_HIDDEN);
           } else {

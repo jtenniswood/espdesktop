@@ -144,7 +144,7 @@ const importedPortraitSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, 3));
 assert.strictEqual(importedPortraitSubpage.subpages["1"].order[0], "1", "a portrait backup import normalizes a subpage 4x3 card before saving");
 assert.strictEqual(importedPortraitSubpage.subpages["1"].sizes["1"], undefined, "a portrait backup import removes the invalid subpage 4x3 size");
@@ -159,7 +159,7 @@ const restoredLandscapeSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1l",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
   settings: { screen_rotation: "0" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, restoredLandscapeCols));
 assert.strictEqual(restoredLandscapeSubpage.subpages["1"].order[0], "1l", "restoring landscape preserves a valid subpage 4x3 card");
@@ -642,168 +642,6 @@ assert(!climateIconPreview.iconHtml.includes("\u00b0C"), "climate icon mode prev
 function previewSensorValue(preview) {
   return (preview.iconHtml.match(/sp-sensor-value[^>]*>([^<]*)/) || [])[1] || "";
 }
-
-const datePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-});
-assert(!datePreview.labelHtml.includes("sp-type-badge"), "date preview omits the card-type badge");
-assert(datePreview.iconHtml.includes("sp-sensor-preview"), "date preview uses the shared sensor preview");
-const frenchMonth = new Intl.DateTimeFormat("fr", { month: "long" }).format(hooks.webserverMockNow());
-const frenchDatePreview = hooks.buttonTypePreviewForMockNow("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-}, {
-  language: "fr",
-});
-assert(frenchDatePreview.labelHtml.includes(frenchMonth), "date preview follows selected language month names");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "calendar", precision: "" }), "Large Date");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "calendar", precision: "datetime" }), "Large Time");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "clock" }), "Large Clock");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "timezone" }), "Large World Clock");
-
-const largeDatePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-}, {
-  cardSize: 4,
-});
-assert(largeDatePreview.iconHtml.includes("sp-sensor-preview-large"), "date 2x2 preview defaults to large numbers");
-
-const dateTimePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(dateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time 2x2 preview defaults to large numbers");
-assert(previewSensorValue(dateTimePreview).includes(":"), "date/time preview renders a time value");
-
-const timezoneDateTimePreview = hooks.buttonTypePreviewForMockNow("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "",
-}, {
-  timezone: "Pacific/Honolulu",
-  language: "en",
-  clockFormat: "24h",
-});
-assert(previewSensorValue(timezoneDateTimePreview).startsWith("23:00"), "date/time preview formats its time in the panel timezone");
-assert(timezoneDateTimePreview.labelHtml.includes("31 December"), "date/time preview formats its date in the panel timezone");
-
-const wideDateTimePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(!wideDateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time wide preview does not support large numbers");
-assert.strictEqual(wideDateTimePreview.buttonClass, undefined, "date/time wide preview uses the standard wrapper");
-assert(wideDateTimePreview.labelHtml.includes("sp-btn-label"), "date/time wide preview keeps the date label");
-
-const clockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(previewSensorValue(clockPreview).includes(":"), "clock preview renders a time value");
-assert(clockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock 2x2 preview defaults to large numbers");
-assert.strictEqual(clockPreview.labelHtml, "", "clock preview does not render a date label");
-assert.strictEqual(clockPreview.buttonClass, "sp-clock-large", "clock 2x2 preview uses the large clock wrapper");
-
-const wideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(wideClockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock wide preview supports large numbers");
-assert.strictEqual(wideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "clock wide large preview is left aligned");
-assert.strictEqual(wideClockPreview.labelHtml, "", "clock wide preview does not render a date label");
-
-const resizedWideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers,center_clock",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert.strictEqual(resizedWideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "two-column clocks ignore retained center-clock options");
-
-const centeredExtraWideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers,center_clock",
-}, {
-  cardSize: 6,
-  clockFormat: "24h",
-});
-assert.strictEqual(centeredExtraWideClockPreview.buttonClass, "sp-clock-large sp-clock-centered", "clocks wider than two columns honor center-clock");
-
-const timezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "",
-}, {
-  clockFormat: "24h",
-});
-assert(timezonePreview.labelHtml.includes("New York"), "world clock preview uses the city label");
-assert(!timezonePreview.labelHtml.includes("sp-type-badge"), "world clock preview omits the card-type badge");
-
-const autoTimezonePreview = hooks.buttonTypePreviewForMockNow("timezone", {
-  entity: "Auto (Home Assistant)",
-  type: "timezone",
-  options: "",
-}, {
-  activeTimezone: "America/New_York",
-  clockFormat: "24h",
-});
-assert(autoTimezonePreview.labelHtml.includes("New York"), "Auto world clock preview uses the published active timezone city");
-assert.strictEqual(previewSensorValue(autoTimezonePreview), "04:00", "Auto world clock preview uses the published active timezone time");
-
-const wideTimezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(!wideTimezonePreview.iconHtml.includes("sp-sensor-preview-large"), "world clock wide preview does not support large numbers");
-assert.strictEqual(wideTimezonePreview.buttonClass, undefined, "world clock wide preview uses the standard wrapper");
-assert(wideTimezonePreview.labelHtml.includes("New York"), "world clock wide preview keeps the city label");
-
-const largeTimezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "large_numbers",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(largeTimezonePreview.iconHtml.includes("sp-sensor-preview-large"), "world clock 2x2 preview supports large numbers");
-
-const timezoneSamples = [
-  "UTC (GMT+0)",
-  "Pacific/Kiritimati (GMT+14)",
-  "America/New_York (GMT-5)",
-  "Pacific/Honolulu (GMT-10)",
-];
-assert(timezoneSamples.some((timezone) => {
-  const button = { entity: timezone, type: "timezone", options: "" };
-  const clock24 = previewSensorValue(hooks.buttonTypePreviewFor("timezone", button, { clockFormat: "24h" }));
-  const clock12 = previewSensorValue(hooks.buttonTypePreviewFor("timezone", button, { clockFormat: "12h" }));
-  return clock24 !== clock12;
-}), "world clock preview follows 12/24-hour formatting");
 
 const weatherCurrentPreview = hooks.buttonTypePreviewFor("weather", {
   entity: "weather.forecast_home",
@@ -1455,14 +1293,9 @@ assert.notStrictEqual(
   "2026-01-01T09:00:00.000Z",
   "production web UI clock uses the real current time"
 );
-assert(
-  hooks.buttonTypePreviewForMockNow("clock", { type: "clock" }, { clockFormat: "24h" }).iconHtml.includes("09:00"),
-  "mock webserver clock preview uses fixed 09:00 time"
-);
-assert(
-  hooks.buttonTypePreviewForMockNow("clock", { type: "clock" }, { clockFormat: "12h" }).iconHtml.includes("9:00"),
-  "mock webserver clock preview uses fixed 9:00 time in 12h mode"
-);
+for (const type of ["calendar", "clock", "timezone"]) {
+  assert.strictEqual(hooks.buttonTypePreviewFor(type, { type }), null, `${type} has no active preview`);
+}
 const backOnlySubpage = hooks.parseSubpageConfig(",,,,B");
 hooks.buildSubpageGrid(backOnlySubpage);
 assert.deepStrictEqual(plain(backOnlySubpage.buttons), []);

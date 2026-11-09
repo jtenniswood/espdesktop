@@ -27,7 +27,6 @@ SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espdesktop" / "button_grid_s
 SAVED_CONFIG_MEDIA_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
 SAVED_CONFIG_STATIC_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
 SAVED_CONFIG_FAN_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
-SAVED_CONFIG_DATE_TIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_date_time_generated.h"
 SAVED_CONFIG_MOWER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_mower_generated.h"
 SAVED_CONFIG_OCCUPANCY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_occupancy_generated.h"
 SAVED_CONFIG_ACCESS_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_access_generated.h"
@@ -36,7 +35,6 @@ SAVED_CONFIG_WEATHER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_
 SAVED_CONFIG_IMAGE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_image_generated.h"
 SAVED_CONFIG_CLIMATE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_climate_generated.h"
 SAVED_CONFIG_LIGHT_CONTROL_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_light_control_generated.h"
-SAVED_CONFIG_WEBHOOK_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_webhook_generated.h"
 SAVED_CONFIG_SUBPAGE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_subpage_generated.h"
 SAVED_CONFIG_SWITCH_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_switch_generated.h"
 BACKLIGHT_HEADER = ROOT / "components" / "espdesktop" / "backlight.h"
@@ -528,9 +526,12 @@ int main() {
   assert(companion_action.options == "");
 
   auto clock = parse_cfg(";;;;;;clock;;large_numbers");
-  assert(clock.type == "clock");
-  assert(clock.options == "large_numbers");
-  assert(card_large_numbers_enabled(clock));
+  assert(card_runtime_type_retired(clock.type));
+  assert(clock.options.empty());
+  assert(!card_large_numbers_enabled(clock));
+  for (const auto *code : {"D", "CK", "T"}) {
+    assert(card_runtime_type_retired(card_runtime_subpage_type_from_code(code)));
+  }
 
   auto weather_today = parse_cfg("weather.home;;;;;;weather;today;large_numbers");
   assert(weather_today.type == "weather");
@@ -1120,7 +1121,6 @@ def main() -> int:
         shutil.copy2(SAVED_CONFIG_MEDIA_HEADER, tmp_path / "button_grid_saved_config_media_generated.h")
         shutil.copy2(SAVED_CONFIG_STATIC_HEADER, tmp_path / "button_grid_saved_config_static_generated.h")
         shutil.copy2(SAVED_CONFIG_FAN_HEADER, tmp_path / "button_grid_saved_config_fan_generated.h")
-        shutil.copy2(SAVED_CONFIG_DATE_TIME_HEADER, tmp_path / "button_grid_saved_config_date_time_generated.h")
         shutil.copy2(SAVED_CONFIG_MOWER_HEADER, tmp_path / "button_grid_saved_config_mower_generated.h")
         shutil.copy2(SAVED_CONFIG_OCCUPANCY_HEADER, tmp_path / "button_grid_saved_config_occupancy_generated.h")
         shutil.copy2(SAVED_CONFIG_ACCESS_HEADER, tmp_path / "button_grid_saved_config_access_generated.h")
@@ -1129,7 +1129,6 @@ def main() -> int:
         shutil.copy2(SAVED_CONFIG_IMAGE_HEADER, tmp_path / "button_grid_saved_config_image_generated.h")
         shutil.copy2(SAVED_CONFIG_CLIMATE_HEADER, tmp_path / "button_grid_saved_config_climate_generated.h")
         shutil.copy2(SAVED_CONFIG_LIGHT_CONTROL_HEADER, tmp_path / "button_grid_saved_config_light_control_generated.h")
-        shutil.copy2(SAVED_CONFIG_WEBHOOK_HEADER, tmp_path / "button_grid_saved_config_webhook_generated.h")
         shutil.copy2(SAVED_CONFIG_SUBPAGE_HEADER, tmp_path / "button_grid_saved_config_subpage_generated.h")
         shutil.copy2(SAVED_CONFIG_SWITCH_HEADER, tmp_path / "button_grid_saved_config_switch_generated.h")
         shutil.copy2(CLOCK_BAR_HEADER, tmp_path / "clock_bar.h")

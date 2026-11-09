@@ -28,6 +28,8 @@ Approve **Finder** in the Mac app to use its launch card. Touching an app card s
 
 Addresses containing an embedded username or password are rejected. Other URL types, including `file://`, are not accepted.
 
+Saved **Web App** cards are removed from layouts when upgrading or restoring a backup. Use **Open URL** to add a card for a website.
+
 ## Ready-Made App Subpages
 
 An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Current examples include **Safari**, **Slack**, and **Codex**; community contributions can add more apps.

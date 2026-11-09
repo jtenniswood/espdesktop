@@ -20,7 +20,6 @@ let package = Package(
             path: "Sources/Companion",
             resources: [
                 .copy("Resources/AppShortcuts"),
-                .copy("Resources/WebApps"),
                 .copy("Resources/buy-me-a-coffee-button.png"),
             ],
             linkerSettings: [

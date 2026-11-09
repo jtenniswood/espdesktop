@@ -627,69 +627,6 @@
       }
     },
     {
-      "name": "calendar: date",
-      "sourceKind": "contract",
-      "sourceType": "calendar",
-      "mode": "date",
-      "canonicalType": "calendar",
-      "web": {
-        "registration": "calendar",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "9b48d48a5064589a"
-        }
-      },
-      "firmware": {
-        "family": "DATE_TIME"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "state",
-          "time"
-        ],
-        "actions": [
-          "none"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "clock: local_time",
-      "sourceKind": "contract",
-      "sourceType": "clock",
-      "mode": "local_time",
-      "canonicalType": "clock",
-      "web": {
-        "registration": "clock",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "dd7881f7dc8a14d8"
-        }
-      },
-      "firmware": {
-        "family": "DATE_TIME"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "time"
-        ],
-        "actions": [
-          "none"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "climate: status",
       "sourceKind": "contract",
       "sourceType": "climate",
@@ -2084,68 +2021,6 @@
       }
     },
     {
-      "name": "webhook: get",
-      "sourceKind": "contract",
-      "sourceType": "webhook",
-      "mode": "get",
-      "canonicalType": "webhook",
-      "web": {
-        "registration": "webhook",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "cf8dc0f94ab055bc"
-        }
-      },
-      "firmware": {
-        "family": "WEBHOOK"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "http"
-        ],
-        "actions": [
-          "http"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "webhook: post",
-      "sourceKind": "contract",
-      "sourceType": "webhook",
-      "mode": "post",
-      "canonicalType": "webhook",
-      "web": {
-        "registration": "webhook",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "cf8dc0f94ab055bc"
-        }
-      },
-      "firmware": {
-        "family": "WEBHOOK"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "http"
-        ],
-        "actions": [
-          "http"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "slider: numeric",
       "sourceKind": "contract",
       "sourceType": "slider",
@@ -2160,7 +2035,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "58e3575a5df11b2d"
+          "fingerprint": "415c99b794e4dbf9"
         }
       },
       "firmware": {
@@ -2203,37 +2078,6 @@
         ],
         "actions": [
           "navigation"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "timezone: timezone",
-      "sourceKind": "contract",
-      "sourceType": "timezone",
-      "mode": "timezone",
-      "canonicalType": "timezone",
-      "web": {
-        "registration": "timezone",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "118506d650ffa83f"
-        }
-      },
-      "firmware": {
-        "family": "DATE_TIME"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "time"
-        ],
-        "actions": [
-          "none"
         ],
         "modalOwner": "none"
       }
