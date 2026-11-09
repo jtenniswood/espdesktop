@@ -30,7 +30,7 @@ To go through first-run setup again, open **Support → Restart Setup** in the M
 - **Keyboard shortcut or window:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**. If these cards stopped working after replacing the app, remove the old EspDesktop entry and add the installed app again.
 - **Window arrangement:** requires macOS 15 or newer; some applications do not support every window action.
 
-For the control's exact requirements, see [Mac Controls](/card-types/companion).
+For the control's exact requirements, see [Mac Controls](/#what-you-can-control).
 
 ## The Touchscreen Says to Unlock Your Mac
 

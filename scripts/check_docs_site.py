@@ -177,7 +177,6 @@ def check_build(dist):
         BASE + 'getting-started/install',
         BASE + 'getting-started/mac-app',
         BASE + 'getting-started/troubleshooting',
-        BASE + 'card-types/companion',
         BASE + 'mac-controls/apps',
         BASE + 'mac-controls/folders',
         BASE + 'mac-controls/shortcuts',
@@ -229,15 +228,16 @@ def check_build(dist):
 
     redirects = {
         'reference/request-device-support': BASE + 'screens/4848s040',
+        'card-types/companion': BASE + '#what-you-can-control',
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
         'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/',
         'features/media-cover-art': BASE + 'features/setup#show-mac-cover-art',
-        'mac-controls/volume': BASE + 'card-types/companion',
+        'mac-controls/volume': BASE + '#what-you-can-control',
         'guides/index': 'https://jtenniswood.github.io/espcontrol/',
         'immich/index': 'https://jtenniswood.github.io/espcontrol/',
         'generated/companion-compatibility': BASE + 'reference/companion-compatibility',
-        'generated/cards/capabilities': BASE + 'card-types/companion',
+        'generated/cards/capabilities': BASE + '#what-you-can-control',
         'generated/cards/runtime-coverage': 'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
     }
     redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'

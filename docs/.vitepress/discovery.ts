@@ -4,20 +4,22 @@ import type { MarkdownRenderer } from 'vitepress'
 
 export const hostname = 'https://jtenniswood.github.io/espdesktop/'
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
+const macControls = `${hostname}#what-you-can-control`
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
   'reference/request-device-support': `${hostname}screens/4848s040`,
+  'card-types/companion': macControls,
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,
   'getting-started/home-assistant-actions': espcontrol,
   'features/media-cover-art': `${hostname}features/setup#show-mac-cover-art`,
-  'mac-controls/volume': `${hostname}card-types/companion`,
+  'mac-controls/volume': macControls,
   'guides/index': espcontrol,
   'immich/index': espcontrol,
-  'generated/cards/capabilities': `${hostname}card-types/companion`,
+  'generated/cards/capabilities': macControls,
   'generated/cards/runtime-coverage':
     'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
   'generated/screens/4848s040-grid': `${hostname}screens/4848s040`,

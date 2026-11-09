@@ -29,4 +29,4 @@ On **Access and startup**, choose **Open Settings** to grant Accessibility acces
 2. Pick an app and choose **Apply Configuration**.
 3. Tap the card on the display. The app should open or come to the front on your Mac.
 
-[Explore Mac controls](/card-types/companion) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
+[Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
