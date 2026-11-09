@@ -35,6 +35,10 @@ class MipiRgb : public display::Display {
 #if defined(USE_ESP32_VARIANT_ESP32S3)
   void resync_scanout();
 #endif
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+  // Call on the ESPHome loop, between drawing operations.
+  bool copy_presented_frame(uint16_t *pixels, size_t pixel_count) const;
+#endif
   void setup() override;
   void loop() override;
   void update() override;

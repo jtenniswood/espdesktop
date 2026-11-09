@@ -279,6 +279,29 @@ void MipiRgb::resync_scanout() {
 }
 #endif
 
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+bool MipiRgb::copy_presented_frame(uint16_t *pixels, size_t pixel_count) const {
+  if (this->handle_ == nullptr || this->is_failed() || this->frame_active_ ||
+      pixel_count != this->width_ * this->height_) {
+    return false;
+  }
+
+  const uint16_t *front = this->frames_.front();
+  if (!this->double_buffered_) {
+    void *buffer = nullptr;
+    if (esp_lcd_rgb_panel_get_frame_buffer(this->handle_, 1, &buffer) != ESP_OK) {
+      return false;
+    }
+    front = static_cast<const uint16_t *>(buffer);
+  }
+  if (front == nullptr) {
+    return false;
+  }
+  std::memcpy(pixels, front, pixel_count * sizeof(uint16_t));
+  return true;
+}
+#endif
+
 void MipiRgb::loop() {
   // The ESP-IDF RGB driver already restarts on real DMA underflow when needed.
   // Continuously requesting restarts can cause visible one-frame shifts and flicker.

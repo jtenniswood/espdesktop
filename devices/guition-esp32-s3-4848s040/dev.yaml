@@ -28,7 +28,7 @@ esphome:
     # Register before the web server starts accepting requests.
     - priority: 250
       then:
-        - lambda: espdesktop::register_display_resync_test();
+        - lambda: espdesktop::register_display_resync_test(id(my_display), id(main_lvgl));
 
 wifi:
   ssid: !secret wifi_ssid
