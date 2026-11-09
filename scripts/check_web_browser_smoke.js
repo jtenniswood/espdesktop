@@ -4248,7 +4248,7 @@ async function assertMacLockCard(browser) {
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons = {
     1: "shortcut.command+control+q;Mac Lock;Lock;Auto;;;companion",
-    2: "shortcut.command+control+q;Custom Lock Shortcut;Shortcut Command;Auto;;;companion",
+    2: "shortcut.command+control+q;Mac Lock;Lock;Auto;;;companion;;app_shortcut_preset=custom",
   };
   nativeState.document.settings.button_order = "1,2";
   nativeState.document.subpages = {};

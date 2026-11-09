@@ -405,6 +405,7 @@ export function createConfigCodecFeature(
         // The original picker used a regular shortcut with the Mac Lock label and icon.
         // A saved card may have one of those fields customized.
         if (b?.type === "companion" && b.entity === macLockDefaults.entity && !b.sensor &&
+            !configOptionValue(b.options, "app_shortcut_preset") &&
             (b.label === macLockDefaults.label || b.icon === macLockDefaults.icon)) {
             b.type = macLockDefaults.type;
         }
