@@ -13,7 +13,7 @@ class Loader(yaml.SafeLoader):
 Loader.add_constructor("!lambda", lambda loader, node: loader.construct_scalar(node))
 config = yaml.load((ROOT / "common/config/display.yaml").read_text(), Loader=Loader)
 selector = next(item for item in config["select"] if item.get("id") == "default_icon_size_select")
-assert selector["restore_value"] and selector["initial_option"] == "Small"
+assert selector["restore_value"] and selector["initial_option"] == "Large"
 assert selector["options"] == ["Small", "Medium", "Large"]
 boot = next(item for item in config["esphome"]["on_boot"]
             if "set_card_icon_default_size" in str(item))
@@ -33,6 +33,8 @@ void boot(const std::string &saved) { __BOOT__ }
 void changed(const std::string &x) { __CHANGED__ }
 int main() {
   using namespace espdesktop;
+  boot("__INITIAL_OPTION__");
+  assert(resolved_card_icon_size("") == "large");
   for (const auto &preset : {"Small", "Medium", "Large"}) {
     set_card_icon_default_size("invalid");
     boot(preset);
@@ -45,7 +47,7 @@ int main() {
   changed("Medium");
   assert(resolved_card_icon_size("") == "medium");
 }
-'''.replace("__BOOT__", body).replace("__CHANGED__", changed)
+'''.replace("__BOOT__", body).replace("__CHANGED__", changed).replace("__INITIAL_OPTION__", selector["initial_option"])
 with tempfile.TemporaryDirectory(prefix="default-icon-size-") as directory:
     cpp, binary = Path(directory) / "test.cpp", Path(directory) / "test"
     cpp.write_text(source)
