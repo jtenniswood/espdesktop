@@ -6,57 +6,57 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Go to Search .",
+      "label": "Search",
       "shortcut": "command+e",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Start a new chat.",
+      "label": "New Chat",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Chat Plus"
     },
     {
       "id": "2",
-      "label": "Start a chat in a new window.",
+      "label": "Popout Chat",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "Open External"
     },
     {
       "id": "3",
-      "label": "Go to a specific chat or channel.",
+      "label": "Jump Chat",
       "shortcut": "command+g",
-      "icon": "Application"
+      "icon": "Swap Horizontal"
     },
     {
       "id": "4",
-      "label": "Go to compose box.",
+      "label": "Compose",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Draw"
     },
     {
       "id": "5",
-      "label": "Jump to last read or newest message.",
+      "label": "Latest Message",
       "shortcut": "command+j",
-      "icon": "Application"
+      "icon": "Chevron Down"
     },
     {
       "id": "6",
-      "label": "Search current chat or channel messages.",
+      "label": "Search Chat",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Send (expanded compose box).",
+      "label": "Send",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Send"
     },
     {
       "id": "8",
-      "label": "Attach file.",
+      "label": "Attach File",
       "shortcut": "command+option+o",
-      "icon": "Application"
+      "icon": "Paperclip"
     }
   ]
 }

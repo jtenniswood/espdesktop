@@ -21,45 +21,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Lock 1Password",
+        "label": "Lock",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Lock"
       },
       {
         "id": "1",
-        "label": "Search all items",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Copy username or primary field",
+        "label": "Copy Username",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Account"
       },
       {
         "id": "3",
-        "label": "Copy password",
+        "label": "Copy Password",
         "shortcut": "command+shift+c",
-        "icon": "Application"
+        "icon": "Key"
       },
       {
         "id": "4",
-        "label": "Copy one-time password",
+        "label": "Copy OTP",
         "shortcut": "command+option+c",
-        "icon": "Application"
+        "icon": "VPN"
       },
       {
         "id": "5",
-        "label": "Open login website and fill credentials",
+        "label": "Autofill",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Form Fill"
       },
       {
         "id": "6",
-        "label": "Create a new item",
+        "label": "New Item",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Plus"
       }
     ]
   },
@@ -71,21 +71,21 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "1",
-        "label": "Find in document",
+        "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Move to the next search result and highlight…",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "3",
-        "label": "Pause reading out loud",
+        "label": "Pause Reading",
         "shortcut": "command+shift+c",
-        "icon": "Application"
+        "icon": "Pause"
       }
     ]
   },
@@ -99,55 +99,55 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "1",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "2",
         "label": "Cut",
         "shortcut": "command+x",
-        "icon": "Application"
+        "icon": "Cut"
       },
       {
         "id": "3",
         "label": "Copy",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "4",
-        "label": "Create a document without opening the New Doc…",
+        "label": "Quick Document",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "5",
-        "label": "Save changes made to the document",
+        "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "6",
-        "label": "Open the Save As dialog box",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "7",
-        "label": "Save a copy of the document",
+        "label": "Save Copy",
         "shortcut": "command+option+s",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "8",
-        "label": "Open the Save For Web dialog box",
+        "label": "Web Export",
         "shortcut": "command+option+shift+s",
-        "icon": "Application"
+        "icon": "Export"
       }
     ]
   },
@@ -161,61 +161,61 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "Cut",
         "shortcut": "command+x",
-        "icon": "Application"
+        "icon": "Cut"
       },
       {
         "id": "1",
         "label": "Copy",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "2",
         "label": "Paste",
         "shortcut": "command+v",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "3",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "4",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "5",
-        "label": "Rotate Left (CCW)",
+        "label": "Rotate Left",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Rotate Left"
       },
       {
         "id": "6",
         "label": "Zoom In",
         "shortcut": "command+keyequal",
-        "icon": "Application"
+        "icon": "Zoom In"
       },
       {
         "id": "7",
         "label": "Zoom Out",
         "shortcut": "command+keyminus",
-        "icon": "Application"
+        "icon": "Zoom Out"
       },
       {
         "id": "8",
         "label": "Preferences",
         "shortcut": "command+keycomma",
-        "icon": "Application"
+        "icon": "Settings"
       },
       {
         "id": "9",
         "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -229,37 +229,37 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "1",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "2",
         "label": "Deselect",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Deselect"
       },
       {
         "id": "3",
         "label": "Free Transform",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Vector"
       },
       {
         "id": "4",
-        "label": "New layer via copy",
+        "label": "Copy Layer",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "5",
-        "label": "Create or release clipping mask",
+        "label": "Clipping Mask",
         "shortcut": "command+option+g",
-        "icon": "Application"
+        "icon": "Clipping Mask"
       }
     ]
   },
@@ -271,63 +271,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "New Project …",
+        "label": "New Project",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "New Sequence…",
+        "label": "New Sequence",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Timeline"
       },
       {
         "id": "2",
-        "label": "Open Project...",
+        "label": "Open Project",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "3",
         "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "4",
-        "label": "Save As...",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "5",
-        "label": "Save a Copy...",
+        "label": "Save Copy",
         "shortcut": "command+option+s",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "6",
-        "label": "Import...",
+        "label": "Import",
         "shortcut": "command+i",
-        "icon": "Application"
+        "icon": "Import"
       },
       {
         "id": "7",
         "label": "Export Media",
         "shortcut": "command+m",
-        "icon": "Application"
+        "icon": "Export"
       },
       {
         "id": "8",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "9",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       }
     ]
   },
@@ -341,49 +341,49 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "New from Clipboard",
+        "label": "From Clipboard",
         "shortcut": "command+option+shift+n",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "2",
-        "label": "Close Document/Close App (when no documents o…",
+        "label": "Close Document",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Window Close"
       },
       {
         "id": "3",
-        "label": "Close All Documents",
+        "label": "Close All",
         "shortcut": "command+option+w",
-        "icon": "Application"
+        "icon": "Close"
       },
       {
         "id": "4",
-        "label": "New Pixel Layer",
+        "label": "Pixel Layer",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "5",
-        "label": "Switch to Next View",
+        "label": "Next View",
         "shortcut": "command+keybackquote",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "6",
         "label": "Select Next",
         "shortcut": "command+option+keybracketright",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "7",
         "label": "Select Previous",
         "shortcut": "command+option+keybracketleft",
-        "icon": "Application"
+        "icon": "Chevron Left"
       }
     ]
   },
@@ -397,49 +397,49 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "New from Clipboard",
+        "label": "From Clipboard",
         "shortcut": "command+option+shift+n",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "2",
         "label": "Open Document",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "3",
-        "label": "Close Document/Close App (when no documents o…",
+        "label": "Close Document",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Window Close"
       },
       {
         "id": "4",
-        "label": "Close All Documents",
+        "label": "Close All",
         "shortcut": "command+option+w",
-        "icon": "Application"
+        "icon": "Close"
       },
       {
         "id": "5",
         "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "6",
         "label": "New Layer",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "7",
-        "label": "Switch to Next View",
+        "label": "Next View",
         "shortcut": "command+keybackquote",
-        "icon": "Application"
+        "icon": "Tab"
       }
     ]
   },
@@ -453,37 +453,37 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Close Document/Close App (when no documents o…",
+        "label": "Close Document",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Window Close"
       },
       {
         "id": "2",
-        "label": "Close All Documents",
+        "label": "Close All",
         "shortcut": "command+option+w",
-        "icon": "Application"
+        "icon": "Close"
       },
       {
         "id": "3",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Switch to Next View",
+        "label": "Next View",
         "shortcut": "command+keybackquote",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "5",
         "label": "Select Previous",
         "shortcut": "command+option+keybracketleft",
-        "icon": "Application"
+        "icon": "Chevron Left"
       }
     ]
   },
@@ -497,31 +497,31 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "Show Alfred",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Action a numbered result",
+        "label": "Open Result",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Application Launch"
       },
       {
         "id": "2",
-        "label": "Open a selected file or app in its default app",
+        "label": "Open File",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "3",
-        "label": "Search the current query in Finder",
+        "label": "Search Finder",
         "shortcut": "option+enter",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "4",
-        "label": "Reveal a local file in Finder",
+        "label": "Reveal File",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Folder Open Outline"
       }
     ]
   },
@@ -533,63 +533,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open a new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "1",
-        "label": "Close the current tab or window",
+        "label": "Close Tab",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Close Tab"
       },
       {
         "id": "2",
-        "label": "Reopen the last closed tab",
+        "label": "Reopen Tab",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Tab Restore"
       },
       {
         "id": "3",
-        "label": "Pin or unpin the current tab",
+        "label": "Pin Tab",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Pin"
       },
       {
         "id": "4",
-        "label": "Change the current tab URL",
+        "label": "Edit URL",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "5",
-        "label": "Show or hide the sidebar",
+        "label": "Toggle Sidebar",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Dock Left"
       },
       {
         "id": "6",
-        "label": "Go directly to tab N",
+        "label": "Jump Tab",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "7",
-        "label": "Switch between the five most recent tabs",
+        "label": "Recent Tabs",
         "shortcut": "control+tab",
-        "icon": "Application"
+        "icon": "History"
       },
       {
         "id": "8",
-        "label": "Reload the webpage",
+        "label": "Reload",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Refresh"
       },
       {
         "id": "9",
-        "label": "Find text on the webpage",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -601,15 +601,15 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Add Label at Playback Position",
+        "label": "Add Label",
         "shortcut": "command+m",
-        "icon": "Application"
+        "icon": "Tag Plus"
       },
       {
         "id": "1",
-        "label": "Move to Previous Label",
+        "label": "Previous Label",
         "shortcut": "option+left",
-        "icon": "Application"
+        "icon": "Chevron Left"
       }
     ]
   },
@@ -623,61 +623,61 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "New Project",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
         "label": "Open Project",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "2",
         "label": "Save Project",
         "shortcut": "command+s",
-        "icon": "Download"
+        "icon": "Save"
       },
       {
         "id": "3",
-        "label": "Import geometry",
+        "label": "Import Model",
         "shortcut": "command+i",
-        "icon": "Application"
+        "icon": "Import"
       },
       {
         "id": "4",
-        "label": "Slice plate",
+        "label": "Slice Plate",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "5",
-        "label": "Print plate",
+        "label": "Print Plate",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Printer 3D"
       },
       {
         "id": "6",
-        "label": "Select all objects",
+        "label": "Select All",
         "shortcut": "command+a",
-        "icon": "Application"
+        "icon": "Select All"
       },
       {
         "id": "7",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Chevron Left"
+        "icon": "Undo"
       },
       {
         "id": "8",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Chevron Right"
+        "icon": "Redo"
       },
       {
         "id": "9",
-        "label": "Clone selected",
+        "label": "Clone",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Copy"
       }
     ]
   },
@@ -689,63 +689,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Heading levels 1–6",
+        "label": "Heading",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Heading"
       },
       {
         "id": "1",
         "label": "Bold",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Bold"
       },
       {
         "id": "2",
-        "label": "Insert link",
+        "label": "Insert Link",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "3",
-        "label": "Unordered list",
+        "label": "Bullet List",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Bullet List"
       },
       {
         "id": "4",
-        "label": "Create todo",
+        "label": "New To-do",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "5",
-        "label": "Toggle todo completion",
+        "label": "Toggle To-do",
         "shortcut": "command+keyperiod",
-        "icon": "Application"
+        "icon": "Check"
       },
       {
         "id": "6",
-        "label": "Search current note",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Search note list",
+        "label": "Search Notes",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Note Search"
       },
       {
         "id": "8",
-        "label": "New note",
+        "label": "New Note",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Note Plus"
       },
       {
         "id": "9",
         "label": "Quick Open",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Folder Search"
       }
     ]
   },
@@ -757,13 +757,13 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Add a new collection to your library",
+        "label": "New Collection",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Folder Plus"
       },
       {
         "id": "1",
-        "label": "Search books",
+        "label": "Search Books",
         "shortcut": "command+f",
         "icon": "Search"
       }
@@ -777,51 +777,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go to today’s date",
+        "label": "Today",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Calendar Today"
       },
       {
         "id": "1",
-        "label": "Go to a specific date",
+        "label": "Jump Date",
         "shortcut": "shift+command+t",
-        "icon": "Application"
+        "icon": "Calendar Search"
       },
       {
         "id": "2",
-        "label": "Switch to Day view",
+        "label": "Day View",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Calendar Today"
       },
       {
         "id": "3",
-        "label": "Switch to Week view",
+        "label": "Week View",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "Calendar Week"
       },
       {
         "id": "4",
-        "label": "Add a new calendar group",
+        "label": "Calendar Group",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Calendar Multiple"
       },
       {
         "id": "5",
-        "label": "Add a new subscribed calendar",
+        "label": "Subscribe",
         "shortcut": "option+command+s",
-        "icon": "Plus"
+        "icon": "Calendar Plus"
       },
       {
         "id": "6",
-        "label": "Add a new event",
+        "label": "New Event",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Calendar Plus"
       },
       {
         "id": "7",
-        "label": "Search for events",
+        "label": "Search Events",
         "shortcut": "command+f",
-        "icon": "Search"
+        "icon": "Calendar Search"
       }
     ]
   },
@@ -833,63 +833,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open command menu",
+        "label": "Command Menu",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Toggle sidebar",
+        "label": "Toggle Sidebar",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Dock Left"
       },
       {
         "id": "2",
-        "label": "New chat",
+        "label": "New Chat",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "3",
-        "label": "Quick chat",
+        "label": "Quick Chat",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "Chat"
       },
       {
         "id": "4",
-        "label": "Find in chat",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Previous chat or tab",
+        "label": "Previous Chat",
         "shortcut": "control+shift+tab",
-        "icon": "Application"
+        "icon": "Chevron Left"
       },
       {
         "id": "6",
-        "label": "Next chat or tab",
+        "label": "Next Chat",
         "shortcut": "control+tab",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "7",
-        "label": "Start voice chat",
+        "label": "Voice Chat",
         "shortcut": "control+shift+v",
-        "icon": "Application"
+        "icon": "Microphone"
       },
       {
         "id": "8",
-        "label": "Open Chat Bar (ChatGPT Classic)",
+        "label": "Chat Bar",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Chat"
       },
       {
         "id": "9",
-        "label": "Stop streaming response (ChatGPT Classic)",
+        "label": "Stop Reply",
         "shortcut": "command+keyperiod",
-        "icon": "Application"
+        "icon": "Stop"
       }
     ]
   },
@@ -901,27 +901,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Quick Entry (alternative)",
+        "label": "Quick Entry",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Flash"
       },
       {
         "id": "1",
-        "label": "Show Code-tab shortcuts",
+        "label": "Code Shortcuts",
         "shortcut": "command+keyslash",
-        "icon": "Application"
+        "icon": "Keyboard"
       },
       {
         "id": "2",
-        "label": "New Code session",
+        "label": "New Session",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "3",
-        "label": "Next Code session",
+        "label": "Next Session",
         "shortcut": "control+tab",
-        "icon": "Application"
+        "icon": "Chevron Right"
       }
     ]
   },
@@ -932,46 +932,112 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "catalog": false,
     "shortcuts": [
       {
-        "id": "0",
-        "label": "Command",
-        "shortcut": "command+k",
-        "icon": "Application"
+        "id": "7",
+        "label": "New Chat",
+        "shortcut": "command+n",
+        "icon": "Chat Plus"
       },
       {
-        "id": "1",
-        "label": "Approve",
-        "shortcut": "command+enter",
-        "icon": "Check"
+        "id": "0",
+        "label": "Command Menu",
+        "shortcut": "command+k",
+        "icon": "Shortcut Command"
+      },
+      {
+        "id": "8",
+        "label": "Needs Attention",
+        "shortcut": "option+command+a",
+        "icon": "Message Alert"
+      },
+      {
+        "id": "9",
+        "label": "Review Changes",
+        "shortcut": "control+shift+g",
+        "icon": "File Compare"
+      },
+      {
+        "id": "6",
+        "label": "Terminal",
+        "shortcut": "control+keybackquote",
+        "icon": "Terminal"
+      },
+      {
+        "id": "10",
+        "label": "Find Text",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "11",
+        "label": "Find Files",
+        "shortcut": "command+p",
+        "icon": "File Search"
       },
       {
         "id": "2",
-        "label": "Browser",
+        "label": "Browser Tab",
         "shortcut": "command+t",
-        "icon": "Web"
+        "icon": "Web Plus"
       },
       {
         "id": "3",
         "label": "Sidebar",
         "shortcut": "command+b",
-        "icon": "View Headline"
+        "icon": "Dock Left"
       },
       {
-        "id": "4",
-        "label": "Terminal (Bottom)",
-        "shortcut": "option+command+b",
-        "icon": "Dock Bottom"
+        "id": "12",
+        "label": "File Tree",
+        "shortcut": "command+shift+e",
+        "icon": "File Tree"
+      },
+      {
+        "id": "13",
+        "label": "Project Picker",
+        "shortcut": "option+command+shift+o",
+        "icon": "Folder Search"
+      },
+      {
+        "id": "14",
+        "label": "Model Picker",
+        "shortcut": "control+shift+m",
+        "icon": "Robot"
+      },
+      {
+        "id": "15",
+        "label": "Open Folder",
+        "shortcut": "command+o",
+        "icon": "Folder Open Outline"
       },
       {
         "id": "5",
-        "label": "Terminal (Side)",
+        "label": "Bottom Panel",
         "shortcut": "command+j",
-        "icon": "Dock Right"
+        "icon": "Dock Bottom"
       },
       {
-        "id": "6",
-        "label": "Terminal (Side)",
-        "shortcut": "control+keybackquote",
-        "icon": "Dock Right"
+        "id": "4",
+        "label": "Chat / Tabs",
+        "shortcut": "option+command+b",
+        "icon": "Swap Horizontal"
+      },
+      {
+        "id": "16",
+        "label": "Copy Link",
+        "shortcut": "option+command+l",
+        "icon": "Link"
+      },
+      {
+        "id": "17",
+        "label": "Previous Chat",
+        "shortcut": "control+shift+tab",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "18",
+        "label": "Next Chat",
+        "shortcut": "control+tab",
+        "icon": "Chevron Right"
       }
     ]
   },
@@ -983,39 +1049,39 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle the Cursor side panel",
+        "label": "Toggle Sidebar",
         "shortcut": "command+i",
-        "icon": "Application"
+        "icon": "Dock Right"
       },
       {
         "id": "1",
-        "label": "Open Inline Edit",
+        "label": "Inline Edit",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Draw"
       },
       {
         "id": "2",
-        "label": "Open the Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "3",
-        "label": "Force-send a message",
+        "label": "Force Send",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Send"
       },
       {
         "id": "4",
-        "label": "Cancel generation",
+        "label": "Stop Reply",
         "shortcut": "command+shift+delete",
-        "icon": "Application"
+        "icon": "Stop"
       },
       {
         "id": "5",
-        "label": "Add selected code to chat",
+        "label": "Attach Code",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Code"
       }
     ]
   },
@@ -1027,21 +1093,21 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Save project",
+        "label": "Save Project",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "1",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "2",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       }
     ]
   },
@@ -1053,45 +1119,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Keyboard Shortcuts menu",
+        "label": "Shortcuts",
         "shortcut": "command+keyslash",
-        "icon": "Application"
+        "icon": "Keyboard"
       },
       {
         "id": "1",
-        "label": "Search within the current channel",
+        "label": "Search Channel",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Search across channels",
+        "label": "Search All",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Open the Quick Switcher",
+        "label": "Quick Switch",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "4",
-        "label": "Mute or unmute microphone",
+        "label": "Toggle Mic",
         "shortcut": "command+shift+m",
-        "icon": "Application"
+        "icon": "Microphone Off"
       },
       {
         "id": "5",
-        "label": "Deafen or undeafen audio",
+        "label": "Toggle Deafen",
         "shortcut": "command+shift+d",
-        "icon": "Application"
+        "icon": "Headphones"
       },
       {
         "id": "6",
-        "label": "Upload a file",
+        "label": "Upload File",
         "shortcut": "command+shift+u",
-        "icon": "Application"
+        "icon": "Upload"
       }
     ]
   },
@@ -1103,45 +1169,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Search in Evernote",
+        "label": "Search Notes",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Note Search"
       },
       {
         "id": "1",
-        "label": "New note",
+        "label": "New Note",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Note Plus"
       },
       {
         "id": "2",
-        "label": "New notebook",
+        "label": "New Notebook",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Folder Plus"
       },
       {
         "id": "3",
-        "label": "New space",
+        "label": "New Space",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Plus"
       },
       {
         "id": "4",
-        "label": "New task",
+        "label": "New Task",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "5",
-        "label": "New event",
+        "label": "New Event",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Calendar Plus"
       },
       {
         "id": "6",
         "label": "Search",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -1153,15 +1219,15 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle full screen",
+        "label": "Full Screen",
         "shortcut": "control+command+f",
-        "icon": "Video"
+        "icon": "Full Screen"
       },
       {
         "id": "1",
-        "label": "Switch call orientation",
+        "label": "Rotate Video",
         "shortcut": "command+r",
-        "icon": "Video"
+        "icon": "Rotate Left"
       }
     ]
   },
@@ -1173,27 +1239,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Actions menu",
+        "label": "Actions",
         "shortcut": "command+k",
-        "icon": "Folder"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Frame selection",
+        "label": "Frame",
         "shortcut": "option+command+g",
-        "icon": "Application"
+        "icon": "Vector"
       },
       {
         "id": "2",
-        "label": "Duplicate selection",
+        "label": "Duplicate",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "3",
-        "label": "Create component",
+        "label": "New Component",
         "shortcut": "option+command+k",
-        "icon": "Plus"
+        "icon": "Component"
       }
     ]
   },
@@ -1205,51 +1271,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open an existing library or a new library",
+        "label": "Open Library",
         "shortcut": "command+o",
-        "icon": "Plus"
+        "icon": "Folder Play"
       },
       {
         "id": "1",
-        "label": "Create audition from timeline clip",
+        "label": "Clip Audition",
         "shortcut": "option+y",
-        "icon": "Plus"
+        "icon": "Filmstrip Stack"
       },
       {
         "id": "2",
-        "label": "Create audition from selection",
+        "label": "Audition Selection",
         "shortcut": "command+y",
-        "icon": "Plus"
+        "icon": "Compare Selection"
       },
       {
         "id": "3",
-        "label": "Create storyline from selection",
+        "label": "New Storyline",
         "shortcut": "command+g",
-        "icon": "Plus"
+        "icon": "Timeline Plus"
       },
       {
         "id": "4",
-        "label": "Create compound clip",
+        "label": "Compound Clip",
         "shortcut": "option+g",
-        "icon": "Plus"
+        "icon": "Group Selection"
       },
       {
         "id": "5",
-        "label": "Delete selection",
+        "label": "Delete Selection",
         "shortcut": "command+delete",
-        "icon": "Search"
+        "icon": "Trash Can Outline"
       },
       {
         "id": "6",
-        "label": "Create a new project",
+        "label": "New Project",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Movie Plus"
       },
       {
         "id": "7",
-        "label": "Reveal the selected event clip’s source media",
+        "label": "Reveal Media",
         "shortcut": "shift+command+r",
-        "icon": "Search"
+        "icon": "Folder Open Outline"
       }
     ]
   },
@@ -1261,51 +1327,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open file",
+        "label": "Open File",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "1",
-        "label": "Reload page",
+        "label": "Reload",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Refresh"
       },
       {
         "id": "2",
-        "label": "Force reload page",
+        "label": "Force Reload",
         "shortcut": "command+shift+r",
-        "icon": "Application"
+        "icon": "Sync"
       },
       {
         "id": "3",
-        "label": "Print page",
+        "label": "Print",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Printer"
       },
       {
         "id": "4",
-        "label": "Save page as",
+        "label": "Save Page",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "5",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "6",
-        "label": "Find in page",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Focus search bar",
+        "label": "Search Bar",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -1317,39 +1383,39 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new board",
+        "label": "New Board",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Create a copy of a board (duplicate)",
+        "label": "Duplicate Board",
         "shortcut": "shift+command+d",
-        "icon": "Plus"
+        "icon": "Copy"
       },
       {
         "id": "2",
-        "label": "Search boards",
+        "label": "Search Boards",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Apply Bold format to selected text",
+        "label": "Bold",
         "shortcut": "command+b",
-        "icon": "Palette"
+        "icon": "Bold"
       },
       {
         "id": "4",
-        "label": "Apply Italic format to selected text",
+        "label": "Italic",
         "shortcut": "command+i",
-        "icon": "Palette"
+        "icon": "Italic"
       },
       {
         "id": "5",
-        "label": "Apply Underline format to selected text",
+        "label": "Underline",
         "shortcut": "command+u",
-        "icon": "Palette"
+        "icon": "Underline"
       }
     ]
   },
@@ -1361,27 +1427,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle Snap to Grid",
+        "label": "Snap Grid",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Magnet"
       },
       {
         "id": "1",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "2",
-        "label": "Join regions or notes",
+        "label": "Join Regions",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Merge"
       },
       {
         "id": "3",
-        "label": "Split at playhead",
+        "label": "Split Playhead",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Cut"
       }
     ]
   },
@@ -1393,63 +1459,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Clone a repository from GitHub",
+        "label": "Clone Repo",
         "shortcut": "command+shift+o",
-        "icon": "Application"
+        "icon": "Download"
       },
       {
         "id": "1",
-        "label": "Show a list of your repositories",
+        "label": "Repositories",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Folder"
       },
       {
         "id": "2",
-        "label": "Push the latest commits to GitHub",
+        "label": "Push",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Upload"
       },
       {
         "id": "3",
-        "label": "Pull down the latest changes from GitHub",
+        "label": "Pull",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Download"
       },
       {
         "id": "4",
-        "label": "Show all your changes before committing",
+        "label": "View Changes",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "File Compare"
       },
       {
         "id": "5",
-        "label": "Show your commit history",
+        "label": "Commit History",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "History"
       },
       {
         "id": "6",
-        "label": "Commit changes when summary or description fi…",
+        "label": "Commit",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Source Commit"
       },
       {
         "id": "7",
-        "label": "Create a new branch",
+        "label": "New Branch",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Source Branch"
       },
       {
         "id": "8",
-        "label": "Compare to an existing branch",
+        "label": "Compare Branch",
         "shortcut": "command+shift+b",
-        "icon": "Application"
+        "icon": "Source Compare"
       },
       {
         "id": "9",
-        "label": "Show the current pull request on GitHub",
+        "label": "Pull Request",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Source Pull Request"
       }
     ]
   },
@@ -1461,27 +1527,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create branch",
+        "label": "New Branch",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Source Branch"
       },
       {
         "id": "1",
-        "label": "Search commits",
+        "label": "Search Commits",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Search file to view history and blame",
+        "label": "File History",
         "shortcut": "command+shift+h",
-        "icon": "Application"
+        "icon": "History"
       },
       {
         "id": "3",
         "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       }
     ]
   },
@@ -1493,63 +1559,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open a new window",
+        "label": "New Window",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New Window"
       },
       {
         "id": "1",
-        "label": "Open a new window in Incognito mode",
+        "label": "Incognito",
         "shortcut": "command+shift+n",
-        "icon": "Plus"
+        "icon": "Incognito"
       },
       {
         "id": "2",
-        "label": "Open a new tab, and jump to it",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Tab"
+        "icon": "New Tab"
       },
       {
         "id": "3",
-        "label": "Open the Find Bar to search the current page",
+        "label": "Find Text",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Jump to the next match to your Find Bar search",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Search"
+        "icon": "Chevron Down"
       },
       {
         "id": "5",
-        "label": "Jump to the previous match to your Find Bar",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Search"
+        "icon": "Chevron Up"
       },
       {
         "id": "6",
-        "label": "When Find Bar is open, search for selected text",
+        "label": "Find Selection",
         "shortcut": "command+e",
         "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Save your current webpage as a bookmark",
+        "label": "Bookmark",
         "shortcut": "command+d",
-        "icon": "Download"
+        "icon": "Bookmark"
       },
       {
         "id": "8",
-        "label": "Save all open tabs as bookmarks in a new folder",
+        "label": "Bookmark Tabs",
         "shortcut": "command+shift+d",
-        "icon": "Tab"
+        "icon": "Folder Plus"
       },
       {
         "id": "9",
-        "label": "Search the web",
+        "label": "Web Search",
         "shortcut": "command+option+f",
-        "icon": "Search"
+        "icon": "Web"
       }
     ]
   },
@@ -1561,63 +1627,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+k",
-        "icon": "Folder"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Start a new session",
+        "label": "New Session",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Chat Plus"
       },
       {
         "id": "2",
-        "label": "Search sessions",
+        "label": "Search Sessions",
         "shortcut": "command+shift+f",
         "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Open a new session tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Tab"
+        "icon": "New Tab"
       },
       {
         "id": "4",
-        "label": "Next session tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Tab"
+        "icon": "Chevron Right"
       },
       {
         "id": "5",
-        "label": "Jump to recent session by position",
+        "label": "Jump Session",
         "shortcut": "control+9",
-        "icon": "Application"
+        "icon": "Chat"
       },
       {
         "id": "6",
-        "label": "Toggle left sidebar",
+        "label": "Left Sidebar",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Dock Left"
       },
       {
         "id": "7",
-        "label": "Toggle right sidebar",
+        "label": "Right Sidebar",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Dock Right"
       },
       {
         "id": "8",
-        "label": "Find in chat transcript",
+        "label": "Find Text",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "9",
-        "label": "Open Quick Entry",
+        "label": "Quick Entry",
         "shortcut": "command+shift+space",
-        "icon": "Folder"
+        "icon": "Flash"
       }
     ]
   },
@@ -1629,33 +1695,33 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Halve playback speed",
+        "label": "Half Speed",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Speed Down"
       },
       {
         "id": "1",
-        "label": "Double playback speed",
+        "label": "Double Speed",
         "shortcut": "command+keybracketright",
-        "icon": "Application"
+        "icon": "Speed Up"
       },
       {
         "id": "2",
-        "label": "Decrease playback speed slightly",
+        "label": "Slower",
         "shortcut": "command+option+keybracketleft",
-        "icon": "Application"
+        "icon": "Speed Down"
       },
       {
         "id": "3",
-        "label": "Increase playback speed slightly",
+        "label": "Faster",
         "shortcut": "command+option+keybracketright",
-        "icon": "Application"
+        "icon": "Speed Up"
       },
       {
         "id": "4",
-        "label": "Reset playback speed",
+        "label": "Reset Speed",
         "shortcut": "command+keybackslash",
-        "icon": "Application"
+        "icon": "Gauge"
       }
     ]
   },
@@ -1667,15 +1733,15 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Play the selected item full screen",
+        "label": "Full Screen",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Full Screen"
       },
       {
         "id": "1",
-        "label": "Create a new movie project",
+        "label": "New Movie",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       }
     ]
   },
@@ -1687,25 +1753,25 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Split vertically",
+        "label": "Vertical Split",
         "shortcut": "command+d",
-        "icon": "Video"
+        "icon": "Split Vertical"
       },
       {
         "id": "1",
-        "label": "Split horizontally",
+        "label": "Horizontal Split",
         "shortcut": "command+shift+d",
-        "icon": "Application"
+        "icon": "Split Horizontal"
       },
       {
         "id": "2",
-        "label": "Maximize or restore the active pane",
+        "label": "Maximise Pane",
         "shortcut": "command+shift+enter",
-        "icon": "Application"
+        "icon": "Window Maximise"
       },
       {
         "id": "3",
-        "label": "Search the current session",
+        "label": "Find Text",
         "shortcut": "command+f",
         "icon": "Search"
       }
@@ -1719,45 +1785,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Add a new slide layout (from Edit Slide Layou…",
+        "label": "New Layout",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "View Grid"
       },
       {
         "id": "1",
-        "label": "Find the selected item in the presentation",
+        "label": "Find Selection",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Insert a new line after the insertion point",
+        "label": "Line Break",
         "shortcut": "control+o",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "3",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Find next (while in the Find window)",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "5",
-        "label": "Find previous (while in the Find window)",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "6",
-        "label": "Open a new comment for the selected text, obj…",
+        "label": "New Comment",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Comment Plus"
       }
     ]
   },
@@ -1769,39 +1835,39 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Record Into Cell",
+        "label": "Record Cell",
         "shortcut": "option+r",
-        "icon": "Application"
+        "icon": "Record"
       },
       {
         "id": "1",
-        "label": "Create Marker Without Rounding",
+        "label": "Add Marker",
         "shortcut": "control+option+keyquote",
-        "icon": "Application"
+        "icon": "Flag Plus"
       },
       {
         "id": "2",
-        "label": "Create Marker for Region/Marquee Selection",
+        "label": "Mark Selection",
         "shortcut": "option+shift+keyquote",
-        "icon": "Application"
+        "icon": "Flag Plus"
       },
       {
         "id": "3",
-        "label": "Create Group for Selected Channel Strips/Tracks",
+        "label": "Group Tracks",
         "shortcut": "command+control+g",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "4",
-        "label": "New Empty Project",
+        "label": "Empty Project",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "5",
-        "label": "New from Template",
+        "label": "From Template",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Template"
       }
     ]
   },
@@ -1813,57 +1879,57 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Start a new email",
+        "label": "New Email",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Email Plus"
       },
       {
         "id": "1",
-        "label": "Open a new Mail viewer window",
+        "label": "New Window",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "New Window"
       },
       {
         "id": "2",
-        "label": "Open a new tab in the Mail viewer window",
+        "label": "New Tab",
         "shortcut": "option+shift+command+n",
-        "icon": "Tab"
+        "icon": "New Tab"
       },
       {
         "id": "3",
-        "label": "Show the Reply-To address field in your email",
+        "label": "Reply-To",
         "shortcut": "option+command+r",
-        "icon": "Message Video"
+        "icon": "Email"
       },
       {
         "id": "4",
-        "label": "Get new emails",
+        "label": "Check Mail",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Email Sync"
       },
       {
         "id": "5",
-        "label": "Send emails",
+        "label": "Send",
         "shortcut": "shift+command+d",
-        "icon": "Application"
+        "icon": "Send"
       },
       {
         "id": "6",
-        "label": "Unsend email",
+        "label": "Undo Send",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "7",
-        "label": "Reply to the selected email",
+        "label": "Reply",
         "shortcut": "command+r",
-        "icon": "Message Video"
+        "icon": "Reply"
       },
       {
         "id": "8",
-        "label": "Archive emails",
+        "label": "Archive",
         "shortcut": "control+command+a",
-        "icon": "Application"
+        "icon": "Archive"
       }
     ]
   },
@@ -1875,15 +1941,15 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Send message",
+        "label": "Send",
         "shortcut": "command+enter",
-        "icon": "Message Video"
+        "icon": "Send"
       },
       {
         "id": "1",
-        "label": "Insert a link",
+        "label": "Insert Link",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Link"
       }
     ]
   },
@@ -1895,27 +1961,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Switch to explore view",
+        "label": "Explore",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Map"
       },
       {
         "id": "1",
-        "label": "Switch to driving view",
+        "label": "Driving",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "Car"
       },
       {
         "id": "2",
-        "label": "Switch to public transport view",
+        "label": "Transit",
         "shortcut": "command+3",
-        "icon": "Application"
+        "icon": "Train"
       },
       {
         "id": "3",
-        "label": "Switch to satellite view",
+        "label": "Satellite",
         "shortcut": "command+4",
-        "icon": "Application"
+        "icon": "Satellite"
       }
     ]
   },
@@ -1927,43 +1993,43 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Start a new message",
+        "label": "New Message",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Chat Plus"
       },
       {
         "id": "1",
-        "label": "Show conversations from known senders",
+        "label": "Known Senders",
         "shortcut": "control+command+2",
-        "icon": "Application"
+        "icon": "Contacts"
       },
       {
         "id": "2",
-        "label": "Show conversations from unknown senders",
+        "label": "Unknown Senders",
         "shortcut": "control+command+3",
-        "icon": "Application"
+        "icon": "Account Question"
       },
       {
         "id": "3",
-        "label": "Search all conversations",
+        "label": "Search Chats",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Go to the first unpinned conversation",
+        "label": "First Unpinned",
         "shortcut": "option+command+1",
-        "icon": "Application"
+        "icon": "Pin Off"
       },
       {
         "id": "5",
-        "label": "Select the next conversation",
+        "label": "Next Chat",
         "shortcut": "control+tab",
         "icon": "Chevron Right"
       },
       {
         "id": "6",
-        "label": "Select the previous conversation",
+        "label": "Previous Chat",
         "shortcut": "control+shift+tab",
         "icon": "Chevron Left"
       }
@@ -1977,39 +2043,39 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open a new blank workbook.",
+        "label": "New Workbook",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Create a new workbook from template.",
+        "label": "From Template",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Template"
       },
       {
         "id": "2",
-        "label": "Display the Find dialog box.",
+        "label": "Find",
         "shortcut": "control+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Access search (when in a cell or when a cell…",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Start a new line in the same cell.",
+        "label": "Line Break",
         "shortcut": "option+enter",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "5",
-        "label": "Create a table.",
+        "label": "New Table",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Table Plus"
       }
     ]
   },
@@ -2021,51 +2087,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new folder in the folder pane.",
+        "label": "New Folder",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Folder Plus"
       },
       {
         "id": "1",
-        "label": "Create a new email (in Mail view).",
+        "label": "New Email",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Email Plus"
       },
       {
         "id": "2",
-        "label": "Search the current folder",
+        "label": "Search Folder",
         "shortcut": "command+option+f",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "3",
-        "label": "Do an advanced search in Outlook (add Item Co…",
+        "label": "Advanced Search",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Filter Plus"
       },
       {
         "id": "4",
-        "label": "Find text within an item.",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Find the next instance of the text you search…",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "6",
-        "label": "Find the previous instance of the text you se…",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "7",
-        "label": "Switch to the Search tab.",
+        "label": "Search Tab",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "Find Tab"
       }
     ]
   },
@@ -2077,57 +2143,57 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Save presentation",
+        "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "1",
-        "label": "Undo last action",
+        "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "2",
-        "label": "Copy selected content",
+        "label": "Copy",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "3",
-        "label": "Find in presentation",
+        "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Find and replace",
+        "label": "Find Replace",
         "shortcut": "command+shift+h",
-        "icon": "Application"
+        "icon": "Find Replace"
       },
       {
         "id": "5",
-        "label": "Add a new slide",
+        "label": "New Slide",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "6",
-        "label": "Start slideshow from beginning",
+        "label": "Play All",
         "shortcut": "command+shift+enter",
-        "icon": "Application"
+        "icon": "Slideshow"
       },
       {
         "id": "7",
-        "label": "Start slideshow from current slide",
+        "label": "Play Here",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Play"
       },
       {
         "id": "8",
-        "label": "Duplicate selected slide",
+        "label": "Duplicate Slide",
         "shortcut": "command+shift+d",
-        "icon": "Application"
+        "icon": "Copy"
       }
     ]
   },
@@ -2139,57 +2205,57 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go to Search .",
+        "label": "Search",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Start a new chat.",
+        "label": "New Chat",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "2",
-        "label": "Start a chat in a new window.",
+        "label": "Popout Chat",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Open External"
       },
       {
         "id": "3",
-        "label": "Go to a specific chat or channel.",
+        "label": "Jump Chat",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "4",
-        "label": "Go to compose box.",
+        "label": "Compose",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Draw"
       },
       {
         "id": "5",
-        "label": "Jump to last read or newest message.",
+        "label": "Latest Message",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "6",
-        "label": "Search current chat or channel messages.",
+        "label": "Search Chat",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Send (expanded compose box).",
+        "label": "Send",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Send"
       },
       {
         "id": "8",
-        "label": "Attach file.",
+        "label": "Attach File",
         "shortcut": "command+option+o",
-        "icon": "Application"
+        "icon": "Paperclip"
       }
     ]
   },
@@ -2201,33 +2267,33 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Find text (move focus to the Search in Docume…",
+        "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Display the Find and Replace pane.",
+        "label": "Find Replace",
         "shortcut": "control+h",
-        "icon": "Application"
+        "icon": "Find Replace"
       },
       {
         "id": "2",
-        "label": "Create a hanging indent.",
+        "label": "Hanging Indent",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Indent"
       },
       {
         "id": "3",
-        "label": "Find the next occurrence of text.",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "4",
-        "label": "Find the previous occurrence of text.",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       }
     ]
   },
@@ -2239,37 +2305,37 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Stop playing the selected song",
+        "label": "Stop",
         "shortcut": "command+keyperiod",
-        "icon": "Play"
+        "icon": "Stop"
       },
       {
         "id": "1",
-        "label": "Create a new playlist",
+        "label": "New Playlist",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "2",
-        "label": "Create a playlist from a selection of songs",
+        "label": "Playlist Selection",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "3",
-        "label": "Create a new Smart Playlist",
+        "label": "Smart Playlist",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Edit"
       },
       {
         "id": "4",
-        "label": "Select the search field",
+        "label": "Search",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Search the iTunes Store",
+        "label": "Search Store",
         "shortcut": "option+enter",
         "icon": "Search"
       }
@@ -2283,33 +2349,33 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new note",
+        "label": "New Note",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Note Plus"
       },
       {
         "id": "1",
-        "label": "Create a new folder",
+        "label": "New Folder",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Folder Plus"
       },
       {
         "id": "2",
-        "label": "Search all notes",
+        "label": "Search Notes",
         "shortcut": "option+command+f",
-        "icon": "Search"
+        "icon": "Note Search"
       },
       {
         "id": "3",
-        "label": "Apply Checklist format",
+        "label": "Checklist",
         "shortcut": "shift+command+l",
-        "icon": "Palette"
+        "icon": "Task List"
       },
       {
         "id": "4",
-        "label": "Add a new paragraph in a cell",
+        "label": "Cell Paragraph",
         "shortcut": "option+enter",
-        "icon": "Plus"
+        "icon": "Shortcut Return"
       }
     ]
   },
@@ -2321,63 +2387,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Search current page",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Open search / jump to page",
+        "label": "Jump Page",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "2",
-        "label": "Copy page URL",
+        "label": "Copy URL",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "3",
-        "label": "Go back",
+        "label": "Back",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Back"
       },
       {
         "id": "4",
-        "label": "Go forward",
+        "label": "Forward",
         "shortcut": "command+keybracketright",
-        "icon": "Application"
+        "icon": "Forward"
       },
       {
         "id": "5",
-        "label": "Toggle dark/light mode",
+        "label": "Toggle Theme",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Theme"
       },
       {
         "id": "6",
-        "label": "Create new page",
+        "label": "New Page",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "7",
-        "label": "Open new window",
+        "label": "New Window",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New Window"
       },
       {
         "id": "8",
-        "label": "Open new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "9",
-        "label": "Insert link",
+        "label": "Insert Link",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Link"
       }
     ]
   },
@@ -2389,45 +2455,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Add a new sheet",
+        "label": "New Sheet",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Table Plus"
       },
       {
         "id": "1",
-        "label": "Find the selected item in the spreadsheet",
+        "label": "Find Selection",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Insert a new line after the insertion point",
+        "label": "Line Break",
         "shortcut": "control+o",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "3",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Find next (while in the Find window)",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "5",
-        "label": "Find previous (while in the Find window)",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "6",
-        "label": "Open a new comment for the selected text, obj…",
+        "label": "New Comment",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Comment Plus"
       }
     ]
   },
@@ -2439,39 +2505,39 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Undo edit",
+        "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "1",
-        "label": "Redo edit",
+        "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "2",
-        "label": "Copy source",
+        "label": "Copy Source",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "3",
-        "label": "Paste source",
+        "label": "Paste Source",
         "shortcut": "command+v",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "4",
-        "label": "Edit transform",
+        "label": "Edit Transform",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Vector"
       },
       {
         "id": "5",
-        "label": "Reset transform",
+        "label": "Reset Transform",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Undo"
       }
     ]
   },
@@ -2483,63 +2549,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open the Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Open the Quick Switcher",
+        "label": "Quick Switch",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "2",
-        "label": "Open the selected Quick Switcher note in a ne…",
+        "label": "Open Note",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "3",
-        "label": "Search all files in the vault",
+        "label": "Search Vault",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "4",
-        "label": "Toggle Reading view and Editing view",
+        "label": "Toggle Reading",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Book"
       },
       {
         "id": "5",
-        "label": "Open a new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "6",
-        "label": "Switch to the next tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "7",
-        "label": "Switch to the previous tab",
+        "label": "Previous Tab",
         "shortcut": "control+shift+tab",
-        "icon": "Application"
+        "icon": "Chevron Left"
       },
       {
         "id": "8",
-        "label": "Switch directly to a tab by position",
+        "label": "Jump Tab",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "9",
-        "label": "Reopen the recently closed tab",
+        "label": "Reopen Tab",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Tab Restore"
       }
     ]
   },
@@ -2553,49 +2619,49 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "New Project",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
         "label": "Open Project",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "2",
         "label": "Save Project",
         "shortcut": "command+s",
-        "icon": "Download"
+        "icon": "Save"
       },
       {
         "id": "3",
-        "label": "Save Project as",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Download"
+        "icon": "Save As"
       },
       {
         "id": "4",
-        "label": "Import geometry data from STL/STEP/3MF/OBJ/AMF",
+        "label": "Import Model",
         "shortcut": "command+i",
-        "icon": "Folder"
+        "icon": "Import"
       },
       {
         "id": "5",
-        "label": "Slice plate",
+        "label": "Slice Plate",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "6",
-        "label": "Export plate sliced file",
+        "label": "Export Slice",
         "shortcut": "command+g",
-        "icon": "Folder"
+        "icon": "Export"
       },
       {
         "id": "7",
-        "label": "Print plate",
+        "label": "Print Plate",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Printer 3D"
       },
       {
         "id": "8",
@@ -2613,57 +2679,57 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new document (open the template choo…",
+        "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Open the next tab in the sidebar",
+        "label": "Next Sidebar",
         "shortcut": "control+keybackquote",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "2",
-        "label": "Open the previous tab in the sidebar",
+        "label": "Previous Sidebar",
         "shortcut": "control+shift+keybackquote",
-        "icon": "Application"
+        "icon": "Chevron Left"
       },
       {
         "id": "3",
-        "label": "Insert a new line after the insertion point",
+        "label": "Line Break",
         "shortcut": "control+o",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "4",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Find next (while in the Find window)",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "6",
-        "label": "Find previous (while in the Find window)",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "7",
-        "label": "Place the selected text in the Find & Replace…",
+        "label": "Find Selection",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Find Replace"
       },
       {
         "id": "8",
-        "label": "Open a new comment for the selected text, obj…",
+        "label": "New Comment",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Comment Plus"
       }
     ]
   },
@@ -2675,33 +2741,33 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Start or stop playing a video",
+        "label": "Play/Pause",
         "shortcut": "option+space",
-        "icon": "Play"
+        "icon": "Play Pause"
       },
       {
         "id": "1",
-        "label": "Find photos",
+        "label": "Search Photos",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Create a new album",
+        "label": "New Album",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Photo Album"
       },
       {
         "id": "3",
-        "label": "Create a Smart Album",
+        "label": "Smart Album",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Image Search"
       },
       {
         "id": "4",
-        "label": "Create a folder",
+        "label": "New Folder",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Folder Plus"
       }
     ]
   },
@@ -2713,51 +2779,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new image or template",
+        "label": "New Image",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Open an image",
+        "label": "Open Image",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Image"
       },
       {
         "id": "2",
-        "label": "Save an image",
+        "label": "Save Image",
         "shortcut": "command+s",
-        "icon": "Download"
+        "icon": "Save"
       },
       {
         "id": "3",
-        "label": "Export an image",
+        "label": "Export Image",
         "shortcut": "command+e",
-        "icon": "Download"
+        "icon": "Export"
       },
       {
         "id": "4",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Chevron Left"
+        "icon": "Undo"
       },
       {
         "id": "5",
         "label": "Deselect",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Deselect"
       },
       {
         "id": "6",
-        "label": "Fit image to window",
+        "label": "Fit Image",
         "shortcut": "command+0",
         "icon": "Fit to Screen"
       },
       {
         "id": "7",
-        "label": "Create an empty layer",
+        "label": "New Layer",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Layers"
       }
     ]
   },
@@ -2769,27 +2835,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new station",
+        "label": "New Station",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "1",
-        "label": "Refresh RSS feed updates",
+        "label": "Refresh Feeds",
         "shortcut": "command+r",
-        "icon": "Repeat"
+        "icon": "Refresh"
       },
       {
         "id": "2",
-        "label": "Search your library or all podcasts",
+        "label": "Search Podcasts",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Go to the Show page for the current podcast",
+        "label": "Show Page",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Podcast"
       }
     ]
   },
@@ -2801,27 +2867,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go to next tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Tab"
-      },
-      {
-        "id": "1",
-        "label": "Go to previous tab",
-        "shortcut": "shift+control+tab",
-        "icon": "Tab"
-      },
-      {
-        "id": "2",
-        "label": "Move to next document in the window",
-        "shortcut": "option+pagedown",
         "icon": "Chevron Right"
       },
       {
-        "id": "3",
-        "label": "Move to previous document in the window",
-        "shortcut": "option+pageup",
+        "id": "1",
+        "label": "Previous Tab",
+        "shortcut": "shift+control+tab",
         "icon": "Chevron Left"
+      },
+      {
+        "id": "2",
+        "label": "Next Document",
+        "shortcut": "option+pagedown",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "3",
+        "label": "Previous Document",
+        "shortcut": "option+pageup",
+        "icon": "Arrow Left"
       }
     ]
   },
@@ -2833,39 +2899,39 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "New movie recording",
+        "label": "Record Video",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Video"
       },
       {
         "id": "1",
-        "label": "New audio recording",
+        "label": "Record Audio",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Microphone"
       },
       {
         "id": "2",
-        "label": "New screen recording",
+        "label": "Record Screen",
         "shortcut": "control+command+n",
-        "icon": "Plus"
+        "icon": "Screen Record"
       },
       {
         "id": "3",
-        "label": "Play or pause all movies",
+        "label": "Play All",
         "shortcut": "command+enter",
-        "icon": "Play"
+        "icon": "Play Pause"
       },
       {
         "id": "4",
-        "label": "Display movie at actual size",
+        "label": "Actual Size",
         "shortcut": "command+1",
-        "icon": "Play"
+        "icon": "Fit to Screen"
       },
       {
         "id": "5",
-        "label": "Display the movie in panoramic mode",
+        "label": "Panorama",
         "shortcut": "command+5",
-        "icon": "Play"
+        "icon": "Panorama"
       }
     ]
   },
@@ -2877,45 +2943,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open or close Raycast (default global hotkey)",
+        "label": "Toggle Raycast",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Return to root search",
+        "label": "Root Search",
         "shortcut": "command+escape",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Open action panel",
+        "label": "Actions",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "3",
-        "label": "Open settings",
+        "label": "Settings",
         "shortcut": "command+keycomma",
-        "icon": "Application"
+        "icon": "Settings"
       },
       {
         "id": "4",
-        "label": "Submit a form",
+        "label": "Submit",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Check"
       },
       {
         "id": "5",
-        "label": "Add selected result to favorites",
+        "label": "Favourite",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Star"
       },
       {
         "id": "6",
-        "label": "Open user guide",
+        "label": "User Guide",
         "shortcut": "command+shift+keyslash",
-        "icon": "Application"
+        "icon": "Help"
       }
     ]
   },
@@ -2927,7 +2993,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "New reminder",
+        "label": "New Reminder",
         "shortcut": "command+n",
         "icon": "Plus"
       },
@@ -2935,37 +3001,37 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "1",
         "label": "New List",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "2",
-        "label": "New section",
+        "label": "New Section",
         "shortcut": "option+command+n",
         "icon": "Plus"
       },
       {
         "id": "3",
-        "label": "New section with selection",
+        "label": "Group Selection",
         "shortcut": "control+command+n",
-        "icon": "Plus"
+        "icon": "Folder Plus"
       },
       {
         "id": "4",
-        "label": "Mark a reminder completed or incomplete",
+        "label": "Toggle Complete",
         "shortcut": "shift+command+c",
-        "icon": "Application"
+        "icon": "Check"
       },
       {
         "id": "5",
-        "label": "Set due date to this weekend",
+        "label": "This Weekend",
         "shortcut": "command+k",
-        "icon": "Chevron Right"
+        "icon": "Calendar Week"
       },
       {
         "id": "6",
-        "label": "Set reminder as due next week",
+        "label": "Next Week",
         "shortcut": "option+command+k",
-        "icon": "Chevron Right"
+        "icon": "Calendar Week"
       }
     ]
   },
@@ -2977,63 +3043,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go back to the previous webpage",
+        "label": "Back",
         "shortcut": "command+keybracketleft",
         "icon": "Chevron Left"
       },
       {
         "id": "1",
-        "label": "Go forward to the next webpage",
+        "label": "Forward",
         "shortcut": "command+keybracketright",
         "icon": "Chevron Right"
       },
       {
         "id": "2",
-        "label": "Reload the current webpage",
+        "label": "Reload",
         "shortcut": "command+r",
-        "icon": "Repeat"
+        "icon": "Refresh"
       },
       {
         "id": "3",
-        "label": "Open a new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Plus"
+        "icon": "New Tab"
       },
       {
         "id": "4",
-        "label": "Close the active tab",
+        "label": "Close Tab",
         "shortcut": "command+w",
-        "icon": "Close"
+        "icon": "Close Tab"
       },
       {
         "id": "5",
-        "label": "Search the current webpage",
+        "label": "Find Text",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "6",
-        "label": "Select the Smart Search field",
+        "label": "Search Bar",
         "shortcut": "command+l",
         "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Show tab overview",
+        "label": "Tab Overview",
         "shortcut": "command+shift+keybackslash",
         "icon": "View Grid"
       },
       {
         "id": "8",
-        "label": "Go to the next tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Tab"
+        "icon": "Chevron Right"
       },
       {
         "id": "9",
-        "label": "Go to the previous tab",
+        "label": "Previous Tab",
         "shortcut": "control+shift+tab",
-        "icon": "Tab"
+        "icon": "Chevron Left"
       }
     ]
   },
@@ -3045,45 +3111,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Navigate by section",
+        "label": "Jump Section",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "View Headline"
       },
       {
         "id": "1",
-        "label": "Start new chat",
+        "label": "New Chat",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "2",
         "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Search in chat",
+        "label": "Search Chat",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Focus composer",
+        "label": "Focus Composer",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Draw"
       },
       {
         "id": "5",
-        "label": "Expand composer",
+        "label": "Expand Composer",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Arrow Expand"
       },
       {
         "id": "6",
-        "label": "Send (in expanded composer)",
+        "label": "Send",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Send"
       }
     ]
   },
@@ -3095,57 +3161,57 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Settings",
+        "label": "Settings",
         "shortcut": "command+keycomma",
-        "icon": "Application"
+        "icon": "Settings"
       },
       {
         "id": "1",
-        "label": "New document",
+        "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "2",
-        "label": "Save new or local document",
+        "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "3",
         "label": "Save As",
         "shortcut": "command+option+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "4",
-        "label": "New page",
+        "label": "New Page",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "5",
-        "label": "Copy link to page or frame",
+        "label": "Copy Link",
         "shortcut": "command+shift+c",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "6",
-        "label": "Zoom out",
+        "label": "Zoom Out",
         "shortcut": "command+keyminus",
-        "icon": "Application"
+        "icon": "Zoom Out"
       },
       {
         "id": "7",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "8",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       }
     ]
   },
@@ -3157,13 +3223,13 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Compose a new message",
+        "label": "New Message",
         "shortcut": "command+n",
-        "icon": "Message Video"
+        "icon": "Chat Plus"
       },
       {
         "id": "1",
-        "label": "Start a search",
+        "label": "Search",
         "shortcut": "command+g",
         "icon": "Search"
       },
@@ -3171,19 +3237,19 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "2",
         "label": "Browse DMs",
         "shortcut": "command+shift+k",
-        "icon": "Account"
+        "icon": "Chat"
       },
       {
         "id": "3",
-        "label": "Jump to most recent unread",
+        "label": "Jump Unread",
         "shortcut": "command+j",
         "icon": "Bell"
       },
       {
         "id": "4",
-        "label": "Open the All Unread view",
+        "label": "All Unread",
         "shortcut": "command+shift+a",
-        "icon": "View Headline"
+        "icon": "Message Unread"
       },
       {
         "id": "5",
@@ -3193,27 +3259,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "6",
-        "label": "Show keyboard shortcuts",
+        "label": "Shortcuts",
         "shortcut": "command+keyslash",
-        "icon": "Shortcut Command"
+        "icon": "Keyboard"
       },
       {
         "id": "7",
-        "label": "Previous unread conversation",
+        "label": "Previous Unread",
         "shortcut": "option+shift+up",
         "icon": "Chevron Up"
       },
       {
         "id": "8",
-        "label": "Next unread conversation",
+        "label": "Next Unread",
         "shortcut": "option+shift+down",
         "icon": "Chevron Down"
       },
       {
         "id": "9",
-        "label": "Quick switch to channel or DM",
+        "label": "Quick Switch",
         "shortcut": "command+k",
-        "icon": "Account"
+        "icon": "Search"
       }
     ]
   },
@@ -3225,7 +3291,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Search",
+        "label": "Search",
         "shortcut": "command+k",
         "icon": "Search"
       },
@@ -3233,31 +3299,31 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "1",
         "label": "Select All",
         "shortcut": "command+a",
-        "icon": "Application"
+        "icon": "Select All"
       },
       {
         "id": "2",
-        "label": "Go to Playlists",
+        "label": "Playlists",
         "shortcut": "option+shift+1",
-        "icon": "Play"
+        "icon": "Playlist Music"
       },
       {
         "id": "3",
-        "label": "Go to Now Playing",
+        "label": "Now Playing",
         "shortcut": "option+shift+j",
         "icon": "Play"
       },
       {
         "id": "4",
-        "label": "Open Context Menu",
+        "label": "Context Menu",
         "shortcut": "option+j",
-        "icon": "Folder"
+        "icon": "Dots Horizontal"
       },
       {
         "id": "5",
-        "label": "Toggle Now Playing View Sidebar",
+        "label": "Playing Sidebar",
         "shortcut": "option+shift+r",
-        "icon": "Play"
+        "icon": "Dock Right"
       }
     ]
   },
@@ -3269,31 +3335,31 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Quick search",
+        "label": "Quick Search",
         "shortcut": "command+k",
         "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Search this chat",
+        "label": "Search Chat",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Search all chats",
+        "label": "Search All",
         "shortcut": "shift+command+f",
         "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Previous chat",
+        "label": "Previous Chat",
         "shortcut": "option+command+up",
         "icon": "Chevron Up"
       },
       {
         "id": "4",
-        "label": "Next chat",
+        "label": "Next Chat",
         "shortcut": "option+command+down",
         "icon": "Chevron Down"
       }
@@ -3307,51 +3373,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "New to-do",
+        "label": "New To-do",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "1",
-        "label": "New to-dos from clipboard",
+        "label": "Paste To-dos",
         "shortcut": "command+v",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "2",
-        "label": "New project",
+        "label": "New Project",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "3",
-        "label": "Open Quick Entry with Autofill",
+        "label": "Quick Entry",
         "shortcut": "control+option+space",
-        "icon": "Application"
+        "icon": "Flash"
       },
       {
         "id": "4",
-        "label": "Save and close item",
+        "label": "Save & Close",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "5",
-        "label": "Copy to-do or project",
+        "label": "Copy Item",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "6",
-        "label": "Search the app",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Find in text",
+        "label": "Find Text",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -3363,45 +3429,45 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Quick Find",
+        "label": "Quick Find",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Open Task Quick Add",
+        "label": "Add Task",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "2",
-        "label": "Create a new project",
+        "label": "New Project",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "3",
-        "label": "Create a new label",
+        "label": "New Label",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Tag Plus"
       },
       {
         "id": "4",
-        "label": "Create a new filter",
+        "label": "New Filter",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Filter Plus"
       },
       {
         "id": "5",
-        "label": "Open the Inbox",
+        "label": "Inbox",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Inbox"
       },
       {
         "id": "6",
-        "label": "Open Search",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -3413,27 +3479,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Show Transfers",
+        "label": "Transfers",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "1",
         "label": "Refresh",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Refresh"
       },
       {
         "id": "2",
         "label": "Back",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Back"
       },
       {
         "id": "3",
         "label": "Forward",
         "shortcut": "command+keybracketright",
-        "icon": "Application"
+        "icon": "Forward"
       }
     ]
   },
@@ -3445,33 +3511,33 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new playlist",
+        "label": "New Playlist",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "1",
-        "label": "Create a new Smart Playlist",
+        "label": "Smart Playlist",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Edit"
       },
       {
         "id": "2",
-        "label": "Refresh playlist",
+        "label": "Refresh Playlist",
         "shortcut": "command+r",
-        "icon": "Repeat"
+        "icon": "Refresh"
       },
       {
         "id": "3",
-        "label": "Import a video file",
+        "label": "Import Video",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Import"
       },
       {
         "id": "4",
-        "label": "Delete the selected playlist",
+        "label": "Delete Playlist",
         "shortcut": "option+delete",
-        "icon": "Play"
+        "icon": "Delete"
       }
     ]
   },
@@ -3483,63 +3549,63 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Show Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Quick Open, Go to File…",
+        "label": "Quick Open",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "2",
-        "label": "New window/instance",
+        "label": "New Window",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New Window"
       },
       {
         "id": "3",
-        "label": "Undo last cursor operation",
+        "label": "Cursor Undo",
         "shortcut": "command+u",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "4",
-        "label": "Open File...",
+        "label": "Open File",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "5",
         "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "6",
-        "label": "Save As...",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "7",
         "label": "Save All",
         "shortcut": "command+option+s",
-        "icon": "Application"
+        "icon": "Save All"
       },
       {
         "id": "8",
-        "label": "Show Search",
+        "label": "Search",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "9",
-        "label": "Toggle Search details",
+        "label": "Search Details",
         "shortcut": "command+shift+j",
-        "icon": "Application"
+        "icon": "Filter Plus"
       }
     ]
   },
@@ -3551,9 +3617,9 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle full screen",
+        "label": "Full Screen",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Full Screen"
       }
     ]
   },
@@ -3567,49 +3633,49 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "0",
         "label": "Command Search",
         "shortcut": "control+r",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Focus terminal input",
+        "label": "Focus Input",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Terminal"
       },
       {
         "id": "2",
-        "label": "Open Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "3",
-        "label": "Copy selected command output",
+        "label": "Copy Output",
         "shortcut": "command+option+shift+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "4",
-        "label": "Clear blocks",
+        "label": "Clear Blocks",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Delete"
       },
       {
         "id": "5",
-        "label": "Open new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "6",
-        "label": "Reopen closed tab",
+        "label": "Reopen Tab",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Tab Restore"
       },
       {
         "id": "7",
-        "label": "Close current tab",
+        "label": "Close Tab",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Close Tab"
       }
     ]
   },
@@ -3621,57 +3687,57 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Mark a chat unread",
+        "label": "Mark Unread",
         "shortcut": "command+control+shift+u",
-        "icon": "Message Video"
+        "icon": "Message Unread"
       },
       {
         "id": "1",
-        "label": "Mute a chat",
+        "label": "Mute Chat",
         "shortcut": "command+control+shift+m",
-        "icon": "Message Video"
+        "icon": "Do Not Disturb"
       },
       {
         "id": "2",
-        "label": "Archive a chat",
+        "label": "Archive Chat",
         "shortcut": "command+control+shift+e",
-        "icon": "Message Video"
+        "icon": "Archive"
       },
       {
         "id": "3",
-        "label": "Pin a chat",
+        "label": "Pin Chat",
         "shortcut": "command+control+shift+p",
-        "icon": "Message Video"
+        "icon": "Pin"
       },
       {
         "id": "4",
-        "label": "Start a new chat",
+        "label": "New Chat",
         "shortcut": "command+control+n",
-        "icon": "Plus"
+        "icon": "Chat Plus"
       },
       {
         "id": "5",
-        "label": "Start a new group",
+        "label": "New Group",
         "shortcut": "command+control+shift+n",
-        "icon": "Plus"
+        "icon": "Meeting"
       },
       {
         "id": "6",
-        "label": "Open the emoji panel",
+        "label": "Emoji",
         "shortcut": "command+control+e",
-        "icon": "Folder"
+        "icon": "Emoji"
       },
       {
         "id": "7",
-        "label": "Open Extended Search",
+        "label": "Extended Search",
         "shortcut": "command+k",
-        "icon": "Search"
+        "icon": "Filter Plus"
       },
       {
         "id": "8",
-        "label": "Lock WhatsApp",
+        "label": "Lock",
         "shortcut": "command+control+l",
-        "icon": "Application"
+        "icon": "Lock"
       }
     ]
   },
@@ -3683,51 +3749,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Build the current scheme",
+        "label": "Build",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Build"
       },
       {
         "id": "1",
-        "label": "Run the current scheme",
+        "label": "Run",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Run"
       },
       {
         "id": "2",
-        "label": "Test the current scheme",
+        "label": "Test",
         "shortcut": "command+u",
-        "icon": "Application"
+        "icon": "Bug"
       },
       {
         "id": "3",
-        "label": "Open Quickly",
+        "label": "Quick Open",
         "shortcut": "command+shift+o",
-        "icon": "Folder"
+        "icon": "Folder Search"
       },
       {
         "id": "4",
-        "label": "Open Quick Actions",
+        "label": "Quick Actions",
         "shortcut": "command+shift+a",
-        "icon": "Folder"
+        "icon": "Shortcut Command"
       },
       {
         "id": "5",
-        "label": "Find in the workspace",
+        "label": "Find Workspace",
         "shortcut": "command+shift+f",
         "icon": "Search"
       },
       {
         "id": "6",
-        "label": "Reveal the current file in the Project navigator",
+        "label": "Reveal File",
         "shortcut": "command+shift+j",
-        "icon": "Folder"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "7",
-        "label": "Open the Report navigator",
+        "label": "Build Reports",
         "shortcut": "command+9",
-        "icon": "Folder"
+        "icon": "File Report"
       }
     ]
   },
@@ -3739,51 +3805,51 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "shortcuts": [
       {
         "id": "0",
-        "label": "Join meeting",
+        "label": "Join Meeting",
         "shortcut": "command+j",
-        "icon": "Video"
+        "icon": "Video Call"
       },
       {
         "id": "1",
-        "label": "Start/stop video",
+        "label": "Toggle Video",
         "shortcut": "command+shift+v",
         "icon": "Video"
       },
       {
         "id": "2",
-        "label": "Pause or resume screen share",
+        "label": "Pause Share",
         "shortcut": "command+shift+t",
-        "icon": "Play"
+        "icon": "Screen Share"
       },
       {
         "id": "3",
-        "label": "Pause/resume recording",
+        "label": "Pause Recording",
         "shortcut": "command+shift+p",
-        "icon": "Play"
+        "icon": "Record"
       },
       {
         "id": "4",
-        "label": "Search in chat or channel",
+        "label": "Search Chat",
         "shortcut": "command+f",
         "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Mute/unmute call",
+        "label": "Toggle Mic",
         "shortcut": "control+shift+m",
-        "icon": "Microphone"
+        "icon": "Microphone Off"
       },
       {
         "id": "6",
-        "label": "Global search",
+        "label": "Global Search",
         "shortcut": "command+e",
         "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Reset chat display size",
+        "label": "Text Size",
         "shortcut": "command+0",
-        "icon": "Play"
+        "icon": "Format Size"
       }
     ]
   }

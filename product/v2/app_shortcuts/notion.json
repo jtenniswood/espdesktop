@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Search current page",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Open search / jump to page",
+      "label": "Jump Page",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Folder Search"
     },
     {
       "id": "2",
-      "label": "Copy page URL",
+      "label": "Copy URL",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Link"
     },
     {
       "id": "3",
-      "label": "Go back",
+      "label": "Back",
       "shortcut": "command+keybracketleft",
-      "icon": "Application"
+      "icon": "Back"
     },
     {
       "id": "4",
-      "label": "Go forward",
+      "label": "Forward",
       "shortcut": "command+keybracketright",
-      "icon": "Application"
+      "icon": "Forward"
     },
     {
       "id": "5",
-      "label": "Toggle dark/light mode",
+      "label": "Toggle Theme",
       "shortcut": "command+shift+l",
-      "icon": "Application"
+      "icon": "Theme"
     },
     {
       "id": "6",
-      "label": "Create new page",
+      "label": "New Page",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "7",
-      "label": "Open new window",
+      "label": "New Window",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "New Window"
     },
     {
       "id": "8",
-      "label": "Open new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "9",
-      "label": "Insert link",
+      "label": "Insert Link",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Link"
     }
   ]
 }

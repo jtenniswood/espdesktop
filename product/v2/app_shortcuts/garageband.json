@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Toggle Snap to Grid",
+      "label": "Snap Grid",
       "shortcut": "command+g",
-      "icon": "Application"
+      "icon": "Magnet"
     },
     {
       "id": "1",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "2",
-      "label": "Join regions or notes",
+      "label": "Join Regions",
       "shortcut": "command+j",
-      "icon": "Application"
+      "icon": "Merge"
     },
     {
       "id": "3",
-      "label": "Split at playhead",
+      "label": "Split Playhead",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Cut"
     }
   ]
 }

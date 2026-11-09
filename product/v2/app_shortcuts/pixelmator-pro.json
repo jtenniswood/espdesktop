@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new image or template",
+      "label": "New Image",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "New File"
     },
     {
       "id": "1",
-      "label": "Open an image",
+      "label": "Open Image",
       "shortcut": "command+o",
-      "icon": "Folder"
+      "icon": "Image"
     },
     {
       "id": "2",
-      "label": "Save an image",
+      "label": "Save Image",
       "shortcut": "command+s",
-      "icon": "Download"
+      "icon": "Save"
     },
     {
       "id": "3",
-      "label": "Export an image",
+      "label": "Export Image",
       "shortcut": "command+e",
-      "icon": "Download"
+      "icon": "Export"
     },
     {
       "id": "4",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Chevron Left"
+      "icon": "Undo"
     },
     {
       "id": "5",
       "label": "Deselect",
       "shortcut": "command+d",
-      "icon": "Application"
+      "icon": "Deselect"
     },
     {
       "id": "6",
-      "label": "Fit image to window",
+      "label": "Fit Image",
       "shortcut": "command+0",
       "icon": "Fit to Screen"
     },
     {
       "id": "7",
-      "label": "Create an empty layer",
+      "label": "New Layer",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Layers"
     }
   ]
 }

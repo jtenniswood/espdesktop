@@ -6,25 +6,25 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Split vertically",
+      "label": "Vertical Split",
       "shortcut": "command+d",
-      "icon": "Video"
+      "icon": "Split Vertical"
     },
     {
       "id": "1",
-      "label": "Split horizontally",
+      "label": "Horizontal Split",
       "shortcut": "command+shift+d",
-      "icon": "Application"
+      "icon": "Split Horizontal"
     },
     {
       "id": "2",
-      "label": "Maximize or restore the active pane",
+      "label": "Maximise Pane",
       "shortcut": "command+shift+enter",
-      "icon": "Application"
+      "icon": "Window Maximise"
     },
     {
       "id": "3",
-      "label": "Search the current session",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     }

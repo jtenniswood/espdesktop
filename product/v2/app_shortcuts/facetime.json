@@ -6,15 +6,15 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Toggle full screen",
+      "label": "Full Screen",
       "shortcut": "control+command+f",
-      "icon": "Video"
+      "icon": "Full Screen"
     },
     {
       "id": "1",
-      "label": "Switch call orientation",
+      "label": "Rotate Video",
       "shortcut": "command+r",
-      "icon": "Video"
+      "icon": "Rotate Left"
     }
   ]
 }

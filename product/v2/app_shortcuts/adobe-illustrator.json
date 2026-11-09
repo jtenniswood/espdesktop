@@ -8,55 +8,55 @@
       "id": "0",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "1",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     },
     {
       "id": "2",
       "label": "Cut",
       "shortcut": "command+x",
-      "icon": "Application"
+      "icon": "Cut"
     },
     {
       "id": "3",
       "label": "Copy",
       "shortcut": "command+c",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "4",
-      "label": "Create a document without opening the New Doc…",
+      "label": "Quick Document",
       "shortcut": "command+option+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "5",
-      "label": "Save changes made to the document",
+      "label": "Save",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Save"
     },
     {
       "id": "6",
-      "label": "Open the Save As dialog box",
+      "label": "Save As",
       "shortcut": "command+shift+s",
-      "icon": "Application"
+      "icon": "Save As"
     },
     {
       "id": "7",
-      "label": "Save a copy of the document",
+      "label": "Save Copy",
       "shortcut": "command+option+s",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "8",
-      "label": "Open the Save For Web dialog box",
+      "label": "Web Export",
       "shortcut": "command+option+shift+s",
-      "icon": "Application"
+      "icon": "Export"
     }
   ]
 }

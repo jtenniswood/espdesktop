@@ -6,9 +6,9 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Toggle full screen",
+      "label": "Full Screen",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Full Screen"
     }
   ]
 }

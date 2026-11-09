@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open a new window",
+      "label": "New Window",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "New Window"
     },
     {
       "id": "1",
-      "label": "Open a new window in Incognito mode",
+      "label": "Incognito",
       "shortcut": "command+shift+n",
-      "icon": "Plus"
+      "icon": "Incognito"
     },
     {
       "id": "2",
-      "label": "Open a new tab, and jump to it",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Tab"
+      "icon": "New Tab"
     },
     {
       "id": "3",
-      "label": "Open the Find Bar to search the current page",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Jump to the next match to your Find Bar search",
+      "label": "Next Match",
       "shortcut": "command+g",
-      "icon": "Search"
+      "icon": "Chevron Down"
     },
     {
       "id": "5",
-      "label": "Jump to the previous match to your Find Bar",
+      "label": "Previous Match",
       "shortcut": "command+shift+g",
-      "icon": "Search"
+      "icon": "Chevron Up"
     },
     {
       "id": "6",
-      "label": "When Find Bar is open, search for selected text",
+      "label": "Find Selection",
       "shortcut": "command+e",
       "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Save your current webpage as a bookmark",
+      "label": "Bookmark",
       "shortcut": "command+d",
-      "icon": "Download"
+      "icon": "Bookmark"
     },
     {
       "id": "8",
-      "label": "Save all open tabs as bookmarks in a new folder",
+      "label": "Bookmark Tabs",
       "shortcut": "command+shift+d",
-      "icon": "Tab"
+      "icon": "Folder Plus"
     },
     {
       "id": "9",
-      "label": "Search the web",
+      "label": "Web Search",
       "shortcut": "command+option+f",
-      "icon": "Search"
+      "icon": "Web"
     }
   ]
 }

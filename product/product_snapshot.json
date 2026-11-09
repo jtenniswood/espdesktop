@@ -12,7 +12,7 @@
     "deviceProfiles": 9,
     "cardTypes": 32,
     "entityNames": 104,
-    "icons": 259,
+    "icons": 339,
     "structuralIcons": 39,
     "compatibilityFixtureGroups": 2
   },
@@ -8250,6 +8250,406 @@
         "name": "Gauge",
         "codepoint": "F029A",
         "mdi": "gauge"
+      },
+      {
+        "name": "Account Question",
+        "codepoint": "F0B5A",
+        "mdi": "account-question-outline"
+      },
+      {
+        "name": "Bold",
+        "codepoint": "F0264",
+        "mdi": "format-bold"
+      },
+      {
+        "name": "Book",
+        "codepoint": "F15D6",
+        "mdi": "book-open-page-variant-outline"
+      },
+      {
+        "name": "Bullet List",
+        "codepoint": "F0279",
+        "mdi": "format-list-bulleted"
+      },
+      {
+        "name": "Calendar Multiple",
+        "codepoint": "F00F1",
+        "mdi": "calendar-multiple"
+      },
+      {
+        "name": "Calendar Plus",
+        "codepoint": "F00F3",
+        "mdi": "calendar-plus"
+      },
+      {
+        "name": "Calendar Search",
+        "codepoint": "F094C",
+        "mdi": "calendar-search"
+      },
+      {
+        "name": "Calendar Today",
+        "codepoint": "F00F6",
+        "mdi": "calendar-today"
+      },
+      {
+        "name": "Calendar Week",
+        "codepoint": "F0A33",
+        "mdi": "calendar-week"
+      },
+      {
+        "name": "Car",
+        "codepoint": "F14ED",
+        "mdi": "car-outline"
+      },
+      {
+        "name": "Chat Plus",
+        "codepoint": "F10BB",
+        "mdi": "message-plus-outline"
+      },
+      {
+        "name": "Clipping Mask",
+        "codepoint": "F055D",
+        "mdi": "vector-intersection"
+      },
+      {
+        "name": "Comment Plus",
+        "codepoint": "F0183",
+        "mdi": "comment-plus-outline"
+      },
+      {
+        "name": "Component",
+        "codepoint": "F1C4F",
+        "mdi": "shape-plus-outline"
+      },
+      {
+        "name": "Deselect",
+        "codepoint": "F0488",
+        "mdi": "select-off"
+      },
+      {
+        "name": "Email Plus",
+        "codepoint": "F09EC",
+        "mdi": "email-plus-outline"
+      },
+      {
+        "name": "Email Sync",
+        "codepoint": "F12C8",
+        "mdi": "email-sync-outline"
+      },
+      {
+        "name": "Emoji",
+        "codepoint": "F01F2",
+        "mdi": "emoticon-outline"
+      },
+      {
+        "name": "Export",
+        "codepoint": "F0B93",
+        "mdi": "export-variant"
+      },
+      {
+        "name": "File Compare",
+        "codepoint": "F08AA",
+        "mdi": "file-compare"
+      },
+      {
+        "name": "File Report",
+        "codepoint": "F1029",
+        "mdi": "file-chart-outline"
+      },
+      {
+        "name": "Filter Plus",
+        "codepoint": "F0EF1",
+        "mdi": "filter-plus-outline"
+      },
+      {
+        "name": "Flag Plus",
+        "codepoint": "F10B3",
+        "mdi": "flag-plus-outline"
+      },
+      {
+        "name": "Folder Plus",
+        "codepoint": "F0B9D",
+        "mdi": "folder-plus-outline"
+      },
+      {
+        "name": "Folder Search",
+        "codepoint": "F0969",
+        "mdi": "folder-search-outline"
+      },
+      {
+        "name": "Form Fill",
+        "codepoint": "F07F5",
+        "mdi": "form-textbox-password"
+      },
+      {
+        "name": "Format Size",
+        "codepoint": "F027F",
+        "mdi": "format-size"
+      },
+      {
+        "name": "Heading",
+        "codepoint": "F0274",
+        "mdi": "format-header-pound"
+      },
+      {
+        "name": "Image Search",
+        "codepoint": "F0978",
+        "mdi": "image-search-outline"
+      },
+      {
+        "name": "Import",
+        "codepoint": "F02FA",
+        "mdi": "import"
+      },
+      {
+        "name": "Inbox",
+        "codepoint": "F1274",
+        "mdi": "inbox-outline"
+      },
+      {
+        "name": "Indent",
+        "codepoint": "F0276",
+        "mdi": "format-indent-increase"
+      },
+      {
+        "name": "Italic",
+        "codepoint": "F0277",
+        "mdi": "format-italic"
+      },
+      {
+        "name": "Magnet",
+        "codepoint": "F0347",
+        "mdi": "magnet"
+      },
+      {
+        "name": "Map",
+        "codepoint": "F0982",
+        "mdi": "map-outline"
+      },
+      {
+        "name": "Merge",
+        "codepoint": "F0F5C",
+        "mdi": "merge"
+      },
+      {
+        "name": "Message Unread",
+        "codepoint": "F1942",
+        "mdi": "message-badge-outline"
+      },
+      {
+        "name": "New Window",
+        "codepoint": "F0704",
+        "mdi": "plus-box-outline"
+      },
+      {
+        "name": "Note Plus",
+        "codepoint": "F039D",
+        "mdi": "note-plus-outline"
+      },
+      {
+        "name": "Note Search",
+        "codepoint": "F1654",
+        "mdi": "note-search-outline"
+      },
+      {
+        "name": "Panorama",
+        "codepoint": "F03DE",
+        "mdi": "panorama-horizontal-outline"
+      },
+      {
+        "name": "Paperclip",
+        "codepoint": "F03E2",
+        "mdi": "paperclip"
+      },
+      {
+        "name": "Photo Album",
+        "codepoint": "F02EF",
+        "mdi": "image-multiple-outline"
+      },
+      {
+        "name": "Pin",
+        "codepoint": "F0931",
+        "mdi": "pin-outline"
+      },
+      {
+        "name": "Pin Off",
+        "codepoint": "F0930",
+        "mdi": "pin-off-outline"
+      },
+      {
+        "name": "Playlist Edit",
+        "codepoint": "F0900",
+        "mdi": "playlist-edit"
+      },
+      {
+        "name": "Playlist Music",
+        "codepoint": "F0CB9",
+        "mdi": "playlist-music-outline"
+      },
+      {
+        "name": "Playlist Plus",
+        "codepoint": "F0412",
+        "mdi": "playlist-plus"
+      },
+      {
+        "name": "Podcast",
+        "codepoint": "F0994",
+        "mdi": "podcast"
+      },
+      {
+        "name": "Reply",
+        "codepoint": "F0F20",
+        "mdi": "reply-outline"
+      },
+      {
+        "name": "Rotate Left",
+        "codepoint": "F0465",
+        "mdi": "rotate-left"
+      },
+      {
+        "name": "Satellite",
+        "codepoint": "F0471",
+        "mdi": "satellite-variant"
+      },
+      {
+        "name": "Save As",
+        "codepoint": "F0CFC",
+        "mdi": "content-save-edit-outline"
+      },
+      {
+        "name": "Send",
+        "codepoint": "F1165",
+        "mdi": "send-outline"
+      },
+      {
+        "name": "Slideshow",
+        "codepoint": "F0429",
+        "mdi": "presentation-play"
+      },
+      {
+        "name": "Source Commit",
+        "codepoint": "F0718",
+        "mdi": "source-commit"
+      },
+      {
+        "name": "Source Compare",
+        "codepoint": "F1492",
+        "mdi": "compare-horizontal"
+      },
+      {
+        "name": "Source Pull Request",
+        "codepoint": "F04C2",
+        "mdi": "source-pull"
+      },
+      {
+        "name": "Speed Down",
+        "codepoint": "F070A",
+        "mdi": "rewind-outline"
+      },
+      {
+        "name": "Speed Up",
+        "codepoint": "F06D2",
+        "mdi": "fast-forward-outline"
+      },
+      {
+        "name": "Star",
+        "codepoint": "F04D2",
+        "mdi": "star-outline"
+      },
+      {
+        "name": "Tab Restore",
+        "codepoint": "F099B",
+        "mdi": "restore"
+      },
+      {
+        "name": "Table Plus",
+        "codepoint": "F0A75",
+        "mdi": "table-plus"
+      },
+      {
+        "name": "Tag Plus",
+        "codepoint": "F1222",
+        "mdi": "tag-plus-outline"
+      },
+      {
+        "name": "Template",
+        "codepoint": "F1A9E",
+        "mdi": "file-document-plus-outline"
+      },
+      {
+        "name": "Theme",
+        "codepoint": "F050E",
+        "mdi": "theme-light-dark"
+      },
+      {
+        "name": "Train",
+        "codepoint": "F052C",
+        "mdi": "train"
+      },
+      {
+        "name": "Underline",
+        "codepoint": "F0287",
+        "mdi": "format-underline"
+      },
+      {
+        "name": "Zoom In",
+        "codepoint": "F06ED",
+        "mdi": "magnify-plus-outline"
+      },
+      {
+        "name": "Zoom Out",
+        "codepoint": "F06EC",
+        "mdi": "magnify-minus-outline"
+      },
+      {
+        "name": "Compare Selection",
+        "codepoint": "F0AD9",
+        "mdi": "select-compare"
+      },
+      {
+        "name": "Filmstrip Stack",
+        "codepoint": "F0D18",
+        "mdi": "filmstrip-box-multiple"
+      },
+      {
+        "name": "Group Selection",
+        "codepoint": "F0F82",
+        "mdi": "select-group"
+      },
+      {
+        "name": "Movie Plus",
+        "codepoint": "F1712",
+        "mdi": "movie-plus-outline"
+      },
+      {
+        "name": "Timeline Plus",
+        "codepoint": "F0F97",
+        "mdi": "timeline-plus-outline"
+      },
+      {
+        "name": "File Search",
+        "codepoint": "F0B97",
+        "mdi": "file-find-outline"
+      },
+      {
+        "name": "File Tree",
+        "codepoint": "F13D2",
+        "mdi": "file-tree-outline"
+      },
+      {
+        "name": "Message Alert",
+        "codepoint": "F0A04",
+        "mdi": "message-alert-outline"
+      },
+      {
+        "name": "Robot",
+        "codepoint": "F167A",
+        "mdi": "robot-outline"
+      },
+      {
+        "name": "Web Plus",
+        "codepoint": "F0033",
+        "mdi": "web-plus"
       }
     ],
     "domain_defaults": {

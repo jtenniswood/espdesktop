@@ -6,39 +6,39 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Toggle the Cursor side panel",
+      "label": "Toggle Sidebar",
       "shortcut": "command+i",
-      "icon": "Application"
+      "icon": "Dock Right"
     },
     {
       "id": "1",
-      "label": "Open Inline Edit",
+      "label": "Inline Edit",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Draw"
     },
     {
       "id": "2",
-      "label": "Open the Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "3",
-      "label": "Force-send a message",
+      "label": "Force Send",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Send"
     },
     {
       "id": "4",
-      "label": "Cancel generation",
+      "label": "Stop Reply",
       "shortcut": "command+shift+delete",
-      "icon": "Application"
+      "icon": "Stop"
     },
     {
       "id": "5",
-      "label": "Add selected code to chat",
+      "label": "Attach Code",
       "shortcut": "command+shift+l",
-      "icon": "Application"
+      "icon": "Code"
     }
   ]
 }

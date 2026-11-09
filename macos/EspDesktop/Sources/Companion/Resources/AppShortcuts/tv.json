@@ -6,33 +6,33 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new playlist",
+      "label": "New Playlist",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "1",
-      "label": "Create a new Smart Playlist",
+      "label": "Smart Playlist",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "Playlist Edit"
     },
     {
       "id": "2",
-      "label": "Refresh playlist",
+      "label": "Refresh Playlist",
       "shortcut": "command+r",
-      "icon": "Repeat"
+      "icon": "Refresh"
     },
     {
       "id": "3",
-      "label": "Import a video file",
+      "label": "Import Video",
       "shortcut": "command+o",
-      "icon": "Folder"
+      "icon": "Import"
     },
     {
       "id": "4",
-      "label": "Delete the selected playlist",
+      "label": "Delete Playlist",
       "shortcut": "option+delete",
-      "icon": "Play"
+      "icon": "Delete"
     }
   ]
 }

@@ -18,7 +18,7 @@ test("three visible empty slots accept three app shortcuts without altering the 
   const source = page();
   assert.equal(source.grid.filter(slot => slot === 0).length, 3);
   const unchanged = structuredClone(source);
-  for (const extra of [["1"], ["1", "2"], ["1", "2", "4"]]) {
+  for (const extra of [["7"], ["7", "2"], ["7", "2", "4"]]) {
     assert.equal(api.companionShortcutTabsFitSubpage(appId, [...selected, ...extra], source, 9), true);
     assert.deepEqual(source, unchanged, "checking capacity must not edit the saved subpage");
   }
@@ -26,7 +26,7 @@ test("three visible empty slots accept three app shortcuts without altering the 
 
 test("sync invalidates cached positions before counting newly placed shortcuts", () => {
   const source = page();
-  const next = [...selected, "1"];
+  const next = [...selected, "7"];
   api.syncCompanionShortcutSubpage(appId, next, source, 9);
   assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, source), next);
   Object.assign(source, buildSubpageGrid(source, 9, 3));
@@ -42,6 +42,6 @@ test("capacity still reserves Back and respects custom tiles spanning multiple c
   Object.assign(source, buildSubpageGrid(source, 9, 3));
   assert.equal(source.grid.filter(slot => slot === 0).length, 0);
   const unchanged = structuredClone(source);
-  assert.equal(api.companionShortcutTabsFitSubpage(appId, [...selected, "1"], source, 9), false);
+  assert.equal(api.companionShortcutTabsFitSubpage(appId, [...selected, "7"], source, 9), false);
   assert.deepEqual(source, unchanged);
 });
