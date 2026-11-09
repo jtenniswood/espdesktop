@@ -34,7 +34,6 @@ function checkCompiledHelper() {
 #include "button_grid_saved_config_webhook_generated.h"
 #include "button_grid_saved_config_subpage_generated.h"
 #include "button_grid_saved_config_switch_generated.h"
-#include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
 #include "button_grid_saved_config_mower_generated.h"
@@ -132,38 +131,6 @@ int main() {
   assert(fan_switch.options.empty() && fan_switch.icon == "Fan Off" && fan_switch.icon_on == "Fan");
   assert(!normalize_saved_config_fan(
     unrelated, [](Config &) {}, [](const std::string &options) { return options; }
-  ));
-  Config calendar{"calendar", "stale", "unit", "datetime", "large_numbers,unknown=1", "Custom", "", "Old", "Custom"};
-  bool date_time_fields_called = false;
-  bool date_time_options_called = false;
-  assert(normalize_saved_config_date_time(
-    calendar,
-    [&](Config &config) {
-      date_time_fields_called = true;
-      if (config.entity.empty()) config.entity = "sensor.date";
-    },
-    [&](const std::string &options, const Config &config) {
-      date_time_options_called = config.type == "calendar" && config.precision == "datetime";
-      return options + ",normalized";
-    }
-  ));
-  assert(date_time_fields_called && date_time_options_called);
-  assert(calendar.entity == "sensor.date" && calendar.label.empty());
-  assert(calendar.icon == "Auto" && calendar.icon_on == "Auto");
-  assert(calendar.sensor.empty() && calendar.unit.empty() && calendar.precision == "datetime");
-  assert(calendar.options == "large_numbers,unknown=1,normalized");
-  Config clock{"clock", "stale", "unit", "2", "large_numbers", "Custom", "sensor.old", "Old", "Custom"};
-  date_time_fields_called = false;
-  assert(normalize_saved_config_date_time(
-    clock,
-    [&](Config &) { date_time_fields_called = true; },
-    [](const std::string &options, const Config &) { return options; }
-  ));
-  assert(!date_time_fields_called);
-  assert(clock.entity.empty() && clock.label.empty() && clock.sensor.empty());
-  assert(clock.unit.empty() && clock.precision.empty() && clock.options == "large_numbers");
-  assert(!normalize_saved_config_date_time(
-    unrelated, [](Config &) {}, [](const std::string &options, const Config &) { return options; }
   ));
   Config mower{"lawn_mower", "bad_mode", "unit", "2", "unknown=1", "Custom", "lawn_mower.backyard", "Backyard", "Auto"};
   bool mower_fields_called = false;
@@ -526,26 +493,6 @@ function main() {
   assert.deepStrictEqual(fanSwitch, { type: "fan_switch", sensor: "", unit: "", precision: "", icon: "Fan Off", icon_on: "Fan", options: "" });
   assert.strictEqual(generatedFan.normalizeSavedConfigFan({ type: "sensor", options: "keep" }, () => {}, (options) => options), false);
 
-  const generatedDateTime = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_date_time.ts"));
-  const calendar = { type: "calendar", entity: "", label: "Old", icon: "Custom", icon_on: "Custom", sensor: "stale", unit: "unit", precision: "datetime", options: "large_numbers,unknown=1" };
-  let dateTimeFieldsCalled = false;
-  let dateTimeOptionsCalled = false;
-  assert.strictEqual(generatedDateTime.normalizeSavedConfigDateTime(
-    calendar,
-    (config) => { dateTimeFieldsCalled = true; if (!config.entity) config.entity = "sensor.date"; },
-    (options, config) => { dateTimeOptionsCalled = config.type === "calendar" && config.precision === "datetime"; return options + ",normalized"; },
-  ), true);
-  assert(dateTimeFieldsCalled && dateTimeOptionsCalled);
-  assert.deepStrictEqual(calendar, { type: "calendar", entity: "sensor.date", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "", precision: "datetime", options: "large_numbers,unknown=1,normalized" });
-  const clock = { type: "clock", entity: "sensor.old", label: "Old", icon: "Custom", icon_on: "Custom", sensor: "stale", unit: "unit", precision: "2", options: "large_numbers" };
-  dateTimeFieldsCalled = false;
-  assert.strictEqual(generatedDateTime.normalizeSavedConfigDateTime(
-    clock, () => { dateTimeFieldsCalled = true; }, (options) => options,
-  ), true);
-  assert.strictEqual(dateTimeFieldsCalled, false);
-  assert.deepStrictEqual(clock, { type: "clock", entity: "", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "", precision: "", options: "large_numbers" });
-  assert.strictEqual(generatedDateTime.normalizeSavedConfigDateTime({ type: "sensor", options: "keep" }, () => {}, (options) => options), false);
-
   const generatedMower = loadTypeScriptModule(path.join(ROOT, "src/webserver/generated/saved_config_mower.ts"));
   const mower = { type: "lawn_mower", entity: "lawn_mower.backyard", label: "Backyard", icon: "Auto", icon_on: "Custom", sensor: "bad_mode", unit: "unit", precision: "2", options: "unknown=1" };
   let mowerFieldsCalled = false;
@@ -716,8 +663,6 @@ function main() {
   assert.match(browser, /normalizeSavedConfigFan\(b, normalizeSavedConfigFanFields, normalizeFanControlOptions\)/);
   assert.doesNotMatch(browser, /if \(b && isFanCardType\(b\.type\)\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "fan_control"\)/);
-  assert.match(browser, /from "\.\.\/generated\/saved_config_date_time";/);
-  assert.match(browser, /normalizeSavedConfigDateTime\(b, normalizeSavedConfigDateTimeFields, normalizeSavedConfigDateTimeOptions\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "calendar"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "clock"\)/);
   assert.doesNotMatch(browser, /if \(b && b\.type === "timezone"\)/);
@@ -798,8 +743,6 @@ function main() {
   assert.match(firmware, /#include "button_grid_saved_config_fan_generated\.h"/);
   assert.match(firmware, /normalize_saved_config_fan\(\s*p, normalize_saved_config_fan_fields, fan_control_card_options_normalized\)/);
   assert.doesNotMatch(firmware, /if \(fan_card_type\(p\.type\)\)/);
-  assert.match(firmware, /#include "button_grid_saved_config_date_time_generated\.h"/);
-  assert.match(firmware, /normalize_saved_config_date_time\(\s*p, normalize_saved_config_date_time_fields, date_time_card_options_normalized\)/);
   assert.doesNotMatch(firmware, /if \(p\.type == "calendar"\) \{/);
   assert.doesNotMatch(firmware, /if \(p\.type == "clock"\) \{/);
   assert.doesNotMatch(firmware, /if \(p\.type == "timezone"\) \{/);
@@ -846,7 +789,7 @@ function main() {
   assert.doesNotMatch(normalizeParser, /if \(p\.type\.empty\(\)\) \{\s*p\.options = switch_card_options_normalized/);
 
   checkCompiledHelper();
-  console.log("Saved-config production check passed: Access, Climate, Date/Time, Fan, Image, Lawn Mower, Light Control, Media, Occupancy, Security, Subpage, Switch, Vacuum, Weather, Webhook, and static card normalization use generated browser and compiled firmware helpers.");
+  console.log("Saved-config production check passed: Access, Climate, Fan, Image, Lawn Mower, Light Control, Media, Occupancy, Security, Subpage, Switch, Vacuum, Weather, Webhook, and static card normalization use generated browser and compiled firmware helpers.");
 }
 
 main();
