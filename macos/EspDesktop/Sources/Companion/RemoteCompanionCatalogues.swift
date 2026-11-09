@@ -133,7 +133,7 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
               app.matchPath.map({ $0.hasPrefix("/") && !$0.contains("?") && !$0.contains("#") }) ?? true,
               let iconURL = URL(string: app.icon), iconURL.scheme == "https",
               iconURL.host == "raw.githubusercontent.com",
-              iconURL.path.hasPrefix("/jtenniswood/espdesktop/main/product/v2/web_apps/icons/"),
+              iconURL.path.hasPrefix("/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/"),
               !iconURL.path.split(separator: "/").contains(".."),
               ["png", "jpg", "jpeg"].contains(iconURL.pathExtension.lowercased()),
               !app.shortcuts.isEmpty, app.shortcuts.allSatisfy(valid),
@@ -193,6 +193,7 @@ struct ActiveTabURLMatcher {
 @MainActor
 final class RemoteCompanionCatalogueStore {
     private static let cacheKey = "remoteCompanionCatalogues"
+    private static let webAppRepositoryRoot = URL(string: "https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/")!
     private static let repositoryRoot = URL(string: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/")!
     private let defaults: UserDefaults
     private let session: URLSession
@@ -243,7 +244,8 @@ final class RemoteCompanionCatalogueStore {
     }
 
     private func loadCatalogue(directory: String, webApps: Bool) async throws -> RemoteCompanionCatalogues {
-        let manifestURL = Self.repositoryRoot.appendingPathComponent(directory).appendingPathComponent("manifest.json")
+        let root = webApps ? Self.webAppRepositoryRoot : Self.repositoryRoot
+        let manifestURL = root.appendingPathComponent(directory).appendingPathComponent("manifest.json")
         let manifestData = try await download(manifestURL)
         let manifest = try JSONDecoder().decode(RemoteCatalogueManifest.self, from: manifestData)
         guard manifest.formatVersion == 1, manifest.catalogueVersion > 0,

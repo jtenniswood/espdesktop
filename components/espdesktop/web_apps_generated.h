@@ -3,7 +3,7 @@
 #include <string>
 namespace companion_web_app_catalog {
 inline const char *icon_url(const std::string &id) {
-  if (id == "google-docs") return "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/web_apps/icons/google-docs.png";
+  if (id == "google-docs") return "https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/google-docs.png";
   return "";
 }
 }

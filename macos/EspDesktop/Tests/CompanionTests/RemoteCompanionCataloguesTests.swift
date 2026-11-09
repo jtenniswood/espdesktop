@@ -10,7 +10,7 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         url: "https://docs.google.com/document/u/0/",
         matchHost: "docs.google.com",
         matchPath: "/document/",
-        icon: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/web_apps/icons/google-docs.png",
+        icon: "https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/google-docs.png",
         shortcuts: [RemoteShortcutDefinition(id: "0", label: "Bold", shortcut: "command+b", icon: "Web")]
     )
 

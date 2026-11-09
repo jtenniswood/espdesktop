@@ -8,10 +8,10 @@ The Mac Companion downloads the Web App manifest and its listed templates from G
 
 1. Copy [`examples/example-service.json`](examples/example-service.json) to a new top-level JSON file in this folder. Files in `examples/` are documentation references, not live catalogue entries. The sample points to the existing Google Docs icon only to demonstrate a real hosted icon URL; replace it with the new service's icon.
 2. Add the Web App's icon under `icons/`. Use a PNG or JPEG that is reasonably small for the display.
-3. Change the example's `id`, `label`, `url`, `matchHost`, `matchPath`, and `icon` to match the service. The `icon` field must be a raw GitHub URL pointing to the committed image under `product/v2/web_apps/icons/`, on the `main` branch. Example format:
+3. Change the example's `id`, `label`, `url`, `matchHost`, `matchPath`, and `icon` to match the service. The `icon` field must be a raw GitHub URL pointing to the committed image under `product/v2/web_apps/icons/`, on the `restore-web-app-card` branch. Example format:
 
    ```text
-   https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/web_apps/icons/your-app.png
+   https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/your-app.png
    ```
 
 4. Add shortcuts that you have confirmed in the target service. Use stable numeric string IDs and supported icon names.
@@ -30,7 +30,7 @@ The manifest must list every top-level template JSON file in this folder exactly
   "url": "https://example.com/workspace/",
   "matchHost": "example.com",
   "matchPath": "/workspace",
-  "icon": "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/web_apps/icons/example-service.png",
+  "icon": "https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/example-service.png",
   "shortcuts": [
     { "id": "0", "label": "New item", "shortcut": "command+n", "icon": "Plus" }
   ]

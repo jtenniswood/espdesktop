@@ -43,7 +43,7 @@ def load_web_apps(root: Path):
         match_path = app.get("matchPath")
         if match_path is not None and (not isinstance(match_path, str) or not match_path.startswith("/") or "?" in match_path or "#" in match_path):
             raise ValueError(f"{path.name}: matchPath must be a URL path prefix")
-        prefix = f"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/web_apps/icons/"
+        prefix = f"https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/"
         icon_path = directory / "icons" / app["icon"].removeprefix(prefix) if isinstance(app["icon"], str) else directory / "icons" / ""
         if not isinstance(app["icon"], str) or not app["icon"].startswith(prefix) or icon_path.suffix.lower() not in {".png", ".jpg", ".jpeg"} or not icon_path.resolve().is_relative_to((directory / "icons").resolve()) or not icon_path.is_file():
             raise ValueError(f"{path.name}: icon must point to a hosted file in product/v2/web_apps/icons")

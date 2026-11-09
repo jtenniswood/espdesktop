@@ -5,7 +5,7 @@
   "url": "https://example.com/workspace/",
   "matchHost": "example.com",
   "matchPath": "/workspace",
-  "icon": "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/product/v2/web_apps/icons/google-docs.png",
+  "icon": "https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/google-docs.png",
   "shortcuts": [
     {
       "id": "0",
