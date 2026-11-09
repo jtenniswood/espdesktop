@@ -40,7 +40,6 @@ import { createConfigImageOptionsFeature } from "./application/config_image_opti
 import { createConfigWeatherOptionsFeature } from "./application/config_weather_options";
 import { createConfigRobotCardOptionsFeature } from "./application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "./application/config_lock_options";
-import { createConfigDateTimeOptionsFeature } from "./application/config_date_time_options";
 import { createConfigModalTabOptionsFeature } from "./application/config_modal_tab_options";
 import { createConfigSensorOptionsFeature } from "./application/config_sensor_options";
 import { createConfigConfirmationOptionsFeature } from "./application/config_confirmation_options";
@@ -105,10 +104,8 @@ import { createNativePageEditorFeature } from "./application/native_page_editor"
 import { createReconnectController } from "./features/reconnect";
 import { registerTimerCardTypes } from "./cards/timer";
 import { registerAlarmCardTypes } from "./cards/alarm";
-import { registerCalendarCardTypes } from "./cards/calendar";
 import { registerCompanionCardTypes } from "./cards/companion";
 import { registerClimateCardTypes } from "./cards/climate";
-import { registerClockCardTypes } from "./cards/clock";
 import { createCoverLikeCardRegistration } from "./cards/cover_like_card";
 import { registerDoorWindowCardTypes } from "./cards/door_window";
 import { registerFanCardTypes } from "./cards/fan";
@@ -124,7 +121,6 @@ import { registerPushCardTypes } from "./cards/push";
 import { registerSliderCardTypes } from "./cards/slider";
 import { registerSubpageCardTypes } from "./cards/subpage";
 import { registerSwitchCardTypes } from "./cards/switch";
-import { registerTimezoneCardTypes } from "./cards/timezone";
 import { registerVacuumCardTypes } from "./cards/vacuum";
 import { registerWeatherCardTypes } from "./cards/weather";
 import { registerWeatherForecastCardTypes } from "./cards/weather_forecast";
@@ -153,8 +149,6 @@ function registerCards(context: ApplicationContext) {
   const coverLikeCards = createCoverLikeCardRegistration(registry, context.controllers.renderQueue, fields, cardUi);
   registerAlarmCardTypes(registry, context.configuration.accessClimateAlarm, context.controllers.renderQueue, fields, cardUi);
   registerTimerCardTypes(registry);
-  registerCalendarCardTypes(registry, context.configuration.dateTimeOptions, fields,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerCompanionCardTypes(
     registry,
     !!context.device.profile.features?.companion,
@@ -175,8 +169,6 @@ function registerCards(context: ApplicationContext) {
     context.controllers.renderQueue,
     fields,
   );
-  registerClockCardTypes(registry, context.configuration.dateTimeOptions, fields,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerDoorWindowCardTypes(registry, context.configuration.options, fields);
   registerFanCardTypes(registry, context.configuration.modalTabs, fields, cardUi);
   registerGarageCardTypes(
@@ -209,8 +201,6 @@ function registerCards(context: ApplicationContext) {
   );
   registerSubpageCardTypes(registry, context.configuration.codec, context.core, context.controllers.selection, fields, cardUi);
   registerSwitchCardTypes(registry, context.configuration.confirmationOptions, lightCards, fields);
-  registerTimezoneCardTypes(registry, context.configuration.dateTimeOptions, context.dom.document, fields,
-    () => context.configuration.native.homeAssistantSupportEnabled());
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, fields, cardUi);
   registerWeatherForecastCardTypes(registry, weatherCards, fields);
@@ -226,7 +216,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.configuration.imageOptions,
     context.configuration.weatherOptions,
     context.configuration.lockOptions,
-    context.configuration.dateTimeOptions,
     context.configuration.modalTabs,
     context.configuration.accessClimateAlarm,
     context.configuration.confirmationOptions,
@@ -422,16 +411,6 @@ function composeApplicationContext(): ApplicationContext {
       saveSubpage: (homeSlot) => configurationPersistence.saveSubpageEntity(Number(homeSlot)),
     },
   );
-  const dateTimeConfigurationOptions = createConfigDateTimeOptionsFeature({
-    state: AppInstance.state,
-    now: core.now,
-    renderButtonSettings: () => buttonSettings.render(),
-    effectiveTimezoneOption: (value) => environment.effectiveTimezoneOptionForWeb(value),
-    timezoneId: (value) => statusPreview.getTzId(value),
-    timezoneOptionsWithFallback: (options, selected) => environment.timezoneOptionsWithFallback(options, selected),
-    appendTimezoneOption: (select, option) => statusPreview.appendTimezoneOption(select, option),
-    monthNameForIndex: (index) => environment.monthNameForIndex(index),
-  });
   const modalTabOptions = createConfigModalTabOptionsFeature({
     document: dom.document,
     renderButtonSettings: () => buttonSettings.render(),
@@ -446,7 +425,6 @@ function composeApplicationContext(): ApplicationContext {
     weatherConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
-    dateTimeConfigurationOptions,
     modalTabOptions,
     accessClimateAlarmOptions,
     confirmationOptions,
@@ -978,7 +956,6 @@ function composeApplicationContext(): ApplicationContext {
     weatherConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
-    dateTimeConfigurationOptions,
     modalTabOptions,
     accessClimateAlarmOptions,
     confirmationOptions,
