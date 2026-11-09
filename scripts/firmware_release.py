@@ -97,13 +97,13 @@ def assert_binary_version(path: Path, version: str) -> None:
     require_file(path, "firmware image")
     strings = printable_string_list(path)
     string_set = set(strings)
-    if version not in string_set:
-        raise FirmwareReleaseError(f"{path} does not contain firmware version {version}")
+    # ESPHome embeds its startup project version even when the native API
+    # and dashboard import metadata are absent from the image.
     expected_log_version = f"Project {PROJECT_NAME} version {version}"
     if expected_log_version not in string_set:
         raise FirmwareReleaseError(f"{path} does not contain ESPHome project version {version}")
     expected_project_metadata = ["package_import_url", version, PROJECT_NAME, "project_version"]
-    if not contains_sequence(strings, expected_project_metadata):
+    if "package_import_url" in string_set and not contains_sequence(strings, expected_project_metadata):
         raise FirmwareReleaseError(f"{path} does not contain API project metadata version {version}")
 
     for placeholder in PLACEHOLDER_STRINGS:
