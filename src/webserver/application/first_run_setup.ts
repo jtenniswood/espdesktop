@@ -173,7 +173,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             const ids = new Set(apps.map(app => app.id));
             for (const id of selected) if (!ids.has(id)) selected.delete(id);
         } catch {
-            error = "Could not load apps. Check that EspDesktop is connected on your Mac, then try again.";
+            error = "Could not load apps. Check the Mac connection, then reopen setup.";
         } finally {
             loading = false;
             render();
@@ -286,18 +286,17 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 content.appendChild(element("p", "Connect your Mac to see your apps."));
                 content.appendChild(button("Connect your Mac", () => { close(); deps.shell.switchTab("device"); }));
             } else {
-                const toolbar = element("div", "", "sp-setup-toolbar");
                 const search: HTMLInputElement = deps.fields.textInput("sp-setup-search", query, "Search apps");
                 search.type = "search";
+                search.classList.add("sp-setup-search");
                 search.setAttribute("aria-label", "Search apps");
                 search.setAttribute("data-setup-key", "search");
                 search.disabled = busy;
                 search.addEventListener("input", () => { query = search.value; render(); });
-                toolbar.append(search, button(loading ? "Loading…" : "Refresh apps", () => { void refresh(); }));
-                const count = element("p", `${selected.size} of ${deps.capacity} selected`, "sp-setup-count");
+                const count = element("p", loading ? "Loading apps…" : `${selected.size} of ${deps.capacity} selected`, "sp-setup-count");
                 count.setAttribute("role", "status");
-                content.append(toolbar, count);
-                if (!loading && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access on your Mac.", "sp-setting-note"));
+                content.append(search, count);
+                if (!loading && !error && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access on your Mac.", "sp-setting-note"));
                 const list = element("div", "", "sp-light-tab-list sp-setup-list");
                 for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
                     const row = toggle(`sp-setup-app-${app.id}`, app.label, selected.has(app.id), enabled => {
