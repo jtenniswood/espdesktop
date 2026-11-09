@@ -6894,7 +6894,15 @@ async function assertFirstRunSetup(browser) {
     await open();
     const dialog = page.getByRole("dialog");
     const appLimit = 8;
-    await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
+    await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
+    const title = dialog.getByRole("heading", { name: "Choose your apps", exact: true });
+    assert(await title.evaluate(node => node === document.activeElement && getComputedStyle(node).outlineStyle === "none"),
+      "the wizard heading receives focus without a visible outline");
+    const close = dialog.getByRole("button", { name: "Close setup", exact: true });
+    await page.keyboard.press("Tab");
+    assert(await close.evaluate(node => node.matches(":focus-visible") && getComputedStyle(node).boxShadow !== "none"),
+      "the wizard controls retain a visible keyboard focus indicator");
+    await close.click();
     await dialog.waitFor({ state: "detached" });
     assert.equal(fixture.puts.length, 0, "closing setup leaves it available on reload");
     await open();

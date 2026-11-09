@@ -38,6 +38,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-first-run[open]{display:flex;flex-direction:column;overflow:hidden}.sp-first-run>h1,.sp-first-run>p,.sp-setup-footer{flex-shrink:0}" +
         ".sp-first-run::backdrop{background:#0008;backdrop-filter:blur(4px)}.sp-first-run .sp-settings-close{top:20px;right:20px}" +
         ".sp-setup-step{margin:0 44px 10px 0;color:var(--text2);font-size:var(--text-sm);font-weight:600}.sp-setup-title{margin:0 44px 8px 0;font-size:1.75rem;line-height:1.15;letter-spacing:-.025em}.sp-setup-description{margin:0;color:var(--text2);font-size:var(--text-md);line-height:1.5}" +
+        ".sp-setup-title:focus{outline:none}" +
         ".sp-setup-content{margin:24px 0;overflow:auto;min-height:0;flex:1 1 auto}.sp-setup-apps{display:flex;flex-direction:column}" +
         ".sp-setup-search{position:relative;margin:3px 3px 14px;flex-shrink:0}.sp-setup-search .sp-input{padding-inline-start:36px}.sp-setup-search .mdi{position:absolute;inset-inline-start:12px;top:50%;transform:translateY(-50%);font-size:18px;line-height:1;color:var(--text2);pointer-events:none}.sp-setup-count{margin:0 0 12px;font-size:var(--text-sm);font-weight:600;color:var(--text2)}" +
         ".sp-first-run .sp-setup-list{min-height:0;overflow:auto;margin:0}.sp-setup-list .sp-light-tab-row{grid-template-columns:minmax(0,1fr) auto;margin:0}" +
