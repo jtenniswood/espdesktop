@@ -91,6 +91,23 @@ WEB_FIXED_MDI_ICON_CODEPOINTS = {
     "toggle-switch": "F0521", "toggle-switch-variant": "F1A25", "toggle-switch-variant-off": "F1A26",
     "tune-vertical": "F066A", "tune-vertical-variant": "F1543", "upload": "F0552", "video": "F0567",
     "view-grid-plus": "F0F8D", "webhook": "F062F",
+    # Fixed browser badges and previews, including previews of old layouts.
+    "air-conditioner": "F001B", "air-humidifier": "F1099", "battery-outline": "F008E",
+    "bell-ring": "F009E", "blinds": "F00AC", "blinds-horizontal": "F1A2B",
+    "camera": "F0100", "ceiling-light-multiple": "F18DD", "door": "F081A",
+    "door-open": "F081C", "doorbell-video": "F0869", "ev-station": "F05F1",
+    "fan-auto": "F171D", "fan-speed-2": "F1473", "garage": "F06D9",
+    "gate": "F0299", "home-circle": "F07D2", "home-thermometer": "F0F54",
+    "light-flood-down": "F1987", "light-recessed": "F179B", "lightbulb": "F0335",
+    "motion-sensor": "F0D91", "package-variant": "F03D6", "package-variant-closed": "F03D7",
+    "power-socket": "F0427", "robot-mower": "F11F7", "robot-vacuum": "F070D",
+    "shield-home": "F068A", "stove": "F04DE", "table-furniture": "F05BC",
+    "thermostat": "F0393", "transmission-tower-export": "F192C", "transmission-tower-import": "F192D",
+    "transmission-tower-off": "F19DD", "tumble-dryer": "F0917", "tumble-dryer-off": "F11BB",
+    "vacuum": "F19A1", "water-percent-alert": "F1509", "weather-cloudy": "F0590",
+    "weather-night-partly-cloudy": "F0F31", "weather-partly-cloudy": "F0595", "weather-rainy": "F0597",
+    "weather-sunny": "F0599", "window-closed": "F05AE", "window-open": "F05B1",
+    "window-shutter": "F111C",
 }
 
 # ---------------------------------------------------------------------------
@@ -115,18 +132,12 @@ SAVED_CONFIG_SHADOW_TS = ROOT / "src" / "webserver" / "generated" / "saved_confi
 SAVED_CONFIG_SHADOW_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_shadow_generated.h"
 SAVED_CONFIG_VACUUM_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_vacuum.ts"
 SAVED_CONFIG_VACUUM_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_vacuum_generated.h"
-SAVED_CONFIG_SENSOR_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_sensor.ts"
-SAVED_CONFIG_SENSOR_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_sensor_generated.h"
-SAVED_CONFIG_ACTION_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_action.ts"
-SAVED_CONFIG_ACTION_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_action_generated.h"
 SAVED_CONFIG_MEDIA_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_media.ts"
 SAVED_CONFIG_MEDIA_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
 SAVED_CONFIG_STATIC_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_static.ts"
 SAVED_CONFIG_STATIC_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
 SAVED_CONFIG_FAN_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_fan.ts"
 SAVED_CONFIG_FAN_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
-SAVED_CONFIG_DATE_TIME_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_date_time.ts"
-SAVED_CONFIG_DATE_TIME_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_date_time_generated.h"
 SAVED_CONFIG_MOWER_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_mower.ts"
 SAVED_CONFIG_MOWER_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_mower_generated.h"
 SAVED_CONFIG_OCCUPANCY_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_occupancy.ts"
@@ -1190,7 +1201,7 @@ def gen_card_contract_ts(data):
 
 
 def shadow_pilot_policies(data):
-    pilot_types = ("action", "sensor", "media", "vacuum")
+    pilot_types = ("media", "vacuum")
     return {
         card_type: data["cards"][card_type]["normalization"]
         for card_type in pilot_types
@@ -1227,53 +1238,10 @@ def saved_config_vacuum_migrations(data):
     return migrations
 
 
-def saved_config_sensor_field_migrations(data):
-    migrations = []
-    for name in data["cards"]["sensor"]["normalization"].get("migrationActions", []):
-        action = data["migrationActions"].get(name)
-        if not action or action.get("hook") != "normalize_sensor_fields":
-            continue
-        conditions = action.get("when", [])
-        if any(condition.get("source") != "field" or condition.get("operator") != "equals" for condition in conditions):
-            raise BuildError(f"sensor production migration {name} has an unsupported field condition")
-        migrations.append((name, action))
-    if not migrations:
-        raise BuildError("sensor production normalization requires an authored field migration")
-    return migrations
 
 
-def saved_config_action_field_migrations(data):
-    migrations = []
-    for name in data["cards"]["action"]["normalization"].get("migrationActions", []):
-        action = data["migrationActions"].get(name)
-        if not action or action.get("hook") != "normalize_action_fields":
-            continue
-        conditions = action.get("when", [])
-        if any(condition.get("source") != "field" or condition.get("operator") != "equals" for condition in conditions):
-            raise BuildError(f"action production migration {name} has an unsupported field condition")
-        migrations.append((name, action))
-    if not migrations:
-        raise BuildError("action production normalization requires an authored field migration")
-    return migrations
 
 
-def saved_config_action_normalization(data):
-    normalization = data["cards"]["action"]["normalization"]
-    fields = normalization["fields"]
-    field_hooks = {
-        rule.get("hook")
-        for name, rule in fields.items()
-        if name != "options" and rule.get("policy") == "hook"
-    }
-    if field_hooks != {"normalize_action_fields"}:
-        raise BuildError("action production field normalization requires the authored Action field hook")
-    option_rule = fields.get("options", {})
-    option_hook = normalization.get("optionHook")
-    if option_rule.get("policy") != "hook" or option_rule.get("hook") != option_hook:
-        raise BuildError("action production option normalization requires the authored option hook")
-    if option_hook != "normalize_action_options":
-        raise BuildError("action production normalization requires the authored Action option hook")
-    return "action"
 
 
 def saved_config_media_normalization(data):
@@ -1298,26 +1266,6 @@ def saved_config_media_normalization(data):
     return type_rule["value"]
 
 
-def saved_config_sensor_normalization(data):
-    normalization = data["cards"]["sensor"]["normalization"]
-    fields = normalization["fields"]
-    type_rule = fields.get("type", {})
-    if type_rule.get("policy") != "default" or not isinstance(type_rule.get("value"), str):
-        raise BuildError("sensor production normalization requires an authored default type")
-    field_hooks = {
-        rule.get("hook")
-        for name, rule in fields.items()
-        if name != "options" and rule.get("policy") == "hook"
-    }
-    if field_hooks != {"normalize_sensor_fields"}:
-        raise BuildError("sensor production field normalization requires the authored Sensor field hook")
-    option_rule = fields.get("options", {})
-    option_hook = normalization.get("optionHook")
-    if option_rule.get("policy") != "hook" or option_rule.get("hook") != option_hook:
-        raise BuildError("sensor production option normalization requires the authored option hook")
-    if option_hook != "normalize_sensor_options":
-        raise BuildError("sensor production normalization requires the authored Sensor option hook")
-    return type_rule["value"]
 
 
 def saved_config_migration_condition(condition, target, language):
@@ -1410,140 +1358,12 @@ def gen_saved_config_vacuum_h(data):
     )
 
 
-def gen_saved_config_sensor_ts(data):
-    migrations = saved_config_sensor_field_migrations(data)
-    sensor_type = json.dumps(saved_config_sensor_normalization(data), ensure_ascii=False)
-    lines = [
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG SENSOR HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n",
-        'import type { CardConfig } from "../contracts/types";\n\n',
-        "export function migrateSavedConfigSensorLegacy(config: CardConfig): boolean {\n",
-    ]
-    for _, action in migrations:
-        conditions = " && ".join(saved_config_migration_condition(condition, "config", "ts") for condition in action["when"])
-        lines.append(f"  if ({conditions}) {{\n")
-        for field, value in action["set"].items():
-            lines.append(f"    config.{field} = {json.dumps(value, ensure_ascii=False)};\n")
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n\n")
-    lines.extend([
-        "export type SavedConfigSensorFieldHook = (config: CardConfig, wasLegacyTextSensor: boolean) => void;\n",
-        "export type SavedConfigSensorOptionHook = (options: string, precision: string) => string;\n\n",
-        "export function normalizeSavedConfigSensor(\n",
-        "  config: CardConfig,\n",
-        "  wasLegacyTextSensor: boolean,\n",
-        "  normalizeFields: SavedConfigSensorFieldHook,\n",
-        "  normalizeOptions: SavedConfigSensorOptionHook,\n",
-        "): boolean {\n",
-        f"  if (config.type !== {sensor_type}) return false;\n",
-        "  normalizeFields(config, wasLegacyTextSensor);\n",
-        "  config.options = normalizeOptions(config.options || \"\", config.precision || \"\");\n",
-        "  return true;\n",
-        "}\n",
-    ])
-    return "".join(lines)
 
 
-def gen_saved_config_sensor_h(data):
-    migrations = saved_config_sensor_field_migrations(data)
-    sensor_type = json.dumps(saved_config_sensor_normalization(data), ensure_ascii=False)
-    lines = [
-        "#pragma once\n\n",
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG SENSOR HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n\n",
-        "template<typename Config>\ninline bool migrate_saved_config_sensor_legacy(Config &config) {\n",
-    ]
-    for _, action in migrations:
-        conditions = " && ".join(saved_config_migration_condition(condition, "config", "cpp") for condition in action["when"])
-        lines.append(f"  if ({conditions}) {{\n")
-        for field, value in action["set"].items():
-            lines.append(f"    config.{field} = {json.dumps(value, ensure_ascii=False)};\n")
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n\n")
-    lines.extend([
-        "template<typename Config, typename FieldHook, typename OptionHook>\n",
-        "inline bool normalize_saved_config_sensor(Config &config, bool was_legacy_text_sensor,\n",
-        "                                          FieldHook normalize_fields, OptionHook normalize_options) {\n",
-        f"  if (config.type != {sensor_type}) return false;\n",
-        "  normalize_fields(config, was_legacy_text_sensor);\n",
-        "  config.options = normalize_options(config.options, config.precision);\n",
-        "  return true;\n",
-        "}\n",
-    ])
-    return "".join(lines)
 
 
-def gen_saved_config_action_ts(data):
-    migrations = saved_config_action_field_migrations(data)
-    action_type = json.dumps(saved_config_action_normalization(data), ensure_ascii=False)
-    lines = [
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG ACTION HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n",
-        'import type { CardConfig } from "../contracts/types";\n\n',
-        "export function migrateSavedConfigActionLegacy(config: CardConfig): boolean {\n",
-    ]
-    for _, action in migrations:
-        conditions = " && ".join(saved_config_migration_condition(condition, "config", "ts") for condition in action["when"])
-        lines.append(f"  if ({conditions}) {{\n")
-        for field, value in action["set"].items():
-            lines.append(f"    config.{field} = {json.dumps(value, ensure_ascii=False)};\n")
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n\n")
-    lines.extend([
-        "export type SavedConfigActionFieldHook = (config: CardConfig) => void;\n",
-        "export type SavedConfigActionOptionHook = (options: string, action: string) => string;\n\n",
-        "export function normalizeSavedConfigAction(\n",
-        "  config: CardConfig,\n",
-        "  normalizeFields: SavedConfigActionFieldHook,\n",
-        "  normalizeOptions: SavedConfigActionOptionHook,\n",
-        "): boolean {\n",
-        f"  if (config.type !== {action_type}) return false;\n",
-        "  normalizeFields(config);\n",
-        "  config.options = normalizeOptions(config.options || \"\", config.sensor || \"\");\n",
-        "  return true;\n",
-        "}\n",
-    ])
-    return "".join(lines)
 
 
-def gen_saved_config_action_h(data):
-    migrations = saved_config_action_field_migrations(data)
-    action_type = json.dumps(saved_config_action_normalization(data), ensure_ascii=False)
-    lines = [
-        "#pragma once\n\n",
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG ACTION HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n\n",
-        "template<typename Config>\ninline bool migrate_saved_config_action_legacy(Config &config) {\n",
-    ]
-    for _, action in migrations:
-        conditions = " && ".join(saved_config_migration_condition(condition, "config", "cpp") for condition in action["when"])
-        lines.append(f"  if ({conditions}) {{\n")
-        for field, value in action["set"].items():
-            if isinstance(value, str) and value == "":
-                lines.append(f"    config.{field}.clear();\n")
-            else:
-                lines.append(f"    config.{field} = {json.dumps(value, ensure_ascii=False)};\n")
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n\n")
-    lines.extend([
-        "template<typename Config, typename FieldHook, typename OptionHook>\n",
-        "inline bool normalize_saved_config_action(Config &config, FieldHook normalize_fields,\n",
-        "                                          OptionHook normalize_options) {\n",
-        f"  if (config.type != {action_type}) return false;\n",
-        "  normalize_fields(config);\n",
-        "  config.options = normalize_options(config.options, config.sensor);\n",
-        "  return true;\n",
-        "}\n",
-    ])
-    return "".join(lines)
 
 
 def gen_saved_config_media_ts(data):
@@ -1589,13 +1409,10 @@ def gen_saved_config_media_h(data):
 
 
 SAVED_CONFIG_STATIC_CARD_TYPES = (
-    "internal",
     "light_brightness",
     "light_switch",
     "light_temperature",
     "push",
-    "screen_lock",
-    "screensaver",
     "slider",
 )
 
@@ -1807,99 +1624,6 @@ def gen_saved_config_fan_h(data):
                     lines.append("    config.options = normalize_options(config.options);\n")
                 else:
                     raise BuildError(f"unsupported Fan saved-config hook {rule.get('hook')!r}")
-            else:
-                lines.extend(saved_config_declarative_field_lines(field, rule, "cpp"))
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n")
-    return "".join(lines)
-
-
-SAVED_CONFIG_DATE_TIME_CARD_TYPES = ("calendar", "clock", "timezone")
-
-
-def saved_config_date_time_normalizations(data):
-    normalizations = []
-    for card_type in SAVED_CONFIG_DATE_TIME_CARD_TYPES:
-        normalization = data["cards"][card_type].get("normalization")
-        if not normalization:
-            raise BuildError(f"date/time saved-config card {card_type} requires authored normalization")
-        field_hooks = {
-            rule.get("hook") for field, rule in normalization["fields"].items()
-            if field != "options" and rule.get("policy") == "hook"
-        }
-        expected_hooks = set() if card_type == "clock" else {"normalize_date_time_fields"}
-        if field_hooks != expected_hooks:
-            raise BuildError(f"date/time saved-config card {card_type} has unexpected field hooks")
-        option_rule = normalization["fields"]["options"]
-        if option_rule.get("policy") != "hook" or option_rule.get("hook") != "normalize_date_time_options":
-            raise BuildError(f"date/time saved-config card {card_type} requires the authored option hook")
-        if normalization.get("optionHook") != "normalize_date_time_options":
-            raise BuildError(f"date/time saved-config card {card_type} has an unexpected optionHook")
-        normalizations.append((card_type, normalization))
-    return normalizations
-
-
-def gen_saved_config_date_time_ts(data):
-    lines = [
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG DATE/TIME HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n",
-        'import type { CardConfig } from "../contracts/types";\n\n',
-        "export type SavedConfigDateTimeFieldHook = (config: CardConfig) => void;\n",
-        "export type SavedConfigDateTimeOptionHook = (options: string, config: CardConfig) => string;\n\n",
-        "export function normalizeSavedConfigDateTime(\n",
-        "  config: CardConfig,\n",
-        "  normalizeFields: SavedConfigDateTimeFieldHook,\n",
-        "  normalizeOptions: SavedConfigDateTimeOptionHook,\n",
-        "): boolean {\n",
-    ]
-    for card_type, normalization in saved_config_date_time_normalizations(data):
-        lines.append(f"  if (config.type === {json.dumps(card_type)}) {{\n")
-        field_hook_called = False
-        for field in data["fields"]:
-            rule = normalization["fields"][field]
-            if rule.get("policy") == "hook":
-                if rule.get("hook") == "normalize_date_time_fields":
-                    if not field_hook_called:
-                        lines.append("    normalizeFields(config);\n")
-                        field_hook_called = True
-                elif rule.get("hook") == "normalize_date_time_options":
-                    lines.append("    config.options = normalizeOptions(config.options || \"\", config);\n")
-                else:
-                    raise BuildError(f"unsupported date/time saved-config hook {rule.get('hook')!r}")
-            else:
-                lines.extend(saved_config_declarative_field_lines(field, rule, "ts"))
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n")
-    return "".join(lines)
-
-
-def gen_saved_config_date_time_h(data):
-    lines = [
-        "#pragma once\n\n",
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG DATE/TIME HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n\n",
-        "template<typename Config, typename FieldHook, typename OptionHook>\n",
-        "inline bool normalize_saved_config_date_time(Config &config, FieldHook normalize_fields,\n",
-        "                                            OptionHook normalize_options) {\n",
-    ]
-    for card_type, normalization in saved_config_date_time_normalizations(data):
-        lines.append(f"  if (config.type == {json.dumps(card_type)}) {{\n")
-        field_hook_called = False
-        for field in data["fields"]:
-            rule = normalization["fields"][field]
-            if rule.get("policy") == "hook":
-                if rule.get("hook") == "normalize_date_time_fields":
-                    if not field_hook_called:
-                        lines.append("    normalize_fields(config);\n")
-                        field_hook_called = True
-                elif rule.get("hook") == "normalize_date_time_options":
-                    lines.append("    config.options = normalize_options(config.options, config);\n")
-                else:
-                    raise BuildError(f"unsupported date/time saved-config hook {rule.get('hook')!r}")
             else:
                 lines.extend(saved_config_declarative_field_lines(field, rule, "cpp"))
         lines.append("    return true;\n  }\n")
@@ -2854,7 +2578,6 @@ def gen_saved_config_shadow_ts(data):
         "\n"
         f"export const SAVED_CONFIG_SHADOW_PILOT_POLICIES: Readonly<Record<string, CardNormalizationSpec>> = {json.dumps(policies, indent=2)};\n"
         f"const VACUUM_MIGRATIONS: Readonly<Record<string, MigrationActionSpec>> = {json.dumps(migrations, indent=2)};\n"
-        f"const ACTION_OPTION_SELECT_ACTIONS = {json.dumps(data['optionSelect']['actions'])} as const;\n"
         f"const MEDIA_MODES = {json.dumps(media_modes)} as const;\n"
         f"const MEDIA_DEFAULT_MODE = {json.dumps(media_behavior['defaultMode'])};\n"
         f"const MEDIA_MODE_ALIASES: Readonly<Record<string, string>> = {json.dumps(media_behavior.get('legacyModes', {}))};\n"
@@ -2918,74 +2641,6 @@ def gen_saved_config_shadow_ts(data):
         "  return config;\n"
         "}\n"
         "\n"
-        "export function normalizeSavedConfigSensorShadow(input: Partial<CardConfig>): CardConfig | null {\n"
-        "  const config = shaped(input);\n"
-        "  if (config.type === \"text_sensor\") { config.type = \"sensor\"; config.precision = \"text\"; config.entity = \"\"; config.label = \"\"; config.unit = \"\"; config.icon_on = \"Auto\"; }\n"
-        "  if (config.type === \"local_sensor\") { config.type = \"sensor\"; config.sensor = \"local\"; config.icon_on = \"Auto\"; config.options = \"\"; }\n"
-        "  if (config.type !== \"sensor\") return null;\n"
-        "  if (config.sensor !== \"local\" && config.precision === \"time\") { config.unit = \"\"; config.icon = \"Auto\"; config.icon_on = \"Auto\"; }\n"
-        "  if (config.sensor === \"local\") {\n"
-        "    config.icon_on = \"Auto\"; config.options = \"\";\n"
-        "    if ([\"text\", \"1\", \"2\"].indexOf(config.precision) < 0) config.precision = \"\";\n"
-        "    if (config.precision !== \"text\" && (!config.icon || config.icon === \"Auto\")) config.icon = \"Auto\";\n"
-        "    return config;\n"
-        "  }\n"
-        "  const source = config.options; const out: string[] = [];\n"
-        "  if (config.precision !== \"icon\" && config.precision !== \"text\" && config.precision !== \"time\") {\n"
-        "    if (optionValue(source, \"large_numbers\") === \"off\") out.push(\"large_numbers=off\");\n"
-        "    else if (optionPresent(source, \"large_numbers\")) out.push(\"large_numbers\");\n"
-        "  }\n"
-        "  if (config.precision !== \"time\" && optionPresent(source, \"active_color\")) out.push(\"active_color\");\n"
-        "  if (config.precision === \"text\" && optionPresent(source, \"state_labels\")) {\n"
-        "    out.push(\"state_labels\");\n"
-        "    let stateInput = optionValue(source, \"state_input\"); let stateOutput = optionValue(source, \"state_output\");\n"
-        "    if (!stateInput && optionValue(source, \"state_high_label\")) { stateInput = \"high\"; if (!stateOutput) stateOutput = optionValue(source, \"state_high_label\"); }\n"
-        "    else if (!stateInput && optionValue(source, \"state_low_label\")) { stateInput = \"low\"; if (!stateOutput) stateOutput = optionValue(source, \"state_low_label\"); }\n"
-        "    for (const [name, value] of [[\"state_input\", stateInput], [\"state_output\", stateOutput], [\"state_input_2\", optionValue(source, \"state_input_2\")], [\"state_output_2\", optionValue(source, \"state_output_2\")]] as const) {\n"
-        "      const trimmed = value.trim();\n"
-        "      if (trimmed) out.push(name + \"=\" + encodeOptionValue(trimmed));\n"
-        "    }\n"
-        "  }\n"
-        "  if (config.precision === \"time\") { const timeUnit = optionValue(source, \"time_unit\"); if ([\"seconds\", \"minutes\", \"hours\", \"days\"].indexOf(timeUnit) >= 0) out.push(\"time_unit=\" + timeUnit); }\n"
-        "  config.options = out.join(\",\"); return config;\n"
-        "}\n"
-        "\n"
-        "export function normalizeSavedConfigActionShadow(input: Partial<CardConfig>): CardConfig | null {\n"
-        "  const config = shaped(input);\n"
-        "  if (config.type === \"local\") { config.type = \"action\"; config.sensor = \"local\"; }\n"
-        "  if (config.type === \"option_select\") { config.type = \"action\"; config.sensor = \"input_select.select_option\"; }\n"
-        "  if (config.type !== \"action\") return null;\n"
-        "  const entityDomain = config.entity.split(\".\")[0] || \"\";\n"
-        "  if ([\"number.set_value\", \"input_number.set_value\"].indexOf(config.sensor) >= 0 && [\"number\", \"input_number\"].indexOf(entityDomain) >= 0) config.sensor = entityDomain + \".set_value\";\n"
-        "  if (ACTION_OPTION_SELECT_ACTIONS.indexOf(config.sensor as typeof ACTION_OPTION_SELECT_ACTIONS[number]) >= 0) {\n"
-        "    config.sensor = \"input_select.select_option\"; config.unit = \"\"; config.precision = \"\"; config.options = \"\"; config.icon_on = \"Auto\";\n"
-        "    if (!config.icon || config.icon === \"Auto\" || config.icon === \"Chevron Down\") config.icon = \"Flash\"; return config;\n"
-        "  }\n"
-        "  if (config.sensor === \"local\") {\n"
-        "    config.unit = \"\"; config.precision = \"\"; config.options = \"\"; config.icon_on = \"Auto\";\n"
-        "    if (!config.icon || config.icon === \"Auto\" || config.icon === \"Flash\") config.icon = \"Gesture Tap\"; return config;\n"
-        "  }\n"
-        "  config.precision = \"\"; const source = config.options; const out: string[] = []; const stateEntity = optionValue(source, \"state_entity\").trim();\n"
-        "  if (stateEntity) {\n"
-        "    out.push(\"state_entity=\" + encodeOptionValue(stateEntity)); const rawPrecision = optionValue(source, \"state_precision\");\n"
-        "    if (rawPrecision === \"icon\" || rawPrecision === \"text\") out.push(\"state_precision=\" + rawPrecision);\n"
-        "    else {\n"
-        "      const stateUnit = optionValue(source, \"state_unit\").trim(); const numericPrecision = [\"0\", \"1\", \"2\"].indexOf(rawPrecision) >= 0;\n"
-        "      if (stateUnit) out.push(\"state_unit=\" + encodeOptionValue(stateUnit));\n"
-        "      if (numericPrecision) out.push(\"state_precision=\" + rawPrecision);\n"
-        "      if (optionValue(source, \"large_numbers\") === \"off\") out.push(\"large_numbers=off\"); else if (optionPresent(source, \"large_numbers\")) out.push(\"large_numbers\");\n"
-        "    }\n"
-        "  }\n"
-        "  if (config.sensor === \"script.turn_on\") {\n"
-        "    const fields = optionValue(source, \"script_fields\").trim(); if (fields) out.push(\"script_fields=\" + encodeOptionValue(fields));\n"
-        "    if (optionPresent(source, \"confirm_on\")) {\n"
-        "      out.push(\"confirm_on\"); const values: readonly (readonly [string, string])[] = [[\"confirm_message\", \"Run this script?\"], [\"confirm_yes\", \"Yes\"], [\"confirm_no\", \"No\"]];\n"
-        "      for (const [name, defaultValue] of values) { const value = optionValue(source, name).trim(); if (value && value !== defaultValue) out.push(name + \"=\" + encodeOptionValue(value)); }\n"
-        "    }\n"
-        "  }\n"
-        "  config.options = out.join(\",\"); return config;\n"
-        "}\n"
-        "\n"
         "function normalizedMediaVolume(value: string): string {\n"
         "  if (!value) return MEDIA_VOLUME_DEFAULT; const parsed = parseInt(value, 10);\n"
         "  if (!isFinite(parsed)) return MEDIA_VOLUME_DEFAULT; return String(Math.max(MEDIA_VOLUME_MIN, Math.min(MEDIA_VOLUME_MAX, parsed)));\n"
@@ -3020,7 +2675,7 @@ def gen_saved_config_shadow_ts(data):
         "}\n"
         "\n"
         "export function normalizeSavedConfigShadow(input: Partial<CardConfig>): CardConfig | null {\n"
-        "  return normalizeSavedConfigVacuumShadow(input) || normalizeSavedConfigSensorShadow(input) || normalizeSavedConfigActionShadow(input) || normalizeSavedConfigMediaShadow(input);\n"
+        "  return normalizeSavedConfigVacuumShadow(input) || normalizeSavedConfigMediaShadow(input);\n"
         "}\n"
     )
 
@@ -3063,7 +2718,6 @@ def gen_saved_config_shadow_h(data):
     lines.extend([
         cpp_string_array("SAVED_CONFIG_SHADOW_VACUUM_MODES", modes),
         cpp_string_array("SAVED_CONFIG_SHADOW_VACUUM_UNIT_MODES", hook["preserveUnitForModes"]),
-        cpp_string_array("SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS", data["optionSelect"]["actions"]),
         cpp_string_array("SAVED_CONFIG_SHADOW_MEDIA_MODES", contract_card_option_values(data["cards"], "media", "media_mode")),
         cpp_string_array("SAVED_CONFIG_SHADOW_MEDIA_STATE_DISPLAY_MODES", media_behavior.get("stateDisplayModes", [])),
         cpp_string_array("SAVED_CONFIG_SHADOW_MEDIA_NOW_PLAYING_CONTROLS", contract_card_option_values(data["cards"], "media", "media_now_playing_controls")),
@@ -3100,75 +2754,6 @@ def gen_saved_config_shadow_h(data):
         "  size_t end = value.size(); while (end > begin && (value[end - 1] == ' ' || value[end - 1] == '\\t' || value[end - 1] == '\\r' || value[end - 1] == '\\n')) --end;\n",
         "  return value.substr(begin, end - begin);\n",
         "}\n\n",
-        "template<typename Config>\ninline bool normalize_saved_config_sensor_shadow(Config &config) {\n",
-        "  if (config.type == \"text_sensor\") { config.type = \"sensor\"; config.precision = \"text\"; config.entity.clear(); config.label.clear(); config.unit.clear(); config.icon_on = \"Auto\"; if (config.icon.empty()) config.icon = \"Auto\"; }\n",
-        "  if (config.type == \"local_sensor\") { config.type = \"sensor\"; config.sensor = \"local\"; config.icon_on = \"Auto\"; config.options.clear(); }\n",
-        "  if (config.type != \"sensor\") return false;\n",
-        "  if (config.icon.empty()) config.icon = \"Auto\";\n",
-        "  if (config.icon_on.empty()) config.icon_on = \"Auto\";\n",
-        "  if (config.sensor != \"local\" && config.precision == \"time\") { config.unit.clear(); config.icon = \"Auto\"; config.icon_on = \"Auto\"; }\n",
-        "  if (config.sensor == \"local\") { config.icon_on = \"Auto\"; config.options.clear(); if (config.precision != \"text\" && config.precision != \"1\" && config.precision != \"2\") config.precision.clear(); if (config.precision != \"text\" && (config.icon.empty() || config.icon == \"Auto\")) config.icon = \"Auto\"; return true; }\n",
-        "  const std::string source = config.options; std::string out;\n",
-        "  if (config.precision != \"icon\" && config.precision != \"text\" && config.precision != \"time\") append_large_numbers_option(out, source);\n",
-        "  if (config.precision != \"time\" && cfg_option_token_present(source, \"active_color\")) saved_config_shadow_append_option(out, \"active_color\");\n",
-        "  if (config.precision == \"text\" && cfg_option_token_present(source, \"state_labels\")) {\n",
-        "    saved_config_shadow_append_option(out, \"state_labels\"); std::string input = cfg_option_value(source, \"state_input\"); std::string output = cfg_option_value(source, \"state_output\");\n",
-        "    if (input.empty() && !cfg_option_value(source, \"state_high_label\").empty()) { input = \"high\"; if (output.empty()) output = cfg_option_value(source, \"state_high_label\"); }\n",
-        "    else if (input.empty() && !cfg_option_value(source, \"state_low_label\").empty()) { input = \"low\"; if (output.empty()) output = cfg_option_value(source, \"state_low_label\"); }\n",
-        "    input = saved_config_shadow_trim(input); output = saved_config_shadow_trim(output);\n",
-        "    if (!input.empty()) saved_config_shadow_append_option(out, \"state_input\", input);\n",
-        "    if (!output.empty()) saved_config_shadow_append_option(out, \"state_output\", output);\n",
-        "    const std::string input_2 = cfg_option_value(source, \"state_input_2\"); const std::string output_2 = cfg_option_value(source, \"state_output_2\");\n",
-        "    const std::string input_2_trimmed = saved_config_shadow_trim(input_2); const std::string output_2_trimmed = saved_config_shadow_trim(output_2);\n",
-        "    if (!input_2_trimmed.empty()) saved_config_shadow_append_option(out, \"state_input_2\", input_2_trimmed);\n",
-        "    if (!output_2_trimmed.empty()) saved_config_shadow_append_option(out, \"state_output_2\", output_2_trimmed);\n",
-        "  }\n",
-        "  if (config.precision == \"time\") { const std::string time_unit = cfg_option_value(source, \"time_unit\"); if (time_unit == \"seconds\" || time_unit == \"minutes\" || time_unit == \"hours\" || time_unit == \"days\") saved_config_shadow_append_option(out, \"time_unit\", time_unit); }\n",
-        "  config.options = out; return true;\n}\n\n",
-        "template<typename Config>\ninline bool normalize_saved_config_action_shadow(Config &config) {\n",
-        "  if (config.type == \"local\") { config.type = \"action\"; config.sensor = \"local\"; }\n",
-        "  if (config.type == \"option_select\") { config.type = \"action\"; config.sensor = \"input_select.select_option\"; }\n",
-        "  if (config.type != \"action\") return false;\n",
-        "  const bool number_entity = config.entity.size() > 7 && config.entity.compare(0, 7, \"number.\") == 0;\n",
-        "  const bool input_number_entity = config.entity.size() > 13 && config.entity.compare(0, 13, \"input_number.\") == 0;\n",
-        "  if ((config.sensor == \"number.set_value\" || config.sensor == \"input_number.set_value\") && (number_entity || input_number_entity)) config.sensor = number_entity ? \"number.set_value\" : \"input_number.set_value\";\n",
-        "  if (config.icon.empty()) config.icon = \"Auto\";\n",
-        "  if (config.icon_on.empty()) config.icon_on = \"Auto\";\n",
-        "  if (saved_config_shadow_string_in(config.sensor, SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS, sizeof(SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS) / sizeof(SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS[0]))) {\n",
-        "    config.sensor = \"input_select.select_option\"; config.unit.clear(); config.precision.clear(); config.options.clear(); config.icon_on = \"Auto\";\n",
-        "    if (config.icon.empty() || config.icon == \"Auto\" || config.icon == \"Chevron Down\") config.icon = \"Flash\";\n",
-        "    return true;\n",
-        "  }\n",
-        "  if (config.sensor == \"local\") {\n",
-        "    config.unit.clear(); config.precision.clear(); config.options.clear(); config.icon_on = \"Auto\";\n",
-        "    if (config.icon.empty() || config.icon == \"Auto\" || config.icon == \"Flash\") config.icon = \"Gesture Tap\";\n",
-        "    return true;\n",
-        "  }\n",
-        "  config.precision.clear(); const std::string source = config.options; std::string out; const std::string state_entity = saved_config_shadow_trim(cfg_option_value(source, \"state_entity\"));\n",
-        "  if (!state_entity.empty()) { saved_config_shadow_append_option(out, \"state_entity\", state_entity); const std::string raw_precision = cfg_option_value(source, \"state_precision\");\n",
-        "    if (raw_precision == \"icon\" || raw_precision == \"text\") saved_config_shadow_append_option(out, \"state_precision\", raw_precision);\n",
-        "    else {\n",
-        "      const std::string state_unit = saved_config_shadow_trim(cfg_option_value(source, \"state_unit\"));\n",
-        "      const bool numeric_precision = raw_precision == \"0\" || raw_precision == \"1\" || raw_precision == \"2\";\n",
-        "      if (!state_unit.empty()) saved_config_shadow_append_option(out, \"state_unit\", state_unit);\n",
-        "      if (numeric_precision) saved_config_shadow_append_option(out, \"state_precision\", raw_precision);\n",
-        "      append_large_numbers_option(out, source);\n",
-        "    }\n",
-        "  }\n",
-        "  if (config.sensor == \"script.turn_on\") {\n",
-        "    const std::string fields = saved_config_shadow_trim(cfg_option_value(source, \"script_fields\"));\n",
-        "    if (!fields.empty()) saved_config_shadow_append_option(out, \"script_fields\", fields);\n",
-        "    if (cfg_option_token_present(source, \"confirm_on\")) {\n",
-        "      saved_config_shadow_append_option(out, \"confirm_on\");\n",
-        "      const std::string message = saved_config_shadow_trim(cfg_option_value(source, \"confirm_message\"));\n",
-        "      const std::string yes = saved_config_shadow_trim(cfg_option_value(source, \"confirm_yes\"));\n",
-        "      const std::string no = saved_config_shadow_trim(cfg_option_value(source, \"confirm_no\"));\n",
-        "      if (!message.empty() && message != \"Run this script?\") saved_config_shadow_append_option(out, \"confirm_message\", message);\n",
-        "      if (!yes.empty() && yes != \"Yes\") saved_config_shadow_append_option(out, \"confirm_yes\", yes);\n",
-        "      if (!no.empty() && no != \"No\") saved_config_shadow_append_option(out, \"confirm_no\", no);\n",
-        "    }\n",
-        "  }\n",
-        "  config.options = out; return true;\n}\n\n",
         "inline std::string saved_config_shadow_media_mode(const std::string &mode) {\n",
         f"  if (mode == \"controls\") return {json.dumps(media_behavior['defaultMode'])};\n",
         "  if (saved_config_shadow_string_in(mode, SAVED_CONFIG_SHADOW_MEDIA_MODES, sizeof(SAVED_CONFIG_SHADOW_MEDIA_MODES) / sizeof(SAVED_CONFIG_SHADOW_MEDIA_MODES[0]))) return mode;\n",
@@ -3234,8 +2819,6 @@ def gen_saved_config_shadow_h(data):
         "  config.options = out; return true;\n}\n\n",
         "template<typename Config>\ninline bool normalize_saved_config_shadow(Config &config) {\n",
         "  if (normalize_saved_config_vacuum_shadow(config)) return true;\n",
-        "  if (normalize_saved_config_sensor_shadow(config)) return true;\n",
-        "  if (normalize_saved_config_action_shadow(config)) return true;\n",
         "  return normalize_saved_config_media_shadow(config);\n",
         "}\n",
     ])
@@ -3405,6 +2988,7 @@ def gen_card_contract_h(data):
         "\n",
         "#include <cstdint>\n",
         "#include <string>\n",
+        "#include <string_view>\n",
         "\n",
         "// =============================================================================\n",
         "// GENERATED CARD CONFIG CONTRACT - do not edit by hand\n",
@@ -3423,7 +3007,6 @@ def gen_card_contract_h(data):
         cpp_string_array("CARD_CONTRACT_GARAGE_LABEL_DISPLAY_MODES", contract_card_option_values(cards, "garage", "label_display")),
         cpp_string_array("CARD_CONTRACT_GATE_MODES", contract_card_option_values(cards, "gate", "gate_mode")),
         cpp_string_array("CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES", contract_card_option_values(cards, "gate", "label_display")),
-        cpp_string_array("CARD_CONTRACT_INTERNAL_MODES", contract_card_option_values(cards, "internal", "internal_mode")),
         cpp_string_array("CARD_CONTRACT_LOCK_MODES", contract_card_option_values(cards, "lock", "lock_mode")),
         cpp_string_array("CARD_CONTRACT_MEDIA_MODES", contract_card_option_values(cards, "media", "media_mode")),
         cpp_string_array("CARD_CONTRACT_MEDIA_DISPLAY_MODES", contract_card_option_values(cards, "media", "media_display")),
@@ -3506,11 +3089,6 @@ def gen_card_contract_h(data):
         "inline bool card_contract_gate_label_display_valid(const std::string &mode) {\n",
         "  return card_contract_string_in(mode, CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES,\n",
         "    sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES) / sizeof(CARD_CONTRACT_GATE_LABEL_DISPLAY_MODES[0]));\n",
-        "}\n",
-        "\n",
-        "inline bool card_contract_internal_mode_valid(const std::string &mode) {\n",
-        "  return card_contract_string_in(mode, CARD_CONTRACT_INTERNAL_MODES,\n",
-        "    sizeof(CARD_CONTRACT_INTERNAL_MODES) / sizeof(CARD_CONTRACT_INTERNAL_MODES[0]));\n",
         "}\n",
         "\n",
         "inline bool card_contract_lock_mode_valid(const std::string &mode) {\n",
@@ -3711,13 +3289,17 @@ def gen_card_contract_h(data):
         "}\n",
         "\n",
         "inline bool card_contract_large_numbers_supported(const std::string &type, const std::string &precision) {\n",
-        "  if (type == \"sensor\") return precision != \"icon\" && precision != \"text\";\n",
-        "  return type == \"\" || type == \"action\" || type == \"calendar\" || type == \"clock\" ||\n",
+        "  (void) precision;\n",
+        "  return type == \"\" || type == \"action\" ||\n",
         "         type == \"companion\" ||\n",
-        "         type == \"climate\" || type == \"media\" || type == \"subpage\" ||\n",
-        "         type == \"timezone\";\n",
+        "         type == \"climate\" || type == \"media\" || type == \"subpage\";\n",
         "}\n",
         "\n",
+        "inline std::string_view card_contract_subpage_code_view(std::string_view type) {\n",
+    ])
+    for card_type, code in codes.items():
+        lines.append(f'  if (type == "{card_type}") return "{code}";\n')
+    lines.extend(["  return type;\n", "}\n", "\n",
         "inline const char *card_contract_subpage_type_code(const std::string &type) {\n",
     ])
     for card_type, code in codes.items():
@@ -3726,6 +3308,11 @@ def gen_card_contract_h(data):
         "  return type.c_str();\n",
         "}\n",
         "\n",
+        "inline std::string_view card_contract_subpage_type_view(const std::string_view &code) {\n",
+    ])
+    for card_type, code in codes.items():
+        lines.append(f'  if (code == "{code}") return "{card_type}";\n')
+    lines.extend(["  return code;\n", "}\n", "\n",
         "inline std::string card_contract_subpage_type_from_code(const std::string &code) {\n",
     ])
     for card_type, code in codes.items():
@@ -3825,18 +3412,12 @@ def sync_card_contract(check_only=False):
         (SAVED_CONFIG_SHADOW_H, gen_saved_config_shadow_h(data)),
         (SAVED_CONFIG_VACUUM_TS, gen_saved_config_vacuum_ts(data)),
         (SAVED_CONFIG_VACUUM_H, gen_saved_config_vacuum_h(data)),
-        (SAVED_CONFIG_SENSOR_TS, gen_saved_config_sensor_ts(data)),
-        (SAVED_CONFIG_SENSOR_H, gen_saved_config_sensor_h(data)),
-        (SAVED_CONFIG_ACTION_TS, gen_saved_config_action_ts(data)),
-        (SAVED_CONFIG_ACTION_H, gen_saved_config_action_h(data)),
         (SAVED_CONFIG_MEDIA_TS, gen_saved_config_media_ts(data)),
         (SAVED_CONFIG_MEDIA_H, gen_saved_config_media_h(data)),
         (SAVED_CONFIG_STATIC_TS, gen_saved_config_static_ts(data)),
         (SAVED_CONFIG_STATIC_H, gen_saved_config_static_h(data)),
         (SAVED_CONFIG_FAN_TS, gen_saved_config_fan_ts(data)),
         (SAVED_CONFIG_FAN_H, gen_saved_config_fan_h(data)),
-        (SAVED_CONFIG_DATE_TIME_TS, gen_saved_config_date_time_ts(data)),
-        (SAVED_CONFIG_DATE_TIME_H, gen_saved_config_date_time_h(data)),
         (SAVED_CONFIG_MOWER_TS, gen_saved_config_mower_ts(data)),
         (SAVED_CONFIG_MOWER_H, gen_saved_config_mower_h(data)),
         (SAVED_CONFIG_OCCUPANCY_TS, gen_saved_config_occupancy_ts(data)),
@@ -3924,6 +3505,11 @@ def gen_device_grid_snippet(capability):
 
 
 def gen_device_install_snippet(capability):
+    from release_devices import load_release_devices
+    if capability["installSlug"] not in load_release_devices():
+        return (generated_markdown_header("SCREEN INSTALL BUTTON") +
+                "> This device is planned for a future release. The first release supports "
+                "only the [4-inch S3 4848S040](/screens/4848s040).\n")
     return (
         generated_markdown_header("SCREEN INSTALL BUTTON") +
         f'<EspInstallButton slug="{capability["installSlug"]}" />\n'
@@ -4004,29 +3590,32 @@ def web_mdi_icon_names(data, codepoints):
 
     The picker gets its names from the Product Model. A smaller set of fixed
     controls and card badges is written directly in the editor source, so scan
-    those string literals too. Filtering them through the pinned MDI map keeps
-    unrelated UI text out of the font stylesheet.
+    runtime string literals too. Type-only names must not add glyphs. Filtering
+    bare names through the pinned MDI map keeps unrelated UI text out of the
+    font stylesheet; explicit MDI classes are always checked.
     """
     names = {item["mdi"] for item in icon_items(data)}
-    for path in WEB_SOURCE_DIR.rglob("*.ts"):
-        source = path.read_text(encoding="utf-8")
-        names.update(
-            match.group(1)
-            for match in re.finditer(r"\bmdi-([a-z0-9-]+)\b", source)
-            if match.group(1) in codepoints
+    overlays = GENERATED_TRANSACTION.overlays() if GENERATED_TRANSACTION is not None else {}
+    paths = set(WEB_SOURCE_DIR.rglob("*.ts"))
+    paths.update(Path(path) for path in overlays
+                 if Path(path).suffix == ".ts" and Path(path).is_relative_to(WEB_SOURCE_DIR))
+    sources = []
+    for path in sorted(paths):
+        source = overlays.get(str(path.resolve()))
+        if source is None:
+            source = path.read_text(encoding="utf-8")
+        sources.append({"file": str(path), "source": source})
+    try:
+        result = subprocess.run(
+            ["node", str(ROOT / "scripts" / "web_icon_names.js")],
+            input=json.dumps({"sources": sources, "knownNames": list(codepoints)}),
+            text=True, capture_output=True, check=False,
         )
-        accessibility_role_values = {
-            match.span(1)
-            for match in re.finditer(
-                r"\.setAttribute\(\s*[\"']role[\"']\s*,\s*[\"']([a-z][a-z0-9-]*)[\"']",
-                source,
-            )
-        }
-        names.update(
-            match.group(1)
-            for match in re.finditer(r"['\"]([a-z][a-z0-9-]*)['\"]", source)
-            if match.group(1) in codepoints and match.span(1) not in accessibility_role_values
-        )
+    except FileNotFoundError as exc:
+        raise BuildError("Node.js and npm ci are required to validate browser icons") from exc
+    if result.returncode != 0:
+        raise BuildError(result.stderr.strip() or "Browser icon source scan failed")
+    names.update(json.loads(result.stdout))
     return names
 
 
@@ -4238,22 +3827,12 @@ def gen_icons_h_domain_icons(data):
 
 
 def gen_web_icon_module(data):
-    """Typed icon names and exception map for the web bundle."""
-    fb = data["fallback"]
-    exceptions = [f'    Auto: "{fb["mdi"]}",\n']
+    """Typed icon names and slug lookup for the web bundle."""
     names = [icon["name"] for icon in data["icons"]]
-
-    # Saved cards can also reference structural icons used by firmware defaults.
-    for icon in icon_items(data):
-        name = icon["name"]
-        mdi = icon["mdi"]
-        expected = re.sub(r"[^a-z0-9 ]", "", name.lower()).replace(" ", "-")
-        if expected != mdi:
-            key = name if re.match(r"^[A-Za-z_$][A-Za-z0-9_$]*$", name) else f'"{name}"'
-            exceptions.append(f'    {key}: "{mdi}",\n')
-
-    lines = ["export const GENERATED_ICON_EXCEPTIONS: Readonly<Record<string, string>> = {\n"]
-    lines.extend(exceptions)
+    slugs = {"Auto": data["fallback"]["mdi"]}
+    slugs.update((icon["name"], icon["mdi"]) for icon in icon_items(data))
+    lines = ["export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {\n"]
+    lines.extend(f"    {json.dumps(name)}: {json.dumps(mdi)},\n" for name, mdi in slugs.items())
     lines.append("};\n")
     lines.append("export const GENERATED_ICON_NAMES: readonly string[] = [\n")
     for i in range(0, len(names), 6):

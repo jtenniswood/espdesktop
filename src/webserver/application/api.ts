@@ -1,7 +1,7 @@
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { DeviceApi } from "../api/device_api";
 import { requestFailureInfo } from "../api/request_failure";
-import { screensaverActionOption } from "../model/settings";
+import { normalizeScreensaverMode, screensaverActionOption } from "../model/settings";
 import type { ScreensaverTimeoutFeature } from "./screensaver_timeout";
 import type { EntityStateFeature } from "./entity_state";
 import type { ControlsShellFeature } from "./controls_shell";
@@ -43,7 +43,7 @@ export interface ApplicationApiFeature {
     postHomeScreenTimeout(value?: any): void;
     postSwitchWithObjectId(name?: string, objectId?: string, on?: boolean, errorMessage?: string): void;
     postSwitchWithObjectIds(name?: string, objectIds?: string[], on?: boolean, errorMessage?: string): void;
-    getJsonQuietly(path?: string, callback?: (data: any) => void, options?: { credentials?: RequestCredentials }): Promise<any>;
+    getJsonQuietly(path?: string, callback?: (data: any) => void, options?: { credentials?: RequestCredentials; strict?: boolean }): Promise<any>;
     getJsonFirst(paths?: string[], callback?: (data: any) => void): Promise<any>;
     entityDetailPath(domain?: string, name?: string, detail?: string): string;
     entityDetailPaths(domain?: string, names?: string[], detail?: string): string[];
@@ -165,7 +165,7 @@ export function createApplicationApiFeature(
         return post(entityPostUrls("switch", name, [], on ? "turn_on" : "turn_off"));
     }
     function postScreensaverMode(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screensaver_mode"), entityObjectIds("screensaver_mode"), value);
+        return postTextWithObjectIds(entityName("screensaver_mode"), entityObjectIds("screensaver_mode"), normalizeScreensaverMode(value));
     }
     function postFirmwareAutoUpdate(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("firmware_auto_update"), entityObjectIds("firmware_auto_update"), on);
@@ -227,8 +227,10 @@ export function createApplicationApiFeature(
     function postSwitchWithObjectIds(this: any, name?: any, objectIds?: any, on?: any, errorMessage?: any) {
         postWithObjectIds("switch", name, objectIds, on ? "turn_on" : "turn_off", errorMessage);
     }
-    function getJsonQuietly(this: any, path?: any, callback?: any, options?: { credentials?: RequestCredentials }) {
-        return deviceApiClient.getJson(path, options).then(function (this: any, result?: any) {
+    function getJsonQuietly(this: any, path?: any, callback?: any, options?: { credentials?: RequestCredentials; strict?: boolean }) {
+        return deviceApiClient.getJson(path, options?.credentials ? { credentials: options.credentials } : undefined).then(function (this: any, result?: any) {
+            if (options?.strict && !result.ok && !(result.kind === "http-error" && result.status === 404))
+                throw new Error("Could not read the saved configuration.");
             var data: any = result.ok ? result.value : null;
             if (data && callback)
                 callback(data);

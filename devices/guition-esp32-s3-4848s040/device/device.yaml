@@ -90,7 +90,6 @@ espdesktop:
     storage: card_images
     button_order: button_order
     button_on_color: button_on_color
-    special_page_chunks: [special_page_config, special_page_config_ext, special_page_config_ext_2, special_page_config_ext_3, special_page_config_ext_4, special_page_config_ext_5, special_page_config_ext_6, special_page_config_ext_7]
     buttons:
       - config: button_1_config
         subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3]
@@ -154,56 +153,23 @@ esphome:
               esp_sleep_enable_timer_wakeup(100000);
               esp_deep_sleep_start();
             }
-    - priority: 700
-      then:
-        - lambda: |-
-            register_internal_relay(
-              "relay_1", "Relay 1",
-              [=](bool on) {
-                if (on) id(relay_1).turn_on();
-                else id(relay_1).turn_off();
-              },
-              [=]() { id(relay_1_push).execute(); },
-              [=]() -> bool { return id(relay_1).state; });
-            register_internal_relay(
-              "relay_2", "Relay 2",
-              [=](bool on) {
-                if (on) id(relay_2).turn_on();
-                else id(relay_2).turn_off();
-              },
-              [=]() { id(relay_2_push).execute(); },
-              [=]() -> bool { return id(relay_2).state; });
-            register_internal_relay(
-              "relay_3", "Relay 3",
-              [=](bool on) {
-                if (on) id(relay_3).turn_on();
-                else id(relay_3).turn_off();
-              },
-              [=]() { id(relay_3_push).execute(); },
-              [=]() -> bool { return id(relay_3).state; });
-    # EspDesktop owns the Companion runtime and starts at AFTER_WIFI (200).
-    # Register handlers afterwards so a fresh OTA boot cannot abort and roll
-    # back before the new embedded web bundle becomes active.
     - priority: 190
       then:
         - lambda: |-
             register_companion_now_playing_handlers(
               [](const CompanionNowPlayingSnapshot &snapshot) {
-                if (!id(cover_art_companion_source_active)) return;
+                if (!id(cover_art_companion_source_active) ||
+                    !id(cover_art_screensaver_enabled).state) return;
                 const uint32_t previous_generation =
                   static_cast<uint32_t>(id(cover_art_content_fingerprint));
                 id(cover_art_content_fingerprint) = snapshot.generation;
                 id(cover_art_title) = snapshot.title;
                 id(cover_art_artist) = snapshot.artist;
                 id(cover_art_album) = snapshot.album;
-                id(cover_art_media_source) = snapshot.source_application_name;
                 id(cover_art_media_duration) = snapshot.duration;
                 id(cover_art_media_position) = snapshot.position;
                 id(cover_art_position_anchor) = snapshot.position;
                 id(cover_art_position_anchor_epoch) = 0;
-                id(cover_art_active_media_player_entity) = "companion";
-                id(cover_art_attribute_conditions_match) = true;
-                id(cover_art_external_input_active) = false;
                 const bool playing =
                   snapshot.playback_state == CompanionPlaybackState::PLAYING;
                 id(cover_art_media_playing) = playing;
@@ -222,6 +188,7 @@ esphome:
               [](uint32_t generation, uint8_t *data, size_t size) -> bool {
                 const auto runtime = companion_runtime_snapshot();
                 if (!id(cover_art_companion_source_active) ||
+                    !id(cover_art_screensaver_enabled).state ||
                     generation != runtime.now_playing.generation) return false;
                 id(cover_art_download_generation) = 0;
                 bool decoded = false;
@@ -309,18 +276,6 @@ safe_mode:
 packages:
   core_infra: !include ../../../common/device/core_infra.yaml
 
-# The S3 panel runs close to the internal RAM limit once the RGB display,
-# LVGL, web UI, and API are all active. Keep the native API connection pool
-# modest, but allow one spare slot so Home Assistant can reconnect after an
-# abrupt OTA reset while the ESPHome dashboard/logger still has a socket open.
-# Give the send queue extra headroom so reconnect bursts and compact Home
-# Assistant action responses do not drop the API connection on this low-memory
-# panel.
-api:
-  listen_backlog: 4
-  max_connections: 3
-  max_send_queue: 12
-
 # The 4848S040 USB-C port is exposed as UART0 through a USB-UART bridge.
 # GPIO19/20 are used by the touchscreen/display path, so USB_SERIAL_JTAG
 # stops working once the application starts.
@@ -358,7 +313,7 @@ light:
         - if:
             condition:
               lambda: |-
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto now = id(panel_time).now();
                 return (id(espdesktop_app).display().target_source_is(
                             espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
                         id(espdesktop_app).display().target_mode_is(
@@ -395,12 +350,6 @@ switch:
     pin:
       number: GPIO40
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", false);'
 
   - platform: gpio
     name: Relay 2
@@ -409,12 +358,6 @@ switch:
     pin:
       number: GPIO2
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", false);'
 
   - platform: gpio
     name: Relay 3
@@ -423,12 +366,6 @@ switch:
     pin:
       number: GPIO1
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_3", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_3", false);'
 
 # Momentary relay buttons for push-button/dimmer inputs.
 button:
@@ -637,7 +574,6 @@ script:
                         - lvgl.display.set_rotation: 90
                       else:
                         - lvgl.display.set_rotation: 180
-      - script.execute: camera_screensaver_request_image
 
 select:
   - platform: template
@@ -648,22 +584,12 @@ select:
     icon: "mdi:album"
     optimistic: true
     restore_value: true
-    initial_option: "Home Assistant"
+    initial_option: "Mac Companion"
     options:
-      - "Home Assistant"
       - "Mac Companion"
     on_value:
       then:
-        - lambda: |-
-            id(cover_art_companion_source_active) = id(cover_art_source).current_option() == "Mac Companion";
-            if (id(cover_art_companion_source_active)) {
-              auto &handler = companion_now_playing_handler();
-              if (handler) handler(companion_runtime_snapshot().now_playing);
-              esphome::companion::request_companion_now_playing_artwork();
-            } else {
-              id(cover_art_playback_stopped).execute();
-            }
-            id(cover_art_resubscribe).execute();
+        - script.execute: cover_art_refresh_source
 
   - platform: template
     name: "${entity_screen_rotation}"

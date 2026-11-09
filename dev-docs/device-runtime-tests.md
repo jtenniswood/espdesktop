@@ -1,20 +1,21 @@
 ---
 title: Device Runtime Tests
-description: Validate a flashed EspDesktop panel and collect crash, restart, connection, and memory evidence.
+description: Validate a flashed EspDesktop panel and collect HTTP health, restart, firmware and memory evidence.
 ---
 
 # Device Runtime Tests
 
-Use this suite after flashing a test build. It checks the device identity and web
-API, watches the native ESPHome connection and crash logs, detects a boot-clock
-reset, and records free heap and PSRAM diagnostics. It does not flash firmware or
-change saved configuration.
+Use this suite after flashing a test build. It checks HTTP device identity and
+capabilities, reads firmware and memory diagnostics, and detects restarts. It
+makes only GET requests. It does not flash, change settings, wake the display,
+open cards, or use the Home Assistant/native ESPHome connection.
 
-## Set up
+## Run a health check
 
-Use the pinned Python environment from [Development Environment](./development-environment.md).
-ESPHome provides the `aioesphomeapi` dependency. Python 3.12 or newer is recommended.
-Run commands from the repository root with that environment active.
+Use Python 3.12 or newer from the repository root. The runner uses the Python
+standard library; it does not need an ESPHome SDK. The flashed firmware must
+provide `/api/v1/diagnostics` version 1. Older firmware without this endpoint
+fails the test rather than silently skipping diagnostics.
 
 Start with a passive two-minute check, replacing the example address:
 
@@ -22,74 +23,57 @@ Start with a passive two-minute check, replacing the example address:
 npm run test:device-runtime -- --host 192.168.1.50 --duration 120
 ```
 
-The target is always explicit; the runner does not discover or test other panels.
-It needs the device's HTTP API (port 80) and native ESPHome API (port 6053).
-Use `--http-port` or `--api-port` for other ports. It checks HTTP every ten seconds
-and listens continuously for native disconnects and crash signatures.
+The target is explicit; the runner does not discover other panels. HTTP uses
+port 80 unless `--http-port` is supplied. Samples are ten seconds apart by
+default; `--interval` changes this. Increase `--duration` for a longer observation.
+Recorded memory ranges can help investigate leaks but do not establish a cause.
 
-## Exercise a card
-
-To repeatedly open and close the media panel, name an entity already configured
-on that device:
-
-```sh
-npm run test:device-runtime -- --host 192.168.1.50 --duration 180 \
-  --modal-entity media_player.office --modal-cycles 30 --modal-dwell 1
-```
-
-This visibly wakes the display and changes the open panel. It requires the
-`open_modal` and `close_modal` native actions. An actual device log confirming the
-panel opened is required for each cycle. The runner attempts to close it after
-each opening and on interruption; it cannot restore the previous screen or sleep
-state. It sends no playback, grouping, volume, or Home Assistant service commands.
-Use the physical panel for those functional checks.
-
-Choose a duration long enough for all cycles: each takes at least twice the dwell
-time, plus API and rendering time. Incomplete cycles fail the run. For a longer
-observation, increase `--duration`, for example to `1800` for 30 minutes. Memory
-sensors normally update once per minute, so use several minutes to compare them.
-Recorded memory changes are evidence to investigate, not an automatic leak diagnosis.
-
-Optionally require an exact ESPHome version and build timestamp, as reported by
-the device's native API:
+Optionally require the exact ESPHome version and firmware build timestamp:
 
 ```sh
 npm run test:device-runtime -- --host 192.168.1.50 \
-  --expect-version 2026.10.1 --expect-build '2026-10-17 19:13:43 +0100'
+  --expect-version 2026.10.2 --expect-build '2026-11-08 12:26:52 +0000'
 ```
 
-For protected devices, set `ESPDESKTOP_API_PASSWORD` or
-`ESPDESKTOP_API_NOISE_PSK` for the native API, and `ESPDESKTOP_HTTP_USERNAME` /
-`ESPDESKTOP_HTTP_PASSWORD` for HTTP authentication. Credentials are read from the
-environment and are not included in reports.
+For protected devices, set `ESPDESKTOP_HTTP_USERNAME` and
+`ESPDESKTOP_HTTP_PASSWORD`. These are read from the environment and are not
+included in reports. The diagnostics endpoint uses the panel's web authentication.
 
 ## Read the result
 
 Each run creates a fresh directory under `build/device-tests/` containing:
 
 - `report.md`: a readable result and its limitations.
-- `report.json`: identity, build, failures, counts, and memory ranges.
-- `events.jsonl`: timestamped health samples and relevant failure evidence.
+- `report.json`: identity, build, failures, sample counts, and memory ranges.
+- `events.jsonl`: timestamped health samples and failures.
 
 Use `--output path/to/new-directory` to select the location. Existing directories
-are refused so earlier evidence is preserved. Other device error logs are retained
-for investigation without automatically classifying them as crashes. Reports contain the target address,
-device identity, and relevant sanitized logs; review them before sharing.
+are refused so earlier evidence is preserved. Reports include the target address
+and device identity; review them before sharing. Saved layouts, entity values,
+credentials and device logs are not collected.
 
 Exit status `0` means the observed window passed. Status `1` means a failure or
-incomplete coverage, including missing heap diagnostics, interrupted testing, or
-an HTTP/native connection failure that later recovered. Status `2` indicates
-invalid arguments or a missing dependency. A run needs at least two successful
-HTTP samples and a native connection; very short durations may fail coverage.
-`--min-heap-percent` changes the default 5% minimum free-heap threshold.
+incomplete coverage, including a restart, identity/build change, missing heap
+diagnostics, interruption, or an HTTP outage that later recovered. Status `2`
+indicates invalid arguments. At least two successful HTTP samples are required;
+very short durations can fail coverage. `--min-heap-percent` changes the default
+5% minimum free-heap threshold.
 
-A restart is detected from the device's boot-relative event clock, allowing its
-normal 32-bit wrap. A connection failure alone is not classified as a confirmed
-crash, and a restart does not identify its cause. A pass covers only the observed
-window. Panics before Wi-Fi or log delivery can require [USB logs](https://jtenniswood.github.io/espcontrol/reference/collect-usb-logs).
-Touch responsiveness, visual layout, speaker grouping, and playback still need
-physical device testing.
+The panel supplies a boot identifier and 64-bit uptime. A changed boot identifier
+or decreasing uptime fails the test. A restart or network outage does not prove
+a crash or its cause. Device logs are not collected; panics before HTTP delivery
+can require [USB logs](https://jtenniswood.github.io/espcontrol/reference/collect-usb-logs).
 
-The runner's own offline tests are included in the fast/CI checks. Run them alone
-with `npm run check:device-runtime-tests`; they use mocked APIs and a local HTTP
-fixture, without contacting hardware.
+## Test physical behavior separately
+
+While observing health, use the physical panel and paired Mac to check the
+changed feature: layout preservation, touch, local cards, Mac controls and volume,
+app icons, artwork, clocks, sleep/wake and network recovery. The passive runner
+cannot confirm these behaviors. Retired `--modal-entity`, `--modal-cycles`,
+`--modal-dwell` and `--api-port` options are no longer supported.
+
+The runner's offline tests are included in fast/CI checks. Run them alone with
+`npm run check:device-runtime-tests`; they use local HTTP fixtures and test doubles
+without contacting hardware. Firmware host tests execute the production
+diagnostics handler, including authentication, unavailable startup, stable boot
+identity, 64-bit uptime and memory/build serialization.

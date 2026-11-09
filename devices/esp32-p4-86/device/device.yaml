@@ -91,7 +91,6 @@ espdesktop:
     storage: card_images
     button_order: button_order
     button_on_color: button_on_color
-    special_page_chunks: [special_page_config, special_page_config_ext, special_page_config_ext_2, special_page_config_ext_3, special_page_config_ext_4, special_page_config_ext_5, special_page_config_ext_6, special_page_config_ext_7]
     buttons:
       - config: button_1_config
         subpage_chunks: [subpage_1_config, subpage_1_config_ext, subpage_1_config_ext_2, subpage_1_config_ext_3, subpage_1_config_ext_4, subpage_1_config_ext_5, subpage_1_config_ext_6, subpage_1_config_ext_7]
@@ -130,25 +129,6 @@ esphome:
     - "-Wno-literal-suffix"
     - "-Wno-complain-wrong-lang"
   on_boot:
-    - priority: 700
-      then:
-        - lambda: |-
-            register_internal_relay(
-              "relay_1", "Relay 1",
-              [=](bool on) {
-                if (on) id(relay_1).turn_on();
-                else id(relay_1).turn_off();
-              },
-              [=]() { id(relay_1_push).execute(); },
-              [=]() -> bool { return id(relay_1).state; });
-            register_internal_relay(
-              "relay_2", "Relay 2",
-              [=](bool on) {
-                if (on) id(relay_2).turn_on();
-                else id(relay_2).turn_off();
-              },
-              [=]() { id(relay_2_push).execute(); },
-              [=]() -> bool { return id(relay_2).state; });
     - priority: -100
       then:
         - lambda: 'id(screen_rotation_ready) = true;'
@@ -241,7 +221,7 @@ light:
         - if:
             condition:
               lambda: |-
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto now = id(panel_time).now();
                 return (id(espdesktop_app).display().target_source_is(
                             espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
                         id(espdesktop_app).display().target_mode_is(
@@ -278,12 +258,6 @@ switch:
     pin:
       number: GPIO32
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_1", false);'
 
   - platform: gpio
     name: Relay 2
@@ -292,12 +266,6 @@ switch:
     pin:
       number: GPIO46
     restore_mode: RESTORE_DEFAULT_OFF
-    on_turn_on:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", true);'
-    on_turn_off:
-      then:
-        - lambda: 'notify_internal_relay_changed("relay_2", false);'
 
 # Momentary relay buttons for push-button/dimmer inputs.
 button:
@@ -374,7 +342,6 @@ script:
                         - lvgl.display.set_rotation: 270
                       else:
                         - lvgl.display.set_rotation: 0
-      - script.execute: camera_screensaver_request_image
 
 select:
   - platform: template

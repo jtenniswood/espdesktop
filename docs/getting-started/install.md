@@ -42,4 +42,4 @@ Open that address in a browser to reach the display's setup page. Choose **Syste
 - [Explore Mac Controls](/card-types/companion)
 - [Configure your control surface](/features/setup)
 - If a supported ESP32-P4 display cannot join WiFi, follow the [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
-- For Home Assistant panels and controls, use the [EspDesktop documentation](https://jtenniswood.github.io/espcontrol/).
+- For Home Assistant panels and controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).

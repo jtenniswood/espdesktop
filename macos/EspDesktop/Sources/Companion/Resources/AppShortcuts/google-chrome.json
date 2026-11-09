@@ -26,25 +26,25 @@
       "id": "3",
       "label": "Open the Find Bar to search the current page",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "4",
       "label": "Jump to the next match to your Find Bar search",
       "shortcut": "command+g",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "5",
       "label": "Jump to the previous match to your Find Bar",
       "shortcut": "command+shift+g",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "6",
       "label": "When Find Bar is open, search for selected text",
       "shortcut": "command+e",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "7",
@@ -62,7 +62,7 @@
       "id": "9",
       "label": "Search the web",
       "shortcut": "command+option+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     }
   ]
 }

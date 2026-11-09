@@ -71,6 +71,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "border-radius:var(--radius);position:relative;overflow:hidden;" +
         "box-shadow:0 2px 20px rgba(0,0,0,.35);border:2px solid var(--surface);" +
         "container-type:inline-size;font-family:Roboto,sans-serif;user-select:none}" +
+        ".sp-config-busy .sp-screen{pointer-events:none}" +
         ".sp-config-locked .sp-screen{filter:grayscale(1) brightness(.58);opacity:.62;pointer-events:none}" +
         ".sp-config-locked .sp-screen::after{content:'';position:absolute;inset:0;background:rgba(80,80,84,.28);z-index:5}" +
         ".sp-topbar{position:absolute;top:0;left:0;right:0;height:var(--grid-top,var(--topbar-h));box-sizing:border-box;" +
@@ -91,16 +92,15 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-clockbar-item.sp-selected{border-color:var(--accent);background:var(--accent-soft)}" +
         ".sp-clockbar-item.sp-clockbar-hidden{opacity:.7;background:var(--preview-surface-secondary);border-color:var(--preview-border)}" +
         ".sp-clockbar-item.sp-clockbar-hidden.sp-selected{opacity:.65;border-color:var(--accent)}" +
-        ".sp-clockbar-network,.sp-clockbar-voice{padding:0;width:calc(var(--btn-label)*1.5);min-width:calc(var(--btn-label)*1.5)}" +
+        ".sp-clockbar-network{padding:0;width:calc(var(--btn-label)*1.5);min-width:calc(var(--btn-label)*1.5)}" +
         ".sp-temp{white-space:nowrap;opacity:0;transition:opacity .3s}" +
         ".sp-temp.sp-visible{opacity:1}" +
         ".sp-clock{white-space:nowrap;opacity:1;transition:opacity .3s}" +
-        ".sp-topbar .sp-network-preview,.sp-topbar .sp-voice-preview{color:var(--preview-clockbar-text);font-size:var(--btn-label);" +
+        ".sp-topbar .sp-network-preview{color:var(--preview-clockbar-text);font-size:var(--btn-label);" +
         "line-height:1;width:calc(var(--topbar-fs)*1.05);height:1em;display:flex;align-items:center;" +
         "justify-content:center;opacity:0;transition:opacity .3s}" +
-        ".sp-topbar .sp-network-preview::before,.sp-topbar .sp-voice-preview::before{font-size:inherit;line-height:inherit}" +
-        ".sp-network-preview.sp-visible,.sp-voice-preview.sp-visible{opacity:1}" +
-        ".sp-voice-preview:not(.sp-visible){display:none}" +
+        ".sp-topbar .sp-network-preview::before{font-size:inherit;line-height:inherit}" +
+        ".sp-network-preview.sp-visible{opacity:1}" +
         ".sp-main{position:absolute;top:var(--grid-top);left:var(--grid-left);right:var(--grid-right);bottom:var(--grid-bottom);" +
         "display:grid;grid-template-columns:var(--grid-cols);grid-template-rows:var(--grid-rows);gap:var(--grid-gap);overflow:hidden}" +
         ".sp-main.sp-grid-loading{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility .2s}" +
@@ -141,9 +141,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-climate-temp-card .sp-btn-label-row{margin-top:auto}" +
         ".sp-btn-big .sp-sensor-preview-large .sp-sensor-value,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-weight:300}" +
         ".sp-btn-big .sp-sensor-preview-large .sp-sensor-unit,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-unit{transform:translateY(var(--large-sensor-unit-offset-y,-20px))}" +
-        ".sp-clock-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-family:Roboto,sans-serif;font-weight:300}" +
-        ".sp-clock-left-mid{justify-content:center;align-items:flex-start}" +
-        ".sp-clock-centered{justify-content:center;align-items:center}" +
         ".sp-forecast-preview{white-space:nowrap;gap:0}" +
         ".sp-btn.sp-rainfall-card>.sp-btn-label{max-height:none}.sp-rainfall-value{display:block;margin-top:.2em}" +
         ".sp-weather-daily-card{font-size:var(--btn-label)}" +
@@ -245,11 +242,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "padding:14px var(--gap);background:var(--surface);" +
         "color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;user-select:none}" +
         ".sp-selection-bar.sp-visible{display:flex}" +
-        ".sp-special-page-entry{display:block;width:min(1080px,calc(100% - 2*var(--gap)));margin:0 auto 10px;" +
-        "border:1px solid var(--border);border-radius:var(--action-r);background:var(--surface2);" +
-        "color:var(--text);padding:8px 12px;font:500 var(--text-sm) -apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;cursor:pointer}" +
-        ".sp-special-page-entry[hidden]{display:none}" +
-        ".sp-special-page-entry:hover{background:var(--border)}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
         ".sp-selection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}" +
@@ -264,7 +256,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-selection-btn:disabled,.sp-selection-btn:disabled:hover{opacity:.45;cursor:not-allowed;background:var(--surface2);border-color:var(--border);color:var(--text2)}" +
         ".sp-selection-btn .mdi{font-size:16px;line-height:1}" +
         "@media(max-width:600px){.sp-selection-bar{margin-left:0;margin-right:0;padding:12px var(--gap);gap:8px}" +
-        ".sp-special-page-entry{width:calc(100% - 2*var(--gap))}" +
         ".sp-selection-actions{gap:6px}.sp-selection-btn{padding:8px 10px}" +
         ".sp-selection-btn[aria-label='Card actions']{width:36px;padding:0}.sp-selection-btn .mdi{flex-shrink:0}}" +
         ".sp-config{padding:var(--gap) var(--gap) var(--gap)}" +
@@ -285,9 +276,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal::-webkit-scrollbar-thumb{background:#fff;border-radius:999px}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
         "height:100%;margin:0;border-radius:0;border:none}}" +
-        ".sp-rename-dialog{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:.875rem;line-height:1.5;box-sizing:border-box;padding:var(--gap);margin:auto;width:calc(100% - 40px);max-width:420px;max-height:80dvh;height:fit-content;border:1px solid var(--border);border-radius:var(--radius);color:var(--text)}" +
-        ".sp-rename-dialog::backdrop{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
-        ".sp-rename-dialog .sp-section-title{padding-right:40px}.sp-rename-dialog .sp-field{margin-bottom:0}.sp-rename-error:empty{display:none}" +
         ".sp-settings-close{position:absolute;top:10px;right:12px;width:36px;height:36px;" +
         "border-radius:999px;border:1px solid var(--border);background:var(--surface2);" +
         "color:var(--text2);display:flex;align-items:center;justify-content:center;" +

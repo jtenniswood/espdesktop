@@ -22,9 +22,7 @@ import type { ConfigMediaOptionsFeature } from "../application/config_media_opti
 import type { ConfigImageOptionsFeature } from "../application/config_image_options";
 import type { ConfigWeatherOptionsFeature } from "../application/config_weather_options";
 import type { ConfigWebhookOptionsFeature } from "../application/config_webhook_options";
-import type { ConfigInternalRelayOptionsFeature } from "../application/config_internal_relay_options";
 import type { ConfigLockOptionsFeature } from "../application/config_lock_options";
-import type { ConfigDateTimeOptionsFeature } from "../application/config_date_time_options";
 import type { ConfigModalTabOptionsFeature } from "../application/config_modal_tab_options";
 import type { ConfigAccessClimateAlarmOptionsFeature } from "../application/config_access_climate_alarm_options";
 import type { ConfigConfirmationOptionsFeature } from "../application/config_confirmation_options";
@@ -54,9 +52,7 @@ export function installAppTestHooksConfig(
     imageOptions: ConfigImageOptionsFeature,
     weatherOptions: ConfigWeatherOptionsFeature,
     webhookOptions: ConfigWebhookOptionsFeature,
-    internalRelayOptions: ConfigInternalRelayOptionsFeature,
     lockOptions: ConfigLockOptionsFeature,
-    dateTimeOptions: ConfigDateTimeOptionsFeature,
     modalTabs: ConfigModalTabOptionsFeature,
     accessOptions: ConfigAccessClimateAlarmOptionsFeature,
     confirmationOptions: ConfigConfirmationOptionsFeature,
@@ -78,19 +74,7 @@ export function installAppTestHooksConfig(
     const { cardMetadataValue } = fields;
     const { subpageStateDisplayMode } = core;
     const {
-        sensorCardIsLocal,
         cardLargeNumbersEnabled,
-        sensorActiveColorEnabled,
-        sensorTimeUnit,
-        setSensorTimeUnit,
-        normalizeSensorOptions,
-        sensorStateLabelsEnabled,
-        sensorStateInput,
-        sensorStateOutput,
-        sensorStateInput2,
-        sensorStateOutput2,
-        setSensorStateTranslation,
-        setSensorStateTranslations,
         doorWindowActiveColorEnabled,
         presenceActiveColorEnabled,
     } = sensorOptions;
@@ -143,20 +127,9 @@ export function installAppTestHooksConfig(
         webhookMethod,
     } = webhookOptions;
     const {
-        internalRelayDefaultIcon,
-        internalRelayDefaultOnIcon,
-        internalRelayModeOptionValues,
-        normalizeInternalRelayMode,
-    } = internalRelayOptions;
-    const {
         lockModeOptionValues,
         normalizeLockMode,
     } = lockOptions;
-    const {
-        dateTimeLargeNumbersLabel,
-        dateTimeModeOptionValues,
-        normalizeDateTimeCardMode,
-    } = dateTimeOptions;
     const {
         coverControlTabDefinitions,
         coverControlTabs,
@@ -302,21 +275,6 @@ export function installAppTestHooksConfig(
             normalizeCardOnPattern: normalizeCardOnPattern,
             cardOnPattern: cardOnPattern,
             setCardOnPattern: setCardOnPattern,
-            sensorActiveColorEnabled: sensorActiveColorEnabled,
-            sensorCardIsLocal: sensorCardIsLocal,
-            sensorTimeUnit: sensorTimeUnit,
-            setSensorTimeUnit: setSensorTimeUnit,
-            normalizeSensorOptions: normalizeSensorOptions,
-            sensorStateLabelsEnabled: sensorStateLabelsEnabled,
-            sensorStateInput: sensorStateInput,
-            sensorStateOutput: sensorStateOutput,
-            sensorStateInput2: sensorStateInput2,
-            sensorStateOutput2: sensorStateOutput2,
-            setSensorStateTranslation: setSensorStateTranslation,
-            setSensorStateTranslations: setSensorStateTranslations,
-            dateTimeModeOptionValues: dateTimeModeOptionValues,
-            normalizeDateTimeCardMode: normalizeDateTimeCardMode,
-            dateTimeLargeNumbersLabel: dateTimeLargeNumbersLabel,
             weatherModeOptionValues: weatherModeOptionValues,
             normalizeWeatherCardMode: normalizeWeatherCardMode,
             weatherCardIsForecastMode: weatherCardIsForecastMode,
@@ -367,10 +325,6 @@ export function installAppTestHooksConfig(
             pushDefaultIconOn: pushDefaultIconOn,
             webhookMethod: webhookMethod,
             webhookHeaders: webhookHeaders,
-            internalRelayModeOptionValues: internalRelayModeOptionValues,
-            normalizeInternalRelayMode: normalizeInternalRelayMode,
-            internalRelayDefaultIcon: internalRelayDefaultIcon,
-            internalRelayDefaultOnIcon: internalRelayDefaultOnIcon,
             mediaModeOptionValues: mediaModeOptionValues,
             mediaEditorMode: mediaEditorMode,
             mediaNowPlayingControlValues: mediaNowPlayingControlValues,

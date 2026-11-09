@@ -1,5 +1,6 @@
 import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
@@ -7,6 +8,7 @@ import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
+import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml } from "./ui_primitives";
 import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
@@ -242,7 +244,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const document = dependencies.document;
     const els = dependencies.runtime.els;
     const { cardOnPattern } = dependencies.confirmationOptions;
-    const { getSubpage } = dependencies.codec;
+    const { getSubpage, serializeSubpageGrid } = dependencies.codec;
     const { gridPreviewBlocked: gridPreviewBlockedByRotationStartup } = dependencies.screenRotation;
     const { isConfigLocked } = dependencies.shell;
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
@@ -379,7 +381,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             selectedTypeKey,
             connector,
             dependencies.homeAssistantSupported(),
-            state.editingSubpage === -1,
         );
     }
     function buttonTypePickerKeys(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
@@ -432,6 +433,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         main.removeAttribute("aria-busy");
         var c: any = ctx();
         const removed = removeRetiredCards(c.grid, c.sizes, c.buttons, dependencies.layout.gridCols);
+        if (c.isSub && removed.length) {
+            const subpage = getSubpage(state.editingSubpage);
+            subpage.order = serializeSubpageGrid(subpage);
+        }
         for (const slot of removed) {
             const index = c.selected.indexOf(slot);
             if (index !== -1) c.selected.splice(index, 1);
@@ -445,16 +450,16 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
                 var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                var isSpecialPage = state.editingSubpage === -1;
-                const parent = !isSpecialPage && state.editingSubpage != null
+                const parent = state.editingSubpage != null
                     ? state.buttons[state.editingSubpage - 1] : null;
                 const appBack = companionAppShortcutFolderEnabled(parent);
-                var backLabel = subpage?.backLabel || (isSpecialPage ? "Close" : "Back");
+                var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                        (appBack ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor
@@ -476,7 +481,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 }
             }
             else if (slot > 0) {
-                if (slot > (c.isSub ? c.buttons.length : c.maxSlots)) {
+                if (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
+                    (!c.isSub && slot > dependencies.layout.numSlots)) {
                     var unavailable: any = document.createElement("div");
                     unavailable.className = "sp-empty-cell";
                     unavailable.setAttribute("data-pos", pos);
@@ -557,6 +563,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     sensorBadge +
                         iconHtml +
                         labelHtml;
+                if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {
+                    const warning = "Home Assistant unavailable. Saved configuration kept; replace or remove this card.";
+                    btn.title = warning;
+                    const badge = document.createElement("span");
+                    badge.className = "sp-sensor-badge mdi mdi-alert";
+                    badge.setAttribute("role", "img");
+                    badge.setAttribute("aria-label", warning);
+                    btn.appendChild(badge);
+                }
                 // Offer renaming only when the preview displays a name that can be saved.
                 if (cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
                     previewHtmlValue(typePreview, "labelEditable", true)) {

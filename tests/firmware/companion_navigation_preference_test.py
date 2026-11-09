@@ -17,7 +17,7 @@ code = r'''
 #include <vector>
 struct lv_obj_t {};
 struct ParsedCfg { std::string entity; };
-struct NavigationSubpageEntry { int slot; std::string kind; lv_obj_t *screen; };
+struct NavigationSubpageEntry { int slot; std::string kind; lv_obj_t *screen; int parent_slot = 0; };
 struct NavigationHomeTargetEntry { int slot; std::string config; };
 lv_obj_t home, app, other;
 lv_obj_t *screen = &app;
@@ -25,8 +25,7 @@ std::vector<NavigationSubpageEntry> pages{{1, "app_shortcuts", &app}, {2, "app_s
 std::vector<NavigationHomeTargetEntry> parents{{1, "first.app"}, {2, "second.app"}};
 std::atomic<bool> pending_return{false};
 std::string pending_open;
-bool return_home = true, alarm = false;
-bool alarm_display_takeover_active() { return alarm; }
+bool return_home = true;
 bool companion_return_home_on_app_switch() { return return_home; }
 auto &companion_subpage_return_requested() { return pending_return; }
 void companion_consume_subpage_return_request() { pending_return = false; }
@@ -41,6 +40,7 @@ NavigationHomeTargetEntry *navigation_find_slot_target(int slot) { return slot ?
 auto &navigation_home_targets() { return parents; }
 ParsedCfg parse_cfg(const std::string &s) { return {s}; }
 bool companion_app_shortcuts_enabled(const ParsedCfg &) { return true; }
+bool navigation_restore_subpage_slot(int slot) { screen = pages[slot - 1].screen; return true; }
 bool navigation_return_home(lv_obj_t *) { screen = &home; return true; }
 void navigation_hide_modals() {}
 lv_obj_t *lv_scr_act() { return screen; }
@@ -91,11 +91,10 @@ int main() {
   screen = &app; pending_return = true; pending_open = "first.app";
   assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &app);
-  // Alarm controls retain priority over both automatic transitions.
-  alarm = true; pending_return = true; pending_open = "second.app";
-  assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
-  assert(!navigation_open_companion_subpage_if_requested(&home));
-  assert(screen == &app && pending_return && pending_open == "second.app");
+  // Leaving a nested app returns to its containing folder.
+  screen = &app; pending_return = true; pending_open.clear(); pages[0].parent_slot = 2;
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &other); pages[0].parent_slot = 0; screen = &app;
 }
 '''
 with tempfile.TemporaryDirectory() as temporary:
@@ -103,4 +102,4 @@ with tempfile.TemporaryDirectory() as temporary:
     (path / 'test.cpp').write_text(code)
     subprocess.run([os.environ.get('CXX', 'c++'), '-std=c++17', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter', str(path / 'test.cpp'), '-o', str(path / 'test')], check=True)
     subprocess.run([str(path / 'test')], check=True)
-print('App switching, stay-on-page, home navigation, and alarm priority passed.')
+print('App switching, stay-on-page, and home navigation passed.')

@@ -1,6 +1,9 @@
+import { copyTextToClipboard as copyCompanionCode } from "../features/browser_clipboard";
 import type { ApplicationDomServices } from "./application_context";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import type { ControlsShellFeature } from "./controls_shell";
+
+export { copyCompanionCode };
 
 export interface CompanionPairingState {
     available: boolean;
@@ -43,28 +46,6 @@ export function companionPairingCodeVisible(state: CompanionPairingState): boole
     return !state.paired && state.active && state.pairing_code.trim().length > 0;
 }
 
-// Display pages use local HTTP, where the modern Clipboard API may be unavailable.
-export async function copyCompanionCode(document: Document, navigator: Navigator, code: string): Promise<void> {
-    if (navigator.clipboard) {
-        try {
-            await navigator.clipboard.writeText(code);
-            return;
-        } catch { /* Fall back to copying from a selected field on local HTTP. */ }
-    }
-    const previousFocus = document.activeElement;
-    const field = document.createElement("textarea");
-    field.value = code;
-    field.readOnly = true;
-    field.style.cssText = "position:fixed;left:-9999px;top:0";
-    document.body.appendChild(field);
-    try {
-        field.select();
-        if (!document.execCommand("copy")) throw new Error("Clipboard unavailable");
-    } finally {
-        field.remove();
-        if (previousFocus && "focus" in previousFocus) (previousFocus as HTMLElement).focus();
-    }
-}
 
 export function createSettingsCompanionSectionFeature(
     dom: Pick<ApplicationDomServices, "document" | "window" | "fetch">,

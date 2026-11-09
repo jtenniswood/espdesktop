@@ -9,6 +9,8 @@ import sys
 from pathlib import Path
 from typing import Any
 
+from release_devices import load_release_devices
+
 from device_profiles import (
     DEVICE_MANIFEST,
     ROOT,
@@ -63,6 +65,10 @@ def validate_matrix_build_files(
 
 
 def release_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, str]]]:
+    released = load_release_devices()
+    unknown = set(released) - profiles.keys()
+    if unknown:
+        raise DeviceMatrixError(f"Unknown release device(s): {sorted(unknown)}")
     return {
         "include": [
             {
@@ -71,7 +77,7 @@ def release_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[s
                 "chip": profile["firmware"]["build"]["chip"],
                 "recovery": profile["firmware"]["build"]["chip"] == RECOVERY_CHIP_FAMILY,
             }
-            for slug, profile in profiles.items()
+            for slug, profile in profiles.items() if slug in released
         ]
     }
 
@@ -90,7 +96,7 @@ def nightly_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[s
 
 def pr_matrix(profiles: dict[str, dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
     # Keep pull request feedback quick by compiling one representative device
-    # for each chip family. Nightly and release builds still cover every device.
+    # for each chip family. Nightly builds still cover every development device.
     representatives: dict[str, dict[str, Any]] = {}
     for slug, profile in profiles.items():
         chip = profile["firmware"]["build"]["chip"]
@@ -132,7 +138,7 @@ def main(argv: list[str] | None = None) -> int:
         profiles = load_device_profiles(args.manifest)
         validate_matrix_build_files(profiles, args.manifest)
         write_json(args.matrix(profiles))
-    except (DeviceMatrixError, DeviceProfileError) as exc:
+    except (DeviceMatrixError, DeviceProfileError, ValueError) as exc:
         print(f"::error::{exc}", file=sys.stderr)
         return 1
     return 0

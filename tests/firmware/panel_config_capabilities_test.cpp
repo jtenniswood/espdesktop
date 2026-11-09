@@ -9,11 +9,7 @@ int main() {
   using namespace espdesktop::configuration;
   std::array<char, PANEL_CONFIG_CAPABILITIES_MAX_JSON_BYTES> capabilities{};
   size_t capabilities_size = 0;
-#ifdef ESPDESKTOP_HOME_ASSISTANT_SUPPORT
-  const char *home_assistant_capability = "\"home_assistant_support\":true";
-#else
   const char *home_assistant_capability = "\"home_assistant_support\":false";
-#endif
   const bool passed = PANEL_CONFIG_API_VERSION == 1 &&
                       PANEL_CONFIG_WEB_ASSET_VERSION == 2 &&
                       std::strcmp(PANEL_CONFIG_WEB_ASSET_DELIVERY, "manifest") == 0 &&
@@ -22,6 +18,7 @@ int main() {
                           &capabilities_size) &&
                       capabilities_size > 0 &&
                       std::strstr(capabilities.data(), "\"max_record_body_bytes\":4096") != nullptr &&
+                      std::strstr(capabilities.data(), "\"max_durable_document_bytes\":0") != nullptr &&
                       std::strstr(capabilities.data(), "\"screensaver_pin\":{\"version\":1}") != nullptr &&
                       std::strstr(capabilities.data(), "\"identity\":{\"version\":1}") != nullptr &&
                       std::strstr(capabilities.data(), home_assistant_capability) != nullptr &&
@@ -30,6 +27,7 @@ int main() {
                           nullptr &&
                       std::strstr(capabilities.data(), "\"read\":false") != nullptr &&
                       std::strstr(capabilities.data(), "\"write\":false") != nullptr &&
+                      std::strstr(capabilities.data(), "\"preserves_inactive_records\":false") != nullptr &&
                       std::strstr(capabilities.data(), "\"web_assets\"") != nullptr &&
                       std::strstr(capabilities.data(), "\"delivery\":\"manifest\"") !=
                           nullptr &&
@@ -42,6 +40,13 @@ int main() {
       write_panel_config_capabilities_json(capabilities.data(),
                                            capabilities.size(),
                                            &capabilities_size) &&
+      std::strstr(capabilities.data(), "\"document_versions\":[1,2]") != nullptr &&
+      std::strstr(capabilities.data(), "\"default_document_version\":1") != nullptr &&
+      std::strstr(capabilities.data(), "\"durable_document_version\":2") != nullptr &&
+      std::strstr(capabilities.data(), "\"max_navigation_depth\":2") != nullptr &&
+      std::strstr(capabilities.data(), "\"writable_navigation_depth\":2") != nullptr &&
+      std::strstr(capabilities.data(), "\"max_v2_document_bytes\":524288") != nullptr &&
+      std::strstr(capabilities.data(), "\"preserves_inactive_records\":true") != nullptr &&
       std::strstr(capabilities.data(), "\"read\":true") != nullptr &&
       std::strstr(capabilities.data(), "\"write\":true") != nullptr;
   set_panel_config_http_context_initialization_complete(false);

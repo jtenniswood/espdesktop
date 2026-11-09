@@ -152,10 +152,7 @@ lv_obj_t *lv_event_get_target(lv_event_t *event) { return event->target; }
 #include "theme_runtime_static.h"
 
 #include "button_grid_limits.h"
-int bounded_grid_slots(int count) {
-  assert(count >= 0 && count <= MAX_GRID_SLOTS);
-  return count;
-}
+
 void *lv_obj_get_user_data(lv_obj_t *object) { return object->user_data; }
 struct BtnSlot { lv_obj_t *btn = nullptr; };
 struct TestSubpage {
@@ -188,29 +185,7 @@ void register_theme_grid(lv_obj_t *page, BtnSlot *slots, const bool *neutral, in
 #include "theme_settings.h"
 namespace esphome { using StringRef = std::string; }
 bool sensor_active_color_state_ref(const std::string &state, bool) { return state == "on"; }
-void media_control_apply_availability(lv_obj_t *, lv_obj_t *, bool) {}
 #include "theme_modal_adapter.h"
-
-static void test_playback_mode_accent_collision() {
-  set_active_theme_palette(DARK_THEME);
-  lv_obj_t button, label;
-  button.type = &lv_button_class;
-  label.type = &lv_label_class;
-  button.children = {&label};
-  media_control_style_playback_mode_button(&button, true, true, DARK_THEME.surface_primary);
-  theme_restyle_tree(&button, DARK_THEME, LIGHT_THEME);
-  assert(button.background.full == DARK_THEME.surface_primary);
-  set_active_theme_palette(LIGHT_THEME);
-  media_control_style_playback_mode_button(&button, true, true, DARK_THEME.surface_primary);
-  assert(button.background.full == DARK_THEME.surface_primary);
-  assert(label.text.full == CARD_ACCENT_TEXT_COLOR);
-  media_control_style_playback_mode_button(&button, false, true, DARK_THEME.surface_primary);
-  assert(label.text.full == LIGHT_THEME.text_primary);
-  assert(!lv_obj_has_flag(&button, LV_OBJ_FLAG_USER_1));
-  theme_restyle_tree(&button, LIGHT_THEME, DARK_THEME);
-  assert(button.background.full == DARK_THEME.surface_primary);
-  set_active_theme_palette(DARK_THEME);
-}
 
 static void test_grid_secondary_surface() {
   set_active_theme_palette(DARK_THEME);
@@ -1223,7 +1198,6 @@ int main() {
   test_restore_grid_theme(ThemeMode::DARK, EffectiveTheme::DARK, true);
   test_restore_grid_theme(ThemeMode::AUTO, EffectiveTheme::LIGHT);
   test_restore_grid_theme(ThemeMode::AUTO, EffectiveTheme::DARK);
-  test_playback_mode_accent_collision();
   test_sensor_state_refresh();
   test_pressed_overflow_recovery();
   test_content_collisions();

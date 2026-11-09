@@ -10,47 +10,23 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["wifi_qr", "wifi_qr_card"];
+export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "S", "LS", "I", "SL", "SS", "A", "U"];
 export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || ""); }
-export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_fields", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_webhook_fields", "normalize_webhook_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_sensor_fields", "normalize_sensor_options", "normalize_vacuum_fields"] as const;
+export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_webhook_fields", "normalize_webhook_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
-  "legacy_local_action": {
+  "legacy_weather_forecast": {
     "when": [
       {
         "source": "field",
         "name": "type",
         "operator": "equals",
-        "value": "local"
+        "value": "weather_forecast"
       }
     ],
     "set": {
-      "type": "action",
-      "sensor": "local",
-      "unit": "",
-      "precision": "",
-      "options": "",
-      "icon_on": "Auto"
-    },
-    "hook": "normalize_action_fields"
-  },
-  "legacy_option_select": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "option_select"
-      }
-    ],
-    "set": {
-      "type": "action",
-      "sensor": "input_select.select_option",
-      "unit": "",
-      "precision": "",
-      "options": "",
-      "icon_on": "Auto"
-    },
-    "hook": "normalize_action_fields"
+      "type": "weather",
+      "precision": "tomorrow"
+    }
   },
   "legacy_vacuum_start": {
     "when": [
@@ -101,88 +77,13 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
       "icon_on": "Auto"
     },
     "hook": "normalize_vacuum_fields"
-  },
-  "legacy_local_sensor": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "local_sensor"
-      }
-    ],
-    "set": {
-      "type": "sensor",
-      "sensor": "local",
-      "icon_on": "Auto",
-      "options": ""
-    },
-    "hook": "normalize_sensor_fields"
-  },
-  "legacy_text_sensor": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "text_sensor"
-      }
-    ],
-    "set": {
-      "type": "sensor",
-      "entity": "",
-      "label": "",
-      "unit": "",
-      "precision": "text",
-      "icon_on": "Auto"
-    },
-    "hook": "normalize_sensor_fields"
-  },
-  "legacy_weather_forecast": {
-    "when": [
-      {
-        "source": "field",
-        "name": "type",
-        "operator": "equals",
-        "value": "weather_forecast"
-      }
-    ],
-    "set": {
-      "type": "weather",
-      "precision": "tomorrow"
-    }
-  },
-  "legacy_sensor_state_high_label": {
-    "when": [
-      {
-        "source": "option",
-        "name": "state_high_label",
-        "operator": "present"
-      }
-    ],
-    "set": {
-      "type": "sensor"
-    },
-    "hook": "normalize_sensor_options"
-  },
-  "legacy_sensor_state_low_label": {
-    "when": [
-      {
-        "source": "option",
-        "name": "state_low_label",
-        "operator": "present"
-      }
-    ],
-    "set": {
-      "type": "sensor"
-    },
-    "hook": "normalize_sensor_options"
   }
 };
-export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = [] as const;
+export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS", "I", "SL", "SS", "A", "U"] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
+    "hidden": true,
     "label": "Timer",
     "allowInSubpage": true,
     "domains": [
@@ -202,6 +103,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "": {
+    "hidden": true,
     "label": "Switch",
     "allowInSubpage": true,
     "domains": [
@@ -330,248 +232,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "action": {
-    "label": "Action",
-    "allowInSubpage": true,
-    "domains": [
-      "scene",
-      "script",
-      "automation",
-      "button",
-      "input_button",
-      "input_boolean",
-      "number",
-      "input_number",
-      "input_select",
-      "select"
-    ],
-    "options": [
-      {
-        "name": "large_numbers",
-        "label": "Large State Numbers",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicabilityHook": "action_large_numbers_supported"
-      },
-      {
-        "name": "state_entity",
-        "label": "State Entity",
-        "kind": "text",
-        "hidden": true,
-        "docsHidden": true,
-        "omitDefault": true
-      },
-      {
-        "name": "state_unit",
-        "label": "State Unit",
-        "kind": "text",
-        "hidden": true,
-        "docsHidden": true,
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "option",
-            "name": "state_entity",
-            "operator": "present"
-          },
-          {
-            "source": "option",
-            "name": "state_precision",
-            "operator": "in",
-            "value": [
-              "icon",
-              "text"
-            ],
-            "negate": true
-          }
-        ]
-      },
-      {
-        "name": "state_precision",
-        "label": "State Precision",
-        "kind": "choice",
-        "values": [
-          "",
-          "0",
-          "1",
-          "2",
-          "icon",
-          "text"
-        ],
-        "defaultValue": "",
-        "hidden": true,
-        "docsHidden": true,
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "option",
-            "name": "state_entity",
-            "operator": "present"
-          }
-        ]
-      },
-      {
-        "name": "confirmation_required",
-        "label": "Confirmation Required",
-        "kind": "flag",
-        "storage": [
-          "confirm_on"
-        ],
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          }
-        ]
-      },
-      {
-        "name": "script_fields",
-        "label": "Fields",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          }
-        ]
-      },
-      {
-        "name": "confirm_message",
-        "label": "Message",
-        "kind": "text",
-        "defaultValue": "Run this script?",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          },
-          {
-            "source": "option",
-            "name": "confirm_on",
-            "operator": "present"
-          }
-        ]
-      },
-      {
-        "name": "confirm_yes",
-        "label": "Confirm Button",
-        "kind": "text",
-        "defaultValue": "Yes",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          },
-          {
-            "source": "option",
-            "name": "confirm_on",
-            "operator": "present"
-          }
-        ]
-      },
-      {
-        "name": "confirm_no",
-        "label": "Cancel Button",
-        "kind": "text",
-        "defaultValue": "No",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "sensor",
-            "operator": "equals",
-            "value": "script.turn_on"
-          },
-          {
-            "source": "option",
-            "name": "confirm_on",
-            "operator": "present"
-          }
-        ]
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "keep"
-        },
-        "icon": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "icon_on": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "sensor": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "unit": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "type": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "precision": {
-          "policy": "hook",
-          "hook": "normalize_action_fields"
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_action_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "state_entity",
-        "state_unit",
-        "state_precision",
-        "large_numbers",
-        "script_fields",
-        "confirm_on",
-        "confirm_message",
-        "confirm_yes",
-        "confirm_no"
-      ],
-      "optionHook": "normalize_action_options",
-      "migrationActions": [
-        "legacy_local_action",
-        "legacy_option_select",
-        "legacy_vacuum_start",
-        "legacy_vacuum_dock"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "scene.turn_on",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
   "vacuum": {
+    "hidden": true,
     "label": "Vacuum",
     "allowInSubpage": true,
     "domains": [
@@ -666,6 +328,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "lawn_mower": {
+    "hidden": true,
     "label": "Lawn Mower",
     "allowInSubpage": true,
     "domains": [
@@ -737,6 +400,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "alarm": {
+    "hidden": true,
     "label": "Alarm",
     "allowInSubpage": true,
     "domains": [
@@ -915,6 +579,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "alarm_action": {
+    "hidden": true,
     "label": "Alarm",
     "allowInSubpage": true,
     "pickerKey": "alarm",
@@ -973,179 +638,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "calendar": {
-    "label": "Date & Time",
-    "allowInSubpage": true,
-    "domains": [
-      "sensor"
-    ],
-    "options": [
-      {
-        "name": "date_time_mode",
-        "label": "Type",
-        "kind": "choice",
-        "values": [
-          "clock",
-          "datetime",
-          "",
-          "timezone"
-        ],
-        "defaultValue": "",
-        "storageField": "type",
-        "omitDefault": false
-      },
-      {
-        "name": "large_numbers",
-        "label": "Large Clock",
-        "kind": "flag",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "hook",
-          "hook": "normalize_date_time_fields"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "calendar"
-        },
-        "precision": {
-          "policy": "allowed",
-          "values": [
-            "",
-            "datetime"
-          ],
-          "fallback": ""
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_date_time_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "large_numbers"
-      ],
-      "optionHook": "normalize_date_time_options"
-    },
-    "default": {
-      "entity": "sensor.date",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "calendar",
-      "precision": "",
-      "options": ""
-    }
-  },
-  "clock": {
-    "label": "Date & Time",
-    "allowInSubpage": true,
-    "pickerKey": "calendar",
-    "domains": [],
-    "options": [
-      {
-        "name": "date_time_mode",
-        "label": "Type",
-        "kind": "choice",
-        "values": [
-          "clock",
-          "datetime",
-          "",
-          "timezone"
-        ],
-        "defaultValue": "clock",
-        "storageField": "type",
-        "omitDefault": false
-      },
-      {
-        "name": "large_numbers",
-        "label": "Large Clock",
-        "kind": "flag",
-        "omitDefault": true
-      },
-      {
-        "name": "center_clock",
-        "label": "Center Clock",
-        "kind": "flag",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "clear"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "clock"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_date_time_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "large_numbers",
-        "center_clock"
-      ],
-      "optionHook": "normalize_date_time_options"
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "clock",
-      "precision": "",
-      "options": ""
-    }
-  },
   "climate": {
+    "hidden": true,
     "label": "Climate",
     "allowInSubpage": true,
     "domains": [
@@ -1398,6 +892,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "cover": {
+    "hidden": true,
     "label": "Cover",
     "allowInSubpage": true,
     "domains": [
@@ -1510,6 +1005,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "door_window": {
+    "hidden": true,
     "label": "Doors & Windows",
     "allowInSubpage": true,
     "domains": [
@@ -1578,6 +1074,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "presence": {
+    "hidden": true,
     "label": "Presence",
     "allowInSubpage": true,
     "domains": [
@@ -1646,6 +1143,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_direction": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1701,6 +1199,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_oscillate": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1756,6 +1255,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_preset": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1811,6 +1311,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_speed": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "domains": [
@@ -1865,6 +1366,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_control": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -1948,6 +1450,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "fan_switch": {
+    "hidden": true,
     "label": "Fans",
     "allowInSubpage": true,
     "pickerKey": "fan_speed",
@@ -2003,6 +1506,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "garage": {
+    "hidden": true,
     "label": "Garage Door",
     "allowInSubpage": true,
     "domains": [
@@ -2135,6 +1639,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "gate": {
+    "hidden": true,
     "label": "Gate",
     "allowInSubpage": true,
     "domains": [
@@ -2219,80 +1724,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "internal": {
-    "label": "Internal Switches",
-    "allowInSubpage": true,
-    "domains": [],
-    "options": [
-      {
-        "name": "internal_mode",
-        "label": "Mode",
-        "kind": "choice",
-        "values": [
-          "switch",
-          "push"
-        ],
-        "defaultValue": "switch",
-        "storageField": "sensor",
-        "omitDefault": false
-      }
-    ],
-    "behavior": {
-      "internalRelay": {
-        "defaultIcons": {
-          "switch": "Lightbulb Outline",
-          "push": "Gesture Tap"
-        },
-        "defaultIconOn": "Lightbulb"
-      }
-    },
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "keep"
-        },
-        "icon": {
-          "policy": "keep"
-        },
-        "icon_on": {
-          "policy": "keep"
-        },
-        "sensor": {
-          "policy": "keep"
-        },
-        "unit": {
-          "policy": "keep"
-        },
-        "type": {
-          "policy": "default",
-          "value": "internal"
-        },
-        "precision": {
-          "policy": "keep"
-        },
-        "options": {
-          "policy": "clear"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": []
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "",
-      "unit": "",
-      "type": "internal",
-      "precision": "",
-      "options": ""
-    }
-  },
   "light_brightness": {
+    "hidden": true,
     "label": "Lights",
     "allowInSubpage": true,
     "domains": [
@@ -2345,6 +1778,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "light_switch": {
+    "hidden": true,
     "label": "Lights",
     "allowInSubpage": true,
     "pickerKey": "light_brightness",
@@ -2398,6 +1832,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "light_temperature": {
+    "hidden": true,
     "label": "Lights",
     "allowInSubpage": true,
     "pickerKey": "light_brightness",
@@ -2536,6 +1971,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "lock": {
+    "hidden": true,
     "label": "Lock",
     "allowInSubpage": true,
     "domains": [
@@ -2644,7 +2080,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "omitDefault": false,
         "aliases": {
           "controls": "play_pause"
-        }
+        },
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "media_display",
@@ -2667,7 +2105,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "position"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "media_now_playing_controls",
@@ -2688,7 +2128,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "now_playing"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "cover_art_details",
@@ -2702,7 +2144,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "cover_art"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "cover_art_secondary_entity",
@@ -2716,7 +2160,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "cover_art"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "volume_max",
@@ -2739,7 +2185,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "volume"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "speaker_group_entity",
@@ -2757,7 +2205,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "speaker_group"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "power_entity",
@@ -2774,7 +2224,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "cover_art"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "media_tabs",
@@ -2799,7 +2251,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "cover_art"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "label_display",
@@ -2818,7 +2272,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "control_modal"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "number_display",
@@ -2837,7 +2293,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "control_modal"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "playlist_content_id",
@@ -2851,7 +2309,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "playlist"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "playlist_content_type",
@@ -2882,7 +2342,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
             "operator": "equals",
             "value": "playlist"
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "large_numbers",
@@ -2899,7 +2361,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
               "position"
             ]
           }
-        ]
+        ],
+        "hidden": true,
+        "docsHidden": true
       }
     ],
     "normalization": {
@@ -2982,29 +2446,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "type": "media",
       "precision": "",
       "options": ""
-    }
-  },
-  "option_select": {
-    "label": "Option Select",
-    "allowInSubpage": true,
-    "hidden": true,
-    "domains": [
-      "select",
-      "input_select"
-    ],
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "input_select.select_option",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
+    },
+    "hidden": true
   },
   "push": {
+    "hidden": true,
     "label": "Trigger",
     "allowInSubpage": true,
     "domains": [],
@@ -3220,68 +2666,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "screen_lock": {
-    "label": "Screen Lock",
-    "allowInSubpage": true,
-    "domains": [],
-    "options": [
-      {
-        "name": "screensaver_on_lock",
-        "label": "Screensaver on lock",
-        "kind": "flag",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "clear"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Lock"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Lock Open"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "screen_lock"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "keep"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "screensaver_on_lock"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Lock",
-      "icon_on": "Lock Open",
-      "sensor": "",
-      "unit": "",
-      "type": "screen_lock",
-      "precision": "",
-      "options": ""
-    }
-  },
   "webhook": {
     "label": "Webhook",
     "allowInSubpage": true,
@@ -3349,274 +2733,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "sensor": {
-    "label": "Sensor",
-    "allowInSubpage": true,
-    "domains": [
-      "sensor",
-      "binary_sensor",
-      "text_sensor"
-    ],
-    "options": [
-      {
-        "name": "large_numbers",
-        "label": "Large Sensor Numbers",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "in",
-            "value": [
-              "icon",
-              "text",
-              "time"
-            ],
-            "negate": true
-          }
-        ],
-        "supportedWhen": {
-          "precisionNot": [
-            "icon",
-            "text",
-            "time"
-          ]
-        }
-      },
-      {
-        "name": "time_unit",
-        "label": "Incoming Value Unit",
-        "kind": "choice",
-        "values": [
-          "",
-          "seconds",
-          "minutes",
-          "hours",
-          "days"
-        ],
-        "defaultValue": "",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "time"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "time"
-          ]
-        }
-      },
-      {
-        "name": "active_color",
-        "label": "Lit When Active",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "in",
-            "value": [
-              "time"
-            ],
-            "negate": true
-          }
-        ],
-        "supportedWhen": {
-          "precisionNot": [
-            "time"
-          ]
-        }
-      },
-      {
-        "name": "state_labels",
-        "label": "Status Translation",
-        "kind": "flag",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_input",
-        "label": "Input Status",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_output",
-        "label": "Display Text",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_input_2",
-        "label": "Input Status 2",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      },
-      {
-        "name": "state_output_2",
-        "label": "Display Text 2",
-        "kind": "text",
-        "omitDefault": true,
-        "applicability": [
-          {
-            "source": "field",
-            "name": "precision",
-            "operator": "equals",
-            "value": "text"
-          }
-        ],
-        "supportedWhen": {
-          "precision": [
-            "text"
-          ]
-        }
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "keep"
-        },
-        "icon": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "icon_on": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "sensor": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "unit": {
-          "policy": "keep"
-        },
-        "type": {
-          "policy": "default",
-          "value": "sensor"
-        },
-        "precision": {
-          "policy": "hook",
-          "hook": "normalize_sensor_fields"
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_sensor_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "large_numbers",
-        "time_unit",
-        "active_color",
-        "state_labels",
-        "state_input",
-        "state_output",
-        "state_input_2",
-        "state_output_2"
-      ],
-      "optionHook": "normalize_sensor_options",
-      "migrationActions": [
-        "legacy_local_sensor",
-        "legacy_text_sensor",
-        "legacy_sensor_state_high_label",
-        "legacy_sensor_state_low_label"
-      ]
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "sensor",
-      "precision": "",
-      "options": ""
-    }
-  },
-  "local_sensor": {
-    "label": "Local Sensor",
-    "allowInSubpage": true,
-    "pickerKey": "sensor",
-    "hidden": true,
-    "domains": [
-      "sensor",
-      "text_sensor"
-    ],
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "",
-      "options": ""
-    }
-  },
   "slider": {
     "label": "Slider",
     "allowInSubpage": true,
@@ -3674,7 +2790,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "subpage": {
     "label": "Subpage",
-    "allowInSubpage": false,
+    "allowInSubpage": true,
     "domains": [],
     "options": [
       {
@@ -3779,87 +2895,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "timezone": {
-    "label": "Date & Time",
-    "allowInSubpage": true,
-    "pickerKey": "calendar",
-    "domains": [],
-    "options": [
-      {
-        "name": "date_time_mode",
-        "label": "Type",
-        "kind": "choice",
-        "values": [
-          "clock",
-          "datetime",
-          "",
-          "timezone"
-        ],
-        "defaultValue": "timezone",
-        "storageField": "type",
-        "omitDefault": false
-      },
-      {
-        "name": "large_numbers",
-        "label": "Large Clock",
-        "kind": "flag",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "hook",
-          "hook": "normalize_date_time_fields"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "timezone"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_date_time_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "large_numbers"
-      ],
-      "optionHook": "normalize_date_time_options"
-    },
-    "default": {
-      "entity": "UTC (GMT+0)",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "timezone",
-      "precision": "",
-      "options": ""
-    }
-  },
   "weather": {
+    "hidden": true,
     "label": "Weather",
     "allowInSubpage": true,
     "domains": [
@@ -3993,6 +3030,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "image": {
     "label": "Camera Card",
     "allowInSubpage": true,
+    "hidden": true,
     "domains": [
       "camera",
       "image"
@@ -4002,13 +3040,17 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "name": "image_label",
         "label": "Show Label",
         "kind": "flag",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_icon",
         "label": "Show Icon",
         "kind": "flag",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_mode",
@@ -4019,7 +3061,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "fit"
         ],
         "defaultValue": "fill",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_refresh_mode",
@@ -4031,7 +3075,9 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "activity"
         ],
         "defaultValue": "off",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_refresh_interval",
@@ -4043,13 +3089,17 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "30"
         ],
         "defaultValue": "10",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "image_modal_refresh_trigger",
         "label": "Trigger entity",
         "kind": "text",
-        "omitDefault": true
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       }
     ],
     "normalization": {
@@ -4128,58 +3178,6 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "precision": "tomorrow",
       "options": ""
     }
-  },
-  "screensaver": {
-    "label": "Screensaver",
-    "allowInSubpage": true,
-    "domains": [],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "clear"
-        },
-        "label": {
-          "policy": "clear"
-        },
-        "icon": {
-          "policy": "default",
-          "value": "Monitor"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "clear"
-        },
-        "unit": {
-          "policy": "clear"
-        },
-        "type": {
-          "policy": "default",
-          "value": "screensaver"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "clear"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": []
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Monitor",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "screensaver",
-      "precision": "",
-      "options": ""
-    }
   }
 };
 export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
@@ -4204,18 +3202,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "numericControl": false,
       "modal": false,
       "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
-  "action": {
-    "driver": "action",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": true,
       "subpage": true
     }
   },
@@ -4264,30 +3250,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "numericControl": false,
       "modal": false,
       "runtimeAllocation": true,
-      "subpage": true
-    }
-  },
-  "calendar": {
-    "driver": "date_time",
-    "capabilities": {
-      "informationOnly": true,
-      "subscriptions": true,
-      "actions": false,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
-  "clock": {
-    "driver": "date_time",
-    "capabilities": {
-      "informationOnly": true,
-      "subscriptions": true,
-      "actions": false,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
       "subpage": true
     }
   },
@@ -4459,18 +3421,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "internal": {
-    "driver": "internal",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
   "light_brightness": {
     "driver": "numeric",
     "capabilities": {
@@ -4557,18 +3507,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "playlist": "media_playlist"
     }
   },
-  "option_select": {
-    "driver": "option_select",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": true,
-      "subpage": true
-    }
-  },
   "push": {
     "driver": "push",
     "capabilities": {
@@ -4593,48 +3531,12 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "screen_lock": {
-    "driver": "screen_lock",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
   "webhook": {
     "driver": "webhook",
     "capabilities": {
       "informationOnly": false,
       "subscriptions": true,
       "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
-  "sensor": {
-    "driver": "sensor",
-    "capabilities": {
-      "informationOnly": true,
-      "subscriptions": true,
-      "actions": false,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": true,
-      "subpage": true
-    }
-  },
-  "local_sensor": {
-    "driver": "sensor",
-    "capabilities": {
-      "informationOnly": true,
-      "subscriptions": true,
-      "actions": false,
       "numericControl": false,
       "modal": false,
       "runtimeAllocation": false,
@@ -4662,18 +3564,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "numericControl": false,
       "modal": false,
       "runtimeAllocation": true,
-      "subpage": false
-    }
-  },
-  "timezone": {
-    "driver": "date_time",
-    "capabilities": {
-      "informationOnly": true,
-      "subscriptions": true,
-      "actions": false,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
       "subpage": true
     }
   },
@@ -4712,36 +3602,12 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "runtimeAllocation": true,
       "subpage": true
     }
-  },
-  "screensaver": {
-    "driver": "screensaver",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": false,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
   }
 };
 export const CARD_CONTRACT_MIGRATION_ALIASES: Readonly<Record<string, Partial<CardConfig>>> = {
-  "option_select": {
-    "type": "action",
-    "sensor": "input_select.select_option"
-  },
-  "text_sensor": {
-    "type": "sensor",
-    "precision": "text"
-  },
   "weather_forecast": {
     "type": "weather",
     "precision": "tomorrow"
-  },
-  "local_sensor": {
-    "type": "sensor",
-    "sensor": "local"
   }
 };
 export const CARD_CONTRACT_BRIGHTNESS_SLIDER_TYPES = ["slider", "light_brightness", "fan_speed"] as const;
@@ -4760,17 +3626,13 @@ export const CARD_CONTRACT_OPTION_SELECT_ACTION = "input_select.select_option";
 export const CARD_CONTRACT_OPTION_SELECT_ACTIONS = ["input_select.select_option", "select.select_option"] as const;
 export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> = {
   "timer": "TM",
-  "action": "A",
   "calendar": "D",
   "clock": "CK",
   "timezone": "T",
-  "sensor": "S",
-  "local_sensor": "LS",
   "door_window": "X",
   "presence": "PR",
   "weather": "W",
   "weather_forecast": "F",
-  "option_select": "U",
   "fan_switch": "B",
   "fan_speed": "J",
   "fan_control": "FC",
@@ -4795,25 +3657,18 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "climate_control": "HC",
   "push": "P",
   "companion": "CP",
-  "screen_lock": "SL",
   "webhook": "WH",
-  "internal": "I",
-  "subpage": "G",
-  "screensaver": "SS"
+  "subpage": "G"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
   "TM": "timer",
-  "A": "action",
   "D": "calendar",
   "CK": "clock",
   "T": "timezone",
-  "S": "sensor",
-  "LS": "local_sensor",
   "X": "door_window",
   "PR": "presence",
   "W": "weather",
   "F": "weather_forecast",
-  "U": "option_select",
   "B": "fan_switch",
   "J": "fan_speed",
   "FC": "fan_control",
@@ -4838,28 +3693,15 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "HC": "climate_control",
   "P": "push",
   "CP": "companion",
-  "SL": "screen_lock",
   "WH": "webhook",
-  "I": "internal",
-  "G": "subpage",
-  "SS": "screensaver"
+  "G": "subpage"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
   "": true,
-  "action": true,
-  "sensor": {
-    "excludedPrecisions": [
-      "icon",
-      "text"
-    ]
-  },
-  "calendar": true,
-  "clock": true,
   "climate": true,
   "climate_control": true,
   "media": true,
-  "subpage": true,
-  "timezone": true
+  "subpage": true
 };
 export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "actions": "actions",
@@ -4870,7 +3712,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "app_shortcut_preset": "app_shortcut_preset",
   "app_shortcuts": "app_shortcuts",
   "app_shortcuts_tabs": "app_shortcuts_tabs",
-  "center_clock": "center_clock",
   "climate_tabs": "climate_tabs",
   "confirm_message": "confirm_message",
   "confirm_no": "confirm_no",
@@ -4878,14 +3719,12 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "confirm_on": "confirm_on",
   "confirm_yes": "confirm_yes",
   "confirmation_mode": "confirmation_mode",
-  "confirmation_required": "confirmation_required",
   "cover_art_details": "cover_art_details",
   "cover_art_secondary_entity": "cover_art_secondary_entity",
   "cover_mode": "cover_mode",
   "cover_position": "cover_position",
   "cover_tabs": "cover_tabs",
   "custom_icon": "custom_icon",
-  "date_time_mode": "date_time_mode",
   "fan_light_entity": "fan_light_entity",
   "fan_tabs": "fan_tabs",
   "finder_open_behavior": "finder_open_behavior",
@@ -4899,7 +3738,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "image_modal_refresh_interval": "image_modal_refresh_interval",
   "image_modal_refresh_mode": "image_modal_refresh_mode",
   "image_modal_refresh_trigger": "image_modal_refresh_trigger",
-  "internal_mode": "internal_mode",
   "label_display": "label_display",
   "large_numbers": "large_numbers",
   "lawn_mower_mode": "lawn_mower_mode",
@@ -4919,24 +3757,13 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "playlist_player_source": "playlist_player_source",
   "power_entity": "power_entity",
   "rainfall_source": "rainfall_source",
-  "screensaver_on_lock": "screensaver_on_lock",
-  "script_fields": "script_fields",
   "speaker_group_entity": "speaker_group_entity",
   "stat_labels_off": "stat_labels_off",
-  "state_entity": "state_entity",
   "state_high_label": "state_high_label",
-  "state_input": "state_input",
-  "state_input_2": "state_input_2",
-  "state_labels": "state_labels",
   "state_low_label": "state_low_label",
-  "state_output": "state_output",
-  "state_output_2": "state_output_2",
-  "state_precision": "state_precision",
-  "state_unit": "state_unit",
   "subpage_connector": "subpage_connector",
   "subpage_kind": "subpage_kind",
   "temperature_step": "temperature_step",
-  "time_unit": "time_unit",
   "vacuum_mode": "vacuum_mode",
   "volume_max": "volume_max",
   "weather_mode": "weather_mode",
