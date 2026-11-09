@@ -315,6 +315,10 @@ inline void companion_set_actions(std::vector<CompanionAction> actions) {
   companion_runtime_service().set_actions(std::move(actions));
 }
 
+inline void companion_set_window_actions(std::vector<std::string> actions) {
+  companion_runtime_service().set_window_actions(std::move(actions));
+}
+
 inline void companion_set_keyboard_actions_supported(bool supported) {
   companion_runtime_service().set_keyboard_actions_supported(supported);
 }
@@ -406,7 +410,7 @@ inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&
       action_id.rfind("folder.", 0) != 0 &&
-      action_id.rfind("urlcard.", 0) != 0 &&
+      action_id.rfind("urlcard.", 0) != 0 && action_id.rfind("window.", 0) != 0 &&
       action_id.rfind("stat.", 0) != 0)
     return snapshot.application_highlight_id == action_id;
   if (std::find(snapshot.focused_action_ids.begin(), snapshot.focused_action_ids.end(), action_id) !=
@@ -565,12 +569,23 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
   return label + key;
 }
 
+inline bool companion_window_action_valid(const std::string &action_id) {
+  return companion_window_capability(action_id) != nullptr;
+}
+
+inline std::string companion_window_action_label(const std::string &action_id) {
+  const auto *capability = companion_window_capability(action_id);
+  return capability ? espdesktop_i18n(capability->label) : "";
+}
+
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty()) return false;
   if (!snapshot.connected) return false;
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
-  // An older Companion may still advertise retired window identifiers.
-  if (action_id.rfind("window.", 0) == 0) return false;
+  if (companion_window_action_valid(action_id)) {
+    return std::find(snapshot.window_actions.begin(), snapshot.window_actions.end(), action_id) !=
+           snapshot.window_actions.end();
+  }
   return std::any_of(snapshot.actions.begin(), snapshot.actions.end(), [&action_id](const CompanionAction &action) {
     return action.id == action_id;
   });
@@ -597,6 +612,8 @@ inline std::string companion_default_action_label(const std::string &action_id,
                                                   const CompanionRuntimeSnapshot *state = nullptr) {
   const std::string shortcut_label = companion_shortcut_label(action_id);
   if (!shortcut_label.empty()) return shortcut_label;
+  const std::string window_label = companion_window_action_label(action_id);
+  if (!window_label.empty()) return window_label;
   if (!companion_encoded_url(url_config).empty()) return espdesktop_i18n("Open URL");
   const auto owned = state ? CompanionRuntimeSnapshot{} : companion_runtime_snapshot();
   const auto &snapshot = state ? *state : owned;
