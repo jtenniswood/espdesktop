@@ -183,7 +183,6 @@ export interface AppState {
   screensaverTimeoutMin: number;
   screensaverTimeoutMax: number;
   screensaverTimeoutLimitsLoaded: boolean;
-  homeScreenTimeout: number;
   brightnessDayVal: number;
   brightnessNightVal: number;
   brightnessMode: string;
