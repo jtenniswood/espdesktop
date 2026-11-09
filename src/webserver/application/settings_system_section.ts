@@ -1,6 +1,5 @@
 import { buildResetSettings } from "./settings_reset_section";
 import { state } from "../state/app_instance";
-import { normalizeHomeAssistantArtworkEndpointMode, normalizeHomeAssistantArtworkPort, normalizeHomeAssistantArtworkProtocol } from "../model/settings";
 import type { UiRuntimeState } from "./state";
 import {
     firmwareInfoFromPublicManifest,
@@ -15,10 +14,9 @@ import type { ControlsShellFeature } from "./controls_shell";
 import type { ApplicationApiFeature } from "./api";
 import type { StateLoaderFeature } from "./state_loader_api";
 import type { FirmwareUpdatePostApiFeature } from "./firmware_update_post_api";
-import type { ArtworkPostApiFeature } from "./artwork_post_api";
 import type { PublicFirmwareInstallFeature } from "./public_firmware_install";
 import type { ControlsFieldsFeature } from "./controls_fields";
-import { formatHomeAssistantArtworkEndpointStatus, type SettingsPageHelpersFeature } from "./settings_page_helpers";
+import { type SettingsPageHelpersFeature } from "./settings_page_helpers";
 
 export interface SettingsSystemSectionActions {
     buildIdentityCard?(): HTMLElement;
@@ -40,7 +38,6 @@ export function createSettingsSystemSectionFeature(
     requestApi: Pick<ApplicationApiFeature, "getJsonQuietly" | "postFirmwareAutoUpdate" | "postFirmwareUpdateFrequency" | "postC6FirmwareAutoUpdate">,
     stateLoader: Pick<StateLoaderFeature, "refreshFirmwareVersion">,
     firmwarePostApi: FirmwareUpdatePostApiFeature,
-    artworkPostApi: Pick<ArtworkPostApiFeature, "postHomeAssistantArtworkPort" | "postHomeAssistantArtworkProtocol" | "postHomeAssistantArtworkHost" | "postHomeAssistantArtworkEndpointMode">,
     publicFirmwareInstall: Pick<PublicFirmwareInstallFeature, "installPublicFirmwareViaWebOta">,
     fields: Pick<ControlsFieldsFeature, "fieldLabel" | "makeCollapsibleCard" | "toggleRow">,
     helpers: Pick<SettingsPageHelpersFeature, "disclosureBadge" | "inlineDisclosure" | "statusBadge" | "infoPanel">,
@@ -72,7 +69,6 @@ export function createSettingsSystemSectionFeature(
         postC6FirmwareUpdateInstall,
         postC6FirmwareUpdateCheck,
     } = firmwarePostApi;
-    const { postHomeAssistantArtworkPort, postHomeAssistantArtworkProtocol, postHomeAssistantArtworkHost, postHomeAssistantArtworkEndpointMode } = artworkPostApi;
     const { installPublicFirmwareViaWebOta } = publicFirmwareInstall;
     // ── Settings System Section ────────────────────────────────────────
     function buildSystemSettingsCards(this: any) {
@@ -338,130 +334,11 @@ export function createSettingsSystemSectionFeature(
         syncFirmwareUpdateUi();
         syncC6FirmwareUi();
         stateLoader.refreshFirmwareVersion();
-        var homeAssistantSettingsBody: any = document.createElement("div");
-        var haModeField: any = document.createElement("div");
-        haModeField.className = "sp-field";
-        haModeField.appendChild(fieldLabel("Connection", "sp-set-ha-artwork-endpoint-mode"));
-        var haModeSelect: any = document.createElement("select");
-        haModeSelect.className = "sp-select";
-        haModeSelect.id = "sp-set-ha-artwork-endpoint-mode";
-        ["Automatic", "Manual"].forEach(function (option: any) {
-            var item: any = document.createElement("option");
-            item.value = option;
-            item.textContent = option;
-            haModeSelect.appendChild(item);
-        });
-        haModeSelect.value = normalizeHomeAssistantArtworkEndpointMode(
-            state.homeAssistantArtworkEndpointMode,
-            state.homeAssistantArtworkProtocol,
-            state.coverArtHomeAssistantPort);
-        haModeSelect.addEventListener("change", function (this: any) {
-            state.homeAssistantArtworkEndpointMode = normalizeHomeAssistantArtworkEndpointMode(
-                this.value, state.homeAssistantArtworkProtocol, state.coverArtHomeAssistantPort);
-            this.value = state.homeAssistantArtworkEndpointMode;
-            postHomeAssistantArtworkEndpointMode(state.homeAssistantArtworkEndpointMode);
-            syncHomeAssistantEndpointFields();
-        });
-        haModeField.appendChild(haModeSelect);
-        homeAssistantSettingsBody.appendChild(haModeField);
-        els.setHomeAssistantArtworkEndpointMode = haModeSelect;
-        var haStatus: any = infoPanel("sp-ha-artwork-endpoint-status", "");
-        var haStatusText: any = haStatus.lastElementChild;
-        haStatusText.textContent = "Home Assistant artwork endpoint:";
-        haStatusText.appendChild(document.createTextNode(" "));
-        var haStatusOutput: any = document.createElement("code");
-        haStatusOutput.textContent = formatHomeAssistantArtworkEndpointStatus(state.homeAssistantArtworkEndpointStatus);
-        haStatusText.appendChild(haStatusOutput);
-        haStatusText.appendChild(document.createTextNode("."));
-        homeAssistantSettingsBody.appendChild(haStatus);
-        els.homeAssistantArtworkEndpointStatus = haStatus;
-        els.homeAssistantArtworkEndpointStatusOutput = haStatusOutput;
-        var haHealth: any = document.createElement("p");
-        haHealth.id = "sp-ha-artwork-endpoint-health";
-        haHealth.textContent = state.homeAssistantArtworkEndpointHealth;
-        haHealth.hidden = !state.homeAssistantArtworkEndpointHealth;
-        homeAssistantSettingsBody.appendChild(haHealth);
-        els.homeAssistantArtworkEndpointHealth = haHealth;
-        var haProtocolField: any = document.createElement("div");
-        haProtocolField.className = "sp-field";
-        haProtocolField.appendChild(fieldLabel("Home Assistant Protocol", "sp-set-ha-artwork-protocol"));
-        var haProtocolSelect: any = document.createElement("select");
-        haProtocolSelect.className = "sp-select";
-        haProtocolSelect.id = "sp-set-ha-artwork-protocol";
-        ["http", "https"].forEach(function (this: any, option?: any) {
-            var item: any = document.createElement("option");
-            item.value = option;
-            item.textContent = option;
-            haProtocolSelect.appendChild(item);
-        });
-        haProtocolSelect.value = normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol);
-        haProtocolSelect.addEventListener("change", function (this: any) {
-            state.homeAssistantArtworkProtocol = normalizeHomeAssistantArtworkProtocol(this.value);
-            this.value = state.homeAssistantArtworkProtocol;
-            postHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol);
-        });
-        haProtocolField.appendChild(haProtocolSelect);
-        homeAssistantSettingsBody.appendChild(haProtocolField);
-        els.setHomeAssistantArtworkProtocol = haProtocolSelect;
-        els.setHomeAssistantArtworkProtocolField = haProtocolField;
-        var haHostField: any = document.createElement("div");
-        haHostField.className = "sp-field";
-        haHostField.appendChild(fieldLabel("Home Assistant Host", "sp-set-ha-artwork-host"));
-        var haHostInput: any = document.createElement("input");
-        haHostInput.className = "sp-input";
-        haHostInput.id = "sp-set-ha-artwork-host";
-        haHostInput.type = "text";
-        haHostInput.maxLength = 253;
-        haHostInput.autocomplete = "url";
-        haHostInput.placeholder = "e.g. homeassistant.local";
-        haHostInput.value = state.homeAssistantArtworkHost;
-        haHostInput.addEventListener("change", function (this: any) {
-            state.homeAssistantArtworkHost = String(this.value || "").trim().slice(0, 253);
-            this.value = state.homeAssistantArtworkHost;
-            postHomeAssistantArtworkHost(state.homeAssistantArtworkHost);
-        });
-        haHostField.appendChild(haHostInput);
-        homeAssistantSettingsBody.appendChild(haHostField);
-        els.setHomeAssistantArtworkHost = haHostInput;
-        els.setHomeAssistantArtworkHostField = haHostField;
-        var haPortField: any = document.createElement("div");
-        haPortField.className = "sp-field";
-        haPortField.appendChild(fieldLabel("Home Assistant Port", "sp-set-ha-artwork-port"));
-        var haPortInput: any = document.createElement("input");
-        haPortInput.className = "sp-input sp-input--no-stepper";
-        haPortInput.id = "sp-set-ha-artwork-port";
-        haPortInput.type = "number";
-        haPortInput.min = "1";
-        haPortInput.max = "65535";
-        haPortInput.step = "1";
-        haPortInput.inputMode = "numeric";
-        haPortInput.value = String(normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort));
-        haPortInput.addEventListener("change", function (this: any) {
-            state.coverArtHomeAssistantPort = normalizeHomeAssistantArtworkPort(this.value);
-            this.value = String(state.coverArtHomeAssistantPort);
-            postHomeAssistantArtworkPort(state.coverArtHomeAssistantPort);
-        });
-        haPortField.appendChild(haPortInput);
-        homeAssistantSettingsBody.appendChild(haPortField);
-        els.setCoverArtHomeAssistantPort = haPortInput;
-        els.setCoverArtHomeAssistantPortField = haPortField;
-        function syncHomeAssistantEndpointFields() {
-            var manualEndpoint: any = state.homeAssistantArtworkEndpointMode === "Manual";
-            haProtocolField.classList.toggle("sp-hidden", !manualEndpoint);
-            haPortField.classList.toggle("sp-hidden", !manualEndpoint);
-            haHostField.classList.toggle("sp-hidden", !manualEndpoint);
-            haProtocolSelect.disabled = !manualEndpoint;
-            haPortInput.disabled = !manualEndpoint;
-            haHostInput.disabled = !manualEndpoint;
-        }
-        syncHomeAssistantEndpointFields();
-        var homeAssistantSettingsCard: any = makeCollapsibleCard("Home Assistant Settings", homeAssistantSettingsBody, true);
         return {
             identityCard: actions.buildIdentityCard?.(),
             backupCard: backupCard,
             resetCard: buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
             firmwareCard: firmwareCard,
-            homeAssistantSettingsCard: homeAssistantSettingsCard,
         };
     }
     return {

@@ -40,10 +40,6 @@ def package_substitution_lines(device: dict) -> list[str]:
     ]
     if package.get("firmwareVersion"):
         lines.append(f'  firmware_version: "{package["firmwareVersion"]}"')
-    camera_screensaver_supported = bool(device.get("camera_screensaver_supported"))
-    lines.append(
-        f'  screensaver_camera_supported: "{str(camera_screensaver_supported).lower()}"'
-    )
     for key, value in package["substitutions"].items():
         lines.append(f"  {key}: {value}")
     if package.get("ethernetSelectable"):
@@ -204,12 +200,6 @@ def package_file_text(device: dict) -> str:
             ),
         ]
     )
-    if package.get("apiOpenModalAction", True) or package.get("apiNavigateAction", True):
-        lines.append(include_line("api_remote_actions", "!include ../../common/device/api_remote_actions.yaml"))
-    if package.get("apiOpenModalAction", True):
-        lines.append(include_line("api_open_modal", "!include ../../common/device/api_open_modal.yaml"))
-    if package.get("apiNavigateAction", True):
-        lines.append(include_line("api_navigate", "!include ../../common/device/api_navigate.yaml"))
     lines.extend(
         [
             include_line("time_sync", "!include ../../common/addon/time.yaml"),
@@ -234,17 +224,9 @@ def package_file_text(device: dict) -> str:
                 f"!include ../../common/device/screen_loading{network_suffix}.yaml",
             ),
             include_line(network_screen_key, f"!include {network_screen_path}"),
-            include_line("screen_ha", "!include ../../common/device/screen_ha_setup.yaml"),
-            include_line("screen_ha_act", "!include ../../common/device/screen_ha_actions.yaml"),
             include_line("screen_setup", "!include ../../common/device/screen_button_setup.yaml"),
             include_line("screen_clock", "!include ../../common/device/screen_clock.yaml"),
             include_line("screen_art", "!include ../../common/device/screen_cover_art.yaml"),
-            include_line(
-                "screen_camera",
-                "!include ../../common/device/screen_camera_screensaver.yaml"
-                if device.get("camera_screensaver_supported")
-                else "!include ../../common/device/screen_camera_screensaver_disabled.yaml",
-            ),
             *(
                 [
                     include_line(
@@ -486,7 +468,6 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append(
             f"            cfg.climate_option_value_font = id({device['climate_option_value_font']})->get_lv_font();"
         )
-    lines.append("            cfg.temperature_unit = id(temperature_unit_select).current_option();")
     lines.append("            cfg.timezone = id(timezone_select).current_option();")
     lines.append("            cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {")
     lines.append("              id(display_takeover_begin).execute(static_cast<int>(kind));")
@@ -504,11 +485,6 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append(f"            cfg.image_card_image_count = {image_card_count};")
     if device.get("image_card_diagnostics"):
         lines.append("            cfg.image_card_diagnostics = true;")
-    lines.append("            cfg.home_assistant_base_url = []() {")
-    lines.append("              std::string base = id(cover_art_home_assistant_base_url);")
-    lines.append("              while (!base.empty() && base.back() == '/') base.pop_back();")
-    lines.append("              return base;")
-    lines.append("            };")
     lines.append("            register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {")
     lines.append("              auto response = id(http_req).start(url, method, body, headers);")
     lines.append("              if (response == nullptr) {")
@@ -684,50 +660,19 @@ def phase2_block(device: dict) -> str:
 
 
 def display_sensor_subscription_script() -> str:
-    """Use the current sensor settings at boot and after live configuration changes."""
+    """Refresh the shared local header without external sensor subscriptions."""
     return """  - id: refresh_display_sensor_subscriptions
     mode: single
     then:
       - lambda: |-
-          lv_obj_t *temperature_labels[] = {
-            id(temperatures),
-          };
-          grid_phase3(
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp_entity).state,
-            id(outdoor_temp_entity).state,
-            id(clock_bar_temperature_entities).state,
-            &id(indoor_temp), &id(outdoor_temp),
-            temperature_labels,
-            1,
-            id(main_page)->obj,
-            id(presence_sensor_entity).state,
-            &id(presence_detected),
-            id(screen_schedule_sensor_entity).state,
-            &id(schedule_presence_detected),
-            id(media_player_sleep_prevention_entity).state,
-            &id(media_player_playing),
-            []() {
-              return clock_bar_should_show(
+          lv_obj_t *header_labels[] = {id(temperatures)};
+          grid_refresh_local_header(
+              header_labels, 1, id(main_page)->obj,
+              clock_bar_should_show(
                   id(clock_bar_enabled).state,
                   id(main_page)->obj,
                   id(espdesktop_app).display().current_mode(),
-                  id(espdesktop_app).display().target_schedule_inactive());
-            },
-            []() {
-              id(screensaver_presence_wake).execute();
-            },
-            []() {
-              id(screensaver_presence_sleep).execute();
-            },
-            []() {
-              id(screen_schedule_check).execute();
-            },
-            []() {
-              return id(outdoor_temp_enable).state;
-            });
-          ha_reannounce_state_subscriptions();
+                  id(espdesktop_app).display().target_schedule_inactive()));
 """
 
 
@@ -750,8 +695,6 @@ def script_block(device: dict) -> str:
         "    mode: restart",
         "    then:",
         "      - delay: 3s",
-        "      - wait_until:",
-        "          lambda: 'return !alarm_display_takeover_active();'",
         "      - lambda: |-",
         refresh_block(device, "SUBPAGE REFRESH"),
         *refresh_subpage_arrays(device),
@@ -770,8 +713,6 @@ def script_block(device: dict) -> str:
                 "  - id: apply_button_grid",
                 "    mode: single",
                 "    then:",
-                "      - wait_until:",
-                "          lambda: 'return !alarm_display_takeover_active();'",
                 "      - lambda: |-",
                 refresh_block(device),
                 *refresh_subpage_arrays(device),

@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import {
     cardContractAllowInSubpage,
     cardContractCard,
@@ -67,22 +68,8 @@ export function registerPresenceCardTypes(
         hideLabel: true,
         defaultConfig: function (this: any) { return cardContractDefaultConfig("presence"); },
         cardMetadata: PRESENCE_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            var defaults: any = cardContractDefaultConfig("presence");
-            Object.keys(defaults).forEach(function (this: any, key?: any) { b[key] = defaults[key]; });
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            b.entity = "";
-            b.unit = "";
-            b.precision = "";
-            b.options = normalizePresenceOptions(b.options);
-            if (!b.icon || b.icon === "Auto")
-                b.icon = "Motion Sensor Off";
-            if (!b.icon_on || b.icon_on === "Auto")
-                b.icon_on = "Motion Sensor";
-            helpers.renderBasicCardFields(panel, b, helpers, PRESENCE_CARD_METADATA);
-            helpers.renderCardActiveColorToggle(panel, b, helpers, PRESENCE_CARD_METADATA.activeColor, setPresenceActiveColorEnabled);
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var label: any = b.label || b.sensor || "Presence";
             return cardBadgePreview(b, helpers, {

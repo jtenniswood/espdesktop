@@ -1,4 +1,5 @@
 {
+  "hidden": true,
   "label": "Garage Door",
   "allowInSubpage": true,
   "domains": ["cover"],

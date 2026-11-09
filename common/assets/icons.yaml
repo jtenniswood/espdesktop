@@ -11,7 +11,6 @@ substitutions:
   icon_wifi: "\U000F0928"
   icon_ethernet: "\U000F0200"
   icon_cog: "\U000F0493"
-  icon_home_assistant: "\U000F07D0"
   icon_progress_clock: "\U000F0996"
   icon_check: "\U000F012C"
   icon_chevron_left: "\U000F0141"

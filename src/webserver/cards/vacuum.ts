@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -68,66 +69,8 @@ export function registerVacuumCardTypes(
         defaultConfig: function (this: any) { return cardContractDefaultConfig("vacuum"); },
         cardMetadata: VACUUM_CARD_METADATA,
         normalizeConfig: normalizeVacuumConfig,
-        onSelect: function (this: any, b?: any) {
-            var defaults: any = cardContractDefaultConfig("vacuum");
-            Object.keys(defaults).forEach(function (this: any, key?: any) {
-                if (key !== "entity")
-                    b[key] = defaults[key];
-            });
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            var mode: any = normalizeVacuumMode(b.sensor);
-            if (b.sensor !== mode) {
-                b.sensor = mode;
-                helpers.saveField("sensor", mode);
-            }
-            b.precision = "";
-            b.options = preserveCardColorOptions(b.options, "");
-            b.icon_on = "Auto";
-            if (!vacuumModeNeedsArea(mode) && b.unit) {
-                b.unit = "";
-                helpers.saveField("unit", "");
-            }
-            if (!b.icon || b.icon === "Auto") {
-                b.icon = vacuumModeDefaultIcon(mode);
-                helpers.saveField("icon", b.icon);
-            }
-            helpers.renderCardModeSelector(panel, b, helpers, Object.assign({}, VACUUM_CARD_METADATA, {
-                mode: Object.assign({}, VACUUM_CARD_METADATA.mode, {
-                    value: function (this: any) { return mode; },
-                    onChange: function (this: any) {
-                        var oldMode: any = mode;
-                        mode = normalizeVacuumMode(this.value);
-                        applyEntityModeCardModeChange(b, helpers, oldMode, mode, {
-                            defaultIcon: vacuumModeDefaultIcon,
-                            keepUnit: vacuumModeNeedsArea,
-                            usesDefaultIcon: vacuumUsesDefaultIcon,
-                        });
-                        renderButtonSettings();
-                    },
-                }),
-            }));
-            helpers.renderCardEntityField(panel, b, helpers, VACUUM_CARD_METADATA);
-            helpers.renderCardTextField(panel, b, helpers, Object.assign({}, VACUUM_CARD_METADATA.labelField, {
-                placeholder: mode === "clean_area" ? "e.g. Clean Kitchen" : "e.g. Kitchen Vacuum",
-            }));
-            if (vacuumModeNeedsArea(mode)) {
-                helpers.renderCardTextField(panel, b, helpers, {
-                    label: "Area ID",
-                    idSuffix: "vacuum-area-id",
-                    field: "unit",
-                    placeholder: "e.g. kitchen",
-                    rerender: false,
-                });
-            }
-            helpers.renderCardIconPicker(panel, b, helpers, {
-                pickerIdSuffix: "vacuum-icon-picker",
-                idSuffix: "vacuum-icon",
-                field: "icon",
-                fallback: function (this: any) { return vacuumModeDefaultIcon(mode); },
-                label: "Icon",
-            });
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var mode: any = normalizeVacuumMode(b.sensor);
             var label: any = b.label || b.entity || "Vacuum";

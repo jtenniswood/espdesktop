@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import {
     cardContractAllowInSubpage,
     cardContractCard,
@@ -224,112 +225,9 @@ export function registerAlarmCardTypes(
         labelPlaceholder: "e.g. House Alarm",
         defaultConfig: function (this: any) { return cardContractDefaultConfig("alarm"); },
         cardMetadata: ALARM_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            b.entity = "";
-            b.label = "";
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "";
-            b.icon = "Security";
-            b.icon_on = "Auto";
-            b.options = "";
-        },
-        renderSettingsBeforeLabel: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            renderAlarmCardTypeField(panel, b, helpers);
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            b.sensor = "";
-            b.unit = "";
-            b.precision = "";
-            b.icon_on = "Auto";
-            if (!b.icon || b.icon === "Auto")
-                b.icon = "Security";
-            var normalizedOptions: any = normalizeAlarmOptions(b.options);
-            if (b.options !== normalizedOptions) {
-                b.options = normalizedOptions;
-                helpers.saveField("options", normalizedOptions);
-            }
-            helpers.renderCardEntityField(panel, b, helpers, {
-                entity: Object.assign({}, ALARM_CARD_METADATA.entity, {
-                    idSuffix: "alarm-entity",
-                }),
-            });
-            var cardSettingsDisclosure: any = helpers.disclosureSection("Card Settings", helpers.idPrefix + "alarm-card-settings", false);
-            var cardSettings: any = cardSettingsDisclosure.section;
-            var modalSettingsDisclosure: any = helpers.disclosureSection("Modal Settings", helpers.idPrefix + "alarm-modal-settings", false);
-            var modalSettings: any = modalSettingsDisclosure.section;
-            var labelHost: any = condField();
-            helpers.renderCardTextField(labelHost, b, helpers, {
-                label: "Label",
-                idSuffix: "alarm-label",
-                field: "label",
-                placeholder: "e.g. House Alarm",
-                rerender: true,
-            });
-            function setLabelVisible(this: any, value?: any) {
-                labelHost.classList.toggle("sp-visible", value === "name");
-            }
-            var iconHost: any = condField();
-            helpers.renderCardIconPicker(iconHost, b, helpers, {
-                pickerIdSuffix: "alarm-icon-picker",
-                idSuffix: "alarm-icon",
-                field: "icon",
-                fallback: "Security",
-                label: "Icon",
-            });
-            function setIconVisible(this: any, value?: any) {
-                iconHost.classList.toggle("sp-visible", value === "static");
-            }
-            helpers.renderCardSegmentControl(cardSettings, b, helpers, {
-                segment: Object.assign({}, ALARM_CARD_METADATA.iconDisplay, {
-                    value: function (this: any) { return alarmIconDisplayMode(b); },
-                    onSelect: function (this: any, button?: any, cardHelpers?: any, value?: any) {
-                        setAlarmIconDisplayMode(button, value);
-                        cardHelpers.saveField("options", button.options);
-                        setIconVisible(value);
-                        renderQueue.schedule();
-                    },
-                }),
-            });
-            setIconVisible(alarmIconDisplayMode(b));
-            cardSettings.appendChild(iconHost);
-            helpers.renderCardSegmentControl(cardSettings, b, helpers, {
-                segment: Object.assign({}, ALARM_CARD_METADATA.labelDisplay, {
-                    value: function (this: any) { return alarmLabelDisplayMode(b); },
-                    onSelect: function (this: any, button?: any, cardHelpers?: any, value?: any) {
-                        setAlarmLabelDisplayMode(button, value);
-                        cardHelpers.saveField("options", button.options);
-                        setLabelVisible(value);
-                        renderQueue.schedule();
-                    },
-                }),
-            });
-            setLabelVisible(alarmLabelDisplayMode(b));
-            cardSettings.appendChild(labelHost);
-            panel.appendChild(cardSettingsDisclosure.panel);
-            renderAlarmVisibleActionsField(modalSettings, b, helpers);
-            function savePinOptions(this: any) {
-                setAlarmPinRequired(b, "arm", armPinToggle.input.checked);
-                setAlarmPinRequired(b, "disarm", disarmPinToggle.input.checked);
-                helpers.saveField("options", b.options);
-            }
-            var pinSettingsDisclosure: any = helpers.disclosureSection("PIN Settings", helpers.idPrefix + "alarm-pin-settings", false);
-            var pinSettings: any = pinSettingsDisclosure.section;
-            var armPinToggle: any = helpers.renderCardOptionToggle(pinSettings, b, helpers, {
-                label: "PIN required for arming",
-                idSuffix: "alarm-pin-arm",
-                checked: function (this: any) { return alarmPinRequired(b, "arm"); },
-                onChange: savePinOptions,
-            });
-            var disarmPinToggle: any = helpers.renderCardOptionToggle(pinSettings, b, helpers, {
-                label: "PIN required for disarming",
-                idSuffix: "alarm-pin-disarm",
-                checked: function (this: any) { return alarmPinRequired(b, "disarm"); },
-                onChange: savePinOptions,
-            });
-            modalSettings.appendChild(pinSettingsDisclosure.panel);
-            panel.appendChild(modalSettingsDisclosure.panel);
-        },
+        onSelect: null,
+        renderSettingsBeforeLabel: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var label: any = (b.label && b.label.trim()) || (b.entity && b.entity.trim()) || "Alarm";
             if (alarmLabelDisplayMode(b) === "status")
@@ -353,50 +251,9 @@ export function registerAlarmCardTypes(
         defaultConfig: function (this: any) { return cardContractDefaultConfig("alarm_action"); },
         cardMetadata: ALARM_CARD_METADATA,
         isAvailable: function (this: any) { return false; },
-        onSelect: function (this: any, b?: any) {
-            var info: any = alarmActionSpecs()[0];
-            b.entity = "";
-            b.label = info.label;
-            b.sensor = info.value;
-            b.unit = "";
-            b.icon = info.icon;
-            b.icon_on = "Auto";
-            b.precision = "";
-            b.options = "";
-        },
-        renderSettingsBeforeLabel: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            b.sensor = alarmActionInfo(b.sensor) ? b.sensor : "away";
-            renderAlarmCardTypeField(panel, b, helpers);
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            b.sensor = alarmActionInfo(b.sensor) ? b.sensor : "away";
-            b.unit = "";
-            b.precision = "";
-            b.icon_on = "Auto";
-            b.options = normalizeAlarmOptions(b.options);
-            helpers.renderCardEntityField(panel, b, helpers, {
-                entity: Object.assign({}, ALARM_CARD_METADATA.entity, {
-                    idSuffix: "alarm-action-entity",
-                }),
-            });
-            helpers.renderCardIconPicker(panel, b, helpers, {
-                pickerIdSuffix: "alarm-action-icon-picker",
-                idSuffix: "alarm-action-icon",
-                field: "icon",
-                fallback: function (this: any) { return alarmActionInfo(b.sensor).icon; },
-                label: "Icon",
-            });
-            var pinMode: any = b.sensor === "disarm" ? "disarm" : "arm";
-            helpers.renderCardOptionToggle(panel, b, helpers, {
-                label: "PIN required",
-                idSuffix: "alarm-action-pin",
-                checked: function (this: any) { return alarmPinRequired(b, pinMode); },
-                onChange: function (this: any, button?: any, cardHelpers?: any, checked?: any) {
-                    setAlarmPinRequired(button, pinMode, checked);
-                    cardHelpers.saveField("options", button.options);
-                },
-            });
-        },
+        onSelect: null,
+        renderSettingsBeforeLabel: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var info: any = alarmActionInfo(b.sensor) || alarmActionSpecs()[0];
             var label: any = b.label || info.label;
