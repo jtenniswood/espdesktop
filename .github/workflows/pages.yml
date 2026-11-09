@@ -124,6 +124,10 @@ jobs:
           python3 scripts/build.py www --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
           python3 scripts/build.py www --check --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
 
+      - name: Verify rebuilt hosted editor
+        if: github.event_name != 'workflow_run'
+        run: node scripts/check_web_asset_manifest.js --manifest-only
+
       - name: Build docs
         env:
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}

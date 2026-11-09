@@ -215,7 +215,11 @@ def test_pages_excludes_draft_prereleases() -> None:
     assert "name: Download verified release web assets" in workflow
     assert "run-id: ${{ github.event.workflow_run.id }}" in workflow
     assert "name: Use verified release web assets" in workflow
-    assert "if: github.event_name != 'workflow_run'" in workflow
+    prepare = workflow.index("name: Prepare published release web assets")
+    verify = workflow.index("name: Verify rebuilt hosted editor", prepare)
+    assert verify < workflow.index("name: Build docs", verify)
+    assert "if: github.event_name != 'workflow_run'" in workflow[verify:]
+    assert "node scripts/check_web_asset_manifest.js --manifest-only" in workflow[verify:]
 
 
 def test_release_skill_creates_selected_tag_before_draft() -> None:
