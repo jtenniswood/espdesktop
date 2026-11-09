@@ -1,27 +1,19 @@
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
-import type { WebAppDefinition } from "../generated/web_apps";
 
 export interface CompanionAction { readonly id: string; readonly label: string; readonly iconHash?: string; }
 export interface CompanionDefinitions {
   readonly applications: readonly AppShortcutApplication[];
-  readonly webApplications: readonly WebAppDefinition[];
 }
 
 export interface CompanionFocusRegistrations {
   readonly urls: readonly string[];
-  readonly webAppIDs: readonly string[];
 }
 
 export function companionFocusRegistrationValues(buttons: readonly unknown[], subpages: unknown, extra?: unknown): CompanionFocusRegistrations {
   const urls = new Set<string>();
-  const webAppIDs = new Set<string>();
   const visit = (candidate: unknown) => {
     if (!candidate || typeof candidate !== "object") return;
     const card = candidate as { sensor?: unknown; entity?: unknown };
-    if (typeof card.entity === "string" && card.entity.startsWith("webapp.")) {
-      const id = card.entity.slice("webapp.".length);
-      if (/^[a-z0-9][a-z0-9-]{0,63}$/.test(id)) webAppIDs.add(id);
-    }
     const sensor = card.sensor;
     if (typeof sensor !== "string" || !sensor.startsWith("url.")) return;
     try {
@@ -39,7 +31,7 @@ export function companionFocusRegistrationValues(buttons: readonly unknown[], su
     });
   }
   visit(extra);
-  return { urls: [...urls].slice(0, 64), webAppIDs: [...webAppIDs].slice(0, 64) };
+  return { urls: [...urls].slice(0, 64) };
 }
 
 function focusId(encodedURL: string): string {
@@ -135,7 +127,6 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
 
   async function fetchDefinitions(): Promise<CompanionDefinitions> {
     const applications: AppShortcutApplication[] = [];
-    const webApplications: WebAppDefinition[] = [];
     for (let page = 0; page < 64; page += 1) {
       const response = await fetchImpl(`/companion/definitions?page=${page}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Companion definitions unavailable");
@@ -149,13 +140,12 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
         if (!entry.definition || typeof entry.definition !== "object") continue;
         const definition = entry.definition as Record<string, unknown>;
         if (entry.kind === "application" && typeof definition.appId === "string") applications.push(definition as unknown as AppShortcutApplication);
-        if (entry.kind === "webapp" && typeof definition.id === "string") webApplications.push(definition as unknown as WebAppDefinition);
       }
       if (!payload.hasMore) break;
       if (page === 63) throw new Error("Companion definitions exceed the supported catalogue size");
     }
-    if (applications.length + webApplications.length === 0) throw new Error("Companion definitions are empty or invalid");
-    return { applications, webApplications };
+    if (applications.length === 0) throw new Error("Companion definitions are empty or invalid");
+    return { applications };
   }
 
   function load(refresh = false): Promise<readonly CompanionAction[]> {
@@ -192,7 +182,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
       });
       const response = await fetchImpl("/companion/focus-targets", {
         method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ targets, webAppIDs: [...new Set(registrations.webAppIDs)].slice(0, 64) }),
+        body: JSON.stringify({ targets }),
       });
       if (!response.ok) throw new Error("Companion URL focus targets unavailable");
     },

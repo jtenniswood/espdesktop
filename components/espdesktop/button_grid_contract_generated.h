@@ -10,7 +10,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_retired(const std::string &type) { return type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U"; }
+inline bool card_contract_type_retired(const std::string &type) { return type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "companion_webapp" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
@@ -322,7 +322,6 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_TEMPERATURE_STEP = "temperature_
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VACUUM_MODE = "vacuum_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VOLUME_MAX = "volume_max";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEATHER_MODE = "weather_mode";
-constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBAPP_ICON_TITLE = "webapp_icon_title";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEBHOOK_HEADERS = "webhook_headers";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WIND_SOURCE = "wind_source";
 constexpr const char *CARD_CONTRACT_GARAGE_LABEL_DISPLAY_DEFAULT = "label";
