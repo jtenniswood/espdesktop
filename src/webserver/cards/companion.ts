@@ -126,7 +126,8 @@ const COMPANION_SHORTCUT_KEYS: Readonly<Record<string, string>> = {
     BracketLeft: "keybracketleft", BracketRight: "keybracketright", Backquote: "keybackquote",
 };
 const COMPANION_SHORTCUT_KEY_LABELS: Readonly<Record<string, string>> = {
-    space: "Space", enter: "Return", tab: "Tab", escape: "Esc", "escape-twice": "Esc Esc",
+    space: "Space", enter: "Return", tab: "Tab", escape: "Esc",
+    "claude-escape": "Esc", "escape-twice": "Esc Esc",
     delete: "Delete", forwarddelete: "Forward Delete",
     left: "←", right: "→", up: "↑", down: "↓",
     home: "Home", end: "End", pageup: "Page Up", pagedown: "Page Down",
@@ -829,6 +830,7 @@ export function registerCompanionCardTypes(
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
+            if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App shortcut", ["claude-escape"]]);
             if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {
                 const group = document.createElement("optgroup");
