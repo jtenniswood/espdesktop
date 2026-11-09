@@ -141,6 +141,11 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         dialog = null;
         previousFocus?.focus();
     }
+    function dismiss(): void {
+        if (busy) return;
+        eligible = false;
+        close();
+    }
     function show(): void {
         if (!eligible || dialog) return;
         previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -148,7 +153,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         dialog.setAttribute("aria-labelledby", "sp-setup-title");
         dialog.addEventListener("cancel", event => {
             event.preventDefault();
-            if (replacing && !busy) { eligible = false; close(); }
+            dismiss();
         });
         document.body.appendChild(dialog);
         render();
@@ -178,7 +183,10 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
     }
     async function finish(skip = false): Promise<void> {
-        if (skip && replacing && !busy) { eligible = false; close(); return; }
+        if (skip && replacing) {
+            dismiss();
+            return;
+        }
         if (busy || (loading && !skip)) return;
         if (deps.shell.isConfigLocked()) {
             error = "The display is reconnecting. Wait for it to reconnect, then try again.";
@@ -294,7 +302,13 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
         const title = element("h1", step === 1 ? "Pick your apps" : step === 2 ? "Shortcut pages" : "Finish setup", "sp-section-title");
         title.id = "sp-setup-title";
-        dialog.append(progress, title);
+        const closeButton = element("button", "", "sp-settings-close");
+        closeButton.type = "button";
+        closeButton.disabled = busy;
+        closeButton.setAttribute("aria-label", "Close setup");
+        closeButton.appendChild(deps.shell.createMdiIcon("close"));
+        closeButton.addEventListener("click", dismiss);
+        dialog.append(progress, title, closeButton);
         const content = element("div", "", "sp-setup-content");
         if (step === 1) {
             if (!connected) {

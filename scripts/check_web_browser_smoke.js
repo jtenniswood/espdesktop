@@ -8836,6 +8836,10 @@ async function assertFirstRunSetup(browser) {
   try {
     await open();
     const dialog = page.getByRole("dialog");
+    await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
+    await dialog.waitFor({ state: "detached" });
+    assert.equal(fixture.puts.length, 0, "closing setup leaves it available on reload");
+    await open();
     const setChecked = async (input, checked) => {
       const track = input.locator("..").locator(".sp-toggle-track");
       await track.waitFor();
