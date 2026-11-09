@@ -1,8 +1,7 @@
 #pragma once
 
 // Shared lifecycle driver for Calendar, Clock, and World Clock runtime types.
-// Calendar binds to Home Assistant's date source; the local-time variants use
-// the central timezone update registry.
+// All variants use the panel clock and central local-time update registries.
 
 namespace espdesktop::cards {
 
@@ -62,11 +61,8 @@ inline bool date_time_driver_attach_interaction(
 }
 
 inline bool date_time_driver_bind_data(
-    BtnSlot &, const ParsedCfg &config, const Context &context) {
+    BtnSlot &, const ParsedCfg &, const Context &context) {
   if (!date_time_driver_matches(context)) return false;
-  if (context.runtime.type == card_runtime::CardTypeId::CALENDAR) {
-    subscribe_calendar_date_source(config.entity);
-  }
   // Local-time cards are registered during visual setup and receive updates
   // from update_timezone_cards(). They do not own an HA subscription.
   return date_time_driver_matches(context);

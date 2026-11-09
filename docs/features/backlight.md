@@ -36,9 +36,9 @@ Open Settings on the display and slide up or down on the 1×1 **Backlight** card
 
 In Manual mode it adjusts the normal brightness. In automatic modes it adjusts the current Daytime or Nighttime level without changing the schedule.
 
-## Home Assistant Control
+## Local Configuration
 
-The panel exposes **Screen: Brightness Mode** and **Display Backlight** to Home Assistant, along with the day, night, dawn, and dusk settings. Home Assistant calls the automatic modes **Sunrise and sunset** and **Fixed times**; these correspond to **Automatic** and **Timed** in the web settings.
+Configure brightness through the panel’s web page. Home Assistant brightness entities and automation control are retired; the local automatic and timed brightness modes remain.
 
 Changing the brightness of **Display Backlight** automatically selects **Manual** mode. Turning the backlight on or off does not change the selected mode, so existing sleep and wake automations continue to work.
 

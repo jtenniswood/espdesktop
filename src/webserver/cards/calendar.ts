@@ -40,7 +40,6 @@ export function registerCalendarCardTypes(
             button.precision = button.precision === "datetime" ? "datetime" : "";
         },
         renderSettings: function (panel?: any, button?: any, _slot?: any, helpers?: any) {
-            if (!button.entity) button.entity = "sensor.date";
             if (button.precision !== "datetime") button.precision = "";
             const modeMetadata = metadataForHomeAssistantSupport(homeAssistantSupported());
             helpers.renderCardModeSelector(panel, button, helpers, modeMetadata);

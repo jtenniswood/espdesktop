@@ -1,6 +1,6 @@
 import {
   GENERATED_DOMAIN_ICONS,
-  GENERATED_ICON_EXCEPTIONS,
+  GENERATED_ICON_SLUGS,
   GENERATED_ICON_NAMES,
 } from "../generated/icons";
 
@@ -43,10 +43,12 @@ export function escAttr(value: unknown): string {
     .replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+const iconSlugsByName = new Map(Object.entries(GENERATED_ICON_SLUGS));
+const registeredIconSlugs = new Set(iconSlugsByName.values());
+
 export function iconSlug(name: unknown): string {
   const value = String(name || "");
-  return GENERATED_ICON_EXCEPTIONS[value] || value.toLowerCase().replace(/[^a-z0-9]/g, (character) =>
-    character === " " ? "-" : "") || "cog";
+  return iconSlugsByName.get(value) ?? (registeredIconSlugs.has(value) ? value : "cog");
 }
 
 export function mdiIcon(icon?: unknown, className?: string): HTMLSpanElement {

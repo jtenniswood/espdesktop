@@ -222,7 +222,7 @@ light:
         - if:
             condition:
               lambda: |-
-                auto now = panel_time_or_fallback(id(panel_time).now(), id(homeassistant_time).now());
+                auto now = id(panel_time).now();
                 return (id(espdesktop_app).display().target_source_is(
                             espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
                         id(espdesktop_app).display().target_mode_is(
@@ -343,7 +343,6 @@ script:
                         - lvgl.display.set_rotation: 270
                       else:
                         - lvgl.display.set_rotation: 0
-      - script.execute: camera_screensaver_request_image
 
 select:
   - platform: template

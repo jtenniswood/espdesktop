@@ -16,7 +16,6 @@ import os
 CODEOWNERS = ["@jtenniswood"]
 AUTO_LOAD = ["mdns", "json", "socket"]
 
-CONF_ACTION_RESPONSES = "action_responses"
 CONF_PANEL_CONFIG = "panel_config"
 CONF_DEVICE_PROFILE = "device_profile"
 CONF_BUTTON_ORDER = "button_order"
@@ -28,7 +27,6 @@ CONF_SPECIAL_PAGE_CHUNKS = "special_page_chunks"
 CONF_STORAGE = "storage"
 CONF_WEB_AUTH_USERNAME = "web_auth_username"
 CONF_WEB_AUTH_PASSWORD = "web_auth_password"
-CONF_HOME_ASSISTANT_SUPPORT = "home_assistant_support"
 
 espdesktop_ns = cg.global_ns.namespace("espdesktop")
 EspDesktopApp = espdesktop_ns.class_("EspDesktopApp", cg.Component)
@@ -66,27 +64,11 @@ CONFIG_SCHEMA = cv.Schema(
         cv.GenerateID(CONF_ID): cv.declare_id(EspDesktopApp),
         cv.GenerateID("identity_id"): cv.declare_id(PanelIdentity),
         cv.GenerateID("reset_boot_id"): cv.declare_id(ResetBoot),
-        cv.Optional(CONF_ACTION_RESPONSES, default=True): cv.boolean,
-        # Home Assistant features stay out of the web editor unless the
-        # device owner explicitly opts in from their ESPHome YAML.
-        cv.Optional(CONF_HOME_ASSISTANT_SUPPORT, default=False): cv.boolean,
         cv.Optional(CONF_PANEL_CONFIG): PANEL_CONFIG_SCHEMA,
         cv.Optional(CONF_WEB_AUTH_USERNAME, default=""): cv.string_strict,
         cv.Optional(CONF_WEB_AUTH_PASSWORD, default=""): cv.sensitive(cv.string_strict),
     }
 ).extend(cv.COMPONENT_SCHEMA)
-
-
-def _consume_endpoint_socket(config):
-    from esphome.components import socket
-
-    consume = getattr(socket, "consume_sockets", None)
-    if consume is not None:
-        consume(1, "ha_endpoint_probe")(config)
-    return config
-
-
-CONFIG_SCHEMA = cv.All(CONFIG_SCHEMA, _consume_endpoint_socket)
 
 
 def _empty_template_preference_ids(text_configs):
@@ -128,8 +110,6 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
     cg.add(var.set_web_auth_credentials(username, password))
-    if config[CONF_HOME_ASSISTANT_SUPPORT]:
-        cg.add_define("ESPDESKTOP_HOME_ASSISTANT_SUPPORT")
 
     panel_config = config.get(CONF_PANEL_CONFIG)
     if panel_config is not None:
@@ -203,6 +183,3 @@ async def to_code(config):
         prepend=True,
     )
     cg.add_global(cg.RawStatement(f'#include "{comp_include_dir}/cover_art.h"'), prepend=True)
-    if config[CONF_ACTION_RESPONSES]:
-        cg.add_define("USE_API_HOMEASSISTANT_ACTION_RESPONSES")
-        cg.add_define("USE_API_HOMEASSISTANT_ACTION_RESPONSES_JSON")
