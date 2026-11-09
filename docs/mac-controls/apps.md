@@ -9,7 +9,7 @@ Companion cards can bring an approved application to the front or open a website
 
 ## Launch an App
 
-1. In the Mac app, open **Apps** and approve the applications the display may launch.
+1. In the Mac app, open **Apps**. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
 2. In the display's setup page, add a **Companion → Applications** card.
 3. Select an approved application and save the display configuration.
 
@@ -43,7 +43,7 @@ An approved **Applications** card can offer an editable subpage when EspDesktop 
 
 The page uses the same templates as standalone **Shortcut Catalog** cards and remains editable. Turning the app subpage option off preserves your changes.
 
-To add your own shortcuts or improve the shared templates, see [Improve App Shortcuts](/mac-controls/improve-shortcuts).
+You can [add a custom shortcut](/mac-controls/shortcuts#create-a-shortcut-card) in an empty tile on the app subpage.
 
 For standalone pages, see [Subpages](/features/subpages). For folders, see [Open Finder folders](/mac-controls/folders).
 

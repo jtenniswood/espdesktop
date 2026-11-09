@@ -1,11 +1,12 @@
 ---
 title: Install EspDesktop on the 4848S040
-description: Flash the EspDesktop firmware to the supported 4-inch Guition 4848S040, connect it to WiFi, then pair the Mac app.
+description: Flash the EspDesktop firmware to the supported 4-inch Guition 4848S040 and connect it to WiFi.
+next: false
 ---
 
 # Install EspDesktop on the 4848S040
 
-Mac control currently requires the **4-inch Guition ESP32-S3 4848S040**. This guide installs the display firmware; next, install and pair the [EspDesktop Mac app](/getting-started/mac-app).
+Install EspDesktop on the **4-inch Guition ESP32-S3 4848S040** and connect the display to WiFi.
 
 ## Before You Start
 
@@ -34,11 +35,6 @@ Configure WiFi through the display’s setup hotspot:
 3. Choose your 2.4 GHz network from **Available Networks**, or enter its name manually. Enter the password and select **Save**.
 4. When **WiFi details saved** appears, reconnect your phone or computer to home WiFi, then note the display's address.
 
-Open that address in a browser to reach the display's setup page. Choose **System → Mac Companion** when pairing, then follow [Install and Pair the Mac App](/getting-started/mac-app).
-
 ## Next
 
-- [Install and pair the Mac app](/getting-started/mac-app)
-- [Explore Mac Controls](/card-types/companion)
-- [Configure your control surface](/features/setup)
-- For Home Assistant panels and controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/). For an ESP32-P4 panel running EspControl, see its [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
+[Download and install the Mac app](/getting-started/mac-app)

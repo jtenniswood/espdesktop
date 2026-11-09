@@ -45,15 +45,15 @@ browser supports Web Serial and checks a public firmware manifest. These
 requests may disclose normal request metadata, such as your IP address,
 browser and device information, and request time.
 
-The site also contains links to GitHub, Home Assistant, ESPHome, and other
+The site also contains links to GitHub, ESPHome, and other
 third-party websites. Those sites have their own terms and privacy practices.
 
 ## The EspDesktop firmware and device
 
 The firmware exchanges Mac controls, system statistics, app information, Mac
 lock state and Now Playing details and artwork with the Mac you pair. Saved
-configurations and backups may retain Home Assistant entity IDs or other fields
-from older cards so you can identify and replace them.
+configurations and backups may retain identifiers and other fields from older
+cards so you can identify and replace them.
 
 ## Firmware and asset downloads
 
