@@ -3454,7 +3454,27 @@ async function assertCardTransferSmoke(page, posts, label) {
       if (!code) code = copied;
       assert.strictEqual(copied, code, `${label}: ${mode} copies the exact card code`);
       assert(await page.locator(".sp-banner.sp-success").isVisible(), `${label}: copying shows a success toast`);
-      assert.strictEqual(await page.locator(".sp-banner").textContent(), "Card code copied to clipboard.");
+      const toast = page.locator(".sp-banner.sp-success");
+      assert.strictEqual(await toast.textContent(), "Card code copied to clipboard.");
+      if (mode === "modern") {
+        const desktopViewport = page.viewportSize();
+        for (const viewport of [desktopViewport, { width: 320, height: 640 }]) {
+          await page.setViewportSize(viewport);
+          const position = await toast.evaluate((node) => ({
+            fixed: getComputedStyle(node).position === "fixed",
+            left: node.offsetLeft,
+            right: node.offsetLeft + node.offsetWidth,
+            bottom: node.offsetTop + node.offsetHeight,
+            supportTop: document.querySelector(".sp-support-btn").getBoundingClientRect().top,
+          }));
+          const lowerEdge = viewport.width === desktopViewport.width ? viewport.height : position.supportTop;
+          const gap = lowerEdge - position.bottom;
+          assert(position.fixed && position.left >= 10 && position.left <= 24 &&
+            gap >= 10 && gap <= 24 && position.right <= viewport.width - 10,
+          `${label}: the notification fits in the bottom-left corner at ${viewport.width}px`);
+        }
+        await page.setViewportSize(desktopViewport);
+      }
     }
     await page.evaluate(() => {
       if (window.__copyTestOriginalClipboard) Object.defineProperty(navigator, "clipboard", window.__copyTestOriginalClipboard);

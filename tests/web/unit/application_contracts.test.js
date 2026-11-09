@@ -578,7 +578,7 @@ describe("browserless application contracts", () => {
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
-    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,?\s*\);/);
+    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,\s*context\.controllers\.settingsUi,?\s*\);/);
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
     assert.match(card, /createCompanionCatalogueMonitor\(\s*\(\) => loadCompanionActions\(true\)/);
     assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)[\s\S]*espdesktop:app-icon-cache-cleared/);
