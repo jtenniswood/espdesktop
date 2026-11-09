@@ -37,7 +37,7 @@ uint32_t now_ms = 100;
 namespace esphome {
 uint32_t millis() { return now_ms; }
 namespace artwork_image {
-enum class ImageResizeMode { COVER };
+enum class ImageResizeMode { COVER, FIT };
 struct ArtworkImage {
   std::string url;
   bool reject = false;
@@ -70,6 +70,7 @@ struct GridConfig { int image_card_image_count; esphome::artwork_image::ArtworkI
 void image_card_log_diagnostics(ImageCardCtx *, const char *, int = 0, int = 0) {}
 void image_card_set_widget_source(lv_obj_t *widget, esphome::artwork_image::ArtworkImage *) { widget->hidden = false; }
 void image_card_clear_widget_source(lv_obj_t *widget) { if (widget) widget->hidden = true; }
+std::string companion_web_app_icon_url(const std::string &) { return {}; }
 bool memory_available = true;
 bool image_card_memory_available(ImageCardCtx *, const char *, int, int) { return memory_available; }
 bool image_card_position_widget(lv_obj_t *, lv_obj_t *, int *w, int *h) { *w = 32; *h = 32; return true; }

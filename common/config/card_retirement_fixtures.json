@@ -337,7 +337,7 @@
       "label": "Saved",
       "options": ""
     },
-    "retired": false
+    "retired": true
   },
   {
     "card": {
@@ -526,6 +526,26 @@
       "label": "",
       "options": "",
       "type": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "media.output_mute",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "slider"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "media.input_mute",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "slider"
     },
     "retired": false
   }

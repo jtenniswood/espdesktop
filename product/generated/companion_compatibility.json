@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "protocolVersion": 4,
   "capabilityVersion": 7,
-  "contractSha256": "61f060ad3a227bfd882c69b8939009ab497e24d017ccc2e4c6f9052c604135d0",
+  "contractSha256": "b431088ec653283a3a7649ca087efb8e095661c39ed793ec099e6130f11ab204",
   "supportedDevices": [
     "guition-esp32-s3-4848s040"
   ],
@@ -14,5 +14,5 @@
   ],
   "releasePolicy": "coordinated",
   "savedPanelConfigVersion": 2,
-  "wireFixturesSha256": "f7a6a218abb200e48677f160ac4d40267c0a69e76897d1ddd467e4f66ae3ca2a"
+  "wireFixturesSha256": "0f64f05bbd1f718b35085291f1707e0b07e2dc9381ed292d7c7e0fe5c64cd4f2"
 }

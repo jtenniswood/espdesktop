@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 33,
+    "cardTypes": 32,
     "entityNames": 104,
     "icons": 259,
     "structuralIcons": 39,
@@ -1865,8 +1865,6 @@
       "normalize_climate_fields",
       "normalize_climate_options",
       "normalize_light_control_options",
-      "normalize_webhook_fields",
-      "normalize_webhook_options",
       "normalize_subpage_fields",
       "normalize_subpage_options",
       "normalize_switch_options",
@@ -1916,7 +1914,6 @@
         "media_playlist",
         "push",
         "companion",
-        "webhook",
         "subpage",
         "weather",
         "image",
@@ -2275,18 +2272,6 @@
           "capabilities": {
             "informationOnly": false,
             "subscriptions": false,
-            "actions": true,
-            "numericControl": false,
-            "modal": false,
-            "runtimeAllocation": false,
-            "subpage": true
-          }
-        },
-        "webhook": {
-          "driver": "webhook",
-          "capabilities": {
-            "informationOnly": false,
-            "subscriptions": true,
             "actions": true,
             "numericControl": false,
             "modal": false,
@@ -4960,75 +4945,8 @@
           "options": ""
         }
       },
-      "webhook": {
-        "label": "Webhook",
-        "allowInSubpage": true,
-        "domains": [],
-        "options": [
-          {
-            "name": "webhook_headers",
-            "label": "Headers",
-            "kind": "text",
-            "defaultValue": "",
-            "omitDefault": true
-          }
-        ],
-        "normalization": {
-          "fields": {
-            "entity": {
-              "policy": "keep"
-            },
-            "label": {
-              "policy": "keep"
-            },
-            "icon": {
-              "policy": "hook",
-              "hook": "normalize_webhook_fields"
-            },
-            "icon_on": {
-              "policy": "default",
-              "value": "Auto"
-            },
-            "sensor": {
-              "policy": "hook",
-              "hook": "normalize_webhook_fields"
-            },
-            "unit": {
-              "policy": "hook",
-              "hook": "normalize_webhook_fields"
-            },
-            "type": {
-              "policy": "default",
-              "value": "webhook"
-            },
-            "precision": {
-              "policy": "clear"
-            },
-            "options": {
-              "policy": "hook",
-              "hook": "normalize_webhook_options"
-            }
-          },
-          "unknownOptions": "drop",
-          "canonicalOptionOrder": [
-            "webhook_headers"
-          ],
-          "optionHook": "normalize_webhook_options"
-        },
-        "default": {
-          "entity": "",
-          "label": "",
-          "icon": "Auto",
-          "icon_on": "Auto",
-          "sensor": "GET",
-          "unit": "",
-          "type": "webhook",
-          "precision": "",
-          "options": ""
-        }
-      },
       "slider": {
-        "label": "Slider",
+        "label": "Volume",
         "allowInSubpage": true,
         "domains": [
           "light",
@@ -5595,7 +5513,8 @@
       "SL",
       "SS",
       "A",
-      "U"
+      "U",
+      "WH"
     ],
     "subpageTypeCodes": {
       "timer": "TM",
@@ -5630,7 +5549,6 @@
       "climate_control": "HC",
       "push": "P",
       "companion": "CP",
-      "webhook": "WH",
       "subpage": "G"
     },
     "retiredCardTypes": [
@@ -5647,7 +5565,8 @@
       "option_select",
       "calendar",
       "clock",
-      "timezone"
+      "timezone",
+      "webhook"
     ]
   },
   "entityNames": {

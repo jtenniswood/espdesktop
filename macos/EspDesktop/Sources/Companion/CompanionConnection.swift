@@ -1014,7 +1014,7 @@ final class CompanionConnection: NSObject {
     }
 
     private static func validMediaControlIdentifier(_ value: String) -> Bool {
-        value == SystemMediaController.outputVolumeID || value == SystemMediaController.inputVolumeID
+        SystemMediaController.volumeControlIDs.contains(value)
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

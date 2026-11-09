@@ -10,9 +10,9 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "S", "LS", "I", "SL", "SS", "A", "U"];
+export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
 export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || ""); }
-export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_webhook_fields", "normalize_webhook_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
+export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
   "legacy_weather_forecast": {
     "when": [
@@ -79,7 +79,7 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
     "hook": "normalize_vacuum_fields"
   }
 };
-export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS", "I", "SL", "SS", "A", "U"] as const;
+export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS", "I", "SL", "SS", "A", "U", "WH"] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
@@ -2666,75 +2666,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
-  "webhook": {
-    "label": "Webhook",
-    "allowInSubpage": true,
-    "domains": [],
-    "options": [
-      {
-        "name": "webhook_headers",
-        "label": "Headers",
-        "kind": "text",
-        "defaultValue": "",
-        "omitDefault": true
-      }
-    ],
-    "normalization": {
-      "fields": {
-        "entity": {
-          "policy": "keep"
-        },
-        "label": {
-          "policy": "keep"
-        },
-        "icon": {
-          "policy": "hook",
-          "hook": "normalize_webhook_fields"
-        },
-        "icon_on": {
-          "policy": "default",
-          "value": "Auto"
-        },
-        "sensor": {
-          "policy": "hook",
-          "hook": "normalize_webhook_fields"
-        },
-        "unit": {
-          "policy": "hook",
-          "hook": "normalize_webhook_fields"
-        },
-        "type": {
-          "policy": "default",
-          "value": "webhook"
-        },
-        "precision": {
-          "policy": "clear"
-        },
-        "options": {
-          "policy": "hook",
-          "hook": "normalize_webhook_options"
-        }
-      },
-      "unknownOptions": "drop",
-      "canonicalOptionOrder": [
-        "webhook_headers"
-      ],
-      "optionHook": "normalize_webhook_options"
-    },
-    "default": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "GET",
-      "unit": "",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
   "slider": {
-    "label": "Slider",
+    "label": "Volume",
     "allowInSubpage": true,
     "domains": [
       "light",
@@ -3531,18 +3464,6 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
-  "webhook": {
-    "driver": "webhook",
-    "capabilities": {
-      "informationOnly": false,
-      "subscriptions": true,
-      "actions": true,
-      "numericControl": false,
-      "modal": false,
-      "runtimeAllocation": false,
-      "subpage": true
-    }
-  },
   "slider": {
     "driver": "numeric",
     "capabilities": {
@@ -3657,7 +3578,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "climate_control": "HC",
   "push": "P",
   "companion": "CP",
-  "webhook": "WH",
   "subpage": "G"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
@@ -3693,7 +3613,6 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "HC": "climate_control",
   "P": "push",
   "CP": "companion",
-  "WH": "webhook",
   "G": "subpage"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
@@ -3768,7 +3687,6 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "volume_max": "volume_max",
   "weather_mode": "weather_mode",
   "webapp_icon_title": "webapp_icon_title",
-  "webhook_headers": "webhook_headers",
   "wind_source": "wind_source"
 };
 
