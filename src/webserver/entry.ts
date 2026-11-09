@@ -542,7 +542,6 @@ function composeApplicationContext(): ApplicationContext {
     gridMigration,
     {
       subpageEntityKeys: configurationPersistence.subpageEntityKeys,
-      specialPageEntityKeys: configurationPersistence.specialPageEntityKeys,
       connectEvents: () => appEvents.connect(),
       publishCompanionURLTargets: () => {
         void focusTargetCatalogue.saveFocusRegistrations(

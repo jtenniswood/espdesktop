@@ -382,7 +382,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             selectedTypeKey,
             connector,
             dependencies.homeAssistantSupported(),
-            state.editingSubpage === -1,
         );
     }
     function buttonTypePickerKeys(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
@@ -452,16 +451,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
                 var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                var isSpecialPage = state.editingSubpage === -1;
-                const parent = !isSpecialPage && state.editingSubpage != null
+                const parent = state.editingSubpage != null
                     ? state.buttons[state.editingSubpage - 1] : null;
                 const appBack = companionAppShortcutFolderEnabled(parent);
-                var backLabel = subpage?.backLabel || (isSpecialPage ? "Close" : "Back");
+                var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
                         (appBack ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;

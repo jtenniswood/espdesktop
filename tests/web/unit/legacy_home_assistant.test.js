@@ -9,7 +9,7 @@ const { serializeCompactSubpageConfig } = loadTypescriptTest("src/webserver/mode
 const { emptyCardConfig } = loadTypescriptTest("src/webserver/model/card.ts");
 const { cardContractSubpageTypeCode } = loadTypescriptTest("src/webserver/generated/card_contract.ts");
 
-test("finds retired cards in native, legacy folder and special-page records without changing bytes", () => {
+test("finds retired cards in native and legacy folder records while preserving opaque settings", () => {
   const doc = {
     deviceProfile: "guition-esp32-s3-4848s040", buttons: {
       1: "light.desk;Desk;Auto;Auto;;;light_switch;;",
@@ -21,15 +21,15 @@ test("finds retired cards in native, legacy folder and special-page records with
       2: "1,B|sensor.room:Room:Auto:Auto:::sensor::",
     }, settings: {
       button_order: "1,2,3,5", button_on_color: "0099FF",
-      special_page: "1,B|switch.guest:Guest:Auto:Auto:::::",
+      future_setting: "1,B|switch.guest:Guest:Auto:Auto:::::",
     },
   };
   const before = encodePanelConfig(doc);
   const restored = decodePanelConfig(before);
   const report = legacyHomeAssistantCards(restored);
-  assert.deepEqual(report.map(card => card.location), ["Card 1", "Folder 2, card 1", "Special page, card 1"]);
+  assert.deepEqual(report.map(card => card.location), ["Card 1", "Folder 2, card 1"]);
   assert.deepEqual(encodePanelConfig(restored), before, "inspection must not rewrite or drop saved records");
-  assert.match(legacyHomeAssistantWarning(report), /3 saved cards need Home Assistant/);
+  assert.match(legacyHomeAssistantWarning(report), /2 saved cards need Home Assistant/);
   assert.match(legacyHomeAssistantWarning(report), /configuration has been kept/);
 });
 
