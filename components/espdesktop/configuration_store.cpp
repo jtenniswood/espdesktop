@@ -297,8 +297,8 @@ CommitResult ConfigurationStore::commit_internal(bool enforce_generation,
   // durable. A torn metadata write cannot accidentally promote stale size or
   // checksum bytes because the magic marker is restored in a final write.
   std::array<uint8_t, sizeof(uint32_t)> invalid_magic{};
-  if (!backend_.write(target_slot, MAGIC_OFFSET, invalid_magic.data(),
-                      invalid_magic.size())) {
+  if (!backend_.prepare_slot(target_slot,
+                             CONFIGURATION_ENVELOPE_HEADER_SIZE + payload_size)) {
     return {StoreStatus::WRITE_FAILED, next_generation, payload_size,
             target_slot};
   }
