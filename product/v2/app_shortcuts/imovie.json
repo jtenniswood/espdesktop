@@ -6,15 +6,15 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Play the selected item full screen",
+      "label": "Full Screen",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Full Screen"
     },
     {
       "id": "1",
-      "label": "Create a new movie project",
+      "label": "New Movie",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "New File"
     }
   ]
 }

@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Build the current scheme",
+      "label": "Build",
       "shortcut": "command+b",
-      "icon": "Application"
+      "icon": "Build"
     },
     {
       "id": "1",
-      "label": "Run the current scheme",
+      "label": "Run",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Run"
     },
     {
       "id": "2",
-      "label": "Test the current scheme",
+      "label": "Test",
       "shortcut": "command+u",
-      "icon": "Application"
+      "icon": "Bug"
     },
     {
       "id": "3",
-      "label": "Open Quickly",
+      "label": "Quick Open",
       "shortcut": "command+shift+o",
-      "icon": "Folder"
+      "icon": "Folder Search"
     },
     {
       "id": "4",
-      "label": "Open Quick Actions",
+      "label": "Quick Actions",
       "shortcut": "command+shift+a",
-      "icon": "Folder"
+      "icon": "Shortcut Command"
     },
     {
       "id": "5",
-      "label": "Find in the workspace",
+      "label": "Find Workspace",
       "shortcut": "command+shift+f",
       "icon": "Search"
     },
     {
       "id": "6",
-      "label": "Reveal the current file in the Project navigator",
+      "label": "Reveal File",
       "shortcut": "command+shift+j",
-      "icon": "Folder"
+      "icon": "Folder Open Outline"
     },
     {
       "id": "7",
-      "label": "Open the Report navigator",
+      "label": "Build Reports",
       "shortcut": "command+9",
-      "icon": "Folder"
+      "icon": "File Report"
     }
   ]
 }

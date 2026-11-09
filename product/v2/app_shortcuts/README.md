@@ -38,7 +38,8 @@ The manifest must list every top-level template JSON file in this folder exactly
 - `label`: app name shown in Companion; up to 48 bytes.
 - `catalog`: set to `true` to include these shortcuts in the standalone **Shortcut Catalog** picker. Set to `false` to offer them only on that app's subpage.
 - `shortcuts`: 1–64 items. IDs are permanent numeric strings from `"0"` to `"999"`; keep an ID when renaming or reordering a shortcut, and never reuse a removed ID.
-- Each shortcut's `icon` must be a name from `product/v2/icons.json`.
+- Use one or two words for each shortcut label so it fits on the display.
+- Each shortcut's `icon` must be a name from `product/v2/icons.json`. Choose a [Material Design Icon](https://pictogrammers.com/library/mdi/) that represents the action.
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 

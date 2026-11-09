@@ -8,61 +8,61 @@
       "id": "0",
       "label": "New Project",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "New File"
     },
     {
       "id": "1",
       "label": "Open Project",
       "shortcut": "command+o",
-      "icon": "Folder"
+      "icon": "Folder Open Outline"
     },
     {
       "id": "2",
       "label": "Save Project",
       "shortcut": "command+s",
-      "icon": "Download"
+      "icon": "Save"
     },
     {
       "id": "3",
-      "label": "Import geometry",
+      "label": "Import Model",
       "shortcut": "command+i",
-      "icon": "Application"
+      "icon": "Import"
     },
     {
       "id": "4",
-      "label": "Slice plate",
+      "label": "Slice Plate",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Layers"
     },
     {
       "id": "5",
-      "label": "Print plate",
+      "label": "Print Plate",
       "shortcut": "command+shift+g",
-      "icon": "Application"
+      "icon": "Printer 3D"
     },
     {
       "id": "6",
-      "label": "Select all objects",
+      "label": "Select All",
       "shortcut": "command+a",
-      "icon": "Application"
+      "icon": "Select All"
     },
     {
       "id": "7",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Chevron Left"
+      "icon": "Undo"
     },
     {
       "id": "8",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Chevron Right"
+      "icon": "Redo"
     },
     {
       "id": "9",
-      "label": "Clone selected",
+      "label": "Clone",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Copy"
     }
   ]
 }

@@ -6,27 +6,27 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Switch to explore view",
+      "label": "Explore",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Map"
     },
     {
       "id": "1",
-      "label": "Switch to driving view",
+      "label": "Driving",
       "shortcut": "command+2",
-      "icon": "Application"
+      "icon": "Car"
     },
     {
       "id": "2",
-      "label": "Switch to public transport view",
+      "label": "Transit",
       "shortcut": "command+3",
-      "icon": "Application"
+      "icon": "Train"
     },
     {
       "id": "3",
-      "label": "Switch to satellite view",
+      "label": "Satellite",
       "shortcut": "command+4",
-      "icon": "Application"
+      "icon": "Satellite"
     }
   ]
 }

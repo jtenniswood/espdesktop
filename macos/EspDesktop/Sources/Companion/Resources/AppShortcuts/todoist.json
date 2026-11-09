@@ -6,45 +6,45 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Quick Find",
+      "label": "Quick Find",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Open Task Quick Add",
+      "label": "Add Task",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Task List"
     },
     {
       "id": "2",
-      "label": "Create a new project",
+      "label": "New Project",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "3",
-      "label": "Create a new label",
+      "label": "New Label",
       "shortcut": "command+shift+l",
-      "icon": "Application"
+      "icon": "Tag Plus"
     },
     {
       "id": "4",
-      "label": "Create a new filter",
+      "label": "New Filter",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Filter Plus"
     },
     {
       "id": "5",
-      "label": "Open the Inbox",
+      "label": "Inbox",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Inbox"
     },
     {
       "id": "6",
-      "label": "Open Search",
+      "label": "Search",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     }
   ]
 }

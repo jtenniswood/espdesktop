@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "New to-do",
+      "label": "New To-do",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Task List"
     },
     {
       "id": "1",
-      "label": "New to-dos from clipboard",
+      "label": "Paste To-dos",
       "shortcut": "command+v",
-      "icon": "Application"
+      "icon": "Paste"
     },
     {
       "id": "2",
-      "label": "New project",
+      "label": "New Project",
       "shortcut": "command+option+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "3",
-      "label": "Open Quick Entry with Autofill",
+      "label": "Quick Entry",
       "shortcut": "control+option+space",
-      "icon": "Application"
+      "icon": "Flash"
     },
     {
       "id": "4",
-      "label": "Save and close item",
+      "label": "Save & Close",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Save"
     },
     {
       "id": "5",
-      "label": "Copy to-do or project",
+      "label": "Copy Item",
       "shortcut": "command+c",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "6",
-      "label": "Search the app",
+      "label": "Search",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Find in text",
+      "label": "Find Text",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Search"
     }
   ]
 }

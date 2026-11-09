@@ -8,37 +8,37 @@
       "id": "0",
       "label": "New Document",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "1",
-      "label": "Close Document/Close App (when no documents o…",
+      "label": "Close Document",
       "shortcut": "command+w",
-      "icon": "Application"
+      "icon": "Window Close"
     },
     {
       "id": "2",
-      "label": "Close All Documents",
+      "label": "Close All",
       "shortcut": "command+option+w",
-      "icon": "Application"
+      "icon": "Close"
     },
     {
       "id": "3",
       "label": "Find",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Switch to Next View",
+      "label": "Next View",
       "shortcut": "command+keybackquote",
-      "icon": "Application"
+      "icon": "Tab"
     },
     {
       "id": "5",
       "label": "Select Previous",
       "shortcut": "command+option+keybracketleft",
-      "icon": "Application"
+      "icon": "Chevron Left"
     }
   ]
 }

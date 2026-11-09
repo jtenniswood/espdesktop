@@ -6,39 +6,39 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Record Into Cell",
+      "label": "Record Cell",
       "shortcut": "option+r",
-      "icon": "Application"
+      "icon": "Record"
     },
     {
       "id": "1",
-      "label": "Create Marker Without Rounding",
+      "label": "Add Marker",
       "shortcut": "control+option+keyquote",
-      "icon": "Application"
+      "icon": "Flag Plus"
     },
     {
       "id": "2",
-      "label": "Create Marker for Region/Marquee Selection",
+      "label": "Mark Selection",
       "shortcut": "option+shift+keyquote",
-      "icon": "Application"
+      "icon": "Flag Plus"
     },
     {
       "id": "3",
-      "label": "Create Group for Selected Channel Strips/Tracks",
+      "label": "Group Tracks",
       "shortcut": "command+control+g",
-      "icon": "Application"
+      "icon": "Layers"
     },
     {
       "id": "4",
-      "label": "New Empty Project",
+      "label": "Empty Project",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "5",
-      "label": "New from Template",
+      "label": "From Template",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Template"
     }
   ]
 }

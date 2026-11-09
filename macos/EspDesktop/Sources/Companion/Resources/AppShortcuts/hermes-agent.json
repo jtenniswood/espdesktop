@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+k",
-      "icon": "Folder"
+      "icon": "Shortcut Command"
     },
     {
       "id": "1",
-      "label": "Start a new session",
+      "label": "New Session",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Chat Plus"
     },
     {
       "id": "2",
-      "label": "Search sessions",
+      "label": "Search Sessions",
       "shortcut": "command+shift+f",
       "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Open a new session tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Tab"
+      "icon": "New Tab"
     },
     {
       "id": "4",
-      "label": "Next session tab",
+      "label": "Next Tab",
       "shortcut": "control+tab",
-      "icon": "Tab"
+      "icon": "Chevron Right"
     },
     {
       "id": "5",
-      "label": "Jump to recent session by position",
+      "label": "Jump Session",
       "shortcut": "control+9",
-      "icon": "Application"
+      "icon": "Chat"
     },
     {
       "id": "6",
-      "label": "Toggle left sidebar",
+      "label": "Left Sidebar",
       "shortcut": "command+b",
-      "icon": "Application"
+      "icon": "Dock Left"
     },
     {
       "id": "7",
-      "label": "Toggle right sidebar",
+      "label": "Right Sidebar",
       "shortcut": "command+j",
-      "icon": "Application"
+      "icon": "Dock Right"
     },
     {
       "id": "8",
-      "label": "Find in chat transcript",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "9",
-      "label": "Open Quick Entry",
+      "label": "Quick Entry",
       "shortcut": "command+shift+space",
-      "icon": "Folder"
+      "icon": "Flash"
     }
   ]
 }

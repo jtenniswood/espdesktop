@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Join meeting",
+      "label": "Join Meeting",
       "shortcut": "command+j",
-      "icon": "Video"
+      "icon": "Video Call"
     },
     {
       "id": "1",
-      "label": "Start/stop video",
+      "label": "Toggle Video",
       "shortcut": "command+shift+v",
       "icon": "Video"
     },
     {
       "id": "2",
-      "label": "Pause or resume screen share",
+      "label": "Pause Share",
       "shortcut": "command+shift+t",
-      "icon": "Play"
+      "icon": "Screen Share"
     },
     {
       "id": "3",
-      "label": "Pause/resume recording",
+      "label": "Pause Recording",
       "shortcut": "command+shift+p",
-      "icon": "Play"
+      "icon": "Record"
     },
     {
       "id": "4",
-      "label": "Search in chat or channel",
+      "label": "Search Chat",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "5",
-      "label": "Mute/unmute call",
+      "label": "Toggle Mic",
       "shortcut": "control+shift+m",
-      "icon": "Microphone"
+      "icon": "Microphone Off"
     },
     {
       "id": "6",
-      "label": "Global search",
+      "label": "Global Search",
       "shortcut": "command+e",
       "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Reset chat display size",
+      "label": "Text Size",
       "shortcut": "command+0",
-      "icon": "Play"
+      "icon": "Format Size"
     }
   ]
 }

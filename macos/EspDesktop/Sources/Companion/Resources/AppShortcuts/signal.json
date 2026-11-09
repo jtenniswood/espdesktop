@@ -6,45 +6,45 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Navigate by section",
+      "label": "Jump Section",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "View Headline"
     },
     {
       "id": "1",
-      "label": "Start new chat",
+      "label": "New Chat",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Chat Plus"
     },
     {
       "id": "2",
       "label": "Search",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Search in chat",
+      "label": "Search Chat",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Focus composer",
+      "label": "Focus Composer",
       "shortcut": "command+shift+t",
-      "icon": "Application"
+      "icon": "Draw"
     },
     {
       "id": "5",
-      "label": "Expand composer",
+      "label": "Expand Composer",
       "shortcut": "command+shift+k",
-      "icon": "Application"
+      "icon": "Arrow Expand"
     },
     {
       "id": "6",
-      "label": "Send (in expanded composer)",
+      "label": "Send",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Send"
     }
   ]
 }

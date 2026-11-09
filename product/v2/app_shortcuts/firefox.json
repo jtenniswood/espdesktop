@@ -6,51 +6,51 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open file",
+      "label": "Open File",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Open File"
     },
     {
       "id": "1",
-      "label": "Reload page",
+      "label": "Reload",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Refresh"
     },
     {
       "id": "2",
-      "label": "Force reload page",
+      "label": "Force Reload",
       "shortcut": "command+shift+r",
-      "icon": "Application"
+      "icon": "Sync"
     },
     {
       "id": "3",
-      "label": "Print page",
+      "label": "Print",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Printer"
     },
     {
       "id": "4",
-      "label": "Save page as",
+      "label": "Save Page",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Save As"
     },
     {
       "id": "5",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "6",
-      "label": "Find in page",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Focus search bar",
+      "label": "Search Bar",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Search"
     }
   ]
 }

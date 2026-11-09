@@ -6,33 +6,33 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Start or stop playing a video",
+      "label": "Play/Pause",
       "shortcut": "option+space",
-      "icon": "Play"
+      "icon": "Play Pause"
     },
     {
       "id": "1",
-      "label": "Find photos",
+      "label": "Search Photos",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Create a new album",
+      "label": "New Album",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Photo Album"
     },
     {
       "id": "3",
-      "label": "Create a Smart Album",
+      "label": "Smart Album",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "Image Search"
     },
     {
       "id": "4",
-      "label": "Create a folder",
+      "label": "New Folder",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Folder Plus"
     }
   ]
 }

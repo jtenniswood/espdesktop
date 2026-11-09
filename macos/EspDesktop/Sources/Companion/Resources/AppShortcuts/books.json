@@ -6,13 +6,13 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Add a new collection to your library",
+      "label": "New Collection",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Folder Plus"
     },
     {
       "id": "1",
-      "label": "Search books",
+      "label": "Search Books",
       "shortcut": "command+f",
       "icon": "Search"
     }

@@ -6,21 +6,21 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Save project",
+      "label": "Save Project",
       "shortcut": "command+s",
-      "icon": "Application"
+      "icon": "Save"
     },
     {
       "id": "1",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "2",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     }
   ]
 }

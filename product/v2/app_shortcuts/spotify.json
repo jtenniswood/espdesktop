@@ -6,7 +6,7 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Search",
+      "label": "Search",
       "shortcut": "command+k",
       "icon": "Search"
     },
@@ -14,31 +14,31 @@
       "id": "1",
       "label": "Select All",
       "shortcut": "command+a",
-      "icon": "Application"
+      "icon": "Select All"
     },
     {
       "id": "2",
-      "label": "Go to Playlists",
+      "label": "Playlists",
       "shortcut": "option+shift+1",
-      "icon": "Play"
+      "icon": "Playlist Music"
     },
     {
       "id": "3",
-      "label": "Go to Now Playing",
+      "label": "Now Playing",
       "shortcut": "option+shift+j",
       "icon": "Play"
     },
     {
       "id": "4",
-      "label": "Open Context Menu",
+      "label": "Context Menu",
       "shortcut": "option+j",
-      "icon": "Folder"
+      "icon": "Dots Horizontal"
     },
     {
       "id": "5",
-      "label": "Toggle Now Playing View Sidebar",
+      "label": "Playing Sidebar",
       "shortcut": "option+shift+r",
-      "icon": "Play"
+      "icon": "Dock Right"
     }
   ]
 }

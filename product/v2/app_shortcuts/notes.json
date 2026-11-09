@@ -6,33 +6,33 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new note",
+      "label": "New Note",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Note Plus"
     },
     {
       "id": "1",
-      "label": "Create a new folder",
+      "label": "New Folder",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Folder Plus"
     },
     {
       "id": "2",
-      "label": "Search all notes",
+      "label": "Search Notes",
       "shortcut": "option+command+f",
-      "icon": "Search"
+      "icon": "Note Search"
     },
     {
       "id": "3",
-      "label": "Apply Checklist format",
+      "label": "Checklist",
       "shortcut": "shift+command+l",
-      "icon": "Palette"
+      "icon": "Task List"
     },
     {
       "id": "4",
-      "label": "Add a new paragraph in a cell",
+      "label": "Cell Paragraph",
       "shortcut": "option+enter",
-      "icon": "Plus"
+      "icon": "Shortcut Return"
     }
   ]
 }

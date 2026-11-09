@@ -6,15 +6,15 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Add Label at Playback Position",
+      "label": "Add Label",
       "shortcut": "command+m",
-      "icon": "Application"
+      "icon": "Tag Plus"
     },
     {
       "id": "1",
-      "label": "Move to Previous Label",
+      "label": "Previous Label",
       "shortcut": "option+left",
-      "icon": "Application"
+      "icon": "Chevron Left"
     }
   ]
 }

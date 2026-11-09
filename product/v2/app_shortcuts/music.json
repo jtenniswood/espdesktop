@@ -6,37 +6,37 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Stop playing the selected song",
+      "label": "Stop",
       "shortcut": "command+keyperiod",
-      "icon": "Play"
+      "icon": "Stop"
     },
     {
       "id": "1",
-      "label": "Create a new playlist",
+      "label": "New Playlist",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "2",
-      "label": "Create a playlist from a selection of songs",
+      "label": "Playlist Selection",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "3",
-      "label": "Create a new Smart Playlist",
+      "label": "Smart Playlist",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "Playlist Edit"
     },
     {
       "id": "4",
-      "label": "Select the search field",
+      "label": "Search",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "5",
-      "label": "Search the iTunes Store",
+      "label": "Search Store",
       "shortcut": "option+enter",
       "icon": "Search"
     }

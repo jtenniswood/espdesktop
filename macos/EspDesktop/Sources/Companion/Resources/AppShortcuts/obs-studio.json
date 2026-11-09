@@ -6,39 +6,39 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Undo edit",
+      "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "1",
-      "label": "Redo edit",
+      "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     },
     {
       "id": "2",
-      "label": "Copy source",
+      "label": "Copy Source",
       "shortcut": "command+c",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "3",
-      "label": "Paste source",
+      "label": "Paste Source",
       "shortcut": "command+v",
-      "icon": "Application"
+      "icon": "Paste"
     },
     {
       "id": "4",
-      "label": "Edit transform",
+      "label": "Edit Transform",
       "shortcut": "command+e",
-      "icon": "Application"
+      "icon": "Vector"
     },
     {
       "id": "5",
-      "label": "Reset transform",
+      "label": "Reset Transform",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Undo"
     }
   ]
 }

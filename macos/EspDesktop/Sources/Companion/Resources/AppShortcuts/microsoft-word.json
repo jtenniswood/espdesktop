@@ -6,33 +6,33 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Find text (move focus to the Search in Docume…",
+      "label": "Find",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Display the Find and Replace pane.",
+      "label": "Find Replace",
       "shortcut": "control+h",
-      "icon": "Application"
+      "icon": "Find Replace"
     },
     {
       "id": "2",
-      "label": "Create a hanging indent.",
+      "label": "Hanging Indent",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Indent"
     },
     {
       "id": "3",
-      "label": "Find the next occurrence of text.",
+      "label": "Next Match",
       "shortcut": "command+g",
-      "icon": "Application"
+      "icon": "Chevron Down"
     },
     {
       "id": "4",
-      "label": "Find the previous occurrence of text.",
+      "label": "Previous Match",
       "shortcut": "command+shift+g",
-      "icon": "Application"
+      "icon": "Chevron Up"
     }
   ]
 }

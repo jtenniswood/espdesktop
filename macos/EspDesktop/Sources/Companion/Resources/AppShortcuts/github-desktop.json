@@ -6,63 +6,63 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Clone a repository from GitHub",
+      "label": "Clone Repo",
       "shortcut": "command+shift+o",
-      "icon": "Application"
+      "icon": "Download"
     },
     {
       "id": "1",
-      "label": "Show a list of your repositories",
+      "label": "Repositories",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Folder"
     },
     {
       "id": "2",
-      "label": "Push the latest commits to GitHub",
+      "label": "Push",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Upload"
     },
     {
       "id": "3",
-      "label": "Pull down the latest changes from GitHub",
+      "label": "Pull",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "Download"
     },
     {
       "id": "4",
-      "label": "Show all your changes before committing",
+      "label": "View Changes",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "File Compare"
     },
     {
       "id": "5",
-      "label": "Show your commit history",
+      "label": "Commit History",
       "shortcut": "command+2",
-      "icon": "Application"
+      "icon": "History"
     },
     {
       "id": "6",
-      "label": "Commit changes when summary or description fi…",
+      "label": "Commit",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Source Commit"
     },
     {
       "id": "7",
-      "label": "Create a new branch",
+      "label": "New Branch",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "Source Branch"
     },
     {
       "id": "8",
-      "label": "Compare to an existing branch",
+      "label": "Compare Branch",
       "shortcut": "command+shift+b",
-      "icon": "Application"
+      "icon": "Source Compare"
     },
     {
       "id": "9",
-      "label": "Show the current pull request on GitHub",
+      "label": "Pull Request",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Source Pull Request"
     }
   ]
 }

@@ -6,39 +6,39 @@
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open a new blank workbook.",
+      "label": "New Workbook",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "New File"
     },
     {
       "id": "1",
-      "label": "Create a new workbook from template.",
+      "label": "From Template",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "Template"
     },
     {
       "id": "2",
-      "label": "Display the Find dialog box.",
+      "label": "Find",
       "shortcut": "control+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Access search (when in a cell or when a cell…",
+      "label": "Search",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Start a new line in the same cell.",
+      "label": "Line Break",
       "shortcut": "option+enter",
-      "icon": "Application"
+      "icon": "Shortcut Return"
     },
     {
       "id": "5",
-      "label": "Create a table.",
+      "label": "New Table",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Table Plus"
     }
   ]
 }
