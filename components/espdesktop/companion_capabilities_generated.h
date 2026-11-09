@@ -66,39 +66,6 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"url", "Open URL", "applications", "Web"},
   {"folder", "Open folder", "folders", "Folder Outline"},
   {"stats", "Stats", "system_metrics", "Gauge"},
-  {"window", "Window control", "window_actions", "Monitor"},
-};
-
-struct CompanionWindowCapability { const char *id; const char *label; };
-inline constexpr CompanionWindowCapability COMPANION_WINDOW_CAPABILITIES[] = {
-  {"window.close", "Close"},
-  {"window.minimize", "Minimise"},
-  {"window.hide", "Hide App"},
-  {"window.fullscreen", "Toggle Full Screen"},
-  {"window.fill", "Fill Desktop"},
-  {"window.center", "Centre"},
-  {"window.left", "Left"},
-  {"window.right", "Right"},
-  {"window.top", "Top"},
-  {"window.bottom", "Bottom"},
-  {"window.top-left", "Top Left"},
-  {"window.top-right", "Top Right"},
-  {"window.bottom-left", "Bottom Left"},
-  {"window.bottom-right", "Bottom Right"},
-  {"window.restore", "Return to Previous Size"},
-  {"window.arrange.left-right", "Left & Right"},
-  {"window.arrange.right-left", "Right & Left"},
-  {"window.arrange.top-bottom", "Top & Bottom"},
-  {"window.arrange.bottom-top", "Bottom & Top"},
-  {"window.arrange.left-quarters", "Left & Quarters"},
-  {"window.arrange.right-quarters", "Right & Quarters"},
-  {"window.arrange.top-quarters", "Top & Quarters"},
-  {"window.arrange.bottom-quarters", "Bottom & Quarters"},
-  {"window.arrange.quarters", "Quarters"},
-  {"window.fullscreen.enter", "Enter Full Screen"},
-  {"window.fullscreen.exit", "Exit Full Screen"},
-  {"window.split.left", "Left of Screen"},
-  {"window.split.right", "Right of Screen"},
 };
 
 struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };
@@ -113,11 +80,6 @@ inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {
   {"stat.network_throughput", "Network", "network_throughput", "MB/s"},
   {"stat.ip_address", "IP address", "ip_address", ""},
 };
-
-inline const CompanionWindowCapability *companion_window_capability(const std::string &id) {
-  for (const auto &item : COMPANION_WINDOW_CAPABILITIES) if (id == item.id) return &item;
-  return nullptr;
-}
 
 inline const CompanionMetricCapability *companion_metric_capability(const std::string &id) {
   for (const auto &item : COMPANION_METRIC_CAPABILITIES)

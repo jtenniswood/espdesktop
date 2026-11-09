@@ -181,7 +181,7 @@ def check_build(dist):
         BASE + 'mac-controls/apps',
         BASE + 'mac-controls/folders',
         BASE + 'mac-controls/shortcuts',
-        BASE + 'mac-controls/windows',
+        BASE + 'mac-controls/improve-shortcuts',
         BASE + 'mac-controls/statistics',
         BASE + 'mac-controls/security',
         BASE + 'features/setup',
@@ -189,6 +189,7 @@ def check_build(dist):
         BASE + 'reference/faq',
         BASE + 'reference/companion-compatibility',
         BASE + 'reference/privacy',
+        BASE + 'reference/request-icons',
     }
     unexpected_pages = set(pages) - mac_docs
     if unexpected_pages:
@@ -230,7 +231,8 @@ def check_build(dist):
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
         'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/',
-        'features/media-cover-art': BASE + 'card-types/companion',
+        'features/media-cover-art': BASE + 'features/setup#show-mac-cover-art',
+        'mac-controls/volume': BASE + 'card-types/companion',
         'guides/index': 'https://jtenniswood.github.io/espcontrol/',
         'immich/index': 'https://jtenniswood.github.io/espcontrol/',
         'generated/companion-compatibility': BASE + 'reference/companion-compatibility',

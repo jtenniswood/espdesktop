@@ -13,7 +13,7 @@ export const redirects: Record<string, string> = {
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,
   'getting-started/home-assistant-actions': espcontrol,
-  'features/media-cover-art': `${hostname}card-types/companion`,
+  'features/media-cover-art': `${hostname}features/setup#show-mac-cover-art`,
   'mac-controls/volume': `${hostname}card-types/companion`,
   'guides/index': espcontrol,
   'immich/index': espcontrol,

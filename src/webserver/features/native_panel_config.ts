@@ -297,7 +297,7 @@ export class NativePanelConfigClient {
     throw new Error("A compatible backup representation is unavailable.");
   }
 
-  async save(update: (document: PanelConfigDocument) => PanelConfigDocument): Promise<NativePanelConfigSaveResult> {
+  async save(update: (document: PanelConfigDocument) => PanelConfigDocument, skipUnchanged = false): Promise<NativePanelConfigSaveResult> {
     if (!await this.discover()) return "unsupported";
     let conflicts = 0;
     while (conflicts < 2) {
@@ -327,6 +327,10 @@ export class NativePanelConfigClient {
         const currentDepth = panelPageDocumentDepth(currentDocument);
         if (currentDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
         const updated = update(currentDocument);
+        if (skipUnchanged && updated === currentDocument) {
+          this.lastDocument_ = currentDocument;
+          return "saved";
+        }
         const updatedDepth = panelPageDocumentDepth(updated);
         if (updatedDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
         const limit = this.maxRecordBodyBytes_ ?? 2048;
