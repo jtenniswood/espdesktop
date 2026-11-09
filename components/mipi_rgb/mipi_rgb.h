@@ -126,6 +126,9 @@ class MipiRgbSpi : public MipiRgb,
   void set_init_sequence(const std::vector<uint8_t> &init_sequence) { this->init_sequence_ = init_sequence; }
   void set_dc_pin(GPIOPin *dc_pin) { this->dc_pin_ = dc_pin; }
   void setup() override;
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+  void reset_lcd_controller();
+#endif
 
  protected:
   void write_command_(uint8_t value);

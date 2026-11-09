@@ -18,25 +18,29 @@ class DisplayResyncTestHandler final : public esphome::web_server_idf::AsyncWebH
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>S3 display test</title>
 <h1>S3 display test</h1>
-<p>Use this while the picture is shifted. It resyncs the pixel stream without rebooting the device.</p>
-<button type="button" id="resync">Resync S3 display</button>
+<p>Use these while the picture is shifted. Try the LCD reset if resyncing the pixel stream does not help.</p>
+<button type="button" data-command="Resync S3 Display">Resync S3 display</button>
+<button type="button" data-command="Reset S3 LCD Controller">Reset LCD controller</button>
 <p id="result" role="status"></p>
 <script>
-const button = document.getElementById("resync");
+const buttons = document.querySelectorAll("button[data-command]");
 const result = document.getElementById("result");
-button.addEventListener("click", async () => {
-  button.disabled = true;
-  result.textContent = "Sending request…";
-  try {
-    const response = await fetch("/button/Resync%20S3%20Display/press", {method: "POST"});
-    if (!response.ok) throw new Error();
-    result.textContent = "Resync requested. Check whether the picture moved back into place.";
-  } catch {
-    result.textContent = "Could not send the resync request. Check that the device is online and try again.";
-  } finally {
-    button.disabled = false;
-  }
-});
+for (const button of buttons) {
+  button.addEventListener("click", async () => {
+    for (const control of buttons) control.disabled = true;
+    result.textContent = "Sending request…";
+    try {
+      const command = encodeURIComponent(button.dataset.command);
+      const response = await fetch("/button/" + command + "/press", {method: "POST"});
+      if (!response.ok) throw new Error();
+      result.textContent = "Request accepted. Check whether the picture moved back into place.";
+    } catch {
+      result.textContent = "Could not send the request. Check that the device is online and try again.";
+    } finally {
+      for (const control of buttons) control.disabled = false;
+    }
+  });
+}
 </script>
 </html>)html");
   }

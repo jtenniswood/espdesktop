@@ -47,8 +47,25 @@ void MipiRgbSpi::setup() {
   this->setup_enables_();
   this->spi_setup();
   this->write_init_sequence_();
+#ifndef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+  this->init_sequence_.clear();
+#endif
   this->common_setup_();
 }
+
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+void MipiRgbSpi::reset_lcd_controller() {
+  if (this->is_failed() || this->init_sequence_.empty()) {
+    ESP_LOGW(TAG, "Cannot reset an unavailable LCD controller");
+    return;
+  }
+  this->write_init_sequence_();
+  if (!this->is_failed()) {
+    ESP_LOGI(TAG, "LCD controller reset sequence sent");
+  }
+}
+#endif
+
 void MipiRgbSpi::write_command_(uint8_t value) {
   this->enable();
   if (this->dc_pin_ == nullptr) {
@@ -106,12 +123,16 @@ void MipiRgbSpi::write_init_sequence_() {
       this->write_command_(cmd);
       while (num_args-- != 0)
         this->write_data_(*ptr++);
+#ifdef ESPDESKTOP_S3_DISPLAY_RESET_TEST
+      // The ST7701S needs time to reload its registers after software reset.
+      if (index == 2 && cmd == SW_RESET_CMD)
+        delay(5);
+#endif
       if (cmd == SLEEP_OUT)
         delay(10);
     }
   }
   // this->spi_teardown();  // SPI not needed after this
-  this->init_sequence_.clear();
   delay(10);
 }
 
