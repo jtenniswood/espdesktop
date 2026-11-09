@@ -174,15 +174,6 @@ export function createPreviewInteractionsFeature(
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
         state.clockBarDragItem = "";
-        if (els.specialPageEntry) {
-            els.specialPageEntry.addEventListener("click", function (this: any, e?: any) {
-                if (isConfigLocked()) {
-                    e.preventDefault();
-                    return;
-                }
-                dependencies.codec.enterSubpage(-1);
-            });
-        }
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
