@@ -2551,11 +2551,12 @@ async function assertEmptyCellSettings(page, posts, label, testCase) {
       `${label}: a single connector does not need source tabs`,
     );
   }
+  const webhookType = page.getByRole("button", { name: "Webhook card type", exact: true });
+  assert.strictEqual(await webhookType.count(), 0, `${label}: Webhook is hidden from the add-card picker`);
   if (testCase.companionSupported) {
-    assert(
-      await page.getByRole("button", { name: "Webhook card type" }).isVisible(),
-      `${label}: shared webhook card appears in the Companion picker`,
-    );
+    await pickerTabs.filter({ hasText: "Mac Companion" }).click();
+    assert.strictEqual(await webhookType.count(), 0, `${label}: Webhook is hidden on the Mac Companion tab`);
+    await pickerTabs.filter({ hasText: "Home Assistant" }).click();
   }
   const switchTypeOption = page.getByRole("button", {
     name: "Switch card type",
@@ -3607,14 +3608,19 @@ async function assertFanOptionalLightSettings(page, label) {
 async function assertWebhookSettingsPanel(page, posts, label) {
   await page.getByRole("tab", { name: "Layout" }).click();
   await page.waitForSelector("#sp-screen.sp-page.active");
-  const emptyCell = page
-    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
-    .first();
-  if ((await emptyCell.count()) === 0) return;
-  const before = posts.length;
-  await emptyCell.click();
+  const slot = page.locator('.sp-main [data-slot="1"]');
+  const seedSlot = (state) => page.evaluate(value => window.__seedEspState([
+    { id: "text-button_1_config", state: value },
+  ]), state);
+  await seedSlot(";Saved Webhook;Auto;Auto;GET;;webhook");
+  await slot.getByText("Saved Webhook", { exact: true }).waitFor();
+  const savedSlotPosts = () => posts.filter(post =>
+    postMatches(post, { domain: "text", name: "button_1_config", action: "set" }),
+  ).length;
+  const before = savedSlotPosts();
+  await slot.click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
   await page.waitForSelector(".sp-settings-overlay.sp-visible");
-  await chooseCardType(page, "Webhook");
 
   const webhookSettingsButton = page.getByRole("button", {
     name: "Webhook Settings",
@@ -3688,10 +3694,12 @@ async function assertWebhookSettingsPanel(page, posts, label) {
     return overlay && !overlay.classList.contains("sp-visible");
   });
   assert.strictEqual(
-    posts.length,
+    savedSlotPosts(),
     before,
     `${label}: Webhook Settings audit should not save a card`,
   );
+  await seedSlot(BUTTON_FIXTURES[0]);
+  await slot.getByText("Kitchen", { exact: true }).waitFor();
 }
 
 async function assertCoverSettingsPanels(page, label) {
