@@ -523,12 +523,13 @@ final class CompanionConnection: NSObject {
                         self.publishFocusedAction(invalidatePendingQuery: true)
                     }
                 }
-            } else if kind == "url", let appIdentifier = payload.appId,
-                      let encodedURL = payload.encodedUrl {
+            } else if kind == "url", let encodedURL = payload.encodedUrl {
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
-                    let opened = await self.resources.openURL(encodedURL: encodedURL, bundleIdentifier: appIdentifier)
+                    let opened = await self.resources.openURL(
+                        encodedURL: encodedURL, newWindow: payload.urlOpenBehavior == "new_window"
+                    )
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier,
                                    "status": opened ? "opened" : "not_allowed"])

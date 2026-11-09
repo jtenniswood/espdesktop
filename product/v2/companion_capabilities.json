@@ -205,6 +205,16 @@
             "maxLength": 96,
             "optional": true
           },
+          "urlOpenBehavior": {
+            "type": "string",
+            "enum": [
+              "new_tab",
+              "new_window"
+            ],
+            "minLength": 7,
+            "maxLength": 10,
+            "optional": true
+          },
           "encodedUrl": {
             "type": "string",
             "minLength": 1,

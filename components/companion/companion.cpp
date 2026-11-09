@@ -133,9 +133,8 @@ void CompanionService::setup() {
                                           const std::string &folder_open_behavior) {
     return this->invoke_(action, request, folder_open_behavior);
   });
-  register_companion_url_sender([this](const std::string &app, const std::string &url,
-                                       const std::string &request) {
-    return this->invoke_url_(app, url, request);
+  register_companion_url_sender([this](const std::string &url, const std::string &request, bool new_window) {
+    return this->invoke_url_(url, request, new_window);
   });
   register_companion_value_sender([this](const std::string &control, int value,
                                          const std::string &request) {
@@ -1241,16 +1240,16 @@ bool CompanionService::invoke_(const std::string &action_id, const std::string &
   }));
 }
 
-bool CompanionService::invoke_url_(const std::string &app_id, const std::string &encoded_url,
-                                   const std::string &request_id) {
+bool CompanionService::invoke_url_(const std::string &encoded_url, const std::string &request_id,
+                                   bool new_window) {
   const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0 || !safe_field(app_id, 96) ||
-      !safe_field(encoded_url, 128) || !safe_field(request_id, 64)) return false;
+  if (socket_fd < 0 || !safe_field(encoded_url, 128) || !safe_field(request_id, 64)) return false;
   companion_protocol::ActionInvoke payload;
   payload.requestId = request_id;
   payload.kind = "url";
-  payload.appId = app_id;
+  payload.appId = "system.default_browser";  // Required by older Companion versions.
   payload.encodedUrl = encoded_url;
+  if (new_window) payload.urlOpenBehavior = "new_window";
   return this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
     companion_protocol::encode(root, payload);
   }));

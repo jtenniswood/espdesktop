@@ -69,6 +69,7 @@ struct ActionInvoke {
   std::optional<std::string> actionId{};
   std::optional<std::string> folderOpenBehavior{};
   std::optional<std::string> appId{};
+  std::optional<std::string> urlOpenBehavior{};
   std::optional<std::string> encodedUrl{};
 };
 struct ActionResult {
@@ -264,6 +265,7 @@ inline void encode(JsonObject root, const ActionInvoke &message) {
   if (message.actionId) root["actionId"] = *message.actionId;
   if (message.folderOpenBehavior) root["folderOpenBehavior"] = *message.folderOpenBehavior;
   if (message.appId) root["appId"] = *message.appId;
+  if (message.urlOpenBehavior) root["urlOpenBehavior"] = *message.urlOpenBehavior;
   if (message.encodedUrl) root["encodedUrl"] = *message.encodedUrl;
 }
 inline void encode(JsonObject root, const ActionResult &message) {
@@ -594,6 +596,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!root["appId"].isUnbound()) {
       if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
     }
+    if (!root["urlOpenBehavior"].isUnbound()) {
+      if (!(string_valid(root["urlOpenBehavior"], 7, 10) && (root["urlOpenBehavior"].as<std::string>() == "new_tab" || root["urlOpenBehavior"].as<std::string>() == "new_window"))) return std::nullopt;
+    }
     if (!root["encodedUrl"].isUnbound()) {
       if (!(string_valid(root["encodedUrl"], 1, 128))) return std::nullopt;
     }
@@ -610,6 +615,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!root["actionId"].isUnbound()) result.actionId = root["actionId"].as<std::string>();
     if (!root["folderOpenBehavior"].isUnbound()) result.folderOpenBehavior = root["folderOpenBehavior"].as<std::string>();
     if (!root["appId"].isUnbound()) result.appId = root["appId"].as<std::string>();
+    if (!root["urlOpenBehavior"].isUnbound()) result.urlOpenBehavior = root["urlOpenBehavior"].as<std::string>();
     if (!root["encodedUrl"].isUnbound()) result.encodedUrl = root["encodedUrl"].as<std::string>();
     return result;
   }

@@ -516,7 +516,7 @@ final class CompanionStore: NSObject, ObservableObject {
             end try
         end tell
         """
-        guard let rawURL = await CompanionFocusScript.read(source),
+        guard let rawURL = await CompanionAppleScript.run(source),
               NSWorkspace.shared.frontmostApplication?.bundleIdentifier == bundleIdentifier,
               let url = URL(string: rawURL),
               (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
@@ -540,7 +540,7 @@ final class CompanionStore: NSObject, ObservableObject {
             end try
         end tell
         """
-        guard let path = await CompanionFocusScript.read(source),
+        guard let path = await CompanionAppleScript.run(source),
               NSWorkspace.shared.frontmostApplication?.bundleIdentifier == "com.apple.finder",
               !path.isEmpty else { return nil }
         return path
@@ -956,9 +956,8 @@ final class CompanionStore: NSObject, ObservableObject {
         connection.publishMediaControlValues(values, unavailable: unavailable)
     }
 
-    func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool {
+    func openURL(encodedURL: String, newWindow: Bool) async -> Bool {
         guard !sessionLock.refresh() else { return false }
-        _ = bundleIdentifier  // Older firmware sends the previously selected app; URLs now use the system default.
         guard encodedURL.utf8.count <= 128,
               let value = encodedURL.removingPercentEncoding,
               let components = URLComponents(string: value),
@@ -971,6 +970,21 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("Blocked an invalid URL")
             return false
         }
+        let browserURL = NSWorkspace.shared.urlForApplication(toOpen: url)
+        let browserID = browserURL.flatMap { Bundle(url: $0)?.bundleIdentifier }
+        if let script = CompanionBrowserOpen.script(browserID: browserID, newWindow: newWindow) {
+            let result = await CompanionAppleScript.run(script, arguments: [url.absoluteString], timeout: 20)
+            if result == "opened" { return true }
+            if newWindow || result != "denied" {
+                updateStatus("Could not open the link. Check the browser's Automation permission in System Settings.")
+                return false
+            }
+        } else if newWindow {
+            updateStatus("Opening a link in a new window requires Safari or Google Chrome as the default browser")
+            return false
+        }
+
+        guard !sessionLock.refresh(), !Task.isCancelled else { return false }
         let opened = NSWorkspace.shared.open(url)
         if !opened {
             updateStatus("macOS could not open this URL in the default browser")

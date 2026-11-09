@@ -394,13 +394,19 @@ int main() {
   assert(companion_card_focus_allowed(""));
   assert(companion_action_available(folder_action));
   bool invoked = false;
-  register_companion_url_sender([&invoked](const std::string &app, const std::string &url,
-                                           const std::string &request) {
-    invoked = app == "system.default_browser" && url.rfind("https%3A%2F%2F", 0) == 0 && request == "test-1";
+  register_companion_url_sender([&invoked](const std::string &url, const std::string &request, bool new_window) {
+    invoked = url.rfind("https%3A%2F%2F", 0) == 0 &&
+              (new_window ? request == "test-window" : request == "test-tab");
     return invoked;
   });
-  assert(invoke_companion_url("com.google.Chrome", url_config, "test-1"));
+  ParsedCfg url_card;
+  url_card.type = "companion";
+  url_card.sensor = url_config;
+  assert(invoke_companion_url(url_config, "test-tab", companion_url_opens_new_window(url_card)));
   assert(invoked);
+  url_card.options = "url_open_behavior=new_window";
+  url_card = normalize_parsed_cfg(url_card);
+  assert(invoke_companion_url(url_config, "test-window", companion_url_opens_new_window(url_card)));
   bool navigated = false;
   companion_expect_action_result("launch-1", [&navigated]() { navigated = true; });
   companion_deliver_action_result("another-request", "performed");
@@ -457,7 +463,7 @@ int main() {
   assert(!companion_timezone_changed());
   companion_set_connected(false);
   assert(!companion_url_available("system.default_browser", url_config));
-  assert(!invoke_companion_url("system.default_browser", url_config, "offline-url"));
+  assert(!invoke_companion_url(url_config, "offline-url"));
   assert(companion_consume_subpage_return_request());
   companion_set_timezone_id("");
   assert(companion_timezone_id().empty());

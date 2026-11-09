@@ -160,7 +160,8 @@ inline bool basic_action_driver_bind_subpage(
         const bool invoked = companion_encoded_url(card->sensor).empty()
           ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
                                     companion_folder_open_behavior(*card))
-          : invoke_companion_url(card->entity, card->sensor, request_id);
+          : invoke_companion_url(card->sensor, request_id,
+                                 companion_url_opens_new_window(*card));
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
@@ -205,7 +206,8 @@ inline bool basic_action_driver_handle_main_click(
       const bool invoked = companion_encoded_url(config.sensor).empty()
         ? invoke_companion_action(config.entity, request_id,
                                   companion_folder_open_behavior(config))
-        : invoke_companion_url(config.entity, config.sensor, request_id);
+        : invoke_companion_url(config.sensor, request_id,
+                                 companion_url_opens_new_window(config));
       if (!invoked) {
         companion_cancel_action_result(request_id);
         ESP_LOGW("companion", "Action unavailable: %s", config.entity.c_str());

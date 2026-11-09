@@ -726,10 +726,16 @@ export function runCompanionShortcutFeatureTests(): void {
   if (companionUrlConfig("https://example.com/" + "a".repeat(200)) !== "") {
     throw new Error("Companion URL cards must stay within the main-grid storage limit");
   }
-  const urlCard = { entity: "com.apple.Safari", sensor: urlConfig, icon: "Monitor" };
+  const urlCard = { entity: "com.apple.Safari", sensor: urlConfig, icon: "Monitor", options: "" };
   normalizeCompanionCard(urlCard);
   if (urlCard.sensor !== urlConfig) throw new Error("Companion URL configuration must survive card normalization");
   if (urlCard.icon !== "Web") throw new Error("Existing URL cards must adopt the Web default icon");
+  if (urlCard.options !== "") throw new Error("Existing URL cards must default to a new tab");
+  const windowUrlCard = { ...urlCard, options: "url_open_behavior=new_window,app_shortcuts" };
+  normalizeCompanionCard(windowUrlCard);
+  if (windowUrlCard.options !== "url_open_behavior=new_window") {
+    throw new Error("URL cards must retain their new-window setting and drop app subpage options");
+  }
   const shortcutCard = { entity: "shortcut.command+a", sensor: "", icon: "Monitor" };
   normalizeCompanionCard(shortcutCard);
   if (shortcutCard.icon !== "Shortcut Command") {

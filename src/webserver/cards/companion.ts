@@ -62,6 +62,7 @@ import {
     setFinderOpenBehavior,
     syncInheritedFinderOpenBehavior,
     FINDER_OPEN_BEHAVIOR_OPTION,
+    COMPANION_URL_OPEN_BEHAVIOR,
     FINDER_OPEN_OVERRIDE_OPTION,
     type FinderOpenBehavior,
     setCompanionShortcutTabs,
@@ -1017,6 +1018,29 @@ export function registerCompanionCardTypes(
                 return Boolean(companionUrlConfig(value));
             });
 
+            const urlBehaviorField = document.createElement("div");
+            urlBehaviorField.className = "sp-field";
+            const urlBehaviorSelect = document.createElement("select");
+            urlBehaviorSelect.className = "sp-select";
+            urlBehaviorSelect.id = helpers.idPrefix + "companion-url-open-behavior";
+            urlBehaviorField.appendChild(fieldLabel("Open in", urlBehaviorSelect.id));
+            for (const [value, label] of [["new_tab", "New tab"], ["new_window", "New window"]] as const) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = label;
+                urlBehaviorSelect.appendChild(option);
+            }
+            urlBehaviorSelect.value = configOptionValue(card.options, COMPANION_URL_OPEN_BEHAVIOR) === "new_window"
+                ? "new_window" : "new_tab";
+            urlBehaviorSelect.addEventListener("change", function () {
+                card.options = setConfigOptionValue(card.options, COMPANION_URL_OPEN_BEHAVIOR,
+                    urlBehaviorSelect.value === "new_window" ? "new_window" : "");
+                helpers.saveField("options", card.options);
+            });
+            urlBehaviorField.appendChild(urlBehaviorSelect);
+            panel?.insertBefore(urlBehaviorField, appField);
+            helpers.markCardPrimaryField(urlBehaviorField, "url-open-behavior");
+
             const appSubpageDisclosure = helpers.disclosureSection(
                 "App Subpage",
                 helpers.idPrefix + "companion-app-subpage",
@@ -1191,6 +1215,7 @@ export function registerCompanionCardTypes(
                 shortcutField.style.display = mode === "shortcut" ? "" : "none";
                 windowField.style.display = mode === "window" ? "" : "none";
                 urlField.style.display = mode === "url" ? "" : "none";
+                urlBehaviorField.style.display = urlField.style.display;
                 appSubpageDisclosure.panel.style.display = canAddSubpage && mode === "app" &&
                     !!companionShortcutFolderAppLabel(card.entity) ? "" : "none";
                 finderOpenBehaviorField.style.display = canAddSubpage && mode === "app" &&

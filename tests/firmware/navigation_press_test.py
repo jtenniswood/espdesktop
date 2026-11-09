@@ -51,7 +51,8 @@ int invocations = 0;
 bool invoke_companion_action(const std::string &, const char *, int) {
   ++invocations; order.push_back(4); return invoked;
 }
-bool invoke_companion_url(const std::string &, const std::string &, const char *) {
+bool companion_url_opens_new_window(const ParsedCfg &) { return false; }
+bool invoke_companion_url(const std::string &, const char *, bool) {
   ++invocations; order.push_back(4); return invoked;
 }
 void companion_cancel_action_result(const char *) {}
@@ -63,7 +64,7 @@ code += function("button_grid_navigation_driver.h", "inline bool navigation_driv
 # Compile the production companion dispatch arm without unrelated action drivers.
 basic = (HEADERS / "button_grid_basic_action_driver.h").read_text()
 start = basic.index("    case Driver::COMPANION: {", basic.index("inline bool basic_action_driver_handle_main_click("))
-end = basic.index("    case Driver::WEBHOOK:", start)
+end = basic.index("    default:", start)
 code += r'''
 bool basic_action_driver_handle_main_click(const Context &, const ParsedCfg &config,
                                          int slot_number, lv_obj_t *button) {

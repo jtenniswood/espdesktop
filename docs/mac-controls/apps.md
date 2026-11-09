@@ -24,7 +24,10 @@ Approve **Finder** in the Mac app to use its launch card. Touching an app card s
 ## Open a Website
 
 1. Add a **Companion → Open URL** card.
-2. Enter an `http://` or `https://` address. macOS opens it in the default browser configured on the Mac.
+2. Enter an `http://` or `https://` address.
+3. Under **Open in**, keep **New tab** or choose **New window**, then save the card.
+
+The card uses the Mac's default browser. Use matching versions of the Mac app and display firmware to apply the setting. Safari and Google Chrome support both choices when EspDesktop has Automation permission for the browser in macOS System Settings. With other browsers, **New tab** follows the browser's usual behaviour for links opened from another app. If no browser window is open, opening a tab creates a window for it.
 
 Addresses containing an embedded username or password are rejected. Other URL types, including `file://`, are not accepted.
 

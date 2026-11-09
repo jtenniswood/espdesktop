@@ -126,6 +126,21 @@
     "valid": true
   },
   {
+    "name": "open url in new window",
+    "message": {
+      "protocol": 4,
+      "type": "action.invoke",
+      "kind": "url",
+      "requestId": "r3",
+      "appId": "system.default_browser",
+      "urlOpenBehavior": "new_window",
+      "encodedUrl": "https%3A%2F%2Fexample.com"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
     "name": "action result",
     "message": {
       "protocol": 4,
