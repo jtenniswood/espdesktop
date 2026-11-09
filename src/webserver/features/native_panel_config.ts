@@ -132,12 +132,17 @@ export class NativePanelConfigClient {
   private writeDepth_ = 1;
   private durableVersion_ = 1;
   private lastDocument_: PanelConfigDocument | null = null;
+  private lastLayout_: NativePageLayout | undefined;
 
   constructor(private readonly fetch_: NativePanelConfigFetch) {}
 
   supported(): boolean { return this.supported_; }
   lastDocument(): PanelConfigDocument | null { return this.lastDocument_; }
-  acceptSnapshot(document: PanelConfigDocument): void { this.lastDocument_ = document; }
+  lastLayout(): NativePageLayout | undefined { return this.lastLayout_; }
+  acceptSnapshot(document: PanelConfigDocument, layout?: NativePageLayout): void {
+    this.lastDocument_ = document;
+    this.lastLayout_ = layout;
+  }
   preservesInactiveRecords(): boolean { return this.supported_ && this.preservesInactiveRecords_; }
   readNavigationDepth(): number {
     return this.supported_ && this.documentVersion_ === V2_DOCUMENT_VERSION ? this.readDepth_ : 1;
@@ -352,14 +357,16 @@ export class NativePanelConfigClient {
           priorScope = draft.editScope;
           directBody = draft.finish();
         }
-        const updated = directBody ? decodePanelPageDocument(directBody) : update({
+        const directSnapshot = directBody ? decodePanelPageSnapshot(directBody) : undefined;
+        const updated = directSnapshot?.document ?? update({
           ...currentDocument, buttons: { ...currentDocument.buttons }, subpages: { ...currentDocument.subpages },
           settings: { ...currentDocument.settings },
         });
         const layoutUnchanged = sameRecords(currentDocument.buttons, updated.buttons) &&
           sameRecords(currentDocument.subpages, updated.subpages);
         if (skipUnchanged && layoutUnchanged && sameRecords(currentDocument.settings, updated.settings)) {
-          this.lastDocument_ = currentDocument;
+          this.acceptSnapshot(currentDocument, version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
+            ? decodePanelPageSnapshot(input).layout : undefined);
           return "saved";
         }
         const updatedDepth = panelPageDocumentDepth(updated);
@@ -402,6 +409,8 @@ export class NativePanelConfigClient {
             if (convertNativeV2ToV1(body).length > this.maxDurableDocumentBytes_) return "too-large";
           } catch { return "too-large"; }
         }
+        const savedLayout = version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2
+          ? directSnapshot?.layout ?? decodePanelPageSnapshot(body).layout : undefined;
         const next = await this.fetch_("/api/v1/config", {
           method: "PUT",
           cache: "no-store",
@@ -422,7 +431,7 @@ export class NativePanelConfigClient {
         // save so callers do not claim that an older firmware can restore it.
         if (next.status === 413) return "too-large";
         if (next.ok) {
-          this.lastDocument_ = updated;
+          this.acceptSnapshot(updated, savedLayout);
           return next.status === 202 ? "mirror-failed" : "saved";
         }
         if (next.status === 401 || next.status === 403) return "authentication-required";

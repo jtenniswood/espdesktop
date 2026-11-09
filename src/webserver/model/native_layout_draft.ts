@@ -1,5 +1,5 @@
 import type { CardConfig } from "../contracts/types";
-import { CARD_CONFIG_FIELDS } from "./card";
+import { CARD_CONFIG_FIELDS, emptyCardConfig } from "./card";
 import { cardTransferOwnsSubpage } from "./card_transfer";
 import { matchPageCards } from "./page_edit";
 import { PAGE_OWNER_SLOTS, pageOwnerSlot, parentPageKey } from "./page_keys";
@@ -139,12 +139,53 @@ export class NativeLayoutDraft {
     if (key === "button_order") this.records(K.Page).get(0)!.third = this.intern(value);
   }
 
+  private ownerAt(key: number): NativeV2Record | undefined {
+    const parent = parentPageKey(key);
+    const parentOwner = parent ? this.ownerAt(parent) : undefined;
+    const parentId = parent ? (parentOwner && this.ownedPage(parentOwner)?.id) : 0;
+    return parentId === undefined ? undefined : this.cards(parentId).find(card => card.second === pageOwnerSlot(key));
+  }
+
+  readPage(key: number): NativePageEdit | null {
+    const owner = key ? this.ownerAt(key) : undefined;
+    const page = key ? (owner && this.ownedPage(owner)) : this.records(K.Page).get(0);
+    if (!page || page.flags === ABSENT) return null;
+    const cards = this.cards(page.id!);
+    if (key) return { order: this.text(page.third ?? 0), cards: cards.map(card => this.config(card)) };
+    const bySlot = new Map(cards.map(card => [card.second!, card]));
+    return { order: this.text(page.third ?? 0), cards: Array.from({ length: PAGE_OWNER_SLOTS }, (_, index) => {
+      const card = bySlot.get(index + 1);
+      return card ? this.config(card) : emptyCardConfig();
+    }) };
+  }
+
+  patchPageCards(key: number, edits: ReadonlyMap<number, CardConfig>, order: string): void {
+    if (!key) {
+      for (const [slot, config] of edits) this.writeRootCard(slot, config);
+      this.writeSetting("button_order", order);
+      return;
+    }
+    const owner = this.ownerAt(key);
+    const page = owner && this.ownedPage(owner);
+    if (!page) throw new PanelConfigError("The folder no longer exists.");
+    this.editScope.push(JSON.stringify(this.pageState(page)));
+    const before = this.cards(page.id!);
+    this.setPageOrder(page, order, edits.values(), before);
+    const last = Math.max(before.length, ...edits.keys());
+    for (let index = 0; index < last; ++index) {
+      const config = edits.get(index + 1);
+      const existing = before[index];
+      if (existing && !config) continue;
+      const card = existing ?? this.allocate({ kind: K.Card, first: page.id!, second: index + 1 });
+      this.writeCard(card, config ?? emptyCardConfig());
+      this.syncPageOwner(card, config);
+    }
+  }
+
   writePage(key: number, change: NativePageEdit | null): void {
     const parent = parentPageKey(key);
-    const parentOwner = parent ? this.cards(0).find(card => card.second === parent) : undefined;
-    const parentId = parent ? (parentOwner && this.ownedPage(parentOwner)?.id) : 0;
     const slot = pageOwnerSlot(key);
-    let owner = parentId === undefined ? undefined : this.cards(parentId).find(card => card.second === slot);
+    let owner = this.ownerAt(key);
     this.editScope.push(JSON.stringify(owner ? [owner.id, this.config(owner), this.pageState(this.ownedPage(owner))] : null));
     if (!owner && !parent && change)
       owner = this.allocate({ kind: K.Card, first: 0, second: slot, flags: ABSENT });
@@ -166,15 +207,8 @@ export class NativeLayoutDraft {
       return;
     }
     if (!page) page = this.allocate({ kind: K.Page, first: owner.first!, second: owner.id!, flags: 1 });
-    if (page.flags === ABSENT) page.flags = 1;
-    page.third = this.intern(change.order);
     const before = this.cards(page.id!);
-    if (page.flags === 0 && (change.order.startsWith("~") ||
-        change.cards.some(card => CARD_CONFIG_FIELDS.some(field => /[:|]/.test(card[field]))))) {
-      page.flags = 1;
-      // Imported raw child tokens use the page's delimiter convention.
-      for (const card of before) if (card.flags === RAW) card.flags = card.rawSource = 0;
-    }
+    this.setPageOrder(page, change.order, change.cards, before);
     const matches = matchPageCards(before.map(card => this.config(card)), change.cards);
     const kept = new Set(matches.values());
     // Allocate replacements before releasing IDs from deleted cards.
@@ -189,6 +223,18 @@ export class NativeLayoutDraft {
     before.forEach((card, index) => { if (!kept.has(index)) this.removeCard(card); });
     next.forEach((card, index) => this.syncPageOwner(card, change.cards[index]));
     this.syncPageOwner(owner, ownerConfig);
+  }
+
+  private setPageOrder(page: NativeV2Record, order: string, cards: Iterable<CardConfig>,
+      before: readonly NativeV2Record[]): void {
+    if (page.flags === ABSENT) page.flags = 1;
+    page.third = this.intern(order);
+    if (page.flags === 0 && (order.startsWith("~") ||
+        [...cards].some(card => CARD_CONFIG_FIELDS.some(field => /[:|]/.test(card[field]))))) {
+      page.flags = 1;
+      // Imported raw child tokens use the page's delimiter convention.
+      for (const card of before) if (card.flags === RAW) card.flags = card.rawSource = 0;
+    }
   }
 
   finish(): Uint8Array {

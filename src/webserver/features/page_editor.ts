@@ -102,7 +102,9 @@ export class NativePageEditorLoader {
       else void this.refresh();
     });
   }
-  replace(document: PanelConfigDocument): void { this.invalidate(); this.options.apply(document); }
+  replace(document: PanelConfigDocument, layout?: NativePageLayout): void {
+    this.invalidate(); this.options.apply(document, layout);
+  }
   refreshAfterChange(): void {
     // A pending response may predate the event. Coalesce events into one
     // subsequent read instead of accepting that response as the latest state.

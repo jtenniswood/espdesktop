@@ -257,3 +257,37 @@ test("structured root and folder edits keep wire identities and retry the latest
   assert.equal(codec.decodePanelPageSnapshot(persisted).layout.pages.find(page => page.key === 34).cards[0].config.label,
     "Other browser");
 });
+
+test("native transfers preserve existing card and page records and retain copied descendants", () => {
+  const { NativeLayoutDraft } = loadTypescriptTest("src/webserver/model/native_layout_draft.ts");
+  const { NativeV2Kind: K, decodeNativeV2 } = loadTypescriptTest("src/webserver/model/panel_config_v2.ts");
+  const grid = { slots: 9, columns: 3 };
+  const original = codec.encodePanelPageDocument({
+    ...fixture.document,
+    buttons: { ...fixture.document.buttons, 9: "light.keep;Keep;;;;;" },
+  });
+  const snapshot = codec.decodePanelPageSnapshot(original);
+  const copied = transfer.captureNativePageCards(snapshot.document, snapshot.layout, 0, [1], grid);
+  const draft = new NativeLayoutDraft(original);
+  // Browser-internal copy carries the structured subtree independently of the
+  // portable Paste Code copy.
+  transfer.pasteNativePageCards(draft, 0, 1, copied.entries.map(entry => ({ ...entry, subtree: null })), grid);
+  const pasted = draft.finish();
+  const updated = codec.decodePanelPageSnapshot(pasted);
+  assert.equal(updated.layout.pages.find(page => page.key === 65).cards[0].config.label, "Address");
+  const originalRecords = decodeNativeV2(original).filter(row =>
+    row.kind === K.Card || row.kind === K.Navigation || (row.kind === K.Page && row.id));
+  const expectOriginal = input => {
+    const records = decodeNativeV2(input);
+    for (const row of originalRecords) assert.deepEqual(records.find(saved => saved.kind === row.kind && saved.id === row.id), row);
+  };
+  expectOriginal(pasted);
+  const pastedCard = transfer.captureNativePageCards(updated.document, updated.layout, 0, [2], grid);
+  const cut = new NativeLayoutDraft(pasted);
+  transfer.deleteNativePageCards(cut, pastedCard.origin, grid);
+  const afterCut = cut.finish();
+  expectOriginal(afterCut);
+  const result = codec.decodePanelPageSnapshot(afterCut);
+  assert.equal(result.layout.pages.find(page => page.key === 65), undefined);
+  assert.equal(result.layout.pages.find(page => page.key === 33).cards[0].config.label, "Address");
+});
