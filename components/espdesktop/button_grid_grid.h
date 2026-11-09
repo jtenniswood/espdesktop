@@ -1323,19 +1323,29 @@ inline void grid_phase2(
     const auto parent_context = card_runtime_context(p);
     if (!espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) continue;
 
-    std::string sp_cfg = is_nested_page ? espdesktop::grid_native_page(task.key)->config :
-      optional_text_state(sp_configs, si) +
-      optional_text_state(sp_ext_configs, si) +
-      optional_text_state(sp_ext2_configs, si) +
-      optional_text_state(sp_ext3_configs, si) +
-      optional_text_state(sp_ext4_configs, si) +
-      optional_text_state(sp_ext5_configs, si) +
-      optional_text_state(sp_ext6_configs, si) +
-      optional_text_state(sp_ext7_configs, si);
-    if (sp_cfg.empty()) continue;
-
-    auto sp_btns = parse_subpage_config(sp_cfg);
-    std::string sp_order_str = get_subpage_order(sp_cfg);
+    const auto *native_page = is_nested_page ? espdesktop::grid_native_page(task.key) : nullptr;
+    std::vector<SubpageBtn> sp_btns;
+    std::string sp_order_str;
+    if (is_nested_page) {
+      const auto *native_pages = espdesktop::grid_native_pages();
+      if (!native_page || !native_pages || !native_pages->store) continue;
+      const auto &store = *native_pages->store;
+      const auto &page = *store.page(native_page->id);
+      sp_btns = native_subpage_buttons(store, page);
+      sp_order_str = store.string(page.order);
+    } else {
+      const std::string sp_cfg = optional_text_state(sp_configs, si) +
+        optional_text_state(sp_ext_configs, si) +
+        optional_text_state(sp_ext2_configs, si) +
+        optional_text_state(sp_ext3_configs, si) +
+        optional_text_state(sp_ext4_configs, si) +
+        optional_text_state(sp_ext5_configs, si) +
+        optional_text_state(sp_ext6_configs, si) +
+        optional_text_state(sp_ext7_configs, si);
+      if (sp_cfg.empty()) continue;
+      sp_btns = parse_subpage_config(sp_cfg);
+      sp_order_str = get_subpage_order(sp_cfg);
+    }
     std::string sp_back_label = get_subpage_back_label(sp_order_str);
 
     SubpageOrder sp_ord;
@@ -1354,7 +1364,7 @@ inline void grid_phase2(
     espdesktop::cards::navigation_driver_own_subpage(
       owner_slot, p, parent_context, navigation_slot, display_order, sub_scr);
     if (is_nested_page) {
-      navigation_register_home_target(navigation_slot, display_order, p.label, espdesktop::grid_native_page(task.key)->owner_config, owner_slot.btn);
+      navigation_register_home_target(navigation_slot, display_order, p.label, native_page->owner_config, owner_slot.btn);
       navigation_find_slot(navigation_slot)->parent_slot = task.parent;
     }
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);

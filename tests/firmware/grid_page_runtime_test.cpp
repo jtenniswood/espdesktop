@@ -2,6 +2,7 @@
 #include <cassert>
 #include <cstring>
 #include <string>
+#include "button_grid_subpage_parser.h"
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
 #include "page_store_goldens.h"
@@ -48,6 +49,18 @@ int main() {
     assert(grid_native_page(33)->owner_config.find("com.apple.Safari") != std::string::npos);
     assert(grid_native_page(33)->config.find("shortcut.command+l") != std::string::npos);
     expected = grid_native_page(33)->config;
+    const auto &store = *grid_native_pages()->store;
+    const auto &page = *store.page(grid_native_page(33)->id);
+    const auto &parent = *store.page(grid_native_page(1)->id);
+    assert(page.parent == grid_native_page(1)->id);
+    assert(parent.parent == 0);
+    assert(store.string(page.order) == get_subpage_order(expected));
+    const auto legacy_buttons = parse_subpage_config(expected);
+    const auto native_buttons = native_subpage_buttons(store, page);
+    assert(native_buttons.size() == 1 && legacy_buttons.size() == 1);
+    assert(subpage_btn_same_definition(native_buttons[0], legacy_buttons[0]));
+    assert(native_buttons[0].label == "Address");
+    assert(native_buttons[0].entity == "shortcut.command+l");
     assert(order.current == "1");
     assert(order.persistent_writes == 0 && subpages[0].persistent_writes == 0);
     fail_allocation = true;

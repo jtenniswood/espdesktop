@@ -173,6 +173,7 @@ private:
       if (path < 1) return false;
       GridNativePage next;
       next.key = path; next.parent = key(store, page->parent);
+      next.id = id;
       const auto *owner = store.card(page->owner);
       next.owner_slot = owner->slot;
       next.owner_config = card(store, *owner, false);
@@ -224,8 +225,9 @@ private:
     return bindings_.validate_runtime_records(staged_->records, staged_->record_count);
   }
 
-  void activate_snapshot(const Store &) {
+  void activate_snapshot(const Store &store) {
     active_ = std::move(staged_);
+    active_->store = &store;
     grid_native_pages() = active_.get();
     published_ = bindings_.publish_runtime_records(active_->records, active_->record_count);
     if (published_) bindings_.refresh_runtime_pages();
