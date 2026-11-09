@@ -275,7 +275,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             `Get started by picking your favourite apps to display (up to ${appLimit} apps)`,
             "Choose what you can do from your app cards.",
             shortcutPageCount > 0 ? "Choose when the display opens a shortcut page."
-                : "Review your app selection before saving it to the display.",
+                : "Save your app cards to the display.",
         ];
         const description = element("p", explanations[step - 1], "sp-setup-description");
         const closeButton = element("button", "", "sp-settings-close");
@@ -342,11 +342,6 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                         !autoSwitch, () => { autoSwitch = false; }),
                 );
                 content.appendChild(modes);
-            }
-            const appCount = selected.size;
-            content.appendChild(element("p", `${appCount} ${appCount === 1 ? "home-screen app" : "home-screen apps"} · ${shortcutPageCount} shortcut ${shortcutPageCount === 1 ? "page" : "pages"}`, "sp-setup-count"));
-            if (replacing) {
-                content.appendChild(element("p", "Replaces your home screen and subpages.", "sp-setting-note"));
             }
         }
         dialog.appendChild(content);
