@@ -35,7 +35,7 @@ This generated reference lists stable setup facts from the shared card contract.
 | Lock | lock | lock | Yes | Own picker item | Type: default, lock, unlock | Hidden |
 | Media | media | media_player | Yes | Own picker item | None | Hidden |
 | Trigger | push | None | Yes | Own picker item | None | Hidden |
-| Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label; Large icon with title | Visible |
+| Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Visible |
 | Volume | slider | light, fan, number, input_number | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Hidden |

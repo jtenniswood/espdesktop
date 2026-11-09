@@ -49,12 +49,6 @@ export const COMPANION_CARD_MODES = [
     label: "Window control",
     capability: "window_actions",
     defaultIcon: "Monitor"
-  },
-  {
-    id: "webapp",
-    label: "Web App",
-    capability: "applications",
-    defaultIcon: "Web"
   }
 ] as const satisfies readonly CompanionCardMode[];
 export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = [

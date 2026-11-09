@@ -1241,17 +1241,15 @@ inline bool companion_shortcut_template_id_valid(const std::string &value) {
 
 inline bool companion_shortcut_app_id_valid(const std::string &value) {
   if (value.size() > 96 || value.empty()) return false;
-  const bool web_app = value.rfind("webapp.", 0) == 0;
-  const std::string id = web_app ? value.substr(7) : value;
-  if (id.empty()) return false;
+  const auto &id = value;
   bool has_separator = false;
   for (char ch : id) {
     const bool allowed = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-      (ch >= '0' && ch <= '9') || ch == '-' || (web_app ? false : ch == '.');
+      (ch >= '0' && ch <= '9') || ch == '-' || ch == '.';
     if (!allowed) return false;
     if (ch == '.' || ch == '-') has_separator = true;
   }
-  return web_app ? true : has_separator && id.find('.') != std::string::npos;
+  return has_separator && id.find('.') != std::string::npos;
 }
 
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
@@ -1269,8 +1267,7 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
 }
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
-  return companion_app_launch_card(p) &&
-         p.entity.rfind("webapp.", 0) != 0;
+  return companion_app_launch_card(p);
 }
 
 inline std::string companion_folder_open_behavior(const ParsedCfg &p) {
@@ -1313,10 +1310,6 @@ inline std::string companion_shortcut_preset_normalized(const ParsedCfg &p) {
 
 inline std::string companion_card_options_normalized(const ParsedCfg &p) {
   std::string out;
-  if (p.entity.rfind("webapp.", 0) == 0 &&
-      cfg_option_token_present(p.options, "webapp_icon_title")) {
-    out = "webapp_icon_title";
-  }
   const std::string preset = companion_shortcut_preset_normalized(p);
   if (!preset.empty()) {
     if (!out.empty()) out += ",";
@@ -1346,6 +1339,8 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
 }
 
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  if (p.type == "companion" && p.entity.rfind("webapp.", 0) == 0)
+    p.type = "companion_webapp";
   if (card_runtime_type_retired(p.type)) {
     const std::string type = p.type;
     p = ParsedCfg{};

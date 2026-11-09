@@ -65,7 +65,6 @@ enum CompanionCapabilities {
         "folder": "Open folder",
         "stats": "Stats",
         "window": "Window control",
-        "webapp": "Web App",
     ]
     static let windowActions: [String: CompanionWindowActionCapability] = [
         "window.close": .init(key: "w", flags: [.maskCommand], minimumMacOS: 13, menuPaths: []),
