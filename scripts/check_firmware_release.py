@@ -177,6 +177,16 @@ def test_release_workflow_uses_current_ota_output() -> None:
     assert "dist/release-web-assets" in workflow
     assert "Include release web assets in distribution" in workflow
 
+    firmware_job = workflow.split("\n  build-firmware:", 1)[1].split("\n  assemble-release:", 1)[0]
+    editor_download = firmware_job.index("name: release-web-assets")
+    editor_verify = firmware_job.index("sha256sum -c -", editor_download)
+    editor_install = firmware_job.index('install -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js', editor_verify)
+    assert editor_install < firmware_job.index("name: Compile firmware")
+    assert "needs.preflight.outputs.embedded_editor_sha256" in firmware_job
+    preflight = workflow.split("\n  preflight:", 1)[1].split("\n  device-matrix:", 1)[0]
+    prepare_web = preflight.split("name: Prepare release web assets", 1)[1]
+    assert prepare_web.index("node scripts/check_web_asset_manifest.js") < prepare_web.index("name: Upload release web assets")
+
 
 def test_device_matrix_sparse_checkouts_include_product_model() -> None:
     required_paths = (
