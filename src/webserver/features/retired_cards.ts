@@ -23,11 +23,29 @@ export function removeRetiredCards(
   return removed;
 }
 
+function cleanOrder(order: string, slots: Set<number>): string {
+  return order.split(",").map(token => slots.has(parseInt(token, 10)) ? "" : token).join(",");
+}
+
+// Card tokens follow the order token in both legacy and compact page records.
+export function removeRetiredSubpageRecords(
+  value: string, buttons: readonly CardConfig[], isRetired = cardContractTypeRetired,
+): { value: string; slots: Set<number> } {
+  const slots = new Set<number>();
+  buttons.forEach((button, index) => {
+    if (isRetired(button.type)) slots.add(index + 1);
+  });
+  if (!slots.size) return { value, slots };
+  const compact = value.startsWith("~");
+  const [order = "", ...cards] = (compact ? value.slice(1) : value).split("|");
+  for (const slot of slots) cards[slot - 1] = "";
+  return { value: (compact ? "~" : "") + [cleanOrder(order, slots), ...cards].join("|"), slots };
+}
+
 // Clean retired records from native layouts and backups, including pages they owned.
 export function removeRetiredPanelRecords(document: import("../model/panel_config").PanelConfigDocument, codec: {
   parseButtonConfig(value: string): CardConfig;
-  parseSubpageConfig(value: string): { buttons: CardConfig[]; order: string[] };
-  serializeSubpageConfig(value: { buttons: CardConfig[]; order: string[] }): string;
+  parseSubpageConfig(value: string): { buttons: CardConfig[] };
 }, isRetired = cardContractTypeRetired): boolean {
   let changed = false;
   const removeOwnedPages = (key: number) => {
@@ -43,29 +61,22 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
     if (Number(slot) <= PAGE_OWNER_SLOTS) removeOwnedPages(Number(slot));
     delete document.buttons[Number(slot)];
   }
-  const cleanOrder = (order: string[], slots: Set<number>) => order.map(token =>
-    slots.has(parseInt(token, 10)) ? "" : token);
   if (retiredSlots.size) {
     changed = true;
-    document.settings.button_order = cleanOrder((document.settings.button_order || "").split(","), retiredSlots).join(",");
+    document.settings.button_order = cleanOrder(document.settings.button_order || "", retiredSlots);
   }
-  const cleanSubpage = (value: string, page: number): string => {
-    const subpage = codec.parseSubpageConfig(value);
-    const slots = new Set<number>();
-    subpage.buttons.forEach((button, index) => {
-      if (!isRetired(button.type)) return;
-      slots.add(index + 1);
-      if (page > 0 && pageDepth(page) === 1 && index < PAGE_OWNER_SLOTS) removeOwnedPages(childPageKey(page, index + 1));
-      subpage.buttons[index] = emptyCardConfig();
-    });
-    if (!slots.size) return value;
-    changed = true;
-    subpage.order = cleanOrder(subpage.order, slots);
-    return codec.serializeSubpageConfig(subpage);
-  };
   for (const slot of Object.keys(document.subpages)) {
-    const raw = document.subpages[Number(slot)];
-    if (raw !== undefined) document.subpages[Number(slot)] = cleanSubpage(raw, Number(slot));
+    const page = Number(slot);
+    const raw = document.subpages[page];
+    if (raw === undefined) continue;
+    const cleaned = removeRetiredSubpageRecords(raw, codec.parseSubpageConfig(raw).buttons, isRetired);
+    if (!cleaned.slots.size) continue;
+    changed = true;
+    document.subpages[page] = cleaned.value;
+    if (pageDepth(page) !== 1) continue;
+    for (const retiredSlot of cleaned.slots) {
+      if (retiredSlot <= PAGE_OWNER_SLOTS) removeOwnedPages(childPageKey(page, retiredSlot));
+    }
   }
   return changed;
 }

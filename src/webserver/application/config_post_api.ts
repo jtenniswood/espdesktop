@@ -25,7 +25,7 @@ export interface ConfigPersistenceFeature {
     saveButtonConfigAndOrder(slot: number, order: string): Promise<any>;
     saveSubpageEntity(slot: number): unknown;
     subpageChunkShouldPost(slot?: any, keys?: any, chunks?: any, index?: any, previousPendingChunks?: any): boolean;
-    scheduleSliderSubpageMigration(slot?: any): void;
+    scheduleSliderSubpageMigration(slot?: any, cleanedValue?: string): void;
 }
 
 export function createConfigPersistenceFeature(
@@ -101,18 +101,22 @@ export function createConfigPersistenceFeature(
         showBanner("Subpage is too large to save. Update the panel firmware for more space, or shorten labels and entity IDs.", "error");
         return Promise.resolve("failed");
     }
+    function retireSavedWebApps(legacyFallback: () => any) {
+        if (!codec || !nativePanelConfig) return null;
+        const configCodec = codec;
+        const cleanup = nativePanelConfig.schedule(current => {
+            removeRetiredPanelRecords(current, configCodec, isRetiredWebApp);
+            return current;
+        });
+        return cleanup ? publishAfter(queueNativeSave(cleanup, legacyFallback)) : null;
+    }
     // ── Config Post API ───────────────────────────────────────────────────
     function saveButtonConfig(this: any, slot?: any) {
         var b: any = state.buttons[slot - 1];
         var value: any = serializeButtonConfig(b);
-        if (isRetiredWebApp(b?.type) && codec && nativePanelConfig) {
-            const configCodec = codec;
-            const cleanup = nativePanelConfig.schedule(current => {
-                removeRetiredPanelRecords(current, configCodec, isRetiredWebApp);
-                return current;
-            });
-            if (cleanup) return publishAfter(queueNativeSave(cleanup, () =>
-                requests().postTextLegacy(entityNameForSlot("button_config", slot), value)));
+        if (isRetiredWebApp(b?.type)) {
+            const cleanup = retireSavedWebApps(() => requests().postTextLegacy(entityNameForSlot("button_config", slot), value));
+            if (cleanup) return cleanup;
         }
         return publishAfter(requests().postText(entityNameForSlot("button_config", slot), value));
     }
@@ -177,10 +181,14 @@ export function createConfigPersistenceFeature(
                 }) ? "saved" : "failed";
             });
     }
-    function saveSubpageEntity(this: any, slot?: any) {
+    function saveSubpageEntity(this: any, slot?: any, cleanedValue?: string) {
         var sp: any = state.subpages[slot];
-        var full: any = sp ? serializeSubpageConfig(sp) : "";
+        var full: any = cleanedValue ?? (sp ? serializeSubpageConfig(sp) : "");
         if (!subpageConfigFits(full)) return rejectOversizedSubpage();
+        if (cleanedValue !== undefined) {
+            const cleanup = retireSavedWebApps(() => saveSubpageEntityLegacy(slot, full, true));
+            return cleanup ?? publishAfter(saveSubpageEntityLegacy(slot, full, true));
+        }
         var nativeSave: any = nativePanelConfig
             ? nativePanelConfig.writeSubpage(Number.parseInt(String(slot), 10), full)
             : null;
@@ -198,16 +206,16 @@ export function createConfigPersistenceFeature(
         }
         return publishAfter(saveSubpageEntityLegacy(slot, full, true));
     }
-    function scheduleSliderSubpageMigration(this: any, slot?: any) {
+    function scheduleSliderSubpageMigration(this: any, slot?: any, cleanedValue?: string) {
         if (state.nativeConfigLoading || state.nativeTransferActive || state.nativeHasNestedPages) return;
-        runtime.pendingSliderSubpageMigrations[slot] = true;
+        runtime.pendingSliderSubpageMigrations[slot] = cleanedValue ?? true;
         clearTimeout(runtime.sliderMigrationTimer as any);
         runtime.sliderMigrationTimer = setTimeout(function (this: any) {
             var pending: any = runtime.pendingSliderSubpageMigrations;
             runtime.pendingSliderSubpageMigrations = {};
             for (var key in pending) {
-                if (state.subpages[key])
-                    saveSubpageEntity(key);
+                if (state.subpages[key] && !state.subpageSavePending[key])
+                    saveSubpageEntity(key, typeof pending[key] === "string" ? pending[key] : undefined);
             }
         }, 5000);
     }
