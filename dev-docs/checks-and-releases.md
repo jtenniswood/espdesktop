@@ -79,6 +79,14 @@ A failed nightly run opens a repository issue with the run logs, tested commit,
 job results, and failed targets when available. Setup and matrix failures also
 open an issue; cancelled runs do not. Each failed attempt creates a new issue.
 
+## Public Release Devices
+
+The first release supports only the 4-inch Guition ESP32-S3 4848S040.
+`product/release_devices.json` controls firmware release builds, public firmware
+downloads, and generated USB install buttons. Add another device there only when
+it is ready to ship. All other device profiles and nightly/PR build coverage are
+retained for future upgrades; their manual setup guides are development material.
+
 ## Release Boundary
 
 Before tagging, run the complete browser suite on Linux for a pushed branch or
@@ -93,7 +101,7 @@ preflight is still required before tagging.
 
 Firmware releases start as private GitHub drafts. The manually dispatched build
 workflow checks out one immutable tag in every job, materializes the selected
-tag's web compatibility entry in the private checkout, builds every supported
+tag's web compatibility entry in the private checkout, builds every public release
 target, and writes only publishable files to the distribution. Generated source
 and build caches are not assets.
 

@@ -11,7 +11,7 @@ struct CompanionWindowActionCapability {
 }
 
 enum CompanionCapabilities {
-    static let version = 7
+    static let version = 8
     static let protocolVersion = 4
     static let protocolPath = "/companion/v4"
     static let maximumTextFrameBytes = 16384
@@ -25,7 +25,7 @@ enum CompanionCapabilities {
     static let appIconsAlphaCapability = "app_icons_alpha"
     static let appIconsHighResolutionCapability = "app_icons_240"
     static let pairingWindowSeconds = 900
-    static let systemActions: [String: String] = ["system.brightness_up": "Screen Brighter", "system.brightness_down": "Screen Dimmer", "system.lock": "Mac Lock"]
+    static let systemActions: [String: String] = ["system.brightness_up": "Screen Brighter", "system.brightness_down": "Screen Dimmer"]
     static let protocolMessages: Set<String> = [
         "hello",
         "pair.request",
@@ -58,6 +58,7 @@ enum CompanionCapabilities {
         "error",
         "catalogue.definitions.page",
         "focus.targets",
+        "session.lock",
     ]
     static let cardModes: [String: String] = [
         "app": "Applications",
@@ -66,7 +67,6 @@ enum CompanionCapabilities {
         "folder": "Open folder",
         "stats": "Stats",
         "window": "Window control",
-        "webapp": "Web App",
         "system": "Mac screen",
     ]
     static let windowActions: [String: CompanionWindowActionCapability] = [

@@ -163,15 +163,15 @@ export function runCompanionShortcutFeatureTests(): void {
   const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
   if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
   const companionModes = companionCardModeOptions();
-  if (companionModes.length !== 8 || new Set(companionModes.map(([mode]) => mode)).size !== 8 ||
-      !companionCardModeValid("window") || !companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
+  if (companionModes.length !== 7 || new Set(companionModes.map(([mode]) => mode)).size !== 7 ||
+      !companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
   }
   if (decodeCompanionCard({ ...emptyCardConfig("companion"), entity: "system.default_browser", sensor: "url.https%3A%2F%2Fexample.com" }).mode !== "url") {
     throw new Error("Mac screen actions must not hide the URL editor for default-browser cards");
   }
-  for (const entity of ["system.brightness_up", "system.brightness_down", "system.lock"]) {
+  for (const entity of ["system.brightness_up", "system.brightness_down"]) {
     const card = { ...emptyCardConfig("companion"), entity };
     normalizeCompanionCard(card);
     if (decodeCompanionCard(card).mode !== "system" || companionAppIconEnabled(card)) {
@@ -260,7 +260,7 @@ export function runCompanionShortcutFeatureTests(): void {
       companionAppShortcutFolderEnabled(chromeFolderCard)) {
     throw new Error("Unknown app options must stay dormant until its remote definition is loaded");
   }
-  for (const entity of ["com.example.FutureEditor", "webapp.future-editor"]) {
+  for (const entity of ["com.example.FutureEditor"]) {
     const remotelyDefinedCard = {
       type: "companion", entity, options: "app_shortcuts,app_shortcuts_tabs=0|1",
     };

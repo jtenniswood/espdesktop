@@ -66,6 +66,7 @@ final class CompanionConnection: NSObject {
     private var supportsAlphaAppIcons = false
     private var supportsHighResolutionAppIcons = false
     private var supportsImmediateApplicationFocus = false
+    private var supportsSessionLock = false
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
     private var artworkData: Data?
@@ -461,6 +462,7 @@ final class CompanionConnection: NSObject {
             supportsAlphaAppIcons = payload.capabilityVersion >= 4
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
+            supportsSessionLock = payload.capabilityVersion >= 7
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -500,7 +502,7 @@ final class CompanionConnection: NSObject {
                       (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
                 return (item.id, url)
             }
-            resources.setCompanionFocusRegistrations(Array(targets.prefix(64)), webAppIDs: Array((payload.webAppIDs ?? []).prefix(64)))
+            resources.setCompanionFocusRegistrations(Array(targets.prefix(64)))
             publishFocusedAction()
         case .actionInvoke(let payload):
             guard sessionAuthenticated else { return false }
@@ -791,6 +793,11 @@ final class CompanionConnection: NSObject {
                   "sha256": hash, "format": transferFormat])
     }
 
+    func publishSessionLock(_ locked: Bool) {
+        guard sessionAuthenticated, supportsSessionLock else { return }
+        sendJSON(["type": "session.lock", "locked": locked])
+    }
+
     private func sendJSON(_ object: [String: Any]) {
         var envelope = object
         envelope["protocol"] = CompanionCapabilities.protocolVersion
@@ -820,28 +827,16 @@ final class CompanionConnection: NSObject {
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
         sendJSON(["type": "capabilities", "values": capabilities])
-        // Bundle identifiers are stable and opaque to the browser layout editor;
-        // it never receives a path or an arbitrary shell command. Configured
-        // Web Apps go first so they survive the firmware's action catalogue cap.
+        // The browser receives identifiers, never application paths or shell commands.
         let catalogues = resources.remoteCompanionCatalogues()
-        let configuredWebAppIDs = Set(resources.configuredWebAppIDs())
-        let configuredWebApps = catalogues.webApplications.filter { configuredWebAppIDs.contains($0.id) }
-        let otherWebApps = catalogues.webApplications.filter { !configuredWebAppIDs.contains($0.id) }
-        let webAppEntries: ([RemoteWebApplicationDefinition]) -> [[String: String]] = { apps in
-            apps.compactMap { app -> [String: String]? in
-                let identifier = "webapp.\(app.id)"
-                guard Self.validCatalogueIdentifier(identifier) else { return nil }
-                return ["id": identifier, "label": Self.catalogueLabel(app.label, fallback: app.id)]
-            }
-        }
         let systemEntries = CompanionCapabilities.systemActions.sorted { $0.key < $1.key }.map { ["id": $0.key, "label": $0.value] }
-        let entries: [[String: String]] = systemEntries + webAppEntries(configuredWebApps) + resources.folderActions().compactMap { folder -> [String: String]? in
+        let entries: [[String: String]] = systemEntries + resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + resources.launchableApps().compactMap { app -> [String: String]? in
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
-        } + webAppEntries(otherWebApps)
+        }
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
         let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
@@ -856,9 +851,6 @@ final class CompanionConnection: NSObject {
             let payloads: [(String, Data)] = definitions.applications.compactMap { app in
                 guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
                 return ("application", data)
-            } + definitions.webApplications.compactMap { app in
-                guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
-                return ("webapp", data)
             }
             let definitionPages = max(payloads.count, 1)
             definitionGeneration &+= 1

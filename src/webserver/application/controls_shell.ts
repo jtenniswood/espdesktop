@@ -194,15 +194,6 @@ export function createControlsShellFeature(
         hint.className = "sp-hint";
         hint.style.display = "none";
         els.previewHint = hint;
-        var specialPageEntry: any = document.createElement("button");
-        specialPageEntry.className = "sp-selection-btn sp-special-page-entry";
-        specialPageEntry.type = "button";
-        specialPageEntry.textContent = "Configure swipe-up page";
-        els.specialPageEntry = specialPageEntry;
-        var swipeWrap: any = document.createElement("div");
-        swipeWrap.className = "sp-swipe-wrap";
-        swipeWrap.appendChild(specialPageEntry);
-        page.appendChild(swipeWrap);
         page.appendChild(hint);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";
@@ -296,13 +287,14 @@ export function createControlsShellFeature(
         return !!state.configLocked || !!state.nativeConfigReadOnly || !!state.nativeConfigLoading || !!state.nativeTransferActive;
     }
     function syncConfigLockUi(this: any) {
-        const previewLocked = !!state.configLocked || !!state.nativeConfigLoading || !!state.nativeTransferActive ||
+        const previewLocked = !!state.configLocked || !!state.nativeConfigLoading ||
             (!!state.nativeConfigReadOnly && !state.nativePanelDocument);
         if (els.root) {
             els.root.classList.toggle("sp-config-locked", previewLocked);
+            els.root.classList.toggle("sp-config-busy", !!state.nativeTransferActive);
         }
         if (els.previewMain) {
-            els.previewMain.setAttribute("aria-disabled", previewLocked ? "true" : "false");
+            els.previewMain.setAttribute("aria-disabled", previewLocked || state.nativeTransferActive ? "true" : "false");
         }
         if (els.root) {
             var text: any = state.nativeConfigReadOnly ? "Read-only configuration" : state.nativeTransferActive ? "Updating cards\u2026" : state.nativeConfigLoading ? "Loading pages\u2026" : "Waiting for device\u2026";

@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -276,6 +276,8 @@
             "enum": [
               "media.output_volume",
               "media.input_volume",
+              "media.output_mute",
+              "media.input_mute",
               "display.brightness"
             ],
             "minLength": 1,
@@ -301,6 +303,8 @@
             "enum": [
               "media.output_volume",
               "media.input_volume",
+              "media.output_mute",
+              "media.input_mute",
               "display.brightness"
             ],
             "minLength": 1,
@@ -928,6 +932,19 @@
         "states": [
           "connected"
         ]
+      },
+      {
+        "id": "session.lock",
+        "direction": "mac_to_panel",
+        "authorization": "paired",
+        "fields": {
+          "locked": {
+            "type": "boolean"
+          }
+        },
+        "states": [
+          "connected"
+        ]
       }
     ],
     "appIconLegacySide": 144,
@@ -978,12 +995,6 @@
       "label": "Window control",
       "capability": "window_actions",
       "defaultIcon": "Monitor"
-    },
-    {
-      "id": "webapp",
-      "label": "Web App",
-      "capability": "applications",
-      "defaultIcon": "Web"
     },
     {
       "id": "system",
@@ -1347,11 +1358,6 @@
       "id": "system.brightness_down",
       "label": "Screen Dimmer",
       "icon": "Weather Sunny Off"
-    },
-    {
-      "id": "system.lock",
-      "label": "Mac Lock",
-      "icon": "Lock"
     }
   ]
 }

@@ -49,12 +49,9 @@ export function runStateContractTests(): void {
   equal(first.screenRotation, "180", "startup uses the device rotation default");
   equal(first.screenRotationInitialReady, false, "rotation-capable devices wait for the initial event");
   equal(first.timezoneOptions.length, 2, "startup copies embedded timezone options");
-  equal(first.alarmDelayAudioOn, false, "alarm delay audio defaults off");
-  equal(first.alarmDelayTtsOn, true, "alarm delay TTS defaults on");
-  equal(first.alarmDelayFinalCountdown, 10, "alarm delay final countdown defaults to ten seconds");
   equal(first.autoOpenAppSubpages, true, "app subpages open on focus by default");
   equal(first.returnHomeOnAppSwitch, true, "app switching returns home by default");
-  equal(first.coverArtSource, "Home Assistant", "cover art defaults to the Home Assistant source");
+  equal(first.coverArtSource, "Mac Companion", "cover art uses the paired Mac source");
   const backupCurrent = {
     timezone: "UTC",
     language: "en",
@@ -132,17 +129,8 @@ export function runStateContractTests(): void {
     clockBar: "switch-screen__clock_bar",
     clockBarTime: "switch-screen__clock_bar_time",
     clockBarNightMode: "switch-screen__clock_bar_night_mode_icon",
-    clockBarTemperatureEntities: "text-clock_bar_temperature_entities",
     networkStatus: "switch-screen__network_status_icon",
     batteryStatus: "switch-screen__battery_status",
-    voiceServices: "switch-voice_services",
-    alarmDelayAudio: "switch-alarm_delay__audio",
-    alarmDelayTts: "switch-alarm_delay__tts",
-    alarmDelayEntryAnnouncement: "text-alarm_delay__entry_announcement",
-    alarmDelayExitAnnouncement: "text-alarm_delay__exit_announcement",
-    alarmDelayBeepVolume: "number-alarm_delay__beep_volume",
-    alarmDelayFinalCountdown: "number-alarm_delay__final_countdown",
-    temperatureDegreeSymbol: "switch-screen__temperature_degree_symbol",
     subpageChevron: "switch-screen__subpage_chevron",
     autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
     returnHomeOnAppSwitch: "switch-companion__return_home_on_app_switch",
@@ -165,12 +153,6 @@ export function runStateContractTests(): void {
     coverArtDelay: "number-screen_saver__cover_art_delay",
     trackOverlayDuration: "number-screen_saver__track_overlay_duration",
     coverArtHideExternalInput: "switch-screen_saver__hide_cover_art_on_external_input",
-    homeAssistantArtworkProtocol: "select-home_assistant_artwork_protocol",
-    homeAssistantArtworkPort: "number-home_assistant_artwork_port",
-    homeAssistantArtworkHost: "text-home_assistant_artwork_host",
-    homeAssistantArtworkEndpointMode: "select-home_assistant_artwork_endpoint_mode",
-    homeAssistantArtworkEndpointStatus: "text_sensor-home_assistant_artwork_endpoint_status",
-    homeAssistantArtworkEndpointHealth: "text_sensor-home_assistant_artwork_endpoint_health",
     scheduleTrigger: "text-screen__schedule_trigger",
     scheduleSensorActivation: "select-screen__schedule_sensor_activation",
     scheduleWakeTimeout: "number-screen__schedule_wake_timeout",
@@ -202,9 +184,7 @@ export function runStateContractTests(): void {
   ] as const) {
     const event = { id, state };
     const key = entityStateKeys(event).find(key => handlers[key]);
-    assert(key, "artwork display names resolve to a handler");
-    handlers[key]!(state, event, key);
-    equal(calls.at(-1), group, "artwork events dispatch to the canonical handler");
+    assert(!key, "retired artwork endpoints have no live event handler");
   }
 
   const clockState = createInitialState(deviceConfig());

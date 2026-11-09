@@ -13,14 +13,6 @@
 #include "display_color.h"
 #include "media_display_text.h"
 
-// Defined by the firmware Home Assistant transport. Keeping this declaration
-// lightweight lets host-side Cover Art tests use the controller without
-// pulling in ESPHome's generated API types.
-inline void ha_schedule_metadata_refresh(
-    const std::string &entity_id,
-    std::initializer_list<const char *> attributes, uint32_t scope);
-inline void ha_cancel_metadata_refresh(uint32_t scope);
-
 namespace espdesktop::cover_art {
 
 constexpr int MAX_DOWNLOAD_RETRIES = 5;

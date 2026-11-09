@@ -1,4 +1,5 @@
 #include "companion.h"
+#include "../espdesktop/screen_lock_state.h"
 #include "companion_discovery.h"
 #include "now_playing_protocol.h"
 #include "../espdesktop/companion_protocol_generated.h"
@@ -598,7 +599,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       for (const auto &item : payload->items) {
         const std::string id = item.id;
         const std::string label = item.label;
-        if (!safe_field(id, 96) || !safe_utf8_field(label, 96)) continue;
+        if (!safe_field(id, 96) || !safe_utf8_field(label, 96) || id.rfind("webapp.", 0) == 0) continue;
         const bool retain_action = this->catalogue_actions_.size() < MAX_CATALOGUE_ACTIONS;
         if (retain_action) this->catalogue_actions_.emplace_back(id, label);
         // Keep icon eligibility for configured cards even when their app is
@@ -607,7 +608,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         if ((retain_action || app_icon_store().is_referenced(id)) &&
             id.rfind("folder.", 0) != 0 && id.rfind("shortcut.", 0) != 0 &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
-            id.rfind("webapp.", 0) != 0 && id.rfind("urlcard.", 0) != 0 &&
+            id.rfind("urlcard.", 0) != 0 &&
             std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==
                 this->catalogue_enabled_icons_.end())
           this->catalogue_enabled_icons_.push_back(id);
@@ -731,31 +732,22 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       if (page == 0) {
         this->remote_definitions_.clear();
         this->application_definition_count_ = 0;
-        this->web_app_definition_count_ = 0;
         this->definitions_generation_ = generation;
         this->definitions_next_page_ = 0;
       }
       for (const auto &item : payload->items) {
         const std::string kind = item.kind;
         const std::string json = item.json;
-        const bool is_application = kind == "application";
-        const bool is_web_app = kind == "webapp";
-        if (companion_remote_definition_capacity_available(kind, this->application_definition_count_,
-                                                           this->web_app_definition_count_) &&
+        if (companion_remote_definition_capacity_available(kind, this->application_definition_count_) &&
             companion_json_payload_valid(json, 12000)) {
           JsonDocument document;
           const auto error = deserializeJson(document, json);
-          const std::string id = kind == "webapp"
-            ? document["id"].as<std::string>() : document["appId"].as<std::string>();
-          const std::string icon_url = kind == "webapp"
-            ? document["icon"].as<std::string>() : std::string();
-          if (error || id.empty() || id.size() > 96 ||
-              (kind == "webapp" && icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0)) {
+          const std::string id = document["appId"].as<std::string>();
+          if (error || id.empty() || id.size() > 96) {
             continue;
           }
-          this->remote_definitions_.push_back({kind, id, icon_url, json});
-          if (is_application) ++this->application_definition_count_;
-          else ++this->web_app_definition_count_;
+          this->remote_definitions_.push_back({kind, id, json});
+          ++this->application_definition_count_;
         }
       }
       this->definitions_next_page_ = page + 1;
@@ -806,6 +798,15 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         }
         else companion_set_focused_actions(std::move(action_ids));
       });
+      return true;
+    }
+
+    if (const auto *payload = std::get_if<companion_protocol::SessionLock>(&*decoded)) {
+      // Serialize queueing with explicit pairing revocation so an in-flight
+      // message cannot restore the lock after the former Mac loses trust.
+      std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+      if (!this->identity_.paired || socket_fd != this->session_.authenticated_socket()) return false;
+      this->defer_session_([locked = payload->locked]() { screen_lock_set_mac_locked(locked); });
       return true;
     }
 
@@ -1180,7 +1181,6 @@ void CompanionService::publish_focus_targets_() {
     if (!safe_field(target.id, 96) || target.url.size() < 8 || target.url.size() > 128) continue;
     payload.items.push_back({target.id, target.url});
   }
-  payload.webAppIDs = snapshot.web_app_focus_ids;
   if (this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
         companion_protocol::encode(root, payload);
       }))) {
@@ -1192,11 +1192,9 @@ void CompanionService::restore_focus_targets_() {
   auto stored = std::unique_ptr<CompanionFocusTargetsPreference>(
       new (std::nothrow) CompanionFocusTargetsPreference{});
   if (!stored || !this->focus_targets_preferences_.load(stored.get()) || stored->version != 1 ||
-      stored->url_count > 64 || stored->web_app_count > 64) return;
+      stored->url_count > 64) return;
   std::vector<CompanionURLFocusTarget> targets;
-  std::vector<std::string> web_app_ids;
   targets.reserve(stored->url_count);
-  web_app_ids.reserve(stored->web_app_count);
   for (size_t i = 0; i < stored->url_count; ++i) {
     const char *value = stored->urls[i];
     const auto *end = static_cast<const char *>(std::memchr(value, '\0', sizeof(stored->urls[i])));
@@ -1206,12 +1204,7 @@ void CompanionService::restore_focus_targets_() {
         "url." + companion_encode_url_focus_value(url));
     if (companion_url_focus_target_valid(id, url)) targets.push_back({id, url});
   }
-  for (size_t i = 0; i < stored->web_app_count; ++i) {
-    const char *value = stored->web_app_ids[i];
-    const auto *end = static_cast<const char *>(std::memchr(value, '\0', sizeof(stored->web_app_ids[i])));
-    if (end) web_app_ids.emplace_back(value, static_cast<size_t>(end - value));
-  }
-  companion_set_focus_registrations(std::move(targets), std::move(web_app_ids));
+  companion_set_focus_registrations(std::move(targets));
 }
 
 void CompanionService::save_focus_targets_() {
@@ -1228,14 +1221,7 @@ void CompanionService::save_focus_targets_() {
     std::memcpy(stored->urls[url_count], target.url.c_str(), target.url.size() + 1);
     ++url_count;
   }
-  size_t web_app_count = 0;
-  for (const auto &id : snapshot.web_app_focus_ids) {
-    if (web_app_count >= 64 || id.empty() || id.size() > 64) continue;
-    std::memcpy(stored->web_app_ids[web_app_count], id.c_str(), id.size() + 1);
-    ++web_app_count;
-  }
   stored->url_count = static_cast<uint8_t>(url_count);
-  stored->web_app_count = static_cast<uint8_t>(web_app_count);
   if (!this->focus_targets_preferences_.save(stored.get()))
     ESP_LOGW(TAG, "Could not persist Companion browser focus registrations");
 }
@@ -1364,6 +1350,8 @@ void CompanionService::revoke_pairing() {
   this->preferences_.save(&this->identity_);
   this->sequence_preferences_.save(&this->last_sequence_);
   this->set_connected_(false);
+  // Revoking trust also clears the Mac's lock. Ordinary disconnects retain it.
+  this->defer([]() { screen_lock_set_mac_locked(false); });
   if (previous_socket >= 0) httpd_sess_trigger_close(this->server_, previous_socket);
 }
 

@@ -9,7 +9,6 @@ export function companionMetricForEntity(entity: unknown) {
 
 export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCardModeId {
   const entity = config.entity || "";
-  if (entity.startsWith("webapp.")) return "webapp";
   if (entity.startsWith("shortcut.")) return "shortcut";
   if (COMPANION_SYSTEM_ACTIONS.some((action) => action.id === entity)) return "system";
   if (entity.startsWith("window.")) return "window";
@@ -32,7 +31,6 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "shortcut": return { mode, shortcutId: entity };
     case "folder": return { mode, folderId: entity };
     case "url": return { mode, applicationId: entity, encodedUrl: config.sensor || "" };
-    case "webapp": return { mode, webAppId: entity.slice("webapp.".length) };
     case "system": return { mode, actionId: entity };
     case "window": return { mode, actionId: entity };
     case "stats": return { mode, metricId: entity, precision: config.precision || "", unit: config.unit || "" };
@@ -48,7 +46,6 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "shortcut": config.entity = model.shortcutId; break;
     case "folder": config.entity = model.folderId; break;
     case "url": config.entity = model.applicationId; config.sensor = model.encodedUrl; break;
-    case "webapp": config.entity = "webapp." + model.webAppId; config.sensor = ""; break;
     case "system": config.entity = model.actionId; break;
     case "window": config.entity = model.actionId; break;
     case "stats":

@@ -85,9 +85,9 @@ int main() {
   const auto climate = card_runtime_context("climate");
   const auto climate_control = card_runtime_context("climate_control");
   const auto alarm = card_runtime_context("alarm");
-  const auto clock = card_runtime_context("clock");
-  const auto timezone = card_runtime_context("timezone");
-  const auto calendar = card_runtime_context("calendar");
+  for (const char *type : {"calendar", "clock", "timezone"}) {
+    if (!card_runtime_type_retired(type) || card_runtime_context(type).known) return EXIT_FAILURE;
+  }
   const auto weather = card_runtime_context("weather");
   const auto weather_forecast = card_runtime_context("weather_forecast");
   if (card_runtime_context("internal").known) {
@@ -100,7 +100,6 @@ int main() {
   const auto light_switch = card_runtime_context("light_switch");
   const auto raw_local_action_alias = card_runtime_context("local");
   const auto push = card_runtime_context("push");
-  const auto webhook = card_runtime_context("webhook");
   const auto slider = card_runtime_context("slider");
   const auto light_brightness = card_runtime_context("light_brightness");
   const auto light_temperature = card_runtime_context("light_temperature");
@@ -130,15 +129,12 @@ int main() {
   const auto unsupported = card_runtime_context("not_a_card");
   if (!card_runtime_information_only(door) || !card_runtime_passive(door) ||
       !presence.known ||
-      clock.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
-      timezone.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
-      calendar.runtime.driver != espdesktop::card_runtime::CardDriverId::DATE_TIME ||
       weather.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
       weather_forecast.runtime.driver != espdesktop::card_runtime::CardDriverId::WEATHER ||
-      !toggle.known || !action.known || !alarm_action.known ||
+      !toggle.known || action.known || !alarm_action.known ||
       !fan_switch.known || !light_switch.known ||
       raw_local_action_alias.known ||
-      !push.known || !webhook.known ||
+      !push.known ||
       slider.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
       light_brightness.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
       light_temperature.runtime.driver !=
@@ -148,7 +144,7 @@ int main() {
       fan_direction.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
       fan_preset.runtime.driver != espdesktop::card_runtime::CardDriverId::FAN ||
       option_select.runtime.driver !=
-        espdesktop::card_runtime::CardDriverId::OPTION_SELECT ||
+        espdesktop::card_runtime::CardDriverId::UNKNOWN ||
       vacuum.runtime.driver != espdesktop::card_runtime::CardDriverId::VACUUM ||
       mower.runtime.driver != espdesktop::card_runtime::CardDriverId::LAWN_MOWER ||
       garage.runtime.driver != espdesktop::card_runtime::CardDriverId::ACCESS ||
@@ -236,7 +232,7 @@ int main() {
     return EXIT_FAILURE;
   }
   if (option_select_compatibility.runtime.driver !=
-        espdesktop::card_runtime::CardDriverId::ACTION) {
+        espdesktop::card_runtime::CardDriverId::UNKNOWN) {
     return EXIT_FAILURE;
   }
   // Modal-opening cards skip the temporary pressed-card repaint. Direct
@@ -251,7 +247,7 @@ int main() {
       !card_runtime_main_click_opens_modal(media_control) ||
       !card_runtime_main_click_opens_modal(media_volume) ||
       !card_runtime_main_click_opens_modal(media_cover_art) ||
-      !card_runtime_main_click_opens_modal(option_select) ||
+      card_runtime_main_click_opens_modal(option_select) ||
       card_runtime_main_click_opens_modal(media_play_pause) ||
       card_runtime_main_click_opens_modal(media_transport) ||
       card_runtime_main_click_opens_modal(media_position) ||
@@ -259,14 +255,13 @@ int main() {
     return EXIT_FAILURE;
   }
   const char *contract_card_types[] = {
-    "", "action", "alarm", "alarm_action", "calendar", "climate",
-    "climate_control", "clock", "cover", "door_window", "fan_control",
+    "", "alarm", "alarm_action", "climate",
+    "climate_control", "cover", "door_window", "fan_control",
     "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_switch",
     "garage", "gate", "image", "lawn_mower", "light_brightness",
     "light_control", "light_switch", "light_temperature", "lock",
-    "media", "option_select", "presence", "push",
-    "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
-    "webhook",
+    "media", "presence", "push",
+    "slider", "subpage", "vacuum", "weather", "weather_forecast",
   };
   for (const char *type : contract_card_types) {
     const auto registration = card_runtime_registration(type);

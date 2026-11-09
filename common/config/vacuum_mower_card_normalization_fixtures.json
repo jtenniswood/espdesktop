@@ -3,13 +3,13 @@
     "name": "legacy vacuum start action migrates to start stop",
     "input": "vacuum.k11;Vacuum Bath;Auto;Robot Vacuum;vacuum.start;ignored;action;2;ignored=1",
     "expected": {
-      "entity": "vacuum.k11",
-      "label": "Vacuum Bath",
-      "icon": "Robot Vacuum",
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
       "icon_on": "Auto",
-      "sensor": "start_stop",
+      "sensor": "",
       "unit": "",
-      "type": "vacuum",
+      "type": "action",
       "precision": "",
       "options": ""
     }
@@ -18,13 +18,13 @@
     "name": "legacy vacuum dock action migrates to dock",
     "input": "vacuum.k11;Dock Vacuum;Auto;Robot Vacuum;vacuum.return_to_base;ignored;action;2;ignored=1",
     "expected": {
-      "entity": "vacuum.k11",
-      "label": "Dock Vacuum",
-      "icon": "Robot Vacuum Variant",
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
       "icon_on": "Auto",
-      "sensor": "dock",
+      "sensor": "",
       "unit": "",
-      "type": "vacuum",
+      "type": "action",
       "precision": "",
       "options": ""
     }

@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { state } from "../state/app_instance";
 import {
     cardContractAllowInSubpage,
@@ -48,13 +49,8 @@ export function registerPushCardTypes(registry: CardRegistry, fields: ControlsFi
         labelPlaceholder: "e.g. Doorbell",
         defaultConfig: function (this: any) { return cardContractDefaultConfig("push"); },
         cardMetadata: PUSH_CARD_METADATA,
-        onSelect: function (this: any, b?: any) {
-            var defaults: any = cardContractDefaultConfig("push");
-            Object.keys(defaults).forEach(function (this: any, key?: any) { b[key] = defaults[key]; });
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            helpers.renderBasicCardFields(panel, b, helpers, PUSH_CARD_METADATA);
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var label: any = b.label || "Trigger";
             return cardBadgePreview(b, helpers, {

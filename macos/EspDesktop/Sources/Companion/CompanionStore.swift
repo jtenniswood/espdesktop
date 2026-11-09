@@ -147,12 +147,12 @@ final class CompanionStore: NSObject, ObservableObject {
     private let remoteCatalogueStore = RemoteCompanionCatalogueStore()
     private var latestNowPlayingSnapshot: CompanionNowPlayingSnapshot?
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
+    private let sessionLock = MacSessionLockMonitor()
     private var mediaControlTimer: Timer?
     private var focusTimer: Timer?
     private var activatedApplicationPID: pid_t?
     private var lastMediaControlValues: [String: Int] = [:]
     private var companionURLFocusTargets: [(id: String, url: URL)] = []
-    private var companionWebAppFocusIDs: Set<String> = []
 
     override convenience init() {
         self.init(
@@ -188,6 +188,10 @@ final class CompanionStore: NSObject, ObservableObject {
             ?? (savedPairingAccounts.contains(configuredPanelHost) ? configuredPanelHost : nil)
             ?? (savedPairingAccounts.count == 1 ? savedPairingAccounts[0] : "")
         super.init()
+        sessionLock.onChange = { [weak self] locked in
+            self?.connection.publishSessionLock(locked)
+        }
+        sessionLock.start()
         NSWorkspace.shared.notificationCenter.addObserver(
             self,
             selector: #selector(frontmostApplicationDidChange(_:)),
@@ -420,7 +424,6 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { remoteCatalogueStore.value }
-    func configuredWebAppIDs() -> [String] { companionWebAppFocusIDs.sorted() }
     func focusedLaunchableApplicationIdentifier() -> String {
         guard let application = NSWorkspace.shared.frontmostApplication,
               (application.bundleIdentifier == "com.apple.finder" ||
@@ -468,19 +471,14 @@ final class CompanionStore: NSObject, ObservableObject {
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
             let browser = focusedLaunchableApplicationIdentifier()
-            guard !companionWebAppFocusIDs.isEmpty || !companionURLFocusTargets.isEmpty else {
+            guard !companionURLFocusTargets.isEmpty else {
                 return browser.isEmpty ? [] : [browser]
             }
             let activeURL = await activeBrowserTabURL(bundleIdentifier: bundleIdentifier)
             guard let url = activeURL else {
                 return browser.isEmpty ? [] : [browser]
             }
-            let catalogues = remoteCatalogueStore.value
-            let webApps = ActiveTabURLMatcher.matchingConfiguredWebAppIDs(
-                url: url, definitions: catalogues.webApplications, configuredIDs: companionWebAppFocusIDs
-            ).map { "webapp.\($0)" }
             var matches = browser.isEmpty ? [] : [browser]
-            matches.append(contentsOf: webApps)
             matches.append(contentsOf: ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: companionURLFocusTargets))
             return matches
         }
@@ -500,9 +498,8 @@ final class CompanionStore: NSObject, ObservableObject {
         return [bundleIdentifier]
     }
 
-    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)], webAppIDs: [String]) {
+    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)]) {
         companionURLFocusTargets = Array(targets.prefix(64))
-        companionWebAppFocusIDs = Set(webAppIDs.prefix(64))
         if isConnected { connection.publishFocusedAction() }
     }
 
@@ -696,6 +693,7 @@ final class CompanionStore: NSObject, ObservableObject {
         case let .status(message): updateStatus(message)
         case let .capabilities(systemMetrics): setSystemMetricsSupported(systemMetrics)
         case .publishCurrentState:
+            connection.publishSessionLock(sessionLock.refresh())
             republishCurrentNowPlaying()
             republishCurrentSystemMetrics()
         case let .artworkRequested(generation): republishNowPlayingArtwork(generation: generation)
@@ -826,37 +824,10 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func performResultStatus(actionIdentifier: String,
                              folderOpenBehavior: String = "new_window") async -> String {
+        guard !sessionLock.refresh() else { return "not_allowed" }
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior)
-        if performed, actionIdentifier.hasPrefix("webapp.") {
-            return await waitForWebAppActivation(actionIdentifier) ? "activated" : "performed"
-        }
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
-    }
-
-    private func waitForWebAppActivation(_ actionIdentifier: String) async -> Bool {
-        guard actionIdentifier.hasPrefix("webapp."),
-              companionWebAppFocusIDs.contains(String(actionIdentifier.dropFirst("webapp.".count))) else {
-            return false
-        }
-        let deadline = ContinuousClock.now + .seconds(6)
-        while ContinuousClock.now < deadline {
-            guard !Task.isCancelled else { return false }
-            let focusedActionIdentifiers = await focusedCompanionActionIdentifiers()
-            if Self.webAppActivationObserved(
-                actionIdentifier: actionIdentifier,
-                focusedActionIdentifiers: focusedActionIdentifiers
-            ) { return true }
-            try? await Task.sleep(nanoseconds: 150_000_000)
-        }
-        return false
-    }
-
-    nonisolated static func webAppActivationObserved(
-        actionIdentifier: String,
-        focusedActionIdentifiers: [String]
-    ) -> Bool {
-        focusedActionIdentifiers.contains(actionIdentifier)
     }
 
     nonisolated static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {
@@ -864,7 +835,6 @@ final class CompanionStore: NSObject, ObservableObject {
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix)
-            && !actionIdentifier.hasPrefix("webapp.")
             && !actionIdentifier.hasPrefix("system.")
         return isApplicationLaunch ? "activated" : "performed"
     }
@@ -919,12 +889,6 @@ final class CompanionStore: NSObject, ObservableObject {
                 }
                 let step = actionIdentifier == "system.brightness_up" ? 10 : -10
                 return setMediaControlValue(min(100, max(0, current + step)), controlIdentifier: SystemMediaController.brightnessID)
-            case "system.lock":
-                guard CompanionKeyboardShortcut(actionIdentifier: "shortcut.control+command+q")?.replay() == true else {
-                    updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
-                    return false
-                }
-                return true
             default: return false
             }
         }
@@ -947,11 +911,6 @@ final class CompanionStore: NSObject, ObservableObject {
 
         guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) ||
               actionIdentifier.hasPrefix(CompanionKeyboardShortcut.windowActionPrefix) else {
-            if actionIdentifier.hasPrefix("webapp."),
-               let definition = remoteCatalogueStore.value.webApplications.first(where: { "webapp.\($0.id)" == actionIdentifier }),
-               let url = URL(string: definition.url) {
-                return NSWorkspace.shared.open(url)
-            }
             return await launch(bundleIdentifier: actionIdentifier)
         }
         guard let shortcut = CompanionKeyboardShortcut(actionIdentifier: actionIdentifier) else {
@@ -970,6 +929,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool {
+        guard !sessionLock.refresh() else { return false }
         guard mediaController.setValue(value, controlIdentifier: controlIdentifier) else { return false }
         publishMediaControlValues(force: true)
         return true
@@ -1010,6 +970,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func openURL(encodedURL: String, bundleIdentifier: String) async -> Bool {
+        guard !sessionLock.refresh() else { return false }
         _ = bundleIdentifier  // Older firmware sends the previously selected app; URLs now use the system default.
         guard encodedURL.utf8.count <= 128,
               let value = encodedURL.removingPercentEncoding,

@@ -32,7 +32,7 @@ for (const outcome of ["Large", "Medium", "Small", "missing", "rejected"]) {
         return Promise.resolve({ id: name });
       },
     }, { schedule() {} }, {
-      subpageEntityKeys: () => [], specialPageEntityKeys: () => [], connectEvents() {},
+      subpageEntityKeys: () => [], connectEvents() {},
       publishCompanionURLTargets: () => finish(),
     });
     try {

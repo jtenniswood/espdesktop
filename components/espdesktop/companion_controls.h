@@ -20,7 +20,6 @@
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
 #endif
-#include "web_apps_generated.h"
 #include "companion_pairing_policy.h"
 #include "companion_timezone.h"
 #include "i18n_generated.h"
@@ -262,28 +261,16 @@ inline CompanionPairingProvider &companion_pairing_provider() {
 
 inline void companion_set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
   size_t application_count = 0;
-  size_t web_app_count = 0;
   definitions.erase(std::remove_if(definitions.begin(), definitions.end(),
-    [&application_count, &web_app_count](const CompanionRemoteDefinition &definition) {
-      if ((definition.kind != "application" && definition.kind != "webapp") ||
+    [&application_count](const CompanionRemoteDefinition &definition) {
+      if (definition.kind != "application" ||
           definition.json.empty() || definition.json.size() > 12000 ||
-          !companion_remote_definition_capacity_available(definition.kind, application_count, web_app_count))
+          !companion_remote_definition_capacity_available(definition.kind, application_count))
         return true;
-      if (definition.kind == "application") ++application_count;
-      else ++web_app_count;
+      ++application_count;
       return false;
     }), definitions.end());
   companion_runtime_service().set_remote_definitions(std::move(definitions));
-}
-
-inline std::string companion_web_app_icon_url(const std::string &action_id) {
-  constexpr const char *prefix = "webapp.";
-  if (action_id.rfind(prefix, 0) != 0) return "";
-  const std::string id = action_id.substr(7);
-  const std::string icon_url = companion_runtime_service().remote_definition_icon_url("webapp", id);
-  if (icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) == 0)
-    return icon_url;
-  return companion_web_app_catalog::icon_url(id);
 }
 
 inline std::string companion_url_card_focus_id(const std::string &url_config);
@@ -313,17 +300,11 @@ inline bool companion_url_focus_target_valid(const std::string &id, const std::s
   return !authority.empty() && authority.find('@') == std::string::npos;
 }
 
-inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarget> targets,
-                                               std::vector<std::string> web_app_ids) {
+inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarget> targets) {
   targets.erase(std::remove_if(targets.begin(), targets.end(), [](const auto &target) {
     return !companion_url_focus_target_valid(target.id, target.url);
   }), targets.end());
-  web_app_ids.erase(std::remove_if(web_app_ids.begin(), web_app_ids.end(), [](const auto &id) {
-    return id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
-      return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
-    });
-  }), web_app_ids.end());
-  companion_runtime_service().set_focus_registrations(std::move(targets), std::move(web_app_ids));
+  companion_runtime_service().set_focus_registrations(std::move(targets));
 }
 
 inline void companion_set_actions(std::vector<CompanionAction> actions) {
@@ -342,14 +323,19 @@ inline void companion_set_keyboard_actions_supported(bool supported) {
   companion_runtime_service().set_keyboard_actions_supported(supported);
 }
 
+inline bool companion_mute_control_valid(const std::string &control_id) {
+  return control_id == "media.output_mute" || control_id == "media.input_mute";
+}
+
 inline bool companion_volume_control_valid(const std::string &control_id) {
   return control_id == "media.output_volume" || control_id == "media.input_volume" ||
-         control_id == "display.brightness";
+         companion_mute_control_valid(control_id) || control_id == "display.brightness";
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
-  if (control_id == "media.output_volume") return espdesktop_i18n("Output Volume");
-  if (control_id == "media.input_volume") return espdesktop_i18n("Input Volume");
+  if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
+  if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
+  if (companion_mute_control_valid(control_id)) return espdesktop_i18n("Mute");
   if (control_id == "display.brightness") return espdesktop_i18n("brightness");
   return espdesktop_i18n("Volume");
 }
@@ -424,7 +410,7 @@ inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
       action_id.rfind("media.", 0) == 0 || action_id.rfind("system.", 0) == 0) return false;
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&
-      action_id.rfind("folder.", 0) != 0 && action_id.rfind("webapp.", 0) != 0 &&
+      action_id.rfind("folder.", 0) != 0 &&
       action_id.rfind("urlcard.", 0) != 0 && action_id.rfind("window.", 0) != 0 &&
       action_id.rfind("stat.", 0) != 0)
     return snapshot.application_highlight_id == action_id;
@@ -729,9 +715,18 @@ inline void companion_apply_card_focus(lv_obj_t *button, const std::string &acti
   }
 }
 
+struct CompanionMuteRef {
+  lv_obj_t *button = nullptr;
+  std::string control_id;
+  lv_obj_t *icon_label = nullptr;
+  const char *icon_unmuted = nullptr;
+  const char *icon_muted = nullptr;
+};
+
 struct CompanionViewRegistry {
   std::vector<CompanionCardRef> cards;
   std::vector<CompanionSliderRef> sliders;
+  std::vector<CompanionMuteRef> mutes;
   std::string pending_focus_frame;
 };
 
@@ -810,6 +805,50 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
     refs.push_back({slider, icon_label, control_id, has_icon_on, icon_off, icon_on});
     lv_obj_add_event_cb(slider, companion_slider_deleted, LV_EVENT_DELETE, nullptr);
   }
+  companion_request_card_refresh();
+}
+
+inline void companion_apply_mute_state(const CompanionMuteRef &ref,
+                                       const CompanionRuntimeSnapshot &snapshot) {
+  const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
+    [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
+  const bool available = snapshot.connected && value != snapshot.values.end();
+  const bool muted = available && value->value > 0;
+  set_card_disabled_state(ref.button, !available);
+  set_card_checked_state(ref.button, muted);
+  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
+  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label))
+    lv_label_set_text(ref.icon_label, icon);
+}
+
+inline bool companion_erase_mute_ref(lv_obj_t *button) {
+  auto &refs = companion_view_registry().mutes;
+  const auto previous_size = refs.size();
+  refs.erase(std::remove_if(refs.begin(), refs.end(), [button](const auto &ref) {
+    return ref.button == button;
+  }), refs.end());
+  return refs.size() != previous_size;
+}
+
+inline void companion_mute_deleted(lv_event_t *event) {
+  companion_erase_mute_ref(static_cast<lv_obj_t *>(lv_event_get_target(event)));
+}
+
+inline bool companion_forget_mute(lv_obj_t *button) {
+  if (!companion_erase_mute_ref(button)) return false;
+  lv_obj_remove_event_cb(button, companion_mute_deleted);
+  return true;
+}
+
+inline void companion_track_mute(lv_obj_t *button, const std::string &control_id,
+                                  lv_obj_t *icon_label = nullptr,
+                                  const char *icon_unmuted = nullptr,
+                                  const char *icon_muted = nullptr) {
+  if (!button || !companion_mute_control_valid(control_id)) return;
+  companion_forget_mute(button);
+  companion_view_registry().mutes.push_back(
+    {button, control_id, icon_label, icon_unmuted, icon_muted});
+  lv_obj_add_event_cb(button, companion_mute_deleted, LV_EVENT_DELETE, nullptr);
   companion_request_card_refresh();
 }
 
@@ -976,6 +1015,8 @@ inline void companion_refresh_cards_if_requested() {
     companion_apply_card_focus(it->button, it->action_id, it->url_config, it->show_focus, &snapshot);
     ++it;
   }
+  for (const auto &ref : companion_view_registry().mutes)
+    companion_apply_mute_state(ref, snapshot);
   auto &sliders = companion_slider_refs();
   for (auto it = sliders.begin(); it != sliders.end();) {
     if (!it->slider || !lv_obj_is_valid(it->slider)) {
@@ -1005,11 +1046,22 @@ inline void companion_track_card(void *, const std::string &, const std::string 
 inline void companion_track_metric_card(void *, void *, void *, const std::string &,
                                         const std::string &, int) {}
 inline void companion_apply_card_focus(void *, const std::string &, const std::string & = "", bool = true) {}
+inline bool companion_forget_mute(void *) { return false; }
+inline void companion_track_mute(void *, const std::string &, void * = nullptr,
+                                 const char * = nullptr, const char * = nullptr) {}
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *) {}
 inline void companion_refresh_cards_if_requested() {}
 inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
+
+inline bool companion_toggle_mute(const std::string &control_id) {
+  int value = 0;
+  if (!companion_mute_control_valid(control_id) || !companion_connected() ||
+      !companion_value(control_id, value) || !companion_value_sender()) return false;
+  return companion_value_sender()(control_id, value > 0 ? 0 : 100,
+                                  "mute-" + std::to_string(companion_next_request_number()));
+}
 
 inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id,
@@ -1039,7 +1091,8 @@ inline bool invoke_companion_url(const std::string &app_id,
 inline bool invoke_companion_value(const std::string &control_id, int value,
                                    const std::string &request_id) {
   if (!companion_connected() || !companion_volume_control_valid(control_id) ||
-      value < 0 || value > 100 || !companion_value_sender()) return false;
+      value < 0 || value > 100 || !companion_value_sender() ||
+      (companion_mute_control_valid(control_id) && value != 0 && value != 100)) return false;
   return companion_value_sender()(control_id, value, request_id);
 }
 
@@ -1207,7 +1260,6 @@ class CompanionFocusTargetsHandler final : public esphome::web_server_idf::Async
     if (!companion_authorize_web_request(request)) return;
     const auto content_type = request->get_header("Content-Type");
     std::vector<CompanionURLFocusTarget> targets;
-    std::vector<std::string> web_app_ids;
     const bool parsed = content_type.has_value() && *content_type == "application/json" &&
       valid_ && received_ == expected_ && esphome::json::parse_json(body_.data(), received_, [&](JsonObject root) {
         if (!root["targets"].is<JsonArrayConst>()) return false;
@@ -1222,25 +1274,12 @@ class CompanionFocusTargetsHandler final : public esphome::web_server_idf::Async
           if (!companion_url_focus_target_valid(id, url)) return false;
           targets.push_back({id, url});
         }
-        if (!root["webAppIDs"].isUnbound()) {
-          if (!root["webAppIDs"].is<JsonArrayConst>()) return false;
-          const JsonArrayConst ids = root["webAppIDs"].as<JsonArrayConst>();
-          if (ids.size() > 64) return false;
-          for (JsonVariantConst value : ids) {
-            if (!value.is<const char *>()) return false;
-            const std::string id = value.as<const char *>();
-            if (id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
-                  return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
-                })) return false;
-            web_app_ids.push_back(id);
-          }
-        }
         return true;
       });
     valid_ = false;
     httpd_req_t *raw = *request;
     if (!parsed) { httpd_resp_send_err(raw, HTTPD_400_BAD_REQUEST, "Invalid Companion focus targets"); return; }
-    companion_set_focus_registrations(std::move(targets), std::move(web_app_ids));
+    companion_set_focus_registrations(std::move(targets));
     httpd_resp_set_type(raw, "application/json");
     httpd_resp_set_hdr(raw, "Cache-Control", "no-store");
     httpd_resp_send(raw, "{\"saved\":true}", HTTPD_RESP_USE_STRLEN);

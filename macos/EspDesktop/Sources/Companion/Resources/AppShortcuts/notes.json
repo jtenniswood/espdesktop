@@ -20,7 +20,7 @@
       "id": "2",
       "label": "Search all notes",
       "shortcut": "option+command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "3",

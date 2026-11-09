@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import { iconSlug } from "../application/ui_primitives";
 import type { CardRegistry, CardUiServices } from "../application/card_registry";
@@ -175,64 +176,8 @@ export function registerFanCardTypes(
             isAvailable: opts.hidden ? function (this: any) { return false; } : null,
             labelPlaceholder: "e.g. Bedroom Fan",
             cardMetadata: FAN_CARD_METADATA,
-            onSelect: function (this: any, b?: any) {
-                b.sensor = "";
-                b.unit = "";
-                b.precision = "";
-                // The picker can resolve Fans to All Controls before invoking
-                // this definition too; apply defaults for the resolved mode.
-                var selectedType = normalizeFanControlType(b.type || opts.type);
-                b.options = selectedType === "fan_control" ? normalizeFanControlOptions(b.options) : preserveCardColorOptions(b.options, "");
-                b.icon = fanControlDefaultIcon(selectedType);
-                b.icon_on = selectedType === "fan_switch" ? "Fan" : "Auto";
-            },
-            renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-                b.sensor = "";
-                b.unit = "";
-                b.precision = "";
-                b.options = b.type === "fan_control" ? normalizeFanControlOptions(b.options) : preserveCardColorOptions(b.options, "");
-                if (!b.icon || b.icon === "Auto")
-                    b.icon = fanControlDefaultIcon(b.type);
-                if (b.type === "fan_switch") {
-                    if (!b.icon_on || b.icon_on === "Auto")
-                        b.icon_on = "Fan";
-                }
-                else if (b.icon_on !== "Auto") {
-                    b.icon_on = "Auto";
-                    helpers.saveField("icon_on", "Auto");
-                }
-                renderFanControlTypeField(panel, b, helpers);
-                helpers.renderCardEntityField(panel, b, helpers, FAN_CARD_METADATA);
-                helpers.renderCardTextField(panel, b, helpers, FAN_CARD_METADATA.labelField);
-                if (b.type === "fan_control") {
-                    renderFanControlTabSettings(panel, b, helpers);
-                }
-                if (b.type === "fan_switch") {
-                    helpers.renderCardIconPicker(panel, b, helpers, {
-                        pickerIdSuffix: "fan-icon-picker",
-                        idSuffix: "fan-icon",
-                        field: "icon",
-                        fallback: "Fan Off",
-                        label: "Off Icon",
-                    });
-                    helpers.renderCardIconPicker(panel, b, helpers, {
-                        pickerIdSuffix: "fan-icon-on-picker",
-                        idSuffix: "fan-icon-on",
-                        field: "icon_on",
-                        fallback: "Fan",
-                        label: "On Icon",
-                    });
-                }
-                else {
-                    helpers.renderCardIconPicker(panel, b, helpers, {
-                        pickerIdSuffix: "fan-icon-picker",
-                        idSuffix: "fan-icon",
-                        field: "icon",
-                        fallback: function (this: any) { return fanControlDefaultIcon(b.type); },
-                        label: "Icon",
-                    });
-                }
-            },
+            onSelect: null,
+            renderSettings: renderRetiredCardSettings,
             renderPreview: function (this: any, b?: any, helpers?: any) {
                 var type: any = normalizeFanControlType(b.type);
                 var label: any = b.label || b.entity || "Fan";

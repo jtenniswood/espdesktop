@@ -45,36 +45,6 @@
     }
   },
   {
-    "name": "action: service",
-    "input": "~scene.example,,Flash,Auto,scene.turn_on,,action,,",
-    "expected": {
-      "entity": "scene.example",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "scene.turn_on",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "action: local",
-    "input": "~zoom_mute,,Flash,Auto,local,,action,,",
-    "expected": {
-      "entity": "zoom_mute",
-      "label": "",
-      "icon": "Gesture Tap",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "vacuum: status",
     "input": "~vacuum.example,,Robot%20Vacuum,Auto,status,,vacuum,,",
     "expected": {
@@ -325,36 +295,6 @@
       "sensor": "disarm",
       "unit": "",
       "type": "alarm_action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "calendar: date",
-    "input": "~sensor.date,,Auto,Auto,,,calendar,,",
-    "expected": {
-      "entity": "sensor.date",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "calendar",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "clock: local_time",
-    "input": "~,,Auto,Auto,,,clock,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "clock",
       "precision": "",
       "options": ""
     }
@@ -990,21 +930,6 @@
     }
   },
   {
-    "name": "option_select: legacy_option_select",
-    "input": "~input_select.example,,Flash,Auto,input_select.select_option,,option_select,,",
-    "expected": {
-      "entity": "input_select.example",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "input_select.select_option",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "push: event",
     "input": "~,Trigger,Gesture%20Tap,Auto,,,push,,",
     "expected": {
@@ -1035,36 +960,6 @@
     }
   },
   {
-    "name": "webhook: get",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,GET,,webhook,,",
-    "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "GET",
-      "unit": "",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "webhook: post",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,POST,%7B%7D,webhook,,",
-    "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "POST",
-      "unit": "{}",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "slider: numeric",
     "input": "~input_number.example,,Auto,Auto,,,slider,,",
     "expected": {
@@ -1090,21 +985,6 @@
       "sensor": "",
       "unit": "",
       "type": "subpage",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "timezone: timezone",
-    "input": "~Europe%2FLondon,,Auto,Auto,,,timezone,,",
-    "expected": {
-      "entity": "Europe/London",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "timezone",
       "precision": "",
       "options": ""
     }
@@ -1196,21 +1076,6 @@
       "unit": "",
       "type": "weather",
       "precision": "tomorrow",
-      "options": ""
-    }
-  },
-  {
-    "name": "local: accepted_legacy_input",
-    "input": "~zoom_mute,,,,local,,local,,",
-    "expected": {
-      "entity": "zoom_mute",
-      "label": "",
-      "icon": "Gesture Tap",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "action",
-      "precision": "",
       "options": ""
     }
   },

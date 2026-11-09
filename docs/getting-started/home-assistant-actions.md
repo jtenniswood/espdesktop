@@ -1,44 +1,12 @@
 ---
-title: "Allow EspDesktop to Control Home Assistant Devices"
-titleTemplate: :title
-description:
-  How to allow your EspDesktop touchscreen to perform Home Assistant actions so it can control lights, switches, and other devices.
+title: "Home Assistant Actions Retired"
+description: "How previously saved Home Assistant configurations behave after removal."
 ---
 
-# Allow EspDesktop to Control Home Assistant Devices
+# Home Assistant Actions Retired
 
-EspDesktop needs permission to call Home Assistant actions (like toggling lights, running scripts, changing media volume, or adjusting climate targets) on your behalf. Without this, the touchscreen can display read-only information but **cards won't be able to control your devices or request forecast data**.
+Home Assistant action permissions are no longer part of EspDesktop setup. The firmware has no native Home Assistant API and cannot subscribe to entity states or send Home Assistant actions.
 
-Your display will prompt you to do this during first-time setup. Follow the steps below.
+For Mac controls, follow [Mac app setup](/getting-started/mac-app). Use the [Volume controls](/card-types/sliders) to adjust or mute Mac output and microphone audio. See [Mac Companion artwork](/features/media-cover-art) for fullscreen artwork.
 
-## Enable Actions
-
-1. **Open Home Assistant** and go to **Settings > Devices & Services** and add the discovered device (if the device wasn't discovered, find its IP address and add it as an ESPHome device).
-
-![Home Assistant discovering the EspDesktop device](/images/ha-actions-step-1.png)
-
-2. **Find the ESPHome integration** and click on the top half (ESPHome > ), if you click on the number of devices, you'll end up on a different view.
-
-![ESPHome integration showing connected devices](/images/ha-actions-step-2.png)
-
-3. **Find your EspDesktop device** in the list. Click the **Configure** button (gear icon) next to it.
-
-![EspDesktop device entry with configure button](/images/ha-actions-step-3.png)
-
-4. **Check "Allow the device to perform Home Assistant actions"** and click **Submit**.
-
-![Options dialog with the actions checkbox enabled](/images/ha-actions-step-4.png)
-
-5. **Go back to your display** and tap **Done** on the setup screen. Your cards will now be able to control Home Assistant devices.
-
-::: tip One-time setup
-You only need to do this once per device. The setting persists across firmware updates and device restarts.
-:::
-
-## What If I Skip This?
-
-You won't be able to control any devices, it will be in a read-only state, and entities such as lights, switches, fans, scenes, scripts, helpers, covers, locks, media players, and climate devices won't do anything when tapped. Weather cards set to **Today's Forecast**, **Tomorrow's Forecast**, or **Daily Forecast** also won't be able to fetch the daily forecast.
-
-## Device Not Showing Up?
-
-If you don't see your EspDesktop device in the ESPHome integration, it may not have been added to Home Assistant yet. Head back to the [Install](/getting-started/install#add-home-assistant) guide to add it first.
+For Home Assistant touchscreen controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
