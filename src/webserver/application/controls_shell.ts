@@ -93,10 +93,10 @@ export function createControlsShellFeature(
     function showBanner(this: any, msg?: any, type?: any) {
         if (!els.banner)
             return;
+        dependencies.cancelSchedule(els._bannerTimer);
         els.banner.textContent = msg;
         els.banner.className = "sp-banner sp-" + type;
         if (type === "error" || type === "success" || type === "warning") {
-            dependencies.cancelSchedule(els._bannerTimer);
             els._bannerTimer = dependencies.schedule(function (this: any) {
                 els.banner.className = "sp-banner";
             }, 6000);
