@@ -932,7 +932,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
-    native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, shell,
+    native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, fields, shell,
     autoSwitchEnabled: () => state.autoOpenAppSubpages,
     saveAutoSwitch: async (enabled) => {
       await requestApi.postQueueIdle();

@@ -8836,23 +8836,29 @@ async function assertFirstRunSetup(browser) {
   try {
     await open();
     const dialog = page.getByRole("dialog");
-    await dialog.getByLabel("Safari", { exact: true }).check();
+    const setChecked = async (input, checked) => {
+      const track = input.locator("..").locator(".sp-toggle-track");
+      await track.waitFor();
+      if (await input.isChecked() !== checked) await track.click();
+      assert.equal(await input.isChecked(), checked);
+    };
+    await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
     // The selection cap disables remaining apps while allowing deselection.
-    for (let i = 0; i < testCase.slots - 1; i++) await dialog.getByLabel(`App ${i}`, { exact: true }).check();
+    for (let i = 0; i < testCase.slots - 1; i++) await setChecked(dialog.getByLabel(`App ${i}`, { exact: true }), true);
     assert(await dialog.getByLabel("Notes", { exact: true }).isDisabled());
-    await dialog.getByLabel("App 0", { exact: true }).uncheck();
+    await setChecked(dialog.getByLabel("App 0", { exact: true }), false);
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
-    await dialog.getByLabel("Notes", { exact: true }).check();
+    await setChecked(dialog.getByLabel("Notes", { exact: true }), true);
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     const addPages = dialog.getByLabel("Add shortcut pages for supported apps", { exact: true });
     assert.equal(await dialog.getByRole("checkbox").count(), 1, "step two has one global choice");
-    await addPages.check();
+    await setChecked(addPages, true);
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps selected apps");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     assert(await addPages.isChecked(), "Back keeps the global shortcut choice");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
-    await dialog.getByLabel("Open shortcut pages when apps are in focus").uncheck();
+    await setChecked(dialog.getByLabel("Open shortcut pages when apps are in focus"), false);
     await page.setViewportSize({ width: 375, height: 650 });
     fs.mkdirSync(FAILURE_DIR, { recursive: true });
     await page.screenshot({ path: path.join(FAILURE_DIR, "first-run-mobile.png") });
@@ -8898,18 +8904,18 @@ async function assertFirstRunSetup(browser) {
     const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
     await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
-    await dialog.getByLabel("Safari", { exact: true }).waitFor();
+    await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores home apps");
     const beforeCancel = JSON.stringify(fixture.document);
     await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
     assert.equal(JSON.stringify(fixture.document), beforeCancel, "cancel preserves the layout");
     await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
-    await dialog.getByLabel("Safari", { exact: true }).waitFor();
+    await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     assert(await addPages.isChecked(), "settings restores the global shortcut choice");
     await dialog.getByRole("button", { name: "Continue", exact: true }).click();
     assert.equal(await dialog.getByLabel("Open shortcut pages when apps are in focus").isChecked(), false);
-    await dialog.getByLabel("Open shortcut pages when apps are in focus").check();
+    await setChecked(dialog.getByLabel("Open shortcut pages when apps are in focus"), true);
     failLayout = true;
     const beforeFailure = JSON.stringify(fixture.document);
     await dialog.getByRole("button", { name: "Replace layout", exact: true }).click();
