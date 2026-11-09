@@ -200,6 +200,9 @@ struct FocusTargets {
   std::vector<FocusTargetsItemsItem> items{};
   std::optional<std::vector<std::string>> webAppIDs{};
 };
+struct SessionLock {
+  bool locked{};
+};
 inline void encode(JsonObject root, const Hello &message) {
   root["type"] = "hello";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -454,7 +457,12 @@ inline void encode(JsonObject root, const FocusTargets &message) {
   }
   }
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets>;
+inline void encode(JsonObject root, const SessionLock &message) {
+  root["type"] = "session.lock";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  root["locked"] = message.locked;
+}
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -625,7 +633,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
     }
     {
       if (!(number_valid(root["value"], 0, 100, true))) return std::nullopt;
@@ -640,7 +648,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
     }
     {
       if (!(root["available"].is<bool>())) return std::nullopt;
@@ -1079,6 +1087,16 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       result.webAppIDs->push_back(item.as<std::string>());
     }
     }
+    return result;
+  }
+  if (type == "session.lock") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(root["locked"].is<bool>())) return std::nullopt;
+    }
+    SessionLock result;
+    result.locked = root["locked"].as<bool>();
     return result;
   }
   return std::nullopt;

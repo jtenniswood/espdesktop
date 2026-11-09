@@ -19,7 +19,7 @@ int main() {
     CompanionRuntimeService runtime;
     runtime.set_connected(true);
     runtime.set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
-    runtime.consume_auto_subpage_action("webapp.google-docs");
+    runtime.consume_auto_subpage_action("com.apple.Safari");
     runtime.set_application_highlight("com.apple.finder");
     auto state = runtime.snapshot();
     assert(state.application_highlight_known && state.application_highlight_id == "com.apple.finder");
@@ -36,13 +36,14 @@ int main() {
     runtime.set_connected(false);
     assert(!runtime.snapshot().application_highlight_known);
   }
+  assert(std::string(companion_volume_control_label("media.output_volume")) == "Volume");
+  assert(std::string(companion_volume_control_label("media.input_volume")) == "Mic");
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
-  assert(companion_remote_definition_capacity_available("application", 127, 0));
-  assert(companion_remote_definition_capacity_available("webapp", 128, 127));
-  assert(!companion_remote_definition_capacity_available("application", 128, 0));
-  assert(!companion_remote_definition_capacity_available("webapp", 128, 128));
+  assert(companion_remote_definition_capacity_available("application", 127));
+  assert(!companion_remote_definition_capacity_available("application", 128));
+  assert(!companion_remote_definition_capacity_available("webapp", 0));
 
   const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
   const std::vector<CompanionAction> folders = {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}};
@@ -55,9 +56,12 @@ int main() {
   assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
 
   // Exercise the real translation tables at the device-label boundary.
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");
+  assert(std::string(companion_volume_control_label("media.output_mute")) == "Mute");
   set_espdesktop_language("de");
-  assert(std::string(companion_volume_control_label("media.output_volume")) == "Ausgabelautstärke");
-  assert(std::string(companion_volume_control_label("media.input_volume")) == "Eingabelautstärke");
+  assert(std::string(companion_volume_control_label("media.input_mute")) == "Stumm");
+  assert(std::string(companion_volume_control_label("media.output_volume")) == "Lautstärke");
+  assert(std::string(companion_volume_control_label("media.input_volume")) == "Mikro");
   assert(companion_default_action_label("window.minimize") == "Minimieren");
   assert(companion_default_action_label("window.arrange.left-right") == "Links und rechts");
   assert(companion_default_action_label("", "url.https%3A%2F%2Fexample.com") == "URL öffnen");
@@ -134,11 +138,14 @@ int main() {
   safari_launch.sensor = "url.https%3A%2F%2Fexample.com";
   assert(!companion_app_shortcuts_enabled(safari_launch));
 
-  ParsedCfg web_app;
-  web_app.type = "companion";
-  web_app.entity = "webapp.google-docs";
-  assert(companion_app_launch_card(web_app));
-  assert(!companion_app_icon_enabled(web_app));
+  for (const std::string raw : {"webapp.google-docs;Docs;Web;Auto;;;companion;;app_shortcuts",
+                                "~webapp.google-docs,Docs,Web,Auto,,,companion,,app_shortcuts"}) {
+    const auto retired = parse_cfg(raw);
+    assert(card_runtime_type_retired(retired.type) && retired.entity.empty() && retired.options.empty());
+  }
+  const auto retired_child = parse_subpage_config("~B,1|companion,webapp.google-docs,Docs,Web,Auto");
+  assert(retired_child.size() == 1 && card_runtime_type_retired(retired_child[0].type));
+  assert(retired_child[0].entity.empty());
 
   ParsedCfg companion_stat_subpage;
   companion_stat_subpage.type = "subpage";
@@ -162,8 +169,6 @@ int main() {
   assert(!companion_metric_card_should_disable(true, false));
 
   const std::string folder_action = "folder.00000000-0000-0000-0000-000000000001";
-  companion_set_focus_registrations({}, {"google-docs", "-invalid", "UPPER"});
-  assert(companion_runtime_snapshot().web_app_focus_ids == std::vector<std::string>{"google-docs"});
   int focus_registration_updates = 0;
   companion_runtime_service().focus_registrations_changed_handler = [&focus_registration_updates] {
     ++focus_registration_updates;
@@ -171,9 +176,9 @@ int main() {
   const std::string focus_url = "https://example.com/";
   const std::string focus_url_id = companion_url_card_focus_id(
       "url." + companion_encode_url_focus_value(focus_url));
-  companion_set_focus_registrations({{focus_url_id, focus_url}}, {"google-docs"});
+  companion_set_focus_registrations({{focus_url_id, focus_url}});
   assert(focus_registration_updates == 1);
-  companion_set_focus_registrations({{focus_url_id, focus_url}}, {"google-docs"});
+  companion_set_focus_registrations({{focus_url_id, focus_url}});
   assert(focus_registration_updates == 1);
   companion_runtime_service().focus_registrations_changed_handler = {};
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
@@ -281,13 +286,9 @@ int main() {
   assert(companion_consume_subpage_return_request());
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs", "urlcard.0123456789abcdef"});
   assert(companion_action_focused("com.apple.Safari"));
-  assert(companion_action_focused("webapp.google-docs"));
-  assert(companion_pending_auto_subpage_action() == "webapp.google-docs");
-  assert(companion_consume_subpage_return_request());
-  assert(companion_consume_auto_subpage_action("webapp.google-docs"));
-  companion_set_focused_actions({"com.apple.Safari"});
+  assert(!companion_action_focused("webapp.google-docs"));
   assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
-  assert(companion_consume_subpage_return_request());
+  assert(!companion_consume_subpage_return_request());
   assert(companion_consume_auto_subpage_action("com.apple.Safari"));
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
@@ -305,7 +306,7 @@ int main() {
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
-  assert(companion_action_active("webapp.google-docs"));
+  assert(!companion_action_active("webapp.google-docs"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_auto_open_app_subpages(true);
@@ -361,6 +362,28 @@ int main() {
   assert(!volume_invoked);
   assert(invoke_companion_value("media.output_volume", 64, "volume-1"));
   assert(volume_invoked);
+  std::string mute_control, mute_request;
+  int mute_value = -1;
+  register_companion_value_sender([&](const std::string &control, int value, const std::string &request) {
+    mute_control = control; mute_value = value; mute_request = request; return true;
+  });
+  assert(!companion_toggle_mute("media.input_mute")); // No confirmed state yet.
+  for (const auto *control : {"media.input_mute", "media.output_mute"}) {
+    companion_set_value(control, 0);
+    assert(companion_toggle_mute(control));
+    assert(mute_control == control && mute_value == 100 && !mute_request.empty());
+    companion_set_value(control, 100);
+    assert(companion_toggle_mute(control));
+    assert(mute_value == 0);
+    assert(!invoke_companion_value(control, 50, "invalid-mute"));
+    companion_remove_value(control);
+    assert(!companion_toggle_mute(control));
+  }
+  companion_set_value("media.input_mute", 100);
+  companion_set_connected(false);
+  assert(!companion_toggle_mute("media.input_mute"));
+  companion_set_connected(true);
+
   assert(companion_url_available("com.apple.Safari", url_config));
   assert(companion_url_available("com.google.Chrome", url_config));
   assert(companion_url_available("system.default_browser", url_config));

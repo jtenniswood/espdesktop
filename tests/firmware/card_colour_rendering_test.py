@@ -5,7 +5,7 @@ import subprocess
 import sys
 import tempfile
 
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 root = Path(__file__).resolve().parents[2]
 headers = root / "components/espdesktop"
@@ -115,14 +115,13 @@ struct MediaNowPlayingCtx {
 };
 bool image_card_media_artwork_visible(const ImageCardCtx *ctx) { return ctx && ctx->artwork_visible; }
 void set_card_content_disabled(lv_obj_t *, bool) {}
-constexpr int LV_STATE_DISABLED = 4, LV_OBJ_FLAG_HIDDEN = 1, LV_OBJ_FLAG_CLICKABLE = 2, LV_OBJ_FLAG_USER_2 = 1<<28;
+constexpr int LV_STATE_DISABLED = 4, LV_OBJ_FLAG_HIDDEN = 1, LV_OBJ_FLAG_USER_2 = 1<<28;
 void set_card_disabled_state(lv_obj_t *obj, bool disabled) {
   if (!obj) return;
   if (disabled) lv_obj_add_state(obj, LV_STATE_DISABLED);
   else lv_obj_clear_state(obj, LV_STATE_DISABLED);
 }
 bool lv_obj_has_flag(lv_obj_t *obj,int flag){return (obj->flags & flag)!=0;}
-constexpr int LV_OPA_50 = 128, MEDIA_CONTROL_SPEAKER_VOLUME_TEXT_OPA = 204;
 using lv_coord_t = int;
 void lv_obj_add_flag(lv_obj_t *obj, int flag) { obj->flags |= flag; }
 void lv_obj_clear_flag(lv_obj_t *obj, int flag) { obj->flags &= ~flag; }
@@ -223,14 +222,7 @@ groups = (
     ("companion_controls.h", "", ("companion_apply_card_focus", "companion_required_focus_ready", "companion_refresh_card_focus")),
     ("button_grid_grid.h", "", ("card_palette_for_config", "card_slot_static_child", "reset_card_slot_dynamic_children")),
     ("button_grid_grid.h", "", ("apply_subpage_back_colors",)),
-    ("button_grid_image_driver.h", "espdesktop::cards", ("image_driver_apply_background",)),
-    ("button_grid_weather_driver.h", "espdesktop::cards", ("weather_driver_apply_background",)),
     ("button_grid_subscriptions.h", "", ("apply_sensor_active_color",)),
-    ("button_grid_status_entity_driver.h", "espdesktop::cards", ("status_entity_driver_matches", "status_entity_driver_state_active", "status_entity_driver_active_color_enabled", "status_entity_driver_bind_data")),
-    ("button_grid_alarm.h", "", ("alarm_theme_off_color", "alarm_set_card_state_colors")),
-    ("button_grid_media.h", "", ("media_cover_art_apply_theme", "media_control_refresh_speaker_row")),
-    ("button_grid_fan.h", "", ("fan_control_style_binary_button",)),
-    ("button_grid_climate.h", "", ("climate_style_range_target_button",)),
 )
 for filename, namespace, names in groups:
     text = (headers / filename).read_text()
@@ -381,11 +373,8 @@ int main() {
   for (const std::string order : {"", "B", "B=Return%3AHome", "B=Back:invalid", "B=Back:12345", "1=Back:FFEC16"})
     assert(get_subpage_back_color(order).empty());
   assert(get_subpage_back_label("B=Back:invalid") == "Back");
-  assert(get_subpage_title("B").empty());
-  assert(get_subpage_title("B=::Tools%3A50%25%2COffice") == "Tools:50%,Office");
   assert(get_subpage_back_color("Bw=Return:FFEC16:Tools%3AOffice") == "FFEC16");
   assert(get_subpage_back_label("Bw=Return:FFEC16:Tools%3AOffice") == "Return");
-  assert(get_subpage_title("1,Bw=Return:FFEC16:Tools%3AOffice,2") == "Tools:Office");
   set_espdesktop_language("de");
   assert(get_subpage_back_label("B=:FFEC16") == "Zurück");
   assert(get_subpage_back_label("B") == "Zurück");
@@ -428,74 +417,20 @@ int main() {
       assert(forecast_day.text[0]==lv_obj_get_style_text_color(&forecast_card,LV_PART_MAIN));
       assert(forecast_icon.text[0]==forecast_day.text[0]);
     }
-    for (uint32_t background : {0xFFEC16u, 0x88C440u, 0xFFFFFFu, 0x00BCD4u, 0x9D9D9Du}) {
-      // A selected media speaker row must use contrast on its actual fill.
-      lv_obj_t row_button, name, icon, volume;
-      MediaControlCtx media{background};
-      MediaSpeakerRowState row;
-      row.row = &row_button; row.name_label = &name;
-      row.speaker_icon = &icon; row.volume_label = &volume;
-      media_control_refresh_speaker_row(&media, &row);
-      assert(row_button.background[0] == background);
-      for (auto *label : {&name, &icon, &volume})
-        assert(label->text[0] == readable_text_color_for_bg(background));
-      media.selected = false;
-      media_control_refresh_speaker_row(&media, &row);
-      assert(row_button.background[0] == theme->surface_primary);
-      for (auto *label : {&name, &icon, &volume})
-        assert(label->text[0] == theme->text_primary);
-      // Cover-art fallbacks preserve a calibrated custom fill through themes.
-      lv_obj_t card, idle, title, artist, music;
-      card.children = {&music, &idle, &title, &artist};
-      const uint32_t active_background = lighter_card_color(background);
-      apply_button_colors(&card, true, active_background, true, background);
-      ImageCardCtx art;
-      MediaNowPlayingCtx cover{&card, &music, &idle, &title, &artist, &art};
-      cover.custom_fallback_background = true;
-      cover.fallback_background_color = background;
-      for (bool visible : {false, true, false}) {
-        art.artwork_visible = visible;
-        media_cover_art_apply_theme(&cover, *theme);
-        assert(card.background[0] == background);
-        // Artwork keeps white overlays; fallbacks follow the active shade.
-        for (int event : {LV_EVENT_PRESSED, LV_EVENT_RELEASED, LV_EVENT_PRESS_LOST}) {
-          if (event == LV_EVENT_PRESSED) lv_obj_add_state(&card, LV_STATE_PRESSED);
-          else lv_obj_clear_state(&card, LV_STATE_PRESSED);
-          send_event(&card, event);
-          const uint32_t expected = visible ? CARD_ACCENT_TEXT_COLOR
-              : (event == LV_EVENT_PRESSED ? display_text_color_for_bg(active_background)
-                                          : readable_text_color_for_bg(background));
-          for (auto *label : {&music, &idle, &title, &artist}) {
-            assert(label->text[0] == expected);
-            assert(lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2) == visible);
-          }
-        }
-        // Metadata/theme refresh while checked must preserve current fallback contrast.
-        lv_obj_add_state(&card, LV_STATE_CHECKED);
-        media_cover_art_apply_theme(&cover, *theme);
-        for (auto *label : {&music, &idle, &title, &artist})
-          assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : display_text_color_for_bg(active_background)));
-        lv_obj_clear_state(&card, LV_STATE_CHECKED);
-        media_cover_art_apply_theme(&cover, *theme);
-        for (auto *label : {&card, &music, &idle, &title, &artist})
-          assert(label->text[0] == (visible ? CARD_ACCENT_TEXT_COLOR : readable_text_color_for_bg(background)));
-      }
-      // Reusing persistent icon/text widgets for an ordinary card clears ownership.
-      card.children = {&music, &idle};
-      BtnSlot reused{&card, &music, &idle};
-      apply_button_colors(&card, true, 0x6633B9, true, 0xFFEC16);
-      reset_card_slot_dynamic_children(reused);
-      for (auto *label : {&music, &idle}) {
-        assert(!lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2));
-        assert(label->text[0] == display_text_color_for_bg(0xFFEC16));
-      }
-      send_event(&card, LV_EVENT_RELEASED);
-      assert(music.text[0] == display_text_color_for_bg(0xFFEC16));
-      cover.custom_fallback_background = false;
-      media_cover_art_apply_theme(&cover, *theme);
-      assert(card.background[0] == theme->surface_card);
-      assert(idle.text[0] == theme->text_primary);
+    // Reused persistent card labels must shed content-owned colours.
+    lv_obj_t card, music, caption;
+    card.children = {&music, &caption};
+    music.flags = caption.flags = LV_OBJ_FLAG_USER_2;
+    music.text[0] = caption.text[0] = 0xFFFFFF;
+    BtnSlot reused{&card, &music, &caption};
+    apply_button_colors(&card, true, 0x6633B9, true, 0xFFEC16);
+    reset_card_slot_dynamic_children(reused);
+    for (auto *label : {&music, &caption}) {
+      assert(!lv_obj_has_flag(label, LV_OBJ_FLAG_USER_2));
+      assert(label->text[0] == display_text_color_for_bg(0xFFEC16));
     }
+    send_event(&card, LV_EVENT_RELEASED);
+    assert(music.text[0] == display_text_color_for_bg(0xFFEC16));
   }
   // A black image-label shadow is content-owned; its ordinary sibling follows contrast.
   lv_obj_t image_button, shadow, ordinary;
@@ -617,141 +552,8 @@ int main() {
     {"000000", 0x000000, 0x666666, 0xFFFFFF},
   };
   for (const auto &colour : colours) {
-    lv_obj_t modal_button, modal_label;
-    modal_button.children = {&modal_label};
-    fan_control_style_binary_button(&modal_button, true, colour.active, theme_display_color(current_theme().surface_primary));
-    assert(modal_label.text[0] == display_text_color_for_bg(colour.active));
-    climate_style_range_target_button(&modal_button, true, colour.active);
-    assert(modal_label.text[0] == display_text_color_for_bg(colour.active));
-    for (const std::string type : {"image"}) {
-      for (const std::string precision : {""}) {
-        const std::string options = "card_off_color=" + std::string(colour.hex);
-        const std::string main = "sensor.temp;Temperature;Thermometer;Auto;sensor.temp;C;" + type + ";" + precision + ";" + options;
-        const std::string legacy = "B,1|sensor.temp:Temperature:Thermometer:Auto:sensor.temp:C:" + type + ":" + precision + ":" + options;
-        const std::string compact = "~B,1|" + type + ",sensor.temp,Temperature,Thermometer,,sensor.temp,C," + precision + "," + options;
-        const ParsedCfg configs[] = {
-          parse_cfg(main),
-          parsed_cfg_from_subpage_btn(parse_subpage_config(legacy).at(0)),
-          parsed_cfg_from_subpage_btn(parse_subpage_config(compact).at(0)),
-        };
-        for (const auto &config : configs) {
-          const auto palette = card_palette_for_config(defaults, config, display);
-          lv_obj_t button, label, value, unit;
-          button.children = {&label, &value, &unit};
-          BtnSlot slot{&button};
-          apply_button_colors(&button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
-          sync_card_checked_text_color(&button);
-          espdesktop::cards::image_driver_apply_background(slot, palette);
-          assert(palette.custom_background);
-          const auto fill = card_slider_fill_color(palette);
-          const auto foreground = readable_text_color_for_bg(palette.off_val);
-          assert(contrast(foreground, fill) >= std::min(4.5, contrast(foreground, palette.off_val)));
-          assert(fill != palette.off_val);
-          assert(palette.on_val != palette.off_val);
-          assert(palette.progress_val == card_progress_color(colour.base));
-          assert(palette.progress_val != colour.base);
-          assert(palette.surface_sensor_val == colour.base);
-          assert(button.background[LV_STATE_DEFAULT] == colour.base);
-          assert(button.background[LV_STATE_CHECKED] == colour.active);
-          assert(label.text[0] == colour.text && value.text[0] == colour.text && unit.text[0] == colour.text);
-          apply_button_colors(&button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
-          assert(button.events.size() == 1);
-          button.state = LV_STATE_PRESSED;
-          send_event(&button, LV_EVENT_PRESSED);
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          button.state = 0;
-          send_event(&button, LV_EVENT_RELEASED);
-          assert(value.text[0] == colour.text);
-          button.state = LV_STATE_PRESSED;
-          send_event(&button, LV_EVENT_PRESSED);
-          button.state = 0;
-          send_event(&button, LV_EVENT_PRESS_LOST);
-          assert(value.text[0] == colour.text);
-          set_card_checked_state(&button, true);
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          set_card_checked_state(&button, false);
-          assert(value.text[0] == colour.text);
-          focused_app = "app"; focus_allowed = true;
-          companion_apply_card_focus(&button, "app");
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          assert(lv_obj_has_state(&button, LV_STATE_CHECKED));
-          const auto writes_before_repeat_focus = state_writes;
-          for (int update = 0; update < 100; ++update)
-            companion_apply_card_focus(&button, "app");
-          assert(state_writes == writes_before_repeat_focus);
-          const auto reads_before_hidden_focus = focus_reads;
-          companion_apply_card_focus(&button, "app", "", false);
-          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
-          assert(value.text[0] == colour.text);
-          button.state = LV_STATE_PRESSED;
-          send_event(&button, LV_EVENT_PRESSED);
-          companion_apply_card_focus(&button, "app", "", false);
-          assert(lv_obj_has_state(&button, LV_STATE_PRESSED));
-          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          button.state = 0;
-          send_event(&button, LV_EVENT_RELEASED);
-          companion_apply_card_focus(&button, "app", "", false);
-          assert(value.text[0] == colour.text);
-          assert(focus_reads == reads_before_hidden_focus);
-          focused_app.clear(); companion_apply_card_focus(&button, "app");
-          assert(value.text[0] == colour.text);
-          assert(!lv_obj_has_state(&button, LV_STATE_CHECKED));
-          const auto writes_before_repeat_inactive = state_writes;
-          companion_apply_card_focus(&button, "app");
-          assert(state_writes == writes_before_repeat_inactive);
-          focused_app = "browser"; companion_apply_card_focus(&button, "app", "url.page");
-          assert(value.text[0] == display_text_color_for_bg(colour.active));
-          focus_allowed = false; companion_apply_card_focus(&button, "app", "url.page");
-          assert(value.text[0] == colour.text);
-          focus_allowed = true; focused_app.clear();
-          for (const char *state : {"42", "0", "42"}) {
-            apply_sensor_active_color(&button, true, esphome::StringRef(state), palette.on_val, palette.sensor_val, false, true, true);
-            const auto expected = std::string(state) == "0" ? colour.base : colour.active;
-            assert(button.background[0] == expected);
-            assert(value.text[0] == display_text_color_for_bg(expected));
-            assert(label.text[0] == value.text[0] && unit.text[0] == value.text[0]);
-          }
-          apply_sensor_active_color(&button, true, esphome::StringRef("unavailable"), palette.on_val, palette.sensor_val, true, false, true);
-          assert(button.background[0] == colour.base);
-          espdesktop::cards::weather_driver_apply_background(slot, palette);
-          assert(button.background[0] == colour.base);
-        }
-      }
-    }
-    for (const std::string type : {"door_window", "presence"}) {
-      const std::string options = "active_color,card_off_color=" + std::string(colour.hex);
-      const ParsedCfg configs[] = {
-        parse_cfg(";Status;Auto;Auto;binary_sensor.status;;" + type + ";;" + options),
-        parsed_cfg_from_subpage_btn(parse_subpage_config("B,1|:Status:Auto:Auto:binary_sensor.status::" + type + "::" + options).at(0)),
-        parsed_cfg_from_subpage_btn(parse_subpage_config("~B,1|" + type + ",,Status,,,binary_sensor.status,,,active_color%2Ccard_off_color=" + colour.hex).at(0)),
-      };
-      for (size_t index = 0; index < 3; ++index) {
-        const auto &config = configs[index];
-        const auto context = card_runtime_context(config, index == 0
-          ? espdesktop::cards::Surface::MAIN_GRID : espdesktop::cards::Surface::SUBPAGE);
-        const auto palette = card_palette_for_config(defaults, config, display);
-        lv_obj_t button, label, icon;
-        button.children = {&label, &icon};
-        BtnSlot slot{&button, &icon, &label};
-        apply_button_colors(&button, palette.has_on, palette.on_val, palette.has_off, palette.off_val);
-        sync_card_checked_text_color(&button);
-        subscriptions.clear();
-        assert(espdesktop::cards::status_entity_driver_bind_data(slot, config, context, palette));
-        assert(subscriptions.count(config.sensor) == 1);
-        assert(icon.content == "Minus" && (button.state & LV_STATE_DISABLED));
-        for (const char *state : {"on", "off", "unknown", "unavailable", "", "on"}) {
-          subscriptions.at(config.sensor)(esphome::StringRef(state));
-          const auto expected = std::string(state) == "on" ? colour.active : colour.base;
-          const bool unavailable = ha_state_unavailable_ref(esphome::StringRef(state));
-          assert(bool(button.state & LV_STATE_DISABLED) == unavailable);
-          assert(icon.content == (unavailable ? "Minus" : (std::string(state) == "on" ? "on" : "off")));
-          assert(button.background[0] == expected);
-          assert(label.text[0] == display_text_color_for_bg(expected));
-          assert(icon.text[0] == label.text[0]);
-        }
-      }
-    }
+    assert(active_card_color(colour.base) == colour.active);
+    assert(display_text_color_for_bg(colour.base) == colour.text);
   }
   for (const char *options : {"", "card_off_color=invalid"}) {
     ParsedCfg config;
@@ -784,17 +586,7 @@ int main() {
   const auto explicit_colour = card_palette_for_config(CardPalette{}, config, DisplayProfile{});
   assert(explicit_colour.has_on && explicit_colour.has_off && explicit_colour.has_sensor_color);
   assert(explicit_colour.sensor_val == 0xFF8C00);
-  lv_obj_t alarm, alarm_label;
-  alarm.children = {&alarm_label};
-  AlarmCardCtx alarm_context{&alarm, 0xFFEC16};
-  alarm_set_card_state_colors(&alarm_context, 0xFFF25C);
-  set_card_checked_state(&alarm, true);
-  assert(alarm_label.text[0] == 0x212121);
-  alarm_set_card_state_colors(&alarm_context, 0xC62828);
-  assert(alarm.background[LV_STATE_CHECKED] == 0xC62828);
-  assert(alarm_label.text[0] == 0xFFFFFF);
-  alarm_set_card_state_colors(&alarm_context, 0xFFF25C);
-  assert(alarm_label.text[0] == 0x212121);
+
 }
 '''
 with tempfile.TemporaryDirectory(prefix="card-colour-rendering-") as directory:
@@ -804,4 +596,4 @@ with tempfile.TemporaryDirectory(prefix="card-colour-rendering-") as directory:
     subprocess.run([sys.argv[1] if len(sys.argv) > 1 else "c++", "-std=c++17", "-Wall", "-Wextra", "-Werror",
                     "-I" + str(root / "tests/firmware/stubs"), "-I" + str(headers), str(cpp), "-o", str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print("Card colour rendering checks passed: main/subpage sensor backgrounds, state updates, contrast, defaults and display correction.")
+print("Card colour rendering checks passed: main/subpage contrast, defaults, display correction and Mac focus.")

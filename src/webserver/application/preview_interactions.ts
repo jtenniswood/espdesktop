@@ -107,7 +107,7 @@ export function createPreviewInteractionsFeature(
         input.className = "sp-card-name-input";
         input.setAttribute("aria-label", "Card name");
         input.dataset.homeSlot = String(homeSlot || "");
-        const defaultBackLabel = homeSlot === -1 ? "Close" : "Back";
+        const defaultBackLabel = "Back";
         input.value = back ? back.backLabel || defaultBackLabel : button.label || "";
         input.placeholder = title.textContent || "Card name";
         let finished = false;
@@ -174,15 +174,6 @@ export function createPreviewInteractionsFeature(
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
         state.clockBarDragItem = "";
-        if (els.specialPageEntry) {
-            els.specialPageEntry.addEventListener("click", function (this: any, e?: any) {
-                if (isConfigLocked()) {
-                    e.preventDefault();
-                    return;
-                }
-                dependencies.codec.enterSubpage(-1);
-            });
-        }
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {

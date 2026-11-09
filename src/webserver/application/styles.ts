@@ -92,16 +92,15 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-clockbar-item.sp-selected{border-color:var(--accent);background:var(--accent-soft)}" +
         ".sp-clockbar-item.sp-clockbar-hidden{opacity:.7;background:var(--preview-surface-secondary);border-color:var(--preview-border)}" +
         ".sp-clockbar-item.sp-clockbar-hidden.sp-selected{opacity:.65;border-color:var(--accent)}" +
-        ".sp-clockbar-network,.sp-clockbar-voice{padding:0;width:calc(var(--btn-label)*1.5);min-width:calc(var(--btn-label)*1.5)}" +
+        ".sp-clockbar-network{padding:0;width:calc(var(--btn-label)*1.5);min-width:calc(var(--btn-label)*1.5)}" +
         ".sp-temp{white-space:nowrap;opacity:0;transition:opacity .3s}" +
         ".sp-temp.sp-visible{opacity:1}" +
         ".sp-clock{white-space:nowrap;opacity:1;transition:opacity .3s}" +
-        ".sp-topbar .sp-network-preview,.sp-topbar .sp-voice-preview{color:var(--preview-clockbar-text);font-size:var(--btn-label);" +
+        ".sp-topbar .sp-network-preview{color:var(--preview-clockbar-text);font-size:var(--btn-label);" +
         "line-height:1;width:calc(var(--topbar-fs)*1.05);height:1em;display:flex;align-items:center;" +
         "justify-content:center;opacity:0;transition:opacity .3s}" +
-        ".sp-topbar .sp-network-preview::before,.sp-topbar .sp-voice-preview::before{font-size:inherit;line-height:inherit}" +
-        ".sp-network-preview.sp-visible,.sp-voice-preview.sp-visible{opacity:1}" +
-        ".sp-voice-preview:not(.sp-visible){display:none}" +
+        ".sp-topbar .sp-network-preview::before{font-size:inherit;line-height:inherit}" +
+        ".sp-network-preview.sp-visible{opacity:1}" +
         ".sp-main{position:absolute;top:var(--grid-top);left:var(--grid-left);right:var(--grid-right);bottom:var(--grid-bottom);" +
         "display:grid;grid-template-columns:var(--grid-cols);grid-template-rows:var(--grid-rows);gap:var(--grid-gap);overflow:hidden}" +
         ".sp-main.sp-grid-loading{visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s,visibility .2s}" +
@@ -142,9 +141,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-climate-temp-card .sp-btn-label-row{margin-top:auto}" +
         ".sp-btn-big .sp-sensor-preview-large .sp-sensor-value,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-weight:300}" +
         ".sp-btn-big .sp-sensor-preview-large .sp-sensor-unit,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-unit{transform:translateY(var(--large-sensor-unit-offset-y,-20px))}" +
-        ".sp-clock-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-family:Roboto,sans-serif;font-weight:300}" +
-        ".sp-clock-left-mid{justify-content:center;align-items:flex-start}" +
-        ".sp-clock-centered{justify-content:center;align-items:center}" +
         ".sp-forecast-preview{white-space:nowrap;gap:0}" +
         ".sp-btn.sp-rainfall-card>.sp-btn-label{max-height:none}.sp-rainfall-value{display:block;margin-top:.2em}" +
         ".sp-weather-daily-card{font-size:var(--btn-label)}" +
@@ -246,9 +242,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "padding:14px var(--gap);background:var(--surface);" +
         "color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;user-select:none}" +
         ".sp-selection-bar.sp-visible{display:flex}" +
-        ".sp-swipe-wrap{display:flex;justify-content:center;padding:0 var(--gap);margin:6px 0 0}.sp-swipe-wrap:has([hidden]){display:none}" +
-        ".sp-special-page-entry{box-sizing:border-box;justify-content:center;width:calc(var(--screen-w) + 4px);max-width:100%}" +
-        ".sp-special-page-entry.sp-selection-btn{min-height:48px}" +
         ".sp-selection-label{font-size:.85rem;color:var(--text2);margin-right:auto;min-width:0;" +
         "overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
         ".sp-selection-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}" +
@@ -734,7 +727,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-brand{font-size:.875rem}" +
         ".sp-tab{padding:0 12px;font-size:.8rem}" +
         ".sp-tab-docs{margin-left:4px;padding-left:18px}" +
-        ".sp-wrap,.sp-swipe-wrap{padding-left:0;padding-right:0}.sp-special-page-entry{width:100%}" +
+        ".sp-wrap{padding-left:0;padding-right:0}" +
         ".sp-screen{box-sizing:border-box;width:100%;max-width:100%}" +
         ".sp-hint{padding-left:var(--gap);padding-right:var(--gap);line-height:1.35}" +
         ".card{padding:16px}" +

@@ -24,11 +24,9 @@ CONTRACT_HEADER = ROOT / "components" / "espdesktop" / "button_grid_contract_gen
 CARD_RUNTIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_runtime.h"
 CARD_REGISTRY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_card_registry.h"
 SAVED_CONFIG_VACUUM_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_vacuum_generated.h"
-SAVED_CONFIG_ACTION_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_action_generated.h"
 SAVED_CONFIG_MEDIA_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_media_generated.h"
 SAVED_CONFIG_STATIC_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
 SAVED_CONFIG_FAN_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
-SAVED_CONFIG_DATE_TIME_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_date_time_generated.h"
 SAVED_CONFIG_MOWER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_mower_generated.h"
 SAVED_CONFIG_OCCUPANCY_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_occupancy_generated.h"
 SAVED_CONFIG_ACCESS_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_access_generated.h"
@@ -37,7 +35,6 @@ SAVED_CONFIG_WEATHER_HEADER = ROOT / "components" / "espdesktop" / "button_grid_
 SAVED_CONFIG_IMAGE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_image_generated.h"
 SAVED_CONFIG_CLIMATE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_climate_generated.h"
 SAVED_CONFIG_LIGHT_CONTROL_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_light_control_generated.h"
-SAVED_CONFIG_WEBHOOK_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_webhook_generated.h"
 SAVED_CONFIG_SUBPAGE_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_subpage_generated.h"
 SAVED_CONFIG_SWITCH_HEADER = ROOT / "components" / "espdesktop" / "button_grid_saved_config_switch_generated.h"
 BACKLIGHT_HEADER = ROOT / "components" / "espdesktop" / "backlight.h"
@@ -251,7 +248,6 @@ inline void lv_obj_move_foreground(lv_obj_t *obj) {
 }
 inline void lv_obj_move_background(lv_obj_t *) { lv_obj_move_background_calls++; }
 
-#include "temperature_unit.h"
 #include "display_color.h"
 #include "button_grid_config_parser.h"
 #include "backlight.h"
@@ -347,12 +343,6 @@ int main() {
   assert(!screen_schedule_clock_bar.reserve_space);
   assert(!screen_schedule_clock_bar.visible);
 
-  auto clock_bar_entities = parse_clock_bar_temperature_entities(
-    " sensor.outdoor | sensor.indoor, sensor.outdoor\nsensor.loft,, ");
-  assert(clock_bar_entities.size() == 1);
-  assert(clock_bar_entities[0] == "sensor.outdoor");
-
-  set_clock_bar_temperature_value_count(1);
   lv_obj_t temperature_1;
   lv_obj_t display_time;
   lv_obj_t network_status_button;
@@ -368,19 +358,11 @@ int main() {
     12, 17, 20, 10, 80);
   assert(lv_obj_move_background_calls == 2);
   assert(lv_obj_get_width(&temperature_1) == 72);
-  set_clock_bar_temperature_labels(temperature_labels, 1);
-  clock_bar_temperature_values()[0] = 17;
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
-  assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return true; };
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
-  assert(!lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
-  clock_bar_home_assistant_configured_provider() = []() { return false; };
-  set_clock_bar_temperature_value_count(0);
-  refresh_clock_bar_temperature_label_values(&main_page, true, true, true, 21, 17);
+  set_clock_bar_left_labels(temperature_labels, 1);
+  refresh_clock_bar_left_label(&main_page, true);
   assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
   set_clock_bar_companion_subpage_label("Settings");
-  refresh_clock_bar_temperature_label_values(&main_page, true, false, true, NAN, 17);
+  refresh_clock_bar_left_label(&main_page, true);
   assert(!lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
   assert(temperature_1.text == "Settings");
   clock_bar_update_left_text_width(&temperature_1);
@@ -396,7 +378,6 @@ int main() {
   assert(lv_obj_has_flag(&temperature_1, LV_OBJ_FLAG_HIDDEN));
   assert(lv_obj_has_flag(&display_time, LV_OBJ_FLAG_HIDDEN));
   assert(lv_obj_has_flag(&network_status_button, LV_OBJ_FLAG_HIDDEN));
-  set_clock_bar_temperature_value_count(0);
 
   // Settings remains above modal and nested overlays, even when a modal
   // explicitly moves itself to the foreground after creation.
@@ -545,9 +526,12 @@ int main() {
   assert(companion_action.options == "");
 
   auto clock = parse_cfg(";;;;;;clock;;large_numbers");
-  assert(clock.type == "clock");
-  assert(clock.options == "large_numbers");
-  assert(card_large_numbers_enabled(clock));
+  assert(card_runtime_type_retired(clock.type));
+  assert(clock.options.empty());
+  assert(!card_large_numbers_enabled(clock));
+  for (const auto *code : {"D", "CK", "T"}) {
+    assert(card_runtime_type_retired(card_runtime_subpage_type_from_code(code)));
+  }
 
   auto weather_today = parse_cfg("weather.home;;;;;;weather;today;large_numbers");
   assert(weather_today.type == "weather");
@@ -656,24 +640,16 @@ int main() {
   assert(switch_confirmation_yes_text(garage_close_from_open_confirmation) == "Proceed");
   assert(switch_confirmation_no_text(garage_close_from_open_confirmation) == "Wait");
 
-  set_display_temperature_unit("\u00B0F", "UTC (GMT+0)");
-  assert(convert_temperature_value_for_display(10, "\u00B0C") == 50);
-  assert(convert_temperature_value_for_display(10, "\u00B0F") == 10);
-  assert(convert_temperature_value_for_display_float(10.4f, "\u00B0C") > 50.7f);
-  assert(convert_temperature_value_for_display_float(10.4f, "\u00B0C") < 50.8f);
-  assert(convert_temperature_value_for_display(50, "\u00B0F") == 50);
-  set_display_temperature_unit("\u00B0C", "UTC (GMT+0)");
-  assert(convert_temperature_value_for_display(50, "\u00B0F") == 10);
-  assert(convert_temperature_value_for_display_float(50.7f, "\u00B0F") > 10.3f);
-  assert(convert_temperature_value_for_display_float(50.7f, "\u00B0F") < 10.4f);
-  assert(convert_temperature_value_for_display(10, "\u00B0C") == 10);
 
-  esphome::companion::register_companion_timezone_home_assistant_connected_provider([]() { return false; });
+
   esphome::companion::companion_set_timezone_id("Europe/London");
+  assert(effective_timezone_option("Auto (Mac Companion)") == "Europe/London");
   assert(effective_timezone_option("Auto (Home Assistant)") == "Europe/London");
-  esphome::companion::register_companion_timezone_home_assistant_connected_provider([]() { return true; });
-  assert(effective_timezone_option("Auto (Home Assistant)") == "UTC (GMT+0)");
+  esphome::companion::companion_set_timezone_id("Invalid/Timezone");
+  assert(effective_timezone_option("Auto (Mac Companion)") == "UTC (GMT+0)");
   esphome::companion::companion_set_timezone_id("");
+  assert(effective_timezone_option("Auto (Mac Companion)") == "UTC (GMT+0)");
+  assert(effective_timezone_option("Europe/Paris") == "Europe/Paris");
 
   auto migrated = parse_cfg("media_player.living:Living:Speaker:Auto:controls::media");
   assert(migrated.type.empty());
@@ -748,12 +724,10 @@ int main() {
   assert(media_volume_max_percent(volume_uncapped) == 100);
 
   auto action_large = parse_cfg("script.kitchen_lights;Kitchen Lights;Flash;Auto;script.turn_on;;action;;state_entity=sensor.kitchen_power,state_unit=W,state_precision=1,large_numbers");
-  assert(action_large.options == "state_entity=sensor.kitchen_power,state_unit=W,state_precision=1,large_numbers");
-  assert(card_large_numbers_enabled(action_large));
-  auto action_icon = parse_cfg("script.goodnight;Goodnight;Flash;Check Circle;script.turn_on;;action;;state_entity=input_boolean.goodnight_ready,state_precision=icon");
-  assert(action_card_state_icon_mode(action_icon));
-  assert(!action_card_state_numeric_mode(action_icon));
-  assert(!action_card_state_text_mode(action_icon));
+  assert(action_large.entity.empty());
+  assert(action_large.label.empty());
+  assert(action_large.options.empty());
+  assert(!card_large_numbers_enabled(action_large));
   assert(numeric_state_positive_ref("1"));
   assert(numeric_state_positive_ref("2"));
   assert(numeric_state_positive_ref("3.5"));
@@ -765,16 +739,10 @@ int main() {
   assert(!sensor_active_color_state_ref("42", false));
   assert(!sensor_active_color_state_ref("0", true));
   auto action_confirm = parse_cfg("script.goodnight;Goodnight;Script Text Play;Auto;script.turn_on;;action;;confirm_on,confirm_message=Run%20bedtime%3F,confirm_yes=Run,confirm_no=Cancel");
-  assert(action_script_confirmation_enabled(action_confirm));
-  assert(switch_confirmation_message(action_confirm) == "Run bedtime?");
-  assert(switch_confirmation_yes_text(action_confirm) == "Run");
-  assert(switch_confirmation_no_text(action_confirm) == "Cancel");
-  auto action_confirm_default = parse_cfg("script.goodnight;Goodnight;Script Text Play;Auto;script.turn_on;;action;;confirm_on");
-  assert(action_script_confirmation_enabled(action_confirm_default));
-  assert(switch_confirmation_message(action_confirm_default) == "Run this script?");
-  auto scene_confirm = parse_cfg("scene.goodnight;Goodnight;Movie Open;Auto;scene.turn_on;;action;;confirm_on,confirm_message=Run%20bedtime%3F");
-  assert(!action_script_confirmation_enabled(scene_confirm));
-  assert(scene_confirm.options == "");
+  assert(action_confirm.entity.empty());
+  assert(action_confirm.sensor.empty());
+  assert(action_confirm.options.empty());
+  assert(!action_script_confirmation_enabled(action_confirm));
 
   auto climate_large = parse_cfg("climate.living_room;Living;Thermostat;Auto;;;climate;1;large_numbers");
   assert(climate_large.options == "large_numbers");
@@ -908,11 +876,11 @@ int main() {
   assert(brightness_schedule_times(false, true, 7, 15, 20, 45, "06:30", "21:05", rise_h, rise_m, set_h, set_m));
   assert(rise_h == 6 && rise_m == 30 && set_h == 21 && set_m == 5);
   assert(!brightness_schedule_times(false, true, 7, 15, 20, 45, "bad", "25:00", rise_h, rise_m, set_h, set_m));
-  assert(screen_schedule_night_active("sensor", true, false, false, 0, 6, 23));
+  assert(!screen_schedule_night_active("sensor", true, false, false, 0, 6, 23));
   assert(!screen_schedule_night_active("sensor", true, true, false, 0, 6, 23));
-  assert(screen_schedule_night_active("sensor", true, true, false, 0, 6, 23, "Sensor On"));
+  assert(!screen_schedule_night_active("sensor", true, true, false, 0, 6, 23, "Sensor On"));
   assert(!screen_schedule_night_active("sensor", true, false, false, 0, 6, 23, "Sensor On"));
-  assert(screen_schedule_normal_active("sensor", true, false, false, 0, 6, 23, "Sensor On"));
+  assert(!screen_schedule_normal_active("sensor", true, false, false, 0, 6, 23, "Sensor On"));
   assert(!screen_schedule_normal_active("sensor", true, true, false, 0, 6, 23, "Sensor On"));
   assert(rise_h == 6 && rise_m == 0 && set_h == 18 && set_m == 0);
 
@@ -1133,13 +1101,12 @@ def main() -> int:
         return 1
     with TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        for helper in ("button_grid_order_parser.h", "config_field_decode.h", "display_utf8_case.h", "ha_state_limits.h", "home_assistant_transport_runtime.h"):
+        for helper in ("button_grid_order_parser.h", "config_field_decode.h", "display_utf8_case.h", "ha_state_limits.h"):
             shutil.copy2(PARSER_HEADER.parent / helper, tmp_path / helper)
         shutil.copy2(PARSER_HEADER, tmp_path / "button_grid_config_parser.h")
         shutil.copy2(PARSER_HEADER.with_name("i18n_generated.h"), tmp_path / "i18n_generated.h")
         shutil.copy2(DISPLAY_COLOR_HEADER, tmp_path / "display_color.h")
         shutil.copy2(MEDIA_CONFIG_HEADER, tmp_path / "button_grid_media_config.h")
-        shutil.copy2(ROOT / "components" / "espdesktop" / "temperature_unit.h", tmp_path / "temperature_unit.h")
         shutil.copy2(ROOT / "components" / "espdesktop" / "sun_calc.h", tmp_path / "sun_calc.h")
         shutil.copy2(COMPANION_TIMEZONE_HEADER, tmp_path / "companion_timezone.h")
         shutil.copy2(COMPANION_CAPABILITIES_HEADER, tmp_path / "companion_capabilities_generated.h")
@@ -1151,11 +1118,9 @@ def main() -> int:
         shutil.copy2(CARD_RUNTIME_HEADER, tmp_path / "button_grid_card_runtime.h")
         shutil.copy2(CARD_REGISTRY_HEADER, tmp_path / "button_grid_card_registry.h")
         shutil.copy2(SAVED_CONFIG_VACUUM_HEADER, tmp_path / "button_grid_saved_config_vacuum_generated.h")
-        shutil.copy2(SAVED_CONFIG_ACTION_HEADER, tmp_path / "button_grid_saved_config_action_generated.h")
         shutil.copy2(SAVED_CONFIG_MEDIA_HEADER, tmp_path / "button_grid_saved_config_media_generated.h")
         shutil.copy2(SAVED_CONFIG_STATIC_HEADER, tmp_path / "button_grid_saved_config_static_generated.h")
         shutil.copy2(SAVED_CONFIG_FAN_HEADER, tmp_path / "button_grid_saved_config_fan_generated.h")
-        shutil.copy2(SAVED_CONFIG_DATE_TIME_HEADER, tmp_path / "button_grid_saved_config_date_time_generated.h")
         shutil.copy2(SAVED_CONFIG_MOWER_HEADER, tmp_path / "button_grid_saved_config_mower_generated.h")
         shutil.copy2(SAVED_CONFIG_OCCUPANCY_HEADER, tmp_path / "button_grid_saved_config_occupancy_generated.h")
         shutil.copy2(SAVED_CONFIG_ACCESS_HEADER, tmp_path / "button_grid_saved_config_access_generated.h")
@@ -1164,12 +1129,10 @@ def main() -> int:
         shutil.copy2(SAVED_CONFIG_IMAGE_HEADER, tmp_path / "button_grid_saved_config_image_generated.h")
         shutil.copy2(SAVED_CONFIG_CLIMATE_HEADER, tmp_path / "button_grid_saved_config_climate_generated.h")
         shutil.copy2(SAVED_CONFIG_LIGHT_CONTROL_HEADER, tmp_path / "button_grid_saved_config_light_control_generated.h")
-        shutil.copy2(SAVED_CONFIG_WEBHOOK_HEADER, tmp_path / "button_grid_saved_config_webhook_generated.h")
         shutil.copy2(SAVED_CONFIG_SUBPAGE_HEADER, tmp_path / "button_grid_saved_config_subpage_generated.h")
         shutil.copy2(SAVED_CONFIG_SWITCH_HEADER, tmp_path / "button_grid_saved_config_switch_generated.h")
         shutil.copy2(CLOCK_BAR_HEADER, tmp_path / "clock_bar.h")
         shutil.copy2(BACKLIGHT_HEADER, tmp_path / "backlight.h")
-        shutil.copy2(BACKLIGHT_HEADER.with_name("photo_metadata.h"), tmp_path / "photo_metadata.h")
         shutil.copy2(BACKLIGHT_FADE_HEADER, tmp_path / "backlight_fade.h")
         shutil.copy2(DISPLAY_MODE_CONTROLLER_HEADER, tmp_path / "display_mode_controller.h")
         shutil.copy2(LAYOUT_HEADER, tmp_path / "button_grid_layout.h")
@@ -1218,7 +1181,6 @@ def main() -> int:
         subprocess.run([cxx, "-std=c++17", "-Wall", "-Wextra", str(source), "-o", str(binary)], check=True)
         subprocess.run([str(binary)], check=True)
     print("Firmware parser checks passed.")
-    subprocess.run([sys.executable, str(ROOT / "scripts" / "check_firmware_media_group.py")], check=True)
     return 0
 
 

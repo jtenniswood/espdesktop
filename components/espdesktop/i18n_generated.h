@@ -154,6 +154,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka ztlumena";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(text, "Locked") == 0) return "Zamčeno";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Chcete-li používat tuto obrazovku, odemkněte svůj Mac";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(text, "Skip Next") == 0) return "Přeskočit další";
   if (std::strcmp(text, "Skip Previous") == 0) return "Přeskočit předchozí";
@@ -313,6 +315,10 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "čt";
   if (std::strcmp(text, "Fri") == 0) return "pá";
   if (std::strcmp(text, "Sat") == 0) return "so";
+  if (std::strcmp(text, "Output Mute") == 0) return "Ztlumit výstup";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Ztlumit mikrofon";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Ztlumit";
   return text;
 }
 
@@ -452,6 +458,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skærm neddæmpet";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skærmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skærm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås din Mac op for at bruge denne skærm";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(text, "Skip Next") == 0) return "Spring til næste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Spring til forrige";
@@ -605,6 +613,10 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor.";
   if (std::strcmp(text, "Fri") == 0) return "fre.";
   if (std::strcmp(text, "Sat") == 0) return "lør.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Slå lyd fra";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Slå mikrofon fra";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Slå lyd fra";
   return text;
 }
 
@@ -743,6 +755,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Bildschirm gedimmt";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(text, "Screen Locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(text, "Locked") == 0) return "Gesperrt";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Entsperre deinen Mac, um diesen Bildschirm zu verwenden";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(text, "Skip Next") == 0) return "Weiter springen";
   if (std::strcmp(text, "Skip Previous") == 0) return "Zurück springen";
@@ -901,6 +915,10 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "Do.";
   if (std::strcmp(text, "Fri") == 0) return "Fr.";
   if (std::strcmp(text, "Sat") == 0) return "Sa.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Ausgabe stummschalten";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon stummschalten";
+  if (std::strcmp(text, "Mic") == 0) return "Mikro";
+  if (std::strcmp(text, "Mute") == 0) return "Stumm";
   return text;
 }
 
@@ -1044,6 +1062,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Pantalla atenuada";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(text, "Screen Locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueada";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloquea tu Mac para usar esta pantalla";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar siguiente";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
@@ -1208,6 +1228,10 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jue.";
   if (std::strcmp(text, "Fri") == 0) return "vie.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Silenciar salida";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar micrófono";
+  if (std::strcmp(text, "Mic") == 0) return "Micrófono";
+  if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   return text;
 }
 
@@ -1358,6 +1382,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Näyttö himmennetty";
   if (std::strcmp(text, "Screen Lock") == 0) return "Näytön lukitus";
   if (std::strcmp(text, "Screen Locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(text, "Locked") == 0) return "Lukittu";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Avaa Macin lukitus, niin voit käyttää tätä näyttöä";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(text, "Skip Next") == 0) return "Seuraava kappale";
   if (std::strcmp(text, "Skip Previous") == 0) return "Edellinen kappale";
@@ -1518,6 +1544,10 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "to";
   if (std::strcmp(text, "Fri") == 0) return "pe";
   if (std::strcmp(text, "Sat") == 0) return "la";
+  if (std::strcmp(text, "Output Mute") == 0) return "Mykistä ääni";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mykistä mikrofoni";
+  if (std::strcmp(text, "Mic") == 0) return "Mikki";
+  if (std::strcmp(text, "Mute") == 0) return "Mykistä";
   return text;
 }
 
@@ -1654,6 +1684,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Écran tamisé";
   if (std::strcmp(text, "Screen Lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(text, "Locked") == 0) return "Verrouillé";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Déverrouillez votre Mac pour utiliser cet écran";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(text, "Skip Next") == 0) return "Passer au suivant";
   if (std::strcmp(text, "Skip Previous") == 0) return "Passer au précédent";
@@ -1819,6 +1851,10 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "jeu.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sam.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Couper le son";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Couper le microphone";
+  if (std::strcmp(text, "Mic") == 0) return "Micro";
+  if (std::strcmp(text, "Mute") == 0) return "Muet";
   return text;
 }
 
@@ -1974,6 +2010,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(text, "Screen Lock") == 0) return "נעילת מסך";
   if (std::strcmp(text, "Screen Locked") == 0) return "המסך נעול";
+  if (std::strcmp(text, "Locked") == 0) return "נעול";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "יש לבטל את נעילת ה-Mac כדי להשתמש במסך הזה";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "נעילת המסך בוטלה";
   if (std::strcmp(text, "Skip Next") == 0) return "הרצועה הבאה";
   if (std::strcmp(text, "Skip Previous") == 0) return "הרצועה הקודמת";
@@ -2136,6 +2174,10 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "ה׳";
   if (std::strcmp(text, "Fri") == 0) return "ו׳";
   if (std::strcmp(text, "Sat") == 0) return "ש׳";
+  if (std::strcmp(text, "Output Mute") == 0) return "השתקת פלט";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "השתקת מיקרופון";
+  if (std::strcmp(text, "Mic") == 0) return "מיקרופון";
+  if (std::strcmp(text, "Mute") == 0) return "השתקה";
   return text;
 }
 
@@ -2285,6 +2327,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Képernyő halványítva";
   if (std::strcmp(text, "Screen Lock") == 0) return "Képernyőzár";
   if (std::strcmp(text, "Screen Locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(text, "Locked") == 0) return "Zárolva";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Oldja fel a Mac zárolását a képernyő használatához";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(text, "Skip Next") == 0) return "Ugrás a következőre";
   if (std::strcmp(text, "Skip Previous") == 0) return "Ugrás az előzőre";
@@ -2445,6 +2489,10 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "csüt.";
   if (std::strcmp(text, "Fri") == 0) return "pén.";
   if (std::strcmp(text, "Sat") == 0) return "szomb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Kimenet némítása";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon némítása";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Némítás";
   return text;
 }
 
@@ -2590,6 +2638,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Schermo attenuato";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blocco schermo";
   if (std::strcmp(text, "Screen Locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(text, "Locked") == 0) return "Bloccato";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Sblocca il Mac per usare questo schermo";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(text, "Skip Next") == 0) return "Salta avanti";
   if (std::strcmp(text, "Skip Previous") == 0) return "Salta indietro";
@@ -2751,6 +2801,10 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "gio.";
   if (std::strcmp(text, "Fri") == 0) return "ven.";
   if (std::strcmp(text, "Sat") == 0) return "sab.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Disattiva audio";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Disattiva microfono";
+  if (std::strcmp(text, "Mic") == 0) return "Microfono";
+  if (std::strcmp(text, "Mute") == 0) return "Muto";
   return text;
 }
 
@@ -2892,6 +2946,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skjerm neddimmet";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skjermlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skjerm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås opp Macen for å bruke denne skjermen";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(text, "Skip Next") == 0) return "Hopp til neste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hopp til forrige";
@@ -3049,6 +3105,10 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor.";
   if (std::strcmp(text, "Fri") == 0) return "fre.";
   if (std::strcmp(text, "Sat") == 0) return "lør.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Demp lyd";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Demp mikrofon";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Demp";
   return text;
 }
 
@@ -3194,6 +3254,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Scherm gedimd";
   if (std::strcmp(text, "Screen Lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(text, "Screen Locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(text, "Locked") == 0) return "Vergrendeld";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Ontgrendel je Mac om dit scherm te gebruiken";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(text, "Skip Next") == 0) return "Volgende overslaan";
   if (std::strcmp(text, "Skip Previous") == 0) return "Vorige overslaan";
@@ -3347,6 +3409,10 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "do.";
   if (std::strcmp(text, "Fri") == 0) return "vr.";
   if (std::strcmp(text, "Sat") == 0) return "za.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Uitvoer dempen";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Microfoon dempen";
+  if (std::strcmp(text, "Mic") == 0) return "Microfoon";
+  if (std::strcmp(text, "Mute") == 0) return "Dempen";
   return text;
 }
 
@@ -3488,6 +3554,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran przyciemniony";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blokada ekranu";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(text, "Locked") == 0) return "Zablokowany";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Odblokuj Maca, aby użyć tego ekranu";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(text, "Skip Next") == 0) return "Pomiń następny";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pomiń poprzedni";
@@ -3645,6 +3713,10 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "czw.";
   if (std::strcmp(text, "Fri") == 0) return "pt.";
   if (std::strcmp(text, "Sat") == 0) return "sob.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Wycisz wyjście";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Wycisz mikrofon";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Wycisz";
   return text;
 }
 
@@ -3789,6 +3861,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Tela escurecida";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(text, "Screen Locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueada";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloqueie o Mac para usar esta tela";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Pular próximo";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pular anterior";
@@ -3944,6 +4018,10 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
+  if (std::strcmp(text, "Mic") == 0) return "Microfone";
+  if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   return text;
 }
 
@@ -4089,6 +4167,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecrã escurecido";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueado";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloqueie o Mac para usar este ecrã";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar seguinte";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
@@ -4250,6 +4330,10 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "qui.";
   if (std::strcmp(text, "Fri") == 0) return "sex.";
   if (std::strcmp(text, "Sat") == 0) return "sáb.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Silenciar saída";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
+  if (std::strcmp(text, "Mic") == 0) return "Microfone";
+  if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   return text;
 }
 
@@ -4399,6 +4483,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecran estompat";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blocare ecran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecran blocat";
+  if (std::strcmp(text, "Locked") == 0) return "Blocat";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Deblochează Mac-ul pentru a folosi acest ecran";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(text, "Skip Next") == 0) return "Următorul";
   if (std::strcmp(text, "Skip Previous") == 0) return "Anteriorul";
@@ -4559,6 +4645,10 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "joi";
   if (std::strcmp(text, "Fri") == 0) return "vin.";
   if (std::strcmp(text, "Sat") == 0) return "sâm.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Dezactivează sunetul";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Dezactivează microfonul";
+  if (std::strcmp(text, "Mic") == 0) return "Microfon";
+  if (std::strcmp(text, "Mute") == 0) return "Mut";
   return text;
 }
 
@@ -4713,6 +4803,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Экран приглушён";
   if (std::strcmp(text, "Screen Lock") == 0) return "Блокировка экрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Экран заблокирован";
+  if (std::strcmp(text, "Locked") == 0) return "Заблокировано";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Разблокируйте Mac, чтобы использовать этот экран";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(text, "Skip Next") == 0) return "Следующий трек";
   if (std::strcmp(text, "Skip Previous") == 0) return "Предыдущий трек";
@@ -4875,6 +4967,10 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Output Mute") == 0) return "Выключить звук";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Выключить микрофон";
+  if (std::strcmp(text, "Mic") == 0) return "Микрофон";
+  if (std::strcmp(text, "Mute") == 0) return "Без звука";
   return text;
 }
 
@@ -5018,6 +5114,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka stlmená";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(text, "Locked") == 0) return "Uzamknuté";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Ak chcete používať túto obrazovku, odomknite svoj Mac";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskočiť predchádzajúce";
@@ -5177,6 +5275,10 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "št";
   if (std::strcmp(text, "Fri") == 0) return "pi";
   if (std::strcmp(text, "Sat") == 0) return "so";
+  if (std::strcmp(text, "Output Mute") == 0) return "Stlmiť výstup";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Stlmiť mikrofón";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofón";
+  if (std::strcmp(text, "Mute") == 0) return "Stlmiť";
   return text;
 }
 
@@ -5323,6 +5425,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Zaslon zatemnjen";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(text, "Screen Locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(text, "Locked") == 0) return "Zaklenjeno";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Odklenite svoj Mac za uporabo tega zaslona";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskoči naprej";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskoči nazaj";
@@ -5483,6 +5587,10 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "čet.";
   if (std::strcmp(text, "Fri") == 0) return "pet.";
   if (std::strcmp(text, "Sat") == 0) return "sob.";
+  if (std::strcmp(text, "Output Mute") == 0) return "Utišaj zvok";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Utišaj mikrofon";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Utišaj";
   return text;
 }
 
@@ -5624,6 +5732,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skärm nedtonad";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skärmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skärm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås upp din Mac för att använda den här skärmen";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(text, "Skip Next") == 0) return "Hoppa till nästa";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hoppa till föregående";
@@ -5779,6 +5889,10 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "tor";
   if (std::strcmp(text, "Fri") == 0) return "fre";
   if (std::strcmp(text, "Sat") == 0) return "lör";
+  if (std::strcmp(text, "Output Mute") == 0) return "Stäng av ljud";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Stäng av mikrofon";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Tysta";
   return text;
 }
 
@@ -5928,6 +6042,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran kısılmış";
   if (std::strcmp(text, "Screen Lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(text, "Locked") == 0) return "Kilitli";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Bu ekranı kullanmak için Mac'inizin kilidini açın";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(text, "Skip Next") == 0) return "Sonrakine geç";
   if (std::strcmp(text, "Skip Previous") == 0) return "Öncekine geç";
@@ -6089,6 +6205,10 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "Per";
   if (std::strcmp(text, "Fri") == 0) return "Cum";
   if (std::strcmp(text, "Sat") == 0) return "Cmt";
+  if (std::strcmp(text, "Output Mute") == 0) return "Çıkışı sessize al";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofonu sessize al";
+  if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
+  if (std::strcmp(text, "Mute") == 0) return "Sessiz";
   return text;
 }
 
@@ -6240,6 +6360,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Екран приглушено";
   if (std::strcmp(text, "Screen Lock") == 0) return "Блокування екрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(text, "Locked") == 0) return "Заблоковано";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Розблокуйте Mac, щоб користуватися цим екраном";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(text, "Skip Next") == 0) return "Наступний";
   if (std::strcmp(text, "Skip Previous") == 0) return "Попередній";
@@ -6400,6 +6522,10 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Thurs") == 0) return "чт";
   if (std::strcmp(text, "Fri") == 0) return "пт";
   if (std::strcmp(text, "Sat") == 0) return "сб";
+  if (std::strcmp(text, "Output Mute") == 0) return "Вимкнути звук";
+  if (std::strcmp(text, "Microphone Mute") == 0) return "Вимкнути мікрофон";
+  if (std::strcmp(text, "Mic") == 0) return "Мікрофон";
+  if (std::strcmp(text, "Mute") == 0) return "Без звуку";
   return text;
 }
 
@@ -6557,6 +6683,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Screen Dimmed";
   if (std::strcmp(key, "screen_lock") == 0) return "Screen Lock";
   if (std::strcmp(key, "screen_locked") == 0) return "Screen Locked";
+  if (std::strcmp(key, "locked") == 0) return "Locked";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Unlock your Mac to use this screen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Screen Unlocked";
   if (std::strcmp(key, "skip_next") == 0) return "Skip Next";
   if (std::strcmp(key, "skip_previous") == 0) return "Skip Previous";
@@ -6746,6 +6874,10 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "wind_south_west") == 0) return "South West";
   if (std::strcmp(key, "wind_west") == 0) return "West";
   if (std::strcmp(key, "wind_north_west") == 0) return "North West";
+  if (std::strcmp(key, "output_mute") == 0) return "Output Mute";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Microphone Mute";
+  if (std::strcmp(key, "mic") == 0) return "Mic";
+  if (std::strcmp(key, "mute") == 0) return "Mute";
   return key;
 }
 
@@ -6889,6 +7021,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka ztlumena";
   if (std::strcmp(key, "screen_lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(key, "locked") == 0) return "Zamčeno";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Chcete-li používat tuto obrazovku, odemkněte svůj Mac";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(key, "skip_next") == 0) return "Přeskočit další";
   if (std::strcmp(key, "skip_previous") == 0) return "Přeskočit předchozí";
@@ -7057,6 +7191,10 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garáž";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Ztlumit výstup";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Ztlumit mikrofon";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Ztlumit";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7197,6 +7335,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skærm neddæmpet";
   if (std::strcmp(key, "screen_lock") == 0) return "Skærmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skærm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås din Mac op for at bruge denne skærm";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(key, "skip_next") == 0) return "Spring til næste";
   if (std::strcmp(key, "skip_previous") == 0) return "Spring til forrige";
@@ -7357,6 +7497,10 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "label_switch") == 0) return "Kontakt";
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Slå lyd fra";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Slå mikrofon fra";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Slå lyd fra";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7496,6 +7640,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Bildschirm gedimmt";
   if (std::strcmp(key, "screen_lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(key, "screen_locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(key, "locked") == 0) return "Gesperrt";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Entsperre deinen Mac, um diesen Bildschirm zu verwenden";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(key, "skip_next") == 0) return "Weiter springen";
   if (std::strcmp(key, "skip_previous") == 0) return "Zurück springen";
@@ -7661,6 +7807,10 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "label_switch") == 0) return "Schalter";
   if (std::strcmp(key, "label_lighting") == 0) return "Beleuchtung";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Ausgabe stummschalten";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon stummschalten";
+  if (std::strcmp(key, "mic") == 0) return "Mikro";
+  if (std::strcmp(key, "mute") == 0) return "Stumm";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7805,6 +7955,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Pantalla atenuada";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(key, "screen_locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueada";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloquea tu Mac para usar esta pantalla";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar siguiente";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
@@ -7977,6 +8129,10 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminación";
   if (std::strcmp(key, "label_garage") == 0) return "Garaje";
   if (std::strcmp(key, "label_camera") == 0) return "Cámara";
+  if (std::strcmp(key, "output_mute") == 0) return "Silenciar salida";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar micrófono";
+  if (std::strcmp(key, "mic") == 0) return "Micrófono";
+  if (std::strcmp(key, "mute") == 0) return "Silenciar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8128,6 +8284,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Näyttö himmennetty";
   if (std::strcmp(key, "screen_lock") == 0) return "Näytön lukitus";
   if (std::strcmp(key, "screen_locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(key, "locked") == 0) return "Lukittu";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Avaa Macin lukitus, niin voit käyttää tätä näyttöä";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(key, "skip_next") == 0) return "Seuraava kappale";
   if (std::strcmp(key, "skip_previous") == 0) return "Edellinen kappale";
@@ -8297,6 +8455,10 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Autotalli";
   if (std::strcmp(key, "label_sensor") == 0) return "Anturi";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Mykistä ääni";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mykistä mikrofoni";
+  if (std::strcmp(key, "mic") == 0) return "Mikki";
+  if (std::strcmp(key, "mute") == 0) return "Mykistä";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8434,6 +8596,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Écran tamisé";
   if (std::strcmp(key, "screen_lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(key, "screen_locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(key, "locked") == 0) return "Verrouillé";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Déverrouillez votre Mac pour utiliser cet écran";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(key, "skip_next") == 0) return "Passer au suivant";
   if (std::strcmp(key, "skip_previous") == 0) return "Passer au précédent";
@@ -8607,6 +8771,10 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Éclairage";
   if (std::strcmp(key, "label_sensor") == 0) return "Capteur";
   if (std::strcmp(key, "label_camera") == 0) return "Caméra";
+  if (std::strcmp(key, "output_mute") == 0) return "Couper le son";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Couper le microphone";
+  if (std::strcmp(key, "mic") == 0) return "Micro";
+  if (std::strcmp(key, "mute") == 0) return "Muet";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8763,6 +8931,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(key, "screen_lock") == 0) return "נעילת מסך";
   if (std::strcmp(key, "screen_locked") == 0) return "המסך נעול";
+  if (std::strcmp(key, "locked") == 0) return "נעול";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "יש לבטל את נעילת ה-Mac כדי להשתמש במסך הזה";
   if (std::strcmp(key, "screen_unlocked") == 0) return "נעילת המסך בוטלה";
   if (std::strcmp(key, "skip_next") == 0) return "הרצועה הבאה";
   if (std::strcmp(key, "skip_previous") == 0) return "הרצועה הקודמת";
@@ -8934,6 +9104,10 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "מוסך";
   if (std::strcmp(key, "label_sensor") == 0) return "חיישן";
   if (std::strcmp(key, "label_camera") == 0) return "מצלמה";
+  if (std::strcmp(key, "output_mute") == 0) return "השתקת פלט";
+  if (std::strcmp(key, "microphone_mute") == 0) return "השתקת מיקרופון";
+  if (std::strcmp(key, "mic") == 0) return "מיקרופון";
+  if (std::strcmp(key, "mute") == 0) return "השתקה";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9084,6 +9258,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Képernyő halványítva";
   if (std::strcmp(key, "screen_lock") == 0) return "Képernyőzár";
   if (std::strcmp(key, "screen_locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(key, "locked") == 0) return "Zárolva";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Oldja fel a Mac zárolását a képernyő használatához";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(key, "skip_next") == 0) return "Ugrás a következőre";
   if (std::strcmp(key, "skip_previous") == 0) return "Ugrás az előzőre";
@@ -9253,6 +9429,10 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garázs";
   if (std::strcmp(key, "label_sensor") == 0) return "Érzékelő";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Kimenet némítása";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon némítása";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Némítás";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9399,6 +9579,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Schermo attenuato";
   if (std::strcmp(key, "screen_lock") == 0) return "Blocco schermo";
   if (std::strcmp(key, "screen_locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(key, "locked") == 0) return "Bloccato";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Sblocca il Mac per usare questo schermo";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(key, "skip_next") == 0) return "Salta avanti";
   if (std::strcmp(key, "skip_previous") == 0) return "Salta indietro";
@@ -9568,6 +9750,10 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Illuminazione";
   if (std::strcmp(key, "label_sensor") == 0) return "Sensore";
   if (std::strcmp(key, "label_camera") == 0) return "Telecamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Disattiva audio";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Disattiva microfono";
+  if (std::strcmp(key, "mic") == 0) return "Microfono";
+  if (std::strcmp(key, "mute") == 0) return "Muto";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9710,6 +9896,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skjerm neddimmet";
   if (std::strcmp(key, "screen_lock") == 0) return "Skjermlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skjerm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås opp Macen for å bruke denne skjermen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(key, "skip_next") == 0) return "Hopp til neste";
   if (std::strcmp(key, "skip_previous") == 0) return "Hopp til forrige";
@@ -9875,6 +10063,10 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
   if (std::strcmp(key, "label_garage") == 0) return "Garasje";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Demp lyd";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Demp mikrofon";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Demp";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10020,6 +10212,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Scherm gedimd";
   if (std::strcmp(key, "screen_lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(key, "screen_locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(key, "locked") == 0) return "Vergrendeld";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Ontgrendel je Mac om dit scherm te gebruiken";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(key, "skip_next") == 0) return "Volgende overslaan";
   if (std::strcmp(key, "skip_previous") == 0) return "Vorige overslaan";
@@ -10179,6 +10373,10 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "label_local_action") == 0) return "Lokale actie";
   if (std::strcmp(key, "label_switch") == 0) return "Schakelaar";
   if (std::strcmp(key, "label_lighting") == 0) return "Verlichting";
+  if (std::strcmp(key, "output_mute") == 0) return "Uitvoer dempen";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Microfoon dempen";
+  if (std::strcmp(key, "mic") == 0) return "Microfoon";
+  if (std::strcmp(key, "mute") == 0) return "Dempen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10321,6 +10519,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran przyciemniony";
   if (std::strcmp(key, "screen_lock") == 0) return "Blokada ekranu";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(key, "locked") == 0) return "Zablokowany";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Odblokuj Maca, aby użyć tego ekranu";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(key, "skip_next") == 0) return "Pomiń następny";
   if (std::strcmp(key, "skip_previous") == 0) return "Pomiń poprzedni";
@@ -10487,6 +10687,10 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaż";
   if (std::strcmp(key, "label_sensor") == 0) return "Czujnik";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Wycisz wyjście";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Wycisz mikrofon";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Wycisz";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10632,6 +10836,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Tela escurecida";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(key, "screen_locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueada";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloqueie o Mac para usar esta tela";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Pular próximo";
   if (std::strcmp(key, "skip_previous") == 0) return "Pular anterior";
@@ -10795,6 +11001,10 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
   if (std::strcmp(key, "label_garage") == 0) return "Garagem";
   if (std::strcmp(key, "label_camera") == 0) return "Câmera";
+  if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
+  if (std::strcmp(key, "mic") == 0) return "Microfone";
+  if (std::strcmp(key, "mute") == 0) return "Silenciar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10941,6 +11151,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecrã escurecido";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueado";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloqueie o Mac para usar este ecrã";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar seguinte";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
@@ -11110,6 +11322,10 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "label_lighting") == 0) return "Iluminação";
   if (std::strcmp(key, "label_garage") == 0) return "Garagem";
   if (std::strcmp(key, "label_camera") == 0) return "Câmara";
+  if (std::strcmp(key, "output_mute") == 0) return "Silenciar saída";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
+  if (std::strcmp(key, "mic") == 0) return "Microfone";
+  if (std::strcmp(key, "mute") == 0) return "Silenciar";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11260,6 +11476,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecran estompat";
   if (std::strcmp(key, "screen_lock") == 0) return "Blocare ecran";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecran blocat";
+  if (std::strcmp(key, "locked") == 0) return "Blocat";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Deblochează Mac-ul pentru a folosi acest ecran";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(key, "skip_next") == 0) return "Următorul";
   if (std::strcmp(key, "skip_previous") == 0) return "Anteriorul";
@@ -11429,6 +11647,10 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaj";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Cameră";
+  if (std::strcmp(key, "output_mute") == 0) return "Dezactivează sunetul";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Dezactivează microfonul";
+  if (std::strcmp(key, "mic") == 0) return "Microfon";
+  if (std::strcmp(key, "mute") == 0) return "Mut";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11584,6 +11806,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Экран приглушён";
   if (std::strcmp(key, "screen_lock") == 0) return "Блокировка экрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Экран заблокирован";
+  if (std::strcmp(key, "locked") == 0) return "Заблокировано";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Разблокируйте Mac, чтобы использовать этот экран";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(key, "skip_next") == 0) return "Следующий трек";
   if (std::strcmp(key, "skip_previous") == 0) return "Предыдущий трек";
@@ -11755,6 +11979,10 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Гараж";
   if (std::strcmp(key, "label_sensor") == 0) return "Датчик";
   if (std::strcmp(key, "label_camera") == 0) return "Камера";
+  if (std::strcmp(key, "output_mute") == 0) return "Выключить звук";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Выключить микрофон";
+  if (std::strcmp(key, "mic") == 0) return "Микрофон";
+  if (std::strcmp(key, "mute") == 0) return "Без звука";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11899,6 +12127,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka stlmená";
   if (std::strcmp(key, "screen_lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(key, "locked") == 0) return "Uzamknuté";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Ak chcete používať túto obrazovku, odomknite svoj Mac";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(key, "skip_next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskočiť predchádzajúce";
@@ -12067,6 +12297,10 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garáž";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Stlmiť výstup";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Stlmiť mikrofón";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofón";
+  if (std::strcmp(key, "mute") == 0) return "Stlmiť";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12214,6 +12448,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Zaslon zatemnjen";
   if (std::strcmp(key, "screen_lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(key, "screen_locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(key, "locked") == 0) return "Zaklenjeno";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Odklenite svoj Mac za uporabo tega zaslona";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(key, "skip_next") == 0) return "Preskoči naprej";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskoči nazaj";
@@ -12383,6 +12619,10 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaža";
   if (std::strcmp(key, "label_sensor") == 0) return "Senzor";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Utišaj zvok";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Utišaj mikrofon";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Utišaj";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12525,6 +12765,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skärm nedtonad";
   if (std::strcmp(key, "screen_lock") == 0) return "Skärmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skärm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås upp din Mac för att använda den här skärmen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(key, "skip_next") == 0) return "Hoppa till nästa";
   if (std::strcmp(key, "skip_previous") == 0) return "Hoppa till föregående";
@@ -12687,6 +12929,10 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "label_switch") == 0) return "Strömbrytare";
   if (std::strcmp(key, "label_lighting") == 0) return "Belysning";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Stäng av ljud";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Stäng av mikrofon";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Tysta";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12837,6 +13083,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran kısılmış";
   if (std::strcmp(key, "screen_lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(key, "locked") == 0) return "Kilitli";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Bu ekranı kullanmak için Mac'inizin kilidini açın";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(key, "skip_next") == 0) return "Sonrakine geç";
   if (std::strcmp(key, "skip_previous") == 0) return "Öncekine geç";
@@ -13007,6 +13255,10 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Garaj";
   if (std::strcmp(key, "label_sensor") == 0) return "Sensör";
   if (std::strcmp(key, "label_camera") == 0) return "Kamera";
+  if (std::strcmp(key, "output_mute") == 0) return "Çıkışı sessize al";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofonu sessize al";
+  if (std::strcmp(key, "mic") == 0) return "Mikrofon";
+  if (std::strcmp(key, "mute") == 0) return "Sessiz";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13159,6 +13411,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Екран приглушено";
   if (std::strcmp(key, "screen_lock") == 0) return "Блокування екрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(key, "locked") == 0) return "Заблоковано";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Розблокуйте Mac, щоб користуватися цим екраном";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(key, "skip_next") == 0) return "Наступний";
   if (std::strcmp(key, "skip_previous") == 0) return "Попередній";
@@ -13328,6 +13582,10 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "label_garage") == 0) return "Гараж";
   if (std::strcmp(key, "label_sensor") == 0) return "Датчик";
   if (std::strcmp(key, "label_camera") == 0) return "Камера";
+  if (std::strcmp(key, "output_mute") == 0) return "Вимкнути звук";
+  if (std::strcmp(key, "microphone_mute") == 0) return "Вимкнути мікрофон";
+  if (std::strcmp(key, "mic") == 0) return "Мікрофон";
+  if (std::strcmp(key, "mute") == 0) return "Без звуку";
   return espdesktop_i18n_key_en(key);
 }
 

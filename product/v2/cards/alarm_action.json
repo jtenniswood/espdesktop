@@ -1,4 +1,5 @@
 {
+  "hidden": true,
   "label": "Alarm",
   "allowInSubpage": true,
   "pickerKey": "alarm",

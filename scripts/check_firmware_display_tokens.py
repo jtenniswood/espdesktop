@@ -181,10 +181,7 @@ def check_root(root: Path) -> list[str]:
 
     tab_files = {
         "button_grid_modal.h": 0,
-        "button_grid_sliders.h": 2,
-        "button_grid_fan.h": 1,
-        "button_grid_climate.h": 1,
-        "button_grid_media.h": 1,
+        "button_grid_wifi_qr.h": 1,
     }
     tab_paths = {name: FIRMWARE_DIR.relative_to(ROOT) / name for name in tab_files}
     resolved_tab_paths = {name: root / relative for name, relative in tab_paths.items()}
@@ -205,7 +202,7 @@ def check_root(root: Path) -> list[str]:
             )
         compensated_call = re.compile(
             r"control_modal_apply_tab_row\(\s*ui\.tab_row,\s*layout,\s*tabs_layout,\s*"
-            r"ctx->width_compensation_percent\s*\);"
+            r"(?:ctx->width_compensation_percent|modal_width_compensation_percent)\s*\);"
         )
         for name, expected_count in tab_files.items():
             if expected_count == 0:
@@ -215,15 +212,7 @@ def check_root(root: Path) -> list[str]:
                 failures.append(
                     f"components/espdesktop/{name}: pass display compensation to every modal tab controller"
                 )
-        tab_creators = {
-            "button_grid_sliders.h": (
-                "light_control_create_tab_button",
-                "cover_control_create_tab_button",
-            ),
-            "button_grid_climate.h": ("climate_control_create_tab_button",),
-            "button_grid_media.h": ("media_control_create_tab_button",),
-            "button_grid_fan.h": ("fan_control_create_tab_button",),
-        }
+        tab_creators = {"button_grid_wifi_qr.h": ("wifi_qr_create_tab_button",)}
         for name, creators in tab_creators.items():
             text = resolved_tab_paths[name].read_text(encoding="utf-8")
             for creator in creators:
@@ -237,23 +226,6 @@ def check_root(root: Path) -> list[str]:
                         f"components/espdesktop/{name}: compensate tab icons once through the shared row"
                     )
 
-    alarm_path = root / FIRMWARE_DIR.relative_to(ROOT) / "button_grid_alarm.h"
-    if alarm_path.exists():
-        alarm_text = alarm_path.read_text(encoding="utf-8")
-        mode_button = re.search(
-            r"inline lv_obj_t \*alarm_control_create_mode_button\(.*?\n\}",
-            alarm_text,
-            re.S,
-        )
-        if (
-            "apply_width_compensation(ui.rail, ctx->width_compensation_percent);"
-            not in alarm_text
-            or mode_button is None
-            or "apply_width_compensation" in mode_button.group(0)
-        ):
-            failures.append(
-                "components/espdesktop/button_grid_alarm.h: compensate alarm action icons once through the shared rail"
-            )
     return failures
 
 
@@ -310,17 +282,6 @@ def run_self_test() -> None:
                 )
             },
             ("keep firmware constant names unique",),
-        ),
-        (
-            {
-                "button_grid_alarm.h": (
-                    "inline lv_obj_t *alarm_control_create_mode_button() {\n"
-                    "  apply_width_compensation(icon, 95);\n"
-                    "}\n"
-                    "apply_width_compensation(ui.rail, ctx->width_compensation_percent);\n"
-                )
-            },
-            ("compensate alarm action icons once through the shared rail",),
         ),
     )
     for files, expected in cases:

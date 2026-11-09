@@ -1,5 +1,5 @@
 {
-  "version": 6,
+  "version": 7,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -275,7 +275,9 @@
             "type": "string",
             "enum": [
               "media.output_volume",
-              "media.input_volume"
+              "media.input_volume",
+              "media.output_mute",
+              "media.input_mute"
             ],
             "minLength": 1,
             "maxLength": 19
@@ -299,7 +301,9 @@
             "type": "string",
             "enum": [
               "media.output_volume",
-              "media.input_volume"
+              "media.input_volume",
+              "media.output_mute",
+              "media.input_mute"
             ],
             "minLength": 1,
             "maxLength": 19
@@ -926,6 +930,19 @@
         "states": [
           "connected"
         ]
+      },
+      {
+        "id": "session.lock",
+        "direction": "mac_to_panel",
+        "authorization": "paired",
+        "fields": {
+          "locked": {
+            "type": "boolean"
+          }
+        },
+        "states": [
+          "connected"
+        ]
       }
     ],
     "appIconLegacySide": 144,
@@ -976,12 +993,6 @@
       "label": "Window control",
       "capability": "window_actions",
       "defaultIcon": "Monitor"
-    },
-    {
-      "id": "webapp",
-      "label": "Web App",
-      "capability": "applications",
-      "defaultIcon": "Web"
     }
   ],
   "windowActions": [

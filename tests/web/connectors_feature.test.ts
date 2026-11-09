@@ -1,7 +1,5 @@
 import {
   connectorOnboardingComplete,
-  homeAssistantPickerAvailable,
-  homeAssistantConnectorStatusText,
   requestedConnectorFromSearch,
   createConnectorsPageFeature,
   type ConnectorsStatus,
@@ -10,12 +8,6 @@ import {
 function status(overrides: Partial<ConnectorsStatus> = {}): ConnectorsStatus {
   return {
     onboarding_complete: false,
-    home_assistant: {
-      available: true,
-      configured: false,
-      connected: false,
-      actions_confirmed: false,
-    },
     mac_companion: {
       available: true,
       configured: false,
@@ -40,16 +32,6 @@ export async function runConnectorsFeatureTests(): Promise<void> {
     throw new Error("An unconfigured display must remain usable without an external connector");
   }
   if (!connectorOnboardingComplete(status({
-    home_assistant: {
-      available: true,
-      configured: true,
-      connected: false,
-      actions_confirmed: true,
-    },
-  }))) {
-    throw new Error("A configured Home Assistant connector must not be required for onboarding");
-  }
-  if (!connectorOnboardingComplete(status({
     mac_companion: {
       available: true,
       configured: true,
@@ -59,51 +41,6 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   }))) {
     throw new Error("A trusted Mac pairing must complete onboarding while offline");
   }
-  const permissionStatus = homeAssistantConnectorStatusText({
-    available: true,
-    configured: false,
-    connected: true,
-    actions_confirmed: false,
-  });
-  if (permissionStatus !== "Home Assistant connected") {
-    throw new Error("Connected Home Assistant setup must not show a confirmation action");
-  }
-  const disconnectedHomeAssistant = homeAssistantConnectorStatusText({
-    available: true,
-    configured: true,
-    connected: false,
-    actions_confirmed: true,
-  });
-  if (disconnectedHomeAssistant !== "Configured but disconnected") {
-    throw new Error("Configured Home Assistant should use the concise disconnected status");
-  }
-  const offlineHomeAssistant = status({
-    onboarding_complete: true,
-    home_assistant: {
-      available: true,
-      configured: true,
-      connected: false,
-      actions_confirmed: true,
-    },
-  });
-  if (!homeAssistantPickerAvailable(offlineHomeAssistant, false)) {
-    throw new Error("The Home Assistant picker stays usable on older firmware without status reporting");
-  }
-  if (homeAssistantPickerAvailable(offlineHomeAssistant, true)) {
-    throw new Error("New firmware hides Home Assistant cards while its connector is offline");
-  }
-  const connectedHomeAssistant = status({
-    home_assistant: {
-      available: true,
-      configured: true,
-      connected: true,
-      actions_confirmed: true,
-    },
-  });
-  if (!homeAssistantPickerAvailable(connectedHomeAssistant, true)) {
-    throw new Error("Home Assistant cards should be available while its connector is connected");
-  }
-
   const statuses = [
     status(),
     status({ mac_companion: { available: true, configured: true, paired: true, connected: true } }),
@@ -111,12 +48,18 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   ];
   let nextStatus = 0;
   const pollStatus: { callback?: () => void } = {};
+  type Node = { id: string; className: string; textContent: string; children: Node[]; appendChild(child: Node): void };
+  function element(): Node {
+    return { id: "", className: "", textContent: "", children: [], appendChild(child) { this.children.push(child); } };
+  }
+  let companionStartsCollapsed: boolean | undefined;
   const feature = createConnectorsPageFeature(
     {
-      document: {} as Document,
+      document: { createElement: element } as unknown as Document,
       window: {
         setInterval(callback: () => void) { pollStatus.callback = callback; return 1; },
         clearInterval() {},
+        location: { search: "?tab=connectors" },
       } as unknown as Window,
       fetch: (async () => ({
         ok: true,
@@ -124,11 +67,22 @@ export async function runConnectorsFeatureTests(): Promise<void> {
       })) as unknown as typeof fetch,
     },
     { setOnboardingComplete() {} } as any,
-    {} as any,
-    {} as any,
+    { buildCompanionSettingsCard(_onStatus: unknown, collapsed: boolean) {
+        companionStartsCollapsed = collapsed;
+        const card = element(); card.id = "companion-card"; return card;
+    } } as any,
     true,
-    () => false,
   );
+  if (feature.homeAssistantConfigured() || feature.homeAssistantConnected() ||
+      feature.homeAssistantSettingsAvailable() || feature.homeAssistantCardPickerEnabled()) {
+    throw new Error("Retired Home Assistant adapters must never enable runtime features");
+  }
+  const parent = element();
+  feature.buildPage(parent as unknown as HTMLElement);
+  const content = parent.children[0]?.children[0];
+  if (content?.children.length !== 2 || content.children[1]?.id !== "companion-card" || companionStartsCollapsed !== false) {
+    throw new Error("Connector setup must contain only its heading and the deep-linked Mac Companion card");
+  }
   const transitions: boolean[] = [];
   feature.onCompanionConnectionChange((connected) => transitions.push(connected));
   feature.start();

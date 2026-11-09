@@ -99,68 +99,6 @@
       }
     },
     {
-      "name": "action: service",
-      "sourceKind": "contract",
-      "sourceType": "action",
-      "mode": "service",
-      "canonicalType": "action",
-      "web": {
-        "registration": "action",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "02281c90e5334063"
-        }
-      },
-      "firmware": {
-        "family": "ACTION"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "state"
-        ],
-        "actions": [
-          "home_assistant_service"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "action: local",
-      "sourceKind": "contract",
-      "sourceType": "action",
-      "mode": "local",
-      "canonicalType": "action",
-      "web": {
-        "registration": "action",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "16c2c1992bc175a3"
-        }
-      },
-      "firmware": {
-        "family": "ACTION"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "local"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "vacuum: status",
       "sourceKind": "contract",
       "sourceType": "vacuum",
@@ -175,7 +113,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "a3f214ede0a10347"
+          "fingerprint": "69835fcbce244e58"
         }
       },
       "firmware": {
@@ -206,7 +144,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "dca56a790e21ec10"
+          "fingerprint": "4aeece3252c57b41"
         }
       },
       "firmware": {
@@ -237,7 +175,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "dca56a790e21ec10"
+          "fingerprint": "4aeece3252c57b41"
         }
       },
       "firmware": {
@@ -268,7 +206,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "dca56a790e21ec10"
+          "fingerprint": "4aeece3252c57b41"
         }
       },
       "firmware": {
@@ -299,7 +237,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "dca56a790e21ec10"
+          "fingerprint": "4aeece3252c57b41"
         }
       },
       "firmware": {
@@ -330,7 +268,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "dca56a790e21ec10"
+          "fingerprint": "4aeece3252c57b41"
         }
       },
       "firmware": {
@@ -361,7 +299,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "dca56a790e21ec10"
+          "fingerprint": "4aeece3252c57b41"
         }
       },
       "firmware": {
@@ -392,7 +330,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "c2f9682d906b89f7"
+          "fingerprint": "938c3327c3a64f5d"
         }
       },
       "firmware": {
@@ -423,7 +361,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "056cd58f025185f1"
+          "fingerprint": "92d2c86a0a63ee3b"
         }
       },
       "firmware": {
@@ -454,7 +392,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "056cd58f025185f1"
+          "fingerprint": "92d2c86a0a63ee3b"
         }
       },
       "firmware": {
@@ -485,7 +423,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "056cd58f025185f1"
+          "fingerprint": "92d2c86a0a63ee3b"
         }
       },
       "firmware": {
@@ -516,7 +454,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "ae20e61536524a5d"
+          "fingerprint": "a7b8a21daad0ed6a"
         }
       },
       "firmware": {
@@ -548,7 +486,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "040fbc9b6ab00193"
+          "fingerprint": "c3a3cc3391e09585"
         }
       },
       "firmware": {
@@ -579,7 +517,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "040fbc9b6ab00193"
+          "fingerprint": "c3a3cc3391e09585"
         }
       },
       "firmware": {
@@ -610,7 +548,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "040fbc9b6ab00193"
+          "fingerprint": "c3a3cc3391e09585"
         }
       },
       "firmware": {
@@ -641,7 +579,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "040fbc9b6ab00193"
+          "fingerprint": "c3a3cc3391e09585"
         }
       },
       "firmware": {
@@ -672,7 +610,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "040fbc9b6ab00193"
+          "fingerprint": "c3a3cc3391e09585"
         }
       },
       "firmware": {
@@ -684,69 +622,6 @@
         ],
         "actions": [
           "home_assistant_service"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "calendar: date",
-      "sourceKind": "contract",
-      "sourceType": "calendar",
-      "mode": "date",
-      "canonicalType": "calendar",
-      "web": {
-        "registration": "calendar",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": true
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "9b48d48a5064589a"
-        }
-      },
-      "firmware": {
-        "family": "DATE_TIME"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "state",
-          "time"
-        ],
-        "actions": [
-          "none"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "clock: local_time",
-      "sourceKind": "contract",
-      "sourceType": "clock",
-      "mode": "local_time",
-      "canonicalType": "clock",
-      "web": {
-        "registration": "clock",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "dd7881f7dc8a14d8"
-        }
-      },
-      "firmware": {
-        "family": "DATE_TIME"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "time"
-        ],
-        "actions": [
-          "none"
         ],
         "modalOwner": "none"
       }
@@ -831,7 +706,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "ef36e214eb35707d"
+          "fingerprint": "477a490c4d2f5e93"
         }
       },
       "firmware": {
@@ -864,7 +739,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "ef36e214eb35707d"
+          "fingerprint": "477a490c4d2f5e93"
         }
       },
       "firmware": {
@@ -896,7 +771,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "ef36e214eb35707d"
+          "fingerprint": "477a490c4d2f5e93"
         }
       },
       "firmware": {
@@ -928,7 +803,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "6937116724e6f410"
+          "fingerprint": "32d7bf4f1910292a"
         }
       },
       "firmware": {
@@ -960,7 +835,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "6937116724e6f410"
+          "fingerprint": "32d7bf4f1910292a"
         }
       },
       "firmware": {
@@ -992,7 +867,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "6937116724e6f410"
+          "fingerprint": "32d7bf4f1910292a"
         }
       },
       "firmware": {
@@ -1024,7 +899,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "6937116724e6f410"
+          "fingerprint": "32d7bf4f1910292a"
         }
       },
       "firmware": {
@@ -1056,7 +931,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "6937116724e6f410"
+          "fingerprint": "32d7bf4f1910292a"
         }
       },
       "firmware": {
@@ -1088,7 +963,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "4c9cc34806474840"
+          "fingerprint": "dc906be14425fabc"
         }
       },
       "firmware": {
@@ -1119,7 +994,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "4c9cc34806474840"
+          "fingerprint": "dc906be14425fabc"
         }
       },
       "firmware": {
@@ -1150,7 +1025,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "e08c7bab15a3d79a"
+          "fingerprint": "dc906be14425fabc"
         }
       },
       "firmware": {
@@ -1245,7 +1120,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "73edaa5f30685a24"
+          "fingerprint": "2508b8c2e97fdc80"
         }
       },
       "firmware": {
@@ -1277,7 +1152,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "7b05bd833ba3d805"
+          "fingerprint": "3851bca778bee30f"
         }
       },
       "firmware": {
@@ -1341,7 +1216,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "078423860989ce2f"
+          "fingerprint": "2508b8c2e97fdc80"
         }
       },
       "firmware": {
@@ -1372,7 +1247,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "d58460e9b5500d3e"
+          "fingerprint": "55a06c8b3f1a14b3"
         }
       },
       "firmware": {
@@ -1403,7 +1278,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "13bd39ddcf1dda6f"
+          "fingerprint": "4623ef1a0630d494"
         }
       },
       "firmware": {
@@ -1434,7 +1309,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "9d72f9b4e905b79d"
+          "fingerprint": "9210f6e274afb55b"
         }
       },
       "firmware": {
@@ -1465,7 +1340,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "126bef5bd144961d"
+          "fingerprint": "55a06c8b3f1a14b3"
         }
       },
       "firmware": {
@@ -1496,7 +1371,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "bf963fea496f2651"
+          "fingerprint": "4623ef1a0630d494"
         }
       },
       "firmware": {
@@ -1527,7 +1402,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "d9756177d4300da8"
+          "fingerprint": "9210f6e274afb55b"
         }
       },
       "firmware": {
@@ -1558,7 +1433,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "3434de9b2c0af63e"
+          "fingerprint": "e661ea3a3ef59e4b"
         }
       },
       "firmware": {
@@ -1589,7 +1464,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "78e6c54897a2d851"
+          "fingerprint": "c1879f13df4c7690"
         }
       },
       "firmware": {
@@ -1652,7 +1527,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "86894bc3d0c8e77a"
+          "fingerprint": "dd050c03f3d8e39d"
         }
       },
       "firmware": {
@@ -1684,7 +1559,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "300dd2bd47568a9c"
+          "fingerprint": "9dc8f46764fc29f3"
         }
       },
       "firmware": {
@@ -2084,38 +1959,6 @@
       }
     },
     {
-      "name": "option_select: legacy_option_select",
-      "sourceKind": "contract",
-      "sourceType": "option_select",
-      "mode": "legacy_option_select",
-      "canonicalType": "action",
-      "web": {
-        "registration": "action",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "bc1a8d0fd70da6f2"
-        }
-      },
-      "firmware": {
-        "family": "OPTION_SELECT"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "state",
-          "attributes"
-        ],
-        "actions": [
-          "home_assistant_service"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "push: event",
       "sourceKind": "contract",
       "sourceType": "push",
@@ -2178,68 +2021,6 @@
       }
     },
     {
-      "name": "webhook: get",
-      "sourceKind": "contract",
-      "sourceType": "webhook",
-      "mode": "get",
-      "canonicalType": "webhook",
-      "web": {
-        "registration": "webhook",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "cf8dc0f94ab055bc"
-        }
-      },
-      "firmware": {
-        "family": "WEBHOOK"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "http"
-        ],
-        "actions": [
-          "http"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "webhook: post",
-      "sourceKind": "contract",
-      "sourceType": "webhook",
-      "mode": "post",
-      "canonicalType": "webhook",
-      "web": {
-        "registration": "webhook",
-        "picker": {
-          "main": true,
-          "subpage": true,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "cf8dc0f94ab055bc"
-        }
-      },
-      "firmware": {
-        "family": "WEBHOOK"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "http"
-        ],
-        "actions": [
-          "http"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "slider: numeric",
       "sourceKind": "contract",
       "sourceType": "slider",
@@ -2254,7 +2035,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "58e3575a5df11b2d"
+          "fingerprint": "415c99b794e4dbf9"
         }
       },
       "firmware": {
@@ -2285,7 +2066,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "60c8920ccd95ded0"
+          "fingerprint": "7973c7b0d8730491"
         }
       },
       "firmware": {
@@ -2297,37 +2078,6 @@
         ],
         "actions": [
           "navigation"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
-      "name": "timezone: timezone",
-      "sourceKind": "contract",
-      "sourceType": "timezone",
-      "mode": "timezone",
-      "canonicalType": "timezone",
-      "web": {
-        "registration": "timezone",
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": true,
-          "fingerprint": "118506d650ffa83f"
-        }
-      },
-      "firmware": {
-        "family": "DATE_TIME"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "time"
-        ],
-        "actions": [
-          "none"
         ],
         "modalOwner": "none"
       }
@@ -2521,37 +2271,6 @@
       }
     },
     {
-      "name": "local: accepted_legacy_input",
-      "sourceKind": "runtime_only",
-      "sourceType": "local",
-      "mode": "accepted_legacy_input",
-      "canonicalType": "action",
-      "web": {
-        "registration": null,
-        "picker": {
-          "main": false,
-          "subpage": false,
-          "infoOnly": false
-        },
-        "preview": {
-          "available": false,
-          "fingerprint": ""
-        }
-      },
-      "firmware": {
-        "family": "ACTION"
-      },
-      "lifecycle": {
-        "subscriptions": [
-          "local"
-        ],
-        "actions": [
-          "local"
-        ],
-        "modalOwner": "none"
-      }
-    },
-    {
       "name": "companion_subpage: picker_alias",
       "sourceKind": "runtime_only",
       "sourceType": "companion_subpage",
@@ -2566,7 +2285,7 @@
         },
         "preview": {
           "available": true,
-          "fingerprint": "a617d3b70d305a2d"
+          "fingerprint": "18e070ed5c01ee67"
         }
       },
       "firmware": {

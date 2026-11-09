@@ -470,8 +470,16 @@ def release_manifest_data(
     web_bundle = current_web_bundle(web_manifest, web_root)
     if web_bundle["webAssetVersion"] != contract.get("webAssetVersion"):
         raise FirmwareReleaseError("web bundle version does not match the release contract")
-    if sorted(web_bundle["deviceProfiles"] or []) != sorted(slugs):
-        raise FirmwareReleaseError("web bundle device profiles do not match the release firmware set")
+    device_profiles = web_bundle["deviceProfiles"]
+    if not isinstance(device_profiles, list) or not all(
+        isinstance(profile, str) for profile in device_profiles
+    ):
+        raise FirmwareReleaseError("web bundle device profiles must be a list of device slugs")
+    missing_profiles = sorted(set(slugs).difference(device_profiles))
+    if missing_profiles:
+        raise FirmwareReleaseError(
+            "web bundle is missing release device profiles: " + ", ".join(missing_profiles)
+        )
     if not isinstance(web_bundle["firmwareVersions"], list) or version not in web_bundle[
         "firmwareVersions"
     ]:

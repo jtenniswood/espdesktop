@@ -160,11 +160,8 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
 
 PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "": "docs/card-types/switches.md",
-    "action": "docs/card-types/actions.md",
     "alarm": "docs/card-types/alarms.md",
     "alarm_action": "docs/card-types/alarms.md",
-    "calendar": "docs/card-types/calendar.md",
-    "clock": "docs/card-types/calendar.md",
     "companion": "docs/card-types/companion.md",
     "climate": "docs/card-types/climate.md",
     "climate_control": "docs/card-types/climate.md",
@@ -185,13 +182,10 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "light_temperature": "docs/card-types/lights.md",
     "lock": "docs/card-types/locks.md",
     "media": "docs/card-types/media.md",
-    "option_select": "docs/card-types/option-select.md",
     "push": "docs/card-types/buttons.md",
-    "webhook": "docs/card-types/webhooks.md",
     "slider": "docs/card-types/sliders.md",
     "subpage": "docs/features/subpages.md",
     "timer": "docs/card-types/timers.md",
-    "timezone": "docs/card-types/timezones.md",
     "vacuum": "docs/card-types/vacuum.md",
     "lawn_mower": "docs/card-types/lawn-mower.md",
     "weather": "docs/card-types/weather.md",
@@ -501,7 +495,7 @@ def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
     out = {card_type: [] for card_type in card_types}
     runtime_boundary = "components/espdesktop/button_grid_card_runtime.h"
     extra_by_type = {
-        "weather": ["components/espdesktop/button_grid_weather_forecast.h"],
+        "weather": ["components/espdesktop/retired_home_assistant_cards.h"],
     }
     headers = [
         path for path in sorted((ROOT / "components/espdesktop").glob("button_grid*.h"))
@@ -573,7 +567,7 @@ def generated_card_map() -> str:
         firmware = ", ".join(f"`{path}`" for path in firmware_files.get(card_type, [])) or "No direct match"
         web = f"`{web_files[card_type]}`" if card_type in web_files else "No current web type"
         checks = ["Contract", "Codec", "Parser"]
-        if card.get("domains") or card_type in {"action", "push", "webhook", "weather", "image"}:
+        if card.get("domains") or card_type in {"action", "push", "weather", "image"}:
             checks.append("HA")
         if "modal" in " ".join(firmware_files.get(card_type, [])).lower() or card_type in {"alarm", "alarm_action", "climate", "climate_control", "media", "option_select", "image"}:
             checks.append("Modals")
