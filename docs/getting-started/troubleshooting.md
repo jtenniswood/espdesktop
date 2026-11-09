@@ -22,7 +22,7 @@ The Mac stores its credential in Keychain and checks the paired display certific
 
 If the Mac app asks you to unlock your Mac or allow Keychain access, do that first, then choose **Retry** on the **Display** tab.
 
-To go through first-run setup again, open **Help → Restart Setup** in the Mac app. This clears the saved pairing and requires a fresh code. Your app and folder choices are kept.
+To go through first-run setup again, open **Support → Restart Setup** in the Mac app. This clears the saved pairing and requires a fresh code. Your app and folder choices are kept.
 
 ## A Card Does Not Work
 
@@ -46,7 +46,7 @@ Install the Mac app and display firmware from the same EspDesktop release. If yo
 
 ## Still Stuck?
 
-Open **Help** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). For Home Assistant touchscreen help, use the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). For Home Assistant touchscreen help, use the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
 
 ## WiFi setup and reset recovery
 
