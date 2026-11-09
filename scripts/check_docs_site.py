@@ -229,7 +229,7 @@ def check_build(dist):
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
         'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/',
-        'features/media-cover-art': BASE + 'features/setup#show-mac-cover-art',
+        'features/media-cover-art': BASE + 'features/setup#screen-and-system-settings',
         'mac-controls/statistics': BASE + 'features/subpages#mac-statistics',
         'mac-controls/volume': BASE + '#what-you-can-control',
         'guides/index': 'https://jtenniswood.github.io/espcontrol/',

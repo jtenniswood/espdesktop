@@ -243,8 +243,7 @@ int main() {
   assert(!ui.overlay && other_card.flags == LV_OBJ_FLAG_CLICKABLE);
   // Cancel restores the actual previous mode, rather than the current
   // configured screensaver preference. Unlocking is still required on wake.
-  for (auto mode : {espdesktop::DisplayMode::CLOCK, espdesktop::DisplayMode::DIMMED, espdesktop::DisplayMode::DISPLAY_OFF,
-                    espdesktop::DisplayMode::COVER_ART}) {
+  for (auto mode : {espdesktop::DisplayMode::CLOCK, espdesktop::DisplayMode::DIMMED, espdesktop::DisplayMode::DISPLAY_OFF}) {
     assert(pin.lock());
     pin.arm(mode);
     controller.request(espdesktop::DisplayRequestSource::USER_WAKE, espdesktop::DisplayMode::ACTIVE);
@@ -255,7 +254,6 @@ int main() {
     deferred.front()(nullptr); deferred.clear();
     assert(!ui.overlay && pin.locked() && controller.target_mode() == mode);
     controller.clear(espdesktop::DisplayRequestSource::MANUAL_SLEEP);
-    controller.clear(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK);
     screensaver_pin_refresh(true, nullptr, nullptr, nullptr, false);
     assert(ui.label && ui.entry.empty());
     screensaver_pin_key_cb(&zero);

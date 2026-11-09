@@ -163,38 +163,6 @@ const restoredLandscapeSubpage = plain(hooks.planBackupImportForGridCols({
   settings: { screen_rotation: "0" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, restoredLandscapeCols));
 assert.strictEqual(restoredLandscapeSubpage.subpages["1"].order[0], "1l", "restoring landscape preserves a valid subpage 4x3 card");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_cover_art_on_external_input"),
-  "cover art external-input post aliases include the full generated object id"
-);
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_for_external_sources"),
-  "cover art external-input post aliases include the legacy external-sources object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(30)), [
-  "/number/screen_saver__cover_art_delay/set?value=30",
-  "/number/screen_saver_cover_art_delay/set?value=30",
-  "/number/cover_art_delay/set?value=30",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=30",
-], "cover art delay posts include all firmware object id aliases");
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(0)), [
-  "/number/screen_saver__cover_art_delay/set?value=3",
-  "/number/screen_saver_cover_art_delay/set?value=3",
-  "/number/cover_art_delay/set?value=3",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=3",
-], "legacy immediate cover art delay posts as three seconds");
-assert.strictEqual(hooks.normalizeCoverArtDelay(0), 3, "cover art delay UI normalizes legacy immediate values");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_track_overlay_duration")).includes("screen_saver__show_track_overlay"),
-  "cover art track-overlay post aliases include the legacy show-track-overlay object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtTrackOverlayDurationPostUrls(15)), [
-  "/number/screen_saver__track_overlay_duration/set?value=15",
-  "/number/screen_saver_track_overlay_duration/set?value=15",
-  "/number/track_overlay_duration/set?value=15",
-  "/number/screen_saver__show_track_overlay/set?value=15",
-  "/number/Screen%20Saver%3A%20Show%20Track%20Overlay/set?value=15",
-], "cover art track-overlay posts include all firmware object id aliases");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "off"), true, "clock bar preview is visible when enabled");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "dim"), true, "clock bar preview stays visible for dimmed screen saver");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), true, "clock bar preview stays visible when clock screen saver is configured");

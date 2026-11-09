@@ -43,7 +43,7 @@ When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brig
 
 With the current Mac app and panel firmware, locking your Mac also locks the panel controls and shows a lock icon, **Locked**, and **Unlock your Mac to use this screen** while its backlight is on. Unlocking the Mac removes this lock automatically. No panel PIN is needed for this; a separately enabled panel PIN still applies. The Mac app must be running and paired. If the connection drops while locked, the panel keeps the lock until the app reconnects and reports that the Mac is unlocked.
 
-The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout, and retained media playback does not replace that action with cover art. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
+The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
 
 Saved Camera screensaver settings from older firmware fall back to Display Off. Camera images and photo-metadata overlays are no longer available.
 
@@ -55,17 +55,11 @@ Saved Home Assistant Sensor screensaver modes become **Disabled**. Choose **Time
 
 Home Assistant wake automations are retired with the integration. Use the touchscreen to wake the panel.
 
-## Mac Cover Art
-
-After pairing Mac Companion, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and enable **Show Cover Art**. The paired Mac supplies artwork, title, artist and progress. **Show After** controls the delay before artwork appears and its return after touching the display. **Show Track Details For** controls the text overlay on supported square displays.
-
-Fullscreen cover art no longer uses Home Assistant media players, artwork URLs, external-input routing or entity filters. Existing backup source choices migrate to Mac Companion. Touch the artwork to wake the panel; with PIN protection enabled, unlock before using your controls.
-
 ## Screen Schedule
 
 The [screen schedule](/features/screen-schedule) is separate from the screensaver. Use it when you want the panel to be fully dark, dimmed, or showing a clock overnight.
 
-Time-based Night Schedule has priority over the screensaver and media cover art during night time. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled; choose Time to set local hours.
+Time-based Night Schedule has priority over the screensaver during night time. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled; choose Time to set local hours.
 
 ## PIN protection after wake
 
@@ -77,7 +71,7 @@ Use the same field and **Save** button to change the PIN. **Clear** removes it a
 
 To lock manually, use the lock control in the panel’s status menu. It uses the same saved PIN. **Clear** in **Screen > Sleep & Schedule > Pin Protection** releases the lock and disables automatic PIN protection.
 
-After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake and scheduled wake use the same protection. With protection disabled or no PIN saved, wake works as before. When protection is active, touching Cover Art wakes the PIN keypad; use your media controls after unlocking.
+After a screensaver or manual sleep, the touchscreen shows the PIN keypad. Enter the PIN and press the checkmark to unlock. A wrong PIN clears the entry and keeps the controls blocked. **X** clears entered digits; when the entry is empty, it returns to the previous cards or screensaver view while keeping the screen locked. Touch wake and scheduled wake use the same protection. With protection disabled or no PIN saved, wake works as before.
 
 This protects local touchscreen controls, including status buttons and alarm modals. It does not protect network, OTA, or web administration access. Someone with web setup access can change or clear the PIN; configure [web authentication](/getting-started/manual-esphome-setup#advanced-password-protect-the-web-page) separately if needed. The PIN is never returned by the settings API or included in backup JSON. Importing a backup clears the destination panel's PIN, so set a new PIN on its web setup page afterward.
 

@@ -45,12 +45,7 @@ inline std::function<void()> &return_screen_lock_view() {
 inline bool screensaver_pin_restore_previous_mode(espdesktop::DisplayModeController &controller) {
   const auto mode = espdesktop::screensaver_pin().return_mode();
   if (mode == espdesktop::DisplayMode::ACTIVE || mode == espdesktop::DisplayMode::SETUP_DIMMED) return false;
-  if (mode == espdesktop::DisplayMode::COVER_ART) {
-    controller.clear(espdesktop::DisplayRequestSource::USER_WAKE);
-    controller.request(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK, mode);
-  } else {
-    controller.request(espdesktop::DisplayRequestSource::MANUAL_SLEEP, mode);
-  }
+  controller.request(espdesktop::DisplayRequestSource::MANUAL_SLEEP, mode);
   return true;
 }
 inline void screensaver_pin_key_cb(lv_event_t *event) {
@@ -122,7 +117,7 @@ inline void screensaver_pin_refresh(bool active, const lv_font_t *label_font,
   ui.screen_w = screen_w;
   ui.screen_h = screen_h;
   ui.touch_blocked = touch_blocked;
-  // The system layer is above clock, artwork, status icons, and all control
+  // The system layer is above clock, status icons, and all control
   // modals. Its full-screen clickable surface consumes every underlying touch.
   // It is independent of the modal service; returning to a previous view
   // keeps PIN protection active.

@@ -165,7 +165,6 @@ describe("browserless application contracts", () => {
     const modules = [
       "api.ts",
       "firmware_update_post_api.ts",
-      "artwork_post_api.ts",
       "screen_schedule_post_api.ts",
       "clock_bar_post_api.ts",
       "config_post_api.ts",
@@ -184,10 +183,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(entry, /installFirmwareUpdatePostApiModule/);
     assert.doesNotMatch(firmwarePosts, /GlobalDescriptors|staticGlobal|installFirmwareUpdatePostApiModule/);
     assert.doesNotMatch(globals, /\bvar (?:postFirmwareUpdateInstall|postFirmwareUpdateCheck|postC6FirmwareUpdateInstall|postC6FirmwareUpdateCheck):/);
-    const artworkPosts = fs.readFileSync(path.join(ROOT, "src/webserver/application/artwork_post_api.ts"), "utf8");
-    assert.match(entry, /artworkPostApi = createArtworkPostApiFeature\(entityState, requestApi\)/);
-    assert.doesNotMatch(entry, /installArtworkPostApiModule/);
-    assert.doesNotMatch(artworkPosts, /GlobalDescriptors|staticGlobal|installArtworkPostApiModule/);
     assert.doesNotMatch(globals, /\bvar (?:postPresenceSensorEntity|postMediaPlayerSleepPrevention|postMediaPlayerSleepPreventionEntity|postCoverArtScreensaver|postCoverArtMediaPlayerEntity|postCoverArtSecondaryMediaPlayerEntity|postCoverArtConditions|coverArtHideExternalInputPostUrls|postCoverArtHideExternalInput|coverArtDelayPostUrls|postCoverArtDelay|coverArtTrackOverlayDurationPostUrls|postCoverArtTrackOverlayDuration|homeAssistantArtworkPortPostUrls|postHomeAssistantArtworkPort|postHomeAssistantArtworkProtocol):/);
     const schedulePosts = fs.readFileSync(path.join(ROOT, "src/webserver/application/screen_schedule_post_api.ts"), "utf8");
     assert.match(entry, /schedulePostApi = createScreenSchedulePostApiFeature\(entityState, requestApi\)/);
@@ -1241,7 +1236,6 @@ describe("browserless application contracts", () => {
     const modules = [
       "settings_page_helpers.ts",
       "settings_schedule_section.ts",
-      "settings_cover_art_section.ts",
       "settings_page.ts",
       "settings_system_section.ts",
     ];
@@ -1254,7 +1248,6 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.match(entry, /settingsHelpers = createSettingsPageHelpersFeature\(/);
     assert.match(entry, /const scheduleSection = createSettingsScheduleSectionFeature\(/);
-    assert.match(entry, /const coverArtSection = createSettingsCoverArtSectionFeature\(/);
     assert.match(entry, /const companionSection = createSettingsCompanionSectionFeature\(dom, shell, fields\)/);
     assert.match(entry, /const systemSection = createSettingsSystemSectionFeature\(/);
     assert.match(entry, /settingsPage = createSettingsPageFeature\(/);

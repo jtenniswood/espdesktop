@@ -10,9 +10,6 @@ target_compile_features(media_display_text_test PRIVATE cxx_std_17)
 target_compile_options(media_display_text_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(media_display_text_test PRIVATE stubs ../../components/espdesktop)
 add_test(NAME media_display_text_test COMMAND media_display_text_test)
-add_test(NAME media_display_integration_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/media_display_integration_test.py ${CMAKE_CXX_COMPILER})
-
 add_executable(dpi_timing_test dpi_timing_test.cpp)
 target_compile_features(dpi_timing_test PRIVATE cxx_std_17)
 target_compile_options(dpi_timing_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
@@ -99,11 +96,6 @@ add_test(NAME companion_subpage_preference_boot_test COMMAND
 add_test(NAME companion_navigation_preference_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_navigation_preference_test.py)
 
-add_executable(companion_now_playing_protocol_test companion_now_playing_protocol_test.cpp)
-target_compile_features(companion_now_playing_protocol_test PRIVATE cxx_std_17)
-target_compile_options(companion_now_playing_protocol_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(companion_now_playing_protocol_test PRIVATE ../../components/companion)
-add_test(NAME companion_now_playing_protocol_test COMMAND companion_now_playing_protocol_test)
 
 add_executable(app_icon_custom_color_test app_icon_custom_color_test.cpp)
 target_compile_features(app_icon_custom_color_test PRIVATE cxx_std_17)
@@ -409,9 +401,6 @@ add_test(NAME image_pipeline_policy_test COMMAND image_pipeline_policy_test)
 add_test(NAME display_schedule_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/display_schedule_test.py
   --compiler ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_activation_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_activation_test.py
-  --compiler ${CMAKE_CXX_COMPILER})
 add_executable(rgb565_scaler_test rgb565_scaler_test.cpp)
 target_compile_features(rgb565_scaler_test PRIVATE cxx_std_17)
 target_compile_options(rgb565_scaler_test PRIVATE -Wall -Wextra -Werror)
@@ -552,12 +541,6 @@ target_compile_options(camera_refresh_policy_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(camera_refresh_policy_test PRIVATE ../../components/espdesktop)
 add_test(NAME camera_refresh_policy_test COMMAND camera_refresh_policy_test)
 
-add_test(NAME owned_artwork_transfer_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/owned_artwork_transfer_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_clock_transition_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_clock_transition_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_active_landing_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_active_landing_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/speaker_announcement_duck_test.py)
@@ -571,8 +554,6 @@ target_link_libraries(screensaver_pin_test PRIVATE Threads::Threads)
 add_test(NAME screensaver_pin_test COMMAND screensaver_pin_test)
 add_test(NAME screensaver_pin_ui_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screensaver_pin_ui_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME screensaver_pin_cover_art_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screensaver_pin_cover_art_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME app_icon_store_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
@@ -624,10 +605,6 @@ target_compile_options(connector_state_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(connector_state_test PRIVATE stubs ../../components/espdesktop)
 add_test(NAME connector_state_test COMMAND connector_state_test)
 
-add_test(NAME companion_artwork_contract_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_companion_artwork.py)
-add_test(NAME companion_artwork_contract_self_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_companion_artwork.py --self-test)
 
 add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)

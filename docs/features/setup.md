@@ -32,10 +32,6 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 Use **Screen** for appearance, backlight, rotation and sleep settings. Use **System** for Mac Companion pairing and connection status, preferences, backups, firmware updates and reset controls.
 
-## Show Mac Cover Art
-
-After pairing, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and turn on **Show Cover Art**. When an app on the paired Mac supplies artwork through macOS Now Playing, the display can show it fullscreen. Set the delay with **Show After** and the length of time track information appears with **Show Track Details For**. Tap the screen to wake it, then enter your display PIN if prompted.
-
 ## Protect the Touchscreen
 
 Open **Screen → Sleep & Schedule → Pin Protection**, turn on **Require PIN after wake**, enter a numeric PIN of 1–16 digits and choose **Save**. You can also randomize the keypad. **Clear** removes the saved PIN and unlocks the display.

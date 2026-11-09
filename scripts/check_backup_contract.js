@@ -87,7 +87,7 @@ const v2 = hooks.createBackupConfig({
   settings: {
     timezone: "Europe/London (GMT+0)",
     clock_bar: true,
-    cover_art_hide_external_input: true,
+    clock_date: true,
     home_assistant_artwork_endpoint_mode: "Manual",
     home_assistant_artwork_host: "ha.example.test",
     home_assistant_artwork_protocol: "https",
@@ -121,7 +121,7 @@ assert.deepStrictEqual(plain(v2.subpage_objects["1"]), {
 }, "exports readable structured subpage objects");
 assert.strictEqual(v2.buttons[1].type, "weather", "exports canonical card types");
 assert.strictEqual(v2.buttons[1].precision, "tomorrow", "exports migrated card details");
-assert.strictEqual(v2.settings.cover_art_hide_external_input, true, "exports cover art external-input setting");
+assert.strictEqual(v2.settings.clock_date, true, "exports the clock date setting");
 assert.strictEqual(v2.settings.home_assistant_artwork_endpoint_mode, "Manual", "exports Home Assistant artwork endpoint mode");
 assert.strictEqual(v2.settings.home_assistant_artwork_protocol, "https", "exports Home Assistant artwork protocol setting");
 assert.strictEqual(v2.settings.home_assistant_artwork_port, 80, "exports Home Assistant artwork port setting");

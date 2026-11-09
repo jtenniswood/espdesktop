@@ -49,13 +49,11 @@ import { createNativePanelConfigMigrationController } from "./application/native
 import { createConfigPersistenceFeature } from "./application/config_post_api";
 import { createStateLoaderFeature, type StateLoaderFeature } from "./application/state_loader_api";
 import { createGridMigrationFeature } from "./application/grid_migration";
-import { createArtworkPostApiFeature } from "./application/artwork_post_api";
 import { createScreenSchedulePostApiFeature } from "./application/screen_schedule_post_api";
 import { createClockBarPostApiFeature } from "./application/clock_bar_post_api";
 import { createControlsShellFeature, renderPanelBrand } from "./application/controls_shell";
 import { createSettingsPageHelpersFeature, type SettingsPageHelpersFeature } from "./application/settings_page_helpers";
 import { createSettingsScheduleSectionFeature } from "./application/settings_schedule_section";
-import { createSettingsCoverArtSectionFeature } from "./application/settings_cover_art_section";
 import { createSettingsSystemSectionFeature } from "./application/settings_system_section";
 import { createSettingsCompanionSectionFeature } from "./application/settings_companion_section";
 import { createConnectorsPageFeature, type ConnectorsPageFeature } from "./application/connectors_page";
@@ -83,8 +81,6 @@ import { createScreenScheduleController } from "./features/screen_schedule_contr
 import { createSettingsUiFeature } from "./features/settings";
 
 import { createScreensaverController } from "./features/screensaver_controller";
-import { createCoverArtScreensaverController } from "./features/cover_art_screensaver_controller";
-import { createMediaPlaybackController } from "./features/media_playback_controller";
 import { createBackupImportController } from "./features/backup_import_controller";
 import { createBackupExportController } from "./features/backup_export_controller";
 import { createBackupFileController } from "./features/backup_file_controller";
@@ -242,7 +238,6 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.controllers.entityState,
     context.controllers.requestApi,
     context.controllers.statusPreview,
-    context.controllers.artworkPostApi,
     context.controllers.publicFirmwareInstall,
     register,
   );
@@ -478,7 +473,6 @@ function composeApplicationContext(): ApplicationContext {
     shell,
   );
   firmwarePostApi = createFirmwareUpdatePostApiFeature(entityState, requestApi);
-  const artworkPostApi = createArtworkPostApiFeature(entityState, requestApi);
   const schedulePostApi = createScreenSchedulePostApiFeature(entityState, requestApi);
   const clockBarPostApi = createClockBarPostApiFeature(entityState, requestApi);
   configurationPersistence.connectRequestApi(requestApi);
@@ -551,20 +545,12 @@ function composeApplicationContext(): ApplicationContext {
     dimBrightness: (value) => Model.normalizeScreensaverDimmedBrightness(value),
     clockBrightness: (value, fallback) => Model.normalizeClockBrightness(value, fallback),
   });
-  const coverArtScreensaver = createCoverArtScreensaverController({
-    delay: (value) => Model.normalizeCoverArtDelay(value),
-    trackOverlayDuration: (value) => parseFloat(String(value)) || 0,
-  });
-  const mediaPlayback = createMediaPlaybackController();
   settingsHelpers = createSettingsPageHelpersFeature({
     settingsUiFeature: settingsUi,
 
     screensaver,
-    coverArtScreensaver,
-    mediaPlayback,
     codec: configurationCodec,
     runtime,
-    layout,
     screenScheduleState,
     clockBar: clockBarState,
     entityState,
@@ -749,10 +735,6 @@ function composeApplicationContext(): ApplicationContext {
       ntpServer1: state.ntpServer1,
       ntpServer2: state.ntpServer2,
       ntpServer3: state.ntpServer3,
-      coverArtHomeAssistantProtocol: state.homeAssistantArtworkProtocol,
-      coverArtHomeAssistantHost: state.homeAssistantArtworkHost,
-      coverArtHomeAssistantPort: state.coverArtHomeAssistantPort,
-      coverArtHomeAssistantEndpointMode: state.homeAssistantArtworkEndpointMode,
       autoUpdate: state.autoUpdate,
       updateFrequency: state.updateFrequency,
       updateFrequencyOptions: state.updateFreqOptions,
@@ -856,7 +838,6 @@ function composeApplicationContext(): ApplicationContext {
     requestApi,
     statusPreview,
     grid,
-    artworkPostApi,
     schedulePostApi,
     clockBarPostApi,
     settingsHelpers,
@@ -899,9 +880,6 @@ function composeApplicationContext(): ApplicationContext {
     configurationCodec, runtime, screenScheduleState, entityState, requestApi,
     schedulePostApi, fields, settingsHelpers,
   );
-  const coverArtSection = createSettingsCoverArtSectionFeature(
-    runtime, artworkPostApi, fields, settingsHelpers, coverArtScreensaver,
-  );
   const systemSection = createSettingsSystemSectionFeature({
     buildIdentityCard: identity.buildCard,
     exportBackup: backupApplication.exportConfig,
@@ -926,8 +904,8 @@ function composeApplicationContext(): ApplicationContext {
   settingsPage = createSettingsPageFeature(
     configurationCodec, runtime, core, layout, environment, screenScheduleState,
     screensaverTimeout, screenRotation, appearance, clockBarState, entityState,
-    shell, requestApi, statusPreview, artworkPostApi, schedulePostApi,
-    clockBarPostApi, fields, settingsHelpers, scheduleSection, coverArtSection,
+    shell, requestApi, statusPreview, schedulePostApi,
+    clockBarPostApi, fields, settingsHelpers, scheduleSection,
     systemSection, preview, connectorsPage,
   );
   app = createAppFeature(
@@ -971,7 +949,6 @@ function composeApplicationContext(): ApplicationContext {
     firmwareVersion,
     firmwareUpdate,
     firmwarePostApi,
-    artworkPostApi,
     schedulePostApi,
     clockBarPostApi,
     publicFirmwareInstall,
@@ -992,8 +969,6 @@ function composeApplicationContext(): ApplicationContext {
     cardEditorSave,
     cardEditorValidation,
     clockBar,
-    coverArtScreensaver,
-    mediaPlayback,
     pageTitle,
     previewPlacement,
     reconnect,

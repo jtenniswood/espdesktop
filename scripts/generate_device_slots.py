@@ -34,7 +34,6 @@ def package_data(device: dict) -> dict:
 def package_substitution_lines(device: dict) -> list[str]:
     package = package_data(device)
     lines = [
-        '  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/common/assets/cover_art_placeholder.svg"',
         f'  device_slug: "{device["slug"]}"',
         f'  firmware_manifest_slug: "{device["slug"]}"',
     ]
@@ -54,7 +53,6 @@ def package_substitution_lines(device: dict) -> list[str]:
                 f'  backlight_pwm_frequency: ${{ "{frequency["ethernet"]}" if network_transport == "ethernet" else "{frequency["wifi"]}" }}',
             ]
         )
-    lines.extend(cover_art_substitution_lines(device))
     lines.extend(battery_substitution_lines(device))
     return lines
 
@@ -94,11 +92,6 @@ def battery_substitution_lines(device: dict) -> list[str]:
         "  battery_status_hide_code: |-",
         "    lv_obj_add_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
     ]
-
-
-def cover_art_substitution_lines(device: dict) -> list[str]:
-    layout = device.get("cover_art") or {}
-    return [f'  {key}: "{value}"' for key, value in layout.items()]
 
 
 def include_line(key: str, include: str) -> str:
@@ -225,7 +218,6 @@ def package_file_text(device: dict) -> str:
             include_line(network_screen_key, f"!include {network_screen_path}"),
             include_line("screen_setup", "!include ../../common/device/screen_button_setup.yaml"),
             include_line("screen_clock", "!include ../../common/device/screen_clock.yaml"),
-            include_line("screen_art", "!include ../../common/device/screen_cover_art.yaml"),
             *(
                 [
                     include_line(

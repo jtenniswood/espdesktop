@@ -51,7 +51,7 @@ third-party websites. Those sites have their own terms and privacy practices.
 ## The EspDesktop firmware and device
 
 The firmware exchanges Mac controls, system statistics, app information, Mac
-lock state and Now Playing details and artwork with the Mac you pair. Saved
+lock state with the Mac you pair. Saved
 configurations and backups may retain identifiers and other fields from older
 cards so you can identify and replace them.
 
@@ -85,8 +85,7 @@ EspDesktop connects to the display you pair on your local network. It stores
 connection preferences and approved-folder bookmarks locally on the Mac, and
 stores the pairing credential in macOS Keychain. Folder paths remain on the Mac;
 the display receives names and opaque identifiers for approved applications and
-folders. EspDesktop can also share the focused application and Now Playing
-metadata/artwork needed by its cards. System statistics are shared automatically with your paired display while connected; they contain overall resource usage
+folders. EspDesktop can also share the focused application for its cards. System statistics are shared automatically with your paired display while connected; they contain overall resource usage
 and network throughput, not network contents.
 
 Opening the display’s Companion setup page starts pairing on an unpaired

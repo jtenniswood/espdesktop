@@ -69,25 +69,18 @@ final class CompanionConnection: NSObject {
     private var supportsSessionLock = false
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
-    private var artworkData: Data?
-    private var artworkGeneration: UInt32 = 0
-    private var artworkOffset = 0
-    private var deferredArtwork: (generation: UInt32, data: Data, sha256: String?)?
     private var appIconData: Data?
     private var appIconIdentifier = ""
     private var activeAppIconRequest: CompanionWireAppIconRequest?
     private var appIconGeneration: UInt32 = 0
     private var appIconOffset = 0
     private var pendingAppIconRequests: [CompanionWireAppIconRequest] = []
-    private var lastArtworkGeneration: UInt32 = 0
-    private var lastArtworkSHA256: String?
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
     private var definitionGeneration: UInt32 = 0
     private var lastPublishedSystemMetrics: CompanionSystemMetricsSnapshot?
     private var lastSystemMetricsPublication = Date.distantPast
-    private static let artworkChunkBytes = CompanionCapabilities.artworkChunkBytes
     private static let maximumTextFrameBytes = CompanionCapabilities.maximumTextFrameBytes
     private var connectionGeneration: UInt64 = 0
     private func makeSessionDelegate() -> CompanionSessionDelegate {
@@ -186,7 +179,6 @@ final class CompanionConnection: NSObject {
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
-        resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -350,7 +342,6 @@ final class CompanionConnection: NSObject {
         sessionAuthenticated = false
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
-        resetArtworkTransferState()
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -364,15 +355,6 @@ final class CompanionConnection: NSObject {
         session?.invalidateAndCancel()
         session = nil
         scheduleReconnect()
-    }
-
-    private func resetArtworkTransferState() {
-        artworkData = nil
-        artworkGeneration = 0
-        artworkOffset = 0
-        deferredArtwork = nil
-        lastArtworkGeneration = 0
-        lastArtworkSHA256 = nil
     }
 
     private func resetAppIconTransferState(clearPendingRequests: Bool = false) {
@@ -537,13 +519,6 @@ final class CompanionConnection: NSObject {
             } else { return false }
         case .appIconRequest(let payload):
             guard sessionAuthenticated else { return false }
-            if let data = artworkData {
-                deferredArtwork = (artworkGeneration, data, lastArtworkSHA256)
-                sendJSON(["type": "artwork.abort", "generation": artworkGeneration])
-                artworkData = nil
-                artworkGeneration = 0
-                artworkOffset = 0
-            }
             if let index = pendingAppIconRequests.firstIndex(where: { $0.appId == payload.appId }) {
                 pendingAppIconRequests[index] = payload
             } else {
@@ -590,64 +565,13 @@ final class CompanionConnection: NSObject {
                     updateConnectionStatus(message, state: .failed)
                 }
             }
-        case .artworkAck(let payload):
+        case .artworkAck, .artworkAbort, .artworkRequest:
+            // Older panels can still send these protocol v4 messages.
             guard sessionAuthenticated else { return false }
-            if payload.generation == artworkGeneration, Int(payload.nextOffset) == artworkOffset {
-                sendNextArtworkChunk()
-            }
-        case .artworkAbort:
-            guard sessionAuthenticated else { return false }
-            resetArtworkTransferState()
-            processNextAppIconRequest()
-        case .artworkRequest(let payload):
-            guard sessionAuthenticated else { return false }
-            onEvent?(.artworkRequested(payload.generation))
         default:
             return false
         }
         return true
-    }
-
-    func publishNowPlaying(_ snapshot: CompanionNowPlayingSnapshot, forceArtwork: Bool = false) {
-        let artworkHash = snapshot.artworkSHA256
-        let hasArtwork = snapshot.artworkJPEG != nil
-        let shouldSendArtwork = hasArtwork && (forceArtwork ||
-            snapshot.generation != lastArtworkGeneration || artworkHash != lastArtworkSHA256)
-        if artworkData != nil && (shouldSendArtwork || snapshot.generation != artworkGeneration) {
-            sendJSON(["type": "artwork.abort", "generation": artworkGeneration])
-            artworkData = nil
-            artworkGeneration = 0
-            artworkOffset = 0
-        }
-        if !hasArtwork {
-            deferredArtwork = nil
-            lastArtworkGeneration = 0
-            lastArtworkSHA256 = nil
-        } else if let deferredArtwork, deferredArtwork.generation != snapshot.generation {
-            self.deferredArtwork = nil
-        }
-        var message: [String: Any] = [
-            "type": "now_playing", "generation": snapshot.generation,
-            "applicationIdentifier": snapshot.applicationIdentifier,
-            "applicationName": snapshot.applicationName, "state": snapshot.state.rawValue,
-            "contentIdentifier": snapshot.contentIdentifier, "title": snapshot.title,
-            "artist": snapshot.artist, "album": snapshot.album,
-            "durationMs": snapshot.durationMilliseconds, "positionMs": snapshot.positionMilliseconds,
-            "playbackRate": snapshot.playbackRate, "hasArtwork": hasArtwork,
-        ]
-        if shouldSendArtwork, let artworkHash { message["artworkSHA256"] = artworkHash }
-        sendJSON(message)
-        guard shouldSendArtwork, let artwork = snapshot.artworkJPEG else {
-            processNextAppIconRequest()
-            return
-        }
-        lastArtworkGeneration = snapshot.generation
-        lastArtworkSHA256 = artworkHash
-        if appIconData != nil || !pendingAppIconRequests.isEmpty {
-            deferredArtwork = (snapshot.generation, artwork, artworkHash)
-            return
-        }
-        startArtworkTransfer(data: artwork, generation: snapshot.generation, sha256: artworkHash)
     }
 
     func publishSystemMetrics(_ snapshot: CompanionSystemMetricsSnapshot, force: Bool = false) {
@@ -683,43 +607,6 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "system_metrics", "generation": 1, "available": false])
     }
 
-    private func sendNextArtworkChunk() {
-        guard let artworkData else { return }
-        if artworkOffset >= artworkData.count {
-            sendJSON(["type": "artwork.end", "generation": artworkGeneration])
-            self.artworkData = nil
-            artworkOffset = 0
-            processNextAppIconRequest()
-            return
-        }
-        let end = min(artworkOffset + Self.artworkChunkBytes, artworkData.count)
-        var frame = Data()
-        var generation = artworkGeneration.bigEndian
-        var offset = UInt32(artworkOffset).bigEndian
-        withUnsafeBytes(of: &generation) { frame.append(contentsOf: $0) }
-        withUnsafeBytes(of: &offset) { frame.append(contentsOf: $0) }
-        frame.append(artworkData[artworkOffset..<end])
-        artworkOffset = end
-        guard let sendingTask = task else { resetArtworkTransferState(); return }
-        sendingTask.send(.data(frame)) { [weak self, weak sendingTask] error in
-            guard error != nil else { return }
-            Task { @MainActor [weak self, weak sendingTask] in
-                guard let self, let sendingTask, self.task === sendingTask else { return }
-                self.resetArtworkTransferState()
-                self.processNextAppIconRequest()
-            }
-        }
-    }
-
-    private func startArtworkTransfer(data: Data, generation: UInt32, sha256: String?) {
-        artworkData = data
-        artworkGeneration = generation
-        artworkOffset = 0
-        let hash = sha256 ?? SHA256.hash(data: data).map { String(format: "%02x", $0) }.joined()
-        sendJSON(["type": "artwork.begin", "generation": generation,
-                  "byteLength": data.count, "sha256": hash, "mimeType": "image/jpeg"])
-    }
-
     private func sendNextAppIconChunk() {
         guard let data = appIconData else { return }
         if appIconOffset >= data.count {
@@ -751,17 +638,8 @@ final class CompanionConnection: NSObject {
     }
 
     private func processNextAppIconRequest() {
-        guard sessionAuthenticated, artworkData == nil, appIconData == nil else { return }
-        if !pendingAppIconRequests.isEmpty {
-            handleAppIconRequest(pendingAppIconRequests.removeFirst())
-            return
-        }
-        if let deferredArtwork {
-            self.deferredArtwork = nil
-            startArtworkTransfer(data: deferredArtwork.data,
-                                 generation: deferredArtwork.generation,
-                                 sha256: deferredArtwork.sha256)
-        }
+        guard sessionAuthenticated, appIconData == nil, !pendingAppIconRequests.isEmpty else { return }
+        handleAppIconRequest(pendingAppIconRequests.removeFirst())
     }
 
     private func handleAppIconRequest(_ payload: CompanionWireAppIconRequest) {

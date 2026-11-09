@@ -24,7 +24,7 @@ for switch in config["switch"]:
 helpers = (ROOT / "components/espdesktop/backlight.h").read_text()
 names = ("screen_schedule_in_window", "screen_schedule_sensor_trigger", "screen_schedule_disabled_trigger",
          "screen_schedule_time_trigger", "screen_schedule_waiting_for_time", "screen_schedule_night_active",
-         "screen_schedule_normal_active", "screen_schedule_blocks_cover_art")
+         "screen_schedule_normal_active")
 production = "\n".join(definition(helpers, name)[1] for name in names)
 header_source = (ROOT / "components/espdesktop/button_grid_grid.h").read_text()
 local_header = definition(header_source, "grid_refresh_local_header")[1]
@@ -92,7 +92,7 @@ int main() {
    }
   }
  }
- // Raw values from an older client must never block the display or Mac artwork.
+ // Raw values from an older client must never block the display.
  for (const auto &trigger : {"sensor", "Sensor"}) {
   for (bool presence : {false, true}) {
    for (bool valid_time : {false, true}) {
@@ -100,7 +100,6 @@ int main() {
      assert(screen_schedule_disabled_trigger(trigger));
      assert(!screen_schedule_waiting_for_time(trigger, true, valid_time));
      assert(!screen_schedule_night_active(trigger, true, presence, valid_time, 0, 8, 22, activation));
-     assert(!screen_schedule_blocks_cover_art(trigger, true, presence, valid_time, 0, 8, 22, activation));
     }
    }
   }

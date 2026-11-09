@@ -206,13 +206,11 @@ int main() {
   for (auto mode : {DisplayMode::DISPLAY_OFF, DisplayMode::DIMMED,
                     DisplayMode::CLOCK}) {
     DisplayModeController display;
-    display.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART);
     assert(display.request(DisplayRequestSource::MANUAL_SLEEP, mode));
     assert(display.target_mode_is(mode));
     assert(!presence_can_wake_display(display.resolve()));
     assert(!display.request(DisplayRequestSource::USER_WAKE, DisplayMode::ACTIVE));
     assert(display.clear(DisplayRequestSource::MANUAL_SLEEP));
-    display.clear(DisplayRequestSource::MEDIA_PLAYBACK);
     assert(display.target_mode_is(DisplayMode::ACTIVE));
   }
 }

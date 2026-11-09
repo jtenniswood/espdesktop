@@ -48,7 +48,6 @@ usage documentation lives in the root `README.md` and under `docs/`.
 - [Devices and Builds](devices-and-builds.md)
 - [Modal Layout System](modal-layout-system.md)
 - [Display Lifecycle Transition Contract](display-lifecycle.md)
-- [Cover Art Mode](cover-art-mode.md)
 - [Font Guidelines](font-guidelines.md)
 
 ## Upstream Ports

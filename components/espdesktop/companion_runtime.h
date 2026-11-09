@@ -32,28 +32,6 @@ struct CompanionValue {
   int value{0};
 };
 
-enum class CompanionPlaybackState : uint8_t {
-  UNAVAILABLE = 0,
-  STOPPED,
-  PAUSED,
-  PLAYING,
-};
-
-struct CompanionNowPlayingSnapshot {
-  uint32_t generation{0};
-  CompanionPlaybackState playback_state{CompanionPlaybackState::UNAVAILABLE};
-  std::string source_application_id;
-  std::string source_application_name;
-  std::string content_id;
-  std::string title;
-  std::string artist;
-  std::string album;
-  float duration{0.0f};
-  float position{0.0f};
-  float playback_rate{0.0f};
-  bool artwork_follows{false};
-};
-
 struct CompanionStorageDevice {
   std::string id;
   std::string label;
@@ -115,7 +93,6 @@ struct CompanionRuntimeSnapshot {
   bool keyboard_actions_supported{false};
   std::vector<std::string> window_actions;
   bool connected{false};
-  CompanionNowPlayingSnapshot now_playing;
   CompanionSystemMetricsSnapshot system_metrics;
   std::vector<CompanionURLFocusTarget> url_focus_targets;
   uint32_t url_focus_targets_generation{0};
@@ -168,9 +145,6 @@ struct CompanionPairingSnapshot {
 
 using CompanionPairingProvider = std::function<CompanionPairingSnapshot()>;
 
-using CompanionNowPlayingHandler = std::function<void(const CompanionNowPlayingSnapshot &)>;
-// Ownership of data transfers to the handler only when it returns true.
-using CompanionArtworkHandler = std::function<bool(uint32_t generation, uint8_t *data, size_t size)>;
 
 class CompanionRuntimeService {
  public:
@@ -183,9 +157,7 @@ class CompanionRuntimeService {
   std::function<void()> begin_pairing;
   std::function<void()> revoke_pairing;
   std::function<bool()> clear_app_icon_cache;
-  CompanionNowPlayingHandler now_playing_handler;
   CompanionConnectionChangedHandler connection_changed_handler;
-  CompanionArtworkHandler artwork_handler;
   std::function<void()> focus_registrations_changed_handler;
   std::atomic<bool> subpage_return_requested{false};
   std::atomic<uint32_t> request_number{0};
@@ -220,11 +192,6 @@ class CompanionRuntimeService {
     return {remote_definitions_.begin() + begin, remote_definitions_.begin() + end};
   }
 
-  CompanionNowPlayingSnapshot now_playing() const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return now_playing_;
-  }
-
   bool value(const std::string &id, int &result) const {
     std::lock_guard<std::mutex> lock(mutex_);
     const auto item = std::find_if(values_.begin(), values_.end(),
@@ -237,7 +204,7 @@ class CompanionRuntimeService {
   CompanionRuntimeSnapshot snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
-            connected_, now_playing_, system_metrics_, url_focus_targets_,
+            connected_, system_metrics_, url_focus_targets_,
             url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
   }
 
@@ -306,12 +273,6 @@ class CompanionRuntimeService {
     values_.erase(std::remove_if(values_.begin(), values_.end(),
       [&control_id](const CompanionValue &candidate) { return candidate.id == control_id; }),
       values_.end());
-    request_refresh_();
-  }
-
-  void set_now_playing(CompanionNowPlayingSnapshot snapshot) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    now_playing_ = std::move(snapshot);
     request_refresh_();
   }
 
@@ -421,7 +382,6 @@ class CompanionRuntimeService {
       pending_auto_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
       window_actions_.clear();
-      now_playing_ = {};
       system_metrics_ = {};
     }
     request_refresh_();
@@ -453,7 +413,6 @@ class CompanionRuntimeService {
   bool keyboard_actions_supported_{false};
   std::vector<std::string> window_actions_;
   bool connected_{false};
-  CompanionNowPlayingSnapshot now_playing_;
   CompanionSystemMetricsSnapshot system_metrics_;
   std::atomic<bool> refresh_requested_{false};
   std::atomic<bool> focus_refresh_requested_{false};

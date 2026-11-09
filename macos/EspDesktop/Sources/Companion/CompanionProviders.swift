@@ -5,15 +5,6 @@ import Foundation
 // any provider without constructing the real system integration.
 
 @MainActor
-protocol NowPlayingProviding: AnyObject {
-    var onSnapshot: ((CompanionNowPlayingSnapshot) -> Void)? { get set }
-    var onStatus: ((String) -> Void)? { get set }
-    func start()
-    func stop()
-    func stopAndPublishUnavailable()
-}
-
-@MainActor
 protocol SystemMetricsProviding: AnyObject {
     var onSnapshot: ((CompanionSystemMetricsSnapshot) -> Void)? { get set }
     func start()
@@ -31,7 +22,6 @@ protocol MediaControlling: AnyObject {
     ) -> Set<String>
 }
 
-extension SystemNowPlayingProvider: NowPlayingProviding {}
 extension SystemMetricsProvider: SystemMetricsProviding {}
 
 extension SystemMediaController: MediaControlling {

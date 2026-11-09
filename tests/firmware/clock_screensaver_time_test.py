@@ -112,7 +112,7 @@ int main() {
   assert(date.hidden);
   assert(label.writes == writes); // Invalid time does not replace the last valid clock.
   panel_time.value = {8, 2, true};
-  for (auto mode : {DisplayMode::ACTIVE, DisplayMode::COVER_ART,
+  for (auto mode : {DisplayMode::ACTIVE,
                     DisplayMode::DIMMED, DisplayMode::SETUP_DIMMED, DisplayMode::DISPLAY_OFF}) {
     espdesktop_app.mode = mode;
     time_update();

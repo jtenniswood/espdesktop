@@ -10,7 +10,6 @@ substitutions:
   friendly_name: "EspDesktop 10inch V3 Test"
   firmware_version: "dev-v3-test"
   espdesktop_component_ref: "test-jc8012p4a1-v3"
-  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/${espdesktop_component_ref}/common/assets/cover_art_placeholder.svg"
   # Keep device_slug inherited from V2 for the existing UI/layout contract.
   # This unpublished update channel must never point at the V2 release image.
   firmware_manifest_slug: "guition-esp32-p4-jc8012p4a1-v3-test"
