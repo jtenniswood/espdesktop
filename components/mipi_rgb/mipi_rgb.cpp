@@ -59,6 +59,11 @@ void MipiRgbSpi::reset_lcd_controller() {
     ESP_LOGW(TAG, "Cannot reset an unavailable LCD controller");
     return;
   }
+  // Return to the default command set before replaying the software reset.
+  const uint8_t select_command_set_1[] = {0x77, 0x01, 0x00, 0x00, 0x00};
+  this->write_command_(CMD2_BKSEL);
+  for (const uint8_t byte : select_command_set_1)
+    this->write_data_(byte);
   this->write_init_sequence_();
   if (!this->is_failed()) {
     ESP_LOGI(TAG, "LCD controller reset sequence sent");
