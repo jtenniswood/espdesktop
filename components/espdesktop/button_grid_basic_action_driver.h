@@ -134,7 +134,8 @@ inline bool basic_action_driver_bind_subpage(
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity)) break;
       std::string required_focus_id;
-      if (environment.parent_config && companion_app_shortcuts_enabled(*environment.parent_config) &&
+      if (config.type == "companion" && environment.parent_config &&
+          companion_app_shortcuts_enabled(*environment.parent_config) &&
           config.entity.rfind("shortcut.", 0) == 0)
         required_focus_id = environment.parent_config->entity;
       auto *click = grid_delete_with_owner(slot.btn,

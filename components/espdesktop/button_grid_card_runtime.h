@@ -51,7 +51,8 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::LIGHT_TEMPERATURE: return Family::LIGHT_TEMPERATURE;
     case Type::MEDIA: return Family::MEDIA;
     case Type::PUSH: return Family::PUSH;
-    case Type::COMPANION: return Family::COMPANION;
+    case Type::COMPANION:
+    case Type::COMPANION_MAC_LOCK: return Family::COMPANION;
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;
     case Type::SUBPAGE: return Family::SUBPAGE;

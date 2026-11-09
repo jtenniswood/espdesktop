@@ -1393,6 +1393,15 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
   normalize_saved_config_subpage(
       p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);
+  if (p.type == "companion_mac_lock") {
+    p.entity = "shortcut.command+control+q";
+    if (p.label.empty()) p.label = card_runtime_label(p.type);
+    if (p.icon.empty() || p.icon == "Auto") p.icon = card_runtime_default_icon_name(p.type);
+    p.icon_on = "Auto";
+    p.sensor.clear();
+    p.unit.clear();
+    p.precision.clear();
+  }
   if (p.type == "companion") {
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {

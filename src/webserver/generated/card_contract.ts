@@ -2506,6 +2506,60 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
+  "companion_mac_lock": {
+    "label": "Mac Lock",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "default",
+          "value": "shortcut.command+control+q"
+        },
+        "label": {
+          "policy": "default_if_empty",
+          "value": "Mac Lock"
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Lock"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_mac_lock"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "shortcut.command+control+q",
+      "label": "Mac Lock",
+      "icon": "Lock",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_mac_lock",
+      "precision": "",
+      "options": ""
+    }
+  },
   "companion": {
     "label": "Companion",
     "allowInSubpage": true,
@@ -3472,6 +3526,18 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
+  "companion_mac_lock": {
+    "driver": "companion",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": false,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
+  },
   "slider": {
     "driver": "numeric",
     "capabilities": {
@@ -3586,6 +3652,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "climate_control": "HC",
   "push": "P",
   "companion": "CP",
+  "companion_mac_lock": "ML",
   "subpage": "G"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
@@ -3621,6 +3688,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "HC": "climate_control",
   "P": "push",
   "CP": "companion",
+  "ML": "companion_mac_lock",
   "G": "subpage"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
