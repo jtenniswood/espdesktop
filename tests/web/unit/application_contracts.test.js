@@ -1027,14 +1027,6 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:SUBPAGE_RAW_CHUNK_FIELDS|saveButtonConfig|saveSubpageEntity|saveSubpageEntityLegacy|scheduleSliderSubpageMigration|subpageChunkShouldPost|subpageEntityKeys):/);
   });
 
-  test("offers Web Apps directly in the Companion card picker", () => {
-    const companion = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
-    const preview = fs.readFileSync(path.join(ROOT, "src/webserver/features/preview.ts"), "utf8");
-    assert.match(companion, /\["companion_webapp", "Web App", "webapp"\]/);
-    assert.match(preview, /companion_webapp: \{ icon: "web"/);
-    assert.match(preview, /companion_webapp: "companion"/);
-  });
-
   test("composes the backup contract without compatibility globals", () => {
     const contract = fs.readFileSync(path.join(ROOT, "src/webserver/application/backup_contract.ts"), "utf8");
     const backup = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_backup.ts"), "utf8");

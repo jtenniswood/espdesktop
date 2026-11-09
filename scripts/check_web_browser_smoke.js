@@ -6711,6 +6711,13 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       0,
       `${testCase.name}: Companion-only picker hides Home Assistant card types`,
     );
+    assert.strictEqual(
+      await page.locator('[data-card-type="companion_webapp"]').count(),
+      0,
+      `${testCase.name}: Web App is unavailable when adding a new card`,
+    );
+    assert(await page.locator('[data-card-type="companion_url"]').isVisible(),
+      `${testCase.name}: Open URL remains available`);
     assert(
       await page.locator('[data-card-type="companion_app"]').isVisible(),
       `${testCase.name}: Companion-only picker opens on Mac Companion card types`,
