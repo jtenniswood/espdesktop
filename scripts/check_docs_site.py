@@ -189,6 +189,7 @@ def check_build(dist):
         BASE + 'reference/faq',
         BASE + 'reference/companion-compatibility',
         BASE + 'reference/privacy',
+        BASE + 'reference/request-icons',
     }
     unexpected_pages = set(pages) - mac_docs
     if unexpected_pages:

@@ -344,6 +344,7 @@ export default defineConfig({
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
+          { text: 'Request an Icon', link: '/reference/request-icons' },
         ],
       },
     ],
