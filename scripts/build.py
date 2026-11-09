@@ -36,7 +36,7 @@ from product_schema import (
     assert_card_contract_valid,
     assert_entity_names_valid as assert_product_entity_names_valid,
 )
-from product_model_v2 import load_product_model_v2, source_directory, source_path
+from product_model_v2 import load_product_model_v2, render_catalogue, source_directory, source_path
 
 ROOT = Path(__file__).resolve().parent.parent
 MDI_VERSION = "7.4.47"
@@ -3261,6 +3261,7 @@ def sync_card_contract(check_only=False):
     data = load_card_contract_data()
     assert_card_contract_valid(data)
     outputs = [
+        (CARD_CONTRACT_JSON, render_catalogue(data)),
         (CARD_CONTRACT_TS, gen_card_contract_ts(data)),
         (CARD_CONTRACT_H, gen_card_contract_h(data)),
         (SAVED_CONFIG_SHADOW_TS, gen_saved_config_shadow_ts(data)),
@@ -3380,7 +3381,9 @@ def device_docs_outputs(capabilities):
 
 def sync_device_capabilities(check_only=False):
     capabilities = public_device_capabilities()
+    model = load_product_model_v2()
     outputs = {
+        model.source_path("deviceCatalog"): render_catalogue(model.device_catalog_data()),
         DEVICE_CAPABILITIES_JSON: gen_device_capabilities_json(),
         **device_docs_outputs(capabilities),
     }
