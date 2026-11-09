@@ -162,7 +162,6 @@ function registerCards(context: ApplicationContext) {
     context.controllers.selection,
     context.layout.numSlots,
     context.controllers.connectorsPage,
-    context.controllers.settingsUi,
   );
   registerClimateCardTypes(
     registry,

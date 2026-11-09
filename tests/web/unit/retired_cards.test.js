@@ -51,3 +51,47 @@ test("native backup cleanup discards retired payloads before native or legacy re
     }
   }
 });
+
+test("removes saved Window Control cards while keeping other Companion cards", () => {
+  const { removeRetiredCards } = loadTypescriptTest("src/webserver/features/retired_cards.ts");
+  const { emptyCardConfig, retiredSavedCardType } = loadTypescriptTest("src/webserver/model/card.ts");
+  const window = { ...emptyCardConfig("companion"), entity: "window.minimize" };
+  const shortcut = { ...emptyCardConfig("companion"), entity: "shortcut.command+a" };
+  assert.equal(retiredSavedCardType(window), "companion_window");
+  assert.equal(retiredSavedCardType(shortcut), "");
+  const grid = [1, 2];
+  const buttons = [window, shortcut];
+  assert.deepEqual(removeRetiredCards(grid, {}, buttons, 2), [1]);
+  assert.deepEqual(grid, [0, 2]);
+  assert.deepEqual(buttons, [emptyCardConfig(), shortcut]);
+});
+
+test("saved Window Control cleanup preserves nested pages, neighbours and other retired cards", () => {
+  const { isRetiredLayoutCard, removeRetiredPanelRecords } = loadTypescriptTest("src/webserver/features/retired_cards.ts");
+  const { parseRawButtonConfig } = loadTypescriptTest("src/webserver/model/card.ts");
+  const { parseRawSubpageConfig } = loadTypescriptTest("src/webserver/model/subpage.ts");
+  const { cardContractSubpageTypeFromCode } = loadTypescriptTest("src/webserver/generated/card_contract.ts");
+  const codec = { parseButtonConfig: parseRawButtonConfig,
+    parseSubpageConfig: raw => parseRawSubpageConfig(raw, cardContractSubpageTypeFromCode) };
+  const { encodePanelPageDocument, decodePanelPageDocument } = loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
+  const old = "window.minimize;Minimise;Monitor;Auto;;;companion";
+  const folder = ";Rooms;;;;;subpage";
+  const page = "~B=Rooms:112233:Main,1w,,2,3|CP,window.left,Tile|G,,Child|CP,shortcut.command%2Ba,Keep";
+  const nested = "B=Child,1,2|window.close:Close:Monitor:Auto:::companion|com.apple.Finder:Finder:Monitor:Auto:::companion";
+  const special = "~B=Close,1,2|CP,window.restore,Restore|CP,shortcut.command%2Bb,Keep";
+  const document = { deviceProfile: "test", buttons: { 1: old, 2: folder, 3: ";Old;;;;;screen_lock", 9: old },
+    subpages: { 2: page, 66: nested }, settings: { button_order: "1w,,2,3", special_page: special, button_on_color: "112233" } };
+  const cleaned = structuredClone(document);
+  assert.equal(removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard), true);
+  assert.deepEqual(cleaned.buttons, { 2: folder, 3: ";Old;;;;;screen_lock" });
+  assert.equal(cleaned.settings.button_order, ",,2,3");
+  assert.equal(cleaned.settings.button_on_color, "112233");
+  assert.equal(cleaned.settings.special_page, "~B=Close,,2||CP,shortcut.command%2Bb,Keep");
+  assert.equal(cleaned.subpages[2], "~B=Rooms:112233:Main,,,2,3||G,,Child|CP,shortcut.command%2Ba,Keep");
+  assert.equal(cleaned.subpages[66], "B=Child,,2||com.apple.Finder:Finder:Monitor:Auto:::companion");
+  const roundTrip = decodePanelPageDocument(encodePanelPageDocument(cleaned));
+  assert.deepEqual({ ...roundTrip, buttons: { ...roundTrip.buttons }, subpages: { ...roundTrip.subpages },
+    settings: { ...roundTrip.settings } }, cleaned);
+  assert.equal(document.buttons[1], old);
+  assert.equal(removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard), false);
+});

@@ -614,3 +614,10 @@ inline bool card_runtime_is_mac_audio(const std::string &type, const std::string
 inline bool card_runtime_type_retired(const std::string &type) {
   return card_contract_type_retired(type);
 }
+
+inline std::string retired_saved_card_type(const std::string &type, const std::string &entity) {
+  if (type == "companion" && entity.rfind("window.", 0) == 0) return "companion_window";
+  if (type == "companion" && entity.rfind("webapp.", 0) == 0) return "companion_webapp";
+  if (card_runtime_is_mac_audio(type, entity)) return "companion_audio";
+  return card_runtime_type_retired(type) ? type : "";
+}

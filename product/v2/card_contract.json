@@ -3755,6 +3755,7 @@
     "subpage": "G"
   },
   "retiredCardTypes": [
+    "companion_window",
     "sensor",
     "local_sensor",
     "text_sensor",
