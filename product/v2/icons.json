@@ -1936,6 +1936,46 @@
       "name": "Web Plus",
       "codepoint": "F0033",
       "mdi": "web-plus"
+    },
+    {
+      "name": "Book Alphabet",
+      "codepoint": "F061D",
+      "mdi": "book-alphabet"
+    },
+    {
+      "name": "Bookmark Multiple",
+      "codepoint": "F0E15",
+      "mdi": "bookmark-multiple"
+    },
+    {
+      "name": "Bookmark Plus",
+      "codepoint": "F00C5",
+      "mdi": "bookmark-plus"
+    },
+    {
+      "name": "Card Text",
+      "codepoint": "F0B77",
+      "mdi": "card-text"
+    },
+    {
+      "name": "Font Size Decrease",
+      "codepoint": "F09F3",
+      "mdi": "format-font-size-decrease"
+    },
+    {
+      "name": "Font Size Increase",
+      "codepoint": "F09F4",
+      "mdi": "format-font-size-increase"
+    },
+    {
+      "name": "Page Next",
+      "codepoint": "F0BB0",
+      "mdi": "page-next"
+    },
+    {
+      "name": "Page Previous",
+      "codepoint": "F0BB2",
+      "mdi": "page-previous"
     }
   ],
   "domain_defaults": {

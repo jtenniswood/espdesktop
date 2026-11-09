@@ -43,6 +43,8 @@ The manifest must list every top-level template JSON file in this folder exactly
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
 
+Books also has an optional `extendedShortcuts` list for its Left Arrow, Right Arrow, Space and Fn–F presets. These entries require updated Companion and display firmware and only run when Books is active. Older Companion versions can still read the regular `shortcuts` list. Both lists share the same shortcut IDs and 64-entry limit.
+
 The current live files are useful examples too: Safari is in the standalone catalog; the other app templates provide shortcuts on their matching app subpages.
 
 Research-based starter templates cover supported native apps from the shortcut research index. Each includes up to ten confirmed, highlighted shortcuts that this controller can send. Spotlight controls are system-wide, OpenCode shortcuts are for a terminal interface, Finder uses its dedicated folder page, and Onshape is a separate browser-based app; those pages do not have native app templates.

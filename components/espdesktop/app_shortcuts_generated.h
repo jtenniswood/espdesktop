@@ -106,7 +106,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "org.audacityteam.audacity") return id == "0" || id == "1";
   if (app == "com.bambulab.bambu-studio") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "net.shinyfrog.bear") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
-  if (app == "com.apple.iBooksX") return id == "0" || id == "1";
+  if (app == "com.apple.iBooksX") return id == "29" || id == "30" || id == "31" || id == "32" || id == "2" || id == "3" || id == "4" || id == "1" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9" || id == "10" || id == "11" || id == "12" || id == "13" || id == "14" || id == "15" || id == "16" || id == "17" || id == "18" || id == "19" || id == "20" || id == "21" || id == "22" || id == "23" || id == "0" || id == "24" || id == "25" || id == "26" || id == "27" || id == "28";
   if (app == "com.apple.iCal") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.openai.chat") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "com.anthropic.claudefordesktop") return id == "0" || id == "1" || id == "2" || id == "3";
@@ -116,7 +116,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.hnc.Discord") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.evernote.Evernote") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.apple.FaceTime") return id == "0" || id == "1";
-  if (app == "com.figma.Desktop") return id == "0" || id == "1" || id == "2" || id == "3";
+  if (app == "com.figma.Desktop") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9" || id == "10" || id == "11" || id == "12" || id == "13" || id == "14" || id == "15" || id == "16" || id == "17" || id == "18" || id == "19" || id == "20" || id == "21" || id == "22" || id == "23" || id == "24" || id == "25" || id == "26" || id == "27" || id == "28" || id == "29" || id == "30" || id == "31" || id == "32" || id == "33" || id == "34" || id == "35" || id == "36" || id == "37" || id == "38";
   if (app == "com.apple.FinalCut") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "org.mozilla.firefox") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.apple.freeform") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";

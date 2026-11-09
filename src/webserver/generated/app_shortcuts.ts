@@ -11,6 +11,7 @@ export interface AppShortcutApplication {
     readonly label: string;
     readonly catalog: boolean;
     readonly shortcuts: readonly AppShortcutDefinition[];
+    readonly extendedShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {
@@ -756,16 +757,202 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "catalog": false,
     "shortcuts": [
       {
-        "id": "0",
-        "label": "New Collection",
-        "shortcut": "command+n",
-        "icon": "Folder Plus"
+        "id": "29",
+        "label": "Next Page",
+        "shortcut": "right",
+        "icon": "Page Next"
+      },
+      {
+        "id": "30",
+        "label": "Previous Page",
+        "shortcut": "left",
+        "icon": "Page Previous"
+      },
+      {
+        "id": "31",
+        "label": "Full Screen",
+        "shortcut": "function+f",
+        "icon": "Full Screen"
+      },
+      {
+        "id": "32",
+        "label": "Play/Pause",
+        "shortcut": "space",
+        "icon": "Play Pause"
+      },
+      {
+        "id": "2",
+        "label": "Bookmark Page",
+        "shortcut": "command+d",
+        "icon": "Bookmark Plus"
+      },
+      {
+        "id": "3",
+        "label": "Contents",
+        "shortcut": "command+t",
+        "icon": "View Headline"
+      },
+      {
+        "id": "4",
+        "label": "Bookmarks",
+        "shortcut": "command+shift+d",
+        "icon": "Bookmark Multiple"
       },
       {
         "id": "1",
         "label": "Search Books",
         "shortcut": "command+f",
         "icon": "Search"
+      },
+      {
+        "id": "5",
+        "label": "Next Chapter",
+        "shortcut": "option+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "6",
+        "label": "Previous Chapter",
+        "shortcut": "option+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "7",
+        "label": "Chapter Start",
+        "shortcut": "option+up",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "8",
+        "label": "Chapter End",
+        "shortcut": "option+down",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "9",
+        "label": "Notes",
+        "shortcut": "command+shift+n",
+        "icon": "Notes"
+      },
+      {
+        "id": "10",
+        "label": "Thumbnails",
+        "shortcut": "command+shift+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "11",
+        "label": "Study Cards",
+        "shortcut": "command+shift+s",
+        "icon": "Card Text"
+      },
+      {
+        "id": "12",
+        "label": "Glossary",
+        "shortcut": "command+shift+g",
+        "icon": "Book Alphabet"
+      },
+      {
+        "id": "13",
+        "label": "Larger Text",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Font Size Increase"
+      },
+      {
+        "id": "14",
+        "label": "Smaller Text",
+        "shortcut": "command+keyminus",
+        "icon": "Font Size Decrease"
+      },
+      {
+        "id": "15",
+        "label": "Reset Text",
+        "shortcut": "command+0",
+        "icon": "Format Size"
+      },
+      {
+        "id": "16",
+        "label": "Stop Audiobook",
+        "shortcut": "command+keyperiod",
+        "icon": "Stop"
+      },
+      {
+        "id": "17",
+        "label": "Skip Forward",
+        "shortcut": "command+right",
+        "icon": "Speed Up"
+      },
+      {
+        "id": "18",
+        "label": "Skip Back",
+        "shortcut": "command+left",
+        "icon": "Speed Down"
+      },
+      {
+        "id": "19",
+        "label": "Next Track",
+        "shortcut": "command+shift+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "20",
+        "label": "Previous Track",
+        "shortcut": "command+shift+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "21",
+        "label": "Volume Up",
+        "shortcut": "command+up",
+        "icon": "Volume Up"
+      },
+      {
+        "id": "22",
+        "label": "Volume Down",
+        "shortcut": "command+down",
+        "icon": "Volume Down"
+      },
+      {
+        "id": "23",
+        "label": "Open Book",
+        "shortcut": "command+o",
+        "icon": "Book"
+      },
+      {
+        "id": "0",
+        "label": "New Collection",
+        "shortcut": "command+n",
+        "icon": "Folder Plus"
+      },
+      {
+        "id": "24",
+        "label": "Books Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "25",
+        "label": "Close Window",
+        "shortcut": "command+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "26",
+        "label": "Hide Books",
+        "shortcut": "command+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "27",
+        "label": "Hide Others",
+        "shortcut": "command+option+h",
+        "icon": "Window Minimise"
+      },
+      {
+        "id": "28",
+        "label": "Quit Books",
+        "shortcut": "command+q",
+        "icon": "Logout"
       }
     ]
   },
@@ -1260,6 +1447,216 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "New Component",
         "shortcut": "option+command+k",
         "icon": "Component"
+      },
+      {
+        "id": "4",
+        "label": "Collapse Layers",
+        "shortcut": "option+l",
+        "icon": "Arrow Collapse"
+      },
+      {
+        "id": "5",
+        "label": "Copy PNG",
+        "shortcut": "command+shift+c",
+        "icon": "Image"
+      },
+      {
+        "id": "6",
+        "label": "Select Matching",
+        "shortcut": "command+option+a",
+        "icon": "Compare Selection"
+      },
+      {
+        "id": "7",
+        "label": "Suggest Layout",
+        "shortcut": "control+shift+a",
+        "icon": "View Grid"
+      },
+      {
+        "id": "8",
+        "label": "Toggle UI",
+        "shortcut": "command+keyperiod",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Toggle Outlines",
+        "shortcut": "command+shift+o",
+        "icon": "Vector"
+      },
+      {
+        "id": "10",
+        "label": "Layers",
+        "shortcut": "option+1",
+        "icon": "Layers"
+      },
+      {
+        "id": "11",
+        "label": "Assets",
+        "shortcut": "option+2",
+        "icon": "Applications"
+      },
+      {
+        "id": "12",
+        "label": "Libraries",
+        "shortcut": "option+3",
+        "icon": "Book"
+      },
+      {
+        "id": "13",
+        "label": "Select All",
+        "shortcut": "command+a",
+        "icon": "Select All"
+      },
+      {
+        "id": "14",
+        "label": "Invert Selection",
+        "shortcut": "command+shift+a",
+        "icon": "Swap Horizontal"
+      },
+      {
+        "id": "15",
+        "label": "Toggle Visibility",
+        "shortcut": "command+shift+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "16",
+        "label": "Toggle Lock",
+        "shortcut": "command+shift+l",
+        "icon": "Lock Outline"
+      },
+      {
+        "id": "17",
+        "label": "Group",
+        "shortcut": "command+g",
+        "icon": "Group Selection"
+      },
+      {
+        "id": "18",
+        "label": "Ungroup",
+        "shortcut": "command+delete",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "19",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "20",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "21",
+        "label": "Copy Properties",
+        "shortcut": "command+option+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "22",
+        "label": "Paste Properties",
+        "shortcut": "command+option+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "23",
+        "label": "Paste Replace",
+        "shortcut": "command+shift+r",
+        "icon": "Find Replace"
+      },
+      {
+        "id": "24",
+        "label": "Bring Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "25",
+        "label": "Send Backward",
+        "shortcut": "command+keybracketleft",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "26",
+        "label": "Bring Front",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Arrow Up Bold Box Outline"
+      },
+      {
+        "id": "27",
+        "label": "Send Back",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Arrow Down Bold Box Outline"
+      },
+      {
+        "id": "28",
+        "label": "Align Left",
+        "shortcut": "option+a",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "29",
+        "label": "Align Right",
+        "shortcut": "option+d",
+        "icon": "Dock Right"
+      },
+      {
+        "id": "30",
+        "label": "Align Top",
+        "shortcut": "option+w",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "31",
+        "label": "Align Bottom",
+        "shortcut": "option+s",
+        "icon": "Dock Bottom"
+      },
+      {
+        "id": "32",
+        "label": "Center Horiz.",
+        "shortcut": "option+h",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "33",
+        "label": "Center Vert.",
+        "shortcut": "option+v",
+        "icon": "Split Horizontal"
+      },
+      {
+        "id": "34",
+        "label": "Tidy Up",
+        "shortcut": "control+option+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "35",
+        "label": "Space Horiz.",
+        "shortcut": "control+option+h",
+        "icon": "Arrow Left Right"
+      },
+      {
+        "id": "36",
+        "label": "Space Vert.",
+        "shortcut": "control+option+v",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "37",
+        "label": "Detach Instance",
+        "shortcut": "command+option+b",
+        "icon": "Link Off"
+      },
+      {
+        "id": "38",
+        "label": "Remove Layout",
+        "shortcut": "option+shift+a",
+        "icon": "Window Restore"
       }
     ]
   },
