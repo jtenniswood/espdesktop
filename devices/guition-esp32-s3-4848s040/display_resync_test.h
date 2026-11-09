@@ -28,7 +28,7 @@ button.addEventListener("click", async () => {
   button.disabled = true;
   result.textContent = "Sending request…";
   try {
-    const response = await fetch("/button/resync_s3_display/press", {method: "POST"});
+    const response = await fetch("/button/Resync%20S3%20Display/press", {method: "POST"});
     if (!response.ok) throw new Error();
     result.textContent = "Resync requested. Check whether the picture moved back into place.";
   } catch {
