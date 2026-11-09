@@ -3,6 +3,7 @@ import { WEB_UI_COLORS } from "../state/ui_tokens";
 import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { parseGridOrder } from "../model";
 import type { PanelConfigDocument } from "../model/panel_config";
+import type { NativePageLayout } from "../model/panel_config_conversion";
 import { NativePageEditorLoader, preparePageEditorDocument, restoredEditorPage } from "../features/page_editor";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { ConfigCodecFeature } from "./config_codec";
@@ -23,9 +24,9 @@ export function createNativePageEditorFeature(options: {
 }): NativePageEditorLoader {
   const { native, codec, layout, runtime } = options;
   let removingOldCards = false;
-  const cleanRetiredCards = (snapshot: PanelConfigDocument) => {
+  const cleanRetiredCards = (snapshot: PanelConfigDocument, nativeLayout?: NativePageLayout) => {
     const cleaned = structuredClone(snapshot);
-    return removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard) ? cleaned : snapshot;
+    return removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard, nativeLayout) ? cleaned : snapshot;
   };
   const loader = new NativePageEditorLoader({
     discover: () => native.waitForDiscovery(),
@@ -35,9 +36,9 @@ export function createNativePageEditorFeature(options: {
     canApply: () => options.canApply() && !state.configLocked && !state.nativeTransferActive && !state.settingsDraft?.dirty && !state.settingsDraft?.isNew &&
       runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
       !options.document.activeElement?.closest(".sp-card-name-input"),
-    apply: (snapshot) => {
-      const cleaned = cleanRetiredCards(snapshot);
-      const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec);
+    apply: (snapshot, nativeLayout) => {
+      const cleaned = cleanRetiredCards(snapshot, nativeLayout);
+      const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec, cleaned === snapshot ? nativeLayout : undefined);
       const root = parseGridOrder(cleaned.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
       const editing = restoredEditorPage(state.editingSubpage, prepared);
       options.closeSettings();
@@ -45,7 +46,7 @@ export function createNativePageEditorFeature(options: {
       state.subpages = prepared.subpages;
       state.nativePanelDocument = prepared.source;
       state.nativePageSnapshotLoaded = true;
-      native.client?.acceptSnapshot(prepared.source);
+      native.client?.acceptSnapshot(prepared.source, cleaned === snapshot ? nativeLayout : undefined);
       state.nativeHasNestedPages = prepared.nested;
       state.nativeConfigReadOnly = prepared.nested && native.writableNavigationDepth() < 2;
       state.subpageRaw = {};
@@ -67,7 +68,7 @@ export function createNativePageEditorFeature(options: {
       if (cleaned !== snapshot && !state.nativeConfigReadOnly && !removingOldCards) {
         // Reapply the cleanup to the current device generation so concurrent
         // changes to neighbouring cards survive the write.
-        const pending = native.schedule(cleanRetiredCards, true);
+        const pending = native.schedule(document => cleanRetiredCards(document), true);
         if (pending) {
           removingOldCards = true;
           void pending.then(result => {
