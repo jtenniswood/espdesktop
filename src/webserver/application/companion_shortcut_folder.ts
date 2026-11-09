@@ -368,12 +368,12 @@ export function companionShortcutPresetCards(bundleIdentifier: string): Companio
         shortcutCard(COMPANION_SHORTCUT_PREFIX + item.shortcut, item.label, item.icon)));
 }
 
-export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: readonly string[]): any {
+export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: readonly string[]) {
     const presets = companionShortcutPresetCards(bundleIdentifier);
     const selected = tabs == null ? companionShortcutDefaultTabs(bundleIdentifier) : tabs;
     const buttons = selected.map(function (value) {
         return presets.find((preset) => companionShortcutPresetIdentity(preset) === bundleIdentifier + ":" + value);
-    }).filter(Boolean);
+    }).filter(preset => preset !== undefined);
     return {
         order: ["B"].concat(buttons.map((_button, index) => String(index + 1))),
         buttons,

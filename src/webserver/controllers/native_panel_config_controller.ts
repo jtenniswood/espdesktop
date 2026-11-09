@@ -119,7 +119,7 @@ export class NativePanelConfigController {
         if (!updates.length) return true;
         const update: NativePanelConfigUpdate = current => updates.reduce((document, apply) => apply(document), current);
         if (updates.every(apply => apply.editNative)) {
-          update.editNative = draft => updates.forEach(apply => apply.editNative!(draft));
+          update.editNative = (draft, current) => updates.forEach(apply => apply.editNative!(draft, current));
         }
         const result = await this.schedule(update);
         return result === "saved" || result === "mirror-failed";

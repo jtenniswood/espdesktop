@@ -1,7 +1,8 @@
 import { createCompanionCatalogue, type CompanionAction } from "../api/companion_catalogue";
-import type { PanelConfigDocument } from "../model/panel_config";
+import type { NativeLayoutDraft } from "../model/native_layout_draft";
+import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
+import type { NativePanelConfigSnapshot } from "../features/native_panel_config";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
-import type { ConfigCodecFeature } from "./config_codec";
 import type { ConnectorsPageFeature } from "./connectors_page";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import type { ControlsShellFeature } from "./controls_shell";
@@ -13,18 +14,19 @@ import {
     replaceCompanionDefinitions,
     setCompanionAppShortcutFolderEnabled,
 } from "./companion_shortcut_folder";
-import { parseRawButtonConfig } from "../model";
 import { APP_SUBPAGE_PREFERENCE, nativeAppSubpagePreference } from "../model/settings";
 import { configOptionEnabled, setConfigOptionValue } from "../model/config_primitives";
 
 export const FIRST_RUN_COMPLETE = "web_onboarding_complete";
 
 /** Only offer setup for an empty display, never over an existing layout. */
-export function needsFirstRunSetup(document: PanelConfigDocument): boolean {
-    return document.settings[FIRST_RUN_COMPLETE] !== "1" &&
-        !Object.values(document.buttons).some(value => value.trim()) &&
-        !Object.values(document.subpages).some(value => value.trim()) &&
-        !document.settings.button_order?.trim() && !document.settings.special_page?.trim();
+export function needsFirstRunSetup({ document: { settings }, layout }: NativePanelConfigGraph): boolean {
+    return settings[FIRST_RUN_COMPLETE] !== "1" && !layout.rootCards.length && !layout.pages.length &&
+        !settings.button_order?.trim() && !settings.special_page?.trim();
+}
+
+function hasNativeLayout(snapshot: NativePanelConfigSnapshot | null): snapshot is NativePanelConfigSnapshot & NativePanelConfigGraph {
+    return !!snapshot?.layout;
 }
 
 export function firstRunApplications(actions: readonly CompanionAction[]): CompanionAction[] {
@@ -41,52 +43,44 @@ export function supportsSetupShortcuts(id: string): boolean {
     return companionShortcutPresetCards(id).length > 0;
 }
 
-function layoutSignature(document: PanelConfigDocument): string {
-    return JSON.stringify([document.deviceProfile,
-        Object.entries(document.buttons).sort(([a], [b]) => Number(a) - Number(b)),
-        Object.entries(document.subpages).sort(([a], [b]) => Number(a) - Number(b)),
-        document.settings.button_order || "", document.settings.special_page || "",
-        nativeAppSubpagePreference(document.settings)]);
+function layoutSignature({ document: { deviceProfile, settings }, layout }: NativePanelConfigGraph): string {
+    return JSON.stringify([deviceProfile, layout, settings.button_order ?? "", settings.special_page ?? "",
+        nativeAppSubpagePreference(settings), settings[FIRST_RUN_COMPLETE] ?? ""]);
 }
 
 function setupAppLimit(capacity: number): number {
     return Math.min(8, capacity - 1);
 }
 
-/** Build one atomic layout update, rechecking the live document before saving. */
-export function firstRunDocument(
-    current: PanelConfigDocument,
+/** Create the cards, pages, and setup settings in one native transaction. */
+export function applyFirstRunLayout(
+    draft: NativeLayoutDraft,
+    current: NativePanelConfigGraph,
     apps: readonly CompanionAction[],
     addShortcutPages: boolean,
     capacity: number,
-    codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">,
-    replacing?: PanelConfigDocument,
+    replacing?: NativePanelConfigGraph,
     automaticSwitch?: boolean,
-): PanelConfigDocument {
+): void {
     if (replacing && layoutSignature(current) !== layoutSignature(replacing)) {
         throw new Error("The layout changed while setup was open. Close and reopen setup to keep those changes.");
     }
     if (!replacing && !needsFirstRunSetup(current)) throw new Error("This display already has a layout. Reload to keep its changes.");
     if (!Number.isInteger(capacity) || capacity < 1 || apps.length > setupAppLimit(capacity) ||
         new Set(apps.map(app => app.id)).size !== apps.length) throw new Error("Choose apps within the setup limit.");
-    const buttons: Record<number, string> = {};
-    const subpages: Record<number, string> = {};
-    apps.forEach((app, index) => {
+    const entries = apps.map(app => {
         const card = { entity: app.id, label: app.label, icon: "Auto", icon_on: "Auto",
             sensor: "", unit: "", type: "companion", precision: "", options: "" };
-        if (addShortcutPages && supportsSetupShortcuts(app.id)) {
-            const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
-            setCompanionAppShortcutFolderEnabled(card, true);
-            card.options = setConfigOptionValue(card.options, "app_shortcuts_tabs", tabs.join("|") || "none");
-            subpages[index + 1] = codec.serializeSubpageConfig(createCompanionShortcutSubpage(app.id, tabs));
-        }
-        buttons[index + 1] = codec.serializeButtonConfig(card);
+        if (!addShortcutPages || !supportsSetupShortcuts(app.id)) return { card };
+        const tabs = companionShortcutTabsForCapacity(companionShortcutDefaultTabs(app.id), capacity);
+        setCompanionAppShortcutFolderEnabled(card, true);
+        card.options = setConfigOptionValue(card.options, "app_shortcuts_tabs", tabs.join("|") || "none");
+        const { order, buttons } = createCompanionShortcutSubpage(app.id, tabs);
+        return { card, page: { order: order.join(","), cards: buttons } };
     });
-    return { ...current, buttons, subpages,
-        settings: { ...current.settings, button_order: apps.map((_app, index) => String(index + 1)).join(","),
-            [FIRST_RUN_COMPLETE]: "1",
-            ...(automaticSwitch === undefined ? {} : { [APP_SUBPAGE_PREFERENCE]: automaticSwitch ? "1" : "0" }),
-        } };
+    draft.replaceRootLayout(entries);
+    draft.writeSetting(FIRST_RUN_COMPLETE, "1");
+    if (automaticSwitch !== undefined) draft.writeSetting(APP_SUBPAGE_PREFERENCE, automaticSwitch ? "1" : "0");
 }
 
 interface FirstRunSetupDependencies {
@@ -96,7 +90,6 @@ interface FirstRunSetupDependencies {
     capacity: number;
     supported: boolean;
     native: NativePanelConfigController;
-    codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">;
     connectors: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">;
     fields: Pick<ControlsFieldsFeature, "textInput" | "toggleRow">;
     shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner" | "createMdiIcon">;
@@ -110,7 +103,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     const catalogue = createCompanionCatalogue(deps.fetch);
     let dialog: HTMLDialogElement | null = null;
     let eligible = false;
-    let replacing: PanelConfigDocument | undefined;
+    let replacing: NativePanelConfigGraph | undefined;
     let opening = false;
     let connected = false;
     let step = 1;
@@ -196,6 +189,12 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             render();
         }
     }
+    async function supportsSetup(): Promise<boolean> {
+        const ready = await deps.native.waitForDiscovery() === true;
+        const client = deps.native.client;
+        return ready && !!client?.supportsAppSubpagePreference() && client.writableNavigationDepth() === 2;
+    }
+
     async function finish(skip = false): Promise<void> {
         if (busy || (loading && !skip)) return;
         if (deps.shell.isConfigLocked()) {
@@ -208,12 +207,16 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         error = "";
         render();
         try {
-            if (await deps.native.waitForDiscovery() !== true || !deps.native.client?.supportsAppSubpagePreference())
+            if (!await supportsSetup())
                 throw new Error("Could not confirm the display can save app setup. Check its connection and firmware.");
             const chosen = skip ? [] : selectedApps();
             const automaticSwitch = skip ? undefined : addShortcutPages && supportedApps().length > 0 && autoSwitch;
-            const result = await deps.native.schedule(current =>
-                firstRunDocument(current, chosen, addShortcutPages, deps.capacity, deps.codec, replacing, automaticSwitch));
+            const result = await deps.native.schedule(Object.assign(
+                () => { throw new Error("App setup needs native layout support."); },
+                { editNative: (draft: NativeLayoutDraft, current: NativePanelConfigGraph) => {
+                    applyFirstRunLayout(draft, current, chosen, addShortcutPages, deps.capacity, replacing, automaticSwitch);
+                } },
+            ));
             if (result !== "saved" && result !== "mirror-failed") throw new Error("Could not finish setup. Reload the page to check the display’s saved layout before trying again.");
             eligible = false;
             close();
@@ -389,20 +392,19 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             if (!deps.supported || dialog || opening) return;
             opening = true;
             void (async () => {
-                if (await deps.native.waitForDiscovery() !== true || !deps.native.client?.supportsAppSubpagePreference())
+                if (!await supportsSetup())
                     throw new Error("Update the display firmware to use app setup.");
-                const saved = (await deps.native.readSnapshot())?.document;
-                if (!saved) throw new Error("Could not load the display’s layout. Check the connection and try again.");
+                const saved = await deps.native.readSnapshot();
+                if (!hasNativeLayout(saved)) throw new Error("Could not load the display’s native layout. Check its connection and firmware.");
                 replacing = saved;
                 selected.clear();
                 addShortcutPages = false;
-                for (const value of Object.values(saved.buttons)) {
-                    const card = parseRawButtonConfig(value);
+                for (const { config: card } of saved.layout.rootCards) {
                     if (card.type !== "companion" || !card.entity || card.sensor || selected.size >= appLimit) continue;
                     selected.add(card.entity);
                     if (configOptionEnabled(card.options, "app_shortcuts")) addShortcutPages = true;
                 }
-                autoSwitch = nativeAppSubpagePreference(saved.settings) ?? deps.autoSwitchEnabled();
+                autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
                 query = "";
                 error = "";
                 step = 1;
@@ -415,9 +417,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             if (!deps.supported || started) return;
             started = true;
             void (async () => {
-                if (await deps.native.waitForDiscovery() !== true || !deps.native.client?.supportsAppSubpagePreference()) return;
-                const saved = (await deps.native.readSnapshot())?.document;
-                if (!saved || !needsFirstRunSetup(saved)) return;
+                if (!await supportsSetup()) return;
+                const saved = await deps.native.readSnapshot();
+                if (!hasNativeLayout(saved) || !needsFirstRunSetup(saved)) return;
                 eligible = true;
                 const params = new URLSearchParams(window.location.search);
                 const pairingLink = params.get("connector") === "mac_companion" || params.get("tab") === "connectors";

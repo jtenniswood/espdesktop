@@ -17,7 +17,7 @@ const {
   activeCardColor,
   decodeConfigField,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
-const { encodePanelPageDocument, decodePanelPageDocument } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
+const { encodePanelPageDocument, decodePanelPageSnapshot } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
 const WEB_OUTPUT_DIR = freshWebOutputDir();
 const FAILURE_DIR = path.join(ROOT, ".cache", "web-browser-smoke");
@@ -409,11 +409,14 @@ async function installRoutes(context, slug, options = {}) {
         }
         const body = route.request().postDataBuffer();
         assert(body, `${slug}: native configuration PUT has a binary body`);
-        nativeState.document = (options.nativeV2 ? decodePanelPageDocument : decodePanelConfig)(new Uint8Array(body));
+        const input = new Uint8Array(body);
+        const graph = options.nativeV2 ? decodePanelPageSnapshot(input) : undefined;
+        nativeState.document = graph?.document ?? decodePanelConfig(input);
         nativeState.generation += 1;
         nativeState.puts.push({
           generation: nativeState.generation,
           document: JSON.parse(JSON.stringify(nativeState.document)),
+          layout: graph?.layout,
         });
         if (nativeState.loseWriteResponse) {
           await route.abort("connectionreset");
@@ -6950,12 +6953,14 @@ async function assertFirstRunSetup(browser) {
     assert.equal(Object.keys(fixture.document.buttons).length, appLimit);
     assert.equal(fixture.document.buttons[9], undefined, "setup leaves the ninth slot free");
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
-    const safariSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Safari;"));
-    assert(fixture.document.buttons[safariSlot].includes("app_shortcuts"));
-    assert(fixture.document.subpages[safariSlot].includes("shortcut."));
-    const notesSlot = Object.keys(fixture.document.buttons).find(slot => fixture.document.buttons[slot].startsWith("com.apple.Notes;"));
-    assert(fixture.document.subpages[notesSlot].includes("shortcut."), "the global choice also adds a page for Notes");
-    assert.equal(Object.keys(fixture.document.subpages).length, 2, "unsupported apps remain launch cards");
+    const { rootCards, pages } = fixture.puts[0].layout;
+    const safari = rootCards.find(({ config }) => config.entity === "com.apple.Safari");
+    const notes = rootCards.find(({ config }) => config.entity === "com.apple.Notes");
+    assert.match(safari.config.options, /app_shortcuts/);
+    assert(pages.find(page => page.key === safari.slot).cards.some(({ config }) => config.entity.startsWith("shortcut.")));
+    assert(pages.find(page => page.key === notes.slot).cards.some(({ config }) => config.entity.startsWith("shortcut.")),
+      "the global choice also adds a page for Notes");
+    assert.equal(pages.length, 2, "unsupported apps remain launch cards");
     assert.equal(fixture.puts.length, 1);
     assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0");
     assert.deepEqual(switches, [], "setup uses only the layout PUT");

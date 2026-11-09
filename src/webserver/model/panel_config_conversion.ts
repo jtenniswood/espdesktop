@@ -166,7 +166,12 @@ export function decodePanelPageDocument(input: Uint8Array): PanelConfigDocument 
 
 /** The editor uses the native fields directly. The text view is for older
  * callers that still edit or export the compatibility format. */
-export function decodePanelPageSnapshot(input: Uint8Array): { document: PanelConfigDocument; layout: NativePageLayout } {
+export interface NativePanelConfigGraph {
+  readonly document: PanelConfigDocument;
+  readonly layout: NativePageLayout;
+}
+
+export function decodePanelPageSnapshot(input: Uint8Array): NativePanelConfigGraph {
   const rootCards: NativeLayoutCard[] = [], pages: NativeLayoutPage[] = [];
   const document = projectNativeGraph(input, true, rootCards, pages);
   return { document, layout: { rootCards, pages, nested: pages.some(page => pageDepth(page.key) === 2) } };

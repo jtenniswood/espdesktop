@@ -94,9 +94,11 @@ REST response shows the exact compact string firmware will parse.
 
 Firmware that advertises `configuration.companion_auto_open_app_subpages`
 applies the automatic switching preference from the native layout document.
-The first-run wizard submits the home cards, shortcut pages, preference, and
-completion marker in the same generation-checked save. The Screen settings
-toggle edits that field through the same API. A layout without the field
+The first-run wizard writes the home cards and shortcut pages directly to
+the native layout and commits them with the preference and completion marker
+in one generation-checked save. Setup Again reads the current layout and
+stops if another editor changes the layout or preference before saving.
+The Screen settings toggle edits that field through the same API. A layout without the field
 retains the panel's previously saved preference. The switch publishes the
 live value to the editor after the layout commit. Existing backups can supply
 the preference through their portable settings.

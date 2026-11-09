@@ -919,7 +919,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const firstRunSetup = createFirstRunSetup({
     ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
-    native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, fields, shell,
+    native: nativePanelConfig, connectors: connectorsPage, fields, shell,
     autoSwitchEnabled: () => state.autoOpenAppSubpages,
     onSaved: (mirrorFailed) => {
       shell.switchTab("screen");

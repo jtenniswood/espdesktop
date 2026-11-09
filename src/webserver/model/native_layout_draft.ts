@@ -9,6 +9,11 @@ import { decodeNativeV2, encodeNativeV2, NativeV2Kind as K, type NativeV2Record 
 const ABSENT = 2, RAW = 1;
 const entityField = (index: number) => index === 0 || index === 4;
 
+interface NativeRootCardEdit {
+  readonly card: CardConfig;
+  readonly page?: NativePageEdit;
+}
+
 export interface NativePageEdit {
   readonly order: string;
   readonly cards: readonly CardConfig[];
@@ -114,6 +119,18 @@ export class NativeLayoutDraft {
     card.fields = fields;
     card.fieldMask = fields.reduce((mask, id, index) => mask | (id ? 1 << index : 0), 0);
     card.flags = card.rawSource = 0;
+  }
+
+  replaceRootLayout(entries: readonly NativeRootCardEdit[]): void {
+    for (const card of this.cards(0)) {
+      if (card.second! > entries.length) this.removeCard(card);
+    }
+    entries.forEach(({ card, page }, index) => {
+      const slot = index + 1;
+      this.writeRootCard(slot, card);
+      this.writePage(slot, page ?? null);
+    });
+    this.writeSetting("button_order", entries.map((_, index) => index + 1).join(","));
   }
 
   writeRootCard(slot: number, config: CardConfig): void {

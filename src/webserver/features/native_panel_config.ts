@@ -6,7 +6,7 @@ import {
   type PanelConfigDocument,
 } from "../model";
 import { convertNativeV1ToV2, convertNativeV2ToV1, decodePanelPageDocument, decodePanelPageSnapshot, encodePanelPageDocument, panelPageDocumentDepth,
-  type NativePageLayout } from "../model/panel_config_conversion";
+  type NativePageLayout, type NativePanelConfigGraph } from "../model/panel_config_conversion";
 import { PageTransferConflict } from "../model/page_card_transfer";
 import { updateNativePanelSettings } from "../model/panel_config_settings";
 import { NativeLayoutDraft } from "../model/native_layout_draft";
@@ -46,7 +46,7 @@ export type NativePanelConfigFetch = (
 ) => Promise<NativePanelConfigResponse>;
 
 export type NativePanelConfigUpdate = ((document: PanelConfigDocument) => PanelConfigDocument) & {
-  editNative?: (draft: NativeLayoutDraft) => void;
+  editNative?: (draft: NativeLayoutDraft, current: NativePanelConfigGraph) => void;
 };
 
 export type NativePanelConfigSaveResult = "saved" | "unsupported" | "conflict" | "mirror-failed" | "authentication-required" | "too-large" | "firmware-update-required" | "nested-pages-unavailable" | "failed";
@@ -348,13 +348,15 @@ export class NativePanelConfigClient {
             (responseVersion !== null && responseVersion !== String(version))) return "failed";
         const input = new Uint8Array(await current.arrayBuffer());
         if (version === V2_DOCUMENT_VERSION && input.length > this.maxV2DocumentBytes_) return "too-large";
-        const currentDocument = this.decodeDocument(input, version);
+        const currentGraph = version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
+          ? decodePanelPageSnapshot(input) : undefined;
+        const currentDocument = currentGraph?.document ?? this.decodeDocument(input, version);
         const currentDepth = panelPageDocumentDepth(currentDocument);
         if (currentDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
         let directBody: Uint8Array | undefined;
-        if (!nativeBackup && version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2 && update.editNative) {
+        if (!nativeBackup && currentGraph && this.writableNavigationDepth() === 2 && update.editNative) {
           const draft = new NativeLayoutDraft(input);
-          update.editNative(draft);
+          update.editNative(draft, currentGraph);
           const previous = priorScope;
           if (previous && (previous.length !== draft.editScope.length ||
               draft.editScope.some((value, index) => value !== previous[index]))) return "conflict";
@@ -369,8 +371,7 @@ export class NativePanelConfigClient {
         const layoutUnchanged = sameRecords(currentDocument.buttons, updated.buttons) &&
           sameRecords(currentDocument.subpages, updated.subpages);
         if (skipUnchanged && layoutUnchanged && sameRecords(currentDocument.settings, updated.settings)) {
-          this.acceptSnapshot(currentDocument, version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
-            ? decodePanelPageSnapshot(input).layout : undefined);
+          this.acceptSnapshot(currentDocument, currentGraph?.layout);
           return "saved";
         }
         const updatedDepth = panelPageDocumentDepth(updated);
