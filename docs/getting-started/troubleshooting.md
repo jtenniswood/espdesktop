@@ -37,7 +37,7 @@ For the control's exact requirements, see [Mac Controls](/#what-you-can-control)
 
 ## The Touchscreen Says to Unlock Your Mac
 
-Unlock the paired Mac and make sure EspDesktop is running and connected. If the connection was lost while your Mac was locked, the display unlocks after the app reconnects and reports that your Mac is unlocked. If the touchscreen then asks for a PIN, enter your display PIN.
+Unlock the paired Mac and make sure EspDesktop is running and connected. If the connection was lost while your Mac was locked, the display unlocks after the app reconnects and reports that your Mac is unlocked.
 
 ## A Mac App or Display Update Breaks Compatibility
 
