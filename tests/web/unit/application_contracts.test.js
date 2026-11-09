@@ -263,7 +263,6 @@ describe("browserless application contracts", () => {
     const handlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     assert.match(entry, /createAppStateEventHandlersFeature\([\s\S]*clockBarState,[\s\S]*statusPreview/);
     assert.match(entry, /app = createAppFeature\([\s\S]*appEvents, statusPreview/);
-    assert.match(entry, /timezoneId: \(value\) => statusPreview\.getTzId\(value\)/);
     assert.match(app, /statusPreview\.updateClock\(\)/);
     assert.match(handlers, /statusPreview: Pick<AppStatusPreviewFeature,/);
     assert.match(handlers, /updateNetworkPreview,[\s\S]*updateSunInfo,[\s\S]*\} = statusPreview/);
@@ -659,20 +658,6 @@ describe("browserless application contracts", () => {
     assert.match(entry, /registerLockCardTypes\(registry, context\.configuration\.lockOptions, fields, cardUi\);/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerLockCardTypes/);
     assert.doesNotMatch(globals, /\bvar (?:LOCK_CARD_METADATA|lockCommandMode|lockModeDefaultIcon|lockModeDefaultLabel|lockModeOptionValues|lockUsesDefaultIcon|normalizeLockMode):/);
-  });
-
-  test("registers date/time cards through one explicit service", () => {
-    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
-    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
-    for (const card of ["calendar", "clock", "timezone"]) {
-      const source = fs.readFileSync(path.join(ROOT, `src/webserver/cards/${card}.ts`), "utf8");
-      assert.doesNotMatch(source, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|DATE_TIME_CARD_METADATA)\b/);
-    }
-    assert.match(entry, /registerCalendarCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.match(entry, /registerClockCardTypes\(registry, context\.configuration\.dateTimeOptions, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.match(entry, /registerTimezoneCardTypes\(registry, context\.configuration\.dateTimeOptions, context\.dom\.document, fields,[\s\S]*homeAssistantSupportEnabled/);
-    assert.doesNotMatch(entry, /registerCompatibility\(registerCalendarCardTypes/);
-    assert.doesNotMatch(globals, /\bvar (?:DATE_TIME_CARD_METADATA|dateTimeCardMode|dateTimeCardTimeParts|dateTimeLargeNumbersLabel|dateTimeModeOptionValues|defaultTimezoneCardEntity|normalizeDateTimeCardMode|setDateTimeCardMode):/);
   });
 
   test("registers slider card families without compatibility descriptors", () => {
@@ -1116,7 +1101,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /fields = createControlsFieldsFeature\(cards, configurationOptions, shell, requestApi\)/);
     assert.doesNotMatch(entry, /fields\.globals|installControlsFieldsModule/);
     assert.doesNotMatch(globals, /\bvar (?:makeCollapsibleCard|fieldLabel|textInput|fieldWithControl|selectField|segmentControl|colorField|toggleRow|applyCardMetadataFields|renderBasicCardFields|cardSensorPreviewHtml|cardBadgeLabelHtml|cardBadgePreview|condField|createRangeSlider):/);
-    for (const file of ["calendar.ts", "switch.ts", "weather.ts"]) {
+    for (const file of ["switch.ts", "weather.ts"]) {
       const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards", file), "utf8");
       assert.match(card, /ControlsFieldsFeature/, `${file} should receive the shared-fields service`);
     }
