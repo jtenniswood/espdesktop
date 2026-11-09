@@ -18,5 +18,5 @@ description: A local touchscreen controller for a Mac. EspDesktop pairs its nati
 - Documentation: https://jtenniswood.github.io/espdesktop/
 
 [content-types]
-- Documentation for the Mac app, pairing, applications, folders, permissions, Mac cards, app shortcut subpages, Mac cover art, existing Stats cards, firmware, and display setup.
+- Documentation for the Mac app, pairing, applications, folders, permissions, Mac cards, app shortcut subpages, existing Stats cards, firmware, and display setup.
 - Source-available ESPHome firmware for the 4848S040 and a native macOS companion app.

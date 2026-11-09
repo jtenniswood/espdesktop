@@ -43,7 +43,7 @@ When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brig
 
 With the current Mac app and panel firmware, locking your Mac also locks the panel controls and shows a lock icon, **Locked**, and **Unlock your Mac to use this screen** while its backlight is on. Unlocking the Mac removes this lock automatically. The Mac app must be running and paired. If the connection drops while locked, the panel keeps the lock until the app reconnects and reports that the Mac is unlocked.
 
-The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout, and retained media playback does not replace that action with cover art. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
+The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
 
 Saved Camera screensaver settings from older firmware fall back to Display Off. Camera images and photo-metadata overlays are no longer available.
 
@@ -55,14 +55,8 @@ Saved Home Assistant Sensor screensaver modes become **Disabled**. Choose **Time
 
 Home Assistant wake automations are retired with the integration. Use the touchscreen to wake the panel.
 
-## Mac Cover Art
-
-After pairing Mac Companion, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and enable **Show Cover Art**. The paired Mac supplies artwork, title, artist and progress. **Show After** controls the delay before artwork appears and its return after touching the display. **Show Track Details For** controls the text overlay on supported square displays.
-
-Fullscreen cover art no longer uses Home Assistant media players, artwork URLs, external-input routing or entity filters. Existing backup source choices migrate to Mac Companion. Touch the artwork to wake the panel.
-
 ## Screen Schedule
 
 The [screen schedule](/features/screen-schedule) is separate from the screensaver. Use it when you want the panel to be fully dark, dimmed, or showing a clock overnight.
 
-Time-based Night Schedule has priority over the screensaver and media cover art during night time. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled; choose Time to set local hours.
+Time-based Night Schedule has priority over the screensaver during night time. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled; choose Time to set local hours.

@@ -8,7 +8,6 @@ substitutions:
   firmware_version: "dev-v3-test"
   espdesktop_component_url: "file:///config"
   espdesktop_component_ref: "HEAD"
-  cover_art_placeholder_file: "../common/assets/cover_art_placeholder.svg"
   mdi_font_file: "/config/common/assets/fonts/materialdesignicons-webfont-7.4.47.ttf"
 
 # Factory wrapper paths are relative to builds/, not the remote device package.

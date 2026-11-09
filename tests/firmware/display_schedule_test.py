@@ -75,7 +75,7 @@ def generate(root):
 
     setups = [f"{name}.steps = {actions(scripts[name]['then'], name)};" for name in sorted(selected)]
     helpers = (root / "components/espdesktop/backlight.h").read_text()
-    helpers = helpers[helpers.index("inline bool screen_schedule_in_window"):helpers.index("inline bool screen_schedule_blocks_cover_art")]
+    helpers = helpers[helpers.index("inline bool screen_schedule_in_window"):helpers.index("inline bool screensaver_action_clock_mode")]
     return ("\n".join(f"Script {s};" for s in sorted(declarations)), "\n".join(setups), helpers)
 
 def main():

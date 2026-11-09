@@ -7,7 +7,6 @@ import {
 
     normalizeBrightnessMode,
     normalizeClockBrightness,
-    normalizeCoverArtDelay,
     normalizeHexColor,
     normalizeHour,
     normalizeLanguage,
@@ -72,10 +71,10 @@ export function createAppStateEventHandlersFeature(
     clockBar: ClockBarFeature,
     statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "normalizeNetworkTransport" | "normalizeWifiStrengthPercent" | "syncInput" | "updateClock" | "updateClockBarItemUi" | "updateNetworkPreview" | "updateSunInfo">,
     grid: Pick<GridFeature, "applyButtonOrderValue">,
-    settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">,
+    settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls">,
     preview: Pick<PreviewRenderFeature, "render">,
 ): AppStateEventHandlersFeature {
-    const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = settingsHelpers;
+    const { syncClockScreensaverControls } = settingsHelpers;
     const { render: renderPreview } = preview;
     const { syncPreviewOrientation } = core;
     const els = runtime.els;
@@ -188,21 +187,6 @@ export function createAppStateEventHandlersFeature(
                 }
                 syncClockScreensaverControls();
             },
-            "switch-screen_saver__media_player_sleep_prevention": function (this: any, val?: any, d?: any) {
-                state.mediaPlayerSleepPreventionOn = d.value === true || val === "ON";
-                syncMediaPlayerSleepPreventionUi();
-            },
-            "switch-screen_saver__cover_art_playback_control": function (this: any, val?: any, d?: any) {
-                state.coverArtPlaybackControlOn = d.value === true || val === "ON";
-                syncCoverArtScreensaverUi();
-            },
-            "switch-screen_saver__cover_art": function (this: any, val?: any, d?: any) {
-                state.coverArtScreensaverOn = d.value === true || val === "ON";
-                syncCoverArtScreensaverUi();
-            },
-            "select-cover_art_source": function (this: any, val?: any, d?: any) {
-                state.coverArtSource = "Mac Companion";
-            },
             "switch-screen_saver__show_date": function (this: any, val?: any, d?: any) {
                 state.clockDateSupported = true;
                 state.clockDateOn = d.value === true || val === "ON";
@@ -211,16 +195,11 @@ export function createAppStateEventHandlersFeature(
             "switch-screen_saver__clock_overlay": function (this: any, val?: any, d?: any) {
                 state.clockOverlaySupported = true;
                 state.clockOverlayOn = d.value === true || val === "ON";
-                syncCoverArtScreensaverUi();
                 syncClockScreensaverControls();
             },
             "switch-screen_saver__metadata_overlay": function (this: any, val?: any, d?: any) {
                 state.metadataOverlayOn = d.value === true || val === "ON";
                 syncClockScreensaverControls();
-            },
-            "switch-screen_saver__hide_cover_art_on_external_input": function (this: any, val?: any, d?: any) {
-                state.coverArtHideExternalInputOn = d.value === true || val === "ON";
-                syncCoverArtScreensaverUi();
             },
             "number-screen_saver__clock_brightness": function (this: any, val?: any) {
                 if (state.clockBrightnessSplitReceived)
@@ -269,35 +248,6 @@ export function createAppStateEventHandlersFeature(
             "text-screen_schedule_sensor_entity": function (this: any, val?: any) {
                 state.scheduleSensorEntity = val;
                 syncInput(els.setSchedulePresence, val);
-            },
-            "text-media_player_sleep_prevention_entity": function (this: any, val?: any) {
-                state.mediaPlayerSleepPreventionEntity = val;
-                if (!state.coverArtMediaPlayerEntity) {
-                    state.coverArtMediaPlayerEntity = val;
-                    syncInput(els.setCoverArtMediaPlayer, val);
-                }
-            },
-            "text-screen_saver__cover_art_entity": function (this: any, val?: any) {
-                state.coverArtMediaPlayerEntity = val;
-                if (!state.mediaPlayerSleepPreventionEntity)
-                    state.mediaPlayerSleepPreventionEntity = val;
-                syncInput(els.setCoverArtMediaPlayer, val);
-            },
-            "text-screen_saver__external_source_media_entity": function (this: any, val?: any) {
-                state.coverArtSecondaryMediaPlayerEntity = val;
-                syncInput(els.setCoverArtSecondaryMediaPlayer, val);
-            },
-            "text-screen_saver__cover_art_conditions": function (this: any, val?: any) {
-                state.coverArtAttributeConditions = val;
-                syncInput(els.setCoverArtConditions, val);
-            },
-            "number-screen_saver__cover_art_delay": function (this: any, val?: any) {
-                state.coverArtDelay = normalizeCoverArtDelay(val);
-                syncCoverArtScreensaverUi();
-            },
-            "number-screen_saver__track_overlay_duration": function (this: any, val?: any) {
-                state.coverArtTrackOverlayDuration = parseFloat(val) || 0;
-                syncCoverArtScreensaverUi();
             },
             "text-screensaver_mode": function (this: any, val?: any) {
                 state._screensaverModeReceived = true;

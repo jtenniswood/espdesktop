@@ -84,28 +84,19 @@ int *lv_scr_act() { return active_page; }
 struct Text { std::string state; std::string current_option() { return state; } };
 Text button_order{"1"}, screen_schedule_trigger{"time"}, screensaver_mode{"timer"};
 struct Number { float state; } schedule_on_hour{7}, schedule_off_hour{22}, schedule_wake_timeout{60}, screensaver_timeout{300};
-struct Toggle { bool state = false; } schedule_enabled{true}, cover_art_screensaver_enabled{}, media_player_sleep_prevention_enabled{};
+struct Toggle { bool state = false; } schedule_enabled{true};
 bool connectivity_setup_display_active = false,
      schedule_mode_always_on = false, schedule_mode_clock = true,
-     clock_bar_night_mode_active = false, cover_art_media_playing = false;
+     clock_bar_night_mode_active = false;
 bool screensaver_companion_ready = true, mac_connected = true, mac_locked = false;
 bool companion_connected() { return mac_connected; }
 bool screen_lock_enabled() { return mac_locked; }
 bool screensaver_action_clock = false, screensaver_action_dimmed = false,
      screensaver_action_camera = false;
-uint32_t manual_wake_ms = 0, cover_art_transition_generation = 0, cover_art_download_generation = 0;
+uint32_t manual_wake_ms = 0;
 uint32_t camera_screensaver_transition_generation = 0;
-std::string cover_art_active_media_player_entity;
-struct TextState { std::string state; } cover_art_media_player_entity;
-bool cover_art_companion_source_active = false;
-uint32_t cover_art_manual_pause_until_ms = 0;
-struct CoverArtPlaybackControl {
-  bool retains_pause(const std::string &) const { return false; }
-  void reset() {}
-} cover_art_playback_control;
 void image_card_resume_pipeline() {}
 // SCHEDULE_HELPERS
-Script cover_art_playback_started;
 // SCRIPT_DECLARATIONS
 
 void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
@@ -123,8 +114,6 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   schedule_mode_always_on = night_mode == DisplayMode::ACTIVE;
   manual_wake_ms = 0; screensaver_mode.state = "timer";
   screensaver_action_clock = screensaver_action_dimmed = screensaver_action_camera = false;
-  cover_art_screensaver_enabled.state = media_player_sleep_prevention_enabled.state = false;
-  cover_art_media_playing = false;
   espdesktop_app.controller = {};
   auto &controller = espdesktop_app.display();
   controller.request(DisplayRequestSource::SCREEN_SCHEDULE, night_mode);
@@ -228,16 +217,11 @@ int main() {
     (fast_first ? screen_schedule_check : display_mode_reconcile).execute(); advance(1000);
     assert(controller.current_mode_is(DisplayMode::ACTIVE));
   }
-  // Disabled screensavers and media sleep prevention still allow normal wake.
-  for (bool playing : {false, true}) {
-    reset(); clock_time.hour = 7;
-    screensaver_mode.state = playing ? "timer" : "disabled";
-    cover_art_screensaver_enabled.state = playing;
-    media_player_sleep_prevention_enabled.state = playing;
-    cover_art_media_playing = playing;
-    display_mode_reconcile.execute(); advance(500);
-    assert(controller.current_mode_is(DisplayMode::ACTIVE));
-  }
+  // A disabled screensaver lets the panel wake when the night schedule ends.
+  reset(); clock_time.hour = 7;
+  screensaver_mode.state = "disabled";
+  display_mode_reconcile.execute(); advance(500);
+  assert(controller.current_mode_is(DisplayMode::ACTIVE));
   // Disabling the schedule is a deliberate normal wake, not an idle handoff.
   for (bool fast_first : {false, true}) {
     reset(); schedule_enabled.state = false;
@@ -283,16 +267,11 @@ int main() {
   assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
   assert(screensaver_idle_check.calls == 0);
   button_order.state = "1";
-  // Night boot and media ownership must not start a normal idle countdown.
+  // Night boot must not start a normal idle countdown.
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DISPLAY_OFF}) {
     reset(mode); display_active_finalize.execute(); advance(100);
     assert(screensaver_idle_check.calls == 0);
   }
-  reset(); clock_time.hour = 7;
-  controller.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART);
-  display_mode_reconcile.execute(); advance(500);
-  assert(controller.target_mode_is(DisplayMode::COVER_ART));
-  assert(screensaver_idle_check.calls == 0);
   // A newer sleep decision during page settling must suppress finalization.
   reset(); clock_time.hour = 7; screensaver_mode.state = "disabled";
   display_mode_reconcile.execute(); advance(310);

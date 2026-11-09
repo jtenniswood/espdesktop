@@ -81,6 +81,12 @@ def _empty_template_preference_ids(text_configs):
 
 @coroutine_with_priority(CoroPriority.DIAGNOSTICS)
 async def to_code(config):
+    if "lvgl" in CORE.config:
+        from esphome.components.lvgl.defines import add_lv_use
+
+        # App icons and image cards create their LVGL widgets at runtime.
+        add_lv_use("image")
+
     # Run before safe_mode's early return and before any preference consumers.
     if CORE.config.get("preferences", {}).get("rtc_storage", False):
         raise cv.Invalid("EspDesktop reset requires flash preferences; remove preferences.rtc_storage")

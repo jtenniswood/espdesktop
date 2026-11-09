@@ -30,7 +30,7 @@ When the schedule is disabled, the panel uses the normal [screensaver](/features
 
 To see at a glance when the night period is active, turn on **Show Night Mode Icon** in [Clock Bar](/features/clock-bar). A moon appears beside the connectivity icon for as long as the night schedule is running.
 
-Time-based Night Schedule has priority over the screensaver and media cover art while night time is active. Touch the screen to wake it temporarily.
+Time-based Night Schedule has priority over the screensaver while night time is active. Touch the screen to wake it temporarily.
 
 ## How the Times Work
 

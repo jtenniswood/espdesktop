@@ -220,104 +220,6 @@ export const ENTITY_CATALOG = {
         "screen_schedule_sensor_entity"
       ]
     },
-    "screen_saver_cover_art_playback_control": {
-      "domain": "switch",
-      "name": "Screen Saver: Cover Art Playback Control",
-      "objectIds": [
-        "screen_saver__cover_art_playback_control",
-        "screen_saver_cover_art_playback_control",
-        "cover_art_playback_control_enabled"
-      ]
-    },
-    "screen_saver_media_player_sleep_prevention": {
-      "domain": "switch",
-      "name": "Screen Saver: Media Player Sleep Prevention",
-      "objectIds": [
-        "screen_saver__media_player_sleep_prevention",
-        "screen_saver_media_player_sleep_prevention",
-        "media_player_sleep_prevention_enabled"
-      ]
-    },
-    "media_player_sleep_prevention_entity": {
-      "domain": "text",
-      "name": "Media Player Sleep Prevention Entity",
-      "objectIds": [
-        "media_player_sleep_prevention_entity"
-      ]
-    },
-    "screen_saver_cover_art": {
-      "domain": "switch",
-      "name": "Screen Saver: Cover Art",
-      "objectIds": [
-        "screen_saver__cover_art",
-        "screen_saver_cover_art",
-        "screensaver_cover_art"
-      ]
-    },
-    "cover_art_source": {
-      "domain": "select",
-      "name": "Cover Art Source",
-      "objectIds": [
-        "cover_art_source"
-      ]
-    },
-    "screen_saver_cover_art_entity": {
-      "domain": "text",
-      "name": "Screen Saver: Cover Art Entity",
-      "objectIds": [
-        "screen_saver__cover_art_entity",
-        "screen_saver_cover_art_entity",
-        "cover_art_media_player_entity"
-      ]
-    },
-    "screen_saver_cover_art_secondary_entity": {
-      "domain": "text",
-      "name": "Screen Saver: External Source Media Entity",
-      "objectIds": [
-        "screen_saver__external_source_media_entity",
-        "screen_saver_cover_art_secondary_entity",
-        "cover_art_secondary_media_player_entity"
-      ]
-    },
-    "screen_saver_cover_art_conditions": {
-      "domain": "text",
-      "name": "Screen Saver: Cover Art Conditions",
-      "objectIds": [
-        "screen_saver__cover_art_conditions",
-        "screen_saver_cover_art_conditions",
-        "cover_art_attribute_conditions"
-      ]
-    },
-    "screen_saver_cover_art_delay": {
-      "domain": "number",
-      "name": "Screen Saver: Cover Art Delay",
-      "objectIds": [
-        "screen_saver__cover_art_delay",
-        "screen_saver_cover_art_delay",
-        "cover_art_delay"
-      ]
-    },
-    "screen_saver_track_overlay_duration": {
-      "domain": "number",
-      "name": "Screen Saver: Show Track Overlay",
-      "objectIds": [
-        "screen_saver__track_overlay_duration",
-        "screen_saver_track_overlay_duration",
-        "track_overlay_duration",
-        "screen_saver__show_track_overlay"
-      ]
-    },
-    "screen_saver_hide_cover_art_external_input": {
-      "domain": "switch",
-      "name": "Screen Saver: Hide for external sources",
-      "objectIds": [
-        "screen_saver__hide_cover_art_on_external_input",
-        "screen_saver_hide_cover_art_on_external_input",
-        "hide_cover_art_on_external_input",
-        "cover_art_hide_external_input",
-        "screen_saver__hide_for_external_sources"
-      ]
-    },
     "screen_saver_daytime_clock_brightness": {
       "domain": "number",
       "name": "Screen Saver: Daytime Clock Brightness",
@@ -766,17 +668,6 @@ export const ENTITY_CATALOG = {
       "screen_saver_camera_dimming",
       "presence_sensor_entity",
       "screen_schedule_sensor_entity",
-      "screen_saver_cover_art_playback_control",
-      "screen_saver_media_player_sleep_prevention",
-      "media_player_sleep_prevention_entity",
-      "screen_saver_cover_art",
-      "cover_art_source",
-      "screen_saver_cover_art_entity",
-      "screen_saver_cover_art_secondary_entity",
-      "screen_saver_cover_art_conditions",
-      "screen_saver_cover_art_delay",
-      "screen_saver_track_overlay_duration",
-      "screen_saver_hide_cover_art_external_input",
       "screen_saver_daytime_clock_brightness",
       "screen_saver_nighttime_clock_brightness",
       "screen_saver_clock_brightness",

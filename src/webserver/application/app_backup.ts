@@ -54,7 +54,6 @@ import type { ControlsShellFeature } from "./controls_shell";
 import type { ApplicationApiFeature } from "./api";
 import type { AppStatusPreviewFeature } from "./app_status_preview";
 import type { GridFeature } from "./grid";
-import type { ArtworkPostApiFeature } from "./artwork_post_api";
 import type { ScreenSchedulePostApiFeature } from "./screen_schedule_post_api";
 import type { ClockBarPostApiFeature } from "./clock_bar_post_api";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -92,10 +91,9 @@ export interface AppBackupControllers {
     readonly requestApi: ApplicationApiFeature;
     readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
     readonly grid: Pick<GridFeature, "applyImportedButtonOrder" | "cancelMainGridSave" | "flushMainGridSave" | "serializeGrid">;
-    readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
     readonly clockBarPostApi: ClockBarPostApiFeature;
-    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
+    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls">;
     readonly preview: Pick<PreviewRenderFeature, "render">;
     readonly buttonSettings: Pick<ButtonSettingsFeature, "render">;
 }
@@ -109,7 +107,7 @@ export interface AppBackupFeature {
 }
 
 export function createAppBackupFeature(controllers: AppBackupControllers): AppBackupFeature {
-    const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
+    const { syncClockScreensaverControls } = controllers.settingsHelpers;
     const { render: renderPreview } = controllers.preview;
     const { render: renderButtonSettings } = controllers.buttonSettings;
     const { subpageEntityKeys } = controllers.configPersistence;
@@ -119,13 +117,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const requestApi = controllers.requestApi;
     const { syncInput,  } = controllers.statusPreview;
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
-    const {
-        postMediaPlayerSleepPrevention,
-        postCoverArtScreensaver,
-        postCoverArtSource,
-        postCoverArtDelay,
-        postCoverArtTrackOverlayDuration,
-    } = controllers.artworkPostApi;
     const {
         postBrightnessMode,
         postDisplayBacklightBrightness,
@@ -280,12 +271,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_2: state.ntpServer2,
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
-                media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
-                cover_art_screensaver: state.coverArtScreensaverOn,
-                cover_art_source: state.coverArtSource,
                 clock_date: state.clockDateOn,
-                cover_art_delay: state.coverArtDelay,
-                cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
                 firmware_auto_update: !!state.autoUpdate,
                 firmware_update_frequency: state.updateFrequency,
                 screensaver_action: normalizeScreensaverAction(state.screensaverAction),
@@ -523,13 +509,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     }
                     var importedScreensaverMode: any = importedSettings.screensaverMode;
                     postScreensaverMode(importedScreensaverMode);
-                    postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
-                    postCoverArtScreensaver(importedSettings.coverArtScreensaver);
-                    if (controllers.layout.config.features?.companion)
-                        postCoverArtSource(importedSettings.coverArtSource);
                     if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
-                    postCoverArtDelay(importedSettings.coverArtDelay);
-                    postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
                     if (firmwareUpdateControlsVisible()) {
                         postFirmwareAutoUpdate(importedSettings.autoUpdate);
                         postFirmwareUpdateFrequency(importedSettings.updateFrequency);
@@ -580,22 +560,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverMetadataEntity = importedSettings.screensaverMetadataEntity;
                     state.metadataOverlayOn = importedSettings.metadataOverlay;
                     state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
-                    state.mediaPlayerSleepPreventionOn = importedSettings.mediaPlayerSleepPrevention;
-                    state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
-                    state.coverArtScreensaverOn = importedSettings.coverArtScreensaver;
-                    state.coverArtSource = importedSettings.coverArtSource;
                     state.clockDateOn = importedSettings.clockDate;
                     state.clockOverlayOn = importedSettings.clockOverlay;
-                    state.coverArtMediaPlayerEntity = importedSettings.coverArtMediaPlayerEntity;
-                    state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
-                    state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
-                    state.coverArtDelay = importedSettings.coverArtDelay;
-                    state.coverArtTrackOverlayDuration = importedSettings.coverArtTrackOverlayDuration;
-                    state.coverArtHideExternalInputOn = importedSettings.coverArtHideExternalInput;
-                    state.homeAssistantArtworkProtocol = importedSettings.coverArtHomeAssistantProtocol;
-                    state.homeAssistantArtworkHost = importedSettings.coverArtHomeAssistantHost;
-                    state.coverArtHomeAssistantPort = importedSettings.coverArtHomeAssistantPort;
-                    state.homeAssistantArtworkEndpointMode = importedSettings.coverArtHomeAssistantEndpointMode;
                     state.autoUpdate = importedSettings.autoUpdate;
                     state.updateFrequency = importedSettings.updateFrequency;
                     state.screensaverAction = importedScreensaverAction;
@@ -615,11 +581,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
                     syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
                     syncInput(els.setSchedulePresence, state.scheduleSensorEntity);
-                    syncMediaPlayerSleepPreventionUi();
-                    syncInput(els.setCoverArtMediaPlayer, state.coverArtMediaPlayerEntity);
-                    syncInput(els.setCoverArtSecondaryMediaPlayer, state.coverArtSecondaryMediaPlayerEntity);
-                    syncInput(els.setCoverArtConditions, state.coverArtAttributeConditions);
-                    syncCoverArtScreensaverUi();
                     if (els.setAutoUpdate)
                         els.setAutoUpdate.checked = state.autoUpdate;
                     if (els.setUpdateFreq)

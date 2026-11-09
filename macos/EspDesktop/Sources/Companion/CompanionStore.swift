@@ -119,10 +119,6 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
-    @Published private(set) var nowPlayingStatus = "Waiting for a display connection"
-    @Published private(set) var nowPlayingApplication = ""
-    @Published private(set) var nowPlayingTitle = ""
-    @Published private(set) var nowPlayingArtwork: NSImage?
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
     @Published private(set) var systemMetricsSupported = false
 
@@ -141,11 +137,9 @@ final class CompanionStore: NSObject, ObservableObject {
         session.onEvent = { [weak self] event in self?.receiveSessionEvent(event) }
         return session
     }()
-    private let nowPlayingProvider: any NowPlayingProviding
     private let mediaController: any MediaControlling
     private let systemMetricsProvider: any SystemMetricsProviding
     private let remoteCatalogueStore = RemoteCompanionCatalogueStore()
-    private var latestNowPlayingSnapshot: CompanionNowPlayingSnapshot?
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
     private let sessionLock = MacSessionLockMonitor()
     private var mediaControlTimer: Timer?
@@ -156,18 +150,15 @@ final class CompanionStore: NSObject, ObservableObject {
 
     override convenience init() {
         self.init(
-            nowPlayingProvider: SystemNowPlayingProvider(),
             mediaController: SystemMediaController(),
             systemMetricsProvider: SystemMetricsProvider()
         )
     }
 
     init(
-        nowPlayingProvider: any NowPlayingProviding,
         mediaController: any MediaControlling,
         systemMetricsProvider: any SystemMetricsProviding
     ) {
-        self.nowPlayingProvider = nowPlayingProvider
         self.mediaController = mediaController
         self.systemMetricsProvider = systemMetricsProvider
         let stableDefaults = UserDefaults(suiteName: Self.preferencesSuite) ?? .standard
@@ -205,15 +196,6 @@ final class CompanionStore: NSObject, ObservableObject {
             object: nil
         )
         if !pairingAccount.isEmpty { defaults.set(pairingAccount, forKey: Keys.pairingAccount) }
-        nowPlayingProvider.onStatus = { [weak self] value in self?.nowPlayingStatus = value }
-        nowPlayingProvider.onSnapshot = { [weak self] snapshot in
-            guard let self else { return }
-            nowPlayingApplication = snapshot.applicationName
-            nowPlayingTitle = snapshot.title
-            nowPlayingArtwork = snapshot.artworkJPEG.flatMap(NSImage.init(data:))
-            latestNowPlayingSnapshot = snapshot
-            if isConnected { connection.publishNowPlaying(snapshot) }
-        }
         systemMetricsProvider.onSnapshot = { [weak self] snapshot in
             guard let self else { return }
             guard isConnected && systemMetricsSupported else { return }
@@ -694,9 +676,7 @@ final class CompanionStore: NSObject, ObservableObject {
         case let .capabilities(systemMetrics): setSystemMetricsSupported(systemMetrics)
         case .publishCurrentState:
             connection.publishSessionLock(sessionLock.refresh())
-            republishCurrentNowPlaying()
             republishCurrentSystemMetrics()
-        case let .artworkRequested(generation): republishNowPlayingArtwork(generation: generation)
         }
     }
 
@@ -710,7 +690,6 @@ final class CompanionStore: NSObject, ObservableObject {
         guard isConnected != connected else { return }
         isConnected = connected
         if !connected { systemMetricsSupported = false }
-        updateNowPlayingProvider()
         updateSystemMetricsProvider()
         if connected {
             startMediaControlPublishing()
@@ -748,30 +727,6 @@ final class CompanionStore: NSObject, ObservableObject {
         updateSystemMetricsProvider()
     }
 
-    private func updateNowPlayingProvider() {
-        if !isConnected {
-            // Do not carry a confirmed session across disconnects.
-            latestNowPlayingSnapshot = nil
-        }
-        if isConnected {
-            nowPlayingProvider.start()
-        } else {
-            nowPlayingProvider.stop()
-            nowPlayingStatus = "Waiting for a display connection"
-        }
-    }
-
-    func republishNowPlayingArtwork(generation: UInt32) {
-        guard isConnected,
-              let snapshot = latestNowPlayingSnapshot,
-              snapshot.generation == generation else { return }
-        connection.publishNowPlaying(snapshot, forceArtwork: true)
-    }
-
-    func republishCurrentNowPlaying() {
-        guard isConnected, let snapshot = latestNowPlayingSnapshot else { return }
-        connection.publishNowPlaying(snapshot, forceArtwork: true)
-    }
     func republishCurrentSystemMetrics() {
         guard isConnected, systemMetricsSupported,
               let snapshot = latestSystemMetricsSnapshot else { return }

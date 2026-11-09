@@ -10,10 +10,6 @@ globals:
     type: bool
     restore_value: no
     initial_value: 'false'
-  - id: media_player_sleep_prevention_default_on_migrated
-    type: bool
-    restore_value: yes
-    initial_value: 'false'
   # Live copy of "the night schedule is the winning display request", kept in
   # step by display_mode_reconcile so the clock bar can show a moon without
   # recomputing the schedule itself.
@@ -97,18 +93,6 @@ esphome:
             if (action_preference.load(&legacy_action_index) && legacy_action_index == 3) {
               auto call = id(screensaver_action).make_call();
               call.set_option("Display Off");
-              call.perform();
-              preferences_changed = true;
-            }
-            if (!id(media_player_sleep_prevention_default_on_migrated)) {
-              id(media_player_sleep_prevention_enabled).turn_on();
-              id(media_player_sleep_prevention_default_on_migrated) = true;
-              preferences_changed = true;
-            }
-            float cover_art_delay_seconds = id(cover_art_delay).state;
-            if (std::isnan(cover_art_delay_seconds) || cover_art_delay_seconds < 3.0f) {
-              auto call = id(cover_art_delay).make_call();
-              call.set_value(3.0f);
               call.perform();
               preferences_changed = true;
             }
@@ -437,45 +421,6 @@ switch:
             - script.execute: screensaver_idle_check
 
   - platform: template
-    name: "${entity_screen_saver_media_player_sleep_prevention}"
-    internal: true
-    id: media_player_sleep_prevention_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    icon: "mdi:speaker-play"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
-          then:
-            - script.execute: screensaver_idle_check
-    on_turn_off:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
-          then:
-            - script.execute: screensaver_idle_check
-
-  - platform: template
-    name: "${entity_screen_saver_cover_art}"
-    internal: true
-    id: cover_art_screensaver_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    icon: "mdi:image-album"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - script.execute: cover_art_refresh_source
-      - script.execute: cover_art_playback_refresh
-    on_turn_off:
-      - script.execute: cover_art_disable
-
-  - platform: template
     name: "${entity_screen_saver_show_date}"
     internal: true
     id: clock_screensaver_show_date
@@ -725,48 +670,6 @@ number:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::DIMMED);'
             then:
               - script.execute: screensaver_dimmed_refresh_brightness
-
-  - platform: template
-    name: "${entity_screen_saver_cover_art_delay}"
-    internal: true
-    id: cover_art_delay
-    min_value: 3
-    max_value: 300
-    step: 1
-    initial_value: 10
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "s"
-    entity_category: config
-    icon: "mdi:timer-outline"
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - script.execute: cover_art_playback_refresh
-
-  - platform: template
-    name: "${entity_screen_saver_track_overlay_duration}"
-    internal: true
-    id: cover_art_track_overlay_duration
-    min_value: -1
-    max_value: 60
-    step: 1
-    initial_value: 5
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "s"
-    entity_category: config
-    icon: "mdi:playlist-music-outline"
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::COVER_ART);'
-            then:
-              - script.execute: cover_art_show_track_overlay
 
   # Legacy setting kept so existing panels can migrate their saved single
   # clock brightness into the new day/night settings, and so older cached web

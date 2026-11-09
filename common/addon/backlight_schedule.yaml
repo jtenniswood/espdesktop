@@ -994,9 +994,7 @@ script:
     then:
       - lambda: |-
           if (!id(espdesktop_app).display().target_mode_is(
-                espdesktop::DisplayMode::ACTIVE) &&
-              !id(espdesktop_app).display().target_mode_is(
-                espdesktop::DisplayMode::COVER_ART)) return;
+                espdesktop::DisplayMode::ACTIVE)) return;
           const bool onboarding = id(espdesktop_app).display().target_source_is(
               espdesktop::DisplayRequestSource::ONBOARDING);
           auto now = id(panel_time).now();

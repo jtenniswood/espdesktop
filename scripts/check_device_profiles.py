@@ -251,10 +251,6 @@ def test_s3_low_heap_policy() -> None:
     assert "falling back to internal RAM" in artwork and "config.buffer_size = HTTP_CLIENT_BUFFER_SIZE" in artwork, (
         "S3 artwork transfer must retain an internal-stack fallback and bounded HTTP buffer"
     )
-    companion_handlers = device.split("register_companion_now_playing_handlers", 1)[0]
-    assert "priority: 190" in companion_handlers[-320:], (
-        "S3 Companion handlers must register after the EspDesktop owner starts at priority 200"
-    )
     companion_header = (ROOT / "components" / "companion" / "companion.h").read_text(encoding="utf-8")
     assert "setup_priority::AFTER_WIFI - 1.0f" in companion_header, (
         "Companion service must set up after the EspDesktop owner at AFTER_WIFI"

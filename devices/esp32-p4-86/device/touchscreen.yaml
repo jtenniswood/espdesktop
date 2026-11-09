@@ -19,4 +19,4 @@ touchscreen:
     i2c_id: bus_a
     reset_pin: GPIO28
     on_touch:
-      - script.execute: cover_art_handle_touch
+      - script.execute: screensaver_wake

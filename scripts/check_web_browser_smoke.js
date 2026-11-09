@@ -63,7 +63,6 @@ function casesFromManifest() {
       slug,
       slots: device.slots,
       viewport: viewportFor(aspect.ratio),
-      coverArtSquareOverlay: !!(device.web && device.web.coverArtSquareOverlay),
       companionSupported: !!(device.capabilities && device.capabilities.companion),
       mediaCoverArtSupported: !(
         device.web &&
@@ -1306,11 +1305,8 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     });
     return placement;
   });
-  assert.strictEqual(
-    settingsPlacement["Cover Art Screen Saver"],
-    "Sleep & Schedule",
-    `${label}: cover art settings should be grouped with sleep and schedule controls`,
-  );
+  assert(!Object.hasOwn(settingsPlacement, "Cover Art Screen Saver"),
+    `${label}: the retired cover art settings are absent`);
   assert(!Object.hasOwn(settingsPlacement, "Idle"), `${label}: Screen settings omit the retired Idle card`);
   assert.strictEqual(settingsPlacement["Clock Bar"], "Appearance",
     `${label}: clock bar settings should be grouped with appearance controls`);
@@ -2942,14 +2938,11 @@ function backupFixture(device, slots, nativeProfile = null) {
       ntp_server_3: "time.cloudflare.com",
       screensaver_mode: "timer",
       presence_sensor_entity: "binary_sensor.office_presence",
-      media_player_sleep_prevention: true,
-      media_player_sleep_prevention_entity: "media_player.living",
       cover_art_screensaver: true,
-      cover_art_media_player_entity: "media_player.living",
-      cover_art_attribute_conditions: "app_id=com.apple.TVMusic",
+      cover_art_source: "Mac Companion",
       cover_art_delay: 30,
       cover_art_track_overlay_duration: 10,
-      cover_art_hide_external_input: false,
+      media_player_sleep_prevention: true,
       home_assistant_artwork_protocol: "https",
       home_assistant_artwork_port: 9443,
       firmware_auto_update: false,
@@ -3088,6 +3081,8 @@ async function assertBackupImportSmoke(page, posts, testCase) {
     ),
     "same-device import succeeds",
   );
+  assert(!posts.slice(before).some(post => /cover_art|track_overlay_duration|media_player_sleep_prevention/.test(post.name)),
+    "restoring an older backup ignores retired cover art settings");
   await waitForPost(
     posts,
     { domain: "text", name: "button_on_color", action: "set", value: "AA5500" },

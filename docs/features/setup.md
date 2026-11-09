@@ -34,10 +34,6 @@ Use **Screen** for appearance, backlight, rotation and sleep settings. Use **Sys
 
 On a new display, **Screen → Sleep & Schedule → Night Schedule** dims the screen to **15%** from **7:00 PM to 7:00 AM** in the display’s local time. You can change the hours, brightness or mode there.
 
-## Show Mac Cover Art
-
-After pairing, open **Screen → Sleep & Schedule → Cover Art Screen Saver** and turn on **Show Cover Art**. When an app on the paired Mac supplies artwork through macOS Now Playing, the display can show it fullscreen. Set the delay with **Show After** and the length of time track information appears with **Show Track Details For**. Tap the screen to wake it.
-
 ## Mac Screen Lock {#protect-the-touchscreen}
 
 Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app is running. Unlock your Mac to use the touchscreen again. If the connection drops while locked, the display waits for EspDesktop to reconnect and report that the Mac has unlocked.

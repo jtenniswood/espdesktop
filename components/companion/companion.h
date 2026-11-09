@@ -60,7 +60,6 @@ class CompanionService final : public Component {
   uint32_t pairing_expires_in_seconds() const;
   bool paired() const;
   void revoke_pairing();
-  void request_now_playing_artwork();
   void request_app_icon(const std::string &application_id);
   void refresh_app_icons_after_cache_clear();
 
@@ -71,7 +70,6 @@ class CompanionService final : public Component {
 
   static esp_err_t websocket_handler_(httpd_req_t *request);
   static void session_close_(httpd_handle_t server, int socket_fd);
-  static void disconnect_expiry_work_(void *context);
   static void authentication_expiry_work_(void *context);
   esp_err_t handle_websocket_(httpd_req_t *request);
   bool start_server_();
@@ -83,9 +81,6 @@ class CompanionService final : public Component {
   void handle_json_(int socket_fd, const std::string &message);
   void handle_binary_(int socket_fd, const uint8_t *data, size_t size);
   void reset_app_icon_transfer_();
-  void reset_artwork_transfer_(const char *reason = nullptr, bool notify = false);
-  void send_artwork_ack_(uint32_t generation, size_t next_offset);
-  void expire_now_playing_();
   bool send_(int socket_fd, const std::string &message);
   void track_unauthenticated_socket_(int socket_fd);
   void forget_unauthenticated_socket_(int socket_fd);
@@ -116,16 +111,8 @@ class CompanionService final : public Component {
   uint8_t failed_attempts_{0};
   mutable std::mutex pairing_mutex_;
   std::string pairing_code_;
-  RAMAllocator<uint8_t> artwork_allocator_{};
-  uint8_t *artwork_buffer_{nullptr};
-  size_t artwork_length_{0};
-  size_t artwork_offset_{0};
-  uint32_t artwork_generation_{0};
-  std::array<uint8_t, 32> artwork_sha256_{};
-  uint32_t now_playing_generation_{0};
   std::atomic<uint32_t> focus_targets_generation_{0};
   std::atomic<bool> focus_targets_supported_{false};
-  bool now_playing_artwork_follows_{false};
   std::vector<std::pair<std::string, std::string>> catalogue_actions_;
   std::vector<std::string> catalogue_enabled_icons_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
@@ -134,8 +121,6 @@ class CompanionService final : public Component {
   uint16_t catalogue_next_page_{0};
   uint32_t definitions_generation_{0};
   uint16_t definitions_next_page_{0};
-  std::atomic<uint32_t> disconnect_grace_expires_at_{0};
-  std::atomic<bool> disconnect_expiry_queued_{false};
   struct UnauthenticatedSession {
     int socket{-1};
     uint32_t expires_at{0};
@@ -158,7 +143,6 @@ void begin_companion_pairing();
 std::string companion_pairing_code();
 bool companion_pairing_active();
 void revoke_companion_pairing();
-void request_companion_now_playing_artwork();
 void request_app_icon(const std::string &application_id);
 void sync_app_icon_references(const std::vector<std::string> &application_ids);
 bool clear_companion_app_icon_cache();

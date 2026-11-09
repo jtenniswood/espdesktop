@@ -83,10 +83,6 @@
     "purpose": "Keeps LVGL processing active while the panel is electrically off so scheduled and touch wake paths remain available.",
     "remove_when": "ESPHome/LVGL can suspend and resume these panels without losing wake behavior."
   },
-  "ESPDESKTOP_LOW_HEAP_COVER_ART=1": {
-    "purpose": "Uses the reduced-memory cover-art path on the constrained S3 panel.",
-    "remove_when": "The full cover-art path fits with safe runtime heap headroom."
-  },
   "ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1": {
     "purpose": "Uses the reduced-memory media modal path on the constrained S3 panel.",
     "remove_when": "The full media path fits with safe runtime heap headroom."

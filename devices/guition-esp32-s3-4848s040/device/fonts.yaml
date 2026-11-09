@@ -59,7 +59,7 @@ font:
       - file: "gfonts://Heebo@Light"
         glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
 
-  # Media cover-art screensaver title
+  # Media card title
   - file: "gfonts://Roboto@Light"
     id: font_cover_art_title
     size: 70
@@ -79,7 +79,7 @@ font:
       - file: "gfonts://Heebo@Light"
         glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
 
-  # Media cover-art screensaver artist
+  # Media artwork card artist
   - file: "gfonts://Roboto@Light"
     id: font_cover_art_artist
     size: 40
@@ -88,13 +88,6 @@ font:
     extras:
       - file: "gfonts://Heebo@Light"
         glyphs: !include ../../../common/assets/hebrew_glyphs.yaml
-
-  # Media cover-art screensaver elapsed time
-  - file: "gfonts://Roboto"
-    id: font_cover_art_time
-    size: 20
-    bpp: 4
-    glyphs: " 0123456789:/-"
 
   # Normal sensor values
   - file: "gfonts://Roboto@Light"

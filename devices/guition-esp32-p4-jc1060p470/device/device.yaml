@@ -298,7 +298,7 @@ touchscreen:
     reset_pin: GPIO22
     interrupt_pin: GPIO21
     on_touch:
-      - script.execute: cover_art_handle_touch
+      - script.execute: screensaver_wake
 
 # ---------------------------------------------------------------------------
 # Display (7" 1024x600 MIPI DSI panel)
@@ -351,7 +351,6 @@ script:
       - lambda: |-
           const auto rotation = id(screen_rotation_select).current_option();
           set_width_compensation_vertical_axis(rotation == "90" || rotation == "270");
-      - script.execute: cover_art_apply_responsive_layout
 
 select:
   - platform: template

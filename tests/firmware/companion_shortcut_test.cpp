@@ -515,7 +515,6 @@ int main() {
   assert(!companion_metric_value(companion_runtime_snapshot(), "stat.cpu", metric_value));
   assert(!companion_application_focused("com.apple.Safari"));
   assert(!companion_action_active("media.play_pause"));
-  assert(companion_runtime_snapshot().now_playing.playback_state == CompanionPlaybackState::UNAVAILABLE);
   companion_set_connected(true);
   assert(!companion_action_available("media.play_pause"));
   assert(!companion_value("media.output_volume", output_volume));
