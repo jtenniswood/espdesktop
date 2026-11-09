@@ -42,7 +42,7 @@ When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brig
 
 ## App Connection
 
-With the current Mac app and panel firmware, locking your Mac also locks the panel controls and shows **Screen Locked** while its backlight is on. Unlocking the Mac removes this lock automatically. No panel PIN is needed for this; a separately enabled panel PIN still applies. The Mac app must be running and paired. If the connection drops while locked, the panel keeps the lock until the app reconnects and reports that the Mac is unlocked.
+With the current Mac app and panel firmware, locking your Mac also locks the panel controls and shows a lock icon and **Mac is locked** while its backlight is on. Unlocking the Mac removes this lock automatically. No panel PIN is needed for this; a separately enabled panel PIN still applies. The Mac app must be running and paired. If the connection drops while locked, the panel keeps the lock until the app reconnects and reports that the Mac is unlocked.
 
 The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. This does not wait for the Timer timeout, and retained media playback does not replace that action with cover art. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
 

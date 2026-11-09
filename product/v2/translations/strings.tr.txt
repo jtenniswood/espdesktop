@@ -153,6 +153,7 @@ run_this_script=Bu betik çalıştırılsın mı?
 screen_dimmed=Ekran kısılmış
 screen_lock=Ekran Kilidi
 screen_locked=Ekran kilitli
+mac_is_locked=Mac kilitli
 screen_unlocked=Ekran kilidi açık
 skip_next=Sonrakine geç
 skip_previous=Öncekine geç

@@ -1,8 +1,17 @@
 #pragma once
 #include "screensaver_pin.h"
 #include "display_text.h"
+#include "icons.h"
 #include "screen_lock_state.h"
 #include "pin_keypad.h"
+#include <algorithm>
+
+struct MacLockScreenStyle {
+  const lv_font_t *icon_font{nullptr};
+  const lv_font_t *title_font{nullptr};
+  lv_coord_t content_width{380};
+  lv_coord_t gap{20};
+};
 
 struct ScreensaverPinUi {
   lv_obj_t *overlay{nullptr};
@@ -88,7 +97,8 @@ inline void screensaver_pin_guard_cb(lv_event_t *) {
 }
 inline void screensaver_pin_refresh(bool active, const lv_font_t *label_font,
                                     const lv_font_t *key_font, const lv_font_t *icon_font,
-                                    bool touch_blocked, const lv_font_t *title_font = nullptr) {
+                                    bool touch_blocked, const lv_font_t *title_font = nullptr,
+                                    MacLockScreenStyle mac_style = {}) {
   if (active) espdesktop::screensaver_pin().wake();
   screen_lock_apply();
   const bool mac_locked = screen_lock_mac_locked();
@@ -120,12 +130,23 @@ inline void screensaver_pin_refresh(bool active, const lv_font_t *label_font,
   lv_obj_add_flag(ui.overlay, LV_OBJ_FLAG_CLICKABLE);
   ui.mac_locked = mac_locked;
   if (mac_locked) {
-    const auto layout = control_modal_calc_layout(100);
-    auto *panel = lv_obj_create(ui.overlay);
-    control_modal_style_panel(panel, control_modal_card_radius(nullptr));
-    control_modal_apply_panel_layout(ui.overlay, panel, layout, 0);
-    control_modal_create_title(panel, espdesktop_i18n("Screen Locked"),
-                               layout.panel_w - layout.inset * 2, title_font, 100);
+    // Use the same palette and centered icon/title stack as the setup pages.
+    const auto &theme = current_theme();
+    lv_obj_set_style_bg_color(ui.overlay, lv_color_hex(theme.background), LV_PART_MAIN);
+    lv_obj_set_style_bg_opa(ui.overlay, LV_OPA_COVER, LV_PART_MAIN);
+    lv_obj_set_style_pad_row(ui.overlay, mac_style.gap, LV_PART_MAIN);
+    lv_obj_set_flex_flow(ui.overlay, LV_FLEX_FLOW_COLUMN);
+    lv_obj_set_flex_align(ui.overlay, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+    auto *icon = lv_label_create(ui.overlay);
+    if (mac_style.icon_font) lv_obj_set_style_text_font(icon, mac_style.icon_font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(icon, lv_color_hex(theme.text_primary), LV_PART_MAIN);
+    lv_label_set_text(icon, find_icon("Lock"));
+    auto *title = lv_label_create(ui.overlay);
+    if (mac_style.title_font) lv_obj_set_style_text_font(title, mac_style.title_font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(title, lv_color_hex(theme.text_primary), LV_PART_MAIN);
+    lv_obj_set_width(title, std::min(mac_style.content_width, screen_w));
+    lv_obj_set_style_text_align(title, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+    lv_label_set_display_text(title, espdesktop_i18n_key("mac_is_locked"));
     return;
   }
   if (!keypad_requested) {

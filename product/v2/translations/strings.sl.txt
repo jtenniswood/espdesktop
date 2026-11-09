@@ -153,6 +153,7 @@ run_this_script=Zagnati ta skript?
 screen_dimmed=Zaslon zatemnjen
 screen_lock=Zaklep zaslona
 screen_locked=Zaslon zaklenjen
+mac_is_locked=Mac je zaklenjen
 screen_unlocked=Zaslon odklenjen
 skip_next=Preskoči naprej
 skip_previous=Preskoči nazaj

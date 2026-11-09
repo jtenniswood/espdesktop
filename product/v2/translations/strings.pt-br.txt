@@ -153,6 +153,7 @@ run_this_script=Executar este script?
 screen_dimmed=Tela escurecida
 screen_lock=Bloqueio de tela
 screen_locked=Tela bloqueada
+mac_is_locked=O Mac está bloqueado
 screen_unlocked=Tela desbloqueada
 skip_next=Pular próximo
 skip_previous=Pular anterior

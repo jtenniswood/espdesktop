@@ -153,6 +153,7 @@ run_this_script=Kør dette script?
 screen_dimmed=Skærm neddæmpet
 screen_lock=Skærmlås
 screen_locked=Skærm låst
+mac_is_locked=Mac er låst
 screen_unlocked=Skærm låst op
 skip_next=Spring til næste
 skip_previous=Spring til forrige

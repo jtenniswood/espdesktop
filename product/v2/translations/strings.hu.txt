@@ -153,6 +153,7 @@ run_this_script=Futtatja ezt a szkriptet?
 screen_dimmed=Képernyő halványítva
 screen_lock=Képernyőzár
 screen_locked=Képernyő lezárva
+mac_is_locked=A Mac zárolva van
 screen_unlocked=Képernyő feloldva
 skip_next=Ugrás a következőre
 skip_previous=Ugrás az előzőre

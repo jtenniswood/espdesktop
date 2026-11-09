@@ -153,6 +153,7 @@ run_this_script=להריץ את הסקריפט?
 screen_dimmed=המסך מעומעם
 screen_lock=נעילת מסך
 screen_locked=המסך נעול
+mac_is_locked=ה-Mac נעול
 screen_unlocked=נעילת המסך בוטלה
 skip_next=הרצועה הבאה
 skip_previous=הרצועה הקודמת

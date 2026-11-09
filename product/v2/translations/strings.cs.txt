@@ -153,6 +153,7 @@ run_this_script=Spustit tento skript?
 screen_dimmed=Obrazovka ztlumena
 screen_lock=Zámek obrazovky
 screen_locked=Obrazovka uzamčena
+mac_is_locked=Mac je zamčený
 screen_unlocked=Obrazovka odemčena
 skip_next=Přeskočit další
 skip_previous=Přeskočit předchozí
