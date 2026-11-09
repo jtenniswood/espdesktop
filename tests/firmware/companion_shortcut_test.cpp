@@ -96,6 +96,8 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.command+volumeup"));
   assert(!companion_shortcut_action_valid("shortcut.command+f21"));
   assert(!companion_shortcut_action_valid("com.apple.Safari"));
+  assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
 
   ParsedCfg finder_launch;
   finder_launch.type = "companion";
