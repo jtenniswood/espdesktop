@@ -1,5 +1,3 @@
-import { companionAppIconPreviewData } from "./preview_render";
-import { iconSlug } from "./ui_primitives";
 import { createCompanionCatalogue, type CompanionAction } from "../api/companion_catalogue";
 import type { PanelConfigDocument } from "../model/panel_config";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
@@ -87,7 +85,6 @@ interface FirstRunSetupDependencies {
     window: Window;
     fetch: typeof fetch;
     capacity: number;
-    gridColumns: () => number;
     supported: boolean;
     native: NativePanelConfigController;
     codec: Pick<ConfigCodecFeature, "serializeButtonConfig" | "serializeSubpageConfig">;
@@ -238,55 +235,25 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         input.addEventListener("change", () => change(input.checked));
         return row;
     }
-    function appTile(app: CompanionAction): HTMLElement {
-        const initial = [...app.label.trim()][0]?.toLocaleUpperCase() || "?";
-        const tile = element("span", initial, "sp-setup-tile");
-        tile.title = app.label;
-        if (app.iconHash) {
-            void companionAppIconPreviewData(app.id, "", document).then(artwork => {
-                if (!artwork || !tile.isConnected) return;
-                const icon = element("img");
-                icon.alt = "";
-                icon.src = artwork.dataUrl;
-                tile.replaceChildren(icon);
-            });
-        }
-        return tile;
-    }
-    function homePreview(shortcutPageCount?: number): HTMLElement {
-        const chosen = selectedApps();
-        const preview = element("div", "", "sp-setup-preview");
-        const grid = element("div", "", "sp-setup-grid");
-        grid.style.setProperty("--sp-setup-columns", String(deps.gridColumns()));
-        grid.setAttribute("aria-hidden", "true");
-        for (let index = 0; index < deps.capacity; index++) {
-            const app = chosen[index];
-            grid.appendChild(app ? appTile(app) : element("span", "", "sp-setup-tile"));
-        }
-        const summary = element("div", "", "sp-setup-summary");
-        const count = element("strong", `${chosen.length} / ${deps.capacity} cards`);
-        count.setAttribute("role", "status");
-        summary.append(element("span", "Home screen"), count);
-        if (shortcutPageCount !== undefined) {
-            summary.appendChild(element("span", `${shortcutPageCount} shortcut ${shortcutPageCount === 1 ? "page" : "pages"}`));
-        }
-        preview.append(grid, summary);
-        return preview;
-    }
-    function shortcutPreview(app: CompanionAction): HTMLElement {
-        const preview = element("div", "", "sp-setup-preview sp-setup-example");
-        preview.classList.toggle("sp-inactive", !addShortcutPages);
-        preview.setAttribute("role", "img");
-        preview.setAttribute("aria-label", `Shortcut page example for ${app.label}`);
-        const grid = element("div", "", "sp-setup-grid");
-        const icons = ["chevron-left", ...companionShortcutPresetCards(app.id).slice(0, 3).map(card => iconSlug(card.icon))];
-        for (const icon of icons) {
-            const tile = element("span", "", "sp-setup-tile");
-            tile.appendChild(deps.shell.createMdiIcon(icon));
-            grid.appendChild(tile);
-        }
-        preview.append(appTile(app), deps.shell.createMdiIcon("chevron-right"), grid);
-        return preview;
+    function modeChoice(id: string, title: string, description: string, checked: boolean,
+        select: () => void, disabled = false): HTMLLabelElement {
+        const label = element("label", "", "sp-setup-mode");
+        const input = element("input");
+        input.type = "radio";
+        input.name = "sp-setup-mode";
+        input.checked = checked;
+        input.disabled = busy || disabled;
+        const heading = element("strong", title);
+        heading.id = `${id}-title`;
+        const details = element("span", description, "sp-setup-mode-description");
+        details.id = `${id}-description`;
+        input.setAttribute("aria-labelledby", heading.id);
+        input.setAttribute("aria-describedby", details.id);
+        input.addEventListener("change", () => { if (input.checked) select(); });
+        const copy = element("span", "", "sp-setup-mode-copy");
+        copy.append(heading, details);
+        label.append(input, copy);
+        return label;
     }
     function render(): void {
         if (!dialog) return;
@@ -294,28 +261,31 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const focusKey = document.activeElement?.getAttribute("data-setup-key");
         const selectionStart = document.activeElement instanceof HTMLInputElement ? document.activeElement.selectionStart : null;
         dialog.replaceChildren();
-        const progress = element("div", "", "sp-setup-progress");
-        progress.setAttribute("role", "img");
-        progress.setAttribute("aria-label", `Step ${step} of 3`);
-        for (let index = 1; index <= 3; index++) {
-            progress.appendChild(element("span", "", index <= step ? "sp-active" : ""));
-        }
-        const title = element("h1", step === 1 ? "Pick your apps" : step === 2 ? "Shortcut pages" : "Finish setup", "sp-section-title");
+        const supportedCount = supportedApps().length;
+        const shortcutPageCount = addShortcutPages ? supportedCount : 0;
+        const progress = element("p", `Step ${step} of 3`, "sp-setup-step");
+        const title = element("h1", step === 1 ? "Choose your apps" : step === 2 ? "Shortcut pages" : "Finish setup", "sp-setup-title");
         title.id = "sp-setup-title";
+        const explanations = [
+            `Pick up to ${deps.capacity} apps. Each gets a card on your display’s home screen.`,
+            "Choose what you can do from your app cards.",
+            shortcutPageCount > 0 ? "Choose when the display opens a shortcut page."
+                : "Review your app selection before saving it to the display.",
+        ];
+        const description = element("p", explanations[step - 1], "sp-setup-description");
         const closeButton = element("button", "", "sp-settings-close");
         closeButton.type = "button";
         closeButton.disabled = busy;
         closeButton.setAttribute("aria-label", "Close setup");
         closeButton.appendChild(deps.shell.createMdiIcon("close"));
         closeButton.addEventListener("click", dismiss);
-        dialog.append(progress, title, closeButton);
-        const content = element("div", "", "sp-setup-content");
+        dialog.append(progress, title, description, closeButton);
+        const content = element("div", "", step === 1 ? "sp-setup-content sp-setup-apps" : "sp-setup-content");
         if (step === 1) {
             if (!connected) {
                 content.appendChild(element("p", "Connect your Mac to see your apps."));
                 content.appendChild(button("Connect your Mac", () => { close(); deps.shell.switchTab("device"); }));
             } else {
-                content.appendChild(homePreview());
                 const toolbar = element("div", "", "sp-setup-toolbar");
                 const search: HTMLInputElement = deps.fields.textInput("sp-setup-search", query, "Search apps");
                 search.type = "search";
@@ -324,7 +294,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 search.disabled = busy;
                 search.addEventListener("input", () => { query = search.value; render(); });
                 toolbar.append(search, button(loading ? "Loading…" : "Refresh apps", () => { void refresh(); }));
-                content.appendChild(toolbar);
+                const count = element("p", `${selected.size} of ${deps.capacity} selected`, "sp-setup-count");
+                count.setAttribute("role", "status");
+                content.append(toolbar, count);
                 if (!loading && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access on your Mac.", "sp-setting-note"));
                 const list = element("div", "", "sp-light-tab-list sp-setup-list");
                 for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
@@ -340,21 +312,34 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 content.appendChild(list);
             }
         } else if (step === 2) {
-            const supported = supportedApps();
-            const example = supported[0];
-            if (example) content.appendChild(shortcutPreview(example));
-            content.appendChild(toggle("sp-setup-add-pages", "Add shortcut pages", addShortcutPages && !!example,
-                enabled => { addShortcutPages = enabled; render(); }, !example));
-            content.appendChild(element("p", example
-                ? `For ${supported.length === 1 ? "1 supported app" : `${supported.length} supported apps`}.`
-                : "No shortcut pages available for these apps.", "sp-setting-note"));
+            const modes = element("div", "", "sp-setup-modes");
+            modes.setAttribute("role", "radiogroup");
+            modes.setAttribute("aria-label", "App card mode");
+            const canAddPages = supportedCount > 0;
+            modes.append(
+                modeChoice("sp-setup-add-pages", "Add shortcut pages", canAddPages
+                    ? `Add a page of ready-to-use shortcuts for ${supportedCount} of your selected apps.`
+                    : "The selected apps have no built-in shortcut pages.", addShortcutPages && canAddPages,
+                    () => { addShortcutPages = true; }, !canAddPages),
+                modeChoice("sp-setup-launch-only", "Launch apps only", "Tap a card to open or switch to its app.",
+                    !addShortcutPages || !canAddPages, () => { addShortcutPages = false; }),
+            );
+            content.appendChild(modes);
         } else {
-            const shortcutPageCount = addShortcutPages ? supportedApps().length : 0;
-            content.appendChild(homePreview(shortcutPageCount));
             if (shortcutPageCount > 0) {
-                content.appendChild(toggle("sp-setup-auto-switch", "Open pages on app focus", autoSwitch,
-                    enabled => { autoSwitch = enabled; }));
+                const modes = element("div", "", "sp-setup-modes");
+                modes.setAttribute("role", "radiogroup");
+                modes.setAttribute("aria-label", "Shortcut page opening mode");
+                modes.append(
+                    modeChoice("sp-setup-auto-switch", "Follow the active app", "Open its shortcut page when you switch to the app on your Mac.",
+                        autoSwitch, () => { autoSwitch = true; }),
+                    modeChoice("sp-setup-manual-switch", "Open from the display", "Tap the card of an active app to open its shortcuts.",
+                        !autoSwitch, () => { autoSwitch = false; }),
+                );
+                content.appendChild(modes);
             }
+            const appCount = selected.size;
+            content.appendChild(element("p", `${appCount} ${appCount === 1 ? "home-screen app" : "home-screen apps"} · ${shortcutPageCount} shortcut ${shortcutPageCount === 1 ? "page" : "pages"}`, "sp-setup-count"));
             if (replacing) {
                 content.appendChild(element("p", "Replaces your home screen and subpages.", "sp-setting-note"));
             }

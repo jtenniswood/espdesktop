@@ -931,7 +931,7 @@ function composeApplicationContext(): ApplicationContext {
     systemSection, preview, connectorsPage, () => firstRunSetup.open(),
   );
   const firstRunSetup = createFirstRunSetup({
-    ...dom, capacity: layout.numSlots, gridColumns: () => layout.gridCols, supported: !!layout.config.features?.companion,
+    ...dom, capacity: layout.numSlots, supported: !!layout.config.features?.companion,
     native: nativePanelConfig, codec: configurationCodec, connectors: connectorsPage, fields, shell,
     autoSwitchEnabled: () => state.autoOpenAppSubpages,
     saveAutoSwitch: async (enabled) => {
