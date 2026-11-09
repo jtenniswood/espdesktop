@@ -262,7 +262,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 network_status_icon: state.networkStatusOn,
 
                 subpage_chevron: state.subpageChevronsOn,
-                auto_open_app_subpages: nativeAppSubpagePreference(nativeDocument?.settings) ?? state.autoOpenAppSubpages,
+                auto_open_app_subpages: nativeAppSubpagePreference(nativeDocument?.settings) ??
+                    (controllers.nativePanelConfig?.client?.supportsAppSubpagePreference() ? state.autoOpenAppSubpages : undefined),
                 return_home_on_app_switch: state.returnHomeOnAppSwitch,
                 subpage_title_bar: state.subpageTitleBarOn,
                 timezone: state.timezone,
@@ -422,14 +423,13 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 if (Object.hasOwn(nativeDocument.settings, APP_SUBPAGE_PREFERENCE) && savedAppSubpagePreference === undefined)
                     rejectBackup("Invalid backup value for automatic app switching.");
                 const appSubpagePreference = savedAppSubpagePreference ??
-                    (backupPlan.settings ? importedSettings.autoOpenAppSubpages : undefined);
-                let saveAppSubpagePreferenceWithLayout = nativeAvailability === true &&
-                    nativeController?.client?.supportsAppSubpagePreference?.() === true &&
-                    appSubpagePreference !== undefined;
-                if (saveAppSubpagePreferenceWithLayout) {
+                    (typeof backupPlan.settings?.auto_open_app_subpages === "boolean"
+                        ? importedSettings.autoOpenAppSubpages : undefined);
+                const appSubpageUpdateRequired = "Update the panel firmware before restoring the automatic app switching setting from this backup.";
+                if (appSubpagePreference !== undefined) {
+                    if (nativeAvailability !== true || nativeController?.client?.supportsAppSubpagePreference?.() !== true)
+                        rejectBackup(appSubpageUpdateRequired);
                     nativeDocument.settings[APP_SUBPAGE_PREFERENCE] = appSubpagePreference ? "1" : "0";
-                } else {
-                    delete nativeDocument.settings[APP_SUBPAGE_PREFERENCE];
                 }
                 var layoutRestoreResult: any;
                 if (nativeAvailability === "legacy-fallback") {
@@ -439,8 +439,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var nativeRestore: any = nativeController.writeDocument(nativeDocument);
                     layoutRestoreResult = nativeRestore ? await nativeRestore : "failed";
                     if (layoutRestoreResult === "legacy-fallback") {
-                        saveAppSubpagePreferenceWithLayout = false;
-                        delete nativeDocument.settings[APP_SUBPAGE_PREFERENCE];
+                        if (appSubpagePreference !== undefined) rejectBackup(appSubpageUpdateRequired);
                         layoutRestoreResult = await queueLegacyLayoutRestore();
                     }
                     else if (layoutRestoreResult === "firmware-update-required") {
@@ -486,7 +485,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 state.onColor = nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || WEB_UI_COLORS.primary;
                 if (els.setOnColor && els.setOnColor._syncColor)
                     els.setOnColor._syncColor(state.onColor);
-                if (saveAppSubpagePreferenceWithLayout && appSubpagePreference !== undefined) {
+                if (appSubpagePreference !== undefined) {
                     state.autoOpenAppSubpages = appSubpagePreference;
                     if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = appSubpagePreference;
                 }

@@ -6480,7 +6480,8 @@ async function assertAppSubpageOpeningPreference(browser) {
   const testCase = ACTIVE_CASES[0];
   const fixture = nativeConfigState(testCase.slug);
   const context = await browser.newContext({ viewport: testCase.viewport });
-  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeAppSubpagePreference: true });
+  const routes = { nativeState: fixture, nativeAppSubpagePreference: true };
+  await installRoutes(context, testCase.slug, routes);
   const returnPosts = [];
   await context.route("**/switch/*return_home_on_app_switch*/**", async route => {
     returnPosts.push(new URL(route.request().url()).pathname.split("/").pop());
@@ -6534,6 +6535,23 @@ async function assertAppSubpageOpeningPreference(browser) {
       returnToggle.locator("..").locator(".sp-toggle-track").click(),
     ]);
     assert.deepStrictEqual(returnPosts, ["turn_off", "turn_on"]);
+    const backup = backupFixture(testCase.slug, testCase.slots);
+    backup.settings = { auto_open_app_subpages: false };
+    delete backup.screen;
+    const backupLayout = structuredClone(fixture.document);
+    delete backupLayout.settings.companion_auto_open_app_subpages;
+    backup.native_config = createPanelConfigBackupPayload(encodePanelConfig(backupLayout));
+    await importBackup(page, backup, "restore-app-switching");
+    await page.locator(".sp-banner").filter({ hasText: "Configuration imported successfully" }).waitFor();
+    assert.equal(fixture.document.settings.companion_auto_open_app_subpages, "0", "backup restores switching with the layout");
+
+    routes.nativeAppSubpagePreference = false;
+    await open();
+    const before = fixture.puts.length;
+    await importBackup(page, backup, "restore-app-switching-requires-update");
+    await page.locator(".sp-banner").filter({ hasText: "Update the panel firmware before restoring the automatic app switching setting" }).waitFor();
+    assert.equal(fixture.puts.length, before, "an incompatible backup leaves the saved layout alone");
+
     assert.deepStrictEqual(errors, [], "the setting and device events cause no browser errors");
     console.log("Global app subpage preference browser checks passed.");
   } finally { await context.close(); }
