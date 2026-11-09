@@ -63,6 +63,80 @@
       "label": "Previous Tab",
       "shortcut": "control+shift+tab",
       "icon": "Chevron Left"
+    },
+    {
+      "id": "10",
+      "label": "Next Item",
+      "shortcut": "option+tab",
+      "icon": "Link"
+    },
+    {
+      "id": "11",
+      "label": "Print Page",
+      "shortcut": "command+p",
+      "icon": "Printer"
+    },
+    {
+      "id": "12",
+      "label": "Copy",
+      "shortcut": "command+c",
+      "icon": "Copy"
+    },
+    {
+      "id": "13",
+      "label": "Paste",
+      "shortcut": "command+v",
+      "icon": "Paste"
+    },
+    {
+      "id": "14",
+      "label": "Home Page",
+      "shortcut": "command+shift+h",
+      "icon": "Home Page"
+    },
+    {
+      "id": "15",
+      "label": "Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "16",
+      "label": "Zoom In",
+      "shortcut": "command+shift+keyequal",
+      "icon": "Zoom In"
+    },
+    {
+      "id": "17",
+      "label": "Zoom Out",
+      "shortcut": "command+keyminus",
+      "icon": "Zoom Out"
+    },
+    {
+      "id": "18",
+      "label": "Next Window",
+      "shortcut": "command+keybackquote",
+      "icon": "Window Restore"
+    },
+    {
+      "id": "19",
+      "label": "Open Reader",
+      "shortcut": "command+shift+r",
+      "icon": "Book"
+    }
+  ],
+  "safariShortcuts": [
+    {
+      "id": "20",
+      "label": "Next Field",
+      "shortcut": "tab",
+      "icon": "Shortcut Tab"
+    },
+    {
+      "id": "21",
+      "label": "Escape",
+      "shortcut": "escape",
+      "icon": "Shortcut Escape"
     }
   ]
 }

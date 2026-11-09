@@ -904,13 +904,51 @@ final class CompanionStore: NSObject, ObservableObject {
             updateStatus("Blocked an invalid keyboard shortcut")
             return false
         }
+        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
+           !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
+            return false
+        }
+        if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
+           NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
+            updateStatus("Bring Books to the front to use this shortcut")
+            return false
+        }
         guard shortcut.isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else {
             updateStatus("Window tiling requires macOS 15 or later")
             return false
         }
-        guard shortcut.replay() else {
+        var targetPID: pid_t?
+        if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix),
+           CompanionKeyboardShortcut.isClaudeScopedShortcut(keys) {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier else {
+                updateStatus("Bring Claude Desktop to the front to use this shortcut")
+                return false
+            }
+            targetPID = application.processIdentifier
+        } else if actionIdentifier == CompanionKeyboardShortcut.actionPrefix + CompanionKeyboardShortcut.chatGPTClearUnreads {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  application.bundleIdentifier == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier else {
+                updateStatus("Bring ChatGPT Desktop to the front to clear unread chats")
+                return false
+            }
+            targetPID = application.processIdentifier
+        }
+        guard shortcut.replay(to: targetPID) else {
             updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
             return false
+        }
+        if keys == CompanionKeyboardShortcut.claudeRewindShortcut, let targetPID {
+            do {
+                try await Task.sleep(for: .milliseconds(80))
+            } catch {
+                return false
+            }
+            guard !sessionLock.refresh(),
+                  NSWorkspace.shared.frontmostApplication?.processIdentifier == targetPID else { return false }
+            return shortcut.replay(to: targetPID)
         }
         return true
     }

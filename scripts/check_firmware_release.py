@@ -64,20 +64,8 @@ def project_version_string(version: str) -> str:
     return f"Project {PROJECT_NAME} version {version}"
 
 
-def release_image_strings(version: str, *extra: str) -> tuple[str, ...]:
-    return (
-        version,
-        project_version_string(version),
-        "package_import_url",
-        version,
-        PROJECT_NAME,
-        "project_version",
-        *extra,
-    )
-
-
 def write_release_image(path: Path, version: str, *extra: str) -> None:
-    write_image(path, *release_image_strings(version, *extra))
+    write_image(path, project_version_string(version), *extra)
 
 
 def run_ok(args: list[str]) -> None:
@@ -541,8 +529,10 @@ def test_recovery_sources_and_documentation_stay_complete() -> None:
         normal_factory = ROOT / "builds" / f"{slug}.factory.yaml"
         assert "esp32_c6_recovery" not in normal_factory.read_text(encoding="utf-8")
 
-    install = (ROOT / "docs/getting-started/install.md").read_text(encoding="utf-8")
-    assert "https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery" in install
+    troubleshooting = (ROOT / "docs/getting-started/troubleshooting.md").read_text(
+        encoding="utf-8"
+    )
+    assert "https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery" in troubleshooting
     firmware_updates = (ROOT / "docs/features/firmware-updates.md").read_text(encoding="utf-8")
     assert "/getting-started/c6-recovery" in firmware_updates
     screen_docs = {
@@ -621,6 +611,22 @@ def test_placeholder_fails() -> None:
             "--factory", str(factory),
             "--ota", str(ota),
         ])
+
+
+def test_legacy_api_project_version() -> None:
+    with TemporaryDirectory() as tmp:
+        image = Path(tmp) / "firmware.ota.bin"
+        startup_version = project_version_string(VERSION)
+        write_image(image, startup_version, "package_import_url", VERSION, PROJECT_NAME, "project_version")
+        firmware_release.assert_binary_version(image, VERSION)
+
+        write_image(image, startup_version, "package_import_url", "v0.0.1", PROJECT_NAME, "project_version")
+        try:
+            firmware_release.assert_binary_version(image, VERSION)
+        except firmware_release.FirmwareReleaseError as error:
+            assert "API project metadata" in str(error)
+        else:
+            raise AssertionError("mismatched legacy API project metadata was accepted")
 
 
 def test_unrelated_placeholder_strings_pass() -> None:
@@ -916,6 +922,7 @@ def main() -> int:
     test_legacy_web_bundle_selection()
     test_web_bundle_compatibility_aliases()
     test_placeholder_fails()
+    test_legacy_api_project_version()
     test_unrelated_placeholder_strings_pass()
     test_wrong_manifest_version_fails()
     test_missing_chip_family_fails()

@@ -82,6 +82,12 @@ int main() {
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));
   assert(companion_shortcut_label("shortcut.control+shift+tab") == "\U000F0634\U000F0636" "Tab");
   assert(companion_shortcut_action_valid("shortcut.option+f20"));
+  assert(companion_shortcut_label("shortcut.left") == "\U000F004D");
+  assert(companion_shortcut_label("shortcut.right") == "\U000F0054");
+  assert(companion_shortcut_label("shortcut.space") == "Space");
+  assert(companion_shortcut_label("shortcut.function+f") == "Fn F");
+  assert(!companion_shortcut_action_valid("shortcut.a"));
+  assert(!companion_shortcut_action_valid("shortcut.function+g"));
   assert(companion_shortcut_label("shortcut.option+f20") == "\U000F0635" "F20");
   assert(companion_shortcut_label("shortcut.command+left") == "\U000F0633\U000F004D");
 
@@ -90,6 +96,27 @@ int main() {
   assert(!companion_shortcut_action_valid("shortcut.command+volumeup"));
   assert(!companion_shortcut_action_valid("shortcut.command+f21"));
   assert(!companion_shortcut_action_valid("com.apple.Safari"));
+  assert(companion_shortcut_label("shortcut.f6") == "F6");
+  assert(companion_shortcut_label("shortcut.shift+f6") == "\U000F0636" "F6");
+  assert(companion_shortcut_label("shortcut.escape-twice") == "Esc Esc");
+  assert(companion_shortcut_label("shortcut.9") == "9");
+  assert(!companion_shortcut_action_valid("shortcut.0"));
+  assert(!companion_shortcut_action_valid("shortcut.shift+f7"));
+  assert(!companion_shortcut_action_valid("shortcut.escape-thrice"));
+  assert(companion_shortcut_label("shortcut.tab") == "Tab");
+  assert(companion_shortcut_label("shortcut.escape") == "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.enter"));
+  {
+    CompanionRuntimeSnapshot keyboard_only;
+    keyboard_only.connected = true;
+    assert(!companion_action_available(keyboard_only, "shortcut.tab"));
+    keyboard_only.keyboard_actions_supported = true;
+    // The Mac verifies Safari is active. A standalone keyboard card does not need app-launch approval.
+    assert(companion_action_available(keyboard_only, "shortcut.tab"));
+    assert(companion_action_available(keyboard_only, "shortcut.escape"));
+  }
+  assert(companion_shortcut_label("shortcut.shift+escape") == "\U000F0636" "Esc");
+  assert(!companion_shortcut_action_valid("shortcut.shift+tab"));
 
   ParsedCfg finder_launch;
   finder_launch.type = "companion";

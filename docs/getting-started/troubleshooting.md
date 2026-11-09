@@ -22,21 +22,21 @@ The Mac stores its credential in Keychain and checks the paired display certific
 
 If the Mac app asks you to unlock your Mac or allow Keychain access, do that first, then choose **Retry** on the **Display** tab.
 
+To go through first-run setup again, open **Support → Restart Setup** in the Mac app. This clears the saved pairing and requires a fresh code. Your app and folder choices are kept.
+
 ## A Card Does Not Work
 
 - **App or folder:** confirm it is still approved in the Mac app’s **Apps** or **Folders** page.
-- **Keyboard shortcut or window:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**.
+- **Keyboard shortcut or window:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**. If these cards stopped working after replacing the app, remove the old EspDesktop entry and add the installed app again.
 - **Window arrangement:** requires macOS 15 or newer; some applications do not support every window action.
 
-For the control's exact requirements, see [Mac Controls](/card-types/companion).
+If an older card is marked unavailable, replace or remove it in the web editor. EspDesktop keeps the card’s settings in saved layouts and backups so you can identify it.
+
+For the control's exact requirements, see [Mac Controls](/#what-you-can-control).
 
 ## The Touchscreen Says to Unlock Your Mac
 
 Unlock the paired Mac and make sure EspDesktop is running and connected. If the connection was lost while your Mac was locked, the display unlocks after the app reconnects and reports that your Mac is unlocked. If the touchscreen then asks for a PIN, enter your display PIN.
-
-## A Saved Card Shows Home Assistant Unavailable
-
-Replace or remove the marked card in the web editor. EspDesktop keeps the settings of these older Home Assistant cards in saved layouts and backups so you can identify them. For Home Assistant touchscreen controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
 ## A Mac App or Display Update Breaks Compatibility
 
@@ -44,10 +44,12 @@ Install the Mac app and display firmware from the same EspDesktop release. If yo
 
 ## Still Stuck?
 
-Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). For Home Assistant touchscreen help, use the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues).
 
 ## WiFi setup and reset recovery
 
 The `EspDesktop_XXXX` setup hotspot can take up to 90 seconds to appear. Connect to the hotspot named on the display and open its shown address if the offline setup page does not open automatically. A custom hotspot name or address is preserved. After **WiFi details saved**, reconnect your phone or computer to home WiFi and follow the display's instructions. USB Improv provisioning is also available after installation.
+
+If an ESP32-P4 panel running EspControl can’t join WiFi, see the [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
 
 Save a backup before using **System → System → Factory Reset**. Partial reset retains WiFi and Mac pairing. Complete reset requires typing **RESET**, erases saved WiFi and Mac pairing, and requires pairing the Mac again. It disables WiFi networks compiled into the firmware so newly provisioned credentials remain selected after reboot. Installed firmware remains in place.

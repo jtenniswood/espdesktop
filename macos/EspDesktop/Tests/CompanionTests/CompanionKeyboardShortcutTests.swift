@@ -119,6 +119,63 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.fn+control+f"))
     }
 
+    func testClaudeScopedShortcutsUseTheDocumentedKeys() throws {
+        let expected: [(String, CGKeyCode, CGEventFlags)] = [
+            ("f6", 97, []), ("shift+f6", 97, [.maskShift]), ("claude-escape", 53, []),
+            ("escape-twice", 53, []), ("up", 126, []), ("down", 125, []), ("1", 18, []), ("9", 25, []),
+        ]
+        for (keys, keyCode, flags) in expected {
+            XCTAssertTrue(CompanionKeyboardShortcut.isClaudeScopedShortcut(keys))
+            let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys))
+            XCTAssertEqual(shortcut.keyCode, keyCode)
+            XCTAssertEqual(shortcut.flags, flags)
+        }
+        for keys in ["0", "a", "enter", "escape-thrice", "shift+f7", "command++f6"] {
+            XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys), keys)
+        }
+    }
+
+    func testSafariUnmodifiedKeysAndApplicationScope() throws {
+        let expected: [(String, CGKeyCode)] = [("tab", 48), ("escape", 53)]
+        for (keys, keyCode) in expected {
+            let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys))
+            XCTAssertEqual(shortcut.keyCode, keyCode)
+            XCTAssertTrue(shortcut.flags.isEmpty)
+        }
+        for keys in ["enter", "a", "shift+tab", "+tab", "command++tab"] {
+            XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys), keys)
+        }
+        XCTAssertTrue(CompanionKeyboardShortcut.isSafariApplication("com.apple.Safari"))
+        XCTAssertTrue(CompanionKeyboardShortcut.isSafariApplication(
+            "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef"
+        ))
+        XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.Safari.WebApp"))
+        XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.Safari.WebApp.invalid"))
+        XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.finder"))
+    }
+
+    func testBooksExtendedShortcutsReplayOnlyTheirExactKeys() throws {
+        let expected: [(String, CGKeyCode, CGEventFlags)] = [
+            ("left", 123, []), ("right", 124, []), ("space", 49, []),
+            ("function+f", 3, [.maskSecondaryFn]),
+        ]
+        for (keys, keyCode, flags) in expected {
+            let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys))
+            XCTAssertEqual(shortcut.keyCode, keyCode)
+            XCTAssertEqual(shortcut.flags, flags)
+        }
+        for keys in ["a", "shift+right", "function+g", "command++f", "+space"] {
+            XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut." + keys), keys)
+        }
+    }
+
+    func testChatGPTClearUnreadsUsesShiftEscape() throws {
+        let shortcut = try XCTUnwrap(CompanionKeyboardShortcut(actionIdentifier: "shortcut.shift+escape"))
+        XCTAssertEqual(shortcut.keyCode, 53)
+        XCTAssertEqual(shortcut.flags, [.maskShift])
+        XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.shift+tab"))
+    }
+
     func testGatesOnlyTilingActionsToMacOS15() throws {
         let macOS13 = OperatingSystemVersion(majorVersion: 13, minorVersion: 0, patchVersion: 0)
         let macOS15 = OperatingSystemVersion(majorVersion: 15, minorVersion: 0, patchVersion: 0)

@@ -11,6 +11,10 @@ export interface AppShortcutApplication {
     readonly label: string;
     readonly catalog: boolean;
     readonly shortcuts: readonly AppShortcutDefinition[];
+    readonly extendedShortcuts?: readonly AppShortcutDefinition[];
+    readonly additionalShortcuts?: readonly AppShortcutDefinition[];
+    readonly claudeShortcuts?: readonly AppShortcutDefinition[];
+    readonly safariShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {
@@ -756,16 +760,202 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "catalog": false,
     "shortcuts": [
       {
-        "id": "0",
-        "label": "New Collection",
-        "shortcut": "command+n",
-        "icon": "Folder Plus"
+        "id": "29",
+        "label": "Next Page",
+        "shortcut": "right",
+        "icon": "Page Next"
+      },
+      {
+        "id": "30",
+        "label": "Previous Page",
+        "shortcut": "left",
+        "icon": "Page Previous"
+      },
+      {
+        "id": "31",
+        "label": "Full Screen",
+        "shortcut": "function+f",
+        "icon": "Full Screen"
+      },
+      {
+        "id": "32",
+        "label": "Play/Pause",
+        "shortcut": "space",
+        "icon": "Play Pause"
+      },
+      {
+        "id": "2",
+        "label": "Bookmark Page",
+        "shortcut": "command+d",
+        "icon": "Bookmark Plus"
+      },
+      {
+        "id": "3",
+        "label": "Contents",
+        "shortcut": "command+t",
+        "icon": "View Headline"
+      },
+      {
+        "id": "4",
+        "label": "Bookmarks",
+        "shortcut": "command+shift+d",
+        "icon": "Bookmark Multiple"
       },
       {
         "id": "1",
         "label": "Search Books",
         "shortcut": "command+f",
         "icon": "Search"
+      },
+      {
+        "id": "5",
+        "label": "Next Chapter",
+        "shortcut": "option+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "6",
+        "label": "Previous Chapter",
+        "shortcut": "option+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "7",
+        "label": "Chapter Start",
+        "shortcut": "option+up",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "8",
+        "label": "Chapter End",
+        "shortcut": "option+down",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "9",
+        "label": "Notes",
+        "shortcut": "command+shift+n",
+        "icon": "Notes"
+      },
+      {
+        "id": "10",
+        "label": "Thumbnails",
+        "shortcut": "command+shift+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "11",
+        "label": "Study Cards",
+        "shortcut": "command+shift+s",
+        "icon": "Card Text"
+      },
+      {
+        "id": "12",
+        "label": "Glossary",
+        "shortcut": "command+shift+g",
+        "icon": "Book Alphabet"
+      },
+      {
+        "id": "13",
+        "label": "Larger Text",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Font Size Increase"
+      },
+      {
+        "id": "14",
+        "label": "Smaller Text",
+        "shortcut": "command+keyminus",
+        "icon": "Font Size Decrease"
+      },
+      {
+        "id": "15",
+        "label": "Reset Text",
+        "shortcut": "command+0",
+        "icon": "Format Size"
+      },
+      {
+        "id": "16",
+        "label": "Stop Audiobook",
+        "shortcut": "command+keyperiod",
+        "icon": "Stop"
+      },
+      {
+        "id": "17",
+        "label": "Skip Forward",
+        "shortcut": "command+right",
+        "icon": "Speed Up"
+      },
+      {
+        "id": "18",
+        "label": "Skip Back",
+        "shortcut": "command+left",
+        "icon": "Speed Down"
+      },
+      {
+        "id": "19",
+        "label": "Next Track",
+        "shortcut": "command+shift+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "20",
+        "label": "Previous Track",
+        "shortcut": "command+shift+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "21",
+        "label": "Volume Up",
+        "shortcut": "command+up",
+        "icon": "Volume Up"
+      },
+      {
+        "id": "22",
+        "label": "Volume Down",
+        "shortcut": "command+down",
+        "icon": "Volume Down"
+      },
+      {
+        "id": "23",
+        "label": "Open Book",
+        "shortcut": "command+o",
+        "icon": "Book"
+      },
+      {
+        "id": "0",
+        "label": "New Collection",
+        "shortcut": "command+n",
+        "icon": "Folder Plus"
+      },
+      {
+        "id": "24",
+        "label": "Books Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "25",
+        "label": "Close Window",
+        "shortcut": "command+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "26",
+        "label": "Hide Books",
+        "shortcut": "command+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "27",
+        "label": "Hide Others",
+        "shortcut": "command+option+h",
+        "icon": "Window Minimise"
+      },
+      {
+        "id": "28",
+        "label": "Quit Books",
+        "shortcut": "command+q",
+        "icon": "Logout"
       }
     ]
   },
@@ -895,40 +1085,8 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
-    "appId": "com.anthropic.claudefordesktop",
-    "label": "Claude Desktop",
-    "catalog": false,
-    "shortcuts": [
-      {
-        "id": "0",
-        "label": "Quick Entry",
-        "shortcut": "option+space",
-        "icon": "Flash"
-      },
-      {
-        "id": "1",
-        "label": "Code Shortcuts",
-        "shortcut": "command+keyslash",
-        "icon": "Keyboard"
-      },
-      {
-        "id": "2",
-        "label": "New Session",
-        "shortcut": "command+n",
-        "icon": "Chat Plus"
-      },
-      {
-        "id": "3",
-        "label": "Next Session",
-        "shortcut": "control+tab",
-        "icon": "Chevron Right"
-      }
-    ]
-  },
-  {
-    "version": 1,
     "appId": "com.openai.codex",
-    "label": "Codex",
+    "label": "ChatGPT Desktop",
     "catalog": false,
     "shortcuts": [
       {
@@ -999,7 +1157,7 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "14",
-        "label": "Model Picker",
+        "label": "Model / Effort",
         "shortcut": "control+shift+m",
         "icon": "Robot"
       },
@@ -1038,6 +1196,896 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Next Chat",
         "shortcut": "control+tab",
         "icon": "Chevron Right"
+      },
+      {
+        "id": "19",
+        "label": "Archive Chat",
+        "shortcut": "command+shift+a",
+        "icon": "Archive"
+      },
+      {
+        "id": "20",
+        "label": "Standalone Chat",
+        "shortcut": "command+option+o",
+        "icon": "New Window"
+      },
+      {
+        "id": "21",
+        "label": "Side Chat",
+        "shortcut": "command+option+s",
+        "icon": "Chat"
+      },
+      {
+        "id": "22",
+        "label": "Mark Unread",
+        "shortcut": "command+shift+u",
+        "icon": "Message Unread"
+      },
+      {
+        "id": "23",
+        "label": "Toggle Pin",
+        "shortcut": "command+option+p",
+        "icon": "Pin"
+      },
+      {
+        "id": "24",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Back"
+      },
+      {
+        "id": "25",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Forward"
+      },
+      {
+        "id": "26",
+        "label": "Next Sidebar",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "27",
+        "label": "Previous Sidebar",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "28",
+        "label": "Activity",
+        "shortcut": "command+option+u",
+        "icon": "Bell"
+      },
+      {
+        "id": "29",
+        "label": "Reopen Tab",
+        "shortcut": "command+shift+t",
+        "icon": "Tab Restore"
+      },
+      {
+        "id": "30",
+        "label": "Full View",
+        "shortcut": "command+shift+f",
+        "icon": "Full Screen"
+      },
+      {
+        "id": "31",
+        "label": "Cycle Layout",
+        "shortcut": "command+shift+b",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "32",
+        "label": "Show Mini",
+        "shortcut": "option+space",
+        "icon": "Picture in Picture"
+      },
+      {
+        "id": "33",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "34",
+        "label": "Close Others",
+        "shortcut": "command+option+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "35",
+        "label": "Close Tab",
+        "shortcut": "command+w",
+        "icon": "Close Tab"
+      },
+      {
+        "id": "36",
+        "label": "Recent Models",
+        "shortcut": "command+control+m",
+        "icon": "Robot"
+      },
+      {
+        "id": "37",
+        "label": "Voice Chat",
+        "shortcut": "control+shift+v",
+        "icon": "Microphone"
+      },
+      {
+        "id": "38",
+        "label": "Copy Chat Path",
+        "shortcut": "command+option+shift+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "39",
+        "label": "Copy Folder Path",
+        "shortcut": "command+shift+c",
+        "icon": "Folder Outline"
+      },
+      {
+        "id": "40",
+        "label": "Force Reload",
+        "shortcut": "command+shift+r",
+        "icon": "Restart"
+      },
+      {
+        "id": "41",
+        "label": "Mini Voice",
+        "shortcut": "option+v",
+        "icon": "Microphone"
+      },
+      {
+        "id": "42",
+        "label": "Reload Page",
+        "shortcut": "command+r",
+        "icon": "Refresh"
+      },
+      {
+        "id": "43",
+        "label": "Rename Chat",
+        "shortcut": "command+option+r",
+        "icon": "Rename"
+      },
+      {
+        "id": "44",
+        "label": "Screenshot Chat",
+        "shortcut": "control+shift+4",
+        "icon": "Screenshot"
+      },
+      {
+        "id": "45",
+        "label": "Screenshot New Chat",
+        "shortcut": "control+option+shift+4",
+        "icon": "Screenshot"
+      },
+      {
+        "id": "46",
+        "label": "Shortcut List",
+        "shortcut": "command+keyslash",
+        "icon": "Keyboard"
+      },
+      {
+        "id": "47",
+        "label": "Toggle Notch",
+        "shortcut": "option+c",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "48",
+        "label": "Tab 1",
+        "shortcut": "command+1",
+        "icon": "Tab"
+      },
+      {
+        "id": "49",
+        "label": "Tab 2",
+        "shortcut": "command+2",
+        "icon": "Tab"
+      },
+      {
+        "id": "50",
+        "label": "Tab 3",
+        "shortcut": "command+3",
+        "icon": "Tab"
+      },
+      {
+        "id": "51",
+        "label": "Tab 4",
+        "shortcut": "command+4",
+        "icon": "Tab"
+      },
+      {
+        "id": "52",
+        "label": "Tab 5",
+        "shortcut": "command+5",
+        "icon": "Tab"
+      },
+      {
+        "id": "53",
+        "label": "Tab 6",
+        "shortcut": "command+6",
+        "icon": "Tab"
+      },
+      {
+        "id": "54",
+        "label": "Tab 7",
+        "shortcut": "command+7",
+        "icon": "Tab"
+      },
+      {
+        "id": "55",
+        "label": "Tab 8",
+        "shortcut": "command+8",
+        "icon": "Tab"
+      },
+      {
+        "id": "56",
+        "label": "Tab 9",
+        "shortcut": "command+9",
+        "icon": "Tab"
+      },
+      {
+        "id": "57",
+        "label": "Recent 1",
+        "shortcut": "command+option+1",
+        "icon": "History"
+      },
+      {
+        "id": "58",
+        "label": "Recent 2",
+        "shortcut": "command+option+2",
+        "icon": "History"
+      },
+      {
+        "id": "59",
+        "label": "Recent 3",
+        "shortcut": "command+option+3",
+        "icon": "History"
+      },
+      {
+        "id": "60",
+        "label": "Recent 4",
+        "shortcut": "command+option+4",
+        "icon": "History"
+      },
+      {
+        "id": "61",
+        "label": "Recent 5",
+        "shortcut": "command+option+5",
+        "icon": "History"
+      },
+      {
+        "id": "62",
+        "label": "Recent 6",
+        "shortcut": "command+option+6",
+        "icon": "History"
+      },
+      {
+        "id": "63",
+        "label": "Clear Unreads",
+        "shortcut": "shift+escape",
+        "icon": "Check"
+      },
+      {
+        "id": "64",
+        "label": "Chat 1",
+        "shortcut": "control+1",
+        "icon": "Chat"
+      },
+      {
+        "id": "65",
+        "label": "Chat 2",
+        "shortcut": "control+2",
+        "icon": "Chat"
+      },
+      {
+        "id": "66",
+        "label": "Chat 3",
+        "shortcut": "control+3",
+        "icon": "Chat"
+      },
+      {
+        "id": "67",
+        "label": "Chat 4",
+        "shortcut": "control+4",
+        "icon": "Chat"
+      },
+      {
+        "id": "68",
+        "label": "Chat 5",
+        "shortcut": "control+5",
+        "icon": "Chat"
+      },
+      {
+        "id": "69",
+        "label": "Chat 6",
+        "shortcut": "control+6",
+        "icon": "Chat"
+      },
+      {
+        "id": "70",
+        "label": "Chat 7",
+        "shortcut": "control+7",
+        "icon": "Chat"
+      },
+      {
+        "id": "71",
+        "label": "Chat 8",
+        "shortcut": "control+8",
+        "icon": "Chat"
+      },
+      {
+        "id": "72",
+        "label": "Chat 9",
+        "shortcut": "control+9",
+        "icon": "Chat"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.anthropic.claudefordesktop",
+    "label": "Claude Desktop",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Quick Entry",
+        "shortcut": "option+space",
+        "icon": "Flash"
+      },
+      {
+        "id": "1",
+        "label": "Code Shortcuts",
+        "shortcut": "command+keyslash",
+        "icon": "Keyboard"
+      },
+      {
+        "id": "2",
+        "label": "New Session",
+        "shortcut": "command+n",
+        "icon": "Chat Plus"
+      },
+      {
+        "id": "3",
+        "label": "Next Session",
+        "shortcut": "control+tab",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "4",
+        "label": "Session Search",
+        "shortcut": "command+k",
+        "icon": "Find Tab"
+      },
+      {
+        "id": "5",
+        "label": "Search",
+        "shortcut": "command+shift+k",
+        "icon": "Search"
+      },
+      {
+        "id": "6",
+        "label": "Sidebar",
+        "shortcut": "command+b",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "7",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "8",
+        "label": "Reuse Settings",
+        "shortcut": "command+shift+n",
+        "icon": "Template"
+      },
+      {
+        "id": "9",
+        "label": "New Environment",
+        "shortcut": "command+option+0",
+        "icon": "Folder Plus"
+      },
+      {
+        "id": "10",
+        "label": "Close Session",
+        "shortcut": "command+w",
+        "icon": "Close Tab"
+      },
+      {
+        "id": "11",
+        "label": "Reopen Session",
+        "shortcut": "command+shift+t",
+        "icon": "Tab Restore"
+      },
+      {
+        "id": "12",
+        "label": "Previous Session",
+        "shortcut": "control+shift+tab",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "13",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Back"
+      },
+      {
+        "id": "14",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Forward"
+      },
+      {
+        "id": "15",
+        "label": "Next Sidebar",
+        "shortcut": "command+option+right",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "16",
+        "label": "Previous Sidebar",
+        "shortcut": "command+option+left",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "17",
+        "label": "Split Right",
+        "shortcut": "command+control+keybackslash",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "18",
+        "label": "Split Below",
+        "shortcut": "command+control+keyminus",
+        "icon": "Split Horizontal"
+      },
+      {
+        "id": "19",
+        "label": "Next Split",
+        "shortcut": "control+keybracketright",
+        "icon": "Dock Right"
+      },
+      {
+        "id": "20",
+        "label": "Previous Split",
+        "shortcut": "control+keybracketleft",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "21",
+        "label": "Close Split",
+        "shortcut": "command+control+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "22",
+        "label": "Toggle Pin",
+        "shortcut": "command+option+p",
+        "icon": "Pin"
+      },
+      {
+        "id": "23",
+        "label": "Rename Session",
+        "shortcut": "command+option+r",
+        "icon": "Rename"
+      },
+      {
+        "id": "24",
+        "label": "Archive Session",
+        "shortcut": "command+option+a",
+        "icon": "Archive"
+      },
+      {
+        "id": "25",
+        "label": "Toggle Unread",
+        "shortcut": "command+option+u",
+        "icon": "Message Unread"
+      },
+      {
+        "id": "26",
+        "label": "Copy Link",
+        "shortcut": "command+l",
+        "icon": "Link"
+      },
+      {
+        "id": "27",
+        "label": "Open PR",
+        "shortcut": "command+option+g",
+        "icon": "Source Pull Request"
+      },
+      {
+        "id": "28",
+        "label": "Fork Session",
+        "shortcut": "command+option+o",
+        "icon": "Source Branch"
+      },
+      {
+        "id": "29",
+        "label": "Transcript",
+        "shortcut": "control+o",
+        "icon": "Notes"
+      },
+      {
+        "id": "30",
+        "label": "Find",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "31",
+        "label": "Find Next",
+        "shortcut": "command+g",
+        "icon": "Chevron Down"
+      },
+      {
+        "id": "32",
+        "label": "Find Previous",
+        "shortcut": "command+shift+g",
+        "icon": "Chevron Up"
+      },
+      {
+        "id": "33",
+        "label": "Changes",
+        "shortcut": "command+shift+d",
+        "icon": "Source Compare"
+      },
+      {
+        "id": "34",
+        "label": "File List",
+        "shortcut": "command+shift+y",
+        "icon": "File Tree"
+      },
+      {
+        "id": "35",
+        "label": "Next Change",
+        "shortcut": "option+f5",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "36",
+        "label": "Previous Change",
+        "shortcut": "option+shift+f5",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "37",
+        "label": "Next Comment",
+        "shortcut": "option+f9",
+        "icon": "Comment Plus"
+      },
+      {
+        "id": "38",
+        "label": "Previous Comment",
+        "shortcut": "option+shift+f9",
+        "icon": "Message Alert"
+      },
+      {
+        "id": "39",
+        "label": "Go to File",
+        "shortcut": "command+p",
+        "icon": "File Search"
+      },
+      {
+        "id": "40",
+        "label": "Preview",
+        "shortcut": "command+shift+p",
+        "icon": "Web"
+      },
+      {
+        "id": "41",
+        "label": "Select Element",
+        "shortcut": "command+shift+s",
+        "icon": "Target"
+      },
+      {
+        "id": "42",
+        "label": "Annotate Preview",
+        "shortcut": "command+shift+x",
+        "icon": "Draw"
+      },
+      {
+        "id": "43",
+        "label": "Reload Preview",
+        "shortcut": "command+r",
+        "icon": "Refresh"
+      },
+      {
+        "id": "44",
+        "label": "Files",
+        "shortcut": "command+shift+f",
+        "icon": "Folder Outline"
+      },
+      {
+        "id": "45",
+        "label": "Attach Context",
+        "shortcut": "command+shift+l",
+        "icon": "Paperclip"
+      },
+      {
+        "id": "46",
+        "label": "Terminal",
+        "shortcut": "command+j",
+        "icon": "Terminal"
+      },
+      {
+        "id": "47",
+        "label": "New Terminal",
+        "shortcut": "control+shift+keybackquote",
+        "icon": "New Window"
+      },
+      {
+        "id": "48",
+        "label": "Next Terminal",
+        "shortcut": "control+shift+keybracketright",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "49",
+        "label": "Previous Terminal",
+        "shortcut": "control+shift+keybracketleft",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "50",
+        "label": "Close Pane",
+        "shortcut": "command+keybackslash",
+        "icon": "Window Close"
+      },
+      {
+        "id": "51",
+        "label": "Toggle Pane",
+        "shortcut": "command+shift+keybackslash",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "52",
+        "label": "Side Chat",
+        "shortcut": "command+keysemicolon",
+        "icon": "Chat"
+      },
+      {
+        "id": "53",
+        "label": "Mode Menu",
+        "shortcut": "command+shift+m",
+        "icon": "Settings"
+      },
+      {
+        "id": "54",
+        "label": "Model Menu",
+        "shortcut": "command+shift+i",
+        "icon": "Robot"
+      },
+      {
+        "id": "55",
+        "label": "Effort Menu",
+        "shortcut": "command+shift+e",
+        "icon": "Gauge"
+      },
+      {
+        "id": "56",
+        "label": "Attach Files",
+        "shortcut": "command+u",
+        "icon": "Paperclip"
+      },
+      {
+        "id": "57",
+        "label": "Prompt Search",
+        "shortcut": "control+r",
+        "icon": "History"
+      },
+      {
+        "id": "58",
+        "label": "Queue / Send",
+        "shortcut": "command+enter",
+        "icon": "Send"
+      },
+      {
+        "id": "59",
+        "label": "Send to Fork",
+        "shortcut": "command+option+enter",
+        "icon": "Source Branch"
+      },
+      {
+        "id": "60",
+        "label": "Environment 1",
+        "shortcut": "command+option+1",
+        "icon": "Applications"
+      },
+      {
+        "id": "61",
+        "label": "Session 1",
+        "shortcut": "command+1",
+        "icon": "Chat"
+      },
+      {
+        "id": "62",
+        "label": "Environment 2",
+        "shortcut": "command+option+2",
+        "icon": "Applications"
+      },
+      {
+        "id": "63",
+        "label": "Session 2",
+        "shortcut": "command+2",
+        "icon": "Chat"
+      },
+      {
+        "id": "64",
+        "label": "Environment 3",
+        "shortcut": "command+option+3",
+        "icon": "Applications"
+      },
+      {
+        "id": "65",
+        "label": "Session 3",
+        "shortcut": "command+3",
+        "icon": "Chat"
+      },
+      {
+        "id": "66",
+        "label": "Environment 4",
+        "shortcut": "command+option+4",
+        "icon": "Applications"
+      },
+      {
+        "id": "67",
+        "label": "Session 4",
+        "shortcut": "command+4",
+        "icon": "Chat"
+      },
+      {
+        "id": "68",
+        "label": "Environment 5",
+        "shortcut": "command+option+5",
+        "icon": "Applications"
+      },
+      {
+        "id": "69",
+        "label": "Session 5",
+        "shortcut": "command+5",
+        "icon": "Chat"
+      },
+      {
+        "id": "70",
+        "label": "Environment 6",
+        "shortcut": "command+option+6",
+        "icon": "Applications"
+      },
+      {
+        "id": "71",
+        "label": "Session 6",
+        "shortcut": "command+6",
+        "icon": "Chat"
+      },
+      {
+        "id": "72",
+        "label": "Environment 7",
+        "shortcut": "command+option+7",
+        "icon": "Applications"
+      },
+      {
+        "id": "73",
+        "label": "Session 7",
+        "shortcut": "command+7",
+        "icon": "Chat"
+      },
+      {
+        "id": "74",
+        "label": "Environment 8",
+        "shortcut": "command+option+8",
+        "icon": "Applications"
+      },
+      {
+        "id": "75",
+        "label": "Session 8",
+        "shortcut": "command+8",
+        "icon": "Chat"
+      },
+      {
+        "id": "76",
+        "label": "Environment 9",
+        "shortcut": "command+option+9",
+        "icon": "Applications"
+      },
+      {
+        "id": "77",
+        "label": "Session 9",
+        "shortcut": "command+9",
+        "icon": "Chat"
+      },
+      {
+        "id": "78",
+        "label": "Next Area",
+        "shortcut": "f6",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "79",
+        "label": "Previous Area",
+        "shortcut": "shift+f6",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "80",
+        "label": "Stop Response",
+        "shortcut": "claude-escape",
+        "icon": "Stop"
+      },
+      {
+        "id": "81",
+        "label": "Rewind Session",
+        "shortcut": "escape-twice",
+        "icon": "History"
+      },
+      {
+        "id": "82",
+        "label": "Older Prompt",
+        "shortcut": "up",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "83",
+        "label": "Newer Prompt",
+        "shortcut": "down",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "84",
+        "label": "Menu Item 1",
+        "shortcut": "1",
+        "icon": "Menu"
+      },
+      {
+        "id": "85",
+        "label": "Menu Item 2",
+        "shortcut": "2",
+        "icon": "Menu"
+      },
+      {
+        "id": "86",
+        "label": "Menu Item 3",
+        "shortcut": "3",
+        "icon": "Menu"
+      },
+      {
+        "id": "87",
+        "label": "Menu Item 4",
+        "shortcut": "4",
+        "icon": "Menu"
+      },
+      {
+        "id": "88",
+        "label": "Menu Item 5",
+        "shortcut": "5",
+        "icon": "Menu"
+      },
+      {
+        "id": "89",
+        "label": "Menu Item 6",
+        "shortcut": "6",
+        "icon": "Menu"
+      },
+      {
+        "id": "90",
+        "label": "Menu Item 7",
+        "shortcut": "7",
+        "icon": "Menu"
+      },
+      {
+        "id": "91",
+        "label": "Menu Item 8",
+        "shortcut": "8",
+        "icon": "Menu"
+      },
+      {
+        "id": "92",
+        "label": "Menu Item 9",
+        "shortcut": "9",
+        "icon": "Menu"
       }
     ]
   },
@@ -1260,6 +2308,216 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "New Component",
         "shortcut": "option+command+k",
         "icon": "Component"
+      },
+      {
+        "id": "4",
+        "label": "Collapse Layers",
+        "shortcut": "option+l",
+        "icon": "Arrow Collapse"
+      },
+      {
+        "id": "5",
+        "label": "Copy PNG",
+        "shortcut": "command+shift+c",
+        "icon": "Image"
+      },
+      {
+        "id": "6",
+        "label": "Select Matching",
+        "shortcut": "command+option+a",
+        "icon": "Compare Selection"
+      },
+      {
+        "id": "7",
+        "label": "Suggest Layout",
+        "shortcut": "control+shift+a",
+        "icon": "View Grid"
+      },
+      {
+        "id": "8",
+        "label": "Toggle UI",
+        "shortcut": "command+keyperiod",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Toggle Outlines",
+        "shortcut": "command+shift+o",
+        "icon": "Vector"
+      },
+      {
+        "id": "10",
+        "label": "Layers",
+        "shortcut": "option+1",
+        "icon": "Layers"
+      },
+      {
+        "id": "11",
+        "label": "Assets",
+        "shortcut": "option+2",
+        "icon": "Applications"
+      },
+      {
+        "id": "12",
+        "label": "Libraries",
+        "shortcut": "option+3",
+        "icon": "Book"
+      },
+      {
+        "id": "13",
+        "label": "Select All",
+        "shortcut": "command+a",
+        "icon": "Select All"
+      },
+      {
+        "id": "14",
+        "label": "Invert Selection",
+        "shortcut": "command+shift+a",
+        "icon": "Swap Horizontal"
+      },
+      {
+        "id": "15",
+        "label": "Toggle Visibility",
+        "shortcut": "command+shift+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "16",
+        "label": "Toggle Lock",
+        "shortcut": "command+shift+l",
+        "icon": "Lock Outline"
+      },
+      {
+        "id": "17",
+        "label": "Group",
+        "shortcut": "command+g",
+        "icon": "Group Selection"
+      },
+      {
+        "id": "18",
+        "label": "Ungroup",
+        "shortcut": "command+delete",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "19",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "20",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "21",
+        "label": "Copy Properties",
+        "shortcut": "command+option+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "22",
+        "label": "Paste Properties",
+        "shortcut": "command+option+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "23",
+        "label": "Paste Replace",
+        "shortcut": "command+shift+r",
+        "icon": "Find Replace"
+      },
+      {
+        "id": "24",
+        "label": "Bring Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "25",
+        "label": "Send Backward",
+        "shortcut": "command+keybracketleft",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "26",
+        "label": "Bring Front",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Arrow Up Bold Box Outline"
+      },
+      {
+        "id": "27",
+        "label": "Send Back",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Arrow Down Bold Box Outline"
+      },
+      {
+        "id": "28",
+        "label": "Align Left",
+        "shortcut": "option+a",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "29",
+        "label": "Align Right",
+        "shortcut": "option+d",
+        "icon": "Dock Right"
+      },
+      {
+        "id": "30",
+        "label": "Align Top",
+        "shortcut": "option+w",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "31",
+        "label": "Align Bottom",
+        "shortcut": "option+s",
+        "icon": "Dock Bottom"
+      },
+      {
+        "id": "32",
+        "label": "Center Horiz.",
+        "shortcut": "option+h",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "33",
+        "label": "Center Vert.",
+        "shortcut": "option+v",
+        "icon": "Split Horizontal"
+      },
+      {
+        "id": "34",
+        "label": "Tidy Up",
+        "shortcut": "control+option+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "35",
+        "label": "Space Horiz.",
+        "shortcut": "control+option+h",
+        "icon": "Arrow Left Right"
+      },
+      {
+        "id": "36",
+        "label": "Space Vert.",
+        "shortcut": "control+option+v",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "37",
+        "label": "Detach Instance",
+        "shortcut": "command+option+b",
+        "icon": "Link Off"
+      },
+      {
+        "id": "38",
+        "label": "Remove Layout",
+        "shortcut": "option+shift+a",
+        "icon": "Window Restore"
       }
     ]
   },
@@ -3100,6 +4358,188 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Previous Tab",
         "shortcut": "control+shift+tab",
         "icon": "Chevron Left"
+      },
+      {
+        "id": "10",
+        "label": "Next Item",
+        "shortcut": "option+tab",
+        "icon": "Link"
+      },
+      {
+        "id": "11",
+        "label": "Print Page",
+        "shortcut": "command+p",
+        "icon": "Printer"
+      },
+      {
+        "id": "12",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "13",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "14",
+        "label": "Home Page",
+        "shortcut": "command+shift+h",
+        "icon": "Home Page"
+      },
+      {
+        "id": "15",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "16",
+        "label": "Zoom In",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Zoom In"
+      },
+      {
+        "id": "17",
+        "label": "Zoom Out",
+        "shortcut": "command+keyminus",
+        "icon": "Zoom Out"
+      },
+      {
+        "id": "18",
+        "label": "Next Window",
+        "shortcut": "command+keybackquote",
+        "icon": "Window Restore"
+      },
+      {
+        "id": "19",
+        "label": "Open Reader",
+        "shortcut": "command+shift+r",
+        "icon": "Book"
+      },
+      {
+        "id": "20",
+        "label": "Next Field",
+        "shortcut": "tab",
+        "icon": "Shortcut Tab"
+      },
+      {
+        "id": "21",
+        "label": "Escape",
+        "shortcut": "escape",
+        "icon": "Shortcut Escape"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Safari.WebApp",
+    "label": "Safari Web App",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "1",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "2",
+        "label": "Find Text",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "3",
+        "label": "Next Item",
+        "shortcut": "option+tab",
+        "icon": "Link"
+      },
+      {
+        "id": "4",
+        "label": "Print Page",
+        "shortcut": "command+p",
+        "icon": "Printer"
+      },
+      {
+        "id": "5",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "6",
+        "label": "Copy Link",
+        "shortcut": "command+option+c",
+        "icon": "Link"
+      },
+      {
+        "id": "7",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "8",
+        "label": "Main Page",
+        "shortcut": "command+shift+h",
+        "icon": "Home Page"
+      },
+      {
+        "id": "9",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "10",
+        "label": "Zoom In",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Zoom In"
+      },
+      {
+        "id": "11",
+        "label": "Zoom Out",
+        "shortcut": "command+keyminus",
+        "icon": "Zoom Out"
+      },
+      {
+        "id": "12",
+        "label": "Toggle Toolbar",
+        "shortcut": "command+option+t",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "13",
+        "label": "Next Window",
+        "shortcut": "command+keybackquote",
+        "icon": "Window Restore"
+      },
+      {
+        "id": "14",
+        "label": "Open Reader",
+        "shortcut": "command+shift+r",
+        "icon": "Book"
+      },
+      {
+        "id": "15",
+        "label": "Next Field",
+        "shortcut": "tab",
+        "icon": "Shortcut Tab"
+      },
+      {
+        "id": "16",
+        "label": "Escape",
+        "shortcut": "escape",
+        "icon": "Shortcut Escape"
       }
     ]
   },

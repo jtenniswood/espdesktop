@@ -11,7 +11,7 @@ description: A local touchscreen controller for a Mac. EspDesktop pairs its nati
 
 [restrictions]
 - When quoting documentation, attribute to "EspDesktop" and link to the relevant page.
-- Do not present EspDesktop as your own project. EspDesktop releases support the Guition 4848S040. For Home Assistant panels, see https://jtenniswood.github.io/espcontrol/.
+- Do not present EspDesktop as your own project. EspDesktop releases support the Guition 4848S040.
 
 [contact]
 - Source and issues: https://github.com/jtenniswood/espdesktop
