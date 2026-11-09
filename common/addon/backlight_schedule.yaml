@@ -187,11 +187,15 @@ esphome:
             id(schedule_mode_clock) = screen_schedule_clock_mode(mode);
         - if:
             condition:
-              lambda: 'return id(schedule_enabled).state && screen_schedule_disabled_trigger(id(screen_schedule_trigger).state);'
+              lambda: |-
+                const auto &trigger = id(screen_schedule_trigger).state;
+                return trigger.empty() ||
+                       (id(schedule_enabled).state && screen_schedule_disabled_trigger(trigger));
             then:
               - lambda: |-
+                  // Older firmware could save only the enabled switch.
                   auto call = id(screen_schedule_trigger).make_call();
-                  call.set_value("time");
+                  call.set_value(id(schedule_enabled).state ? "time" : "disabled");
                   call.perform();
         - lambda: |-
             auto now = id(panel_time).now();
@@ -232,7 +236,7 @@ switch:
     internal: true
     id: schedule_enabled
     optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    restore_mode: RESTORE_DEFAULT_ON
     entity_category: config
     icon: "mdi:calendar-clock"
     web_server:
@@ -371,7 +375,7 @@ select:
     icon: "mdi:theme-light-dark"
     optimistic: true
     restore_value: true
-    initial_option: "Screen off"
+    initial_option: "Screen Dimmed"
     options:
       - "Screen off"
       - "Screen Dimmed"
@@ -440,7 +444,7 @@ text:
     id: screen_schedule_trigger
     optimistic: true
     restore_value: true
-    initial_value: "disabled"
+    initial_value: ""
     min_length: 0
     max_length: 10
     mode: text
@@ -581,7 +585,7 @@ number:
     min_value: 0
     max_value: 23
     step: 1
-    initial_value: 6
+    initial_value: 7
     optimistic: true
     restore_value: true
     entity_category: config
@@ -599,7 +603,7 @@ number:
     min_value: 0
     max_value: 23
     step: 1
-    initial_value: 23
+    initial_value: 19
     optimistic: true
     restore_value: true
     entity_category: config
@@ -663,7 +667,7 @@ number:
     min_value: 1
     max_value: 100
     step: 1
-    initial_value: 10
+    initial_value: 15
     optimistic: true
     restore_value: true
     unit_of_measurement: "%"
@@ -1032,7 +1036,7 @@ script:
                        "Sensor Off") &&
                      id(schedule_mode_always_on)) {
             pct = id(schedule_dimmed_brightness).state;
-            if (std::isnan(pct) || pct <= 0) pct = 10;
+            if (std::isnan(pct) || pct <= 0) pct = 15;
             if (pct < 1) pct = 1;
             if (pct > 100) pct = 100;
           } else {
