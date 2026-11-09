@@ -1447,6 +1447,216 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "New Component",
         "shortcut": "option+command+k",
         "icon": "Component"
+      },
+      {
+        "id": "4",
+        "label": "Collapse Layers",
+        "shortcut": "option+l",
+        "icon": "Arrow Collapse"
+      },
+      {
+        "id": "5",
+        "label": "Copy PNG",
+        "shortcut": "command+shift+c",
+        "icon": "Image"
+      },
+      {
+        "id": "6",
+        "label": "Select Matching",
+        "shortcut": "command+option+a",
+        "icon": "Compare Selection"
+      },
+      {
+        "id": "7",
+        "label": "Suggest Layout",
+        "shortcut": "control+shift+a",
+        "icon": "View Grid"
+      },
+      {
+        "id": "8",
+        "label": "Toggle UI",
+        "shortcut": "command+keyperiod",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Toggle Outlines",
+        "shortcut": "command+shift+o",
+        "icon": "Vector"
+      },
+      {
+        "id": "10",
+        "label": "Layers",
+        "shortcut": "option+1",
+        "icon": "Layers"
+      },
+      {
+        "id": "11",
+        "label": "Assets",
+        "shortcut": "option+2",
+        "icon": "Applications"
+      },
+      {
+        "id": "12",
+        "label": "Libraries",
+        "shortcut": "option+3",
+        "icon": "Book"
+      },
+      {
+        "id": "13",
+        "label": "Select All",
+        "shortcut": "command+a",
+        "icon": "Select All"
+      },
+      {
+        "id": "14",
+        "label": "Invert Selection",
+        "shortcut": "command+shift+a",
+        "icon": "Swap Horizontal"
+      },
+      {
+        "id": "15",
+        "label": "Toggle Visibility",
+        "shortcut": "command+shift+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "16",
+        "label": "Toggle Lock",
+        "shortcut": "command+shift+l",
+        "icon": "Lock Outline"
+      },
+      {
+        "id": "17",
+        "label": "Group",
+        "shortcut": "command+g",
+        "icon": "Group Selection"
+      },
+      {
+        "id": "18",
+        "label": "Ungroup",
+        "shortcut": "command+delete",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "19",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "20",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "21",
+        "label": "Copy Properties",
+        "shortcut": "command+option+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "22",
+        "label": "Paste Properties",
+        "shortcut": "command+option+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "23",
+        "label": "Paste Replace",
+        "shortcut": "command+shift+r",
+        "icon": "Find Replace"
+      },
+      {
+        "id": "24",
+        "label": "Bring Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "25",
+        "label": "Send Backward",
+        "shortcut": "command+keybracketleft",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "26",
+        "label": "Bring Front",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Arrow Up Bold Box Outline"
+      },
+      {
+        "id": "27",
+        "label": "Send Back",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Arrow Down Bold Box Outline"
+      },
+      {
+        "id": "28",
+        "label": "Align Left",
+        "shortcut": "option+a",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "29",
+        "label": "Align Right",
+        "shortcut": "option+d",
+        "icon": "Dock Right"
+      },
+      {
+        "id": "30",
+        "label": "Align Top",
+        "shortcut": "option+w",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "31",
+        "label": "Align Bottom",
+        "shortcut": "option+s",
+        "icon": "Dock Bottom"
+      },
+      {
+        "id": "32",
+        "label": "Center Horiz.",
+        "shortcut": "option+h",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "33",
+        "label": "Center Vert.",
+        "shortcut": "option+v",
+        "icon": "Split Horizontal"
+      },
+      {
+        "id": "34",
+        "label": "Tidy Up",
+        "shortcut": "control+option+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "35",
+        "label": "Space Horiz.",
+        "shortcut": "control+option+h",
+        "icon": "Arrow Left Right"
+      },
+      {
+        "id": "36",
+        "label": "Space Vert.",
+        "shortcut": "control+option+v",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "37",
+        "label": "Detach Instance",
+        "shortcut": "command+option+b",
+        "icon": "Link Off"
+      },
+      {
+        "id": "38",
+        "label": "Remove Layout",
+        "shortcut": "option+shift+a",
+        "icon": "Window Restore"
       }
     ]
   },
