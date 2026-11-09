@@ -9,6 +9,7 @@ import { convertNativeV1ToV2, convertNativeV2ToV1, decodePanelPageDocument, deco
   type NativePageLayout } from "../model/panel_config_conversion";
 import { PageTransferConflict } from "../model/page_card_transfer";
 import { updateNativePanelSettings } from "../model/panel_config_settings";
+import { NativeLayoutDraft } from "../model/native_layout_draft";
 import { decodeNativeConfigDocument, nativeConfigDocumentVersion } from "../model/native_config_backup";
 import { pageDepth, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 
@@ -43,6 +44,10 @@ export type NativePanelConfigFetch = (
   path: string,
   request?: NativePanelConfigRequest,
 ) => Promise<NativePanelConfigResponse>;
+
+export type NativePanelConfigUpdate = ((document: PanelConfigDocument) => PanelConfigDocument) & {
+  editNative?: (draft: NativeLayoutDraft) => void;
+};
 
 export type NativePanelConfigSaveResult = "saved" | "unsupported" | "conflict" | "mirror-failed" | "authentication-required" | "too-large" | "firmware-update-required" | "nested-pages-unavailable" | "failed";
 export const NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE = "This backup needs newer panel firmware to restore all saved cards and settings. Update the panel before importing it. No backup settings were changed.";
@@ -306,10 +311,11 @@ export class NativePanelConfigClient {
     throw new Error("A compatible backup representation is unavailable.");
   }
 
-  async save(update: (document: PanelConfigDocument) => PanelConfigDocument, skipUnchanged = false,
+  async save(update: NativePanelConfigUpdate, skipUnchanged = false,
       nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveResult> {
     if (!await this.discover()) return "unsupported";
     let conflicts = 0;
+    let priorScope: readonly string[] | undefined;
     while (conflicts < 2) {
       try {
         const version = this.documentVersion_;
@@ -336,7 +342,17 @@ export class NativePanelConfigClient {
         const currentDocument = this.decodeDocument(input, version);
         const currentDepth = panelPageDocumentDepth(currentDocument);
         if (currentDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
-        const updated = update({
+        let directBody: Uint8Array | undefined;
+        if (!nativeBackup && version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2 && update.editNative) {
+          const draft = new NativeLayoutDraft(input);
+          update.editNative(draft);
+          const previous = priorScope;
+          if (previous && (previous.length !== draft.editScope.length ||
+              draft.editScope.some((value, index) => value !== previous[index]))) return "conflict";
+          priorScope = draft.editScope;
+          directBody = draft.finish();
+        }
+        const updated = directBody ? decodePanelPageDocument(directBody) : update({
           ...currentDocument, buttons: { ...currentDocument.buttons }, subpages: { ...currentDocument.subpages },
           settings: { ...currentDocument.settings },
         });
@@ -356,7 +372,9 @@ export class NativePanelConfigClient {
           return "too-large";
         }
         let body: Uint8Array;
-        if (nativeBackup) {
+        if (directBody) {
+          body = directBody;
+        } else if (nativeBackup) {
           if (version !== V2_DOCUMENT_VERSION || this.writableNavigationDepth() !== 2) return "firmware-update-required";
           if (nativeBackup.length > this.maxV2DocumentBytes_) return "too-large";
           const backedUp = decodePanelPageDocument(nativeBackup);

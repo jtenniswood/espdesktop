@@ -175,3 +175,85 @@ test("a settings-only native save keeps nonsequential page and card identities",
   assert.match(codec.decodePanelPageDocument(persisted).subpages[33], /Edited address/);
   assert.equal(generation, 9, "in-place changes are committed even when unchanged writes can be skipped");
 });
+
+test("structured root and folder edits keep wire identities and retry the latest generation", async () => {
+  const { NativeV2Kind: K, decodeNativeV2 } = loadTypescriptTest("src/webserver/model/panel_config_v2.ts");
+  const { updateNativePanelSettings } = loadTypescriptTest("src/webserver/model/panel_config_settings.ts");
+  const { NativeLayoutDraft } = loadTypescriptTest("src/webserver/model/native_layout_draft.ts");
+  let persisted = codec.encodePanelPageDocument(fixture.document);
+  const original = decodeNativeV2(persisted);
+  const rootId = original.find(row => row.kind === K.Card && row.first === 0 && row.second === 1).id;
+  const folderId = original.find(row => row.kind === K.Page && row.second === rootId).id;
+  const safariId = original.find(row => row.kind === K.Card && row.first === folderId).id;
+  const shortcutPage = original.find(row => row.kind === K.Page && row.second === safariId).id;
+  let generation = 1, puts = 0, legacyCalls = 0;
+  const legacy = () => { ++legacyCalls; throw new Error("native edit reached the text serializer"); };
+  const response = (status, bytes = new Uint8Array()) => ({
+    ok: status < 300, status, arrayBuffer: async () => Uint8Array.from(bytes).buffer,
+    headers: { get: name => name === "ETag" ? `"v2-${generation}"` : name === "X-Panel-Config-Version" ? "2" : null },
+  });
+  const controller = new NativePanelConfigController({
+    fetch: async (url, request) => {
+      if (url.endsWith("capabilities")) return { ...response(200), json: async () => ({ configuration: {
+        read: true, write: true, document_versions: [2], durable_document_version: 2,
+        max_navigation_depth: 2, writable_navigation_depth: 2, max_record_body_bytes: 4096,
+      } }) };
+      if (request?.method !== "PUT") return response(200, persisted);
+      assert.equal(request.headers["If-Match"], `"v2-${generation}"`);
+      if (++puts === 1) {
+        const before = codec.decodePanelPageDocument(persisted).settings;
+        persisted = updateNativePanelSettings(persisted, before, { ...before, parallel: "saved elsewhere" });
+        generation++;
+        return response(409);
+      }
+      if (puts === 3) {
+        const concurrent = new NativeLayoutDraft(persisted);
+        const page = codec.decodePanelPageSnapshot(persisted).layout.pages.find(page => page.key === 34);
+        concurrent.writePage(34, { order: page.order, cards: [{ ...page.cards[0].config, label: "Other browser" }] });
+        persisted = concurrent.finish();
+        generation++;
+        return response(409);
+      }
+      persisted = request.body;
+      generation++;
+      return response(204);
+    },
+    deviceProfile: () => fixture.document.deviceProfile, slotCount: () => 9,
+    entityName: name => name, entityNameForSlot: (name, slot) => `${name}_${slot}`,
+    normalizeHexColor: value => value, showBanner() {}, delay: callback => callback(),
+  });
+  assert.equal(await controller.begin(), true);
+  const { layout } = codec.decodePanelPageSnapshot(persisted);
+  const [safari] = layout.pages.find(page => page.key === 1).cards;
+  const [address] = layout.pages.find(page => page.key === 33).cards;
+  const group = controller.beginAtomicEdit();
+  assert.equal(await controller.writeButtonAndOrder(1, legacy, "1w", {
+    ...layout.rootCards[0].config, label: "Home | work",
+  }), "saved");
+  assert.equal(await controller.writeSubpage(1, legacy, {
+    order: "B,1,2", cards: [{ ...address.config, label: "New first card" }, safari.config],
+  }), "saved");
+  assert.equal(await controller.writeSubpage(34, legacy, {
+    order: "B,1", cards: [{ ...address.config, label: "Address | work" }],
+  }), "saved");
+  assert.equal(puts, 0);
+  assert.equal(await group.finish(true), true);
+  assert.equal(legacyCalls, 0);
+  assert.equal(puts, 2);
+  const result = codec.decodePanelPageSnapshot(persisted);
+  assert.equal(result.document.settings.parallel, "saved elsewhere");
+  assert.equal(result.document.settings.button_order, "1w");
+  assert.equal(result.layout.rootCards[0].config.label, "Home | work");
+  assert.equal(result.layout.pages.find(page => page.key === 34).cards[0].config.label, "Address | work");
+  const saved = decodeNativeV2(persisted);
+  assert.equal(saved.find(row => row.kind === K.Card && row.id === rootId).second, 1);
+  assert.equal(saved.find(row => row.kind === K.Card && row.id === safariId).second, 2);
+  assert.equal(saved.find(row => row.kind === K.Page && row.id === shortcutPage).second, safariId);
+
+  assert.equal(await controller.writeSubpage(34, legacy, {
+    order: "B,1", cards: [{ ...address.config, label: "Conflicting edit" }],
+  }), "conflict");
+  assert.equal(puts, 3, "an overlapping edit must not be retried");
+  assert.equal(codec.decodePanelPageSnapshot(persisted).layout.pages.find(page => page.key === 34).cards[0].config.label,
+    "Other browser");
+});

@@ -1,4 +1,6 @@
 import { updateEditorPage } from "../model/page_edit";
+import type { CardConfig } from "../contracts/types";
+import type { NativeLayoutDraft, NativePageEdit } from "../model/native_layout_draft";
 import {
   createNativePanelConfigClient,
   updateNativePanelConfigDocument,
@@ -9,11 +11,12 @@ import {
   type NativePanelConfigFetch,
   type NativePanelConfigSaveResult,
   type NativePanelConfigSnapshot,
+  type NativePanelConfigUpdate,
 } from "../features/native_panel_config";
 import type { PanelConfigDocument } from "../model";
 import { pageDepth, parentPageKey } from "../model/page_keys";
 
-export type NativePanelConfigUpdate = (document: PanelConfigDocument) => PanelConfigDocument;
+export type { NativePanelConfigUpdate } from "../features/native_panel_config";
 export type NativePanelConfigSaveOutcome = NativePanelConfigSaveResult | "legacy-fallback";
 
 export interface NativePanelConfigControllerDependencies {
@@ -74,9 +77,16 @@ export class NativePanelConfigController {
 
   writeSetting(key: string, value: string): Promise<NativePanelConfigSaveOutcome> | null {
     if (!key || key.length > 63) return null;
-    return this.schedule((current) => updateNativePanelConfigDocument(
+    return this.schedule(this.withNativeEdit(current => updateNativePanelConfigDocument(
       current, this.dependencies.deviceProfile(), "settings", key, value,
-    ));
+    ), draft => draft.writeSetting(key, value)));
+  }
+
+  private withNativeEdit(update: NativePanelConfigUpdate, edit: (draft: NativeLayoutDraft) => void): NativePanelConfigUpdate {
+    return Object.assign(update, { editNative: (draft: NativeLayoutDraft) => {
+      if (draft.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
+      edit(draft);
+    } });
   }
 
   maxConfigValueBytes(): number | null {
@@ -107,7 +117,11 @@ export class NativePanelConfigController {
         cancel();
         if (!ok) return false;
         if (!updates.length) return true;
-        const result = await this.schedule(current => updates.reduce((document, update) => update(document), current));
+        const update: NativePanelConfigUpdate = current => updates.reduce((document, apply) => apply(document), current);
+        if (updates.every(apply => apply.editNative)) {
+          update.editNative = draft => updates.forEach(apply => apply.editNative!(draft));
+        }
+        const result = await this.schedule(update);
         return result === "saved" || result === "mirror-failed";
       },
     };
@@ -229,16 +243,12 @@ export class NativePanelConfigController {
 
   writeText(name: string, value: string): Promise<NativePanelConfigSaveOutcome> | null | false {
     if (name === this.dependencies.entityName("button_order")) {
-      return this.schedule((current) => updateNativePanelConfigDocument(
-        current, this.dependencies.deviceProfile(), "settings", "button_order", value,
-      ));
+      return this.writeSetting("button_order", value);
     }
     if (name === this.dependencies.entityName("button_on_color")) {
       const color = this.dependencies.normalizeHexColor(value, "");
       if (!color) return false;
-      return this.schedule((current) => updateNativePanelConfigDocument(
-        current, this.dependencies.deviceProfile(), "settings", "button_on_color", color,
-      ));
+      return this.writeSetting("button_on_color", color);
     }
     for (let slot = 1; slot <= this.dependencies.slotCount(); slot += 1) {
       if (name === this.dependencies.entityNameForSlot("button_config", slot)) {
@@ -250,16 +260,21 @@ export class NativePanelConfigController {
     return false;
   }
 
-  writeButtonAndOrder(slot: number, value: string, order: string): Promise<NativePanelConfigSaveOutcome> | null | false {
+  writeButtonAndOrder(slot: number, value: string | (() => string), order?: string,
+      card?: CardConfig): Promise<NativePanelConfigSaveOutcome> | null | false {
     if (!Number.isInteger(slot) || slot < 1 || slot > this.dependencies.slotCount()) return false;
-    return this.schedule((current) => {
+    const update: NativePanelConfigUpdate = current => {
       const withButton = updateNativePanelConfigDocument(
-        current, this.dependencies.deviceProfile(), "buttons", slot, value,
+        current, this.dependencies.deviceProfile(), "buttons", slot, typeof value === "string" ? value : value(),
       );
-      return updateNativePanelConfigDocument(
+      return order === undefined ? withButton : updateNativePanelConfigDocument(
         withButton, this.dependencies.deviceProfile(), "settings", "button_order", order,
       );
-    });
+    };
+    return this.schedule(card ? this.withNativeEdit(update, draft => {
+      draft.writeRootCard(slot, card);
+      if (order !== undefined) draft.writeSetting("button_order", order);
+    }) : update);
   }
 
   writeDocument(document: PanelConfigDocument, nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveOutcome> | null {
@@ -276,15 +291,17 @@ export class NativePanelConfigController {
     }, false, nativeBackup);
   }
 
-  writeSubpage(slot: number, value: string): Promise<NativePanelConfigSaveOutcome> | false | null {
+  writeSubpage(slot: number, value: string | (() => string),
+      page?: NativePageEdit | null): Promise<NativePanelConfigSaveOutcome> | false | null {
     try {
       const depth = pageDepth(slot);
       if (!depth || (depth === 1 ? slot : parentPageKey(slot)) > this.dependencies.slotCount()) return false;
     } catch { return false; }
-    return this.schedule(current => {
+    const update: NativePanelConfigUpdate = current => {
       if (current.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
-      return updateEditorPage(current, slot, value);
-    });
+      return updateEditorPage(current, slot, typeof value === "string" ? value : value());
+    };
+    return this.schedule(page === undefined ? update : this.withNativeEdit(update, draft => draft.writePage(slot, page)));
   }
 
 }
