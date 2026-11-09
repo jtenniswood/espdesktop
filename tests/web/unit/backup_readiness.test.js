@@ -11,7 +11,7 @@ function fixture(t, read) {
   const runtime = {};
   t.after(() => clearTimeout(runtime.migrationTimer));
   const entityState = {
-    entityStateItems: keys => [["text", keys.includes("screen_default_icon_size") ? "icon" : keys.includes("button_order") ? "card" : "setting"]],
+    entityStateItems: keys => [["text", keys.length === 1 && keys[0] === "screen_default_icon_size" ? "icon" : keys.includes("screen_clock_bar") ? "setting" : "card"]],
     entityStateItemsForSlots: keys => keys.includes("subpage") ? [["text", "subpage"]] : [],
   };
   return createStateLoaderFeature(runtime, { config: { features: {} } }, {}, {}, {}, {}, entityState,
@@ -19,7 +19,7 @@ function fixture(t, read) {
       getJsonQuietly: read,
       entityDetailPath: (domain, name) => `/${domain}/${name}`,
       entityInitialDetail: () => "state",
-    }, { schedule() {} }, { subpageEntityKeys: () => ["subpage"], specialPageEntityKeys: () => [], connectEvents() {} });
+    }, { schedule() {} }, { subpageEntityKeys: () => ["subpage"], connectEvents() {} });
 }
 test("backup waits for both delayed settings and subpages after the layout is available", async t => {
   const settings = deferred(), subpage = deferred();
