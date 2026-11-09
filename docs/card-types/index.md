@@ -11,7 +11,6 @@ Cards show information and controls on the display. Mac controls use the paired 
 |---|---|
 | Launch apps, shortcuts, websites and folders, arrange windows, or show Mac statistics | [Companion](./companion) |
 | Adjust Mac output or microphone volume | [Slider](./sliders) |
-| Show the local clock or another timezone | [Date & Time](./calendar) |
 | Open another page of cards | [Subpage](/features/subpages) |
 | Send an HTTP request | [Webhook](./webhooks) |
 
@@ -22,3 +21,5 @@ Home Assistant control cards are retired. Existing records keep their identifier
 Folders continue to provide navigation, including access to Mac and local child cards. Replace retired child cards individually when updating an existing layout.
 
 Sensor, Internal Switches, Wifi Sharing, Screensaver and Screen Lock cards are no longer supported, including in saved layouts. Their spaces become available for replacement cards.
+
+Date & Time cards have been removed. Existing Date, Time & Date, Clock, and World Clock cards leave empty spaces when the panel loads a layout or restores a backup.
