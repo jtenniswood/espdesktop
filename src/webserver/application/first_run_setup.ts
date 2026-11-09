@@ -288,14 +288,15 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             } else {
                 const search: HTMLInputElement = deps.fields.textInput("sp-setup-search", query, "Search apps");
                 search.type = "search";
-                search.classList.add("sp-setup-search");
                 search.setAttribute("aria-label", "Search apps");
                 search.setAttribute("data-setup-key", "search");
                 search.disabled = busy;
                 search.addEventListener("input", () => { query = search.value; render(); });
                 const count = element("p", loading ? "Loading apps…" : `${selected.size} of ${deps.capacity} selected`, "sp-setup-count");
                 count.setAttribute("role", "status");
-                content.append(search, count);
+                const searchField = element("div", "", "sp-setup-search");
+                searchField.append(deps.shell.createMdiIcon("magnify"), search);
+                content.append(searchField, count);
                 if (!loading && !error && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access on your Mac.", "sp-setting-note"));
                 const list = element("div", "", "sp-light-tab-list sp-setup-list");
                 for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
