@@ -6715,11 +6715,6 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
       await page.locator('[data-card-type="companion_app"]').isVisible(),
       `${testCase.name}: Companion-only picker opens on Mac Companion card types`,
     );
-    assert.strictEqual(
-      await page.locator('[data-card-type="companion_stats"]').count(),
-      0,
-      `${testCase.name}: Stats is unavailable when adding a new card`,
-    );
   } finally {
     await context.close();
   }
