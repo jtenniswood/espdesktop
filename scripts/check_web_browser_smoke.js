@@ -6003,6 +6003,43 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function assertMacLockCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = {
+    1: "shortcut.command+a;Select All;Shortcut Command;Auto;;;companion",
+    2: "shortcut.command+c;Copy;Shortcut Command;Auto;;;companion",
+  };
+  nativeState.document.settings.button_order = "1,2";
+  nativeState.document.subpages = {};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, nativeState);
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Mac Lock card type", exact: true }).click();
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      Object.values(nativeState.document.buttons).some(raw =>
+        String(raw).startsWith("shortcut.command+control+q;Mac Lock;Lock;")),
+    "Mac Lock saves with the standard shortcut and icon");
+    await page.reload();
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, nativeState);
+    await page.locator(".sp-main .sp-btn-icon.mdi-lock").waitFor();
+    assert.strictEqual(await page.locator(".sp-main").getByText("Mac Lock", { exact: true }).count(), 1);
+    console.log("Mac Lock card picker, save and reload passed.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
@@ -8719,12 +8756,17 @@ async function assertNestedCompanionPages(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
+      await assertMacLockCard(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_CARD_TRANSFER_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await runCase(browser, testCase);
       return;
     }
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
+    await assertMacLockCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);
