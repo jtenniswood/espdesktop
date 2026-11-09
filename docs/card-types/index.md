@@ -23,7 +23,7 @@ Use this page when you know what you want the panel to do but are not sure which
 | Show or control a robotic lawn mower | [Lawn Mower](/card-types/lawn-mower) | `lawn_mower` |
 | Pick from a Home Assistant select list | [Option Select](/card-types/option-select) | `select` or `input_select` |
 | Fire a custom Home Assistant automation event | [Trigger](/card-types/buttons) | No entity required |
-| Call an HTTP URL directly from the panel | [Webhook](/card-types/webhooks) (existing cards) | URL |
+| Call an HTTP URL directly from the panel | [Webhook](/card-types/webhooks) | URL |
 | Show a door or window contact sensor | [Doors & Windows](/card-types/doors-windows) | `binary_sensor` or `sensor` |
 | Show presence, motion, or occupancy state | [Presence](/card-types/presence) | `binary_sensor`, `sensor`, or `text_sensor` |
 | Drag to set light brightness, fan speed, or a number value | [Slider](/card-types/sliders) | `light`, `fan`, `number`, or `input_number` |

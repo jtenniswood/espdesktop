@@ -10,11 +10,9 @@ A Webhook card is a one-tap HTTP request. It calls the URL directly from the pan
 
 Use Webhook cards for local automation platforms such as Jeedom, openHAB, Fibaro, Node-RED, or Home Assistant webhook automations. They also work with cloud webhook services such as IFTTT and Zapier when the panel can reach the service URL.
 
-## Editing an Existing Webhook Card
+## Setting Up a Webhook Card
 
-Existing Webhook cards still work and can be edited. The Add Card picker currently hides Webhook.
-
-1. Open an existing Webhook card and select **Edit**.
+1. Select a card and change its type to **Webhook**.
 2. Set a **Label** - this is the text shown on the card.
 3. Choose the HTTP **Method**.
 4. Enter the webhook **URL**.

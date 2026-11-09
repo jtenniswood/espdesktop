@@ -53,8 +53,6 @@ export function registerWebhookCardTypes(
         allowInSubpage: function (this: any) { return cardContractAllowInSubpage("webhook"); },
         pickerKey: function (this: any) { return cardContractPickerKey("webhook"); },
         hidden: function (this: any) { return cardContractHidden("webhook"); },
-        // Keep saved cards editable while Webhook is unavailable for new cards.
-        isAvailable: () => false,
         labelPlaceholder: "e.g. Gate Open",
         defaultConfig: function (this: any) { return cardContractDefaultConfig("webhook"); },
         cardMetadata: WEBHOOK_CARD_METADATA,
