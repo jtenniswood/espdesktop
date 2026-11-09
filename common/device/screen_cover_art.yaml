@@ -1131,4 +1131,3 @@ script:
           then:
             - script.execute: backlight_apply_brightness
             - script.execute: screensaver_idle_check
-            - script.execute: home_screen_idle_check
