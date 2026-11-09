@@ -177,7 +177,13 @@ void CompanionService::loop() {
       this->next_attempt_at_ = 0;
     }
   }
-
+  const uint32_t authentication_deadline = this->authentication_expires_at_.load();
+  if (authentication_deadline != 0 &&
+      static_cast<int32_t>(millis() - authentication_deadline) >= 0 &&
+      !this->authentication_expiry_queued_.exchange(true)) {
+    if (!this->server_ || httpd_queue_work(this->server_, &CompanionService::authentication_expiry_work_, this) != ESP_OK)
+      this->authentication_expiry_queued_.store(false);
+  }
 }
 
 void CompanionService::advertise_discovery_() {
