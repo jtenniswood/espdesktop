@@ -38,6 +38,10 @@ print('Build succeeded')
     def test_temporary_download_failure_recovers(self):
         self.invoke(1, 'WARNING Could not prefetch cmake: Failed to download https://example.test/tool after 5 attempts: 504 Server Error', 2, 0)
 
+    def test_esp_idf_archive_download_recovers(self):
+        self.invoke(1, 'WARNING Download of https://example.test/esp-idf.tar.xz failed (504 Server Error: Gateway Time-out); retrying in 4 seconds (attempt 3/3)\n'
+                    'ERROR Failed to download from all mirrors:', 2, 0)
+
     def test_persistent_outage_stays_failed(self):
         self.invoke(9, 'WARNING: Download failure: HTTP Error 503: Service Unavailable', 3, 7)
 

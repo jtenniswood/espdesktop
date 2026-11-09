@@ -8654,9 +8654,12 @@ async function assertRetiredCardRemoval(browser) {
   }
   for (const testCase of ACTIVE_CASES) {
     const nativeState = nativeConfigState(testCase.slug);
-    nativeState.document.buttons = { 2: "https://example.test;Webhook;Web;Auto;;;webhook" };
+    nativeState.document.buttons = {
+      1: "https://example.test;Webhook;Web;Auto;;;webhook",
+      2: "shortcut.command+c;Copy;Shortcut Command;Auto;;;companion",
+    };
     nativeState.document.subpages = {};
-    nativeState.document.settings.button_order = "2";
+    nativeState.document.settings.button_order = "1,2";
     const context = await browser.newContext({ viewport: testCase.viewport });
     // Even a stale device capability cannot restore the retired connector/cards.
     await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
@@ -8666,6 +8669,8 @@ async function assertRetiredCardRemoval(browser) {
       await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
       await page.waitForSelector("#sp-app");
       await seedNativeDocument(page, nativeState);
+      assert.strictEqual(await page.locator('.sp-main [data-slot="1"]').count(), 0,
+        `${testCase.name}: retired Webhook card is removed`);
       await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
       await page.waitForSelector(".sp-settings-modal");
       assert.strictEqual(await page.getByRole("button", { name: "Date & Time card type", exact: true }).count(), 0);
