@@ -500,6 +500,7 @@ inline std::vector<std::string> companion_shortcut_parts(const std::string &acti
 }
 
 inline bool companion_shortcut_action_valid(const std::string &action_id) {
+  if (action_id == "shortcut.tab" || action_id == "shortcut.escape") return true;
   if (action_id == "shortcut.shift+escape") return true;
   if (action_id == "shortcut.left" || action_id == "shortcut.right" ||
       action_id == "shortcut.space" || action_id == "shortcut.function+f") return true;

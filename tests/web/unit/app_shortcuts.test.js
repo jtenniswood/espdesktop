@@ -3,6 +3,29 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { loadTypeScriptModule } = require("../../../scripts/load_typescript_module");
 
+test("Safari web apps use their own presets and keep their actual app identity", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const safari = require("../../../product/v2/app_shortcuts/safari.json");
+  const webApp = require("../../../product/v2/app_shortcuts/safari-web-app.json");
+  const installedId = "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef";
+  const browserPresets = api.companionShortcutPresetCards(safari.appId);
+  const webPresets = api.companionShortcutPresetCards(installedId);
+  assert.equal(browserPresets.length, 22);
+  assert.equal(webPresets.length, 17);
+  assert(!browserPresets.some(card => card.label === "Copy Link"));
+  assert.deepEqual(api.companionShortcutPresetCards("com.apple.Safari.WebApp.invalid"), []);
+  assert(webPresets.every(card => api.companionShortcutActionIdValid(card.entity)));
+  assert(!api.companionShortcutActionIdValid("shortcut.a"));
+  const copyLink = webApp.shortcuts.find(item => item.label === "Copy Link");
+  const tab = webApp.extendedShortcuts.find(item => item.shortcut === "tab");
+  const page = api.createCompanionShortcutSubpage(installedId, [copyLink.id, tab.id]);
+  assert.deepEqual(page.buttons.map(card => card.entity), ["shortcut.command+option+c", "shortcut.tab"]);
+  assert.equal(page.buttons[0].options, "app_shortcut_preset=" + installedId + "%3A" + copyLink.id);
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(installedId, page), [copyLink.id, tab.id]);
+  api.replaceCompanionDefinitions([safari, webApp]);
+  assert.deepEqual(api.companionShortcutPresetCards(installedId), webPresets);
+});
+
 test("ChatGPT Desktop uses the installed app identifier and keeps its numbered shortcuts distinct", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = require("../../../product/v2/app_shortcuts/codex.json");

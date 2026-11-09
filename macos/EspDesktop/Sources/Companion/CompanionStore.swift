@@ -905,6 +905,11 @@ final class CompanionStore: NSObject, ObservableObject {
             return false
         }
         let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
+           !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
+            return false
+        }
         if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
            NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
             updateStatus("Bring Books to the front to use this shortcut")

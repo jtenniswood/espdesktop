@@ -41,6 +41,7 @@ import {
     COMPANION_SHORTCUT_APPS,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
+    isSafariUnmodifiedShortcut,
     CHATGPT_CLEAR_UNREADS_ACTION,
     isBooksExtendedShortcut,
     companionShortcutFolderAppLabel,
@@ -947,7 +948,8 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
-                    ((!isBooksExtendedShortcut(card.entity) && card.entity !== CHATGPT_CLEAR_UNREADS_ACTION) ||
+                    ((!isSafariUnmodifiedShortcut(card.entity) &&
+                        !isBooksExtendedShortcut(card.entity) && card.entity !== CHATGPT_CLEAR_UNREADS_ACTION) ||
                         card.entity === currentEntity);
             });
 

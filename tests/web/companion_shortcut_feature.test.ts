@@ -285,6 +285,18 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+shift+keybackslash",
     "shortcut.control+tab",
     "shortcut.control+shift+tab",
+    "shortcut.option+tab",
+    "shortcut.command+p",
+    "shortcut.command+c",
+    "shortcut.command+v",
+    "shortcut.command+shift+h",
+    "shortcut.command+keycomma",
+    "shortcut.command+shift+keyequal",
+    "shortcut.command+keyminus",
+    "shortcut.command+keybackquote",
+    "shortcut.command+shift+r",
+    "shortcut.tab",
+    "shortcut.escape",
   ];
   if (safariPreset.map((card) => card.entity).join("|") !== expectedSafariShortcuts.join("|")) {
     throw new Error("Safari shortcut defaults changed");
@@ -381,7 +393,8 @@ export function runCompanionShortcutFeatureTests(): void {
     }
   }
   const safariSubpage = createSafariShortcutSubpage();
-  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10") {
+  const expectedSafariOrder = ["B", ...expectedSafariShortcuts.map((_shortcut, index) => String(index + 1))];
+  if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== expectedSafariOrder.join("|")) {
     throw new Error("Safari app subpage layout changed");
   }
   setCompanionShortcutTabs(safariFolderCard, ["3", "0"]);

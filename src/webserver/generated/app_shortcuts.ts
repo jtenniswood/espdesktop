@@ -3822,6 +3822,188 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "label": "Previous Tab",
         "shortcut": "control+shift+tab",
         "icon": "Chevron Left"
+      },
+      {
+        "id": "10",
+        "label": "Next Item",
+        "shortcut": "option+tab",
+        "icon": "Link"
+      },
+      {
+        "id": "11",
+        "label": "Print Page",
+        "shortcut": "command+p",
+        "icon": "Printer"
+      },
+      {
+        "id": "12",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "13",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "14",
+        "label": "Home Page",
+        "shortcut": "command+shift+h",
+        "icon": "Home Page"
+      },
+      {
+        "id": "15",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "16",
+        "label": "Zoom In",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Zoom In"
+      },
+      {
+        "id": "17",
+        "label": "Zoom Out",
+        "shortcut": "command+keyminus",
+        "icon": "Zoom Out"
+      },
+      {
+        "id": "18",
+        "label": "Next Window",
+        "shortcut": "command+keybackquote",
+        "icon": "Window Restore"
+      },
+      {
+        "id": "19",
+        "label": "Open Reader",
+        "shortcut": "command+shift+r",
+        "icon": "Book"
+      },
+      {
+        "id": "20",
+        "label": "Next Field",
+        "shortcut": "tab",
+        "icon": "Shortcut Tab"
+      },
+      {
+        "id": "21",
+        "label": "Escape",
+        "shortcut": "escape",
+        "icon": "Shortcut Escape"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Safari.WebApp",
+    "label": "Safari Web App",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "1",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "2",
+        "label": "Find Text",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "3",
+        "label": "Next Item",
+        "shortcut": "option+tab",
+        "icon": "Link"
+      },
+      {
+        "id": "4",
+        "label": "Print Page",
+        "shortcut": "command+p",
+        "icon": "Printer"
+      },
+      {
+        "id": "5",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "6",
+        "label": "Copy Link",
+        "shortcut": "command+option+c",
+        "icon": "Link"
+      },
+      {
+        "id": "7",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "8",
+        "label": "Main Page",
+        "shortcut": "command+shift+h",
+        "icon": "Home Page"
+      },
+      {
+        "id": "9",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "10",
+        "label": "Zoom In",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Zoom In"
+      },
+      {
+        "id": "11",
+        "label": "Zoom Out",
+        "shortcut": "command+keyminus",
+        "icon": "Zoom Out"
+      },
+      {
+        "id": "12",
+        "label": "Toggle Toolbar",
+        "shortcut": "command+option+t",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "13",
+        "label": "Next Window",
+        "shortcut": "command+keybackquote",
+        "icon": "Window Restore"
+      },
+      {
+        "id": "14",
+        "label": "Open Reader",
+        "shortcut": "command+shift+r",
+        "icon": "Book"
+      },
+      {
+        "id": "15",
+        "label": "Next Field",
+        "shortcut": "tab",
+        "icon": "Shortcut Tab"
+      },
+      {
+        "id": "16",
+        "label": "Escape",
+        "shortcut": "escape",
+        "icon": "Shortcut Escape"
       }
     ]
   },

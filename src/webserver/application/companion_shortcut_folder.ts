@@ -7,9 +7,15 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
         if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
             const additional = additionalShortcuts.filter((item) => {
                 const action = COMPANION_SHORTCUT_PREFIX + item?.shortcut;
-                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action);
+                return companionShortcutActionIdValid(action) && !isBooksExtendedShortcut(action) && !isSafariUnmodifiedShortcut(action);
             });
             return { ...app, shortcuts: [...app.shortcuts, ...additional] };
+        }
+        if ((app.appId === SAFARI_BUNDLE_ID || app.appId === SAFARI_WEB_APP_TEMPLATE) &&
+            Array.isArray(extendedShortcuts)) {
+            const extended = extendedShortcuts.filter((item) =>
+                isSafariUnmodifiedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
+            return { ...app, shortcuts: [...app.shortcuts, ...extended] };
         }
         if (app.appId !== "com.apple.iBooksX" || app.catalog || !Array.isArray(extendedShortcuts)) return app;
         const extended = extendedShortcuts.filter((item) => isBooksExtendedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
@@ -39,6 +45,8 @@ export const FINDER_OPEN_OVERRIDE_OPTION = "finder_open_override";
 export const COMPANION_SHORTCUT_PRESET_OPTION = "app_shortcut_preset";
 const COMPANION_SHORTCUT_CUSTOM_PRESET = "custom";
 export const SAFARI_BUNDLE_ID = "com.apple.Safari";
+const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
+const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const CHATGPT_CLEAR_UNREADS_ACTION = "shortcut.shift+escape";
 const LAST_LEGACY_CHATGPT_PRESET_ID = 18;
@@ -76,6 +84,9 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
 }
 
 function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
+    if (SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)) {
+        return COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE);
+    }
     return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier ||
         (app.appId === "com.adobe.PremierePro" &&
             /^com\.adobe\.PremierePro\.\d+$/.test(bundleIdentifier)));
@@ -253,6 +264,10 @@ export function companionShortcutSelectionMatchesSavedParent(draftCard: any, sav
         draftCard.entity === savedCard.entity;
 }
 
+export function isSafariUnmodifiedShortcut(actionId: string): boolean {
+    return actionId === "shortcut.tab" || actionId === "shortcut.escape";
+}
+
 export function isBooksExtendedShortcut(actionId: string): boolean {
     return actionId === "shortcut.left" || actionId === "shortcut.right" ||
         actionId === "shortcut.space" || actionId === "shortcut.function+f";
@@ -260,6 +275,7 @@ export function isBooksExtendedShortcut(actionId: string): boolean {
 
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
     if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX)) return false;
+    if (isSafariUnmodifiedShortcut(actionId)) return true;
     if (isBooksExtendedShortcut(actionId) || actionId === CHATGPT_CLEAR_UNREADS_ACTION) return true;
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
     if (parts.length < 2 || parts.length > 5) return false;

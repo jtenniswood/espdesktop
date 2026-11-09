@@ -63,6 +63,22 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         XCTAssertThrowsError(try decode(app.replacingOccurrences(of: #""right""#, with: #""a""#)))
     }
 
+    @MainActor
+    func testBundledSafariTemplatesTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "SafariCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        for appId in ["com.apple.Safari", "com.apple.Safari.WebApp"] {
+            let app = try XCTUnwrap(catalogue.applications.first { $0.appId == appId })
+            XCTAssertEqual(app.extendedShortcuts?.map(\.shortcut), ["tab", "escape"])
+        }
+    }
+
     func testURLCardTargetsMatchFullConfiguredURLAndClearWhenUnavailable() throws {
         let target = try XCTUnwrap(URL(string: "https://example.com/docs?q=1#intro"))
         XCTAssertEqual(ActiveTabURLMatcher.matchingURLCardIDs(

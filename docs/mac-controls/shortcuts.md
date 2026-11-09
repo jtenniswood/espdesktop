@@ -29,6 +29,8 @@ Shortcuts must include Command, Control, or Option with a supported letter, numb
 
 An approved **Companion → Applications** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. Shortcut tiles start with a short action label and a matching icon. You can edit both on the card. Template updates apply to new cards and subpages. Existing cards keep the labels and icons saved in their layout.
 
+Safari and websites installed using Safari's **Add to Dock** each offer an app subpage. Installed sites appear under their own app names in Companion. Their presets include **Copy Link** and **Toggle Toolbar**. The **Next Field** and **Escape** presets require updated display firmware and Mac Companion, and run while Safari or an installed Safari web app is active. Use **Escape** to leave Reader or full screen where Safari supports it.
+
 The **Books** app subpage offers shortcuts for reading, library management and audiobooks. Page turns, full screen and audiobook play/pause require updated display firmware and a matching version of the Mac Companion.
 
 The **ChatGPT Desktop** subpage includes chat and tab navigation, numbered chat shortcuts, and controls for the workspace and built-in browser. Some controls depend on the active mode or view. Use updated display firmware and Mac Companion to see the full list, including **Clear Unreads**.

@@ -10,6 +10,17 @@ inline bool is_versioned_premiere_pro(const std::string &app) {
   }
   return true;
 }
+inline bool is_safari_web_app(const std::string &app) {
+  const std::string prefix = "com.apple.Safari.WebApp.";
+  if (app.size() != prefix.size() + 36 || app.compare(0, prefix.size(), prefix) != 0) return false;
+  for (std::string::size_type i = 0; i < 36; ++i) {
+    const char ch = app[prefix.size() + i];
+    const bool separator = i == 8 || i == 13 || i == 18 || i == 23;
+    const bool hex = (ch >= '0' && ch <= '9') || (ch >= 'A' && ch <= 'F') || (ch >= 'a' && ch <= 'f');
+    if (separator ? ch != '-' : !hex) return false;
+  }
+  return true;
+}
 inline const char *app_label(const std::string &app) {
   if (app == "com.1password.1password") return "1Password";
   if (app == "com.adobe.Reader") return "Adobe Acrobat Reader";
@@ -74,6 +85,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.raycast.macos") return "Raycast";
   if (app == "com.apple.reminders") return "Reminders";
   if (app == "com.apple.Safari") return "Safari";
+  if (app == "com.apple.Safari.WebApp" || is_safari_web_app(app)) return "Safari Web App";
   if (app == "org.whispersystems.signal-desktop") return "Signal";
   if (app == "com.bohemiancoding.sketch3") return "Sketch";
   if (app == "com.tinyspeck.slackmacgap") return "Slack";
@@ -154,7 +166,8 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.apple.QuickTimePlayerX") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.raycast.macos") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.apple.reminders") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
-  if (app == "com.apple.Safari") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
+  if (app == "com.apple.Safari") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9" || id == "10" || id == "11" || id == "12" || id == "13" || id == "14" || id == "15" || id == "16" || id == "17" || id == "18" || id == "19" || id == "20" || id == "21";
+  if (app == "com.apple.Safari.WebApp" || is_safari_web_app(app)) return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9" || id == "10" || id == "11" || id == "12" || id == "13" || id == "14" || id == "15" || id == "16";
   if (app == "org.whispersystems.signal-desktop") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.bohemiancoding.sketch3") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
   if (app == "com.tinyspeck.slackmacgap") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
