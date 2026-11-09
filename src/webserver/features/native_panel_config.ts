@@ -5,8 +5,10 @@ import {
   encodePanelConfig,
   type PanelConfigDocument,
 } from "../model";
-import { convertNativeV1ToV2, convertNativeV2ToV1, decodePanelPageDocument, encodePanelPageDocument, panelPageDocumentDepth } from "../model/panel_config_conversion";
+import { convertNativeV1ToV2, convertNativeV2ToV1, decodePanelPageDocument, decodePanelPageSnapshot, encodePanelPageDocument, panelPageDocumentDepth,
+  type NativePageLayout } from "../model/panel_config_conversion";
 import { PageTransferConflict } from "../model/page_card_transfer";
+import { updateNativePanelSettings } from "../model/panel_config_settings";
 import { decodeNativeConfigDocument, nativeConfigDocumentVersion } from "../model/native_config_backup";
 import { pageDepth, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 
@@ -25,6 +27,7 @@ export interface NativePanelConfigSnapshot {
   readonly document: PanelConfigDocument;
   readonly etag: string;
   readonly version: number;
+  readonly layout?: NativePageLayout;
 }
 
 export interface NativePanelConfigRequest {
@@ -252,9 +255,10 @@ export class NativePanelConfigClient {
       if (version === V2_DOCUMENT_VERSION && input.length > this.maxV2DocumentBytes_)
         throw new Error("Configuration exceeds the advertised byte limit.");
       if (signal?.aborted) throw new Error("Configuration load was cancelled.");
-      const document = this.decodeDocument(input, version);
-      if (document.deviceProfile !== deviceProfile) throw new Error("The device configuration profile changed.");
-      return { document, etag, version };
+      const snapshot = version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
+        ? decodePanelPageSnapshot(input) : { document: this.decodeDocument(input, version) };
+      if (snapshot.document.deviceProfile !== deviceProfile) throw new Error("The device configuration profile changed.");
+      return { ...snapshot, etag, version };
     }
     throw new Error("A compatible configuration representation is unavailable.");
   }
@@ -340,9 +344,15 @@ export class NativePanelConfigClient {
             Object.entries(updated.settings).some(([key, value]) => byteLength(key) + byteLength(value) + 1 > limit)) {
           return "too-large";
         }
-        const body = version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2
-          ? encodePanelPageDocument(updated)
-          : version === V2_DOCUMENT_VERSION ? convertNativeV1ToV2(encodePanelConfig(updated)) : encodePanelConfig(updated);
+        let body: Uint8Array;
+        if (version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2) {
+          body = updated.buttons === currentDocument.buttons && updated.subpages === currentDocument.subpages
+            ? updateNativePanelSettings(input, currentDocument.settings, updated.settings)
+            : encodePanelPageDocument(updated);
+        } else {
+          const flat = encodePanelConfig(updated);
+          body = version === V2_DOCUMENT_VERSION ? convertNativeV1ToV2(flat) : flat;
+        }
         if (version === V2_DOCUMENT_VERSION && body.length > this.maxV2DocumentBytes_) return "too-large";
         // Firmware can keep a losslessly representable flat document in v1
         // when v2 expands beyond the backend limit. This is only an early

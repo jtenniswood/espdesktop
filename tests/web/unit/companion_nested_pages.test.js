@@ -93,3 +93,60 @@ test("renaming a folder to match a sibling retains both independent child pages"
   assert.equal(changed.subpages[33], original.subpages[33]);
   assert.equal(changed.subpages[34], original.subpages[34]);
 });
+
+test("a settings-only native save keeps nonsequential page and card identities", async () => {
+  const { NativeV2Kind: K, decodeNativeV2, encodeNativeV2 } = loadTypescriptTest("src/webserver/model/panel_config_v2.ts");
+  const records = decodeNativeV2(codec.encodePanelPageDocument(fixture.document));
+  const pageId = id => id === 0 || id === 65535 ? id : id + 100;
+  const cardId = id => id === 65535 ? id : id + 1000;
+  for (const record of records) {
+    if (record.kind === K.Page) {
+      record.id = pageId(record.id);
+      record.first = pageId(record.first);
+      record.second = cardId(record.second);
+    } else if (record.kind === K.Card) {
+      record.id = cardId(record.id);
+      record.first = pageId(record.first);
+    } else if (record.kind === K.Navigation) {
+      record.id = cardId(record.id);
+      record.first = pageId(record.first);
+    }
+  }
+  let persisted = encodeNativeV2(records);
+  const layoutRows = bytes => decodeNativeV2(bytes).filter(row =>
+    row.kind === K.Card || row.kind === K.Navigation || (row.kind === K.Page && row.id));
+  const originalLayout = layoutRows(persisted);
+  let generation = 0;
+  const response = (status, bytes = new Uint8Array()) => ({ ok: status < 300, status,
+    headers: { get: name => name === "ETag" ? `"v2-${generation}"` : name === "X-Panel-Config-Version" ? "2" : null },
+    arrayBuffer: async () => Uint8Array.from(bytes).buffer });
+  const controller = new NativePanelConfigController({
+    fetch: async (url, request) => {
+      if (url.endsWith("capabilities")) return { ...response(200), json: async () => ({ configuration: {
+        read: true, write: true, document_versions: [2], durable_document_version: 2,
+        max_navigation_depth: 2, writable_navigation_depth: 2, max_record_body_bytes: 4096,
+      } }) };
+      if (request?.method === "PUT") {
+        assert.equal(request.headers["If-Match"], `"v2-${generation}"`);
+        persisted = request.body;
+        generation++;
+        return response(204);
+      }
+      return response(200, persisted);
+    }, deviceProfile: () => fixture.document.deviceProfile, slotCount: () => 9,
+    entityName: name => name, entityNameForSlot: (name, slot) => `${name}_${slot}`,
+    normalizeHexColor: value => value, showBanner: () => {}, delay: callback => callback(),
+  });
+  assert.equal(await controller.begin(), true);
+  const initialCount = decodeNativeV2(persisted).length;
+  for (const value of ["first", "second", "third", ""]) {
+    assert.equal(await controller.writeSetting("opaque_setting", value), "saved");
+    assert.equal(codec.decodePanelPageDocument(persisted).settings.opaque_setting, value || undefined);
+    assert.deepEqual(layoutRows(persisted), originalLayout);
+    assert.ok(decodeNativeV2(persisted).length <= initialCount + 3, "repeated setting edits reclaim replaced strings");
+  }
+  assert.equal(await controller.writeSetting("button_order", "1w"), "saved");
+  assert.equal(codec.decodePanelPageDocument(persisted).settings.button_order, "1w");
+  assert.deepEqual(layoutRows(persisted), originalLayout);
+  assert.equal(generation, 5);
+});

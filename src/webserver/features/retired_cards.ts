@@ -46,7 +46,10 @@ export function removeRetiredSubpageRecords(
 export function removeRetiredPanelRecords(document: import("../model/panel_config").PanelConfigDocument, codec: {
   parseButtonConfig(value: string): CardConfig;
   parseSubpageConfig(value: string): { buttons: CardConfig[] };
-}, isRetired = cardContractTypeRetired): boolean {
+}, isRetired = cardContractTypeRetired, prepared?: {
+  buttons: readonly CardConfig[];
+  subpages: Readonly<Record<number, { buttons: readonly CardConfig[] }>>;
+}): boolean {
   let changed = false;
   const removeOwnedPages = (key: number) => {
     delete document.subpages[key];
@@ -56,7 +59,7 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
   };
   const retiredSlots = new Set<number>();
   for (const [slot, value] of Object.entries(document.buttons)) {
-    const card = codec.parseButtonConfig(value);
+    const card = prepared?.buttons[Number(slot) - 1] ?? codec.parseButtonConfig(value);
     const type = retiredSavedCardType(card) || card.type;
     if (!isRetired(type)) continue;
     retiredSlots.add(Number(slot));
@@ -71,7 +74,8 @@ export function removeRetiredPanelRecords(document: import("../model/panel_confi
     const page = Number(slot);
     const raw = document.subpages[page];
     if (raw === undefined) continue;
-    const cleaned = removeRetiredSubpageRecords(raw, codec.parseSubpageConfig(raw).buttons, isRetired);
+    const buttons = prepared?.subpages[page]?.buttons ?? codec.parseSubpageConfig(raw).buttons;
+    const cleaned = removeRetiredSubpageRecords(raw, buttons, isRetired);
     if (!cleaned.slots.size) continue;
     changed = true;
     document.subpages[page] = cleaned.value;
