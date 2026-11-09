@@ -667,12 +667,22 @@ export function createWebStyles(dragAnimation: boolean): string {
         "border:1px solid var(--border);border-radius:var(--radius);padding:4px 0;min-width:160px;" +
         "box-shadow:var(--shadow-3);z-index:201}" +
         ".sp-ctx-check{display:inline-flex;justify-content:center;flex-shrink:0;font-size:14px;width:18px;text-align:center;color:var(--accent)}" +
-        ".sp-banner{padding:12px var(--gap);font-size:.8rem;font-weight:500;text-align:center;display:none}" +
-        ".sp-banner.sp-error{display:block;background:rgba(244,63,94,.16);color:#f66f81;border-bottom:1px solid rgba(244,63,94,.25)}" +
-        ".sp-banner.sp-offline{display:block;background:var(--accent);color:#fff;border-bottom:none}" +
-        ".sp-banner.sp-success{display:block;background:rgba(16,185,129,.16);color:#3dd68c;border-bottom:1px solid rgba(16,185,129,.25)}" +
-        ".sp-banner.sp-warning{display:block;background:rgba(234,179,8,.16);color:#f9b44e;border-bottom:1px solid rgba(234,179,8,.25)}" +
-        ".sp-local-picker-fallback .sp-banner{margin-bottom:28px}" +
+        ".sp-banner{position:fixed;z-index:270;display:none;pointer-events:none;box-sizing:border-box;" +
+        "left:max(var(--gap),env(safe-area-inset-left));right:max(var(--gap),env(safe-area-inset-right));" +
+        "bottom:max(var(--gap),env(safe-area-inset-bottom));max-width:24rem;" +
+        "grid-template-columns:auto minmax(0,1fr);align-items:start;gap:12px;padding:14px var(--gap);" +
+        "background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);" +
+        "box-shadow:var(--shadow-3);font-size:var(--text-md);font-weight:500;line-height:1.5;overflow-wrap:anywhere}" +
+        ".sp-banner::before{content:'';width:8px;height:8px;margin:calc(.75em - 4px) 4px 0;" +
+        "border-radius:50%;background:var(--toast-accent);box-shadow:0 0 0 4px var(--toast-tint)}" +
+        ".sp-banner.sp-success{display:grid;--toast-accent:#3dd68c;--toast-tint:rgba(16,185,129,.16)}" +
+        ".sp-banner.sp-warning{display:grid;--toast-accent:#f9b44e;--toast-tint:rgba(234,179,8,.16)}" +
+        ".sp-banner.sp-error{display:grid;--toast-accent:#f66f81;--toast-tint:rgba(244,63,94,.16)}" +
+        ".sp-banner.sp-offline{display:grid;--toast-accent:var(--accent-hover);--toast-tint:var(--accent-soft)}" +
+        // Leave room for the 60px support button and its 28px bottom margin on narrow screens.
+        "@media(max-width:650px){body:has(.sp-support-btn:not(.sp-support-hidden)) .sp-banner{" +
+        "bottom:max(calc(88px + var(--gap)),env(safe-area-inset-bottom))}}" +
+        "@media(prefers-reduced-motion:no-preference){.sp-banner{animation:fadeIn .18s ease-out}}" +
         ".sp-backup-btns{display:flex;gap:8px}" +
         ".sp-companion-note{margin-top:0}.sp-companion-status{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--text2);font-size:.86rem}.sp-companion-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}.sp-companion-status.sp-companion-status-connected{color:var(--success)}.sp-companion-status.sp-companion-status-connected::before{background:var(--success);box-shadow:0 0 0 3px rgba(48,164,108,.16)}.sp-companion-details{display:grid;gap:10px;margin:0 0 16px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}" +
         ".sp-companion-heading{margin:0 0 8px;font-size:1.3rem;color:var(--text)}.sp-companion-code-label{font-size:.68rem;letter-spacing:.12em;font-weight:600;color:var(--text2)}.sp-companion-details{max-width:480px;padding:22px;border-left:3px solid var(--accent)}.sp-companion-code-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.sp-companion-code{color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(1.4rem,4vw,2rem);letter-spacing:.1em;user-select:all}.sp-companion-copy{flex-shrink:0}.sp-companion-copy-feedback{font-size:.8rem;color:var(--text2)}.sp-companion-copy-feedback:empty{display:none}.sp-companion-actions{flex-wrap:wrap}" +
