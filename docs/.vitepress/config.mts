@@ -151,7 +151,7 @@ const screenProducts: Record<string, Record<string, string>> = {
 export default defineConfig({
   title: 'EspDesktop',
   description:
-    'Pair a small ESP32 touchscreen with your Mac to launch apps, run shortcuts, arrange windows, control media and volume, and show Mac status.',
+    'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, run shortcuts, and arrange windows.',
   base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
@@ -207,7 +207,7 @@ export default defineConfig({
             url: hostname,
             name: 'EspDesktop',
             description:
-              'A local touchscreen controller for Mac apps, shortcuts, windows, media, volume, folders, websites, and system statistics.',
+              'A local touchscreen controller for Mac apps, shortcuts, windows, folders, and websites.',
             inLanguage: 'en-US',
           },
           {
@@ -334,7 +334,7 @@ export default defineConfig({
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
           { text: 'Window Controls', link: '/mac-controls/windows' },
-          { text: 'Statistics', link: '/mac-controls/statistics' },
+          { text: 'Existing Stats Cards', link: '/mac-controls/statistics' },
           { text: 'Permissions & Security', link: '/mac-controls/security' },
           { text: 'Where to Buy', link: 'https://jtenniswood.github.io/espcontrol/screens/4848s040#where-to-buy' },
         ],

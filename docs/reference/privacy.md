@@ -40,45 +40,31 @@ browser request information to Buy Me a Coffee or its service providers.
 Following the button takes you to Buy Me a Coffee, which has its own privacy
 policy.
 
-The install and C6 recovery pages also automatically load the USB installer
-library from unpkg when the browser supports Web Serial, and the install pages
-check a public firmware manifest. These browser requests may disclose normal
-request metadata, such as your IP address, browser and device information, and
-request time, to the relevant hosting providers. The library is not loaded on
-other documentation pages unless one of these installer components is used.
+The install page loads the bundled USB installer from GitHub Pages when the
+browser supports Web Serial and checks a public firmware manifest. These
+requests may disclose normal request metadata, such as your IP address,
+browser and device information, and request time.
 
 The site also contains links to GitHub, Home Assistant, ESPHome, and other
 third-party websites. Those sites have their own terms and privacy practices.
 
 ## The EspDesktop firmware and device
 
-The firmware exchanges Mac controls, system statistics, app information and media
-metadata/artwork with the Mac you pair. It no longer provides a Home Assistant connector or subscribes to its entities. Local cards run on the panel. Saved configurations
-and backups may retain retired entity IDs or other old card fields so you can
-inspect or replace those cards; retaining those fields does not reactivate them.
-
-Depending on the cards and options you enable, the device may also:
-
-- request Mac web-app icons from the project’s pinned GitHub asset URLs.
-
-These requests are initiated by your configuration and may expose information
-to the service named by the URL or integration. Review the privacy practices
-of those services before enabling them.
+The firmware exchanges Mac controls, system statistics, app information, Mac
+lock state and Now Playing details and artwork with the Mac you pair. Saved
+configurations and backups may retain Home Assistant entity IDs or other fields
+from older cards so you can identify and replace them.
 
 ## Firmware and asset downloads
 
 Firmware with EspDesktop's update checker enabled periodically requests public
 version metadata and, when an update is installed, firmware files from the
-EspDesktop GitHub Pages site. Some builds also check the public ESPHome hosted
-firmware manifest for an ESP32-C6 co-processor. These requests contain normal
+EspDesktop GitHub Pages site. These requests contain normal
 network request information, such as the device's IP address and request time,
 as observed by the hosting provider. They are not intended to include your
 saved card data or pairing credentials.
 
-You can disable EspDesktop's built-in update checker where the firmware build
-provides that option. Ethernet-only builds documented on this site omit the
-EspDesktop update checker. ESPHome OTA or other update methods may still
-contact the services you select.
+ESPHome OTA or other update methods may contact the services you select.
 
 Standard released firmware also loads the JavaScript for its built-in web
 configuration interface from EspDesktop's GitHub Pages site. The request URL
