@@ -343,7 +343,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             opening = true;
             void (async () => {
                 if (await deps.native.waitForDiscovery() !== true) throw new Error("Update the display firmware to use app setup.");
-                const saved = await deps.native.client?.load();
+                const saved = (await deps.native.readSnapshot())?.document;
                 if (!saved) throw new Error("Could not load the display’s layout. Check the connection and try again.");
                 replacing = saved;
                 selected.clear();
@@ -368,7 +368,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             started = true;
             void (async () => {
                 if (await deps.native.waitForDiscovery() !== true) return;
-                const saved = await deps.native.client?.load();
+                const saved = (await deps.native.readSnapshot())?.document;
                 if (!saved || !needsFirstRunSetup(saved)) return;
                 eligible = true;
                 const params = new URLSearchParams(window.location.search);

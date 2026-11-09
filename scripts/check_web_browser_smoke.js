@@ -8815,7 +8815,7 @@ async function assertFirstRunSetup(browser) {
   const switches = [];
   let failSwitch = false;
   let failLayout = false;
-  await context.route("**/api/v1/config/**", route => failLayout && route.request().method() === "PUT"
+  await context.route(/\/api\/v1\/config(?:\/.*)?$/, route => failLayout && route.request().method() === "PUT"
     ? route.fulfill({ status: 500, body: "Failed save" }) : route.fallback());
   await context.route("**/switch/**", route => {
     if (route.request().method() === "GET") return route.fulfill({ status: 200, json: { state: "ON", value: true } });
@@ -8936,6 +8936,10 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
+      await assertFirstRunSetup(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
       await assertMacLockCard(browser);
       return;
@@ -8970,10 +8974,6 @@ async function assertFirstRunSetup(browser) {
     }
     if (process.env.ESPDESKTOP_SUBPAGE_CLOCK_BAR_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageClockBar(browser, testCase);
-      return;
-    }
-    if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
-      await assertFirstRunSetup(browser);
       return;
     }
     if (process.env.ESPDESKTOP_APP_SUBPAGE_OPENING_ONLY === "1") {
