@@ -59,6 +59,9 @@ enum CompanionWindowArrangement {
         var restoreKey: String { "\(processIdentifier):\(id)" }
     }
 
+    private typealias WindowInfo = (id: CGWindowID, pid: pid_t, frame: CGRect)
+    private static let accessibilityTimeout: Float = 0.2
+
     private struct StoredFrame: Codable {
         let x: Double
         let y: Double
@@ -117,7 +120,7 @@ enum CompanionWindowArrangement {
         guard let action = Action(identifier: identifier) else { return nil }
         guard ProcessInfo.processInfo.operatingSystemVersion.majorVersion >= 15 else { return false }
         guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
-        guard let windows = visibleWindows(), let active = windows.first else { return false }
+        guard let (active, visible) = focusedWindowAndVisibleInfo() else { return false }
         let screenWithMostWindowArea = NSScreen.screens.max(by: {
             intersectionArea(accessibilityFrame(for: $0.frame), active.frame)
                 < intersectionArea(accessibilityFrame(for: $1.frame), active.frame)
@@ -182,15 +185,18 @@ enum CompanionWindowArrangement {
         }
 
         let displayFrame = accessibilityFrame(for: screen.frame)
-        let windowsOnScreen = windows.filter { window in
-            let areaOnActiveScreen = intersectionArea(displayFrame, window.frame)
+        let screenFrames = NSScreen.screens.map { accessibilityFrame(for: $0.frame) }
+        func isOnActiveScreen(_ frame: CGRect) -> Bool {
+            let areaOnActiveScreen = intersectionArea(displayFrame, frame)
             guard areaOnActiveScreen > 0 else { return false }
-            let largestScreenArea = NSScreen.screens.map {
-                intersectionArea(accessibilityFrame(for: $0.frame), window.frame)
-            }.max() ?? 0
+            let largestScreenArea = screenFrames.map { intersectionArea($0, frame) }.max() ?? 0
             return areaOnActiveScreen >= largestScreenArea
         }
-        let selected = Array(windowsOnScreen.prefix(action.requiredWindowCount))
+        guard isOnActiveScreen(active.frame) else { return false }
+        let selected = [active] + additionalWindows(
+            for: active, visible: visible, count: action.requiredWindowCount - 1,
+            isOnActiveScreen: isOnActiveScreen
+        )
         guard selected.count == action.requiredWindowCount else { return false }
         let frames = frames(for: action, in: desktop, currentFrame: active.frame)
         guard frames.count == selected.count else { return false }
@@ -290,19 +296,20 @@ enum CompanionWindowArrangement {
         return value as? String
     }
 
-    private static func visibleWindows() -> [Window]? {
+    private static func focusedWindowAndVisibleInfo() -> (Window, [WindowInfo])? {
         guard let frontmost = NSWorkspace.shared.frontmostApplication else { return nil }
         let application = AXUIElementCreateApplication(frontmost.processIdentifier)
+        AXUIElementSetMessagingTimeout(application, accessibilityTimeout)
         var focusedValue: CFTypeRef?
         guard AXUIElementCopyAttributeValue(application, kAXFocusedWindowAttribute as CFString, &focusedValue) == .success,
               let focusedValue,
               CFGetTypeID(focusedValue) == AXUIElementGetTypeID()
         else { return nil }
         let focused = focusedValue as! AXUIElement
-        guard let focusedWindow = makeWindow(focused),
+        guard let focusedFrame = windowFrame(focused),
               let windowInfo = CGWindowListCopyWindowInfo(.optionOnScreenOnly, kCGNullWindowID) as? [[String: Any]] else { return nil }
 
-        var available: [(id: CGWindowID, pid: pid_t, frame: CGRect)] = []
+        var visible: [WindowInfo] = []
         for info in windowInfo {
             guard let idValue = info[kCGWindowNumber as String] as? NSNumber,
                   let pidValue = info[kCGWindowOwnerPID as String] as? NSNumber,
@@ -312,57 +319,71 @@ enum CompanionWindowArrangement {
                   let frame = CGRect(dictionaryRepresentation: bounds)
             else { continue }
             let id = CGWindowID(idValue.uint32Value)
-            available.append((id, pid_t(pidValue.int32Value), frame))
+            visible.append((id, pid_t(pidValue.int32Value), frame))
         }
 
-        guard let activeIndex = available.firstIndex(where: {
-            $0.pid == frontmost.processIdentifier && framesMatch($0.frame, focusedWindow.frame)
+        guard let activeInfo = visible.first(where: {
+            $0.pid == frontmost.processIdentifier && framesMatch($0.frame, focusedFrame)
         }) else { return nil }
-        var usedIDs: Set<CGWindowID> = []
+        let active = Window(element: focused, id: activeInfo.id, processIdentifier: activeInfo.pid, frame: focusedFrame)
+        return (active, visible)
+    }
+
+    private static func additionalWindows(
+        for active: Window, visible: [WindowInfo], count: Int, isOnActiveScreen: (CGRect) -> Bool
+    ) -> [Window] {
+        guard count > 0 else { return [] }
+        let deadline = ContinuousClock.now.advanced(by: .seconds(1))
         var accessibilityWindowsByPID: [pid_t: [AXUIElement]] = [:]
         var usedAccessibilityIndicesByPID: [pid_t: Set<Int>] = [:]
-        let activeInfo = available[activeIndex]
-        usedIDs.insert(activeInfo.id)
-        let frontmostPID = frontmost.processIdentifier
-        accessibilityWindowsByPID[frontmostPID] = windows(for: frontmostPID)
-        if let appWindows = accessibilityWindowsByPID[frontmostPID],
-           let focusedIndex = appWindows.firstIndex(where: { CFEqual($0, focused) })
-            ?? appWindows.indices.first(where: { index in
-                guard let window = makeWindow(appWindows[index]) else { return false }
-                return framesMatch(window.frame, focusedWindow.frame)
-            }) {
-            usedAccessibilityIndicesByPID[frontmostPID, default: []].insert(focusedIndex)
-        }
-        var result = [Window(element: focused, id: activeInfo.id, processIdentifier: frontmostPID, frame: focusedWindow.frame)]
-
-        for info in available where !usedIDs.contains(info.id) {
-            let appWindows = accessibilityWindowsByPID[info.pid] ?? windows(for: info.pid)
-            accessibilityWindowsByPID[info.pid] = appWindows
+        var result: [Window] = []
+        for info in visible where info.id != active.id && isOnActiveScreen(info.frame) {
+            guard ContinuousClock.now < deadline else { break }
+            let appWindows: [AXUIElement]
+            if let cached = accessibilityWindowsByPID[info.pid] {
+                appWindows = cached
+            } else {
+                appWindows = windows(for: info.pid)
+                accessibilityWindowsByPID[info.pid] = appWindows
+                if info.pid == active.processIdentifier,
+                   let focusedIndex = appWindows.firstIndex(where: { CFEqual($0, active.element) })
+                    ?? appWindows.indices.first(where: { index in
+                        guard ContinuousClock.now < deadline,
+                              let frame = windowFrame(appWindows[index]) else { return false }
+                        return framesMatch(frame, active.frame)
+                    }) {
+                    usedAccessibilityIndicesByPID[info.pid, default: []].insert(focusedIndex)
+                }
+            }
             let usedIndices = usedAccessibilityIndicesByPID[info.pid, default: []]
-            guard let matchIndex = appWindows.indices.first(where: { index in
-                !usedIndices.contains(index)
-                    && makeWindow(appWindows[index]).map { framesMatch($0.frame, info.frame) } == true
-            }), let match = makeWindow(appWindows[matchIndex]) else { continue }
-            usedIDs.insert(info.id)
-            usedAccessibilityIndicesByPID[info.pid, default: []].insert(matchIndex)
-            result.append(Window(element: match.element, id: info.id, processIdentifier: info.pid, frame: match.frame))
+            for (index, element) in appWindows.enumerated() where !usedIndices.contains(index) {
+                guard ContinuousClock.now < deadline else { return result }
+                guard let frame = windowFrame(element), framesMatch(frame, info.frame),
+                      isOnActiveScreen(frame) else { continue }
+                usedAccessibilityIndicesByPID[info.pid, default: []].insert(index)
+                result.append(Window(element: element, id: info.id, processIdentifier: info.pid, frame: frame))
+                break
+            }
+            if result.count == count { break }
         }
         return result
     }
 
     private static func windows(for processIdentifier: pid_t) -> [AXUIElement] {
         let app = AXUIElementCreateApplication(processIdentifier)
+        AXUIElementSetMessagingTimeout(app, accessibilityTimeout)
         var appWindowsValue: CFTypeRef?
         guard AXUIElementCopyAttributeValue(app, kAXWindowsAttribute as CFString, &appWindowsValue) == .success,
               let appWindows = appWindowsValue as? [AXUIElement] else { return [] }
         return appWindows
     }
 
-    private static func makeWindow(_ element: AXUIElement) -> Window? {
+    private static func windowFrame(_ element: AXUIElement) -> CGRect? {
+        AXUIElementSetMessagingTimeout(element, accessibilityTimeout)
         guard let position = pointAttribute(kAXPositionAttribute as CFString, of: element),
               let size = sizeAttribute(kAXSizeAttribute as CFString, of: element)
         else { return nil }
-        return Window(element: element, id: 0, processIdentifier: 0, frame: CGRect(origin: position, size: size))
+        return CGRect(origin: position, size: size)
     }
 
     private static func framesMatch(_ first: CGRect, _ second: CGRect) -> Bool {
