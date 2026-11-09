@@ -381,6 +381,8 @@ int main() {
   for (const std::string order : {"", "B", "B=Return%3AHome", "B=Back:invalid", "B=Back:12345", "1=Back:FFEC16"})
     assert(get_subpage_back_color(order).empty());
   assert(get_subpage_back_label("B=Back:invalid") == "Back");
+  assert(get_subpage_back_color("Bw=Return:FFEC16:Tools%3AOffice") == "FFEC16");
+  assert(get_subpage_back_label("Bw=Return:FFEC16:Tools%3AOffice") == "Return");
   set_espdesktop_language("de");
   assert(get_subpage_back_label("B=:FFEC16") == "Zurück");
   assert(get_subpage_back_label("B") == "Zurück");

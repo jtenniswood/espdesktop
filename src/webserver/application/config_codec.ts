@@ -790,7 +790,7 @@ export function createConfigCodecFeature(
         return EspDesktopModel.parseSubpageOrder(orderStr);
     }
     function subpageOrderForSerialize(this: any, sp?: any) {
-        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel, sp && sp.backColor);
+        return EspDesktopModel.subpageOrderForSerialize((sp && sp.order) || [], sp && sp.backLabel, sp && sp.backColor, sp && sp.title);
     }
     function subpageSerializedOrder(this: any, sp?: any) {
         if (!sp)
@@ -967,7 +967,7 @@ export function createConfigCodecFeature(
         return JSON.stringify(sp.order) !== previousOrder;
     }
     function serializeSubpageGrid(this: any, sp?: any) {
-        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor);
+        return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title);
     }
     function enterSubpage(this: any, homeSlot?: any) {
         if (!pageDepth(Number(homeSlot))) return;

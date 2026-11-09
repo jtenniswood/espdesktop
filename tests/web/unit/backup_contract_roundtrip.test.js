@@ -18,9 +18,9 @@ for (const version of [1, 2]) {
     const bytes = version === 1 ? model.encodePanelConfig(document) : graph.encodePanelPageDocument(document);
     const feature = createBackupFeature({ deviceId: document.deviceProfile, gridCols: 3, numSlots: 9,
       normalizeButtonConfig: model.cloneCardConfig, parseSubpageConfig: parse,
-      serializeSubpageConfig: () => "", buildSubpageGrid: sp => model.buildSubpageGrid(sp, 9, 3).grid });
+      serializeSubpageConfig: () => document.subpages[1], buildSubpageGrid: sp => model.buildSubpageGrid(sp, 9, 3).grid });
     const buttons = Array.from({ length: 9 }, (_, index) => model.parseRawButtonConfig(document.buttons[index + 1]));
-    const outer = feature.createBackupConfig({ buttons, subpages: {}, button_order: "1" });
+    const outer = feature.createBackupConfig({ buttons, subpages: { 1: parse(document.subpages[1]) }, button_order: "1" });
     const exporter = createBackupExportController({ serializeButtonConfig: () => "", serializeSubpageConfig: () => "" });
     const exported = exporter.addNativeConfig(outer, { deviceProfile: document.deviceProfile, buttons,
       subpages: {}, nativeDocumentBytes: bytes });

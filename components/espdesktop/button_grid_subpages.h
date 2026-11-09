@@ -389,7 +389,9 @@ inline std::string get_subpage_back_color(const std::string &order_str) {
       if (label_start == std::string::npos) return "";
       const size_t separator = order_str.find(':', label_start);
       if (separator == std::string::npos || separator >= end) return "";
-      return normalize_card_color_value(order_str.substr(separator + 1, end - separator - 1));
+      const size_t metadata_separator = order_str.find(':', separator + 1);
+      const size_t color_end = metadata_separator < end ? metadata_separator : end;
+      return normalize_card_color_value(order_str.substr(separator + 1, color_end - separator - 1));
     }
     start = end + 1;
   }
