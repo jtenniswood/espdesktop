@@ -34,8 +34,10 @@ export function runCompanionVolumeClipboardTests(): void {
     feature.copySlot(slot);
     check(calls.at(-1)?.cut === undefined, "native controls can also be copied");
     for (const subpage of [false, true]) {
-      const imported = feature.entriesFromTransfer({ version: 1, cards: [buttons[slot - 1]] }, subpage);
-      check(imported.entries[0].entity === ids[slot - 1], "native controls can be pasted/imported on either page");
+      let error = "";
+      try { feature.entriesFromTransfer({ version: 1, cards: [buttons[slot - 1]] }, subpage); }
+      catch (failure) { error = failure instanceof Error ? failure.message : String(failure); }
+      check(error.includes("cards have been removed"), "old card codes cannot restore Mac audio cards");
     }
   }
   feature.cutButtons([1, 2, 3, 4]);

@@ -107,8 +107,8 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "slider", "subpage", "companion_window"],
-    "Companion picker excludes Home Assistant-only controls",
+    ["companion_app", "companion_shortcut", "companion_folder", "companion_url", "subpage", "companion_window"],
+    "Companion picker excludes the removed Volume group and Home Assistant-only controls",
   );
   equal(
     companionOptions.find((option) => option.key === "companion_shortcut")?.icon,

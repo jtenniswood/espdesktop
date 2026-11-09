@@ -18,6 +18,7 @@ import type { ApplicationApiFeature } from "./api";
 import type { GridFeature } from "./grid";
 import { cardOwnsSubpage } from "./companion_shortcut_folder";
 import { cardRequiresHomeAssistant } from "../features/preview";
+import { isMacAudioCard } from "../model/legacy_home_assistant";
 import type { NativePageTransfersFeature } from "./native_page_transfers";
 export interface PreviewClipboardDependencies {
     readonly nativeTransfers?: NativePageTransfersFeature;
@@ -162,6 +163,9 @@ export function createPreviewClipboardFeature(
         return type ? type.replace(/_/g, " ") : "switch";
     }
     function validateCardTransferButton(button: any, inSubpage: any, warnings: any, homeAssistantEnabled = homeAssistantSupported()) {
+        if (isMacAudioCard(button?.type, button?.entity)) {
+            throw cardTransferError("Mac Volume, Mic, and mute cards have been removed.");
+        }
         var normalized: any = normalizeButtonConfig(EspDesktopModel.cloneCardConfig(button));
         var type: any = normalized.type || "";
         var typeDef: any = dependencies.cards.definitions[type];

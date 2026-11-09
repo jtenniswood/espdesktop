@@ -343,5 +343,65 @@
       "precision": "",
       "options": ""
     }
+  },
+  {
+    "name": "retired Mac output_volume card",
+    "input": "media.output_volume;Volume;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Mac input_volume card",
+    "input": "media.input_volume;Mic;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Mac output_mute card",
+    "input": "media.output_mute;Output mute;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Mac input_mute card",
+    "input": "media.input_mute;Microphone mute;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
   }
 ]

@@ -603,6 +603,13 @@ inline const char *card_runtime_lawn_mower_default_icon_name(const std::string &
   return "Robot Mower";
 }
 
+// Identify old Mac audio cards without retiring the shared slider format.
+inline bool card_runtime_is_mac_audio(const std::string &type, const std::string &entity) {
+  return type == "slider" &&
+      (entity == "media.output_volume" || entity == "media.input_volume" ||
+       entity == "media.output_mute" || entity == "media.input_mute");
+}
+
 inline bool card_runtime_type_retired(const std::string &type) {
   return card_contract_type_retired(type);
 }

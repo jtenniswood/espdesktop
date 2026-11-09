@@ -80,7 +80,6 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   media: { icon: "speaker", description: "Control media playback or volume." },
   media_control: { icon: "music", description: "Open all media controls and volume in a modal." },
   push: { icon: "gesture-tap-button", description: "Fire a momentary button event." },
-  slider: { icon: "volume-high", description: "Adjust or mute Mac audio." },
   subpage: { icon: "view-grid-plus", description: "Open a nested page of cards." },
   vacuum: { icon: "robot-vacuum", description: "Show or control a vacuum cleaner." },
   weather: { icon: "weather-partly-cloudy", description: "Show weather or forecast data." },
@@ -100,7 +99,7 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
 };
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
-  "companion", "push",
+  "companion", "push", "slider",
 ]);
 
 

@@ -55,7 +55,9 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (b.type == "companion" && b.entity.rfind("webapp.", 0) == 0)
     b.type = "companion_webapp";
-  if (b.type == "companion_webapp") {
+  if (card_runtime_is_mac_audio(b.type, b.entity))
+    b.type = "companion_audio";
+  if (b.type == "companion_webapp" || b.type == "companion_audio") {
     const std::string type = b.type;
     b = SubpageBtn{};
     b.type = type;
