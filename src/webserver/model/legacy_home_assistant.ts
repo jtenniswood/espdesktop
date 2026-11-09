@@ -100,10 +100,6 @@ export function legacyHomeAssistantCards(document: PanelConfigDocument): LegacyH
     const subpage = parseRawSubpageConfig(raw, cardContractSubpageTypeFromCode);
     subpage.buttons.forEach((card, index) => inspect(card, `Folder ${slot}, card ${index + 1}`));
   }
-  if (document.settings.special_page) {
-    const subpage = parseRawSubpageConfig(document.settings.special_page, cardContractSubpageTypeFromCode);
-    subpage.buttons.forEach((card, index) => inspect(card, `Special page, card ${index + 1}`));
-  }
   return result;
 }
 

@@ -28,10 +28,6 @@ export function preparePageEditorDocument(document: PanelConfigDocument, slots: 
     codec.buildSubpageGrid(page);
     subpages[Number(key)] = page;
   }
-  if (document.settings.special_page) {
-    const special = codec.parseSubpageConfig(document.settings.special_page);
-    codec.buildSubpageGrid(special); subpages[-1] = special;
-  }
   return { buttons, subpages, nested: panelPageDocumentDepth(document) > 1,
     source: { ...document, buttons: { ...document.buttons }, subpages: { ...document.subpages }, settings: { ...document.settings } } };
 }
@@ -41,8 +37,7 @@ export function editorPageOwner(key: number, buttons: readonly CardConfig[], sub
   return (parent === 0 ? buttons : subpages[parent]?.buttons)?.[slot - 1];
 }
 export function restoredEditorPage(key: number | null, document: PageEditorDocument): number | null {
-  if (key === null || key === 0) return null;
-  if (key === -1) return document.subpages[-1] ? -1 : null;
+  if (key === null || key <= 0) return null;
   for (let page = key; page !== 0; page = parentPageKey(page))
     if (!cardTransferOwnsSubpage(editorPageOwner(page, document.buttons, document.subpages) ?? {type:"",entity:"",sensor:"",options:""})) return null;
   return key;
