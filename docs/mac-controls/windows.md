@@ -9,7 +9,8 @@ Window cards act on the currently active Mac window. Add a **Companion → Windo
 
 | Group | Actions | macOS version |
 |---|---|---|
-| **Window** | Close, Minimise, Hide App, Full Screen | macOS 13 or newer |
+| **Window** | Close, Minimise, Hide App | macOS 13 or newer |
+| **Full Screen** | Toggle Full Screen | macOS 13 or newer |
 | **Move & Resize** | Fill Desktop, Centre, Left, Right, Top, Bottom, all four corners, Return to Previous Size | macOS 15 or newer |
 | **Arrange Windows** | Left & Right, Right & Left, Top & Bottom, Bottom & Top, four side-with-quarters layouts, and Quarters | macOS 15 or newer |
 | **Full Screen** | Left of Screen, Right of Screen | macOS 15 or newer |

@@ -1,6 +1,6 @@
 ---
 title: EspDesktop Mac Control FAQ
-description: Answers about installing the EspDesktop Mac app, pairing a display, permissions, controls, and media support.
+description: Answers about installing the EspDesktop Mac app, pairing a display, permissions, and Mac controls.
 outline: [2, 3]
 ---
 
@@ -14,7 +14,7 @@ Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See
 
 ### Do I need Home Assistant?
 
-No. The EspDesktop Mac app and Mac Companion connector provide the controls described on this site. For Home Assistant panels and smart-home controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
+EspDesktop pairs directly with your Mac over your local network. For Home Assistant panels and smart-home controls, use the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
 
 ### Why can't I see my display in the Mac app?
 
@@ -32,7 +32,7 @@ Enable EspDesktop in **System Settings → Privacy & Security → Accessibility*
 
 ### Why can't the display open an app or folder?
 
-The app or folder must be approved in EspDesktop. Open **Applications** or **Folders** in the Mac app and confirm the item is still available. Removing it from the app disables its associated cards.
+The app or folder must be approved in EspDesktop. Open **Apps** or **Folders** in the Mac app and confirm the item is still available. Removing it from the app disables its associated cards.
 
 ### How do I replace a display or reset pairing?
 

@@ -1,6 +1,6 @@
 ---
 title: Mac Controls
-description: Overview of EspDesktop Mac Companion controls for apps, folders, shortcuts, windows, and Mac statistics.
+description: Overview of EspDesktop Mac Companion controls for apps, folders, shortcuts, and windows.
 ---
 
 # Mac Controls
@@ -15,13 +15,11 @@ Open the display's web page, select an empty home-screen or subpage slot, choose
 - [Open Finder folders](/mac-controls/folders)
 - [Run keyboard shortcuts](/mac-controls/shortcuts)
 - [Control and arrange windows](/mac-controls/windows)
-- [Use existing Stats cards](/mac-controls/statistics)
-- [Permissions and security](/mac-controls/security)
 
-Choose **Mac Companion → Mac Lock** to add a button that locks the paired Mac. It uses the standard Control–Command–Q shortcut. Allow EspDesktop under **System Settings → Privacy & Security → Accessibility**.
+Choose **Companion → Mac Lock** to add a button that locks the paired Mac with Control–Command–Q. Enable EspDesktop under **System Settings → Privacy & Security → Accessibility** to use it.
 
-Action cards are unavailable when the Mac is disconnected or the selected app, folder, command, or URL is unavailable. Open URL cards use the Mac's default browser. Statistics show `--` until a reading is available.
+Action cards are unavailable when the Mac is disconnected or the selected app, folder, command, or URL is unavailable. Open URL cards use the Mac’s default browser.
 
-Companion cards are currently offered only on the 4848S040 profile. For Home Assistant controls, see the [EspControl documentation](https://jtenniswood.github.io/espcontrol/).
+See [Permissions and security](/mac-controls/security) for app and folder access. If your layout already contains a Stats card, see [Existing Stats Cards](/mac-controls/statistics).
 
 For protocol details and matching release versions, see [Companion Compatibility](/reference/companion-compatibility).
