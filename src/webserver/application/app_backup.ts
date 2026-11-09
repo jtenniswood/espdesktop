@@ -1,4 +1,5 @@
 import { isRetiredWebApp, removeRetiredPanelRecords } from "../features/retired_cards";
+import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
 import { clearScreensaverPinForRestore } from "./screensaver_pin";
@@ -11,9 +12,6 @@ import * as EspDesktopModel from "../model";
 import {
     normalizeBrightnessMode,
     normalizeHexColor,
-    normalizeHomeAssistantArtworkPort,
-    normalizeHomeAssistantArtworkProtocol,
-    normalizeHomeAssistantArtworkEndpointMode,
     normalizeHour,
     normalizeLanguage,
     normalizeScheduleClockBrightness,
@@ -26,7 +24,6 @@ import {
     normalizeScreensaverAction,
     normalizeScreensaverCameraImageMode,
     normalizeScreensaverDimmedBrightness,
-    normalizeTemperatureUnit,
     normalizeTimeOfDay,
     normalizeThemeMode,
     normalizeThemeAutoMethod,
@@ -94,12 +91,12 @@ export interface AppBackupControllers {
     readonly entityState: Pick<EntityStateFeature, "entityName" | "entityNameForSlot">;
     readonly shell: Pick<ControlsShellFeature, "switchTab"> & Partial<Pick<ControlsShellFeature, "showBanner">>;
     readonly requestApi: ApplicationApiFeature;
-    readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput" | "updateTempPreview">;
+    readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
     readonly grid: Pick<GridFeature, "applyImportedButtonOrder" | "cancelMainGridSave" | "flushMainGridSave" | "serializeGrid">;
     readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
     readonly clockBarPostApi: ClockBarPostApiFeature;
-    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncAlarmDelayAudioUi" | "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
+    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
     readonly preview: Pick<PreviewRenderFeature, "render">;
     readonly buttonSettings: Pick<ButtonSettingsFeature, "render">;
 }
@@ -113,7 +110,7 @@ export interface AppBackupFeature {
 }
 
 export function createAppBackupFeature(controllers: AppBackupControllers): AppBackupFeature {
-    const { syncAlarmDelayAudioUi, syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
+    const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
     const { render: renderPreview } = controllers.preview;
     const { render: renderButtonSettings } = controllers.buttonSettings;
     const { subpageEntityKeys, specialPageEntityKeys } = controllers.configPersistence;
@@ -121,27 +118,14 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { entityName, entityNameForSlot } = controllers.entityState;
     const { switchTab } = controllers.shell;
     const requestApi = controllers.requestApi;
-    const { syncInput, updateTempPreview } = controllers.statusPreview;
+    const { syncInput,  } = controllers.statusPreview;
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
     const {
-        postPresenceSensorEntity,
-        postScreensaverCameraImageMode,
         postMediaPlayerSleepPrevention,
-        postMediaPlayerSleepPreventionEntity,
-        postCoverArtPlaybackControl,
         postCoverArtScreensaver,
         postCoverArtSource,
-        postClockOverlay,
-        postCoverArtMediaPlayerEntity,
-        postCoverArtSecondaryMediaPlayerEntity,
-        postCoverArtConditions,
         postCoverArtDelay,
         postCoverArtTrackOverlayDuration,
-        postCoverArtHideExternalInput,
-        postHomeAssistantArtworkProtocol,
-        postHomeAssistantArtworkHost,
-        postHomeAssistantArtworkPort,
-        postHomeAssistantArtworkEndpointMode,
     } = controllers.artworkPostApi;
     const {
         postBrightnessMode,
@@ -150,8 +134,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postBrightnessDuskTime,
         postScreenScheduleEnabled,
         postScreenScheduleTrigger,
-        postScreenScheduleSensorActivation,
-        postScreenScheduleSensorEntity,
         postScreenScheduleOnHour,
         postScreenScheduleOffHour,
         postScreenScheduleMode,
@@ -165,18 +147,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postClockBrightnessNight,
         postClockScreensaver,
         postClockBar,
-        postClockBarTemperatureEntities,
+
         postClockBarTime,
         postClockBarNightMode,
         postNetworkStatusIcon,
-        postVoiceServices,
-        postAlarmDelayAudio,
-        postAlarmDelayTts,
-        postAlarmDelayEntryAnnouncement,
-        postAlarmDelayExitAnnouncement,
-        postAlarmDelayBeepVolume,
-        postAlarmDelayFinalCountdown,
-        postTemperatureDegreeSymbol,
+
         postSubpageChevron,
         postAutoOpenAppSubpages,
         postReturnHomeOnAppSwitch,
@@ -210,11 +185,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { syncUi: syncScreensaverTimeoutUi } = controllers.screensaverTimeout;
     const { controlsVisible: firmwareUpdateControlsVisible, syncUi: syncFirmwareUpdateUi } = controllers.firmwareUpdate;
     const {
-        applyTemperatureEntities: applyClockBarTemperatureEntities,
-        temperatureEntities: clockBarTemperatureEntities,
-        serializeTemperatureEntities: serializeClockBarTemperatureEntities,
+
         syncUi: syncClockBarUi,
-        syncTemperatureUi,
+
     } = controllers.clockBar;
     // ── Export / Import ────────────────────────────────────────────────────
     var backupExportController: BackupExportController = controllers.backupExport;
@@ -305,17 +278,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             )) : state.subpages,
             settings: {
                 special_page: specialPageConfig(),
-                indoor_temp_enable: state._indoorOn,
-                outdoor_temp_enable: state._outdoorOn,
-                clock_bar_temperature_entities: serializeClockBarTemperatureEntities(clockBarTemperatureEntities()),
-                indoor_temp_entity: state.indoorEntity,
-                outdoor_temp_entity: state.outdoorEntity,
-                temperature_unit: normalizeTemperatureUnit(state.temperatureUnit),
+
                 clock_bar: state.clockBarOn,
                 clock_bar_time: state.clockBarTimeOn,
                 clock_bar_night_mode: state.clockBarNightModeOn,
                 network_status_icon: state.networkStatusOn,
-                temperature_degree_symbol: state.temperatureDegreeSymbolOn,
+
                 subpage_chevron: state.subpageChevronsOn,
                 auto_open_app_subpages: state.autoOpenAppSubpages,
                 return_home_on_app_switch: state.returnHomeOnAppSwitch,
@@ -327,32 +295,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_2: state.ntpServer2,
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
-                presence_sensor_entity: state.presenceEntity,
-                screensaver_camera_entity: state.screensaverCameraEntity,
-                screensaver_metadata_entity: state.screensaverMetadataEntity,
-                metadata_overlay: state.metadataOverlayOn,
-                screensaver_camera_dimming: state.screensaverCameraDimmingSupported ? state.screensaverCameraDimming : undefined,
-                screensaver_camera_image_mode: normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode),
                 media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
-                media_player_sleep_prevention_entity: state.mediaPlayerSleepPreventionEntity || state.coverArtMediaPlayerEntity,
                 cover_art_screensaver: state.coverArtScreensaverOn,
                 cover_art_source: state.coverArtSource,
                 clock_date: state.clockDateOn,
-                clock_overlay: state.clockOverlayOn,
-                cover_art_media_player_entity: state.coverArtMediaPlayerEntity,
-                cover_art_secondary_media_player_entity: state.coverArtSecondaryMediaPlayerEntity,
-                cover_art_attribute_conditions: state.coverArtAttributeConditions,
                 cover_art_delay: state.coverArtDelay,
-                cover_art_playback_control: state.coverArtPlaybackControlOn,
                 cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
-                cover_art_hide_external_input: state.coverArtHideExternalInputOn,
-                home_assistant_artwork_protocol: normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol),
-                home_assistant_artwork_host: String(state.homeAssistantArtworkHost || "").trim().slice(0, 253),
-                home_assistant_artwork_port: normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort),
-                home_assistant_artwork_endpoint_mode: normalizeHomeAssistantArtworkEndpointMode(
-                    state.homeAssistantArtworkEndpointMode,
-                    state.homeAssistantArtworkProtocol,
-                    state.coverArtHomeAssistantPort),
                 firmware_auto_update: !!state.autoUpdate,
                 firmware_update_frequency: state.updateFrequency,
                 screensaver_action: normalizeScreensaverAction(state.screensaverAction),
@@ -384,8 +332,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
                 schedule_trigger: normalizeScheduleTrigger(state.scheduleTrigger, state.scheduleEnabled),
                 schedule_enabled: !!state.scheduleEnabled,
-                schedule_sensor_activation: normalizeScheduleSensorActivation(state.scheduleSensorActivation),
-                schedule_sensor_entity: state.scheduleSensorEntity,
                 schedule_on_hour: normalizeHour(state.scheduleOnHour, 6),
                 schedule_off_hour: normalizeHour(state.scheduleOffHour, 23),
                 schedule_mode: normalizeScheduleMode(state.scheduleMode),
@@ -588,36 +534,17 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     els.setOnColor._syncColor(state.onColor);
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
-                    state._clockBarTemperatureVisibilityReceived = true;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    applyClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities, false);
-                    postClockBarTemperatureEntities(serializeClockBarTemperatureEntities(importedSettings.clockBarTemperatureEntities));
-                    postSwitch(entityName("outdoor_temp_enable"), importedSettings.outdoorTempEnable);
-                    postSwitch(entityName("indoor_temp_enable"), importedSettings.indoorTempEnable);
-                    postText(entityName("outdoor_temp_entity"), importedSettings.outdoorTempEntity);
-                    postText(entityName("indoor_temp_entity"), importedSettings.indoorTempEntity);
+
                     postClockBar(importedSettings.clockBar);
                     postClockBarTime(importedSettings.clockBarTime);
                     postClockBarNightMode(importedSettings.clockBarNightMode);
                     postNetworkStatusIcon(importedSettings.networkStatusIcon);
-                    if (controllers.layout.config.features && controllers.layout.config.features.voiceServices)
-                        postVoiceServices(importedSettings.voiceServices);
-                    if (controllers.layout.config.features && controllers.layout.config.features.alarmDelayAudio) {
-                        postAlarmDelayAudio(importedSettings.alarmDelayAudio);
-                        postAlarmDelayTts(importedSettings.alarmDelayTts);
-                        postAlarmDelayEntryAnnouncement(importedSettings.alarmDelayEntryAnnouncement);
-                        postAlarmDelayExitAnnouncement(importedSettings.alarmDelayExitAnnouncement);
-                        postAlarmDelayBeepVolume(importedSettings.alarmDelayBeepVolume);
-                        postAlarmDelayFinalCountdown(importedSettings.alarmDelayFinalCountdown);
-                    }
-                    postTemperatureDegreeSymbol(importedSettings.temperatureDegreeSymbol);
+
                     postSubpageChevron(importedSettings.subpageChevron);
                     postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
                     postReturnHomeOnAppSwitch(importedSettings.returnHomeOnAppSwitch);
                     postSubpageTitleBar(importedSettings.subpageTitleBar);
                     var importedTimezone: any = importedSettings.timezone;
-                    var importedTemperatureUnit: any = importedSettings.temperatureUnit;
                     var importedLanguage: any = importedSettings.language;
                     var importedClockFormat: any = importedSettings.clockFormat;
                     var hasNtpServer1: any = importedSettings.hasNtpServer1;
@@ -630,7 +557,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postSelect(entityName("screen_timezone"), importedTimezone);
                     if (s.language)
                         postSelect(entityName("screen_language"), importedLanguage);
-                    postSelect(entityName("screen_temperature_unit"), importedTemperatureUnit);
+
                     if (s.clock_format)
                         postSelect(entityName("screen_clock_format"), importedClockFormat);
                     if (hasNtpServer1) {
@@ -644,35 +571,13 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     }
                     var importedScreensaverMode: any = importedSettings.screensaverMode;
                     postScreensaverMode(importedScreensaverMode);
-                    postPresenceSensorEntity(importedSettings.presenceSensorEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postText(entityName("screen_saver_camera_entity"), importedSettings.screensaverCameraEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postText(entityName("screen_saver_metadata_entity"), importedSettings.screensaverMetadataEntity);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        postScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
-                    const hasCameraDimming = s.screensaver_camera_dimming !== undefined;
-                    if (hasCameraDimming && controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraDimmingSupported)
-                        controllers.artworkPostApi.postScreensaverCameraDimming(importedSettings.screensaverCameraDimming);
                     postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
-                    postMediaPlayerSleepPreventionEntity(importedSettings.mediaPlayerSleepPreventionEntity);
-                    postCoverArtPlaybackControl(importedSettings.coverArtPlaybackControl);
                     postCoverArtScreensaver(importedSettings.coverArtScreensaver);
-                    postCoverArtSource(importedSettings.coverArtSource);
+                    if (controllers.layout.config.features?.companion)
+                        postCoverArtSource(importedSettings.coverArtSource);
                     if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
-                    if (state.clockOverlaySupported) postClockOverlay(importedSettings.clockOverlay);
-                    if (controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported)
-                        controllers.artworkPostApi.postMetadataOverlay(importedSettings.metadataOverlay);
-                    postCoverArtMediaPlayerEntity(importedSettings.coverArtMediaPlayerEntity);
-                    postCoverArtSecondaryMediaPlayerEntity(importedSettings.coverArtSecondaryMediaPlayerEntity);
-                    postCoverArtConditions(importedSettings.coverArtAttributeConditions);
                     postCoverArtDelay(importedSettings.coverArtDelay);
                     postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
-                    postCoverArtHideExternalInput(importedSettings.coverArtHideExternalInput);
-                    postHomeAssistantArtworkProtocol(importedSettings.coverArtHomeAssistantProtocol);
-                    postHomeAssistantArtworkHost(importedSettings.coverArtHomeAssistantHost);
-                    postHomeAssistantArtworkPort(importedSettings.coverArtHomeAssistantPort);
-                    postHomeAssistantArtworkEndpointMode(importedSettings.coverArtHomeAssistantEndpointMode);
                     if (firmwareUpdateControlsVisible()) {
                         postFirmwareAutoUpdate(importedSettings.autoUpdate);
                         postFirmwareUpdateFrequency(importedSettings.updateFrequency);
@@ -698,25 +603,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
-                    state.clockBarTemperatureEntities = importedSettings.clockBarTemperatureEntities;
-                    state._clockBarTemperatureEntitiesReceived = true;
-                    state._indoorOn = importedSettings.indoorTempEnable;
-                    state._outdoorOn = importedSettings.outdoorTempEnable;
-                    state.indoorEntity = importedSettings.indoorTempEntity;
-                    state.outdoorEntity = importedSettings.outdoorTempEntity;
-                    state.temperatureUnit = importedTemperatureUnit;
+
                     state.clockBarOn = importedSettings.clockBar;
                     state.clockBarTimeOn = importedSettings.clockBarTime;
                     state.clockBarNightModeOn = importedSettings.clockBarNightMode;
                     state.networkStatusOn = importedSettings.networkStatusIcon;
-                    state.voiceServicesOn = importedSettings.voiceServices;
-                    state.alarmDelayAudioOn = importedSettings.alarmDelayAudio;
-                    state.alarmDelayTtsOn = importedSettings.alarmDelayTts;
-                    state.alarmDelayEntryAnnouncement = importedSettings.alarmDelayEntryAnnouncement;
-                    state.alarmDelayExitAnnouncement = importedSettings.alarmDelayExitAnnouncement;
-                    state.alarmDelayBeepVolume = importedSettings.alarmDelayBeepVolume;
-                    state.alarmDelayFinalCountdown = importedSettings.alarmDelayFinalCountdown;
-                    state.temperatureDegreeSymbolOn = importedSettings.temperatureDegreeSymbol;
+
                     state.subpageChevronsOn = importedSettings.subpageChevron;
                     state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
@@ -736,8 +628,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverCameraEntity = importedSettings.screensaverCameraEntity;
                     state.screensaverMetadataEntity = importedSettings.screensaverMetadataEntity;
                     state.metadataOverlayOn = importedSettings.metadataOverlay;
-                    if (hasCameraDimming && state.screensaverCameraDimmingSupported)
-                        state.screensaverCameraDimming = importedSettings.screensaverCameraDimming;
                     state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
                     state.mediaPlayerSleepPreventionOn = importedSettings.mediaPlayerSleepPrevention;
                     state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
@@ -749,7 +639,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
                     state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
                     state.coverArtDelay = importedSettings.coverArtDelay;
-                    state.coverArtPlaybackControlOn = importedSettings.coverArtPlaybackControl;
                     state.coverArtTrackOverlayDuration = importedSettings.coverArtTrackOverlayDuration;
                     state.coverArtHideExternalInputOn = importedSettings.coverArtHideExternalInput;
                     state.homeAssistantArtworkProtocol = importedSettings.coverArtHomeAssistantProtocol;
@@ -769,11 +658,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverTimeout = importedSettings.screensaverTimeout;
                     state.homeScreenTimeout = importedSettings.homeScreenTimeout;
                     state.screenRotation = importedScreenRotation;
-                    syncTemperatureUi();
+
                     syncClockBarUi();
-                    syncAlarmDelayAudioUi();
-                    if (els.setTemperatureUnit)
-                        els.setTemperatureUnit.value = state.temperatureUnit;
+
                     syncInput(els.setPresence, state.presenceEntity);
                     syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
                     syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
@@ -802,7 +689,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncPreviewOrientation();
                     if (els.setSsMode)
                         els.setSsMode(getActiveScreensaverMode());
-                    updateTempPreview();
+
                 }
                 var screenSettings: any = backupPlan.screen;
                 if (screenSettings) {
@@ -881,8 +768,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postBrightnessDawnTime(state.brightnessDawnTime);
                     postBrightnessDuskTime(state.brightnessDuskTime);
                     postScreenScheduleTrigger(state.scheduleTrigger);
-                    postScreenScheduleSensorActivation(state.scheduleSensorActivation);
-                    postScreenScheduleSensorEntity(state.scheduleSensorEntity);
                     postScreenScheduleOnHour(state.scheduleOnHour);
                     postScreenScheduleOffHour(state.scheduleOffHour);
                     postScreenScheduleMode(state.scheduleMode);
@@ -920,6 +805,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                             backupMessage: "Configuration restored, but panel naming or restart failed: " + (error as Error).message,
                         });
                     }
+                }
+                if (!controllers.nativePanelConfig?.homeAssistantSupportEnabled() && !requestApi.postQueueError) {
+                    const warning = legacyHomeAssistantWarning(legacyHomeAssistantCards(nativeDocument));
+                    if (warning) backupPlan.warnings.push(warning);
                 }
                 return layoutRestoreResult;
                 }

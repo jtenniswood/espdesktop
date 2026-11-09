@@ -38,7 +38,7 @@
       "id": "5",
       "label": "Delete selection",
       "shortcut": "command+delete",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "6",
@@ -50,7 +50,7 @@
       "id": "7",
       "label": "Reveal the selected event clip’s source media",
       "shortcut": "shift+command+r",
-      "icon": "Spotlight"
+      "icon": "Search"
     }
   ]
 }

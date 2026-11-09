@@ -12,7 +12,6 @@ enum class DisplayMode : uint8_t {
   SETUP_DIMMED,
   DIMMED,
   CLOCK,
-  CAMERA,
   COVER_ART,
   DISPLAY_OFF,
 };
@@ -51,8 +50,7 @@ inline bool presence_can_wake_display(const DisplayTransition &transition) {
   if (!automatic_screensaver) return false;
   return transition.target_mode == DisplayMode::DISPLAY_OFF ||
          transition.target_mode == DisplayMode::DIMMED ||
-         transition.target_mode == DisplayMode::CLOCK ||
-         transition.target_mode == DisplayMode::CAMERA;
+         transition.target_mode == DisplayMode::CLOCK;
 }
 
 class DisplayModeController {
@@ -307,7 +305,7 @@ class DisplayModeController {
         return mode == DisplayMode::DISPLAY_OFF;
       case DisplayRequestSource::MANUAL_SLEEP:
         return mode == DisplayMode::DISPLAY_OFF || mode == DisplayMode::DIMMED ||
-               mode == DisplayMode::CLOCK || mode == DisplayMode::CAMERA;
+               mode == DisplayMode::CLOCK;
       case DisplayRequestSource::USER_WAKE:
         return mode == DisplayMode::ACTIVE;
       case DisplayRequestSource::MEDIA_PLAYBACK:
@@ -319,8 +317,7 @@ class DisplayModeController {
                mode == DisplayMode::DISPLAY_OFF;
       case DisplayRequestSource::IDLE_TIMER:
       case DisplayRequestSource::PRESENCE_SENSOR:
-        return mode == DisplayMode::DIMMED || mode == DisplayMode::CLOCK ||
-               mode == DisplayMode::CAMERA || mode == DisplayMode::DISPLAY_OFF;
+        return mode == DisplayMode::DIMMED || mode == DisplayMode::CLOCK || mode == DisplayMode::DISPLAY_OFF;
     }
     return false;
   }
@@ -401,7 +398,6 @@ inline const char *display_mode_name(DisplayMode mode) {
     case DisplayMode::SETUP_DIMMED: return "setup_dimmed";
     case DisplayMode::DIMMED: return "dimmed";
     case DisplayMode::CLOCK: return "clock";
-    case DisplayMode::CAMERA: return "camera";
     case DisplayMode::COVER_ART: return "cover_art";
     case DisplayMode::DISPLAY_OFF: return "display_off";
   }

@@ -44,7 +44,7 @@
       "id": "6",
       "label": "Fit image to window",
       "shortcut": "command+0",
-      "icon": "Window Open"
+      "icon": "Fit to Screen"
     },
     {
       "id": "7",

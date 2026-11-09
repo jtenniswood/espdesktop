@@ -122,28 +122,6 @@ def check_root(root: Path) -> list[str]:
                     "components/espdesktop/button_grid_card_runtime.h: resolve saved-config aliases before runtime dispatch"
                 )
     mower_header = root / "components" / "espdesktop" / LAWN_MOWER_HEADER
-    if mower_header.exists():
-        text = mower_header.read_text(encoding="utf-8")
-        required = (
-            "lawn_mower.start_mowing",
-            "lawn_mower.pause",
-            "lawn_mower.dock",
-            'ctx->state == "mowing"',
-            'ctx->state == "unavailable" || ctx->state == "unknown"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(f"components/espdesktop/{LAWN_MOWER_HEADER}: missing mower runtime guard {needle}")
-        forbidden = (
-            "vacuum.",
-            "lawn_mower.stop",
-            "lawn_mower.locate",
-            "lawn_mower.clean_spot",
-            "lawn_mower.clean_area",
-        )
-        for needle in forbidden:
-            if needle in text:
-                failures.append(f"components/espdesktop/{LAWN_MOWER_HEADER}: unexpected mower service/reference {needle}")
     grid_header = root / "components" / "espdesktop" / GRID_HEADER
     if grid_header.exists():
         text = grid_header.read_text(encoding="utf-8")
@@ -193,7 +171,7 @@ def check_root(root: Path) -> list[str]:
             )
         setup_subpage = phase2_body.find("setup_card_visual(sub_slot")
         refresh_subpage = phase2_body.find("refresh_card_layout(sub_slot")
-        bind_subpage = phase2_body.find("image_driver_bind_subpage")
+        bind_subpage = phase2_body.find("basic_action_driver_bind_subpage")
         if not (
             setup_subpage >= 0
             and refresh_subpage > setup_subpage
@@ -203,12 +181,8 @@ def check_root(root: Path) -> list[str]:
                 f"components/espdesktop/{GRID_HEADER}: refresh subpage card geometry after applying label clamps"
             )
         if (
-            "status_entity_driver_setup_visual( s, p, context, palette)" not in compact_grid
-            or "status_entity_driver_bind_data( s, p, context, palette)" not in compact_grid
-            or "date_time_driver_setup_visual( s, p, context, palette)" not in compact_grid
+            "date_time_driver_setup_visual( s, p, context, palette)" not in compact_grid
             or "date_time_driver_bind_data(s, p, context)" not in compact_grid
-            or "weather_driver_setup_visual( s, p, context, palette, display)" not in compact_grid
-            or "weather_driver_bind_data(s, p, context)" not in compact_grid
             or "basic_action_driver_setup_visual( s, p, context, palette.sensor_val)" not in compact_grid
             or "basic_action_driver_bind_main( s, p, context, cfg, card_palette, display, main_page_obj, COLS, toggle_state)" not in compact_grid
             or "basic_action_driver_bind_subpage( sub_slot, sb_cfg, context, action_environment)" not in compact_grid
@@ -216,37 +190,10 @@ def check_root(root: Path) -> list[str]:
             or "numeric_selectable_driver_bind_main( s, p, context, card_palette, display)" not in compact_grid
             or "numeric_selectable_driver_bind_subpage( sub_slot, sb_cfg, context, numeric_environment)" not in compact_grid
             or "numeric_environment.palette = card_palette;" not in compact_grid
-            or "cleaning_driver_setup_visual(s, p, context)" not in compact_grid
-            or "cleaning_driver_bind_main( s, p, context)" not in compact_grid
-            or "cleaning_driver_bind_subpage( sub_slot, sb_cfg, context, cleaning_environment)" not in compact_grid
-            or "access_cover_driver_setup_visual( s, p, context, palette)" not in compact_grid
-            or "access_cover_driver_bind_main( s, p, context)" not in compact_grid
-            or "access_cover_driver_bind_subpage( sub_slot, sb_cfg, context, access_cover_environment)" not in compact_grid
-            or "cover_modal_driver_setup_visual(s, p, context)" not in compact_grid
-            or "cover_modal_driver_bind_main( s, p, context, cover_modal_environment)" not in compact_grid
-            or "cover_modal_driver_bind_subpage( sub_slot, sb_cfg, context, cover_modal_environment)" not in compact_grid
-            or "media_driver_setup_visual( s, p, context, palette, display, row_span, col_span)" not in compact_grid
-            or "media_driver_bind_main( s, p, context, media_environment)" not in compact_grid
-            or "media_driver_bind_subpage( sub_slot, sb_cfg, context, media_environment)" not in compact_grid
             or "navigation_driver_setup_visual( s, p, context, cfg, display)" not in compact_grid
             or "navigation_driver_bind_main( s, p, context, navigation_state)" not in compact_grid
             or "navigation_driver_own_subpage( owner_slot, p, parent_context, navigation_slot, display_order, sub_scr)" not in compact_grid
             or "navigation_register_special_page(sub_scr, main_page_obj, get_subpage_title(sp_order_str))" not in compact_grid
-            or "image_driver_setup_visual(s, p, context, palette)" not in compact_grid
-            or "image_driver_bind_main( s, p, context, cfg, palette)" not in compact_grid
-            or "image_driver_bind_subpage( sub_slot, sb_cfg, context, cfg, palette)" not in compact_grid
-            or "light_control_driver_setup_visual(s, p, context)" not in compact_grid
-            or "light_control_driver_bind_main( s, p, context, light_control_environment)" not in compact_grid
-            or "light_control_driver_bind_subpage( sub_slot, sb_cfg, context, light_control_environment)" not in compact_grid
-            or "fan_control_driver_setup_visual(s, p, context)" not in compact_grid
-            or "fan_control_driver_bind_main( s, p, context, fan_control_environment)" not in compact_grid
-            or "fan_control_driver_bind_subpage( sub_slot, sb_cfg, context, fan_control_environment)" not in compact_grid
-            or "climate_control_driver_setup_visual( s, p, context, display)" not in compact_grid
-            or "climate_control_driver_bind_main( s, p, context, climate_control_environment)" not in compact_grid
-            or "climate_control_driver_bind_subpage( sub_slot, sb_cfg, context, climate_control_environment)" not in compact_grid
-            or "alarm_driver_setup_visual(s, p, context)" not in compact_grid
-            or "alarm_driver_bind_main( s, p, context, alarm_environment)" not in compact_grid
-            or "alarm_driver_bind_subpage( sub_slot, sb_cfg, context, alarm_environment)" not in compact_grid
             or "card_palette_for_config(palette, p, display)" not in compact_grid
             or "card_palette_for_config(palette, sb_cfg, display)" not in compact_grid
             or "bind_passive_card(s, p, context, card_palette)" not in compact_grid
@@ -314,28 +261,21 @@ def check_root(root: Path) -> list[str]:
                 failures.append(
                     f"components/espdesktop/{GRID_HEADER}: broad legacy card fallback must remain retired ({retired_fallback})"
                 )
-        if (
-            "cleaning_environment.add_mower_parent_indicator" not in text
-            or "lawn_mower_state_active_ref" not in text
-        ):
+        image_reset_pos = text.find("reset_image_card_pool(cfg);")
+        phase_one = function_body(text, "grid_phase1") or ""
+        phase_two = function_body(text, "grid_phase2") or ""
+        if ("reset_image_card_pool(cfg);" not in phase_one
+                or phase_one.find("reset_image_card_pool(cfg);") > phase_one.find("setup_card_visual(")
+                or "reset_image_card_pool(cfg);" in phase_two):
             failures.append(
-                f"components/espdesktop/{GRID_HEADER}: route mower subpage parent indicators through mower active-state handling"
+                f"components/espdesktop/{GRID_HEADER}: initialize icon pool before phase-one visuals and preserve bindings in phase two"
             )
-        if (
-            "light_control_environment.add_parent_indicator" not in text
-            or "light_control_driver_bind_subpage(" not in text
-        ):
+        subpage_release = function_body(text, "navigation_release_subpage_runtime") or ""
+        if ("image_card_release_owner(card.button);" not in subpage_release
+                or subpage_release.find("image_card_release_owner(card.button);") > subpage_release.find("grid_release_runtime_allocations(card.button);")):
             failures.append(
-                f"components/espdesktop/{GRID_HEADER}: include full light controls in generic subpage parent indicators"
+                f"components/espdesktop/{GRID_HEADER}: detach subpage icons before releasing widget owners"
             )
-        if (
-            "fan_control_environment.add_parent_indicator" not in text
-            or "fan_control_driver_bind_subpage(" not in text
-        ):
-            failures.append(
-                f"components/espdesktop/{GRID_HEADER}: include full fan controls in generic subpage parent indicators"
-            )
-        image_reset_pos = text.find("image_driver_reset_pool(cfg);")
         subpage_clear_pos = text.find("navigation_clear_subpages(main_page_obj);")
         if image_reset_pos < 0 or subpage_clear_pos < 0 or image_reset_pos > subpage_clear_pos:
             failures.append(
@@ -350,16 +290,7 @@ def check_root(root: Path) -> list[str]:
             or "card_runtime_passive(context)" not in click_body
             or "basic_action_driver_handle_main_click(" not in click_body
             or "numeric_selectable_driver_handle_main_click(" not in click_body
-            or "cleaning_driver_handle_main_click(" not in click_body
-            or "access_cover_driver_handle_main_click(" not in click_body
-            or "cover_modal_driver_handle_main_click(" not in click_body
             or "navigation_driver_handle_main_click(" not in click_body
-            or "image_driver_handle_main_click(" not in click_body
-            or "light_control_driver_handle_main_click(" not in click_body
-            or "fan_control_driver_handle_main_click(" not in click_body
-            or "climate_control_driver_handle_main_click(" not in click_body
-            or "alarm_driver_handle_main_click(" not in click_body
-            or "media_driver_handle_main_click(" not in click_body
         ):
             failures.append(
                 f"components/espdesktop/{ACTION_HEADER}: route passive checks through the shared card context"
@@ -423,19 +354,10 @@ def check_root(root: Path) -> list[str]:
         send_action = setup_body.rfind("send_slider_action")
         if final_map < 0 or send_action < 0 or final_map > send_action:
             failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: map the final direct slider value before sending its Home Assistant action"
+                f"components/espdesktop/{SLIDERS_HEADER}: map the final direct slider value before sending its Mac volume command"
             )
 
         light_temp_body = function_body(text, "setup_light_temp_visual") or ""
-        if (
-            "LV_EVENT_PRESSED" not in light_temp_body
-            or "LV_EVENT_PRESSING" not in light_temp_body
-            or "LV_EVENT_RELEASED" not in light_temp_body
-            or light_temp_body.count("slider_apply_vertical_pointer_value") < 3
-        ):
-            failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: apply light-temperature endpoint mapping on press, drag, and release"
-            )
         light_temp_release_event = light_temp_body.rfind("LV_EVENT_RELEASED")
         light_temp_release_callback = light_temp_body.rfind(
             "lv_obj_add_event_cb", 0, light_temp_release_event
@@ -446,15 +368,6 @@ def check_root(root: Path) -> list[str]:
         light_temp_send_action = light_temp_body.rfind(
             "send_light_temp_action", 0, light_temp_release_event
         )
-        if (
-            light_temp_release_callback < 0
-            or light_temp_final_map < light_temp_release_callback
-            or light_temp_send_action < 0
-            or light_temp_final_map > light_temp_send_action
-        ):
-            failures.append(
-                f"components/espdesktop/{SLIDERS_HEADER}: map the final light-temperature value before sending its Home Assistant action"
-            )
 
         if (
             "lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN)" not in text
@@ -473,14 +386,6 @@ def check_root(root: Path) -> list[str]:
             failures.append(
                 f"components/espdesktop/{IMAGE_HEADER}: reset every image-card context, including disabled slots"
             )
-        if reset_body is None or "image_card_release_modal_cache" not in reset_body:
-            failures.append(
-                f"components/espdesktop/{IMAGE_HEADER}: release the constrained modal cache when resetting the image-card pool"
-            )
-        if reset_body is None or "image_card_schedule_modal_cache_expiry" not in reset_body:
-            failures.append(
-                f"components/espdesktop/{IMAGE_HEADER}: reschedule constrained modal cache expiry when retaining it during pool resets"
-            )
         callback_body = function_body(text, "image_card_bind_callbacks")
         callback_guards = (
             "callbacks_bound_image != bound_image",
@@ -493,26 +398,6 @@ def check_root(root: Path) -> list[str]:
                 f"components/espdesktop/{IMAGE_HEADER}: rebind image completion callbacks after image-card lifecycle changes"
             )
     status_entity_header = root / "components" / "espdesktop" / STATUS_ENTITY_HEADER
-    if status_entity_header.exists():
-        text = status_entity_header.read_text(encoding="utf-8")
-        required = (
-            "status_entity_driver_setup_visual",
-            "status_entity_driver_bind_data",
-            "status_entity_driver_attach_interaction",
-            "status_entity_driver_refresh_layout",
-            "status_entity_driver_cleanup",
-            "case Type::DOOR_WINDOW: return is_entity_on_ref(state);",
-            "case Type::PRESENCE: return presence_detected_ref(state);",
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{STATUS_ENTITY_HEADER}: missing shared status-entity lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{STATUS_ENTITY_HEADER}: missing shared status-entity driver"
-        )
     date_time_header = root / "components" / "espdesktop" / DATE_TIME_HEADER
     if date_time_header.exists():
         text = date_time_header.read_text(encoding="utf-8")
@@ -526,7 +411,6 @@ def check_root(root: Path) -> list[str]:
             "context.runtime.type == Type::CLOCK",
             "context.runtime.type == Type::TIMEZONE",
             "register_calendar_card",
-            "subscribe_calendar_date_source",
             "register_timezone_card",
         )
         for needle in required:
@@ -581,26 +465,6 @@ def check_root(root: Path) -> list[str]:
                     f"components/espdesktop/{DATE_TIME_CARDS_HEADER}: {register} must reclaim deleted LVGL label references before registration"
                 )
     weather_header = root / "components" / "espdesktop" / WEATHER_HEADER
-    if weather_header.exists():
-        text = weather_header.read_text(encoding="utf-8")
-        required = (
-            "weather_driver_setup_visual",
-            "weather_driver_bind_data",
-            "weather_driver_attach_interaction",
-            "weather_driver_refresh_layout",
-            "weather_driver_cleanup",
-            "weather_daily_setup",
-            "subscribe_weather_state",
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{WEATHER_HEADER}: missing shared weather lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{WEATHER_HEADER}: missing shared weather driver"
-        )
     basic_action_header = root / "components" / "espdesktop" / BASIC_ACTION_HEADER
     if basic_action_header.exists():
         text = basic_action_header.read_text(encoding="utf-8")
@@ -612,12 +476,7 @@ def check_root(root: Path) -> list[str]:
             "basic_action_driver_refresh_layout",
             "basic_action_driver_cleanup",
             "basic_action_driver_handle_main_click",
-            "basic_action_driver_bind_toggle",
-            "basic_action_driver_bind_action_state",
-            "basic_action_driver_bind_alarm_action",
-            "basic_action_driver_bind_fan_switch",
             "send_webhook_action",
-            "esphome.push_button_pressed",
         )
         for needle in required:
             if needle not in text:
@@ -640,11 +499,8 @@ def check_root(root: Path) -> list[str]:
             "numeric_selectable_driver_cleanup",
             "numeric_selectable_driver_handle_main_click",
             "numeric_selectable_driver_bind_slider",
-            "numeric_selectable_driver_bind_light_temperature",
-            "numeric_selectable_driver_bind_fan_action",
-            "numeric_selectable_driver_bind_option_select",
-            "option_select_open_modal",
-            "fan_card_handle_click",
+            "companion_volume_control_valid",
+            "companion_track_slider",
             "send_slider_action",
             '"light_brightness"',
             '"light_temperature"',
@@ -664,192 +520,11 @@ def check_root(root: Path) -> list[str]:
             f"components/espdesktop/{NUMERIC_SELECTABLE_HEADER}: missing shared numeric/selectable driver"
         )
     cleaning_header = root / "components" / "espdesktop" / CLEANING_HEADER
-    if cleaning_header.exists():
-        text = cleaning_header.read_text(encoding="utf-8")
-        required = (
-            "cleaning_driver_setup_visual",
-            "cleaning_driver_bind_main",
-            "cleaning_driver_bind_subpage",
-            "cleaning_driver_attach_interaction",
-            "cleaning_driver_refresh_layout",
-            "cleaning_driver_cleanup",
-            "cleaning_driver_handle_main_click",
-            "cleaning_driver_refresh_translated_text",
-            "cleaning_driver_refresh_subpage_translated_text",
-            "create_vacuum_card_context",
-            "subscribe_vacuum_card_state",
-            "send_vacuum_card_action",
-            "create_lawn_mower_card_context",
-            "subscribe_lawn_mower_card_state",
-            "send_lawn_mower_card_action",
-            '"vacuum"',
-            '"lawn_mower"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{CLEANING_HEADER}: missing shared cleaning lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{CLEANING_HEADER}: missing shared cleaning driver"
-        )
     access_cover_header = root / "components" / "espdesktop" / ACCESS_COVER_HEADER
-    if access_cover_header.exists():
-        text = access_cover_header.read_text(encoding="utf-8")
-        required = (
-            "access_cover_driver_setup_visual",
-            "access_cover_driver_bind_main",
-            "access_cover_driver_bind_subpage",
-            "access_cover_driver_attach_interaction",
-            "access_cover_driver_refresh_layout",
-            "access_cover_driver_cleanup",
-            "access_cover_driver_handle_main_click",
-            "bind_garage_status_card",
-            "bind_gate_status_card",
-            "bind_lock_status_card",
-            "subscribe_cover_command_features",
-            "subscribe_cover_toggle_state",
-            "subscribe_slider_state",
-            "send_cover_command_action",
-            "send_lock_command_action",
-            "send_slider_action",
-            '"garage"',
-            '"gate"',
-            '"lock"',
-            '"cover"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{ACCESS_COVER_HEADER}: missing shared access/cover lifecycle guard {needle}"
-                )
-        bind_slider_body = function_body(text, "access_cover_driver_bind_slider") or ""
-        if "subscribe_friendly_name_preserving_layout" not in bind_slider_body:
-            failures.append(
-                f"components/espdesktop/{ACCESS_COVER_HEADER}: preserve slider label padding when the cover friendly name arrives"
-            )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{ACCESS_COVER_HEADER}: missing shared access/cover driver"
-        )
     cover_modal_driver_header = (
         root / "components" / "espdesktop" / COVER_MODAL_DRIVER_HEADER
     )
-    if cover_modal_driver_header.exists():
-        text = cover_modal_driver_header.read_text(encoding="utf-8")
-        required = (
-            "cover_modal_driver_setup_visual",
-            "cover_modal_driver_bind_main",
-            "cover_modal_driver_bind_subpage",
-            "cover_modal_driver_attach_interaction",
-            "cover_modal_driver_refresh_layout",
-            "cover_modal_driver_cleanup",
-            "cover_modal_driver_handle_main_click",
-            "create_cover_control_context",
-            "subscribe_cover_control_state",
-            "cover_control_open_modal",
-            "grid_track_cover_control_runtime",
-            "grid_delete_cover_control_with_owner",
-            '"cover"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{COVER_MODAL_DRIVER_HEADER}: missing shared cover-modal driver"
-        )
     media_driver_header = root / "components" / "espdesktop" / MEDIA_DRIVER_HEADER
-    if media_driver_header.exists():
-        text = media_driver_header.read_text(encoding="utf-8")
-        required = (
-            "media_driver_setup_visual",
-            "media_driver_bind_main",
-            "media_driver_bind_subpage",
-            "media_driver_attach_interaction",
-            "media_driver_refresh_layout",
-            "media_driver_cleanup",
-            "media_driver_handle_main_click",
-            "create_media_control_context",
-            "create_media_volume_context",
-            "create_media_playlist_context",
-            "subscribe_media_control_state",
-            "subscribe_media_volume_state",
-            "subscribe_media_now_playing_state",
-            "subscribe_media_cover_art",
-            "subscribe_media_playlist_state",
-            "subscribe_media_slider_state",
-            "grid_track_media_now_playing_runtime",
-            "grid_track_media_slider_runtime",
-            "grid_track_media_control_runtime",
-            "grid_delete_media_control_with_owner",
-            '"media"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: missing shared media lifecycle guard {needle}"
-                )
-        route_body = function_body(text, "media_driver_bind_cover_art_route") or ""
-        if route_body:
-            if "now_playing->secondary_entity != now_playing->primary_entity" not in route_body:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: treat a matching secondary cover-art entity as unconfigured"
-                )
-            if "subscribe_image_card_access_token" in route_body:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: avoid duplicate access-token subscriptions on cover-art route switches"
-                )
-            unchanged_route_return = route_body.find(
-                "if (!entity_changed && !presentation_changed) return;"
-            )
-            control_subscription = route_body.find(
-                "subscribe_media_control_state(control);"
-            )
-            if (
-                unchanged_route_return < 0
-                or control_subscription < 0
-                or control_subscription > unchanged_route_return
-            ):
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: subscribe reused cover-art control modals before the unchanged-route return"
-                )
-            clear_route = route_body.find("now_playing->refresh_entity_route = nullptr")
-            attach_primary = route_body.find("media_playback_attach_now_playing(primary, now_playing)")
-            if clear_route < 0 or attach_primary < 0 or clear_route > attach_primary:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching cached playback state"
-                )
-        bind_body = function_body(text, "media_driver_bind_data") or ""
-        if bind_body:
-            clear_route = bind_body.find("now_playing->refresh_entity_route = nullptr")
-            attach_source = bind_body.find("subscribe_media_cover_art_source_state")
-            if clear_route < 0 or attach_source < 0 or clear_route > attach_source:
-                failures.append(
-                    f"components/espdesktop/{MEDIA_DRIVER_HEADER}: clear the stale cover-art route before attaching source state"
-                )
-        setup_body = function_body(text, "media_driver_setup_visual") or ""
-        if (
-            "media_driver_track_now_playing" not in setup_body
-            or "media_driver_track_slider" not in setup_body
-        ):
-            failures.append(
-                f"components/espdesktop/{MEDIA_DRIVER_HEADER}: own media visual contexts before data binding"
-            )
-        if (
-            "media_driver_track_now_playing" in bind_body
-            or "media_driver_track_slider" in bind_body
-        ):
-            failures.append(
-                f"components/espdesktop/{MEDIA_DRIVER_HEADER}: do not defer media visual ownership until data binding"
-            )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{MEDIA_DRIVER_HEADER}: missing shared media driver"
-        )
     subpages_header = root / "components" / "espdesktop" / SUBPAGES_HEADER
     if subpages_header.exists():
         normalize_subpage = function_body(
@@ -872,8 +547,6 @@ def check_root(root: Path) -> list[str]:
             "navigation_driver_reset_child_indicators",
             "navigation_driver_add_child_indicator",
             "navigation_driver_own_subpage",
-            "subscribe_subpage_parent_indicator",
-            "subscribe_climate_subpage_parent_indicator",
             "navigation_register_subpage",
             '"subpage"',
         )
@@ -887,145 +560,18 @@ def check_root(root: Path) -> list[str]:
             f"components/espdesktop/{NAVIGATION_DRIVER_HEADER}: missing shared navigation driver"
         )
     image_driver_header = root / "components" / "espdesktop" / IMAGE_DRIVER_HEADER
-    if image_driver_header.exists():
-        text = image_driver_header.read_text(encoding="utf-8")
-        required = (
-            "image_driver_setup_visual",
-            "image_driver_bind_main",
-            "image_driver_bind_subpage",
-            "image_driver_attach_interaction",
-            "image_driver_refresh_layout",
-            "image_driver_cleanup",
-            "image_driver_reset_pool",
-            "image_driver_handle_main_click",
-            "image_card_bind_runtime",
-            "reset_image_card_pool",
-            '"image"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{IMAGE_DRIVER_HEADER}: missing shared image lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{IMAGE_DRIVER_HEADER}: missing shared image driver"
-        )
     light_control_driver_header = (
         root / "components" / "espdesktop" / LIGHT_CONTROL_DRIVER_HEADER
     )
-    if light_control_driver_header.exists():
-        text = light_control_driver_header.read_text(encoding="utf-8")
-        required = (
-            "light_control_driver_setup_visual",
-            "light_control_driver_bind_main",
-            "light_control_driver_bind_subpage",
-            "light_control_driver_attach_interaction",
-            "light_control_driver_refresh_layout",
-            "light_control_driver_cleanup",
-            "light_control_driver_handle_main_click",
-            "create_light_control_context",
-            "subscribe_light_control_state",
-            "light_control_open_modal",
-            '"light_control"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{LIGHT_CONTROL_DRIVER_HEADER}: missing shared light-control driver"
-        )
     fan_control_driver_header = (
         root / "components" / "espdesktop" / FAN_CONTROL_DRIVER_HEADER
     )
-    if fan_control_driver_header.exists():
-        text = fan_control_driver_header.read_text(encoding="utf-8")
-        required = (
-            "fan_control_driver_setup_visual",
-            "fan_control_driver_bind_main",
-            "fan_control_driver_bind_subpage",
-            "fan_control_driver_attach_interaction",
-            "fan_control_driver_refresh_layout",
-            "fan_control_driver_cleanup",
-            "fan_control_driver_handle_main_click",
-            "create_fan_card_context",
-            "subscribe_fan_card_state",
-            "fan_control_open_modal",
-            "grid_track_fan_card_runtime",
-            "grid_delete_fan_card_with_owner",
-            '"fan_control"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{FAN_CONTROL_DRIVER_HEADER}: missing shared fan-control lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{FAN_CONTROL_DRIVER_HEADER}: missing shared fan-control driver"
-        )
     climate_control_driver_header = (
         root / "components" / "espdesktop" / CLIMATE_CONTROL_DRIVER_HEADER
     )
-    if climate_control_driver_header.exists():
-        text = climate_control_driver_header.read_text(encoding="utf-8")
-        required = (
-            "climate_control_driver_setup_visual",
-            "climate_control_driver_bind_main",
-            "climate_control_driver_bind_subpage",
-            "climate_control_driver_attach_interaction",
-            "climate_control_driver_refresh_layout",
-            "climate_control_driver_cleanup",
-            "climate_control_driver_handle_main_click",
-            "create_climate_control_context",
-            "subscribe_climate_control_state",
-            "climate_control_open_modal",
-            "grid_track_climate_control_runtime",
-            "grid_delete_climate_control_with_owner",
-            '"climate_control"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{CLIMATE_CONTROL_DRIVER_HEADER}: missing shared climate-control driver"
-        )
     alarm_driver_header = (
         root / "components" / "espdesktop" / ALARM_DRIVER_HEADER
     )
-    if alarm_driver_header.exists():
-        text = alarm_driver_header.read_text(encoding="utf-8")
-        required = (
-            "alarm_driver_setup_visual",
-            "alarm_driver_bind_main",
-            "alarm_driver_bind_subpage",
-            "alarm_driver_attach_interaction",
-            "alarm_driver_refresh_layout",
-            "alarm_driver_cleanup",
-            "alarm_driver_handle_main_click",
-            "alarm_driver_effective_config",
-            "create_alarm_card_context",
-            "subscribe_alarm_state",
-            "alarm_card_open_page",
-            "grid_track_alarm_card_runtime",
-            "grid_delete_alarm_card_with_owner",
-            '"alarm"',
-        )
-        for needle in required:
-            if needle not in text:
-                failures.append(
-                    f"components/espdesktop/{ALARM_DRIVER_HEADER}: missing shared alarm lifecycle guard {needle}"
-                )
-    elif grid_header.exists():
-        failures.append(
-            f"components/espdesktop/{ALARM_DRIVER_HEADER}: missing shared alarm driver"
-        )
     cards_header = root / "components" / "espdesktop" / CARDS_HEADER
     if cards_header.exists():
         text = cards_header.read_text(encoding="utf-8")
@@ -1092,33 +638,6 @@ inline void setup_light_temp_visual() {
         (
             {
                 "button_grid_sliders.h": valid_slider_runtime.replace(
-                    "inline void setup_light_temp_visual() {\n  slider_apply_vertical_pointer_value();\n  LV_EVENT_PRESSED;\n",
-                    "inline void setup_light_temp_visual() {\n  slider_apply_vertical_pointer_value();\n",
-                )
-            },
-            ("apply light-temperature endpoint mapping",),
-        ),
-        (
-            {
-                "button_grid_sliders.h": valid_slider_runtime.replace(
-                    "  slider_apply_vertical_pointer_value();\n  send_light_temp_action();",
-                    "  send_light_temp_action();\n  slider_apply_vertical_pointer_value();",
-                )
-            },
-            ("map the final light-temperature value",),
-        ),
-        (
-            {
-                "button_grid_sliders.h": valid_slider_runtime.replace(
-                    "  lv_obj_add_event_cb();\n  slider_apply_vertical_pointer_value();\n  send_light_temp_action();",
-                    "  slider_apply_vertical_pointer_value();\n  lv_obj_add_event_cb();\n  send_light_temp_action();",
-                )
-            },
-            ("map the final light-temperature value",),
-        ),
-        (
-            {
-                "button_grid_sliders.h": valid_slider_runtime.replace(
                     "lv_obj_set_style_pad_top(slider, 0, LV_PART_MAIN);",
                     "lv_obj_set_style_pad_top(slider, edge_inset, LV_PART_MAIN);",
                 )
@@ -1178,18 +697,6 @@ inline void setup_light_temp_visual() {
             (),
         ),
         (
-            {"button_grid_lawn_mower.h": "return \"lawn_mower.start_mowing\";\n"},
-            ("missing mower runtime guard lawn_mower.pause",),
-        ),
-        (
-            {"button_grid_lawn_mower.h": "return \"lawn_mower.clean_spot\";\n"},
-            ("unexpected mower service/reference lawn_mower.clean_spot",),
-        ),
-        (
-            {"button_grid_grid.h": 'if (parent_subpage_kind == "climate") {}\n'},
-            ("route mower subpage parent indicators through mower active-state handling",),
-        ),
-        (
             {
                 "button_grid_grid.h": (
                     "inline void setup_card_visual() {\n"
@@ -1218,17 +725,6 @@ inline void setup_light_temp_visual() {
                     'if (parent_subpage_kind == "lawn_mower") { lawn_mower_state_active_ref(state); }\n'
                     'if (sb_cfg.type == "light_control") {\n'
                     '  subscribe_light_control_state(ctx);\n'
-                    '}\n'
-                )
-            },
-            ("include full light controls in generic subpage parent indicators",),
-        ),
-        (
-            {
-                "button_grid_grid.h": (
-                    'if (parent_subpage_kind == "lawn_mower") { lawn_mower_state_active_ref(state); }\n'
-                    'if (sb_cfg.type == "light_control") {\n'
-                    '  subscribe_light_control_state(ctx);\n'
                     '  add_parent_indicator(sb_cfg.entity);\n'
                     '}\n'
                     'navigation_clear_subpages(main_page_obj);\n'
@@ -1240,15 +736,6 @@ inline void setup_light_temp_visual() {
         (
             {"button_grid_image.h": "for (int i = 0; i < count; i++) {}\n"},
             ("reset every image-card context, including disabled slots",),
-        ),
-        (
-            {
-                "button_grid_status_entity_driver.h": (
-                    "inline bool status_entity_driver_setup_visual() {}\n"
-                    "inline bool status_entity_driver_bind_data() {}\n"
-                )
-            },
-            ("missing shared status-entity lifecycle guard",),
         ),
         (
             {
@@ -1285,15 +772,6 @@ inline void setup_light_temp_visual() {
         ),
         (
             {
-                "button_grid_weather_driver.h": (
-                    "inline bool weather_driver_setup_visual() {}\n"
-                    "inline bool weather_driver_bind_data() {}\n"
-                )
-            },
-            ("missing shared weather lifecycle guard",),
-        ),
-        (
-            {
                 "button_grid_basic_action_driver.h": (
                     "inline bool basic_action_driver_setup_visual() {}\n"
                     "inline bool basic_action_driver_bind_main() {}\n"
@@ -1312,75 +790,12 @@ inline void setup_light_temp_visual() {
         ),
         (
             {
-                "button_grid_cleaning_driver.h": (
-                    "inline bool cleaning_driver_setup_visual() {}\n"
-                    "inline bool cleaning_driver_bind_main() {}\n"
-                )
-            },
-            ("missing shared cleaning lifecycle guard",),
-        ),
-        (
-            {
-                "button_grid_access_cover_driver.h": (
-                    "inline bool access_cover_driver_setup_visual() {}\n"
-                    "inline bool access_cover_driver_bind_main() {}\n"
-                )
-            },
-            ("missing shared access/cover lifecycle guard",),
-        ),
-        (
-            {
                 "button_grid_navigation_driver.h": (
                     "inline bool navigation_driver_setup_visual() {}\n"
                     "inline bool navigation_driver_bind_main() {}\n"
                 )
             },
             ("missing shared navigation lifecycle guard",),
-        ),
-        (
-            {
-                "button_grid_image_driver.h": (
-                    "inline bool image_driver_setup_visual() {}\n"
-                    "inline bool image_driver_bind_main() {}\n"
-                )
-            },
-            ("missing shared image lifecycle guard",),
-        ),
-        (
-            {
-                "button_grid_light_control_driver.h": (
-                    "inline bool light_control_driver_setup_visual() {}\n"
-                    "inline bool light_control_driver_bind_main() {}\n"
-                )
-            },
-            ("missing shared light-control lifecycle guard",),
-        ),
-        (
-            {
-                "button_grid_fan_control_driver.h": (
-                    "inline bool fan_control_driver_setup_visual() {}\n"
-                    "inline bool fan_control_driver_bind_main() {}\n"
-                )
-            },
-            ("missing shared fan-control lifecycle guard",),
-        ),
-        (
-            {
-                "button_grid_climate_control_driver.h": (
-                    "inline bool climate_control_driver_setup_visual() {}\n"
-                    "inline bool climate_control_driver_bind_main() {}\n"
-                )
-            },
-            ("missing shared climate-control lifecycle guard",),
-        ),
-        (
-            {
-                "button_grid_alarm_driver.h": (
-                    "inline bool alarm_driver_setup_visual() {}\n"
-                    "inline bool alarm_driver_bind_main() {}\n"
-                )
-            },
-            ("missing shared alarm lifecycle guard",),
         ),
         (
             {
@@ -1406,25 +821,6 @@ inline void setup_light_temp_visual() {
                 )
             },
             ("rebind image completion callbacks after image-card lifecycle changes",),
-        ),
-        (
-            {
-                "button_grid_image.h": (
-                    "inline void image_card_bind_callbacks(ImageCardCtx *ctx) {\n"
-                    "  auto *bound_image = ctx->image;\n"
-                    "  bool changed = ctx->callbacks_bound_image != bound_image;\n"
-                    "  if (changed || !bound_image->has_on_finished_callbacks()) {\n"
-                    "    if (ctx->image == bound_image) {}\n"
-                    "  }\n"
-                    "  if (changed || !bound_image->has_on_error_callbacks()) {}\n"
-                    "}\n"
-                    "inline void reset_image_card_pool(const GridConfig &cfg) {\n"
-                    "  image_card_release_modal_cache(cfg.image_card_modal_image);\n"
-                    "  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; i++) {}\n"
-                    "}\n"
-                )
-            },
-            ("reschedule constrained modal cache expiry when retaining it during pool resets",),
         ),
         (
             {

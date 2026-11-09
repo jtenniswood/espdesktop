@@ -67,7 +67,15 @@ export function createBackupRestoreController<Plan, Target>(
         : finishApply();
       queueCompletion.then(
         () => {
-          if (!options.postQueueHadError()) options.showBanner("Configuration imported successfully", "success");
+          if (!options.postQueueHadError()) {
+            // Apply can discover unsupported saved cards after selecting the
+            // actual native document. Keep those warnings in the final banner.
+            const completedWarnings = options.warnings(backupPlan);
+            options.showBanner(
+              ["Configuration imported successfully", ...completedWarnings].join(" "),
+              completedWarnings.length ? "warning" : "success",
+            );
+          }
         },
         (error) => options.showBanner(restoreErrorMessage(error), "error"),
       );

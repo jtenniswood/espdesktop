@@ -93,11 +93,9 @@ int main() {
 }
 '''
 
-# Main cards retain wake guards; sliders and scrollable choices retain release.
+# Main cards retain wake guards; local sliders retain release handling.
 widget = (ROOT / "common/device/button_widget.yaml").read_text()
 assert widget.index("screensaver_wake_touch_guard_active") < widget.index("handle_button_press(")
-for name in ("button_grid_option_select.h", "button_grid_fan.h", "button_grid_climate.h"):
-    assert "LV_EVENT_CLICKED" in (HEADERS / name).read_text()
 assert "LV_EVENT_RELEASED" in (HEADERS / "button_grid_sliders.h").read_text()
 with tempfile.TemporaryDirectory(prefix="espdesktop-immediate-actions-") as temp:
     source, binary = Path(temp) / "test.cpp", Path(temp) / "test"

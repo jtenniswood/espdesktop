@@ -31,6 +31,10 @@ If the Mac app asks you to unlock your Mac or allow Keychain access, do that fir
 
 For the control's exact requirements, see [Mac Controls](/card-types/companion).
 
+## A Saved Card Shows Home Assistant Unavailable
+
+A warning badge marks saved cards that need Home Assistant when the installed firmware does not support it. Restoring a backup also reports these cards, including cards inside folders and the special page. Their saved configuration is kept; replace or remove them in the editor. Mac and local cards remain available.
+
 ## A Mac App or Display Update Breaks Compatibility
 
 Install the Mac app and display firmware from the same EspDesktop release. If you are testing a development build, use the matching display firmware as well. See [Companion Compatibility](/reference/companion-compatibility).
@@ -43,4 +47,4 @@ Open **Support** in the Mac app or [report an issue](https://github.com/jtennisw
 
 The `EspDesktop_XXXX` setup hotspot can take up to 90 seconds to appear. Connect to the hotspot named on the display and open its shown address if the offline setup page does not open automatically. A custom hotspot name or address is preserved. After **WiFi details saved**, reconnect your phone or computer to home WiFi and follow the display's instructions. USB Improv provisioning is also available after installation.
 
-Save a backup before using **System → System → Factory Reset**. Partial reset retains WiFi, the Home Assistant connection and Mac pairing. Complete reset requires typing **RESET**, erases saved WiFi and the Home Assistant API key, and requires pairing the Mac again. It disables WiFi networks compiled into the firmware so newly provisioned credentials remain selected after reboot. Installed firmware remains in place.
+Save a backup before using **System → Factory Reset**. Partial reset retains WiFi and Mac pairing. Complete reset requires typing **RESET**, erases saved WiFi and Mac pairing, and requires pairing the Mac again. It disables WiFi networks compiled into the firmware so newly provisioned credentials remain selected after reboot. Installed firmware remains in place.
