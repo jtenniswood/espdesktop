@@ -11,7 +11,7 @@ The display can only use the apps, folders, and actions made available through t
 |---|---|
 | Launching an app | Approve it on the Mac app's **Apps** page |
 | Opening a folder | Add it on the Mac app's **Folders** page |
-| Keyboard shortcuts and window controls | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
+| Keyboard shortcuts | Enable EspDesktop in **System Settings → Privacy & Security → Accessibility** |
 
 The [touchscreen follows your Mac’s lock state](/features/setup#protect-the-touchscreen) while the app is running and paired.
 

@@ -176,7 +176,7 @@ export class NativePanelConfigController {
     return this.waitForDiscovery(attempts + 1);
   }
 
-  schedule(update: NativePanelConfigUpdate): Promise<NativePanelConfigSaveOutcome> | null {
+  schedule(update: NativePanelConfigUpdate, skipUnchanged = false): Promise<NativePanelConfigSaveOutcome> | null {
     if (this.atomicUpdates_) {
       ++this.revision_;
       this.atomicUpdates_.push(update);
@@ -190,12 +190,12 @@ export class NativePanelConfigController {
       .then(async () => this.supported() || await this.waitForDiscovery())
       .then(async (supported) => supported === "legacy-fallback" || supported === "failed"
         ? supported
-        : supported ? client.save(update) : "unsupported" as const)
+        : supported ? client.save(update, skipUnchanged) : "unsupported" as const)
       .then(async (result) => {
         if (result !== "unsupported" || !client.retryable()) return result;
         const supported = await this.waitForDiscovery();
         if (supported === "legacy-fallback" || supported === "failed") return supported;
-        return supported ? client.save(update) : result;
+        return supported ? client.save(update, skipUnchanged) : result;
       })
       .then((result) => {
         const document = client.lastDocument();

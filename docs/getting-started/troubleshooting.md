@@ -25,8 +25,7 @@ If the Mac app asks you to unlock your Mac or allow Keychain access, do that fir
 ## A Card Does Not Work
 
 - **App or folder:** confirm it is still approved in the Mac app’s **Apps** or **Folders** page.
-- **Keyboard shortcut or window:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**.
-- **Window arrangement:** requires macOS 15 or newer; some applications do not support every window action.
+- **Keyboard shortcut:** enable EspDesktop under **System Settings → Privacy & Security → Accessibility**.
 
 For the control's exact requirements, see [Mac Controls](/card-types/companion).
 
