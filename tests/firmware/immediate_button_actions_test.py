@@ -37,10 +37,7 @@ void sync_bound_card_text_color(lv_obj_t *o) { assert(!(o->state & LV_STATE_PRES
 // Exercise the production touch helper; colour propagation is tested separately.
 TOUCH_HELPER
 bool locked = false;
-namespace espdesktop {
-struct Pin { bool locked() { return ::locked; } };
-Pin &screensaver_pin() { static Pin p; return p; }
-}
+bool screen_lock_enabled() { return locked; }
 constexpr int MAX_GRID_SLOTS = 36;
 struct ParsedCfg {};
 ParsedCfg parse_cfg(const std::string &) { return {}; }
@@ -102,4 +99,4 @@ with tempfile.TemporaryDirectory(prefix="espdesktop-immediate-actions-") as temp
     source.write_text(code)
     subprocess.run(["c++", "-std=c++17", "-Wall", "-Wextra", "-Werror", "-I", str(HEADERS), str(source), "-o", str(binary)], check=True)
     subprocess.run([str(binary)], check=True)
-print("Discrete actions fire once on touch-down; PIN, wake, navigation and drag guards are preserved.")
+print("Discrete actions fire once on touch-down; Mac lock, wake, navigation and drag guards are preserved.")

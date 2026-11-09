@@ -745,7 +745,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 await requestApi.postQueue;
                 if (!requestApi.postQueueError) {
                     await clearScreensaverPinForRestore(resetAwareFetch);
-                    await els.syncScreensaverPinUi?.();
                 }
                 if (typeof restoredName === "string" && !requestApi.postQueueError) {
                     try { await controllers.identity?.saveAndRestart(restoredName); }
