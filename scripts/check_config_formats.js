@@ -268,9 +268,6 @@ assert.deepStrictEqual(
 assertButtonTypeSpecBacked("light_switch", "light switch card");
 assertButtonTypeSpecBacked("light_temperature", "light temperature card");
 assertButtonTypeSpecBacked("light_control", "full light control card");
-assertButtonTypeSpecBacked("calendar", "calendar card");
-assertButtonTypeSpecBacked("clock", "clock card");
-assertButtonTypeSpecBacked("timezone", "timezone card");
 assertButtonTypeSpecBacked("weather", "weather card");
 assertButtonTypeSpecBacked("push", "push card");
 assertButtonTypeSpecBacked("webhook", "webhook card");
@@ -286,14 +283,6 @@ assertButtonTypeSpecBacked("media", "media card");
 assertButtonTypeSpecBacked("alarm", "alarm card");
 assertButtonTypeSpecBacked("alarm_action", "alarm action card");
 assertButtonTypeSpecBacked("climate", "climate card");
-assert.deepStrictEqual(
-  Array.from(hooks.dateTimeModeOptionValues()),
-  ["clock", "timezone"],
-  "date/time mode options are spec-backed"
-);
-assert.strictEqual(hooks.normalizeDateTimeCardMode("clock"), "clock", "date/time clock mode is allowed by spec");
-assert.strictEqual(hooks.normalizeDateTimeCardMode("timezone"), "timezone", "date/time world clock mode is allowed by spec");
-assert.strictEqual(hooks.normalizeDateTimeCardMode("bad"), "clock", "date/time invalid mode falls back to clock mode");
 assert.deepStrictEqual(
   Array.from(hooks.weatherModeOptionValues()),
   ["", "today", "tomorrow", "daily", "wind", "rainfall"],
@@ -1466,86 +1455,6 @@ assertButtonRoundTrip(hooks, "cover set position command button", {
   unit: "50",
   type: "cover",
   precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar date card", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar date and time card", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "datetime",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar large numbers option", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "datetime",
-  options: "large_numbers",
-}, false);
-
-assertButtonRoundTrip(hooks, "clock card", {
-  entity: "",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "clock",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "clock large numbers option", {
-  entity: "",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "clock",
-  precision: "",
-  options: "large_numbers",
-}, false);
-
-assertButtonRoundTrip(hooks, "timezone card", {
-  entity: "America/New_York (GMT-5)",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "timezone",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "timezone large numbers option", {
-  entity: "America/New_York (GMT-5)",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "timezone",
-  precision: "",
-  options: "large_numbers",
 }, false);
 
 assertButtonRoundTrip(hooks, "weather current conditions card", {
@@ -2948,7 +2857,7 @@ assertSubpageRoundTrip(hooks, "normal subpage", {
   order: ["1", "B", "2"],
   buttons: [
     buttonShape({ entity: "light.kitchen", label: "Kitchen", icon: "Auto", icon_on: "Lightbulb" }),
-    buttonShape({ type: "calendar" }),
+    buttonShape({ entity: "light.office", label: "Office" }),
   ],
 }, true);
 
@@ -2978,15 +2887,6 @@ const backOnlyFromGrid = hooks.serializeSubpageConfig({
   buttons: [],
 });
 assert.strictEqual(backOnlyFromGrid, "B", "new back-only subpage serializes from its grid");
-
-assertSubpageRoundTrip(hooks, "date time large numbers subpage", {
-  order: ["1", "B", "2", "3"],
-  buttons: [
-    buttonShape({ type: "calendar", precision: "datetime", options: "large_numbers" }),
-    buttonShape({ type: "clock", options: "large_numbers" }),
-    buttonShape({ entity: "America/New_York (GMT-5)", type: "timezone", options: "large_numbers" }),
-  ],
-}, true);
 
 assertSubpageRoundTrip(hooks, "switch confirmation subpage", {
   order: ["1", "B"],
@@ -3255,7 +3155,7 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|CK")), {
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|T,America/New_York%20%28GMT-5%29")), {
   order: ["1", "B"],
   buttons: [
-    buttonShape({ entity: "America/New_York (GMT-5)", type: "timezone" }),
+    buttonShape({ type: "timezone" }),
   ],
 }, "compact timezone subpage parse");
 

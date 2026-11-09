@@ -6040,10 +6040,6 @@ async function assertInlineCardNames(page, nativeState, label) {
     ["gate status", "cover.gate;Hidden name;Gate;Auto;;;gate;;label_display=status"],
     ["weather condition", "weather.home;Hidden name;Auto;Auto;;;weather"],
     ["legacy weather forecast", "weather.home;Hidden name;Auto;Auto;;;weather_forecast"],
-    ["calendar", "sensor.date;;Auto;Auto;;;calendar"],
-    ["calendar datetime", "sensor.date;;Auto;Auto;;;calendar;datetime"],
-    ["clock", ";;Auto;Auto;;;clock"],
-    ["timezone", "Europe/London;;Auto;Auto;;;timezone"],
   ]) {
     nativeState.document.buttons[1] = config;
     await seedNativeDocument(page, nativeState);
@@ -8732,8 +8728,6 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
           assert.strictEqual(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), !clockOn,
             "returning home restores its own Clock Bar setting");
         }
-        await page.getByRole("button", { name: "Configure swipe-up page", exact: true }).click();
-        await checkSubpage(compactTop);
       }
     }
     assert.deepStrictEqual(errors, []);
@@ -8745,49 +8739,20 @@ async function assertSubpageClockBar(browser, testCase) {
   await assertSubpageTitleBarSetting(browser, testCase);
 }
 
-async function assertSpecialPageEntry(browser, testCase) {
+async function assertSwipeUpUnavailable(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
-  const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
-    ? { width: 390, height: 844 } : testCase.viewport });
+  nativeState.document.buttons[2] = "light.office;Office;Lightbulb;Auto";
+  nativeState.document.settings.special_page = "~B,1|,light.kitchen,Kitchen,Lightbulb,Auto";
+  const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
   const page = await context.newPage();
   await installFakeEventSource(page);
-  async function openPage() {
-    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
-    await entry.waitFor();
-    assert.strictEqual(await page.locator("#sp-screen .sp-apply-bar").count(), 0, "Layout has no Apply button or restart note");
-    const screenBounds = await page.locator(".sp-screen").boundingBox();
-    const entryBounds = await entry.boundingBox();
-    assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
-    assert(entryBounds.y - screenBounds.y - screenBounds.height <= 11, "swipe-up entry stays close to the display");
-    assert(Math.abs(entryBounds.width - screenBounds.width) < 1, "swipe-up entry matches the display width");
-    assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
-    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "home preview has no grab handle");
-    assert.strictEqual(await entry.innerText(), "Configure swipe-up page");
-    assert(entryBounds.height >= 48, "Configure swipe-up page has a taller click target");
-    assert(!(await page.locator("#sp-screen .sp-hint").isVisible()), "idle editing instructions are hidden without blank spacing");
-    assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
-    if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
-    await entry.focus();
-    await entry.press("Enter");
-    await page.locator(".sp-main .sp-back-btn").waitFor();
-    assert.strictEqual(await entry.count(), 0, "entry is hidden while editing the swipe-up page");
-    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "swipe-up page has no clock bar");
-    assert.strictEqual(await page.locator(".sp-topbar .sp-clockbar-subpage-title").count(), 0, "swipe-up page has no title inside the display");
-    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "special page preview has no grab handle");
-    assert.strictEqual(await page.getByRole("button", { name: "Rename Special Page", exact: true }).count(), 0, "page title is absent above the preview");
-    if (process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT, fullPage: true });
-  }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
     await page.waitForSelector("#sp-app");
     await seedNativeDocument(page, nativeState);
-    await openPage();
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await openPage();
-
-    console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
-
+    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
+    assert.strictEqual(await entry.count(), 0, "a saved swipe-up page has no editor entry");
   } finally { await context.close(); }
 }
 
@@ -8795,7 +8760,13 @@ async function assertRetiredCardRemoval(browser) {
   const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
   const types = [...(contract.retiredCardTypes || []), ...contract.retiredSubpageTypeCodes];
   const testCase = ACTIVE_CASES[0];
-  for (const type of types) {
+  const compactDateTypes = Object.entries(contract.subpageTypeCodes)
+    .filter(([type]) => ["calendar", "clock", "timezone"].includes(type));
+  const cases = [
+    ...types.map(type => ({ type, subpageType: type, nativeV2: false })),
+    ...compactDateTypes.map(([type, code]) => ({ type, subpageType: code, nativeV2: true })),
+  ];
+  for (const { type, subpageType, nativeV2 } of cases) {
     const nativeState = nativeConfigState(testCase.slug);
     nativeState.document.buttons = {
       1: `old.entity;Retired;Gauge;Auto;sensor.old;C;${type};1;old=value`,
@@ -8804,10 +8775,10 @@ async function assertRetiredCardRemoval(browser) {
     };
     nativeState.document.settings.button_order = "1,2,3";
     nativeState.document.subpages = {
-      3: `~B,1w,,2|${type},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
+      3: `~B,1w,,2|${subpageType},old.entity,Retired,Gauge,,sensor.old,C,1,old%3Dvalue|,light.lamp,Neighbour,Lightbulb`,
     };
     const context = await browser.newContext({ viewport: testCase.viewport });
-    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+    await installRoutes(context, testCase.slug, { nativeState, nativeV2, homeAssistantSupport: true });
     const page = await context.newPage();
     await installFakeEventSource(page);
     try {
@@ -8828,7 +8799,7 @@ async function assertRetiredCardRemoval(browser) {
 
     } finally { await context.close(); }
   }
-  console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
+  console.log(`Retired-card browser checks passed for ${cases.length} saved layouts.`);
 }
 
 async function assertNestedCompanionPages(browser) {
@@ -8936,7 +8907,7 @@ async function assertNestedCompanionPages(browser) {
       return;
     }
     if (process.env.ESPDESKTOP_SPECIAL_PAGE_ONLY === "1") {
-      for (const testCase of ACTIVE_CASES) await assertSpecialPageEntry(browser, testCase);
+      for (const testCase of ACTIVE_CASES) await assertSwipeUpUnavailable(browser, testCase);
       return;
     }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
@@ -8968,7 +8939,7 @@ async function assertNestedCompanionPages(browser) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
-    await assertSpecialPageEntry(browser, ACTIVE_CASES[0]);
+    await assertSwipeUpUnavailable(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RAINFALL_ONLY === "1") { await assertRainfallEditor(browser); return; }

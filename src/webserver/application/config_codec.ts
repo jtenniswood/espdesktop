@@ -25,7 +25,6 @@ import {
     sizeRowSpan,
 } from "../model/grid";
 import {
-    cardContractDefaultConfig,
     cardContractFanDefaultIcon,
     cardContractIsBrightnessSliderType,
     cardContractIsFanCardType,
@@ -44,7 +43,6 @@ import { migrateSavedConfigActionLegacy, normalizeSavedConfigAction } from "../g
 import { normalizeSavedConfigMedia } from "../generated/saved_config_media";
 import { normalizeSavedConfigStatic } from "../generated/saved_config_static";
 import { normalizeSavedConfigFan } from "../generated/saved_config_fan";
-import { normalizeSavedConfigDateTime } from "../generated/saved_config_date_time";
 import { normalizeSavedConfigMower } from "../generated/saved_config_mower";
 import { normalizeSavedConfigOccupancy } from "../generated/saved_config_occupancy";
 import { normalizeSavedConfigAccess } from "../generated/saved_config_access";
@@ -83,7 +81,6 @@ import type { ConfigWeatherOptionsFeature } from "./config_weather_options";
 import type { ConfigWebhookOptionsFeature } from "./config_webhook_options";
 import type { ConfigRobotCardOptionsFeature } from "./config_robot_card_options";
 import type { ConfigLockOptionsFeature } from "./config_lock_options";
-import type { ConfigDateTimeOptionsFeature } from "./config_date_time_options";
 import type { ApplicationLayoutState } from "./application_context";
 import type { ApplicationApiFeature } from "./api";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -97,7 +94,6 @@ export function createConfigCodecFeature(
     webhookOptions: ConfigWebhookOptionsFeature,
     robotOptions: ConfigRobotCardOptionsFeature,
     lockOptions: ConfigLockOptionsFeature,
-    dateTimeOptions: ConfigDateTimeOptionsFeature,
     modalTabs: ConfigModalTabOptionsFeature,
     accessOptions: ConfigAccessClimateAlarmOptionsFeature,
     confirmationOptions: ConfigConfirmationOptionsFeature,
@@ -122,7 +118,6 @@ export function createConfigCodecFeature(
     }
     const {
         cardLargeNumbersSupported,
-        normalizeDateTimeOptions,
         normalizeDoorWindowSubtype,
         doorWindowClosedIcon,
         doorWindowOpenIcon,
@@ -148,7 +143,6 @@ export function createConfigCodecFeature(
         vacuumModeNeedsArea,
     } = robotOptions;
     const { normalizeLockMode } = lockOptions;
-    const { normalizeDateTimeCardMode } = dateTimeOptions;
     imageOptions.connectSubpageParser((value) => parseSubpageConfig(value));
     const {
         normalizeLightControlOptions,
@@ -272,17 +266,6 @@ export function createConfigCodecFeature(
         else {
             b.icon_on = "Auto";
         }
-    }
-    function normalizeSavedConfigDateTimeFields(this: any, b?: any) {
-        if (!b || b.entity)
-            return;
-        if (b.type === "calendar")
-            b.entity = cardContractDefaultConfig("calendar").entity;
-        else if (b.type === "timezone")
-            b.entity = cardContractDefaultConfig("timezone").entity;
-    }
-    function normalizeSavedConfigDateTimeOptions(this: any, options?: any, b?: any) {
-        return normalizeDateTimeOptions(b && b.type || "", options || "", b && b.precision || "");
     }
     function normalizeSavedConfigMowerFields(this: any, b?: any) {
         if (!b)
@@ -469,8 +452,6 @@ export function createConfigCodecFeature(
         normalizeWithRegisteredCardType(b);
         var normalizedSavedStatic: any = !!(b && normalizeSavedConfigStatic(b));
         if (b)
-            normalizeSavedConfigDateTime(b, normalizeSavedConfigDateTimeFields, normalizeSavedConfigDateTimeOptions);
-        if (b)
             normalizeSavedConfigImage(b, normalizeSavedConfigImageFields, normalizeSavedConfigImageOptions);
         if (b)
             normalizeSavedConfigLightControl(b, normalizeSavedConfigLightControlOptions);
@@ -522,16 +503,14 @@ export function createConfigCodecFeature(
         if (type === "local")
             type = "action";
         var label: any = b && b.label || "";
-        if (type === "calendar" || type === "clock" || type === "timezone")
-            label = "";
         var sensor: any = isActionOptionSelect ? ACTION_CARD_OPTION_SELECT_ACTION :
-            (isBrightnessSliderType(type) || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.sensor || "");
+            (isBrightnessSliderType(type) || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || isFanCardType(type)) ? "" : (b && b.sensor || "");
         if (type === "lock" && sensor !== "lock" && sensor !== "unlock")
             sensor = "";
         if (b && b.type === "local")
             sensor = ACTION_CARD_LOCAL_ACTION;
         var isLocalAction: any = type === "action" && sensor === ACTION_CARD_LOCAL_ACTION;
-        var unit: any = (isActionOptionSelect || type === "calendar" || type === "clock" || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.unit || "");
+        var unit: any = (isActionOptionSelect || isClimateCardType(type) || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || isFanCardType(type)) ? "" : (b && b.unit || "");
         if (isLocalAction)
             unit = "";
         var icon: any = b && b.icon || "Auto";
@@ -541,22 +520,18 @@ export function createConfigCodecFeature(
             icon = "Gesture Tap";
         if (type === "alarm" && (!icon || icon === "Auto"))
             icon = "Security";
-        if (type === "calendar" || type === "clock" || type === "timezone")
-            icon = "Auto";
         if (type === "alarm_action" && (!icon || icon === "Auto"))
             icon = (alarmActionInfo(sensor) || alarmActionSpecs()[0]).icon;
         if (isFanCardType(type) && (!icon || icon === "Auto"))
             icon = fanCardDefaultIcon(type);
         var iconOn: any = (isActionOptionSelect || type === "alarm" || type === "alarm_action" || (isFanCardType(type) && type !== "fan_switch")) ? "Auto" : (b && b.icon_on || "Auto");
-        if (type === "calendar" || type === "clock" || type === "timezone")
-            iconOn = "Auto";
         if (isLocalAction)
             iconOn = "Auto";
         if (type === "fan_switch" && (!iconOn || iconOn === "Auto"))
             iconOn = "Fan";
         if (type === "lock")
             iconOn = sensor ? "Auto" : ((!iconOn || iconOn === "Auto") ? "Lock Open" : iconOn);
-        var precision: any = (isActionOptionSelect || type === "clock" || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || type === "timezone" || isFanCardType(type)) ? "" : (b && b.precision || "");
+        var precision: any = (isActionOptionSelect || type === "light_switch" || type === "light_control" || type === "alarm" || type === "alarm_action" || type === "lock" || isFanCardType(type)) ? "" : (b && b.precision || "");
         if (isLocalAction)
             precision = "";
         if (type === "media") {
@@ -585,8 +560,6 @@ export function createConfigCodecFeature(
         }
         if (isClimateCardType(type))
             precision = normalizeClimatePrecisionConfig(precision);
-        if (type === "calendar" && precision !== "datetime")
-            precision = "";
         if (type === "weather") {
             precision = normalizeWeatherCardMode(precision);
             if (!weatherWindUsesSensors({ precision, options: b && b.options })) sensor = "";
@@ -658,9 +631,6 @@ export function createConfigCodecFeature(
         else if (type === "lock") {
             options = "";
         }
-        else if (type === "calendar" || type === "clock" || type === "timezone") {
-            options = normalizeDateTimeOptions(type, options, precision);
-        }
         else if (type === "vacuum") {
             options = normalizeSavedConfigVacuumOptions(options);
         }
@@ -714,20 +684,6 @@ export function createConfigCodecFeature(
                 icon = "Motion Sensor Off";
             if (!iconOn || iconOn === "Auto")
                 iconOn = "Motion Sensor";
-        }
-        if (type === "calendar") {
-            b = b || {};
-            if (!b.entity)
-                b.entity = cardContractDefaultConfig("calendar").entity;
-        }
-        if (type === "clock") {
-            b = b || {};
-            b.entity = "";
-        }
-        if (type === "timezone") {
-            b = b || {};
-            if (!b.entity)
-                b.entity = cardContractDefaultConfig("timezone").entity;
         }
         if (!type && !sensor) {
             unit = "";
@@ -805,15 +761,7 @@ export function createConfigCodecFeature(
         var parsed: any = EspDesktopModel.parseRawSubpageConfig(str, subpageTypeFromCode);
         if (raw)
             return parsed;
-        var compactButtonTokens: any = String(str || "").charAt(0) === "~"
-            ? String(str || "").split("|").slice(1)
-            : [];
-        parsed.buttons = parsed.buttons.map(function (this: any, button?: any, index?: any) {
-            var normalized: any = normalizeButtonConfig(button);
-            if (button && button.type === "calendar" && (!button.entity || compactButtonTokens[index] === "D"))
-                normalized.entity = "";
-            return normalized;
-        });
+        parsed.buttons = parsed.buttons.map((button: any) => normalizeButtonConfig(button));
         return parsed;
     }
     function subpageTypeCode(this: any, type?: any) {
@@ -832,13 +780,7 @@ export function createConfigCodecFeature(
         var parsed: any = EspDesktopModel.parseCompactSubpageConfig(str, subpageTypeFromCode);
         if (raw)
             return parsed;
-        var compactButtonTokens: any = String(str || "").split("|").slice(1);
-        parsed.buttons = parsed.buttons.map(function (this: any, button?: any, index?: any) {
-            var normalized: any = normalizeButtonConfig(button);
-            if (button && button.type === "calendar" && compactButtonTokens[index] === "D")
-                normalized.entity = "";
-            return normalized;
-        });
+        parsed.buttons = parsed.buttons.map((button: any) => normalizeButtonConfig(button));
         return parsed;
     }
     function subpageConfigHasLegacySliderDirection(this: any, str?: any) {

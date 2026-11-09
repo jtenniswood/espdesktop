@@ -42,7 +42,7 @@ export interface CardPickerOption {
   readonly description: string;
   readonly disabled: boolean;
   readonly connector: "home_assistant" | "mac_companion" | "mixed" |
-    "home_assistant_or_local" | "local" | "network";
+    "home_assistant_or_local" | "network";
 }
 
 interface PickerDetails {
@@ -51,12 +51,9 @@ interface PickerDetails {
 }
 
 const INFO_ONLY_CARD_TYPES = new Set([
-  "calendar",
-  "clock",
   "door_window",
   "image",
   "presence",
-  "timezone",
   "weather",
   "weather_forecast",
 ]);
@@ -65,7 +62,6 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   "": { icon: "toggle-switch", description: "Toggle lights, switches, helpers, or fans." },
   action: { icon: "flash", description: "Run a Home Assistant or local action." },
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
-  calendar: { icon: "calendar-clock", description: "Show date, time, or world clock values." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
   companion_app: { icon: "application-outline", description: "Launch an app on the Mac." },
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
@@ -118,14 +114,6 @@ const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
 // restricted to those local modes while Home Assistant is disabled.
 const LOCAL_ONLY_CARD_TYPES = new Set(["action"]);
 
-const HOME_ASSISTANT_ONLY_CARD_TYPES = new Set([
-  "calendar", "push", "slider",
-]);
-
-const LOCAL_CARD_TYPES = new Set([
-  "clock", "timezone",
-]);
-
 export type CardPickerConnector = "home_assistant" | "mac_companion";
 
 export function cardPickerConnectors(
@@ -140,12 +128,10 @@ export function cardPickerConnectors(
 
 export function cardTypeConnector(key: string): CardPickerOption["connector"] {
   if (key === "companion" || key.startsWith("companion_")) return "mac_companion";
-  if (HOME_ASSISTANT_ONLY_CARD_TYPES.has(key)) return "home_assistant";
   if (key === "action") {
     return "home_assistant_or_local";
   }
   if (key === "webhook") return "network";
-  if (LOCAL_CARD_TYPES.has(key)) return "local";
   return "home_assistant";
 }
 
@@ -328,9 +314,8 @@ export function cardTypePickerOptions(
     const source = cardTypeConnector(typeKey);
     const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
       (source === "home_assistant_or_local" && !LOCAL_ONLY_CARD_TYPES.has(typeKey)));
-    const localDateTimePicker = !homeAssistantEnabled && typeKey === "calendar";
     const localFolderPicker = !homeAssistantEnabled && typeKey === "subpage";
-    if (requiresHomeAssistant && !localDateTimePicker && !localFolderPicker) {
+    if (requiresHomeAssistant && !localFolderPicker) {
       if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {
         selectedUnsupported = { key: selectedTypeKey, label };
       }
@@ -351,7 +336,7 @@ export function cardTypePickerOptions(
     )) continue;
     if (isSub && !isSpecialPage && !allowInSubpage) continue;
     if (definition.isAvailable && !definition.isAvailable({ isSub }) && selectedTypeKey !== typeKey) continue;
-    if (!cardTypeVisibleForConnector(typeKey, connector) && !localDateTimePicker && !localFolderPicker) continue;
+    if (!cardTypeVisibleForConnector(typeKey, connector) && !localFolderPicker) continue;
     options.push({
       key: typeKey,
       label,

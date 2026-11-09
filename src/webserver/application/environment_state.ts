@@ -1,6 +1,5 @@
 import { state } from "../state/app_instance";
 import { AUTO_TIMEZONE_OPTION, FALLBACK_TIMEZONE_OPTION } from "../state/app_state";
-import { normalizeLanguage } from "../model/settings";
 import type { VoiceServicesController } from "../features/voice_services_controller";
 import type { ApplicationLayoutState } from "./application_context";
 
@@ -13,7 +12,6 @@ export interface EnvironmentStateFeature {
     isHomeAssistantAutoTimezone(value?: any): boolean;
     effectiveTimezoneOptionForWeb(value?: any): any;
     timezoneOptionsWithFallback(options?: any, selected?: any, preserveSelectedAuto?: any): any[];
-    monthNameForIndex(index?: any): string;
 }
 
 export function createEnvironmentStateFeature(
@@ -57,19 +55,6 @@ export function createEnvironmentStateFeature(
         }
         return list;
     }
-    function monthNameForIndex(index?: any) {
-        var monthIndex: any = parseInt(index, 10);
-        if (!isFinite(monthIndex) || monthIndex < 0 || monthIndex > 11)
-            return "Date";
-        try {
-            return new Intl.DateTimeFormat(normalizeLanguage(state.language), { month: "long" })
-                .format(new Date(Date.UTC(2000, monthIndex, 1)));
-        }
-        catch (_) {
-            return new Intl.DateTimeFormat("en", { month: "long" })
-                .format(new Date(Date.UTC(2000, monthIndex, 1)));
-        }
-    }
     return {
         voiceServicesSupported,
         voiceServicesState,
@@ -79,6 +64,5 @@ export function createEnvironmentStateFeature(
         isHomeAssistantAutoTimezone,
         effectiveTimezoneOptionForWeb,
         timezoneOptionsWithFallback,
-        monthNameForIndex,
     };
 }

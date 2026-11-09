@@ -33,9 +33,6 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::ALARM: return Family::ALARM;
     case Type::ALARM_ACTION: return Family::ALARM_ACTION;
     case Type::TIMER: return Family::TIMER;
-    case Type::CALENDAR:
-    case Type::CLOCK:
-    case Type::TIMEZONE: return Family::DATE_TIME;
     case Type::CLIMATE:
     case Type::CLIMATE_CONTROL: return Family::CLIMATE;
     case Type::COVER: return Family::COVER;

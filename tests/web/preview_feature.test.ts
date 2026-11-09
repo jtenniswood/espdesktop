@@ -60,7 +60,7 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("subpage", "mac_companion"), false, "Home Assistant subpages are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_subpage", "home_assistant"), false, "Companion subpages are hidden from Home Assistant");
   equal(cardTypeVisibleForConnector("companion_subpage", "mac_companion"), true, "Companion subpages remain in the Companion picker");
-  for (const key of ["calendar", "push", "slider", "timer"]) {
+  for (const key of ["push", "slider", "timer"]) {
     equal(cardTypeConnector(key), "home_assistant", `${key} is classified as Home Assistant-only`);
     equal(cardTypeVisibleForConnector(key, "home_assistant"), true, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
@@ -80,7 +80,6 @@ export function runPreviewFeatureTests(): void {
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
-    calendar: { label: "Date & Time", allowInSubpage: true, isAvailable: () => false },
     climate: { label: "Climate", allowInSubpage: false },
     climate_control: { label: "Climate controls", pickerKey: "climate", allowInSubpage: false },
     subpage: { label: "Subpage", allowInSubpage: false },
@@ -91,8 +90,6 @@ export function runPreviewFeatureTests(): void {
     "subpage picker retains available local cards",
   );
   const defaultPicker = cardTypePickerOptions(definitions, [], false, false, null);
-  equal(defaultPicker.some((option) => option.key === "calendar"), false,
-    "compatibility-only Date & Time cards are unavailable when adding a card");
   equal(defaultPicker.some((option) => option.key === "climate"), false,
     "Home Assistant cards stay hidden while support is disabled");
   equal(defaultPicker.some((option) => option.key === "subpage"), true,

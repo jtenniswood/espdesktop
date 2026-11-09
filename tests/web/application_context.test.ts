@@ -7,7 +7,6 @@ import { createConfigWeatherOptionsFeature } from "../../src/webserver/applicati
 import { createConfigWebhookOptionsFeature } from "../../src/webserver/application/config_webhook_options";
 import { createConfigRobotCardOptionsFeature } from "../../src/webserver/application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "../../src/webserver/application/config_lock_options";
-import { createConfigDateTimeOptionsFeature } from "../../src/webserver/application/config_date_time_options";
 import type { DeviceConfig } from "../../src/webserver/state/types";
 
 const profile: DeviceConfig = {
@@ -40,7 +39,6 @@ export function runApplicationContextTests(): void {
   const webhookConfigurationOptions = {} as any;
   const robotConfigurationOptions = {} as any;
   const lockConfigurationOptions = {} as any;
-  const dateTimeConfigurationOptions = {} as any;
   const modalTabOptions = {} as any;
   const accessClimateAlarmOptions = {} as any;
   const confirmationOptions = {} as any;
@@ -122,7 +120,6 @@ export function runApplicationContextTests(): void {
     webhookConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
-    dateTimeConfigurationOptions,
     modalTabOptions,
     accessClimateAlarmOptions,
     confirmationOptions,
@@ -225,7 +222,6 @@ export function runApplicationContextTests(): void {
   equal(context.configuration.webhookOptions, webhookConfigurationOptions, "context retains typed webhook options");
   equal(context.configuration.robotOptions, robotConfigurationOptions, "context retains typed robot-card options");
   equal(context.configuration.lockOptions, lockConfigurationOptions, "context retains typed lock options");
-  equal(context.configuration.dateTimeOptions, dateTimeConfigurationOptions, "context retains typed date/time options");
   equal(context.configuration.modalTabs, modalTabOptions, "context retains typed modal-tab options");
   equal(context.configuration.accessClimateAlarm, accessClimateAlarmOptions, "context retains typed access/climate/alarm options");
   equal(context.configuration.confirmationOptions, confirmationOptions, "context retains typed confirmation options");
@@ -295,22 +291,6 @@ export function runApplicationContextTests(): void {
   equal(lockOptions.normalizeLockMode("invalid"), "", "lock options normalize invalid modes to toggle");
   equal(lockOptions.lockModeDefaultIcon("unlock"), "Lock Open", "lock options provide command icons");
   equal(lockOptions.lockUsesDefaultIcon("Lock"), true, "lock options recognize historical default icons");
-
-  const dateTimeOptions = createConfigDateTimeOptionsFeature({
-    state: { timezone: "Europe/London (GMT+0)", timezoneOptions: ["Europe/London (GMT+0)"], clockFormat: "24h" } as any,
-    now: () => new Date("2026-01-01T09:05:00Z"),
-    renderButtonSettings() {},
-    effectiveTimezoneOption: (value) => value,
-    timezoneId: () => "Europe/London",
-    timezoneOptionsWithFallback: (options) => options,
-    appendTimezoneOption() {},
-    monthNameForIndex: () => "January",
-  });
-  equal(dateTimeOptions.metadata.mode.options.map((option: any) => option.label).join(","), "Clock,World Clock", "date/time picker only offers clock cards");
-  equal(dateTimeOptions.normalizeDateTimeCardMode("clock"), "clock", "date/time options preserve clock mode");
-  equal(dateTimeOptions.normalizeDateTimeCardMode("invalid"), "clock", "date/time options reject unknown modes");
-  equal(dateTimeOptions.dateTimeCardTimeParts().value, "09:05", "date/time options format the shared current time");
-  equal(dateTimeOptions.defaultTimezoneCardEntity(), "Europe/London (GMT+0)", "date/time options use the active timezone");
 
   const timer = cards.register("timer", { label: "Timer", allowInSubpage: true });
   equal(cards.typedDefinitionCount, 1, "registry counts typed card definitions");

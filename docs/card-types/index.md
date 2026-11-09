@@ -42,7 +42,7 @@ Use this page when you know what you want the panel to do but are not sure which
 
 Sensor cards are no longer supported, including in saved layouts.
 
-Existing [Date & Time](/card-types/calendar) cards remain supported in saved layouts and backups.
+Date & Time cards have been removed. Existing Date, Time & Date, Clock, and World Clock cards leave empty spaces when the panel loads a layout or restores a backup.
 
 ## Mac Cards
 
@@ -88,7 +88,7 @@ Older configurations may also show **Weather Forecast**. It is kept for compatib
 
 Cards that control Home Assistant need the panel to be allowed to perform Home Assistant actions. If a control card displays correctly but tapping it does nothing, check [Enable Actions](/getting-started/home-assistant-actions).
 
-Read-only display cards such as Sensor, Presence, Date & Time, and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
+Read-only display cards such as Presence and current Weather state can still show information without sending control actions. Weather forecast modes also need Home Assistant actions permission because the panel asks Home Assistant for forecast data.
 
 Mac cards use their own permissions instead: approve applications and folders in the Mac app, enable Accessibility for keyboard and window controls, and add statistics cards to show the readings shared automatically while connected.
 

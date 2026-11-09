@@ -14,6 +14,7 @@
 #include "esphome/components/lvgl/lvgl_esphome.h"
 #include "display_text.h"
 #include "display_mode_controller.h"
+#include "i18n_generated.h"
 #include "temperature_unit.h"
 
 inline void format_clock_time_without_suffix(char *buf, size_t size,
@@ -27,6 +28,15 @@ inline void format_clock_time_without_suffix(char *buf, size_t size,
   } else {
     snprintf(buf, size, "%02d:%02d", hour, minute);
   }
+}
+
+inline const char *clock_month_name(int month) {
+  static const char *months[] = {
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  };
+  if (month < 1 || month > 12) return espdesktop_i18n("Date");
+  return espdesktop_i18n(months[month - 1]);
 }
 
 inline void format_fixed_decimal(char *buf, size_t size, float value, int precision) {

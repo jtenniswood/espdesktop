@@ -16,8 +16,6 @@ This generated reference lists stable setup facts from the shared card contract.
 | Lawn Mower | lawn_mower | lawn_mower | Yes | Own picker item | Type: status, start_mowing, dock, pause_resume | Visible |
 | Alarm | alarm | alarm_control_panel | Yes | Own picker item | Type: control_panel, away, home, night, vacation, disarm; PIN required for arming; PIN required for disarming; Visible Actions: away, home, night, vacation, disarm; Icon Display: static, status; Label Display: name, status | Visible |
 | Alarm | alarm_action | alarm_control_panel | Yes | Alarm (alarm) | None | Visible |
-| Date & Time | calendar | sensor | Yes | Own picker item | Type: clock, timezone; Large Clock | Hidden |
-| Date & Time | clock | None | Yes | Date & Time (calendar) | Type: clock, timezone; Large Clock; Center Clock | Hidden |
 | Climate | climate | climate | Yes | Own picker item | Label Display: label, status, actual, target; Icon & Temperatures: icon, actual, target; Temperature Step: 1, 0.5; Large Temperature Numbers | Visible |
 | All Controls | climate_control | climate | Yes | Climate (climate) | Label Display: label, status, actual, target; Icon & Temperatures: icon, actual, target; Temperature Step: 1, 0.5; Large Temperature Numbers; Visible Tabs | Hidden |
 | Cover | cover | cover | Yes | Own picker item | Type: modal, default, tilt, toggle, open, close, stop, set_position; Position: 0-100; Visible Tabs: position, controls, tilt, presets | Visible |
@@ -43,7 +41,6 @@ This generated reference lists stable setup facts from the shared card contract.
 | Webhook | webhook | None | Yes | Own picker item | Headers | Visible |
 | Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Visible |
 | Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Visible |
-| Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, timezone; Large Clock | Hidden |
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Visible |
 | Camera Card | image | camera, image | Yes | Own picker item | Show Label; Show Icon; Image fit: fill, fit; Camera refresh: off, periodic, activity; Refresh interval: 5, 10, 30; Trigger entity | Visible |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Hidden |

@@ -56,7 +56,7 @@ If a refresh fails, the previous forecast keeps its layout and the details popup
 
 While loading, forecast cards show a single cloud-and-clock icon and **Loading**. The day layout appears when data arrives. A failed refresh keeps the last available forecast, with **Last forecast** shown in the details popup; if no forecast is available, the card shows **Forecast unavailable**.
 
-Weather cards use the fixed **tertiary** background colour, like Sensor, Date, Clock, and World Clock cards.
+Weather cards use the fixed **tertiary** background colour, used for weather information.
 
 All forecast modes share one compact eight-day forecast per weather entity. The panel supports up to eight forecast entities and sixteen forecast cards across the home screen and subpages. It creates widgets only for visible days, and the modal shows up to six day panels. Configurations beyond these limits show an unavailable forecast.
 
