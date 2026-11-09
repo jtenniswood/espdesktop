@@ -1,5 +1,6 @@
 import { removeRetiredCards } from "../features/retired_cards";
 import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
@@ -564,6 +565,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     sensorBadge +
                         iconHtml +
                         labelHtml;
+                if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {
+                    const warning = "Home Assistant unavailable. Saved configuration kept; replace or remove this card.";
+                    btn.title = warning;
+                    const badge = document.createElement("span");
+                    badge.className = "sp-sensor-badge mdi mdi-alert";
+                    badge.setAttribute("role", "img");
+                    badge.setAttribute("aria-label", warning);
+                    btn.appendChild(badge);
+                }
                 // Offer renaming only when the preview displays a name that can be saved.
                 if (cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
                     previewHtmlValue(typePreview, "labelEditable", true)) {

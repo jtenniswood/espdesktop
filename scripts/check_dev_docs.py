@@ -160,7 +160,6 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
 
 PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "": "docs/card-types/switches.md",
-    "action": "docs/card-types/actions.md",
     "alarm": "docs/card-types/alarms.md",
     "alarm_action": "docs/card-types/alarms.md",
     "companion": "docs/card-types/companion.md",
@@ -183,7 +182,6 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "light_temperature": "docs/card-types/lights.md",
     "lock": "docs/card-types/locks.md",
     "media": "docs/card-types/media.md",
-    "option_select": "docs/card-types/option-select.md",
     "push": "docs/card-types/buttons.md",
     "webhook": "docs/card-types/webhooks.md",
     "slider": "docs/card-types/sliders.md",
@@ -498,7 +496,7 @@ def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
     out = {card_type: [] for card_type in card_types}
     runtime_boundary = "components/espdesktop/button_grid_card_runtime.h"
     extra_by_type = {
-        "weather": ["components/espdesktop/button_grid_weather_forecast.h"],
+        "weather": ["components/espdesktop/retired_home_assistant_cards.h"],
     }
     headers = [
         path for path in sorted((ROOT / "components/espdesktop").glob("button_grid*.h"))

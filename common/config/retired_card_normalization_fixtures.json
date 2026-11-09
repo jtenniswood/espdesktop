@@ -195,6 +195,81 @@
     }
   },
   {
+    "name": "retired A action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;A;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "A",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired U action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;U;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "U",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired action action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;action;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "action",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired local action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;local;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "local",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired option_select action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;option_select;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "option_select",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "retired Date card settings are discarded",
     "input": "sensor.date;;;;;;calendar",
     "expected": {

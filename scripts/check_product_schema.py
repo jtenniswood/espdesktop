@@ -99,8 +99,9 @@ def run_self_test() -> int:
     expect_error(validate_card_contract(missing_option_default), "is required for choice and number options")
 
     duplicate_storage = copy.deepcopy(card_contract)
-    action_options = duplicate_storage["cards"]["action"]["options"]
-    action_options[1]["storage"] = ["large_numbers"]
+    _, storage_card = first_card_with_options(duplicate_storage["cards"])
+    action_options = storage_card["options"]
+    action_options[1]["storage"] = [action_options[0]["name"]]
     expect_error(validate_card_contract(duplicate_storage), "duplicates storage name")
 
     invalid_hook = copy.deepcopy(card_contract)
@@ -121,7 +122,8 @@ def run_self_test() -> int:
     expect_error(validate_card_contract(invalid_allowed_alias), "must map to an allowed value")
 
     invalid_condition = copy.deepcopy(card_contract)
-    invalid_condition["cards"]["action"]["options"][2]["applicability"][0]["operator"] = "matches"
+    condition_option = next(option for card in invalid_condition["cards"].values() for option in card.get("options", []) if option.get("applicability"))
+    condition_option["applicability"][0]["operator"] = "matches"
     expect_error(validate_card_contract(invalid_condition), "must be equals, in, or present")
 
     invalid_subpage_codes = copy.deepcopy(card_contract)

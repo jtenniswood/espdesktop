@@ -19,7 +19,6 @@
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
 #include "app_shortcuts_generated.h"
-#include "button_grid_saved_config_action_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
 #include "button_grid_saved_config_weather_generated.h"
@@ -1403,7 +1402,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   // Retired Mac playback cards become empty slots, including inside subpages.
   if (p.type == "companion" && (p.entity == "media.play_pause" ||
       p.entity == "media.previous" || p.entity == "media.next")) return ParsedCfg{};
-  migrate_saved_config_action_legacy(p);
   const bool normalized_saved_fan = normalize_saved_config_fan(
       p, normalize_saved_config_fan_fields, fan_control_card_options_normalized);
   const bool was_legacy_weather_forecast = migrate_saved_config_weather_legacy(p);
@@ -1426,8 +1424,6 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
   normalize_saved_config_subpage(
       p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);
-  normalize_saved_config_action(p, normalize_saved_config_action_fields,
-                                action_card_options_normalized);
   if (p.type == "companion") {
     p.icon_on = "Auto";
     if (companion_system_metric_config(p)) {
@@ -1838,30 +1834,6 @@ inline bool ha_entity_state_unavailable_ref(const std::string &entity_id,
   if (value == "unknown") return !ha_entity_accepts_unknown_state(entity_id);
   return false;
 }
-
-#ifndef ESPDESKTOP_HA_DEFERRED_HELPERS_DEFINED
-inline void ha_reset_deferred_state_requests() {}
-#endif
-
-#ifndef ESPDESKTOP_HA_SUBSCRIPTION_HELPERS_DEFINED
-inline void ha_reset_subscription_callbacks(uint32_t scope = 0) { (void) scope; }
-#endif
-
-#ifndef ESPDESKTOP_HA_GENERATION_HELPERS_DEFINED
-inline uint32_t &ha_subscription_generation() {
-  static uint32_t generation = 1;
-  return generation;
-}
-
-inline void bump_ha_subscription_generation() {
-  uint32_t &generation = ha_subscription_generation();
-  generation++;
-  if (generation == 0) generation = 1;
-  ha_reset_deferred_state_requests();
-  ha_reset_subscription_callbacks(
-      HA_SUBSCRIPTION_SCOPE_DEFAULT | HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS);
-}
-#endif
 
 inline std::string sentence_cap_text(const std::string &state) {
   std::string out;

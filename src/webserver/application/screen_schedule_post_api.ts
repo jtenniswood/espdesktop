@@ -4,7 +4,6 @@ import {
     normalizeScheduleTrigger,
     normalizeTimeOfDay,
     scheduleModeOption,
-    scheduleSensorActivationOption,
 } from "../model/settings";
 import type { EntityStateFeature } from "./entity_state";
 import type { ApplicationApiFeature } from "./api";
@@ -15,8 +14,6 @@ export interface ScreenSchedulePostApiFeature {
     postBrightnessDuskTime(value?: any): void;
     postScreenScheduleEnabled(on?: any): void;
     postScreenScheduleTrigger(value?: any): void;
-    postScreenScheduleSensorActivation(value?: any): void;
-    postScreenScheduleSensorEntity(value?: any): any;
     postScreenScheduleOnHour(value?: any): void;
     postScreenScheduleOffHour(value?: any): void;
     postScreenScheduleMode(value?: any): void;
@@ -41,8 +38,6 @@ export function createScreenSchedulePostApiFeature(
     // ── Screen Schedule Post API ──────────────────────────────────────────
     var SCREEN_SCHEDULE_UNAVAILABLE: any = "Screen schedule is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE: any = "The schedule trigger setting is not available on this firmware. Update the device firmware, then reload this page.";
-    var SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE: any = "The schedule sensor activation setting is not available on this firmware. Update the device firmware, then reload this page.";
-    var SCREEN_SCHEDULE_SENSOR_ENTITY_UNAVAILABLE: any = "The schedule sensor setting is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE: any = "The schedule wake timeout setting is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE: any = "The schedule wake brightness setting is not available on this firmware. Update the device firmware, then reload this page.";
     var SCREEN_SCHEDULE_MODE_UNAVAILABLE: any = "The schedule mode setting is not available on this firmware. Update the device firmware, then reload this page.";
@@ -74,12 +69,6 @@ export function createScreenSchedulePostApiFeature(
     function postScreenScheduleTrigger(this: any, value?: any) {
         postTextWithObjectIds(entityName("screen_schedule_trigger"), entityObjectIds("screen_schedule_trigger"), normalizeScheduleTrigger(value, state.scheduleEnabled), SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE);
     }
-    function postScreenScheduleSensorActivation(this: any, value?: any) {
-        postSelectWithObjectIds(entityName("screen_schedule_sensor_activation"), entityObjectIds("screen_schedule_sensor_activation"), scheduleSensorActivationOption(value), SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE);
-    }
-    function postScreenScheduleSensorEntity(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screen_schedule_sensor_entity"), entityObjectIds("screen_schedule_sensor_entity"), value, SCREEN_SCHEDULE_SENSOR_ENTITY_UNAVAILABLE);
-    }
     function postScreenScheduleOnHour(this: any, value?: any) {
         postNumberWithObjectIds(entityName("screen_schedule_on_hour"), entityObjectIds("screen_schedule_on_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
     }
@@ -108,8 +97,6 @@ export function createScreenSchedulePostApiFeature(
         postBrightnessDuskTime,
         postScreenScheduleEnabled,
         postScreenScheduleTrigger,
-        postScreenScheduleSensorActivation,
-        postScreenScheduleSensorEntity,
         postScreenScheduleOnHour,
         postScreenScheduleOffHour,
         postScreenScheduleMode,

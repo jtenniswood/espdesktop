@@ -47,17 +47,6 @@
       "lifecycle": { "subscriptions": ["state"], "actions": ["home_assistant_service"], "modalOwner": "none" },
       "modes": [{ "name": "toggle", "config": { "entity": "switch.example" } }]
     },
-    "action": {
-      "classification": "canonical",
-      "canonicalType": "action",
-      "webRegistration": "action",
-      "firmwareFamily": "ACTION",
-      "lifecycle": { "subscriptions": ["state"], "actions": ["home_assistant_service"], "modalOwner": "none" },
-      "modes": [
-        { "name": "service", "config": { "entity": "scene.example", "sensor": "scene.turn_on" } },
-        { "name": "local", "config": { "entity": "zoom_mute", "sensor": "local" }, "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" } }
-      ]
-    },
     "vacuum": {
       "classification": "canonical",
       "canonicalType": "vacuum",
@@ -254,11 +243,6 @@
         { "name": "playlist", "config": { "entity": "media_player.example", "sensor": "playlist", "options": "playlist_content_id=example" } }
       ]
     },
-    "option_select": {
-      "classification": "accepted_legacy_input", "canonicalType": "action", "webRegistration": "action", "firmwareFamily": "OPTION_SELECT",
-      "lifecycle": { "subscriptions": ["state", "attributes"], "actions": ["home_assistant_service"], "modalOwner": "none" },
-      "modes": [{ "name": "legacy_option_select", "config": { "entity": "input_select.example", "type": "option_select" } }]
-    },
     "push": {
       "classification": "canonical", "canonicalType": "push", "webRegistration": "push", "firmwareFamily": "PUSH",
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
@@ -309,14 +293,6 @@
     }
   },
   "runtimeOnlyTypes": {
-    "local": {
-      "classification": "accepted_legacy_input",
-      "canonicalType": "action",
-      "surfaces": ["web_parser", "saved_config_parser"],
-      "firmwareFamily": "ACTION",
-      "config": { "entity": "zoom_mute", "type": "local", "sensor": "local" },
-      "lifecycle": { "subscriptions": ["local"], "actions": ["local"], "modalOwner": "none" }
-    },
     "companion_subpage": {
       "classification": "picker_alias",
       "canonicalType": "subpage",

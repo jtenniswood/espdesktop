@@ -45,36 +45,6 @@
     }
   },
   {
-    "name": "action: service",
-    "input": "~scene.example,,Flash,Auto,scene.turn_on,,action,,",
-    "expected": {
-      "entity": "scene.example",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "scene.turn_on",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "action: local",
-    "input": "~zoom_mute,,Flash,Auto,local,,action,,",
-    "expected": {
-      "entity": "zoom_mute",
-      "label": "",
-      "icon": "Gesture Tap",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "vacuum: status",
     "input": "~vacuum.example,,Robot%20Vacuum,Auto,status,,vacuum,,",
     "expected": {
@@ -960,21 +930,6 @@
     }
   },
   {
-    "name": "option_select: legacy_option_select",
-    "input": "~input_select.example,,Flash,Auto,input_select.select_option,,option_select,,",
-    "expected": {
-      "entity": "input_select.example",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "input_select.select_option",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "push: event",
     "input": "~,Trigger,Gesture%20Tap,Auto,,,push,,",
     "expected": {
@@ -1151,21 +1106,6 @@
       "unit": "",
       "type": "weather",
       "precision": "tomorrow",
-      "options": ""
-    }
-  },
-  {
-    "name": "local: accepted_legacy_input",
-    "input": "~zoom_mute,,,,local,,local,,",
-    "expected": {
-      "entity": "zoom_mute",
-      "label": "",
-      "icon": "Gesture Tap",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "action",
-      "precision": "",
       "options": ""
     }
   },

@@ -64,8 +64,6 @@
       "garage": "product/v2/cards/garage.json",
       "gate": "product/v2/cards/gate.json",
       "lock": "product/v2/cards/lock.json",
-      "action": "product/v2/cards/action.json",
-      "option_select": "product/v2/cards/option_select.json",
       "push": "product/v2/cards/push.json",
       "companion": "product/v2/cards/companion.json",
       "slider": "product/v2/cards/slider.json",

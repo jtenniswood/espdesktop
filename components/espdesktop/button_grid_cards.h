@@ -408,38 +408,10 @@ inline void companion_reset_card_app_icon_palette(BtnSlot &slot) {
 inline void apply_push_button_transition(lv_obj_t *btn);
 inline void clear_push_button_transition(lv_obj_t *btn);
 
-inline void setup_garage_card(BtnSlot &s, const ParsedCfg &p) {
-  if (garage_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, garage_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, garage_closed_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, garage_card_show_status(p) ? "--" : garage_card_label(p));
-}
 
-inline void setup_gate_card(BtnSlot &s, const ParsedCfg &p) {
-  if (gate_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, gate_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, gate_closed_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, gate_card_show_status(p) ? "--" : gate_card_label(p));
-}
 
-inline void setup_lock_card(BtnSlot &s, const ParsedCfg &p) {
-  if (lock_command_mode(p.sensor)) {
-    lv_label_set_display_text(s.icon_lbl, lock_command_icon(p));
-    lv_label_set_display_text(s.text_lbl, lock_card_label(p));
-    apply_push_button_transition(s.btn);
-    return;
-  }
-  lv_label_set_display_text(s.icon_lbl, lock_locked_icon(p.icon));
-  lv_label_set_display_text(s.text_lbl, lock_card_label(p));
-}
+
+
 
 inline void apply_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
@@ -453,7 +425,6 @@ inline void apply_push_button_transition(lv_obj_t *btn) {
   lv_obj_set_style_transition(btn, &push_trans,
     static_cast<lv_style_selector_t>(LV_PART_MAIN) | LV_STATE_DEFAULT);
 }
-
 
 inline void clear_push_button_transition(lv_obj_t *btn) {
   if (!btn) return;
@@ -499,7 +470,6 @@ inline void setup_toggle_visual(BtnSlot &s, const ParsedCfg &p) {
   }
 }
 
-inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p);
 
 inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
                                  uint32_t sensor_color = theme_display_color(current_theme().surface_secondary)) {
@@ -570,39 +540,7 @@ inline void setup_companion_card(BtnSlot &s, const ParsedCfg &p,
   companion_apply_card_focus(s.btn, p.entity, p.sensor);
 }
 
-inline void setup_action_card(BtnSlot &s, const ParsedCfg &p) {
-  if (action_card_local_action(p)) {
-    setup_local_action_card(s, p);
-    return;
-  }
-  std::string action_label = p.label.empty()
-    ? (p.entity.empty() ? espdesktop_i18n(std::string("Action")) : p.entity)
-    : p.label;
-  lv_label_set_display_text(s.text_lbl, action_label.c_str());
-  const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Flash") : find_icon(p.icon.c_str());
-  lv_label_set_display_text(s.icon_lbl, icon_cp);
-  if (action_card_state_icon_mode(p) || action_card_state_text_mode(p)) {
-    lv_obj_clear_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_add_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
-  } else if (action_card_state_numeric_mode(p)) {
-    lv_obj_add_flag(s.icon_lbl, LV_OBJ_FLAG_HIDDEN);
-    lv_obj_clear_flag(s.sensor_container, LV_OBJ_FLAG_HIDDEN);
-    lv_label_set_display_text(s.sensor_lbl, "--");
-    std::string unit = trim_display_unit(action_card_state_unit(p));
-    lv_label_set_display_text(s.unit_lbl, unit.c_str());
-  }
-  apply_push_button_transition(s.btn);
-}
 
-inline void setup_local_action_card(BtnSlot &s, const ParsedCfg &p) {
-  std::string label = p.label.empty()
-    ? (p.entity.empty() ? espdesktop_i18n_key(std::string("label_local_action")) : sentence_cap_text(p.entity))
-    : p.label;
-  lv_label_set_display_text(s.text_lbl, label.c_str());
-  const char *icon_cp = (p.icon.empty() || p.icon == "Auto") ? find_icon("Gesture Tap") : find_icon(p.icon.c_str());
-  lv_label_set_display_text(s.icon_lbl, icon_cp);
-  apply_push_button_transition(s.btn);
-}
 
 
 

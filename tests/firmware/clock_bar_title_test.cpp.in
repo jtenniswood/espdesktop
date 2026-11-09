@@ -64,7 +64,6 @@ int main() {
   assert(control_modal_card_label(&card).empty());
   assert(control_modal_card_labels().empty());
 
-  clock_bar_home_assistant_configured_provider() = []() { return true; };
   lv_font_t clock_font, temperature_font, card_font;
   lv_obj_t clock;
   clock.font = &clock_font;
@@ -72,19 +71,19 @@ int main() {
   lv_obj_t left;
   left.font = &temperature_font;
   lv_obj_t *labels[] = {&left};
-  set_clock_bar_temperature_labels(labels, 1);
-  auto refresh = [&](bool visible, bool temperature, float value) {
-    refresh_clock_bar_temperature_label_values(nullptr, visible, temperature, false, value, NAN);
+  set_clock_bar_left_labels(labels, 1);
+  auto refresh = [&](bool visible) {
+    refresh_clock_bar_left_label(nullptr, visible);
   };
-  refresh(true, true, 20);
-  const std::string temperature = left.text;
+  refresh(true);
+  assert(left.hidden);
   set_clock_bar_modal_label("Living room climate");
   assert(left.text == "Living room climate" && !left.hidden);
   assert(left.width == clock_bar_left_text_widths().title);
-  refresh(true, true, 21);
+  refresh(true);
   assert(left.text == "Living room climate");
   set_clock_bar_modal_label("");
-  assert(left.text != temperature && left.text.find("21") != std::string::npos);
+  assert(left.hidden);
   assert(left.width == clock_bar_left_text_widths().temperature);
 
   set_clock_bar_companion_subpage_label("Upstairs");
@@ -93,7 +92,7 @@ int main() {
   assert(left.font == clock.font);
   set_clock_bar_modal_label("Bedroom speaker");
   set_clock_bar_companion_subpage_label("Upstairs");
-  refresh(true, true, 22);
+  refresh(true);
   assert(left.text == "Bedroom speaker");
   set_clock_bar_modal_label("Bedroom light");
   assert(left.text == "Bedroom light");
@@ -102,10 +101,10 @@ int main() {
   assert(left.font == clock.font);
   set_clock_bar_companion_subpage_label("");
   assert(left.font == &temperature_font);
-  assert(left.text.find("22") != std::string::npos);
+  assert(left.hidden);
 
-  // A hidden temperature slot still supports titles, then hides on close.
-  refresh(true, false, NAN);
+  // The left slot supports local/Mac titles, then hides on close.
+  refresh(true);
   assert(left.hidden);
   set_clock_bar_modal_label("Fan");
   assert(!left.hidden && left.text == "Fan");
@@ -113,10 +112,10 @@ int main() {
   assert(left.hidden);
 
   // Disabled bars and display takeovers never expose a stray title.
-  refresh(false, false, NAN);
+  refresh(false);
   set_clock_bar_modal_label("Alarm");
   assert(left.hidden);
-  refresh(true, false, NAN);
+  refresh(true);
   assert(!left.hidden && left.text == "Alarm");
   hide_clock_bar_top_layer_widgets(labels, 1, nullptr, nullptr);
   set_clock_bar_modal_label("Alarm PIN");

@@ -53,14 +53,15 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
-  if (card_runtime_type_retired(b.type)) {
-    const std::string type = b.type;
-    b = SubpageBtn{};
-    b.type = type;
-    b.icon = "Auto";
-    b.icon_on = "Auto";
-    return b;
+  // Shared appearance options must survive the same cleanup as main cards.
+  const std::string icon_size = cfg_option_value(b.options, "icon_size");
+  std::string type_options;
+  for (const auto &token : split_subpage_fields(b.options, ',')) {
+    if (token.empty() || token.compare(0, 10, "icon_size=") == 0) continue;
+    if (!type_options.empty()) type_options += ",";
+    type_options += token;
   }
+  b.options = type_options;
   // Shared colours must survive the card-specific option cleanup below.
   const std::string card_colors = card_color_options_normalized(b.options);
   b.options = options_without_card_colors(b.options);
@@ -243,6 +244,10 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (!card_colors.empty()) {
     if (!b.options.empty()) b.options += ",";
     b.options += card_colors;
+  }
+  if (icon_size == "small" || icon_size == "medium" || icon_size == "large") {
+    if (!b.options.empty()) b.options += ",";
+    b.options += "icon_size=" + icon_size;
   }
   return b;
 }
@@ -616,90 +621,4 @@ inline BtnSlot create_dynamic_card_slot(lv_obj_t *btn,
   return slot;
 }
 
-inline void subscribe_subpage_parent_indicator(
-    const std::string &entity_id,
-    lv_obj_t *parent_btn, lv_obj_t *parent_icon,
-    int parent_idx, bool *child_was_on,
-    bool has_alt_icon, const char *off_glyph, const char *on_glyph,
-    int *sp_on_count,
-    bool (*is_active_state)(esphome::StringRef) = is_entity_on_ref) {
-  ha_subscribe_state(
-    entity_id,
-    std::function<void(esphome::StringRef)>(
-      [parent_btn, parent_icon, parent_idx, child_was_on,
-       has_alt_icon, off_glyph, on_glyph, sp_on_count,
-       is_active_state](esphome::StringRef state) {
-        bool is_on = is_active_state(state);
-        if (is_on && !*child_was_on) {
-          sp_on_count[parent_idx]++;
-          *child_was_on = true;
-        } else if (!is_on && *child_was_on) {
-          sp_on_count[parent_idx]--;
-          *child_was_on = false;
-        }
-        if (sp_on_count[parent_idx] > 0) {
-          set_card_checked_state(parent_btn, true);
-          if (has_alt_icon) lv_label_set_display_text(parent_icon, on_glyph);
-        } else {
-          set_card_checked_state(parent_btn, false);
-          if (has_alt_icon) lv_label_set_display_text(parent_icon, off_glyph);
-        }
-      })
-  );
-}
-
-struct ClimateSubpageParentIndicatorCtx {
-  std::string hvac_mode = "off";
-  std::string hvac_action;
-  bool available = true;
-  lv_obj_t *parent_btn = nullptr;
-  lv_obj_t *parent_icon = nullptr;
-  bool has_alt_icon = false;
-  const char *off_glyph = nullptr;
-  const char *on_glyph = nullptr;
-};
-
-inline void apply_climate_subpage_parent_indicator(ClimateSubpageParentIndicatorCtx *ctx) {
-  if (!ctx) return;
-  bool working = espdesktop::climate::parent_indicator_active(
-      ctx->available, ctx->hvac_mode, ctx->hvac_action);
-  set_card_checked_state(ctx->parent_btn, working);
-  if (ctx->has_alt_icon && ctx->parent_icon)
-    lv_label_set_display_text(ctx->parent_icon, working ? ctx->on_glyph : ctx->off_glyph);
-}
-
-inline void subscribe_climate_subpage_parent_indicator(
-    const std::string &entity_id,
-    lv_obj_t *parent_btn, lv_obj_t *parent_icon,
-    bool has_alt_icon, const char *off_glyph, const char *on_glyph) {
-  if (entity_id.empty()) return;
-  ClimateSubpageParentIndicatorCtx *ctx = new ClimateSubpageParentIndicatorCtx();
-  ctx->parent_btn = parent_btn;
-  ctx->parent_icon = parent_icon;
-  ctx->has_alt_icon = has_alt_icon;
-  ctx->off_glyph = off_glyph;
-  ctx->on_glyph = on_glyph;
-  apply_climate_subpage_parent_indicator(ctx);
-
-  ha_subscribe_state(
-    entity_id,
-    std::function<void(esphome::StringRef)>(
-      [ctx](esphome::StringRef state) {
-        ctx->hvac_mode = climate_hvac_service_value(string_ref_limited(state, HA_SHORT_STATE_MAX_LEN));
-        ctx->available = !climate_unavailable_value(ctx->hvac_mode);
-        if (!ctx->available) ctx->hvac_mode = "off";
-        apply_climate_subpage_parent_indicator(ctx);
-      })
-  );
-  ha_subscribe_attribute(
-    entity_id, std::string("hvac_action"),
-    std::function<void(esphome::StringRef)>(
-      [ctx](esphome::StringRef value) {
-        ctx->hvac_action = climate_lower(climate_trim(string_ref_limited(value, HA_SHORT_STATE_MAX_LEN)));
-        apply_climate_subpage_parent_indicator(ctx);
-      })
-  );
-}
-
-// Parse subpage order CSV; "B"/"Bd"/"Bw"/"Bb"/"Bt"/"Bx" tokens mark the back button position
 #endif  // ESPDESKTOP_SUBPAGE_PARSER_ONLY
