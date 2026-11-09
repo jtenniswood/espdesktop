@@ -6990,13 +6990,13 @@ async function assertFirstRunSetup(browser) {
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
     const settingsCard = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-auto-open-app-subpages") });
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
-    await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "settings restores home apps");
     const beforeClose = JSON.stringify(fixture.document);
     await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
     assert.equal(JSON.stringify(fixture.document), beforeClose, "closing setup preserves the layout");
-    await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
     await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
     assert(await addPages.isChecked(), "settings restores the global shortcut choice");
@@ -7020,7 +7020,7 @@ async function assertFirstRunSetup(browser) {
     fixture.writeStatus = 204;
     await page.getByRole("tab", { name: "Screen", exact: true }).click();
     if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
-    await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
     await launchOnly.check();
     await dialog.getByRole("button", { name: "Done", exact: true }).click();

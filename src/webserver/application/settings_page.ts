@@ -581,8 +581,8 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         if (layout.config.features?.companion && openAppSetup) {
             const setupButton = document.createElement("button");
             setupButton.type = "button";
-            setupButton.className = "sp-action-btn";
-            setupButton.textContent = "Set up home-screen apps";
+            setupButton.className = "sp-action-btn sp-neutral-btn";
+            setupButton.textContent = "Setup Again";
             setupButton.addEventListener("click", openAppSetup);
             appSubpageBody.appendChild(setupButton);
         }

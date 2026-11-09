@@ -490,8 +490,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         "transition:background .25s,opacity .25s,box-shadow .25s}" +
         ".sp-action-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-soft)}" +
         ".sp-action-btn:active{opacity:.85}" +
-        ".sp-delete-btn,.sp-hide-btn,.sp-cancel-btn{background:var(--surface2);color:var(--text);display:inline-flex;align-items:center;gap:6px}" +
-        ".sp-delete-btn:hover,.sp-hide-btn:hover,.sp-cancel-btn:hover{background:var(--border);color:var(--text)}" +
+        ".sp-delete-btn,.sp-hide-btn,.sp-cancel-btn,.sp-neutral-btn{background:var(--surface2);color:var(--text);display:inline-flex;align-items:center;gap:6px}" +
+        ".sp-delete-btn:hover,.sp-hide-btn:hover,.sp-cancel-btn:hover,.sp-neutral-btn:hover{background:var(--border);color:var(--text)}" +
         ".sp-delete-btn.sp-destructive-btn{background:var(--danger);color:#fff}" +
         ".sp-delete-btn.sp-destructive-btn:hover{filter:brightness(.9)}" +
         ".sp-save-btn{background:var(--accent);color:#fff}" +

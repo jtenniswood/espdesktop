@@ -32,6 +32,6 @@ On an empty display, the web page guides you through app setup.
 3. Choose **Done** or **Save setup**. Your cards appear on the display automatically.
 4. Tap a card to open its app or bring it to the front on your Mac.
 
-Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → App Subpages → Set up home-screen apps**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
+Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → Appearance → App Subpages → Setup Again**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
 
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
