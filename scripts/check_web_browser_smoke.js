@@ -8859,6 +8859,7 @@ async function assertFirstRunSetup(browser) {
     const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     assert.equal(await dialog.getByRole("radio").count(), 2, "step two offers two exclusive modes");
     assert(await launchOnly.isChecked(), "fresh setup defaults to launch-only cards");
+    assert(await dialog.getByRole("button", { name: "Done", exact: true }).isVisible(), "launch-only setup ends at step two");
     await dialog.getByText("Add shortcut pages", { exact: true }).click();
     assert(await addPages.isChecked(), "clicking the choice card selects it");
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
@@ -8940,6 +8941,14 @@ async function assertFirstRunSetup(browser) {
     assert.equal(switches.at(-1), "turn_on", "a committed replacement keeps the chosen switching setting");
     await page.getByText("The configuration saved, but its older-firmware copy did not. Do not downgrade this panel yet.", { exact: true }).waitFor();
     fixture.writeStatus = 204;
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Set up home-screen apps", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    await launchOnly.check();
+    await dialog.getByRole("button", { name: "Done", exact: true }).click();
+    await dialog.waitFor({ state: "detached" });
+    assert.equal(Object.keys(fixture.document.subpages).length, 0, "Done saves launch-only cards directly from step two");
     // Pairing links remain usable before connecting; connection offers setup.
     fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
     status.mac_companion.connected = false;

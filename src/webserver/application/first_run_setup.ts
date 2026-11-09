@@ -242,6 +242,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const input = element("input");
         input.type = "radio";
         input.name = "sp-setup-mode";
+        input.setAttribute("data-setup-key", id);
         input.checked = checked;
         input.disabled = busy || disabled;
         const heading = element("strong", title);
@@ -263,15 +264,15 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const selectionStart = document.activeElement instanceof HTMLInputElement ? document.activeElement.selectionStart : null;
         dialog.replaceChildren();
         const supportedCount = supportedApps().length;
-        const shortcutPageCount = addShortcutPages ? supportedCount : 0;
-        const progress = element("p", `Step ${step} of 3`, "sp-setup-step");
+        const lastStep = addShortcutPages && supportedCount > 0 ? 3 : 2;
+        step = Math.min(step, lastStep);
+        const progress = element("p", `Step ${step} of ${lastStep}`, "sp-setup-step");
         const title = element("h1", step === 1 ? "Choose your apps" : step === 2 ? "Shortcut pages" : "Finish setup", "sp-setup-title");
         title.id = "sp-setup-title";
         const explanations = [
             `Get started by picking your favourite apps to display (up to ${appLimit} apps)`,
             "Choose what you can do from your app cards.",
-            shortcutPageCount > 0 ? "Choose when the display opens a shortcut page."
-                : "Save your app cards to the display.",
+            "Choose when the display opens a shortcut page.",
         ];
         const description = element("p", explanations[step - 1], "sp-setup-description");
         const closeButton = element("button", "", "sp-settings-close");
@@ -321,24 +322,22 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 modeChoice("sp-setup-add-pages", "Add shortcut pages", canAddPages
                     ? `Add a page of ready-to-use shortcuts for ${supportedCount} of your selected apps.`
                     : "The selected apps have no built-in shortcut pages.", addShortcutPages && canAddPages,
-                    () => { addShortcutPages = true; }, !canAddPages),
+                    () => { addShortcutPages = true; render(); }, !canAddPages),
                 modeChoice("sp-setup-launch-only", "Launch apps only", "Tap a card to open or switch to its app.",
-                    !addShortcutPages || !canAddPages, () => { addShortcutPages = false; }),
+                    !addShortcutPages || !canAddPages, () => { addShortcutPages = false; render(); }),
             );
             content.appendChild(modes);
         } else {
-            if (shortcutPageCount > 0) {
-                const modes = element("div", "", "sp-setup-modes");
-                modes.setAttribute("role", "radiogroup");
-                modes.setAttribute("aria-label", "Shortcut page opening mode");
-                modes.append(
-                    modeChoice("sp-setup-auto-switch", "Follow the active app", "Open its shortcut page when you switch to the app on your Mac.",
-                        autoSwitch, () => { autoSwitch = true; }),
-                    modeChoice("sp-setup-manual-switch", "Open from the display", "Tap the card of an active app to open its shortcuts.",
-                        !autoSwitch, () => { autoSwitch = false; }),
-                );
-                content.appendChild(modes);
-            }
+            const modes = element("div", "", "sp-setup-modes");
+            modes.setAttribute("role", "radiogroup");
+            modes.setAttribute("aria-label", "Shortcut page opening mode");
+            modes.append(
+                modeChoice("sp-setup-auto-switch", "Follow the active app", "Open its shortcut page when you switch to the app on your Mac.",
+                    autoSwitch, () => { autoSwitch = true; }),
+                modeChoice("sp-setup-manual-switch", "Open from the display", "Tap the card of an active app to open its shortcuts.",
+                    !autoSwitch, () => { autoSwitch = false; }),
+            );
+            content.appendChild(modes);
         }
         dialog.appendChild(content);
         if (step > 1 && !connected) {
@@ -358,8 +357,10 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         }
         const actions = element("div", "", "sp-btn-group-right");
         if (step > 1) actions.appendChild(button("Back", () => { --step; render(); }));
-        const next = button(busy ? "Saving…" : step === 3 ? (replacing ? "Done" : "Save setup") : "Next", () => {
-            if (step === 3) void finish(); else { ++step; render(); }
+        const isFinalStep = step === lastStep;
+        const finishLabel = replacing || step === 2 ? "Done" : "Save setup";
+        const next = button(busy ? "Saving…" : isFinalStep ? finishLabel : "Next", () => {
+            if (isFinalStep) void finish(); else { ++step; render(); }
         }, true);
         next.disabled = busy || loading || !connected || selected.size === 0;
         actions.appendChild(next);
