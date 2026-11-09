@@ -1557,8 +1557,13 @@ export function registerCompanionCardTypes(
     registry.register("companion", companionDefinition);
 
     const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
+    const macLockMetadata = {
+        icon: { fallback: macLockDefaults.icon },
+        preview: { iconFallback: macLockDefaults.icon, badge: COMPANION_CARD_METADATA.preview.badge },
+    };
     registry.register("companion_mac_lock", {
         label: macLockDefaults.label,
+        cardMetadata: macLockMetadata,
         allowInSubpage: cardContractAllowInSubpage("companion_mac_lock"),
         isAvailable: () => supported,
         labelPlaceholder: macLockDefaults.label,
@@ -1570,12 +1575,11 @@ export function registerCompanionCardTypes(
             options: normalizedCardColorOptions(card.options),
         }),
         renderSettings: (panel, card, _slot, helpers) => {
-            helpers.renderCardIconPicker(panel, card, helpers, { fallback: macLockDefaults.icon });
+            helpers.renderCardIconPicker(panel, card, helpers, macLockMetadata.icon);
         },
         renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+            ...macLockMetadata.preview,
             label: card.label || macLockDefaults.label,
-            iconFallback: macLockDefaults.icon,
-            badge: COMPANION_CARD_METADATA.preview.badge,
         }),
     });
 
