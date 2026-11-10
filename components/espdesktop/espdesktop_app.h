@@ -59,11 +59,6 @@ class EspDesktopApp : public esphome::Component {
   // A failed allocation then refuses writes instead of silently using legacy
   // UI.
   bool require_application_scene();
-  // Existing text-entity automations debounce edits before requesting this.
-  // The application loop performs all model/storage work at a safe boundary.
-  void request_configuration_text_refresh() {
-    configuration_text_refresh_pending_ = true;
-  }
   esphome::Trigger<> *get_layout_changed_trigger() { return &layout_changed_; }
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
@@ -146,7 +141,6 @@ class EspDesktopApp : public esphome::Component {
   void initialize_native_configuration();
   void defer_native_configuration_initialization();
   void apply_boot_configuration();
-  void apply_configuration_text_refresh();
   void publish_app_subpage_preference(bool enabled);
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
@@ -173,7 +167,6 @@ class EspDesktopApp : public esphome::Component {
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
   bool application_scene_required_{false};
-  bool configuration_text_refresh_pending_{false};
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};
