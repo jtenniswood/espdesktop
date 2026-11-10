@@ -119,6 +119,7 @@ jobs:
           name: release-web-assets
           path: dist/release-web-assets
           if-no-files-found: error
+          overwrite: true
 
       - name: Upload, verify, and publish draft release
         env:

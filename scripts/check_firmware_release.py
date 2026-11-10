@@ -198,6 +198,9 @@ def test_publication_requires_tested_candidate() -> None:
     assert '.workflow_id == $workflow' in publish
     assert 'if [[ "${HARDWARE_PASSED}" != true ]]' in publish
     assert publish.count("run-id: ${{ inputs.candidate_run }}") == 3
+    pages_upload = publish.split("name: Make the tested editor available to Pages", 1)[1]
+    pages_upload = pages_upload.split("name: Upload, verify, and publish draft release", 1)[0]
+    assert "overwrite: true" in pages_upload, "Publication retries must replace the verified Pages artifact"
     assert publish.index('--tested-fingerprint "${TESTED_FINGERPRINT}"') < publish.index(
         "scripts/firmware_release.py publish-draft"
     )
