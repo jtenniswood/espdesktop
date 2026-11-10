@@ -1466,7 +1466,7 @@ export function registerCompanionCardTypes(
 
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
-        ["companion_shortcut", "Keyboard shortcut", "shortcut"],
+        ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Folder", "folder"],
     ];
