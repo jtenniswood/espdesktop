@@ -176,6 +176,17 @@ export class NativeLayoutDraft {
     this.writeCard(card, config);
   }
 
+  writePageOrder(key: number, order: string): void {
+    const owner = key ? this.ownerAt(key) : undefined;
+    const page = key ? owner && this.ownedPage(owner) : this.records(K.Page).get(0);
+    const cards = page ? this.cards(page.id!) : [];
+    this.editScope.push(JSON.stringify([owner?.id, page?.id, this.text(page?.third ?? 0),
+      cards.map(card => [card.id, card.second])]));
+    if (!page || page.flags === ABSENT) return;
+    if (key) this.setPageOrder(page, order, [], cards);
+    else this.writeSetting("button_order", order);
+  }
+
   readPage(key: number): NativePageEdit | null {
     const owner = key ? this.ownerAt(key) : undefined;
     const page = key ? (owner && this.ownedPage(owner)) : this.records(K.Page).get(0);

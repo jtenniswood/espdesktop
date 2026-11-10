@@ -6808,18 +6808,35 @@ async function assertReorderAfterDelete(browser) {
     await page.locator('.sp-main[aria-disabled="false"]').waitFor();
     assert.strictEqual(await remaining.getAttribute("draggable"), "true",
       "the remaining card can be dragged once deletion finishes");
-    const source = await remaining.boundingBox();
-    const target = await grid.locator('.sp-empty-cell[data-pos="0"]').boundingBox();
-    const targetX = target.x + target.width / 2;
-    const targetY = target.y + target.height / 2;
-    await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(targetX, targetY, { steps: 10 });
-    await grid.locator('.sp-drop-placeholder[data-pos="0"]').waitFor();
-    await page.mouse.up();
+    const moveToFirstCell = async () => {
+      const source = await remaining.boundingBox();
+      const target = await grid.locator('.sp-empty-cell[data-pos="0"]').boundingBox();
+      const targetX = target.x + target.width / 2;
+      const targetY = target.y + target.height / 2;
+      await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(targetX, targetY, { steps: 10 });
+      await grid.locator('.sp-drop-placeholder[data-pos="0"]').waitFor();
+      await page.mouse.up();
+    };
+    const beforeRejectedMove = fixture.puts.length;
+    await page.route("**/api/v1/config", async route => {
+      if (route.request().method() === "PUT") {
+        return route.fulfill({ status: 413, body: "Rejected move" });
+      }
+      return route.fallback();
+    });
+    const rejected = page.waitForResponse(response => response.url().endsWith("/api/v1/config") && response.status() === 413);
+    await moveToFirstCell();
+    await rejected;
+    await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    assert.equal(await remaining.getAttribute("data-pos"), "1", "a rejected move leaves the preview unchanged");
+    assert.equal(fixture.puts.length, beforeRejectedMove);
+    await page.unroute("**/api/v1/config");
+    await moveToFirstCell();
     await waitForNativeState(fixture, () => fixture.document.settings.button_order.split(",")[0] === "2",
       "save the new position without reloading");
-    assert.strictEqual(await remaining.getAttribute("data-pos"), "0");
+    await grid.locator('[data-slot="2"][data-pos="0"]').waitFor();
     console.log("Card deletion and drag-and-drop without reloading passed.");
   } finally { await context.close(); }
 }

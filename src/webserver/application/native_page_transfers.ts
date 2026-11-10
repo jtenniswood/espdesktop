@@ -24,6 +24,7 @@ export interface NativePageTransfersFeature {
   duplicate(slot: number): Promise<boolean>;
   delete(slots: readonly number[]): Promise<boolean>;
   rename(slot: number, label: string): Promise<boolean>;
+  place(order: string): Promise<boolean>;
 }
 /** Validate normalized temporary views, preserving the raw transfer payload. */
 export function validatePageTransferCards(
@@ -132,7 +133,7 @@ export function createNativePageTransfersFeature(options: {
     unappliedSaveAttempt = null;
     // A disconnected panel will refresh itself on reconnect. Do not overwrite
     // its connection state with the candidate from this now-obsolete session.
-    if (!state.configLocked) options.editor().replace(committed, client?.lastLayout());
+    if (!state.configLocked) options.editor().replace(committed, client?.lastLayout(), checkAcceptedLayout);
   }
   async function capture(slots: readonly number[]): Promise<PageCardClipboard | null> {
     const sourcePage = page();
@@ -195,5 +196,9 @@ export function createNativePageTransfersFeature(options: {
     const targetPage = page();
     return run(() => save(draft => draft.renameCard(targetPage, slot, label), true));
   }
-  return { available, capture, copy, paste, duplicate, delete: remove, rename };
+  async function place(order: string): Promise<boolean> {
+    const targetPage = page();
+    return run(() => save(draft => draft.writePageOrder(targetPage, order), true));
+  }
+  return { available, capture, copy, paste, duplicate, delete: remove, rename, place };
 }
