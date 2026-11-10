@@ -61,6 +61,9 @@ export function syncPreviewCorners(screen: HTMLElement, radius: number, emptyRad
                     cache.set(key, shape);
                 }
                 if (card.style.clipPath !== shape.clip) card.style.clipPath = shape.clip;
+                // A circular overflow clip would cut across the continuous curve.
+                const borderRadius = shape.clip ? "0px" : "";
+                if (card.style.borderRadius !== borderRadius) card.style.borderRadius = borderRadius;
                 let outline = card.querySelector<SVGSVGElement>(":scope > .sp-card-outline");
                 if (!outline) {
                     outline = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -72,8 +75,8 @@ export function syncPreviewCorners(screen: HTMLElement, radius: number, emptyRad
                 }
                 const viewBox = `0 0 ${width} ${height}`;
                 if (outline.getAttribute("viewBox") !== viewBox) outline.setAttribute("viewBox", viewBox);
-                // Half the centered 4px stroke is clipped by the same card edge,
-                // leaving an even 2px inner outline above all card content.
+                // The card edge clips the outer half of the centered stroke,
+                // leaving an even inner outline above the card content.
                 if (edges.get(outline) !== shape.edge) {
                     outline.innerHTML = shape.edge;
                     edges.set(outline, shape.edge);
