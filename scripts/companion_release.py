@@ -31,6 +31,20 @@ def compatibility(root=ROOT):
     }
 
 
+def esp32_application_elf_sha256(path):
+    # ESP-IDF places esp_app_desc_t at the start of the first image segment:
+    # 24-byte ESP32 image header, 8-byte segment header, then the descriptor.
+    # Its SHA-256 field follows 144 bytes of descriptor metadata.
+    with path.open("rb") as image:
+        header = image.read(208)
+    if (len(header) != 208 or header[0] != 0xE9 or not header[1]
+            or int.from_bytes(header[28:32], "little") < 176
+            or int.from_bytes(header[32:36], "little") != 0xABCD5432
+            or not any(header[176:208])):
+        raise ValueError(f"Invalid ESP32 application descriptor in {path.name}")
+    return header[176:208].hex()
+
+
 def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
     if not re.fullmatch(r'[0-9a-f]{40}', source_revision):
         raise ValueError('A full source revision is required')
@@ -46,6 +60,8 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
         for suffix in ('.ota.bin', '.factory.bin'):
             path = firmware_dir / (slug + suffix)
             artifacts[path.name] = {'sha256': digest(path), 'bytes': path.stat().st_size}
+            if suffix == '.ota.bin':
+                artifacts[path.name]['appElfSha256'] = esp32_application_elf_sha256(path)
     for suffix in ('.zip', '.dmg'):
         matches = list(companion_dir.glob('*' + suffix))
         if len(matches) != 1:
