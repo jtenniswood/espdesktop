@@ -1,33 +1,142 @@
 ---
-title: EspDesktop — Touch Controls for Your Mac
+title: EspDesktop — A Touchscreen for Your Mac
 titleTemplate: :title
-description: "Pair a 4-inch ESP32 touchscreen with the EspDesktop Mac app to launch apps, open folders and websites, and run shortcuts."
+description: Turn a 4-inch touchscreen into a custom Mac controller for your apps, folders, keyboard shortcuts, window controls and system stats.
+layout: home
+hero:
+  name: EspDesktop
+  text: A touchscreen for your Mac
+  tagline: Put the apps, folders and shortcuts you use every day on a dedicated 4-inch display beside your keyboard.
+  image:
+    src: /images/espdesktop-mac-controls.svg
+    alt: Illustration of an EspDesktop panel with app, folder, shortcut and Mac status tiles
+  actions:
+    - theme: brand
+      text: Get started
+      link: /#get-started
+    - theme: alt
+      text: See what it can do
+      link: /#what-you-can-control
 ---
-
-# EspDesktop
-
-**A small touchscreen for the things you do on your Mac.**
-
-EspDesktop pairs one Mac with a [4-inch Guition 4848S040 touchscreen](/screens/4848s040) using a menu-bar app.
-
-## Where to Buy
-
-- [Guition 4848S040 on AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv) has a guide price of about £20. The current price and shipping depend on the listing.
-- [3D-printable case stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301) fits this display.
-
-## Get Started
-
-1. [Install the display firmware](/getting-started/install) and connect the display to WiFi.
-2. [Install and pair the EspDesktop Mac app](/getting-started/mac-app) on macOS 13 or newer. Keep both devices on the same local network.
-3. Open the display’s web page, select an empty tile, then choose **Companion** to [add a Mac control](/features/setup#add-a-mac-control).
 
 ## What You Can Control
 
-- [Launch apps and open websites](/mac-controls/apps).
-- [Open Finder folders](/mac-controls/folders) you’ve chosen in the Mac app.
-- [Run keyboard shortcuts](/mac-controls/shortcuts) from the touchscreen.
-- Lock your Mac with **Companion → Lock Machine**. You can customise its label, icon and colours in the card editor.
+<div class="homepage-features">
 
-Keyboard shortcuts and Mac Lock need [Accessibility permission](/mac-controls/security).
+<article>
 
-You can group controls into [subpages](/features/subpages).
+### Open apps and websites
+
+Bring an app to the front or open a site in your default browser. Give your calendar, team chat or project dashboard a tile of its own.
+
+[Apps and websites](/mac-controls/apps)
+
+</article>
+
+<article>
+
+### Jump straight to a Finder folder
+
+Open an approved folder with a tap. Keep Downloads, client files or your current project within reach.
+
+[Finder folders](/mac-controls/folders)
+
+</article>
+
+<article>
+
+### Keep shortcuts in view
+
+Turn keyboard combinations into labelled buttons, or start with presets for apps like Safari, Slack and Figma. Shortcut pages can follow the app you’re using.
+
+[Keyboard shortcuts](/mac-controls/shortcuts)
+
+</article>
+
+<article>
+
+### Manage windows and lock your Mac
+
+Minimise a window, go full screen or lock your Mac from the display. Move and resize options depend on your macOS version.
+
+</article>
+
+<article>
+
+### See how your Mac is doing
+
+Check processor load, memory, storage, network activity or battery at a glance while you work.
+
+[Mac statistics](/features/subpages#mac-statistics)
+
+</article>
+
+<article>
+
+### Make the layout your own
+
+Drag and resize tiles in the browser, choose their labels, icons and colours, and group related controls into pages for work, browsing or creative projects.
+
+[Customise the display](/features/setup)
+
+</article>
+
+</div>
+
+## Where to Buy
+
+EspDesktop runs on the [4-inch Guition 4848S040 touchscreen](/screens/4848s040). You’ll also need a Mac running macOS 13 or newer and a shared local network with 2.4 GHz WiFi for the display.
+
+- [Buy the Guition 4848S040 on AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv)
+- [Get the 3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301)
+
+## Get Started
+
+1. [Install the display firmware](/getting-started/install) using a USB-C data cable and Chrome or Edge, then connect the touchscreen to WiFi.
+2. [Install and pair the EspDesktop menu-bar app](/getting-started/mac-app) using the code shown in the display’s settings.
+3. Use the setup wizard to pick your first apps, or [build your own layout](/features/setup#add-a-mac-control) in the display’s browser editor.
+
+You choose which apps and folders the display can open. Keyboard shortcuts and Mac Lock use macOS Accessibility access. [How pairing and permissions work](/mac-controls/security)
+
+<style scoped>
+.homepage-features {
+  display: grid;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+@media (min-width: 640px) {
+  .homepage-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .homepage-features {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.homepage-features article {
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+  border-radius: 12px;
+  background: var(--vp-c-bg-soft);
+}
+
+.homepage-features h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.homepage-features p {
+  margin: 8px 0 0;
+  color: var(--vp-c-text-2);
+}
+
+.homepage-features p:has(> a:only-child) {
+  margin-top: auto;
+  padding-top: 12px;
+}
+</style>
