@@ -139,6 +139,11 @@ esphome:
               id(schedule_enabled).publish_state(settings.enabled);
               id(schedule_preferences_publishing) = false;
               id(screen_schedule_check).execute();
+              if (id(manual_wake_ms) != 0) {
+                id(screen_schedule_wake_timeout_check).execute();
+              } else {
+                id(screen_schedule_wake_timeout_check).stop();
+              }
               const auto mode = id(espdesktop_app).display().current_mode();
               if (mode == espdesktop::DisplayMode::CLOCK) {
                 id(clock_screensaver_refresh_brightness).execute();
@@ -1027,7 +1032,9 @@ script:
           if (std::isnan(timeout_s) || timeout_s <= 0) timeout_s = 60;
           if (timeout_s < 10) timeout_s = 10;
           if (timeout_s > 3600) timeout_s = 3600;
-          return (int) (timeout_s * 1000.0f);
+          const uint32_t timeout_ms = static_cast<uint32_t>(timeout_s * 1000.0f);
+          const uint32_t elapsed = id(manual_wake_ms) == 0 ? 0 : millis() - id(manual_wake_ms);
+          return elapsed < timeout_ms ? timeout_ms - elapsed : 0;
       - lambda: |-
           if (!id(schedule_enabled).state || id(manual_wake_ms) == 0 ||
               id(espdesktop_app).display().request_active(
