@@ -1,6 +1,6 @@
 import type { CardConfig } from "../contracts/types";
 import type { PanelConfigDocument } from "./panel_config";
-import { parseRawButtonConfig } from "./card";
+import { isMacAudioCard, parseRawButtonConfig } from "./card";
 import { parseRawSubpageConfig } from "./subpage";
 import { cardContractSubpageTypeFromCode } from "../generated/card_contract";
 import { configOptionValue } from "./config_primitives";
@@ -32,12 +32,6 @@ export function cardTypeConnector(key: string): SavedCardConnector {
   if (key === "webhook") return "network";
   if (LOCAL_CARD_TYPES.has(key)) return "local";
   return "home_assistant";
-}
-
-export function isMacAudioCard(type: string, entity: string | null | undefined): boolean {
-  return type === "slider" &&
-    (entity === "media.output_volume" || entity === "media.input_volume" ||
-     entity === "media.output_mute" || entity === "media.input_mute");
 }
 
 export function cardRequiresHomeAssistant(

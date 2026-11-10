@@ -5,7 +5,14 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
-      - 'devices/manifest.json'
+      - 'src/webserver/**'
+      - 'common/addon/time.yaml'
+      - 'common/assets/**'
+      - 'product/v2/**'
+      - 'scripts/build_web_bundle.js'
+      - 'scripts/web_icon_names.js'
+      - 'scripts/device_profiles.py'
+      - 'devices/**'
       - 'product/release_devices.json'
       - 'scripts/release_devices.py'
       - 'scripts/check_public_firmware.py'
@@ -71,7 +78,9 @@ jobs:
 
       - name: Use verified release web assets
         if: github.event_name == 'workflow_run'
-        run: cp -a release-web-assets/. docs/public/webserver/
+        run: |
+          rm -rf docs/public/webserver
+          cp -a release-web-assets docs/public/webserver
 
       - name: Prepare published release web assets
         if: github.event_name != 'workflow_run'
@@ -81,7 +90,8 @@ jobs:
           RELEASE_TAG=$(gh release list --limit 30 --json tagName,isDraft \
             --jq '[.[] | select(.isDraft == false) | .tagName][0] // ""')
           if [ -z "${RELEASE_TAG}" ]; then
-            echo "No published release exists yet; keeping the checked-in web asset compatibility list."
+            echo "No published release exists yet; building the editor with the retained compatibility bundle."
+            npm run webserver:build
             exit 0
           fi
           python3 scripts/prepare_release_web_assets.py --legacy-only "${RELEASE_TAG}"
@@ -113,6 +123,10 @@ jobs:
           fi
           python3 scripts/build.py www --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
           python3 scripts/build.py www --check --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
+
+      - name: Verify rebuilt hosted editor
+        if: github.event_name != 'workflow_run'
+        run: node scripts/check_web_asset_manifest.js --manifest-only
 
       - name: Build docs
         env:

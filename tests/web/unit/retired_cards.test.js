@@ -95,3 +95,22 @@ test("saved Window Control cleanup preserves nested pages, neighbours and other 
   assert.equal(document.buttons[1], old);
   assert.equal(removeRetiredPanelRecords(cleaned, codec, isRetiredLayoutCard), false);
 });
+
+test("native cleanup clears retired Mac audio sliders on home and folder grids", () => {
+  const { removeRetiredPanelRecords } = loadTypescriptTest("src/webserver/features/retired_cards.ts");
+  const { encodePanelPageDocument, decodePanelPageSnapshot } = loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
+  const { document, layout } = decodePanelPageSnapshot(encodePanelPageDocument({
+    deviceProfile: "test",
+    buttons: { 1: "media.output_volume;Output;;;;;slider", 2: ";Folder;;;;;subpage" },
+    subpages: { 2: "B,1,2|media.input_mute:Mic:::::slider|switch.lamp:Lamp:::::switch" },
+    settings: { button_order: "1,2" },
+  }));
+  const codec = {
+    parseButtonConfig() { assert.fail("expected a native home card"); },
+    parseSubpageConfig() { assert.fail("expected a native folder card"); },
+  };
+  assert.equal(removeRetiredPanelRecords(document, codec, undefined, layout), true);
+  assert.equal(document.buttons[1], undefined);
+  assert.equal(document.settings.button_order, ",2");
+  assert.equal(document.subpages[2], "B,,2||switch.lamp:Lamp:::::switch");
+});

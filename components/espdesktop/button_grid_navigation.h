@@ -294,7 +294,7 @@ inline void navigation_register_home_target(int slot, int display_order,
   entry.slot = slot;
   entry.display_order = display_order;
   entry.label = navigation_trim(label);
-  entry.config = config;
+  if (!espdesktop::grid_native_page_store()) entry.config = config;
   entry.button = button;
   navigation_home_targets().push_back(entry);
 }
@@ -433,7 +433,7 @@ inline NavigationSubpageEntry *navigation_companion_subpage_for_action(
     const std::string &action) {
   if (action.empty()) return nullptr;
   for (const auto &parent : navigation_home_targets()) {
-    const ParsedCfg config = parse_cfg(parent.config);
+    const ParsedCfg config = grid_layout_card_config(parent.slot, parent.config);
     if (!companion_app_shortcuts_enabled(config) || config.entity != action) continue;
     NavigationSubpageEntry *entry = navigation_find_slot(parent.slot);
     if (entry && entry->screen) return entry;
@@ -451,7 +451,7 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
     companion_consume_subpage_return_request();
     return false;
   }
-  const ParsedCfg parent_config = parse_cfg(parent->config);
+  const ParsedCfg parent_config = grid_layout_card_config(parent->slot, parent->config);
   if (!companion_app_shortcuts_enabled(parent_config)) {
     companion_consume_subpage_return_request();
     return false;

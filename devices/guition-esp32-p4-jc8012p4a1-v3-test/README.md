@@ -82,10 +82,13 @@ packages:
     refresh: 1s
 ```
 
-The manual package pulls external components and loads the complete web UI from
-this branch through jsDelivr; the browser needs internet access. It bypasses the
-public release-manifest loader, which does not recognize `dev-v3-*` versions.
-The USB factory image embeds the matching web UI for offline setup.
+The USB factory image embeds the matching editor for offline setup. For a
+manual package build with browser setup, run `npm ci` and
+`npm run webserver:build` in the matching checkout. Serve
+`docs/public/webserver/embedded` from a machine reachable by the browser and
+set `web_server.js_url` to that server's `www.js` URL. Use the V2 device
+profile in the query string, for example
+`http://<computer-ip>:8080/www.js?device=guition-esp32-p4-jc8012p4a1-v2`.
 For exact reproduction, replace both package refs and the
 `espdesktop_component_ref` substitution with the same full commit SHA. Validate
 and clean build before the first install. Initial installation needs the USB
@@ -93,9 +96,9 @@ factory image; once connected, Device Builder's wireless install uses native
 ESPHome OTA. The factory image's dashboard adoption link also selects this branch.
 
 If an earlier manual build opens a blank web page, rebuild from the updated branch
-and install through native ESPHome OTA, then hard-refresh the page. Its page source
-should load `webserver/embedded/www.js`, not `webserver/www.js`. Keep a unique
-`dev-v3-<commit>` firmware version so test reports identify the installed build.
+and install through native ESPHome OTA, then hard-refresh the page. Keep a
+unique `dev-v3-<commit>` firmware version so test reports identify the
+installed build.
 
 ## Physical test checklist
 

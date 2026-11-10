@@ -1,4 +1,5 @@
 #pragma once
+#include "grid_layout_config.h"
 #include "screen_lock_state.h"
 
 
@@ -24,7 +25,7 @@ inline void handle_button_press(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (screen_lock_enabled()) return;
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
-  ParsedCfg p = parse_cfg(cfg);
+  const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
   if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
   consume_button_touch_press(btn_obj);
   handle_button_click(cfg, slot_num, btn_obj);
@@ -47,7 +48,7 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
                                 lv_obj_t *btn_obj) {
   if (screen_lock_enabled()) return;
   (void) btn_obj;
-  ParsedCfg p = parse_cfg(cfg);
+  const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
   if (card_runtime_type_retired(p.type) || retired_home_assistant_card(p)) return;
   const auto context = card_runtime_context(p);
   ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",

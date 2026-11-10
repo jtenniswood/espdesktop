@@ -5,7 +5,7 @@ Combines icon synchronization and www.js generation into a single tool.
 
 Usage:
     python scripts/build.py               # run all generators
-    python scripts/build.py --check       # exit 1 if any output is stale
+    python scripts/build.py --check       # exit 1 if tracked generated source is stale
     python scripts/build.py devices       # sync public device capabilities only
     python scripts/build.py icons         # sync icons only
     python scripts/build.py i18n          # sync firmware translations only
@@ -36,7 +36,7 @@ from product_schema import (
     assert_card_contract_valid,
     assert_entity_names_valid as assert_product_entity_names_valid,
 )
-from product_model_v2 import load_product_model_v2, source_directory, source_path
+from product_model_v2 import load_product_model_v2, render_catalogue, source_directory, source_path
 
 ROOT = Path(__file__).resolve().parent.parent
 MDI_VERSION = "7.4.47"
@@ -3261,6 +3261,7 @@ def sync_card_contract(check_only=False):
     data = load_card_contract_data()
     assert_card_contract_valid(data)
     outputs = [
+        (CARD_CONTRACT_JSON, render_catalogue(data)),
         (CARD_CONTRACT_TS, gen_card_contract_ts(data)),
         (CARD_CONTRACT_H, gen_card_contract_h(data)),
         (SAVED_CONFIG_SHADOW_TS, gen_saved_config_shadow_ts(data)),
@@ -3380,7 +3381,9 @@ def device_docs_outputs(capabilities):
 
 def sync_device_capabilities(check_only=False):
     capabilities = public_device_capabilities()
+    model = load_product_model_v2()
     outputs = {
+        model.source_path("deviceCatalog"): render_catalogue(model.device_catalog_data()),
         DEVICE_CAPABILITIES_JSON: gen_device_capabilities_json(),
         **device_docs_outputs(capabilities),
     }
@@ -4050,8 +4053,9 @@ def main():
                 companion_dirty = sync_companion_capabilities(check_only=check_only)
                 device_dirty = sync_device_capabilities(check_only=check_only)
                 icon_dirty = sync_icons(check_only=check_only)
-                www_dirty = build_www(
-                    check_only=check_only,
+                # Web bundles are build artifacts, so a fresh source checkout
+                # need not have them. Use `www --check` for staged artifacts.
+                www_dirty = [] if check_only else build_www(
                     retain_current_bundle=retain_current_bundle,
                     legacy_web_manifest=legacy_web_manifest,
                 )

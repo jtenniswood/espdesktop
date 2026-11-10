@@ -18,7 +18,7 @@ import type { ApplicationApiFeature } from "./api";
 import type { GridFeature } from "./grid";
 import { cardOwnsSubpage } from "./companion_shortcut_folder";
 import { cardRequiresHomeAssistant } from "../features/preview";
-import { isMacAudioCard } from "../model/legacy_home_assistant";
+import { isMacAudioCard } from "../model/card";
 import type { NativePageTransfersFeature } from "./native_page_transfers";
 export interface PreviewClipboardDependencies {
     readonly nativeTransfers?: NativePageTransfersFeature;

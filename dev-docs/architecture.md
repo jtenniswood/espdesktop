@@ -15,8 +15,8 @@ outputs. For the hard edit/rebuild/check contract, use
 
 | Area | Path | Purpose |
 |---|---|---|
-| Product profiles | `product/v2/device_catalog.json` | Supported displays, reusable profiles, slot counts, layout, firmware substitutions, font roles, and public device facts. |
-| Card metadata | `product/v2/card_contract.json` | Card type names, defaults, allowed domains, options, aliases, and subpage codes. |
+| Product profiles | `product/v2/devices/` and `product/v2/device_catalog_shared.json` | Supported displays, reusable profiles, slot counts, layout, firmware substitutions, font roles, and public device facts. |
+| Card metadata | `product/v2/cards/` and `product/v2/card_contract_shared.json` | Card type names, defaults, allowed domains, options, aliases, and subpage codes. |
 | Entity names | `product/v2/entity_names.json` | Shared Home Assistant entity names used by firmware and the setup page. |
 | Icons | `product/v2/icons.json` and `common/assets/*glyphs.yaml` | Icon names, glyphs, and font glyph sets. |
 | Firmware UI | `components/espdesktop/*.h` | LVGL card grid, card renderers, modals, config parsing, Home Assistant bindings. |
@@ -57,12 +57,11 @@ The central generator is:
 python3 scripts/build.py
 ```
 
-Use `python3 scripts/build.py --check` to confirm generated files are current.
-
-Generated source files remain tracked because firmware and web compilation
-consume them. Publishable binaries are different: release jobs assemble those
-only under the ignored `dist/` directory. Nothing under `dist/` is an authored
-source or a committed generated input.
+Use `python3 scripts/build.py --check` to check tracked generated source.
+Use `python3 scripts/build.py www --check` to compare a staged editor with
+its source. CI, local firmware builds and Pages generate the editor from the
+checked-out revision. Release firmware and Pages use the verified release
+artifact. Git retains the pinned compatibility bundles used as a fallback.
 
 ## Runtime Flow
 
@@ -92,7 +91,8 @@ also use the core-owned Home Assistant binding.
 ## Build-Time Flow
 
 ```text
-product/v2/card_contract.json
+product/v2/cards/* + card_contract_shared.json
+  -> product/v2/card_contract.json
   -> src/webserver/generated/card_contract.ts
   -> components/espdesktop/button_grid_contract_generated.h
   -> docs/generated/cards/capabilities.md
@@ -101,7 +101,8 @@ product/v2/entity_names.json
   -> common/config/entity_names.yaml
   -> src/webserver/generated/entity_catalog.ts
 
-product/v2/device_catalog.json
+product/v2/devices/* + device_catalog_shared.json
+  -> product/v2/device_catalog.json
   -> devices/manifest.json
 
 devices/manifest.json

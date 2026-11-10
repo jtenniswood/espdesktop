@@ -1326,6 +1326,7 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     if (!out.empty()) out += ",";
     out += token;
   };
+  if (companion_folder_open_behavior(p) == "same_window") add_token("finder_open_behavior=same_window");
   if (companion_app_shortcuts_enabled(p)) {
     add_token("app_shortcuts");
     const std::string tabs = companion_app_shortcut_tabs_normalized(p);

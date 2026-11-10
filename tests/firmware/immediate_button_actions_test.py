@@ -40,7 +40,7 @@ bool locked = false;
 bool screen_lock_enabled() { return locked; }
 constexpr int MAX_GRID_SLOTS = 36;
 struct ParsedCfg {};
-ParsedCfg parse_cfg(const std::string &) { return {}; }
+ParsedCfg grid_layout_card_config(int, const std::string &) { return {}; }
 bool navigation = false;
 bool navigation_handle_button_press(const ParsedCfg &, int, lv_obj_t *) { return navigation; }
 int calls = 0;

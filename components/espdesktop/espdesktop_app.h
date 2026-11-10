@@ -14,6 +14,9 @@
 
 #include "panel_identity.h"
 #include "panel_config_text_storage.h"
+namespace esphome::switch_ {
+class Switch;
+}
 namespace esphome::template_ {
 class TemplateText;
 }
@@ -46,6 +49,7 @@ class EspDesktopApp : public esphome::Component {
   const DisplayModeController &display() const { return core_.display(); }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
+  void bind_app_subpage_preference_switch(esphome::switch_::Switch &setting);
 
   // The scene belongs to the firmware application's UI owner and outlives this
   // component. Installation cannot switch a running legacy grid underneath it.
@@ -141,6 +145,7 @@ class EspDesktopApp : public esphome::Component {
   void defer_native_configuration_initialization();
   void apply_boot_configuration();
   void apply_configuration_text_refresh();
+  void publish_app_subpage_preference(bool enabled);
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
@@ -166,6 +171,7 @@ class EspDesktopApp : public esphome::Component {
   ApplicationSceneRuntime* application_scene_{nullptr};
   bool application_scene_required_{false};
   bool configuration_text_refresh_pending_{false};
+  esphome::switch_::Switch *app_subpage_switch_{nullptr};
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};
   bool native_configuration_initialization_pending_{false};

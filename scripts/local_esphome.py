@@ -149,6 +149,11 @@ def run(argv: list[str]) -> int:
         return 0
 
     ensure_pinned_esphome(esphome_bin)
+    if command in {"compile", "config", "run"} and "--no-compile" not in command_args:
+        build = subprocess.run([sys.executable, "scripts/build.py", "www"], cwd=ROOT)
+        if build.returncode:
+            print("Editor build failed. Run npm ci from the repository root and retry.", file=sys.stderr)
+            return build.returncode
     esphome_command = build_esphome_command(yaml_path, command, command_args, version, esphome_bin)
     return subprocess.run(esphome_command, cwd=esphome_working_dir(yaml_path)).returncode
 
@@ -230,7 +235,15 @@ class LocalEsphomeTests(unittest.TestCase):
             mock.patch(__name__ + ".subprocess.run") as run_mock:
             run_mock.return_value.returncode = 0
             self.assertEqual(run(["devices/esp32-p4-86/dev.yaml", "run"]), 0)
+            self.assertEqual(run_mock.call_args_list[0], mock.call([sys.executable, "scripts/build.py", "www"], cwd=ROOT))
             self.assertEqual(run_mock.call_args.kwargs["cwd"], path.parent)
+
+    def test_editor_build_failure_prevents_firmware_compilation(self) -> None:
+        path = ROOT / "devices" / "esp32-p4-86" / "dev.yaml"
+        with mock.patch(__name__ + ".ensure_pinned_esphome"), \
+            mock.patch(__name__ + ".subprocess.run", return_value=subprocess.CompletedProcess([], 1)) as run_mock:
+            self.assertEqual(run([str(path), "compile"]), 1)
+            run_mock.assert_called_once_with([sys.executable, "scripts/build.py", "www"], cwd=ROOT)
 
     def test_dry_run_prints_command_without_invoking_esphome(self) -> None:
         path = ROOT / "devices" / "esp32-p4-86" / "dev.yaml"

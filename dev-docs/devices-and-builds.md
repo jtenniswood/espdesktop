@@ -1,12 +1,13 @@
 # Devices and Builds
 
-Device support is authored in `product/v2/device_catalog.json` plus per-device ESPHome YAML
-under `devices/<slug>/`. `devices/manifest.json` is a generated, committed
-compatibility copy for existing tools.
+Device support is authored in `product/v2/devices/`, shared profiles in
+`product/v2/device_catalog_shared.json`, and per-device ESPHome YAML under
+`devices/<slug>/`. The generated catalogue and `devices/manifest.json` are
+committed for existing tools.
 
 ## Device Catalog and Compatibility Manifest
 
-`product/v2/device_catalog.json` defines:
+The generated `product/v2/device_catalog.json` combines:
 
 - public name and docs path
 - screen size, resolution, and orientation
@@ -116,15 +117,19 @@ builds/<slug>.factory.yaml
 Release checks validate that these outputs stay aligned with device profiles and
 public firmware expectations.
 
-Release preflight checks the complete generated task and checked-in web asset
-manifest before preparing version-specific web assets. The later release check graph uses validation
+Release preflight checks tracked generated source, builds the editor from the
+tagged revision and verifies its manifest before preparing version-specific
+web assets. The later release check graph uses validation
 tooling from the workflow revision with `--root` pointing at the tagged source,
 and records that earlier generated validation through
 `--preverified-task generated --preverified-task web-asset-manifest`. Other
 checks run against the prepared assets.
 
 The `pr` matrix selects one representative device per chip family, including
-a P4 recovery image where applicable. The `nightly` and `release` matrices
+a P4 recovery image where applicable. The firmware check publishes factory
+and OTA images for each representative panel. Download the
+`pr-firmware-<slug>` artifact from the workflow run for the commit you want
+to test. The `nightly` and `release` matrices
 continue to include every device. This selection is exposed by
 `python3 scripts/device_matrix.py pr`.
 
