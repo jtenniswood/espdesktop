@@ -4,6 +4,7 @@
 #include "configuration_release_policy.h"
 #include "display_theme_preferences.h"
 #include "panel_config_representation.h"
+#include "screen_schedule_preferences.h"
 
 namespace espdesktop::configuration {
 
@@ -60,7 +61,7 @@ public:
     PanelConfigRecord row;
     while (reader.next(&row) == PanelConfigStatus::OK) {
       if (row.type == PanelConfigRecordType::SETTING &&
-          !valid_theme_setting(
+          !valid_display_setting(
               {reinterpret_cast<const char *>(row.key), row.key_size},
               {reinterpret_cast<const char *>(row.value), row.value_size}))
         return ServiceStatus::INVALID_DOCUMENT;
@@ -68,8 +69,10 @@ public:
     return ServiceStatus::OK;
   }
  private:
-  static bool valid_theme_setting(std::string_view key, std::string_view value) {
-    return key != DISPLAY_THEME_PREFERENCES_KEY || parse_display_theme_preferences(value).has_value();
+  static bool valid_display_setting(std::string_view key, std::string_view value) {
+    if (key == DISPLAY_THEME_PREFERENCES_KEY) return parse_display_theme_preferences(value).has_value();
+    if (key == SCREEN_SCHEDULE_PREFERENCES_KEY) return parse_screen_schedule_preferences(value).has_value();
+    return true;
   }
   ServiceStatus inspect_v2(const uint8_t *document, size_t size, bool protect_nested,
       bool validate_settings = false) const {
@@ -89,7 +92,7 @@ public:
         if (protect_nested && row.kind == PanelConfigV2Kind::PAGE && row.id && row.first)
           return ServiceStatus::INCOMPATIBLE_REPLACEMENT;
         if (validate_settings && row.kind == PanelConfigV2Kind::SETTING &&
-            !valid_theme_setting(reader.string(row.id), reader.string(row.first)))
+            !valid_display_setting(reader.string(row.id), reader.string(row.first)))
           return ServiceStatus::INVALID_DOCUMENT;
       }
     }

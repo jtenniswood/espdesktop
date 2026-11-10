@@ -183,7 +183,9 @@ int main() {
     assert(settings.sunrise_offset == -35 && settings.sunset_offset == 12);
   };
   std::optional<ThemeSettings> current;
-  GridPageRuntime theme(limits, allocate, ConfigurationBuffer::release_host, {}, {},
+  int theme_layout_refreshes = 0;
+  GridPageRuntime theme(limits, allocate, ConfigurationBuffer::release_host,
+      [&] { ++theme_layout_refreshes; }, {},
       [&](const std::optional<ThemeSettings> &value) { current = value; });
   write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,auto,sun,417,1205,-35,12");
   assert(theme.prepare_write(2, updated.data(), size));
@@ -208,6 +210,12 @@ int main() {
 
   // Large flat documents can be durably stored in v1. An entity write
   // replaces the group without touching their saved cards.
+  assert(theme_layout_refreshes == 1);
+  write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,light,time,420,1200,0,0");
+  assert(theme.prepare_write(2, updated.data(), size));
+  assert(theme.activate_prepared(11, 2, updated.data(), size));
+  assert(current && current->mode == ThemeMode::LIGHT && theme_layout_refreshes == 1);
+
   const auto old_value = encode_display_theme_preferences(*current);
   assert(v1.begin() == PanelConfigStatus::OK);
   assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
@@ -223,9 +231,37 @@ int main() {
   assert(panel_config_replace_existing_setting_v1(updated.data(), size, DISPLAY_THEME_PREFERENCES_KEY,
       "1,light,time,480,1260,25,-60", rewritten.data(), rewritten.size(), &rewritten_size));
   assert(theme.prepare_write(1, rewritten.data(), rewritten_size));
-  assert_old_theme(*current);
-  assert(theme.activate_prepared(11, 1, rewritten.data(), rewritten_size));
+  assert(current && current->mode == ThemeMode::LIGHT);
+  assert(theme.activate_prepared(12, 1, rewritten.data(), rewritten_size));
+  assert(theme_layout_refreshes == 2);
   assert(current && encode_display_theme_preferences(*current) == "1,light,time,480,1260,25,-60");
   assert(grid_layout_card_config(1, {}).entity == "light.kitchen");
+
+
+  int schedule_applies = 0, schedule_layout_refreshes = 0;
+  ScreenSchedulePreferences schedule{};
+  GridPageRuntime schedule_runtime(limits, allocate, ConfigurationBuffer::release_host,
+      [&] { ++schedule_layout_refreshes; }, {}, {},
+      [&](const ScreenSchedulePreferences &value) { schedule = value; ++schedule_applies; });
+  write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,1,7,19,clock,60,10,15,10,C0FFEE");
+  assert(schedule_runtime.prepare_write(2, updated.data(), size));
+  assert(schedule_applies == 0);
+  assert(schedule_runtime.activate_prepared(14, 2, updated.data(), size));
+  assert(schedule_applies == 1 && schedule_layout_refreshes == 1);
+  assert(schedule.enabled && schedule.night_mode == ScheduledNightMode::CLOCK &&
+      std::string_view(schedule.clock_color.data()) == "C0FFEE");
+
+  write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,0,24,22,dim,120,20,5,3,FFFFFF");
+  assert(!schedule_runtime.prepare_write(2, updated.data(), size));
+  assert(schedule_applies == 1 && schedule.enabled);
+  write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,0,9,22,dim,120,20,5,3,FFFFFF");
+  assert(schedule_runtime.prepare_write(2, updated.data(), size));
+  schedule_runtime.discard_prepared();
+  assert(schedule_applies == 1 && schedule.enabled);
+  assert(schedule_runtime.prepare_write(2, updated.data(), size));
+  assert(schedule_runtime.activate_prepared(15, 2, updated.data(), size));
+  assert(schedule_applies == 2 && schedule_layout_refreshes == 1);
+  assert(!schedule.enabled && schedule.on_hour == 9 && schedule.off_hour == 22 &&
+      schedule.wake_timeout == 120 && schedule.dimmed_brightness == 5);
 
 }

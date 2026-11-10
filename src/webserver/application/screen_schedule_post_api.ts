@@ -5,6 +5,7 @@ import {
     normalizeTimeOfDay,
     scheduleModeOption,
 } from "../model/settings";
+import type { ScreenSchedulePreferences } from "../model/screen_schedule_preferences";
 import type { EntityStateFeature } from "./entity_state";
 import type { ApplicationApiFeature } from "./api";
 export interface ScreenSchedulePostApiFeature {
@@ -12,7 +13,7 @@ export interface ScreenSchedulePostApiFeature {
     postDisplayBacklightBrightness(value?: any): void;
     postBrightnessDawnTime(value?: any): void;
     postBrightnessDuskTime(value?: any): void;
-    postScreenScheduleEnabled(on?: any): void;
+    postScreenSchedulePreferences(patch: Partial<ScreenSchedulePreferences>): Promise<boolean>;
     postScreenScheduleTrigger(value?: any): void;
     postScreenScheduleOnHour(value?: any): void;
     postScreenScheduleOffHour(value?: any): void;
@@ -21,11 +22,13 @@ export interface ScreenSchedulePostApiFeature {
     postScreenScheduleWakeBrightness(value?: any): void;
     postScreenScheduleDimmedBrightness(value?: any): void;
     postScreenScheduleClockBrightness(value?: any): void;
+    postScreenScheduleClockTextColor(value: string): void;
 }
 
 export function createScreenSchedulePostApiFeature(
     entityState: Pick<EntityStateFeature, "entityName" | "entityObjectIds">,
     requestApi: Pick<ApplicationApiFeature, "postWithObjectIds" | "postTextWithObjectIds" | "postNumberWithObjectIds" | "postSelectWithObjectIds" | "postSwitchWithObjectIds">,
+    saveSchedule: (patch: Partial<ScreenSchedulePreferences>, legacy: () => void) => Promise<boolean>,
 ): ScreenSchedulePostApiFeature {
     const { entityName, entityObjectIds } = entityState;
     const {
@@ -63,46 +66,48 @@ export function createScreenSchedulePostApiFeature(
     function postBrightnessDuskTime(this: any, value?: any) {
         postTextWithObjectIds(entityName("screen_brightness_dusk_time"), entityObjectIds("screen_brightness_dusk_time"), normalizeTimeOfDay(value, state.brightnessDuskTime || "18:00"), BRIGHTNESS_TIME_UNAVAILABLE);
     }
-    function postScreenScheduleEnabled(this: any, on?: any) {
-        postSwitchWithObjectIds(entityName("screen_schedule_enabled"), entityObjectIds("screen_schedule_enabled"), on, SCREEN_SCHEDULE_UNAVAILABLE);
-    }
-    function postScreenScheduleTrigger(this: any, value?: any) {
-        postTextWithObjectIds(entityName("screen_schedule_trigger"), entityObjectIds("screen_schedule_trigger"), normalizeScheduleTrigger(value, state.scheduleEnabled), SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE);
-    }
-    function postScreenScheduleOnHour(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_on_hour"), entityObjectIds("screen_schedule_on_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
-    }
-    function postScreenScheduleOffHour(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_off_hour"), entityObjectIds("screen_schedule_off_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
-    }
-    function postScreenScheduleMode(this: any, value?: any) {
-        postSelectWithObjectIds(entityName("screen_schedule_mode"), entityObjectIds("screen_schedule_mode"), scheduleModeOption(value), SCREEN_SCHEDULE_MODE_UNAVAILABLE);
-    }
-    function postScreenScheduleWakeTimeout(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_wake_timeout"), entityObjectIds("screen_schedule_wake_timeout"), value, SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE);
-    }
-    function postScreenScheduleWakeBrightness(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_wake_brightness"), entityObjectIds("screen_schedule_wake_brightness"), value, SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE);
-    }
-    function postScreenScheduleDimmedBrightness(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_dimmed_brightness"), entityObjectIds("screen_schedule_dimmed_brightness"), value, SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE);
-    }
-    function postScreenScheduleClockBrightness(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_clock_brightness"), entityObjectIds("screen_schedule_clock_brightness"), value, SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE);
+    function postScreenSchedulePreferences(patch: Partial<ScreenSchedulePreferences>): Promise<boolean> {
+        return saveSchedule(patch, () => {
+            const postNumber = (key: Parameters<typeof entityName>[0], value: number | undefined, message: string) => {
+                if (value !== undefined) postNumberWithObjectIds(entityName(key), entityObjectIds(key), value, message);
+            };
+            if (patch.scheduleTrigger !== undefined) {
+                const trigger = normalizeScheduleTrigger(patch.scheduleTrigger, state.scheduleEnabled);
+                postTextWithObjectIds(entityName("screen_schedule_trigger"), entityObjectIds("screen_schedule_trigger"),
+                    trigger, SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE);
+                postSwitchWithObjectIds(entityName("screen_schedule_enabled"), entityObjectIds("screen_schedule_enabled"),
+                    trigger === "time", SCREEN_SCHEDULE_UNAVAILABLE);
+            }
+            postNumber("screen_schedule_on_hour", patch.scheduleOnHour, SCREEN_SCHEDULE_UNAVAILABLE);
+            postNumber("screen_schedule_off_hour", patch.scheduleOffHour, SCREEN_SCHEDULE_UNAVAILABLE);
+            if (patch.scheduleMode !== undefined) {
+                postSelectWithObjectIds(entityName("screen_schedule_mode"), entityObjectIds("screen_schedule_mode"),
+                    scheduleModeOption(patch.scheduleMode), SCREEN_SCHEDULE_MODE_UNAVAILABLE);
+            }
+            postNumber("screen_schedule_wake_timeout", patch.scheduleWakeTimeout, SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE);
+            postNumber("screen_schedule_wake_brightness", patch.scheduleWakeBrightness, SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE);
+            postNumber("screen_schedule_dimmed_brightness", patch.scheduleDimmedBrightness, SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE);
+            postNumber("screen_schedule_clock_brightness", patch.scheduleClockBrightness, SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE);
+            if (patch.scheduleClockTextColor !== undefined) {
+                postTextWithObjectIds(entityName("screen_schedule_clock_text_color"), entityObjectIds("screen_schedule_clock_text_color"),
+                    patch.scheduleClockTextColor, SCREEN_SCHEDULE_UNAVAILABLE);
+            }
+        });
     }
     return {
         postBrightnessMode,
         postDisplayBacklightBrightness,
         postBrightnessDawnTime,
         postBrightnessDuskTime,
-        postScreenScheduleEnabled,
-        postScreenScheduleTrigger,
-        postScreenScheduleOnHour,
-        postScreenScheduleOffHour,
-        postScreenScheduleMode,
-        postScreenScheduleWakeTimeout,
-        postScreenScheduleWakeBrightness,
-        postScreenScheduleDimmedBrightness,
-        postScreenScheduleClockBrightness,
+        postScreenSchedulePreferences,
+        postScreenScheduleTrigger: (value) => { void postScreenSchedulePreferences({ scheduleTrigger: value }); },
+        postScreenScheduleOnHour: (value) => { void postScreenSchedulePreferences({ scheduleOnHour: value }); },
+        postScreenScheduleOffHour: (value) => { void postScreenSchedulePreferences({ scheduleOffHour: value }); },
+        postScreenScheduleMode: (value) => { void postScreenSchedulePreferences({ scheduleMode: value }); },
+        postScreenScheduleWakeTimeout: (value) => { void postScreenSchedulePreferences({ scheduleWakeTimeout: value }); },
+        postScreenScheduleWakeBrightness: (value) => { void postScreenSchedulePreferences({ scheduleWakeBrightness: value }); },
+        postScreenScheduleDimmedBrightness: (value) => { void postScreenSchedulePreferences({ scheduleDimmedBrightness: value }); },
+        postScreenScheduleClockBrightness: (value) => { void postScreenSchedulePreferences({ scheduleClockBrightness: value }); },
+        postScreenScheduleClockTextColor: (value) => { void postScreenSchedulePreferences({ scheduleClockTextColor: value }); },
     };
 }

@@ -110,6 +110,7 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   display_mode_reconcile.stop(); screen_schedule_check.stop(); screen_schedule_wake.stop();
   display_mode_apply_transition.stop(); display_mode_effect_active.stop();
   display_active_finalize.stop(); screensaver_idle_check.stop();
+  screen_schedule_wake_timeout_check.stop(); schedule_wake_timeout.state = 60;
   screensaver_idle_check.calls = 0;
   clock_time = {6, true}; active_page = home.obj;
   schedule_enabled.state = true;
@@ -228,6 +229,21 @@ int main() {
     (fast_first ? screen_schedule_check : display_mode_reconcile).execute(); advance(1000);
     assert(controller.current_mode_is(DisplayMode::ACTIVE));
   }
+  // A new timeout applies to the elapsed temporary wake. It does not give
+  // the display a fresh timeout starting at the settings edit.
+  reset(DisplayMode::DISPLAY_OFF);
+  manual_wake_ms = millis();
+  schedule_wake_timeout.state = 3600;
+  screen_schedule_wake_timeout_check.execute();
+  advance(2000);
+  schedule_wake_timeout.state = 10;
+  screen_schedule_check.execute();
+  screen_schedule_wake_timeout_check.execute();
+  advance(7999);
+  assert(manual_wake_ms != 0);
+  advance(1);
+  assert(manual_wake_ms == 0);
+
   // A disabled screensaver lets the panel wake when the night schedule ends.
   reset(); clock_time.hour = 7;
   screensaver_mode.state = "disabled";

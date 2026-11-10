@@ -7,6 +7,8 @@ import { resetAwareFetch } from "../api/reset_session";
 import type { PanelIdentityBackup } from "../model/panel_identity";
 import type { PanelIdentityFeature } from "./panel_identity";
 import { state } from "../state/app_instance";
+import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences,
+    screenSchedulePreferencesFromState } from "../model/screen_schedule_preferences";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import * as EspDesktopModel from "../model";
 import {
@@ -124,15 +126,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postDisplayBacklightBrightness,
         postBrightnessDawnTime,
         postBrightnessDuskTime,
-        postScreenScheduleEnabled,
-        postScreenScheduleTrigger,
-        postScreenScheduleOnHour,
-        postScreenScheduleOffHour,
-        postScreenScheduleMode,
-        postScreenScheduleWakeTimeout,
-        postScreenScheduleWakeBrightness,
-        postScreenScheduleDimmedBrightness,
-        postScreenScheduleClockBrightness,
+        postScreenSchedulePreferences,
     } = controllers.schedulePostApi;
     const {
         postClockBrightnessDay,
@@ -241,6 +235,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             displayThemePreferencesFromState(state);
         // Project the same saved layout into the portable part of the backup.
         // SSE state can still be arriving or can lag another browser's edits.
+        const savedSchedule = decodeScreenSchedulePreferences(nativeDocument?.settings[SCREEN_SCHEDULE_PREFERENCES]);
+        const schedule = savedSchedule ?? state;
+        const scheduleEnabled = savedSchedule ? savedSchedule.scheduleTrigger === "time" : state.scheduleEnabled;
         const nativeGrid = nativeDocument ? EspDesktopModel.parseGridOrder(
             nativeDocument.settings.button_order, controllers.layout.numSlots, controllers.layout.gridCols,
         ) : undefined;
@@ -304,16 +301,16 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 manual_brightness: Math.round(state.manualBrightnessVal),
                 brightness_dawn_time: normalizeTimeOfDay(state.brightnessDawnTime, "06:00"),
                 brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
-                schedule_trigger: normalizeScheduleTrigger(state.scheduleTrigger, state.scheduleEnabled),
-                schedule_enabled: !!state.scheduleEnabled,
-                schedule_on_hour: normalizeHour(state.scheduleOnHour, 6),
-                schedule_off_hour: normalizeHour(state.scheduleOffHour, 23),
-                schedule_mode: normalizeScheduleMode(state.scheduleMode),
-                schedule_wake_timeout: normalizeScheduleWakeTimeout(state.scheduleWakeTimeout),
-                schedule_wake_brightness: normalizeScheduleWakeBrightness(state.scheduleWakeBrightness),
-                schedule_dimmed_brightness: normalizeScheduleDimmedBrightness(state.scheduleDimmedBrightness),
-                schedule_clock_brightness: normalizeScheduleClockBrightness(state.scheduleClockBrightness),
-                schedule_clock_text_color: normalizeHexColor(state.scheduleClockTextColor, "FFFFFF"),
+                schedule_trigger: normalizeScheduleTrigger(schedule.scheduleTrigger, scheduleEnabled),
+                schedule_enabled: !!scheduleEnabled,
+                schedule_on_hour: normalizeHour(schedule.scheduleOnHour, 6),
+                schedule_off_hour: normalizeHour(schedule.scheduleOffHour, 23),
+                schedule_mode: normalizeScheduleMode(schedule.scheduleMode),
+                schedule_wake_timeout: normalizeScheduleWakeTimeout(schedule.scheduleWakeTimeout),
+                schedule_wake_brightness: normalizeScheduleWakeBrightness(schedule.scheduleWakeBrightness),
+                schedule_dimmed_brightness: normalizeScheduleDimmedBrightness(schedule.scheduleDimmedBrightness),
+                schedule_clock_brightness: normalizeScheduleClockBrightness(schedule.scheduleClockBrightness),
+                schedule_clock_text_color: normalizeHexColor(schedule.scheduleClockTextColor, "FFFFFF"),
             },
         } as any);
         downloadBackupConfig(addNativeConfigToBackup(data, nativeDocumentBytes), identity);
@@ -445,6 +442,13 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     if (!nativeTheme)
                         rejectBackup("Update the panel firmware before restoring the display theme settings in this backup.");
                 }
+                const scheduleRecord = nativeDocument.settings[SCREEN_SCHEDULE_PREFERENCES];
+                const nativeSchedule = decodeScreenSchedulePreferences(scheduleRecord);
+                if (scheduleRecord !== undefined) {
+                    if (!nativeSchedule) rejectBackup("Invalid night schedule in this backup.");
+                    if (nativeAvailability !== true || !nativeController.client?.supportsScreenSchedulePreferences())
+                        rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
+                }
                 const themeRestore = nativeTheme
                     ? { legacy: displayThemePreferencesFromState(state), patch: legacyThemePatch }
                     : undefined;
@@ -473,6 +477,15 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     }
                 }
 
+                const savedSchedule = nativeController?.client?.lastDocument?.()?.settings[SCREEN_SCHEDULE_PREFERENCES];
+                if (nativeAvailability === true && savedSchedule) {
+                    nativeDocument.settings[SCREEN_SCHEDULE_PREFERENCES] = savedSchedule;
+                }
+                if (nativeSchedule) {
+                    Object.assign(state, nativeSchedule);
+                    state.scheduleEnabled = nativeSchedule.scheduleTrigger === "time";
+                    syncScreenScheduleUi();
+                }
                 if (nativeTheme) {
                     const savedTheme = nativeController.client?.lastDocument?.()?.settings[DISPLAY_THEME_PREFERENCES];
                     if (savedTheme) nativeDocument.settings[DISPLAY_THEME_PREFERENCES] = savedTheme;
@@ -668,18 +681,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.manualBrightnessVal = importedScreenSettings.manualBrightnessVal;
                     state.brightnessDawnTime = importedScreenSettings.brightnessDawnTime;
                     state.brightnessDuskTime = importedScreenSettings.brightnessDuskTime;
-                    state.scheduleTrigger = importedScreenSettings.scheduleTrigger;
-                    state.scheduleEnabled = importedScreenSettings.scheduleEnabled;
-                    state.scheduleSensorActivation = importedScreenSettings.scheduleSensorActivation;
-                    state.scheduleSensorEntity = importedScreenSettings.scheduleSensorEntity;
-                    state.scheduleOnHour = importedScreenSettings.scheduleOnHour;
-                    state.scheduleOffHour = importedScreenSettings.scheduleOffHour;
-                    state.scheduleMode = importedScreenSettings.scheduleMode;
-                    state.scheduleWakeTimeout = importedScreenSettings.scheduleWakeTimeout;
-                    state.scheduleWakeBrightness = importedScreenSettings.scheduleWakeBrightness;
-                    state.scheduleDimmedBrightness = importedScreenSettings.scheduleDimmedBrightness;
-                    state.scheduleClockBrightness = importedScreenSettings.scheduleClockBrightness;
-                    state.scheduleClockTextColor = importedScreenSettings.scheduleClockTextColor;
+                    if (!nativeSchedule) {
+                        Object.assign(state, screenSchedulePreferencesFromState(importedScreenSettings));
+                        state.scheduleEnabled = importedScreenSettings.scheduleEnabled;
+                        state.scheduleSensorActivation = importedScreenSettings.scheduleSensorActivation;
+                        state.scheduleSensorEntity = importedScreenSettings.scheduleSensorEntity;
+                    }
                     postNumber(entityName("screen_daytime_brightness"), state.brightnessDayVal);
                     postNumber(entityName("screen_nighttime_brightness"), state.brightnessNightVal);
                     postBrightnessMode(state.brightnessMode);
@@ -705,16 +712,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postDisplayBacklightBrightness(state.manualBrightnessVal);
                     postBrightnessDawnTime(state.brightnessDawnTime);
                     postBrightnessDuskTime(state.brightnessDuskTime);
-                    postScreenScheduleTrigger(state.scheduleTrigger);
-                    postScreenScheduleOnHour(state.scheduleOnHour);
-                    postScreenScheduleOffHour(state.scheduleOffHour);
-                    postScreenScheduleMode(state.scheduleMode);
-                    postScreenScheduleWakeTimeout(state.scheduleWakeTimeout);
-                    postScreenScheduleWakeBrightness(state.scheduleWakeBrightness);
-                    postScreenScheduleDimmedBrightness(state.scheduleDimmedBrightness);
-                    postScreenScheduleClockBrightness(state.scheduleClockBrightness);
-                    postText(entityName("screen_schedule_clock_text_color"), state.scheduleClockTextColor);
-                    postScreenScheduleEnabled(state.scheduleEnabled);
+                    if (!nativeSchedule && !(await postScreenSchedulePreferences(screenSchedulePreferencesFromState(state)))) {
+                        requestApi.postQueueError = true;
+                    }
                     if (els.setDayBrightness) {
                         els.setDayBrightness.value = state.brightnessDayVal;
                         els.setDayBrightnessVal.textContent = Math.round(state.brightnessDayVal) + "%";

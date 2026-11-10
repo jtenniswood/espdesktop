@@ -359,7 +359,11 @@ bool EspDesktopApp::create_native_configuration_runtime() {
       allocate_configuration_slot, release_configuration_slot,
       [this]() { layout_changed_.trigger(); },
       [this](bool enabled) { publish_app_subpage_preference(enabled); },
-      [this](const auto &settings) { publish_display_theme_preferences(settings); }));
+      [this](const auto &settings) { publish_display_theme_preferences(settings); },
+      [this](const ScreenSchedulePreferences &settings) {
+        screen_schedule_ = settings;
+        if (apply_screen_schedule_) apply_screen_schedule_(settings);
+      }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
   }
