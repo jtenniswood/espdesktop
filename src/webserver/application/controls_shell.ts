@@ -39,6 +39,7 @@ export interface ControlsShellFeature {
     readonly buildApplyBar: () => HTMLElement;
     readonly switchTab: (tab?: any) => void;
     readonly syncTabChrome: () => void;
+    readonly isPreviewReadOnly: () => boolean;
     readonly isConfigLocked: () => boolean;
     readonly syncConfigLockUi: () => void;
     readonly setConfigLocked: (locked?: any, reason?: any) => void;
@@ -283,8 +284,11 @@ export function createControlsShellFeature(
         if (support)
             support.classList.remove("sp-support-hidden");
     }
+    function isPreviewReadOnly() {
+        return state.configLocked || state.nativeConfigReadOnly;
+    }
     function isConfigLocked(this: any) {
-        return !!state.configLocked || !!state.nativeConfigReadOnly || !!state.nativeConfigLoading || !!state.nativeTransferActive;
+        return isPreviewReadOnly() || state.nativeConfigLoading || state.nativeTransferActive;
     }
     function syncConfigLockUi(this: any) {
         const previewLocked = !!state.configLocked || !!state.nativeConfigLoading ||
@@ -342,6 +346,7 @@ export function createControlsShellFeature(
         buildApplyBar,
         switchTab,
         syncTabChrome,
+        isPreviewReadOnly,
         isConfigLocked,
         syncConfigLockUi,
         setConfigLocked,
