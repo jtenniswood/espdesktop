@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitepress'
-import { faqSchema, hostname, jsonLd, writeRedirects } from './discovery'
+import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
+import { writeMarkdownPages } from './markdown-export'
 
 function shareImage(file: string, width: number, height: number, alt: string) {
   return {
@@ -54,7 +55,17 @@ export default defineConfig({
     'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
   ],
   markdown: { config: faqSchema, image: { lazyLoading: true } },
-  buildEnd: ({ outDir }) => writeRedirects(outDir),
+  async buildEnd({ outDir, pages }) {
+    await Promise.all([writeRedirects(outDir), writeMarkdownPages(outDir, pages)])
+  },
+
+  transformHead({ page }) {
+    if (page === '404.md') return []
+    return [
+      ['link', { rel: 'describedby', href: llmsIndexUrl }],
+      ['link', { rel: 'alternate', type: 'text/markdown', href: new URL(page, hostname).href }],
+    ]
+  },
 
   sitemap: {
     hostname,
@@ -79,7 +90,7 @@ export default defineConfig({
       return
     }
 
-    const canonicalUrl = new URL(relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, ''), hostname).href
+    const canonicalUrl = canonicalUrlFor(relativePath)
     const title = String(frontmatter.title ?? pageData.title)
     const description = String(frontmatter.description ?? '')
     const image = pageImages[relativePath] ?? defaultImage

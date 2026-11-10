@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 import json
 from pathlib import Path
+import re
 from urllib.parse import unquote, urljoin, urlsplit
 from urllib.request import urlopen
 import xml.etree.ElementTree as ET
@@ -26,6 +27,8 @@ class Page(HTMLParser):
         self.title = ''
         self.meta = {}
         self.canonicals = []
+        self.described_by = []
+        self.markdown_alternates = []
         self.h1 = []
         self.ids = set()
         self.links = []
@@ -56,8 +59,13 @@ class Page(HTMLParser):
             self.images.append(attrs)
         if tag == 'meta':
             self.meta[attrs.get('name', attrs.get('property', attrs.get('http-equiv', '')))] = attrs.get('content', '')
-        if tag == 'link' and attrs.get('rel') == 'canonical':
-            self.canonicals.append(attrs.get('href'))
+        if tag == 'link':
+            if attrs.get('rel') == 'canonical':
+                self.canonicals.append(attrs.get('href'))
+            if attrs.get('rel') == 'describedby':
+                self.described_by.append(attrs.get('href'))
+            if attrs.get('rel') == 'alternate' and attrs.get('type') == 'text/markdown':
+                self.markdown_alternates.append(attrs.get('href'))
         if tag == 'main':
             self.in_main = True
         if self.in_main and tag in ('p', 'li', 'br'):
@@ -152,6 +160,39 @@ def live_snapshot(base):
         return snapshot(dict(zip(urls, executor.map(lambda url: Page(get(url)), urls))))
 
 
+def check_markdown_guides(dist, pages):
+    errors = []
+    index_file = dist / 'llms.txt'
+    if not index_file.is_file():
+        return ['Missing plain-text docs index (llms.txt)']
+    index = index_file.read_text()
+    if not index.startswith('# EspDesktop\n'):
+        errors.append('The plain-text docs index must start with the project name')
+
+    expected = set()
+    for url, page in pages.items():
+        markdown_url = url + ('index.md' if url.endswith('/') else '.md')
+        expected.add(markdown_url)
+        if page.described_by != [BASE + 'llms.txt'] or page.markdown_alternates != [markdown_url]:
+            errors.append(f'Missing plain-text discovery links: {url}')
+        file = dist / markdown_url.removeprefix(BASE)
+        if not file.is_file():
+            errors.append(f'Missing Markdown edition: {url}')
+            continue
+        guide = file.read_text()
+        if not guide.startswith('# ') or f'[Original EspDesktop guide]({url})' not in guide:
+            errors.append(f'Markdown edition needs a heading and original page link: {url}')
+
+    links = [url for url in re.findall(r'^- \[[^\]]+\]\((https://[^)\s]+)\)', index, re.MULTILINE)
+             if url.startswith(BASE)]
+    if len(links) != len(set(links)) or set(links) != expected:
+        errors.append('The plain-text docs index must list each public Markdown edition once')
+    markdown_files = {BASE + file.relative_to(dist).as_posix() for file in dist.rglob('*.md')}
+    if markdown_files != expected:
+        errors.append(f'Markdown editions must match public guides: {sorted(markdown_files ^ expected)}')
+    return errors
+
+
 def check_build(dist):
     errors = []
     pages = {}
@@ -225,6 +266,7 @@ def check_build(dist):
         errors.append(f'Unexpected sitemap pages: {sorted(unexpected_pages)}')
     if missing_pages := mac_docs - set(pages):
         errors.append(f'Missing sitemap pages: {sorted(missing_pages)}')
+    errors.extend(check_markdown_guides(dist, pages))
     for field in ('duplicate_titles', 'duplicate_descriptions'):
         if report[field]:
             errors.append(f'{field}: {report[field]}')
@@ -334,7 +376,7 @@ def check_build(dist):
     if errors:
         raise SystemExit('\n'.join(sorted(set(errors))))
     report['faq_answers_verified'] = len(faq.faq)
-    print(f'Docs site checks passed: {len(pages)} reachable canonical pages with share metadata, '
+    print(f'Docs site checks passed: {len(pages)} reachable canonical pages with share metadata and Markdown editions, '
           f'{len(faq.faq)} matching FAQ answers, {len(redirects)} redirects; links, images and breadcrumbs checked.')
     return report
 

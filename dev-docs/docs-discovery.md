@@ -43,12 +43,25 @@ Keep detailed procedures in their topic guide and link to them from short FAQ
 answers. Cite a release or dated verification when describing beta status or
 availability; a successful docs build is not physical device testing.
 
-Google says its [AI search features](https://developers.google.com/search/docs/appearance/ai-features)
-use normal search eligibility and require no special AI file or schema. The
-existing `ai.txt` is optional descriptive material, not a crawler control or a
-ranking guarantee. [FAQ rich results were retired in May 2026](https://developers.google.com/search/updates).
-FAQ schema here keeps the machine-readable content consistent with the page;
-it does not promise a rich result.
+[FAQ rich results were retired in May 2026](https://developers.google.com/search/updates).
+The schema here keeps the machine-readable content consistent with the page.
+
+## Plain-text Editions
+
+The [plain-text docs index](https://jtenniswood.github.io/espdesktop/llms.txt)
+follows the [llms.txt proposal](https://llmstxt.org/). It groups the public
+guides by task. When adding or retiring a public guide, update
+`docs/public/llms.txt` alongside the site navigation.
+
+VitePress exports Markdown from the rendered public articles at build time.
+The HTML pages link to their Markdown equivalents and to the index through
+`alternate` and `describedby` links. The Markdown copies link back to the
+original guides and stay outside the sitemap. Run `npm run docs:build` to
+generate and validate the files, then use `npm run docs:preview` to read them.
+
+Google's [AI search features](https://developers.google.com/search/docs/appearance/ai-features)
+use normal search eligibility. The plain-text index helps clients that use it
+find documentation. Crawler access is governed separately at the host root.
 
 ## Host-root Robots Policy
 
