@@ -24,6 +24,8 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
   struct Snapshot : GridNativePages {
     std::optional<bool> app_subpage_preference;
     std::optional<ThemeSettings> theme_preferences;
+    std::string accent;
+    bool refresh_layout{true};
   };
   class Resources final : public pages::PageRuntimeResources {
   public:
@@ -97,6 +99,27 @@ private:
     const auto parent = key(store, page->parent);
     return parent > 0 && parent <= 32 ? 32 + (parent - 1) * 32 + owner->slot : -1;
   }
+  // Compare before activation, while both arenas are still available.
+  // String identities are local to each arena, so compare their contents.
+  static bool same_layout(const Store &before, const Store &after) {
+    if (before.page_count() != after.page_count() || before.card_count() != after.card_count()) return false;
+    for (pages::PageId id = 0; id < after.page_count(); ++id) {
+      const auto &left = *before.page(id);
+      const auto &right = *after.page(id);
+      if (left.parent != right.parent || left.owner != right.owner ||
+          left.first_card != right.first_card || left.card_count != right.card_count ||
+          left.navigable != right.navigable || left.runtime_card_mask != right.runtime_card_mask ||
+          before.string(left.order) != after.string(right.order)) return false;
+    }
+    for (pages::CardId id = 0; id < after.card_count(); ++id) {
+      const auto &left = *before.card(id);
+      const auto &right = *after.card(id);
+      if (left.slot != right.slot || left.target != right.target) return false;
+      for (size_t index = 0; index < left.fields.size(); ++index)
+        if (before.string(left.fields[index]) != after.string(right.fields[index])) return false;
+    }
+    return true;
+  }
   bool prepare_snapshot(const Store &store) {
     capacity_exceeded_ = false;
     staged_.reset(new (std::nothrow) Snapshot);
@@ -149,7 +172,9 @@ private:
       staged_->pages.push_back(std::move(next));
     }
     auto setting = [&](std::string_view name, std::string_view value) {
-      if (name == "companion_auto_open_app_subpages") {
+      if (name == "button_on_color") {
+        staged_->accent = value;
+      } else if (name == "companion_auto_open_app_subpages") {
         if (value != "0" && value != "1") return false;
         staged_->app_subpage_preference = value == "1";
       } else if (name == DISPLAY_THEME_PREFERENCES_KEY) {
@@ -181,6 +206,8 @@ private:
             !setting(reader.string(record.id), reader.string(record.first))) return false;
       }
     }
+    staged_->refresh_layout = !active_ || active_->accent != staged_->accent ||
+        !same_layout(*active_->store, store);
     return true;
   }
 
@@ -193,7 +220,7 @@ private:
     if (active_->app_subpage_preference && publish_app_subpage_preference_)
       publish_app_subpage_preference_(*active_->app_subpage_preference);
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
-    if (refresh_layout_) refresh_layout_();
+    if (active_->refresh_layout && refresh_layout_) refresh_layout_();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
   const DeviceUiLimits &limits_;

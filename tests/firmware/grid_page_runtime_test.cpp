@@ -183,7 +183,9 @@ int main() {
     assert(settings.sunrise_offset == -35 && settings.sunset_offset == 12);
   };
   std::optional<ThemeSettings> current;
-  GridPageRuntime theme(limits, allocate, ConfigurationBuffer::release_host, {}, {},
+  int theme_layout_refreshes = 0;
+  GridPageRuntime theme(limits, allocate, ConfigurationBuffer::release_host,
+      [&] { ++theme_layout_refreshes; }, {},
       [&](const std::optional<ThemeSettings> &value) { current = value; });
   write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,auto,sun,417,1205,-35,12");
   assert(theme.prepare_write(2, updated.data(), size));
@@ -208,6 +210,12 @@ int main() {
 
   // Large flat documents can be durably stored in v1. An entity write
   // replaces the group without touching their saved cards.
+  assert(theme_layout_refreshes == 1);
+  write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,light,time,420,1200,0,0");
+  assert(theme.prepare_write(2, updated.data(), size));
+  assert(theme.activate_prepared(11, 2, updated.data(), size));
+  assert(current && current->mode == ThemeMode::LIGHT && theme_layout_refreshes == 1);
+
   const auto old_value = encode_display_theme_preferences(*current);
   assert(v1.begin() == PanelConfigStatus::OK);
   assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
@@ -223,8 +231,9 @@ int main() {
   assert(panel_config_replace_existing_setting_v1(updated.data(), size, DISPLAY_THEME_PREFERENCES_KEY,
       "1,light,time,480,1260,25,-60", rewritten.data(), rewritten.size(), &rewritten_size));
   assert(theme.prepare_write(1, rewritten.data(), rewritten_size));
-  assert_old_theme(*current);
-  assert(theme.activate_prepared(11, 1, rewritten.data(), rewritten_size));
+  assert(current && current->mode == ThemeMode::LIGHT);
+  assert(theme.activate_prepared(12, 1, rewritten.data(), rewritten_size));
+  assert(theme_layout_refreshes == 2);
   assert(current && encode_display_theme_preferences(*current) == "1,light,time,480,1260,25,-60");
   assert(grid_layout_card_config(1, {}).entity == "light.kitchen");
 
