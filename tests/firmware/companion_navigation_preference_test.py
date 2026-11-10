@@ -20,6 +20,15 @@ code = r'''
 #include <vector>
 #include "grid_navigation_service.h"
 #include "grid_navigation_diagnostics.h"
+#include "display_lifecycle_service.h"
+namespace espdesktop {
+struct TestApp {
+  DisplayLifecycleService display;
+  const DisplayLifecycleService &display_lifecycle() const { return display; }
+};
+TestApp app_core;
+const TestApp *active_espdesktop_app_core() { return &app_core; }
+}
 struct lv_obj_t {};
 struct ParsedCfg { std::string entity; };
 struct NavigationSubpageEntry {
@@ -95,6 +104,15 @@ int main() {
   pending_open = "second.app";
   assert(!navigation_open_companion_subpage_if_requested(&home));
   assert(screen == &app && pending_open.empty());
+  // Focus arrives while Home is waking. Discard it and keep Home visible.
+  screen = &home; pending_open = "second.app";
+  auto &display = espdesktop::app_core.display;
+  display.set_blank_page_active(true);
+  display.begin_wake(false);
+  display.set_blank_page_active(false);
+  assert(!navigation_open_companion_subpage_if_requested(&home));
+  assert(screen == &home && pending_open.empty());
+  display.clear_wake_touch_guard();
   // Automatic opening from home still works.
   screen = &home; pending_open = "second.app";
   assert(navigation_open_companion_subpage_if_requested(&home));
