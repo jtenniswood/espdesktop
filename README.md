@@ -12,7 +12,7 @@ Set up the display from a normal web browser.
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
 - **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
-- **Windows** — close, minimise, hide, enter full screen, or use the move-and-resize controls available on your version of macOS.
+- **Mac Lock** — lock your Mac with a tap on the display.
 - **Folders and websites** — open approved Finder folders or safe `http://` and `https://` links in an approved app.
 - **Mac statistics** — optionally show processor, memory, storage, network throughput, and battery readings.
 

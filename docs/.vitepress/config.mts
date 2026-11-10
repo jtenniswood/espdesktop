@@ -207,7 +207,7 @@ export default defineConfig({
             url: hostname,
             name: 'EspDesktop',
             description:
-              'A local touchscreen controller for Mac apps, shortcuts, windows, folders, and websites.',
+              'A local touchscreen controller for Mac apps, shortcuts, folders, and websites.',
             inLanguage: 'en-US',
           },
           {

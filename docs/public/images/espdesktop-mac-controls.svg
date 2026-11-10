@@ -38,7 +38,8 @@
     <path d="M189 111v-22h12l3 4h9v18z"/>
     <path d="M288 90h20v14h-9l-5 5v-5h-6z"/>
     <path d="M99 205h-6a5 5 0 0 1 0-10h6m6 0h6a5 5 0 0 1 0 10h-6m-8-5h10"/>
-    <path d="M195 188h-7v7m17-7h7v7m0 10v7h-7m-10 0h-7v-7"/>
+    <rect x="188" y="190" width="24" height="20" rx="3"/>
+    <path d="M195 200h10m-5-5v10"/>
     <rect x="290" y="198" width="16" height="13" rx="2"/>
     <path d="M293 198v-4a5 5 0 0 1 10 0v4m-5 6v1"/>
   </g>
@@ -48,7 +49,7 @@
     <text x="200" y="134">Projects</text>
     <text x="298" y="134">Slack</text>
     <text x="102" y="226">Copy Link</text>
-    <text x="200" y="226">Full Screen</text>
+    <text x="200" y="226">New Tab</text>
     <text x="298" y="226">Lock Mac</text>
     <text x="102" y="319">CPU</text>
     <text x="200" y="319">Memory</text>

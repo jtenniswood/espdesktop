@@ -1,7 +1,7 @@
 ---
 title: EspDesktop — A Touchscreen for Your Mac
 titleTemplate: :title
-description: Turn a 4-inch touchscreen into a custom Mac controller for your apps, folders, keyboard shortcuts, window controls and system stats.
+description: Turn a 4-inch touchscreen into a custom Mac controller for your apps, folders, keyboard shortcuts and system stats.
 layout: home
 hero:
   name: EspDesktop
@@ -55,9 +55,11 @@ Turn keyboard combinations into labelled buttons, or start with presets for apps
 
 <article>
 
-### Manage windows and lock your Mac
+### Lock your Mac
 
-Minimise a window, go full screen or lock your Mac from the display. Move and resize options depend on your macOS version.
+Add a Lock Machine tile to lock your Mac with a tap when you step away.
+
+[Mac Lock permissions](/mac-controls/security)
 
 </article>
 
