@@ -336,7 +336,8 @@ export default defineConfig({
         items: [
           { text: 'Configure the Display', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
-          { text: 'Apps & Websites', link: '/mac-controls/apps' },
+          { text: 'Apps', link: '/mac-controls/apps' },
+          { text: 'Websites', link: '/mac-controls/websites' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
         ],

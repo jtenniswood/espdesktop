@@ -29,7 +29,7 @@ hero:
 
 Bring an app to the front or open a site in your default browser. Give your calendar, team chat or project dashboard a tile of its own.
 
-[Apps and websites](/mac-controls/apps)
+[Apps](/mac-controls/apps) · [Websites](/mac-controls/websites)
 
 </article>
 
@@ -135,7 +135,7 @@ You choose which apps and folders the display can open. Keyboard shortcuts and M
   color: var(--vp-c-text-2);
 }
 
-.homepage-features p:has(> a:only-child) {
+.homepage-features article > p + p {
   margin-top: auto;
   padding-top: 12px;
 }

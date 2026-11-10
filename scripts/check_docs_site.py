@@ -178,6 +178,7 @@ def check_build(dist):
         BASE + 'getting-started/mac-app',
         BASE + 'getting-started/troubleshooting',
         BASE + 'mac-controls/apps',
+        BASE + 'mac-controls/websites',
         BASE + 'mac-controls/folders',
         BASE + 'mac-controls/shortcuts',
         BASE + 'mac-controls/improve-shortcuts',

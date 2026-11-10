@@ -25,4 +25,4 @@ You can show approved folders as tiles on a Finder app subpage:
 
 Newly approved folders can be added to enabled Finder subpages when space is available. Existing tiles are not removed automatically. Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
 
-For app launch behavior and other generated app pages, see [Launch Mac apps and open websites](/mac-controls/apps).
+For app launch behavior and other generated app pages, see [Launch Mac apps](/mac-controls/apps).
