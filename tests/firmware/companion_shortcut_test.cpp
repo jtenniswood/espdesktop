@@ -50,6 +50,27 @@ int main() {
     runtime.set_connected(false);
     assert(!runtime.snapshot().application_highlight_known);
   }
+  // A confirmed window loss is separate from automatic opening and switching.
+  {
+    CompanionRuntimeService runtime;
+    const std::string app = "com.apple.Safari";
+    runtime.set_connected(true);
+    runtime.set_auto_open_app_subpages(false);
+    runtime.set_application_highlight(app);
+    assert(!runtime.set_focused_actions({app}));
+    assert(!runtime.set_focused_actions({}));
+    assert(runtime.pending_auto_subpage_action().empty());
+    assert(runtime.consume_closed_app_subpage_action() == app);
+    assert(runtime.consume_closed_app_subpage_action().empty());
+
+    runtime.set_focused_actions({app});
+    runtime.set_focused_actions({});
+    runtime.set_focused_actions({app});
+    assert(runtime.consume_closed_app_subpage_action().empty());  // Window reopened.
+    runtime.set_application_highlight("");
+    runtime.set_focused_actions({});
+    assert(runtime.consume_closed_app_subpage_action().empty());  // Switched apps.
+  }
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Volume");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mic");
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
