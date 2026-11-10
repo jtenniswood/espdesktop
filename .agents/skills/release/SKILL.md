@@ -13,8 +13,9 @@ description: >-
 Use `.github/workflows/release.yml` (`Build Release`) to build both products from
 one immutable source revision. It builds all release devices, signs and notarizes
 EspDesktop on a GitHub Mac runner, and signs the Sparkle automatic-update feed.
-The final job uploads and verifies the complete distribution before publishing
-the draft. A release is incomplete if either firmware or the Mac app fails.
+Build Release creates a private test candidate. After the 4848S040 hardware
+test, use `.github/workflows/publish-release.yml` (Publish Release) to verify
+and publish those same files.
 
 This builds flashable downloads; it does not flash connected screens, install the
 Mac app, or archive the locally installed version. Those are separate requests.
@@ -40,7 +41,7 @@ edits in the user's checkout. Do not switch or reset a dirty checkout. Only
 committed, pushed source can be released; include release-related edits through
 a reviewed preparation PR before tagging. Confirm required CI is successful for
 the selected revision and the workflow's self-hosted firmware runners are
-available. The Mac job uses `macos-15`; it does not depend on the local Keychain.
+available. The Mac job uses a GitHub-hosted macOS runner; it does not depend on the local Keychain.
 
 Check repository secret **names only**:
 
@@ -116,7 +117,7 @@ For a new tag:
 git tag -a "$TAG" "$SOURCE_SHA" -m "Release $TAG"
 git push origin "$TAG"
 gh release create "$TAG" --verify-tag --draft \
-  --notes "Screen firmware and the signed Mac app are being built and verified. This draft will publish automatically when complete." \
+  --notes "Screen firmware and the signed Mac app are being built and verified. This draft is awaiting device verification." \
   --fail-on-no-commits
 ```
 
@@ -147,8 +148,8 @@ checks. Report meaningful progress and failures for both paths:
 - Firmware assembly, recovery images where declared, manifests and provenance.
 - Mac tests, P12 import, Developer ID signing, Apple acceptance of app and DMG,
   stapling, signature/Gatekeeper checks and Sparkle feed signature verification.
-- Compatibility manifest verification and `Publish Verified Draft`, which depends
-  on both the firmware assembly and Mac jobs succeeding.
+- Prepare Hardware Test Candidate, which verifies the compatibility manifest
+  and records the candidate run ID and fingerprint.
 
 On failure, inspect the failed job and confirm the release remains a draft.
 Never publish a partial firmware-only release to bypass a Mac failure. For a
@@ -158,9 +159,26 @@ if the same failure recurs without new evidence or a repair. Source changes need
 a new reviewed revision and new tag, not a moved tag. Do not close issues unless
 explicitly requested.
 
-## 6. Verify the complete published distribution
+## 6. Verify hardware and publish the tested candidate
 
-After the workflow succeeds:
+Use the candidate firmware and notarized Mac app together on the 4848S040.
+Follow the physical check in [Checks and Releases](../../../dev-docs/checks-and-releases.md#release-boundary).
+If hardware testing requires the maintainer, report the candidate artifacts
+and wait for confirmation against that candidate. Use the tested run ID and
+fingerprint from its job summary.
+
+```bash
+gh workflow run publish-release.yml --ref "$TAG" \
+  -f release_tag="$TAG" -f candidate_run="$CANDIDATE_RUN" \
+  -f tested_fingerprint="$TESTED_FINGERPRINT" -f hardware_passed=true
+```
+
+Monitor Publish Release through completion. Use the same tested run and
+fingerprint for a retry if its artifacts are still available.
+
+## 7. Verify the complete published distribution
+
+After Publish Release succeeds:
 
 ```bash
 gh release view "$TAG" --json tagName,url,isDraft,isPrerelease,assets \

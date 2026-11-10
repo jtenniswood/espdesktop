@@ -25,7 +25,7 @@ on:
       - 'package-lock.json'
       - '.github/workflows/pages.yml'
   workflow_run:
-    workflows: ["Build Release"]
+    workflows: ["Publish Release"]
     types: [completed]
   workflow_dispatch:
 

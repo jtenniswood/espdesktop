@@ -56,7 +56,9 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
             'validation': {'automated': 'release workflow checks', 'physicalDeviceTesting': 'not asserted'}}
 
 
-def verify(path, firmware_dir, companion_dir, source_revision, version, root=ROOT):
+def verify(path, firmware_dir, companion_dir, source_revision, version, root=ROOT, *, tested_fingerprint=None):
+    if tested_fingerprint is not None and digest(path) != tested_fingerprint:
+        raise ValueError('Candidate fingerprint does not match the hardware-tested build')
     expected = manifest(firmware_dir, companion_dir, source_revision, version, root)
     if json.loads(path.read_text()) != expected:
         raise ValueError('Companion compatibility manifest or release artifacts do not match')
@@ -70,11 +72,15 @@ def main():
     parser.add_argument('--source-revision', required=True)
     parser.add_argument('--version', required=True)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--tested-fingerprint', help='SHA-256 from the hardware-tested candidate')
     args = parser.parse_args()
     if args.command == 'create':
+        if args.tested_fingerprint is not None:
+            parser.error('--tested-fingerprint requires verify')
         args.out.write_text(json.dumps(manifest(args.firmware_dir, args.companion_dir, args.source_revision, args.version), indent=2) + '\n')
     else:
-        verify(args.out, args.firmware_dir, args.companion_dir, args.source_revision, args.version)
+        verify(args.out, args.firmware_dir, args.companion_dir, args.source_revision, args.version,
+               tested_fingerprint=args.tested_fingerprint)
 
 
 if __name__ == '__main__':

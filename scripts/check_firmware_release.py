@@ -29,6 +29,7 @@ CHIP = "ESP32-S3"
 PROJECT_NAME = "jtenniswood.espdesktop"
 ESPHOME_ENV = Path(__file__).resolve().parents[1] / ".github" / "esphome.env"
 RELEASE_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "release.yml"
+PUBLISH_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "publish-release.yml"
 PAGES_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "pages.yml"
 FIRMWARE_COMPILE_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "firmware-compile.yml"
 NIGHTLY_FIRMWARE_WORKFLOW = Path(__file__).resolve().parents[1] / ".github" / "workflows" / "nightly-firmware.yml"
@@ -155,7 +156,7 @@ def test_release_workflow_uses_current_ota_output() -> None:
     assert "scripts/firmware_release.py generate-release-manifest" in workflow
     assert "scripts/firmware_release.py verify-release-manifest" in workflow
     assert "scripts/firmware_release.py verify-bundle" in workflow
-    assert "scripts/firmware_release.py publish-draft" in workflow
+    assert "scripts/firmware_release.py publish-draft" not in workflow
     assert "--source-revision" in workflow
     assert "scripts/firmware_release.py verify-recovery" in workflow
     assert "scripts/check_release_contract.py --github-repository" in workflow
@@ -186,6 +187,21 @@ def test_release_workflow_uses_current_ota_output() -> None:
     preflight = workflow.split("\n  preflight:", 1)[1].split("\n  device-matrix:", 1)[0]
     prepare_web = preflight.split("name: Prepare release web assets", 1)[1]
     assert prepare_web.index("node scripts/check_web_asset_manifest.js") < prepare_web.index("name: Upload release web assets")
+
+
+def test_publication_requires_tested_candidate() -> None:
+    build = RELEASE_WORKFLOW.read_text(encoding="utf-8")
+    publish = PUBLISH_WORKFLOW.read_text(encoding="utf-8")
+    assert "name: release-candidate-compatibility" in build
+    assert "name: release-candidate-compatibility" in publish
+    assert '.conclusion == "success"' in publish and ".head_sha == $source" in publish
+    assert '.workflow_id == $workflow' in publish
+    assert 'if [[ "${HARDWARE_PASSED}" != true ]]' in publish
+    assert publish.count("run-id: ${{ inputs.candidate_run }}") == 3
+    assert publish.index('--tested-fingerprint "${TESTED_FINGERPRINT}"') < publish.index(
+        "scripts/firmware_release.py publish-draft"
+    )
+    assert 'workflows: ["Publish Release"]' in PAGES_WORKFLOW.read_text(encoding="utf-8")
 
 
 def test_device_matrix_sparse_checkouts_include_product_model() -> None:
@@ -929,6 +945,7 @@ def test_public_pages_verification() -> None:
 def main() -> int:
     test_esphome_env_format()
     test_release_workflow_uses_current_ota_output()
+    test_publication_requires_tested_candidate()
     test_device_matrix_sparse_checkouts_include_product_model()
     test_pages_excludes_draft_prereleases()
     test_release_skill_creates_selected_tag_before_draft()

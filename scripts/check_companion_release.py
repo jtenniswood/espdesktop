@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from tempfile import TemporaryDirectory
 import unittest
-from companion_release import ROOT, compatibility, manifest, verify
+from companion_release import compatibility, digest, manifest, verify
 
 
 class CompanionReleaseTests(unittest.TestCase):
@@ -28,7 +28,10 @@ class CompanionReleaseTests(unittest.TestCase):
             protocol = compatibility()['protocolVersion']
             self.assertEqual(record['supportedCombinations'], [{'firmwareProtocol': protocol, 'companionProtocol': protocol}])
             path.write_text(json.dumps(record))
-            verify(path, firmware, companion, revision, version)
+            fingerprint = digest(path)
+            verify(path, firmware, companion, revision, version, tested_fingerprint=fingerprint)
+            with self.assertRaisesRegex(ValueError, 'Candidate fingerprint'):
+                verify(path, firmware, companion, revision, version, tested_fingerprint='b' * 64)
             prerelease_version = 'v9.8.7-beta.1'
             (firmware / 'release-manifest.json').write_text(json.dumps({
                 'sourceRevision': revision,
@@ -43,7 +46,8 @@ class CompanionReleaseTests(unittest.TestCase):
             with self.assertRaises(ValueError): verify(path, firmware, companion, 'b' * 40, version)
             with self.assertRaises(ValueError): verify(path, firmware, companion, revision, 'v9.8.8')
             (companion / 'Companion.zip').write_bytes(b'tampered bytes')
-            with self.assertRaises(ValueError): verify(path, firmware, companion, revision, version)
+            with self.assertRaisesRegex(ValueError, 'release artifacts'):
+                verify(path, firmware, companion, revision, version, tested_fingerprint=fingerprint)
             (companion / 'Companion.zip').write_bytes(b'mac fixture')
             record['protocolVersion'] = 2
             path.write_text(json.dumps(record))
