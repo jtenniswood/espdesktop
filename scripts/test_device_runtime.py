@@ -75,16 +75,18 @@ class HttpProbe:
             raise ValueError("expected a JSON object")
         return result
 
-    def native_config_snapshot(self):
-        """Return the saved v2 generation and an in-memory content fingerprint."""
+    def native_config_snapshot(self, *, require_durable_v2=True):
+        """Return the generation and an in-memory fingerprint of the v2 response."""
         request = urllib.request.Request(self.base + "/api/v1/config", headers={
             "User-Agent": "EspDesktop-device-test", "X-Panel-Config-Version": "2",
         })
         with self.opener.open(request, timeout=self.timeout) as response:
             headers = response.headers
+            durable = headers.get("X-Panel-Config-Durable-Version")
             if (headers.get_content_type() != "application/vnd.espdesktop.panel-config" or
-                    headers.get("X-Panel-Config-Version") != "2" or
-                    headers.get("X-Panel-Config-Durable-Version") != "2"):
+                    headers.get("X-Panel-Config-Version") != "2" or durable not in ("1", "2")):
+                raise ValueError("expected a native v2 panel configuration response")
+            if require_durable_v2 and durable != "2":
                 raise ValueError("expected a saved native v2 panel configuration")
             generation = headers.get("X-Panel-Config-Generation", "")
             if not re.fullmatch(r"[0-9]{1,10}", generation) or int(generation) > 0xFFFFFFFF:

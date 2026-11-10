@@ -112,7 +112,7 @@ def run(probe, output, expected=None, confirm=input):
         for name, instruction in STEPS:
             before = sample()
             if name == "offline_editor":
-                before_config = probe.native_config_snapshot()
+                before_config = probe.native_config_snapshot(require_durable_v2=False)
             started = time.monotonic()
             if confirm(f"{instruction}\nType pass when confirmed, or fail to stop: ").strip().lower() != "pass":
                 raise ValueError(f"Operator did not confirm {name}.")

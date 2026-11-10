@@ -78,7 +78,7 @@ class ReleaseHardwareTests(unittest.TestCase):
             probe.json.return_value = {"mac_companion": {"paired": True, "connected": True}}
 
             config = (15, b"before-digest")
-            probe.native_config_snapshot.side_effect = lambda: config
+            probe.native_config_snapshot.side_effect = lambda **_: config
 
             def confirm(prompt, *, change=True, keep=True, restart=True):
                 nonlocal config
@@ -93,6 +93,9 @@ class ReleaseHardwareTests(unittest.TestCase):
 
             with redirect_stdout(io.StringIO()), patch("sys.stderr", new=io.StringIO()):
                 self.assertEqual(release_hardware.run(probe, root / "report", expected, confirm), 0)
+                self.assertEqual(probe.native_config_snapshot.call_args_list, [
+                    unittest.mock.call(require_durable_v2=False), unittest.mock.call(), unittest.mock.call(),
+                ])
                 for case, options in (("no-reboot", {"restart": False}),
                                       ("no-save", {"change": False}), ("lost-save", {"keep": False})):
                     config = (15, b"before-digest")
@@ -163,7 +166,7 @@ class ProtocolTests(unittest.TestCase):
         self.assertEqual(s['memory']['heap_free_percent'], 40)
         self.assertEqual(self.paths, ['/api/v1/identity', '/api/v1/capabilities', '/api/v1/diagnostics'])
 
-    def test_reads_only_durable_v2_configuration_and_rejects_truncated_documents(self):
+    def test_can_read_a_v1_baseline_but_requires_durable_v2_by_default(self):
         self.durable_version = "2"
         self.config_bytes = b"EPCF\x02\x00\x10\x00" + (16).to_bytes(4, "little") + b"\0" * 20
         generation, fingerprint = self.probe.native_config_snapshot()
@@ -173,6 +176,7 @@ class ProtocolTests(unittest.TestCase):
         self.durable_version = "1"
         with self.assertRaises(ValueError):
             self.probe.native_config_snapshot()
+        self.assertEqual(self.probe.native_config_snapshot(require_durable_v2=False), (generation, fingerprint))
         self.durable_version = "2"
         self.config_bytes = self.config_bytes[:-1]
         with self.assertRaises(ValueError):
