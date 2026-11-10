@@ -920,15 +920,23 @@ def firmware_display_backlight_manual_sleep_errors(
             errors.append(f"{rel}: missing display_backlight light definition")
             continue
 
-        off_match = re.search(
-            r"(?ms)^    on_turn_off:\s*\n(?P<body>.*?)(?=^    [a-zA-Z_][\w-]*:\s*|\Z)",
-            backlight_block,
-        )
-        if off_match is None:
-            errors.append(f"{rel}: route Display Backlight OFF into manual sleep")
-            continue
+        off_include = re.search(r"(?m)^    on_turn_off: !include (\S+)$", backlight_block)
+        if off_include:
+            wiring = (path.parent / off_include.group(1)).resolve()
+            if not wiring.is_relative_to(root) or not wiring.is_file():
+                errors.append(f"{rel}: missing shared Display Backlight OFF wiring")
+                continue
+            off_body = wiring.read_text(encoding="utf-8")
+        else:
+            off_match = re.search(
+                r"(?ms)^    on_turn_off:\s*\n(?P<body>.*?)(?=^    [a-zA-Z_][\w-]*:\s*|\Z)",
+                backlight_block,
+            )
+            if off_match is None:
+                errors.append(f"{rel}: route Display Backlight OFF into manual sleep")
+                continue
+            off_body = off_match.group("body")
 
-        off_body = off_match.group("body")
         handler_index = off_body.find("script.execute: display_backlight_handle_off")
         if handler_index == -1:
             errors.append(
@@ -944,7 +952,7 @@ def firmware_display_backlight_manual_sleep_errors(
             interactive_index = off_body.find("DisplayTakeoverKind::INTERACTIVE")
             critical_index = off_body.find("DisplayTakeoverKind::CRITICAL")
             restore_index = off_body.find("script.execute: backlight_apply_brightness")
-            else_index = off_body.find("            else:", restore_index)
+            else_index = off_body.find("else:", restore_index)
             if not (
                 interactive_index != -1
                 and critical_index > interactive_index

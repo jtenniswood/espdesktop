@@ -240,30 +240,7 @@ light:
     restore_mode: RESTORE_DEFAULT_ON
     default_transition_length: 0s
     gamma_correct: 1.0
-    on_turn_on:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                auto now = id(panel_time).now();
-                return (id(espdesktop_app).display().target_source_is(
-                            espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
-                        id(espdesktop_app).display().target_mode_is(
-                            espdesktop::DisplayMode::DISPLAY_OFF)) ||
-                       screen_schedule_waiting_for_time(
-                         id(screen_schedule_trigger).state,
-                         id(schedule_enabled).state,
-                         now.is_valid());
-            then:
-              - script.execute: backlight_force_display_off
-            else:
-              - if:
-                  condition:
-                    lambda: |-
-                      return id(espdesktop_app).display().current_mode_is(
-                          espdesktop::DisplayMode::DISPLAY_OFF);
-                  then:
-                    - script.execute: screensaver_wake
+    on_turn_on: !include ../../../common/device/display_backlight_on.yaml
     on_turn_off:
       then:
         - script.execute: display_backlight_handle_off

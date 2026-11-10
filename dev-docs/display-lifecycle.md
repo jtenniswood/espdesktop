@@ -19,6 +19,9 @@ The current behaviour is spread across:
   dimmed and clock presentation, setup dimming, and takeover suspension;
 - `common/addon/backlight_schedule.yaml` for boot guard, scheduled modes,
   temporary off-hours wake, and brightness selection;
+- `common/device/display_backlight_on.yaml` for the board event that applies
+  the lifecycle service's backlight-on decision. Board files own PWM wiring.
+  The JC8012P4A1 family also includes the shared takeover-off handler;
 - `components/espdesktop/button_grid_image.h` for interactive image takeovers;
 - generated device slot wiring under `devices/*/device/sensors.yaml`.
 

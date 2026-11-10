@@ -129,7 +129,24 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   controller.request(DisplayRequestSource::SCREEN_SCHEDULE, night_mode);
   controller.complete_transition(controller.resolve());
 }
+void assert_backlight_on_policy() {
+  DisplayLifecycleService lifecycle;
+  auto &controller = lifecycle.controller();
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::KEEP_ON);
+  assert(lifecycle.backlight_on_response(true) == BacklightOnResponse::KEEP_OFF);
+  controller.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::DISPLAY_OFF);
+  const auto night = controller.resolve();
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::KEEP_OFF);
+  assert(controller.start_transition(night, 1));
+  assert(controller.complete_transition(night, 2));
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::KEEP_OFF);
+  controller.clear(DisplayRequestSource::SCREEN_SCHEDULE);
+  controller.resolve();
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::WAKE);
+}
+
 int main() {
+  assert_backlight_on_policy();
   // PANEL_SETTING_FIXTURES
   // Distinct LVGL objects so off/setup-page tests cannot match main by accident.
   int objects[5]{};
