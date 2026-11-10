@@ -588,8 +588,15 @@ def test_rotation_refresh_rebuilds_subpages() -> None:
             continue
         device = (ROOT / "devices" / slug / "device/device.yaml").read_text(encoding="utf-8")
         assert "file: ../../../common/device/screen_rotation_select.yaml" in device
+        assert "file: ../../../common/device/display_rotation_action.yaml" in device
         expected = "clock_bar_apply" if slug in ("esp32-p4-86", "guition-esp32-s3-4848s040") else "refresh_button_grid"
         assert f"rotation_refresh_script: {expected}" in device
+        offset = 180
+        if slug == "esp32-p4-86":
+            offset = 0
+        elif slug.startswith("guition-esp32-p4-jc8012p4a1"):
+            offset = 90
+        assert f"hardware_rotation_offset: {offset}" in device
 
 
 def test_local_display_header_has_no_ha_bindings() -> None:
