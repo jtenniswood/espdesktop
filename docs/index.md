@@ -116,6 +116,18 @@ EspDesktop runs on the [4-inch Guition 4848S040 touchscreen](/screens/4848s040).
 
 You choose which apps and folders the display can open. Keyboard shortcuts and Mac Lock use macOS Accessibility access. [How pairing and permissions work](/mac-controls/security)
 
+## Support This Project
+
+If you find EspDesktop useful, consider buying me a coffee to support ongoing development.
+
+<a class="homepage-support" href="https://www.buymeacoffee.com/jtenniswood">
+  <img :src="supportButton" alt="Buy me a coffee" width="545" height="153" />
+</a>
+
+<script setup>
+import supportButton from '../common/assets/images/buy-me-a-coffee-button.png'
+</script>
+
 <style scoped>
 .homepage-features {
   display: grid;
@@ -192,5 +204,18 @@ You choose which apps and folders the display can open. Keyboard shortcuts and M
   width: 100%;
   max-width: 300px;
   border-radius: 8px;
+}
+
+.homepage-support {
+  display: inline-block;
+  max-width: 100%;
+}
+
+.homepage-support img {
+  border-radius: 999px;
+}
+
+:global(body:has(.homepage-support) .sp-support-btn) {
+  display: none;
 }
 </style>
