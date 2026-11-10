@@ -44,12 +44,6 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
       char build[esphome::Application::BUILD_TIME_STR_SIZE];
       esphome::App.get_build_time_string(build);
       firmware["compilation_time"] = build;
-#ifdef ESPHOME_PROJECT_VERSION
-      firmware["project_version"] = ESPHOME_PROJECT_VERSION;
-#endif
-#ifdef ESPDESKTOP_DEVICE_SLUG
-      firmware["model"] = ESPDESKTOP_DEVICE_SLUG;
-#endif
       const auto &app_hash = esp_app_get_description()->app_elf_sha256;
       constexpr char hex[] = "0123456789abcdef";
       char digest[sizeof(app_hash) * 2 + 1]{};
@@ -58,6 +52,12 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
         digest[2 * i + 1] = hex[app_hash[i] & 0xf];
       }
       firmware["app_elf_sha256"] = std::string(digest);
+#ifdef ESPHOME_PROJECT_VERSION
+      firmware["project_version"] = ESPHOME_PROJECT_VERSION;
+#endif
+#ifdef ESPDESKTOP_DEVICE_SLUG
+      firmware["model"] = ESPDESKTOP_DEVICE_SLUG;
+#endif
       JsonObject memory = root["memory"].to<JsonObject>();
       const uint32_t internal = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
       const uint32_t external = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;

@@ -78,6 +78,8 @@ python3 scripts/test_release_hardware.py record --host PANEL_IP \
 The runner guides pairing, five nested shortcut and Back cycles, wake, an
 offline editor save, and a reboot. It measures internal heap and PSRAM before
 and after each step and checks the expected reboot and Mac reconnection.
+The session verifies the running firmware’s embedded ELF digest against the
+candidate OTA image, including rebuilds with the same version tag.
 The operator performs and confirms the steps. The runner makes read-only
 requests to the panel. Give the resulting `report.json` to **Publish Release**.
 
@@ -97,6 +99,3 @@ The runner's offline tests are included in fast/CI checks. Run them alone with
 without contacting hardware. Firmware host tests execute the production
 diagnostics handler, including authentication, unavailable startup, stable boot
 identity, 64-bit uptime and memory/build serialization.
-
-The release session verifies the running firmware’s embedded ELF digest
-against the candidate OTA image, including rebuilds with the same version tag.
