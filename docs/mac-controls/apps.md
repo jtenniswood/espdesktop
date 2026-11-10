@@ -1,6 +1,6 @@
 ---
-title: Launch Mac Apps
-description: Use EspDesktop Applications cards to launch Mac apps and open shortcut pages for the app you're using.
+title: Launch Mac Apps from a Touchscreen
+description: Choose which apps EspDesktop can launch, add an Applications card to your touchscreen and set up shortcut pages for supported apps.
 ---
 
 # Launch Mac Apps

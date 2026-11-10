@@ -1,6 +1,6 @@
 ---
-title: Configure Your Mac Control Surface
-description: Add Mac Companion cards, arrange them into pages, and customise the EspDesktop touchscreen from its built-in web editor.
+title: Configure Your Mac Touchscreen in the Web Editor
+description: Use the EspDesktop web editor to add app and shortcut tiles, arrange subpages, and adjust appearance, brightness and sleep settings.
 ---
 
 # Configure Your Mac Control Surface

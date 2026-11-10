@@ -1,6 +1,6 @@
 ---
-title: Install EspDesktop on the 4848S040
-description: Flash the EspDesktop firmware to the supported 4-inch Guition 4848S040 and connect it to WiFi.
+title: Install EspDesktop Firmware on the Guition 4848S040
+description: Flash your Guition ESP32-S3 4848S040 from Chrome or Edge using a USB-C data cable, then connect the EspDesktop touchscreen to 2.4 GHz WiFi.
 next: false
 ---
 

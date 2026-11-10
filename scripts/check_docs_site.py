@@ -29,6 +29,7 @@ class Page(HTMLParser):
         self.h1 = []
         self.ids = set()
         self.links = []
+        self.images = []
         self.schemas = []
         self.faq = []
         self.in_main = False
@@ -51,6 +52,8 @@ class Page(HTMLParser):
             self.ids.add(attrs['id'])
         if tag == 'a' and attrs.get('href'):
             self.links.append(attrs['href'])
+        if tag == 'img':
+            self.images.append(attrs)
         if tag == 'meta':
             self.meta[attrs.get('name', attrs.get('property', attrs.get('http-equiv', '')))] = attrs.get('content', '')
         if tag == 'link' and attrs.get('rel') == 'canonical':
@@ -81,7 +84,8 @@ class Page(HTMLParser):
             self.finish_answer()
             self.in_main = False
         if tag == 'script' and self.schema is not None:
-            self.schemas.append(json.loads(self.schema))
+            schema = json.loads(self.schema)
+            self.schemas.extend(schema.get('@graph', [schema]))
             self.schema = None
 
     def handle_data(self, data):
@@ -131,6 +135,9 @@ def snapshot(pages):
         'duplicate_descriptions': {description: count for description, count in descriptions.items() if count > 1},
         'missing_h1': [url for url, page in pages.items() if not page.h1],
         'missing_metadata': [url for url, page in pages.items() if not page.title or not page.meta.get('description') or not page.canonicals],
+        'missing_share_image_alt': [url for url, page in pages.items() if not page.meta.get('og:image:alt')],
+        'missing_breadcrumbs': [url for url, page in pages.items() if url != BASE and
+                                not any(schema.get('@type') == 'BreadcrumbList' for schema in page.schemas)],
         'search_console_data': 'Not available in this crawl; export from the verified owner account.',
     }
 
@@ -149,6 +156,8 @@ def check_build(dist):
     errors = []
     pages = {}
     urls = sitemap_urls((dist / 'sitemap.xml').read_text())
+    if len(urls) != len(set(urls)):
+        errors.append('Duplicate URL in sitemap')
     for url in urls:
         if not url.startswith(BASE):
             errors.append(f'Sitemap URL outside the docs site: {url}')
@@ -167,8 +176,30 @@ def check_build(dist):
             errors.append(f'Expected one main heading: {url}')
         if 'noindex' in page.meta.get('robots', ''):
             errors.append(f'Noindex page in sitemap: {url}')
+        if 'max-image-preview:large' not in page.meta.get('robots', '').split(','):
+            errors.append(f'Large image previews not enabled: {url}')
         if 'Espcontrol' in page.title:
             errors.append(f'Inconsistent brand spelling: {url}')
+        if page.meta.get('og:url') != url:
+            errors.append(f'Share URL does not match the canonical URL: {url}')
+        for field in ('title', 'description', 'image', 'image:alt'):
+            if not page.meta.get(f'og:{field}') or page.meta.get(f'twitter:{field}') != page.meta.get(f'og:{field}'):
+                errors.append(f'Missing or inconsistent share {field}: {url}')
+        share_image = page.meta.get('og:image', '')
+        if not share_image.startswith(BASE) or not (dist / share_image.removeprefix(BASE)).is_file():
+            errors.append(f'Missing bundled share image: {url}: {share_image}')
+        if not all(page.meta.get(f'og:image:{size}', '').isdigit() and int(page.meta[f'og:image:{size}']) > 0
+                   for size in ('width', 'height')):
+            errors.append(f'Missing share image dimensions: {url}')
+
+        site_schema = [entry for entry in page.schemas if entry.get('@type') == 'WebSite']
+        if [entry.get('url') for entry in site_schema] != ([BASE] if url == BASE else []):
+            errors.append(f'Website structured data should identify the homepage: {url}')
+        breadcrumb_schema = [entry for entry in page.schemas if entry.get('@type') == 'BreadcrumbList']
+        trails = [[(item.get('position'), item.get('item')) for item in entry.get('itemListElement', [])]
+                  for entry in breadcrumb_schema]
+        if trails != ([[(1, BASE), (2, url)]] if url != BASE else []):
+            errors.append(f'Incorrect breadcrumb trail: {url}')
 
     report = snapshot(pages)
     mac_docs = {
@@ -190,14 +221,22 @@ def check_build(dist):
         BASE + 'reference/privacy',
         BASE + 'reference/request-icons',
     }
-    unexpected_pages = set(pages) - mac_docs
-    if unexpected_pages:
-        errors.append(f'Non-Mac guide is still published: {sorted(unexpected_pages)}')
+    if unexpected_pages := set(pages) - mac_docs:
+        errors.append(f'Unexpected sitemap pages: {sorted(unexpected_pages)}')
+    if missing_pages := mac_docs - set(pages):
+        errors.append(f'Missing sitemap pages: {sorted(missing_pages)}')
     for field in ('duplicate_titles', 'duplicate_descriptions'):
         if report[field]:
             errors.append(f'{field}: {report[field]}')
 
+    paths = {url: set() for url in pages}
     for url, page in pages.items():
+        for image in page.images:
+            source = urljoin(url, image.get('src', ''))
+            if 'alt' not in image:
+                errors.append(f'Missing image alt attribute: {url}: {source}')
+            if source.startswith(BASE) and not (dist / unquote(urlsplit(source).path.removeprefix('/espdesktop/'))).is_file():
+                errors.append(f'Missing page image: {url}: {source}')
         for href in page.links:
             target = urlsplit(urljoin(url, href))
             if target.netloc != urlsplit(BASE).netloc or not target.path.startswith('/espdesktop/'):
@@ -207,12 +246,27 @@ def check_build(dist):
                 target_url = target_url[:-5]
             destination = pages.get(target_url)
             if destination:
+                paths[url].add(target_url)
                 if target.fragment and unquote(target.fragment) not in destination.ids:
                     errors.append(f'Broken anchor from {url}: {href}')
             else:
                 relative = unquote(target.path.removeprefix('/espdesktop/'))
                 if not (dist / relative).is_file():
                     errors.append(f'Broken or retired link from {url}: {href}')
+
+    reachable = set()
+    pending = [BASE]
+    while pending:
+        url = pending.pop()
+        if url not in reachable:
+            reachable.add(url)
+            pending.extend(paths.get(url, set()) - reachable)
+    if set(pages) - reachable:
+        errors.append(f'Sitemap pages have no link path from the homepage: {sorted(set(pages) - reachable)}')
+
+    missing = Page((dist / '404.html').read_text())
+    if 'noindex' not in missing.meta.get('robots', '') or missing.canonicals:
+        errors.append('The 404 page must stay out of search and have no canonical URL')
 
     faq = pages[BASE + 'reference/faq']
     schemas = [schema for schema in faq.schemas if schema.get('@type') == 'FAQPage']
@@ -225,6 +279,7 @@ def check_build(dist):
 
     redirects = {
         'reference/request-device-support': BASE + 'screens/4848s040',
+        'screens/index': BASE + 'screens/4848s040',
         'card-types/companion': BASE + '#what-you-can-control',
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
@@ -279,7 +334,8 @@ def check_build(dist):
     if errors:
         raise SystemExit('\n'.join(sorted(set(errors))))
     report['faq_answers_verified'] = len(faq.faq)
-    print(f'Docs site checks passed: {len(pages)} canonical pages, {len(faq.faq)} matching FAQ answers, {len(redirects)} redirects; internal links and anchors checked.')
+    print(f'Docs site checks passed: {len(pages)} reachable canonical pages with share metadata, '
+          f'{len(faq.faq)} matching FAQ answers, {len(redirects)} redirects; links, images and breadcrumbs checked.')
     return report
 
 

@@ -11,6 +11,7 @@ const macControls = `${hostname}#what-you-can-control`
 export const redirects: Record<string, string> = {
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
   'reference/request-device-support': `${hostname}screens/4848s040`,
+  'screens/index': `${hostname}screens/4848s040`,
   'card-types/companion': macControls,
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,

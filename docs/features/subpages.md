@@ -1,9 +1,9 @@
 ---
-title: "Organize Cards in Local Folders"
-description: "Use local Subpages for Mac and panel controls, with optional Mac statistics on folder tiles."
+title: Create Subpages for Mac Controls
+description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, create nested pages, or show Mac stats on a subpage tile.
 ---
 
-# Subpages
+# Create Subpages for Mac Controls {#subpages}
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 

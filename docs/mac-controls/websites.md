@@ -1,6 +1,6 @@
 ---
 title: Open Websites on Your Mac
-description: Add a Website card to open a web address in your Mac's default browser with a tap.
+description: Add a Website tile to open a favourite site in your Mac’s default browser. Choose a new tab or window on supported browsers.
 ---
 
 # Open Websites on Your Mac

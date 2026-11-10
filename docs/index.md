@@ -1,11 +1,11 @@
 ---
-title: EspDesktop — A Touchscreen for Your Mac
+title: EspDesktop — ESP32 Touchscreen Controller for Mac
 titleTemplate: :title
-description: Turn a 4-inch touchscreen into a custom Mac controller for your apps, folders, keyboard shortcuts and system stats.
+description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening Finder folders and running keyboard shortcuts.
 layout: home
 hero:
   name: EspDesktop
-  text: A touchscreen for your Mac
+  text: A touchscreen controller for your Mac
   tagline: Put the apps, folders and shortcuts you use every day on a dedicated 4-inch display beside your keyboard.
   image:
     src: /images/espdesktop-mac-controls.svg
@@ -20,6 +20,8 @@ hero:
 ---
 
 ## What You Can Control
+
+EspDesktop pairs the [4-inch Guition 4848S040](/screens/4848s040) with a [macOS menu-bar app](/getting-started/mac-app) on your local network. Set up the touchscreen in your browser and place it beside your keyboard.
 
 <div class="homepage-features">
 
@@ -213,9 +215,5 @@ import supportButton from '../common/assets/images/buy-me-a-coffee-button.png'
 
 .homepage-support img {
   border-radius: 999px;
-}
-
-:global(body:has(.homepage-support) .sp-support-btn) {
-  display: none;
 }
 </style>

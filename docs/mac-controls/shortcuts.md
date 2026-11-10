@@ -1,6 +1,6 @@
 ---
-title: Run Mac Keyboard Shortcuts
-description: Create Companion cards from custom Mac keyboard combinations or built-in app shortcut templates.
+title: Run Mac Keyboard Shortcuts from a Touchscreen
+description: Turn custom Mac keyboard shortcuts into tappable EspDesktop tiles or choose presets for apps such as Safari, Slack and Figma.
 ---
 
 # Run Mac Keyboard Shortcuts
