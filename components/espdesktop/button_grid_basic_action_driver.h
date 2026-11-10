@@ -147,9 +147,12 @@ inline bool basic_action_driver_bind_subpage(
         const auto *card = &context->card;
         if (companion_app_shortcuts_enabled(*card)) {
           auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
-          auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+          const auto started = esphome::millis();
           const bool active = companion_action_active(card->entity);
-          if (screen && lv_obj_is_valid(screen) && (companion_auto_open_app_subpages() || active)) {
+          auto *screen = (companion_auto_open_app_subpages() || active)
+              ? navigation_screen_for_button(button) : nullptr;
+          if (screen && lv_obj_is_valid(screen)) {
+            navigation_begin_page_open(screen, started);
             navigation_show_companion_subpage(screen, /*from_card=*/true);
             refresh_visible_image_cards();
             if (!companion_auto_open_app_subpages()) return;
@@ -188,11 +191,14 @@ inline bool basic_action_driver_handle_main_click(
                static_cast<unsigned long>(companion_next_request_number()), slot_number);
       lv_obj_t *screen = nullptr;
       if (companion_app_shortcuts_enabled(config) && button) {
-        screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+        const auto started = esphome::millis();
+        if (companion_auto_open_app_subpages() || companion_action_active(config.entity))
+          screen = navigation_screen_for_button(button);
         if (screen && !companion_auto_open_app_subpages()) {
           // In manual mode, the first press focuses the app. Only an already
           // active (on) card opens its subpage, without invoking the app again.
           if (companion_action_active(config.entity) && lv_obj_is_valid(screen)) {
+            navigation_begin_page_open(screen, started);
             navigation_show_companion_subpage(screen, /*from_card=*/true);
             break;
           }
@@ -200,6 +206,7 @@ inline bool basic_action_driver_handle_main_click(
         if (screen && companion_auto_open_app_subpages()) {
           // Navigation is local; do not wait for Mac focus/acknowledgement.
           if (lv_obj_is_valid(screen)) {
+            navigation_begin_page_open(screen, started);
             navigation_show_companion_subpage(screen, /*from_card=*/true);
           }
         }
