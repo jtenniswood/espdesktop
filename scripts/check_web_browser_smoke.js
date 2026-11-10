@@ -5843,6 +5843,15 @@ async function assertPreviewOutlines(browser, testCase, exhaustive = false) {
       await page.locator(empty).first().hover();
       await assertPreviewOutlinePixels(page, empty, `${testCase.slug}/${preset}/empty`);
     }
+    if (testCase.slug === "guition-esp32-s3-4848s040") {
+      await page.evaluate(() => window.__seedEspState([
+        { id: "select-screen__card_curve", state: "Large", value: "Large" },
+        { id: "text-button_order", state: "1,2" },
+        { id: "text-button_2_config", state: "media_player.living;Speakers;Auto;Auto;speaker_group;;media" },
+      ]));
+      await assertPreviewOutlinePixels(page, '.sp-main > .sp-media-group-active[data-slot="2"]:not(.sp-selected)',
+        `${testCase.slug}/Large/speaker group`, 3);
+    }
     // A resized, large artwork card exercises mask regeneration as well as layering.
     if (testCase.mediaCoverArtSupported) {
       const art = fixtures.find(fixture => fixture.key === "media_cover_art");

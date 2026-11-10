@@ -135,6 +135,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "fill:none;stroke:var(--card-outline-color,var(--accent));stroke-width:4}" +
         ".sp-btn.sp-selected>.sp-card-outline,.sp-empty-cell>.sp-card-outline{display:block}" +
         ".sp-empty-cell>.sp-card-outline{stroke-dasharray:8 6}" +
+        ".sp-btn.sp-media-group-active:not(.sp-drop-placeholder)>.sp-card-outline{display:block;stroke-width:6}" +
         ".sp-btn.sp-selected:hover{filter:none}" +
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:var(--card-text-color,var(--preview-text-primary));z-index:1}" +
@@ -143,7 +144,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         "display:block;stroke:var(--card-active-color);stroke-width:6}" +
         ".sp-btn.sp-companion-app-icon-card:active{background-color:var(--sp-companion-app-icon-active)!important;--card-text-color:var(--sp-companion-app-icon-active-text)!important;filter:none}" +
         ".sp-btn>.sp-btn-label,.sp-btn>.sp-btn-label-row{margin-top:auto}" +
-        ".sp-media-group-active{box-shadow:inset 0 0 0 3px var(--accent)}" +
         ".sp-btn-label{display:block;max-height:var(--btn-label-max-height);overflow:hidden;word-break:break-word;min-height:0}" +
         ".sp-btn.sp-weather-wind-card>.sp-btn-label{max-height:none}" +
         ".sp-weather-wind-speed{display:block;margin-top:.2em}" +
