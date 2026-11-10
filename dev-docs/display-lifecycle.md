@@ -104,6 +104,11 @@ modal lifecycle used by ordinary navigation.
 
 ### Touch wake
 
+Grid cards send press, tap, and hold events to the navigation policy. The
+ESPHome binding applies its decision to wake the screen, consume a wake
+touch, or dispatch the card action. App page history is also decided before
+the LVGL layer changes screens.
+
 A deliberate user wake clears manual sleep and selects `ACTIVE`. During scheduled
 off-hours it also starts the existing temporary-wake timer and uses temporary-wake
 brightness. The first touch that wakes dimmed, clock, or display off is

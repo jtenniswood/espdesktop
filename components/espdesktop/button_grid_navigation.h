@@ -413,22 +413,10 @@ inline int navigation_active_subpage_slot() {
 inline void navigation_show_companion_subpage(lv_obj_t *screen, bool from_card) {
   lv_obj_t *active = lv_scr_act();
   if (active == screen) return;
-  auto &history = grid_navigation_service().companion_page_history;
-  const int active_slot = navigation_subpage_slot_for_screen(active);
-  const auto current = std::find(history.begin(), history.end(), active_slot);
-  if (current == history.end()) history.assign(1, active_slot);
-  else history.erase(current + 1, history.end());
-
-  const int next_slot = navigation_subpage_slot_for_screen(screen);
-  const auto earlier = std::find(history.begin(), history.end(), next_slot);
-  if (earlier != history.end()) {
-    history.erase(earlier + 1, history.end());
-  } else if (from_card || history.size() == 1) {
-    history.push_back(next_slot);
-  } else {
-    // Following Mac focus replaces the current app page in the history.
-    history.back() = next_slot;
-  }
+  grid_navigation_service().companion_page_history.opened(
+      navigation_subpage_slot_for_screen(active),
+      navigation_subpage_slot_for_screen(screen),
+      from_card ? CompanionPageSource::CARD : CompanionPageSource::MAC_FOCUS);
   lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
 }
 
@@ -479,27 +467,18 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
   const ParsedCfg parent_config = grid_layout_card_config(parent->slot, parent->config);
   if (!companion_app_shortcuts_enabled(parent_config)) return false;
   const bool current_app_closed = !closed_app.empty() && closed_app == parent_config.entity;
-  if (!focus_changed && !current_app_closed) return false;
+  const bool return_on_app_switch = companion_return_home_on_app_switch();
   const std::string requested = companion_pending_auto_subpage_action();
-  if (!companion_return_home_on_app_switch()) {
-    // Keep the current page during app switches. A closed window still returns
-    // to the previous page, without opening another app's page in its place.
-    if (!requested.empty()) companion_consume_auto_subpage_action(requested);
-    if (!current_app_closed) return false;
-  } else if (requested == parent_config.entity ||
-             navigation_companion_subpage_for_action(requested)) {
-    // Keep the page already shown or load the next app's page directly.
-    return false;
+  const bool focus_has_page = (focus_changed || current_app_closed) && return_on_app_switch &&
+      (requested == parent_config.entity || navigation_companion_subpage_for_action(requested));
+  const auto decision = decide_companion_page_exit(
+      focus_changed, current_app_closed, return_on_app_switch, focus_has_page);
+  if (decision.discard_focus_request && !requested.empty()) {
+    companion_consume_auto_subpage_action(requested);
   }
+  if (!decision.return_to_previous) return false;
   auto &history = grid_navigation_service().companion_page_history;
-  const auto current = std::find(history.begin(), history.end(), slot);
-  int return_slot = entry->parent_slot;
-  if (current != history.end() && current != history.begin()) {
-    return_slot = *(current - 1);
-    history.erase(current, history.end());
-  } else {
-    history.clear();
-  }
+  const int return_slot = history.previous(slot, entry->parent_slot);
   if (return_slot > 0 && navigation_restore_subpage_slot(return_slot)) {
     navigation_hide_modals();
     return true;
