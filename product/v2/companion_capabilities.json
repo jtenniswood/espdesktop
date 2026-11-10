@@ -948,6 +948,10 @@
         "fields": {
           "locked": {
             "type": "boolean"
+          },
+          "displayAwake": {
+            "type": "boolean",
+            "optional": true
           }
         },
         "states": [

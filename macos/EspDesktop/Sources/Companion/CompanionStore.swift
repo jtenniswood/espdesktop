@@ -179,8 +179,8 @@ final class CompanionStore: NSObject, ObservableObject {
             ?? (savedPairingAccounts.contains(configuredPanelHost) ? configuredPanelHost : nil)
             ?? (savedPairingAccounts.count == 1 ? savedPairingAccounts[0] : "")
         super.init()
-        sessionLock.onChange = { [weak self] locked in
-            self?.connection.publishSessionLock(locked)
+        sessionLock.onChange = { [weak self] locked, displayAwake in
+            self?.connection.publishSessionLock(locked, displayAwake: displayAwake)
         }
         sessionLock.start()
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -675,7 +675,8 @@ final class CompanionStore: NSObject, ObservableObject {
         case let .status(message): updateStatus(message)
         case let .capabilities(systemMetrics): setSystemMetricsSupported(systemMetrics)
         case .publishCurrentState:
-            connection.publishSessionLock(sessionLock.refresh())
+            sessionLock.refresh()
+            connection.publishSessionLock(sessionLock.locked, displayAwake: sessionLock.displayAwake)
             republishCurrentSystemMetrics()
         }
     }

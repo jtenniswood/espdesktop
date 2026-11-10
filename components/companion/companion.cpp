@@ -778,7 +778,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       // message cannot restore the lock after the former Mac loses trust.
       std::lock_guard<std::mutex> lock(this->pairing_mutex_);
       if (!this->identity_.paired || socket_fd != this->session_.authenticated_socket()) return false;
-      this->defer_session_([locked = payload->locked]() { screen_lock_set_mac_locked(locked); });
+      this->defer_session_([locked = payload->locked, awake = payload->displayAwake]() {
+        screen_lock_set_mac_locked(locked, awake);
+      });
       return true;
     }
 
@@ -974,6 +976,9 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
     this->reset_app_icon_transfer_();
   }
   this->defer_session_([connected]() {
+    // Discard a stale awake state, but keep a sleeping panel dark until the
+    // Mac reconnects and reports that its display woke or the session unlocked.
+    if (screen_lock_mac_display_awake() == true) screen_lock_mac_display_awake().reset();
     if (connected) {
       companion_cancel_action_result();
       companion_runtime_service().set_connected(false);

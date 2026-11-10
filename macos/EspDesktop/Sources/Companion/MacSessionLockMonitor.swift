@@ -5,13 +5,19 @@ import CoreGraphics
 // reads the current state when the app starts or the display reconnects.
 @MainActor
 final class MacSessionLockMonitor: NSObject {
-    var onChange: ((Bool) -> Void)?
+    var onChange: ((Bool, Bool?) -> Void)?
     private(set) var locked = false
+    private(set) var displayAwake: Bool?
     private let readLock: @MainActor () -> Bool?
+    private let readDisplayAwake: @MainActor () -> Bool?
     private var started = false
 
-    init(readLock: @escaping @MainActor () -> Bool? = MacSessionLockMonitor.currentLock) {
+    init(
+        readLock: @escaping @MainActor () -> Bool? = MacSessionLockMonitor.currentLock,
+        readDisplayAwake: @escaping @MainActor () -> Bool? = MacSessionLockMonitor.currentDisplayAwake
+    ) {
         self.readLock = readLock
+        self.readDisplayAwake = readDisplayAwake
         super.init()
     }
 
@@ -23,13 +29,28 @@ final class MacSessionLockMonitor: NSObject {
             || (session[kCGSessionOnConsoleKey as String] as? Bool == false)
     }
 
+    static func currentDisplayAwake() -> Bool? {
+        var count: UInt32 = 0
+        guard CGGetOnlineDisplayList(0, nil, &count) == .success else { return nil }
+        guard count > 0 else { return false }
+        var displays = [CGDirectDisplayID](repeating: 0, count: Int(count))
+        guard CGGetOnlineDisplayList(count, &displays, &count) == .success else { return nil }
+        return displays.prefix(Int(count)).contains { CGDisplayIsAsleep($0) == 0 }
+    }
+
     func start() {
         guard !started else { return }
         started = true
         for name in ["com.apple.screenIsLocked", "com.apple.screenIsUnlocked"] {
             DistributedNotificationCenter.default().addObserver(
-                self, selector: #selector(sessionChanged), name: .init(name), object: nil,
+                self, selector: #selector(sessionChanged(_:)), name: .init(name), object: nil,
                 suspensionBehavior: .deliverImmediately
+            )
+        }
+        let workspace = NSWorkspace.shared
+        for name in [NSWorkspace.screensDidSleepNotification, NSWorkspace.screensDidWakeNotification] {
+            workspace.notificationCenter.addObserver(
+                self, selector: #selector(sessionChanged(_:)), name: name, object: workspace
             )
         }
         refresh()
@@ -43,14 +64,17 @@ final class MacSessionLockMonitor: NSObject {
         }
     }
 
-    @objc private func sessionChanged() { refresh() }
+    @objc private func sessionChanged(_ notification: Notification) { refresh() }
 
     @discardableResult
     func refresh() -> Bool {
         // An unavailable WindowServer snapshot must not clear a known lock.
-        if let current = readLock(), current != locked {
-            locked = current
-            onChange?(locked)
+        let currentLock = readLock() ?? locked
+        let currentDisplay = currentLock ? (readDisplayAwake() ?? displayAwake) : nil
+        if currentLock != locked || currentDisplay != displayAwake {
+            locked = currentLock
+            displayAwake = currentDisplay
+            onChange?(locked, displayAwake)
         }
         return locked
     }

@@ -26,7 +26,9 @@ def generate(root):
     selected = {"display_mode_reconcile", "screen_schedule_check", "screen_schedule_wake",
                 "display_mode_apply_transition", "display_mode_effect_active",
                 "display_active_finalize", "screensaver_idle_check",
-                "screen_schedule_wake_timeout_check"}
+                "screen_schedule_wake_timeout_check",
+                "screensaver_companion_reconcile", "screensaver_sleep_timer",
+                "display_mode_request_automatic", "display_mode_clear_automatic"}
     # Exercise the entire ACTIVE branch, including the guarded completion and
     # finalizer call. Other presentation modes are hardware doubles below.
     adapter = scripts["display_mode_apply_transition"]["then"][0]["if"]["then"]

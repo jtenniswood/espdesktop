@@ -88,8 +88,8 @@ esphome:
               id(screensaver_companion_reconcile).execute();
             });
             register_screen_lock_changed_handler([](bool) {
-              id(screensaver_companion_reconcile).execute();
               id(screen_lock_refresh_ui).execute();
+              id(screensaver_companion_reconcile).execute();
             });
             id(screensaver_companion_ready) = true;
 
@@ -401,6 +401,11 @@ script:
           const bool schedule_was_active = controller.request_active(
               espdesktop::DisplayRequestSource::SCREEN_SCHEDULE);
           const bool schedule_ended = schedule_was_active && !schedule_night;
+          const bool companion_mode = id(screensaver_companion_ready) &&
+                                      id(screensaver_mode).state == "companion";
+          const bool display_off = !id(screensaver_action_clock) && !id(screensaver_action_dimmed);
+          const bool follows_mac_display = companion_mode &&
+              screen_lock_follows_display_power(display_off, companion_connected());
 
           // A scheduled clock is already an idle presentation. Hand it straight
           // to the current screensaver policy instead of briefly waking the UI.
@@ -414,9 +419,8 @@ script:
             id(screen_schedule_wake_timeout_check).stop();
             controller.clear(espdesktop::DisplayRequestSource::IDLE_TIMER);
             controller.clear(espdesktop::DisplayRequestSource::PRESENCE_SENSOR);
-            const bool companion_idle = id(screensaver_mode).state == "companion" &&
-                                        id(screensaver_companion_ready) &&
-                                        (!companion_connected() || screen_lock_enabled());
+            const bool companion_idle = companion_mode && !follows_mac_display &&
+                (!companion_connected() || screen_lock_enabled());
             if (leaving_scheduled_clock && id(schedule_enabled).state &&
                 !onboarding && !waiting_for_time &&
                 !id(screensaver_wake).is_running() &&
@@ -436,6 +440,9 @@ script:
             controller.clear(espdesktop::DisplayRequestSource::SETUP_TIMEOUT);
           }
           set_request(espdesktop::DisplayRequestSource::BOOT_GUARD, waiting_for_time,
+                      espdesktop::DisplayMode::DISPLAY_OFF);
+          set_request(espdesktop::DisplayRequestSource::MAC_DISPLAY_SLEEP,
+                      follows_mac_display && screen_lock_mac_display_awake() == false,
                       espdesktop::DisplayMode::DISPLAY_OFF);
           set_request(espdesktop::DisplayRequestSource::USER_WAKE,
                       id(manual_wake_ms) != 0, espdesktop::DisplayMode::ACTIVE);
@@ -667,8 +674,7 @@ script:
                       id: display_mode_request_automatic
                       target_mode: !lambda 'return static_cast<int>(espdesktop::DisplayMode::DISPLAY_OFF);'
 
-  # Companion App mode follows connection and lock state immediately. It uses
-  # the same configured saver action as the timer.
+  # Display Off follows the Mac's display power while the session is locked.
   - id: screensaver_companion_reconcile
     mode: restart
     then:
@@ -683,7 +689,16 @@ script:
                   - script.execute: screensaver_wake
                 else:
                   - script.stop: screensaver_idle_check
-                  - script.execute: screensaver_sleep_timer
+                  - if:
+                      condition:
+                        lambda: |-
+                          const bool display_off = !id(screensaver_action_clock) &&
+                                                   !id(screensaver_action_dimmed);
+                          return screen_lock_follows_display_power(display_off, companion_connected());
+                      then:
+                        - script.execute: display_mode_clear_automatic
+                      else:
+                        - script.execute: screensaver_sleep_timer
 
   - id: screensaver_sleep_display_off
     mode: restart
@@ -785,11 +800,12 @@ script:
     then:
       - lambda: |-
           const auto transition = id(espdesktop_app).display().resolve();
-          const bool immediate = transition.winning_source.has_value() &&
+          const bool closes_modals = transition.winning_source.has_value() &&
               (*transition.winning_source == espdesktop::DisplayRequestSource::BOOT_GUARD ||
                *transition.winning_source == espdesktop::DisplayRequestSource::SCREEN_SCHEDULE ||
-               *transition.winning_source == espdesktop::DisplayRequestSource::MANUAL_SLEEP);
-          if (immediate) backlight_close_modals_for_display_takeover();
+               *transition.winning_source == espdesktop::DisplayRequestSource::MANUAL_SLEEP ||
+               *transition.winning_source == espdesktop::DisplayRequestSource::MAC_DISPLAY_SLEEP);
+          if (closes_modals) backlight_close_modals_for_display_takeover();
       - lambda: |-
           if (!id(espdesktop_app).display().transition_is_current(
                 static_cast<uint32_t>(generation), espdesktop::DisplayMode::DISPLAY_OFF)) {
@@ -807,7 +823,8 @@ script:
           const auto transition = id(espdesktop_app).display().resolve();
           const bool automatic = transition.winning_source.has_value() &&
               (*transition.winning_source == espdesktop::DisplayRequestSource::IDLE_TIMER ||
-               *transition.winning_source == espdesktop::DisplayRequestSource::PRESENCE_SENSOR);
+               *transition.winning_source == espdesktop::DisplayRequestSource::PRESENCE_SENSOR ||
+               *transition.winning_source == espdesktop::DisplayRequestSource::MAC_DISPLAY_SLEEP);
           if (automatic) {
             id(backlight_fade_current_ui_to_black).execute(
                 generation, static_cast<int>(espdesktop::DisplayMode::DISPLAY_OFF));
@@ -935,6 +952,12 @@ script:
     mode: single
     then:
       - lambda: |-
+          if (id(screensaver_mode).state == "companion" &&
+              screen_lock_enabled() && screen_lock_mac_display_awake() == false &&
+              !id(screensaver_action_clock) && !id(screensaver_action_dimmed)) {
+            id(screensaver_wake).stop();
+            return;
+          }
           id(espdesktop_app).display_lifecycle().begin_wake(
               !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN));
       - script.stop: display_mode_apply_transition

@@ -672,9 +672,11 @@ final class CompanionConnection: NSObject {
                   "sha256": hash, "format": transferFormat])
     }
 
-    func publishSessionLock(_ locked: Bool) {
+    func publishSessionLock(_ locked: Bool, displayAwake: Bool?) {
         guard sessionAuthenticated, supportsSessionLock else { return }
-        sendJSON(["type": "session.lock", "locked": locked])
+        var message: [String: Any] = ["type": "session.lock", "locked": locked]
+        if let displayAwake { message["displayAwake"] = displayAwake }
+        sendJSON(message)
     }
 
     private func sendJSON(_ object: [String: Any]) {
