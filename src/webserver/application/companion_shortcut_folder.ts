@@ -45,6 +45,7 @@ import {
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { isBackOrderToken } from "../model/subpage";
+import type { SubpageConfig } from "../contracts/types";
 
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
@@ -361,6 +362,35 @@ function companionShortcutPresetIdentity(card: any, preserveUnavailableSafariPre
     return companionShortcutTabDefinitions(bundleIdentifier).some((item) => item.value === id) ? raw : "";
 }
 
+export function reconnectAthenaShortcutSubpage(
+    page: SubpageConfig | undefined, previous: string | undefined, replacement: string,
+): SubpageConfig | null {
+    if (!page || !previous || previous === replacement || !SAFARI_WEB_APP_BUNDLE_ID.test(previous) ||
+        !SAFARI_WEB_APP_BUNDLE_ID.test(replacement)) return null;
+    const athena = BUNDLED_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
+    const target = COMPANION_SHORTCUT_APPS.find(app => app.appId === replacement);
+    if (!athena || !target) return null;
+    const athenaTabs = new Set(athena.shortcuts.map(shortcut => shortcut.id));
+    const preset = (card: { options: string }) => configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
+    const wasAthena = page.buttons.some(card => {
+        const [id, tab] = preset(card).split(":");
+        return id === previous && tab !== undefined && athenaTabs.has(tab);
+    });
+    if (!wasAthena || !target.shortcuts.some(shortcut => athenaTabs.has(shortcut.id))) return null;
+
+    const availableTabs = new Set(companionShortcutTabDefinitions(replacement).map(tab => tab.value));
+    return {
+        ...page,
+        buttons: page.buttons.map(card => {
+            const [id, tab] = preset(card).split(":");
+            return id === previous && tab && availableTabs.has(tab) ? {
+                ...card,
+                options: setConfigOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION, replacement + ":" + tab),
+            } : { ...card };
+        }),
+    };
+}
+
 export function safariShortcutPresetCards(): CompanionShortcutPresetCard[] {
     return companionShortcutPresetCards(SAFARI_BUNDLE_ID);
 }
@@ -418,26 +448,30 @@ export function syncFinderFolderSelection(
     const page = JSON.parse(JSON.stringify(source));
     const managed = (card: any) => card?.type === "companion" && card.entity?.startsWith("folder.");
     const sizes = { ...(page.sizes || {}) };
+    const pinned = finderFolderTabs(page);
+    const existing = pinned.filter(id => selected.includes(id));
+    const reordered = existing.some((id, index) => selected[index] !== id);
     const suffixes = new Map<string, string>();
     page.order = (page.order || []).map((token: string) => {
         const index = Number.parseInt(String(token), 10) - 1;
         const card = page.buttons[index];
         if (!managed(card)) return token;
         suffixes.set(card.entity, String(token).replace(/^\d+/, ""));
-        return "";
+        return !reordered && selected.includes(card.entity) ? token : "";
     });
-    // Unplaced folder definitions persist disabled choices across reconnects.
-    // Automatic catalogue updates recognize these IDs and do not re-add them.
-    for (const folder of folders) {
-        if (!page.buttons.some((card: any) => managed(card) && card.entity === folder.id)) {
-            page.buttons.push(shortcutCard(folder.id, folder.label, "Folder Outline"));
-        }
-    }
     page.sizes = {};
     buildGrid(page);
     for (const id of selected) {
-        const index = page.buttons.findIndex((card: any) => managed(card) && card.entity === id);
-        if (index < 0) continue;
+        if (!reordered && existing.includes(id)) continue;
+        let index = page.buttons.findIndex((card: any) => managed(card) && card.entity === id);
+        if (index < 0) {
+            const folder = folders.find(folder => folder.id === id);
+            if (!folder) return null;
+            index = page.buttons.findIndex((card: any) => managed(card) &&
+                !selected.includes(card.entity) && !pinned.includes(card.entity));
+            if (index < 0) index = page.buttons.length;
+            page.buttons[index] = shortcutCard(folder.id, folder.label, "Folder Outline");
+        }
         const suffix = suffixes.get(id) || "";
         const size = sizes[String(index + 1)] || 1;
         let placed = false;
@@ -458,26 +492,6 @@ export function syncFinderFolderSelection(
         if (!placed) return null;
     }
     return page;
-}
-
-// Add configured directories without replacing custom cards, labels, or layout.
-export function addFinderFolderTiles(
-    subpage: any, folders: readonly { id: string; label: string }[], maxSlots: number,
-): any {
-    const existing = new Set((subpage.buttons || []).map((card: any) => card.entity));
-    for (const folder of folders) {
-        if (!folder.id.startsWith("folder.") || folder.id.length <= 7 || existing.has(folder.id)) continue;
-        let position = -1;
-        for (let index = 0; index < maxSlots; index += 1) {
-            if (!subpage.order[index] && !subpage.grid?.[index]) { position = index; break; }
-        }
-        if (position < 0) break;
-        subpage.buttons.push(shortcutCard(folder.id, folder.label, "Folder Outline"));
-        while (subpage.order.length <= position) subpage.order.push("");
-        subpage.order[position] = String(subpage.buttons.length);
-        existing.add(folder.id);
-    }
-    return subpage;
 }
 
 function subpageOrderButtonIndex(token: unknown): number {

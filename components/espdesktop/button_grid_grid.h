@@ -1,6 +1,7 @@
 #pragma once
 
 #include "grid_native_page_cards.h"
+#include "finder_folder_sync.h"
 #include <initializer_list>
 
 #include "card_curve.h"
@@ -71,6 +72,29 @@ struct GridConfig {
 };
 
 #include "button_grid_image.h"
+
+// The approved Mac catalogue is only a render input. The native page store
+// continues to contain the user's placed tiles.
+inline std::vector<CompanionAction> &grid_live_finder_folders() {
+  static std::vector<CompanionAction> folders;
+  return folders;
+}
+
+inline bool grid_update_finder_folders(const CompanionRuntimeSnapshot &snapshot) {
+  std::vector<CompanionAction> folders;
+  if (snapshot.connected) {
+    for (const auto &action : snapshot.actions)
+      if (action.id.rfind("folder.", 0) == 0 && action.id.size() > 7)
+        folders.push_back(action);
+  }
+  auto &previous = grid_live_finder_folders();
+  if (finder_folder_catalogue_equal(previous, folders)) return false;
+  previous = std::move(folders);
+  const auto *pages = espdesktop::grid_native_pages();
+  return pages && std::any_of(pages->pages.begin(), pages->pages.end(), [](const auto &page) {
+    return grid_layout_card_config(page.key, {}).entity == "com.apple.finder";
+  });
+}
 
 inline void navigation_refresh_subpage_label();
 
@@ -1372,6 +1396,10 @@ inline void grid_phase2(
     SubpageOrder sp_ord;
     parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
     normalize_subpage_order_spans(sp_ord, NS, COLS);
+    if (p.entity == "com.apple.finder") {
+      finder_project_folder_tiles(sp_ord, sp_btns, NS, COLS, grid_live_finder_folders(),
+                                 companion_folder_open_behavior(p));
+    }
 
     lv_obj_t *sub_scr = lv_obj_create(nullptr);
     if (!sub_scr) return nullptr;

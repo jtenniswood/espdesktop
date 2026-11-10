@@ -97,23 +97,26 @@ int main() {
 
   const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
   const std::vector<CompanionAction> folders = {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}};
-  const auto added = finder_append_folder_tiles(page, {true, true, true, false}, folders);
-  const auto parsed = parse_subpage_config(added);
-  assert(parsed.size() == 2 && parsed[0].label == "My folder" && parsed[1].label == "A,B|C");
-  assert(added.rfind("~B,1,,2|", 0) == 0);
-  assert(finder_append_folder_tiles(added, {true, true, true, true}, folders) == added);
-  assert(finder_append_folder_tiles(page, {true, true, true, true}, folders) == page);
-  assert(finder_append_folder_tiles(page, {true, true, false, false}, folders, page.size()) == page);
-  const auto capacity = finder_append_folder_tiles(page, {true, true, false, false},
-      folders, 65535, "same_window").size();
-  const auto plan = finder_plan_folder_tiles_for_grid("B,1,,", parse_subpage_config(page), 4, 2,
-      {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}, {"folder.two", "Duplicate"}},
-      capacity, "same_window");
-  assert(plan.order == "B,1,2," && plan.added.size() == 1);
-  assert(plan.added[0].label == "A,B|C");
-  assert(plan.added[0].options == "finder_open_behavior=same_window");
-  assert(finder_plan_folder_tiles_for_grid("B,1,,", parse_subpage_config(page), 4, 2,
-      folders, capacity - 1, "same_window").added.empty());
+  const auto saved = parse_subpage_config(page);
+  auto project = [](auto buttons, const auto &catalogue) {
+    SubpageOrder order;
+    parse_subpage_order("B,1,,", 4, buttons.size(), order);
+    normalize_subpage_order_spans(order, 4, 2);
+    finder_project_folder_tiles(order, buttons, 4, 2, catalogue, "same_window");
+    return buttons;
+  };
+  const auto live = project(saved, folders);
+  assert(live.size() == 2 && live[0].label == "My folder" && live[1].label == "A,B|C");
+  assert(live[1].options == "finder_open_behavior=same_window");
+  assert(project(saved, std::vector<CompanionAction>{}).size() == 1);
+  assert(project(saved, folders)[1].label == live[1].label);
+  auto concurrent_edit = saved;
+  concurrent_edit[0].label = "Renamed while offline";
+  const auto restored = project(concurrent_edit, folders);
+  assert(restored[0].label == "Renamed while offline" && restored.size() == 2);
+  assert(saved.size() == 1 && saved[0].label == "My folder");
+  assert(finder_folder_catalogue_equal(folders, folders));
+  assert(!finder_folder_catalogue_equal(folders, {{"folder.one", "Different"}, folders[1]}));
 
   // Exercise the real translation tables at the device-label boundary.
   assert(std::string(companion_volume_control_label("media.input_mute")) == "Mute");
@@ -135,6 +138,10 @@ int main() {
   assert(std::string(espdesktop_i18n_key(companion_metric_suffix_key("stat.storage_free:external"))) == "free");
   assert(!companion_connected());
   assert(!companion_card_refresh_requested().load());
+  const std::string athena = "com.apple.Safari.WebApp.27234284-164C-41C9-97DD-7189CD41B456";
+  assert(companion_athena_shortcut_target(athena + ":100") == athena);
+  assert(companion_athena_shortcut_target(athena + ":2").empty());
+  assert(companion_athena_shortcut_target("com.apple.Safari:100").empty());
   assert(companion_shortcut_action_valid("shortcut.command+a"));
   assert(companion_shortcut_label("shortcut.command+a") == "\U000F0633" "A");
   assert(companion_shortcut_action_valid("shortcut.control+shift+tab"));

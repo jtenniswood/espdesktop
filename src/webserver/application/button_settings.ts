@@ -1,4 +1,4 @@
-import { parentPageKey } from "../model/page_keys";
+import { childPageKey, parentPageKey } from "../model/page_keys";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
@@ -27,7 +27,7 @@ import type { PreviewRenderFeature } from "./preview_render";
 import { cardPickerConnectors, type CardPickerConnector } from "../features/preview";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
-import { cardOwnsSubpage } from "./companion_shortcut_folder";
+import { cardOwnsSubpage, reconnectAthenaShortcutSubpage } from "./companion_shortcut_folder";
 
 export function entityMatchesDomains(entityId?: any, domains?: any): boolean {
     var value: any = String(entityId || "").trim();
@@ -515,6 +515,12 @@ export function createButtonSettingsFeature(
             }
             var savedButton: any = saved.button;
             var originalSubpageOwner: any = originalButtons[slot - 1];
+            const reconnectedSubpage = savedButton.type === "companion" && !savedButton.sensor &&
+                cardOwnsSubpage(savedButton)
+                ? reconnectAthenaShortcutSubpage(
+                    state.subpages[childPageKey(c.isSub ? subpageHomeSlot : 0, slot)],
+                    originalSubpageOwner?.entity, savedButton.entity)
+                : null;
             var replacedFolderOwner: any = !c.isSub &&
                 cardOwnsSubpage(originalSubpageOwner) &&
                 (savedButton.type !== "companion" || savedButton.sensor ||
@@ -540,7 +546,7 @@ export function createButtonSettingsFeature(
                     return false;
                 }
                 var cleanup: any = Promise.resolve("saved");
-                if (replacedFolderOwner) {
+                if (replacedFolderOwner && !reconnectedSubpage) {
                     delete state.subpages[slot];
                     Object.keys(state.subpages).forEach(key => {
                         if (Number(key) > 32 && parentPageKey(Number(key)) === Number(slot)) delete state.subpages[Number(key)];
@@ -554,7 +560,7 @@ export function createButtonSettingsFeature(
                     }
                     var savedTypeDef: any = cardRegistry.definitions[savedButton.type || ""];
                     var afterSave: any = savedTypeDef && savedTypeDef.afterSave
-                        ? savedTypeDef.afterSave(savedButton, slot, { isSub: c.isSub, page: subpageHomeSlot })
+                        ? savedTypeDef.afterSave(savedButton, slot, { isSub: c.isSub, page: subpageHomeSlot, reconnectedSubpage })
                         : "saved";
                     return Promise.resolve(afterSave).then(function (afterSaveResult: any) {
                         if (!saveResultSucceeded(afterSaveResult)) {
