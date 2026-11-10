@@ -46,7 +46,7 @@ export interface PreviewRenderDependencies {
     readonly codec: ConfigCodecFeature;
     readonly runtime: UiRuntimeState;
     readonly screenRotation: ScreenRotationFeature;
-    readonly shell: Pick<ControlsShellFeature, "isConfigLocked">;
+    readonly shell: Pick<ControlsShellFeature, "isPreviewReadOnly">;
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
@@ -246,7 +246,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const { cardOnPattern } = dependencies.confirmationOptions;
     const { getSubpage, serializeSubpageGrid } = dependencies.codec;
     const { gridPreviewBlocked: gridPreviewBlockedByRotationStartup } = dependencies.screenRotation;
-    const { isConfigLocked } = dependencies.shell;
+    // Loading and saving block interactions, but the preview can render before those locks clear.
+    const { isPreviewReadOnly } = dependencies.shell;
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
@@ -380,7 +381,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         return buttonTypePickerKeys(!!isSub, null).indexOf(key) >= 0;
     }
     function appendResizeHandle(card: HTMLElement) {
-        if (isConfigLocked()) return;
+        if (isPreviewReadOnly()) return;
         const handle = document.createElement("button");
         handle.type = "button";
         handle.className = "sp-resize-handle";
@@ -390,7 +391,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         card.appendChild(handle);
     }
     function makeTitleEditable(card: HTMLElement, image = false) {
-        if (isConfigLocked()) return;
+        if (isPreviewReadOnly()) return;
         const title = card.querySelector<HTMLElement>(image ? ".sp-image-label-stack" : ".sp-btn-label:not(.sp-media-now-artist)");
         if (!title) return;
         title.classList.add("sp-editable-title");
@@ -454,7 +455,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     ? cardPreviewTextColor(backColor) : "#" + previewColors.textPrimary);
                 backBtn.style.cursor = "pointer";
                 backBtn.setAttribute("data-pos", pos);
-                backBtn.draggable = !isConfigLocked();
+                backBtn.draggable = !isPreviewReadOnly();
                 backBtn.setAttribute("data-slot", "-2");
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
@@ -526,7 +527,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var sliderFillColor: any = cardSliderFillColor(cardOffColor, explicitActive ? cardOnColor : "") || cardOnColor;
                 if (sliderFillColor) btn.style.setProperty("--card-slider-fill-color", "#" + sliderFillColor);
                 var contrastBackground: any = cardOffColor || color;
-                btn.draggable = !isConfigLocked();
+                btn.draggable = !isPreviewReadOnly();
                 btn.setAttribute("data-pos", pos);
                 btn.setAttribute("data-slot", slot);
                 var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));

@@ -6766,6 +6766,45 @@ async function assertRetiredSettingsStayUnavailable(browser, testCase) {
   } finally { await context.close(); }
 }
 
+async function assertReorderAfterDelete(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons = { 1: COPY_SHORTCUT, 2: "shortcut.command+v;Paste;Shortcut Command;Auto;;;companion" };
+  fixture.document.subpages = {};
+  fixture.document.settings.button_order = "1,2";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await seedNativeDocument(page, fixture);
+    const grid = page.locator(".sp-main");
+    const deleted = grid.locator('[data-slot="1"]');
+    const remaining = grid.locator('[data-slot="2"]');
+    await deleted.click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Delete", { exact: true }).click();
+    await waitForNativeState(fixture, () => fixture.document.settings.button_order === ",2", "save the deletion");
+    await deleted.waitFor({ state: "detached" });
+    await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    assert.strictEqual(await remaining.getAttribute("draggable"), "true",
+      "the remaining card can be dragged once deletion finishes");
+    const source = await remaining.boundingBox();
+    const target = await grid.locator('.sp-empty-cell[data-pos="0"]').boundingBox();
+    const targetX = target.x + target.width / 2;
+    const targetY = target.y + target.height / 2;
+    await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(targetX, targetY, { steps: 10 });
+    await grid.locator('.sp-drop-placeholder[data-pos="0"]').waitFor();
+    await page.mouse.up();
+    await waitForNativeState(fixture, () => fixture.document.settings.button_order.split(",")[0] === "2",
+      "save the new position without reloading");
+    assert.strictEqual(await remaining.getAttribute("data-pos"), "0");
+    console.log("Card deletion and drag-and-drop without reloading passed.");
+  } finally { await context.close(); }
+}
+
 async function assertNestedCompanionPages(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040"), fixture = nativeConfigState(testCase.slug);
   fixture.document = JSON.parse(fs.readFileSync(path.join(ROOT, "compatibility/fixtures/companion_nested_pages.json"))).document;
@@ -7078,6 +7117,10 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_CARD_REORDER_ONLY === "1") {
+      await assertReorderAfterDelete(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_FIRST_RUN_ONLY === "1") {
       await assertFirstRunSetup(browser);
       return;
@@ -7257,6 +7300,7 @@ async function assertFirstRunSetup(browser) {
       console.log("Home Assistant visibility browser checks passed.");
       return;
     }
+    await assertReorderAfterDelete(browser);
     await assertNestedCompanionPages(browser);
     await assertFirstRunSetup(browser);
     await assertAppSubpageOpeningPreference(browser);
