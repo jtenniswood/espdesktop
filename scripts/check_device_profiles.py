@@ -543,17 +543,12 @@ def test_square_s3_reapplies_clock_bar_after_screen_changes() -> None:
     sensors = (ROOT / "devices" / slug / "device" / "sensors.yaml").read_text(encoding="utf-8")
     device = (ROOT / "devices" / slug / "device" / "device.yaml").read_text(encoding="utf-8")
     assert (
-        "grid_rebuild_all(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3, nullptr, nullptr, nullptr, nullptr,\n"
-        "            id(button_order).state,\n"
-        "            id(button_on_color).state,\n"
-        "            id(main_page)->obj);\n"
+        "- lambda: 'grid_run_board(GridBoardOperation::REBUILD);'\n"
         "      - script.execute: clock_bar_apply"
     ) in sensors, "S3 grid refresh must rebuild safely and reapply the fixed clock bar"
     assert (
-        "grid_phase2(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3,\n"
-        "              id(button_order).state,\n"
-        "              id(button_on_color).state,\n"
-        "              id(main_page)->obj);\n"
+        "grid_run_board(GridBoardOperation::INITIAL_SUBPAGES);\n"
+        "            // END GENERATED PHASE 2 GRID WIRING\n"
         "        - script.execute: clock_bar_apply"
     ) in sensors, "S3 boot setup must reapply the fixed clock bar after subpages are created"
     assert (
@@ -580,7 +575,7 @@ def test_rotation_refresh_rebuilds_subpages() -> None:
         sensors = (ROOT / "devices" / slug / "device" / "sensors.yaml").read_text(encoding="utf-8")
         refresh_script = sensors.split("  - id: refresh_button_grid", 1)[1].split(
             "  - id: refresh_subpage_grid", 1)[0]
-        assert "grid_rebuild_all(slots, cfg," in refresh_script, (
+        assert "grid_run_board(GridBoardOperation::REBUILD)" in refresh_script, (
             f"{slug}: rotation refresh must rebuild secondary cards safely"
         )
 
@@ -643,7 +638,7 @@ def test_subpage_config_changes_schedule_live_refresh() -> None:
             f"{sensors_path}: missing secondary-page refresh script"
         )
         refresh_script = sensors.split("  - id: refresh_subpage_grid", 1)[1].split("\nesphome:", 1)[0]
-        assert "grid_rebuild_all(slots, cfg," in refresh_script, (
+        assert "grid_run_board(GridBoardOperation::REBUILD)" in refresh_script, (
             f"{sensors_path}: secondary-page refresh must rebuild card subscriptions"
         )
 

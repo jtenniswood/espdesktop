@@ -587,8 +587,32 @@ inline NavigationSubpageEntry *navigation_companion_subpage_for_action(
   return nullptr;
 }
 
+inline bool navigation_allows_companion_focus() {
+  const auto *app = espdesktop::active_espdesktop_app_core();
+  return !app || app->display_lifecycle().allows_focus_navigation();
+}
+
+inline bool navigation_present_companion_subpage(int slot) {
+  const auto started = esphome::millis();
+  auto *screen = navigation_ensure_subpage(slot);
+  if (!screen) return false;
+  navigation_hide_modals();
+  navigation_begin_page_open(screen, started);
+  navigation_show_companion_subpage(screen, /*from_card=*/false);
+  return true;
+}
+
+inline bool navigation_present_focused_app_after_sleep() {
+  const auto *app = espdesktop::active_espdesktop_app_core();
+  if (!app || !app->display_lifecycle().blank_page_active()) return false;
+  const auto action = companion_take_wake_subpage_action();
+  const auto *entry = navigation_companion_subpage_for_action(action);
+  return entry && navigation_present_companion_subpage(entry->slot);
+}
+
 inline bool navigation_return_from_companion_shortcuts_if_needed(
     lv_obj_t *main_page_obj) {
+  if (!navigation_allows_companion_focus()) return false;
   const std::string closed_app = companion_consume_closed_app_subpage_action();
   const bool focus_changed = companion_consume_subpage_return_request();
   if (!focus_changed && closed_app.empty()) return false;
@@ -621,6 +645,7 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
 
 inline bool navigation_open_companion_subpage_if_requested(
     lv_obj_t *main_page_obj) {
+  if (!navigation_allows_companion_focus()) return false;
   const std::string requested = companion_pending_auto_subpage_action();
   if (requested.empty()) return false;
   NavigationSubpageEntry *active = navigation_find_slot(navigation_active_subpage_slot());
@@ -630,13 +655,7 @@ inline bool navigation_open_companion_subpage_if_requested(
   }
   NavigationSubpageEntry *entry = navigation_companion_subpage_for_action(requested);
   if (entry == nullptr || !companion_consume_auto_subpage_action(requested)) return false;
-  const auto started = esphome::millis();
-  auto *screen = navigation_ensure_subpage(entry->slot);
-  if (!screen) return false;
-  navigation_hide_modals();
-  navigation_begin_page_open(screen, started);
-  navigation_show_companion_subpage(screen, /*from_card=*/false);
-  return true;
+  return navigation_present_companion_subpage(entry->slot);
 }
 
 inline bool navigation_restore_subpage_slot(int slot) {

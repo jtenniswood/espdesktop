@@ -937,14 +937,9 @@ inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {
   companion_app_icon_waiting_for_frame() = true;
 }
 
-inline lv_obj_t *&companion_app_icon_sleep_screen() {
-  static lv_obj_t *screen = nullptr;
-  return screen;
-}
-
 inline bool companion_app_icon_sleep_page_active() {
-  auto *sleep_screen = companion_app_icon_sleep_screen();
-  return sleep_screen && lv_scr_act() == sleep_screen;
+  const auto *app = espdesktop::active_espdesktop_app_core();
+  return app && app->display_lifecycle().blank_page_active();
 }
 
 inline void companion_refresh_app_icon_visibility(bool release_hidden) {
@@ -1687,6 +1682,46 @@ inline void grid_phase2(
     lv_obj_t *main_page_obj) {
   grid_phase2(slots, cfg, sp_configs, sp_ext_configs, nullptr, nullptr,
     order_str, on_hex, main_page_obj);
+}
+
+enum class GridBoardOperation { INITIAL_LAYOUT, INITIAL_SUBPAGES, REFRESH_LAYOUT, REBUILD };
+
+inline bool grid_board_operation_is_initial(GridBoardOperation operation) {
+  return operation == GridBoardOperation::INITIAL_LAYOUT ||
+         operation == GridBoardOperation::INITIAL_SUBPAGES;
+}
+
+using GridBoardExecutor = void (*)(GridBoardOperation);
+
+inline GridBoardExecutor &grid_board_executor() {
+  static GridBoardExecutor execute = nullptr;
+  return execute;
+}
+
+inline void grid_run_board(GridBoardOperation operation) {
+  if (auto execute = grid_board_executor()) execute(operation);
+}
+
+inline void grid_execute_board_operation(
+    GridBoardOperation operation, BtnSlot *slots, const GridConfig &cfg,
+    const std::array<esphome::text::Text **, 8> &subpages, const std::string &order,
+    const std::string &accent, lv_obj_t *home) {
+  switch (operation) {
+    case GridBoardOperation::INITIAL_LAYOUT:
+      grid_phase1(slots, cfg, order, accent, home);
+      break;
+    case GridBoardOperation::INITIAL_SUBPAGES:
+      grid_phase2(slots, cfg, subpages[0], subpages[1], subpages[2], subpages[3],
+                  subpages[4], subpages[5], subpages[6], subpages[7], order, accent, home);
+      break;
+    case GridBoardOperation::REFRESH_LAYOUT:
+      grid_refresh_layout(slots, cfg, order, home);
+      break;
+    case GridBoardOperation::REBUILD:
+      grid_rebuild_all(slots, cfg, subpages[0], subpages[1], subpages[2], subpages[3],
+                       subpages[4], subpages[5], subpages[6], subpages[7], order, accent, home);
+      break;
+  }
 }
 
 // The header/title label is shared with local pages and Mac app icons.
