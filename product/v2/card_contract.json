@@ -2957,6 +2957,7 @@
     },
     "companion_mac_lock": {
       "label": "Mac Lock",
+      "pickerLabel": "Lock Machine",
       "allowInSubpage": true,
       "domains": [],
       "normalization": {
@@ -3784,8 +3785,26 @@
     "companion_mac_lock": "ML",
     "subpage": "G"
   },
+  "releaseAvailability": {
+    "stable": [
+      "companion",
+      "companion_mac_lock",
+      "subpage"
+    ],
+    "preview": {
+      "companion_window": {
+        "label": "Window Control",
+        "issue": 309
+      }
+    },
+    "removeOnEdit": [
+      "companion_webapp",
+      "companion_audio",
+      "wifi_qr",
+      "wifi_qr_card"
+    ]
+  },
   "retiredCardTypes": [
-    "companion_window",
     "sensor",
     "local_sensor",
     "text_sensor",

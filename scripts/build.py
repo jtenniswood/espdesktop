@@ -976,6 +976,10 @@ def option_constant_name(option_name):
     return "CARD_CONTRACT_OPTION_NAME_" + re.sub(r"[^A-Za-z0-9]+", "_", option_name).strip("_").upper()
 
 
+def card_types_removed_in_stable(data):
+    return [*data["releaseAvailability"]["preview"], *data["retiredCardTypes"], *data["retiredSubpageTypeCodes"]]
+
+
 def gen_card_contract_ts(data):
     groups = data["cardGroups"]
     fan = groups["fan"]
@@ -992,6 +996,7 @@ def gen_card_contract_ts(data):
         if normalization:
             normalization.pop("hookData", None)
     aliases = data.get("migrationAliases", {})
+    availability = data["releaseAvailability"]
     option_names = contract_option_names(data)
     return (
         "// =============================================================================\n"
@@ -1006,8 +1011,17 @@ def gen_card_contract_ts(data):
         "};\n"
         "\n"
         f"export const CARD_CONTRACT_VERSION = {int(data['contractVersion'])} as const;\n"
-        f"export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = {json.dumps(data.get('retiredCardTypes', []) + data.get('retiredSubpageTypeCodes', []))};\n"
+        f"const STABLE_CARD_TYPES: readonly string[] = {json.dumps(availability['stable'])};\n"
+        f"const PREVIEW_CARD_TYPES: readonly string[] = {json.dumps(list(availability['preview']))};\n"
+        f"const REMOVE_ON_EDIT: readonly string[] = {json.dumps([*availability['removeOnEdit'], *availability['preview']])};\n"
+        f"export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = {json.dumps(card_types_removed_in_stable(data))};\n"
         "export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || \"\"); }\n"
+        "export function cardContractRemoveOnEdit(type: string | null | undefined): boolean { return REMOVE_ON_EDIT.includes(type || \"\"); }\n"
+        "export function cardContractAvailability(type: string): \"stable\" | \"preview\" | \"retired\" | null {\n"
+        "  if (STABLE_CARD_TYPES.includes(type)) return \"stable\";\n"
+        "  if (PREVIEW_CARD_TYPES.includes(type)) return \"preview\";\n"
+        "  return Object.hasOwn(CARD_CONTRACT_CARDS, type) || cardContractTypeRetired(type) ? \"retired\" : null;\n"
+        "}\n"
         f"export const CARD_CONTRACT_NORMALIZATION_HOOKS = {js_string_list(data['normalizationHooks'])} as const;\n"
         f"export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {json.dumps(data['migrationActions'], indent=2)};\n"
         f"export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = {js_string_list(data['retiredSubpageTypeCodes'])} as const;\n"
@@ -2851,7 +2865,8 @@ def gen_card_contract_h(data):
         "// =============================================================================\n",
         "\n",
         f"constexpr int CARD_CONTRACT_VERSION = {int(data['contractVersion'])};\n",
-        "inline bool card_contract_type_retired(const std::string &type) { return " + (" || ".join("type == " + json.dumps(t) for t in data.get("retiredCardTypes", []) + data.get("retiredSubpageTypeCodes", [])) or "false") + "; }\n",
+        "inline bool card_contract_type_stable(std::string_view type) { return " + " || ".join("type == " + json.dumps(t) for t in data["releaseAvailability"]["stable"]) + "; }\n",
+        "inline bool card_contract_type_retired(const std::string &type) { return " + (" || ".join("type == " + json.dumps(t) for t in card_types_removed_in_stable(data)) or "false") + "; }\n",
         gen_card_runtime_h(data),
         f'constexpr const char *CARD_CONTRACT_OPTION_SELECT_ACTION = {json.dumps(data["optionSelect"]["canonicalAction"])};\n',
         cpp_string_array("CARD_CONTRACT_OPTION_SELECT_ACTIONS", option_actions),
@@ -3218,12 +3233,6 @@ def summarize_card_options(card):
     return "; ".join(options) if options else "None"
 
 
-def summarize_card_status(card):
-    if card.get("hidden"):
-        return "Hidden"
-    return "Visible"
-
-
 def summarize_picker_group(card_type, card, cards):
     picker_key = card.get("pickerKey")
     if not picker_key:
@@ -3234,10 +3243,11 @@ def summarize_picker_group(card_type, card, cards):
 
 def gen_card_capability_docs(data):
     cards = data["cards"]
+    availability = data["releaseAvailability"]
     lines = [
         generated_card_markdown_header("CARD CAPABILITIES"),
         "# Card Capability Reference\n\n",
-        "This generated reference lists stable setup facts from the shared card contract. "
+        "This generated reference lists release availability and setup facts from the shared card contract. "
         "Explanations, screenshots, and card-specific guidance stay in the hand-written card docs.\n\n",
         "| Card | Type | Entity domains | Subpages | Picker grouping | Main modes and options | Status |\n",
         "|---|---|---|---|---|---|---|\n",
@@ -3245,15 +3255,20 @@ def gen_card_capability_docs(data):
     for card_type, card in cards.items():
         domains = ", ".join(card.get("domains") or []) or "None"
         row = [
-            card["label"],
+            card.get("pickerLabel", card["label"]),
             card_doc_type_name(card_type),
             domains,
             "Yes" if card.get("allowInSubpage") else "No",
             summarize_picker_group(card_type, card, cards),
             summarize_card_options(card),
-            summarize_card_status(card),
+            "Stable" if card_type in availability["stable"] else "Retired",
         ]
         lines.append("| " + " | ".join(markdown_table_cell(value) for value in row) + " |\n")
+    if availability["preview"]:
+        lines.append("\n## Preview cards\n\n")
+        for key, card in availability["preview"].items():
+            lines.append(f"- {card['label']} (`{key}`) is developed separately from stable firmware. "
+                         f"[Development issue](https://github.com/jtenniswood/espdesktop/issues/{card['issue']})\n")
     return "".join(lines)
 
 

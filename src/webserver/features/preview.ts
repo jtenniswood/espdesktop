@@ -1,4 +1,4 @@
-import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardContractAvailability, cardContractTypeRetired } from "../generated/card_contract";
 import { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 export { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { configOptionValue } from "../model/config_primitives";
@@ -116,10 +116,10 @@ export function cardPickerConnectors(
 }
 
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
-  if (connector !== "mac_companion" || cardContractTypeRetired(key)) return false;
-  if (connector === "mac_companion" && MAC_COMPANION_HIDDEN_CARD_TYPES.has(key)) return false;
-  const source = cardTypeConnector(key);
-  return connector === "mac_companion" ? source !== "home_assistant" : source !== "mac_companion";
+  return connector === "mac_companion" &&
+    !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
+    cardContractAvailability(defaultCardTypeForPicker(key)) === "stable" &&
+    cardTypeConnector(key) !== "home_assistant";
 }
 
 function cardRelativeLuminance(background: string): number {

@@ -10,8 +10,17 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
+const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "subpage"];
+const PREVIEW_CARD_TYPES: readonly string[] = ["companion_window"];
+const REMOVE_ON_EDIT: readonly string[] = ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card", "companion_window"];
 export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "companion_webapp", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
 export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || ""); }
+export function cardContractRemoveOnEdit(type: string | null | undefined): boolean { return REMOVE_ON_EDIT.includes(type || ""); }
+export function cardContractAvailability(type: string): "stable" | "preview" | "retired" | null {
+  if (STABLE_CARD_TYPES.includes(type)) return "stable";
+  if (PREVIEW_CARD_TYPES.includes(type)) return "preview";
+  return Object.hasOwn(CARD_CONTRACT_CARDS, type) || cardContractTypeRetired(type) ? "retired" : null;
+}
 export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
   "legacy_weather_forecast": {
@@ -2508,6 +2517,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   },
   "companion_mac_lock": {
     "label": "Mac Lock",
+    "pickerLabel": "Lock Machine",
     "allowInSubpage": true,
     "domains": [],
     "normalization": {

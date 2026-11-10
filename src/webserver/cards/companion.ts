@@ -7,6 +7,7 @@ import type { CompanionAction } from "../api/companion_catalogue";
 export type { CompanionAction } from "../api/companion_catalogue";
 import {
     cardContractAllowInSubpage,
+    cardContractCard,
     cardContractCardLabel,
     cardContractDefaultConfig,
     cardContractHidden,
@@ -1443,7 +1444,7 @@ export function registerCompanionCardTypes(
     };
     registry.register("companion_mac_lock", {
         label: macLockDefaults.label,
-        pickerLabel: "Lock Machine",
+        pickerLabel: cardContractCard("companion_mac_lock")?.pickerLabel || macLockDefaults.label,
         cardMetadata: macLockMetadata,
         allowInSubpage: cardContractAllowInSubpage("companion_mac_lock"),
         isAvailable: () => supported,
