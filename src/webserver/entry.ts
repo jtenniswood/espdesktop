@@ -9,6 +9,7 @@ import { APP_SUBPAGE_PREFERENCE } from "./model/settings";
 import { createDeviceApi } from "./api/device_api";
 import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
 import type { CompanionAction } from "./api/companion_catalogue";
+import { appShortcutPageOwner, previewSubpageOwner } from "./model/companion_shortcut_page";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
 import * as AppInstance from "./state/app_instance";
 import { state } from "./state/app_instance";
@@ -619,6 +620,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     selection,
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
     liveFinderFolders,
+    shortcutPageReady: owner => connectorsPage.shortcutPageReady(owner),
   });
   const nativeTransfers = createNativePageTransfersFeature({
     native: nativePanelConfig, editor: () => nativePages, layout, api: requestApi, grid, shell,
@@ -914,9 +916,12 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   stateLoader, firmwarePostApi, publicFirmwareInstall, fields,
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
+  const activeShortcutOwner = () => appShortcutPageOwner(
+    previewSubpageOwner(state.editingSubpage, state.buttons, configurationCodec.getSubpage));
   connectorsPage = createConnectorsPageFeature(
-    dom, shell, companionSection, !!layout.config.features?.companion,
+    dom, shell, companionSection, !!layout.config.features?.companion, activeShortcutOwner,
   );
+  connectorsPage.onStatusChange(preview.updateShortcutAvailability);
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
   connectorsPage.onStatusChange(() => {

@@ -69,6 +69,7 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
+import { appShortcutPageOwner } from "../model/companion_shortcut_page";
 
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
@@ -1384,7 +1385,7 @@ export function registerCompanionCardTypes(
             }
             const hideAppLaunchLabel = companionAppLaunchCard(card) &&
                 configOptionEnabled(card.options, "app_hide_label");
-            if (companionAppShortcutFolderEnabled(card)) {
+            if (appShortcutPageOwner(card)) {
                 if (hideAppLaunchLabel) {
                     preview.labelHtml =
                         '<span class="sp-btn-label-row"><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
@@ -1401,7 +1402,7 @@ export function registerCompanionCardTypes(
         },
         contextMenuItems: function (slot?: any, card?: any, helpers?: any) {
             const parent = helpers?.isSub ? state.editingSubpage : null;
-            if (!codec.canCreateSubpage(parent) || !companionAppShortcutFolderEnabled(card)) return;
+            if (!codec.canCreateSubpage(parent) || !appShortcutPageOwner(card)) return;
             helpers.addCtxItem("cog", "Edit Subpage", function () {
                 codec.enterChildSubpage(parent, Number(slot));
             });

@@ -10,10 +10,10 @@ import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
-import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { companionCardDefaultIcon } from "../model/companion_card";
+import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { companionShortcutActionIdValid } from "./companion_shortcut_folder";
 import { finderFolderPreview } from "../model/finder_folder_preview";
-import { pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
@@ -55,9 +55,11 @@ export interface PreviewRenderDependencies {
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
     readonly liveFinderFolders: () => readonly CompanionAction[];
+    readonly shortcutPageReady: (owner: string) => boolean | undefined;
 }
 export interface PreviewRenderFeature {
     render(): void;
+    updateShortcutAvailability(): void;
     registryValue(typeDefinition?: any, key?: any, fallback?: any): any;
     configDisabled(button?: any): boolean;
     defaultTypeForPicker(key?: any): any;
@@ -405,6 +407,17 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.setAttribute("aria-label", "Rename card");
         title.title = "Click to rename; Enter to save";
     }
+    let renderedShortcutOwner: string | undefined;
+    function updateShortcutAvailability() {
+        const main = els.previewMain as HTMLElement | undefined;
+        if (!main || !renderedShortcutOwner) return;
+        const ready = dependencies.shortcutPageReady(renderedShortcutOwner);
+        for (const card of main.querySelectorAll<HTMLElement>("[data-preview-shortcut]")) {
+            const unavailable = ready === false || card.dataset.previewShortcut === "invalid";
+            card.classList.toggle("sp-shortcut-unavailable", unavailable);
+            card.title = unavailable ? "Shortcut unavailable on the touchscreen." : "";
+        }
+    }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
@@ -418,6 +431,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const selectionEnd = editor?.selectionEnd ?? null;
         const editorSlot = editor?.closest("[data-slot]")?.getAttribute("data-slot");
         main.innerHTML = "";
+        renderedShortcutOwner = undefined;
         main.className = "sp-main" + (state.subpageChevronsOn ? "" : " sp-hide-subpage-chevrons");
         if (gridPreviewBlockedByRotationStartup()) {
             main.className += " sp-grid-loading";
@@ -438,12 +452,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         updatePreviewHint(c);
         const pageKey = state.editingSubpage;
         const subpage = pageKey ? getSubpage(pageKey) : null;
-        const parent = pageKey ? parentPageKey(pageKey) : 0;
-        const owner = pageKey
-            ? (parent ? getSubpage(parent)?.buttons : state.buttons)?.[pageOwnerSlot(pageKey) - 1]
-            : null;
-        const liveFolders = subpage && owner && owner.entity === "com.apple.finder" &&
-            companionAppShortcutFolderEnabled(owner)
+        const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
+        const shortcutOwner = appShortcutPageOwner(owner);
+        renderedShortcutOwner = shortcutOwner;
+        const liveFolders = subpage && shortcutOwner === "com.apple.finder"
             ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
                 dependencies.liveFinderFolders())
             : undefined;
@@ -454,14 +466,13 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             if (slot === -2) {
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
-                const appBack = companionAppShortcutFolderEnabled(owner);
                 var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack && owner ? resolveIcon({ icon: owner.icon === 'Auto' ? 'Monitor' : owner.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
-                        (appBack ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (shortcutOwner ? resolveIcon({ icon: appShortcutPageBackIcon(owner?.icon) }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                        (shortcutOwner ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor
@@ -473,12 +484,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
-                if (appBack && owner) {
+                if (shortcutOwner) {
                     backBtn.setAttribute("data-icon-size", "large");
                     backBtn.setAttribute("aria-label", backLabel + " — Home");
                     resizeCardIcon(backBtn);
                     appIconResizeObserver?.observe(backBtn);
-                    loadCardAppIcon(backBtn, owner.entity, subpage?.backColor || "",
+                    loadCardAppIcon(backBtn, shortcutOwner, subpage?.backColor || "",
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
@@ -555,6 +566,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
+                if (shortcutOwner && b.type === "companion" && b.entity?.startsWith("shortcut.")) {
+                    btn.dataset.previewShortcut = companionShortcutActionIdValid(b.entity) ? "valid" : "invalid";
+                }
                 var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
                 var sensorBadge: any = hasWhenOn
                     ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'
@@ -629,6 +643,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 editor.setSelectionRange(selectionStart, selectionEnd);
             }
         }
+        updateShortcutAvailability();
         renderSelectionBar(c);
     }
     document.addEventListener("espdesktop:app-icon-cache-cleared", function (event) {
@@ -637,6 +652,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     });
     return {
         render: renderPreview,
+        updateShortcutAvailability,
         registryValue: buttonTypeRegistryValue,
         configDisabled: buttonConfigDisabledForDevice,
         defaultTypeForPicker: defaultButtonTypeForPicker,

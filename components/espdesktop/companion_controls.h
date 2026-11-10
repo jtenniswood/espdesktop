@@ -395,10 +395,7 @@ inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
       action_id.rfind("urlcard.", 0) != 0 &&
       action_id.rfind("stat.", 0) != 0)
     return snapshot.application_highlight_id == action_id;
-  if (std::find(snapshot.focused_action_ids.begin(), snapshot.focused_action_ids.end(), action_id) !=
-      snapshot.focused_action_ids.end()) return true;
-  return action_id == "com.apple.finder" &&
-    companion_focus_application_id(snapshot.focused_action_id) == action_id;
+  return companion_reported_focus_matches(action_id, snapshot.focused_action_id, snapshot.focused_action_ids);
 }
 
 inline bool companion_action_focused(const std::string &action_id, bool visual_only = false) {

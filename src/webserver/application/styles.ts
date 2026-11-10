@@ -139,6 +139,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn.sp-selected:hover{filter:none}" +
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:var(--card-text-color,var(--preview-text-primary));z-index:1}" +
+        ".sp-shortcut-unavailable .sp-btn-icon,.sp-shortcut-unavailable .sp-btn-label{color:var(--preview-text-disabled)}" +
         ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:0;z-index:0;pointer-events:none}" +
         ".sp-btn.sp-companion-app-icon-fit-card:not(.sp-back-btn):active>.sp-card-outline{" +
         "display:block;stroke:var(--card-active-color);stroke-width:6}" +
