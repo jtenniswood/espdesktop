@@ -109,7 +109,8 @@ and build caches are not assets.
 
 **Build Release** makes the firmware and notarized Mac app available as
 workflow artifacts. Its summary gives the candidate run ID and the fingerprint
-of the manifest that records their file hashes.
+of the manifest that records their file hashes and pins the release manifest
+that identifies the hosted editor.
 
 Test those files together on a Guition 4848S040. Start with a paired display
 and an existing layout. Install the candidate firmware and Mac app, confirm

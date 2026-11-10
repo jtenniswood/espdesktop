@@ -37,7 +37,8 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
     if not re.fullmatch(r'v?\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version):
         raise ValueError('A semantic release version is required')
     contract = compatibility(root)
-    provenance = json.loads((firmware_dir / 'release-manifest.json').read_text())
+    provenance_bytes = (firmware_dir / 'release-manifest.json').read_bytes()
+    provenance = json.loads(provenance_bytes)
     if provenance.get('sourceRevision') != source_revision or provenance.get('releaseVersion') != version:
         raise ValueError('Firmware release provenance does not match the Companion release')
     artifacts = {}
@@ -52,6 +53,7 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
         path = matches[0]
         artifacts[path.name] = {'sha256': digest(path), 'bytes': path.stat().st_size}
     return {**contract, 'sourceRevision': source_revision, 'releaseVersion': version,
+            'firmwareManifestSha256': hashlib.sha256(provenance_bytes).hexdigest(),
             'artifacts': artifacts,
             'validation': {'automated': 'release workflow checks', 'physicalDeviceTesting': 'not asserted'}}
 
