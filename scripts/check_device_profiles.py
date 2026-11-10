@@ -200,9 +200,13 @@ def test_generated_web(profiles: dict[str, dict]) -> None:
             build = (ROOT / "builds" / f"{slug}{suffix}").read_text(encoding="utf-8")
             assert 'docs/public/webserver/embedded/www.js"' in build, f"{slug}{suffix}: firmware does not embed its offline editor"
         factory = (ROOT / "builds" / f"{slug}.factory.yaml").read_text(encoding="utf-8")
-        assert "webserver/www.js?device=${device_slug}&v=${firmware_version}" in factory, (
-            f"{slug}.factory.yaml: release firmware does not request its compatible hosted editor"
-        )
+        if slug == "guition-esp32-s3-4848s040":
+            web = yaml.load(factory, Loader=yaml.BaseLoader)["web_server"]
+            assert web["js_url"] == "", f"{slug}.factory.yaml: the public S3 must start its embedded editor"
+        else:
+            assert "webserver/www.js?device=${device_slug}&v=${firmware_version}" in factory, (
+                f"{slug}.factory.yaml: firmware does not request its compatible hosted editor"
+            )
 
 
 def test_web_server_request_limits() -> None:
