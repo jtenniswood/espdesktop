@@ -174,7 +174,7 @@ class EspDesktopAppCore {
   // The concrete UI services assert their own sizes when they bind to these
   // slots. Keeping each bound small avoids reserving a generic 128-byte buffer
   // for every service in every firmware image.
-  FixedRuntimeServiceSlot<64> grid_navigation_service_{};
+  FixedRuntimeServiceSlot<80> grid_navigation_service_{};
   FixedRuntimeServiceSlot<64> modal_state_service_{};
 };
 
