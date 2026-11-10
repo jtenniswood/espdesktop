@@ -11,7 +11,7 @@ Folder cards open only the Finder folders you approve in the Mac app. Folder pat
 
 1. Open **Folders** in the EspDesktop Mac app.
 2. Choose **Add Folder…** and select a directory.
-3. In the display setup page, add a **Companion → Open folder** card and choose that folder.
+3. In the display setup page, add a **Companion → Folder** card and choose that folder.
 
 If a folder is moved or renamed, choose **Choose Again…** in the Mac app to restore its access. Removing a folder from the Mac app makes its card unavailable.
 

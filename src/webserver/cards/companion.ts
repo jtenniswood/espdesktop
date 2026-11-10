@@ -1467,7 +1467,7 @@ export function registerCompanionCardTypes(
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Keyboard shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
-        ["companion_folder", "Open folder", "folder"],
+        ["companion_folder", "Folder", "folder"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];
