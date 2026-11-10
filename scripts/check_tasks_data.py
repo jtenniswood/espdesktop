@@ -207,7 +207,7 @@ TASKS = (
              "docs/**", "product/**", "scripts/**", "src/**",
          ), parallel_safe=True),
     task("device-runtime-tests", ("python3", "scripts/test_device_runtime_tests.py"), profiles=FAST,
-         domains=("firmware", "workflow"), inputs=("scripts/test_device_runtime.py", "scripts/test_device_runtime_tests.py"),
+         domains=("firmware", "workflow"), inputs=("scripts/test_device_runtime.py", "scripts/test_device_runtime_tests.py", "scripts/test_release_hardware.py"),
          parallel_safe=True, cache="never"),
     task("device-web-transport-tests", ("python3", "tests/device_web_transport_test.py"), profiles=FAST,
          domains=("firmware", "workflow"), inputs=("scripts/test_device_web_transport.py", "tests/device_web_transport_test.py"),

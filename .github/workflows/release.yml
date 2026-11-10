@@ -704,8 +704,9 @@ jobs:
             printf 'Candidate run: %s\n\n' "${GITHUB_RUN_ID}"
             printf 'Candidate fingerprint: `%s`\n\n' "${FINGERPRINT}"
             printf '%s\n' 'Use the firmware from **release-dist** and the signed Mac DMG from **espdesktop-app-release**.'
-            printf '%s\n' 'Start with a paired panel and an existing layout. Install both candidate files and check that the Mac reconnects and a nested shortcut still works. Edit the layout with the internet disconnected, then reboot and check that the edit is still present.'
-            printf '%s\n' 'Record the hardware result in **Publish Release** using this run ID and fingerprint.'
+            printf '%s\n' 'Start with a paired panel and an existing layout. Install both candidate files and download the **release-candidate-compatibility** manifest.'
+            printf '%s\n' 'Run `python3 scripts/test_release_hardware.py record --host PANEL_IP --candidate-run RUN_ID --manifest companion-compatibility.json` from the tagged checkout.'
+            printf '%s\n' 'Submit the resulting report.json to **Publish Release** with the candidate run ID.'
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload the candidate fingerprint manifest

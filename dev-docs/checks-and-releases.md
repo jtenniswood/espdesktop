@@ -112,17 +112,16 @@ workflow artifacts. Its summary gives the candidate run ID and the fingerprint
 of the manifest that records their file hashes and pins the release manifest
 that identifies the hosted editor.
 
-Test those files together on a Guition 4848S040. Start with a paired display
-and an existing layout. Install the candidate firmware and Mac app, confirm
-the Mac reconnects, and run a nested shortcut. Keep the panel on the local
-network, disconnect internet access, edit the layout in the embedded editor,
-and check that the edit survives a reboot.
+Test the candidate firmware and notarized Mac app together on a paired
+Guition 4848S040 with an existing layout. From the tagged checkout, run the
+[S3 hardware session](device-runtime-tests.md#run-the-release-hardware-session)
+with the candidate run ID and the downloaded compatibility manifest.
 
-Dispatch **Publish Release** from the same tag with the candidate run ID,
-fingerprint, and confirmed hardware result. It downloads the tested artifacts
-and verifies their provenance, filenames, hashes, sizes, and remote inventory
-before publishing. Pages deploys the editor from that successful publish run.
-Failures leave the release as a draft.
+Dispatch **Publish Release** from the same tag with the candidate run ID and
+the passing hardware report. The workflow checks the report against the
+candidate fingerprint and verifies the tested artifacts before publishing.
+Pages deploys the editor from that successful publish run. Failures leave
+the release as a draft.
 
 Current generated-output ownership is listed in
 [Source of Truth Contract](source-of-truth.md); upgrade-sensitive public names

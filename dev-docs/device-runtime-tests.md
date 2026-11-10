@@ -64,6 +64,26 @@ or decreasing uptime fails the test. A restart or network outage does not prove
 a crash or its cause. Device logs are not collected; panics before HTTP delivery
 can require [USB logs](https://jtenniswood.github.io/espcontrol/reference/collect-usb-logs).
 
+## Run the release hardware session
+
+Run the following after installing the candidate firmware and Mac app. Use the
+run ID and download the manifest from the `release-candidate-compatibility`
+artifact of that run.
+
+```sh
+python3 scripts/test_release_hardware.py record --host PANEL_IP \
+  --candidate-run RUN_ID --manifest companion-compatibility.json
+```
+
+The runner guides pairing, five nested shortcut and Back cycles, wake, an
+offline editor save, and a reboot. It measures internal heap and PSRAM before
+and after each step and checks the expected reboot and Mac reconnection.
+The operator performs and confirms the steps. The runner makes read-only
+requests to the panel. Give the resulting `report.json` to **Publish Release**.
+
+For a development baseline, omit the candidate run and manifest. This records
+the same measurements and cannot be used to publish a release.
+
 ## Test physical behavior separately
 
 While observing health, use the physical panel and paired Mac to check the
