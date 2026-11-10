@@ -22,7 +22,8 @@ assert 'restore_mode: RESTORE_DEFAULT_ON' in switch
 assert 'optimistic: false' in switch
 app = (ROOT / "components/espdesktop/espdesktop_app.cpp").read_text()
 publish_start = app.index("void EspDesktopApp::publish_app_subpage_preference")
-publish_end = app.index("void EspDesktopApp::retry_configuration_compatibility", publish_start)
+bind_start = app.index("void EspDesktopApp::bind_app_subpage_preference_switch", publish_start)
+publish_end = app.index("\n}", bind_start) + 2
 
 def callback(event: str) -> str:
     match = re.search(rf"    {event}:\n      - lambda: \|-\n((?:          [^\n]*\n?)+)", switch)

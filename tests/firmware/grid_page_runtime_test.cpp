@@ -205,4 +205,27 @@ int main() {
     assert(current);
     assert_old_theme(*current);
   }
+
+  // Large flat documents can be durably stored in v1. An entity write
+  // replaces the group without touching their saved cards.
+  const auto old_value = encode_display_theme_preferences(*current);
+  assert(v1.begin() == PanelConfigStatus::OK);
+  assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
+      std::strlen(limits.device_profile)) == PanelConfigStatus::OK);
+  const uint8_t card[] = "light.kitchen;Kitchen";
+  assert(v1.append_button(1, card, sizeof(card) - 1) == PanelConfigStatus::OK);
+  assert(v1.append_setting(reinterpret_cast<const uint8_t *>(DISPLAY_THEME_PREFERENCES_KEY.data()),
+      DISPLAY_THEME_PREFERENCES_KEY.size(), reinterpret_cast<const uint8_t *>(old_value.data()),
+      old_value.size()) == PanelConfigStatus::OK);
+  assert(v1.finish(&size) == PanelConfigStatus::OK);
+  std::array<uint8_t, 256> rewritten{};
+  size_t rewritten_size = 0;
+  assert(panel_config_replace_existing_setting_v1(updated.data(), size, DISPLAY_THEME_PREFERENCES_KEY,
+      "1,light,time,480,1260,25,-60", rewritten.data(), rewritten.size(), &rewritten_size));
+  assert(theme.prepare_write(1, rewritten.data(), rewritten_size));
+  assert_old_theme(*current);
+  assert(theme.activate_prepared(11, 1, rewritten.data(), rewritten_size));
+  assert(current && encode_display_theme_preferences(*current) == "1,light,time,480,1260,25,-60");
+  assert(grid_layout_card_config(1, {}).entity == "light.kitchen");
+
 }

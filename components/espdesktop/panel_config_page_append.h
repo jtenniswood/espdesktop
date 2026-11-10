@@ -8,6 +8,42 @@
 #include "panel_config_representation.h"
 
 namespace espdesktop::configuration {
+
+inline bool panel_config_replace_existing_setting_v1(
+    const uint8_t *input, size_t input_size, std::string_view key, std::string_view value,
+    uint8_t *output, size_t capacity, size_t *size) {
+  PanelConfigReader reader(input, input_size);
+  PanelConfigWriter writer(output, capacity);
+  if (reader.begin() != PanelConfigStatus::OK || writer.begin() != PanelConfigStatus::OK) return false;
+  PanelConfigRecord row;
+  bool replaced = false;
+  PanelConfigStatus next;
+  while ((next = reader.next(&row)) == PanelConfigStatus::OK) {
+    PanelConfigStatus written = PanelConfigStatus::INVALID_DOCUMENT;
+    switch (row.type) {
+      case PanelConfigRecordType::DEVICE_PROFILE:
+        written = writer.append_device_profile(row.value, row.value_size);
+        break;
+      case PanelConfigRecordType::BUTTON:
+        written = writer.append_button(row.slot, row.value, row.value_size);
+        break;
+      case PanelConfigRecordType::SUBPAGE:
+        written = writer.append_subpage(row.slot, row.value, row.value_size);
+        break;
+      case PanelConfigRecordType::SETTING:
+        if (std::string_view(reinterpret_cast<const char *>(row.key), row.key_size) == key) {
+          row.value = reinterpret_cast<const uint8_t *>(value.data());
+          row.value_size = value.size();
+          replaced = true;
+        }
+        written = writer.append_setting(row.key, row.key_size, row.value, row.value_size);
+        break;
+    }
+    if (written != PanelConfigStatus::OK) return false;
+  }
+  return next == PanelConfigStatus::END && replaced && writer.finish(size) == PanelConfigStatus::OK;
+}
+
 // A narrow, generation-checked producer edit: append newly available Finder
 // folder actions without replacing any other page, card identity or setting.
 class PanelConfigPageAppend {

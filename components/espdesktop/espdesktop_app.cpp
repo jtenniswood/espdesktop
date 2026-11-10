@@ -509,7 +509,15 @@ void EspDesktopApp::save_display_theme_preferences(const ThemeSettings &settings
     if (!input) return false;
     auto *output = input + capacity;
     const auto loaded = service->load(input, capacity);
-    if (!loaded.ok() || loaded.document_version != 2) return false;
+    if (!loaded.ok()) return false;
+    const auto value = encode_display_theme_preferences(settings);
+    size_t output_size = 0;
+    if (loaded.document_version == 1) {
+      return panel_config_replace_existing_setting_v1(input, loaded.document_size,
+          DISPLAY_THEME_PREFERENCES_KEY, value, output, capacity, &output_size) &&
+          service->save_if_generation(loaded.generation, 1, output, output_size).ok();
+    }
+    if (loaded.document_version != 2) return false;
     PanelConfigV2Reader reader(input, loaded.document_size);
     size_t index_size = 0;
     if (reader.workspace_bytes(&index_size) != PanelConfigStatus::OK) return false;
@@ -517,8 +525,7 @@ void EspDesktopApp::save_display_theme_preferences(const ThemeSettings &settings
     auto *index = scratch.allocate(index_size);
     if (!index || reader.validate(index, index_size) != PanelConfigStatus::OK) return false;
     PanelConfigPageAppend edit(reader);
-    size_t output_size = 0;
-    return edit.set_existing_setting(DISPLAY_THEME_PREFERENCES_KEY, encode_display_theme_preferences(settings)) &&
+    return edit.set_existing_setting(DISPLAY_THEME_PREFERENCES_KEY, value) &&
         edit.finish(output, capacity, &output_size, allocate_configuration_slot, release_configuration_slot) &&
         service->save_if_generation(loaded.generation, 2, output, output_size).ok();
   };
