@@ -15,14 +15,15 @@ from companion_release import digest
 from test_device_runtime import HttpProbe, METRICS
 
 DEVICE = "guition-esp32-s3-4848s040"
+REPORT_SCHEMA = 2
 NAVIGATION = "Open the nested Safari shortcut, run it on the Mac, then use Back on the panel."
 STEPS = (
     ("paired_mac", "Confirm the candidate Mac app is installed and the panel is paired."),
     *((f"navigation_{cycle}", NAVIGATION) for cycle in range(1, 6)),
     ("wake", "Let the screen sleep. Tap once to wake it and confirm the tap runs no action."),
     ("offline_editor", "Block internet access while keeping the local network available. "
-                       "Open the embedded editor and save a visible layout edit."),
-    ("reboot", "Restart the panel. Confirm the offline edit survives and the Mac reconnects."),
+                       "Open the embedded editor, rename a tile, and change the theme and Night Schedule."),
+    ("reboot", "Restart the panel. Confirm the tile, theme and schedule changes survive and the Mac reconnects."),
 )
 
 
@@ -55,7 +56,7 @@ def memory_values(memory):
 
 
 def verify_report(report, expected):
-    if (not isinstance(report, dict) or report.get("schema") != 1
+    if (not isinstance(report, dict) or report.get("schema") != REPORT_SCHEMA
             or report.get("status") != "passed" or report.get("candidate") != expected):
         raise ValueError("A passing hardware report for the selected candidate is required.")
     firmware = report.get("firmware")
@@ -74,11 +75,16 @@ def verify_report(report, expected):
             raise ValueError(f"The report is missing a passing {name} checkpoint.")
         memory_values(step.get("before"))
         memory_values(step.get("after"))
+    saved = report.get("native_save")
+    if (not isinstance(saved, dict) or set(saved) != {"before", "saved", "reboot"}
+            or any(type(value) is not int or not 0 <= value <= 0xFFFFFFFF for value in saved.values())
+            or saved["before"] == saved["saved"] or saved["saved"] != saved["reboot"]):
+        raise ValueError("The hardware report must confirm a native save survived reboot.")
 
 
 def run(probe, output, expected=None, confirm=input):
     output.mkdir(parents=True, exist_ok=False)
-    report = {"schema": 1, "status": "failed", "candidate": expected, "steps": []}
+    report = {"schema": REPORT_SCHEMA, "status": "failed", "candidate": expected, "steps": []}
     try:
         initial = probe.sample()
         firmware = report["firmware"] = initial["firmware"]
@@ -101,8 +107,12 @@ def run(probe, output, expected=None, confirm=input):
             previous = current
             return memory_values(current["memory"])
 
+        saved_config = None
+        before_config = None
         for name, instruction in STEPS:
             before = sample()
+            if name == "offline_editor":
+                before_config = probe.native_config_snapshot()
             started = time.monotonic()
             if confirm(f"{instruction}\nType pass when confirmed, or fail to stop: ").strip().lower() != "pass":
                 raise ValueError(f"Operator did not confirm {name}.")
@@ -111,6 +121,16 @@ def run(probe, output, expected=None, confirm=input):
                 pair = probe.json("/connectors/status").get("mac_companion", {})
                 if not isinstance(pair, dict) or pair.get("paired") is not True or pair.get("connected") is not True:
                     raise ValueError("The paired Mac is disconnected.")
+            if name == "offline_editor":
+                saved_config = probe.native_config_snapshot()
+                if saved_config[0] == before_config[0] or saved_config[1] == before_config[1]:
+                    raise ValueError("The offline editor did not change the saved native document.")
+            if name == "reboot":
+                reboot_config = probe.native_config_snapshot()
+                if reboot_config != saved_config:
+                    raise ValueError("The saved native document changed after reboot.")
+                report["native_save"] = {"before": before_config[0], "saved": saved_config[0],
+                                         "reboot": reboot_config[0]}
             print(f"{name}: internal heap {before['heap_free_percent']:.1f}% → {after['heap_free_percent']:.1f}% free, "
                   f"PSRAM {before['psram_free_percent']:.1f}% → {after['psram_free_percent']:.1f}% free.")
             report["steps"].append({"id": name, "operator_passed": True,

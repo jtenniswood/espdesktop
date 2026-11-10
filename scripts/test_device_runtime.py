@@ -6,6 +6,7 @@ import argparse
 import asyncio
 from collections import Counter
 from dataclasses import dataclass, field
+import hashlib
 from datetime import datetime, timezone
 import json
 import math
@@ -16,6 +17,7 @@ import time
 import urllib.request
 
 MAX_BODY = 16384
+MAX_PANEL_CONFIG = 512 * 1024
 METRICS = ("heap_free_percent", "heap_largest_bytes", "psram_free_percent", "psram_largest_bytes")
 
 
@@ -72,6 +74,26 @@ class HttpProbe:
         if not isinstance(result, dict):
             raise ValueError("expected a JSON object")
         return result
+
+    def native_config_snapshot(self):
+        """Return the saved v2 generation and an in-memory content fingerprint."""
+        request = urllib.request.Request(self.base + "/api/v1/config", headers={
+            "User-Agent": "EspDesktop-device-test", "X-Panel-Config-Version": "2",
+        })
+        with self.opener.open(request, timeout=self.timeout) as response:
+            headers = response.headers
+            if (headers.get_content_type() != "application/vnd.espdesktop.panel-config" or
+                    headers.get("X-Panel-Config-Version") != "2" or
+                    headers.get("X-Panel-Config-Durable-Version") != "2"):
+                raise ValueError("expected a saved native v2 panel configuration")
+            generation = headers.get("X-Panel-Config-Generation", "")
+            if not re.fullmatch(r"[0-9]{1,10}", generation) or int(generation) > 0xFFFFFFFF:
+                raise ValueError("invalid native configuration generation")
+            data = response.read(MAX_PANEL_CONFIG + 1)
+        if (not 32 <= len(data) <= MAX_PANEL_CONFIG or data[:8] != b"EPCF\x02\x00\x10\x00" or
+                int.from_bytes(data[8:12], "little") != len(data) - 16):
+            raise ValueError("invalid native configuration response")
+        return int(generation), hashlib.sha256(data).digest()
 
     def sample(self):
         identity = self.json("/api/v1/identity")
