@@ -1346,13 +1346,10 @@ inline void grid_phase2(
     ParsedCfg config;
     lv_obj_t *parent_screen;
   };
-  // Roll out the cache on the development S3's native layout first.
-#ifdef ESPDESKTOP_DEVICE_SLUG
-  const bool on_demand = std::string_view(ESPDESKTOP_DEVICE_SLUG) == "guition-esp32-s3-4848s040" &&
+  // Constrained panels reclaim secondary widgets when the native layout
+  // can reconstruct them. Other profiles keep their eager renderer.
+  const bool on_demand = display_modal_is_constrained(cfg.modal_profile) &&
                          espdesktop::grid_native_page_store();
-#else
-  const bool on_demand = false;
-#endif
   // Rendering a secondary page is independent of when it is opened.
   auto render_subpage = [=](int navigation_slot, int parent, BtnSlot owner_slot,
                             const ParsedCfg &p, lv_obj_t *parent_screen,
