@@ -7,6 +7,7 @@ import { resetAwareFetch } from "../api/reset_session";
 import type { PanelIdentityBackup } from "../model/panel_identity";
 import type { PanelIdentityFeature } from "./panel_identity";
 import { state } from "../state/app_instance";
+import { screenSchedulePreferencesFromState } from "../model/screen_schedule_preferences";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import * as EspDesktopModel from "../model";
 import {
@@ -124,15 +125,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postDisplayBacklightBrightness,
         postBrightnessDawnTime,
         postBrightnessDuskTime,
-        postScreenScheduleEnabled,
-        postScreenScheduleTrigger,
-        postScreenScheduleOnHour,
-        postScreenScheduleOffHour,
-        postScreenScheduleMode,
-        postScreenScheduleWakeTimeout,
-        postScreenScheduleWakeBrightness,
-        postScreenScheduleDimmedBrightness,
-        postScreenScheduleClockBrightness,
+        postScreenSchedulePreferences,
     } = controllers.schedulePostApi;
     const {
         postClockBrightnessDay,
@@ -705,16 +698,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postDisplayBacklightBrightness(state.manualBrightnessVal);
                     postBrightnessDawnTime(state.brightnessDawnTime);
                     postBrightnessDuskTime(state.brightnessDuskTime);
-                    postScreenScheduleTrigger(state.scheduleTrigger);
-                    postScreenScheduleOnHour(state.scheduleOnHour);
-                    postScreenScheduleOffHour(state.scheduleOffHour);
-                    postScreenScheduleMode(state.scheduleMode);
-                    postScreenScheduleWakeTimeout(state.scheduleWakeTimeout);
-                    postScreenScheduleWakeBrightness(state.scheduleWakeBrightness);
-                    postScreenScheduleDimmedBrightness(state.scheduleDimmedBrightness);
-                    postScreenScheduleClockBrightness(state.scheduleClockBrightness);
-                    postText(entityName("screen_schedule_clock_text_color"), state.scheduleClockTextColor);
-                    postScreenScheduleEnabled(state.scheduleEnabled);
+                    if (!(await postScreenSchedulePreferences(screenSchedulePreferencesFromState(state)))) {
+                        requestApi.postQueueError = true;
+                    }
                     if (els.setDayBrightness) {
                         els.setDayBrightness.value = state.brightnessDayVal;
                         els.setDayBrightnessVal.textContent = Math.round(state.brightnessDayVal) + "%";

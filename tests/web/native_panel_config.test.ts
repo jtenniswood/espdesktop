@@ -50,6 +50,7 @@ const document = encodePanelConfig({
 export async function runDisplayThemePreferenceTests(): Promise<void> {
   let current = decodePanelConfig(document);
   let puts = 0;
+  let editFromAnotherTab = false;
   const target = new NativePanelConfigController({
     fetch: async (path, request) => {
       if (path.endsWith("capabilities")) return {
@@ -59,6 +60,14 @@ export async function runDisplayThemePreferenceTests(): Promise<void> {
       };
       if (request?.method === "PUT") {
         ++puts;
+        if (editFromAnotherTab) {
+          editFromAnotherTab = false;
+          current = {
+            ...current, settings: { ...current.settings,
+              [SCREEN_SCHEDULE_PREFERENCES]: "1,1,9,22,clock,60,10,15,10,FFFFFF" },
+          };
+          return response(409);
+        }
         current = decodePanelConfig(request.body!);
         return response(204);
       }
@@ -96,6 +105,12 @@ export async function runDisplayThemePreferenceTests(): Promise<void> {
     "saved", "save both schedule hours together");
   equal(puts, previousPuts + 1, "the schedule uses one write");
   equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,8,22,clock,60,10,15,10,FFFFFF", "complete typed group");
+  editFromAnotherTab = true;
+  equal(await target.writeScreenSchedulePreference({ scheduleOffHour: 23 }, schedule),
+    "saved", "retry a schedule change after another browser tab saves");
+  equal(puts, previousPuts + 3, "a stale generation is retried with one complete group");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,9,23,clock,60,10,15,10,FFFFFF",
+    "the retry preserves the other tab's change");
   equal(decodeScreenSchedulePreferences("1,1,24,22,clock,60,10,15,10,FFFFFF"), undefined, "invalid hour rejected");
 
 }

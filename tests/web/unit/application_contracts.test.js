@@ -185,7 +185,7 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:postFirmwareUpdateInstall|postFirmwareUpdateCheck|postC6FirmwareUpdateInstall|postC6FirmwareUpdateCheck):/);
     assert.doesNotMatch(globals, /\bvar (?:postPresenceSensorEntity|postMediaPlayerSleepPrevention|postMediaPlayerSleepPreventionEntity|postCoverArtScreensaver|postCoverArtMediaPlayerEntity|postCoverArtSecondaryMediaPlayerEntity|postCoverArtConditions|coverArtHideExternalInputPostUrls|postCoverArtHideExternalInput|coverArtDelayPostUrls|postCoverArtDelay|coverArtTrackOverlayDurationPostUrls|postCoverArtTrackOverlayDuration|homeAssistantArtworkPortPostUrls|postHomeAssistantArtworkPort|postHomeAssistantArtworkProtocol):/);
     const schedulePosts = fs.readFileSync(path.join(ROOT, "src/webserver/application/screen_schedule_post_api.ts"), "utf8");
-    assert.match(entry, /schedulePostApi = createScreenSchedulePostApiFeature\(entityState, requestApi\)/);
+    assert.match(entry, /schedulePostApi = createScreenSchedulePostApiFeature\(entityState, requestApi,/);
     assert.doesNotMatch(entry, /installScreenSchedulePostApiModule/);
     assert.doesNotMatch(schedulePosts, /GlobalDescriptors|staticGlobal|liveGlobal|installScreenSchedulePostApiModule/);
     assert.doesNotMatch(globals, /\bvar (?:BRIGHTNESS_TIME_UNAVAILABLE|SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE|SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE|SCREEN_SCHEDULE_MODE_UNAVAILABLE|SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE|SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE|SCREEN_SCHEDULE_UNAVAILABLE|SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE|SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE|postBrightnessMode|postDisplayBacklightBrightness|postBrightnessDawnTime|postBrightnessDuskTime|postScreenScheduleClockBrightness|postScreenScheduleDimmedBrightness|postScreenScheduleEnabled|postScreenScheduleMode|postScreenScheduleOffHour|postScreenScheduleOnHour|postScreenScheduleSensorActivation|postScreenScheduleSensorEntity|postScreenScheduleTrigger|postScreenScheduleWakeBrightness|postScreenScheduleWakeTimeout):/);
@@ -907,7 +907,6 @@ describe("browserless application contracts", () => {
       "src/webserver/application/grid.ts",
       "src/webserver/application/settings_page.ts",
       "src/webserver/application/settings_page_helpers.ts",
-      "src/webserver/application/settings_schedule_section.ts",
     ];
     for (const relativePath of consumers) {
       const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -921,6 +920,9 @@ describe("browserless application contracts", () => {
     assert.match(core, /serializeSubpageGrid: \(subpage: any\) => any/);
     assert.match(entry, /\(subpage\) => configurationCodec\.serializeSubpageGrid\(subpage\)/);
     assert.match(entry, /configurationPersistence\.connectCodec\(configurationCodec\)/);
+    const schedule = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_schedule_section.ts"), "utf8");
+    assert.match(schedule, /ScreenSchedulePostApiFeature/);
+    assert.doesNotMatch(schedule, /ConfigCodecFeature/);
     assert.match(entry, /createAppConfigEventsFeature\(configurationPersistence, configurationCodec, layout, renderQueue\)/);
     assert.doesNotMatch(entry, /configuration\.codec\.globals/);
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");

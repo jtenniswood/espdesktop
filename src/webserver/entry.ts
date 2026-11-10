@@ -484,14 +484,16 @@ function composeApplicationContext(): ApplicationContext {
       if (availability === "legacy-fallback" ||
           (availability === true && !nativePanelConfig.client?.supportsScreenSchedulePreferences())) {
         legacy();
+        return true;
       } else if (availability === true) {
-        await nativePanelConfig.writeScreenSchedulePreference(patch, current);
+        return await nativePanelConfig.writeScreenSchedulePreference(patch, current) === "saved";
       } else {
         shell.showBanner("Could not save the night schedule. Check the display’s connection and try again.", "error");
       }
     } catch {
       shell.showBanner("Could not read the current night schedule. Check the display’s connection and try again.", "error");
     }
+    return false;
   });
   const clockBarPostApi = createClockBarPostApiFeature(entityState, requestApi);
   configurationPersistence.connectRequestApi(requestApi);
