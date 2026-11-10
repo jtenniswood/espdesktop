@@ -1,8 +1,8 @@
 ---
 name: sync-espcontrol-updates
 description: >-
-  Review recent closed and merged PRs in jtenniswood/espcontrol and port applicable
-  changes into jtenniswood/espdesktop with validation and a ready-for-review PR.
+  Review recent EspControl PRs and port focused fixes that benefit the shared
+  display platform or EspDesktop's existing Mac controller experience.
   Use when the user invokes "sync espcontrol updates", /sync-espcontrol-updates,
   or asks to bring recent EspControl changes into EspDesktop. Defaults to the
   last 24 hours; respect an explicit date range or research-only request.
@@ -10,10 +10,21 @@ description: >-
 
 # Sync EspControl Updates
 
-Bring relevant changes from https://github.com/jtenniswood/espcontrol/pulls into
-EspDesktop while preserving its separate product behaviour. Produce a review
-accounting for every source PR in the requested window, an isolated port branch,
-and a ready-for-review destination PR when changes are needed.
+Review https://github.com/jtenniswood/espcontrol/pulls for fixes with a clear
+EspDesktop benefit. Review the requested window and report the disposition of
+each source PR. Port independent fixes in separate ready-for-review PRs.
+
+## Choose what to port
+
+- Look first for touch and display fixes, Wi-Fi setup and recovery, layout
+  storage, firmware tooling, and other behavior EspDesktop already uses.
+- Keep Mac Companion as the owner of Mac actions, pairing, permissions, and
+  artwork. Leave Home Assistant integrations and cards with EspControl unless
+  the user explicitly expands EspDesktop's product scope.
+- For a mixed upstream PR, isolate the applicable fix and its test. Group
+  changes only when they must land together for the fix to work.
+- State the EspDesktop behavior and affected device before implementing a
+  port. Similar files or passing upstream tests are insufficient evidence.
 
 ## Establish the window and destination
 
@@ -26,9 +37,9 @@ and a ready-for-review destination PR when changes are needed.
 - Fetch current destination `main`. Check open destination PRs and merged history
   for earlier ports of the same source changes. Do not duplicate an existing port
   or modify another active feature branch simply because its files overlap.
-- For implementation, use a separate worktree and descriptive feature branch
-  from latest `origin/main`. Follow an explicit request to continue an existing
-  sync branch. Honour a research-only request without editing or publishing.
+- For each port, use a separate worktree and descriptive feature branch from
+  latest `origin/main`. Follow an explicit request to continue an existing
+  port branch. Honour a research-only request without editing or publishing.
 
 ## Review the source PRs
 
@@ -68,10 +79,6 @@ If nothing applicable remains, return the accounting without an empty branch or 
 - Check interaction with Mac Companion, pairing/network settings, device
   capabilities, and existing configuration compatibility. A clean textual merge
   does not establish behavioural compatibility.
-- For deferred Cover Art work, account for Mac Companion artwork without a Home
-  Assistant media-player entity. Capture and recheck the source and ownership
-  across yields; retain Companion's image transport instead of sending it through
-  the HA URL/retry pipeline. Adapt regression harnesses to destination code paths.
 - Review infrastructure fixes together. A retry that performs broad Docker
   container/volume pruning can undermine a later parallel-build cleanup fix.
   Use the destination's guarded cleanup and bounded retries where appropriate;
@@ -84,9 +91,9 @@ If nothing applicable remains, return the accounting without an empty branch or 
 ## Validate the integrated result
 
 Use the destination's current check graph, dependency requirements and pinned
-ESPHome version. Run relevant host, web, configuration and generated-output checks;
-for broad firmware/web syncs, run the required CI graph and docs build. Include
-meaningful checks of destination-specific adaptations and cancellation/failure paths.
+ESPHome version. Run relevant host, web, configuration and generated-output
+checks. Include checks for the actual EspDesktop path and any failure cases
+the upstream fix addresses.
 
 For firmware changes, choose representative affected devices from the current
 catalogue and broaden for distinct hardware paths. Shared S3/P4 changes normally
@@ -119,14 +126,9 @@ Use `gh pr checks` for destination CI status. Address actionable feedback and
 failures within this sync's scope, validate fixes, and commit/push each completed
 update. Resolve only review threads actually addressed.
 
-When repository/user instructions authorize continued monitoring and the app
-supports it, reuse or create a monitor for this destination PR and its build runs.
-Keep it quiet for unchanged running/queued work and notify on meaningful feedback,
-failure, completion, or required user action. Stop monitoring when the PR closes.
-Do not promise background monitoring unless it was successfully configured.
-
-Long-running builds can continue under that monitor after the initial handoff;
-identify pending targets/runs explicitly rather than reporting them as passed.
+Monitor the active PR checks in the current chat and report meaningful
+feedback, failures, or completion. Create a scheduled monitor only when the
+user requests one. Identify pending targets and runs separately from passes.
 This sync does not itself authorize device flashing, merging, issue closure, or
 publishing a release. Follow any separate explicit authorization from the user.
 
