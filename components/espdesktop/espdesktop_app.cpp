@@ -14,7 +14,6 @@
 #endif
 
 #include "esphome/core/log.h"
-#include "esphome/components/switch/switch.h"
 
 #include "button_grid.h"
 #include "grid_page_runtime.h"
@@ -358,7 +357,6 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits,
       allocate_configuration_slot, release_configuration_slot,
       [this]() { layout_changed_.trigger(); },
-      [this](bool enabled) { publish_app_subpage_preference(enabled); },
       [this](const auto &settings) { publish_display_theme_preferences(settings); },
       [this](const std::optional<ScreenSchedulePreferences> &settings) {
         if (!settings && !screen_schedule_) return;
@@ -467,18 +465,6 @@ void EspDesktopApp::apply_boot_configuration() {
     return;
   }
   sync_app_icons_from_panel_config(document, loaded.document_size);
-}
-
-void EspDesktopApp::publish_app_subpage_preference(bool enabled) {
-  if (app_subpage_switch_) app_subpage_switch_->publish_state(enabled);
-  if (active_espdesktop_app_core() == &core_) companion_set_auto_open_app_subpages(enabled);
-}
-
-void EspDesktopApp::bind_app_subpage_preference_switch(esphome::switch_::Switch &setting) {
-  app_subpage_switch_ = &setting;
-  // Existing panels retain their preference until it is first saved in the
-  // layout document. Native activation publishes the new value after commit.
-  publish_app_subpage_preference(setting.state);
 }
 
 void EspDesktopApp::bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish) {

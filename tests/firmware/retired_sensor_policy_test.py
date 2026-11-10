@@ -17,6 +17,14 @@ rules = json.loads((ROOT / "product/v2/panel_settings.json").read_text())["scala
 assert rules["screensaver_mode"] == {
     "default": "disabled", "choices": ["disabled", "timer", "companion"],
 }
+display = yaml.load((ROOT / "common/config/display.yaml").read_text(), Loader)
+for group, entity_id, setting in (
+    ("text", "screensaver_mode", "SCREENSAVER_MODE"),
+    ("select", "screensaver_action", "SCREEN_SAVER_ACTION"),
+):
+    entity = next(item for item in display[group] if item["id"] == entity_id)
+    assert not entity["restore_value"] and not entity["optimistic"]
+    assert f"ScalarSetting::{setting}," in entity["set_action"][0]["lambda"]
 trigger = next(item for item in config["text"] if item["id"] == "screen_schedule_trigger")
 assert not trigger["restore_value"] and not trigger["optimistic"]
 assert next(text for text in config["text"] if text["id"] == "screen_schedule_trigger")["initial_value"] == "time"

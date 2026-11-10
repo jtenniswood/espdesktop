@@ -99,7 +99,7 @@ target_include_directories(companion_shortcut_test PRIVATE
 )
 add_test(NAME companion_shortcut_test COMMAND companion_shortcut_test)
 add_test(NAME companion_subpage_preference_boot_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py ${CMAKE_CXX_COMPILER})
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py)
 
 add_test(NAME companion_navigation_preference_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_navigation_preference_test.py)

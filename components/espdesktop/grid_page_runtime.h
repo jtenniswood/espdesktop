@@ -25,7 +25,6 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
   using Store = pages::PageStore;
   using ScalarValues = std::array<std::optional<std::string_view>, panel_settings::SCALAR_RULES.size()>;
   struct Snapshot : GridNativePages {
-    std::optional<bool> app_subpage_preference;
     std::optional<ThemeSettings> theme_preferences;
     std::string accent;
     std::string schedule_record;
@@ -68,13 +67,11 @@ public:
       configuration::ConfigurationBuffer::Allocate allocate,
       configuration::ConfigurationBuffer::Release release,
       std::function<void()> refresh_layout = {},
-      std::function<void(bool)> publish_app_subpage_preference = {},
       std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {},
       std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule = {},
       std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar = {})
       : limits_(limits), allocate_(allocate), release_(release),
         refresh_layout_(std::move(refresh_layout)),
-        publish_app_subpage_preference_(std::move(publish_app_subpage_preference)),
         publish_theme_preferences_(std::move(publish_theme_preferences)),
         publish_schedule_(std::move(publish_schedule)), publish_scalar_(std::move(publish_scalar)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
@@ -193,9 +190,6 @@ private:
     auto setting = [&](std::string_view name, std::string_view value) {
       if (name == "button_on_color") {
         staged_->accent = value;
-      } else if (name == "companion_auto_open_app_subpages") {
-        if (value != "0" && value != "1") return false;
-        staged_->app_subpage_preference = value == "1";
       } else if (name == DISPLAY_THEME_PREFERENCES_KEY) {
         staged_->theme_preferences = parse_display_theme_preferences(value);
         if (!staged_->theme_preferences) return false;
@@ -246,10 +240,7 @@ private:
     active_ = std::move(staged_);
     active_->store = &store;
     grid_native_pages() = active_.get();
-    // Apply only after the configuration service commits and activates this
-    // snapshot. Old documents omit the setting and retain their switch value.
-    if (active_->app_subpage_preference && publish_app_subpage_preference_)
-      publish_app_subpage_preference_(*active_->app_subpage_preference);
+    // Apply only after the configuration service commits and activates this snapshot.
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
     if (schedule_changed && publish_schedule_) publish_schedule_(active_->schedule);
     if (publish_scalar_) {
@@ -266,7 +257,6 @@ private:
   configuration::ConfigurationBuffer::Allocate allocate_;
   configuration::ConfigurationBuffer::Release release_;
   std::function<void()> refresh_layout_;
-  std::function<void(bool)> publish_app_subpage_preference_;
   std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences_;
   std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule_;
   std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar_;

@@ -136,9 +136,13 @@ int main() {
     assert(edit.finish(updated.data(), updated.size(), &size, allocate, ConfigurationBuffer::release_host));
   };
 
+  using Scalar = panel_settings::ScalarSetting;
   std::vector<bool> applied;
-  GridPageRuntime preference(limits, allocate, ConfigurationBuffer::release_host, {},
-      [&](bool enabled) { applied.push_back(enabled); });
+  GridPageRuntime preference(limits, allocate, ConfigurationBuffer::release_host, {}, {}, {},
+      [&](Scalar setting, std::string_view value) {
+        if (setting == Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) applied.push_back(value == "1");
+      });
+  assert(preference.scalar_setting_value(Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) == "1");
   write_preference(preference_key, "0");
   assert(preference.prepare_write(2, updated.data(), size));
   assert(applied.empty());
@@ -147,19 +151,22 @@ int main() {
   write_preference(preference_key, "invalid");
   assert(!preference.prepare_write(2, updated.data(), size));
   assert(applied == std::vector<bool>{false});
+  assert(preference.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(preference.activate_prepared(10, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert((applied == std::vector<bool>{false, true}));
 
   PanelConfigWriter v1(updated.data(), updated.size());
   assert(v1.begin() == PanelConfigStatus::OK);
   assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
       std::strlen(limits.device_profile)) == PanelConfigStatus::OK);
-  const uint8_t enabled[] = "1";
+  const uint8_t disabled[] = "0";
   assert(v1.append_setting(reinterpret_cast<const uint8_t *>(preference_key.data()), preference_key.size(),
-      enabled, sizeof(enabled) - 1) == PanelConfigStatus::OK);
+      disabled, sizeof(disabled) - 1) == PanelConfigStatus::OK);
   assert(v1.finish(&size) == PanelConfigStatus::OK);
   assert(preference.prepare_write(1, updated.data(), size));
-  assert(applied == std::vector<bool>{false});
-  assert(preference.activate_prepared(10, 1, updated.data(), size));
   assert((applied == std::vector<bool>{false, true}));
+  assert(preference.activate_prepared(11, 1, updated.data(), size));
+  assert((applied == std::vector<bool>{false, true, false}));
 
   const auto assert_old_theme = [](const ThemeSettings &settings) {
     assert(settings.mode == ThemeMode::AUTO && settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET);
@@ -169,7 +176,7 @@ int main() {
   std::optional<ThemeSettings> current;
   int theme_layout_refreshes = 0;
   GridPageRuntime theme(limits, allocate, ConfigurationBuffer::release_host,
-      [&] { ++theme_layout_refreshes; }, {},
+      [&] { ++theme_layout_refreshes; },
       [&](const std::optional<ThemeSettings> &value) { current = value; });
   write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,auto,sun,417,1205,-35,12");
   assert(theme.prepare_write(2, updated.data(), size));
@@ -228,7 +235,7 @@ int main() {
   int schedule_applies = 0, schedule_layout_refreshes = 0;
   std::optional<ScreenSchedulePreferences> schedule;
   GridPageRuntime schedule_runtime(limits, allocate, ConfigurationBuffer::release_host,
-      [&] { ++schedule_layout_refreshes; }, {}, {},
+      [&] { ++schedule_layout_refreshes; }, {},
       [&](const std::optional<ScreenSchedulePreferences> &value) { schedule = value; ++schedule_applies; });
   write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,1,7,19,clock,60,10,15,10,C0FFEE");
   assert(schedule_runtime.prepare_write(2, updated.data(), size));
@@ -255,10 +262,9 @@ int main() {
   assert(schedule_runtime.activate_prepared(16, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
   assert(schedule_applies == 3 && !schedule);
 
-  using Scalar = panel_settings::ScalarSetting;
   std::vector<std::pair<Scalar, std::string>> published;
   GridPageRuntime scalar_runtime(limits, allocate, ConfigurationBuffer::release_host,
-      {}, {}, {}, {}, [&](Scalar setting, std::string_view value) { published.emplace_back(setting, value); });
+      {}, {}, {}, [&](Scalar setting, std::string_view value) { published.emplace_back(setting, value); });
   assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_CARD_CURVE) == "Large");
   write_preference("screen_card_curve", "Medium");
   assert(scalar_runtime.prepare_write(2, updated.data(), size) && published.empty());

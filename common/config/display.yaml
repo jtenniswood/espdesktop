@@ -45,8 +45,15 @@ esphome:
             app.bind_panel_scalar(Setting::SCREEN_SUBPAGE_CHEVRON, [](std::string_view value) {
               id(subpage_chevrons_enabled).publish_state(value == "1");
             });
+            app.bind_panel_scalar(Setting::COMPANION_AUTO_OPEN_APP_SUBPAGES, [](std::string_view value) {
+              const bool enabled = value == "1";
+              id(companion_auto_open_app_subpages_enabled).publish_state(enabled);
+              companion_set_auto_open_app_subpages(enabled);
+            });
             app.bind_panel_scalar(Setting::COMPANION_RETURN_HOME_ON_APP_SWITCH, [](std::string_view value) {
-              id(companion_return_home_on_app_switch_enabled).publish_state(value == "1");
+              const bool enabled = value == "1";
+              id(companion_return_home_on_app_switch_enabled).publish_state(enabled);
+              companion_set_return_home_on_app_switch(enabled);
             });
             app.bind_panel_scalar(Setting::SCREEN_DEFAULT_ICON_SIZE, [](std::string_view value) {
               id(default_icon_size_select).publish_state(std::string(value));
@@ -82,15 +89,6 @@ esphome:
               id(clock_brightness_night).publish_state(std::atoi(std::string(value).c_str()));
             });
             espdesktop::set_card_icon_default_size(id(default_icon_size_select).current_option());
-    # Template switches restore before the application core starts. Apply the
-    # saved Companion navigation preference after startup, before grid setup.
-    - priority: -96
-      then:
-        - lambda: |-
-            if (espdesktop::active_espdesktop_app_core() != nullptr) {
-              id(espdesktop_app).bind_app_subpage_preference_switch(*id(companion_auto_open_app_subpages_enabled));
-              companion_set_return_home_on_app_switch(id(companion_return_home_on_app_switch_enabled).state);
-            }
     - priority: -100
       then:
         - lambda: |-
@@ -401,19 +399,15 @@ switch:
     internal: true
     id: companion_auto_open_app_subpages_enabled
     optimistic: false
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:application"
     web_server:
       sorting_group_id: sg_display
     turn_on_action:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() == nullptr)
-            id(companion_auto_open_app_subpages_enabled).publish_state(true);
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_AUTO_OPEN_APP_SUBPAGES, "1");'
     turn_off_action:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() == nullptr)
-            id(companion_auto_open_app_subpages_enabled).publish_state(false);
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_AUTO_OPEN_APP_SUBPAGES, "0");'
 
   - platform: template
     name: "${entity_companion_return_home_on_app_switch}"
@@ -429,14 +423,6 @@ switch:
       - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "1");'
     turn_off_action:
       - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "0");'
-    on_turn_on:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_return_home_on_app_switch(true);
-    on_turn_off:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_return_home_on_app_switch(false);
 
   - platform: template
     name: "${entity_screen_subpage_chevron}"
@@ -557,8 +543,8 @@ select:
     id: screensaver_action
     entity_category: config
     icon: "mdi:monitor-shimmer"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "Display Off"
     options:
       - "Display Off"
@@ -566,6 +552,10 @@ select:
       - "Clock"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_ACTION,
+              std::string_view(x.c_str(), x.size()));
     on_value:
       then:
         - lambda: |-

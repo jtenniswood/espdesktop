@@ -9,6 +9,7 @@ export const PANEL_SCALAR_SETTINGS = {
   screen_battery_status: { defaultValue: "0", choices: ["0", "1"] },
   screen_subpage_title_bar: { defaultValue: "1", choices: ["0", "1"] },
   screen_subpage_chevron: { defaultValue: "1", choices: ["0", "1"] },
+  companion_auto_open_app_subpages: { defaultValue: "1", choices: ["0", "1"] },
   companion_return_home_on_app_switch: { defaultValue: "1", choices: ["0", "1"] },
   screen_default_icon_size: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
   screen_card_curve: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
