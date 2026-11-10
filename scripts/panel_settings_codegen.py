@@ -34,6 +34,62 @@ def cpp_rule(field, rule):
     raise ValueError(f"invalid rule for {field!r}")
 
 
+def append_scalar_settings(cpp, ts, settings):
+    if not isinstance(settings, dict) or not 0 < len(settings) < 255:
+        raise ValueError("expected scalar settings")
+    rows = []
+    for name, entry in settings.items():
+        if not name_is_valid(name) or not isinstance(entry, dict):
+            raise ValueError(f"invalid scalar setting {name!r}")
+        if set(entry) == {"default", "type"} and entry["type"] == "switch":
+            choices = ["0", "1"]
+        elif set(entry) == {"default", "choices"} and isinstance(entry["choices"], list):
+            choices = entry["choices"]
+        else:
+            raise ValueError(f"invalid scalar rule for {name!r}")
+        if (not choices or not all(isinstance(choice, str) and re.fullmatch(r"[A-Za-z0-9 _-]+", choice)
+                                   for choice in choices) or len(set(choices)) != len(choices)
+                or entry["default"] not in choices):
+            raise ValueError(f"invalid choices or default for {name!r}")
+        accepted = " || ".join(f'value == {json.dumps(choice)}' for choice in choices)
+        rows.append((name, entry["default"], choices, accepted))
+    cpp.extend([
+        "",
+        "enum class ScalarSetting : uint8_t {",
+        *(f"  {name.upper()}," for name, _, _, _ in rows),
+        "  COUNT",
+        "};",
+        "struct ScalarRule {",
+        "  std::string_view key;",
+        "  std::string_view default_value;",
+        "  bool (*valid)(std::string_view);",
+        "};",
+        "inline constexpr std::array<ScalarRule, size_t(ScalarSetting::COUNT)> SCALAR_RULES{{",
+        *(f'  {{"{name}", "{default}", [](std::string_view value) {{ return {accepted}; }}}},'
+          for name, default, _, accepted in rows),
+        "}};",
+        "",
+        "inline size_t scalar_setting_index(std::string_view key) {",
+        "  for (size_t i = 0; i < SCALAR_RULES.size(); ++i)",
+        "    if (SCALAR_RULES[i].key == key) return i;",
+        "  return SCALAR_RULES.size();",
+        "}",
+    ])
+    ts.extend([
+        "",
+        "export const PANEL_SCALAR_SETTINGS = {",
+        *(f"  {name}: {{ defaultValue: {json.dumps(default)}, choices: {json.dumps(choices)} }},"
+          for name, default, choices, _ in rows),
+        "} as const;",
+        "",
+        "export function validPanelScalarSetting(key: string, value: string): boolean {",
+        "  if (!Object.hasOwn(PANEL_SCALAR_SETTINGS, key)) return true;",
+        "  const choices: readonly string[] = PANEL_SCALAR_SETTINGS[key as keyof typeof PANEL_SCALAR_SETTINGS].choices;",
+        "  return choices.includes(value);",
+        "}",
+    ])
+
+
 def generate_panel_settings(root):
     source = root / "product/v2/panel_settings.json"
     records = json.loads(source.read_text(encoding="utf-8"), object_pairs_hook=no_duplicate_keys)
@@ -43,6 +99,7 @@ def generate_panel_settings(root):
         "// Generated from product/v2/panel_settings.json. Do not edit.",
         "#pragma once",
         "",
+        "#include <cstdint>",
         '#include "panel_setting_record.h"',
         "",
         "namespace espdesktop::panel_settings {",
@@ -51,6 +108,7 @@ def generate_panel_settings(root):
         "// Generated from product/v2/panel_settings.json. Do not edit.",
         'import { readSettingRecord } from "../model/panel_setting_record";',
     ]
+    append_scalar_settings(cpp, ts, records.pop("scalar_settings", None))
     for name, record in records.items():
         if not name_is_valid(name) or not isinstance(record, dict) or set(record) != {"version", "fields"}:
             raise ValueError(f"invalid panel settings record {name!r}")

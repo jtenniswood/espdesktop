@@ -1,6 +1,25 @@
 // Generated from product/v2/panel_settings.json. Do not edit.
 import { readSettingRecord } from "../model/panel_setting_record";
 
+export const PANEL_SCALAR_SETTINGS = {
+  screen_clock_bar: { defaultValue: "0", choices: ["0", "1"] },
+  screen_clock_bar_time: { defaultValue: "1", choices: ["0", "1"] },
+  screen_clock_bar_night_mode: { defaultValue: "0", choices: ["0", "1"] },
+  screen_network_status_icon: { defaultValue: "1", choices: ["0", "1"] },
+  screen_battery_status: { defaultValue: "0", choices: ["0", "1"] },
+  screen_subpage_title_bar: { defaultValue: "1", choices: ["0", "1"] },
+  screen_subpage_chevron: { defaultValue: "1", choices: ["0", "1"] },
+  companion_return_home_on_app_switch: { defaultValue: "1", choices: ["0", "1"] },
+  screen_default_icon_size: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
+  screen_card_curve: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
+} as const;
+
+export function validPanelScalarSetting(key: string, value: string): boolean {
+  if (!Object.hasOwn(PANEL_SCALAR_SETTINGS, key)) return true;
+  const choices: readonly string[] = PANEL_SCALAR_SETTINGS[key as keyof typeof PANEL_SCALAR_SETTINGS].choices;
+  return choices.includes(value);
+}
+
 export const screen_schedule_preferences_key = "screen_schedule_preferences";
 export const screen_schedule_preferences_version = 1;
 export const read_screen_schedule_preferences = (value?: string) =>

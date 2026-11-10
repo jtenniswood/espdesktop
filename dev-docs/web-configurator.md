@@ -194,3 +194,9 @@ Night Schedule also uses one native record. Its firmware entities publish
 live values and route edits through the same native transaction as the editor.
 Before the saved document loads, the panel uses the enabled time schedule
 with the product defaults.
+
+Independent settings such as card corner size and clock bar visibility use
+the scalar rules in `product/v2/panel_settings.json`. The ESPHome entities
+provide the controls and publish live values. The panel commits those edits
+through the native configuration service and publishes only changed values
+after activation.

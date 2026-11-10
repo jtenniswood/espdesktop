@@ -2,6 +2,7 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const fixtures = require("../../../compatibility/fixtures/panel_settings_records.json");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
+const { validPanelScalarSetting } = loadTypescriptTest("src/webserver/generated/panel_settings.ts");
 
 const readers = {
   screen_schedule_preferences: loadTypescriptTest("src/webserver/model/screen_schedule_preferences.ts")
@@ -17,3 +18,11 @@ for (const [name, records] of Object.entries(fixtures)) {
     for (const value of records.invalid) assert.equal(read(value), undefined, JSON.stringify(value));
   });
 }
+
+test("native scalar settings enforce the authored choices", () => {
+  assert.equal(validPanelScalarSetting("screen_clock_bar", "1"), true);
+  assert.equal(validPanelScalarSetting("screen_clock_bar", "true"), false);
+  assert.equal(validPanelScalarSetting("screen_card_curve", "Medium"), true);
+  assert.equal(validPanelScalarSetting("screen_card_curve", "medium"), false);
+  assert.equal(validPanelScalarSetting("unknown_setting", "value"), true);
+});

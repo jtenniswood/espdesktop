@@ -55,6 +55,10 @@ class EspDesktopApp : public esphome::Component {
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
   void bind_app_subpage_preference_switch(esphome::switch_::Switch &setting);
+  using ScalarSetting = panel_settings::ScalarSetting;
+  using ScalarPublisher = void (*)(std::string_view);
+  void bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish);
+  void edit_panel_scalar(ScalarSetting setting, std::string_view value);
   void bind_screen_schedule(unsigned default_clock_brightness,
       std::function<void(const ScreenSchedulePreferences &)> apply);
   const ScreenSchedulePreferences &screen_schedule_preferences() const {
@@ -169,6 +173,7 @@ class EspDesktopApp : public esphome::Component {
   void save_display_theme_preferences(const ThemeSettings &settings);
   void save_screen_schedule_preferences(const ScreenSchedulePreferences &settings);
   bool save_panel_setting(std::string_view key, std::string_view value);
+  std::string_view panel_scalar_value(ScalarSetting setting) const;
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
@@ -194,6 +199,7 @@ class EspDesktopApp : public esphome::Component {
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
+  std::array<ScalarPublisher, panel_settings::SCALAR_RULES.size()> scalar_publishers_{};
   std::optional<ScreenSchedulePreferences> screen_schedule_;
   ScreenSchedulePreferences screen_schedule_defaults_{};
   std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;

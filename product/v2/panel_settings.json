@@ -1,4 +1,16 @@
 {
+  "scalar_settings": {
+    "screen_clock_bar": { "default": "0", "type": "switch" },
+    "screen_clock_bar_time": { "default": "1", "type": "switch" },
+    "screen_clock_bar_night_mode": { "default": "0", "type": "switch" },
+    "screen_network_status_icon": { "default": "1", "type": "switch" },
+    "screen_battery_status": { "default": "0", "type": "switch" },
+    "screen_subpage_title_bar": { "default": "1", "type": "switch" },
+    "screen_subpage_chevron": { "default": "1", "type": "switch" },
+    "companion_return_home_on_app_switch": { "default": "1", "type": "switch" },
+    "screen_default_icon_size": { "default": "Large", "choices": ["Small", "Medium", "Large"] },
+    "screen_card_curve": { "default": "Large", "choices": ["Small", "Medium", "Large"] }
+  },
   "screen_schedule_preferences": {
     "version": 1,
     "fields": {

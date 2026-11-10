@@ -20,10 +20,40 @@ globals:
 
 esphome:
   on_boot:
-    # Restore the icon default before the grid's -100 initialization phase.
+    # Publish panel settings before the grid starts. The native document
+    # replaces these defaults when its saved generation is activated.
     - priority: -95
       then:
         - lambda: |-
+            using Setting = espdesktop::panel_settings::ScalarSetting;
+            auto &app = id(espdesktop_app);
+            app.bind_panel_scalar(Setting::SCREEN_CLOCK_BAR, [](std::string_view value) {
+              id(clock_bar_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_NETWORK_STATUS_ICON, [](std::string_view value) {
+              id(network_status_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CLOCK_BAR_NIGHT_MODE, [](std::string_view value) {
+              id(clock_bar_night_mode_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CLOCK_BAR_TIME, [](std::string_view value) {
+              id(clock_bar_time_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SUBPAGE_TITLE_BAR, [](std::string_view value) {
+              id(subpage_title_bar_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SUBPAGE_CHEVRON, [](std::string_view value) {
+              id(subpage_chevrons_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::COMPANION_RETURN_HOME_ON_APP_SWITCH, [](std::string_view value) {
+              id(companion_return_home_on_app_switch_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_DEFAULT_ICON_SIZE, [](std::string_view value) {
+              id(default_icon_size_select).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CARD_CURVE, [](std::string_view value) {
+              id(card_curve_select).publish_state(std::string(value));
+            });
             espdesktop::set_card_icon_default_size(id(default_icon_size_select).current_option());
     # Template switches restore before the application core starts. Apply the
     # saved Companion navigation preference after startup, before grid setup.
@@ -255,12 +285,16 @@ switch:
     name: "${entity_screen_clock_bar}"
     internal: true
     id: clock_bar_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:clock-digital"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
       - delay: 50ms
@@ -274,12 +308,16 @@ switch:
     name: "${entity_screen_network_status_icon}"
     internal: true
     id: network_status_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:wifi"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_NETWORK_STATUS_ICON, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_NETWORK_STATUS_ICON, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
     on_turn_off:
@@ -289,12 +327,16 @@ switch:
     name: "${entity_screen_clock_bar_night_mode}"
     internal: true
     id: clock_bar_night_mode_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:weather-night"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_NIGHT_MODE, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_NIGHT_MODE, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
     on_turn_off:
@@ -304,12 +346,16 @@ switch:
     name: "${entity_screen_clock_bar_time}"
     internal: true
     id: clock_bar_time_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:clock-time-four-outline"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_TIME, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_TIME, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
     on_turn_off:
@@ -319,12 +365,16 @@ switch:
     name: "${entity_screen_subpage_title_bar}"
     internal: true
     id: subpage_title_bar_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:page-layout-header"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_TITLE_BAR, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_TITLE_BAR, "0");'
     on_state:
       - lambda: |-
           clock_bar_subpage_title_bar_enabled() = x;
@@ -353,12 +403,16 @@ switch:
     name: "${entity_companion_return_home_on_app_switch}"
     internal: true
     id: companion_return_home_on_app_switch_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:application"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "0");'
     on_turn_on:
       - lambda: |-
           if (espdesktop::active_espdesktop_app_core() != nullptr)
@@ -372,12 +426,16 @@ switch:
     name: "${entity_screen_subpage_chevron}"
     internal: true
     id: subpage_chevrons_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:chevron-right"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_CHEVRON, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_CHEVRON, "0");'
     on_turn_on:
       - script.execute: refresh_button_grid
     on_turn_off:
@@ -441,8 +499,8 @@ select:
     id: default_icon_size_select
     entity_category: config
     icon: "mdi:arrow-expand"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "Large"
     options:
       - "Small"
@@ -450,6 +508,10 @@ select:
       - "Large"
     web_server:
       sorting_group_id: sg_display
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_DEFAULT_ICON_SIZE,
+              std::string_view(x.c_str(), x.size()));
     on_value:
       then:
         - lambda: 'espdesktop::set_card_icon_default_size(x);'
@@ -464,8 +526,8 @@ select:
     id: card_curve_select
     entity_category: config
     icon: "mdi:rounded-corner"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "Large"
     options:
       - "Small"
@@ -473,6 +535,10 @@ select:
       - "Large"
     web_server:
       sorting_group_id: sg_display
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CARD_CURVE,
+              std::string_view(x.c_str(), x.size()));
     on_value:
       then:
         - if:

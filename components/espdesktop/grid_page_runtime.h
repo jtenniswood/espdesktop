@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <functional>
 #include <memory>
 #include <new>
@@ -22,12 +23,16 @@ namespace espdesktop {
 // definitions change: one prepared native graph feeds the established renderer.
 class GridPageRuntime final : public ApplicationSceneRuntime {
   using Store = pages::PageStore;
+  using ScalarValues = std::array<std::optional<std::string_view>, panel_settings::SCALAR_RULES.size()>;
   struct Snapshot : GridNativePages {
     std::optional<bool> app_subpage_preference;
     std::optional<ThemeSettings> theme_preferences;
     std::string accent;
     std::string schedule_record;
     std::optional<ScreenSchedulePreferences> schedule;
+    // These views borrow strings from the staged PageStore arena. Activation
+    // publishes them before that arena can be retired.
+    ScalarValues scalars;
     bool refresh_layout{true};
   };
   class Resources final : public pages::PageRuntimeResources {
@@ -65,14 +70,18 @@ public:
       std::function<void()> refresh_layout = {},
       std::function<void(bool)> publish_app_subpage_preference = {},
       std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {},
-      std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule = {})
+      std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule = {},
+      std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar = {})
       : limits_(limits), allocate_(allocate), release_(release),
         refresh_layout_(std::move(refresh_layout)),
         publish_app_subpage_preference_(std::move(publish_app_subpage_preference)),
         publish_theme_preferences_(std::move(publish_theme_preferences)),
-        publish_schedule_(std::move(publish_schedule)),
+        publish_schedule_(std::move(publish_schedule)), publish_scalar_(std::move(publish_scalar)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
   bool ready() const override { return !stopped_; }
+  std::string_view scalar_setting_value(panel_settings::ScalarSetting setting) const {
+    return scalar_value(active_.get(), size_t(setting));
+  }
   bool maintenance_ready() const override { return ready(); }
   void loop() override {}
   void stop() override { stopped_ = true; grid_native_pages() = nullptr; }
@@ -95,6 +104,11 @@ public:
   }
   bool apply(uint16_t, const uint8_t *, size_t) override { return false; }
 private:
+  static std::string_view scalar_value(const Snapshot *snapshot, size_t index) {
+    const auto fallback = panel_settings::SCALAR_RULES[index].default_value;
+    return snapshot ? snapshot->scalars[index].value_or(fallback) : fallback;
+  }
+
   int key(const Store &store, pages::PageId id) const {
     if (!id) return 0;
     const auto *page = store.page(id);
@@ -189,6 +203,12 @@ private:
         staged_->schedule = parse_screen_schedule_preferences(value);
         if (!staged_->schedule) return false;
         staged_->schedule_record = value;
+      } else {
+        const auto index = panel_settings::scalar_setting_index(name);
+        if (index < staged_->scalars.size()) {
+          if (!panel_settings::SCALAR_RULES[index].valid(value)) return false;
+          staged_->scalars[index] = value;
+        }
       }
       return true;
     };
@@ -222,6 +242,7 @@ private:
 
   void activate_snapshot(const Store &store) {
     const bool schedule_changed = !active_ || active_->schedule_record != staged_->schedule_record;
+    const auto previous = std::move(active_);
     active_ = std::move(staged_);
     active_->store = &store;
     grid_native_pages() = active_.get();
@@ -231,6 +252,13 @@ private:
       publish_app_subpage_preference_(*active_->app_subpage_preference);
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
     if (schedule_changed && publish_schedule_) publish_schedule_(active_->schedule);
+    if (publish_scalar_) {
+      for (size_t index = 0; index < active_->scalars.size(); ++index) {
+        const auto value = scalar_value(active_.get(), index);
+        if (value != scalar_value(previous.get(), index))
+          publish_scalar_(static_cast<panel_settings::ScalarSetting>(index), value);
+      }
+    }
     if (active_->refresh_layout && refresh_layout_) refresh_layout_();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
@@ -241,6 +269,7 @@ private:
   std::function<void(bool)> publish_app_subpage_preference_;
   std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences_;
   std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule_;
+  std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;

@@ -363,6 +363,9 @@ bool EspDesktopApp::create_native_configuration_runtime() {
         if (!settings && !screen_schedule_) return;
         screen_schedule_ = settings;
         if (apply_screen_schedule_) apply_screen_schedule_(screen_schedule_preferences());
+      },
+      [this](ScalarSetting setting, std::string_view value) {
+        if (const auto publish = scalar_publishers_[size_t(setting)]) publish(value);
       }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
@@ -509,6 +512,23 @@ void EspDesktopApp::edit_screen_schedule_number(unsigned ScreenSchedulePreferenc
 void EspDesktopApp::save_screen_schedule_preferences(const ScreenSchedulePreferences &settings) {
   if (!save_panel_setting(SCREEN_SCHEDULE_PREFERENCES_KEY, encode_screen_schedule_preferences(settings)))
     ESP_LOGW(TAG, "Could not save a night schedule edit");
+}
+
+std::string_view EspDesktopApp::panel_scalar_value(ScalarSetting setting) const {
+  const auto *runtime = native_configuration_runtime_.get();
+  return runtime && runtime->grid_runtime ? runtime->grid_runtime->scalar_setting_value(setting)
+      : panel_settings::SCALAR_RULES[size_t(setting)].default_value;
+}
+
+void EspDesktopApp::bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish) {
+  scalar_publishers_[size_t(setting)] = publish;
+  if (publish) publish(panel_scalar_value(setting));
+}
+
+void EspDesktopApp::edit_panel_scalar(ScalarSetting setting, std::string_view value) {
+  const auto &rule = panel_settings::SCALAR_RULES[size_t(setting)];
+  if (rule.valid(value) && value != panel_scalar_value(setting) && !save_panel_setting(rule.key, value))
+    ESP_LOGW(TAG, "Could not save panel setting %.*s", int(rule.key.size()), rule.key.data());
 }
 
 bool EspDesktopApp::save_panel_setting(std::string_view key, std::string_view value) {

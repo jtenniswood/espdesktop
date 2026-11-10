@@ -1,9 +1,47 @@
 // Generated from product/v2/panel_settings.json. Do not edit.
 #pragma once
 
+#include <cstdint>
 #include "panel_setting_record.h"
 
 namespace espdesktop::panel_settings {
+
+enum class ScalarSetting : uint8_t {
+  SCREEN_CLOCK_BAR,
+  SCREEN_CLOCK_BAR_TIME,
+  SCREEN_CLOCK_BAR_NIGHT_MODE,
+  SCREEN_NETWORK_STATUS_ICON,
+  SCREEN_BATTERY_STATUS,
+  SCREEN_SUBPAGE_TITLE_BAR,
+  SCREEN_SUBPAGE_CHEVRON,
+  COMPANION_RETURN_HOME_ON_APP_SWITCH,
+  SCREEN_DEFAULT_ICON_SIZE,
+  SCREEN_CARD_CURVE,
+  COUNT
+};
+struct ScalarRule {
+  std::string_view key;
+  std::string_view default_value;
+  bool (*valid)(std::string_view);
+};
+inline constexpr std::array<ScalarRule, size_t(ScalarSetting::COUNT)> SCALAR_RULES{{
+  {"screen_clock_bar", "0", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_clock_bar_time", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_clock_bar_night_mode", "0", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_network_status_icon", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_battery_status", "0", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_subpage_title_bar", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_subpage_chevron", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"companion_return_home_on_app_switch", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screen_default_icon_size", "Large", [](std::string_view value) { return value == "Small" || value == "Medium" || value == "Large"; }},
+  {"screen_card_curve", "Large", [](std::string_view value) { return value == "Small" || value == "Medium" || value == "Large"; }},
+}};
+
+inline size_t scalar_setting_index(std::string_view key) {
+  for (size_t i = 0; i < SCALAR_RULES.size(); ++i)
+    if (SCALAR_RULES[i].key == key) return i;
+  return SCALAR_RULES.size();
+}
 
 inline constexpr std::string_view screen_schedule_preferences_key = "screen_schedule_preferences";
 inline constexpr int screen_schedule_preferences_version = 1;
