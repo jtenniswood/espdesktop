@@ -9,9 +9,16 @@ Tap an Applications card to launch an approved app or bring it to the front on y
 
 ## Launch an App
 
-1. In the Mac app, open **Apps**. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
-2. In the display’s web editor, select an empty tile and choose **Applications**. If the picker shows connector tabs, look under **Companion**.
-3. Select an approved application and choose **Save**.
+### Choose apps in the Mac app
+
+Open **Apps** in the Mac app. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
+
+[![EspDesktop Mac app on the Apps tab with the All available apps switch on](/images/mac-app-apps.jpg)](/images/mac-app-apps.jpg)
+
+### Add a card in the web editor
+
+1. In the display’s web editor, select an empty tile and choose **Applications**. If the picker shows connector tabs, look under **Companion**.
+2. Select an approved application and choose **Save**.
 
 ![Applications form with Music selected, the optional Add app subpage switch, and the Save button](/images/web-editor-applications.jpg)
 

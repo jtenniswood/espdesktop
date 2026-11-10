@@ -91,7 +91,7 @@ Drag and resize tiles in the browser, choose their labels, icons and colours, an
 
 The browser preview shows how your cards will look on the touchscreen. This example groups browser shortcuts on a subpage, with a Back tile to return to the previous page.
 
-[See the editor and settings](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage)
+[See the editor and settings](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage) · [See the Mac app](/getting-started/mac-app#check-the-display-tab)
 
 </div>
 
