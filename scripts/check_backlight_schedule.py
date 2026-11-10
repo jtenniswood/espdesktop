@@ -14,7 +14,7 @@ FADE_SOURCE = ROOT / "common" / "addon" / "backlight.yaml"
 
 
 def check_theme_entity_wiring(source: str) -> None:
-    """Keep legacy HA writes and the portable theme group on one runtime path."""
+    """The theme entities are controls backed by the native theme group."""
     class Loader(yaml.SafeLoader):
         pass
 
@@ -27,10 +27,10 @@ def check_theme_entity_wiring(source: str) -> None:
     for entity_id in ("screen_theme_mode", "screen_theme_auto_method"):
         item = entity("select", entity_id)
         assert not item.get("internal", False), f"{entity_id} must be visible in HA"
-        assert item["restore_value"] is True
+        assert item["restore_value"] is False
         action = item["set_action"][0]["lambda"]
         assert "edit_display_theme_preference" in action
-        assert "id(theme_settings_refresh).execute();" in action
+        assert "publish_state" not in action
 
     assert entity("select", "screen_theme_mode")["options"] == ["Dark", "Light", "Auto"]
     assert entity("select", "screen_theme_auto_method")["options"] == [
@@ -38,33 +38,32 @@ def check_theme_entity_wiring(source: str) -> None:
     ]
     for entity_id in ("screen_theme_light_start", "screen_theme_dark_start"):
         item = entity("text", entity_id)
-        assert not item.get("internal", False) and item["restore_value"] is True
+        assert not item.get("internal", False) and item["restore_value"] is False
         actions = item["set_action"]
         assert "parse_theme_time" in actions[0]["lambda"]
         assert "edit_display_theme_preference" in actions[0]["lambda"]
-        assert f"id({entity_id}).publish_state(x);" in actions[0]["lambda"]
-        assert "id(theme_settings_refresh).execute();" in actions[0]["lambda"]
+        assert "publish_state" not in actions[0]["lambda"]
 
     for entity_id in ("screen_theme_sunrise_offset", "screen_theme_sunset_offset"):
         item = entity("number", entity_id)
-        assert not item.get("internal", False) and item["restore_value"] is True
+        assert not item.get("internal", False) and item["restore_value"] is False
         assert (item["min_value"], item["max_value"], item["step"]) == (-180, 180, 1)
         actions = item["set_action"]
         assert "parse_theme_sun_offset" in actions[0]["lambda"]
         assert "edit_display_theme_preference" in actions[0]["lambda"]
-        assert f"id({entity_id}).publish_state(x);" in actions[0]["lambda"]
-        assert "id(theme_settings_refresh).execute();" in actions[0]["lambda"]
+        assert "publish_state" not in actions[0]["lambda"]
 
     active = entity("text_sensor", "screen_active_theme")
     assert not active.get("internal", False)
     refresh = entity("script", "theme_settings_refresh")["then"][0]["lambda"]
     assert "apply_theme_resolution" in refresh
     assert "id(screen_active_theme).publish_state(active);" in refresh
-    assert "parse_theme_sun_offset" in refresh and "&& offsets_valid" in refresh
-    migration = next(action["lambda"] for hook in package["esphome"]["on_boot"]
-                     for action in hook["then"] if "migrate_legacy_theme_index" in action.get("lambda", ""))
-    assert "make_entity_preference<size_t>()" in migration
-    assert "preference.load(&old_index)" in migration and "migrate_legacy_theme_index" in migration
+    assert "id(espdesktop_app).display_theme_preferences()" in refresh
+    bind = next(action["lambda"] for hook in package["esphome"]["on_boot"]
+                for action in hook["then"] if "bind_display_theme_preferences" in action.get("lambda", ""))
+    for entity_id in ("mode", "auto_method", "light_start", "dark_start", "sunrise_offset", "sunset_offset"):
+        assert f"id(screen_theme_{entity_id}).publish_state" in bind
+    assert "id(theme_settings_refresh).execute();" in bind
     print("theme HA entity persistence and refresh wiring: ok")
 
 

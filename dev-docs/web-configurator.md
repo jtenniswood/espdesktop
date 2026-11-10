@@ -184,9 +184,8 @@ cache `www.js` aggressively, so physical testing must hard reload after each
 rebuild.
 
 The theme's mode, automatic method, local start times, and solar offsets are
-stored as one versioned native display preference. The editor advertises the
-group only after discovering support on the panel. A backup restore includes
-it in the same configuration save as the layout, and older backups can supply
-their theme values through the legacy fields. Panels read their existing theme
-entities until the first grouped save. The existing entity controls then edit
-the group, and firmware publishes the complete theme after storage commits.
+stored as one versioned native display preference. The editor discovers
+support before using it. The firmware's theme entities submit edits to the
+same record, including the first edit on a fresh panel. Firmware publishes
+the complete theme after storage commits and uses product defaults when the
+record is absent.

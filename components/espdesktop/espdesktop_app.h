@@ -59,19 +59,15 @@ class EspDesktopApp : public esphome::Component {
     apply_screen_schedule_ = std::move(apply);
     if (screen_schedule_) apply_screen_schedule_(*screen_schedule_);
   }
-  void bind_display_theme_preferences(std::function<ThemeSettings()> read_legacy,
-      std::function<void(const ThemeSettings &)> publish);
-  // The old entities remain valid input controls. Once a portable group exists,
-  // edit that group so every input shares the same durable configuration.
+  void bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish);
+  const ThemeSettings &display_theme_preferences() const { return display_theme_preferences_; }
+
   template<typename T>
-  bool edit_display_theme_preference(T ThemeSettings::*field, T value) {
-    if (!display_theme_preferences_) return false;
-    if ((*display_theme_preferences_).*field != value) {
-      auto next = *display_theme_preferences_;
-      next.*field = value;
-      save_display_theme_preferences(next);
-    }
-    return true;
+  void edit_display_theme_preference(T ThemeSettings::*field, T value) {
+    auto next = display_theme_preferences_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_theme_preferences(next);
   }
 
   // The scene belongs to the firmware application's UI owner and outlives this
@@ -161,6 +157,7 @@ class EspDesktopApp : public esphome::Component {
   void publish_app_subpage_preference(bool enabled);
   void publish_display_theme_preferences(const std::optional<ThemeSettings> &settings);
   void save_display_theme_preferences(const ThemeSettings &settings);
+  bool save_panel_setting(std::string_view key, std::string_view value);
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
@@ -188,9 +185,7 @@ class EspDesktopApp : public esphome::Component {
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
   std::optional<ScreenSchedulePreferences> screen_schedule_;
   std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;
-  std::optional<ThemeSettings> display_theme_preferences_;
-  std::optional<ThemeSettings> legacy_display_theme_preferences_;
-  std::function<ThemeSettings()> read_legacy_display_theme_preferences_;
+  ThemeSettings display_theme_preferences_{};
   std::function<void(const ThemeSettings &)> display_theme_preferences_changed_;
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};

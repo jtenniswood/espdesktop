@@ -475,63 +475,63 @@ void EspDesktopApp::bind_app_subpage_preference_switch(esphome::switch_::Switch 
   publish_app_subpage_preference(setting.state);
 }
 
-void EspDesktopApp::bind_display_theme_preferences(std::function<ThemeSettings()> read_legacy,
-    std::function<void(const ThemeSettings &)> publish) {
-  read_legacy_display_theme_preferences_ = std::move(read_legacy);
+void EspDesktopApp::bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish) {
   display_theme_preferences_changed_ = std::move(publish);
-  if (display_theme_preferences_) {
-    legacy_display_theme_preferences_ = read_legacy_display_theme_preferences_();
-    display_theme_preferences_changed_(*display_theme_preferences_);
-  }
+  if (display_theme_preferences_changed_) display_theme_preferences_changed_(display_theme_preferences_);
 }
 
 void EspDesktopApp::publish_display_theme_preferences(const std::optional<ThemeSettings> &settings) {
-  if (settings && display_theme_preferences_ &&
-      same_display_theme_preferences(*settings, *display_theme_preferences_)) return;
-  if (!display_theme_preferences_ && settings && read_legacy_display_theme_preferences_)
-    legacy_display_theme_preferences_ = read_legacy_display_theme_preferences_();
-  display_theme_preferences_ = settings;
-  if (!display_theme_preferences_changed_) return;
-  if (settings) {
-    display_theme_preferences_changed_(*settings);
-  } else if (legacy_display_theme_preferences_) {
-    display_theme_preferences_changed_(*legacy_display_theme_preferences_);
-    legacy_display_theme_preferences_.reset();
-  }
+  const auto next = settings.value_or(ThemeSettings{});
+  if (same_display_theme_preferences(next, display_theme_preferences_)) return;
+  display_theme_preferences_ = next;
+  if (display_theme_preferences_changed_) display_theme_preferences_changed_(display_theme_preferences_);
 }
 
 void EspDesktopApp::save_display_theme_preferences(const ThemeSettings &settings) {
+  if (!save_panel_setting(DISPLAY_THEME_PREFERENCES_KEY, encode_display_theme_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save a theme preference edit");
+}
+
+bool EspDesktopApp::save_panel_setting(std::string_view key, std::string_view value) {
   using namespace configuration;
   auto *service = core_.configuration_service();
-  if (!service) return;
-  const auto write = [&]() {
-    const size_t capacity = service->maximum_document_size();
-    ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
-    auto *input = buffer.allocate(capacity * 2);
-    if (!input) return false;
-    auto *output = input + capacity;
-    const auto loaded = service->load(input, capacity);
-    if (!loaded.ok()) return false;
-    const auto value = encode_display_theme_preferences(settings);
-    size_t output_size = 0;
-    if (loaded.document_version == 1) {
-      return panel_config_replace_existing_setting_v1(input, loaded.document_size,
-          DISPLAY_THEME_PREFERENCES_KEY, value, output, capacity, &output_size) &&
-          service->save_if_generation(loaded.generation, 1, output, output_size).ok();
-    }
-    if (loaded.document_version != 2) return false;
-    PanelConfigV2Reader reader(input, loaded.document_size);
-    size_t index_size = 0;
-    if (reader.workspace_bytes(&index_size) != PanelConfigStatus::OK) return false;
-    ConfigurationBuffer scratch(allocate_configuration_slot, release_configuration_slot);
-    auto *index = scratch.allocate(index_size);
-    if (!index || reader.validate(index, index_size) != PanelConfigStatus::OK) return false;
-    PanelConfigPageAppend edit(reader);
-    return edit.set_existing_setting(DISPLAY_THEME_PREFERENCES_KEY, value) &&
-        edit.finish(output, capacity, &output_size, allocate_configuration_slot, release_configuration_slot) &&
-        service->save_if_generation(loaded.generation, 2, output, output_size).ok();
-  };
-  if (!write()) ESP_LOGW(TAG, "Could not save a theme preference edit");
+  if (!service || !native_configuration_runtime_ ||
+      native_configuration_runtime_->boot_configuration_pending || !panel_config_http_context_bound_) return false;
+  reset::ConfigurationWriteLease lease;
+  if (!lease.ready()) return false;
+  const size_t capacity = service->maximum_document_size();
+  ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
+  auto *input = buffer.allocate(capacity * 2);
+  if (!input) return false;
+  auto *output = input + capacity;
+  const auto loaded = service->load(input, capacity);
+  size_t output_size = 0;
+  if (loaded.status == ServiceStatus::EMPTY) {
+    PanelConfigWriter writer(output, capacity);
+    return writer.begin() == PanelConfigStatus::OK &&
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>(panel_config_device_profile_),
+            std::strlen(panel_config_device_profile_)) == PanelConfigStatus::OK &&
+        writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+            reinterpret_cast<const uint8_t *>(value.data()), value.size()) == PanelConfigStatus::OK &&
+        writer.finish(&output_size) == PanelConfigStatus::OK &&
+        service->save_if_generation(0, PANEL_CONFIG_DOCUMENT_VERSION, output, output_size).durable();
+  }
+  if (!loaded.ok()) return false;
+  if (loaded.document_version == PANEL_CONFIG_DOCUMENT_VERSION) {
+    return panel_config_set_setting_v1(input, loaded.document_size, key, value, output, capacity, &output_size) &&
+        service->save_if_generation(loaded.generation, loaded.document_version, output, output_size).durable();
+  }
+  if (loaded.document_version != PANEL_CONFIG_DOCUMENT_VERSION_2) return false;
+  PanelConfigV2Reader reader(input, loaded.document_size);
+  size_t index_size = 0;
+  if (reader.workspace_bytes(&index_size) != PanelConfigStatus::OK) return false;
+  ConfigurationBuffer scratch(allocate_configuration_slot, release_configuration_slot);
+  auto *index = scratch.allocate(index_size);
+  if (!index || reader.validate(index, index_size) != PanelConfigStatus::OK) return false;
+  PanelConfigPageAppend edit(reader);
+  return edit.set_setting(key, value) &&
+      edit.finish(output, capacity, &output_size, allocate_configuration_slot, release_configuration_slot) &&
+      service->save_if_generation(loaded.generation, loaded.document_version, output, output_size).durable();
 }
 
 void EspDesktopApp::retry_configuration_compatibility() {

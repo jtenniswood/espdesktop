@@ -131,25 +131,9 @@ int main() {
 
   constexpr std::string_view preference_key = "companion_auto_open_app_subpages";
   auto write_preference = [&](std::string_view name, std::string_view value) {
-    using Kind = PanelConfigV2Kind;
-    PanelConfigV2Writer writer(updated.data(), updated.size());
-    assert(writer.begin() == PanelConfigStatus::OK);
-    for (size_t i = 0; i < reader.record_count(); ++i) {
-      PanelConfigV2Record row;
-      assert(reader.record(i, &row));
-      assert(writer.append(row) == PanelConfigStatus::OK);
-    }
-    PanelConfigV2Record key;
-    key.kind = Kind::STRING; key.id = 1000; key.text = name;
-    assert(writer.append(key) == PanelConfigStatus::OK);
-    PanelConfigV2Record text;
-    text.kind = Kind::STRING; text.id = 1001; text.text = value;
-    assert(writer.append(text) == PanelConfigStatus::OK);
-    PanelConfigV2Record setting;
-    setting.kind = Kind::SETTING; setting.id = key.id; setting.first = text.id;
-    assert(writer.append(setting) == PanelConfigStatus::OK);
-    std::vector<uint64_t> scratch((writer.workspace_bytes() + 7) / 8);
-    assert(writer.finish(scratch.data(), scratch.size() * 8, &size) == PanelConfigStatus::OK);
+    PanelConfigPageAppend edit(reader);
+    assert(edit.set_setting(name, value));
+    assert(edit.finish(updated.data(), updated.size(), &size, allocate, ConfigurationBuffer::release_host));
   };
 
   std::vector<bool> applied;
@@ -209,26 +193,22 @@ int main() {
   }
 
   // Large flat documents can be durably stored in v1. An entity write
-  // replaces the group without touching their saved cards.
+  // creates or edits the theme without touching their saved cards.
   assert(theme_layout_refreshes == 1);
   write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,light,time,420,1200,0,0");
   assert(theme.prepare_write(2, updated.data(), size));
   assert(theme.activate_prepared(11, 2, updated.data(), size));
   assert(current && current->mode == ThemeMode::LIGHT && theme_layout_refreshes == 1);
 
-  const auto old_value = encode_display_theme_preferences(*current);
   assert(v1.begin() == PanelConfigStatus::OK);
   assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
       std::strlen(limits.device_profile)) == PanelConfigStatus::OK);
   const uint8_t card[] = "light.kitchen;Kitchen";
   assert(v1.append_button(1, card, sizeof(card) - 1) == PanelConfigStatus::OK);
-  assert(v1.append_setting(reinterpret_cast<const uint8_t *>(DISPLAY_THEME_PREFERENCES_KEY.data()),
-      DISPLAY_THEME_PREFERENCES_KEY.size(), reinterpret_cast<const uint8_t *>(old_value.data()),
-      old_value.size()) == PanelConfigStatus::OK);
   assert(v1.finish(&size) == PanelConfigStatus::OK);
   std::array<uint8_t, 256> rewritten{};
   size_t rewritten_size = 0;
-  assert(panel_config_replace_existing_setting_v1(updated.data(), size, DISPLAY_THEME_PREFERENCES_KEY,
+  assert(panel_config_set_setting_v1(updated.data(), size, DISPLAY_THEME_PREFERENCES_KEY,
       "1,light,time,480,1260,25,-60", rewritten.data(), rewritten.size(), &rewritten_size));
   assert(theme.prepare_write(1, rewritten.data(), rewritten_size));
   assert(current && current->mode == ThemeMode::LIGHT);
@@ -236,6 +216,13 @@ int main() {
   assert(theme_layout_refreshes == 2);
   assert(current && encode_display_theme_preferences(*current) == "1,light,time,480,1260,25,-60");
   assert(grid_layout_card_config(1, {}).entity == "light.kitchen");
+
+  assert(panel_config_set_setting_v1(rewritten.data(), rewritten_size, DISPLAY_THEME_PREFERENCES_KEY,
+      "1,auto,sun,417,1205,-35,12", updated.data(), updated.size(), &size));
+  assert(theme.prepare_write(1, updated.data(), size));
+  assert(theme.activate_prepared(13, 1, updated.data(), size));
+  assert_old_theme(*current);
+  assert(theme_layout_refreshes == 2 && grid_layout_card_config(1, {}).entity == "light.kitchen");
 
 
   int schedule_applies = 0, schedule_layout_refreshes = 0;
