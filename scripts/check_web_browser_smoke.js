@@ -1632,8 +1632,13 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
     `${label}: night schedule settings card should render`,
   );
   await nightScheduleCard.locator(".card-header").click();
-  assert.strictEqual(await nightScheduleCard.locator("#sp-set-schedule-on-hour").isVisible(), false,
+  const scheduleOnHour = nightScheduleCard.locator("#sp-set-schedule-on-hour");
+  assert(await scheduleOnHour.isVisible(), `${label}: Night Schedule shows time fields by default`);
+  await nightScheduleCard.getByRole("button", { name: "Disabled", exact: true }).click();
+  assert.strictEqual(await scheduleOnHour.isVisible(), false,
     `${label}: disabled night schedule hides time fields`);
+  await nightScheduleCard.getByRole("button", { name: "Time", exact: true }).click();
+  assert(await scheduleOnHour.isVisible(), `${label}: re-enabled Night Schedule shows time fields`);
   assert.strictEqual(await nightScheduleCard.getByRole("button", { name: "Home Assistant", exact: true }).count(), 0,
     `${label}: retired night schedule mode is absent`);
   await page.getByRole("tab", { name: "System", exact: true }).click();
