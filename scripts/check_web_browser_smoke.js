@@ -53,7 +53,10 @@ function casesFromManifest() {
     "esp32-p4-86",
     "guition-esp32-s3-4848s040",
   ]);
-  return Object.entries(manifest.devices || {}).map(([slug, device]) => {
+  const releaseDevices = new Set(require("../product/release_devices.json").devices);
+  const profiles = Object.entries(manifest.devices || {});
+  profiles.sort(([left], [right]) => Number(releaseDevices.has(right)) - Number(releaseDevices.has(left)));
+  return profiles.map(([slug, device]) => {
     const aspect = parseAspect(
       device.web && device.web.screen && device.web.screen.aspect,
     );
