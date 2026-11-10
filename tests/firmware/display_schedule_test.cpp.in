@@ -89,6 +89,7 @@ bool connectivity_setup_display_active = false,
      schedule_mode_always_on = false, schedule_mode_clock = true,
      clock_bar_night_mode_active = false;
 bool screensaver_companion_ready = true, mac_connected = true, mac_locked = false;
+bool screensaver_mac_lock_delay_active = false;
 bool companion_connected() { return mac_connected; }
 bool screen_lock_enabled() { return mac_locked; }
 bool screensaver_action_clock = false, screensaver_action_dimmed = false,
@@ -96,6 +97,7 @@ bool screensaver_action_clock = false, screensaver_action_dimmed = false,
 uint32_t manual_wake_ms = 0;
 uint32_t camera_screensaver_transition_generation = 0;
 void image_card_resume_pipeline() {}
+void navigation_return_home(int *) {}
 // SCHEDULE_HELPERS
 // SCRIPT_DECLARATIONS
 
@@ -106,6 +108,8 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   display_mode_reconcile.stop(); screen_schedule_check.stop(); screen_schedule_wake.stop();
   display_mode_apply_transition.stop(); display_mode_effect_active.stop();
   display_active_finalize.stop(); screensaver_idle_check.stop();
+  screensaver_mac_lock_delay.stop();
+  screensaver_mac_lock_delay_active = false;
   screensaver_idle_check.calls = 0;
   clock_time = {6, true}; active_page = home.obj;
   schedule_enabled.state = true;
@@ -131,10 +135,75 @@ int main() {
     if (static_cast<DisplayMode>(display_mode_apply_transition.args[1]) != DisplayMode::ACTIVE)
       controller.complete_transition(controller.resolve(), millis());
   };
-  screensaver_sleep_timer.io = [&] {
-    controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DISPLAY_OFF);
-    display_mode_reconcile.execute();
+  auto set_mac_lock = [](bool locked) {
+    mac_locked = locked;
+    screensaver_mac_lock_delay.execute(locked);
   };
+  auto reset_companion = [&] {
+    reset();
+    screensaver_mode.state = "companion";
+    clock_time.hour = 9;
+    controller.clear(DisplayRequestSource::SCREEN_SCHEDULE);
+    controller.complete_transition(controller.resolve());
+  };
+  // A connection change during the lock notice keeps the original deadline.
+  reset_companion();
+  set_mac_lock(true);
+  advance(2000);
+  mac_connected = false;
+  screensaver_companion_reconcile.execute();
+  advance(2999);
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  advance(1);
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+
+  // Unlock cancels the pending sleep. Relocking starts a full new delay.
+  reset_companion();
+  set_mac_lock(true);
+  advance(4000);
+  set_mac_lock(false);
+  advance(2000);
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  set_mac_lock(true);
+  advance(4999);
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  advance(1);
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+
+  reset_companion();
+  set_mac_lock(true);
+  screensaver_mode.state = "disabled";
+  advance(5000);
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+
+  reset_companion();
+  mac_connected = false;
+  screensaver_companion_reconcile.execute();
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+
+  for (auto action : {DisplayMode::CLOCK, DisplayMode::DIMMED}) {
+    reset_companion();
+    screensaver_action_clock = action == DisplayMode::CLOCK;
+    screensaver_action_dimmed = action == DisplayMode::DIMMED;
+    set_mac_lock(true);
+    assert(controller.target_mode_is(action));
+    const int sleep_calls = screensaver_sleep_timer.calls;
+    advance(5000);
+    assert(screensaver_sleep_timer.calls == sleep_calls);
+  }
+
+  // Ending a scheduled clock cannot skip a lock delay already in progress.
+  reset();
+  screensaver_mode.state = "companion";
+  set_mac_lock(true);
+  clock_time.hour = 9;
+  display_mode_reconcile.execute();
+  screen_schedule_check.execute();
+  advance(4999);
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  advance(1);
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+
   // Both callback orders, all scheduled modes, and a temporary night wake.
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DISPLAY_OFF, DisplayMode::ACTIVE}) {
     for (bool fast_first : {false, true}) {

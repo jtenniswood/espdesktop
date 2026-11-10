@@ -27,6 +27,9 @@ globals:
   - id: screensaver_companion_ready
     type: bool
     initial_value: 'false'
+  - id: screensaver_mac_lock_delay_active
+    type: bool
+    initial_value: 'false'
   - id: manual_wake_ms
     type: uint32_t
     initial_value: '0'
@@ -96,8 +99,8 @@ esphome:
             register_companion_connection_changed_handler([](bool) {
               id(screensaver_companion_reconcile).execute();
             });
-            register_screen_lock_changed_handler([](bool) {
-              id(screensaver_companion_reconcile).execute();
+            register_screen_lock_changed_handler([](bool locked) {
+              id(screensaver_mac_lock_delay).execute(locked);
               id(screen_lock_refresh_ui).execute();
             });
             id(screensaver_companion_ready) = true;
@@ -165,7 +168,9 @@ esphome:
               id(dimmed_brightness_migrated) = true;
               global_preferences->sync();
             }
-        - script.execute: screensaver_companion_reconcile
+        - script.execute:
+            id: screensaver_mac_lock_delay
+            locked: !lambda 'return screen_lock_enabled();'
         - delay: 10s
         - lambda: 'id(clock_brightness_legacy_sync_ready) = true;'
 
@@ -426,10 +431,13 @@ script:
             const bool companion_idle = id(screensaver_mode).state == "companion" &&
                                         id(screensaver_companion_ready) &&
                                         (!companion_connected() || screen_lock_enabled());
+            const bool companion_display_off_delayed = id(screensaver_mac_lock_delay_active) &&
+                !id(screensaver_action_clock) && !id(screensaver_action_dimmed);
             if (leaving_scheduled_clock && id(schedule_enabled).state &&
                 !onboarding && !waiting_for_time &&
                 !id(screensaver_wake).is_running() &&
-                (id(screensaver_mode).state == "timer" || companion_idle)) {
+                (id(screensaver_mode).state == "timer" ||
+                 (companion_idle && !companion_display_off_delayed))) {
               const auto idle_mode = id(screensaver_action_clock)
                   ? espdesktop::DisplayMode::CLOCK
                   : (id(screensaver_action_dimmed) ? espdesktop::DisplayMode::DIMMED
@@ -676,8 +684,30 @@ script:
                       id: display_mode_request_automatic
                       target_mode: !lambda 'return static_cast<int>(espdesktop::DisplayMode::DISPLAY_OFF);'
 
-  # Companion App mode follows connection and lock state immediately. It uses
-  # the same configured saver action as the timer.
+  # Keep the lock screen visible briefly before Display Off. Starting the
+  # delay from the lock event keeps connection changes from restarting it.
+  - id: screensaver_mac_lock_delay
+    mode: restart
+    parameters:
+      locked: bool
+    then:
+      - lambda: 'id(screensaver_mac_lock_delay_active) = locked;'
+      - script.execute: screensaver_companion_reconcile
+      - if:
+          condition:
+            lambda: 'return locked;'
+          then:
+            - delay: 5s
+            - globals.set:
+                id: screensaver_mac_lock_delay_active
+                value: 'false'
+            - if:
+                condition:
+                  lambda: 'return !id(screensaver_action_clock) && !id(screensaver_action_dimmed);'
+                then:
+                  - script.execute: screensaver_companion_reconcile
+
+  # Companion App mode uses the same configured saver action as the timer.
   - id: screensaver_companion_reconcile
     mode: restart
     then:
@@ -692,7 +722,13 @@ script:
                   - script.execute: screensaver_wake
                 else:
                   - script.stop: screensaver_idle_check
-                  - script.execute: screensaver_sleep_timer
+                  - if:
+                      condition:
+                        lambda: |-
+                          return !id(screensaver_mac_lock_delay_active) ||
+                                 id(screensaver_action_clock) || id(screensaver_action_dimmed);
+                      then:
+                        - script.execute: screensaver_sleep_timer
 
   - id: screensaver_sleep_display_off
     mode: restart

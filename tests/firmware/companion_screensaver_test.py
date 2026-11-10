@@ -14,7 +14,8 @@ assert re.search(r'^    - priority: -240$', boot, re.M), 'Screensaver boot handl
 assert 'register_companion_connection_changed_handler' in boot
 assert 'register_screen_lock_changed_handler' in boot
 assert 'id(screensaver_companion_ready) = true;' in boot
-assert '- script.execute: screensaver_companion_reconcile' in boot
+assert 'id(screensaver_mac_lock_delay).execute(locked);' in boot
+assert "locked: !lambda 'return screen_lock_enabled();'" in boot
 reconcile = text.split('  - id: screensaver_companion_reconcile\n', 1)[1].split('\n  - id:', 1)[0]
 ready_predicate = re.search(r"lambda: '(return .*?;)'", reconcile).group(1)
 
