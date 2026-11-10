@@ -71,6 +71,21 @@ int main() {
     runtime.set_focused_actions({});
     assert(runtime.consume_closed_app_subpage_action().empty());  // Switched apps.
   }
+  {
+    CompanionRuntimeService runtime;
+    runtime.set_connected(true);
+    runtime.set_focused_actions({"first.app"});
+    assert(runtime.take_wake_subpage_action() == "first.app");
+    assert(runtime.pending_auto_subpage_action().empty());
+    assert(runtime.take_wake_subpage_action() == "first.app");  // No new focus event required.
+    runtime.set_focused_actions({"second.app"});
+    assert(runtime.take_wake_subpage_action() == "second.app");
+    runtime.set_auto_open_app_subpages(false);
+    assert(runtime.take_wake_subpage_action().empty());
+    runtime.set_auto_open_app_subpages(true);
+    runtime.set_connected(false);
+    assert(runtime.take_wake_subpage_action().empty());
+  }
   assert(std::string(companion_volume_control_label("media.output_volume")) == "Volume");
   assert(std::string(companion_volume_control_label("media.input_volume")) == "Mic");
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));

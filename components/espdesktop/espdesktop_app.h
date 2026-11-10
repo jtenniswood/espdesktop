@@ -10,6 +10,7 @@
 #include "application_scene_runtime.h"
 #include "configuration_buffer.h"
 #include "display_theme_preferences.h"
+#include "screen_schedule_preferences.h"
 #include "espdesktop_app_core.h"
 #include "esphome/components/text/text.h"
 #include "esphome/core/automation.h"
@@ -48,11 +49,16 @@ class EspDesktopApp : public esphome::Component {
     return esphome::setup_priority::AFTER_WIFI;
   }
 
+  DisplayLifecycleService &display_lifecycle() { return core_.display_lifecycle(); }
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
   void bind_app_subpage_preference_switch(esphome::switch_::Switch &setting);
+  void bind_screen_schedule(std::function<void(const ScreenSchedulePreferences &)> apply) {
+    apply_screen_schedule_ = std::move(apply);
+    if (screen_schedule_) apply_screen_schedule_(*screen_schedule_);
+  }
   void bind_display_theme_preferences(std::function<ThemeSettings()> read_legacy,
       std::function<void(const ThemeSettings &)> publish);
   // The old entities remain valid input controls. Once a portable group exists,
@@ -180,6 +186,8 @@ class EspDesktopApp : public esphome::Component {
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
+  std::optional<ScreenSchedulePreferences> screen_schedule_;
+  std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;
   std::optional<ThemeSettings> display_theme_preferences_;
   std::optional<ThemeSettings> legacy_display_theme_preferences_;
   std::function<ThemeSettings()> read_legacy_display_theme_preferences_;

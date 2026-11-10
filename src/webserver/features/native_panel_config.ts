@@ -81,6 +81,7 @@ interface Capabilities {
     preserves_inactive_records?: unknown;
     companion_auto_open_app_subpages?: unknown;
     display_theme_preferences?: unknown;
+    screen_schedule_preferences?: unknown;
   };
 }
 
@@ -133,6 +134,7 @@ export class NativePanelConfigClient {
   private preservesInactiveRecords_ = false;
   private appSubpagePreference_ = false;
   private displayThemePreferences_ = false;
+  private screenSchedulePreferences_ = false;
   private readDepth_ = 1;
   private writeDepth_ = 1;
   private durableVersion_ = 1;
@@ -150,6 +152,7 @@ export class NativePanelConfigClient {
     this.lastLayout_ = layout;
   }
   preservesInactiveRecords(): boolean { return this.supported_ && this.preservesInactiveRecords_; }
+  supportsScreenSchedulePreferences(): boolean { return this.supported_ && this.screenSchedulePreferences_; }
   supportsDisplayThemePreferences(): boolean { return this.supported_ && this.displayThemePreferences_; }
   supportsAppSubpagePreference(): boolean { return this.supported_ && this.appSubpagePreference_; }
   readNavigationDepth(): number {
@@ -201,6 +204,7 @@ export class NativePanelConfigClient {
         this.preservesInactiveRecords_ = supported === true && configuration?.preserves_inactive_records === true;
         this.appSubpagePreference_ = supported === true && configuration?.companion_auto_open_app_subpages === true;
         this.displayThemePreferences_ = supported === true && configuration?.display_theme_preferences === true;
+        this.screenSchedulePreferences_ = supported === true && configuration?.screen_schedule_preferences === true;
         // A readable/readonly/newer native contract must not be mistaken for
         // firmware that only stores legacy text entities.
         const versions = Array.isArray(configuration?.document_versions) ? configuration.document_versions : [];

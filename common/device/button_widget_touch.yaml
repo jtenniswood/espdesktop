@@ -1,7 +1,7 @@
 lambda: |-
   constexpr auto touch_kind = GridTouchEvent::${event};
   const auto action = decide_grid_touch(
-      touch_kind, id(screensaver_wake_touch_guard_active),
+      touch_kind, id(espdesktop_app).display_lifecycle().wake_touch_guard(),
       id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE));
   switch (action) {
     case GridTouchAction::IGNORE:
@@ -11,7 +11,7 @@ lambda: |-
       break;
     case GridTouchAction::CONSUME_WAKE_GUARD:
       id(screensaver_wake_touch_guard_clear).stop();
-      id(screensaver_wake_touch_guard_active) = false;
+      id(espdesktop_app).display_lifecycle().clear_wake_touch_guard();
       ESP_LOGD("screensaver", "Ignored button click after screensaver wake");
       break;
     case GridTouchAction::WAKE:

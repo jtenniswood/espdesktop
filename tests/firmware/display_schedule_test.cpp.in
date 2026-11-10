@@ -7,7 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include "display_mode_controller.h"
+#include "display_lifecycle_service.h"
 using namespace espdesktop;
 #define id(x) x
 #define ESP_LOGD(...) log_stub(__VA_ARGS__)
@@ -72,7 +72,11 @@ Step branch(Script &owner, std::function<bool()> condition, Steps yes, Steps no)
   return [&owner, condition, yes, no](Next next) { run_branch(owner, owner.epoch, condition() ? yes : no, 0, next); };
 }
 // Hardware/settings boundary; production predicates use these values unchanged.
-struct App { DisplayModeController controller; auto &display() { return controller; } } espdesktop_app;
+struct App {
+  DisplayLifecycleService lifecycle;
+  auto &display() { return lifecycle.controller(); }
+  auto &display_lifecycle() { return lifecycle; }
+} espdesktop_app;
 struct Time { int hour = 6; bool valid = true; bool is_valid() const { return valid; } } clock_time;
 struct Clock { Time now() { return clock_time; } } panel_time, homeassistant_time;
 Time panel_time_or_fallback(Time primary, Time fallback) { return primary.valid ? primary : fallback; }
@@ -106,6 +110,7 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   display_mode_reconcile.stop(); screen_schedule_check.stop(); screen_schedule_wake.stop();
   display_mode_apply_transition.stop(); display_mode_effect_active.stop();
   display_active_finalize.stop(); screensaver_idle_check.stop();
+  screen_schedule_wake_timeout_check.stop(); schedule_wake_timeout.state = 60;
   screensaver_idle_check.calls = 0;
   clock_time = {6, true}; active_page = home.obj;
   schedule_enabled.state = true;
@@ -114,7 +119,7 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   schedule_mode_always_on = night_mode == DisplayMode::ACTIVE;
   manual_wake_ms = 0; screensaver_mode.state = "timer";
   screensaver_action_clock = screensaver_action_dimmed = screensaver_action_camera = false;
-  espdesktop_app.controller = {};
+  espdesktop_app.lifecycle = {};
   auto &controller = espdesktop_app.display();
   controller.request(DisplayRequestSource::SCREEN_SCHEDULE, night_mode);
   controller.complete_transition(controller.resolve());
@@ -126,7 +131,11 @@ int main() {
   actions.obj = &objects[3]; off.obj = &objects[4];
   // SCRIPT_SETUP
   auto &controller = espdesktop_app.display();
-  navigate_after_api.io = [] { active_page = home.obj; display_active_finalize.execute(); };
+  navigate_after_api.io = [] {
+    active_page = home.obj;
+    espdesktop_app.display_lifecycle().set_blank_page_active(false);
+    display_active_finalize.execute();
+  };
   display_mode_apply_transition.io = [&] {
     if (static_cast<DisplayMode>(display_mode_apply_transition.args[1]) != DisplayMode::ACTIVE)
       controller.complete_transition(controller.resolve(), millis());
@@ -140,7 +149,10 @@ int main() {
     for (bool fast_first : {false, true}) {
       for (bool temporary_wake : {false, true}) {
         reset(mode);
-        if (mode == DisplayMode::DISPLAY_OFF) active_page = off.obj;
+        if (mode == DisplayMode::DISPLAY_OFF) {
+          active_page = off.obj;
+          espdesktop_app.display_lifecycle().set_blank_page_active(true);
+        }
         controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DISPLAY_OFF);
         if (temporary_wake) {
           manual_wake_ms = millis();
@@ -217,6 +229,21 @@ int main() {
     (fast_first ? screen_schedule_check : display_mode_reconcile).execute(); advance(1000);
     assert(controller.current_mode_is(DisplayMode::ACTIVE));
   }
+  // A new timeout applies to the elapsed temporary wake. It does not give
+  // the display a fresh timeout starting at the settings edit.
+  reset(DisplayMode::DISPLAY_OFF);
+  manual_wake_ms = millis();
+  schedule_wake_timeout.state = 3600;
+  screen_schedule_wake_timeout_check.execute();
+  advance(2000);
+  schedule_wake_timeout.state = 10;
+  screen_schedule_check.execute();
+  screen_schedule_wake_timeout_check.execute();
+  advance(7999);
+  assert(manual_wake_ms != 0);
+  advance(1);
+  assert(manual_wake_ms == 0);
+
   // A disabled screensaver lets the panel wake when the night schedule ends.
   reset(); clock_time.hour = 7;
   screensaver_mode.state = "disabled";
