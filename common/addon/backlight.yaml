@@ -27,9 +27,6 @@ globals:
   - id: screensaver_companion_ready
     type: bool
     initial_value: 'false'
-  - id: screensaver_mac_lock_delay_active
-    type: bool
-    initial_value: 'false'
   - id: manual_wake_ms
     type: uint32_t
     initial_value: '0'
@@ -99,9 +96,9 @@ esphome:
             register_companion_connection_changed_handler([](bool) {
               id(screensaver_companion_reconcile).execute();
             });
-            register_screen_lock_changed_handler([](bool locked) {
-              id(screensaver_mac_lock_delay).execute(locked);
+            register_screen_lock_changed_handler([](bool) {
               id(screen_lock_refresh_ui).execute();
+              id(screensaver_companion_reconcile).execute();
             });
             id(screensaver_companion_ready) = true;
 
@@ -168,9 +165,7 @@ esphome:
               id(dimmed_brightness_migrated) = true;
               global_preferences->sync();
             }
-        - script.execute:
-            id: screensaver_mac_lock_delay
-            locked: !lambda 'return screen_lock_enabled();'
+        - script.execute: screensaver_companion_reconcile
         - delay: 10s
         - lambda: 'id(clock_brightness_legacy_sync_ready) = true;'
 
@@ -428,16 +423,15 @@ script:
             id(screen_schedule_wake_timeout_check).stop();
             controller.clear(espdesktop::DisplayRequestSource::IDLE_TIMER);
             controller.clear(espdesktop::DisplayRequestSource::PRESENCE_SENSOR);
+            const bool display_off = !id(screensaver_action_clock) && !id(screensaver_action_dimmed);
             const bool companion_idle = id(screensaver_mode).state == "companion" &&
-                                        id(screensaver_companion_ready) &&
-                                        (!companion_connected() || screen_lock_enabled());
-            const bool companion_display_off_delayed = id(screensaver_mac_lock_delay_active) &&
-                !id(screensaver_action_clock) && !id(screensaver_action_dimmed);
+                id(screensaver_companion_ready) &&
+                (!companion_connected() ||
+                 (screen_lock_enabled() && !screen_lock_keeps_display_on(display_off)));
             if (leaving_scheduled_clock && id(schedule_enabled).state &&
                 !onboarding && !waiting_for_time &&
                 !id(screensaver_wake).is_running() &&
-                (id(screensaver_mode).state == "timer" ||
-                 (companion_idle && !companion_display_off_delayed))) {
+                (id(screensaver_mode).state == "timer" || companion_idle)) {
               const auto idle_mode = id(screensaver_action_clock)
                   ? espdesktop::DisplayMode::CLOCK
                   : (id(screensaver_action_dimmed) ? espdesktop::DisplayMode::DIMMED
@@ -684,30 +678,7 @@ script:
                       id: display_mode_request_automatic
                       target_mode: !lambda 'return static_cast<int>(espdesktop::DisplayMode::DISPLAY_OFF);'
 
-  # Keep the lock screen visible briefly before Display Off. Starting the
-  # delay from the lock event keeps connection changes from restarting it.
-  - id: screensaver_mac_lock_delay
-    mode: restart
-    parameters:
-      locked: bool
-    then:
-      - lambda: 'id(screensaver_mac_lock_delay_active) = locked;'
-      - script.execute: screensaver_companion_reconcile
-      - if:
-          condition:
-            lambda: 'return locked;'
-          then:
-            - delay: 5s
-            - globals.set:
-                id: screensaver_mac_lock_delay_active
-                value: 'false'
-            - if:
-                condition:
-                  lambda: 'return !id(screensaver_action_clock) && !id(screensaver_action_dimmed);'
-                then:
-                  - script.execute: screensaver_companion_reconcile
-
-  # Companion App mode uses the same configured saver action as the timer.
+  # Display Off follows the Mac's display power while the session is locked.
   - id: screensaver_companion_reconcile
     mode: restart
     then:
@@ -725,9 +696,12 @@ script:
                   - if:
                       condition:
                         lambda: |-
-                          return !id(screensaver_mac_lock_delay_active) ||
-                                 id(screensaver_action_clock) || id(screensaver_action_dimmed);
+                          const bool display_off = !id(screensaver_action_clock) &&
+                                                   !id(screensaver_action_dimmed);
+                          return companion_connected() && screen_lock_keeps_display_on(display_off);
                       then:
+                        - script.execute: display_mode_clear_automatic
+                      else:
                         - script.execute: screensaver_sleep_timer
 
   - id: screensaver_sleep_display_off
@@ -984,6 +958,12 @@ script:
     mode: single
     then:
       - lambda: |-
+          if (id(screensaver_mode).state == "companion" && companion_connected() &&
+              screen_lock_enabled() && screen_lock_mac_display_awake() == false &&
+              !id(screensaver_action_clock) && !id(screensaver_action_dimmed)) {
+            id(screensaver_wake).stop();
+            return;
+          }
           auto &controller = id(espdesktop_app).display();
           const bool clock_visible =
               !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN);

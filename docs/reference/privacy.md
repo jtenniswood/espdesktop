@@ -50,10 +50,11 @@ third-party websites. Those sites have their own terms and privacy practices.
 
 ## The EspDesktop firmware and device
 
-The firmware exchanges Mac controls, system statistics, app information, Mac
-lock state with the Mac you pair. Saved
-configurations and backups may retain identifiers and other fields from older
-cards so you can identify and replace them.
+The firmware exchanges Mac controls, system statistics, app information, and
+Mac lock state with the Mac you pair. While the Mac is locked, the app also
+reports whether its displays are awake. Saved configurations and backups may
+retain identifiers and other fields from older cards so you can identify and
+replace them.
 
 ## Firmware and asset downloads
 

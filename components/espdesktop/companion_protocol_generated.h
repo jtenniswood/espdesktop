@@ -203,6 +203,7 @@ struct FocusTargets {
 };
 struct SessionLock {
   bool locked{};
+  std::optional<bool> displayAwake{};
 };
 inline void encode(JsonObject root, const Hello &message) {
   root["type"] = "hello";
@@ -463,6 +464,7 @@ inline void encode(JsonObject root, const SessionLock &message) {
   root["type"] = "session.lock";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["locked"] = message.locked;
+  if (message.displayAwake) root["displayAwake"] = *message.displayAwake;
 }
 using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
@@ -1101,8 +1103,12 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(root["locked"].is<bool>())) return std::nullopt;
     }
+    if (!root["displayAwake"].isUnbound()) {
+      if (!(root["displayAwake"].is<bool>())) return std::nullopt;
+    }
     SessionLock result;
     result.locked = root["locked"].as<bool>();
+    if (!root["displayAwake"].isUnbound()) result.displayAwake = root["displayAwake"].as<bool>();
     return result;
   }
   return std::nullopt;

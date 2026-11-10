@@ -26,9 +26,8 @@ def generate(root):
     selected = {"display_mode_reconcile", "screen_schedule_check", "screen_schedule_wake",
                 "display_mode_apply_transition", "display_mode_effect_active",
                 "display_active_finalize", "screensaver_idle_check",
-                "screensaver_mac_lock_delay", "screensaver_companion_reconcile",
-                "screensaver_sleep_timer", "display_mode_request_automatic"}
-    assert scripts["screensaver_mac_lock_delay"]["mode"] == "restart"
+                "screensaver_companion_reconcile", "screensaver_sleep_timer",
+                "display_mode_request_automatic", "display_mode_clear_automatic"}
     # Exercise the entire ACTIVE branch, including the guarded completion and
     # finalizer call. Other presentation modes are hardware doubles below.
     adapter = scripts["display_mode_apply_transition"]["then"][0]["if"]["then"]
@@ -54,8 +53,6 @@ def generate(root):
             elif kind == "delay":
                 if isinstance(value, str) and value.endswith("ms"):
                     duration = value[:-2]
-                elif isinstance(value, str) and value.endswith("s") and value[:-1].isdigit():
-                    duration = int(value[:-1]) * 1000
                 else:
                     duration = f"([] {{ {value} }})()"
                 result.append(f"pause([&] {{ return {duration}; }})")

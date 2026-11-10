@@ -43,7 +43,7 @@ When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brig
 
 With the current Mac app and panel firmware, locking your Mac also locks the panel controls and shows a lock icon, **Locked**, and **Unlock your Mac to use this screen** while its backlight is on. Unlocking the Mac removes this lock automatically. The Mac app must be running and paired. If the connection drops while locked, the panel keeps the lock until the app reconnects and reports that the Mac is unlocked.
 
-The panel stays awake while the paired Companion app is connected and the screen is unlocked. When the app disconnects or the screen is locked, the panel uses the **When disconnected** action: Screen Dimmed, Clock, or Display Off. When the Mac locks with **Display Off** selected, the panel shows its lock screen for five seconds before fading out. Unlocking your Mac during those five seconds cancels the fade. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
+The panel stays awake while the paired Mac app is connected and the Mac is unlocked. With **Display Off** selected and both the app and firmware updated, the panel shows **Locked** while any Mac display is awake. It fades out when the Mac displays sleep and shows **Locked** again if a display wakes before you unlock. **Screen Dimmed** and **Clock** still take effect when the Mac locks. The panel uses the selected **When disconnected** action if the app loses its connection. If the Mac loses power or network access without closing the connection, detection can take around 20 seconds.
 
 Saved Camera screensaver settings from older firmware fall back to Display Off. Camera images and photo-metadata overlays are no longer available.
 

@@ -516,6 +516,11 @@ select:
               - switch.turn_off: clock_screensaver_enabled
         - if:
             condition:
+              lambda: 'return screen_lock_enabled();'
+            then:
+              - script.execute: screensaver_companion_reconcile
+        - if:
+            condition:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
             then:
               - script.execute: screensaver_idle_check
