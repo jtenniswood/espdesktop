@@ -10,8 +10,11 @@ A **Website** card opens a web address in your Mac’s default browser. Give a f
 ## Add a Website Card
 
 1. Open the display’s setup page and select an empty tile.
-2. Choose **Companion → Website** and enter an `http://` or `https://` address without an embedded username or password.
-3. Under **Open in**, keep **New tab** or choose **New window**, then save the display configuration.
+2. Choose **Website**. If the picker shows connector tabs, look under **Companion**.
+3. In the **Open URL** form, enter an `http://` or `https://` address without an embedded username or password.
+4. Under **Open in**, keep **New tab** or choose **New window**, then select **Save**.
+
+![Open URL form with https://example.com/ entered and New tab selected](/images/web-editor-website.jpg)
 
 ## Choose a Tab or Window
 

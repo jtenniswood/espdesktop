@@ -10,8 +10,10 @@ Tap an Applications card to launch an approved app or bring it to the front on y
 ## Launch an App
 
 1. In the Mac app, open **Apps**. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
-2. In the display's setup page, add a **Companion → Applications** card.
-3. Select an approved application and save the display configuration.
+2. In the display’s web editor, select an empty tile and choose **Applications**. If the picker shows connector tabs, look under **Companion**.
+3. Select an approved application and choose **Save**.
+
+![Applications form with Music selected, the optional Add app subpage switch, and the Save button](/images/web-editor-applications.jpg)
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 

@@ -26,6 +26,8 @@ Under **Screen → Appearance → App Subpages**, **Return home when switching a
 5. Add and arrange cards on the subpage as you would on the home screen.
 6. Choose its **Back** card to return to the parent page.
 
+![Subpage editor with a Back tile, four browser shortcuts and dashed empty tiles for adding more controls](/images/web-editor-subpage.jpg)
+
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 
 Two levels are supported: **Home → Folder → Subpage**, including **Home → Folder → App shortcuts**. Open a folder and repeat the steps above to add the second level. Back returns to the immediate parent page. A second-level page cannot contain another subpage.

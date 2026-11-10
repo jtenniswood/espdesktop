@@ -83,6 +83,22 @@ Drag and resize tiles in the browser, choose their labels, icons and colours, an
 
 </div>
 
+<div class="homepage-editor">
+
+<div>
+
+## A Look at the Web Editor
+
+The browser preview shows how your cards will look on the touchscreen. This example groups browser shortcuts on a subpage, with a Back tile to return to the previous page.
+
+[See the editor and settings](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage)
+
+</div>
+
+![Web editor preview of a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
+
+</div>
+
 ## Where to Buy
 
 EspDesktop runs on the [4-inch Guition 4848S040 touchscreen](/screens/4848s040). You’ll also need a Mac running macOS 13 or newer and a shared local network with 2.4 GHz WiFi for the display.
@@ -138,5 +154,41 @@ You choose which apps and folders the display can open. Keyboard shortcuts and M
 .homepage-features article > p + p {
   margin-top: auto;
   padding-top: 12px;
+}
+
+.homepage-editor {
+  display: grid;
+  align-items: center;
+  gap: 24px;
+  margin-top: 32px;
+  padding: 24px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+}
+
+@media (min-width: 768px) {
+  .homepage-editor {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
+  }
+}
+
+.homepage-editor h2 {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.homepage-editor p:last-child {
+  margin-bottom: 0;
+}
+
+.homepage-editor > p {
+  margin: 0;
+}
+
+.homepage-editor img {
+  width: 100%;
+  max-width: 300px;
+  border-radius: 8px;
 }
 </style>
