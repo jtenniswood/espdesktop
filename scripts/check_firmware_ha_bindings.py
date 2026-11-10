@@ -1780,9 +1780,12 @@ def firmware_c6_update_status_errors(path: Path, root: Path) -> list[str]:
     if (
         'name: "${entity_esp32_c6_auto_update}"' not in text
         or "id: c6_auto_update_switch" not in text
-        or "restore_mode: RESTORE_DEFAULT_ON" not in text
+        or "restore_mode: DISABLED" not in text
+        or "bind_panel_scalar(espdesktop::panel_settings::ScalarSetting::ESP32_C6_AUTO_UPDATE," not in text
+        or any(f'ScalarSetting::ESP32_C6_AUTO_UPDATE, "{value}"' not in text for value in ("0", "1"))
+        or '{"esp32_c6_auto_update", "1",' not in (FIRMWARE_DIR / "panel_settings_generated.h").read_text()
     ):
-        errors.append(f"{rel}: expose a persistent default-on C6 automatic update switch")
+        errors.append(f"{rel}: store the default-on C6 automatic update switch in native panel configuration")
     automatic_script = re.search(
         r"(?ms)^script:\s*.*?id:\s*c6_check_and_install_update\b(?P<body>.*?)(?:^update:|\Z)",
         text,
