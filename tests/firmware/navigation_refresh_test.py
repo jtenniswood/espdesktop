@@ -117,7 +117,7 @@ for signature in ("inline bool &companion_app_icon_work_pending() {",
                   "inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {"):
     code += function("components/espdesktop/button_grid_grid.h", signature)
 code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *&companion_app_icon_sleep_screen() {")
-code += function("components/espdesktop/button_grid_grid.h", "inline bool companion_app_icon_display_asleep() {")
+code += function("components/espdesktop/button_grid_grid.h", "inline bool companion_app_icon_sleep_page_active() {")
 code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility(bool release_hidden) {")
 code += function("components/espdesktop/button_grid_grid.h", "inline void grid_release_runtime_allocations(")
 code += function("components/espdesktop/button_grid_navigation.h", "inline std::function<void()> &navigation_subpage_clock_bar_refresh() {")

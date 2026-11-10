@@ -942,7 +942,7 @@ inline lv_obj_t *&companion_app_icon_sleep_screen() {
   return screen;
 }
 
-inline bool companion_app_icon_display_asleep() {
+inline bool companion_app_icon_sleep_page_active() {
   auto *sleep_screen = companion_app_icon_sleep_screen();
   return sleep_screen && lv_scr_act() == sleep_screen;
 }
@@ -958,7 +958,7 @@ inline void companion_refresh_app_icon_visibility(bool release_hidden) {
     hidden_cache_limit = 0;
 #endif
   const auto &screens = navigation_grid_screens();
-  const bool retain_hidden = companion_app_icon_display_asleep() ||
+  const bool retain_hidden = companion_app_icon_sleep_page_active() ||
       std::find(screens.begin(), screens.end(), lv_scr_act()) != screens.end();
   size_t retained_bytes = 0;
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
@@ -1045,7 +1045,7 @@ inline void companion_process_pending_app_icon_refresh() {
   // Keep pending icon changes queued while the screen is off. Applying
   // them to a hidden card would release its pixels before the next wake.
   if (!companion_app_icon_work_pending() || companion_app_icon_waiting_for_frame() ||
-      companion_app_icon_display_asleep()) return;
+      companion_app_icon_sleep_page_active()) return;
   CompanionAppIconImageData *selected = nullptr;
   lv_obj_t *selected_image = nullptr;
   int best_priority = 3;
