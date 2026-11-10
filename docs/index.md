@@ -105,7 +105,7 @@ The browser preview shows how your cards will look on the touchscreen. This exam
 
 EspDesktop runs on the [4-inch Guition 4848S040 touchscreen](/screens/4848s040). You’ll also need a Mac running macOS 13 or newer and a shared local network with 2.4 GHz WiFi for the display.
 
-- [Buy the Guition 4848S040 on AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv)
+- [Buy the Guition 4848S040 on AliExpress](https://s.click.aliexpress.com/e/_c2uYL5dd)
 - [Get the 3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301)
 
 ## Get Started
