@@ -759,9 +759,7 @@ def firmware_screensaver_wake_guard_errors(
             errors.append(f"{rel}: missing screensaver_wake script")
         else:
             interrupted_transition_tokens = (
-                "controller.has_transition_in_progress()",
-                "controller.cancel_transition()",
-                "controller.require_presentation_cleanup()",
+                "display_lifecycle().begin_wake(",
                 "script.stop: display_mode_apply_transition",
                 "script.stop: display_mode_effect_active",
                 "script.stop: display_mode_effect_setup_dimmed",
@@ -769,71 +767,26 @@ def firmware_screensaver_wake_guard_errors(
                 "lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN)",
             )
             if any(token not in body for token in interrupted_transition_tokens):
-                errors.append(
-                    f"{rel}: cancel interrupted display effects and force visible clock cleanup during wake"
-                )
-            pending_restore_tokens = (
-                "id: screensaver_wake_restore_pending",
-                "id(screensaver_wake_restore_pending) =",
-                "!id(espdesktop_app).display().target_mode_is(",
-                "const bool restore_pending = id(screensaver_wake_restore_pending);",
-                "id(screensaver_wake_restore_pending) = false;",
-                "return restore_pending ||",
-            )
-            if any(token not in text for token in pending_restore_tokens):
+                errors.append(f"{rel}: cancel interrupted display effects and force visible clock cleanup during wake")
+            if "display_lifecycle().take_wake_reconcile()" not in body:
                 errors.append(f"{rel}: restore ACTIVE when touch cancels a pending sleep transition")
-            marker = "const bool restore_pending = id(screensaver_wake_restore_pending);"
-            if marker not in body:
-                errors.append(f"{rel}: keep the normal screensaver wake branch explicit")
-            else:
-                normal_wake_body = body.split(marker, 1)[1]
-                if re.search(
-                    r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'true'",
-                    normal_wake_body,
-                ):
-                    errors.append(f"{rel}: do not block the first button tap after normal screensaver wake")
-                if "script.execute: screensaver_wake_touch_guard_clear" in normal_wake_body:
-                    errors.append(f"{rel}: do not arm a delayed wake guard clear for normal screensaver wake")
-                if "id(screensaver_wake_touch_guard_skip_once) = false" not in normal_wake_body:
-                    errors.append(f"{rel}: consume stale wake guard state during screensaver wake")
-                if not re.search(
-                    r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'false'",
-                    normal_wake_body,
-                ):
-                    errors.append(f"{rel}: clear stale wake guard state during normal screensaver wake")
-                if "bool keep_wake_guard = id(screensaver_wake_touch_guard_skip_once);" not in normal_wake_body:
-                    errors.append(f"{rel}: preserve the shared wake guard while screensaver state is restored")
+            if "script.execute: screensaver_wake_touch_guard_clear" in body:
+                errors.append(f"{rel}: do not arm a delayed wake guard clear for normal screensaver wake")
 
-            clear_marker = (
-                "id(espdesktop_app).display().clear("
-                "espdesktop::DisplayRequestSource::IDLE_TIMER);"
+            clear_index = body.find(
+                "id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);"
             )
-            clear_index = body.find(clear_marker)
+            guard_index = body.find("display_lifecycle().wake_touch_guard()")
             guard_execute_index = body.find("script.execute: screensaver_wake_touch_block")
-            pre_clear_body = body[:clear_index] if clear_index >= 0 else ""
-            if (
-                "id(screensaver_wake_touch_guard_skip_once) =" not in pre_clear_body
-                or "espdesktop::DisplayMode::DISPLAY_OFF" not in pre_clear_body
-            ):
-                errors.append(
-                    f"{rel}: arm the shared wake guard from the pre-wake Display Off mode"
-                )
-            if (
-                clear_index < 0
-                or guard_execute_index < 0
-                or guard_execute_index > clear_index
-            ):
+            if guard_index < 0:
+                errors.append(f"{rel}: arm the shared wake guard from the pre-wake Display Off mode")
+            if not 0 <= guard_index < guard_execute_index < clear_index:
                 errors.append(f"{rel}: raise the shared wake guard before clearing screensaver state")
 
         guard_body = yaml_script_body(text, "screensaver_wake_touch_block")
         if guard_body is None:
             errors.append(f"{rel}: missing shared screensaver_wake_touch_block script")
         else:
-            if not re.search(
-                r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'true'",
-                guard_body,
-            ):
-                errors.append(f"{rel}: keep screensaver wake taps guarded")
             if "LV_INDEV_STATE_PRESSED" not in guard_body:
                 errors.append(f"{rel}: keep the shared wake guard until the wake touch is released")
             if "timeout: 2s" not in guard_body:
@@ -846,10 +799,7 @@ def firmware_screensaver_wake_guard_errors(
                 errors.append(f"{rel}: raise the shared wake guard above active controls")
             if "lvgl.widget.show: screensaver_wake_touch_guard" not in guard_body:
                 errors.append(f"{rel}: show the shared full-screen wake guard")
-            if not re.search(
-                r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'false'",
-                guard_body,
-            ):
+            if "display_lifecycle().clear_wake_touch_guard()" not in guard_body:
                 errors.append(f"{rel}: accept the first deliberate tap after wake-touch release")
             if "lvgl.widget.hide: screensaver_wake_touch_guard" not in guard_body:
                 errors.append(f"{rel}: hide the shared wake guard after touch release")
@@ -3259,144 +3209,60 @@ def run_self_test() -> int:
         "          clickable: true\n"
         "          hidden: true\n"
     )
-    valid_shared_wake_guard_script = (
+    valid_shared_wake_flow = (
+        "script:\n"
+        "  - id: screensaver_wake\n"
+        "    then:\n"
+        "      - lambda: |-\n"
+        "          id(espdesktop_app).display_lifecycle().begin_wake(\n"
+        "              !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN));\n"
+        "      - script.stop: display_mode_apply_transition\n"
+        "      - script.stop: display_mode_effect_active\n"
+        "      - script.stop: display_mode_effect_setup_dimmed\n"
+        "      - script.stop: display_mode_effect_off\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: 'return id(espdesktop_app).display_lifecycle().wake_touch_guard();'\n"
+        "          then:\n"
+        "            - script.execute: screensaver_wake_touch_block\n"
+        "      - lambda: |-\n"
+        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: 'return id(espdesktop_app).display_lifecycle().take_wake_reconcile();'\n"
+        "          then:\n"
+        "            - script.execute: display_mode_reconcile\n"
         "  - id: screensaver_wake_touch_block\n"
         "    then:\n"
-        "      - globals.set:\n"
-        "          id: screensaver_wake_touch_guard_active\n"
-        "          value: 'true'\n"
         "      - lambda: 'screensaver_fill_screen(id(screensaver_wake_touch_guard));'\n"
         "      - lvgl.widget.show: screensaver_wake_touch_guard\n"
         "      - lambda: 'lv_obj_move_foreground(id(screensaver_wake_touch_guard));'\n"
         "      - wait_until:\n"
         "          condition:\n"
-        "            lambda: 'return lv_indev_get_state(indev) == LV_INDEV_STATE_PRESSED;'\n"
-        "          timeout: 150ms\n"
-        "      - wait_until:\n"
-        "          condition:\n"
         "            lambda: 'return lv_indev_get_state(indev) != LV_INDEV_STATE_PRESSED;'\n"
         "          timeout: 2s\n"
         "      - delay: 50ms\n"
-        "      - globals.set:\n"
-        "          id: screensaver_wake_touch_guard_active\n"
-        "          value: 'false'\n"
+        "      - lambda: 'id(espdesktop_app).display_lifecycle().clear_wake_touch_guard();'\n"
         "      - lvgl.widget.hide: screensaver_wake_touch_guard\n"
     )
-    valid_shared_wake_flow = (
-        "globals:\n"
-        "  - id: screensaver_wake_restore_pending\n"
-        "    type: bool\n"
-        "    initial_value: 'false'\n"
-        "script:\n"
-        "  - id: screensaver_wake\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          auto &controller = id(espdesktop_app).display();\n"
-        "          bool clock_visible = !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN);\n"
-        "          if (controller.has_transition_in_progress()) controller.cancel_transition();\n"
-        "          controller.require_presentation_cleanup();\n"
-        "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF);\n"
-        "      - script.stop: display_mode_apply_transition\n"
-        "      - script.stop: display_mode_effect_active\n"
-        "      - script.stop: display_mode_effect_setup_dimmed\n"
-        "      - script.stop: display_mode_effect_off\n"
-        "      - script.execute: screensaver_wake_touch_block\n"
-        "      - lambda: |-\n"
-        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
-        "              id(screensaver_wake_restore_pending) = false;\n"
-        "              return restore_pending ||\n"
-        "                  !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          then:\n"
-        "            - if:\n"
-        "                condition:\n"
-        "                  lambda: |-\n"
-        "                    bool keep_wake_guard = id(screensaver_wake_touch_guard_skip_once);\n"
-        "                    id(screensaver_wake_touch_guard_skip_once) = false;\n"
-        "                    return keep_wake_guard;\n"
-        "                else:\n"
-        "                  - globals.set:\n"
-        "                      id: screensaver_wake_touch_guard_active\n"
-        "                      value: 'false'\n"
-        + valid_shared_wake_guard_script
-    )
     expect_screensaver_wake_guard_errors(
-        "simple timed global guard is rejected",
-        "globals:\n"
-        "  - id: screensaver_wake_restore_pending\n"
-        "    type: bool\n"
-        "    initial_value: 'false'\n"
-        "script:\n"
-        "  - id: screensaver_wake\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF);\n"
-        "      - script.execute: screensaver_wake_touch_block\n"
-        "      - lambda: |-\n"
-        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
-        "              id(screensaver_wake_restore_pending) = false;\n"
-        "              return restore_pending ||\n"
-        "                  !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          then:\n"
-        "            - globals.set:\n"
-        "                id: screensaver_wake_touch_guard_active\n"
-        "                value: 'true'\n"
-        "            - script.execute: screensaver_wake_touch_guard_clear\n",
-        valid_shared_wake_guard_widget,
-        (
-            "do not block the first button tap after normal screensaver wake",
-            "do not arm a delayed wake guard clear for normal screensaver wake",
-            "missing shared screensaver_wake_touch_block script",
-        ),
-    )
-    expect_screensaver_wake_guard_errors(
-        "shared release guard covers Display Off",
-        valid_shared_wake_flow,
-        valid_shared_wake_guard_widget,
-        (),
+        "shared release guard covers Display Off", valid_shared_wake_flow,
+        valid_shared_wake_guard_widget, (),
     )
     expect_screensaver_wake_guard_errors(
         "guard does not cover Display Off",
-        valid_shared_wake_flow.replace(
-            "espdesktop::DisplayMode::DISPLAY_OFF",
-            "espdesktop::DisplayMode::DIMMED",
-        ),
-        valid_shared_wake_guard_widget,
-        ("pre-wake Display Off mode",),
+        valid_shared_wake_flow.replace("display_lifecycle().wake_touch_guard()", "false"),
+        valid_shared_wake_guard_widget, ("pre-wake Display Off mode",),
     )
     expect_screensaver_wake_guard_errors(
         "release guard accepts the next deliberate tap",
-        valid_shared_wake_flow.replace(
-            "      - globals.set:\n"
-            "          id: screensaver_wake_touch_guard_active\n"
-            "          value: 'false'\n"
-            "      - lvgl.widget.hide: screensaver_wake_touch_guard\n",
-            "",
-        ),
-        valid_shared_wake_guard_widget,
-        (
-            "accept the first deliberate tap after wake-touch release",
-            "hide the shared wake guard after touch release",
-        ),
+        valid_shared_wake_flow.replace("display_lifecycle().clear_wake_touch_guard()", ""),
+        valid_shared_wake_guard_widget, ("accept the first deliberate tap after wake-touch release",),
     )
     expect_screensaver_wake_guard_errors(
         "stuck touch retains a bounded fallback",
         valid_shared_wake_flow.replace("          timeout: 2s\n", ""),
-        valid_shared_wake_guard_widget,
-        ("clear the shared wake guard after a stuck touch timeout",),
+        valid_shared_wake_guard_widget, ("clear the shared wake guard after a stuck touch timeout",),
     )
     valid_active_finalizer = (
         "script:\n"

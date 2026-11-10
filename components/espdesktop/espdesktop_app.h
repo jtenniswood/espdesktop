@@ -48,6 +48,7 @@ class EspDesktopApp : public esphome::Component {
     return esphome::setup_priority::AFTER_WIFI;
   }
 
+  DisplayLifecycleService &display_lifecycle() { return core_.display_lifecycle(); }
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }

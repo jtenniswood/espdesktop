@@ -30,15 +30,6 @@ globals:
   - id: manual_wake_ms
     type: uint32_t
     initial_value: '0'
-  - id: screensaver_wake_touch_guard_active
-    type: bool
-    initial_value: 'false'
-  - id: screensaver_wake_touch_guard_skip_once
-    type: bool
-    initial_value: 'false'
-  - id: screensaver_wake_restore_pending
-    type: bool
-    initial_value: 'false'
   - id: screensaver_fade_out
     type: espdesktop::BacklightFade
   - id: backlight_force_next_write
@@ -325,7 +316,7 @@ script:
             - script.execute: clock_bar_apply
             - if:
                 condition:
-                  lambda: 'return lv_scr_act() == id(screen_off_page)->obj;'
+                  lambda: 'return id(espdesktop_app).display_lifecycle().blank_page_active();'
                 then:
                   - script.execute: navigate_after_api
             - script.execute: backlight_apply_brightness
@@ -346,7 +337,7 @@ script:
                 }
             - if:
                 condition:
-                  lambda: 'return lv_scr_act() == id(screen_off_page)->obj;'
+                  lambda: 'return id(espdesktop_app).display_lifecycle().blank_page_active();'
                 then:
                   - script.execute: navigate_after_api
             - delay: 50ms
@@ -841,10 +832,6 @@ script:
           }
       - script.execute: hide_clock_view
       - lvgl.widget.hide: dim_screensaver_touch_guard
-      - lambda: |-
-          #ifdef USE_COMPANION
-          companion_app_icon_sleep_screen() = id(screen_off_page)->obj;
-          #endif
       - lvgl.page.show: screen_off_page
       - script.execute: clock_bar_hide
       - delay: 50ms
@@ -964,38 +951,8 @@ script:
             id(screensaver_wake).stop();
             return;
           }
-          auto &controller = id(espdesktop_app).display();
-          const bool clock_visible =
-              !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN);
-          const bool unfinished =
-              controller.has_transition_in_progress() ||
-              controller.presentation_incomplete();
-          id(screensaver_wake_restore_pending) =
-              unfinished || clock_visible ||
-              !controller.target_mode_is(espdesktop::DisplayMode::ACTIVE) ||
-              !controller.current_mode_is(espdesktop::DisplayMode::ACTIVE);
-          id(screensaver_wake_touch_guard_skip_once) =
-              controller.target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF);
-          ESP_LOGD("display_mode",
-                   "Wake requested: unfinished=%s clock_visible=%s cleanup=%s",
-                   unfinished ? "true" : "false",
-                   clock_visible ? "true" : "false",
-                   id(screensaver_wake_restore_pending) ? "true" : "false");
-          if (controller.has_transition_in_progress()) {
-            const auto *cancelled = controller.in_flight_transition();
-            if (cancelled != nullptr) {
-              ESP_LOGD("display_mode",
-                       "Wake cancelling generation %u: %s -> %s (source=%s)",
-                       static_cast<unsigned>(cancelled->generation),
-                       espdesktop::display_mode_name(cancelled->previous_mode),
-                       espdesktop::display_mode_name(cancelled->target_mode),
-                       espdesktop::display_request_source_name(cancelled->winning_source));
-            }
-            controller.cancel_transition();
-          }
-          if (id(screensaver_wake_restore_pending)) {
-            controller.require_presentation_cleanup();
-          }
+          id(espdesktop_app).display_lifecycle().begin_wake(
+              !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN));
       - script.stop: display_mode_apply_transition
       - script.stop: display_mode_effect_active
       - script.stop: display_mode_effect_setup_dimmed
@@ -1012,23 +969,10 @@ script:
       - script.stop: clock_screensaver_refresh_brightness
       - script.stop: show_dimmed_view
       - script.stop: screensaver_dimmed_refresh_brightness
-      - lambda: |-
-          id(screensaver_wake_restore_pending) =
-              !id(espdesktop_app).display().target_mode_is(
-                  espdesktop::DisplayMode::ACTIVE);
-          id(screensaver_wake_touch_guard_skip_once) =
-              id(espdesktop_app).display().target_mode_is(
-                  espdesktop::DisplayMode::DISPLAY_OFF);
       - if:
           condition:
-            lambda: 'return id(screensaver_wake_touch_guard_skip_once);'
+            lambda: 'return id(espdesktop_app).display_lifecycle().wake_touch_guard();'
           then:
-            - globals.set:
-                id: screensaver_wake_touch_guard_active
-                value: 'true'
-            - lambda: 'screensaver_fill_screen(id(screensaver_wake_touch_guard));'
-            - lvgl.widget.show: screensaver_wake_touch_guard
-            - lambda: 'lv_obj_move_foreground(id(screensaver_wake_touch_guard));'
             - script.execute: screensaver_wake_touch_block
       - lambda: |-
           id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);
@@ -1059,27 +1003,9 @@ script:
             - script.stop: screen_schedule_wake_timeout_check
       - if:
           condition:
-            lambda: |-
-              const bool restore_pending = id(screensaver_wake_restore_pending);
-              id(screensaver_wake_restore_pending) = false;
-              return restore_pending ||
-                  !id(espdesktop_app).display().current_mode_is(
-                      espdesktop::DisplayMode::ACTIVE);
+            lambda: 'return id(espdesktop_app).display_lifecycle().take_wake_reconcile();'
           then:
             - script.stop: screensaver_idle_check
-            - if:
-                condition:
-                  lambda: |-
-                    bool keep_wake_guard = id(screensaver_wake_touch_guard_skip_once);
-                    id(screensaver_wake_touch_guard_skip_once) = false;
-                    return keep_wake_guard;
-                then:
-                  - lambda: 'ESP_LOGD("screensaver", "Keeping wake guard until touch release");'
-                else:
-                  - script.stop: screensaver_wake_touch_guard_clear
-                  - globals.set:
-                      id: screensaver_wake_touch_guard_active
-                      value: 'false'
             - globals.set:
                 id: backlight_force_next_write
                 value: 'true'
@@ -1091,9 +1017,6 @@ script:
   - id: screensaver_wake_touch_block
     mode: restart
     then:
-      - globals.set:
-          id: screensaver_wake_touch_guard_active
-          value: 'true'
       - lambda: 'screensaver_fill_screen(id(screensaver_wake_touch_guard));'
       - lvgl.widget.show: screensaver_wake_touch_guard
       - lambda: 'lv_obj_move_foreground(id(screensaver_wake_touch_guard));'
@@ -1124,18 +1047,14 @@ script:
       # Let input settle briefly after release before accepting a new tap.
       - delay: 50ms
       - script.stop: screensaver_wake_touch_guard_clear
-      - globals.set:
-          id: screensaver_wake_touch_guard_active
-          value: 'false'
+      - lambda: 'id(espdesktop_app).display_lifecycle().clear_wake_touch_guard();'
       - lvgl.widget.hide: screensaver_wake_touch_guard
 
   - id: screensaver_wake_touch_guard_clear
     mode: restart
     then:
       - delay: 5s
-      - globals.set:
-          id: screensaver_wake_touch_guard_active
-          value: 'false'
+      - lambda: 'id(espdesktop_app).display_lifecycle().clear_wake_touch_guard();'
 
   # Choose and apply the brightness for the dimmed-screen screensaver.
   - id: screensaver_dimmed_refresh_brightness

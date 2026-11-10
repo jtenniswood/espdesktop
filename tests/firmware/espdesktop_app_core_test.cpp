@@ -104,6 +104,25 @@ int main() {
     return EXIT_FAILURE;
   }
 
+  auto &presentation = app.display_lifecycle();
+  const auto sleeping = display.resolve();
+  if (!display.start_transition(sleeping, 100)) return EXIT_FAILURE;
+  presentation.set_blank_page_active(true);
+  if (presentation.allows_focus_navigation()) return EXIT_FAILURE;
+  presentation.begin_wake(false);
+  if (!presentation.wake_touch_guard() || presentation.allows_focus_navigation() ||
+      display.complete_transition(sleeping, 150)) return EXIT_FAILURE;
+  display.clear(DisplayRequestSource::MANUAL_SLEEP);
+  const auto wake = display.resolve();
+  if (!presentation.take_wake_reconcile() || !display.start_transition(wake, 151)) return EXIT_FAILURE;
+  // Home can be visible before the physical wake transition and touch release
+  // have both completed. Ordinary focus navigation stays blocked until the wake touch is released.
+  presentation.set_blank_page_active(false);
+  if (presentation.allows_focus_navigation() || !display.complete_transition(wake, 190) ||
+      presentation.allows_focus_navigation()) return EXIT_FAILURE;
+  presentation.clear_wake_touch_guard();
+  if (!presentation.allows_focus_navigation()) return EXIT_FAILURE;
+
   const auto media = app.card_runtime_registry().context_for("media", "");
   if (!media.known || media.family != espdesktop::cards::Family::MEDIA) {
     return EXIT_FAILURE;
