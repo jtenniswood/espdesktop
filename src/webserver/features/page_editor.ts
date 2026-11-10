@@ -66,7 +66,7 @@ export interface NativePageEditorLoaderOptions {
   revision(): number;
   read(signal: AbortSignal): Promise<NativePanelConfigSnapshot | null>;
   canApply(): boolean;
-  apply(document: PanelConfigDocument, layout?: NativePageLayout): void;
+  apply(document: PanelConfigDocument, layout?: NativePageLayout, preserveSelection?: boolean): void;
   failed(error: unknown): void;
   loading?(active: boolean): void;
   schedule?(callback: () => void): ReturnType<typeof setTimeout>;
@@ -102,8 +102,8 @@ export class NativePageEditorLoader {
       else void this.refresh();
     });
   }
-  replace(document: PanelConfigDocument, layout?: NativePageLayout): void {
-    this.invalidate(); this.options.apply(document, layout);
+  replace(document: PanelConfigDocument, layout?: NativePageLayout, preserveSelection = false): void {
+    this.invalidate(); this.options.apply(document, layout, preserveSelection);
   }
   refreshAfterChange(): void {
     // A pending response may predate the event. Coalesce events into one

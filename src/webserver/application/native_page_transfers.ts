@@ -23,6 +23,8 @@ export interface NativePageTransfersFeature {
   paste(position: number, page?: number, entries?: readonly PageTransferCard[]): Promise<{ ok: boolean; resized: number }>;
   duplicate(slot: number): Promise<boolean>;
   delete(slots: readonly number[]): Promise<boolean>;
+  rename(slot: number, label: string): Promise<boolean>;
+  place(order: string): Promise<boolean>;
 }
 /** Validate normalized temporary views, preserving the raw transfer payload. */
 export function validatePageTransferCards(
@@ -103,15 +105,15 @@ export function createNativePageTransfersFeature(options: {
       throw new PageTransferConflict("The selected cards changed. Reload before trying again.");
     return captured;
   }
-  async function save(plan: (draft: NativeLayoutDraft) => void): Promise<void> {
+  async function save(plan: (draft: NativeLayoutDraft) => void, checkAcceptedLayout = false): Promise<void> {
     let planningFailed = false, planningError: unknown;
     const pending = options.native.schedule(Object.assign(
       () => { throw new Error("Card transfers require the native layout."); },
-      { editNative(draft: NativeLayoutDraft) {
+      { checkAcceptedLayout, editNative(draft: NativeLayoutDraft) {
         try { plan(draft); }
         catch (error) { planningFailed = true; planningError = error; throw error; }
       } },
-    ));
+    ), checkAcceptedLayout);
     const attempt = options.native.saveAttemptId;
     const result = await pending;
     // A failed connection may lose the acknowledgement after publication.
@@ -123,11 +125,15 @@ export function createNativePageTransfersFeature(options: {
     const client = options.native.client;
     const committed = client?.lastDocument();
     if ((result !== "saved" && result !== "mirror-failed") || !committed)
-      throw new Error(result === "conflict" ? "The saved pages changed. Reload before trying again." : "The cards did not save. No transfer was applied.");
+      throw new Error(result === "conflict"
+        ? checkAcceptedLayout
+          ? "Configuration changed in another browser. Reload before saving again."
+          : "The saved pages changed. Reload before trying again."
+        : "The cards did not save. No transfer was applied.");
     unappliedSaveAttempt = null;
     // A disconnected panel will refresh itself on reconnect. Do not overwrite
     // its connection state with the candidate from this now-obsolete session.
-    if (!state.configLocked) options.editor().replace(committed, client?.lastLayout());
+    if (!state.configLocked) options.editor().replace(committed, client?.lastLayout(), checkAcceptedLayout);
   }
   async function capture(slots: readonly number[]): Promise<PageCardClipboard | null> {
     const sourcePage = page();
@@ -186,5 +192,13 @@ export function createNativePageTransfersFeature(options: {
       await save(draft => deleteNativePageCards(draft, origin, layout));
     });
   }
-  return { available, capture, copy, paste, duplicate, delete: remove };
+  async function rename(slot: number, label: string): Promise<boolean> {
+    const targetPage = page();
+    return run(() => save(draft => draft.renameCard(targetPage, slot, label), true));
+  }
+  async function place(order: string): Promise<boolean> {
+    const targetPage = page();
+    return run(() => save(draft => draft.writePageOrder(targetPage, order), true));
+  }
+  return { available, capture, copy, paste, duplicate, delete: remove, rename, place };
 }

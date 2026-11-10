@@ -302,6 +302,28 @@ test("native transfers preserve existing card and page records and retain copied
   assert.equal(result.layout.pages.find(page => page.key === 33).cards[0].config.label, "Address");
 });
 
+test("placing cards changes the order while retaining the shortcut and its identity", () => {
+  const { NativeLayoutDraft } = loadTypescriptTest("src/webserver/model/native_layout_draft.ts");
+  const { NativeV2Kind: K, decodeNativeV2 } = loadTypescriptTest("src/webserver/model/panel_config_v2.ts");
+  const original = codec.encodePanelPageDocument(fixture.document);
+  const draft = new NativeLayoutDraft(original);
+  draft.writePageOrder(33, "B,,1");
+  const moved = draft.finish();
+  const page = codec.decodePanelPageSnapshot(moved).layout.pages.find(entry => entry.key === 33);
+  assert.equal(page.order, "B,,1");
+  const stableRecords = bytes => decodeNativeV2(bytes).filter(row => row.kind === K.Card || row.kind === K.Navigation);
+  assert.deepEqual(stableRecords(moved), stableRecords(original));
+
+  const renamed = new NativeLayoutDraft(original);
+  renamed.renameCard(33, 1, "Rename from another browser");
+  const updated = new NativeLayoutDraft(renamed.finish());
+  updated.writePageOrder(33, "B,,1");
+  assert.deepEqual(updated.editScope, draft.editScope, "renaming a card does not conflict with moving it");
+  const afterBoth = codec.decodePanelPageSnapshot(updated.finish()).layout.pages.find(entry => entry.key === 33);
+  assert.equal(afterBoth.order, "B,,1");
+  assert.equal(afterBoth.cards[0].config.label, "Rename from another browser");
+});
+
 test("a flat native backup restores losslessly when the panel negotiates a flat format", async () => {
   const { createNativePanelConfigClient } = loadTypescriptTest("src/webserver/features/native_panel_config.ts");
   const { decodePanelConfig, encodePanelConfig } = loadTypescriptTest("src/webserver/model/panel_config.ts");

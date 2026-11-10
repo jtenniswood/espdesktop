@@ -6808,18 +6808,35 @@ async function assertReorderAfterDelete(browser) {
     await page.locator('.sp-main[aria-disabled="false"]').waitFor();
     assert.strictEqual(await remaining.getAttribute("draggable"), "true",
       "the remaining card can be dragged once deletion finishes");
-    const source = await remaining.boundingBox();
-    const target = await grid.locator('.sp-empty-cell[data-pos="0"]').boundingBox();
-    const targetX = target.x + target.width / 2;
-    const targetY = target.y + target.height / 2;
-    await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
-    await page.mouse.down();
-    await page.mouse.move(targetX, targetY, { steps: 10 });
-    await grid.locator('.sp-drop-placeholder[data-pos="0"]').waitFor();
-    await page.mouse.up();
+    const moveToFirstCell = async () => {
+      const source = await remaining.boundingBox();
+      const target = await grid.locator('.sp-empty-cell[data-pos="0"]').boundingBox();
+      const targetX = target.x + target.width / 2;
+      const targetY = target.y + target.height / 2;
+      await page.mouse.move(source.x + source.width / 2, source.y + source.height / 2);
+      await page.mouse.down();
+      await page.mouse.move(targetX, targetY, { steps: 10 });
+      await grid.locator('.sp-drop-placeholder[data-pos="0"]').waitFor();
+      await page.mouse.up();
+    };
+    const beforeRejectedMove = fixture.puts.length;
+    await page.route("**/api/v1/config", async route => {
+      if (route.request().method() === "PUT") {
+        return route.fulfill({ status: 413, body: "Rejected move" });
+      }
+      return route.fallback();
+    });
+    const rejected = page.waitForResponse(response => response.url().endsWith("/api/v1/config") && response.status() === 413);
+    await moveToFirstCell();
+    await rejected;
+    await page.locator('.sp-main[aria-disabled="false"]').waitFor();
+    assert.equal(await remaining.getAttribute("data-pos"), "1", "a rejected move leaves the preview unchanged");
+    assert.equal(fixture.puts.length, beforeRejectedMove);
+    await page.unroute("**/api/v1/config");
+    await moveToFirstCell();
     await waitForNativeState(fixture, () => fixture.document.settings.button_order.split(",")[0] === "2",
       "save the new position without reloading");
-    assert.strictEqual(await remaining.getAttribute("data-pos"), "0");
+    await grid.locator('[data-slot="2"][data-pos="0"]').waitFor();
     console.log("Card deletion and drag-and-drop without reloading passed.");
   } finally { await context.close(); }
 }
@@ -6834,14 +6851,14 @@ async function assertNestedCompanionPages(browser) {
   page.on("pageerror", error => errors.push(error.message));
   await installFakeEventSource(page);
   try {
-    const open = async (tab = page) => {
+    const open = async (tab = page, expectedName = "Address") => {
       await tab.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
       await tab.waitForFunction(() => window.__eventSources?.length > 0);
       await tab.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
       await tab.getByRole("tab", { name: "Layout", exact: true }).click();
       await tab.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
       await tab.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-      await tab.getByText("Address", { exact: true }).first().waitFor();
+      await tab.getByText(expectedName, { exact: true }).first().waitFor();
     };
     // Create a new app shortcut page while its app is already inside a folder.
     const existing = structuredClone(fixture.document);
@@ -6899,20 +6916,30 @@ async function assertNestedCompanionPages(browser) {
     const stale = await context.newPage();
     await installFakeEventSource(stale);
     await open(stale);
-    const name = async (tab, label) => {
-      await tab.locator('.sp-main [data-slot="1"] .sp-editable-title').click();
+    const name = async (tab, label, slot = 1) => {
+      await tab.locator(`.sp-main [data-slot="${slot}"] .sp-editable-title`).click();
       const input = tab.getByRole("textbox", { name: "Card name", exact: true });
       await input.fill(label);
       return input;
     };
+    const parallelInput = await name(stale, "Address from stale tab");
+    await (await name(page, "Neighbour edit", 2)).press("Enter");
+    await waitForNativeState(fixture, () => fixture.puts.length === 2, "save the neighbouring card");
+    await parallelInput.press("Enter");
+    await waitForNativeState(fixture, () => fixture.puts.length === 3, "save the independent edit");
+    assert(fixture.document.subpages[33].includes("Neighbour edit"), "a stale tab preserves its neighbour");
+    assert(fixture.document.subpages[33].includes("Address from stale tab"));
+    await open(page, "Address from stale tab");
+    await open(stale, "Address from stale tab");
+
     const staleInput = await name(stale, "Second browser");
     const firstInput = await name(page, "First browser");
     await firstInput.press("Enter");
-    await waitForNativeState(fixture, () => fixture.puts.length === 2, "save the first tab's edit");
+    await waitForNativeState(fixture, () => fixture.puts.length === 4, "save the first tab's edit");
     assert(fixture.document.subpages[33].includes("First browser"));
     await staleInput.press("Enter");
     await stale.getByText("Configuration changed in another browser. Reload before saving again.", { exact: true }).waitFor();
-    assert.equal(fixture.puts.length, 2, "the second tab's stale edit never reaches the panel");
+    assert.equal(fixture.puts.length, 4, "the second tab's stale edit never reaches the panel");
     assert(fixture.document.subpages[33].includes("First browser"));
     assert.deepStrictEqual(errors, []);
     console.log("Nested Companion shortcut creation, editing, failed-save retry, reload, Back and two-tab conflict checks passed.");

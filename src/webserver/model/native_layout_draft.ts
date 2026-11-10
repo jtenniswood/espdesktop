@@ -163,6 +163,30 @@ export class NativeLayoutDraft {
     return parentId === undefined ? undefined : this.cards(parentId).find(card => card.second === pageOwnerSlot(key));
   }
 
+  renameCard(key: number, slot: number, label: string): void {
+    const owner = key ? this.ownerAt(key) : undefined;
+    const page = key ? owner && this.ownedPage(owner) : this.records(K.Page).get(0);
+    const cards = page && page.flags !== ABSENT ? this.cards(page.id!) : [];
+    const card = cards.find(record => record.second === slot && record.flags !== ABSENT);
+    const previous = card && this.config(card);
+    this.editScope.push(JSON.stringify([owner?.id, page?.id, card?.id, previous]));
+    if (!page || !card || !previous || previous.label === label) return;
+    const config = { ...previous, label };
+    if (key) this.setPageOrder(page, this.text(page.third ?? 0), [config], cards);
+    this.writeCard(card, config);
+  }
+
+  writePageOrder(key: number, order: string): void {
+    const owner = key ? this.ownerAt(key) : undefined;
+    const page = key ? owner && this.ownedPage(owner) : this.records(K.Page).get(0);
+    const cards = page ? this.cards(page.id!) : [];
+    this.editScope.push(JSON.stringify([owner?.id, page?.id, this.text(page?.third ?? 0),
+      cards.map(card => [card.id, card.second])]));
+    if (!page || page.flags === ABSENT) return;
+    if (key) this.setPageOrder(page, order, [], cards);
+    else this.writeSetting("button_order", order);
+  }
+
   readPage(key: number): NativePageEdit | null {
     const owner = key ? this.ownerAt(key) : undefined;
     const page = key ? (owner && this.ownedPage(owner)) : this.records(K.Page).get(0);

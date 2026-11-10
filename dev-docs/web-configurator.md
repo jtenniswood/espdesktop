@@ -166,7 +166,10 @@ exact edit, generation, and verification steps, or the
 
 ## Preview and Persistence Rules
 
-- Update the draft object first.
+- Inline rename and drag-and-drop on native panels commit an edit before
+  refreshing the preview. A rename changes one card. Drag-and-drop changes
+  the page order while retaining the card records.
+- Update the draft object first for settings that use the legacy save path.
 - Use the existing helper save functions where available.
 - Schedule a preview refresh after changing fields that affect the tile.
 - Keep option-backed fields in the `options` string, not as new top-level fields,

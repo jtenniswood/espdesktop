@@ -36,7 +36,7 @@ export function createNativePageEditorFeature(options: {
     canApply: () => options.canApply() && !state.configLocked && !state.nativeTransferActive && !state.settingsDraft?.dirty && !state.settingsDraft?.isNew &&
       runtime.dragSrcPos < 0 && !state.clockBarDragItem &&
       !options.document.activeElement?.closest(".sp-card-name-input"),
-    apply: (snapshot, nativeLayout) => {
+    apply: (snapshot, nativeLayout, preserveSelection) => {
       const cleaned = cleanRetiredCards(snapshot, nativeLayout);
       const prepared = preparePageEditorDocument(cleaned, layout.numSlots, codec, cleaned === snapshot ? nativeLayout : undefined);
       const root = parseGridOrder(cleaned.settings.button_order ?? "", layout.totalSlots, layout.gridCols, {}, layout.previewSlots);
@@ -55,9 +55,14 @@ export function createNativePageEditorFeature(options: {
       state.grid = root.grid;
       state.sizes = root.sizes;
       state.onColor = cleaned.settings.button_on_color || WEB_UI_COLORS.primary;
+      const activeSubpageGrid = editing === state.editingSubpage && editing
+        ? prepared.subpages[editing]?.grid ?? [] : [];
       state.editingSubpage = editing;
-      state.selectedSlots = []; state.subpageSelectedSlots = [];
-      state.lastClickedSlot = state.subpageLastClicked = -1;
+      state.selectedSlots = preserveSelection ? state.selectedSlots.filter(slot => root.grid.includes(slot)) : [];
+      state.subpageSelectedSlots = preserveSelection
+        ? state.subpageSelectedSlots.filter(slot => activeSubpageGrid.includes(slot)) : [];
+      if (!preserveSelection || !root.grid.includes(state.lastClickedSlot)) state.lastClickedSlot = -1;
+      if (!preserveSelection || !activeSubpageGrid.includes(state.subpageLastClicked)) state.subpageLastClicked = -1;
       runtime.orderReceived = true;
       clearTimeout(runtime.migrationTimer as any);
       clearTimeout(runtime.sliderMigrationTimer as any);
