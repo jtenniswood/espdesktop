@@ -460,39 +460,28 @@ inline NavigationSubpageEntry *navigation_companion_subpage_for_action(
 
 inline bool navigation_return_from_companion_shortcuts_if_needed(
     lv_obj_t *main_page_obj) {
-  if (!companion_subpage_return_requested().load()) return false;
+  const std::string closed_app = companion_consume_closed_app_subpage_action();
+  const bool focus_changed = companion_consume_subpage_return_request();
+  if (!focus_changed && closed_app.empty()) return false;
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
-  if (entry == nullptr || entry->kind != "app_shortcuts" || parent == nullptr) {
-    companion_consume_subpage_return_request();
-    return false;
-  }
+  if (entry == nullptr || entry->kind != "app_shortcuts" || parent == nullptr) return false;
   const ParsedCfg parent_config = grid_layout_card_config(parent->slot, parent->config);
-  if (!companion_app_shortcuts_enabled(parent_config)) {
-    companion_consume_subpage_return_request();
-    return false;
-  }
+  if (!companion_app_shortcuts_enabled(parent_config)) return false;
+  const bool current_app_closed = !closed_app.empty() && closed_app == parent_config.entity;
+  if (!focus_changed && !current_app_closed) return false;
+  const std::string requested = companion_pending_auto_subpage_action();
   if (!companion_return_home_on_app_switch()) {
-    // Discard the matching automatic open too, so another app's page cannot
-    // replace the page the user chose to keep on screen.
-    const std::string requested = companion_pending_auto_subpage_action();
+    // Keep the current page during app switches. A closed window still returns
+    // to the previous page, without opening another app's page in its place.
     if (!requested.empty()) companion_consume_auto_subpage_action(requested);
-    companion_consume_subpage_return_request();
+    if (!current_app_closed) return false;
+  } else if (requested == parent_config.entity ||
+             navigation_companion_subpage_for_action(requested)) {
+    // Keep the page already shown or load the next app's page directly.
     return false;
   }
-  // A panel tap on the app's home card can focus Finder while its action-result
-  // callback is loading this very subpage. That focus change also raises the
-  // usual "leave the current app subpage" request; consume it without returning
-  // home when the newly focused app is the page we are already showing.
-  if (companion_pending_auto_subpage_action() == parent_config.entity) {
-    companion_consume_subpage_return_request();
-    return false;
-  }
-  companion_consume_subpage_return_request();
-  // The following navigation check can load the destination directly. Loading
-  // Home first runs its screen/icon refresh work before the new page can draw.
-  if (navigation_companion_subpage_for_action(companion_pending_auto_subpage_action())) return false;
   auto &navigation = grid_navigation_service();
   const int return_slot = navigation.companion_subpage_slot == slot
     ? navigation.companion_return_slot : entry->parent_slot;

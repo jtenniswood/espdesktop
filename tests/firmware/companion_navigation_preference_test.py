@@ -14,6 +14,7 @@ code = r'''
 #include <atomic>
 #include <cassert>
 #include <string>
+#include <utility>
 #include <vector>
 #include "grid_navigation_service.h"
 struct lv_obj_t {};
@@ -30,10 +31,11 @@ auto &grid_navigation_service() { return navigation; }
 auto &navigation_subpages() { return pages; }
 std::atomic<bool> pending_return{false};
 std::string pending_open;
+std::string closed_app;
 bool return_home = true;
 bool companion_return_home_on_app_switch() { return return_home; }
-auto &companion_subpage_return_requested() { return pending_return; }
-void companion_consume_subpage_return_request() { pending_return = false; }
+bool companion_consume_subpage_return_request() { return pending_return.exchange(false); }
+std::string companion_consume_closed_app_subpage_action() { return std::exchange(closed_app, {}); }
 std::string companion_pending_auto_subpage_action() { return pending_open; }
 bool companion_consume_auto_subpage_action(const std::string &id) {
   if (pending_open != id) return false;
@@ -126,6 +128,18 @@ int main() {
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &folder);
 
+  // A window close returns even when the page was opened manually and app
+  // switching is set to keep the current page on screen.
+  return_home = false;
+  navigation_show_companion_subpage(&other);
+  closed_app = "first.app";
+  assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &other);
+  closed_app = "second.app";
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &folder);
+  return_home = true;
+
   // Following Mac focus through multiple app subpages keeps the original page.
   pending_open = "second.app";
   assert(navigation_open_companion_subpage_if_requested(&home));
@@ -150,4 +164,4 @@ with tempfile.TemporaryDirectory() as temporary:
     subprocess.run([os.environ.get('CXX', 'c++'), '-std=c++17', '-Wall', '-Wextra', '-Werror', '-Wno-unused-parameter',
                     '-I', str(ROOT / 'components/espdesktop'), str(path / 'test.cpp'), '-o', str(path / 'test')], check=True)
     subprocess.run([str(path / 'test')], check=True)
-print('App switching, stay-on-page, and previous-page navigation passed.')
+print('App switching, window closure, and previous-page navigation passed.')
