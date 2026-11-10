@@ -3,11 +3,13 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <type_traits>
 
 #include "application_scene_runtime.h"
 #include "configuration_buffer.h"
+#include "display_theme_preferences.h"
 #include "espdesktop_app_core.h"
 #include "esphome/components/text/text.h"
 #include "esphome/core/automation.h"
@@ -51,6 +53,20 @@ class EspDesktopApp : public esphome::Component {
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
   void bind_app_subpage_preference_switch(esphome::switch_::Switch &setting);
+  void bind_display_theme_preferences(std::function<ThemeSettings()> read_legacy,
+      std::function<void(const ThemeSettings &)> publish);
+  // The old entities remain valid input controls. Once a portable group exists,
+  // edit that group so every input shares the same durable configuration.
+  template<typename T>
+  bool edit_display_theme_preference(T ThemeSettings::*field, T value) {
+    if (!display_theme_preferences_) return false;
+    if ((*display_theme_preferences_).*field != value) {
+      auto next = *display_theme_preferences_;
+      next.*field = value;
+      save_display_theme_preferences(next);
+    }
+    return true;
+  }
 
   // The scene belongs to the firmware application's UI owner and outlives this
   // component. Installation cannot switch a running legacy grid underneath it.
@@ -137,6 +153,8 @@ class EspDesktopApp : public esphome::Component {
   void defer_native_configuration_initialization();
   void apply_boot_configuration();
   void publish_app_subpage_preference(bool enabled);
+  void publish_display_theme_preferences(const std::optional<ThemeSettings> &settings);
+  void save_display_theme_preferences(const ThemeSettings &settings);
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
@@ -162,6 +180,10 @@ class EspDesktopApp : public esphome::Component {
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
+  std::optional<ThemeSettings> display_theme_preferences_;
+  std::optional<ThemeSettings> legacy_display_theme_preferences_;
+  std::function<ThemeSettings()> read_legacy_display_theme_preferences_;
+  std::function<void(const ThemeSettings &)> display_theme_preferences_changed_;
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};
   bool native_configuration_initialization_pending_{false};

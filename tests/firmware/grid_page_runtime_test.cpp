@@ -130,7 +130,7 @@ int main() {
   assert(companion_folder_open_behavior(parsed_cfg_from_subpage_btn(updated_cards[1])) == "same_window");
 
   constexpr std::string_view preference_key = "companion_auto_open_app_subpages";
-  auto write_preference = [&](std::string_view value) {
+  auto write_preference = [&](std::string_view name, std::string_view value) {
     using Kind = PanelConfigV2Kind;
     PanelConfigV2Writer writer(updated.data(), updated.size());
     assert(writer.begin() == PanelConfigStatus::OK);
@@ -140,7 +140,7 @@ int main() {
       assert(writer.append(row) == PanelConfigStatus::OK);
     }
     PanelConfigV2Record key;
-    key.kind = Kind::STRING; key.id = 1000; key.text = preference_key;
+    key.kind = Kind::STRING; key.id = 1000; key.text = name;
     assert(writer.append(key) == PanelConfigStatus::OK);
     PanelConfigV2Record text;
     text.kind = Kind::STRING; text.id = 1001; text.text = value;
@@ -155,12 +155,12 @@ int main() {
   std::vector<bool> applied;
   GridPageRuntime preference(limits, allocate, ConfigurationBuffer::release_host, {},
       [&](bool enabled) { applied.push_back(enabled); });
-  write_preference("0");
+  write_preference(preference_key, "0");
   assert(preference.prepare_write(2, updated.data(), size));
   assert(applied.empty());
   assert(preference.activate_prepared(9, 2, updated.data(), size));
   assert(applied == std::vector<bool>{false});
-  write_preference("invalid");
+  write_preference(preference_key, "invalid");
   assert(!preference.prepare_write(2, updated.data(), size));
   assert(applied == std::vector<bool>{false});
 
@@ -176,4 +176,33 @@ int main() {
   assert(applied == std::vector<bool>{false});
   assert(preference.activate_prepared(10, 1, updated.data(), size));
   assert((applied == std::vector<bool>{false, true}));
+
+  const auto assert_old_theme = [](const ThemeSettings &settings) {
+    assert(settings.mode == ThemeMode::AUTO && settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET);
+    assert(settings.light_start == 417 && settings.dark_start == 1205);
+    assert(settings.sunrise_offset == -35 && settings.sunset_offset == 12);
+  };
+  std::optional<ThemeSettings> current;
+  GridPageRuntime theme(limits, allocate, ConfigurationBuffer::release_host, {}, {},
+      [&](const std::optional<ThemeSettings> &value) { current = value; });
+  write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,auto,sun,417,1205,-35,12");
+  assert(theme.prepare_write(2, updated.data(), size));
+  assert(!current);
+  assert(theme.activate_prepared(10, 2, updated.data(), size));
+  assert(current);
+  assert_old_theme(*current);
+
+  write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,light,time,420,1200,0,0");
+  assert(theme.prepare_write(2, updated.data(), size));
+  theme.discard_prepared();
+  assert(current);
+  assert_old_theme(*current);
+  for (const auto invalid : {"2,auto,sun,417,1205,-35,12", "1,auto,sun,417,1205,-181,12",
+                             "1,auto,sun,1440,1205,-35,12", "1,auto,sun,417,1205,-35",
+                             "1,auto,sun,417,1205,-35,12,0", "1,auto,sun,417,1205,-35,12x"}) {
+    write_preference(DISPLAY_THEME_PREFERENCES_KEY, invalid);
+    assert(!theme.prepare_write(2, updated.data(), size));
+    assert(current);
+    assert_old_theme(*current);
+  }
 }
