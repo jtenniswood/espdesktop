@@ -55,10 +55,6 @@ class EspDesktopApp : public esphome::Component {
   // The scene belongs to the firmware application's UI owner and outlives this
   // component. Installation cannot switch a running legacy grid underneath it.
   bool install_application_scene(ApplicationSceneRuntime& scene);
-  // Selected device startup calls this before reserving native UI resources.
-  // A failed allocation then refuses writes instead of silently using legacy
-  // UI.
-  bool require_application_scene();
   esphome::Trigger<> *get_layout_changed_trigger() { return &layout_changed_; }
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
@@ -135,7 +131,6 @@ class EspDesktopApp : public esphome::Component {
  private:
   class NativeConfigurationRuntime;
 
-  configuration::ConfigurationRuntimeAdapter* selected_configuration_runtime();
   void register_panel_config_endpoints();
   void sync_finder_folders();
   void initialize_native_configuration();
@@ -166,7 +161,6 @@ class EspDesktopApp : public esphome::Component {
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
-  bool application_scene_required_{false};
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};

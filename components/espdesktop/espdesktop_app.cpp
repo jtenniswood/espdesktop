@@ -28,7 +28,6 @@
 #include "panel_config_http_context.h"
 #include "panel_config_legacy_adapter.h"
 #include "panel_config_read_endpoint.h"
-#include "panel_config_runtime_adapter.h"
 #include "panel_config_service_validator.h"
 #include "panel_config_storage_selection.h"
 #include "panel_config_transient_storage.h"
@@ -199,7 +198,6 @@ class EspDesktopApp::NativeConfigurationRuntime {
    NativeConfigurationRuntime()
        : legacy_config(text_bindings, allocate_configuration_slot,
                        release_configuration_slot, configuration::PANEL_CONFIG_LEGACY_MODE),
-         runtime_config(text_bindings, allocate_configuration_slot, release_configuration_slot),
          validator(allocate_configuration_slot, release_configuration_slot),
          backend(blobs, allocate_configuration_slot,
                  release_configuration_slot),
@@ -207,7 +205,6 @@ class EspDesktopApp::NativeConfigurationRuntime {
 
    configuration::PanelConfigTextBindings text_bindings{};
    configuration::PanelConfigLegacyAdapter legacy_config;
-   configuration::PanelConfigRuntimeAdapter runtime_config;
    std::unique_ptr<GridPageRuntime> grid_runtime;
    configuration::PanelConfigDocumentValidator validator{};
    configuration::EspIdfPanelConfigBlobStorage blobs{};
@@ -246,30 +243,6 @@ bool EspDesktopApp::install_application_scene(ApplicationSceneRuntime& scene) {
   if (native_configuration_initialized_ || core_.configuration_service()) return false;
   application_scene_ = &scene;
   return true;
-}
-
-bool EspDesktopApp::require_application_scene() {
-  if (shutting_down_ || native_configuration_initialized_ ||
-      core_.configuration_service())
-    return false;
-  application_scene_required_ = true;
-  return true;
-}
-
-configuration::ConfigurationRuntimeAdapter* EspDesktopApp::selected_configuration_runtime() {
-  if (application_scene_)
-    return application_scene_;
-  if (application_scene_required_) {
-    class Unavailable final
-        : public configuration::ConfigurationRuntimeAdapter {
-    public:
-      bool prepare(uint16_t, const uint8_t *, size_t) override { return false; }
-      bool apply(uint16_t, const uint8_t *, size_t) override { return false; }
-    };
-    static Unavailable unavailable;
-    return &unavailable;
-  }
-  return native_configuration_runtime_ ? &native_configuration_runtime_->runtime_config : nullptr;
 }
 
 void EspDesktopApp::set_panel_config_device_profile(const char *device_profile) {
@@ -333,7 +306,6 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   if (native_configuration_runtime_ != nullptr)
     return native_configuration_runtime_->grid_runtime &&
         application_scene_ == native_configuration_runtime_->grid_runtime.get();
-  application_scene_required_ = true;
   NativeConfigurationRuntime *runtime =
       new (std::nothrow) NativeConfigurationRuntime();
   if (runtime == nullptr) {
@@ -598,7 +570,7 @@ void EspDesktopApp::initialize_native_configuration() {
   }
   // HTTP writes and boot restore activate the same durable layout. Text
   // bindings still publish screen settings and can import an old layout.
-  panel_config_service->set_runtime_adapter(selected_configuration_runtime());
+  panel_config_service->set_runtime_adapter(runtime.grid_runtime.get());
   if (!runtime.legacy_config.configured()) {
     ESP_LOGW(TAG, "Native configuration sources are not configured");
   } else {
