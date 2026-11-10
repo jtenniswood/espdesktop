@@ -28,5 +28,13 @@ test("native scalar settings enforce the authored choices", () => {
   assert.equal(validPanelScalarSetting("screensaver_timeout", "3601"), false);
   assert.equal(validPanelScalarSetting("screensaver_timeout", "1800\n"), false);
   assert.equal(validPanelScalarSetting("screensaver_mode", "sensor"), false);
+  assert.equal(validPanelScalarSetting("screen_clock_format", "12h"), true);
+  assert.equal(validPanelScalarSetting("screen_language", "pt-br"), true);
+  assert.equal(validPanelScalarSetting("screen_timezone", "Europe/London (GMT+0)"), true);
+  assert.equal(validPanelScalarSetting("screen_timezone", "Europe/London"), false);
+  assert.equal(validPanelScalarSetting("screen_ntp_server_1", ""), true);
+  assert.equal(validPanelScalarSetting("screen_ntp_server_1", "2001:db8::1"), true);
+  assert.equal(validPanelScalarSetting("screen_ntp_server_1", "invalid\nserver"), false);
+  assert.equal(validPanelScalarSetting("screen_ntp_server_1", "a".repeat(101)), false);
   assert.equal(validPanelScalarSetting("unknown_setting", "value"), true);
 });

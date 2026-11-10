@@ -3,6 +3,8 @@
 import json
 import re
 
+from check_timezones import load_time_select_options
+
 
 def name_is_valid(name):
     return re.fullmatch(r"[a-z][a-z0-9_]*", name)
@@ -34,10 +36,11 @@ def cpp_rule(field, rule):
     raise ValueError(f"invalid rule for {field!r}")
 
 
-def append_scalar_settings(cpp, ts, settings):
+def append_scalar_settings(cpp, ts, settings, time_yaml):
     if not isinstance(settings, dict) or not 0 < len(settings) < 255:
         raise ValueError("expected scalar settings")
     rows = []
+    choice_lists = []
     for name, entry in settings.items():
         if not name_is_valid(name) or not isinstance(entry, dict):
             raise ValueError(f"invalid scalar setting {name!r}")
@@ -50,18 +53,40 @@ def append_scalar_settings(cpp, ts, settings):
             rows.append((name, str(default), f"min: {low}, max: {high}",
                          f"int parsed; return read_integer(value, parsed, {low}, {high});"))
             continue
+        if set(entry) == {"default", "ascii_text_max"}:
+            limit = entry["ascii_text_max"]
+            default = entry["default"]
+            if (type(limit) is not int or not 0 < limit <= 255 or not isinstance(default, str)
+                    or len(default) > limit or not re.fullmatch(r"[ -~]*", default)):
+                raise ValueError(f"invalid text length or default for {name!r}")
+            rows.append((name, default, f"asciiTextMax: {limit}",
+                         f"return valid_ascii_text(value, {limit});"))
+            continue
         if set(entry) == {"default", "type"} and entry["type"] == "switch":
             choices = ["0", "1"]
         elif set(entry) == {"default", "choices"} and isinstance(entry["choices"], list):
             choices = entry["choices"]
+        elif set(entry) == {"default", "time_select"} and isinstance(entry["time_select"], str):
+            choices = [option for _, option in load_time_select_options(entry["time_select"], time_yaml)]
         else:
             raise ValueError(f"invalid scalar rule for {name!r}")
-        if (not choices or not all(isinstance(choice, str) and re.fullmatch(r"[A-Za-z0-9 _-]+", choice)
+        if (not choices or not all(isinstance(choice, str) and re.fullmatch(r"[A-Za-z0-9 _./()+:-]+", choice)
                                    for choice in choices) or len(set(choices)) != len(choices)
                 or entry["default"] not in choices):
             raise ValueError(f"invalid choices or default for {name!r}")
-        accepted = " || ".join(f'value == {json.dumps(choice)}' for choice in choices)
-        rows.append((name, entry["default"], f"choices: {json.dumps(choices)}", f"return {accepted};"))
+        if "time_select" in entry:
+            choice_lists.extend([
+                f"inline constexpr std::string_view {name}_choices[] = {{",
+                *(f"  {json.dumps(choice)}," for choice in choices),
+                "};",
+            ])
+            accepted = (f"for (const auto choice : {name}_choices) "
+                        "if (value == choice) return true; return false;")
+            ts_choices = "[\n" + "".join(f"    {json.dumps(choice)},\n" for choice in choices) + "  ]"
+        else:
+            accepted = "return " + " || ".join(f'value == {json.dumps(choice)}' for choice in choices) + ";"
+            ts_choices = json.dumps(choices)
+        rows.append((name, entry["default"], f"choices: {ts_choices}", accepted))
     cpp.extend([
         "",
         "enum class ScalarSetting : uint8_t {",
@@ -73,8 +98,15 @@ def append_scalar_settings(cpp, ts, settings):
         "  std::string_view default_value;",
         "  bool (*valid)(std::string_view);",
         "};",
+        "inline bool valid_ascii_text(std::string_view value, size_t max_length) {",
+        "  if (value.size() > max_length) return false;",
+        "  for (const unsigned char ch : value)",
+        "    if (ch < 0x20 || ch > 0x7e) return false;",
+        "  return true;",
+        "}",
+        *choice_lists,
         "inline constexpr std::array<ScalarRule, size_t(ScalarSetting::COUNT)> SCALAR_RULES{{",
-        *(f'  {{"{name}", "{default}", [](std::string_view value) {{ {accepted} }}}},'
+        *(f'  {{"{name}", {json.dumps(default)}, [](std::string_view value) {{ {accepted} }}}},'
           for name, default, _, accepted in rows),
         "}};",
         "",
@@ -95,6 +127,7 @@ def append_scalar_settings(cpp, ts, settings):
         "  if (!Object.hasOwn(PANEL_SCALAR_SETTINGS, key)) return true;",
         "  const rule = PANEL_SCALAR_SETTINGS[key as keyof typeof PANEL_SCALAR_SETTINGS];",
         '  if ("choices" in rule) return (rule.choices as readonly string[]).includes(value);',
+        '  if ("asciiTextMax" in rule) return value.length <= rule.asciiTextMax && !/[^\\x20-\\x7e]/.test(value);',
         '  const digits = rule.min < 0 && value.startsWith("-") ? value.slice(1) : value;',
         "  if (!digits || /[^0-9]/.test(digits)) return false;",
         "  const parsed = Number(value);",
@@ -121,7 +154,7 @@ def generate_panel_settings(root):
         "// Generated from product/v2/panel_settings.json. Do not edit.",
         'import { readSettingRecord } from "../model/panel_setting_record";',
     ]
-    append_scalar_settings(cpp, ts, records.pop("scalar_settings", None))
+    append_scalar_settings(cpp, ts, records.pop("scalar_settings", None), root / "common/addon/time.yaml")
     for name, record in records.items():
         if not name_is_valid(name) or not isinstance(record, dict) or set(record) != {"version", "fields"}:
             raise ValueError(f"invalid panel settings record {name!r}")

@@ -287,5 +287,17 @@ int main() {
   assert(scalar_runtime.prepare_write(2, updated.data(), size));
   assert(scalar_runtime.activate_prepared(20, 2, updated.data(), size));
   assert(published.back().first == Scalar::SCREENSAVER_TIMEOUT && published.back().second == "3600");
+  write_preference("screen_timezone", "Europe/London");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screen_timezone", "Europe/London (GMT+0)");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(21, 2, updated.data(), size));
+  assert(published.back().first == Scalar::SCREEN_TIMEZONE && published.back().second == "Europe/London (GMT+0)");
+  write_preference("screen_ntp_server_1", "invalid\nserver");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screen_ntp_server_1", "");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(22, 2, updated.data(), size));
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_NTP_SERVER_1).empty());
   assert_nested_page();
 }

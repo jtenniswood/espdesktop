@@ -19,7 +19,13 @@
     "screen_saver_daytime_dimmed_brightness": { "default": 10, "min": 1, "max": 100 },
     "screen_saver_nighttime_dimmed_brightness": { "default": 10, "min": 1, "max": 100 },
     "screen_saver_daytime_clock_brightness": { "default": 35, "min": 1, "max": 100 },
-    "screen_saver_nighttime_clock_brightness": { "default": 35, "min": 1, "max": 100 }
+    "screen_saver_nighttime_clock_brightness": { "default": 35, "min": 1, "max": 100 },
+    "screen_clock_format": { "default": "24h", "time_select": "clock_format_select" },
+    "screen_language": { "default": "en", "time_select": "language_select" },
+    "screen_timezone": { "default": "Auto (Mac Companion)", "time_select": "timezone_select" },
+    "screen_ntp_server_1": { "default": "0.pool.ntp.org", "ascii_text_max": 100 },
+    "screen_ntp_server_2": { "default": "1.pool.ntp.org", "ascii_text_max": 100 },
+    "screen_ntp_server_3": { "default": "2.pool.ntp.org", "ascii_text_max": 100 }
   },
   "screen_schedule_preferences": {
     "version": 1,
