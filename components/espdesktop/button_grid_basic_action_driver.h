@@ -163,7 +163,8 @@ inline bool basic_action_driver_bind_subpage(
                  static_cast<unsigned long>(companion_next_request_number()));
         const bool invoked = companion_encoded_url(card->sensor).empty()
           ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
-                                    companion_folder_open_behavior(*card))
+                                    companion_folder_open_behavior(*card),
+                                    companion_athena_shortcut_target(cfg_option_value(card->options, "app_shortcut_preset")))
           : invoke_companion_url(card->sensor, request_id,
                                  companion_url_opens_new_window(*card));
         if (!invoked) {
@@ -212,8 +213,9 @@ inline bool basic_action_driver_handle_main_click(
         }
       }
       const bool invoked = companion_encoded_url(config.sensor).empty()
-        ? invoke_companion_action(config.entity, request_id,
-                                  companion_folder_open_behavior(config))
+        ? invoke_companion_action_for_app(config.entity, request_id, {},
+                                  companion_folder_open_behavior(config),
+                                  companion_athena_shortcut_target(cfg_option_value(config.options, "app_shortcut_preset")))
         : invoke_companion_url(config.sensor, request_id,
                                  companion_url_opens_new_window(config));
       if (!invoked) {

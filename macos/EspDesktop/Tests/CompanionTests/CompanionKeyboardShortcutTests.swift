@@ -106,6 +106,22 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         XCTAssertFalse(CompanionKeyboardShortcut.isSafariApplication("com.apple.finder"))
     }
 
+    func testInstalledWebAppShortcutRequiresTheExactApprovedInstallation() throws {
+        let athena = "com.apple.Safari.WebApp." + UUID().uuidString
+        let otherInstallation = "com.apple.Safari.WebApp." + UUID().uuidString
+        let action = "shortcut.@\(athena):control+command+n"
+        let approved: Set<String> = [athena, otherInstallation, "com.apple.Safari"]
+        XCTAssertNotNil(CompanionKeyboardShortcut.installedWebAppShortcut(
+            action, frontmostBundleIdentifier: athena, approvedBundleIdentifiers: approved))
+        for frontmost in [otherInstallation, "com.apple.Safari", "com.example.Other"] {
+            XCTAssertNil(CompanionKeyboardShortcut.installedWebAppShortcut(
+                action, frontmostBundleIdentifier: frontmost, approvedBundleIdentifiers: approved))
+        }
+        XCTAssertNil(CompanionKeyboardShortcut.installedWebAppShortcut(
+            action, frontmostBundleIdentifier: athena, approvedBundleIdentifiers: [otherInstallation]))
+        XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: action))
+    }
+
     func testBooksExtendedShortcutsReplayOnlyTheirExactKeys() throws {
         let expected: [(String, CGKeyCode, CGEventFlags)] = [
             ("left", 123, []), ("right", 124, []), ("space", 49, []),

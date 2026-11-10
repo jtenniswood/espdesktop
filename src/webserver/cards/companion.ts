@@ -52,7 +52,6 @@ import {
     replaceCompanionDefinitions,
     finderFolderTabs,
     syncFinderFolderSelection,
-    addFinderFolderTiles,
     createCompanionShortcutSubpage,
     normalizeCompanionCardOptions,
     normalizeCompanionAppShortcutOptions,
@@ -988,7 +987,7 @@ export function registerCompanionCardTypes(
             shortcutFolderNote.className = "sp-field-info-text";
             const shortcutFolderApp = companionShortcutFolderAppLabel(card.entity);
             shortcutFolderNote.textContent = card.entity === "com.apple.finder"
-                ? "Enabling adds your configured Mac folders as tiles, as space allows. Existing tiles are kept."
+                ? "Folders approved on your Mac appear in free cells. Pin a folder to keep it on the board and edit its name or position."
                 : "Launch " + shortcutFolderApp +
                 ", then open an editable subpage. It starts with " + shortcutFolderApp + " keyboard shortcuts.";
             shortcutFolderField.appendChild(shortcutFolderNote);
@@ -1161,6 +1160,10 @@ export function registerCompanionCardTypes(
                 if (card.entity === "com.apple.finder" && companionAppShortcutFolderEnabled(card)) {
                     finderFolderList.replaceChildren();
                     const page = savedShortcutSubpage || createCompanionShortcutSubpage(card.entity);
+                    const heading = document.createElement("div");
+                    heading.className = "sp-field";
+                    heading.appendChild(helpers.fieldLabel("Pin Finder folders"));
+                    finderFolderList.appendChild(heading);
                     const definitions = [...folderActions];
                     for (const tile of page.buttons || []) {
                         if (tile.type === "companion" && tile.entity.startsWith(COMPANION_FOLDER_PREFIX) &&
@@ -1171,7 +1174,7 @@ export function registerCompanionCardTypes(
                     modalTabs.renderModalTabSettings(finderFolderList, card, helpers, {
                         definitions: () => definitions.map(folder => ({ value: folder.id, label: folder.label })),
                         tabs: (button: any) => button._finderFolderTabs ||
-                            (savedShortcutSubpage ? finderFolderTabs(page) : definitions.map(folder => folder.id)),
+                            finderFolderTabs(page),
                         normalizeOptions: (options: string) => options,
                         setTabs: (button: any, tabs: string[]) => {
                             if (!syncFinderFolderSelection(page, definitions, tabs, maxSlots, codec.buildSubpageGrid)) {
@@ -1188,7 +1191,7 @@ export function registerCompanionCardTypes(
                     if (card._appShortcutCapacityRejected) {
                         const note = document.createElement("div");
                         note.className = "sp-field-info-text sp-visible";
-                        note.textContent = "No free subpage space. Remove a tile or reduce its size before enabling another folder.";
+                        note.textContent = "No free subpage space. Remove a tile or reduce its size before pinning another folder.";
                         finderFolderList.appendChild(note);
                     }
                 }
@@ -1420,13 +1423,11 @@ export function registerCompanionCardTypes(
                     companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots));
             if (card.entity === "com.apple.finder") {
                 codec.buildSubpageGrid(subpage);
-                const folders = companionFolderActions(await loadCompanionActions(true));
                 if (Array.isArray(folderSelection)) {
+                    const folders = companionFolderActions(await loadCompanionActions(true));
                     const updated = syncFinderFolderSelection(subpage, folders, folderSelection, maxSlots, codec.buildSubpageGrid);
                     if (!updated) return "failed";
                     subpage = updated;
-                } else {
-                    addFinderFolderTiles(subpage, folders, maxSlots);
                 }
                 syncInheritedFinderOpenBehavior(subpage, finderOpenBehavior(card));
             }

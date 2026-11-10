@@ -57,7 +57,6 @@ import {
   SLACK_BUNDLE_ID,
   finderFolderTabs,
   syncFinderFolderSelection,
-  addFinderFolderTiles,
   inheritFinderOpenBehaviorForCard,
   setFinderOpenBehavior,
   createCompanionShortcutSubpage,
@@ -132,34 +131,30 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Saving Finder settings must preserve configured directory cards");
   }
   const folderTiles = [{ id: "folder.projects", label: "Projects renamed" }, { id: "folder.downloads", label: "Downloads" }];
-  addFinderFolderTiles(restoredPage, folderTiles, 4);
-  addFinderFolderTiles(restoredPage, folderTiles, 4);
-  if (restoredPage.buttons.length !== 2 || restoredPage.buttons[0].label !== "Projects" ||
-      restoredPage.buttons[1].entity !== "folder.downloads" || restoredPage.order.join() !== "B,1,2") {
-    throw new Error("Finder folder population must add missing folders once and preserve existing tiles");
-  }
-  const fullPage = createCompanionShortcutSubpage("com.apple.finder");
-  addFinderFolderTiles(fullPage, folderTiles, 2);
-  if (fullPage.buttons.length !== 1 || fullPage.order.length !== 2) {
-    throw new Error("Folder population must reserve Back and respect display capacity");
-  }
   const buildFinderGrid = (page: any) => Object.assign(page, buildSubpageGrid(page, 9, 3));
-  const selectionSource = createCompanionShortcutSubpage("com.apple.finder");
-  addFinderFolderTiles(selectionSource, folderTiles, 9);
-  buildFinderGrid(selectionSource);
-  const toggled = syncFinderFolderSelection(selectionSource, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
-  if (!toggled || finderFolderTabs(toggled).join() !== "folder.downloads" || toggled.buttons.length !== 2) {
-    throw new Error("Disabled folders must remain saved but absent from the visible grid");
+  const untouched = JSON.stringify(restoredPage);
+  const pinned = syncFinderFolderSelection(restoredPage, folderTiles,
+    ["folder.projects", "folder.downloads"], 9, buildFinderGrid);
+  if (!pinned || pinned.buttons.length !== 2 || pinned.buttons[0].label !== "Projects" ||
+      finderFolderTabs(pinned).join() !== "folder.projects,folder.downloads" || JSON.stringify(restoredPage) !== untouched) {
+    throw new Error("Pinning one live folder must preserve the saved layout and labels until the edit is saved");
   }
-  addFinderFolderTiles(toggled, folderTiles, 9);
-  buildFinderGrid(toggled);
-  if (finderFolderTabs(toggled).join() !== "folder.downloads") throw new Error("Auto population must respect disabled folders");
-  const reordered = syncFinderFolderSelection(toggled, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
-  if (finderFolderTabs(reordered).join() !== "folder.downloads,folder.projects") throw new Error("Folder toggles must apply their chosen order");
-  [reordered.grid[1], reordered.grid[2]] = [reordered.grid[2], reordered.grid[1]];
-  if (finderFolderTabs(reordered).join() !== "folder.projects,folder.downloads") throw new Error("Folder lists must follow tile moves");
-  const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
-  if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
+  const empty = createCompanionShortcutSubpage("com.apple.finder");
+  if (syncFinderFolderSelection(empty, folderTiles, folderTiles.map(folder => folder.id), 2, buildFinderGrid)) {
+    throw new Error("Pinning folders must reserve Back and respect display capacity");
+  }
+  const unpinned = syncFinderFolderSelection(pinned, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
+  if (!unpinned || finderFolderTabs(unpinned).join() !== "folder.downloads" || unpinned.grid[2] !== pinned.grid[2]) {
+    throw new Error("Unpinning a folder must leave other saved tiles in place");
+  }
+  const reconnected = syncFinderFolderSelection(unpinned, [], ["folder.downloads"], 9, buildFinderGrid);
+  if (!reconnected || finderFolderTabs(reconnected).join() !== "folder.downloads") {
+    throw new Error("Pinned folders must survive loss of the approved catalogue");
+  }
+  const restored = syncFinderFolderSelection(unpinned, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (restored.buttons[0].label !== "Projects" || finderFolderTabs(restored).length !== 2) {
+    throw new Error("Repinning a folder should recover its saved label");
+  }
   const companionModes = companionCardModeOptions();
   if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
