@@ -450,7 +450,7 @@ export function syncFinderFolderSelection(
     const sizes = { ...(page.sizes || {}) };
     const pinned = finderFolderTabs(page);
     const existing = pinned.filter(id => selected.includes(id));
-    const reordered = existing.some((id, index) => selected.filter(value => existing.includes(value))[index] !== id);
+    const reordered = existing.some((id, index) => selected[index] !== id);
     const suffixes = new Map<string, string>();
     page.order = (page.order || []).map((token: string) => {
         const index = Number.parseInt(String(token), 10) - 1;

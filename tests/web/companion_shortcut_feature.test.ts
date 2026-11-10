@@ -141,6 +141,11 @@ export function runCompanionShortcutFeatureTests(): void {
       finderFolderTabs(pinned).join() !== "folder.projects,folder.downloads" || JSON.stringify(restoredPage) !== untouched) {
     throw new Error("Pinning one live folder must preserve the saved layout and labels until the edit is saved");
   }
+  const reorderedPin = syncFinderFolderSelection(restoredPage, folderTiles,
+    ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (!reorderedPin || finderFolderTabs(reorderedPin).join() !== "folder.downloads,folder.projects") {
+    throw new Error("A new pin moved above an existing folder must keep the chosen order");
+  }
   const empty = createCompanionShortcutSubpage("com.apple.finder");
   if (syncFinderFolderSelection(empty, folderTiles, folderTiles.map(folder => folder.id), 2, buildFinderGrid)) {
     throw new Error("Pinning folders must reserve Back and respect display capacity");
