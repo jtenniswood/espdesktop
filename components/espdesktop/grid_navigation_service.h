@@ -20,6 +20,8 @@ class GridNavigationService {
  public:
   int layout_slots{0};
   int layout_columns{0};
+  int companion_subpage_slot{0};
+  int companion_return_slot{0};
   std::vector<HomeTarget> &home_targets() { return home_targets_; }
   const std::vector<HomeTarget> &home_targets() const { return home_targets_; }
 

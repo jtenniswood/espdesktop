@@ -398,12 +398,29 @@ inline NavigationSubpageEntry *navigation_find_slot(int slot) {
   return nullptr;
 }
 
-inline int navigation_active_subpage_slot() {
-  lv_obj_t *active = lv_scr_act();
+inline int navigation_subpage_slot_for_screen(lv_obj_t *screen) {
+  if (screen == nullptr) return 0;
   for (const auto &entry : navigation_subpages()) {
-    if (entry.screen == active) return entry.slot;
+    if (entry.screen == screen) return entry.slot;
   }
   return 0;
+}
+
+inline int navigation_active_subpage_slot() {
+  return navigation_subpage_slot_for_screen(lv_scr_act());
+}
+
+inline void navigation_show_companion_subpage(lv_obj_t *screen) {
+  lv_obj_t *active = lv_scr_act();
+  if (active == screen) return;
+  auto &navigation = grid_navigation_service();
+  const int active_slot = navigation_subpage_slot_for_screen(active);
+  // Keep the original page while following focus between app subpages.
+  if (active_slot == 0 || active_slot != navigation.companion_subpage_slot) {
+    navigation.companion_return_slot = active_slot;
+  }
+  navigation.companion_subpage_slot = navigation_subpage_slot_for_screen(screen);
+  lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
 }
 
 inline std::string navigation_active_subpage_label() {
@@ -476,7 +493,15 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
   // The following navigation check can load the destination directly. Loading
   // Home first runs its screen/icon refresh work before the new page can draw.
   if (navigation_companion_subpage_for_action(companion_pending_auto_subpage_action())) return false;
-  return entry->parent_slot > 0 ? navigation_restore_subpage_slot(entry->parent_slot) : navigation_return_home(main_page_obj);
+  auto &navigation = grid_navigation_service();
+  const int return_slot = navigation.companion_subpage_slot == slot
+    ? navigation.companion_return_slot : entry->parent_slot;
+  navigation.companion_subpage_slot = 0;
+  if (return_slot > 0 && navigation_restore_subpage_slot(return_slot)) {
+    navigation_hide_modals();
+    return true;
+  }
+  return navigation_return_home(main_page_obj);
 }
 
 inline bool navigation_open_companion_subpage_if_requested(
@@ -491,9 +516,7 @@ inline bool navigation_open_companion_subpage_if_requested(
   NavigationSubpageEntry *entry = navigation_companion_subpage_for_action(requested);
   if (entry == nullptr || !companion_consume_auto_subpage_action(requested)) return false;
   navigation_hide_modals();
-  if (lv_scr_act() != entry->screen) {
-    lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-  }
+  navigation_show_companion_subpage(entry->screen);
   return true;
 }
 
