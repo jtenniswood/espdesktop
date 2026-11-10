@@ -57,6 +57,8 @@ import {
   SLACK_BUNDLE_ID,
   finderFolderTabs,
   syncFinderFolderSelection,
+  reconnectAthenaShortcutSubpage,
+  COMPANION_SHORTCUT_APPS,
   inheritFinderOpenBehaviorForCard,
   setFinderOpenBehavior,
   createCompanionShortcutSubpage,
@@ -154,6 +156,26 @@ export function runCompanionShortcutFeatureTests(): void {
   const restored = syncFinderFolderSelection(unpinned, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
   if (restored.buttons[0].label !== "Projects" || finderFolderTabs(restored).length !== 2) {
     throw new Error("Repinning a folder should recover its saved label");
+  }
+  const previousAthena = "com.apple.Safari.WebApp.27234284-164C-41C9-97DD-7189CD41B456";
+  const replacementAthena = "com.apple.Safari.WebApp.0B4CC478-908F-49C5-B3B9-45EED7371A3A";
+  const athenaTemplate = COMPANION_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
+  if (!athenaTemplate) throw new Error("Expected the offered Athena template");
+  const savedAthena = { order: ["B", "", "1"], buttons: [{
+    label: "My New Chat", options: "app_shortcut_preset=" + previousAthena + ":100",
+  }] };
+  if (reconnectAthenaShortcutSubpage(savedAthena, replacementAthena)) {
+    throw new Error("A missing replacement must leave saved Athena cards untouched");
+  }
+  COMPANION_SHORTCUT_APPS.push({ ...athenaTemplate, appId: replacementAthena });
+  try {
+    if (!reconnectAthenaShortcutSubpage(savedAthena, replacementAthena) ||
+        savedAthena.order.join() !== "B,,1" || savedAthena.buttons[0]?.label !== "My New Chat" ||
+        configOptionValue(savedAthena.buttons[0].options, "app_shortcut_preset") !== replacementAthena + ":100") {
+      throw new Error("Choosing the replacement should change the target and keep the saved card layout");
+    }
+  } finally {
+    COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
   if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats" ||

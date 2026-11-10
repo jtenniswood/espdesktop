@@ -51,6 +51,7 @@ import {
     companionShortcutTabsFromSubpage,
     replaceCompanionDefinitions,
     finderFolderTabs,
+    reconnectAthenaShortcutSubpage,
     syncFinderFolderSelection,
     createCompanionShortcutSubpage,
     normalizeCompanionCardOptions,
@@ -1417,10 +1418,16 @@ export function registerCompanionCardTypes(
                 grid: (existing.grid || []).slice(),
                 sizes: { ...(existing.sizes || {}) },
             } : null;
-            let subpage = source && !appChanged
-                ? card.entity === "com.apple.finder" ? source : syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots)
-                : createCompanionShortcutSubpage(card.entity,
+            let subpage;
+            if (source && appChanged && reconnectAthenaShortcutSubpage(source, card.entity)) {
+                subpage = source;
+            } else if (source && !appChanged) {
+                subpage = card.entity === "com.apple.finder" ? source :
+                    syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots);
+            } else {
+                subpage = createCompanionShortcutSubpage(card.entity,
                     companionShortcutTabsForCapacity(companionShortcutTabs(card), maxSlots));
+            }
             if (card.entity === "com.apple.finder") {
                 codec.buildSubpageGrid(subpage);
                 if (Array.isArray(folderSelection)) {

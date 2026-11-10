@@ -361,6 +361,30 @@ function companionShortcutPresetIdentity(card: any, preserveUnavailableSafariPre
     return companionShortcutTabDefinitions(bundleIdentifier).some((item) => item.value === id) ? raw : "";
 }
 
+export function reconnectAthenaShortcutSubpage(
+    page: { buttons: { options: string }[] }, bundleIdentifier: string,
+): boolean {
+    const athena = BUNDLED_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
+    const target = COMPANION_SHORTCUT_APPS.find(app => app.appId === bundleIdentifier);
+    if (!SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier) || !athena || !target ||
+        !target.shortcuts.some(shortcut => athena.shortcuts.some(preset => preset.id === shortcut.id))) return false;
+
+    const preset = (card: { options: string }) => configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
+    const previous = page.buttons.map(preset).map(marker => marker.split(":")).find(([id, tab]) =>
+        id && SAFARI_WEB_APP_BUNDLE_ID.test(id) && athena.shortcuts.some(shortcut => shortcut.id === tab))?.[0];
+    if (!previous || previous === bundleIdentifier) return false;
+
+    const availableTabs = new Set(companionShortcutTabDefinitions(bundleIdentifier).map(tab => tab.value));
+    for (const card of page.buttons) {
+        const [id, tab] = preset(card).split(":");
+        if (id === previous && tab && availableTabs.has(tab)) {
+            card.options = setConfigOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION,
+                bundleIdentifier + ":" + tab);
+        }
+    }
+    return true;
+}
+
 export function safariShortcutPresetCards(): CompanionShortcutPresetCard[] {
     return companionShortcutPresetCards(SAFARI_BUNDLE_ID);
 }
