@@ -26,7 +26,7 @@ EspDesktop pairs one Mac with a [4-inch Guition 4848S040 touchscreen](/screens/4
 - [Launch apps and open websites](/mac-controls/apps).
 - [Open Finder folders](/mac-controls/folders) you’ve chosen in the Mac app.
 - [Run keyboard shortcuts](/mac-controls/shortcuts) from the touchscreen.
-- Lock your Mac with **Companion → Mac Lock**. You can customise its label, icon and colours in the card editor.
+- Lock your Mac with **Companion → Local Machine**. You can customise its label, icon and colours in the card editor.
 
 Keyboard shortcuts and Mac Lock need [Accessibility permission](/mac-controls/security).
 

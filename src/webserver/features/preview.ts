@@ -30,6 +30,7 @@ export interface CardTypeDefinition {
   readonly key?: string;
   readonly label?: string | (() => string);
   readonly pickerKey?: string | null | (() => string | null);
+  readonly pickerLabel?: string | (() => string);
   readonly allowInSubpage?: boolean | (() => boolean);
   readonly isAvailable?: ((context: { isSub: boolean }) => boolean) | null;
 }
@@ -269,7 +270,8 @@ export function cardTypePickerOptions(
     const rawDefinition = definition as Record<string, unknown>;
     const pickerKey = String(registryValue(rawDefinition, "pickerKey", ""));
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
-    const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
+    const defaultLabel = registryValue(rawDefinition, "label", definition.key || "Toggle");
+    const label = registryValue(rawDefinition, "pickerLabel", defaultLabel);
     const source = cardTypeConnector(typeKey);
     const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
       source === "home_assistant_or_local");
