@@ -31,6 +31,8 @@ An approved **Companion → Applications** card can offer an **App Subpage** whe
 
 Safari and websites installed using Safari's **Add to Dock** each offer an app subpage. Installed sites appear under their own app names in Companion. Their presets include **Copy Link** and **Toggle Toolbar**. The **Next Field** and **Escape** presets require updated display firmware and Mac Companion, and run while Safari or an installed Safari web app is active. Use **Escape** to leave Reader or full screen where Safari supports it.
 
+The **Athena** app subpage adds shortcuts for chat, search, the sidebar and conversation actions. Install Athena using Safari’s **Add to Dock**, then use matching versions of EspDesktop and the display firmware. The presets use Athena’s default Mac bindings. If you changed a binding in Athena, edit the matching tile to send your chosen keys.
+
 The **Claude Desktop** subpage includes presets for the **Code** tab, including numbered environments, sessions and menu items. Use the menu item tiles with a numbered composer menu open. The plain key presets, **Previous Area** and **Rewind Session** require updated display firmware and Mac Companion.
 
 The **Books** app subpage offers shortcuts for reading, library management and audiobooks. Page turns, full screen and audiobook play/pause require updated display firmware and a matching version of the Mac Companion.

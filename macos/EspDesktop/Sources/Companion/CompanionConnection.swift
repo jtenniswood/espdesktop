@@ -703,11 +703,11 @@ final class CompanionConnection: NSObject {
         capabilities.append("url_card_focus")
         sendJSON(["type": "capabilities", "values": capabilities])
         // The browser receives identifiers, never application paths or shell commands.
-        let catalogues = resources.remoteCompanionCatalogues()
+        let apps = resources.launchableApps()
         let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
-        } + resources.launchableApps().compactMap { app -> [String: String]? in
+        } + apps.compactMap { app -> [String: String]? in
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
         }
@@ -721,8 +721,8 @@ final class CompanionConnection: NSObject {
                       "page": page, "complete": page == pages.count - 1, "items": items])
         }
         if remoteCatalogueDefinitionsSupported {
-            let definitions = catalogues
-            let payloads: [(String, Data)] = definitions.applications.compactMap { app in
+            let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
+            let payloads: [(String, Data)] = definitions.compactMap { app in
                 guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
                 return ("application", data)
             }

@@ -117,6 +117,43 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         }
     }
 
+    @MainActor
+    func testAthenaTemplateUsesApprovedSafariInstallationIDs() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        func installedApp(id: String, manifestName: String, path: String) throws -> LaunchableApp {
+            let url = directory.appendingPathComponent(path + ".app")
+            let contents = url.appendingPathComponent("Contents")
+            try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
+            let plist: [String: Any] = [
+                "CFBundleIdentifier": id, "CFBundlePackageType": "AAPL",
+                "Manifest": ["name": manifestName],
+            ]
+            try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+                .write(to: contents.appendingPathComponent("Info.plist"))
+            return LaunchableApp(bundleIdentifier: id, name: path, url: url)
+        }
+
+        let athena = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
+                                      manifestName: "Athena for Hermes Agent", path: "Renamed App")
+        let other = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
+                                      manifestName: "Different Site", path: "Athena")
+        let native = try installedApp(id: "com.example.athena",
+                                       manifestName: "Athena for Hermes Agent", path: "Native App")
+        let suite = "AthenaCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let template = try XCTUnwrap(catalogue.applications.first { $0.label == "Athena" })
+        XCTAssertFalse(catalogue.applicationsForDisplay(approvedApps: [other, native]).contains { $0.label == "Athena" })
+        let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native])
+        XCTAssertEqual(resolved.filter { $0.label == "Athena" }.map(\.appId), [athena.bundleIdentifier])
+        XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.shortcuts, template.shortcuts)
+        XCTAssertTrue(resolved.contains { $0.appId == "com.apple.Safari.WebApp" })
+    }
+
     func testURLCardTargetsMatchFullConfiguredURLAndClearWhenUnavailable() throws {
         let target = try XCTUnwrap(URL(string: "https://example.com/docs?q=1#intro"))
         XCTAssertEqual(ActiveTabURLMatcher.matchingURLCardIDs(

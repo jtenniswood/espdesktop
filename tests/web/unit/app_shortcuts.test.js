@@ -45,6 +45,43 @@ test("Safari web apps use their own presets and keep their actual app identity",
   assert.deepEqual(api.companionShortcutPresetCards(installedId), webPresets);
 });
 
+test("Athena presets use the installed Safari web app ID and preserve existing tiles", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const safari = require("../../../product/v2/app_shortcuts/safari-web-app.json");
+  const athena = require("../../../product/v2/app_shortcuts/athena.json");
+  const appId = "com.apple.Safari.WebApp.12345678-1234-5678-1234-567812345678";
+  const otherAppId = "com.apple.Safari.WebApp.87654321-4321-8765-4321-876543218765";
+  const newChat = athena.shortcuts[0];
+  const copyLink = safari.shortcuts.find(item => item.label === "Copy Link");
+  const page = api.createCompanionShortcutSubpage(appId, [copyLink.id]);
+  page.buttons[0].label = "Saved Copy Link";
+  const custom = { ...page.buttons[0], entity: "shortcut.command+shift+f", label: "My Search", options: "" };
+  page.buttons.push(custom);
+  page.order.push("2");
+
+  const card = { type: "companion", entity: appId, sensor: "",
+    options: "app_shortcuts,app_shortcuts_tabs=" + newChat.id };
+  const savedTile = { ...page.buttons[0], entity: "shortcut.control+command+n",
+    options: "app_shortcut_preset=" + appId + "%3A" + newChat.id };
+  assert.equal(api.normalizeCompanionAppShortcutOptions(card), card.options);
+  assert.equal(api.normalizeCompanionAppShortcutOptions(savedTile), savedTile.options);
+
+  api.replaceCompanionDefinitions([safari, { ...athena, appId }]);
+  assert.equal(api.companionShortcutFolderAppLabel(appId), "Athena");
+  assert.equal(api.companionShortcutFolderAppLabel(otherAppId), "Safari Web App");
+  assert.deepEqual(api.companionShortcutTabs(card), [newChat.id]);
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, page), [copyLink.id]);
+
+  api.syncCompanionShortcutSubpage(appId, [copyLink.id, newChat.id], page);
+  assert.equal(page.buttons[0].label, "Saved Copy Link");
+  assert.equal(page.buttons[1], custom);
+  assert.equal(page.buttons[2].entity, "shortcut.control+command+n");
+  assert.equal(page.buttons[2].options, savedTile.options);
+  assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, page), [copyLink.id, newChat.id]);
+  assert.equal(api.companionShortcutPresetCards(appId).length, athena.shortcuts.length + 17);
+  assert.equal(api.companionShortcutPresetCards(otherAppId).length, 17);
+});
+
 test("ChatGPT Desktop uses the installed app identifier and keeps its numbered shortcuts distinct", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const app = require("../../../product/v2/app_shortcuts/codex.json");

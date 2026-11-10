@@ -1,0 +1,128 @@
+{
+  "version": 1,
+  "appId": "io.github.jtenniswood.athena",
+  "label": "Athena",
+  "catalog": false,
+  "shortcuts": [
+    {
+      "id": "100",
+      "label": "New Chat",
+      "shortcut": "control+command+n",
+      "icon": "Chat Plus"
+    },
+    {
+      "id": "101",
+      "label": "Search Chats",
+      "shortcut": "command+shift+f",
+      "icon": "Search"
+    },
+    {
+      "id": "102",
+      "label": "Command Menu",
+      "shortcut": "command+k",
+      "icon": "Shortcut Command"
+    },
+    {
+      "id": "103",
+      "label": "Sidebar",
+      "shortcut": "command+b",
+      "icon": "Dock Left"
+    },
+    {
+      "id": "104",
+      "label": "Model Picker",
+      "shortcut": "command+shift+m",
+      "icon": "Robot"
+    },
+    {
+      "id": "105",
+      "label": "Files",
+      "shortcut": "command+shift+e",
+      "icon": "File Tree"
+    },
+    {
+      "id": "106",
+      "label": "Review",
+      "shortcut": "command+shift+g",
+      "icon": "File Compare"
+    },
+    {
+      "id": "107",
+      "label": "Athena Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "108",
+      "label": "Keyboard Shortcuts",
+      "shortcut": "command+keyslash",
+      "icon": "Keyboard Settings"
+    },
+    {
+      "id": "109",
+      "label": "Rename Chat",
+      "shortcut": "command+shift+r",
+      "icon": "Rename"
+    },
+    {
+      "id": "110",
+      "label": "Update Title",
+      "shortcut": "command+shift+x",
+      "icon": "Refresh"
+    },
+    {
+      "id": "111",
+      "label": "Toggle Pin",
+      "shortcut": "command+shift+p",
+      "icon": "Pin"
+    },
+    {
+      "id": "112",
+      "label": "Toggle Unread",
+      "shortcut": "command+shift+u",
+      "icon": "Message Alert"
+    },
+    {
+      "id": "113",
+      "label": "Archive Chat",
+      "shortcut": "command+shift+a",
+      "icon": "Archive"
+    },
+    {
+      "id": "114",
+      "label": "Archived Chats",
+      "shortcut": "command+option+a",
+      "icon": "Archive"
+    },
+    {
+      "id": "115",
+      "label": "Mark All Read",
+      "shortcut": "command+option+r",
+      "icon": "Check"
+    },
+    {
+      "id": "116",
+      "label": "Delete Chat",
+      "shortcut": "command+shift+delete",
+      "icon": "Delete"
+    },
+    {
+      "id": "117",
+      "label": "Scale Up",
+      "shortcut": "command+keyequal",
+      "icon": "Zoom In"
+    },
+    {
+      "id": "118",
+      "label": "Scale Down",
+      "shortcut": "command+keyminus",
+      "icon": "Zoom Out"
+    },
+    {
+      "id": "119",
+      "label": "Reset Scale",
+      "shortcut": "command+0",
+      "icon": "Refresh"
+    }
+  ]
+}

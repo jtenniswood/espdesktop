@@ -9,7 +9,7 @@ struct RemoteShortcutDefinition: Codable, Sendable, Equatable {
 
 struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     let version: Int
-    let appId: String
+    var appId: String
     let label: String
     let catalog: Bool
     let shortcuts: [RemoteShortcutDefinition]
@@ -61,6 +61,25 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     let applications: [RemoteMacApplicationDefinition]
 
     static let empty = RemoteCompanionCatalogues(version: 1, applications: [])
+
+    func applicationsForDisplay(approvedApps: [LaunchableApp]) -> [RemoteMacApplicationDefinition] {
+        let athenaTemplateID = "io.github.jtenniswood.athena"
+        guard let template = applications.first(where: { $0.appId == athenaTemplateID }) else { return applications }
+        let existingIDs = Set(applications.map(\.appId))
+        let installedTemplates = approvedApps.compactMap { app -> RemoteMacApplicationDefinition? in
+            // Safari generates a different bundle ID for each installation. Match
+            // Athena by its web manifest so renamed Dock icons still work.
+            let id = app.bundleIdentifier
+            guard !existingIDs.contains(id), id != "com.apple.Safari",
+                  CompanionKeyboardShortcut.isSafariApplication(id),
+                  let manifest = Bundle(url: app.url)?.object(forInfoDictionaryKey: "Manifest") as? [String: Any],
+                  manifest["name"] as? String == "Athena for Hermes Agent" else { return nil }
+            var installed = template
+            installed.appId = id
+            return installed
+        }
+        return applications.filter { $0.appId != athenaTemplateID } + installedTemplates
+    }
 
     static func decode(
         nativeManifest: Data,

@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 17,
+  "catalogueVersion": 18,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -35,6 +35,9 @@
     },
     {
       "path": "arc.json"
+    },
+    {
+      "path": "athena.json"
     },
     {
       "path": "audacity.json"

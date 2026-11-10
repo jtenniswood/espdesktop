@@ -33,6 +33,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.seriflabs.affinitypublisher2") return "Affinity Publisher";
   if (app == "com.runningwithcrayons.Alfred") return "Alfred";
   if (app == "company.thebrowser.Browser") return "Arc";
+  if (app == "io.github.jtenniswood.athena") return "Athena";
   if (app == "org.audacityteam.audacity") return "Audacity";
   if (app == "com.bambulab.bambu-studio") return "BambuStudio";
   if (app == "net.shinyfrog.bear") return "Bear";
@@ -115,6 +116,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.seriflabs.affinitypublisher2") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.runningwithcrayons.Alfred") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
   if (app == "company.thebrowser.Browser") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
+  if (app == "io.github.jtenniswood.athena") return id == "100" || id == "101" || id == "102" || id == "103" || id == "104" || id == "105" || id == "106" || id == "107" || id == "108" || id == "109" || id == "110" || id == "111" || id == "112" || id == "113" || id == "114" || id == "115" || id == "116" || id == "117" || id == "118" || id == "119";
   if (app == "org.audacityteam.audacity") return id == "0" || id == "1";
   if (app == "com.bambulab.bambu-studio") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "net.shinyfrog.bear") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
