@@ -107,11 +107,22 @@ embeds the offline editor from the same verified web artifact that Pages
 receives. Its SHA-256 is checked before compilation. Generated source
 and build caches are not assets.
 
-The workflow verifies every manifest, embedded version, expected filename,
-checksum, byte size, and the final remote asset inventory while the release is
-still private. Publication occurs only after the complete remote inventory
-matches the verified local distribution. Any build, upload, or verification
-failure leaves the release as a draft.
+**Build Release** makes the firmware and notarized Mac app available as
+workflow artifacts. Its summary gives the candidate run ID and the fingerprint
+of the manifest that records their file hashes and pins the release manifest
+that identifies the hosted editor.
+
+Test those files together on a Guition 4848S040. Start with a paired display
+and an existing layout. Install the candidate firmware and Mac app, confirm
+the Mac reconnects, and run a nested shortcut. Keep the panel on the local
+network, disconnect internet access, edit the layout in the embedded editor,
+and check that the edit survives a reboot.
+
+Dispatch **Publish Release** from the same tag with the candidate run ID,
+fingerprint, and confirmed hardware result. It downloads the tested artifacts
+and verifies their provenance, filenames, hashes, sizes, and remote inventory
+before publishing. Pages deploys the editor from that successful publish run.
+Failures leave the release as a draft.
 
 Current generated-output ownership is listed in
 [Source of Truth Contract](source-of-truth.md); upgrade-sensitive public names

@@ -37,7 +37,8 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
     if not re.fullmatch(r'v?\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?', version):
         raise ValueError('A semantic release version is required')
     contract = compatibility(root)
-    provenance = json.loads((firmware_dir / 'release-manifest.json').read_text())
+    provenance_bytes = (firmware_dir / 'release-manifest.json').read_bytes()
+    provenance = json.loads(provenance_bytes)
     if provenance.get('sourceRevision') != source_revision or provenance.get('releaseVersion') != version:
         raise ValueError('Firmware release provenance does not match the Companion release')
     artifacts = {}
@@ -52,11 +53,14 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
         path = matches[0]
         artifacts[path.name] = {'sha256': digest(path), 'bytes': path.stat().st_size}
     return {**contract, 'sourceRevision': source_revision, 'releaseVersion': version,
+            'firmwareManifestSha256': hashlib.sha256(provenance_bytes).hexdigest(),
             'artifacts': artifacts,
             'validation': {'automated': 'release workflow checks', 'physicalDeviceTesting': 'not asserted'}}
 
 
-def verify(path, firmware_dir, companion_dir, source_revision, version, root=ROOT):
+def verify(path, firmware_dir, companion_dir, source_revision, version, root=ROOT, *, tested_fingerprint=None):
+    if tested_fingerprint is not None and digest(path) != tested_fingerprint:
+        raise ValueError('Candidate fingerprint does not match the hardware-tested build')
     expected = manifest(firmware_dir, companion_dir, source_revision, version, root)
     if json.loads(path.read_text()) != expected:
         raise ValueError('Companion compatibility manifest or release artifacts do not match')
@@ -70,11 +74,15 @@ def main():
     parser.add_argument('--source-revision', required=True)
     parser.add_argument('--version', required=True)
     parser.add_argument('--out', type=Path, required=True)
+    parser.add_argument('--tested-fingerprint', help='SHA-256 from the hardware-tested candidate')
     args = parser.parse_args()
     if args.command == 'create':
+        if args.tested_fingerprint is not None:
+            parser.error('--tested-fingerprint requires verify')
         args.out.write_text(json.dumps(manifest(args.firmware_dir, args.companion_dir, args.source_revision, args.version), indent=2) + '\n')
     else:
-        verify(args.out, args.firmware_dir, args.companion_dir, args.source_revision, args.version)
+        verify(args.out, args.firmware_dir, args.companion_dir, args.source_revision, args.version,
+               tested_fingerprint=args.tested_fingerprint)
 
 
 if __name__ == '__main__':

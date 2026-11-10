@@ -1,0 +1,147 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing draft release tag from Build Release
+        required: true
+        type: string
+      candidate_run:
+        description: Successful Build Release run ID for the firmware and Mac app tested together
+        required: true
+        type: string
+      tested_fingerprint:
+        description: Candidate fingerprint from the tested build run summary
+        required: true
+        type: string
+      hardware_passed:
+        description: The Guition 4848S040 passed the pairing, shortcut, offline editor and reboot checks
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  actions: read
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+defaults:
+  run:
+    shell: bash
+
+concurrency:
+  group: release-${{ inputs.release_tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish Tested Draft
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: ${{ inputs.release_tag }}
+
+      - name: Verify the build run and hardware confirmation
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          CANDIDATE_RUN: ${{ inputs.candidate_run }}
+          HARDWARE_PASSED: ${{ inputs.hardware_passed }}
+        run: |
+          if [[ "${HARDWARE_PASSED}" != true ]]; then
+            echo "::error::The 4848S040 hardware checks must pass before publishing"
+            exit 1
+          fi
+          if [[ "${GITHUB_REF}" != "refs/tags/${RELEASE_TAG}" || ! "${CANDIDATE_RUN}" =~ ^[1-9][0-9]*$ ]]; then
+            echo "::error::Dispatch this workflow from the release tag with a Build Release run ID"
+            exit 1
+          fi
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          WORKFLOW_ID="$(gh api "repos/${GITHUB_REPOSITORY}/actions/workflows/release.yml" --jq .id)"
+          gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${CANDIDATE_RUN}" | jq -e \
+            --argjson workflow "${WORKFLOW_ID}" --arg source "${SOURCE_SHA}" \
+            '.workflow_id == $workflow and .head_sha == $source and .event == "workflow_dispatch" and .conclusion == "success"' \
+            >/dev/null
+          echo "SOURCE_SHA=${SOURCE_SHA}" >> "${GITHUB_ENV}"
+
+      - name: Download tested release distribution
+        uses: actions/download-artifact@v8
+        with:
+          name: release-dist
+          path: dist
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.candidate_run }}
+
+      - name: Download tested notarized EspDesktop release
+        uses: actions/download-artifact@v8
+        with:
+          name: espdesktop-app-release
+          path: dist/companion
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.candidate_run }}
+
+      - name: Download the tested candidate manifest
+        uses: actions/download-artifact@v8
+        with:
+          name: release-candidate-compatibility
+          path: dist/companion
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ inputs.candidate_run }}
+
+      - name: Verify that the files match the tested candidate
+        env:
+          RELEASE_TAG: ${{ inputs.release_tag }}
+          TESTED_FINGERPRINT: ${{ inputs.tested_fingerprint }}
+          CANDIDATE_RUN: ${{ inputs.candidate_run }}
+        run: |
+          python3 scripts/companion_release.py verify \
+            --firmware-dir dist/firmware --companion-dir dist/companion \
+            --source-revision "${SOURCE_SHA}" \
+            --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json \
+            --tested-fingerprint "${TESTED_FINGERPRINT}"
+          {
+            printf '\n## Device verification\n\n'
+            printf '%s\n' 'The Guition 4848S040 passed the paired Mac, nested shortcut, offline editor, and reboot checks.'
+            printf 'Tested [build run %s](%s/%s/actions/runs/%s) with fingerprint `%s`.\n' \
+              "${CANDIDATE_RUN}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${CANDIDATE_RUN}" "${TESTED_FINGERPRINT}"
+          } >> dist/release-notes.md
+
+      - name: Make the tested editor available to Pages
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-web-assets
+          path: dist/release-web-assets
+          if-no-files-found: error
+          overwrite: true
+
+      - name: Upload, verify, and publish draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release_tag }}
+        run: |
+          mapfile -t DEVICE_SLUGS < <(python3 scripts/device_matrix.py release | jq -r '.include[].slug')
+          mapfile -t RECOVERY_SLUGS < <(python3 scripts/device_matrix.py release | jq -r '.include[] | select(.recovery) | .slug')
+          COMPANION_ZIP="$(find dist/companion -maxdepth 1 -type f -name '*.zip' -print -quit)"
+          COMPANION_DMG="$(find dist/companion -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          PROTOCOL_VERSION="$(python3 -c 'import json; print(json.load(open("product/v2/companion_capabilities.json"))["protocol"]["version"])')"
+          COMPANION_FEED="dist/companion/companion-appcast-v${PROTOCOL_VERSION}.xml"
+          test -s "${COMPANION_ZIP}" && test -s "${COMPANION_DMG}" && test -s "${COMPANION_FEED}"
+          python3 scripts/firmware_release.py publish-draft \
+            --version "${RELEASE_TAG}" \
+            --dir dist/firmware \
+            --slugs "${DEVICE_SLUGS[@]}" \
+            --recovery-slugs "${RECOVERY_SLUGS[@]}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --notes dist/release-notes.md \
+            --source-revision "${SOURCE_SHA}" \
+            --release-contract product/release_contract.json \
+            --web-manifest dist/release-web-assets/web-assets.json \
+            --web-root dist/release-web-assets \
+            --additional-files "${COMPANION_ZIP}" "${COMPANION_DMG}" "${COMPANION_FEED}" dist/companion/companion-compatibility.json
