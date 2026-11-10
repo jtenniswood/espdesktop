@@ -63,7 +63,7 @@ function mediaPreviewFixtures(homeAssistantSupported = true) {
           layout: { config: { disabledCardTypes: [], infoOnly: false } }, cards: registry,
           confirmationOptions: { cardOnPattern() { return "solid"; } }, codec: { getSubpage() { return {}; } },
           runtime: { els: { previewMain: main } }, screenRotation: { gridPreviewBlocked() { return false; } },
-          shell: { isConfigLocked() { return false; } },
+          shell: { isPreviewReadOnly() { return false; } },
           grid: { ctx() { return { grid: [1], buttons: [button], maxSlots: 1, sizes: {}, selected: [], isSub: subpage }; }, resolveIcon() { return "music"; }, sizeClass() { return ""; } },
           selection: { renderSelectionBar() {}, updatePreviewHint() {} },
           homeAssistantSupported: () => homeAssistantSupported,
