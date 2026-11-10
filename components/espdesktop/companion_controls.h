@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "app_shortcuts_generated.h"
 #include "companion_capabilities_generated.h"
 #include "companion_runtime_access.h"
 #ifdef USE_COMPANION
@@ -1044,12 +1045,31 @@ inline bool invoke_companion_action(const std::string &action_id,
   return companion_action_sender()(action_id, request_id, folder_open_behavior);
 }
 
+inline std::string companion_athena_shortcut_target(const std::string &preset) {
+  constexpr auto prefix = "com.apple.Safari.WebApp.";
+  const auto separator = preset.find(':');
+  if (preset.rfind(prefix, 0) != 0 || separator == std::string::npos ||
+      !companion_shortcut_catalog::has_shortcut("io.github.jtenniswood.athena", preset.substr(separator + 1)))
+    return {};
+  return preset.substr(0, separator);
+}
+
 inline bool invoke_companion_action_for_app(const std::string &action_id,
                                              const std::string &request_id,
                                              const std::string &required_focus_id,
-                                             const std::string &folder_open_behavior = "new_window") {
+                                             const std::string &folder_open_behavior = "new_window",
+                                             const std::string &athena_target = {}) {
   // Never use the early visual highlight to authorize app-specific keys.
   if (!required_focus_id.empty() && !companion_action_focused(required_focus_id)) return false;
+  if (!athena_target.empty()) {
+    if ((!required_focus_id.empty() && required_focus_id != athena_target) ||
+        !companion_action_focused(athena_target) || !companion_shortcut_action_valid(action_id) ||
+        !companion_action_available(action_id) || !companion_action_sender()) return false;
+    // The Mac must confirm the same installation is still frontmost when the
+    // command arrives. Older Macs reject this as an unrecognized shortcut.
+    return companion_action_sender()("shortcut.@" + athena_target + ":" + action_id.substr(9),
+                                    request_id, folder_open_behavior);
+  }
   return invoke_companion_action(action_id, request_id, folder_open_behavior);
 }
 

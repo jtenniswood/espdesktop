@@ -57,7 +57,8 @@ import {
   SLACK_BUNDLE_ID,
   finderFolderTabs,
   syncFinderFolderSelection,
-  addFinderFolderTiles,
+  reconnectAthenaShortcutSubpage,
+  COMPANION_SHORTCUT_APPS,
   inheritFinderOpenBehaviorForCard,
   setFinderOpenBehavior,
   createCompanionShortcutSubpage,
@@ -132,34 +133,70 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Saving Finder settings must preserve configured directory cards");
   }
   const folderTiles = [{ id: "folder.projects", label: "Projects renamed" }, { id: "folder.downloads", label: "Downloads" }];
-  addFinderFolderTiles(restoredPage, folderTiles, 4);
-  addFinderFolderTiles(restoredPage, folderTiles, 4);
-  if (restoredPage.buttons.length !== 2 || restoredPage.buttons[0].label !== "Projects" ||
-      restoredPage.buttons[1].entity !== "folder.downloads" || restoredPage.order.join() !== "B,1,2") {
-    throw new Error("Finder folder population must add missing folders once and preserve existing tiles");
-  }
-  const fullPage = createCompanionShortcutSubpage("com.apple.finder");
-  addFinderFolderTiles(fullPage, folderTiles, 2);
-  if (fullPage.buttons.length !== 1 || fullPage.order.length !== 2) {
-    throw new Error("Folder population must reserve Back and respect display capacity");
-  }
   const buildFinderGrid = (page: any) => Object.assign(page, buildSubpageGrid(page, 9, 3));
-  const selectionSource = createCompanionShortcutSubpage("com.apple.finder");
-  addFinderFolderTiles(selectionSource, folderTiles, 9);
-  buildFinderGrid(selectionSource);
-  const toggled = syncFinderFolderSelection(selectionSource, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
-  if (!toggled || finderFolderTabs(toggled).join() !== "folder.downloads" || toggled.buttons.length !== 2) {
-    throw new Error("Disabled folders must remain saved but absent from the visible grid");
+  const untouched = JSON.stringify(restoredPage);
+  const pinned = syncFinderFolderSelection(restoredPage, folderTiles,
+    ["folder.projects", "folder.downloads"], 9, buildFinderGrid);
+  if (!pinned || pinned.buttons.length !== 2 || pinned.buttons[0].label !== "Projects" ||
+      finderFolderTabs(pinned).join() !== "folder.projects,folder.downloads" || JSON.stringify(restoredPage) !== untouched) {
+    throw new Error("Pinning one live folder must preserve the saved layout and labels until the edit is saved");
   }
-  addFinderFolderTiles(toggled, folderTiles, 9);
-  buildFinderGrid(toggled);
-  if (finderFolderTabs(toggled).join() !== "folder.downloads") throw new Error("Auto population must respect disabled folders");
-  const reordered = syncFinderFolderSelection(toggled, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
-  if (finderFolderTabs(reordered).join() !== "folder.downloads,folder.projects") throw new Error("Folder toggles must apply their chosen order");
-  [reordered.grid[1], reordered.grid[2]] = [reordered.grid[2], reordered.grid[1]];
-  if (finderFolderTabs(reordered).join() !== "folder.projects,folder.downloads") throw new Error("Folder lists must follow tile moves");
-  const allOff = syncFinderFolderSelection(reordered, folderTiles, [], 9, buildFinderGrid);
-  if (!allOff || finderFolderTabs(allOff).length || allOff.buttons.length !== 2) throw new Error("All folders may be disabled without losing their definitions");
+  const reorderedPin = syncFinderFolderSelection(restoredPage, folderTiles,
+    ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (!reorderedPin || finderFolderTabs(reorderedPin).join() !== "folder.downloads,folder.projects") {
+    throw new Error("A new pin moved above an existing folder must keep the chosen order");
+  }
+  const empty = createCompanionShortcutSubpage("com.apple.finder");
+  if (syncFinderFolderSelection(empty, folderTiles, folderTiles.map(folder => folder.id), 2, buildFinderGrid)) {
+    throw new Error("Pinning folders must reserve Back and respect display capacity");
+  }
+  const unpinned = syncFinderFolderSelection(pinned, folderTiles, ["folder.downloads"], 9, buildFinderGrid);
+  if (!unpinned || finderFolderTabs(unpinned).join() !== "folder.downloads" || unpinned.grid[2] !== pinned.grid[2]) {
+    throw new Error("Unpinning a folder must leave other saved tiles in place");
+  }
+  const reconnected = syncFinderFolderSelection(unpinned, [], ["folder.downloads"], 9, buildFinderGrid);
+  if (!reconnected || finderFolderTabs(reconnected).join() !== "folder.downloads") {
+    throw new Error("Pinned folders must survive loss of the approved catalogue");
+  }
+  const restored = syncFinderFolderSelection(unpinned, folderTiles, ["folder.downloads", "folder.projects"], 9, buildFinderGrid);
+  if (restored.buttons[0].label !== "Projects" || finderFolderTabs(restored).length !== 2) {
+    throw new Error("Repinning a folder should recover its saved label");
+  }
+  const previousAthena = "com.apple.Safari.WebApp.27234284-164C-41C9-97DD-7189CD41B456";
+  const replacementAthena = "com.apple.Safari.WebApp.0B4CC478-908F-49C5-B3B9-45EED7371A3A";
+  const athenaTemplate = COMPANION_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
+  if (!athenaTemplate) throw new Error("Expected the offered Athena template");
+  const savedAthena = { order: ["B", "", "1"], buttons: [{
+    ...emptyCardConfig("companion"), entity: "shortcut.control+command+n",
+    label: "My New Chat", options: "app_shortcut_preset=" + previousAthena + ":100",
+  }] };
+  if (reconnectAthenaShortcutSubpage(savedAthena, previousAthena, replacementAthena)) {
+    throw new Error("A missing replacement must leave saved Athena cards untouched");
+  }
+  COMPANION_SHORTCUT_APPS.push({ ...athenaTemplate, appId: replacementAthena });
+  try {
+    const reconnected = reconnectAthenaShortcutSubpage(savedAthena, previousAthena, replacementAthena);
+    if (!reconnected || reconnected.order.join() !== "B,,1" || reconnected.buttons[0]?.label !== "My New Chat" ||
+        configOptionValue(reconnected.buttons[0].options, "app_shortcut_preset") !== replacementAthena + ":100" ||
+        reconnectAthenaShortcutSubpage(savedAthena, "com.apple.finder", replacementAthena)) {
+      throw new Error("Choosing a replacement for the original Athena card should preserve its saved layout");
+    }
+    const fullAthena = { order: ["B", "1", "2"], buttons: [...savedAthena.buttons, {
+      ...emptyCardConfig("companion"), entity: "shortcut.command+shift+f",
+      label: "Search Chats", options: "app_shortcut_preset=" + previousAthena + ":101",
+    }] };
+    const fullReconnected = reconnectAthenaShortcutSubpage(fullAthena, previousAthena, replacementAthena);
+    if (!fullReconnected || !companionShortcutTabsFitSubpage(replacementAthena, ["101"], fullReconnected, 3) ||
+        companionShortcutTabsFitSubpage(replacementAthena, ["101"], fullAthena, 3)) {
+      throw new Error("Capacity checks must use the reconnected page when a full Athena subpage is edited");
+    }
+    const updated = syncCompanionShortcutSubpage(replacementAthena, ["101"], reconnected);
+    if (companionShortcutTabsFromSubpage(replacementAthena, updated).join() !== "101") {
+      throw new Error("Shortcut selection edits in the same save must apply to the reconnected page");
+    }
+  } finally {
+    COMPANION_SHORTCUT_APPS.pop();
+  }
   const companionModes = companionCardModeOptions();
   if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||

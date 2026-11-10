@@ -14,6 +14,7 @@
 #include "page_store_runtime.h"
 #include "panel_config_document.h"
 #include "panel_config_document_v2.h"
+#include "screen_schedule_preferences.h"
 
 
 namespace espdesktop {
@@ -24,6 +25,10 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
   struct Snapshot : GridNativePages {
     std::optional<bool> app_subpage_preference;
     std::optional<ThemeSettings> theme_preferences;
+    std::string accent;
+    std::string schedule_record;
+    std::optional<ScreenSchedulePreferences> schedule;
+    bool refresh_layout{true};
   };
   class Resources final : public pages::PageRuntimeResources {
   public:
@@ -59,11 +64,13 @@ public:
       configuration::ConfigurationBuffer::Release release,
       std::function<void()> refresh_layout = {},
       std::function<void(bool)> publish_app_subpage_preference = {},
-      std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {})
+      std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {},
+      std::function<void(const ScreenSchedulePreferences &)> publish_schedule = {})
       : limits_(limits), allocate_(allocate), release_(release),
         refresh_layout_(std::move(refresh_layout)),
         publish_app_subpage_preference_(std::move(publish_app_subpage_preference)),
         publish_theme_preferences_(std::move(publish_theme_preferences)),
+        publish_schedule_(std::move(publish_schedule)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
   bool ready() const override { return !stopped_; }
   bool maintenance_ready() const override { return ready(); }
@@ -96,6 +103,27 @@ private:
     if (!page->parent) return owner->slot;
     const auto parent = key(store, page->parent);
     return parent > 0 && parent <= 32 ? 32 + (parent - 1) * 32 + owner->slot : -1;
+  }
+  // Compare before activation, while both arenas are still available.
+  // String identities are local to each arena, so compare their contents.
+  static bool same_layout(const Store &before, const Store &after) {
+    if (before.page_count() != after.page_count() || before.card_count() != after.card_count()) return false;
+    for (pages::PageId id = 0; id < after.page_count(); ++id) {
+      const auto &left = *before.page(id);
+      const auto &right = *after.page(id);
+      if (left.parent != right.parent || left.owner != right.owner ||
+          left.first_card != right.first_card || left.card_count != right.card_count ||
+          left.navigable != right.navigable || left.runtime_card_mask != right.runtime_card_mask ||
+          before.string(left.order) != after.string(right.order)) return false;
+    }
+    for (pages::CardId id = 0; id < after.card_count(); ++id) {
+      const auto &left = *before.card(id);
+      const auto &right = *after.card(id);
+      if (left.slot != right.slot || left.target != right.target) return false;
+      for (size_t index = 0; index < left.fields.size(); ++index)
+        if (before.string(left.fields[index]) != after.string(right.fields[index])) return false;
+    }
+    return true;
   }
   bool prepare_snapshot(const Store &store) {
     capacity_exceeded_ = false;
@@ -149,12 +177,18 @@ private:
       staged_->pages.push_back(std::move(next));
     }
     auto setting = [&](std::string_view name, std::string_view value) {
-      if (name == "companion_auto_open_app_subpages") {
+      if (name == "button_on_color") {
+        staged_->accent = value;
+      } else if (name == "companion_auto_open_app_subpages") {
         if (value != "0" && value != "1") return false;
         staged_->app_subpage_preference = value == "1";
       } else if (name == DISPLAY_THEME_PREFERENCES_KEY) {
         staged_->theme_preferences = parse_display_theme_preferences(value);
         if (!staged_->theme_preferences) return false;
+      } else if (name == SCREEN_SCHEDULE_PREFERENCES_KEY) {
+        staged_->schedule = parse_screen_schedule_preferences(value);
+        if (!staged_->schedule) return false;
+        staged_->schedule_record = value;
       }
       return true;
     };
@@ -181,10 +215,14 @@ private:
             !setting(reader.string(record.id), reader.string(record.first))) return false;
       }
     }
+    staged_->refresh_layout = !active_ || active_->accent != staged_->accent ||
+        !same_layout(*active_->store, store);
     return true;
   }
 
   void activate_snapshot(const Store &store) {
+    const bool schedule_changed = staged_->schedule &&
+        (!active_ || active_->schedule_record != staged_->schedule_record);
     active_ = std::move(staged_);
     active_->store = &store;
     grid_native_pages() = active_.get();
@@ -193,7 +231,8 @@ private:
     if (active_->app_subpage_preference && publish_app_subpage_preference_)
       publish_app_subpage_preference_(*active_->app_subpage_preference);
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
-    if (refresh_layout_) refresh_layout_();
+    if (schedule_changed && publish_schedule_) publish_schedule_(*active_->schedule);
+    if (active_->refresh_layout && refresh_layout_) refresh_layout_();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
   const DeviceUiLimits &limits_;
@@ -202,6 +241,7 @@ private:
   std::function<void()> refresh_layout_;
   std::function<void(bool)> publish_app_subpage_preference_;
   std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences_;
+  std::function<void(const ScreenSchedulePreferences &)> publish_schedule_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;

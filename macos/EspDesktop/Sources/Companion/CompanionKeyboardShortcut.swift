@@ -49,6 +49,7 @@ final class CompanionAccessibilityAuthorizer {
 
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
+    static let installedWebAppActionPrefix = "shortcut.@"
     static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
     private static let claudeEscapeShortcut = "claude-escape"
     static let claudeRewindShortcut = "escape-twice"
@@ -76,6 +77,19 @@ struct CompanionKeyboardShortcut {
         if appId == safariBundleIdentifier { return true }
         let prefix = safariWebAppTemplate + "."
         return appId.hasPrefix(prefix) && UUID(uuidString: String(appId.dropFirst(prefix.count))) != nil
+    }
+
+    static func installedWebAppShortcut(
+        _ actionIdentifier: String, frontmostBundleIdentifier: String?,
+        approvedBundleIdentifiers: Set<String>
+    ) -> Self? {
+        guard actionIdentifier.hasPrefix(installedWebAppActionPrefix) else { return nil }
+        let parts = actionIdentifier.dropFirst(installedWebAppActionPrefix.count)
+            .split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+        guard parts.count == 2, let bundleIdentifier = frontmostBundleIdentifier,
+              parts[0] == bundleIdentifier, !isSafariTemplate(bundleIdentifier),
+              isSafariApplication(bundleIdentifier), approvedBundleIdentifiers.contains(bundleIdentifier) else { return nil }
+        return Self(actionIdentifier: actionPrefix + parts[1])
     }
 
     static let booksBundleIdentifier = "com.apple.iBooksX"

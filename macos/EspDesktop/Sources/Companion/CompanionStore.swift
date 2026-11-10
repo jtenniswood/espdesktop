@@ -844,6 +844,21 @@ final class CompanionStore: NSObject, ObservableObject {
         guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) else {
             return await launch(bundleIdentifier: actionIdentifier)
         }
+        if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.installedWebAppActionPrefix) {
+            guard let application = NSWorkspace.shared.frontmostApplication,
+                  let shortcut = CompanionKeyboardShortcut.installedWebAppShortcut(
+                    actionIdentifier, frontmostBundleIdentifier: application.bundleIdentifier,
+                    approvedBundleIdentifiers: approvedApplicationIdentifiers
+                  ) else {
+                updateStatus("Bring the approved Safari web app for this shortcut to the front")
+                return false
+            }
+            guard shortcut.replay(to: application.processIdentifier) else {
+                updateStatus("Allow EspDesktop in Privacy & Security → Accessibility")
+                return false
+            }
+            return true
+        }
         guard let shortcut = CompanionKeyboardShortcut(actionIdentifier: actionIdentifier) else {
             updateStatus("Blocked an invalid keyboard shortcut")
             return false
