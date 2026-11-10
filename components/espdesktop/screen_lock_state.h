@@ -20,8 +20,9 @@ inline std::optional<bool> &screen_lock_mac_display_awake() {
   return awake;
 }
 
-inline bool screen_lock_keeps_display_on(bool display_off) {
-  return display_off && screen_lock_enabled() && screen_lock_mac_display_awake().value_or(false);
+inline bool screen_lock_follows_display_power(bool display_off, bool connected) {
+  const auto awake = screen_lock_mac_display_awake();
+  return display_off && screen_lock_enabled() && awake.has_value() && (connected || !*awake);
 }
 
 using ScreenLockChangedHandler = std::function<void(bool)>;

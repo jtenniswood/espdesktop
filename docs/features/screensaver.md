@@ -59,4 +59,4 @@ Home Assistant wake automations are retired with the integration. Use the touchs
 
 The [screen schedule](/features/screen-schedule) is separate from the screensaver. Use it when you want the panel to be fully dark, dimmed, or showing a clock overnight.
 
-Time-based Night Schedule has priority over the screensaver during night time. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled; choose Time to set local hours.
+Time-based Night Schedule usually has priority over the screensaver. With **App Connection → Display Off**, a locked Mac whose displays are asleep turns the panel off even during Night Schedule. When the Mac display wakes, the panel resumes its scheduled behavior. Touch wake uses the temporary wake settings from the screen schedule. Saved sensor-based Night Schedules become Disabled. Choose Time to set local hours.

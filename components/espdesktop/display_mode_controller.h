@@ -24,6 +24,7 @@ enum class DisplayRequestSource : uint8_t {
   MANUAL_SLEEP,
   SETUP_TIMEOUT,
   USER_WAKE,
+  MAC_DISPLAY_SLEEP,
 };
 
 enum class DisplayTakeoverKind : uint8_t {
@@ -134,6 +135,7 @@ class DisplayModeController {
     }
 
     if (apply_source(DisplayRequestSource::MANUAL_SLEEP, result)) return result;
+    if (apply_source(DisplayRequestSource::MAC_DISPLAY_SLEEP, result)) return result;
     if (apply_source(DisplayRequestSource::USER_WAKE, result)) return result;
     if (apply_source(DisplayRequestSource::BOOT_GUARD, result)) return result;
     if (apply_source(DisplayRequestSource::SCREEN_SCHEDULE, result)) return result;
@@ -299,6 +301,7 @@ class DisplayModeController {
       case DisplayRequestSource::ONBOARDING:
         return mode == DisplayMode::ACTIVE;
       case DisplayRequestSource::BOOT_GUARD:
+      case DisplayRequestSource::MAC_DISPLAY_SLEEP:
         return mode == DisplayMode::DISPLAY_OFF;
       case DisplayRequestSource::MANUAL_SLEEP:
         return mode == DisplayMode::DISPLAY_OFF || mode == DisplayMode::DIMMED ||
@@ -330,7 +333,8 @@ class DisplayModeController {
     bool active{false};
   };
 
-  static constexpr std::size_t kRequestCount = 9;
+  static constexpr std::size_t kRequestCount =
+      static_cast<std::size_t>(DisplayRequestSource::MAC_DISPLAY_SLEEP) + 1;
   static constexpr std::size_t kTakeoverCount = 2;
 
   static constexpr std::size_t source_index(DisplayRequestSource source) {
@@ -410,6 +414,7 @@ inline const char *display_request_source_name(
     case DisplayRequestSource::MANUAL_SLEEP: return "manual_sleep";
     case DisplayRequestSource::SETUP_TIMEOUT: return "setup_timeout";
     case DisplayRequestSource::USER_WAKE: return "user_wake";
+    case DisplayRequestSource::MAC_DISPLAY_SLEEP: return "mac_display_sleep";
   }
   return "unknown";
 }

@@ -202,6 +202,34 @@ int main() {
   advance(500);
   assert(controller.current_mode_is(DisplayMode::ACTIVE) && screen_lock_enabled());
 
+  // Scheduled dimming must not keep the lock screen lit during Mac sleep.
+  reset(DisplayMode::ACTIVE);
+  screensaver_mode.state = "companion";
+  screen_lock_set_mac_locked(true, true);
+  assert(controller.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE));
+  screen_lock_set_mac_locked(true, false);
+  assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+  assert(controller.target_source_is(DisplayRequestSource::MAC_DISPLAY_SLEEP));
+  mac_connected = false;
+  screensaver_companion_reconcile.execute();
+  assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+  mac_connected = true;
+  screensaver_companion_reconcile.execute();
+  assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+  screen_lock_set_mac_locked(true, true);
+  advance(500);
+  assert(controller.current_mode_is(DisplayMode::ACTIVE) && screen_lock_enabled());
+  assert(controller.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE));
+
+  // A temporary night wake cannot keep the panel lit when the Mac display sleeps.
+  reset(DisplayMode::CLOCK);
+  screensaver_mode.state = "companion";
+  manual_wake_ms = millis();
+  display_mode_reconcile.execute();
+  assert(controller.target_source_is(DisplayRequestSource::USER_WAKE));
+  screen_lock_set_mac_locked(true, false);
+  assert(controller.target_source_is(DisplayRequestSource::MAC_DISPLAY_SLEEP));
+
   // Both callback orders, all scheduled modes, and a temporary night wake.
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DISPLAY_OFF, DisplayMode::ACTIVE}) {
     for (bool fast_first : {false, true}) {

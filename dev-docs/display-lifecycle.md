@@ -33,7 +33,7 @@ The shared controller uses these values:
 | Type | Values | Meaning |
 |---|---|---|
 | `DisplayMode` | `ACTIVE`, `SETUP_DIMMED`, `DIMMED`, `CLOCK`, `DISPLAY_OFF` | The one presentation mode that should be visible. |
-| `DisplayRequestSource` | `ONBOARDING`, `BOOT_GUARD`, `IDLE_TIMER`, `PRESENCE_SENSOR`, `SCREEN_SCHEDULE`, `MANUAL_SLEEP`, `SETUP_TIMEOUT`, `USER_WAKE` | The event or policy currently requesting a mode. |
+| `DisplayRequestSource` | `ONBOARDING`, `BOOT_GUARD`, `IDLE_TIMER`, `PRESENCE_SENSOR`, `SCREEN_SCHEDULE`, `MANUAL_SLEEP`, `SETUP_TIMEOUT`, `USER_WAKE`, `MAC_DISPLAY_SLEEP` | The event or policy currently requesting a mode. |
 | `DisplayTakeoverKind` | `INTERACTIVE`, `CRITICAL` | Interactive or critical display priority; no HA alarm producer remains. |
 | `DisplayTransition` | previous mode, target mode, winning source, generation | The complete decision handed to the effect adapter. |
 
@@ -65,9 +65,10 @@ first matching row wins.
 | 1 | Critical takeover | `ACTIVE` | Shared controller priority, retained for internal callers; no HA alarm producer remains. |
 | 2 | First-time onboarding | `ACTIVE` / `ONBOARDING` | WiFi and tile-configuration instructions remain fully visible while the grid is empty. Saved sleep, schedule, and setup-timeout policy cannot hide or dim setup. |
 | 3 | Manual sleep | `DISPLAY_OFF` / `MANUAL_SLEEP` | Closes ordinary and interactive modals; next deliberate user wake clears it. |
-| 4 | Temporary user wake | `ACTIVE` / `USER_WAKE` | Uses configured wake brightness until the existing 10–3600 second timeout expires. |
-| 5 | Night schedule | Off, `CLOCK`, or `ACTIVE` / `SCREEN_SCHEDULE` | Off and clock close image modals; Screen Dimmed keeps the active UI at `schedule_dimmed_brightness`. An enabled time-based schedule fails dark until local time is valid, whether or not a saved sleep marker exists. |
-| 6 | Interactive takeover | `ACTIVE`, image modal foreground | Automatic idle sleep is deferred. Manual sleep and scheduled off or clock may close it. |
+| 4 | Locked Mac displays asleep in App Connection with Display Off | `DISPLAY_OFF` / `MAC_DISPLAY_SLEEP` | The panel fades out even during scheduled dimming or a temporary wake. The request clears when the paired app reports display wake or unlock. |
+| 5 | Temporary user wake | `ACTIVE` / `USER_WAKE` | Uses configured wake brightness until the existing 10–3600 second timeout expires. |
+| 6 | Night schedule | Off, `CLOCK`, or `ACTIVE` / `SCREEN_SCHEDULE` | Off and clock close image modals. Screen Dimmed keeps the active UI at `schedule_dimmed_brightness`. An enabled time-based schedule fails dark until local time is valid, whether or not a saved sleep marker exists. |
+| 7 | Interactive takeover | `ACTIVE`, image modal foreground | Automatic idle sleep is deferred. Manual sleep and scheduled off or clock may close it. |
 | 8 | Idle timer | Configured `DIMMED`, `CLOCK`, or `DISPLAY_OFF` | Mac playback sleep prevention and shared takeover priorities defer idle sleep. |
 | 9 | Setup timeout outside onboarding | `SETUP_DIMMED` / `SETUP_TIMEOUT` | Static setup pages may still use the existing burn-in dim path. |
 | 10 | No request | `ACTIVE` / default | Normal UI at normal calculated brightness. |

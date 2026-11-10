@@ -976,9 +976,9 @@ void CompanionService::set_connected_(bool connected, int closing_socket) {
     this->reset_app_icon_transfer_();
   }
   this->defer_session_([connected]() {
-    // The next authenticated lock update supplies the current display state.
-    // Preserve the lock itself until the Mac reports an unlock.
-    screen_lock_mac_display_awake().reset();
+    // Discard a stale awake state, but keep a sleeping panel dark until the
+    // Mac reconnects and reports that its display woke or the session unlocked.
+    if (screen_lock_mac_display_awake() == true) screen_lock_mac_display_awake().reset();
     if (connected) {
       companion_cancel_action_result();
       companion_runtime_service().set_connected(false);
