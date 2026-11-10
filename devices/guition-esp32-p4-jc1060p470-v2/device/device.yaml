@@ -444,26 +444,7 @@ script:
           set_width_compensation_vertical_axis(rotation == "90" || rotation == "270");
 
 select:
-  - platform: template
-    name: "${entity_screen_rotation}"
-    internal: true
-    disabled_by_default: true
-    id: screen_rotation_select
-    entity_category: config
-    icon: "mdi:screen-rotation"
-    optimistic: true
-    restore_value: true
-    initial_option: "180"
-    options:
-      - "0"
-      - "90"
-      - "180"
-      - "270"
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(screen_rotation_ready);'
-            then:
-              - script.execute: apply_screen_rotation
-              - script.execute: refresh_button_grid
+  - !include
+    file: ../../../common/device/screen_rotation_select.yaml
+    vars:
+      rotation_refresh_script: refresh_button_grid

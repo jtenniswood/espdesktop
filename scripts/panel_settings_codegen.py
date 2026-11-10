@@ -4,6 +4,7 @@ import json
 import re
 
 from check_timezones import load_time_select_options
+from device_profiles import load_device_profiles
 
 
 def name_is_valid(name):
@@ -41,6 +42,7 @@ def append_scalar_settings(cpp, ts, settings, time_yaml):
         raise ValueError("expected scalar settings")
     rows = []
     choice_lists = []
+    profile_defaults = []
     for name, entry in settings.items():
         if not name_is_valid(name) or not isinstance(entry, dict):
             raise ValueError(f"invalid scalar setting {name!r}")
@@ -68,6 +70,18 @@ def append_scalar_settings(cpp, ts, settings, time_yaml):
             choices = entry["choices"]
         elif set(entry) == {"default", "time_select"} and isinstance(entry["time_select"], str):
             choices = [option for _, option in load_time_select_options(entry["time_select"], time_yaml)]
+        elif name == "screen_rotation" and set(entry) == {"default", "device_rotation"} and entry["device_rotation"] is True:
+            choices = []
+            for slug, profile in load_device_profiles().items():
+                rotation = profile["rotation"]
+                if not rotation.get("enabled"):
+                    continue
+                choices.extend(option for option in rotation["options"] if option not in choices)
+                default = rotation.get("default", "0")
+                if default not in rotation["options"]:
+                    raise ValueError(f"invalid rotation default for {slug!r}")
+                if default != entry["default"]:
+                    profile_defaults.append((name, slug, default))
         else:
             raise ValueError(f"invalid scalar rule for {name!r}")
         if (not choices or not all(isinstance(choice, str) and re.fullmatch(r"[A-Za-z0-9 _./()+:-]+", choice)
@@ -109,6 +123,12 @@ def append_scalar_settings(cpp, ts, settings, time_yaml):
         *(f'  {{"{name}", {json.dumps(default)}, [](std::string_view value) {{ {accepted} }}}},'
           for name, default, _, accepted in rows),
         "}};",
+        "",
+        "inline constexpr std::string_view scalar_setting_default(ScalarSetting setting, std::string_view profile) {",
+        *(f'  if (setting == ScalarSetting::{name.upper()} && profile == {json.dumps(slug)}) return {json.dumps(value)};'
+          for name, slug, value in profile_defaults),
+        "  return SCALAR_RULES[size_t(setting)].default_value;",
+        "}",
         "",
         "inline size_t scalar_setting_index(std::string_view key) {",
         "  for (size_t i = 0; i < SCALAR_RULES.size(); ++i)",

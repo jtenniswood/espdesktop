@@ -556,8 +556,7 @@ def test_square_s3_reapplies_clock_bar_after_screen_changes() -> None:
         "        - script.execute: clock_bar_apply"
     ) in device, "S3 restored rotation must reapply the fixed clock bar"
     assert (
-        "- script.execute: apply_screen_rotation\n"
-        "              - script.execute: clock_bar_apply"
+        "rotation_refresh_script: clock_bar_apply"
     ) in device, "S3 rotation changes must reapply the fixed clock bar"
 
 
@@ -578,6 +577,19 @@ def test_rotation_refresh_rebuilds_subpages() -> None:
         assert "grid_run_board(GridBoardOperation::REBUILD)" in refresh_script, (
             f"{slug}: rotation refresh must rebuild secondary cards safely"
         )
+    rotation = (ROOT / "common/device/screen_rotation_select.yaml").read_text(encoding="utf-8")
+    assert "restore_value: false" in rotation and "optimistic: false" in rotation
+    assert "ScalarSetting::SCREEN_ROTATION" in rotation
+    assert rotation.index("script.execute: apply_screen_rotation") < rotation.index(
+        "script.execute: ${rotation_refresh_script}"
+    )
+    for slug, profile in load_device_profiles().items():
+        if not profile["rotation"].get("enabled"):
+            continue
+        device = (ROOT / "devices" / slug / "device/device.yaml").read_text(encoding="utf-8")
+        assert "file: ../../../common/device/screen_rotation_select.yaml" in device
+        expected = "clock_bar_apply" if slug in ("esp32-p4-86", "guition-esp32-s3-4848s040") else "refresh_button_grid"
+        assert f"rotation_refresh_script: {expected}" in device
 
 
 def test_local_display_header_has_no_ha_bindings() -> None:

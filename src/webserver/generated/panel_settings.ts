@@ -186,6 +186,10 @@ export const PANEL_SCALAR_SETTINGS = {
   screen_ntp_server_1: { defaultValue: "0.pool.ntp.org", asciiTextMax: 100 },
   screen_ntp_server_2: { defaultValue: "1.pool.ntp.org", asciiTextMax: 100 },
   screen_ntp_server_3: { defaultValue: "2.pool.ntp.org", asciiTextMax: 100 },
+  screen_rotation: { defaultValue: "180", choices: ["0", "90", "180", "270"] },
+  firmware_auto_update: { defaultValue: "1", choices: ["0", "1"] },
+  firmware_update_frequency: { defaultValue: "Daily", choices: ["Hourly", "Daily", "Weekly", "Monthly"] },
+  esp32_c6_auto_update: { defaultValue: "1", choices: ["0", "1"] },
 } as const;
 
 export function validPanelScalarSetting(key: string, value: string): boolean {

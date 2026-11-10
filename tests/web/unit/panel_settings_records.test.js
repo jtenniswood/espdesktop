@@ -37,5 +37,10 @@ test("native scalar settings enforce the authored choices", () => {
   assert.equal(validPanelScalarSetting("screen_ntp_server_1", "2001:db8::1"), true);
   assert.equal(validPanelScalarSetting("screen_ntp_server_1", "invalid\nserver"), false);
   assert.equal(validPanelScalarSetting("screen_ntp_server_1", "a".repeat(101)), false);
+  assert.equal(validPanelScalarSetting("screen_rotation", "270"), true);
+  assert.equal(validPanelScalarSetting("screen_rotation", "45"), false);
+  assert.equal(validPanelScalarSetting("firmware_auto_update", "0"), true);
+  assert.equal(validPanelScalarSetting("firmware_update_frequency", "Weekly"), true);
+  assert.equal(validPanelScalarSetting("firmware_update_frequency", "Yearly"), false);
   assert.equal(validPanelScalarSetting("unknown_setting", "value"), true);
 });

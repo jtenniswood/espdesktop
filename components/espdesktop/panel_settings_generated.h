@@ -33,6 +33,10 @@ enum class ScalarSetting : uint8_t {
   SCREEN_NTP_SERVER_1,
   SCREEN_NTP_SERVER_2,
   SCREEN_NTP_SERVER_3,
+  SCREEN_ROTATION,
+  FIRMWARE_AUTO_UPDATE,
+  FIRMWARE_UPDATE_FREQUENCY,
+  ESP32_C6_AUTO_UPDATE,
   COUNT
 };
 struct ScalarRule {
@@ -234,7 +238,16 @@ inline constexpr std::array<ScalarRule, size_t(ScalarSetting::COUNT)> SCALAR_RUL
   {"screen_ntp_server_1", "0.pool.ntp.org", [](std::string_view value) { return valid_ascii_text(value, 100); }},
   {"screen_ntp_server_2", "1.pool.ntp.org", [](std::string_view value) { return valid_ascii_text(value, 100); }},
   {"screen_ntp_server_3", "2.pool.ntp.org", [](std::string_view value) { return valid_ascii_text(value, 100); }},
+  {"screen_rotation", "180", [](std::string_view value) { return value == "0" || value == "90" || value == "180" || value == "270"; }},
+  {"firmware_auto_update", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"firmware_update_frequency", "Daily", [](std::string_view value) { return value == "Hourly" || value == "Daily" || value == "Weekly" || value == "Monthly"; }},
+  {"esp32_c6_auto_update", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
 }};
+
+inline constexpr std::string_view scalar_setting_default(ScalarSetting setting, std::string_view profile) {
+  if (setting == ScalarSetting::SCREEN_ROTATION && profile == "esp32-p4-86") return "0";
+  return SCALAR_RULES[size_t(setting)].default_value;
+}
 
 inline size_t scalar_setting_index(std::string_view key) {
   for (size_t i = 0; i < SCALAR_RULES.size(); ++i)

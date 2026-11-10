@@ -106,8 +106,9 @@ public:
   }
   bool apply(uint16_t, const uint8_t *, size_t) override { return false; }
 private:
-  static std::string_view scalar_value(const Snapshot *snapshot, size_t index) {
-    const auto fallback = panel_settings::SCALAR_RULES[index].default_value;
+  std::string_view scalar_value(const Snapshot *snapshot, size_t index) const {
+    const auto fallback = panel_settings::scalar_setting_default(
+        static_cast<panel_settings::ScalarSetting>(index), limits_.device_profile);
     return snapshot ? snapshot->scalars[index].value_or(fallback) : fallback;
   }
 

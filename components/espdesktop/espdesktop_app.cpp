@@ -508,7 +508,7 @@ void EspDesktopApp::save_screen_schedule_preferences(const ScreenSchedulePrefere
 std::string_view EspDesktopApp::panel_scalar_value(ScalarSetting setting) const {
   const auto *runtime = native_configuration_runtime_.get();
   return runtime && runtime->grid_runtime ? runtime->grid_runtime->scalar_setting_value(setting)
-      : panel_settings::SCALAR_RULES[size_t(setting)].default_value;
+      : panel_settings::scalar_setting_default(setting, panel_config_device_profile_ ? panel_config_device_profile_ : "");
 }
 
 void EspDesktopApp::bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish) {

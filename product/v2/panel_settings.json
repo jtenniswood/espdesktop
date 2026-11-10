@@ -25,7 +25,11 @@
     "screen_timezone": { "default": "Auto (Mac Companion)", "time_select": "timezone_select" },
     "screen_ntp_server_1": { "default": "0.pool.ntp.org", "ascii_text_max": 100 },
     "screen_ntp_server_2": { "default": "1.pool.ntp.org", "ascii_text_max": 100 },
-    "screen_ntp_server_3": { "default": "2.pool.ntp.org", "ascii_text_max": 100 }
+    "screen_ntp_server_3": { "default": "2.pool.ntp.org", "ascii_text_max": 100 },
+    "screen_rotation": { "default": "180", "device_rotation": true },
+    "firmware_auto_update": { "default": "1", "type": "switch" },
+    "firmware_update_frequency": { "default": "Daily", "choices": ["Hourly", "Daily", "Weekly", "Monthly"] },
+    "esp32_c6_auto_update": { "default": "1", "type": "switch" }
   },
   "screen_schedule_preferences": {
     "version": 1,

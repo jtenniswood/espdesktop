@@ -299,6 +299,19 @@ int main() {
   assert(scalar_runtime.prepare_write(2, updated.data(), size));
   assert(scalar_runtime.activate_prepared(22, 2, updated.data(), size));
   assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_NTP_SERVER_1).empty());
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_ROTATION) == "180");
+  assert(panel_settings::scalar_setting_default(Scalar::SCREEN_ROTATION, "esp32-p4-86") == "0");
+  assert(panel_settings::scalar_setting_default(Scalar::SCREEN_ROTATION, "guition-esp32-p4-jc1060p470") == "180");
+  write_preference("screen_rotation", "45");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screen_rotation", "90");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(23, 2, updated.data(), size));
+  assert(published.back().first == Scalar::SCREEN_ROTATION && published.back().second == "90");
+  write_preference("firmware_auto_update", "0");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(24, 2, updated.data(), size));
+  assert(published.back().first == Scalar::FIRMWARE_AUTO_UPDATE && published.back().second == "0");
   assert_nested_page();
 
   int brightness_applies = 0;
