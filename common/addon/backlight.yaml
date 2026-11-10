@@ -831,6 +831,10 @@ script:
           }
       - script.execute: hide_clock_view
       - lvgl.widget.hide: dim_screensaver_touch_guard
+      - lambda: |-
+          #ifdef USE_COMPANION
+          companion_app_icon_sleep_screen() = id(screen_off_page)->obj;
+          #endif
       - lvgl.page.show: screen_off_page
       - script.execute: clock_bar_hide
       - delay: 50ms

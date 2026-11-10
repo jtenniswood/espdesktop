@@ -116,6 +116,8 @@ for signature in ("inline bool &companion_app_icon_work_pending() {",
                   "inline void companion_app_icon_frame_presented(lv_event_t *) {",
                   "inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {"):
     code += function("components/espdesktop/button_grid_grid.h", signature)
+code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *&companion_app_icon_sleep_screen() {")
+code += function("components/espdesktop/button_grid_grid.h", "inline bool companion_app_icon_display_asleep() {")
 code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility(bool release_hidden) {")
 code += function("components/espdesktop/button_grid_grid.h", "inline void grid_release_runtime_allocations(")
 code += function("components/espdesktop/button_grid_navigation.h", "inline std::function<void()> &navigation_subpage_clock_bar_refresh() {")
@@ -205,7 +207,7 @@ int main() {
   navigation_subpage_screen_changed(nullptr);
   settle_icon_work();
   assert(applies == 7);
-  // Camera, sleep, and other non-grid screens reclaim the complete cache.
+  // Camera and other non-grid screens reclaim the complete cache.
   lv_obj_t camera{};
   active = &camera;
   navigation_subpage_screen_changed(nullptr);
@@ -337,6 +339,42 @@ int main() {
   test_free_psram = 512 * 1024;
   companion_refresh_app_icon_visibility();
   assert(!ready_icons[0].pixels && !ready_icons[0].display_pixels && !ready_icons[0].image_loaded);
+
+  // Keep the scaled icon through sleep so the first wake frame can use it.
+  lv_obj_t sleep{};
+  companion_app_icon_sleep_screen() = &sleep;
+  auto &sleeping_icon = ready_icons[0];
+  sleeping_icon.application_id = "wake.app";
+  sleeping_icon.display_pixels = reinterpret_cast<uint8_t *>(1);
+  sleeping_icon.display_bytes = 160 * 160 * 3;
+  sleeping_icon.image_loaded = sleeping_icon.loaded_hash_valid = true;
+  esphome::companion::app_icon_store().hashes["wake.app"] = sleeping_icon.loaded_hash;
+  test_free_psram = 8 * 1024 * 1024;
+  active = &sleep;
+  before = applies;
+  companion_refresh_app_icon_visibility();
+  assert(sleeping_icon.display_pixels && sleeping_icon.image_loaded);
+  active = &home;
+  companion_refresh_app_icon_visibility();
+  settle_icon_work();
+  assert(applies == before);
+
+  // A real catalogue update waits for wake and can then replace the icon.
+  active = &sleep;
+  esphome::companion::app_icon_store().hashes["wake.app"].fill(7);
+  companion_refresh_cached_app_icon("wake.app");
+  companion_process_pending_app_icon_refresh();
+  assert(sleeping_icon.refresh_pending && sleeping_icon.image_loaded && applies == before);
+  active = &home;
+  companion_refresh_app_icon_visibility();
+  settle_icon_work();
+  assert(applies == before + 1 && sleeping_icon.image_loaded);
+
+  // Memory pressure can still reclaim the cache while the display sleeps.
+  active = &sleep;
+  companion_refresh_app_icon_visibility(/*release_hidden=*/true);
+  assert(!sleeping_icon.pixels && !sleeping_icon.display_pixels && !sleeping_icon.image_loaded);
+
 }
 '''
 with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:

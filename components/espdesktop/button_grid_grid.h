@@ -937,10 +937,19 @@ inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {
   companion_app_icon_waiting_for_frame() = true;
 }
 
+inline lv_obj_t *&companion_app_icon_sleep_screen() {
+  static lv_obj_t *screen = nullptr;
+  return screen;
+}
+
+inline bool companion_app_icon_display_asleep() {
+  auto *sleep_screen = companion_app_icon_sleep_screen();
+  return sleep_screen && lv_scr_act() == sleep_screen;
+}
+
 inline void companion_refresh_app_icon_visibility(bool release_hidden) {
-  // Keep a bounded working set across home/app transitions. Reloading and
-  // resampling every home icon synchronously delays the first screen redraw.
-  // Non-grid screens (including camera/screensaver pages) reclaim it all.
+  // Keep ready-to-draw icons across grid transitions and display sleep.
+  // Other non-grid screens reclaim them for their own rendering work.
   size_t hidden_cache_limit = release_hidden ? 0 : 2u * 1024u * 1024u;
 #ifdef ESP_PLATFORM
   // Reclaim hidden rendering buffers when other features need external memory.
@@ -949,7 +958,7 @@ inline void companion_refresh_app_icon_visibility(bool release_hidden) {
     hidden_cache_limit = 0;
 #endif
   const auto &screens = navigation_grid_screens();
-  const bool retain_hidden =
+  const bool retain_hidden = companion_app_icon_display_asleep() ||
       std::find(screens.begin(), screens.end(), lv_scr_act()) != screens.end();
   size_t retained_bytes = 0;
   for (const GridRuntimeAllocation &allocation : grid_runtime_allocations()) {
@@ -1033,7 +1042,10 @@ inline void companion_refresh_app_icon_connection_state(bool online) {
 }
 
 inline void companion_process_pending_app_icon_refresh() {
-  if (!companion_app_icon_work_pending() || companion_app_icon_waiting_for_frame()) return;
+  // Keep pending icon changes queued while the screen is off. Applying
+  // them to a hidden card would release its pixels before the next wake.
+  if (!companion_app_icon_work_pending() || companion_app_icon_waiting_for_frame() ||
+      companion_app_icon_display_asleep()) return;
   CompanionAppIconImageData *selected = nullptr;
   lv_obj_t *selected_image = nullptr;
   int best_priority = 3;
