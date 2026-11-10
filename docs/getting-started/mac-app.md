@@ -1,11 +1,11 @@
 ---
-title: Install and Pair the EspDesktop Mac App
-description: Install the EspDesktop Mac app, pair your Guition 4848S040 display, and try your first Mac control.
+title: Install and Pair the Mac Companion App
+description: Download EspDesktop for macOS 13 or newer, pair a Guition 4848S040 display on your local network and add your first app tiles.
 ---
 
 # Install and Pair the EspDesktop Mac App
 
-You’ll need a Mac and a **4-inch Guition ESP32-S3 4848S040** display on the same trusted local network.
+You’ll need a **Mac running macOS 13 or newer** and a [4-inch Guition ESP32-S3 4848S040](/screens/4848s040) on the same local network. Use the Mac app and display firmware from the same release.
 
 ## 1. Install the Mac app {#install-a-release}
 
@@ -22,6 +22,12 @@ You’ll need a Mac and a **4-inch Guition ESP32-S3 4848S040** display on the sa
 **Display missing?** Choose **Enter address manually** and enter its IP address or `.local` name.
 
 On **Access and startup**, choose **Open Settings** to grant Accessibility access if you want keyboard shortcuts or Mac Lock. Turn on **Launch at login** if you want EspDesktop to open when you sign in. Choose **Finish**.
+
+### Check the Display tab
+
+Open **Display** in the Mac app to confirm it says **Connected**. Select **Customize** to open the display’s web editor.
+
+[![EspDesktop Mac app showing a connected display, the Customize button, and the Open at Startup switch](/images/mac-app-display.jpg)](/images/mac-app-display.jpg)
 
 ## 3. Try your first card {#check-the-connection}
 

@@ -68,10 +68,13 @@
     "docs:check-installer": "node scripts/check_docs_installer.js --browser"
   },
   "devDependencies": {
+    "@mixmark-io/domino": "2.2.0",
     "esbuild": "^0.28.0",
     "esp-web-tools": "10.4.0",
     "playwright": "^1.60.0",
     "postcss": "^8.5.15",
+    "turndown": "7.2.5",
+    "turndown-plugin-gfm": "1.0.2",
     "typescript": "^7.0.0",
     "vitepress": "^1.6.3"
   },

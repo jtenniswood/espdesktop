@@ -23,3 +23,5 @@ The [touchscreen follows your Mac’s lock state](/features/setup#protect-the-to
 - The connector accepts only its defined controls. It does not run shell commands or accept incoming network connections on the Mac.
 
 To replace a display, choose **Forget Display** in the Mac app and reset pairing under **System → Mac Companion** on the old display. Then pair using the new display's code.
+
+See the [EspDesktop privacy policy](/reference/privacy) for how the app, display and docs handle information.

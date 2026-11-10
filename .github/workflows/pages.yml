@@ -53,6 +53,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
       - run: git sparse-checkout disable || true
 
       - uses: actions/setup-node@v7

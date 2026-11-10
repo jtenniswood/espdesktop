@@ -12,7 +12,7 @@ Set up the display from a normal web browser.
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
 - **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
-- **Windows** — close, minimise, hide, enter full screen, or use the move-and-resize controls available on your version of macOS.
+- **Mac Lock** — lock your Mac with a tap on the display.
 - **Folders and websites** — open approved Finder folders or safe `http://` and `https://` links in an approved app.
 - **Mac statistics** — optionally show processor, memory, storage, network throughput, and battery readings.
 
@@ -49,7 +49,7 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 - A 2.4 GHz WiFi network shared by the display and Mac
 - A Mac running macOS 13 or newer
 
-The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com/e/_c3sIhvBv), with a compatible [3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301).
+The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com/e/_c2uYL5dd), with a compatible [3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301).
 
 ## Project Links
 

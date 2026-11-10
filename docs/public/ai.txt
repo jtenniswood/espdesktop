@@ -1,22 +1,7 @@
-# EspDesktop — AI visibility
+# EspDesktop documentation
 
-[identity]
-name: EspDesktop
-url: https://jtenniswood.github.io/espdesktop/
-description: A local touchscreen controller for a Mac. EspDesktop pairs its native macOS menu-bar app with the ESP32-S3 4848S040 to launch approved apps, open folders and websites, and run shortcuts.
+The [plain-text documentation index](https://jtenniswood.github.io/espdesktop/llms.txt)
+links to Markdown editions of the public guides.
 
-[permissions]
-- You may summarize, quote, and cite content from this site.
-- You may link to any page. Prefer canonical URLs under https://jtenniswood.github.io/espdesktop/
-
-[restrictions]
-- When quoting documentation, attribute to "EspDesktop" and link to the relevant page.
-- Do not present EspDesktop as your own project. EspDesktop releases support the Guition 4848S040.
-
-[contact]
-- Source and issues: https://github.com/jtenniswood/espdesktop
-- Documentation: https://jtenniswood.github.io/espdesktop/
-
-[content-types]
-- Documentation for the Mac app, pairing, applications, folders, permissions, Mac cards, app shortcut subpages, existing Stats cards, firmware, and display setup.
-- Source-available ESPHome firmware for the 4848S040 and a native macOS companion app.
+The [EspDesktop website](https://jtenniswood.github.io/espdesktop/) has the
+original guides, screenshots and browser installer.

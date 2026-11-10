@@ -1,6 +1,6 @@
 ---
-title: Open Finder Folders
-description: Approve Finder folders in the EspDesktop Mac app and open them from Companion cards on the touchscreen.
+title: Open Finder Folders from Your Touchscreen
+description: Add an approved Finder folder to EspDesktop and open it from a touchscreen tile. Group project folders together on a Finder subpage.
 ---
 
 # Open Finder Folders
@@ -25,4 +25,4 @@ You can show approved folders as tiles on a Finder app subpage:
 
 Newly approved folders can be added to enabled Finder subpages when space is available. Existing tiles are not removed automatically. Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
 
-For app launch behavior and other generated app pages, see [Launch Mac apps and open websites](/mac-controls/apps).
+For app launch behavior and other generated app pages, see [Launch Mac apps](/mac-controls/apps).
