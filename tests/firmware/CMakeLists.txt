@@ -657,8 +657,7 @@ add_test(NAME panel_config_document_v2_test COMMAND ${Python3_EXECUTABLE} ${CMAK
 add_executable(grid_page_runtime_test grid_page_runtime_test.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/page_store_goldens.h
   ../../components/espdesktop/page_store.cpp
-  ../../components/espdesktop/page_store_runtime.cpp
-  ../../components/espdesktop/panel_config_text_bindings.cpp)
+  ../../components/espdesktop/page_store_runtime.cpp)
 target_compile_features(grid_page_runtime_test PRIVATE cxx_std_17)
 target_compile_options(grid_page_runtime_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
 target_include_directories(grid_page_runtime_test PRIVATE stubs ../../components/espdesktop ${CMAKE_CURRENT_BINARY_DIR})

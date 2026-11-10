@@ -28,7 +28,6 @@
 #include "panel_config_http_context.h"
 #include "panel_config_legacy_adapter.h"
 #include "panel_config_read_endpoint.h"
-#include "panel_config_runtime_adapter.h"
 #include "panel_config_service_validator.h"
 #include "panel_config_storage_selection.h"
 #include "panel_config_transient_storage.h"
@@ -197,8 +196,8 @@ class EspDesktopApp::NativeConfigurationRuntime {
    }
 
    NativeConfigurationRuntime()
-       : legacy_config(text_bindings, allocate_configuration_slot, release_configuration_slot),
-         runtime_config(text_bindings, allocate_configuration_slot, release_configuration_slot),
+       : legacy_config(text_bindings, allocate_configuration_slot,
+                       release_configuration_slot, configuration::PANEL_CONFIG_LEGACY_MODE),
          validator(allocate_configuration_slot, release_configuration_slot),
          backend(blobs, allocate_configuration_slot,
                  release_configuration_slot),
@@ -206,7 +205,6 @@ class EspDesktopApp::NativeConfigurationRuntime {
 
    configuration::PanelConfigTextBindings text_bindings{};
    configuration::PanelConfigLegacyAdapter legacy_config;
-   configuration::PanelConfigRuntimeAdapter runtime_config;
    std::unique_ptr<GridPageRuntime> grid_runtime;
    configuration::PanelConfigDocumentValidator validator{};
    configuration::EspIdfPanelConfigBlobStorage blobs{};
@@ -245,30 +243,6 @@ bool EspDesktopApp::install_application_scene(ApplicationSceneRuntime& scene) {
   if (native_configuration_initialized_ || core_.configuration_service()) return false;
   application_scene_ = &scene;
   return true;
-}
-
-bool EspDesktopApp::require_application_scene() {
-  if (shutting_down_ || native_configuration_initialized_ ||
-      core_.configuration_service())
-    return false;
-  application_scene_required_ = true;
-  return true;
-}
-
-configuration::ConfigurationRuntimeAdapter* EspDesktopApp::selected_configuration_runtime() {
-  if (application_scene_)
-    return application_scene_;
-  if (application_scene_required_) {
-    class Unavailable final
-        : public configuration::ConfigurationRuntimeAdapter {
-    public:
-      bool prepare(uint16_t, const uint8_t *, size_t) override { return false; }
-      bool apply(uint16_t, const uint8_t *, size_t) override { return false; }
-    };
-    static Unavailable unavailable;
-    return &unavailable;
-  }
-  return native_configuration_runtime_ ? &native_configuration_runtime_->runtime_config : nullptr;
 }
 
 void EspDesktopApp::set_panel_config_device_profile(const char *device_profile) {
@@ -332,7 +306,6 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   if (native_configuration_runtime_ != nullptr)
     return native_configuration_runtime_->grid_runtime &&
         application_scene_ == native_configuration_runtime_->grid_runtime.get();
-  application_scene_required_ = true;
   NativeConfigurationRuntime *runtime =
       new (std::nothrow) NativeConfigurationRuntime();
   if (runtime == nullptr) {
@@ -382,8 +355,9 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   for (const auto &profile : DEVICE_UI_PROFILES)
     if (std::strcmp(profile.device_profile, panel_config_device_profile_) == 0) limits = &profile;
   if (!limits) { native_configuration_runtime_.reset(); return false; }
-  runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits, runtime->text_bindings,
+  runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits,
       allocate_configuration_slot, release_configuration_slot,
+      [this]() { layout_changed_.trigger(); },
       [this](bool enabled) { publish_app_subpage_preference(enabled); }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
@@ -486,45 +460,6 @@ void EspDesktopApp::apply_boot_configuration() {
   sync_app_icons_from_panel_config(document, loaded.document_size);
 }
 
-void EspDesktopApp::apply_configuration_text_refresh() {
-  if (!configuration_text_refresh_pending_ || !application_scene_ ||
-      shutting_down_)
-    return;
-  auto *runtime = native_configuration_runtime_.get();
-  auto *service = core_.configuration_service();
-  if (!runtime || !runtime->slot_capacity || !service ||
-      runtime->boot_configuration_pending ||
-      !application_scene_->maintenance_ready())
-    return;
-  if (!configuration_buffer_retry_.ready(esphome::millis()))
-    return;
-  configuration::ConfigurationBuffer buffer(allocate_configuration_slot,
-                                            release_configuration_slot);
-  auto *document = buffer.allocate(runtime->slot_capacity);
-  if (!document) {
-    configuration_buffer_retry_.failed(esphome::millis());
-    return;
-  }
-  const auto synchronized =
-      service->synchronize_legacy_runtime(document, runtime->slot_capacity);
-  if (synchronized.status == configuration::ServiceStatus::ALLOCATION_FAILED) {
-    configuration_buffer_retry_.failed(esphome::millis());
-    return;
-  }
-  configuration_text_refresh_pending_ = false;
-  configuration_buffer_retry_.clear();
-  if (synchronized.status ==
-      configuration::ServiceStatus::LEGACY_MIRROR_FAILED) {
-    ESP_LOGW(
-        TAG,
-        "Configuration updated; compatibility synchronization is incomplete");
-    return;
-  }
-  if (!synchronized.ok())
-    ESP_LOGE(TAG, "Configuration text edits could not be applied (%u)",
-             static_cast<unsigned>(synchronized.status));
-}
-
 void EspDesktopApp::publish_app_subpage_preference(bool enabled) {
   if (app_subpage_switch_) app_subpage_switch_->publish_state(enabled);
   if (active_espdesktop_app_core() == &core_) companion_set_auto_open_app_subpages(enabled);
@@ -538,8 +473,7 @@ void EspDesktopApp::bind_app_subpage_preference_switch(esphome::switch_::Switch 
 }
 
 void EspDesktopApp::retry_configuration_compatibility() {
-  if (shutting_down_ || configuration_text_refresh_pending_ ||
-      !reset::ready() || reset::pending()) return;
+  if (shutting_down_ || !reset::ready() || reset::pending()) return;
   auto *runtime = native_configuration_runtime_.get();
   auto *service = core_.configuration_service();
   if (!runtime || !service || !runtime->slot_capacity || runtime->boot_configuration_pending ||
@@ -634,9 +568,9 @@ void EspDesktopApp::initialize_native_configuration() {
     register_panel_config_endpoints();
     return;
   }
-  // The selected scene uses the same durable prepare/commit/activate protocol
-  // as HTTP writes and boot restore. Legacy text remains the downgrade mirror.
-  panel_config_service->set_runtime_adapter(selected_configuration_runtime());
+  // HTTP writes and boot restore activate the same durable layout. Text
+  // bindings still publish screen settings and can import an old layout.
+  panel_config_service->set_runtime_adapter(runtime.grid_runtime.get());
   if (!runtime.legacy_config.configured()) {
     ESP_LOGW(TAG, "Native configuration sources are not configured");
   } else {
@@ -699,8 +633,8 @@ void EspDesktopApp::initialize_native_configuration() {
     // storage is empty, so no second boot-time shadow refresh is required.
     const configuration::ServiceLoadResult live_document = loaded;
     if (live_document.ok()) {
-      // Publishing the restored values triggers the existing grid-refresh
-      // automations. Run that only after every ESPHome component has completed
+      // Activating the restored layout schedules a grid refresh. Run it
+      // only after every ESPHome component has completed
       // setup: on P4 panels the grid and LVGL objects are not safe to refresh
       // while this component's WiFi-priority setup callback is still running.
       // Browser PUT requests still apply immediately through the runtime
@@ -882,7 +816,6 @@ void EspDesktopApp::loop() {
   if (scene_ready && native_configuration_runtime_ != nullptr && core_.configuration_service() != nullptr) {
     native_configuration_runtime_->transactions.process(*core_.configuration_service());
     if (native_configuration_runtime_->boot_configuration_due) apply_boot_configuration();
-    apply_configuration_text_refresh();
     retry_configuration_compatibility();
   }
   if (shutting_down_) return;

@@ -66,29 +66,24 @@ firmware and imported configs.
 
 ## Device API Shape
 
-The setup page reads and writes ESPHome web server entities exposed by the
-device. Button configuration is saved in text entities such as:
+The editor discovers the panel's supported layout versions at
+`GET /api/v1/capabilities`. It reads the saved binary document from
+`GET /api/v1/config` and writes updates to that endpoint. A write includes the
+last observed `ETag` in its `If-Match` header, so a second browser cannot
+silently overwrite a newer save.
 
-```text
-Button 1 Config
-Button 2 Config
-...
-```
-
-The setup page serializes card settings to a compact string. Firmware parses the
-same string on-device. Keep `src/webserver/application/config_codec.ts` and
-`components/espdesktop/button_grid_config.h` in sync.
-
-To inspect what the device actually stored, read the matching ESPHome web server
-entity:
+On current firmware, use the layout API to inspect a saved configuration.
+The following request shows the document version and generation without
+printing the layout contents.
 
 ```bash
-curl -s "http://<device-ip>/text/Button%201%20Config?detail=all"
-curl -s "http://<device-ip>/text/Button%20On%20Color?detail=all"
+curl --fail --silent --show-error --dump-header - --output /dev/null \
+  --header 'X-Panel-Config-Version: 2' "http://<device-ip>/api/v1/config"
 ```
 
-The setup page writes to these same text/select/number/switch entities, so the
-REST response shows the exact compact string firmware will parse.
+Older firmware exposes card layout through ESPHome text entities. Current
+firmware still uses ESPHome entities for some screen settings, while card
+layout saves and rendering use the native document.
 
 ### Mac app setup
 

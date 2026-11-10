@@ -128,6 +128,9 @@ CompatibilityStatus PanelConfigLegacyAdapter::admit_write(uint16_t version, cons
 
 CompatibilityStatus PanelConfigLegacyAdapter::publish_status(uint16_t version, const uint8_t *document, size_t size) {
   if (!bindings_.configured()) return CompatibilityStatus::NOT_REPRESENTABLE;
+  if (version == PANEL_CONFIG_DOCUMENT_VERSION_2 &&
+      mode_ == LegacyConfigurationMode::READ_IMPORT_ONLY)
+    return publish_v2_globals(document, size);
   PanelConfigCompatibilityView view(allocate_, release_);
   const auto status = projection_status(view.load(version, document, size));
   if (version == PANEL_CONFIG_DOCUMENT_VERSION_2 &&

@@ -10,6 +10,7 @@
 #include "configuration_buffer.h"
 #include "espdesktop_app_core.h"
 #include "esphome/components/text/text.h"
+#include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 
 #include "panel_identity.h"
@@ -54,15 +55,7 @@ class EspDesktopApp : public esphome::Component {
   // The scene belongs to the firmware application's UI owner and outlives this
   // component. Installation cannot switch a running legacy grid underneath it.
   bool install_application_scene(ApplicationSceneRuntime& scene);
-  // Selected device startup calls this before reserving native UI resources.
-  // A failed allocation then refuses writes instead of silently using legacy
-  // UI.
-  bool require_application_scene();
-  // Existing text-entity automations debounce edits before requesting this.
-  // The application loop performs all model/storage work at a safe boundary.
-  void request_configuration_text_refresh() {
-    configuration_text_refresh_pending_ = true;
-  }
+  esphome::Trigger<> *get_layout_changed_trigger() { return &layout_changed_; }
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
   void set_panel_config_button_on_color(esphome::text::Text *button_on_color);
@@ -138,13 +131,11 @@ class EspDesktopApp : public esphome::Component {
  private:
   class NativeConfigurationRuntime;
 
-  configuration::ConfigurationRuntimeAdapter* selected_configuration_runtime();
   void register_panel_config_endpoints();
   void sync_finder_folders();
   void initialize_native_configuration();
   void defer_native_configuration_initialization();
   void apply_boot_configuration();
-  void apply_configuration_text_refresh();
   void publish_app_subpage_preference(bool enabled);
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
@@ -153,6 +144,7 @@ class EspDesktopApp : public esphome::Component {
   using PanelConfigTextSources =
       configuration::PanelConfigTextSources<esphome::text::Text>;
 
+  esphome::Trigger<> layout_changed_;
   const char *panel_config_device_profile_{nullptr};
   esphome::text::Text *panel_config_button_order_{nullptr};
   esphome::text::Text *panel_config_button_on_color_{nullptr};
@@ -169,8 +161,6 @@ class EspDesktopApp : public esphome::Component {
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
-  bool application_scene_required_{false};
-  bool configuration_text_refresh_pending_{false};
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};
