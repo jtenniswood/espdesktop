@@ -5,6 +5,7 @@ import {
     normalizeTimeOfDay,
     scheduleModeOption,
 } from "../model/settings";
+import type { ScreenSchedulePreferences } from "../model/screen_schedule_preferences";
 import type { EntityStateFeature } from "./entity_state";
 import type { ApplicationApiFeature } from "./api";
 export interface ScreenSchedulePostApiFeature {
@@ -21,11 +22,13 @@ export interface ScreenSchedulePostApiFeature {
     postScreenScheduleWakeBrightness(value?: any): void;
     postScreenScheduleDimmedBrightness(value?: any): void;
     postScreenScheduleClockBrightness(value?: any): void;
+    postScreenScheduleClockTextColor(value: string): void;
 }
 
 export function createScreenSchedulePostApiFeature(
     entityState: Pick<EntityStateFeature, "entityName" | "entityObjectIds">,
     requestApi: Pick<ApplicationApiFeature, "postWithObjectIds" | "postTextWithObjectIds" | "postNumberWithObjectIds" | "postSelectWithObjectIds" | "postSwitchWithObjectIds">,
+    saveSchedule: (patch: Partial<ScreenSchedulePreferences>, legacy: () => void) => void,
 ): ScreenSchedulePostApiFeature {
     const { entityName, entityObjectIds } = entityState;
     const {
@@ -67,28 +70,50 @@ export function createScreenSchedulePostApiFeature(
         postSwitchWithObjectIds(entityName("screen_schedule_enabled"), entityObjectIds("screen_schedule_enabled"), on, SCREEN_SCHEDULE_UNAVAILABLE);
     }
     function postScreenScheduleTrigger(this: any, value?: any) {
-        postTextWithObjectIds(entityName("screen_schedule_trigger"), entityObjectIds("screen_schedule_trigger"), normalizeScheduleTrigger(value, state.scheduleEnabled), SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE);
+        const trigger = normalizeScheduleTrigger(value, state.scheduleEnabled);
+        saveSchedule({ scheduleTrigger: trigger }, () => {
+            postTextWithObjectIds(entityName("screen_schedule_trigger"), entityObjectIds("screen_schedule_trigger"), trigger, SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE);
+        });
     }
     function postScreenScheduleOnHour(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_on_hour"), entityObjectIds("screen_schedule_on_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
+        saveSchedule({ scheduleOnHour: value }, () => {
+            postNumberWithObjectIds(entityName("screen_schedule_on_hour"), entityObjectIds("screen_schedule_on_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
+        });
     }
     function postScreenScheduleOffHour(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_off_hour"), entityObjectIds("screen_schedule_off_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
+        saveSchedule({ scheduleOffHour: value }, () => {
+            postNumberWithObjectIds(entityName("screen_schedule_off_hour"), entityObjectIds("screen_schedule_off_hour"), value, SCREEN_SCHEDULE_UNAVAILABLE);
+        });
     }
     function postScreenScheduleMode(this: any, value?: any) {
-        postSelectWithObjectIds(entityName("screen_schedule_mode"), entityObjectIds("screen_schedule_mode"), scheduleModeOption(value), SCREEN_SCHEDULE_MODE_UNAVAILABLE);
+        saveSchedule({ scheduleMode: value }, () => {
+            postSelectWithObjectIds(entityName("screen_schedule_mode"), entityObjectIds("screen_schedule_mode"), scheduleModeOption(value), SCREEN_SCHEDULE_MODE_UNAVAILABLE);
+        });
     }
     function postScreenScheduleWakeTimeout(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_wake_timeout"), entityObjectIds("screen_schedule_wake_timeout"), value, SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE);
+        saveSchedule({ scheduleWakeTimeout: value }, () => {
+            postNumberWithObjectIds(entityName("screen_schedule_wake_timeout"), entityObjectIds("screen_schedule_wake_timeout"), value, SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE);
+        });
     }
     function postScreenScheduleWakeBrightness(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_wake_brightness"), entityObjectIds("screen_schedule_wake_brightness"), value, SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE);
+        saveSchedule({ scheduleWakeBrightness: value }, () => {
+            postNumberWithObjectIds(entityName("screen_schedule_wake_brightness"), entityObjectIds("screen_schedule_wake_brightness"), value, SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE);
+        });
     }
     function postScreenScheduleDimmedBrightness(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_dimmed_brightness"), entityObjectIds("screen_schedule_dimmed_brightness"), value, SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE);
+        saveSchedule({ scheduleDimmedBrightness: value }, () => {
+            postNumberWithObjectIds(entityName("screen_schedule_dimmed_brightness"), entityObjectIds("screen_schedule_dimmed_brightness"), value, SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE);
+        });
     }
     function postScreenScheduleClockBrightness(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("screen_schedule_clock_brightness"), entityObjectIds("screen_schedule_clock_brightness"), value, SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE);
+        saveSchedule({ scheduleClockBrightness: value }, () => {
+            postNumberWithObjectIds(entityName("screen_schedule_clock_brightness"), entityObjectIds("screen_schedule_clock_brightness"), value, SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE);
+        });
+    }
+    function postScreenScheduleClockTextColor(value: string) {
+        saveSchedule({ scheduleClockTextColor: value }, () => {
+            postTextWithObjectIds(entityName("screen_schedule_clock_text_color"), entityObjectIds("screen_schedule_clock_text_color"), value, SCREEN_SCHEDULE_UNAVAILABLE);
+        });
     }
     return {
         postBrightnessMode,
@@ -104,5 +129,6 @@ export function createScreenSchedulePostApiFeature(
         postScreenScheduleWakeBrightness,
         postScreenScheduleDimmedBrightness,
         postScreenScheduleClockBrightness,
+        postScreenScheduleClockTextColor,
     };
 }

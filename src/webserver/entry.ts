@@ -1,3 +1,4 @@
+import { screenSchedulePreferencesFromState } from "./model/screen_schedule_preferences";
 import { displayThemePreferencesFromState } from "./model/display_theme_preferences";
 import { createFirstRunSetup } from "./application/first_run_setup";
 import { resetAwareFetch } from "./api/reset_session";
@@ -475,7 +476,23 @@ function composeApplicationContext(): ApplicationContext {
     shell,
   );
   firmwarePostApi = createFirmwareUpdatePostApiFeature(entityState, requestApi);
-  const schedulePostApi = createScreenSchedulePostApiFeature(entityState, requestApi);
+  const schedulePostApi = createScreenSchedulePostApiFeature(entityState, requestApi, async (patch, legacy) => {
+    try {
+      await stateLoader.waitForInitialState();
+      const current = screenSchedulePreferencesFromState(state);
+      const availability = await nativePanelConfig.waitForDiscovery();
+      if (availability === "legacy-fallback" ||
+          (availability === true && !nativePanelConfig.client?.supportsScreenSchedulePreferences())) {
+        legacy();
+      } else if (availability === true) {
+        await nativePanelConfig.writeScreenSchedulePreference(patch, current);
+      } else {
+        shell.showBanner("Could not save the night schedule. Check the display’s connection and try again.", "error");
+      }
+    } catch {
+      shell.showBanner("Could not read the current night schedule. Check the display’s connection and try again.", "error");
+    }
+  });
   const clockBarPostApi = createClockBarPostApiFeature(entityState, requestApi);
   configurationPersistence.connectRequestApi(requestApi);
   configurationCodec.connectRequestApi(requestApi);
@@ -879,8 +896,7 @@ function composeApplicationContext(): ApplicationContext {
     appEvents,
   );
   const scheduleSection = createSettingsScheduleSectionFeature(
-    configurationCodec, runtime, screenScheduleState, entityState, requestApi,
-    schedulePostApi, fields, settingsHelpers,
+    runtime, screenScheduleState, schedulePostApi, fields, settingsHelpers,
   );
   const systemSection = createSettingsSystemSectionFeature({
     buildIdentityCard: identity.buildCard,

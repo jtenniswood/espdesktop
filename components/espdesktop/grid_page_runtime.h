@@ -14,6 +14,7 @@
 #include "page_store_runtime.h"
 #include "panel_config_document.h"
 #include "panel_config_document_v2.h"
+#include "screen_schedule_preferences.h"
 
 
 namespace espdesktop {
@@ -25,6 +26,8 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
     std::optional<bool> app_subpage_preference;
     std::optional<ThemeSettings> theme_preferences;
     std::string accent;
+    std::string schedule_record;
+    std::optional<ScreenSchedulePreferences> schedule;
     bool refresh_layout{true};
   };
   class Resources final : public pages::PageRuntimeResources {
@@ -61,11 +64,13 @@ public:
       configuration::ConfigurationBuffer::Release release,
       std::function<void()> refresh_layout = {},
       std::function<void(bool)> publish_app_subpage_preference = {},
-      std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {})
+      std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {},
+      std::function<void(const ScreenSchedulePreferences &)> publish_schedule = {})
       : limits_(limits), allocate_(allocate), release_(release),
         refresh_layout_(std::move(refresh_layout)),
         publish_app_subpage_preference_(std::move(publish_app_subpage_preference)),
         publish_theme_preferences_(std::move(publish_theme_preferences)),
+        publish_schedule_(std::move(publish_schedule)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
   bool ready() const override { return !stopped_; }
   bool maintenance_ready() const override { return ready(); }
@@ -180,6 +185,10 @@ private:
       } else if (name == DISPLAY_THEME_PREFERENCES_KEY) {
         staged_->theme_preferences = parse_display_theme_preferences(value);
         if (!staged_->theme_preferences) return false;
+      } else if (name == SCREEN_SCHEDULE_PREFERENCES_KEY) {
+        staged_->schedule = parse_screen_schedule_preferences(value);
+        if (!staged_->schedule) return false;
+        staged_->schedule_record = value;
       }
       return true;
     };
@@ -212,6 +221,8 @@ private:
   }
 
   void activate_snapshot(const Store &store) {
+    const bool schedule_changed = staged_->schedule &&
+        (!active_ || active_->schedule_record != staged_->schedule_record);
     active_ = std::move(staged_);
     active_->store = &store;
     grid_native_pages() = active_.get();
@@ -220,6 +231,7 @@ private:
     if (active_->app_subpage_preference && publish_app_subpage_preference_)
       publish_app_subpage_preference_(*active_->app_subpage_preference);
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
+    if (schedule_changed && publish_schedule_) publish_schedule_(*active_->schedule);
     if (active_->refresh_layout && refresh_layout_) refresh_layout_();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
@@ -229,6 +241,7 @@ private:
   std::function<void()> refresh_layout_;
   std::function<void(bool)> publish_app_subpage_preference_;
   std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences_;
+  std::function<void(const ScreenSchedulePreferences &)> publish_schedule_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;

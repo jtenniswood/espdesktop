@@ -1,3 +1,4 @@
+import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences } from "../../src/webserver/model/screen_schedule_preferences";
 import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences,
   legacyDisplayThemePatch } from "../../src/webserver/model/display_theme_preferences";
 import {
@@ -53,7 +54,7 @@ export async function runDisplayThemePreferenceTests(): Promise<void> {
     fetch: async (path, request) => {
       if (path.endsWith("capabilities")) return {
         ...response(200), json: async () => ({ configuration: {
-          read: true, write: true, document_versions: [1], display_theme_preferences: true,
+          read: true, write: true, document_versions: [1], display_theme_preferences: true, screen_schedule_preferences: true,
         } }),
       };
       if (request?.method === "PUT") {
@@ -86,6 +87,17 @@ export async function runDisplayThemePreferenceTests(): Promise<void> {
   equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,time,425,1260,-35,45", "partial backup preserves missing fields");
   equal(await target.writeDocument(backup, undefined, { legacy, patch: {} }), "saved", "restore a layout-only backup");
   equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,time,425,1260,-35,45", "layout-only restore preserves theme");
+  equal(target.client?.supportsScreenSchedulePreferences(), true, "schedule capability discovered");
+  const previousPuts = puts;
+  const schedule = { scheduleTrigger: "time", scheduleOnHour: 7, scheduleOffHour: 19,
+    scheduleMode: "clock", scheduleWakeTimeout: 60, scheduleWakeBrightness: 10,
+    scheduleDimmedBrightness: 15, scheduleClockBrightness: 10, scheduleClockTextColor: "FFFFFF" };
+  equal(await target.writeScreenSchedulePreference({ scheduleOnHour: 8, scheduleOffHour: 22 }, schedule),
+    "saved", "save both schedule hours together");
+  equal(puts, previousPuts + 1, "the schedule uses one write");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,8,22,clock,60,10,15,10,FFFFFF", "complete typed group");
+  equal(decodeScreenSchedulePreferences("1,1,24,22,clock,60,10,15,10,FFFFFF"), undefined, "invalid hour rejected");
+
 }
 
 export async function runNativePanelConfigBackupTests(): Promise<void> {

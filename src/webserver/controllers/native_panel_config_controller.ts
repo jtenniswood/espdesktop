@@ -1,3 +1,5 @@
+import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences, encodeScreenSchedulePreferences,
+  type ScreenSchedulePreferences } from "../model/screen_schedule_preferences";
 import { updateEditorPage } from "../model/page_edit";
 import type { CardConfig } from "../contracts/types";
 import type { NativeLayoutDraft, NativePageEdit } from "../model/native_layout_draft";
@@ -86,13 +88,24 @@ export class NativePanelConfigController {
   }
 
   writeDisplayThemePreference(patch: Partial<DisplayThemePreferences>, legacy: DisplayThemePreferences) {
-    const next = (settings: Readonly<Record<string, string>>) => encodeDisplayThemePreferences({
-      ...(decodeDisplayThemePreferences(settings[DISPLAY_THEME_PREFERENCES]) ?? legacy), ...patch,
+    return this.writePreferenceGroup(DISPLAY_THEME_PREFERENCES, patch, legacy,
+      decodeDisplayThemePreferences, encodeDisplayThemePreferences);
+  }
+
+  writeScreenSchedulePreference(patch: Partial<ScreenSchedulePreferences>, current: ScreenSchedulePreferences) {
+    return this.writePreferenceGroup(SCREEN_SCHEDULE_PREFERENCES, patch, current,
+      decodeScreenSchedulePreferences, encodeScreenSchedulePreferences);
+  }
+
+  private writePreferenceGroup<T extends object>(key: string, patch: Partial<T>, fallback: T,
+      decode: (value?: string) => T | undefined, encode: (value: T) => string) {
+    const next = (settings: Readonly<Record<string, string>>) => encode({
+      ...(decode(settings[key]) ?? fallback), ...patch,
     });
     return this.schedule(this.withNativeEdit(
       current => updateNativePanelConfigDocument(current, this.dependencies.deviceProfile(),
-        "settings", DISPLAY_THEME_PREFERENCES, next(current.settings)),
-      (draft, current) => draft.writeSetting(DISPLAY_THEME_PREFERENCES, next(current.document.settings)),
+        "settings", key, next(current.settings)),
+      (draft, current) => draft.writeSetting(key, next(current.document.settings)),
     ), true);
   }
 
