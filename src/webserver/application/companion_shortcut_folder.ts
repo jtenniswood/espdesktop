@@ -94,12 +94,16 @@ export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): stri
 }
 
 function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication | undefined {
+    const exact = COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier);
     if (SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)) {
-        return COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE);
+        const fallback = COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE);
+        if (!exact || !fallback) return exact ?? fallback;
+        // Keep the generic presets available for already-saved Safari web app cards.
+        const ids = new Set(exact.shortcuts.map((shortcut) => shortcut.id));
+        return { ...exact, shortcuts: [...exact.shortcuts, ...fallback.shortcuts.filter((shortcut) => !ids.has(shortcut.id))] };
     }
-    return COMPANION_SHORTCUT_APPS.find((app) => app.appId === bundleIdentifier ||
-        (app.appId === "com.adobe.PremierePro" &&
-            /^com\.adobe\.PremierePro\.\d+$/.test(bundleIdentifier)));
+    return exact ?? COMPANION_SHORTCUT_APPS.find((app) => app.appId === "com.adobe.PremierePro" &&
+        /^com\.adobe\.PremierePro\.\d+$/.test(bundleIdentifier));
 }
 
 export function companionAppShortcutFolderEnabled(card: any): boolean {
@@ -115,7 +119,7 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (presetMarker === COMPANION_SHORTCUT_CUSTOM_PRESET && companionShortcutActionIdValid(card.entity)) {
         return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker));
     }
-    const presetIdentity = companionShortcutPresetIdentity(card);
+    const presetIdentity = companionShortcutPresetIdentity(card, true);
     if (presetIdentity && companionShortcutActionIdValid(card.entity)) {
         return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetIdentity));
     }
@@ -137,6 +141,12 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION),
     );
     if (!configOptionEnabled(options, COMPANION_APP_SHORTCUTS_OPTION)) return finish(options);
+    const savedTabs = configOptionValue(card.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
+    if (SAFARI_WEB_APP_BUNDLE_ID.test(card.entity) && /^\d{1,3}(?:\|\d{1,3})*$/.test(savedTabs) &&
+        !COMPANION_SHORTCUT_APPS.some((app) => app.appId === card.entity)) {
+        // The installed app definition may arrive after the saved card is parsed.
+        return finish(setConfigOptionValue(options, COMPANION_APP_SHORTCUTS_TABS_OPTION, savedTabs));
+    }
     const tabs = companionShortcutTabs(card);
     const defaults = companionShortcutDefaultTabs(card.entity);
     const value = tabs.length === 0 ? "none" :
@@ -341,12 +351,13 @@ function markCompanionShortcutPresets(
     });
 }
 
-function companionShortcutPresetIdentity(card: any): string {
+function companionShortcutPresetIdentity(card: any, preserveUnavailableSafariPreset = false): string {
     const raw = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
     const match = raw.match(/^(.*):(\d+)$/);
     if (!match) return "";
-    const bundleIdentifier = match[1] || "";
-    const id = match[2];
+    const [, bundleIdentifier = "", id = ""] = match;
+    if (preserveUnavailableSafariPreset && SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier) &&
+        /^(0|[1-9][0-9]{0,2})$/.test(id)) return raw;
     return companionShortcutTabDefinitions(bundleIdentifier).some((item) => item.value === id) ? raw : "";
 }
 
@@ -516,12 +527,16 @@ function legacyCompanionShortcutPresetKeys(
     presets: readonly CompanionShortcutPresetCard[],
 ): Map<string, string> {
     const keys = new Map<string, string>();
+    const safariPresetIDs = SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)
+        ? new Set(COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE)?.shortcuts.map((item) => item.id))
+        : undefined;
     presets.forEach((card, index) => {
         const key = companionShortcutPresetKey(bundleIdentifier, index);
-        const id = Number(key.slice(bundleIdentifier.length + 1));
-        // New ChatGPT presets always save an ID. A markerless card for one of
-        // these keys predates the preset and must keep its custom layout.
-        if (bundleIdentifier !== CODEX_BUNDLE_ID || id <= LAST_LEGACY_CHATGPT_PRESET_ID) {
+        const id = key.slice(bundleIdentifier.length + 1);
+        // New app-specific presets already save an ID. Keep older custom tiles
+        // with the same keys separate from those presets.
+        if (safariPresetIDs && !safariPresetIDs.has(id)) return;
+        if (bundleIdentifier !== CODEX_BUNDLE_ID || Number(id) <= LAST_LEGACY_CHATGPT_PRESET_ID) {
             keys.set(card.entity, key);
         }
     });
