@@ -28,13 +28,17 @@ STEPS = (
 
 def candidate(manifest, run, release_tag=None):
     record = json.loads(manifest.read_text())
-    version = record.get("releaseVersion") if isinstance(record, dict) else None
+    version = record.get("releaseVersion")
+    artifacts = record.get("artifacts", {})
+    ota = artifacts.get(f"{DEVICE}.ota.bin", {}) if isinstance(artifacts, dict) else {}
+    app_hash = ota.get("appElfSha256") if isinstance(ota, dict) else None if isinstance(record, dict) else None
     if (not isinstance(version, str) or not re.fullmatch(r"v?\d+\.\d+\.\d+(?:-[0-9A-Za-z][0-9A-Za-z.-]*)?", version)
             or (release_tag is not None and version != release_tag)
-            or DEVICE not in record.get("supportedDevices", ())
+            or not isinstance(app_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", app_hash)
+            or not isinstance(record.get("supportedDevices"), list) or DEVICE not in record["supportedDevices"]
             or not isinstance(run, str) or not re.fullmatch(r"[1-9][0-9]*", run)):
         raise ValueError("The candidate manifest, build run or release tag is invalid.")
-    return {"run": run, "release": version, "fingerprint": digest(manifest)}
+    return {"run": run, "release": version, "fingerprint": digest(manifest), "app_elf_sha256": app_hash}
 
 
 def memory_values(memory):
@@ -57,6 +61,7 @@ def verify_report(report, expected):
     firmware = report.get("firmware")
     if (not isinstance(firmware, dict) or firmware.get("model") != DEVICE
             or firmware.get("project_version") != expected["release"]
+            or firmware.get("app_elf_sha256") != expected["app_elf_sha256"]
             or any(not isinstance(firmware.get(key), str) or not firmware[key]
                    for key in ("esphome_version", "compilation_time"))):
         raise ValueError("The report must identify the tested S3 release firmware.")
@@ -77,7 +82,9 @@ def run(probe, output, expected=None, confirm=input):
     try:
         initial = probe.sample()
         firmware = report["firmware"] = initial["firmware"]
-        if firmware["model"] != DEVICE or (expected and firmware["project_version"] != expected["release"]):
+        if firmware["model"] != DEVICE or (expected and (
+                firmware["project_version"] != expected["release"]
+                or firmware.get("app_elf_sha256") != expected["app_elf_sha256"])):
             raise ValueError("The panel must be running the intended S3 firmware.")
         memory_values(initial["memory"])
         previous = initial

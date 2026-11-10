@@ -67,10 +67,12 @@ class ReleaseHardwareTests(unittest.TestCase):
             root = Path(temp)
             manifest = root / "candidate.json"
             manifest.write_text(json.dumps({"releaseVersion": "v9.8.7",
-                                            "supportedDevices": [release_hardware.DEVICE]}))
+                                            "supportedDevices": [release_hardware.DEVICE],
+                                            "artifacts": {f"{release_hardware.DEVICE}.ota.bin": {
+                                                "appElfSha256": "a" * 64}}}))
             expected = release_hardware.candidate(manifest, "1234")
             data = snapshot()
-            data["firmware"].update(model=release_hardware.DEVICE, project_version="v9.8.7")
+            data["firmware"].update(model=release_hardware.DEVICE, project_version="v9.8.7", app_elf_sha256="a" * 64)
             probe = unittest.mock.Mock()
             probe.sample.side_effect = lambda: deepcopy(data)
             probe.json.return_value = {"mac_companion": {"paired": True, "connected": True}}
@@ -86,6 +88,10 @@ class ReleaseHardwareTests(unittest.TestCase):
                 self.assertEqual(release_hardware.run(probe, root / "no-reboot", expected, lambda _: "pass"), 1)
             report = json.loads((root / "report" / "report.json").read_text())
             release_hardware.verify_report(report, expected)
+            wrong_build = deepcopy(report)
+            wrong_build["firmware"]["app_elf_sha256"] = "b" * 64
+            with self.assertRaises(ValueError):
+                release_hardware.verify_report(wrong_build, expected)
             self.assertEqual(len(report["steps"]), 9)
             self.assertEqual(report["steps"][-1]["after"]["psram_largest_bytes"], 100000)
             self.assertEqual(json.loads((root / "no-reboot" / "report.json").read_text())["status"], "failed")

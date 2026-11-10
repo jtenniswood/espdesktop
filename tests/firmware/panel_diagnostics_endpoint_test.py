@@ -28,6 +28,12 @@ size_t heap_caps_get_total_size(uint32_t flags) { return flags & MALLOC_CAP_INTE
 size_t heap_caps_get_free_size(uint32_t flags) { return flags & MALLOC_CAP_INTERNAL ? 250 : 1500; }
 size_t heap_caps_get_largest_free_block(uint32_t flags) { return flags & MALLOC_CAP_INTERNAL ? 125 : 750; }
 int esp_reset_reason() { return 12; }
+struct AppDescription { uint8_t app_elf_sha256[32]; };
+const AppDescription *esp_app_get_description() {
+ static AppDescription app{};
+ std::memset(app.app_elf_sha256, 0xaa, sizeof(app.app_elf_sha256));
+ return &app;
+}
 struct httpd_req_t { std::string status, type, body; std::map<std::string, std::string> headers; };
 void httpd_resp_set_status(httpd_req_t *r, const char *s) { r->status = s; }
 void httpd_resp_set_type(httpd_req_t *r, const char *s) { r->type = s; }
@@ -90,6 +96,7 @@ int main() {
  assert(d["boot_id"] == 12345 && d["uptime_ms"].as<uint64_t>() == uptime && d["reset_reason"] == 12);
  assert(d["firmware"]["esphome_version"] == "2026.10.2" && d["firmware"]["compilation_time"] == "2026-11-08 12:00:00 +0000");
  assert(d["firmware"]["project_version"] == "dev" && d["firmware"]["model"] == "test-panel");
+ assert(d["firmware"]["app_elf_sha256"] == std::string(64, 'a'));
  assert(d["memory"]["heap_free_percent"] == 25 && d["memory"]["psram_free_percent"] == 75);
  assert(d["memory"]["heap_largest_bytes"] == 125 && d["memory"]["psram_largest_bytes"] == 750);
  ++uptime; heap_total = 0; h.handleRequest(&r); assert(random_calls == 1);
