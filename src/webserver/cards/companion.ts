@@ -1443,6 +1443,7 @@ export function registerCompanionCardTypes(
     };
     registry.register("companion_mac_lock", {
         label: macLockDefaults.label,
+        pickerLabel: "Local Machine",
         cardMetadata: macLockMetadata,
         allowInSubpage: cardContractAllowInSubpage("companion_mac_lock"),
         isAvailable: () => supported,
@@ -1465,9 +1466,9 @@ export function registerCompanionCardTypes(
 
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
-        ["companion_shortcut", "Keyboard shortcut", "shortcut"],
-        ["companion_url", "Open URL", "url"],
-        ["companion_folder", "Open folder", "folder"],
+        ["companion_shortcut", "Key Shortcut", "shortcut"],
+        ["companion_url", "Website", "url"],
+        ["companion_folder", "Folder", "folder"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

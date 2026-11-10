@@ -4267,7 +4267,7 @@ async function assertMacLockCard(browser) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     await seedNativeDocument(page, nativeState);
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await page.getByRole("button", { name: "Mac Lock card type", exact: true }).click();
+    await page.getByRole("button", { name: "Local Machine card type", exact: true }).click();
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () =>

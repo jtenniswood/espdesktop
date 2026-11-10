@@ -10,6 +10,7 @@ export interface CardDefinition {
   readonly hideLabel?: boolean;
   readonly labelPlaceholder?: string | null;
   readonly pickerKey?: CardDefinitionValue<string | null>;
+  readonly pickerLabel?: CardDefinitionValue<string>;
   readonly hidden?: CardDefinitionValue<boolean>;
   readonly isAvailable?: (() => boolean) | null;
   readonly onSelect?: ((button: any) => void) | null;

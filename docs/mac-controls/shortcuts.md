@@ -5,13 +5,13 @@ description: Create Companion cards from custom Mac keyboard combinations or bui
 
 # Run Mac Keyboard Shortcuts
 
-A **Companion → Keyboard shortcut** card sends a chosen key combination to whichever Mac app is active when you tap it.
+A **Companion → Key Shortcut** card sends a chosen key combination to whichever Mac app is active when you tap it.
 
 ## Create a Shortcut Card
 
 Try the key combination in the intended Mac app first.
 
-1. In the display setup page, add a **Companion → Keyboard shortcut** card.
+1. In the display setup page, add a **Companion → Key Shortcut** card.
 2. Choose a type:
    - **Custom Shortcut**: expand the **Shortcut** panel, choose the modifiers, then choose a key. For Command-W, select **⌘ Command**, choose **W**, and save.
    - **Shortcut Catalog**: choose an app and one of its named shortcuts. The card starts with the template's label and icon; you can customise them in Card Settings.
