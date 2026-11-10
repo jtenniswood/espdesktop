@@ -23,7 +23,7 @@ Approve **Finder** in the Mac app to use its launch card. Touching an app card s
 
 ## Open a Website
 
-1. Add a **Companion → Open URL** card.
+1. Add a **Companion → Website** card.
 2. Enter an `http://` or `https://` address.
 3. Under **Open in**, keep **New tab** or choose **New window**, then save the card.
 
@@ -31,7 +31,7 @@ The card uses the Mac's default browser. Use matching versions of the Mac app an
 
 Addresses containing an embedded username or password are rejected. Other URL types, including `file://`, are not accepted.
 
-Saved **Web App** cards are removed from layouts when upgrading or restoring a backup. Use **Open URL** to add a card for a website.
+Saved **Web App** cards are removed from layouts when upgrading or restoring a backup. To add a card for a website, choose **Website**.
 
 ## Ready-Made App Subpages
 

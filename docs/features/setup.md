@@ -11,7 +11,7 @@ After pairing the Mac app, open the display's address in a browser and use its b
 
 1. Open the **Layout** tab in the display's web page.
 2. Select an empty tile and choose **Companion**.
-3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, or **Open URL**.
+3. Choose a control type, such as **Applications**, **Keyboard shortcut**, **Open folder**, or **Website**.
 4. Set the options and choose **Apply Configuration** to save the layout.
 
 Apps and folders must first be approved in the Mac app. Keyboard shortcuts and Mac Lock need Accessibility permission. See [Mac Controls](/#what-you-can-control) for the available actions and requirements.
