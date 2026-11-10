@@ -44,10 +44,11 @@ device. The shared `docs/public/webserver/www.js` is a small hosted bridge: it
 uses `web-assets.json` to select an immutable content-addressed editor for the
 development build and the stable release/rollback versions declared by the
 generator. The matching offline editor is written to
-`docs/public/webserver/embedded/www.js`. Firmware
-loads that local editor first as a fallback, then asks the hosted bridge for its
-declared compatible bundle; if the manifest or bundle cannot be loaded, the
-local editor starts automatically.
+`docs/public/webserver/embedded/www.js`. The public Guition 4848S040 firmware
+starts its embedded editor for both factory installs and OTA upgrades. Editor
+changes reach that panel through firmware updates. Firmware configured with
+the hosted bridge still starts its local fallback if the hosted editor cannot
+load.
 
 The configurator page itself is served by the device. New build entry points in
 `builds/*.yaml` bundle the matching JavaScript with `web_server.js_include`, so

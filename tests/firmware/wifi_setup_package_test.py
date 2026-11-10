@@ -20,4 +20,8 @@ for path in configs:
         assert "captive_portal" in merged, f"{path.relative_to(ROOT)}: setup AP needs a captive portal"
         assert "improv_serial" not in merged, f"{path.relative_to(ROOT)}: USB provisioning must stay disabled"
         print(f"{path.relative_to(ROOT)}: setup AP and captive portal present; USB provisioning disabled")
+    if path.name == "guition-esp32-s3-4848s040.factory.yaml":
+        web = merged["web_server"]
+        assert web["js_url"] == "", "The public S3 must start the embedded editor"
+        assert web["js_include"] == "../docs/public/webserver/embedded/www.js"
 print("WiFi setup package expansion checks passed.")
