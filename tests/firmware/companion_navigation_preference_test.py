@@ -11,6 +11,7 @@ def function(signature):
     return source[start:source.index('\n}', start) + 2]
 
 code = r'''
+#include <algorithm>
 #include <atomic>
 #include <cassert>
 #include <string>
