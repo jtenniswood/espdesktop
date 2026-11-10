@@ -123,7 +123,9 @@ export function createPreviewInteractionsFeature(
                     saveSubpageConfig(homeSlot);
                 } else {
                     const live = current.buttons[slot - 1];
-                    if (live && live.label !== label) {
+                    if (live && live.label !== label && dependencies.nativeTransfers?.available()) {
+                        void dependencies.nativeTransfers.rename(slot, label);
+                    } else if (live && live.label !== label) {
                         live.label = label;
                         const draft = state.settingsDraft;
                         if (draft && draft.slot === slot && draft.isSub === c.isSub &&

@@ -165,7 +165,9 @@ exact edit, generation, and verification steps, or the
 
 ## Preview and Persistence Rules
 
-- Update the draft object first.
+- Inline card names on native panels commit a card edit before refreshing the
+  preview. A concurrent edit to a different card can survive the save.
+- Update the draft object first for settings that use the legacy save path.
 - Use the existing helper save functions where available.
 - Schedule a preview refresh after changing fields that affect the tile.
 - Keep option-backed fields in the `options` string, not as new top-level fields,

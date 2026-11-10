@@ -6834,14 +6834,14 @@ async function assertNestedCompanionPages(browser) {
   page.on("pageerror", error => errors.push(error.message));
   await installFakeEventSource(page);
   try {
-    const open = async (tab = page) => {
+    const open = async (tab = page, expectedName = "Address") => {
       await tab.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
       await tab.waitForFunction(() => window.__eventSources?.length > 0);
       await tab.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
       await tab.getByRole("tab", { name: "Layout", exact: true }).click();
       await tab.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
       await tab.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-      await tab.getByText("Address", { exact: true }).first().waitFor();
+      await tab.getByText(expectedName, { exact: true }).first().waitFor();
     };
     // Create a new app shortcut page while its app is already inside a folder.
     const existing = structuredClone(fixture.document);
@@ -6899,20 +6899,30 @@ async function assertNestedCompanionPages(browser) {
     const stale = await context.newPage();
     await installFakeEventSource(stale);
     await open(stale);
-    const name = async (tab, label) => {
-      await tab.locator('.sp-main [data-slot="1"] .sp-editable-title').click();
+    const name = async (tab, label, slot = 1) => {
+      await tab.locator(`.sp-main [data-slot="${slot}"] .sp-editable-title`).click();
       const input = tab.getByRole("textbox", { name: "Card name", exact: true });
       await input.fill(label);
       return input;
     };
+    const parallelInput = await name(stale, "Address from stale tab");
+    await (await name(page, "Neighbour edit", 2)).press("Enter");
+    await waitForNativeState(fixture, () => fixture.puts.length === 2, "save the neighbouring card");
+    await parallelInput.press("Enter");
+    await waitForNativeState(fixture, () => fixture.puts.length === 3, "save the independent edit");
+    assert(fixture.document.subpages[33].includes("Neighbour edit"), "a stale tab preserves its neighbour");
+    assert(fixture.document.subpages[33].includes("Address from stale tab"));
+    await open(page, "Address from stale tab");
+    await open(stale, "Address from stale tab");
+
     const staleInput = await name(stale, "Second browser");
     const firstInput = await name(page, "First browser");
     await firstInput.press("Enter");
-    await waitForNativeState(fixture, () => fixture.puts.length === 2, "save the first tab's edit");
+    await waitForNativeState(fixture, () => fixture.puts.length === 4, "save the first tab's edit");
     assert(fixture.document.subpages[33].includes("First browser"));
     await staleInput.press("Enter");
     await stale.getByText("Configuration changed in another browser. Reload before saving again.", { exact: true }).waitFor();
-    assert.equal(fixture.puts.length, 2, "the second tab's stale edit never reaches the panel");
+    assert.equal(fixture.puts.length, 4, "the second tab's stale edit never reaches the panel");
     assert(fixture.document.subpages[33].includes("First browser"));
     assert.deepStrictEqual(errors, []);
     console.log("Nested Companion shortcut creation, editing, failed-save retry, reload, Back and two-tab conflict checks passed.");
