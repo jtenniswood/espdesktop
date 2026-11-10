@@ -181,6 +181,15 @@ export function runCompanionShortcutFeatureTests(): void {
         reconnectAthenaShortcutSubpage(savedAthena, "com.apple.finder", replacementAthena)) {
       throw new Error("Choosing a replacement for the original Athena card should preserve its saved layout");
     }
+    const fullAthena = { order: ["B", "1", "2"], buttons: [...savedAthena.buttons, {
+      ...emptyCardConfig("companion"), entity: "shortcut.command+shift+f",
+      label: "Search Chats", options: "app_shortcut_preset=" + previousAthena + ":101",
+    }] };
+    const fullReconnected = reconnectAthenaShortcutSubpage(fullAthena, previousAthena, replacementAthena);
+    if (!fullReconnected || !companionShortcutTabsFitSubpage(replacementAthena, ["101"], fullReconnected, 3) ||
+        companionShortcutTabsFitSubpage(replacementAthena, ["101"], fullAthena, 3)) {
+      throw new Error("Capacity checks must use the reconnected page when a full Athena subpage is edited");
+    }
     const updated = syncCompanionShortcutSubpage(replacementAthena, ["101"], reconnected);
     if (companionShortcutTabsFromSubpage(replacementAthena, updated).join() !== "101") {
       throw new Error("Shortcut selection edits in the same save must apply to the reconnected page");

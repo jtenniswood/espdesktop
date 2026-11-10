@@ -1101,9 +1101,10 @@ export function registerCompanionCardTypes(
                         return normalizeCompanionAppShortcutOptions({ ...card, options });
                     },
                     setTabs: function (button: any, tabs: string[]) {
-                        if (!companionShortcutTabsFitSubpage(
-                            button.entity, tabs, savedShortcutSubpage, maxSlots,
-                        )) {
+                        const page = reconnectAthenaShortcutSubpage(
+                            savedShortcutSubpage ?? undefined, savedParent?.entity, button.entity,
+                        ) ?? savedShortcutSubpage;
+                        if (!companionShortcutTabsFitSubpage(button.entity, tabs, page, maxSlots)) {
                             button._appShortcutCapacityRejected = true;
                             return false;
                         }
