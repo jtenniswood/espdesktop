@@ -400,6 +400,17 @@ int main() {
   assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
   assert(screensaver_idle_check.calls == 0);
   button_order.state = "1";
+  // A new panel without a saved document still starts with the time schedule.
+  reset(); controller = {};
+  const ScreenSchedulePreferences defaults;
+  schedule_enabled.state = defaults.enabled;
+  schedule_on_hour.state = defaults.on_hour;
+  schedule_off_hour.state = defaults.off_hour;
+  clock_time.valid = false;
+  screen_schedule_boot_guard.execute();
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+  assert(controller.target_source_is(DisplayRequestSource::BOOT_GUARD));
+  clock_time.valid = true;
   // Night boot must not start a normal idle countdown.
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DISPLAY_OFF}) {
     reset(mode); display_active_finalize.execute(); advance(100);

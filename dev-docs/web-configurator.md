@@ -189,3 +189,8 @@ support before using it. The firmware's theme entities submit edits to the
 same record, including the first edit on a fresh panel. Firmware publishes
 the complete theme after storage commits and uses product defaults when the
 record is absent.
+
+Night Schedule also uses one native record. Its firmware entities publish
+live values and route edits through the same native transaction as the editor.
+Before the saved document loads, the panel uses the enabled time schedule
+with the product defaults.

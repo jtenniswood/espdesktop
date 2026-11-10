@@ -55,10 +55,20 @@ class EspDesktopApp : public esphome::Component {
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
   void bind_app_subpage_preference_switch(esphome::switch_::Switch &setting);
-  void bind_screen_schedule(std::function<void(const ScreenSchedulePreferences &)> apply) {
-    apply_screen_schedule_ = std::move(apply);
-    if (screen_schedule_) apply_screen_schedule_(*screen_schedule_);
+  void bind_screen_schedule(unsigned default_clock_brightness,
+      std::function<void(const ScreenSchedulePreferences &)> apply);
+  const ScreenSchedulePreferences &screen_schedule_preferences() const {
+    return screen_schedule_ ? *screen_schedule_ : screen_schedule_defaults_;
   }
+
+  template<typename T>
+  void edit_screen_schedule_preference(T ScreenSchedulePreferences::*field, T value) {
+    auto next = screen_schedule_preferences();
+    if (next.*field == value) return;
+    next.*field = value;
+    save_screen_schedule_preferences(next);
+  }
+  void edit_screen_schedule_number(unsigned ScreenSchedulePreferences::*field, float value);
   void bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish);
   const ThemeSettings &display_theme_preferences() const { return display_theme_preferences_; }
 
@@ -157,6 +167,7 @@ class EspDesktopApp : public esphome::Component {
   void publish_app_subpage_preference(bool enabled);
   void publish_display_theme_preferences(const std::optional<ThemeSettings> &settings);
   void save_display_theme_preferences(const ThemeSettings &settings);
+  void save_screen_schedule_preferences(const ScreenSchedulePreferences &settings);
   bool save_panel_setting(std::string_view key, std::string_view value);
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
@@ -184,6 +195,7 @@ class EspDesktopApp : public esphome::Component {
   ApplicationSceneRuntime* application_scene_{nullptr};
   esphome::switch_::Switch *app_subpage_switch_{nullptr};
   std::optional<ScreenSchedulePreferences> screen_schedule_;
+  ScreenSchedulePreferences screen_schedule_defaults_{};
   std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;
   ThemeSettings display_theme_preferences_{};
   std::function<void(const ThemeSettings &)> display_theme_preferences_changed_;

@@ -226,29 +226,33 @@ int main() {
 
 
   int schedule_applies = 0, schedule_layout_refreshes = 0;
-  ScreenSchedulePreferences schedule{};
+  std::optional<ScreenSchedulePreferences> schedule;
   GridPageRuntime schedule_runtime(limits, allocate, ConfigurationBuffer::release_host,
       [&] { ++schedule_layout_refreshes; }, {}, {},
-      [&](const ScreenSchedulePreferences &value) { schedule = value; ++schedule_applies; });
+      [&](const std::optional<ScreenSchedulePreferences> &value) { schedule = value; ++schedule_applies; });
   write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,1,7,19,clock,60,10,15,10,C0FFEE");
   assert(schedule_runtime.prepare_write(2, updated.data(), size));
   assert(schedule_applies == 0);
   assert(schedule_runtime.activate_prepared(14, 2, updated.data(), size));
   assert(schedule_applies == 1 && schedule_layout_refreshes == 1);
-  assert(schedule.enabled && schedule.night_mode == ScheduledNightMode::CLOCK &&
-      std::string_view(schedule.clock_color.data()) == "C0FFEE");
+  assert(schedule && schedule->enabled && schedule->night_mode == ScheduledNightMode::CLOCK &&
+      std::string_view(schedule->clock_color.data()) == "C0FFEE");
 
   write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,0,24,22,dim,120,20,5,3,FFFFFF");
   assert(!schedule_runtime.prepare_write(2, updated.data(), size));
-  assert(schedule_applies == 1 && schedule.enabled);
+  assert(schedule_applies == 1 && schedule->enabled);
   write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,0,9,22,dim,120,20,5,3,FFFFFF");
   assert(schedule_runtime.prepare_write(2, updated.data(), size));
   schedule_runtime.discard_prepared();
-  assert(schedule_applies == 1 && schedule.enabled);
+  assert(schedule_applies == 1 && schedule->enabled);
   assert(schedule_runtime.prepare_write(2, updated.data(), size));
   assert(schedule_runtime.activate_prepared(15, 2, updated.data(), size));
   assert(schedule_applies == 2 && schedule_layout_refreshes == 1);
-  assert(!schedule.enabled && schedule.on_hour == 9 && schedule.off_hour == 22 &&
-      schedule.wake_timeout == 120 && schedule.dimmed_brightness == 5);
+  assert(schedule && !schedule->enabled && schedule->on_hour == 9 && schedule->off_hour == 22 &&
+      schedule->wake_timeout == 120 && schedule->dimmed_brightness == 5);
+  assert(encode_screen_schedule_preferences(*schedule) == "1,0,9,22,dim,120,20,5,3,FFFFFF");
+  assert(schedule_runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(schedule_runtime.activate_prepared(16, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(schedule_applies == 3 && !schedule);
 
 }

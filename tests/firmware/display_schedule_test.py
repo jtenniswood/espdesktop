@@ -25,6 +25,7 @@ def generate(root):
         text = (root / "common/addon" / filename).read_text()
         scripts.update({s["id"]: s for s in yaml.load(text[text.index("script:\n"):], Loader)["script"]})
     selected = {"display_mode_reconcile", "screen_schedule_check", "screen_schedule_wake",
+                "screen_schedule_boot_guard",
                 "display_mode_apply_transition", "display_mode_effect_active",
                 "display_active_finalize", "screensaver_idle_check",
                 "screen_schedule_wake_timeout_check",

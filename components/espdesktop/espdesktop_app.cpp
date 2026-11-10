@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <array>
 #include <cinttypes>
+#include <cmath>
 #include <new>
 
 #ifdef USE_ESP32
@@ -358,9 +359,10 @@ bool EspDesktopApp::create_native_configuration_runtime() {
       [this]() { layout_changed_.trigger(); },
       [this](bool enabled) { publish_app_subpage_preference(enabled); },
       [this](const auto &settings) { publish_display_theme_preferences(settings); },
-      [this](const ScreenSchedulePreferences &settings) {
+      [this](const std::optional<ScreenSchedulePreferences> &settings) {
+        if (!settings && !screen_schedule_) return;
         screen_schedule_ = settings;
-        if (apply_screen_schedule_) apply_screen_schedule_(settings);
+        if (apply_screen_schedule_) apply_screen_schedule_(screen_schedule_preferences());
       }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
@@ -490,6 +492,23 @@ void EspDesktopApp::publish_display_theme_preferences(const std::optional<ThemeS
 void EspDesktopApp::save_display_theme_preferences(const ThemeSettings &settings) {
   if (!save_panel_setting(DISPLAY_THEME_PREFERENCES_KEY, encode_display_theme_preferences(settings)))
     ESP_LOGW(TAG, "Could not save a theme preference edit");
+}
+
+void EspDesktopApp::bind_screen_schedule(unsigned default_clock_brightness,
+    std::function<void(const ScreenSchedulePreferences &)> apply) {
+  screen_schedule_defaults_.clock_brightness = default_clock_brightness;
+  apply_screen_schedule_ = std::move(apply);
+  if (apply_screen_schedule_) apply_screen_schedule_(screen_schedule_preferences());
+}
+
+void EspDesktopApp::edit_screen_schedule_number(unsigned ScreenSchedulePreferences::*field, float value) {
+  if (!std::isfinite(value) || value < 0 || value > UINT16_MAX || std::floor(value) != value) return;
+  edit_screen_schedule_preference(field, static_cast<unsigned>(value));
+}
+
+void EspDesktopApp::save_screen_schedule_preferences(const ScreenSchedulePreferences &settings) {
+  if (!save_panel_setting(SCREEN_SCHEDULE_PREFERENCES_KEY, encode_screen_schedule_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save a night schedule edit");
 }
 
 bool EspDesktopApp::save_panel_setting(std::string_view key, std::string_view value) {

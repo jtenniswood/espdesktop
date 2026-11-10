@@ -2,8 +2,8 @@
 
 This document describes shared display-mode decisions and the effects that
 apply them. Home Assistant alarm controls and presence subscriptions have been
-retired. Saved Sensor screensaver and Night Schedule modes migrate to Disabled
-before restored policy runs; time schedules and Mac playback remain supported.
+retired. The screensaver still disables a retired Sensor mode at startup.
+Night Schedule stores an enabled flag and local hours in the native document.
 
 The lifecycle controller decides **what should be visible**. ESPHome scripts
 remain responsible for the physical effects: fades, LVGL page and widget changes,
@@ -189,7 +189,7 @@ tests. `gN` denotes a transition generation.
 | Scheduled off and automatic wake | `ACTIVE`; enter off-hours Off; enter normal hours | `SCREEN_SCHEDULE` selects `DISPLAY_OFF`; later clearing that request selects `ACTIVE`, waits for the main page to settle, restores its clock bar and configured brightness, and restarts idle handling through the shared active-display finalizer. |
 | Scheduled clock | `ACTIVE`; enter off-hours Clock; setting or time changes | Select `CLOCK` with scheduled clock brightness. Re-evaluate current schedule on every change; do not restore a previous transient mode. |
 | Temporary off-hours wake | Scheduled off or clock; touch; timeout | `USER_WAKE` selects `ACTIVE` at temporary-wake brightness. On existing timeout, clear it and re-resolve to the current scheduled off or clock mode. |
-| Scheduled Screen Dimmed | Enter off-hours Screen Dimmed | `SCREEN_SCHEDULE` selects `ACTIVE` at `schedule_dimmed_brightness` and suppresses idle sleep for that period. The internal `screen_schedule_always_on_mode` helper name does not change the user-facing mode or its brightness contract. |
+| Scheduled Screen Dimmed | Enter off-hours Screen Dimmed | `SCREEN_SCHEDULE` selects `ACTIVE` at `schedule_dimmed_brightness` and suppresses idle sleep for that period. |
 | Interactive modal defers idle | `ACTIVE`; open image modal; idle timeout or absence; close modal | `INTERACTIVE` keeps `ACTIVE` while recording the automatic request. Closing resolves to the current configured idle mode. |
 | Schedule changes during interactive modal | Open image modal; enter scheduled off or clock | Schedule outranks interactive takeover, closes it, and applies off or clock. Entering normal hours before modal close is resolved from live schedule state. |
 | Rapid opposing requests | Idle requests off `g1`; touch requests active `g2`; schedule requests clock `g3`; old fade callback from `g1` fires | Final mode is `CLOCK` from `g3`; callbacks from `g1` and `g2` are rejected and cannot change widgets or PWM. |

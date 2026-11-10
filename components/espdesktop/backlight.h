@@ -220,16 +220,6 @@ inline bool screen_schedule_in_window(int now_h, int on_hour, int off_hour) {
   return true;
 }
 
-inline bool screen_schedule_always_on_mode(const std::string &mode) {
-  return mode == "Screen Dimmed" || mode == "screen_dimmed" ||
-         mode == "Dimmed" || mode == "dimmed" || mode == "dim" ||
-         mode == "Always On" || mode == "always_on" || mode == "always";
-}
-
-inline bool screen_schedule_clock_mode(const std::string &mode) {
-  return mode == "Clock" || mode == "clock";
-}
-
 inline bool screen_schedule_sensor_trigger(const std::string &trigger) {
   return trigger == "Sensor" || trigger == "sensor";
 }

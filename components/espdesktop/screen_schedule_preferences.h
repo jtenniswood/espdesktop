@@ -1,6 +1,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 #include "panel_settings_generated.h"
 
 namespace espdesktop {
@@ -10,11 +11,11 @@ inline constexpr std::string_view SCREEN_SCHEDULE_PREFERENCES_KEY = panel_settin
 enum class ScheduledNightMode { OFF, DIMMED, ALWAYS_ON, CLOCK };
 
 struct ScreenSchedulePreferences {
-  bool enabled;
-  unsigned on_hour, off_hour;
-  ScheduledNightMode night_mode;
-  unsigned wake_timeout, wake_brightness, dimmed_brightness, clock_brightness;
-  std::array<char, 7> clock_color{};
+  bool enabled{true};
+  unsigned on_hour{7}, off_hour{19};
+  ScheduledNightMode night_mode{ScheduledNightMode::DIMMED};
+  unsigned wake_timeout{60}, wake_brightness{10}, dimmed_brightness{15}, clock_brightness{10};
+  std::array<char, 7> clock_color{'F', 'F', 'F', 'F', 'F', 'F', '\0'};
 };
 
 inline std::optional<ScreenSchedulePreferences> parse_screen_schedule_preferences(std::string_view value) {
@@ -37,6 +38,25 @@ inline const char *scheduled_night_mode_option(ScheduledNightMode mode) {
     case ScheduledNightMode::CLOCK: return "Clock";
     default: return "Screen off";
   }
+}
+
+inline ScheduledNightMode scheduled_night_mode_from_option(std::string_view mode) {
+  if (mode == "Screen Dimmed") return ScheduledNightMode::DIMMED;
+  if (mode == "Always On") return ScheduledNightMode::ALWAYS_ON;
+  if (mode == "Clock") return ScheduledNightMode::CLOCK;
+  return ScheduledNightMode::OFF;
+}
+
+inline std::string encode_screen_schedule_preferences(const ScreenSchedulePreferences &settings) {
+  const char *mode = settings.night_mode == ScheduledNightMode::DIMMED ? "dim" :
+      settings.night_mode == ScheduledNightMode::CLOCK ? "clock" :
+      settings.night_mode == ScheduledNightMode::ALWAYS_ON ? "always" : "off";
+  return std::to_string(panel_settings::screen_schedule_preferences_version) +
+      (settings.enabled ? ",1," : ",0,") + std::to_string(settings.on_hour) + "," +
+      std::to_string(settings.off_hour) + "," + mode + "," + std::to_string(settings.wake_timeout) +
+      "," + std::to_string(settings.wake_brightness) + "," + std::to_string(settings.dimmed_brightness) +
+      "," + std::to_string(settings.clock_brightness) + "," +
+      std::string(settings.clock_color.data(), settings.clock_color.size() - 1);
 }
 
 }  // namespace espdesktop

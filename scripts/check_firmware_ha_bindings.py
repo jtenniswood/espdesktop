@@ -1275,11 +1275,12 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
         if migrated_live_schedule:
             boot_guard_index = schedule_text.find("script.execute: screen_schedule_boot_guard")
             boot_guard_prefix = schedule_text[:boot_guard_index] if boot_guard_index != -1 else ""
+            boot_guard_body = yaml_script_body(schedule_text, "screen_schedule_boot_guard") or ""
             if (
                 "priority: -190" not in boot_guard_prefix
-                or "screen_schedule_waiting_for_time(" not in boot_guard_prefix
-                or "screen_schedule_night_active(" not in boot_guard_prefix
-                or "script.execute: screen_schedule_boot_guard" not in schedule_text
+                or "bind_screen_schedule(" not in boot_guard_prefix
+                or "id(schedule_enabled).publish_state(settings.enabled)" not in boot_guard_prefix
+                or "script.execute: display_mode_reconcile" not in boot_guard_body
             ):
                 errors.append(
                     f"{schedule_rel}: publish the live fail-dark schedule before the loading screen can light the panel"

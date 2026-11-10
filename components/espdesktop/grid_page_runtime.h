@@ -65,7 +65,7 @@ public:
       std::function<void()> refresh_layout = {},
       std::function<void(bool)> publish_app_subpage_preference = {},
       std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {},
-      std::function<void(const ScreenSchedulePreferences &)> publish_schedule = {})
+      std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule = {})
       : limits_(limits), allocate_(allocate), release_(release),
         refresh_layout_(std::move(refresh_layout)),
         publish_app_subpage_preference_(std::move(publish_app_subpage_preference)),
@@ -221,8 +221,7 @@ private:
   }
 
   void activate_snapshot(const Store &store) {
-    const bool schedule_changed = staged_->schedule &&
-        (!active_ || active_->schedule_record != staged_->schedule_record);
+    const bool schedule_changed = !active_ || active_->schedule_record != staged_->schedule_record;
     active_ = std::move(staged_);
     active_->store = &store;
     grid_native_pages() = active_.get();
@@ -231,7 +230,7 @@ private:
     if (active_->app_subpage_preference && publish_app_subpage_preference_)
       publish_app_subpage_preference_(*active_->app_subpage_preference);
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
-    if (schedule_changed && publish_schedule_) publish_schedule_(*active_->schedule);
+    if (schedule_changed && publish_schedule_) publish_schedule_(active_->schedule);
     if (active_->refresh_layout && refresh_layout_) refresh_layout_();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
@@ -241,7 +240,7 @@ private:
   std::function<void()> refresh_layout_;
   std::function<void(bool)> publish_app_subpage_preference_;
   std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences_;
-  std::function<void(const ScreenSchedulePreferences &)> publish_schedule_;
+  std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;
