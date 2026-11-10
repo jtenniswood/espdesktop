@@ -366,6 +366,14 @@ class CompanionRuntimeService {
     return pending_auto_subpage_action_id_;
   }
 
+  std::string take_wake_subpage_action() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    pending_auto_subpage_action_id_.clear();
+    closed_app_subpage_action_id_.clear();
+    subpage_return_requested.store(false);
+    return connected_ && auto_open_app_subpages_ ? focused_auto_subpage_id_ : std::string{};
+  }
+
   bool consume_auto_subpage_action(const std::string &action_id) {
     if (action_id.empty()) return false;
     std::lock_guard<std::mutex> lock(mutex_);

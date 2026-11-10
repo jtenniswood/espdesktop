@@ -21,6 +21,15 @@ code = r'''
 #include <cstdint>
 #include <functional>
 #include "grid_navigation_diagnostics.h"
+#include "display_lifecycle_service.h"
+namespace espdesktop {
+struct TestApp {
+  DisplayLifecycleService display;
+  const DisplayLifecycleService &display_lifecycle() const { return display; }
+};
+TestApp app_core;
+const TestApp *active_espdesktop_app_core() { return &app_core; }
+}
 #include <map>
 #include <string>
 #include <vector>
@@ -116,7 +125,6 @@ for signature in ("inline bool &companion_app_icon_work_pending() {",
                   "inline void companion_app_icon_frame_presented(lv_event_t *) {",
                   "inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {"):
     code += function("components/espdesktop/button_grid_grid.h", signature)
-code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *&companion_app_icon_sleep_screen() {")
 code += function("components/espdesktop/button_grid_grid.h", "inline bool companion_app_icon_sleep_page_active() {")
 code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility(bool release_hidden) {")
 code += function("components/espdesktop/button_grid_grid.h", "inline void grid_release_runtime_allocations(")
@@ -342,7 +350,7 @@ int main() {
 
   // Keep the scaled icon through sleep so the first wake frame can use it.
   lv_obj_t sleep{};
-  companion_app_icon_sleep_screen() = &sleep;
+  auto &presentation = espdesktop::app_core.display;
   auto &sleeping_icon = ready_icons[0];
   sleeping_icon.application_id = "wake.app";
   sleeping_icon.display_pixels = reinterpret_cast<uint8_t *>(1);
@@ -351,27 +359,32 @@ int main() {
   esphome::companion::app_icon_store().hashes["wake.app"] = sleeping_icon.loaded_hash;
   test_free_psram = 8 * 1024 * 1024;
   active = &sleep;
+  presentation.set_blank_page_active(true);
   before = applies;
   companion_refresh_app_icon_visibility();
   assert(sleeping_icon.display_pixels && sleeping_icon.image_loaded);
   active = &home;
+  presentation.set_blank_page_active(false);
   companion_refresh_app_icon_visibility();
   settle_icon_work();
   assert(applies == before);
 
   // A real catalogue update waits for wake and can then replace the icon.
   active = &sleep;
+  presentation.set_blank_page_active(true);
   esphome::companion::app_icon_store().hashes["wake.app"].fill(7);
   companion_refresh_cached_app_icon("wake.app");
   companion_process_pending_app_icon_refresh();
   assert(sleeping_icon.refresh_pending && sleeping_icon.image_loaded && applies == before);
   active = &home;
+  presentation.set_blank_page_active(false);
   companion_refresh_app_icon_visibility();
   settle_icon_work();
   assert(applies == before + 1 && sleeping_icon.image_loaded);
 
   // Memory pressure can still reclaim the cache while the display sleeps.
   active = &sleep;
+  presentation.set_blank_page_active(true);
   companion_refresh_app_icon_visibility(/*release_hidden=*/true);
   assert(!sleeping_icon.pixels && !sleeping_icon.display_pixels && !sleeping_icon.image_loaded);
 

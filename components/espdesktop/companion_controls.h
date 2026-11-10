@@ -376,6 +376,10 @@ inline std::string companion_pending_auto_subpage_action() {
   return companion_runtime_service().pending_auto_subpage_action();
 }
 
+inline std::string companion_take_wake_subpage_action() {
+  return companion_runtime_service().take_wake_subpage_action();
+}
+
 inline bool companion_consume_auto_subpage_action(const std::string &action_id) {
   return companion_runtime_service().consume_auto_subpage_action(action_id);
 }
