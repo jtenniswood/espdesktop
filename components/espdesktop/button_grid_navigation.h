@@ -623,6 +623,11 @@ inline bool navigation_open_companion_subpage_if_requested(
     lv_obj_t *main_page_obj) {
   const std::string requested = companion_pending_auto_subpage_action();
   if (requested.empty()) return false;
+  const auto *app = espdesktop::active_espdesktop_app_core();
+  if (app && !app->display_lifecycle().allows_focus_navigation()) {
+    companion_consume_auto_subpage_action(requested);
+    return false;
+  }
   NavigationSubpageEntry *active = navigation_find_slot(navigation_active_subpage_slot());
   if (!companion_return_home_on_app_switch() && active && active->kind == "app_shortcuts") {
     companion_consume_auto_subpage_action(requested);

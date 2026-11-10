@@ -70,7 +70,14 @@ esphome:
   on_boot:
     - priority: -210
       then:
-        - lambda: 'register_theme_static_page(id(loading_page)->obj);'
+        - lambda: |-
+            register_theme_static_page(id(loading_page)->obj);
+            lv_obj_add_event_cb(id(screen_off_page)->obj, [](lv_event_t *) {
+              id(espdesktop_app).display_lifecycle().set_blank_page_active(true);
+            }, LV_EVENT_SCREEN_LOADED, nullptr);
+            lv_obj_add_event_cb(id(screen_off_page)->obj, [](lv_event_t *) {
+              id(espdesktop_app).display_lifecycle().set_blank_page_active(false);
+            }, LV_EVENT_SCREEN_UNLOADED, nullptr);
     - priority: -200
       then:
         - lvgl.resume:
