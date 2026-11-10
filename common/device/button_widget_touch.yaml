@@ -1,0 +1,28 @@
+lambda: |-
+  constexpr auto event = GridTouchEvent::${event};
+  const auto action = decide_grid_touch(
+      event, id(screensaver_wake_touch_guard_active),
+      id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE));
+  switch (action) {
+    case GridTouchAction::IGNORE:
+      break;
+    case GridTouchAction::CLEAR_PRESSED:
+      lv_obj_clear_state(id(button_${num}), LV_STATE_PRESSED);
+      break;
+    case GridTouchAction::CONSUME_WAKE_GUARD:
+      id(screensaver_wake_touch_guard_clear).stop();
+      id(screensaver_wake_touch_guard_active) = false;
+      ESP_LOGD("screensaver", "Ignored button click after screensaver wake");
+      break;
+    case GridTouchAction::WAKE:
+      id(screensaver_wake).execute();
+      break;
+    case GridTouchAction::PRESS:
+      handle_button_press(id(button_${num}_config).state, ${num}, id(button_${num}));
+      break;
+    case GridTouchAction::CLICK:
+      if (event == GridTouchEvent::HOLD)
+        ESP_LOGD("button", "Treating grid card long press as normal tap for slot ${num}");
+      handle_button_click(id(button_${num}_config).state, ${num}, id(button_${num}));
+      break;
+  }
