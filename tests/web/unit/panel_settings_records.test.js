@@ -24,5 +24,9 @@ test("native scalar settings enforce the authored choices", () => {
   assert.equal(validPanelScalarSetting("screen_clock_bar", "true"), false);
   assert.equal(validPanelScalarSetting("screen_card_curve", "Medium"), true);
   assert.equal(validPanelScalarSetting("screen_card_curve", "medium"), false);
+  assert.equal(validPanelScalarSetting("screensaver_timeout", "3600"), true);
+  assert.equal(validPanelScalarSetting("screensaver_timeout", "3601"), false);
+  assert.equal(validPanelScalarSetting("screensaver_timeout", "1800\n"), false);
+  assert.equal(validPanelScalarSetting("screensaver_mode", "sensor"), false);
   assert.equal(validPanelScalarSetting("unknown_setting", "value"), true);
 });

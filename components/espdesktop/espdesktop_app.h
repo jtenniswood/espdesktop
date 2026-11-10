@@ -59,6 +59,7 @@ class EspDesktopApp : public esphome::Component {
   using ScalarPublisher = void (*)(std::string_view);
   void bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish);
   void edit_panel_scalar(ScalarSetting setting, std::string_view value);
+  void edit_panel_number(ScalarSetting setting, float value);
   void bind_screen_schedule(unsigned default_clock_brightness,
       std::function<void(const ScreenSchedulePreferences &)> apply);
   const ScreenSchedulePreferences &screen_schedule_preferences() const {

@@ -101,16 +101,7 @@ esphome:
     # handler can decide whether it is safe to light the panel.
     - priority: -189
       then:
-        - lambda: |-
-            bool preferences_changed = false;
-            if (id(screensaver_mode).state == "sensor") {
-              auto call = id(screensaver_mode).make_call();
-              call.set_value("disabled");
-              call.perform();
-              preferences_changed = true;
-            }
-            if (preferences_changed) global_preferences->sync();
-            id(local_display_policy_ready) = true;
+        - lambda: 'id(local_display_policy_ready) = true;'
     - priority: -190
       then:
         - lambda: |-

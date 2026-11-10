@@ -1,5 +1,6 @@
-"""Run the actual boot migration and schedule predicates for retired HA modes."""
+"""Check that retired sensor modes cannot drive the current display policy."""
 from pathlib import Path
+import json
 import subprocess
 import sys
 import tempfile
@@ -12,9 +13,12 @@ class Loader(yaml.SafeLoader):
     pass
 Loader.add_constructor("!lambda", lambda loader, node: loader.construct_scalar(node))
 config = yaml.load(schedule, Loader)
-migration = next(hook for hook in config["esphome"]["on_boot"]
-                 if any("local_display_policy_ready) = true" in str(action) for action in hook["then"]))
-assert migration["priority"] > -190, "Apply the idle-mode defaults before publishing display preferences"
+rules = json.loads((ROOT / "product/v2/panel_settings.json").read_text())["scalar_settings"]
+assert rules["screensaver_mode"] == {
+    "default": "disabled", "choices": ["disabled", "timer", "companion"],
+}
+trigger = next(item for item in config["text"] if item["id"] == "screen_schedule_trigger")
+assert not trigger["restore_value"] and not trigger["optimistic"]
 assert next(text for text in config["text"] if text["id"] == "screen_schedule_trigger")["initial_value"] == "time"
 assert next(select for select in config["select"] if select["id"] == "schedule_mode")["initial_option"] == "Screen Dimmed"
 defaults = {number["id"]: number.get("initial_value") for number in config["number"]}
@@ -58,40 +62,12 @@ void refresh_clock_bar_left_label(lv_obj_t *page, bool visible) {
  refreshed_page = page; refreshed_visible = visible;
 }
 ''' + local_header + r'''
-struct Text {
- std::string state; int writes = 0;
- struct Call { Text *text; std::string value;
-   void set_value(const char *next) { value = next; }
-   void perform() { text->state = value; ++text->writes; }
- };
- Call make_call() { return {this, ""}; }
-} screensaver_mode;
-struct Preferences { int syncs = 0; void sync() { ++syncs; } } preferences;
-auto *global_preferences = &preferences;
-bool local_display_policy_ready = false;
-#define id(x) x
-void migrate() {
-''' + migration["then"][0]["lambda"] + r'''
-}
 int main() {
  lv_obj_t label, page; lv_obj_t *labels[] = {&label};
  for (bool visible : {false, true}) {
   grid_refresh_local_header(labels, 1, &page, visible);
   assert(registered_label == &label && registered_count == 1);
   assert(refreshed_page == &page && refreshed_visible == visible);
- }
- for (const auto &idle : {"disabled", "timer", "companion", "sensor"}) {
-  screensaver_mode = {idle, 0};
-  preferences.syncs = 0;
-  local_display_policy_ready = false;
-  const bool retired_idle = std::string(idle) == "sensor";
-  migrate();
-  assert(local_display_policy_ready);
-  assert(screensaver_mode.state == (retired_idle ? "disabled" : idle));
-  assert(preferences.syncs == (retired_idle ? 1 : 0));
-  const int writes = screensaver_mode.writes;
-  migrate();
-  assert(writes == screensaver_mode.writes);
  }
  assert(!screen_schedule_night_active("time", true, false, true, 18, 7, 19));
  assert(screen_schedule_night_active("time", true, false, true, 19, 7, 19));

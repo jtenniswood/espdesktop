@@ -12,12 +12,25 @@ export const PANEL_SCALAR_SETTINGS = {
   companion_return_home_on_app_switch: { defaultValue: "1", choices: ["0", "1"] },
   screen_default_icon_size: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
   screen_card_curve: { defaultValue: "Large", choices: ["Small", "Medium", "Large"] },
+  screensaver_mode: { defaultValue: "disabled", choices: ["disabled", "timer", "companion"] },
+  screen_saver_action: { defaultValue: "Display Off", choices: ["Display Off", "Screen Dimmed", "Clock"] },
+  screen_saver_show_date: { defaultValue: "0", choices: ["0", "1"] },
+  screensaver_timeout: { defaultValue: "1800", min: 10, max: 3600 },
+  screen_saver_dimmed_brightness: { defaultValue: "10", min: 1, max: 100 },
+  screen_saver_daytime_dimmed_brightness: { defaultValue: "10", min: 1, max: 100 },
+  screen_saver_nighttime_dimmed_brightness: { defaultValue: "10", min: 1, max: 100 },
+  screen_saver_daytime_clock_brightness: { defaultValue: "35", min: 1, max: 100 },
+  screen_saver_nighttime_clock_brightness: { defaultValue: "35", min: 1, max: 100 },
 } as const;
 
 export function validPanelScalarSetting(key: string, value: string): boolean {
   if (!Object.hasOwn(PANEL_SCALAR_SETTINGS, key)) return true;
-  const choices: readonly string[] = PANEL_SCALAR_SETTINGS[key as keyof typeof PANEL_SCALAR_SETTINGS].choices;
-  return choices.includes(value);
+  const rule = PANEL_SCALAR_SETTINGS[key as keyof typeof PANEL_SCALAR_SETTINGS];
+  if ("choices" in rule) return (rule.choices as readonly string[]).includes(value);
+  const digits = rule.min < 0 && value.startsWith("-") ? value.slice(1) : value;
+  if (!digits || /[^0-9]/.test(digits)) return false;
+  const parsed = Number(value);
+  return parsed >= rule.min && parsed <= rule.max;
 }
 
 export const screen_schedule_preferences_key = "screen_schedule_preferences";

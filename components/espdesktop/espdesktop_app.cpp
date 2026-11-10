@@ -6,6 +6,7 @@
 #include <array>
 #include <cinttypes>
 #include <cmath>
+#include <limits>
 #include <new>
 
 #ifdef USE_ESP32
@@ -529,6 +530,13 @@ void EspDesktopApp::edit_panel_scalar(ScalarSetting setting, std::string_view va
   const auto &rule = panel_settings::SCALAR_RULES[size_t(setting)];
   if (rule.valid(value) && value != panel_scalar_value(setting) && !save_panel_setting(rule.key, value))
     ESP_LOGW(TAG, "Could not save panel setting %.*s", int(rule.key.size()), rule.key.data());
+}
+
+void EspDesktopApp::edit_panel_number(ScalarSetting setting, float value) {
+  if (!std::isfinite(value) || std::floor(value) != value ||
+      double(value) < std::numeric_limits<int32_t>::min() ||
+      double(value) > std::numeric_limits<int32_t>::max()) return;
+  edit_panel_scalar(setting, std::to_string(static_cast<int32_t>(value)));
 }
 
 bool EspDesktopApp::save_panel_setting(std::string_view key, std::string_view value) {

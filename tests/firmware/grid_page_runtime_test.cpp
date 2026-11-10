@@ -275,5 +275,11 @@ int main() {
   assert(scalar_runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
   assert(scalar_runtime.activate_prepared(19, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
   assert(published.size() == 2 && published.back().second == "Large");
+  write_preference("screensaver_timeout", "3601");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screensaver_timeout", "3600");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(20, 2, updated.data(), size));
+  assert(published.back().first == Scalar::SCREENSAVER_TIMEOUT && published.back().second == "3600");
   assert_nested_page();
 }

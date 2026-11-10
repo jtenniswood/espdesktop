@@ -17,6 +17,15 @@ enum class ScalarSetting : uint8_t {
   COMPANION_RETURN_HOME_ON_APP_SWITCH,
   SCREEN_DEFAULT_ICON_SIZE,
   SCREEN_CARD_CURVE,
+  SCREENSAVER_MODE,
+  SCREEN_SAVER_ACTION,
+  SCREEN_SAVER_SHOW_DATE,
+  SCREENSAVER_TIMEOUT,
+  SCREEN_SAVER_DIMMED_BRIGHTNESS,
+  SCREEN_SAVER_DAYTIME_DIMMED_BRIGHTNESS,
+  SCREEN_SAVER_NIGHTTIME_DIMMED_BRIGHTNESS,
+  SCREEN_SAVER_DAYTIME_CLOCK_BRIGHTNESS,
+  SCREEN_SAVER_NIGHTTIME_CLOCK_BRIGHTNESS,
   COUNT
 };
 struct ScalarRule {
@@ -35,6 +44,15 @@ inline constexpr std::array<ScalarRule, size_t(ScalarSetting::COUNT)> SCALAR_RUL
   {"companion_return_home_on_app_switch", "1", [](std::string_view value) { return value == "0" || value == "1"; }},
   {"screen_default_icon_size", "Large", [](std::string_view value) { return value == "Small" || value == "Medium" || value == "Large"; }},
   {"screen_card_curve", "Large", [](std::string_view value) { return value == "Small" || value == "Medium" || value == "Large"; }},
+  {"screensaver_mode", "disabled", [](std::string_view value) { return value == "disabled" || value == "timer" || value == "companion"; }},
+  {"screen_saver_action", "Display Off", [](std::string_view value) { return value == "Display Off" || value == "Screen Dimmed" || value == "Clock"; }},
+  {"screen_saver_show_date", "0", [](std::string_view value) { return value == "0" || value == "1"; }},
+  {"screensaver_timeout", "1800", [](std::string_view value) { int parsed; return read_integer(value, parsed, 10, 3600); }},
+  {"screen_saver_dimmed_brightness", "10", [](std::string_view value) { int parsed; return read_integer(value, parsed, 1, 100); }},
+  {"screen_saver_daytime_dimmed_brightness", "10", [](std::string_view value) { int parsed; return read_integer(value, parsed, 1, 100); }},
+  {"screen_saver_nighttime_dimmed_brightness", "10", [](std::string_view value) { int parsed; return read_integer(value, parsed, 1, 100); }},
+  {"screen_saver_daytime_clock_brightness", "35", [](std::string_view value) { int parsed; return read_integer(value, parsed, 1, 100); }},
+  {"screen_saver_nighttime_clock_brightness", "35", [](std::string_view value) { int parsed; return read_integer(value, parsed, 1, 100); }},
 }};
 
 inline size_t scalar_setting_index(std::string_view key) {

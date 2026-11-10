@@ -41,6 +41,15 @@ def append_scalar_settings(cpp, ts, settings):
     for name, entry in settings.items():
         if not name_is_valid(name) or not isinstance(entry, dict):
             raise ValueError(f"invalid scalar setting {name!r}")
+        if set(entry) == {"default", "min", "max"}:
+            low, high = entry["min"], entry["max"]
+            default = entry["default"]
+            if (type(low) is not int or type(high) is not int or type(default) is not int
+                    or not -(2**31) <= low <= default <= high < 2**31):
+                raise ValueError(f"invalid range or default for {name!r}")
+            rows.append((name, str(default), f"min: {low}, max: {high}",
+                         f"int parsed; return read_integer(value, parsed, {low}, {high});"))
+            continue
         if set(entry) == {"default", "type"} and entry["type"] == "switch":
             choices = ["0", "1"]
         elif set(entry) == {"default", "choices"} and isinstance(entry["choices"], list):
@@ -52,7 +61,7 @@ def append_scalar_settings(cpp, ts, settings):
                 or entry["default"] not in choices):
             raise ValueError(f"invalid choices or default for {name!r}")
         accepted = " || ".join(f'value == {json.dumps(choice)}' for choice in choices)
-        rows.append((name, entry["default"], choices, accepted))
+        rows.append((name, entry["default"], f"choices: {json.dumps(choices)}", f"return {accepted};"))
     cpp.extend([
         "",
         "enum class ScalarSetting : uint8_t {",
@@ -65,7 +74,7 @@ def append_scalar_settings(cpp, ts, settings):
         "  bool (*valid)(std::string_view);",
         "};",
         "inline constexpr std::array<ScalarRule, size_t(ScalarSetting::COUNT)> SCALAR_RULES{{",
-        *(f'  {{"{name}", "{default}", [](std::string_view value) {{ return {accepted}; }}}},'
+        *(f'  {{"{name}", "{default}", [](std::string_view value) {{ {accepted} }}}},'
           for name, default, _, accepted in rows),
         "}};",
         "",
@@ -78,14 +87,18 @@ def append_scalar_settings(cpp, ts, settings):
     ts.extend([
         "",
         "export const PANEL_SCALAR_SETTINGS = {",
-        *(f"  {name}: {{ defaultValue: {json.dumps(default)}, choices: {json.dumps(choices)} }},"
-          for name, default, choices, _ in rows),
+        *(f"  {name}: {{ defaultValue: {json.dumps(default)}, {rule} }},"
+          for name, default, rule, _ in rows),
         "} as const;",
         "",
         "export function validPanelScalarSetting(key: string, value: string): boolean {",
         "  if (!Object.hasOwn(PANEL_SCALAR_SETTINGS, key)) return true;",
-        "  const choices: readonly string[] = PANEL_SCALAR_SETTINGS[key as keyof typeof PANEL_SCALAR_SETTINGS].choices;",
-        "  return choices.includes(value);",
+        "  const rule = PANEL_SCALAR_SETTINGS[key as keyof typeof PANEL_SCALAR_SETTINGS];",
+        '  if ("choices" in rule) return (rule.choices as readonly string[]).includes(value);',
+        '  const digits = rule.min < 0 && value.startsWith("-") ? value.slice(1) : value;',
+        "  if (!digits || /[^0-9]/.test(digits)) return false;",
+        "  const parsed = Number(value);",
+        "  return parsed >= rule.min && parsed <= rule.max;",
         "}",
     ])
 

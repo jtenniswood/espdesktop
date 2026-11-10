@@ -2,8 +2,9 @@
 
 This document describes shared display-mode decisions and the effects that
 apply them. Home Assistant alarm controls and presence subscriptions have been
-retired. The screensaver still disables a retired Sensor mode at startup.
-Night Schedule stores an enabled flag and local hours in the native document.
+retired. The native document stores the active screensaver mode, its action
+and brightness, and the Night Schedule. The clock switch reflects the saved
+screensaver action.
 
 The lifecycle controller decides **what should be visible**. ESPHome scripts
 remain responsible for the physical effects: fades, LVGL page and widget changes,
