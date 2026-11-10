@@ -60,6 +60,8 @@ external_components:
 espdesktop:
   id: espdesktop_app
   panel_config:
+    on_layout_changed:
+      - script.execute: refresh_subpage_grid
     device_profile: ${device_slug}
     storage: card_images
     button_order: button_order

@@ -382,8 +382,9 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   for (const auto &profile : DEVICE_UI_PROFILES)
     if (std::strcmp(profile.device_profile, panel_config_device_profile_) == 0) limits = &profile;
   if (!limits) { native_configuration_runtime_.reset(); return false; }
-  runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits, runtime->text_bindings,
+  runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits,
       allocate_configuration_slot, release_configuration_slot,
+      [this]() { layout_changed_.trigger(); },
       [this](bool enabled) { publish_app_subpage_preference(enabled); }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
@@ -699,8 +700,8 @@ void EspDesktopApp::initialize_native_configuration() {
     // storage is empty, so no second boot-time shadow refresh is required.
     const configuration::ServiceLoadResult live_document = loaded;
     if (live_document.ok()) {
-      // Publishing the restored values triggers the existing grid-refresh
-      // automations. Run that only after every ESPHome component has completed
+      // Activating the restored layout schedules a grid refresh. Run it
+      // only after every ESPHome component has completed
       // setup: on P4 panels the grid and LVGL objects are not safe to refresh
       // while this component's WiFi-priority setup callback is still running.
       // Browser PUT requests still apply immediately through the runtime

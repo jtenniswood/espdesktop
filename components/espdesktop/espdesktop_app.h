@@ -10,6 +10,7 @@
 #include "configuration_buffer.h"
 #include "espdesktop_app_core.h"
 #include "esphome/components/text/text.h"
+#include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 
 #include "panel_identity.h"
@@ -63,6 +64,7 @@ class EspDesktopApp : public esphome::Component {
   void request_configuration_text_refresh() {
     configuration_text_refresh_pending_ = true;
   }
+  esphome::Trigger<> *get_layout_changed_trigger() { return &layout_changed_; }
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
   void set_panel_config_button_on_color(esphome::text::Text *button_on_color);
@@ -153,6 +155,7 @@ class EspDesktopApp : public esphome::Component {
   using PanelConfigTextSources =
       configuration::PanelConfigTextSources<esphome::text::Text>;
 
+  esphome::Trigger<> layout_changed_;
   const char *panel_config_device_profile_{nullptr};
   esphome::text::Text *panel_config_button_order_{nullptr};
   esphome::text::Text *panel_config_button_on_color_{nullptr};
