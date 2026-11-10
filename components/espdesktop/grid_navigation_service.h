@@ -20,6 +20,8 @@ class GridNavigationService {
  public:
   int layout_slots{0};
   int layout_columns{0};
+  // Slot 0 represents Home. The last slot is the currently tracked app page.
+  std::vector<int> companion_page_history;
   std::vector<HomeTarget> &home_targets() { return home_targets_; }
   const std::vector<HomeTarget> &home_targets() const { return home_targets_; }
 
