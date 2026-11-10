@@ -14,6 +14,9 @@ import {
   type NativePanelConfigUpdate,
 } from "../features/native_panel_config";
 import type { PanelConfigDocument } from "../model";
+import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
+import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, encodeDisplayThemePreferences,
+  type DisplayThemePreferences } from "../model/display_theme_preferences";
 import { pageDepth, parentPageKey } from "../model/page_keys";
 
 export type { NativePanelConfigUpdate } from "../features/native_panel_config";
@@ -82,12 +85,23 @@ export class NativePanelConfigController {
     ), draft => draft.writeSetting(key, value)));
   }
 
-  private withNativeEdit(update: NativePanelConfigUpdate, edit: (draft: NativeLayoutDraft) => void): NativePanelConfigUpdate {
+  writeDisplayThemePreference(patch: Partial<DisplayThemePreferences>, legacy: DisplayThemePreferences) {
+    const next = (settings: Readonly<Record<string, string>>) => encodeDisplayThemePreferences({
+      ...(decodeDisplayThemePreferences(settings[DISPLAY_THEME_PREFERENCES]) ?? legacy), ...patch,
+    });
+    return this.schedule(this.withNativeEdit(
+      current => updateNativePanelConfigDocument(current, this.dependencies.deviceProfile(),
+        "settings", DISPLAY_THEME_PREFERENCES, next(current.settings)),
+      (draft, current) => draft.writeSetting(DISPLAY_THEME_PREFERENCES, next(current.document.settings)),
+    ), true);
+  }
+
+  private withNativeEdit(update: NativePanelConfigUpdate, edit: NonNullable<NativePanelConfigUpdate["editNative"]>): NativePanelConfigUpdate {
     return Object.assign(update, {
       checkAcceptedLayout: true,
-      editNative: (draft: NativeLayoutDraft) => {
+      editNative: (draft: NativeLayoutDraft, current: NativePanelConfigGraph) => {
         if (draft.deviceProfile !== this.dependencies.deviceProfile()) throw new Error("Device profile changed");
-        edit(draft);
+        edit(draft, current);
       },
     });
   }
@@ -281,7 +295,8 @@ export class NativePanelConfigController {
     }) : update);
   }
 
-  writeDocument(document: PanelConfigDocument, nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveOutcome> | null {
+  writeDocument(document: PanelConfigDocument, nativeBackup?: Uint8Array,
+      theme?: { legacy: DisplayThemePreferences; patch: Partial<DisplayThemePreferences> }): Promise<NativePanelConfigSaveOutcome> | null {
     if (!this.client_) return null;
     return this.schedule((current) => {
       if (current.deviceProfile !== document.deviceProfile) {
@@ -291,7 +306,12 @@ export class NativePanelConfigController {
           nativeBackupHasInactiveRecords(document, this.dependencies.slotCount())) {
         throw new NativePanelConfigCompatibilityError(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
       }
-      return document;
+      if (!theme || Object.hasOwn(document.settings, DISPLAY_THEME_PREFERENCES)) return document;
+      const previous = current.settings[DISPLAY_THEME_PREFERENCES];
+      const value = Object.keys(theme.patch).length
+        ? encodeDisplayThemePreferences({ ...(decodeDisplayThemePreferences(previous) ?? theme.legacy), ...theme.patch })
+        : previous;
+      return value ? { ...document, settings: { ...document.settings, [DISPLAY_THEME_PREFERENCES]: value } } : document;
     }, false, nativeBackup);
   }
 

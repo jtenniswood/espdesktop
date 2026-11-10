@@ -14,7 +14,7 @@ FADE_SOURCE = ROOT / "common" / "addon" / "backlight.yaml"
 
 
 def check_theme_entity_wiring(source: str) -> None:
-    """Keep HA and web writes on the same restored ESPHome entities."""
+    """Keep legacy HA writes and the portable theme group on one runtime path."""
     class Loader(yaml.SafeLoader):
         pass
 
@@ -28,7 +28,9 @@ def check_theme_entity_wiring(source: str) -> None:
         item = entity("select", entity_id)
         assert not item.get("internal", False), f"{entity_id} must be visible in HA"
         assert item["restore_value"] is True
-        assert {"script.execute": "theme_settings_refresh"} in item["on_value"]["then"]
+        action = item["set_action"][0]["lambda"]
+        assert "edit_display_theme_preference" in action
+        assert "id(theme_settings_refresh).execute();" in action
 
     assert entity("select", "screen_theme_mode")["options"] == ["Dark", "Light", "Auto"]
     assert entity("select", "screen_theme_auto_method")["options"] == [
@@ -39,6 +41,7 @@ def check_theme_entity_wiring(source: str) -> None:
         assert not item.get("internal", False) and item["restore_value"] is True
         actions = item["set_action"]
         assert "parse_theme_time" in actions[0]["lambda"]
+        assert "edit_display_theme_preference" in actions[0]["lambda"]
         assert f"id({entity_id}).publish_state(x);" in actions[0]["lambda"]
         assert "id(theme_settings_refresh).execute();" in actions[0]["lambda"]
 
@@ -48,6 +51,7 @@ def check_theme_entity_wiring(source: str) -> None:
         assert (item["min_value"], item["max_value"], item["step"]) == (-180, 180, 1)
         actions = item["set_action"]
         assert "parse_theme_sun_offset" in actions[0]["lambda"]
+        assert "edit_display_theme_preference" in actions[0]["lambda"]
         assert f"id({entity_id}).publish_state(x);" in actions[0]["lambda"]
         assert "id(theme_settings_refresh).execute();" in actions[0]["lambda"]
 

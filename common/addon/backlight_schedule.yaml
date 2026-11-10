@@ -136,6 +136,27 @@ esphome:
               mode.perform();
               global_preferences->sync();
             }
+            id(espdesktop_app).bind_display_theme_preferences(
+              []() {
+                ThemeSettings settings;
+                settings.mode = parse_theme_mode(id(screen_theme_mode).current_option());
+                settings.auto_method = parse_theme_auto_method(id(screen_theme_auto_method).current_option());
+                parse_theme_time(id(screen_theme_light_start).state, settings.light_start);
+                parse_theme_time(id(screen_theme_dark_start).state, settings.dark_start);
+                parse_theme_sun_offset(id(screen_theme_sunrise_offset).state, settings.sunrise_offset);
+                parse_theme_sun_offset(id(screen_theme_sunset_offset).state, settings.sunset_offset);
+                return settings;
+              },
+              [](const ThemeSettings &settings) {
+                id(screen_theme_mode).publish_state(espdesktop::display_theme_mode_option(settings.mode));
+                id(screen_theme_auto_method).publish_state(espdesktop::display_theme_method_option(settings.auto_method));
+                id(screen_theme_light_start).publish_state(espdesktop::display_theme_time_option(settings.light_start));
+                id(screen_theme_dark_start).publish_state(espdesktop::display_theme_time_option(settings.dark_start));
+                id(screen_theme_sunrise_offset).publish_state(settings.sunrise_offset);
+                id(screen_theme_sunset_offset).publish_state(settings.sunset_offset);
+                id(theme_settings_refresh).execute();
+              });
+            id(theme_settings_refresh).execute();
         - lambda: |-
             settings_backlight_service().read = []() {
               SettingsBacklightState state;
@@ -294,7 +315,6 @@ select:
     id: screen_theme_mode
     entity_category: config
     icon: "mdi:theme-light-dark"
-    optimistic: true
     restore_value: true
     initial_option: "Dark"
     options:
@@ -303,16 +323,18 @@ select:
       - "Auto"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: theme_settings_refresh
+    set_action:
+      - lambda: |-
+          if (id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::mode, parse_theme_mode(x.c_str()))) return;
+          id(screen_theme_mode).publish_state(x.c_str());
+          id(theme_settings_refresh).execute();
 
   - platform: template
     name: "${entity_screen_theme_auto_method}"
     id: screen_theme_auto_method
     entity_category: config
     icon: "mdi:clock-outline"
-    optimistic: true
     restore_value: true
     initial_option: "Time"
     options:
@@ -320,9 +342,12 @@ select:
       - "Sunrise / Sunset"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: theme_settings_refresh
+    set_action:
+      - lambda: |-
+          if (id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::auto_method, parse_theme_auto_method(x.c_str()))) return;
+          id(screen_theme_auto_method).publish_state(x.c_str());
+          id(theme_settings_refresh).execute();
 
   - platform: template
     name: "${entity_screen_brightness_mode}"
@@ -412,6 +437,8 @@ text:
             ESP_LOGW("theme", "Rejected invalid Light start time: %s", x.c_str());
             return;
           }
+          if (id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::light_start, minute)) return;
           id(screen_theme_light_start).publish_state(x);
           id(theme_settings_refresh).execute();
 
@@ -435,6 +462,8 @@ text:
             ESP_LOGW("theme", "Rejected invalid Dark start time: %s", x.c_str());
             return;
           }
+          if (id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::dark_start, minute)) return;
           id(screen_theme_dark_start).publish_state(x);
           id(theme_settings_refresh).execute();
 
@@ -552,6 +581,8 @@ number:
             ESP_LOGW("theme", "Rejected invalid sunrise offset: %.1f", x);
             return;
           }
+          if (id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::sunrise_offset, offset)) return;
           id(screen_theme_sunrise_offset).publish_state(x);
           id(theme_settings_refresh).execute();
 
@@ -575,6 +606,8 @@ number:
             ESP_LOGW("theme", "Rejected invalid sunset offset: %.1f", x);
             return;
           }
+          if (id(espdesktop_app).edit_display_theme_preference(
+                  &ThemeSettings::sunset_offset, offset)) return;
           id(screen_theme_sunset_offset).publish_state(x);
           id(theme_settings_refresh).execute();
 

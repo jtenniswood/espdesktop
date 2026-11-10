@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <array>
 #include <deque>
 #include <string>
@@ -7,6 +8,42 @@
 #include "panel_config_representation.h"
 
 namespace espdesktop::configuration {
+
+inline bool panel_config_replace_existing_setting_v1(
+    const uint8_t *input, size_t input_size, std::string_view key, std::string_view value,
+    uint8_t *output, size_t capacity, size_t *size) {
+  PanelConfigReader reader(input, input_size);
+  PanelConfigWriter writer(output, capacity);
+  if (reader.begin() != PanelConfigStatus::OK || writer.begin() != PanelConfigStatus::OK) return false;
+  PanelConfigRecord row;
+  bool replaced = false;
+  PanelConfigStatus next;
+  while ((next = reader.next(&row)) == PanelConfigStatus::OK) {
+    PanelConfigStatus written = PanelConfigStatus::INVALID_DOCUMENT;
+    switch (row.type) {
+      case PanelConfigRecordType::DEVICE_PROFILE:
+        written = writer.append_device_profile(row.value, row.value_size);
+        break;
+      case PanelConfigRecordType::BUTTON:
+        written = writer.append_button(row.slot, row.value, row.value_size);
+        break;
+      case PanelConfigRecordType::SUBPAGE:
+        written = writer.append_subpage(row.slot, row.value, row.value_size);
+        break;
+      case PanelConfigRecordType::SETTING:
+        if (std::string_view(reinterpret_cast<const char *>(row.key), row.key_size) == key) {
+          row.value = reinterpret_cast<const uint8_t *>(value.data());
+          row.value_size = value.size();
+          replaced = true;
+        }
+        written = writer.append_setting(row.key, row.key_size, row.value, row.value_size);
+        break;
+    }
+    if (written != PanelConfigStatus::OK) return false;
+  }
+  return next == PanelConfigStatus::END && replaced && writer.finish(size) == PanelConfigStatus::OK;
+}
+
 // A narrow, generation-checked producer edit: append newly available Finder
 // folder actions without replacing any other page, card identity or setting.
 class PanelConfigPageAppend {
@@ -51,6 +88,47 @@ public:
       rows_.push_back(card);
     }
     return true;
+  }
+  bool set_existing_setting(std::string_view key, std::string_view value) {
+    for (size_t index = 0; index < rows_.size(); ++index) {
+      const auto row = rows_[index];
+      if (row.kind != Kind::SETTING) continue;
+      const auto name = std::find_if(rows_.begin(), rows_.end(), [&](const Row &entry) {
+        return entry.kind == Kind::STRING && entry.id == row.id;
+      });
+      if (name == rows_.end() || name->text != key) continue;
+      const auto previous = row.first;
+      // Repeated automation edits should not grow the dictionary when the
+      // value was owned by this setting alone.
+      auto used_elsewhere = [&](const Row &entry) {
+        switch (entry.kind) {
+          case Kind::ENTITY: return entry.first == previous;
+          case Kind::PAGE: return entry.third == previous;
+          case Kind::CARD:
+            if (entry.raw_source == previous) return true;
+            for (size_t field = 0; field < entry.fields.size(); ++field)
+              if (field != 0 && field != 4 && entry.fields[field] == previous) return true;
+            return false;
+          case Kind::SETTING: return entry.id == previous || (entry.id != row.id && entry.first == previous);
+          default: return false;
+        }
+      };
+      if (previous && std::none_of(rows_.begin(), rows_.end(), used_elsewhere)) {
+        const auto old_text = std::find_if(rows_.begin(), rows_.end(), [&](const Row &entry) {
+          return entry.kind == Kind::STRING && entry.id == previous;
+        });
+        if (old_text != rows_.end()) {
+          strings_.emplace_back(value);
+          old_text->text = strings_.back();
+          return true;
+        }
+      }
+      const auto text = intern(value);
+      if (failed_) return false;
+      rows_[index].first = text;
+      return true;
+    }
+    return false;
   }
   bool finish(uint8_t *output, size_t capacity, size_t *size,
       ConfigurationBuffer::Allocate allocate, ConfigurationBuffer::Release release) const {

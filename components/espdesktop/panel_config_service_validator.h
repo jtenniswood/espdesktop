@@ -2,6 +2,7 @@
 
 #include "configuration_service.h"
 #include "configuration_release_policy.h"
+#include "display_theme_preferences.h"
 #include "panel_config_representation.h"
 
 namespace espdesktop::configuration {
@@ -50,12 +51,28 @@ public:
   }
   ServiceStatus write_validation_status(uint16_t version, const uint8_t *document,
       size_t size) const override {
-    return version == PANEL_CONFIG_DOCUMENT_VERSION_2
-        ? inspect_v2(document, size, PANEL_CONFIG_STORAGE_WRITE_NAVIGATION_DEPTH < 2)
-        : validation_status(version, document, size);
+    if (version == PANEL_CONFIG_DOCUMENT_VERSION_2)
+      return inspect_v2(document, size, PANEL_CONFIG_STORAGE_WRITE_NAVIGATION_DEPTH < 2, true);
+    const auto status = validation_status(version, document, size);
+    if (status != ServiceStatus::OK) return status;
+    PanelConfigReader reader(document, size);
+    if (reader.begin() != PanelConfigStatus::OK) return ServiceStatus::INVALID_DOCUMENT;
+    PanelConfigRecord row;
+    while (reader.next(&row) == PanelConfigStatus::OK) {
+      if (row.type == PanelConfigRecordType::SETTING &&
+          !valid_theme_setting(
+              {reinterpret_cast<const char *>(row.key), row.key_size},
+              {reinterpret_cast<const char *>(row.value), row.value_size}))
+        return ServiceStatus::INVALID_DOCUMENT;
+    }
+    return ServiceStatus::OK;
   }
  private:
-  ServiceStatus inspect_v2(const uint8_t *document, size_t size, bool protect_nested) const {
+  static bool valid_theme_setting(std::string_view key, std::string_view value) {
+    return key != DISPLAY_THEME_PREFERENCES_KEY || parse_display_theme_preferences(value).has_value();
+  }
+  ServiceStatus inspect_v2(const uint8_t *document, size_t size, bool protect_nested,
+      bool validate_settings = false) const {
     if (size > PANEL_CONFIG_V2_HTTP_MAX_BYTES) return ServiceStatus::INVALID_DOCUMENT;
     PanelConfigV2Reader reader(document, size);
     size_t needed = 0;
@@ -65,12 +82,15 @@ public:
     auto *workspace = scratch.allocate(needed);
     if (!workspace) return ServiceStatus::ALLOCATION_FAILED;
     if (reader.validate(workspace, needed) != PanelConfigStatus::OK) return ServiceStatus::INVALID_DOCUMENT;
-    if (protect_nested) {
+    if (protect_nested || validate_settings) {
       PanelConfigV2Record row;
-      for (size_t i=0; i<reader.record_count(); ++i) {
+      for (size_t i = 0; i < reader.record_count(); ++i) {
         reader.record(i, &row);
-        if (row.kind == PanelConfigV2Kind::PAGE && row.id && row.first)
+        if (protect_nested && row.kind == PanelConfigV2Kind::PAGE && row.id && row.first)
           return ServiceStatus::INCOMPATIBLE_REPLACEMENT;
+        if (validate_settings && row.kind == PanelConfigV2Kind::SETTING &&
+            !valid_theme_setting(reader.string(row.id), reader.string(row.first)))
+          return ServiceStatus::INVALID_DOCUMENT;
       }
     }
     return ServiceStatus::OK;

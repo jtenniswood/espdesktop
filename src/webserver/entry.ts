@@ -1,3 +1,4 @@
+import { displayThemePreferencesFromState } from "./model/display_theme_preferences";
 import { createFirstRunSetup } from "./application/first_run_setup";
 import { resetAwareFetch } from "./api/reset_session";
 import type { CardConfig } from "./contracts/types";
@@ -915,6 +916,24 @@ function composeApplicationContext(): ApplicationContext {
       }
       const result = await nativePanelConfig.writeSetting(APP_SUBPAGE_PREFERENCE, enabled ? "1" : "0");
       return result === "saved" || result === "mirror-failed";
+    },
+    async (patch, legacySave) => {
+      try {
+        await stateLoader.waitForInitialState();
+      } catch {
+        shell.showBanner("Could not read the current theme. Check the display’s connection and try again.", "error");
+        return;
+      }
+      const fallback = displayThemePreferencesFromState(state);
+      const availability = await nativePanelConfig.waitForDiscovery();
+      if (availability === "legacy-fallback" ||
+          (availability === true && !nativePanelConfig.client?.supportsDisplayThemePreferences())) {
+        legacySave();
+      } else if (availability === true) {
+        await nativePanelConfig.writeDisplayThemePreference(patch, fallback);
+      } else {
+        shell.showBanner("Could not save the theme. Check the display’s connection and try again.", "error");
+      }
     },
   );
   const firstRunSetup = createFirstRunSetup({
