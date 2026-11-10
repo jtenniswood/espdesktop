@@ -12,6 +12,7 @@ import threading
 import unittest
 from unittest.mock import patch
 import test_device_runtime as runtime
+import test_release_hardware as release_hardware
 
 
 def snapshot():
@@ -58,6 +59,50 @@ class EvidenceTests(unittest.TestCase):
         self.assertEqual(report['status'], 'failed')
         self.assertIn('incomplete_http_coverage', report['failures'])
         self.assertIn('missing_memory_diagnostics', report['failures'])
+
+
+class ReleaseHardwareTests(unittest.TestCase):
+    def test_reports_checkpoint_memory_and_binds_the_candidate(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root = Path(temp)
+            manifest = root / "candidate.json"
+            manifest.write_text(json.dumps({"releaseVersion": "v9.8.7",
+                                            "supportedDevices": [release_hardware.DEVICE],
+                                            "artifacts": {f"{release_hardware.DEVICE}.ota.bin": {
+                                                "appElfSha256": "a" * 64}}}))
+            expected = release_hardware.candidate(manifest, "1234")
+            data = snapshot()
+            data["firmware"].update(model=release_hardware.DEVICE, project_version="v9.8.7", app_elf_sha256="a" * 64)
+            probe = unittest.mock.Mock()
+            probe.sample.side_effect = lambda: deepcopy(data)
+            probe.json.return_value = {"mac_companion": {"paired": True, "connected": True}}
+
+            def confirm(prompt):
+                if prompt.startswith("Restart"):
+                    data["boot_id"] += 1
+                    data["uptime_ms"] = 1
+                return "pass"
+
+            with redirect_stdout(io.StringIO()), patch("sys.stderr", new=io.StringIO()):
+                self.assertEqual(release_hardware.run(probe, root / "report", expected, confirm), 0)
+                self.assertEqual(release_hardware.run(probe, root / "no-reboot", expected, lambda _: "pass"), 1)
+            report = json.loads((root / "report" / "report.json").read_text())
+            release_hardware.verify_report(report, expected)
+            wrong_build = deepcopy(report)
+            wrong_build["firmware"]["app_elf_sha256"] = "b" * 64
+            with self.assertRaises(ValueError):
+                release_hardware.verify_report(wrong_build, expected)
+            self.assertEqual(len(report["steps"]), 9)
+            self.assertEqual(report["steps"][-1]["after"]["psram_largest_bytes"], 100000)
+            self.assertEqual(json.loads((root / "no-reboot" / "report.json").read_text())["status"], "failed")
+            with self.assertRaises(ValueError):
+                release_hardware.verify_report(report, release_hardware.candidate(manifest, "1235"))
+            manifest.write_text(manifest.read_text() + "\n")
+            with self.assertRaises(ValueError):
+                release_hardware.verify_report(report, release_hardware.candidate(manifest, "1234"))
+            report["steps"].pop()
+            with self.assertRaises(ValueError):
+                release_hardware.verify_report(report, expected)
 
 
 class ProtocolTests(unittest.TestCase):

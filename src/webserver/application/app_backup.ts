@@ -27,11 +27,11 @@ import {
     normalizeScreensaverCameraImageMode,
     normalizeScreensaverDimmedBrightness,
     normalizeTimeOfDay,
-    normalizeThemeMode,
-    normalizeThemeAutoMethod,
     parseThemeSunOffset,
 } from "../model/settings";
 import { syncThemeSettingsUi } from "./theme_settings_ui";
+import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, displayThemePreferencesFromState,
+    legacyDisplayThemePatch } from "../model/display_theme_preferences";
 import { normalizeCardCurve } from "../model/settings";
 import { syncCardCurveUi } from "./card_curve_ui";
 import type { BackupImportController } from "../features/backup_import_controller";
@@ -237,6 +237,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
             controllers.shell.showBanner?.("Could not export the backup. Check that changes have saved and the panel is connected, then try again.", "error");
             return;
         }
+        const theme = decodeDisplayThemePreferences(nativeDocument?.settings[DISPLAY_THEME_PREFERENCES]) ??
+            displayThemePreferencesFromState(state);
         // Project the same saved layout into the portable part of the backup.
         // SSE state can still be arriving or can lag another browser's edits.
         const nativeGrid = nativeDocument ? EspDesktopModel.parseGridOrder(
@@ -291,14 +293,14 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 brightness_day: Math.round(state.brightnessDayVal),
                 brightness_night: Math.round(state.brightnessNightVal),
                 brightness_mode: normalizeBrightnessMode(state.brightnessMode),
-                theme_mode: normalizeThemeMode(state.themeMode),
+                theme_mode: theme.themeMode,
                 default_icon_size: state.defaultIconSizeSupported ? state.defaultIconSize : undefined,
                 card_curve: state.cardCurveSupported ? normalizeCardCurve(state.cardCurve) : undefined,
-                theme_auto_method: normalizeThemeAutoMethod(state.themeAutoMethod),
-                theme_light_start: normalizeTimeOfDay(state.themeLightStart, "07:00"),
-                theme_dark_start: normalizeTimeOfDay(state.themeDarkStart, "20:00"),
-                theme_sunrise_offset: state.themeSunriseOffset,
-                theme_sunset_offset: state.themeSunsetOffset,
+                theme_auto_method: theme.themeAutoMethod,
+                theme_light_start: theme.themeLightStart,
+                theme_dark_start: theme.themeDarkStart,
+                theme_sunrise_offset: theme.themeSunriseOffset,
+                theme_sunset_offset: theme.themeSunsetOffset,
                 manual_brightness: Math.round(state.manualBrightnessVal),
                 brightness_dawn_time: normalizeTimeOfDay(state.brightnessDawnTime, "06:00"),
                 brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
@@ -434,15 +436,28 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         rejectBackup(appSubpageUpdateRequired);
                     nativeDocument.settings[APP_SUBPAGE_PREFERENCE] = appSubpagePreference ? "1" : "0";
                 }
+                const nativeTheme = nativeAvailability === true &&
+                    nativeController?.client?.supportsDisplayThemePreferences?.() === true;
+                const legacyThemePatch = legacyDisplayThemePatch(backupPlan.screen);
+                if (Object.hasOwn(nativeDocument.settings, DISPLAY_THEME_PREFERENCES)) {
+                    if (!decodeDisplayThemePreferences(nativeDocument.settings[DISPLAY_THEME_PREFERENCES]))
+                        rejectBackup("Invalid display theme settings in this backup.");
+                    if (!nativeTheme)
+                        rejectBackup("Update the panel firmware before restoring the display theme settings in this backup.");
+                }
+                const themeRestore = nativeTheme
+                    ? { legacy: displayThemePreferencesFromState(state), patch: legacyThemePatch }
+                    : undefined;
                 var layoutRestoreResult: any;
                 if (nativeAvailability === "legacy-fallback") {
                     layoutRestoreResult = await queueLegacyLayoutRestore();
                 }
                 else {
-                    var nativeRestore: any = nativeController.writeDocument(nativeDocument, exactLayoutBytes);
+                    var nativeRestore: any = nativeController.writeDocument(nativeDocument, exactLayoutBytes, themeRestore);
                     layoutRestoreResult = nativeRestore ? await nativeRestore : "failed";
                     if (layoutRestoreResult === "legacy-fallback") {
                         if (appSubpagePreference !== undefined) rejectBackup(appSubpageUpdateRequired);
+                        if (nativeTheme) rejectBackup("The panel disconnected while restoring the display theme settings.");
                         layoutRestoreResult = await queueLegacyLayoutRestore();
                     }
                     else if (layoutRestoreResult === "firmware-update-required") {
@@ -457,6 +472,14 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         rejectBackup("The layout could not be restored. No other backup settings were changed.");
                     }
                 }
+
+                if (nativeTheme) {
+                    const savedTheme = nativeController.client?.lastDocument?.()?.settings[DISPLAY_THEME_PREFERENCES];
+                    if (savedTheme) nativeDocument.settings[DISPLAY_THEME_PREFERENCES] = savedTheme;
+                }
+                Object.assign(state,
+                    decodeDisplayThemePreferences(nativeDocument.settings[DISPLAY_THEME_PREFERENCES]) ?? legacyThemePatch);
+                syncThemeSettingsUi(state, controllers.runtime);
 
                 // Do not change the editor or unrelated device settings until
                 // the complete layout has been accepted by the target firmware.
@@ -633,10 +656,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.brightnessDayVal = importedScreenSettings.brightnessDayVal;
                     state.brightnessNightVal = importedScreenSettings.brightnessNightVal;
                     state.brightnessMode = importedScreenSettings.brightnessMode;
-                    // Optional fields keep older backups compatible and leave
-                    // an existing theme choice alone when those fields are absent.
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
-                        state.themeMode = normalizeThemeMode(screenSettings.theme_mode);
                     if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size")) {
                         state.defaultIconSize = normalizeCardIconSize(screenSettings.default_icon_size);
                         syncDefaultIconSizeUi(state, controllers.runtime);
@@ -646,17 +665,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         syncCardCurveUi(state, controllers.runtime);
                         syncPreviewOrientation(true);
                     }
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_auto_method") ||
-                        screenSettings.theme_mode === "Sun" || screenSettings.theme_mode === "Schedule")
-                        state.themeAutoMethod = normalizeThemeAutoMethod(screenSettings.theme_auto_method || screenSettings.theme_mode);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_light_start"))
-                        state.themeLightStart = normalizeTimeOfDay(screenSettings.theme_light_start, "07:00");
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_dark_start"))
-                        state.themeDarkStart = normalizeTimeOfDay(screenSettings.theme_dark_start, "20:00");
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunrise_offset"))
-                        state.themeSunriseOffset = parseThemeSunOffset(screenSettings.theme_sunrise_offset)!;
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunset_offset"))
-                        state.themeSunsetOffset = parseThemeSunOffset(screenSettings.theme_sunset_offset)!;
                     state.manualBrightnessVal = importedScreenSettings.manualBrightnessVal;
                     state.brightnessDawnTime = importedScreenSettings.brightnessDawnTime;
                     state.brightnessDuskTime = importedScreenSettings.brightnessDuskTime;
@@ -675,19 +683,20 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postNumber(entityName("screen_daytime_brightness"), state.brightnessDayVal);
                     postNumber(entityName("screen_nighttime_brightness"), state.brightnessNightVal);
                     postBrightnessMode(state.brightnessMode);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_light_start"))
-                        requestApi.postText(entityName("screen_theme_light_start"), state.themeLightStart);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_dark_start"))
-                        requestApi.postText(entityName("screen_theme_dark_start"), state.themeDarkStart);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunrise_offset"))
-                        requestApi.postNumber(entityName("screen_theme_sunrise_offset"), state.themeSunriseOffset);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunset_offset"))
-                        requestApi.postNumber(entityName("screen_theme_sunset_offset"), state.themeSunsetOffset);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_auto_method") ||
-                        screenSettings.theme_mode === "Sun" || screenSettings.theme_mode === "Schedule")
-                        requestApi.postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
-                        requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
+                    if (!nativeTheme) {
+                        if (legacyThemePatch.themeLightStart !== undefined)
+                            requestApi.postText(entityName("screen_theme_light_start"), state.themeLightStart);
+                        if (legacyThemePatch.themeDarkStart !== undefined)
+                            requestApi.postText(entityName("screen_theme_dark_start"), state.themeDarkStart);
+                        if (legacyThemePatch.themeSunriseOffset !== undefined)
+                            requestApi.postNumber(entityName("screen_theme_sunrise_offset"), state.themeSunriseOffset);
+                        if (legacyThemePatch.themeSunsetOffset !== undefined)
+                            requestApi.postNumber(entityName("screen_theme_sunset_offset"), state.themeSunsetOffset);
+                        if (legacyThemePatch.themeAutoMethod !== undefined)
+                            requestApi.postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
+                        if (legacyThemePatch.themeMode !== undefined)
+                            requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
+                    }
                     if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size"))
                         requestApi.postSelect(entityName("screen_default_icon_size"), state.defaultIconSize.charAt(0).toUpperCase() + state.defaultIconSize.slice(1));
                     if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve"))

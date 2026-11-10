@@ -358,7 +358,8 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits,
       allocate_configuration_slot, release_configuration_slot,
       [this]() { layout_changed_.trigger(); },
-      [this](bool enabled) { publish_app_subpage_preference(enabled); }));
+      [this](bool enabled) { publish_app_subpage_preference(enabled); },
+      [this](const auto &settings) { publish_display_theme_preferences(settings); }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
   }
@@ -470,6 +471,65 @@ void EspDesktopApp::bind_app_subpage_preference_switch(esphome::switch_::Switch 
   // Existing panels retain their preference until it is first saved in the
   // layout document. Native activation publishes the new value after commit.
   publish_app_subpage_preference(setting.state);
+}
+
+void EspDesktopApp::bind_display_theme_preferences(std::function<ThemeSettings()> read_legacy,
+    std::function<void(const ThemeSettings &)> publish) {
+  read_legacy_display_theme_preferences_ = std::move(read_legacy);
+  display_theme_preferences_changed_ = std::move(publish);
+  if (display_theme_preferences_) {
+    legacy_display_theme_preferences_ = read_legacy_display_theme_preferences_();
+    display_theme_preferences_changed_(*display_theme_preferences_);
+  }
+}
+
+void EspDesktopApp::publish_display_theme_preferences(const std::optional<ThemeSettings> &settings) {
+  if (settings && display_theme_preferences_ &&
+      same_display_theme_preferences(*settings, *display_theme_preferences_)) return;
+  if (!display_theme_preferences_ && settings && read_legacy_display_theme_preferences_)
+    legacy_display_theme_preferences_ = read_legacy_display_theme_preferences_();
+  display_theme_preferences_ = settings;
+  if (!display_theme_preferences_changed_) return;
+  if (settings) {
+    display_theme_preferences_changed_(*settings);
+  } else if (legacy_display_theme_preferences_) {
+    display_theme_preferences_changed_(*legacy_display_theme_preferences_);
+    legacy_display_theme_preferences_.reset();
+  }
+}
+
+void EspDesktopApp::save_display_theme_preferences(const ThemeSettings &settings) {
+  using namespace configuration;
+  auto *service = core_.configuration_service();
+  if (!service) return;
+  const auto write = [&]() {
+    const size_t capacity = service->maximum_document_size();
+    ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
+    auto *input = buffer.allocate(capacity * 2);
+    if (!input) return false;
+    auto *output = input + capacity;
+    const auto loaded = service->load(input, capacity);
+    if (!loaded.ok()) return false;
+    const auto value = encode_display_theme_preferences(settings);
+    size_t output_size = 0;
+    if (loaded.document_version == 1) {
+      return panel_config_replace_existing_setting_v1(input, loaded.document_size,
+          DISPLAY_THEME_PREFERENCES_KEY, value, output, capacity, &output_size) &&
+          service->save_if_generation(loaded.generation, 1, output, output_size).ok();
+    }
+    if (loaded.document_version != 2) return false;
+    PanelConfigV2Reader reader(input, loaded.document_size);
+    size_t index_size = 0;
+    if (reader.workspace_bytes(&index_size) != PanelConfigStatus::OK) return false;
+    ConfigurationBuffer scratch(allocate_configuration_slot, release_configuration_slot);
+    auto *index = scratch.allocate(index_size);
+    if (!index || reader.validate(index, index_size) != PanelConfigStatus::OK) return false;
+    PanelConfigPageAppend edit(reader);
+    return edit.set_existing_setting(DISPLAY_THEME_PREFERENCES_KEY, value) &&
+        edit.finish(output, capacity, &output_size, allocate_configuration_slot, release_configuration_slot) &&
+        service->save_if_generation(loaded.generation, 2, output, output_size).ok();
+  };
+  if (!write()) ESP_LOGW(TAG, "Could not save a theme preference edit");
 }
 
 void EspDesktopApp::retry_configuration_compatibility() {
@@ -835,6 +895,7 @@ void EspDesktopApp::loop() {
   if (!focus_pending) companion_process_pending_app_icon_refresh();
   trace_phase("icon refresh");
 #endif
+  grid_reclaim_hidden_render_memory();
   sync_finder_folders();
   trace_phase("Finder sync");
   // The IDF web server starts later, so retry idempotent registrations.

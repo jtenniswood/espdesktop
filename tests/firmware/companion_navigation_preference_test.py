@@ -14,13 +14,19 @@ code = r'''
 #include <algorithm>
 #include <atomic>
 #include <cassert>
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
 #include "grid_navigation_service.h"
+#include "grid_navigation_diagnostics.h"
 struct lv_obj_t {};
 struct ParsedCfg { std::string entity; };
-struct NavigationSubpageEntry { int slot; std::string kind; lv_obj_t *screen; int parent_slot = 0; };
+struct NavigationSubpageEntry {
+  int slot; std::string kind; lv_obj_t *screen; int parent_slot = 0; uint64_t last_used = 0;
+};
+namespace esphome { uint32_t millis() { return 15; } }
+#define ESP_LOGD(...) ((void) 0)
 struct NavigationHomeTargetEntry { int slot; std::string config; };
 lv_obj_t home, app, other, folder;
 lv_obj_t *screen = &app;
@@ -49,6 +55,15 @@ auto &navigation_home_targets() { return parents; }
 ParsedCfg grid_layout_card_config(int slot, const std::string &) { return {slot == 1 ? "first.app" : "second.app"}; }
 bool companion_app_shortcuts_enabled(const ParsedCfg &) { return true; }
 bool navigation_restore_subpage_slot(int slot);
+std::function<lv_obj_t *(int)> &navigation_subpage_builder() {
+  static std::function<lv_obj_t *(int)> build;
+  return build;
+}
+void navigation_begin_page_open(lv_obj_t *, uint32_t) {}
+void navigation_release_subpage_screen(NavigationSubpageEntry &page) {
+  assert(page.screen != screen);
+  page.screen = nullptr;
+}
 bool navigation_return_home(lv_obj_t *) { screen = &home; return true; }
 void navigation_hide_modals() {}
 lv_obj_t *lv_scr_act() { return screen; }
@@ -57,6 +72,8 @@ void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { screen = s; }
 void refresh_visible_image_cards() {}
 '''
 code += function('inline NavigationSubpageEntry *navigation_find_slot(int slot) {')
+code += function('inline void navigation_trim_subpage_cache(')
+code += function('inline lv_obj_t *navigation_ensure_subpage(int slot) {')
 code += function('inline int navigation_subpage_slot_for_screen(')
 code += function('inline int navigation_active_subpage_slot(')
 code += function('inline void navigation_show_companion_subpage(')
@@ -177,6 +194,33 @@ int main() {
   pending_return = true;
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &home);
+
+  // Focus can open a nested app before either widget tree has been built.
+  // Its parent remains resident while it is active, even under pressure.
+  lv_obj_t screens[8];
+  pages = {{1, "folder", nullptr}, {2, "app_shortcuts", nullptr, 1},
+           {3, "folder", nullptr}, {4, "folder", nullptr},
+           {5, "folder", nullptr}, {6, "folder", nullptr}};
+  navigation_subpage_builder() = [&](int slot) {
+    auto *page = navigation_find_slot(slot);
+    if (page->parent_slot) assert(navigation_find_slot(page->parent_slot)->screen);
+    return page->screen = &screens[slot];
+  };
+  pending_open = "second.app";
+  assert(navigation_open_companion_subpage_if_requested(&home));
+  assert(screen == &screens[2] && pages[0].screen == &screens[1]);
+  assert(grid_navigation_diagnostics().pages_built.load() == 2);
+  assert(navigation_ensure_subpage(2) == &screens[2]);
+  assert(grid_navigation_diagnostics().pages_built.load() == 2);
+  for (int slot = 3; slot <= 6; ++slot) assert(navigation_ensure_subpage(slot) == &screens[slot]);
+  assert(!pages[2].screen && !pages[3].screen);
+  assert(pages[4].screen && pages[5].screen);
+  navigation_trim_subpage_cache(0, 0);
+  assert(pages[0].screen && pages[1].screen && !pages[4].screen && !pages[5].screen);
+  screen = &home;
+  navigation_trim_subpage_cache(0, 0);
+  assert(!pages[0].screen && !pages[1].screen);
+  assert(grid_navigation_diagnostics().pages_evicted.load() == 6);
 }
 '''
 with tempfile.TemporaryDirectory() as temporary:

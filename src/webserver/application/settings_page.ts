@@ -11,6 +11,7 @@ import {
     normalizeThemeMode,
     normalizeThemeAutoMethod,
 } from "../model/settings";
+import type { DisplayThemePreferences } from "../model/display_theme_preferences";
 import { syncThemeSettingsUi } from "./theme_settings_ui";
 import { syncCardCurveUi } from "./card_curve_ui";
 import { normalizeCardCurve } from "../model/settings";
@@ -44,7 +45,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls">, scheduleSection: SettingsScheduleSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, openAppSetup: () => void, saveAppSubpagePreference: (enabled: boolean) => Promise<boolean>): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls">, scheduleSection: SettingsScheduleSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, openAppSetup: () => void, saveAppSubpagePreference: (enabled: boolean) => Promise<boolean>, saveDisplayThemePreference: (patch: Partial<DisplayThemePreferences>, legacySave: () => void) => Promise<void>): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -130,7 +131,8 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             ["Dark", "Dark"], ["Light", "Light"], ["Auto", "Automatic"],
         ], normalizeThemeMode(state.themeMode), function (this: any, mode?: any) {
             state.themeMode = normalizeThemeMode(mode);
-            postSelect(entityName("screen_theme_mode"), state.themeMode);
+            const selected = state.themeMode;
+            void saveDisplayThemePreference({themeMode: selected}, () => postSelect(entityName("screen_theme_mode"), selected));
             syncThemeSettingsUi(state, runtime);
             renderPreview();
         }, "sp-segment sp-segment-scroll sp-theme-mode-segment");
@@ -143,7 +145,8 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             ["Sunrise / Sunset", "Sunrise & Sunset"], ["Time", "Manual"],
         ], normalizeThemeAutoMethod(state.themeAutoMethod), function (this: any, method?: any) {
             state.themeAutoMethod = normalizeThemeAutoMethod(method);
-            postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
+            const selected = state.themeAutoMethod;
+            void saveDisplayThemePreference({themeAutoMethod: selected}, () => postSelect(entityName("screen_theme_auto_method"), selected));
             syncThemeSettingsUi(state, runtime);
         });
         themeAutoMethods.segment.id = "sp-set-theme-auto-method";
@@ -158,13 +161,15 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         var themeScheduleFields: any = condField();
         var themeLightStart: any = createTimeInput("Light from", "sp-set-theme-light-start", state.themeLightStart, "07:00", function (this: any, value?: any) {
             state.themeLightStart = normalizeTimeOfDay(value, "07:00");
-            postText(entityName("screen_theme_light_start"), state.themeLightStart);
+            const selected = state.themeLightStart;
+            void saveDisplayThemePreference({themeLightStart: selected}, () => postText(entityName("screen_theme_light_start"), selected));
         });
         themeScheduleFields.appendChild(themeLightStart.wrap);
         els.setThemeLightStart = themeLightStart.input;
         var themeDarkStart: any = createTimeInput("Dark from", "sp-set-theme-dark-start", state.themeDarkStart, "20:00", function (this: any, value?: any) {
             state.themeDarkStart = normalizeTimeOfDay(value, "20:00");
-            postText(entityName("screen_theme_dark_start"), state.themeDarkStart);
+            const selected = state.themeDarkStart;
+            void saveDisplayThemePreference({themeDarkStart: selected}, () => postText(entityName("screen_theme_dark_start"), selected));
         });
         themeScheduleFields.appendChild(themeDarkStart.wrap);
         els.setThemeDarkStart = themeDarkStart.input;

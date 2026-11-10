@@ -164,17 +164,20 @@ explicitly requested.
 Use the candidate firmware and notarized Mac app together on the 4848S040.
 Follow the physical check in [Checks and Releases](../../../dev-docs/checks-and-releases.md#release-boundary).
 If hardware testing requires the maintainer, report the candidate artifacts
-and wait for confirmation against that candidate. Use the tested run ID and
-fingerprint from its job summary.
+and wait for the passing hardware report. Run the scenario from the tagged
+checkout with the downloaded `release-candidate-compatibility` manifest.
 
 ```bash
+python3 scripts/test_release_hardware.py record --host "$PANEL_IP" \
+  --candidate-run "$CANDIDATE_RUN" --manifest "$CANDIDATE_MANIFEST"
+
 gh workflow run publish-release.yml --ref "$TAG" \
   -f release_tag="$TAG" -f candidate_run="$CANDIDATE_RUN" \
-  -f tested_fingerprint="$TESTED_FINGERPRINT" -f hardware_passed=true
+  -F hardware_report="@$HARDWARE_REPORT_PATH"
 ```
 
-Monitor Publish Release through completion. Use the same tested run and
-fingerprint for a retry if its artifacts are still available.
+Monitor Publish Release through completion. Use the same tested run and report
+for a retry if its artifacts are still available.
 
 ## 7. Verify the complete published distribution
 

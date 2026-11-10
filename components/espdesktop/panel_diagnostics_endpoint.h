@@ -1,5 +1,6 @@
 #pragma once
 #ifdef USE_WEBSERVER
+#include <esp_app_desc.h>
 #include <esp_heap_caps.h>
 #include <esp_system.h>
 #include "esphome/core/application.h"
@@ -8,6 +9,7 @@
 #include "esphome/components/json/json_util.h"
 #include "esphome/components/web_server_idf/web_server_idf.h"
 #include "panel_identity.h"
+#include "grid_navigation_diagnostics.h"
 
 namespace espdesktop {
 // Read-only health information. No entity values, credentials or saved layout.
@@ -43,12 +45,27 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
       char build[esphome::Application::BUILD_TIME_STR_SIZE];
       esphome::App.get_build_time_string(build);
       firmware["compilation_time"] = build;
+      const auto &app_hash = esp_app_get_description()->app_elf_sha256;
+      constexpr char hex[] = "0123456789abcdef";
+      char digest[sizeof(app_hash) * 2 + 1]{};
+      for (size_t i = 0; i < sizeof(app_hash); ++i) {
+        digest[2 * i] = hex[app_hash[i] >> 4];
+        digest[2 * i + 1] = hex[app_hash[i] & 0xf];
+      }
+      firmware["app_elf_sha256"] = std::string(digest);
 #ifdef ESPHOME_PROJECT_VERSION
       firmware["project_version"] = ESPHOME_PROJECT_VERSION;
 #endif
 #ifdef ESPDESKTOP_DEVICE_SLUG
       firmware["model"] = ESPDESKTOP_DEVICE_SLUG;
 #endif
+      const auto &navigation = grid_navigation_diagnostics();
+      JsonObject ui = root["navigation"].to<JsonObject>();
+      ui["pages_built"] = navigation.pages_built.load(std::memory_order_relaxed);
+      ui["pages_evicted"] = navigation.pages_evicted.load(std::memory_order_relaxed);
+      ui["page_build_ms"] = navigation.page_build_ms.load(std::memory_order_relaxed);
+      ui["page_open_frame_ms"] = navigation.page_open_frame_ms.load(std::memory_order_relaxed);
+      ui["back_frame_ms"] = navigation.back_frame_ms.load(std::memory_order_relaxed);
       JsonObject memory = root["memory"].to<JsonObject>();
       const uint32_t internal = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
       const uint32_t external = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;

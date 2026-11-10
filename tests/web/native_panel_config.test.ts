@@ -1,3 +1,5 @@
+import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences,
+  legacyDisplayThemePatch } from "../../src/webserver/model/display_theme_preferences";
 import {
   createNativePanelConfigClient,
   updateNativePanelConfigDocument,
@@ -43,6 +45,48 @@ const document = encodePanelConfig({
   subpages: {},
   settings: { button_order: "1" },
 });
+
+export async function runDisplayThemePreferenceTests(): Promise<void> {
+  let current = decodePanelConfig(document);
+  let puts = 0;
+  const target = new NativePanelConfigController({
+    fetch: async (path, request) => {
+      if (path.endsWith("capabilities")) return {
+        ...response(200), json: async () => ({ configuration: {
+          read: true, write: true, document_versions: [1], display_theme_preferences: true,
+        } }),
+      };
+      if (request?.method === "PUT") {
+        ++puts;
+        current = decodePanelConfig(request.body!);
+        return response(204);
+      }
+      return response(200, encodePanelConfig(current), '"' + puts + '"');
+    },
+    deviceProfile: () => "panel-a", slotCount: () => 9,
+    entityName: name => name, entityNameForSlot: (name, slot) => `${name}_${slot}`,
+    normalizeHexColor: value => value, showBanner: () => {}, delay: callback => callback(),
+  });
+  await target.waitForDiscovery();
+  equal(target.client?.supportsDisplayThemePreferences(), true, "theme support is explicitly advertised");
+  const legacy = { themeMode: "Auto", themeAutoMethod: "Sunrise / Sunset",
+    themeLightStart: "06:55", themeDarkStart: "20:35", themeSunriseOffset: -35, themeSunsetOffset: 45 };
+  equal(await target.writeDisplayThemePreference({ themeDarkStart: "21:00" }, legacy), "saved", "save group");
+  equal(puts, 1, "one change writes the whole group once");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,sun,415,1260,-35,45", "legacy values are imported");
+  equal(await target.writeDisplayThemePreference({ themeMode: "Light" }, legacy), "saved", "edit another field");
+  equal(puts, 2, "the second group uses one write");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,light,sun,415,1260,-35,45", "latest group replaces stale legacy");
+  equal(decodeDisplayThemePreferences("1,light,sun,1440,1260,-35,45"), undefined, "invalid time is rejected");
+
+  const backup = decodePanelConfig(document);
+  const patch = legacyDisplayThemePatch({ theme_mode: "Schedule", theme_light_start: "07:05" });
+  equal(await target.writeDocument(backup, undefined, { legacy, patch }), "saved", "restore a legacy backup");
+  equal(puts, 3, "layout and legacy theme import share a write");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,time,425,1260,-35,45", "partial backup preserves missing fields");
+  equal(await target.writeDocument(backup, undefined, { legacy, patch: {} }), "saved", "restore a layout-only backup");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,time,425,1260,-35,45", "layout-only restore preserves theme");
+}
 
 export async function runNativePanelConfigBackupTests(): Promise<void> {
   for (const slots of [6, 9, 15, 20]) for (const support of [undefined, false, "true", true]) {

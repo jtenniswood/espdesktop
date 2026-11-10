@@ -10,11 +10,16 @@ header = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
 _, cleanup = definition(header, 'navigation_clear_subpages')
 source = r'''
 #include <cassert>
+#include <functional>
 #include <vector>
 struct lv_obj_t { bool runtime_released = false; };
 struct NavigationSubpageEntry { lv_obj_t *screen; };
 std::vector<NavigationSubpageEntry> entries;
 auto &navigation_subpages() { return entries; }
+std::function<lv_obj_t *(int)> &navigation_subpage_builder() {
+  static std::function<lv_obj_t *(int)> build;
+  return build;
+}
 std::vector<lv_obj_t *> grid_screens;
 auto &navigation_grid_screens() { return grid_screens; }
 void navigation_register_grid_screen_gesture(lv_obj_t *screen) {
@@ -50,16 +55,18 @@ void navigation_refresh_subpage_label() {}
 int main() {
   for (int rebuild = 0; rebuild < 5; ++rebuild) {
     auto *screen = new lv_obj_t;
+    navigation_subpage_builder() = [screen](int) { return screen; };
     entries.push_back({screen});
     grid_screens.push_back(screen);
     if (rebuild % 2 == 0) {
       active_screen = screen;
       navigation_clear_subpages(nullptr);
-      assert(entries.size() == 1 && !screen->runtime_released);
+      assert(entries.size() == 1 && !screen->runtime_released && navigation_subpage_builder());
       assert(deleted == rebuild && released == rebuild);
     }
     navigation_clear_subpages(&home);
     assert(entries.empty() && deleted == rebuild + 1 && released == rebuild + 1);
+    assert(!navigation_subpage_builder());
     assert(grid_screens.size() == 1 && grid_screens[0] == &home);
   }
 }

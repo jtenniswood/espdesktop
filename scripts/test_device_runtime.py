@@ -96,6 +96,9 @@ class HttpProbe:
         if not isinstance(firmware, dict) or any(not isinstance(firmware.get(k), str) or not firmware[k]
                 for k in ("esphome_version", "compilation_time", "project_version", "model")):
             raise ValueError("missing firmware identity")
+        app_hash = firmware.get("app_elf_sha256")
+        if app_hash is not None and (not isinstance(app_hash, str) or not re.fullmatch(r"[0-9a-f]{64}", app_hash)):
+            raise ValueError("invalid application ELF digest")
         memory = health.get("memory")
         if not isinstance(memory, dict) or "heap_free_percent" not in memory:
             raise ValueError("missing memory diagnostics")
@@ -108,7 +111,7 @@ class HttpProbe:
         # Whitelist fields so unrelated JSON/config values never enter reports.
         return {"hostname": hostname, "mac_suffix": suffix,
                 **{key: health[key] for key in ("boot_id", "uptime_ms", "reset_reason")},
-                "firmware": {key: firmware[key] for key in ("esphome_version", "compilation_time", "project_version", "model")},
+                "firmware": {key: firmware[key] for key in ("esphome_version", "compilation_time", "project_version", "model", "app_elf_sha256") if key in firmware},
                 "memory": {key: memory[key] for key in METRICS if key in memory}}
 
 

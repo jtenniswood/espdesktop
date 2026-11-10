@@ -64,6 +64,28 @@ or decreasing uptime fails the test. A restart or network outage does not prove
 a crash or its cause. Device logs are not collected; panics before HTTP delivery
 can require [USB logs](https://jtenniswood.github.io/espcontrol/reference/collect-usb-logs).
 
+## Run the release hardware session
+
+Run the following after installing the candidate firmware and Mac app. Use the
+run ID and download the manifest from the `release-candidate-compatibility`
+artifact of that run.
+
+```sh
+python3 scripts/test_release_hardware.py record --host PANEL_IP \
+  --candidate-run RUN_ID --manifest companion-compatibility.json
+```
+
+The runner guides pairing, five nested shortcut and Back cycles, wake, an
+offline editor save, and a reboot. It measures internal heap and PSRAM before
+and after each step and checks the expected reboot and Mac reconnection.
+The session verifies the running firmware’s embedded ELF digest against the
+candidate OTA image, including rebuilds with the same version tag.
+The operator performs and confirms the steps. The runner makes read-only
+requests to the panel. Give the resulting `report.json` to **Publish Release**.
+
+For a development baseline, omit the candidate run and manifest. This records
+the same measurements and cannot be used to publish a release.
+
 ## Test physical behavior separately
 
 While observing health, use the physical panel and paired Mac to check the
@@ -77,3 +99,18 @@ The runner's offline tests are included in fast/CI checks. Run them alone with
 without contacting hardware. Firmware host tests execute the production
 diagnostics handler, including authentication, unavailable startup, stable boot
 identity, 64-bit uptime and memory/build serialization.
+
+### S3 secondary-page cache
+
+On the 4848S040 with a native layout, Home stays ready while secondary
+screens are built when visited. Up to four secondary screens are retained.
+A nested screen keeps its Back destination resident. On the application loop,
+memory pressure releases hidden app icon pixels, hidden artwork buffers, and
+then the least recently used secondary screens.
+
+For a comparison, capture `/api/v1/diagnostics` at Home before and after
+opening an existing nested shortcut page and using Back five times. The
+`navigation` object records builds, evictions, the last cold build, and the
+latest open and Back first-frame times in milliseconds. Compare the largest
+internal heap and PSRAM blocks with the same layout and build at each
+checkpoint. Use the same shortcut and return path for each visit.
