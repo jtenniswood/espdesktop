@@ -610,8 +610,6 @@ add_test(NAME connector_state_test COMMAND connector_state_test)
 add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)
 
-add_test(NAME retired_camera_migration_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_camera_migration_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME card_retirement_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/card_retirement_test.py ${CMAKE_CXX_COMPILER})

@@ -183,14 +183,14 @@ def main() -> None:
         "schedule boot handler must be a list item so later packages preserve the brightness service"
     )
     boot = text.index("priority: -190")
-    boot_end = text.index("\n        - lambda: |-", text.index("id(brightness_mode_runtime_ready) = true;", boot)) + 1
+    boot_end = text.index("\n        - script.execute: screen_schedule_boot_guard", boot)
     boot_text = text[boot:boot_end]
-    assert "id(brightness_mode_runtime_ready) = true;" in boot_text, (
-        "brightness mode must become runtime-ready during boot initialization"
-    )
+    assert boot_text.index("bind_display_brightness_preferences") < boot_text.index(
+        "id(brightness_mode_runtime_ready) = true;"
+    ), "saved brightness must bind before the runtime responds to external light changes"
 
-    assert "mode_call.set_option(\"Manual\");" in handler_text, (
-        "runtime external brightness changes must still select Manual mode"
+    assert "edit_manual_brightness(requested);" in handler_text, (
+        "external brightness changes must save Manual mode and the requested level together"
     )
 
     print("backlight schedule startup guard: ok")

@@ -156,7 +156,7 @@ esphome:
             settings_backlight_service().write = [](SettingsBacklightLevel level, int percent) {
               if (settings_backlight_service().read().level != level) return;
               percent = settings_backlight_percent(level, percent);
-              auto &app = id(espdesktop_app);
+              auto &app = *id(espdesktop_app);
               if (level == SettingsBacklightLevel::MANUAL) {
                 app.edit_manual_brightness(percent / 100.0f);
               } else {
@@ -274,7 +274,7 @@ select:
       sorting_group_id: sg_brightness
     set_action:
       - lambda: |-
-          auto &app = id(espdesktop_app);
+          auto &app = *id(espdesktop_app);
           auto next = app.display_brightness_preferences();
           if (x == "Manual") {
             if (next.manual) return;

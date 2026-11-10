@@ -12,7 +12,7 @@ esphome:
       then:
         - lambda: |-
             using Setting = espdesktop::panel_settings::ScalarSetting;
-            auto &app = id(espdesktop_app);
+            auto &app = *id(espdesktop_app);
             app.bind_panel_scalar(Setting::SCREEN_TIMEZONE, [](std::string_view value) {
               id(timezone_select).publish_state(std::string(value));
             });

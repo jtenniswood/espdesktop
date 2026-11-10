@@ -26,7 +26,7 @@ esphome:
       then:
         - lambda: |-
             using Setting = espdesktop::panel_settings::ScalarSetting;
-            auto &app = id(espdesktop_app);
+            auto &app = *id(espdesktop_app);
             app.bind_panel_scalar(Setting::SCREEN_CLOCK_BAR, [](std::string_view value) {
               id(clock_bar_enabled).publish_state(value == "1");
             });
