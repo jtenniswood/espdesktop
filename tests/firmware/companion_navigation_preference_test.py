@@ -120,7 +120,7 @@ int main() {
 
   // A card press remembers the page we left, even when the app lives elsewhere.
   screen = &folder;
-  navigation_show_companion_subpage(&other);
+  navigation_show_companion_subpage(&other, true);
   pending_open = "second.app";
   // Confirming focus for the page already shown must preserve the return page.
   assert(navigation_open_companion_subpage_if_requested(&home));
@@ -131,7 +131,7 @@ int main() {
   // A window close returns even when the page was opened manually and app
   // switching is set to keep the current page on screen.
   return_home = false;
-  navigation_show_companion_subpage(&other);
+  navigation_show_companion_subpage(&other, true);
   closed_app = "first.app";
   assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &other);
@@ -139,6 +139,26 @@ int main() {
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));
   assert(screen == &folder);
   return_home = true;
+
+  // A nested app opened by a card returns to its containing app page. That
+  // page still remembers where it came from.
+  navigation_show_companion_subpage(&app, true);
+  navigation_show_companion_subpage(&other, true);
+  closed_app = "second.app";
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &app);
+  closed_app = "first.app";
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &folder);
+
+  // If the Mac focuses the parent app directly, drop the child from history.
+  navigation_show_companion_subpage(&app, true);
+  navigation_show_companion_subpage(&other, true);
+  pending_open = "first.app";
+  assert(navigation_open_companion_subpage_if_requested(&home));
+  closed_app = "first.app";
+  assert(navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(screen == &folder);
 
   // Following Mac focus through multiple app subpages keeps the original page.
   pending_open = "second.app";
@@ -151,7 +171,7 @@ int main() {
   assert(screen == &folder);
 
   // A page removed while the app subpage is showing falls back to Home.
-  navigation_show_companion_subpage(&other);
+  navigation_show_companion_subpage(&other, true);
   pages[2].screen = nullptr;
   pending_return = true;
   assert(navigation_return_from_companion_shortcuts_if_needed(&home));

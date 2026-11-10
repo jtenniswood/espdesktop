@@ -410,16 +410,25 @@ inline int navigation_active_subpage_slot() {
   return navigation_subpage_slot_for_screen(lv_scr_act());
 }
 
-inline void navigation_show_companion_subpage(lv_obj_t *screen) {
+inline void navigation_show_companion_subpage(lv_obj_t *screen, bool from_card) {
   lv_obj_t *active = lv_scr_act();
   if (active == screen) return;
-  auto &navigation = grid_navigation_service();
+  auto &history = grid_navigation_service().companion_page_history;
   const int active_slot = navigation_subpage_slot_for_screen(active);
-  // Keep the original page while following focus between app subpages.
-  if (active_slot == 0 || active_slot != navigation.companion_subpage_slot) {
-    navigation.companion_return_slot = active_slot;
+  const auto current = std::find(history.begin(), history.end(), active_slot);
+  if (current == history.end()) history.assign(1, active_slot);
+  else history.erase(current + 1, history.end());
+
+  const int next_slot = navigation_subpage_slot_for_screen(screen);
+  const auto earlier = std::find(history.begin(), history.end(), next_slot);
+  if (earlier != history.end()) {
+    history.erase(earlier + 1, history.end());
+  } else if (from_card || history.size() == 1) {
+    history.push_back(next_slot);
+  } else {
+    // Following Mac focus replaces the current app page in the history.
+    history.back() = next_slot;
   }
-  navigation.companion_subpage_slot = navigation_subpage_slot_for_screen(screen);
   lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
 }
 
@@ -482,14 +491,20 @@ inline bool navigation_return_from_companion_shortcuts_if_needed(
     // Keep the page already shown or load the next app's page directly.
     return false;
   }
-  auto &navigation = grid_navigation_service();
-  const int return_slot = navigation.companion_subpage_slot == slot
-    ? navigation.companion_return_slot : entry->parent_slot;
-  navigation.companion_subpage_slot = 0;
+  auto &history = grid_navigation_service().companion_page_history;
+  const auto current = std::find(history.begin(), history.end(), slot);
+  int return_slot = entry->parent_slot;
+  if (current != history.end() && current != history.begin()) {
+    return_slot = *(current - 1);
+    history.erase(current, history.end());
+  } else {
+    history.clear();
+  }
   if (return_slot > 0 && navigation_restore_subpage_slot(return_slot)) {
     navigation_hide_modals();
     return true;
   }
+  history.clear();
   return navigation_return_home(main_page_obj);
 }
 
@@ -505,7 +520,7 @@ inline bool navigation_open_companion_subpage_if_requested(
   NavigationSubpageEntry *entry = navigation_companion_subpage_for_action(requested);
   if (entry == nullptr || !companion_consume_auto_subpage_action(requested)) return false;
   navigation_hide_modals();
-  navigation_show_companion_subpage(entry->screen);
+  navigation_show_companion_subpage(entry->screen, /*from_card=*/false);
   return true;
 }
 

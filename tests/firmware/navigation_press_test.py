@@ -34,7 +34,8 @@ void *lv_obj_get_user_data(lv_obj_t *b) { return b->data; }
 bool lv_obj_is_valid(lv_obj_t *b) { return b && b->valid; }
 lv_obj_t *active = nullptr;
 void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { active = s; order.push_back(3); }
-void navigation_show_companion_subpage(lv_obj_t *s) {
+void navigation_show_companion_subpage(lv_obj_t *s, bool from_card) {
+  assert(from_card);
   lv_scr_load_anim(s, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
 }
 void refresh_visible_image_cards() {}
