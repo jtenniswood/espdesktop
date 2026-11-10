@@ -9,6 +9,7 @@
 
 #include "application_scene_runtime.h"
 #include "configuration_buffer.h"
+#include "display_brightness_preferences.h"
 #include "display_theme_preferences.h"
 #include "screen_schedule_preferences.h"
 #include "espdesktop_app_core.h"
@@ -56,6 +57,18 @@ class EspDesktopApp : public esphome::Component {
   void bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish);
   void edit_panel_scalar(ScalarSetting setting, std::string_view value);
   void edit_panel_number(ScalarSetting setting, float value);
+  using BrightnessPublisher = void (*)(const DisplayBrightnessPreferences &);
+  void bind_display_brightness_preferences(BrightnessPublisher publish);
+  const DisplayBrightnessPreferences &display_brightness_preferences() const { return display_brightness_; }
+  void save_display_brightness_preferences(const DisplayBrightnessPreferences &settings);
+  void edit_manual_brightness(float fraction);
+  template<typename T>
+  void edit_display_brightness_preference(T DisplayBrightnessPreferences::*field, T value) {
+    auto next = display_brightness_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_brightness_preferences(next);
+  }
   void bind_screen_schedule(unsigned default_clock_brightness,
       std::function<void(const ScreenSchedulePreferences &)> apply);
   const ScreenSchedulePreferences &screen_schedule_preferences() const {
@@ -195,6 +208,8 @@ class EspDesktopApp : public esphome::Component {
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
   std::array<ScalarPublisher, panel_settings::SCALAR_RULES.size()> scalar_publishers_{};
+  DisplayBrightnessPreferences display_brightness_;
+  BrightnessPublisher apply_display_brightness_{nullptr};
   std::optional<ScreenSchedulePreferences> screen_schedule_;
   ScreenSchedulePreferences screen_schedule_defaults_{};
   std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;

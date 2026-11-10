@@ -365,6 +365,10 @@ bool EspDesktopApp::create_native_configuration_runtime() {
       },
       [this](ScalarSetting setting, std::string_view value) {
         if (const auto publish = scalar_publishers_[size_t(setting)]) publish(value);
+      },
+      [this](const DisplayBrightnessPreferences &settings) {
+        display_brightness_ = settings;
+        if (apply_display_brightness_) apply_display_brightness_(display_brightness_);
       }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
@@ -523,6 +527,26 @@ void EspDesktopApp::edit_panel_number(ScalarSetting setting, float value) {
       double(value) < std::numeric_limits<int32_t>::min() ||
       double(value) > std::numeric_limits<int32_t>::max()) return;
   edit_panel_scalar(setting, std::to_string(static_cast<int32_t>(value)));
+}
+
+void EspDesktopApp::bind_display_brightness_preferences(BrightnessPublisher publish) {
+  apply_display_brightness_ = publish;
+  if (publish) publish(display_brightness_);
+}
+
+void EspDesktopApp::save_display_brightness_preferences(const DisplayBrightnessPreferences &settings) {
+  if (!save_panel_setting(DISPLAY_BRIGHTNESS_PREFERENCES_KEY, encode_display_brightness_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save display brightness preferences");
+}
+
+void EspDesktopApp::edit_manual_brightness(float fraction) {
+  if (!std::isfinite(fraction) || fraction <= 0.0f) return;
+  const unsigned level = std::max(1L, std::lround(std::min(fraction, 1.0f) * 10000.0f));
+  auto next = display_brightness_;
+  if (next.manual && next.manual_level == level) return;
+  next.manual = true;
+  next.manual_level = level;
+  save_display_brightness_preferences(next);
 }
 
 bool EspDesktopApp::save_panel_setting(std::string_view key, std::string_view value) {

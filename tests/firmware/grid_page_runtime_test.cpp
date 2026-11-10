@@ -300,4 +300,22 @@ int main() {
   assert(scalar_runtime.activate_prepared(22, 2, updated.data(), size));
   assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_NTP_SERVER_1).empty());
   assert_nested_page();
+
+  int brightness_applies = 0;
+  DisplayBrightnessPreferences brightness;
+  GridPageRuntime brightness_runtime(limits, allocate, ConfigurationBuffer::release_host,
+      {}, {}, {}, {}, [&](const DisplayBrightnessPreferences &value) {
+        brightness = value;
+        ++brightness_applies;
+      });
+  write_preference(DISPLAY_BRIGHTNESS_PREFERENCES_KEY, "1,1,0,7340,95,25,360,1080");
+  assert(brightness_runtime.prepare_write(2, updated.data(), size) && brightness_applies == 0);
+  assert(brightness_runtime.activate_prepared(23, 2, updated.data(), size));
+  assert(brightness_applies == 1 && brightness.manual && !brightness.use_sun);
+  assert(std::string_view(brightness.automatic_mode()) == "Fixed times");
+  assert(brightness.manual_level == 7340 && brightness.nighttime == 25);
+  assert(encode_display_brightness_preferences(brightness) == "1,1,0,7340,95,25,360,1080");
+  write_preference(DISPLAY_BRIGHTNESS_PREFERENCES_KEY, "1,1,0,10001,95,25,360,1080");
+  assert(!brightness_runtime.prepare_write(2, updated.data(), size) && brightness_applies == 1);
+  assert_nested_page();
 }

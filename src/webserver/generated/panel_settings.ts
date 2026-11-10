@@ -214,6 +214,19 @@ export const read_screen_schedule_preferences = (value?: string) =>
     clock_color: {"hex": 6},
   } as const);
 
+export const display_brightness_preferences_key = "display_brightness_preferences";
+export const display_brightness_preferences_version = 1;
+export const read_display_brightness_preferences = (value?: string) =>
+  readSettingRecord(value, display_brightness_preferences_version, {
+    manual: ["0", "1"],
+    use_sun: ["0", "1"],
+    manual_level: {"min": 1, "max": 10000},
+    daytime: {"min": 10, "max": 100},
+    nighttime: {"min": 10, "max": 100},
+    dawn_minute: {"min": 0, "max": 1439},
+    dusk_minute: {"min": 0, "max": 1439},
+  } as const);
+
 export const display_theme_preferences_key = "display_theme_preferences";
 export const display_theme_preferences_version = 1;
 export const read_display_theme_preferences = (value?: string) =>

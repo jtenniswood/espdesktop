@@ -285,6 +285,42 @@ inline std::optional<ScreenSchedulePreferencesRecord> read_screen_schedule_prefe
   return result;
 }
 
+inline constexpr std::string_view display_brightness_preferences_key = "display_brightness_preferences";
+inline constexpr int display_brightness_preferences_version = 1;
+
+struct DisplayBrightnessPreferencesRecord {
+  std::string_view manual{};
+  std::string_view use_sun{};
+  int manual_level{};
+  int daytime{};
+  int nighttime{};
+  int dawn_minute{};
+  int dusk_minute{};
+};
+
+inline std::optional<DisplayBrightnessPreferencesRecord> read_display_brightness_preferences(std::string_view value) {
+  const auto fields = split_fields<8>(value);
+  if (!fields || (*fields)[0] != "1") return {};
+  DisplayBrightnessPreferencesRecord result;
+  const auto manual = (*fields)[1];
+  const auto use_sun = (*fields)[2];
+  const auto manual_level = (*fields)[3];
+  const auto daytime = (*fields)[4];
+  const auto nighttime = (*fields)[5];
+  const auto dawn_minute = (*fields)[6];
+  const auto dusk_minute = (*fields)[7];
+  if ((manual != "0" && manual != "1")) return {};
+  result.manual = manual;
+  if ((use_sun != "0" && use_sun != "1")) return {};
+  result.use_sun = use_sun;
+  if (!read_integer(manual_level, result.manual_level, 1, 10000)) return {};
+  if (!read_integer(daytime, result.daytime, 10, 100)) return {};
+  if (!read_integer(nighttime, result.nighttime, 10, 100)) return {};
+  if (!read_integer(dawn_minute, result.dawn_minute, 0, 1439)) return {};
+  if (!read_integer(dusk_minute, result.dusk_minute, 0, 1439)) return {};
+  return result;
+}
+
 inline constexpr std::string_view display_theme_preferences_key = "display_theme_preferences";
 inline constexpr int display_theme_preferences_version = 1;
 

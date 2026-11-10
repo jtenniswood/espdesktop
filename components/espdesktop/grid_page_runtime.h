@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "application_scene_runtime.h"
+#include "display_brightness_preferences.h"
 #include "display_theme_preferences.h"
 #include "grid_native_pages.h"
 #include "page_store_runtime.h"
@@ -29,6 +30,8 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
     std::string accent;
     std::string schedule_record;
     std::optional<ScreenSchedulePreferences> schedule;
+    std::string_view brightness_record;
+    DisplayBrightnessPreferences brightness;
     // These views borrow strings from the staged PageStore arena. Activation
     // publishes them before that arena can be retired.
     ScalarValues scalars;
@@ -69,11 +72,13 @@ public:
       std::function<void()> refresh_layout = {},
       std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {},
       std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule = {},
-      std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar = {})
+      std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar = {},
+      std::function<void(const DisplayBrightnessPreferences &)> publish_brightness = {})
       : limits_(limits), allocate_(allocate), release_(release),
         refresh_layout_(std::move(refresh_layout)),
         publish_theme_preferences_(std::move(publish_theme_preferences)),
         publish_schedule_(std::move(publish_schedule)), publish_scalar_(std::move(publish_scalar)),
+        publish_brightness_(std::move(publish_brightness)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
   bool ready() const override { return !stopped_; }
   std::string_view scalar_setting_value(panel_settings::ScalarSetting setting) const {
@@ -197,6 +202,11 @@ private:
         staged_->schedule = parse_screen_schedule_preferences(value);
         if (!staged_->schedule) return false;
         staged_->schedule_record = value;
+      } else if (name == DISPLAY_BRIGHTNESS_PREFERENCES_KEY) {
+        const auto brightness = parse_display_brightness_preferences(value);
+        if (!brightness) return false;
+        staged_->brightness = *brightness;
+        staged_->brightness_record = value;
       } else {
         const auto index = panel_settings::scalar_setting_index(name);
         if (index < staged_->scalars.size()) {
@@ -243,6 +253,8 @@ private:
     // Apply only after the configuration service commits and activates this snapshot.
     if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
     if (schedule_changed && publish_schedule_) publish_schedule_(active_->schedule);
+    if (publish_brightness_ && active_->brightness_record != (previous ? previous->brightness_record : std::string_view{}))
+      publish_brightness_(active_->brightness);
     if (publish_scalar_) {
       for (size_t index = 0; index < active_->scalars.size(); ++index) {
         const auto value = scalar_value(active_.get(), index);
@@ -260,6 +272,7 @@ private:
   std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences_;
   std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule_;
   std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar_;
+  std::function<void(const DisplayBrightnessPreferences &)> publish_brightness_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;

@@ -2,13 +2,14 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const fixtures = require("../../../compatibility/fixtures/panel_settings_records.json");
 const { loadTypescriptTest } = require("./helpers/load_typescript_test");
-const { validPanelScalarSetting } = loadTypescriptTest("src/webserver/generated/panel_settings.ts");
+const { validPanelScalarSetting, read_display_brightness_preferences } = loadTypescriptTest("src/webserver/generated/panel_settings.ts");
 
 const readers = {
   screen_schedule_preferences: loadTypescriptTest("src/webserver/model/screen_schedule_preferences.ts")
     .decodeScreenSchedulePreferences,
   display_theme_preferences: loadTypescriptTest("src/webserver/model/display_theme_preferences.ts")
     .decodeDisplayThemePreferences,
+  display_brightness_preferences: read_display_brightness_preferences,
 };
 
 for (const [name, records] of Object.entries(fixtures)) {

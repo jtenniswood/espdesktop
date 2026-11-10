@@ -37,24 +37,9 @@ globals:
   - id: schedule_mode_clock
     type: bool
     initial_value: 'false'
-  - id: brightness_mode_migrated
-    type: bool
-    restore_value: true
-    initial_value: 'false'
-  - id: manual_brightness_pct
-    type: float
-    restore_value: true
-    initial_value: '100.0'
-  - id: brightness_last_automatic_uses_sun
-    type: bool
-    restore_value: true
-    initial_value: 'true'
   - id: brightness_mode_runtime_ready
     type: bool
     initial_value: 'false'
-  - id: brightness_mode_last_observed
-    type: std::string
-    initial_value: '"Sunrise and sunset"'
   - id: backlight_expected_internal_level
     type: float
     initial_value: '1.0'
@@ -146,49 +131,41 @@ esphome:
                 id(theme_settings_refresh).execute();
               });
         - lambda: |-
+            id(espdesktop_app).bind_display_brightness_preferences([](const espdesktop::DisplayBrightnessPreferences &settings) {
+              id(brightness_mode).publish_state(settings.mode());
+              id(brightness_day).publish_state(settings.daytime);
+              id(brightness_night).publish_state(settings.nighttime);
+              id(brightness_dawn_time).publish_state(espdesktop::display_theme_time_option(settings.dawn_minute));
+              id(brightness_dusk_time).publish_state(espdesktop::display_theme_time_option(settings.dusk_minute));
+              if (!id(brightness_mode_runtime_ready)) return;
+              id(backlight_apply_brightness).execute();
+              const auto mode = id(espdesktop_app).display().current_mode();
+              if (mode == espdesktop::DisplayMode::DIMMED) id(screensaver_dimmed_refresh_brightness).execute();
+              if (mode == espdesktop::DisplayMode::CLOCK) id(clock_screensaver_refresh_brightness).execute();
+            });
             settings_backlight_service().read = []() {
+              const auto &settings = id(espdesktop_app).display_brightness_preferences();
               SettingsBacklightState state;
               state.available = true;
-              const bool manual = brightness_mode_manual(id(brightness_mode).current_option());
-              state.level = manual ? SettingsBacklightLevel::MANUAL
+              state.level = settings.manual ? SettingsBacklightLevel::MANUAL
                   : id(last_is_daytime) ? SettingsBacklightLevel::DAYTIME : SettingsBacklightLevel::NIGHTTIME;
-              state.percent = manual ? id(manual_brightness_pct)
-                  : id(last_is_daytime) ? id(brightness_day).state : id(brightness_night).state;
+              state.percent = settings.manual ? settings.manual_percent()
+                  : id(last_is_daytime) ? settings.daytime : settings.nighttime;
               return state;
             };
             settings_backlight_service().write = [](SettingsBacklightLevel level, int percent) {
-              const auto active = settings_backlight_service().read();
-              if (active.level != level) return;
+              if (settings_backlight_service().read().level != level) return;
               percent = settings_backlight_percent(level, percent);
+              auto &app = id(espdesktop_app);
               if (level == SettingsBacklightLevel::MANUAL) {
-                id(manual_brightness_pct) = percent;
-                id(backlight_apply_brightness).execute();
+                app.edit_manual_brightness(percent / 100.0f);
               } else {
-                auto *setting = level == SettingsBacklightLevel::DAYTIME ? id(brightness_day) : id(brightness_night);
-                auto call = setting->make_call();
-                call.set_value(percent);
-                call.perform();
+                using Settings = espdesktop::DisplayBrightnessPreferences;
+                app.edit_display_brightness_preference(
+                    level == SettingsBacklightLevel::DAYTIME ? &Settings::daytime : &Settings::nighttime,
+                    static_cast<unsigned>(percent));
               }
             };
-        - lambda: |-
-            if (!id(brightness_mode_migrated)) {
-              const char *migrated_mode = id(automatic_brightness_legacy).state
-                  ? "Sunrise and sunset" : "Fixed times";
-              auto mode_call = id(brightness_mode).make_call();
-              mode_call.set_option(migrated_mode);
-              mode_call.perform();
-              id(brightness_last_automatic_uses_sun) =
-                  id(automatic_brightness_legacy).state;
-              id(brightness_mode_migrated) = true;
-              global_preferences->sync();
-            }
-            std::string mode = normalize_brightness_mode(
-                id(brightness_mode).current_option());
-            id(brightness_mode_last_observed) = mode;
-            if (!brightness_mode_manual(mode)) {
-              id(brightness_last_automatic_uses_sun) =
-                  brightness_mode_uses_sun(mode);
-            }
             id(brightness_mode_runtime_ready) = true;
         - script.execute: screen_schedule_boot_guard
     - priority: -110
@@ -202,15 +179,6 @@ esphome:
 # =============================================================================
 
 switch:
-  # One-release migration shim. It retains the previous preference key but is
-  # internal, so the obsolete Home Assistant switch disappears immediately.
-  - platform: template
-    name: "Screen: Automatic Brightness"
-    id: automatic_brightness_legacy
-    internal: true
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-
   - platform: template
     name: "${entity_screen_schedule_enabled}"
     internal: true
@@ -295,8 +263,8 @@ select:
     id: brightness_mode
     entity_category: config
     icon: "mdi:brightness-auto"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "Sunrise and sunset"
     options:
       - "Manual"
@@ -304,34 +272,27 @@ select:
       - "Fixed times"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - lambda: |-
-            std::string mode = normalize_brightness_mode(x);
-            if (id(brightness_mode_runtime_ready) &&
-                brightness_mode_manual(mode) &&
-                !brightness_mode_manual(id(brightness_mode_last_observed))) {
-              float current = id(display_backlight).remote_values.get_brightness();
-              if (std::isnan(current) || current <= 0.0f) {
-                current = id(display_backlight).current_values.get_brightness();
-              }
-              if (!std::isnan(current) && current > 0.0f) {
-                if (current > 1.0f) current = 1.0f;
-                id(manual_brightness_pct) = current * 100.0f;
-              }
-            } else if (!brightness_mode_manual(mode)) {
-              id(brightness_last_automatic_uses_sun) =
-                  brightness_mode_uses_sun(mode);
+    set_action:
+      - lambda: |-
+          auto &app = id(espdesktop_app);
+          auto next = app.display_brightness_preferences();
+          if (x == "Manual") {
+            if (next.manual) return;
+            float current = id(display_backlight).remote_values.get_brightness();
+            if (!std::isfinite(current) || current <= 0.0f)
+              current = id(display_backlight).current_values.get_brightness();
+            if (std::isfinite(current) && current > 0.0f) {
+              app.edit_manual_brightness(current);
+              return;
             }
-            id(brightness_mode_last_observed) = mode;
-        - script.execute: backlight_apply_brightness
-        - if:
-            condition:
-              lambda: |-
-                return id(espdesktop_app).display().current_mode_is(
-                    espdesktop::DisplayMode::DIMMED);
-            then:
-              - script.execute: screensaver_dimmed_refresh_brightness
+            next.manual = true;
+          } else {
+            const bool use_sun = x == "Sunrise and sunset";
+            if (!next.manual && next.use_sun == use_sun) return;
+            next.manual = false;
+            next.use_sun = use_sun;
+          }
+          app.save_display_brightness_preferences(next);
 
   - platform: template
     name: "${entity_screen_schedule_mode}"
@@ -449,8 +410,8 @@ text:
     name: "${entity_screen_brightness_dawn_time}"
     internal: true
     id: brightness_dawn_time
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "06:00"
     min_length: 5
     max_length: 5
@@ -460,16 +421,19 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          int hour, minute;
+          if (!parse_time_of_day(std::string(x.c_str(), x.size()), hour, minute)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::dawn_minute, static_cast<unsigned>(hour * 60 + minute));
 
   - platform: template
     name: "${entity_screen_brightness_dusk_time}"
     internal: true
     id: brightness_dusk_time
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "18:00"
     min_length: 5
     max_length: 5
@@ -479,9 +443,12 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          int hour, minute;
+          if (!parse_time_of_day(std::string(x.c_str(), x.size()), hour, minute)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::dusk_minute, static_cast<unsigned>(hour * 60 + minute));
 
 number:
   - platform: template
@@ -656,16 +623,18 @@ number:
     max_value: 100
     step: 5
     initial_value: 100
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-7"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          if (!(x >= 10.0f && x <= 100.0f && std::floor(x) == x)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::daytime, static_cast<unsigned>(x));
 
   - platform: template
     name: "${entity_screen_nighttime_brightness}"
@@ -675,16 +644,18 @@ number:
     max_value: 100
     step: 5
     initial_value: 75
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-4"
     web_server:
       sorting_group_id: sg_brightness
-    on_value:
-      then:
-        - script.execute: backlight_apply_brightness
+    set_action:
+      - lambda: |-
+          if (!(x >= 10.0f && x <= 100.0f && std::floor(x) == x)) return;
+          id(espdesktop_app).edit_display_brightness_preference(
+              &espdesktop::DisplayBrightnessPreferences::nighttime, static_cast<unsigned>(x));
 
 # =============================================================================
 # SCRIPTS
@@ -748,16 +719,7 @@ script:
             return;
           }
 
-          id(manual_brightness_pct) = requested * 100.0f;
-          std::string mode = normalize_brightness_mode(
-              id(brightness_mode).current_option());
-          if (brightness_mode_manual(mode)) return;
-
-          id(brightness_last_automatic_uses_sun) = brightness_mode_uses_sun(mode);
-          id(brightness_mode_last_observed) = "Manual";
-          auto mode_call = id(brightness_mode).make_call();
-          mode_call.set_option("Manual");
-          mode_call.perform();
+          id(espdesktop_app).edit_manual_brightness(requested);
 
   # ---------------------------------------------------------------------------
   # Keep the backlight dark after reboot until valid time confirms the schedule.
@@ -959,7 +921,7 @@ script:
             std::string mode = normalize_brightness_mode(
                 id(brightness_mode).current_option());
             if (brightness_mode_manual(mode)) {
-              pct = id(manual_brightness_pct);
+              pct = id(espdesktop_app).display_brightness_preferences().manual_percent();
               if (std::isnan(pct) || pct <= 0.0f) pct = 100.0f;
               if (pct < 1.0f) pct = 1.0f;
               if (pct > 100.0f) pct = 100.0f;

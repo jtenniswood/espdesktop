@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include "display_brightness_preferences.h"
 #include "display_lifecycle_service.h"
 #include "display_theme_preferences.h"
 #include "screen_schedule_preferences.h"
