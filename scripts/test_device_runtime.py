@@ -19,6 +19,14 @@ import urllib.request
 MAX_BODY = 16384
 MAX_PANEL_CONFIG = 512 * 1024
 METRICS = ("heap_free_percent", "heap_largest_bytes", "psram_free_percent", "psram_largest_bytes")
+NAVIGATION_METRICS = ("pages_built", "pages_evicted", "page_build_ms", "page_open_frame_ms", "back_frame_ms")
+
+
+def navigation_values(value):
+    if (not isinstance(value, dict) or any(type(value.get(key)) is not int or not 0 <= value[key] <= 0xFFFFFFFF
+                                          for key in NAVIGATION_METRICS)):
+        raise ValueError("Missing or invalid navigation diagnostics.")
+    return {key: value[key] for key in NAVIGATION_METRICS}
 
 
 def positive(value):
@@ -133,10 +141,13 @@ class HttpProbe:
             if type(value) not in (int, float) or not math.isfinite(value) or value < 0 or (key.endswith("percent") and value > 100):
                 raise ValueError("invalid memory diagnostics")
         # Whitelist fields so unrelated JSON/config values never enter reports.
-        return {"hostname": hostname, "mac_suffix": suffix,
+        result = {"hostname": hostname, "mac_suffix": suffix,
                 **{key: health[key] for key in ("boot_id", "uptime_ms", "reset_reason")},
                 "firmware": {key: firmware[key] for key in ("esphome_version", "compilation_time", "project_version", "model", "app_elf_sha256") if key in firmware},
                 "memory": {key: memory[key] for key in METRICS if key in memory}}
+        if "navigation" in health:
+            result["navigation"] = navigation_values(health["navigation"])
+        return result
 
 
 @dataclass

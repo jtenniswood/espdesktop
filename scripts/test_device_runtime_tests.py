@@ -73,6 +73,7 @@ class ReleaseHardwareTests(unittest.TestCase):
             expected = release_hardware.candidate(manifest, "1234")
             data = snapshot()
             data["firmware"].update(model=release_hardware.DEVICE, project_version="v9.8.7", app_elf_sha256="a" * 64)
+            data["navigation"] = dict.fromkeys(runtime.NAVIGATION_METRICS, 0)
             probe = unittest.mock.Mock()
             probe.sample.side_effect = lambda: deepcopy(data)
             probe.json.return_value = {"mac_companion": {"paired": True, "connected": True}}
@@ -82,6 +83,8 @@ class ReleaseHardwareTests(unittest.TestCase):
 
             def confirm(prompt, *, change=True, keep=True, restart=True):
                 nonlocal config
+                if prompt.startswith(release_hardware.NAVIGATION):
+                    data["navigation"].update(page_open_frame_ms=14, back_frame_ms=5)
                 if prompt.startswith("Block internet access") and change:
                     config = (16, b"saved-digest")
                 if prompt.startswith("Restart") and restart:
@@ -112,6 +115,14 @@ class ReleaseHardwareTests(unittest.TestCase):
                 release_hardware.verify_report(wrong_build, expected)
             self.assertEqual(len(report["steps"]), 9)
             self.assertEqual(report["steps"][-1]["after"]["psram_largest_bytes"], 100000)
+            navigation = report["steps"][1]["navigation"]
+            self.assertEqual(navigation["before"]["page_open_frame_ms"], 0)
+            self.assertEqual(navigation["after"]["page_open_frame_ms"], 14)
+            self.assertEqual(navigation["after"]["back_frame_ms"], 5)
+            missing_navigation = deepcopy(report)
+            del missing_navigation["steps"][1]["navigation"]
+            with self.assertRaisesRegex(ValueError, "missing navigation measurements"):
+                release_hardware.verify_report(missing_navigation, expected)
             self.assertEqual(report["native_save"], {"before": 15, "saved": 16, "reboot": 16})
             self.assertNotIn("digest", json.dumps(report["native_save"]))
             report_without_save = deepcopy(report)
