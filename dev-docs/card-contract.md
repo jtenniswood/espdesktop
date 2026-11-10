@@ -246,7 +246,12 @@ Baseline migration decision: leading and trailing whitespace in saved Media play
 
 Malformed UTF-8 percent runs are preserved as literal saved text, matching the browser's safe decoder. Valid percent-encoded UTF-8 and delimiters continue to decode normally.
 
-Retired card identifiers are listed in `retiredCardTypes`; their compact saved codes remain in `retiredSubpageTypeCodes`. Browser and firmware discard their bindings and settings. The setup preview releases the retired tile and its entire span so the space can be reused.
+`releaseAvailability` in the shared contract lists stable card IDs and
+preview cards developed separately. Other card definitions are retained for
+reading older layouts. `removeOnEdit` lists retired IDs whose slots are freed
+when a layout is edited. Stable firmware also frees preview slots. Fully
+removed IDs remain reserved in `retiredCardTypes` and
+`retiredSubpageTypeCodes` so their old values keep their meaning.
 
 Action state, script-field, and confirmation text values also ignore leading and trailing whitespace during normalization. Padded confirmation defaults are omitted so a second normalization pass is identical to the first.
 

@@ -1,4 +1,4 @@
-import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardContractRemoveOnEdit, cardContractTypeRetired } from "../generated/card_contract";
 import type { CardConfig } from "../contracts/types";
 import { emptyCardConfig, retiredSavedCardType } from "../model/card";
 import { childPageKey, pageDepth, parentPageKey, PAGE_OWNER_SLOTS } from "../model/page_keys";
@@ -100,6 +100,5 @@ export function isRetiredWebApp(type: string | null | undefined): boolean {
 }
 
 export function isRetiredLayoutCard(type: string | null | undefined): boolean {
-  return isRetiredWebApp(type) || type === "wifi_qr" || type === "wifi_qr_card" ||
-    type === "companion_audio" || type === "companion_window";
+  return cardContractRemoveOnEdit(type);
 }

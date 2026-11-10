@@ -1,5 +1,6 @@
 {
   "label": "Mac Lock",
+  "pickerLabel": "Lock Machine",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {

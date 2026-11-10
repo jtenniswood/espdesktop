@@ -13,6 +13,7 @@ import {
   previewValue,
   swapGridCell,
 } from "../../src/webserver/features/preview";
+import { cardContractAvailability, cardContractCard, cardContractRemoveOnEdit } from "../../src/webserver/generated/card_contract";
 
 function equal<T>(actual: T, expected: T, message: string): void {
   if (actual !== expected) throw new Error(`${message}: expected ${String(expected)}, received ${String(actual)}`);
@@ -73,6 +74,15 @@ export function runPreviewFeatureTests(): void {
   equal(cardTypeVisibleForConnector("action", "mac_companion"), false, "Action cards cannot return through the Companion picker");
   equal(cardTypeVisibleForConnector("push", "mac_companion"), false, "triggers are hidden from Companion");
   equal(cardTypeVisibleForConnector("companion_app", "mac_companion"), true, "Companion subtypes appear in the Companion picker");
+  equal(cardContractAvailability("companion_mac_lock"), "stable", "Lock Machine is a stable card");
+  equal(cardContractCard("companion_mac_lock")?.pickerLabel, "Lock Machine", "the picker label is shared");
+  equal(cardTypeVisibleForConnector("companion_mac_lock", "mac_companion"), true, "the stable card is selectable");
+  equal(cardContractAvailability("companion_window"), "preview", "Window Control is a preview card");
+  equal(cardTypeVisibleForConnector("companion_window", "mac_companion"), false, "the preview card is absent from the stable picker");
+  equal(cardContractRemoveOnEdit("companion_window"), true, "stable layouts release old preview slots");
+  equal(cardContractAvailability("media"), "retired", "Home Assistant Media is a retired card");
+  equal(cardContractRemoveOnEdit("media"), false, "old Media cards keep their unavailable placeholder");
+  equal(cardTypeVisibleForConnector("media", "mac_companion"), false, "retired Media cannot be added");
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },

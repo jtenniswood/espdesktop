@@ -6642,7 +6642,7 @@ async function assertSubpageClockBar(browser, testCase) {
 
 async function assertRetiredCardRemoval(browser) {
   const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
-  const types = [...(contract.retiredCardTypes || []), ...contract.retiredSubpageTypeCodes];
+  const types = [...Object.keys(contract.releaseAvailability.preview), ...contract.retiredCardTypes, ...contract.retiredSubpageTypeCodes];
   const testCase = ACTIVE_CASES[0];
   const compactDateTypes = Object.entries(contract.subpageTypeCodes)
     .filter(([type]) => ["calendar", "clock", "timezone"].includes(type));
