@@ -13,7 +13,53 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 
 using namespace esphome::companion;
 
+static void assert_finder_folder_projection() {
+  struct Tile {
+    int cell;
+    std::string id;
+    std::string label;
+  };
+  struct Case {
+    std::string order;
+    std::vector<std::string> saved_ids;
+    std::vector<CompanionAction> catalogue;
+    int capacity;
+    std::vector<Tile> expected;
+  };
+  const Case cases[] = {
+#include "finder_folder_preview_cases.inc"
+  };
+  for (const auto &example : cases) {
+    std::vector<SubpageBtn> buttons;
+    for (const auto &id : example.saved_ids)
+      buttons.push_back({id, "Saved label", "Auto", "Auto", "", "", "companion", "", ""});
+    SubpageOrder order;
+    parse_subpage_order(example.order, 9, buttons.size(), order);
+    normalize_subpage_order_spans(order, 9, 3);
+    const SubpageOrder saved = order;
+    finder_project_folder_tiles(order, buttons, 9, 3, example.capacity, example.catalogue, "same_window");
+    assert(buttons.size() == example.saved_ids.size() + example.expected.size());
+    assert(order.back_pos == saved.back_pos && order.back_col_span == saved.back_col_span);
+    for (size_t index = 0; index < example.saved_ids.size(); ++index)
+      assert(buttons[index].entity == example.saved_ids[index] && buttons[index].label == "Saved label");
+    size_t found = 0;
+    for (int cell = 0; cell < 9; ++cell) {
+      const auto slot = order.positions[cell];
+      if (slot <= int(example.saved_ids.size())) {
+        assert(slot == saved.positions[cell]);
+        continue;
+      }
+      const auto &expected = example.expected.at(found++);
+      const auto &tile = buttons[slot - 1];
+      assert(cell == expected.cell && tile.entity == expected.id && tile.label == expected.label);
+      assert(tile.icon == finder_folder_default_icon() && tile.options == "finder_open_behavior=same_window");
+    }
+    assert(found == example.expected.size());
+  }
+}
+
 int main() {
+  assert_finder_folder_projection();
   const auto mac_lock = normalize_parsed_cfg(
       ParsedCfg{"shortcut.command+a", "", "", "", "url.invalid", "%", "companion_mac_lock", "1", ""});
   assert(mac_lock.entity == "shortcut.command+control+q" && mac_lock.sensor.empty());
@@ -102,7 +148,7 @@ int main() {
     SubpageOrder order;
     parse_subpage_order("B,1,,", 4, buttons.size(), order);
     normalize_subpage_order_spans(order, 4, 2);
-    finder_project_folder_tiles(order, buttons, 4, 2, catalogue, "same_window");
+    finder_project_folder_tiles(order, buttons, 4, 2, 4, catalogue, "same_window");
     return buttons;
   };
   const auto live = project(saved, folders);

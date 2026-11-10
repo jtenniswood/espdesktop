@@ -8,6 +8,7 @@ import * as Model from "./model";
 import { APP_SUBPAGE_PREFERENCE } from "./model/settings";
 import { createDeviceApi } from "./api/device_api";
 import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
+import type { CompanionAction } from "./api/companion_catalogue";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
 import * as AppInstance from "./state/app_instance";
 import { state } from "./state/app_instance";
@@ -139,7 +140,10 @@ const startupState = globalThis as typeof globalThis & {
   __ESPDESKTOP_UI_STARTING__?: boolean;
 };
 
-function registerCards(context: ApplicationContext) {
+function registerCards(
+  context: ApplicationContext,
+  publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
+) {
   const registry = context.cards;
   const fields = context.controllers.fields;
   const cardUi = {
@@ -161,6 +165,7 @@ function registerCards(context: ApplicationContext) {
     context.controllers.selection,
     context.layout.numSlots,
     context.controllers.connectorsPage,
+    publishFinderFolders,
   );
   registerClimateCardTypes(
     registry,
@@ -246,7 +251,7 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
   );
 }
 
-function composeApplicationContext(): ApplicationContext {
+function composeApplicationContext(liveFinderFolders: () => readonly CompanionAction[]): ApplicationContext {
   const fetchService: typeof fetch = typeof fetch === "function"
     ? resetAwareFetch
     : (() => Promise.reject(new Error("Fetch is not available"))) as typeof fetch;
@@ -613,6 +618,7 @@ function composeApplicationContext(): ApplicationContext {
     grid,
     selection,
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
+    liveFinderFolders,
   });
   const nativeTransfers = createNativePageTransfersFeature({
     native: nativePanelConfig, editor: () => nativePages, layout, api: requestApi, grid, shell,
@@ -1055,9 +1061,16 @@ function startEspDesktop(): void {
   if (startupState.__ESPDESKTOP_UI_STARTED__ || startupState.__ESPDESKTOP_UI_STARTING__) return;
   AppInstance.initializeAppState();
 
-  const context = composeApplicationContext();
+  let liveFinderFolders: readonly CompanionAction[] = [];
+  const context = composeApplicationContext(() => liveFinderFolders);
 
-  const lightCards = registerCards(context);
+  const lightCards = registerCards(context, folders => {
+    const changed = folders.length !== liveFinderFolders.length ||
+      folders.some((folder, index) => folder.id !== liveFinderFolders[index]?.id ||
+        folder.label !== liveFinderFolders[index]?.label);
+    if (changed) liveFinderFolders = folders;
+    return changed;
+  });
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {
     installTestHooks(context, lightCards);
   }

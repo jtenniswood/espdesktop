@@ -84,7 +84,7 @@ inline bool grid_update_finder_folders(const CompanionRuntimeSnapshot &snapshot)
   std::vector<CompanionAction> folders;
   if (snapshot.connected) {
     for (const auto &action : snapshot.actions)
-      if (action.id.rfind("folder.", 0) == 0 && action.id.size() > 7)
+      if (is_live_finder_folder(action.id))
         folders.push_back(action);
   }
   auto &previous = grid_live_finder_folders();
@@ -1397,7 +1397,9 @@ inline void grid_phase2(
     parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
     normalize_subpage_order_spans(sp_ord, NS, COLS);
     if (p.entity == "com.apple.finder") {
-      finder_project_folder_tiles(sp_ord, sp_btns, NS, COLS, grid_live_finder_folders(),
+      const int capacity = bounded_grid_slots(cfg.configured_slots > 0 ? cfg.configured_slots : NS);
+      finder_project_folder_tiles(sp_ord, sp_btns, NS, COLS, capacity,
+                                 grid_live_finder_folders(),
                                  companion_folder_open_behavior(p));
     }
 

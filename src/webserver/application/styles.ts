@@ -234,6 +234,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-empty-cell{--card-outline-color:color-mix(in srgb,var(--preview-text-muted) 70%,var(--preview-background));border:0;background:transparent;" +
         "border-radius:var(--empty-r);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;" +
         "cursor:pointer;transition:background-color .2s}" +
+        ".sp-live-folder-preview{position:absolute;inset:0;display:flex;align-items:flex-end;padding:var(--btn-pad);min-width:0}" +
+        ".sp-empty-cell:hover>.sp-live-folder-preview{opacity:.45}.sp-empty-cell>.sp-add-pill{z-index:2}" +
         ".sp-info-only-hidden{cursor:default;pointer-events:none}.sp-empty-cell.sp-info-only-hidden>.sp-card-outline{display:none}" +
         ".sp-empty-cell:hover{--card-outline-color:var(--accent)}" +
         ".sp-drag-active .sp-empty-cell:hover{--card-outline-color:color-mix(in srgb,var(--preview-text-muted) 70%,var(--preview-background))}" +

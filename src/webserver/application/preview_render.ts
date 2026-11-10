@@ -9,8 +9,12 @@ import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
-import { escHtml } from "./ui_primitives";
+import { escHtml, iconSlug } from "./ui_primitives";
 import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
+import { companionCardDefaultIcon } from "../model/companion_card";
+import { finderFolderPreview } from "../model/finder_folder_preview";
+import { pageOwnerSlot, parentPageKey } from "../model/page_keys";
+import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -50,6 +54,7 @@ export interface PreviewRenderDependencies {
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
+    readonly liveFinderFolders: () => readonly CompanionAction[];
 }
 export interface PreviewRenderFeature {
     render(): void;
@@ -431,6 +436,17 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             if (index !== -1) c.selected.splice(index, 1);
         }
         updatePreviewHint(c);
+        const pageKey = state.editingSubpage;
+        const subpage = pageKey ? getSubpage(pageKey) : null;
+        const parent = pageKey ? parentPageKey(pageKey) : 0;
+        const owner = pageKey
+            ? (parent ? getSubpage(parent)?.buttons : state.buttons)?.[pageOwnerSlot(pageKey) - 1]
+            : null;
+        const liveFolders = subpage && owner && owner.entity === "com.apple.finder" &&
+            companionAppShortcutFolderEnabled(owner)
+            ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
+                dependencies.liveFinderFolders())
+            : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             if (slot === -1)
@@ -438,16 +454,13 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             if (slot === -2) {
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
-                var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                const parent = state.editingSubpage != null
-                    ? state.buttons[state.editingSubpage - 1] : null;
-                const appBack = companionAppShortcutFolderEnabled(parent);
+                const appBack = companionAppShortcutFolderEnabled(owner);
                 var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack && owner ? resolveIcon({ icon: owner.icon === 'Auto' ? 'Monitor' : owner.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
                         (appBack ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
@@ -460,12 +473,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
-                if (appBack) {
+                if (appBack && owner) {
                     backBtn.setAttribute("data-icon-size", "large");
                     backBtn.setAttribute("aria-label", backLabel + " — Home");
                     resizeCardIcon(backBtn);
                     appIconResizeObserver?.observe(backBtn);
-                    loadCardAppIcon(backBtn, parent!.entity, subpage?.backColor || "",
+                    loadCardAppIcon(backBtn, owner.entity, subpage?.backColor || "",
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
@@ -589,6 +602,21 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 empty.className = "sp-empty-cell";
                 empty.setAttribute("data-pos", pos);
                 empty.innerHTML = '<span class="sp-add-pill"><span class="sp-add-icon mdi mdi-plus"></span></span>';
+                const folder = liveFolders?.get(pos);
+                if (folder) {
+                    const tile = document.createElement("div");
+                    tile.className = "sp-live-folder-preview";
+                    tile.title = "Live Finder folder. Click the cell to add a saved tile.";
+                    const icon = document.createElement("span");
+                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon("folder"));
+                    icon.setAttribute("aria-hidden", "true");
+                    const label = document.createElement("span");
+                    label.className = "sp-btn-label";
+                    label.textContent = folder.label;
+                    tile.append(icon, label);
+                    empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    empty.appendChild(tile);
+                }
                 main.appendChild(empty);
             }
         }

@@ -98,6 +98,7 @@ export function createCompanionCatalogueMonitor(
     start(): void {
       ++generation;
       clearTimer();
+      lastActions = null;
       retryDelayMs = 1000;
       void request(generation);
     },
