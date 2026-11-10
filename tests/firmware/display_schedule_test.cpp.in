@@ -152,7 +152,10 @@ int main() {
   advance(2000);
   mac_connected = false;
   screensaver_companion_reconcile.execute();
-  advance(2999);
+  advance(1000);
+  mac_connected = true;
+  screensaver_companion_reconcile.execute();
+  advance(1999);
   assert(controller.target_mode_is(DisplayMode::ACTIVE));
   advance(1);
   assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
@@ -360,5 +363,5 @@ int main() {
   active_page = actions.obj;
   display_active_finalize.execute(); advance(100);
   assert(screensaver_idle_check.is_running());
-  std::cout << "Schedule callback orders, idle expiry, manual sleep, stale finalization and boot passed\n";
+  std::cout << "Schedule callback orders, Mac lock delay, idle expiry, manual sleep, stale finalization and boot passed\n";
 }
