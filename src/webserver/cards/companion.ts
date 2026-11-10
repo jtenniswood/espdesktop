@@ -1443,7 +1443,7 @@ export function registerCompanionCardTypes(
     };
     registry.register("companion_mac_lock", {
         label: macLockDefaults.label,
-        pickerLabel: "Local Machine",
+        pickerLabel: "Lock Machine",
         cardMetadata: macLockMetadata,
         allowInSubpage: cardContractAllowInSubpage("companion_mac_lock"),
         isAvailable: () => supported,
