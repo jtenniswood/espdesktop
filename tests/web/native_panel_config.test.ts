@@ -111,6 +111,14 @@ export async function runDisplayThemePreferenceTests(): Promise<void> {
   equal(puts, previousPuts + 3, "a stale generation is retried with one complete group");
   equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,9,23,clock,60,10,15,10,FFFFFF",
     "the retry preserves the other tab's change");
+  equal(await target.writeDocument(backup), "saved", "restore a layout-only backup after schedule settings");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,9,23,clock,60,10,15,10,FFFFFF",
+    "layout-only restores retain the current schedule");
+  const savedSchedule = "1,0,7,19,dim,60,10,15,10,FFFFFF";
+  equal(await target.writeDocument({ ...backup, settings: {
+    ...backup.settings, [SCREEN_SCHEDULE_PREFERENCES]: savedSchedule,
+  } }), "saved", "restore a backup with its own schedule");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], savedSchedule, "restore the backup's explicit schedule");
   equal(decodeScreenSchedulePreferences("1,1,24,22,clock,60,10,15,10,FFFFFF"), undefined, "invalid hour rejected");
 
 }

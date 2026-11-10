@@ -319,12 +319,20 @@ export class NativePanelConfigController {
           nativeBackupHasInactiveRecords(document, this.dependencies.slotCount())) {
         throw new NativePanelConfigCompatibilityError(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
       }
-      if (!theme || Object.hasOwn(document.settings, DISPLAY_THEME_PREFERENCES)) return document;
-      const previous = current.settings[DISPLAY_THEME_PREFERENCES];
-      const value = Object.keys(theme.patch).length
-        ? encodeDisplayThemePreferences({ ...(decodeDisplayThemePreferences(previous) ?? theme.legacy), ...theme.patch })
-        : previous;
-      return value ? { ...document, settings: { ...document.settings, [DISPLAY_THEME_PREFERENCES]: value } } : document;
+      const settings = { ...document.settings };
+      const savedSchedule = current.settings[SCREEN_SCHEDULE_PREFERENCES];
+      if (!Object.hasOwn(settings, SCREEN_SCHEDULE_PREFERENCES) && savedSchedule &&
+          decodeScreenSchedulePreferences(savedSchedule)) {
+        settings[SCREEN_SCHEDULE_PREFERENCES] = savedSchedule;
+      }
+      if (theme && !Object.hasOwn(settings, DISPLAY_THEME_PREFERENCES)) {
+        const previous = current.settings[DISPLAY_THEME_PREFERENCES];
+        const value = Object.keys(theme.patch).length
+          ? encodeDisplayThemePreferences({ ...(decodeDisplayThemePreferences(previous) ?? theme.legacy), ...theme.patch })
+          : previous;
+        if (value) settings[DISPLAY_THEME_PREFERENCES] = value;
+      }
+      return { ...document, settings };
     }, false, nativeBackup);
   }
 
