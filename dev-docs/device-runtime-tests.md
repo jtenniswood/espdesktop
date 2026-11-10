@@ -77,3 +77,18 @@ The runner's offline tests are included in fast/CI checks. Run them alone with
 without contacting hardware. Firmware host tests execute the production
 diagnostics handler, including authentication, unavailable startup, stable boot
 identity, 64-bit uptime and memory/build serialization.
+
+### S3 secondary-page cache
+
+On the 4848S040 with a native layout, Home stays ready while secondary
+screens are built when visited. Up to four secondary screens are retained.
+A nested screen keeps its Back destination resident. On the application loop,
+memory pressure releases hidden app icon pixels, hidden artwork buffers, and
+then the least recently used secondary screens.
+
+For a comparison, capture `/api/v1/diagnostics` at Home before and after
+opening an existing nested shortcut page and using Back five times. The
+`navigation` object records builds, evictions, the last cold build, and the
+latest open and Back first-frame times in milliseconds. Compare the largest
+internal heap and PSRAM blocks with the same layout and build at each
+checkpoint. Use the same shortcut and return path for each visit.

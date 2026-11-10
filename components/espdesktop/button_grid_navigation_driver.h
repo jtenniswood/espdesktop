@@ -155,7 +155,7 @@ inline void navigation_driver_add_child_indicator(
 inline bool navigation_driver_own_subpage(
     BtnSlot &parent_slot, const ParsedCfg &config, const Context &context,
     int slot_number, int display_order, lv_obj_t *screen) {
-  if (!navigation_driver_owns_subpage(context, config) || !screen) return false;
+  if (!navigation_driver_owns_subpage(context, config)) return false;
   const std::string kind = companion_app_shortcuts_enabled(config)
     ? "app_shortcuts"
     : normalize_subpage_kind(cfg_option_value(config.options, "subpage_kind"));
@@ -163,16 +163,17 @@ inline bool navigation_driver_own_subpage(
     slot_number, display_order,
     kind,
     screen);
-  if (parent_slot.btn) lv_obj_set_user_data(parent_slot.btn, screen);
+  navigation_find_slot(slot_number)->owner_button = parent_slot.btn;
   return true;
 }
 
 inline bool navigation_driver_handle_main_click(
     const Context &context, const ParsedCfg &, lv_obj_t *button) {
   if (!navigation_driver_matches(context)) return false;
-  lv_obj_t *screen = button
-    ? static_cast<lv_obj_t *>(lv_obj_get_user_data(button)) : nullptr;
+  const auto started = esphome::millis();
+  lv_obj_t *screen = navigation_screen_for_button(button);
   if (screen) {
+    navigation_begin_page_open(screen, started);
     lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
     refresh_visible_image_cards();
   }
@@ -188,8 +189,12 @@ inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num
   const bool app_subpage = companion_app_shortcuts_enabled(config) &&
     (companion_auto_open_app_subpages() || companion_action_active(config.entity));
   if (!button || (!subpage && !app_subpage)) return false;
-  auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
-  if (!screen || !lv_obj_is_valid(screen)) return false;
+  // The selected driver opens the page after consuming the touch. Check the
+  // owner here without building it early, so first-draw timing includes the build.
+  const auto &entries = navigation_subpages();
+  if (std::none_of(entries.begin(), entries.end(), [&](const auto &entry) {
+        return entry.owner_button == button;
+      })) return false;
   navigation_consume_touch_press(button);
   if (subpage) {
     espdesktop::cards::navigation_driver_handle_main_click(context, config, button);

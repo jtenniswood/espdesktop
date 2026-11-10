@@ -166,6 +166,11 @@ inline size_t image_card_estimated_pipeline_bytes(int width, int height) {
 #endif
 }
 
+inline bool &grid_render_memory_reclaim_requested() {
+  static bool requested = false;
+  return requested;
+}
+
 inline bool image_card_memory_available(ImageCardCtx *ctx, const char *stage,
                                         int width, int height) {
 #ifdef ESP_PLATFORM
@@ -183,6 +188,7 @@ inline bool image_card_memory_available(ImageCardCtx *ctx, const char *stage,
       IMAGE_CARD_CONSTRAINED_INTERNAL_FREE_BYTES,
       IMAGE_CARD_CONSTRAINED_INTERNAL_LARGEST_BYTES);
   if (failure != esphome::artwork_image::ImagePipelineMemoryFailure::NONE) {
+    grid_render_memory_reclaim_requested() = true;
     ESP_LOGW("image_card",
              "Skipping %s image refresh for %s: reason=%u psram_need=%u image=%u "
              "internal_free=%u internal_largest=%u psram_free=%u psram_largest=%u target=%dx%d",
@@ -398,6 +404,22 @@ inline bool image_card_context_visible_on_active_screen(ImageCardCtx *ctx) {
 
 inline bool image_card_context_on_active_screen(ImageCardCtx *ctx) {
   return image_card_context_visible_on_active_screen(ctx);
+}
+
+inline void image_card_release_hidden_buffers() {
+  auto *contexts = image_card_contexts();
+  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
+    auto &ctx = contexts[i];
+    if (!ctx.image || (!ctx.image_ready && !ctx.download_active) ||
+        (ctx.btn && lv_obj_get_screen(ctx.btn) == lv_scr_act())) continue;
+    ctx.image->cancel_update();
+    ctx.image->release();
+    ctx.image_ready = false;
+    ctx.download_active = false;
+    ctx.next_download_retry_ms = 0;
+    image_card_clear_widget_source(ctx.widget);
+    if (ctx.fallback_icon_label) lv_obj_clear_flag(ctx.fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+  }
 }
 
 inline void refresh_visible_image_cards() {

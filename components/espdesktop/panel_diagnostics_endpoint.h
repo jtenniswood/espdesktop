@@ -8,6 +8,7 @@
 #include "esphome/components/json/json_util.h"
 #include "esphome/components/web_server_idf/web_server_idf.h"
 #include "panel_identity.h"
+#include "grid_navigation_diagnostics.h"
 
 namespace espdesktop {
 // Read-only health information. No entity values, credentials or saved layout.
@@ -49,6 +50,13 @@ class PanelDiagnosticsHandler final : public esphome::web_server_idf::AsyncWebHa
 #ifdef ESPDESKTOP_DEVICE_SLUG
       firmware["model"] = ESPDESKTOP_DEVICE_SLUG;
 #endif
+      const auto &navigation = grid_navigation_diagnostics();
+      JsonObject ui = root["navigation"].to<JsonObject>();
+      ui["pages_built"] = navigation.pages_built.load(std::memory_order_relaxed);
+      ui["pages_evicted"] = navigation.pages_evicted.load(std::memory_order_relaxed);
+      ui["page_build_ms"] = navigation.page_build_ms.load(std::memory_order_relaxed);
+      ui["page_open_frame_ms"] = navigation.page_open_frame_ms.load(std::memory_order_relaxed);
+      ui["back_frame_ms"] = navigation.back_frame_ms.load(std::memory_order_relaxed);
       JsonObject memory = root["memory"].to<JsonObject>();
       const uint32_t internal = MALLOC_CAP_INTERNAL | MALLOC_CAP_8BIT;
       const uint32_t external = MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT;
