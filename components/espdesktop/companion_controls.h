@@ -352,6 +352,10 @@ inline bool companion_consume_subpage_return_request() {
   return companion_subpage_return_requested().exchange(false);
 }
 
+inline std::string companion_consume_closed_app_subpage_action() {
+  return companion_runtime_service().consume_closed_app_subpage_action();
+}
+
 inline void companion_set_auto_open_app_subpages(bool enabled) {
   companion_runtime_service().set_auto_open_app_subpages(enabled);
 }
