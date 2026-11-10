@@ -1272,7 +1272,13 @@ export function registerCompanionCardTypes(
                 );
                 const appChanged = card.entity !== select.value;
                 card.entity = select.value;
-                resetCompanionShortcutTabs(card);
+                const reconnected = reconnectAthenaShortcutSubpage(
+                    savedShortcutSubpage ?? undefined, savedParent?.entity, card.entity);
+                if (reconnected) {
+                    setCompanionShortcutTabs(card, companionShortcutTabsFromSubpage(card.entity, reconnected));
+                } else {
+                    resetCompanionShortcutTabs(card);
+                }
                 if (appChanged) {
                     delete card._appShortcutDisabledTabs;
                     const changedFromSavedApp = card.entity !== savedParent?.entity;
@@ -1409,7 +1415,7 @@ export function registerCompanionCardTypes(
             delete card._appShortcutDisabledTabs;
             delete card._appShortcutCapacityRejected;
             if (!companionAppShortcutFolderEnabled(card)) return "saved";
-            const existing = state.subpages[slot];
+            const existing = context?.reconnectedSubpage ?? state.subpages[slot];
             if (existing && !selectionChanged && !appChanged && !openBehaviorChanged) return "saved";
             const source = existing ? {
                 ...existing,
@@ -1419,8 +1425,11 @@ export function registerCompanionCardTypes(
                 sizes: { ...(existing.sizes || {}) },
             } : null;
             let subpage;
-            if (source && appChanged && reconnectAthenaShortcutSubpage(source, card.entity)) {
-                subpage = source;
+            if (source && context?.reconnectedSubpage) {
+                const tabs = companionShortcutTabs(card);
+                const existingTabs = companionShortcutTabsFromSubpage(card.entity, source);
+                subpage = tabs.join("|") === existingTabs.join("|") ? source :
+                    syncCompanionShortcutSubpage(card.entity, tabs, source, maxSlots);
             } else if (source && !appChanged) {
                 subpage = card.entity === "com.apple.finder" ? source :
                     syncCompanionShortcutSubpage(card.entity, companionShortcutTabs(card), source, maxSlots);

@@ -162,17 +162,23 @@ export function runCompanionShortcutFeatureTests(): void {
   const athenaTemplate = COMPANION_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
   if (!athenaTemplate) throw new Error("Expected the offered Athena template");
   const savedAthena = { order: ["B", "", "1"], buttons: [{
+    ...emptyCardConfig("companion"), entity: "shortcut.control+command+n",
     label: "My New Chat", options: "app_shortcut_preset=" + previousAthena + ":100",
   }] };
-  if (reconnectAthenaShortcutSubpage(savedAthena, replacementAthena)) {
+  if (reconnectAthenaShortcutSubpage(savedAthena, previousAthena, replacementAthena)) {
     throw new Error("A missing replacement must leave saved Athena cards untouched");
   }
   COMPANION_SHORTCUT_APPS.push({ ...athenaTemplate, appId: replacementAthena });
   try {
-    if (!reconnectAthenaShortcutSubpage(savedAthena, replacementAthena) ||
-        savedAthena.order.join() !== "B,,1" || savedAthena.buttons[0]?.label !== "My New Chat" ||
-        configOptionValue(savedAthena.buttons[0].options, "app_shortcut_preset") !== replacementAthena + ":100") {
-      throw new Error("Choosing the replacement should change the target and keep the saved card layout");
+    const reconnected = reconnectAthenaShortcutSubpage(savedAthena, previousAthena, replacementAthena);
+    if (!reconnected || reconnected.order.join() !== "B,,1" || reconnected.buttons[0]?.label !== "My New Chat" ||
+        configOptionValue(reconnected.buttons[0].options, "app_shortcut_preset") !== replacementAthena + ":100" ||
+        reconnectAthenaShortcutSubpage(savedAthena, "com.apple.finder", replacementAthena)) {
+      throw new Error("Choosing a replacement for the original Athena card should preserve its saved layout");
+    }
+    const updated = syncCompanionShortcutSubpage(replacementAthena, ["101"], reconnected);
+    if (companionShortcutTabsFromSubpage(replacementAthena, updated).join() !== "101") {
+      throw new Error("Shortcut selection edits in the same save must apply to the reconnected page");
     }
   } finally {
     COMPANION_SHORTCUT_APPS.pop();

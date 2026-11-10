@@ -45,6 +45,7 @@ import {
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { isBackOrderToken } from "../model/subpage";
+import type { SubpageConfig } from "../contracts/types";
 
 export const COMPANION_APP_SHORTCUTS_OPTION = "app_shortcuts";
 export const COMPANION_APP_SHORTCUTS_TABS_OPTION = "app_shortcuts_tabs";
@@ -362,27 +363,32 @@ function companionShortcutPresetIdentity(card: any, preserveUnavailableSafariPre
 }
 
 export function reconnectAthenaShortcutSubpage(
-    page: { buttons: { options: string }[] }, bundleIdentifier: string,
-): boolean {
+    page: SubpageConfig | undefined, previous: string | undefined, replacement: string,
+): SubpageConfig | null {
+    if (!page || !previous || previous === replacement || !SAFARI_WEB_APP_BUNDLE_ID.test(previous) ||
+        !SAFARI_WEB_APP_BUNDLE_ID.test(replacement)) return null;
     const athena = BUNDLED_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
-    const target = COMPANION_SHORTCUT_APPS.find(app => app.appId === bundleIdentifier);
-    if (!SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier) || !athena || !target ||
-        !target.shortcuts.some(shortcut => athena.shortcuts.some(preset => preset.id === shortcut.id))) return false;
-
+    const target = COMPANION_SHORTCUT_APPS.find(app => app.appId === replacement);
+    if (!athena || !target) return null;
+    const athenaTabs = new Set(athena.shortcuts.map(shortcut => shortcut.id));
     const preset = (card: { options: string }) => configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
-    const previous = page.buttons.map(preset).map(marker => marker.split(":")).find(([id, tab]) =>
-        id && SAFARI_WEB_APP_BUNDLE_ID.test(id) && athena.shortcuts.some(shortcut => shortcut.id === tab))?.[0];
-    if (!previous || previous === bundleIdentifier) return false;
-
-    const availableTabs = new Set(companionShortcutTabDefinitions(bundleIdentifier).map(tab => tab.value));
-    for (const card of page.buttons) {
+    const wasAthena = page.buttons.some(card => {
         const [id, tab] = preset(card).split(":");
-        if (id === previous && tab && availableTabs.has(tab)) {
-            card.options = setConfigOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION,
-                bundleIdentifier + ":" + tab);
-        }
-    }
-    return true;
+        return id === previous && tab !== undefined && athenaTabs.has(tab);
+    });
+    if (!wasAthena || !target.shortcuts.some(shortcut => athenaTabs.has(shortcut.id))) return null;
+
+    const availableTabs = new Set(companionShortcutTabDefinitions(replacement).map(tab => tab.value));
+    return {
+        ...page,
+        buttons: page.buttons.map(card => {
+            const [id, tab] = preset(card).split(":");
+            return id === previous && tab && availableTabs.has(tab) ? {
+                ...card,
+                options: setConfigOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION, replacement + ":" + tab),
+            } : { ...card };
+        }),
+    };
 }
 
 export function safariShortcutPresetCards(): CompanionShortcutPresetCard[] {
