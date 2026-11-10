@@ -2358,6 +2358,16 @@ async function assertAutomaticAppIcons(browser, testCase) {
       await card(1).locator(".sp-companion-app-icon").waitFor();
       await card(2).locator(".sp-companion-app-icon").waitFor();
       assert.strictEqual(iconRequests, requestsBeforeReload, "browser reload reuses locally stored images");
+      await page.addStyleTag({ content: ".sp-btn{--card-active-color:#ff00ff!important}" });
+      await card(1).hover();
+      await page.mouse.down();
+      try {
+        await assertPreviewOutlinePixels(page, '.sp-main > .sp-btn[data-slot="1"]:active',
+          `${testCase.slug}/${native ? "native" : "legacy"}/pressed app icon`, 3);
+      } finally {
+        await page.mouse.up();
+      }
+
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
   }
@@ -5711,7 +5721,7 @@ async function assertCardCurveSettings(browser, testCase) {
 
 // Read the actual rasterized border so covered outlines and thin clipped
 // corners fail even when the CSS reports the expected selection state.
-async function assertPreviewOutlinePixels(page, selector, label) {
+async function assertPreviewOutlinePixels(page, selector, label, expectedWidth = 2) {
   await page.evaluate(() => document.fonts.ready);
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   // Measure and capture in viewport coordinates. A full-page capture can
@@ -5721,7 +5731,7 @@ async function assertPreviewOutlinePixels(page, selector, label) {
     // on each frame instead of waiting for an old element to stabilize.
     const card = document.querySelector(selector);
     const outline = card?.querySelector(":scope > .sp-card-outline");
-    if (!outline?.firstElementChild || getComputedStyle(outline).display === "none") return null;
+    if (!outline?.firstElementChild) return null;
     const bounds = card.getBoundingClientRect();
     if (!bounds.width || !bounds.height) return null;
     if (bounds.left < 0 || bounds.top < 0 || bounds.right > innerWidth || bounds.bottom > innerHeight) {
@@ -5781,8 +5791,8 @@ async function assertPreviewOutlinePixels(page, selector, label) {
     });
   }, { geometry, png: `data:image/png;base64,${png.toString("base64")}` });
   for (const [index, measurement] of thicknesses.entries()) {
-    assert(measurement.samples >= 3 && measurement.width > 1.2 && measurement.width < 2.8,
-      `${label}: ${index < 4 ? "corner " + index : "straight sides"} must show an even 2px outline: ${JSON.stringify(thicknesses)}`);
+    assert(measurement.samples >= 3 && Math.abs(measurement.width - expectedWidth) < .8,
+      `${label}: ${index < 4 ? "corner " + index : "straight sides"} must show an even ${expectedWidth}px outline: ${JSON.stringify(thicknesses)}`);
   }
   // Average opposing corners to cancel pixel-phase differences when card
   // bounds land between device pixels. Each corner still has its own limit.
