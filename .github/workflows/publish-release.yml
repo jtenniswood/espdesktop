@@ -11,15 +11,10 @@ on:
         description: Successful Build Release run ID for the firmware and Mac app tested together
         required: true
         type: string
-      tested_fingerprint:
-        description: Candidate fingerprint from the tested build run summary
+      hardware_report:
+        description: JSON from the completed S3 hardware test session
         required: true
         type: string
-      hardware_passed:
-        description: The Guition 4848S040 passed the pairing, shortcut, offline editor and reboot checks
-        required: true
-        type: boolean
-        default: false
 
 permissions:
   actions: read
@@ -45,17 +40,12 @@ jobs:
         with:
           ref: ${{ inputs.release_tag }}
 
-      - name: Verify the build run and hardware confirmation
+      - name: Verify the build run
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
           CANDIDATE_RUN: ${{ inputs.candidate_run }}
-          HARDWARE_PASSED: ${{ inputs.hardware_passed }}
         run: |
-          if [[ "${HARDWARE_PASSED}" != true ]]; then
-            echo "::error::The 4848S040 hardware checks must pass before publishing"
-            exit 1
-          fi
           if [[ "${GITHUB_REF}" != "refs/tags/${RELEASE_TAG}" || ! "${CANDIDATE_RUN}" =~ ^[1-9][0-9]*$ ]]; then
             echo "::error::Dispatch this workflow from the release tag with a Build Release run ID"
             exit 1
@@ -98,9 +88,12 @@ jobs:
       - name: Verify that the files match the tested candidate
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
-          TESTED_FINGERPRINT: ${{ inputs.tested_fingerprint }}
+          HARDWARE_REPORT: ${{ inputs.hardware_report }}
           CANDIDATE_RUN: ${{ inputs.candidate_run }}
         run: |
+          TESTED_FINGERPRINT="$(printf '%s' "${HARDWARE_REPORT}" | python3 scripts/test_release_hardware.py verify \
+            --candidate-run "${CANDIDATE_RUN}" --release-tag "${RELEASE_TAG}" \
+            --manifest dist/companion/companion-compatibility.json)"
           python3 scripts/companion_release.py verify \
             --firmware-dir dist/firmware --companion-dir dist/companion \
             --source-revision "${SOURCE_SHA}" \
@@ -108,7 +101,7 @@ jobs:
             --tested-fingerprint "${TESTED_FINGERPRINT}"
           {
             printf '\n## Device verification\n\n'
-            printf '%s\n' 'The Guition 4848S040 passed the paired Mac, nested shortcut, offline editor, and reboot checks.'
+            printf '%s\n' 'The Guition 4848S040 passed the paired Mac, repeated shortcuts, wake, offline editor, and reboot checks.'
             printf 'Tested [build run %s](%s/%s/actions/runs/%s) with fingerprint `%s`.\n' \
               "${CANDIDATE_RUN}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${CANDIDATE_RUN}" "${TESTED_FINGERPRINT}"
           } >> dist/release-notes.md

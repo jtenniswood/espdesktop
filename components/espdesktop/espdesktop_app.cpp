@@ -895,6 +895,7 @@ void EspDesktopApp::loop() {
   if (!focus_pending) companion_process_pending_app_icon_refresh();
   trace_phase("icon refresh");
 #endif
+  grid_reclaim_hidden_render_memory();
   sync_finder_folders();
   trace_phase("Finder sync");
   // The IDF web server starts later, so retry idempotent registrations.
