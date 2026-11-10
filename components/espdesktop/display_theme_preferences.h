@@ -1,46 +1,28 @@
 #pragma once
 
-#include <array>
-#include <charconv>
 #include <cstdio>
-#include <optional>
-#include <string_view>
+
+#include "panel_settings_generated.h"
 
 #include "theme_settings.h"
 
 namespace espdesktop {
 
-inline constexpr std::string_view DISPLAY_THEME_PREFERENCES_KEY = "display_theme_preferences";
+inline constexpr std::string_view DISPLAY_THEME_PREFERENCES_KEY = panel_settings::display_theme_preferences_key;
 
 // One portable, versioned record. Times are local minutes since midnight and
 // solar offsets are signed minutes. Parsing never changes the active theme.
 inline std::optional<ThemeSettings> parse_display_theme_preferences(std::string_view value) {
-  std::array<std::string_view, 7> fields;
-  for (size_t i = 0; i < fields.size(); ++i) {
-    const auto comma = value.find(',');
-    if ((comma == std::string_view::npos) != (i == fields.size() - 1)) return {};
-    fields[i] = value.substr(0, comma);
-    if (comma != std::string_view::npos) value.remove_prefix(comma + 1);
-  }
-  if (fields[0] != "1") return {};
-
+  const auto saved = panel_settings::read_display_theme_preferences(value);
+  if (!saved) return {};
   ThemeSettings settings;
-  if (fields[1] == "light") settings.mode = ThemeMode::LIGHT;
-  else if (fields[1] == "auto") settings.mode = ThemeMode::AUTO;
-  else if (fields[1] != "dark") return {};
-  if (fields[2] == "sun") settings.auto_method = ThemeAutoMethod::SUNRISE_SUNSET;
-  else if (fields[2] != "time") return {};
-
-  auto read = [](std::string_view field, int &out, int minimum, int maximum) {
-    const auto *end = field.data() + field.size();
-    const auto result = std::from_chars(field.data(), end, out);
-    return result.ec == std::errc{} && result.ptr == end && out >= minimum && out <= maximum;
-  };
-  constexpr int OFFSET = THEME_SUN_OFFSET_LIMIT_MINUTES;
-  if (!read(fields[3], settings.light_start, 0, 1439) ||
-      !read(fields[4], settings.dark_start, 0, 1439) ||
-      !read(fields[5], settings.sunrise_offset, -OFFSET, OFFSET) ||
-      !read(fields[6], settings.sunset_offset, -OFFSET, OFFSET)) return {};
+  if (saved->mode == "light") settings.mode = ThemeMode::LIGHT;
+  if (saved->mode == "auto") settings.mode = ThemeMode::AUTO;
+  if (saved->auto_method == "sun") settings.auto_method = ThemeAutoMethod::SUNRISE_SUNSET;
+  settings.light_start = saved->light_start;
+  settings.dark_start = saved->dark_start;
+  settings.sunrise_offset = saved->sunrise_offset;
+  settings.sunset_offset = saved->sunset_offset;
   return settings;
 }
 
@@ -66,7 +48,7 @@ inline std::string encode_display_theme_preferences(const ThemeSettings &setting
   const char *mode = settings.mode == ThemeMode::LIGHT ? "light" :
       settings.mode == ThemeMode::AUTO ? "auto" : "dark";
   const char *method = settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET ? "sun" : "time";
-  return std::string("1,") + mode + "," + method + "," + std::to_string(settings.light_start) +
+  return std::to_string(panel_settings::display_theme_preferences_version) + "," + mode + "," + method + "," + std::to_string(settings.light_start) +
       "," + std::to_string(settings.dark_start) + "," + std::to_string(settings.sunrise_offset) +
       "," + std::to_string(settings.sunset_offset);
 }
