@@ -337,6 +337,14 @@ class CompanionRuntimeService {
     const std::string &auto_subpage_id = application_id;
     const std::string previous_auto_subpage_id = focused_auto_subpage_id_;
     if (focused_action_ids_ == accepted && previous_auto_subpage_id == auto_subpage_id) return false;
+    // The Mac still has this app in front, but its detailed focus report no
+    // longer finds a visible window. This also applies to manually opened pages.
+    if (connected_ && auto_subpage_id.empty() && !previous_auto_subpage_id.empty() &&
+        application_highlight_known_ && application_highlight_id_ == previous_auto_subpage_id) {
+      closed_app_subpage_action_id_ = previous_auto_subpage_id;
+    } else if (auto_subpage_id == closed_app_subpage_action_id_) {
+      closed_app_subpage_action_id_.clear();
+    }
     const bool should_return = auto_open_app_subpages_ && connected_ && !previous_auto_subpage_id.empty() &&
       auto_subpage_id != previous_auto_subpage_id;
     if (!auto_open_app_subpages_ || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
@@ -346,6 +354,11 @@ class CompanionRuntimeService {
     focused_auto_subpage_id_ = auto_subpage_id;
     focus_refresh_requested_.store(true);
     return should_return;
+  }
+
+  std::string consume_closed_app_subpage_action() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return std::exchange(closed_app_subpage_action_id_, {});
   }
 
   std::string pending_auto_subpage_action() const {
@@ -373,6 +386,7 @@ class CompanionRuntimeService {
       application_highlight_id_.clear();
       focused_auto_subpage_id_.clear();
       pending_auto_subpage_action_id_.clear();
+      closed_app_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
       system_metrics_ = {};
     }
@@ -402,6 +416,7 @@ class CompanionRuntimeService {
   bool return_home_on_app_switch_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
+  std::string closed_app_subpage_action_id_;
   bool keyboard_actions_supported_{false};
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;

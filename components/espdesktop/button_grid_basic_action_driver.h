@@ -150,7 +150,7 @@ inline bool basic_action_driver_bind_subpage(
           auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
           const bool active = companion_action_active(card->entity);
           if (screen && lv_obj_is_valid(screen) && (companion_auto_open_app_subpages() || active)) {
-            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            navigation_show_companion_subpage(screen, /*from_card=*/true);
             refresh_visible_image_cards();
             if (!companion_auto_open_app_subpages()) return;
           }
@@ -193,14 +193,14 @@ inline bool basic_action_driver_handle_main_click(
           // In manual mode, the first press focuses the app. Only an already
           // active (on) card opens its subpage, without invoking the app again.
           if (companion_action_active(config.entity) && lv_obj_is_valid(screen)) {
-            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            navigation_show_companion_subpage(screen, /*from_card=*/true);
             break;
           }
         }
         if (screen && companion_auto_open_app_subpages()) {
           // Navigation is local; do not wait for Mac focus/acknowledgement.
           if (lv_obj_is_valid(screen)) {
-            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            navigation_show_companion_subpage(screen, /*from_card=*/true);
           }
         }
       }
