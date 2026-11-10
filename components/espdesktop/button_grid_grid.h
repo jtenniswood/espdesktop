@@ -1069,8 +1069,10 @@ inline void grid_release_runtime_allocations(
     void *preserve_secondary = nullptr,
     void *preserve_tertiary = nullptr) {
   if (owner == nullptr) return;
-  // Close before any context is freed, including an inactive subpage's owner.
-  navigation_close_modals_for_display_takeover();
+  // A visible modal may refer to this context. Hidden-page eviction must
+  // leave overlays on the current screen alone.
+  if (lv_obj_get_screen(owner) == lv_scr_act())
+    navigation_close_modals_for_display_takeover();
   std::vector<GridRuntimeAllocation> &allocations = grid_runtime_allocations();
   size_t write_index = 0;
   for (size_t read_index = 0; read_index < allocations.size(); read_index++) {
