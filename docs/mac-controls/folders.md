@@ -13,6 +13,8 @@ Folder cards open only the Finder folders you approve in the Mac app. Folder pat
 2. Choose **Add Folder…** and select a directory.
 3. In the display setup page, add a **Companion → Folder** card and choose that folder.
 
+In the card’s **Advanced** section, set **Open folder in** to **A new window** or **The same window**.
+
 If a folder is moved or renamed, choose **Choose Again…** in the Mac app to restore its access. Removing a folder from the Mac app makes its card unavailable.
 
 ## Finder Folder Subpage
@@ -23,6 +25,10 @@ You can show approved folders as tiles on a Finder app subpage:
 2. Turn on **Add app subpage** in the card settings.
 3. Use the folder list under **App Subpage** to choose which folders appear and drag them into order.
 
-Newly approved folders can be added to enabled Finder subpages when space is available. Existing tiles are not removed automatically. Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
+Under **App Subpage**, use **Folder shortcuts open in** to set the default window behavior. A folder tile can use the subpage setting or override it under **Advanced → Open folder in**.
+
+In stable v1.2.0, newly approved folders can be added as saved tiles when there is room. Existing tiles stay in the layout. In newer development builds, approved folders appear in free cells while connected. Use **Pin Finder folders** to keep selected tiles in the saved layout and customise their names or positions.
+
+A folder tile lights up when its folder is active in Finder. For highlighting, macOS may ask you to allow EspDesktop to control Finder.
 
 For app launch behavior and other generated app pages, see [Launch Mac apps and open websites](/mac-controls/apps).

@@ -12,11 +12,11 @@ Set up the display from a normal web browser.
 
 - **Applications** — launch only the Mac apps you approve in EspDesktop.
 - **App shortcuts** — open an app-specific page of controls for common actions, or create your own keyboard shortcuts.
-- **Windows** — close, minimise, hide, enter full screen, or use the move-and-resize controls available on your version of macOS.
-- **Folders and websites** — open approved Finder folders or safe `http://` and `https://` links in an approved app.
-- **Mac statistics** — optionally show processor, memory, storage, network throughput, and battery readings.
+- **Folders and websites** — open approved Finder folders or `http://` and `https://` links in your default browser.
+- **Mac Lock** — lock your Mac from the display.
+- **Mac statistics** — show a reading such as processor usage or battery level on a **Companion Stat** subpage tile.
 
-You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up the finished layout from the display's built-in setup page.
+You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up or restore the layout from the display’s built-in editor. See the [stable and preview feature guide](https://jtenniswood.github.io/espdesktop/#what-you-can-control) for release availability.
 
 ## How It Works
 

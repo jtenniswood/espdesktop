@@ -66,12 +66,12 @@ saved card data or pairing credentials.
 
 ESPHome OTA or other update methods may contact the services you select.
 
-Standard released firmware also loads the JavaScript for its built-in web
-configuration interface from EspDesktop's GitHub Pages site. The request URL
-includes the device model slug and firmware version, so the hosting provider
-may receive those values along with normal browser or device connection
-metadata when the interface is opened. This asset request is separate from
-the firmware update checker.
+In v1.2.0, the browser tries to load the display editor from EspDesktop’s
+GitHub Pages site and can fall back to a copy bundled with the firmware. The
+request URL includes the display model and firmware version. GitHub may receive
+those values and normal browser connection metadata. Newer 4848S040 firmware
+builds that start the bundled editor serve it directly from the display. Firmware
+update checks are separate.
 
 Networked standard builds automatically synchronize time with the public NTP
 pool at `0.pool.ntp.org`, `1.pool.ntp.org`, and `2.pool.ntp.org`. DNS and NTP
@@ -101,6 +101,11 @@ approved folders in EspDesktop or revoke permissions in macOS System Settings.
 Removing the application may leave preferences or Keychain items behind, so
 forget the display before uninstalling when you want to remove its pairing.
 EspDesktop does not send these local card data to an analytics service.
+
+The Mac app downloads the public shortcut catalogue from GitHub. The packaged app
+also checks a GitHub release feed when automatic checks are enabled or you check
+manually. GitHub may receive ordinary request information, such as IP address and
+time. You can change automatic update settings in the Mac app’s **Updates** tab.
 
 ## Information you provide to the project
 

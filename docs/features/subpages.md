@@ -11,11 +11,13 @@ All subpages hide the top title and clock bar so the cards use the full screen. 
 
 ## Mac statistics
 
-Choose **Companion Stat** to show a Mac statistic on the folder tile while keeping the tap action as navigation. Select the statistic and, where available, used/free display or a storage device. A paired Mac provides the readings.
+In the **Subpage** card settings, set **Type** to **Companion Stat** to show a reading while keeping the tile’s navigation action. You can show processor, memory, storage, battery or network throughput. Some readings offer used/free values or a storage-device choice. The paired Mac shares readings while connected. Existing standalone Stats cards can still show readings, while the stable picker offers statistics through **Companion Stat**.
 
 ## App page behavior
 
 Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
+
+In development builds after v1.2.0, waking the display can open the focused app’s subpage when **Open app subpages on focus** is enabled.
 
 ## Create a Subpage
 
@@ -40,7 +42,7 @@ Nested layouts use the new saved-layout format and require firmware with two-lev
 
 Drag cards to change their order. To move or copy a card between the home screen and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty space on the destination page and choose **Paste**.
 
-Open **Screen** or **System** and choose **Apply Configuration** to apply your changes to the display.
+Choose **Save** when editing a card. Dragging and clipboard actions save the layout as you make them.
 
 To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage and Back buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
 

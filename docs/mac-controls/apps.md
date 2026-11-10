@@ -49,7 +49,7 @@ For standalone pages, see [Subpages](/features/subpages). For folders, see [Open
 
 App subpages open automatically when their app gains focus by default. Switching between apps with subpages goes directly to the matching page. Browser tabs and Finder folders are checked separately so they do not hold up app switches. To require a press instead, turn off **Screen → Appearance → App Subpages → Open app subpages on focus**. Press an app card to focus its app, then press it again once the app is active on the Mac to open the subpage. This setting applies to every app subpage on the display.
 
-When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the shortcuts opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
+In development builds after stable v1.2.0, closing the last visible window of the foreground app returns the display to the Home page or subpage you were using before the shortcuts opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
 
 The browser setup page caches app icon previews locally for up to 24 hours, so switching pages and reopening setup can reuse downloaded artwork. Icons refresh when the Mac connection or app icon catalogue changes. **Clear app icon cache** in the Mac Companion settings also clears the browser previews. Browser caching is limited to 64 previews and still works in memory if local storage is unavailable.
 

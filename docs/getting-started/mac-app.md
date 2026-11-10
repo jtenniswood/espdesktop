@@ -34,4 +34,10 @@ On an empty display, the web page guides you through app setup.
 
 Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → Appearance → App Subpages → Setup Again**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
 
+## Update the Mac app
+
+Choose **Updates** from the EspDesktop menu-bar menu to check for a new version. In **Mac Settings → Updates**, use **Check Now** or change the automatic update preferences. The packaged app checks automatically by default. Automatic installation is optional.
+
+For a version that needs newer display firmware, install the app and firmware from the same stable release. Follow the [display update instructions](/features/setup#update-the-display-firmware).
+
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
