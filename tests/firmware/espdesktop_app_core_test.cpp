@@ -116,7 +116,7 @@ int main() {
   const auto wake = display.resolve();
   if (!presentation.take_wake_reconcile() || !display.start_transition(wake, 151)) return EXIT_FAILURE;
   // Home can be visible before the physical wake transition and touch release
-  // have both completed. A simultaneous Mac focus update must leave Home visible.
+  // have both completed. Ordinary focus navigation stays blocked until the wake touch is released.
   presentation.set_blank_page_active(false);
   if (presentation.allows_focus_navigation() || !display.complete_transition(wake, 190) ||
       presentation.allows_focus_navigation()) return EXIT_FAILURE;

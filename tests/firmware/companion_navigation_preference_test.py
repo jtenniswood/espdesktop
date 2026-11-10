@@ -48,6 +48,14 @@ auto &navigation_subpages() { return pages; }
 std::atomic<bool> pending_return{false};
 std::string pending_open;
 std::string closed_app;
+std::string focused_at_wake;
+bool open_on_focus = true;
+std::string companion_take_wake_subpage_action() {
+  pending_open.clear();
+  pending_return = false;
+  closed_app.clear();
+  return open_on_focus ? focused_at_wake : "";
+}
 bool return_home = true;
 bool companion_return_home_on_app_switch() { return return_home; }
 bool companion_consume_subpage_return_request() { return pending_return.exchange(false); }
@@ -88,6 +96,9 @@ code += function('inline int navigation_active_subpage_slot(')
 code += function('inline void navigation_show_companion_subpage(')
 code += function('inline bool navigation_restore_subpage_slot(int slot) {')
 code += function('inline NavigationSubpageEntry *navigation_companion_subpage_for_action(')
+code += function('inline bool navigation_allows_companion_focus()')
+code += function('inline bool navigation_present_companion_subpage(')
+code += function('inline bool navigation_present_focused_app_after_sleep()')
 code += function('inline bool navigation_return_from_companion_shortcuts_if_needed(')
 code += function('inline bool navigation_open_companion_subpage_if_requested(')
 code += r'''
@@ -104,15 +115,32 @@ int main() {
   pending_open = "second.app";
   assert(!navigation_open_companion_subpage_if_requested(&home));
   assert(screen == &app && pending_open.empty());
-  // Focus arrives while Home is waking. Discard it and keep Home visible.
-  screen = &home; pending_open = "second.app";
+  // The focused app can change while the panel is asleep. Keep automatic
+  // navigation dormant until the wake path deliberately picks the latest app.
+  lv_obj_t blank;
   auto &display = espdesktop::app_core.display;
   display.set_blank_page_active(true);
   display.begin_wake(false);
+  screen = &blank; pending_open = "second.app"; pending_return = true;
+  focused_at_wake = "second.app";
+  assert(!navigation_return_from_companion_shortcuts_if_needed(&home));
+  assert(!navigation_open_companion_subpage_if_requested(&home));
+  assert(screen == &blank);
+  assert(navigation_present_focused_app_after_sleep());
+  assert(screen == &other && pending_open.empty() && !pending_return);
   display.set_blank_page_active(false);
   assert(!navigation_open_companion_subpage_if_requested(&home));
-  assert(screen == &home && pending_open.empty());
   display.clear_wake_touch_guard();
+
+  // Wake also follows already-focused apps with no pending focus event.
+  display.set_blank_page_active(true); screen = &blank;
+  assert(navigation_present_focused_app_after_sleep() && screen == &other);
+  screen = &blank; open_on_focus = false;
+  assert(!navigation_present_focused_app_after_sleep() && screen == &blank);
+  open_on_focus = true; focused_at_wake = "missing.app";
+  assert(!navigation_present_focused_app_after_sleep() && screen == &blank);
+  display.set_blank_page_active(false); focused_at_wake = "second.app";
+  assert(!navigation_present_focused_app_after_sleep());
   // Automatic opening from home still works.
   screen = &home; pending_open = "second.app";
   assert(navigation_open_companion_subpage_if_requested(&home));
