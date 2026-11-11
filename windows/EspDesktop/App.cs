@@ -30,7 +30,7 @@ internal sealed class App : Application
         using var open = new EventWaitHandle(false, EventResetMode.AutoReset, smoke ? null : @"Local\EspDesktop.Windows.Show");
         var app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
 #pragma warning disable WPF0001 // WPF's system Fluent theme API remains marked experimental.
-        app.ThemeMode = ThemeMode.System;
+        app.ThemeMode = smoke && args.Contains("--dark-preview") ? ThemeMode.Dark : ThemeMode.System;
 #pragma warning restore WPF0001
         var window = new SettingsWindow(smoke);
         app.MainWindow = window;

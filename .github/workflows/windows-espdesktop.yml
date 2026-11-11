@@ -52,6 +52,12 @@ jobs:
           $app = Start-Process (Join-Path $installDir 'EspDesktop.exe') -ArgumentList '--smoke-test' -PassThru
           if (!$app.WaitForExit(60000)) { $app.Kill(); throw 'Native app smoke test timed out.' }
           if ($app.ExitCode -ne 0) { throw "App exit code: $($app.ExitCode)" }
+          if ('${{ matrix.arch }}' -eq 'x64') {
+            $env:ESPDESKTOP_SETTINGS_PREVIEW = Join-Path $env:RUNNER_TEMP 'EspDesktop-settings-dark.png'
+            $dark = Start-Process (Join-Path $installDir 'EspDesktop.exe') -ArgumentList '--smoke-test','--dark-preview' -PassThru
+            if (!$dark.WaitForExit(60000)) { $dark.Kill(); throw 'Dark mode preview timed out.' }
+            if ($dark.ExitCode -ne 0) { throw "Dark mode app exit code: $($dark.ExitCode)" }
+          }
           $uninstall = Start-Process (Join-Path $installDir 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
           if ($uninstall.ExitCode -ne 0 -or (Test-Path (Join-Path $installDir 'EspDesktop.exe'))) {
             throw 'EspDesktop was not uninstalled.'
@@ -67,5 +73,5 @@ jobs:
         if: matrix.arch == 'x64'
         with:
           name: espdesktop-windows-settings-preview
-          path: ${{ runner.temp }}/EspDesktop-settings.png
+          path: ${{ runner.temp }}/EspDesktop-settings*.png
           if-no-files-found: error

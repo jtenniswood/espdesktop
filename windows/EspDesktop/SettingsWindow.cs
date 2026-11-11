@@ -60,7 +60,7 @@ internal sealed class SettingsWindow : Window
         Title = "EspDesktop";
         Icon = BitmapFrame.Create(App.IconUri);
         Width = 860;
-        Height = 650;
+        Height = 690;
         MinWidth = 670;
         MinHeight = 450;
         WindowStartupLocation = WindowStartupLocation.CenterScreen;
@@ -139,7 +139,16 @@ internal sealed class SettingsWindow : Window
         var dpi = VisualTreeHelper.GetDpi(content);
         var bitmap = new RenderTargetBitmap((int)Math.Ceiling(content.ActualWidth * dpi.DpiScaleX),
             (int)Math.Ceiling(content.ActualHeight * dpi.DpiScaleY), dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
-        bitmap.Render(content);
+        // The window's DWM backdrop sits outside the WPF content visual.
+        // Use its theme's matching solid color in the exported preview.
+        var composite = new DrawingVisual();
+        var area = new Rect(0, 0, content.ActualWidth, content.ActualHeight);
+        using (var draw = composite.RenderOpen())
+        {
+            draw.DrawRectangle(TryFindResource("ApplicationBackgroundBrush") as Brush ?? SystemColors.WindowBrush, null, area);
+            draw.DrawRectangle(new VisualBrush(content), null, area);
+        }
+        bitmap.Render(composite);
         var png = new PngBitmapEncoder();
         png.Frames.Add(BitmapFrame.Create(bitmap));
         using var output = File.Create(path);
@@ -384,12 +393,13 @@ internal sealed class SettingsWindow : Window
             card.Children.Add(connectionText);
             foreach (var display in discovered)
                 Row(card, Button($"Use {display.Name} ({display.Address})", () => { address.Text = display.Address; address.Focus(); }));
-            Row(card, Button(scanning ? "Finding displays…" : "Find nearby displays", async () => await Scan(), !scanning && !busy));
-            Field(card, "Display address", address);
+            Field(card, "Display address", address,
+                Button(scanning ? "Finding displays…" : "Find nearby displays", async () => await Scan(), !scanning && !busy));
             Row(card, Button("Open pairing page", OpenPanel, !busy));
-            card.Children.Add(Paragraph("Open the pairing page to see the code, or press and hold the Wi-Fi icon on the display."));
-            Field(card, "Pairing code", code);
-            Row(card, Button("Pair display", async () => await Pair(), !busy));
+            card.Children.Add(Paragraph("Get the code from the pairing page or press and hold the display’s Wi-Fi icon."));
+            var pair = Button("Pair display", async () => await Pair(), !busy);
+            if (TryFindResource("AccentButtonStyle") is Style accent) pair.Style = accent;
+            Field(card, "Pairing code", code, pair);
         }
         var permissions = Card("Windows integration");
         var shortcuts = Toggle("Allow keyboard shortcuts and screen lock", store.Settings.Shortcuts, value =>
@@ -531,7 +541,10 @@ internal sealed class SettingsWindow : Window
         if (description != null) content.Children.Add(Paragraph(description));
         var border = new Border { CornerRadius = new CornerRadius(8), BorderThickness = new Thickness(1),
             Margin = new Thickness(0, 0, 0, 12), Child = content };
-        border.SetResourceReference(Border.BorderBrushProperty, SystemColors.ControlDarkBrushKey);
+        border.SetResourceReference(Border.BorderBrushProperty,
+            TryFindResource("CardStrokeColorDefaultBrush") is Brush ? "CardStrokeColorDefaultBrush" : SystemColors.ControlDarkBrushKey);
+        if (TryFindResource("CardBackgroundFillColorDefaultBrush") is Brush)
+            border.SetResourceReference(Border.BackgroundProperty, "CardBackgroundFillColorDefaultBrush");
         body.Children.Add(border);
         return content;
     }
@@ -539,13 +552,23 @@ internal sealed class SettingsWindow : Window
     private static TextBlock Paragraph(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap,
         Margin = new Thickness(0, 1, 0, 7) };
 
-    private static void Field(Panel parent, string label, Control input)
+    private static void Field(Panel parent, string label, Control input, Button? action = null)
     {
         if (input.Parent is Panel existing) existing.Children.Remove(input);
         parent.Children.Add(new Label { Content = label, Target = input, Padding = new Thickness(0, 6, 0, 3) });
         input.HorizontalAlignment = HorizontalAlignment.Left;
         input.MinWidth = Math.Max(200, input.MinWidth);
-        parent.Children.Add(input);
+        if (action == null) parent.Children.Add(input);
+        else
+        {
+            var row = new WrapPanel { Margin = new Thickness(0, 0, 0, 6) };
+            input.Margin = new Thickness(0, 0, 8, 0);
+            input.MinHeight = action.MinHeight;
+            action.Margin = new Thickness(0);
+            row.Children.Add(input);
+            row.Children.Add(action);
+            parent.Children.Add(row);
+        }
     }
 
     private static Button Button(string name, Action action, bool enabled = true)
