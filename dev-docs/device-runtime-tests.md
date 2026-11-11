@@ -85,10 +85,11 @@ page-open and Back first-frame timings.
 The session verifies the running firmware’s embedded ELF digest against the
 candidate OTA image, including rebuilds with the same version tag.
 The operator performs and confirms the steps. The runner makes read-only
-requests to the panel. Give the resulting `report.json` to **Publish Release**.
+requests to the panel and saves the measurements to `report.json` for
+diagnosis. Publication uses the confirmation of the installed Mac app.
 
-For a development baseline, omit the candidate run and manifest. This records
-the same measurements and cannot be used to publish a release.
+For a development baseline, omit the candidate run and manifest to record
+the same measurements.
 
 ## Test physical behavior separately
 
