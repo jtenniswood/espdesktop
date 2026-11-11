@@ -94,6 +94,7 @@ Text button_order{"1"}, screen_schedule_trigger{"time"}, screensaver_mode{"timer
 struct Number { float state; } schedule_on_hour{7}, schedule_off_hour{22}, schedule_wake_timeout{60}, screensaver_timeout{300};
 struct Toggle { bool state = false; } schedule_enabled{true};
 bool connectivity_setup_display_active = false,
+     first_layout_preview_active = false,
      schedule_mode_always_on = false, schedule_mode_clock = true,
      clock_bar_night_mode_active = false;
 bool screensaver_companion_ready = true, mac_connected = true;
@@ -117,6 +118,7 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   display_mode_apply_transition.stop(); display_mode_effect_active.stop();
   display_active_finalize.stop(); screensaver_idle_check.stop();
   screen_schedule_wake_timeout_check.stop(); schedule_wake_timeout.state = 60;
+  save_button_order.stop(); first_layout_preview_active = false; button_order.state = "1";
   screensaver_idle_check.calls = 0;
   clock_time = {6, true}; active_page = home.obj;
   schedule_enabled.state = true;
@@ -155,7 +157,12 @@ int main() {
   actions.obj = &objects[3]; off.obj = &objects[4];
   // SCRIPT_SETUP
   auto &controller = espdesktop_app.display();
+  refresh_button_grid.steps = {pause([] { return 3000; })};
   navigate_after_api.io = [] {
+    // Configured navigation reconciles when cancelling the setup dim timer,
+    // and waits for ACTIVE before switching pages.
+    display_mode_reconcile.execute();
+    if (!espdesktop_app.display().target_mode_is(DisplayMode::ACTIVE)) return;
     active_page = home.obj;
     espdesktop_app.display_lifecycle().set_blank_page_active(false);
     display_active_finalize.execute();
@@ -400,7 +407,33 @@ int main() {
   display_mode_reconcile.execute(); advance(301000);
   assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
   assert(screensaver_idle_check.calls == 0);
-  button_order.state = "1";
+  // A first save must show the grid even at night or before network time
+  // arrives. Neither case should need a touch or disable the saved schedule.
+  for (const bool time_valid : {false, true}) {
+    reset(DisplayMode::DISPLAY_OFF);
+    clock_time = {6, time_valid};
+    button_order.state.clear();
+    active_page = setup.obj;
+    display_mode_reconcile.execute(); advance(500);
+    assert(controller.current_source_is(DisplayRequestSource::ONBOARDING));
+    button_order.state = "1";
+    save_button_order.execute();
+    display_mode_reconcile.execute();  // Time or Companion callbacks may run during the save.
+    advance(1000);
+    assert(active_page == setup.obj);
+    assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
+    advance(3000);
+    assert(active_page == home.obj);
+    assert(controller.current_source_is(DisplayRequestSource::ONBOARDING));
+    assert(espdesktop_app.display_lifecycle().backlight_on_response(!time_valid) ==
+           BacklightOnResponse::KEEP_ON);
+    advance(10000);
+    assert(controller.target_mode_is(DisplayMode::ACTIVE));
+    advance(5000);
+    assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+    assert(controller.current_source_is(time_valid ? DisplayRequestSource::SCREEN_SCHEDULE
+                                                   : DisplayRequestSource::BOOT_GUARD));
+  }
   // A new panel without a saved document still starts with the time schedule.
   reset(); controller = {};
   const ScreenSchedulePreferences defaults;
