@@ -128,6 +128,8 @@ Check(discovered is [{ Address: "192.168.1.20:8443", Name: "Desk display" }], "d
 Check(Discovery.FriendlyName("\0 Desk\u202e display\n ") == "Desk display", "clean a display name before showing it");
 Console.WriteLine("Passed local address, action policy and discovery tests.");
 
+await VerifyWindowsReleaseSelection();
+
 using var certificate = TestCertificate();
 using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(exerciseDesktopActions ? 100 : 25));
 var builder = WebApplication.CreateSlimBuilder();
@@ -278,6 +280,59 @@ Check(desktop.Actions == 1 && authorizedRequests == 1, "authenticated dispatch a
 Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, audio dispatch, lock enforcement and icon transfer tests.");
 await VerifyAddressRecovery();
 await VerifyPairingSaveFailure();
+
+static async Task VerifyWindowsReleaseSelection()
+{
+    const string api = "https://api.github.com/repos/jtenniswood/espdesktop/releases";
+    const string downloads = "https://github.com/jtenniswood/espdesktop/releases/download";
+    var digest = new string('a', 64);
+    var pages = new Dictionary<string, string?>
+    {
+        [$"{api}?per_page=10&page=1"] = JsonSerializer.Serialize(new[]
+        {
+            Release("4.0.0", []),
+            Release("3.9.0", ["x64", "arm64"], prerelease: true),
+            Release("3.8.0", ["x64", "arm64"], draft: true),
+            Release("3.7.0", ["x64", "arm64"], validDigest: false),
+            Release("3.6.0", ["x64", "arm64"]),
+            Release("3.5.0", ["x64", "arm64"]),
+            Release("3.0.0", ["x64"]),
+            Release("1.0.3", []),
+            Release("1.0.2", []),
+            Release("1.0.1", [])
+        }),
+        [$"{api}?per_page=10&page=2"] = JsonSerializer.Serialize(new[]
+        {
+            Release("3.1.0", ["arm64"]),
+            Release("3.2.0", ["x64"])
+        }),
+        [$"{downloads}/v3.6.0/companion-compatibility.json"] = """{"protocolVersion":999}""",
+        [$"{downloads}/v3.5.0/companion-compatibility.json"] = null,
+        [$"{downloads}/v3.2.0/companion-compatibility.json"] = """{"protocolVersion":4}""",
+        [$"{downloads}/v3.1.0/companion-compatibility.json"] = """{"protocolVersion":4}"""
+    };
+    using var client = new HttpClient(new ReleaseResponses(pages));
+    foreach (var (arch, version) in new[] { ("x64", "3.2.0"), ("arm64", "3.1.0") })
+    {
+        var update = await Updates.Check(client, new(1, 0, 0, 0), arch, CancellationToken.None);
+        Check(update?.Version.ToString() == version && update.Sha256 == digest &&
+              update.Installer.AbsoluteUri == $"{downloads}/v{version}/EspDesktop-Windows-{version}-{arch}-Setup.exe",
+            $"find the newest compatible {arch} release across pages");
+        Check(await Updates.Check(client, new(4, 0, 0, 0), arch, CancellationToken.None) is null,
+            $"never offer a downgrade for {arch}");
+    }
+    Console.WriteLine("Passed Windows release selection across firmware-only releases, architectures, and companion protocols.");
+
+    object Release(string version, string[] architectures, bool prerelease = false, bool draft = false, bool validDigest = true)
+    {
+        string[] assets = architectures.Length == 0 ? ["firmware.zip"] : architectures
+            .Select(arch => $"EspDesktop-Windows-{version}-{arch}-Setup.exe").Prepend("companion-compatibility.json").ToArray();
+        return new { tag_name = $"v{version}", prerelease, draft, assets = assets.Select(name => new
+        {
+            name, browser_download_url = $"{downloads}/v{version}/{name}", digest = validDigest ? "sha256:" + digest : ""
+        }).ToArray() };
+    }
+}
 
 async Task VerifyAddressRecovery()
 {
@@ -882,6 +937,17 @@ sealed class BrowserTestPage(string name)
     }
 }
 #endif
+
+sealed class ReleaseResponses(IReadOnlyDictionary<string, string?> pages) : HttpMessageHandler
+{
+    protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        var content = pages[request.RequestUri!.AbsoluteUri];
+        return Task.FromResult(content is null ? new HttpResponseMessage(HttpStatusCode.NotFound) :
+            new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent(content, Encoding.UTF8, "application/json") });
+    }
+}
 
 sealed class FakeDesktop : IDesktop
 {

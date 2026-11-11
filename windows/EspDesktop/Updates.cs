@@ -15,6 +15,8 @@ internal static class Updates
 {
     public static readonly Version Current = typeof(Updates).Assembly.GetName().Version ?? new(0, 0, 0);
     public static readonly Uri Releases = new("https://github.com/jtenniswood/espdesktop/releases");
+    private const string ReleaseApi = "https://api.github.com/repos/jtenniswood/espdesktop/releases";
+    private const int ReleasePageSize = 10;
     private const int Limit = 250 * 1024 * 1024;
     private static readonly string Cache = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "EspDesktop", "Updates");
     private static readonly HttpClient Client = new(new SocketsHttpHandler { AllowAutoRedirect = true })
@@ -25,30 +27,65 @@ internal static class Updates
 
     static Updates() => Client.DefaultRequestHeaders.UserAgent.ParseAdd("EspDesktop-Windows");
 
-    public static async Task<WindowsRelease?> Check(CancellationToken token)
+    public static Task<WindowsRelease?> Check(CancellationToken token) =>
+        Check(Client, Current, RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64", token);
+
+    internal static async Task<WindowsRelease?> Check(HttpClient client, Version installed, string architecture, CancellationToken token)
     {
-        using var response = await Client.GetAsync("https://api.github.com/repos/jtenniswood/espdesktop/releases/latest", token);
-        if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
-        response.EnsureSuccessStatusCode();
-        using var document = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync(token));
-        var root = document.RootElement;
-        var tag = Protocol.Text(root, "tag_name");
-        if (!Version.TryParse(tag.TrimStart('v'), out var version) || version.CompareTo(new Version(Current.Major, Current.Minor, Current.Build)) <= 0)
+        var current = new Version(installed.Major, installed.Minor, installed.Build);
+        var candidates = new List<WindowsRelease>();
+        for (var page = 1; ; page++)
+        {
+            using var response = await client.GetAsync(FormattableString.Invariant(
+                $"{ReleaseApi}?per_page={ReleasePageSize}&page={page}"), token);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound) return null;
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync(token));
+            var releases = document.RootElement;
+            if (releases.ValueKind != JsonValueKind.Array) throw new JsonException("Expected a release list.");
+            foreach (var release in releases.EnumerateArray())
+                if (ReadRelease(release, current, architecture) is { } candidate) candidates.Add(candidate);
+            if (releases.GetArrayLength() < ReleasePageSize) break;
+        }
+
+        // GitHub release order can differ from version order. A firmware-only
+        // release or a newer companion protocol must not hide an older update.
+        foreach (var candidate in candidates.OrderByDescending(release => release.Version))
+        {
+            var compatibility = new Uri(candidate.Installer, "companion-compatibility.json");
+            using var response = await client.GetAsync(compatibility, token);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound) continue;
+            response.EnsureSuccessStatusCode();
+            using var contract = JsonDocument.Parse(await response.Content.ReadAsByteArrayAsync(token));
+            if (contract.RootElement.ValueKind == JsonValueKind.Object &&
+                contract.RootElement.TryGetProperty("protocolVersion", out var protocol) &&
+                protocol.ValueKind == JsonValueKind.Number && protocol.TryGetInt32(out var wire) && wire == Protocol.Version)
+                return candidate;
+        }
+        return null;
+    }
+
+    private static WindowsRelease? ReadRelease(JsonElement release, Version current, string architecture)
+    {
+        if (release.ValueKind != JsonValueKind.Object ||
+            !release.TryGetProperty("draft", out var draft) || draft.ValueKind != JsonValueKind.False ||
+            !release.TryGetProperty("prerelease", out var prerelease) || prerelease.ValueKind != JsonValueKind.False ||
+            !release.TryGetProperty("assets", out var assets) || assets.ValueKind != JsonValueKind.Array)
             return null;
-        var arch = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
-        var file = $"EspDesktop-Windows-{version}-{arch}-Setup.exe";
+        var tag = Protocol.Text(release, "tag_name");
+        if (!Version.TryParse(tag.TrimStart('v'), out var version) || version.Build < 0 || version.Revision >= 0 ||
+            (tag != $"v{version}" && tag != version.ToString()) || version <= current)
+            return null;
+        var file = $"EspDesktop-Windows-{version}-{architecture}-Setup.exe";
         var downloads = new Uri($"https://github.com/jtenniswood/espdesktop/releases/download/{tag}/");
         var expected = new Uri(downloads, file);
         var compatibility = new Uri(downloads, "companion-compatibility.json");
-        var assets = root.GetProperty("assets");
-        if (!assets.EnumerateArray().Any(a => Protocol.Text(a, "browser_download_url") == compatibility.AbsoluteUri) ||
-            !assets.EnumerateArray().Any(a => Protocol.Text(a, "browser_download_url") == expected.AbsoluteUri)) return null;
-        using var contract = JsonDocument.Parse(await Client.GetByteArrayAsync(compatibility, token));
-        if (!contract.RootElement.TryGetProperty("protocolVersion", out var protocol) ||
-            protocol.ValueKind != JsonValueKind.Number || !protocol.TryGetInt32(out var wire) || wire != Protocol.Version) return null;
+        if (!assets.EnumerateArray().Any(a => a.ValueKind == JsonValueKind.Object &&
+            Protocol.Text(a, "browser_download_url") == compatibility.AbsoluteUri)) return null;
         foreach (var asset in assets.EnumerateArray())
         {
-            if (Protocol.Text(asset, "name") != file || Protocol.Text(asset, "browser_download_url") != expected.AbsoluteUri) continue;
+            if (asset.ValueKind != JsonValueKind.Object || Protocol.Text(asset, "name") != file ||
+                Protocol.Text(asset, "browser_download_url") != expected.AbsoluteUri) continue;
             var digest = Protocol.Text(asset, "digest");
             if (digest.Length != 71 || !digest.StartsWith("sha256:", StringComparison.Ordinal) || !digest[7..].All(Uri.IsHexDigit))
                 return null;
