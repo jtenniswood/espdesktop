@@ -1,7 +1,7 @@
 ---
 title: EspDesktop — ESP32 Touchscreen Controller for Mac
 titleTemplate: :title
-description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening Finder folders and running keyboard shortcuts.
+description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening websites and Finder folders, and running keyboard shortcuts.
 layout: home
 ---
 
@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps, run keyboard shortcuts and check Mac stats from a 4‑inch touchscreen beside your keyboard.
+Open apps and websites or run keyboard shortcuts from a 4‑inch touchscreen beside your keyboard.
 
 The [Guition 4848S040](/screens/4848s040) touchscreen is available for **under £20 (about US$27)**. It pairs with the [EspDesktop menu-bar app](/getting-started/mac-app) on your local network.
 
@@ -25,7 +25,7 @@ The [Guition 4848S040](/screens/4848s040) touchscreen is available for **under �
 
 <figure class="homepage-panel">
 
-![Illustrated 4-inch touchscreen with Safari, Projects, Slack, shortcut and Mac status tiles](/images/espdesktop-mac-controls.svg)
+![Illustrated 4-inch touchscreen with tiles for apps, websites, folders and shortcuts](/images/espdesktop-mac-controls.svg)
 
 <figcaption>Example touchscreen layout</figcaption>
 
@@ -41,11 +41,21 @@ The [Guition 4848S040](/screens/4848s040) touchscreen is available for **under �
 
 <article>
 
-### Open apps and websites
+### Launch Mac apps
 
-Bring Slack to the front or open your calendar in your default browser.
+Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a tile of its own.
 
-[Apps](/mac-controls/apps) · [Websites](/mac-controls/websites)
+[Apps](/mac-controls/apps)
+
+</article>
+
+<article>
+
+### Open websites
+
+Give your calendar or project dashboard a tile that opens it in your default browser.
+
+[Websites](/mac-controls/websites)
 
 </article>
 
@@ -76,16 +86,6 @@ Turn key combinations into labelled buttons. Shortcut pages can follow the app y
 Tap the Lock Machine tile when you step away from your desk.
 
 [Set up Mac Lock](/mac-controls/security)
-
-</article>
-
-<article>
-
-### Check your Mac at a glance
-
-See processor load, memory, storage, network activity or battery on the display.
-
-[Mac statistics](/features/subpages#mac-statistics)
 
 </article>
 

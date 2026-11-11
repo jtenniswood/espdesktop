@@ -13,7 +13,7 @@ function shareImage(file: string, width: number, height: number, alt: string) {
 }
 
 const defaultImage = shareImage('espdesktop-share.png', 1200, 630,
-  'EspDesktop touchscreen controller for Mac with example app, shortcut and status tiles')
+  'EspDesktop touchscreen controller for Mac with example app, website, folder and shortcut tiles')
 const displayImage = shareImage('4848s040-hero.jpg', 1024, 999,
   'The 4-inch Guition 4848S040 touchscreen next to a keyboard')
 const pageImages: Record<string, typeof defaultImage> = {
