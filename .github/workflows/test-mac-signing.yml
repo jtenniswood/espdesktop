@@ -89,6 +89,7 @@ jobs:
             -S apple-tool:,apple:,codesign: \
             -s -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 
+          ESPDESKTOP_RELEASE_BUILD=1 \
           MARKETING_VERSION="${BUNDLE_VERSION}" \
           CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
           CODE_SIGN_IDENTITY="${DEVELOPER_ID_APPLICATION}" \

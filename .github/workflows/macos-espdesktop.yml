@@ -38,6 +38,7 @@ jobs:
         run: |
           APP="macos/EspDesktop/.build/standalone/EspDesktop.app"
           test -f "${APP}/Contents/Info.plist"
+          test "$(plutil -extract CFBundleIdentifier raw -o - "${APP}/Contents/Info.plist")" = "io.espdesktop.app"
           test -f "${APP}/Contents/Resources/AppIcon.icns"
           cmp common/assets/images/buy-me-a-coffee-button.png "${APP}/Contents/Resources/EspDesktop_Companion.bundle/buy-me-a-coffee-button.png"
           test -f "${APP}/Contents/Resources/PrivacyInfo.xcprivacy"
@@ -48,6 +49,32 @@ jobs:
 
       - name: Build EspDesktop disk image
         run: ALLOW_ADHOC=1 SKIP_FINDER_LAYOUT=1 macos/EspDesktop/Packaging/build_dmg.sh
+
+      - name: Verify packaged app starts away from its build resources
+        shell: bash
+        run: |
+          PROJECT="macos/EspDesktop"
+          APP="${PROJECT}/.build/standalone/EspDesktop.app"
+          BUILD_RESOURCES="$(swift build --package-path "${PROJECT}" --configuration release --show-bin-path)/EspDesktop_Companion.bundle"
+          STAGED_RESOURCES="${RUNNER_TEMP}/EspDesktop_Companion.bundle"
+          APP_LOG="${RUNNER_TEMP}/espdesktop-startup.log"
+          mv "${BUILD_RESOURCES}" "${STAGED_RESOURCES}"
+          APP_PID=""
+          cleanup() {
+            if [[ -n "${APP_PID}" ]]; then
+              kill "${APP_PID}" 2>/dev/null || true
+              wait "${APP_PID}" 2>/dev/null || true
+            fi
+            mv "${STAGED_RESOURCES}" "${BUILD_RESOURCES}"
+          }
+          trap cleanup EXIT
+          "${APP}/Contents/MacOS/EspDesktop" -SUEnableAutomaticChecks NO > "${APP_LOG}" 2>&1 &
+          APP_PID=$!
+          sleep 5
+          if ! kill -0 "${APP_PID}" 2>/dev/null; then
+            cat "${APP_LOG}"
+            exit 1
+          fi
 
       - uses: actions/upload-artifact@v7
         with:
