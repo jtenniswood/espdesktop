@@ -231,11 +231,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         var ids = new List<string>();
         if (app?.Id == ExplorerId && IsExplorerWindow(window))
         {
-            var path = WithExplorerWindow<string?>(window, w =>
-            {
-                var url = (string)w.LocationURL;
-                return Uri.TryCreate(url, UriKind.Absolute, out var file) && file.IsFile ? file.LocalPath : null;
-            }, null);
+            var path = WithExplorerWindow<string?>(window, ExplorerFolderPath, null);
             if (path != null)
             {
                 var folder = settings.Folders.Find(f => string.Equals(Path.TrimEndingDirectorySeparator(f.Path),
@@ -465,6 +461,26 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         catch (Exception e) when (IsShellFailure(e)) { }
         finally { Com.Release(windows); Com.Release(shell); }
         return fallback;
+    }
+
+    internal static string? ExplorerFolderPath(object window)
+    {
+        object? view = null, folder = null, item = null;
+        try
+        {
+            view = ((dynamic)window).Document;
+            folder = ((dynamic)view!).Folder;
+            item = ((dynamic)folder!).Self;
+            // Explorer's file URL can use legacy character encoding. The
+            // Shell folder item provides the Unicode filesystem path directly.
+            var path = ((dynamic)item!).Path as string;
+            if (!string.IsNullOrEmpty(path) && Path.IsPathFullyQualified(path)) return path;
+        }
+        catch (Exception e) when (IsShellFailure(e)) { }
+        finally { Com.Release(item); Com.Release(folder); Com.Release(view); }
+
+        var url = ((dynamic)window).LocationURL as string;
+        return Uri.TryCreate(url, UriKind.Absolute, out var file) && file.IsFile ? file.LocalPath : null;
     }
 
     private static bool OpenWebsite(Uri url, bool newWindow)

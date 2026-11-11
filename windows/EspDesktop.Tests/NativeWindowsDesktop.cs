@@ -79,7 +79,15 @@ internal sealed class WindowsFolderActions : IDisposable
             if (window != 0) return window;
             Thread.Sleep(100);
         } while (Stopwatch.GetElapsedTime(started) < TimeSpan.FromSeconds(8));
-        throw new InvalidOperationException($"File Explorer never opened {Path.GetFileName(path)}.");
+        var opened = new List<string>();
+        VisitWindows((_, _, folder) =>
+        {
+            if (string.Equals(Path.GetDirectoryName(folder), root, StringComparison.OrdinalIgnoreCase))
+                opened.Add(Path.GetFileName(folder));
+            return false;
+        });
+        throw new InvalidOperationException(
+            $"File Explorer never opened {Path.GetFileName(path)}. Open fixture folders: {string.Join(", ", opened)}.");
     });
 
     public Task<bool> IsOpen(string path) => Sta.Run(() => FindWindow(path) != 0);
@@ -129,10 +137,9 @@ internal sealed class WindowsFolderActions : IDisposable
                 {
                     item = ((dynamic)windows!).Item(i);
                     if (item is null) continue;
-                    dynamic browser = item;
-                    if (Uri.TryCreate((string)browser.LocationURL, UriKind.Absolute, out var location) &&
-                        location.IsFile && visitor(item, Convert.ToInt64(browser.HWND),
-                            Path.TrimEndingDirectorySeparator(location.LocalPath))) return;
+                    var path = WindowsDesktop.ExplorerFolderPath(item);
+                    if (path is not null && visitor(item, Convert.ToInt64(((dynamic)item).HWND),
+                        Path.TrimEndingDirectorySeparator(path))) return;
                 }
                 catch (Exception e) when (WindowsDesktop.IsShellFailure(e)) { }
                 finally { ComObject.Release(item); }
