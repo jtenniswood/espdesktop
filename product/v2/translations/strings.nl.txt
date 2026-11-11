@@ -230,6 +230,7 @@ update_firmware=Firmware bijwerken
 no_saved_wifi_connection_reinstall_by_usb_to_reconfigure=Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren
 open_192_168_4_1=Open 192.168.4.1
 open_your_browser_and_configure_your_display=Open uw browser en\nconfigureer uw display
+download_companion_app_to_pair=Download de EspDesktop-app op je computer en volg de stappen om het scherm te koppelen.
 preparing_the_screen_do_not_power_off=Scherm voorbereiden\nSchakel de stroom niet uit
 restarting_display=Display opnieuw starten
 see_the_install_guide_for_help=Bekijk de installatiehandleiding voor hulp

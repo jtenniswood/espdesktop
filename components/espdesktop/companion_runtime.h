@@ -162,6 +162,7 @@ class CompanionRuntimeService {
   std::function<void()> begin_pairing;
   std::function<void()> revoke_pairing;
   std::function<bool()> clear_app_icon_cache;
+  void (*pairing_changed_handler)() = nullptr;
   CompanionConnectionChangedHandler connection_changed_handler;
   std::function<void()> focus_registrations_changed_handler;
   std::atomic<bool> subpage_return_requested{false};

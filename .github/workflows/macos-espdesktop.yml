@@ -47,8 +47,14 @@ jobs:
           ! codesign --display --entitlements - "${APP}" 2>&1 | grep -q 'com.apple.security.app-sandbox'
           codesign --display --entitlements - "${APP}" 2>&1 | grep -q 'com.apple.security.automation.apple-events'
 
+      - name: Install disk image packaging tools
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/dmg-tools"
+          "${RUNNER_TEMP}/dmg-tools/bin/python" -m pip install --require-hashes -r macos/EspDesktop/Packaging/dmg-requirements.txt
+          echo "${RUNNER_TEMP}/dmg-tools/bin" >> "${GITHUB_PATH}"
+
       - name: Build EspDesktop disk image
-        run: ALLOW_ADHOC=1 SKIP_FINDER_LAYOUT=1 macos/EspDesktop/Packaging/build_dmg.sh
+        run: ALLOW_ADHOC=1 macos/EspDesktop/Packaging/build_dmg.sh
 
       - name: Verify packaged app starts away from its build resources
         shell: bash

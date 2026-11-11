@@ -151,6 +151,15 @@ void assert_backlight_on_policy() {
   controller.clear(DisplayRequestSource::SCREEN_SCHEDULE);
   controller.resolve();
   assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::WAKE);
+
+  // With Night Schedule enabled, WiFi setup must still light the screen
+  // before network time is available.
+  const bool waiting_for_time = screen_schedule_waiting_for_time(
+      "time", /*enabled=*/true, /*time_valid=*/false);
+  controller.request(DisplayRequestSource::ONBOARDING, DisplayMode::ACTIVE);
+  assert(lifecycle.backlight_on_response(waiting_for_time) == BacklightOnResponse::KEEP_ON);
+  controller.clear(DisplayRequestSource::ONBOARDING);
+  assert(lifecycle.backlight_on_response(waiting_for_time) == BacklightOnResponse::KEEP_OFF);
 }
 
 int main() {
