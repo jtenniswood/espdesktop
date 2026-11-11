@@ -174,6 +174,24 @@ async function checkBrowser() {
     await page.reload();
     await editorGrid.getByText('My Safari', { exact: true }).waitFor();
 
+    const appTile = editorGrid.locator('[data-slot="2"]');
+    const applicationPicker = page.getByRole('combobox', { name: 'Application', exact: true });
+    const editApplication = async () => {
+      await appTile.locator('.sp-btn-icon').click();
+      await page.getByRole('button', { name: 'Edit', exact: true }).click();
+      await applicationPicker.locator('option[value="com.apple.iCal"]').waitFor({ state: 'attached' });
+      assert.deepEqual(await applicationPicker.locator('option').allTextContents(),
+        ['Choose a Mac app…', 'Calendar', 'Notes', 'Safari', 'Slack']);
+    };
+    await editApplication();
+    await applicationPicker.selectOption('com.apple.Notes');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
+    await page.reload();
+    await appTile.getByText('Notes', { exact: true }).waitFor();
+    await editApplication();
+    assert.equal(await applicationPicker.inputValue(), 'com.apple.Notes');
+
     await page.goto(`${home}editor/index.html`);
     await page.getByRole('button', { name: 'Safari', exact: true }).waitFor();
     assert.equal(await page.getByRole('tab').count(), 0, 'The touchscreen demo stays read-only');

@@ -1,3 +1,4 @@
+import { companionCardHasAppIcon } from '../../src/webserver/model/companion_card_codec'
 import { appShortcutPageOwner } from '../../src/webserver/model/companion_shortcut_page'
 import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webserver/model/panel_config_conversion'
 
@@ -85,13 +86,28 @@ if (editable) {
   }
 }
 
-const seed = saved ?? snapshot ?? sample
+const startingSeed = snapshot ?? sample
+const startingConfig = decodePanelPageSnapshot(startingSeed.layout)
+const seed = saved ?? startingSeed
 let bytes = new Uint8Array(seed.layout)
-const initialConfig = decodePanelPageSnapshot(bytes)
+const initialConfig = saved ? decodePanelPageSnapshot(bytes) : startingConfig
 let config = initialConfig.document
 let generation = 1
 const entities = new Map(seed.entities.map(item => [item.id, item]))
 const appIcons = snapshot?.appIcons
+
+function demoAppIcon(appId: string | null, background = '') {
+  return appIcons?.[JSON.stringify([appId, background])] ?? appIcons?.[JSON.stringify([appId, ''])]
+}
+
+// Keep the picker tied to the starting layout even after its cards are edited or deleted.
+const demoApps = new Map<string, { id: string; label: string }>()
+if (editable) {
+  for (const { config: card } of startingConfig.layout.rootCards) {
+    if (!companionCardHasAppIcon(card) || (appIcons && !demoAppIcon(card.entity))) continue
+    demoApps.set(card.entity, { id: card.entity, label: card.label || card.entity })
+  }
+}
 
 function saveSession() {
   try {
@@ -139,10 +155,12 @@ window.fetch = async (input, init) => {
         } })
       case '/espdesktop/version.json':
         return Response.json({ device_slug: deviceProfile, version: 'demo' })
+      case '/companion/actions':
+        return editable ? Response.json([...demoApps.values()]) : empty(404)
       case '/companion/app-icon': {
         const appId = url.searchParams.get('appId')
         const background = url.searchParams.get('background') ?? ''
-        const icon = appIcons?.[JSON.stringify([appId, background])] ?? appIcons?.[JSON.stringify([appId, ''])]
+        const icon = demoAppIcon(appId, background)
         if (!icon) return empty(404)
         const pixels = Uint8Array.from(atob(icon.pixels), char => char.charCodeAt(0))
         const headers = new Headers({ 'X-EspDesktop-Companion-Online': 'true' })
