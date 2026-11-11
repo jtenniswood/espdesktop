@@ -141,7 +141,7 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 
 <div class="homepage-editor-actions">
 
-<a href="./editor/index.html" target="_self">Open full-size demo</a> <a href="./editor-demo/index.html" target="_self">Open editor demo</a> [Get Started](/screens/4848s040#where-to-buy)
+[Getting Started](/screens/4848s040#where-to-buy) <a href="./editor-demo/index.html" target="_self">Preview Editor</a>
 
 </div>
 
@@ -206,12 +206,14 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
   text-decoration: none;
 }
 
-.homepage-action a {
+.homepage-action a,
+.homepage-editor-actions a:first-child {
   background: var(--vp-button-brand-bg);
   color: var(--vp-button-brand-text);
 }
 
-.homepage-action a:hover {
+.homepage-action a:hover,
+.homepage-editor-actions a:first-child:hover {
   background: var(--vp-button-brand-hover-bg);
   color: var(--vp-button-brand-hover-text);
 }
@@ -301,13 +303,13 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 }
 
 .homepage-grid article > p:last-child > a,
-.homepage-editor-actions a {
+.homepage-editor-actions a + a {
   background: var(--vp-button-alt-bg);
   color: var(--vp-button-alt-text);
 }
 
 .homepage-grid article > p:last-child > a:hover,
-.homepage-editor-actions a:hover {
+.homepage-editor-actions a + a:hover {
   background: var(--vp-button-alt-hover-bg);
   color: var(--vp-button-alt-hover-text);
 }
