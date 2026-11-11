@@ -9,7 +9,7 @@ layout: home
 
 <div>
 
-# A touchscreen controller for your Mac
+# A touchscreen controller *for your Mac*
 
 Open apps, run keyboard shortcuts and check Mac stats from a 4‑inch touchscreen beside your keyboard.
 
@@ -33,51 +33,75 @@ EspDesktop pairs the [Guition 4848S040](/screens/4848s040) with a [macOS menu-ba
 
 </section>
 
-## What You Can Control
+<section class="homepage-features">
 
-<div class="homepage-controls">
+## What you can control
+
+<div class="homepage-grid">
 
 <article>
 
-### Apps and websites
+### Open apps and websites
 
-[Launch a Mac app](/mac-controls/apps) or [open a website](/mac-controls/websites) in your default browser.
+Bring Slack to the front or open your calendar in your default browser.
+
+[Apps](/mac-controls/apps) · [Websites](/mac-controls/websites)
 
 </article>
 
 <article>
 
-### Finder folders
+### Jump to a Finder folder
 
-[Open a folder you’ve approved](/mac-controls/folders), such as Downloads or the project you’re working on.
+Give Downloads, client files or your current project a tile of its own.
 
-</article>
-
-<article>
-
-### Keyboard shortcuts
-
-[Add a keyboard shortcut](/mac-controls/shortcuts) or start with a preset. Shortcut pages can follow the app you’re using, such as Safari or Figma.
+[Finder folders](/mac-controls/folders)
 
 </article>
 
 <article>
 
-### Mac Lock
+### Keep shortcuts in view
 
-Lock your Mac with a tap when you step away. [Set up Mac Lock](/mac-controls/security).
+Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Safari or Figma.
+
+[Keyboard shortcuts](/mac-controls/shortcuts)
 
 </article>
 
 <article>
 
-### Mac statistics
+### Lock your Mac
 
-See processor load, memory, storage, network activity or battery on a [subpage tile](/features/subpages#mac-statistics).
+Tap the Lock Machine tile when you step away from your desk.
+
+[Set up Mac Lock](/mac-controls/security)
+
+</article>
+
+<article>
+
+### Check your Mac at a glance
+
+See processor load, memory, storage, network activity or battery on the display.
+
+[Mac statistics](/features/subpages#mac-statistics)
+
+</article>
+
+<article>
+
+### Make the layout your own
+
+Resize tiles, choose their icons and colours, and group related controls into subpages.
+
+[Customise the display](/features/setup)
 
 </article>
 
 </div>
+
+</section>
 
 <section class="homepage-editor">
 
@@ -85,7 +109,7 @@ See processor load, memory, storage, network activity or battery on a [subpage t
 
 ## Arrange tiles in your browser {#a-look-at-the-web-editor}
 
-Drag and resize tiles, change their labels and colours, and group related controls into subpages. The preview shows how they’ll look on your display.
+The preview shows how your layout will look on the display. In this example, browser shortcuts share a subpage, with a Back tile to return to the previous page.
 
 [Explore the web editor](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage)
 
@@ -102,6 +126,31 @@ Drag and resize tiles, change their labels and colours, and group related contro
 </section>
 
 <style scoped>
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('./.vitepress/theme/fonts/instrument-serif-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('./.vitepress/theme/fonts/instrument-serif-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+.homepage-hero h1,
+.homepage-features h2,
+.homepage-grid h3,
+.homepage-editor h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: normal;
+}
+
 .homepage-hero,
 .homepage-editor {
   display: grid;
@@ -110,18 +159,31 @@ Drag and resize tiles, change their labels and colours, and group related contro
 }
 
 .homepage-hero {
-  padding-top: clamp(40px, 7vw, 88px);
+  padding: clamp(36px, 6vw, 84px) 0 clamp(44px, 7vw, 88px);
 }
 
 .homepage-hero h1 {
-  max-width: 18ch;
-  font-size: clamp(32px, 4vw, 56px);
-  line-height: 1.08;
-  text-wrap: balance;
+  max-width: 12ch;
+  font-size: clamp(54px, 7.4vw, 112px);
+  line-height: 0.92;
+}
+
+.homepage-hero h1 em {
+  display: block;
+  color: var(--vp-c-brand-1);
 }
 
 .homepage-hero p {
   max-width: 52ch;
+  color: var(--vp-c-text-2);
+}
+
+.homepage-hero h1 + p {
+  max-width: 37ch;
+  margin-top: 24px;
+  color: var(--vp-c-text-1);
+  font-size: clamp(17px, 1.7vw, 20px);
+  line-height: 1.5;
 }
 
 .homepage-action a {
@@ -145,7 +207,7 @@ Drag and resize tiles, change their labels and colours, and group related contro
 }
 
 .homepage-panel {
-  width: min(100%, 360px);
+  width: min(100%, 440px);
   justify-self: center;
 }
 
@@ -169,29 +231,57 @@ figcaption {
   text-align: center;
 }
 
-.homepage-controls article {
-  display: grid;
-  gap: 6px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--vp-c-divider);
+.homepage-features h2,
+.homepage-editor h2 {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1;
 }
 
-.homepage-controls h3,
-.homepage-controls p {
+.homepage-features h2 {
+  margin: 0 0 24px;
+  padding-top: 24px;
+}
+
+.homepage-grid {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-divider);
+}
+
+.homepage-grid article {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: clamp(20px, 3vw, 36px);
+  background: var(--vp-c-bg-soft);
+}
+
+.homepage-grid h3,
+.homepage-grid p {
   margin: 0;
 }
 
-.homepage-controls h3 {
-  font-size: 17px;
+.homepage-grid h3 {
+  font-size: clamp(30px, 3.1vw, 42px);
+  line-height: 1.03;
+  text-wrap: balance;
 }
 
-.homepage-controls p {
-  max-width: 68ch;
+.homepage-grid p {
+  max-width: 38ch;
   color: var(--vp-c-text-2);
 }
 
+.homepage-grid p:last-child {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 14px;
+}
+
 .homepage-editor {
-  margin-top: 48px;
+  margin-top: clamp(48px, 8vw, 96px);
 }
 
 .homepage-editor h2 {
@@ -201,7 +291,7 @@ figcaption {
 }
 
 .homepage-editor figure {
-  width: min(100%, 340px);
+  width: min(100%, 420px);
   justify-self: center;
 }
 
@@ -211,16 +301,23 @@ figcaption {
   border-radius: 6px;
 }
 
+@media (min-width: 620px) {
+  .homepage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (min-width: 768px) {
   .homepage-hero,
   .homepage-editor {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     gap: clamp(32px, 6vw, 80px);
   }
+}
 
-  .homepage-controls article {
-    grid-template-columns: minmax(0, 190px) minmax(0, 1fr);
-    gap: 32px;
+@media (min-width: 960px) {
+  .homepage-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>
