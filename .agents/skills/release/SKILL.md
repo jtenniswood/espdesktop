@@ -164,8 +164,10 @@ explicitly requested.
 Use the candidate firmware and notarized Mac app together on the 4848S040.
 Follow the physical check in [Checks and Releases](../../../dev-docs/checks-and-releases.md#release-boundary).
 If hardware testing requires the maintainer, report the candidate artifacts
-and wait for the passing hardware report. Run the scenario from the tagged
-checkout with the downloaded `release-candidate-compatibility` manifest.
+and wait for the passing hardware report. Run the three-step scenario from the tagged
+checkout with the downloaded `release-candidate-compatibility` manifest. Run one
+Mac shortcut, save one tile rename, then reboot and confirm the edit and Mac
+connection survive.
 
 ```bash
 python3 scripts/test_release_hardware.py record --host "$PANEL_IP" \

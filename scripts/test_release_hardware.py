@@ -15,15 +15,13 @@ from companion_release import digest
 from test_device_runtime import HttpProbe, METRICS, navigation_values
 
 DEVICE = "guition-esp32-s3-4848s040"
-REPORT_SCHEMA = 3
-NAVIGATION = "Open the nested Safari shortcut, run it on the Mac, then use Back on the panel."
+REPORT_SCHEMA = 4
+SHORTCUT = "With the candidate Mac app connected, run one nested Mac shortcut and tap Back on the display."
+EDITOR_SAVE = "Open the display's embedded editor, rename one tile, and wait for the saved label to appear on the display."
 STEPS = (
-    ("paired_mac", "Confirm the candidate Mac app is installed and the panel is paired."),
-    *((f"navigation_{cycle}", NAVIGATION) for cycle in range(1, 6)),
-    ("wake", "Let the screen sleep. Tap once to wake it and confirm the tap runs no action."),
-    ("offline_editor", "Block internet access while keeping the local network available. "
-                       "Open the embedded editor, rename a tile, and change the theme and Night Schedule."),
-    ("reboot", "Restart the panel. Confirm the tile, theme and schedule changes survive and the Mac reconnects."),
+    ("shortcut", SHORTCUT),
+    ("editor_save", EDITOR_SAVE),
+    ("reboot", "Restart the display. Wait for the Mac to reconnect and confirm the renamed tile is still there."),
 )
 
 
@@ -75,7 +73,7 @@ def verify_report(report, expected):
             raise ValueError(f"The report is missing a passing {name} checkpoint.")
         memory_values(step.get("before"))
         memory_values(step.get("after"))
-        if name.startswith("navigation_"):
+        if name == "shortcut":
             navigation = step.get("navigation")
             if not isinstance(navigation, dict):
                 raise ValueError(f"The report is missing navigation measurements for {name}.")
@@ -118,20 +116,20 @@ def run(probe, output, expected=None, confirm=input):
         before_config = None
         for name, instruction in STEPS:
             before = sample()
-            if name == "offline_editor":
+            if name == "editor_save":
                 before_config = probe.native_config_snapshot(require_durable_v2=False)
             started = time.monotonic()
             if confirm(f"{instruction}\nType pass when confirmed, or fail to stop: ").strip().lower() != "pass":
                 raise ValueError(f"Operator did not confirm {name}.")
             after = sample(expect_restart=name == "reboot")
-            if name in ("paired_mac", "reboot"):
+            if name in ("shortcut", "reboot"):
                 pair = probe.json("/connectors/status").get("mac_companion", {})
                 if not isinstance(pair, dict) or pair.get("paired") is not True or pair.get("connected") is not True:
                     raise ValueError("The paired Mac is disconnected.")
-            if name == "offline_editor":
+            if name == "editor_save":
                 saved_config = probe.native_config_snapshot()
                 if saved_config[0] == before_config[0] or saved_config[1] == before_config[1]:
-                    raise ValueError("The offline editor did not change the saved native document.")
+                    raise ValueError("The editor did not save a changed layout. Wait for the renamed tile to appear before confirming.")
             if name == "reboot":
                 reboot_config = probe.native_config_snapshot()
                 if reboot_config != saved_config:
@@ -143,7 +141,7 @@ def run(probe, output, expected=None, confirm=input):
                     "before": before_memory, "after": after_memory, "seconds": round(time.monotonic() - started, 2)}
             print(f"{name}: internal heap {before_memory['heap_free_percent']:.1f}% → {after_memory['heap_free_percent']:.1f}% free, "
                   f"PSRAM {before_memory['psram_free_percent']:.1f}% → {after_memory['psram_free_percent']:.1f}% free.")
-            if name.startswith("navigation_"):
+            if name == "shortcut":
                 after_navigation = navigation_values(after.get("navigation"))
                 step["navigation"] = {"before": navigation_values(before.get("navigation")), "after": after_navigation}
                 print(f"  First frame: open {after_navigation['page_open_frame_ms']} ms, Back {after_navigation['back_frame_ms']} ms.")

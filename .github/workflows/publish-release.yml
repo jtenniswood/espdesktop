@@ -101,7 +101,7 @@ jobs:
             --tested-fingerprint "${TESTED_FINGERPRINT}"
           {
             printf '\n## Device verification\n\n'
-            printf '%s\n' 'The Guition 4848S040 passed the paired Mac, repeated shortcuts, wake, offline editor, and reboot checks.'
+            printf '%s\n' 'The Guition 4848S040 ran a shortcut on the paired Mac, saved a layout edit, and verified the edit and Mac reconnection after reboot.'
             printf 'Tested [build run %s](%s/%s/actions/runs/%s) with fingerprint `%s`.\n' \
               "${CANDIDATE_RUN}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${CANDIDATE_RUN}" "${TESTED_FINGERPRINT}"
           } >> dist/release-notes.md
