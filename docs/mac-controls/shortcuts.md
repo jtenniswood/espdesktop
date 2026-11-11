@@ -10,7 +10,7 @@ Tap a **Key Shortcut** card to send a key combination to the active Mac app.
 ## Create a Shortcut Card
 
 1. In the display’s web editor, select an empty tile and choose **Companion → Key Shortcut**.
-2. Choose **Custom Shortcut** to enter keys such as **⌘ Command + F**, or **Shortcut Catalog** to pick a preset for an app.
+2. Select the **Custom** tab to enter keys such as **⌘ Command + F**, or the **Application** tab to pick a preset for an app.
 3. Save the card. Bring the app to the front on your Mac, then tap the card.
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.

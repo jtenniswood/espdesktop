@@ -715,29 +715,52 @@ export function registerCompanionCardTypes(
             shortcutField.className = "sp-field sp-shortcut-settings";
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
             const shortcutType = card._shortcutType || (savedCatalogShortcut ? "catalog" : "custom");
-            const typeField = document.createElement("div");
-            typeField.className = "sp-field";
-            typeField.appendChild(fieldLabel("Type", helpers.idPrefix + "shortcut-type"));
-            const typeSelect = document.createElement("select");
-            typeSelect.className = "sp-select";
-            typeSelect.id = helpers.idPrefix + "shortcut-type";
-            for (const [value, label] of [["custom", "Custom Shortcut"], ["catalog", "Shortcut Catalog"]] as const) {
-                const option = document.createElement("option");
-                option.value = value;
-                option.textContent = label;
-                typeSelect.appendChild(option);
+            const typeId = helpers.idPrefix + "shortcut-type";
+            const typeTabs = helpers.segmentControl([
+                ["custom", "Custom"], ["catalog", "Application"],
+            ], shortcutType, function (type: string, tab: HTMLButtonElement) {
+                if (type === shortcutType) return;
+                card._shortcutType = type;
+                card._shortcutCatalogApp = "";
+                // Keep the selected combination when switching to Custom.
+                if (type === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("options", card.options);
+                renderButtonSettings();
+                document.getElementById(tab.id)?.focus({ preventScroll: true });
+            }, "sp-card-type-tabs");
+            typeTabs.segment.id = typeId;
+            typeTabs.segment.setAttribute("role", "tablist");
+            typeTabs.segment.setAttribute("aria-label", "Shortcut type");
+            const customField = document.createElement("div");
+            const catalogField = document.createElement("div");
+            for (const [type, field] of [["custom", customField], ["catalog", catalogField]] as const) {
+                const tab: HTMLButtonElement = typeTabs.buttons[type];
+                const selected = type === shortcutType;
+                tab.id = typeId + "-" + type;
+                tab.className = "sp-card-type-tab";
+                tab.tabIndex = selected ? 0 : -1;
+                tab.setAttribute("role", "tab");
+                tab.setAttribute("aria-selected", String(selected));
+                field.id = tab.id + "-panel";
+                field.hidden = !selected;
+                field.setAttribute("role", "tabpanel");
+                field.setAttribute("aria-labelledby", tab.id);
+                tab.setAttribute("aria-controls", field.id);
             }
-            typeSelect.value = shortcutType;
-            typeField.appendChild(typeSelect);
-            shortcutField.appendChild(typeField);
+            typeTabs.segment.addEventListener("keydown", function (event: KeyboardEvent) {
+                if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+                event.preventDefault();
+                typeTabs.buttons[shortcutType === "custom" ? "catalog" : "custom"].click();
+            });
+            shortcutField.appendChild(typeTabs.segment);
             const shortcutPanel = helpers.disclosureSection(
                 "Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
             );
             shortcutPanel.button.addEventListener("click", function () {
                 card._shortcutPanelOpen = shortcutPanel.panel.classList.contains("sp-open");
             });
-            const customField = document.createElement("div");
-            customField.style.display = shortcutType === "custom" ? "" : "none";
             shortcutPanel.section.appendChild(customField);
             const modifierLabel = document.createElement("div");
             modifierLabel.className = "sp-field-label";
@@ -826,8 +849,6 @@ export function registerCompanionCardTypes(
             }
             syncShortcutBuilder();
 
-            const catalogField = document.createElement("div");
-            catalogField.style.display = shortcutType === "catalog" ? "" : "none";
             const catalogAppField = document.createElement("div");
             catalogAppField.className = "sp-field";
             catalogAppField.appendChild(fieldLabel("App", helpers.idPrefix + "shortcut-catalog-app"));
@@ -870,16 +891,6 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "catalog";
             }, function () {
                 return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
-            });
-            typeSelect.addEventListener("change", function () {
-                card._shortcutType = typeSelect.value;
-                card._shortcutCatalogApp = "";
-                // Keep the selected combination when switching to Custom Shortcut.
-                if (typeSelect.value === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
-                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
-                helpers.saveField("entity", card.entity);
-                helpers.saveField("options", card.options);
-                renderButtonSettings();
             });
             catalogApp.addEventListener("change", function () {
                 card._shortcutCatalogApp = catalogApp.value;

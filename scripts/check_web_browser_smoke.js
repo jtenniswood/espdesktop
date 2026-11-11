@@ -4298,7 +4298,7 @@ async function assertMacLockCard(browser) {
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await editCard(2);
-    await modal.getByLabel("Type", { exact: true }).waitFor();
+    await modal.getByRole("tablist", { name: "Shortcut type" }).waitFor();
     console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
   } finally {
     await context.close();
@@ -4346,12 +4346,17 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       return icons.length === 1 && getComputedStyle(icons[0], "::before").content.includes(expectedGlyph);
     }, String.fromCodePoint(0xF0633));
     await openCard();
-    const type = page.locator('[id$="shortcut-type"]');
+    const type = page.getByRole("tablist", { name: "Shortcut type" });
+    const custom = type.getByRole("tab", { name: "Custom", exact: true });
+    const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
     const action = page.locator('[id$="shortcut-catalog-action"]');
-    assert.strictEqual(await type.inputValue(), "custom", "existing shortcuts use Custom Shortcut");
+    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
-    await type.selectOption("catalog");
+    await custom.press("ArrowRight");
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true");
+    assert(await application.evaluate(tab => tab === document.activeElement), "arrow keys focus the selected tab");
+    assert(await page.getByRole("tabpanel", { name: "Application" }).isVisible());
     const catalogPanel = page.locator(".sp-disclosure").filter({
       has: page.getByRole("button", { name: "Shortcut", exact: true }),
     });
@@ -4386,14 +4391,16 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
     await seedNativeDocument(page, nativeState);
     await openCard();
-    assert.strictEqual(await type.inputValue(), "catalog", "catalog type survives reload");
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "saved presets open the Application tab");
+    await application.click();
     assert.strictEqual(await app.inputValue(), "com.apple.Safari");
     assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
-    await type.selectOption("custom");
+    await custom.click();
+    assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
     await page.locator('[id$="shortcut-key"]').selectOption("a");
     await saveCard();
     await openCard();
-    assert.strictEqual(await type.inputValue(), "custom", "custom type survives save");
+    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "Custom tab selection survives save");
     assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
     const shortcutPanel = page.locator(".sp-disclosure").filter({
       has: page.getByRole("button", { name: "Shortcut", exact: true }),
