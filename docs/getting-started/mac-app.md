@@ -56,4 +56,6 @@ With automatic checks enabled, EspDesktop checks when you launch the app and dai
 
 Open EspDesktop from **Applications**, then turn on **Notify Me About Updates** in **Mac Settings → Updates** and allow macOS notifications. Click an update notification to open the updater. If you prefer eligible updates to install on quit, turn on **Automatically Install Updates**.
 
+If an update requires newer display firmware, install the app and firmware from the same EspDesktop release. Follow the [display update instructions](/features/setup#update-the-display-firmware).
+
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)

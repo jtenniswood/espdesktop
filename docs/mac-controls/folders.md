@@ -13,6 +13,8 @@ Folder cards open only the Finder folders you approve in the Mac app. Folder pat
 2. Choose **Add Folder…** and select a directory.
 3. In the display setup page, add a **Companion → Folder** card and choose that folder.
 
+In the card’s **Advanced** section, set **Open folder in** to **A new window** or **The same window**.
+
 If a folder is moved or renamed, choose **Choose Again…** in the Mac app to restore its access. Removing a folder from the Mac app makes its card unavailable.
 
 ## Finder Folder Subpage
@@ -23,7 +25,9 @@ You can show approved folders as tiles on a Finder app subpage:
 2. Turn on **Add app subpage** in the card settings.
 3. Use the folder list under **App Subpage** to choose which folders appear and drag them into order.
 
-While your Mac is connected, approved folders fill spare cells on the touchscreen and in the layout preview. Use the folder list in the Finder card's settings to pin and reorder the tiles you want to keep. Live folders disappear when the Mac disconnects. Pinned tiles stay in place.
+Under **App Subpage**, use **Folder shortcuts open in** to set the default window behaviour. A folder tile can use that default or override it under **Advanced → Open folder in**.
+
+While your Mac is connected, approved folders fill spare cells on the touchscreen and in the layout preview. Use **Pin Finder folders** in the Finder card’s settings to keep and reorder selected tiles. Live folders disappear when the Mac disconnects. Pinned tiles stay in place.
 
 Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
 

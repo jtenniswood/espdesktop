@@ -18,7 +18,7 @@ Set up the display from a normal web browser.
 - **Finder folders** — open an approved folder with a tap.
 - **Websites** — open `http://` and `https://` links in your default browser.
 
-You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up the finished layout from the display's built-in setup page.
+You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up or restore the layout from the display’s built-in editor. See the [feature guide](https://espdesktop.com/#what-you-can-control) for release availability.
 
 <img src="docs/public/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing a Slack subpage with shortcuts for messages, search, and unread chats" width="600">
 
