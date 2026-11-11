@@ -207,6 +207,7 @@ export default defineConfig({
     nav: [
       { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
       { text: 'Install', link: '/getting-started/install' },
+      { text: 'Download', link: '/getting-started/mac-app' },
     ],
 
     sidebar: [
