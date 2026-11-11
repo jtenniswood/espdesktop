@@ -133,3 +133,14 @@ Current generated-output ownership is listed in
 and formats are listed in [Compatibility Contract](compatibility-contract.md).
 Use [Change the Release Workflow](playbooks/change-release-workflow.md) for the
 exact edit and verification procedure.
+
+## Homebrew
+
+The [EspDesktop tap](https://github.com/jtenniswood/homebrew-tap) tracks the
+highest stable version with a published Mac ZIP. **Update Homebrew Tap** runs
+after a successful **Publish Release** workflow or a stable GitHub release
+publication. It uses GitHub's asset checksum and skips firmware-only releases.
+
+If an update fails, rerun **Update Homebrew Tap** from the default branch. It
+only commits when the cask changes. The `HOMEBREW_TAP_DEPLOY_KEY` Actions secret
+holds the SSH deploy key with write access to the tap repository.
