@@ -5,9 +5,9 @@ using EspDesktop;
 using ComObject = EspDesktop.Com;
 
 internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string DriveLabel, string UnapprovedAppId,
-    WindowsFolderActions? FolderActions) : IDisposable
+    WindowsFolderActions? FolderActions, WindowsAppActions? AppActions) : IDisposable
 {
-    public static async Task<NativeWindowsDesktop> Prepare(bool exerciseFolderActions)
+    public static async Task<NativeWindowsDesktop> Prepare(bool exerciseDesktopActions)
     {
         var root = Path.GetPathRoot(Environment.SystemDirectory)
             ?? throw new InvalidOperationException("Windows did not report a system drive.");
@@ -15,6 +15,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
         {
             AllApps = false,
             AllowedApps = [WindowsDesktop.ExplorerId],
+            Shortcuts = exerciseDesktopActions,
             Folders =
             [
                 new("folder.windows-test", Path.Combine(root, "EspDesktop private fixture", "Project files")),
@@ -22,20 +23,40 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             ]
         };
         var desktop = new WindowsDesktop(settings);
-        await desktop.Refresh();
-        var otherApp = desktop.Apps.FirstOrDefault(app => app.Id != WindowsDesktop.ExplorerId)
-            ?? throw new InvalidOperationException("The Windows Shell did not supply any Start menu apps.");
-        var folders = exerciseFolderActions ? WindowsFolderActions.Create() : null;
-        if (folders is not null)
+        WindowsAppActions? app = null;
+        WindowsFolderActions? folders = null;
+        try
         {
-            settings.Folders.Add(new("folder.windows-first", folders.First));
-            settings.Folders.Add(new("folder.windows-second", folders.Second));
-            settings.Folders.Add(new("folder.windows-third", folders.Third));
+            if (exerciseDesktopActions)
+            {
+                if (Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted")
+                    throw new InvalidOperationException("Run desktop action checks on a disposable GitHub-hosted Windows runner.");
+                folders = WindowsFolderActions.Create();
+                settings.Folders.Add(new("folder.windows-first", folders.First));
+                settings.Folders.Add(new("folder.windows-second", folders.Second));
+                settings.Folders.Add(new("folder.windows-third", folders.Third));
+                app = await WindowsAppActions.Create(desktop);
+                settings.AllowedApps.Add(app.Entry.Id);
+            }
+            else await desktop.Refresh();
+
+            var otherApp = desktop.Apps.FirstOrDefault(candidate => !desktop.Allowed(candidate))
+                ?? throw new InvalidOperationException("The Windows Shell did not supply any unapproved Start menu apps.");
+            return new(desktop, $"Drive {char.ToUpperInvariant(root[0])}", otherApp.Id, folders, app);
         }
-        return new(desktop, $"Drive {char.ToUpperInvariant(root[0])}", otherApp.Id, folders);
+        catch
+        {
+            app?.Dispose();
+            folders?.Dispose();
+            throw;
+        }
     }
 
-    public void Dispose() => FolderActions?.Dispose();
+    public void Dispose()
+    {
+        AppActions?.Dispose();
+        FolderActions?.Dispose();
+    }
 
     public static Task RunOnDesktop(Func<Task> run) => Sta.Run(() =>
     {
@@ -61,8 +82,6 @@ internal sealed class WindowsFolderActions : IDisposable
 
     public static WindowsFolderActions Create()
     {
-        if (Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted")
-            throw new InvalidOperationException("Run desktop action checks on a disposable GitHub-hosted Windows runner.");
         var fixture = new WindowsFolderActions(Directory.CreateTempSubdirectory("EspDesktop folder test ").FullName);
         foreach (var path in new[] { fixture.First, fixture.Second, fixture.Third, fixture.Denied })
             Directory.CreateDirectory(path);

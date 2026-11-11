@@ -35,7 +35,7 @@ jobs:
         run: dotnet run -c Release --project windows/EspDesktop.Tests
 
       - name: Verify real Windows desktop data over a display connection
-        run: dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows --exercise-folder-actions
+        run: dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows --exercise-desktop-actions
 
       - name: Build the per-user installer
         run: ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture ${{ matrix.arch }}

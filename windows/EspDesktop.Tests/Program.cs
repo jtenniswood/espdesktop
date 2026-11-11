@@ -32,12 +32,13 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
 }
 
 #if WINDOWS
-var exerciseFolderActions = args is ["--verify-native-windows", "--exercise-folder-actions"];
-using var native = args is ["--verify-native-windows"] || exerciseFolderActions
-    ? await NativeWindowsDesktop.Prepare(exerciseFolderActions)
+if (await WindowsAppActions.TryRunTarget(args)) return;
+var exerciseDesktopActions = args is ["--verify-native-windows", "--exercise-desktop-actions"];
+using var native = args is ["--verify-native-windows"] || exerciseDesktopActions
+    ? await NativeWindowsDesktop.Prepare(exerciseDesktopActions)
     : null;
 #else
-const bool exerciseFolderActions = false;
+const bool exerciseDesktopActions = false;
 #endif
 
 using (var stream = typeof(FakeDesktop).Assembly.GetManifestResourceStream("ProtocolFixtures.json")!)
@@ -89,7 +90,7 @@ using var ephemeral = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(
 using var certificate = OperatingSystem.IsWindows()
     ? X509CertificateLoader.LoadPkcs12(ephemeral.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.UserKeySet)
     : new X509Certificate2(ephemeral);
-using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(exerciseFolderActions ? 50 : 25));
+using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(exerciseDesktopActions ? 60 : 25));
 var builder = WebApplication.CreateSlimBuilder();
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole();
@@ -232,8 +233,12 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     var catalogue = await FindMessage(socket, "catalogue.page", m => m.GetProperty("complete").GetBoolean());
     var entries = catalogue.GetProperty("items").EnumerateArray().ToDictionary(item => Text(item, "id"));
     var folderCount = fixture.FolderActions is null ? 2 : 5;
-    Check(entries.Count == folderCount + 1 && entries.ContainsKey(WindowsDesktop.ExplorerId),
-        "publish the approved folders and Explorer entry only");
+    var appCount = fixture.AppActions is null ? 1 : 2;
+    Check(entries.Count == folderCount + appCount && entries.ContainsKey(WindowsDesktop.ExplorerId) &&
+          !entries.ContainsKey(fixture.UnapprovedAppId), "publish only approved folders and apps");
+    if (fixture.AppActions is { } approvedApp)
+        Check(entries.TryGetValue(approvedApp.Entry.Id, out var app) && Text(app, "label") == approvedApp.Entry.Name,
+            "publish the approved Windows Start menu app");
     Check(entries.TryGetValue("folder.windows-test", out var folder) && Text(folder, "label") == "Project files",
         "publish the approved folder name");
     Check(entries.TryGetValue("folder.windows-drive", out var drive) && Text(drive, "label") == fixture.DriveLabel,
@@ -287,6 +292,8 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
 
     if (fixture.FolderActions is { } folders)
         await VerifyFolderActions(socket, folders);
+    if (fixture.AppActions is { } apps)
+        await VerifyAppActions(socket, apps, fixture.UnapprovedAppId);
 }
 
 async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
@@ -313,6 +320,28 @@ async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
         var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == id);
         var actual = Text(result, "status");
         Check(actual == status, $"{behavior} for {id} reported {actual}, expected {status}");
+    }
+}
+
+async Task VerifyAppActions(WebSocket socket, WindowsAppActions app, string deniedId)
+{
+    await Invoke("app-denied", deniedId, "not_allowed");
+    var launch = await Invoke("app-launch", app.Entry.Id, "activated", "opened");
+    await app.CheckForeground(lifetime.Token);
+    Check(launch == "activated", $"recognize the focused Windows app after launch (reported {launch})");
+    await FindMessage(socket, "focus.changed", m => Text(m, "actionId") == app.Entry.Id);
+    await Invoke("shortcut-denied", "shortcut.option+tab", "not_allowed");
+    await Invoke("shortcut-delivered", WindowsAppActions.Shortcut, "performed");
+    await app.WaitForShortcut(lifetime.Token);
+    Console.WriteLine("Passed authenticated Windows Start menu app launch, focus reporting, and keyboard shortcut delivery.");
+
+    async Task<string> Invoke(string request, string id, params string[] statuses)
+    {
+        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", id), ("requestId", request));
+        var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == request);
+        var actual = Text(result, "status");
+        Check(statuses.Contains(actual), $"{request} reported {actual}, expected {string.Join(" or ", statuses)}");
+        return actual;
     }
 }
 #endif
