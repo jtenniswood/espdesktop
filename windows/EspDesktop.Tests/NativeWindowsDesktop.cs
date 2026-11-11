@@ -7,6 +7,8 @@ using ComObject = EspDesktop.Com;
 internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string DriveLabel, string UnapprovedAppId,
     WindowsFolderActions? FolderActions, WindowsAppActions? AppActions, StartApp? Browser) : IDisposable
 {
+    internal const int CataloguePaddingFolders = 260;
+
     public static async Task<NativeWindowsDesktop> Prepare(bool exerciseDesktopActions)
     {
         var root = Path.GetPathRoot(Environment.SystemDirectory)
@@ -36,6 +38,10 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
                 settings.Folders.Add(new("folder.windows-first", folders.First));
                 settings.Folders.Add(new("folder.windows-second", folders.Second));
                 settings.Folders.Add(new("folder.windows-third", folders.Third));
+                // Fill the panel's picker before the real Explorer entry. These
+                // catalogue-only folders are never opened or created on disk.
+                for (var i = 0; i < CataloguePaddingFolders; i++)
+                    settings.Folders.Add(new($"folder.windows-padding-{i}", Path.Combine(root, "EspDesktop private fixture", $"Folder {i}")));
                 app = await WindowsAppActions.Create(desktop);
                 settings.AllowedApps.Add(app.Entry.Id);
                 browser = desktop.Apps.FirstOrDefault(candidate =>

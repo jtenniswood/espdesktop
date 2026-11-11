@@ -49,9 +49,10 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         Changed();
     }
 
+    // The panel caps its picker while keeping icons eligible for configured cards.
     public IReadOnlyList<CatalogueItem> Catalogue() =>
         settings.Folders.Select(f => new CatalogueItem(f.Id, Clean(f.Label)))
-        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, Clean(a.Name)))).Take(256).ToArray();
+        .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, Clean(a.Name)))).ToArray();
     private static string Clean(string label) => Bound(new string(label.Select(c => char.IsControl(c) || c is ',' or '|' ? ' ' : c)
         .ToArray()).Trim(), 96) is { Length: > 0 } name ? name : "Unnamed";
 

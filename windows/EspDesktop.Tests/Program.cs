@@ -439,9 +439,23 @@ static void VerifyAudioLevelPolicy()
 
 async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
 {
-    var catalogue = await FindMessage(socket, "catalogue.page", m => m.GetProperty("complete").GetBoolean());
-    var entries = catalogue.GetProperty("items").EnumerateArray().ToDictionary(item => Text(item, "id"));
-    var folderCount = fixture.FolderActions is null ? 2 : 5;
+    var entries = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
+    uint catalogueGeneration = 0;
+    int? explorerPosition = null;
+    for (uint page = 0; ; page++)
+    {
+        var catalogue = await FindMessage(socket, "catalogue.page", m => Valid(m, "mac_to_panel", "connected") && UInt(m, "page") == page);
+        if (page == 0) catalogueGeneration = UInt(catalogue, "generation");
+        Check(UInt(catalogue, "generation") == catalogueGeneration, "all catalogue pages share a generation");
+        foreach (var item in catalogue.GetProperty("items").EnumerateArray())
+        {
+            var id = Text(item, "id");
+            if (id == WindowsDesktop.ExplorerId) explorerPosition = entries.Count;
+            entries.Add(id, item);
+        }
+        if (catalogue.GetProperty("complete").GetBoolean()) break;
+    }
+    var folderCount = fixture.FolderActions is null ? 2 : 5 + NativeWindowsDesktop.CataloguePaddingFolders;
     var appCount = fixture.AppActions is null ? 1 : 3;
     Check(entries.Count == folderCount + appCount && entries.ContainsKey(WindowsDesktop.ExplorerId) &&
           !entries.ContainsKey(fixture.UnapprovedAppId), "publish only approved folders and apps");
@@ -515,6 +529,11 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     await FindMessage(socket, "app_icon.end", m => UInt(m, "generation") == generation);
     Check(Hash(image) == Text(icon, "sha256") && image.Skip(side * side * 2).Any(alpha => alpha > 0) &&
           image.Take(side * side * 2).Distinct().Count() > 1, "native icon digest and visible pixels");
+    if (exerciseDesktopActions)
+    {
+        Check(explorerPosition >= 256, "File Explorer is still advertised and can serve its icon beyond the panel picker limit");
+        Console.WriteLine($"Passed Windows catalogue paging and File Explorer icon delivery beyond the panel picker limit ({entries.Count} entries).");
+    }
 
     if (fixture.FolderActions is { } folders)
         await VerifyFolderActions(socket, folders);
