@@ -144,6 +144,15 @@ void assert_backlight_on_policy() {
   controller.clear(DisplayRequestSource::SCREEN_SCHEDULE);
   controller.resolve();
   assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::WAKE);
+
+  // A factory install has the schedule enabled and no network time. WiFi
+  // onboarding must be able to light the screen even after the boot guard.
+  const bool waiting_for_time = screen_schedule_waiting_for_time(
+      "time", ScreenSchedulePreferences{}.enabled, false);
+  controller.request(DisplayRequestSource::ONBOARDING, DisplayMode::ACTIVE);
+  assert(lifecycle.backlight_on_response(waiting_for_time) == BacklightOnResponse::KEEP_ON);
+  controller.clear(DisplayRequestSource::ONBOARDING);
+  assert(lifecycle.backlight_on_response(waiting_for_time) == BacklightOnResponse::KEEP_OFF);
 }
 
 int main() {

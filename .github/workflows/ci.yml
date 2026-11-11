@@ -221,8 +221,10 @@ jobs:
           npm run webserver:build
           npm run docs:build
 
-      - name: Install Chromium for installer checks
-        run: npx playwright install --with-deps chromium
+      - name: Install headless Chromium for installer checks
+        timeout-minutes: 3
+        # GitHub-hosted Ubuntu already has the libraries needed by headless Chromium.
+        run: npx playwright install --only-shell chromium
 
       - name: Check browser USB installer
         run: npm run docs:check-installer
