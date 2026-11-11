@@ -38,6 +38,7 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
     private var focusNextUpdatePrompt = false
     private var hasUpdatePrompt = false
     private var sendingNotification = false
+    private var updateRequestedFromNotification = false
 
     func startAutomaticChecks(checkOnLaunch: Bool = false) {
         guard !started else { return }
@@ -57,7 +58,7 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
                 .sink { [weak self] value in self?.automaticallyInstalls = value }
                 .store(in: &observations)
             controller.updater.publisher(for: \.canCheckForUpdates)
-                .sink { [weak self] value in self?.isChecking = !value }
+                .sink { [weak self] canCheck in self?.updateCheckAvailability(canCheck) }
                 .store(in: &observations)
             UNUserNotificationCenter.current().delegate = self
             if checkOnLaunch && automaticallyChecks {
@@ -191,11 +192,15 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
     }
 
     private func showUpdateFromNotification() {
-        if isChecking {
-            // Let a check already in progress surface its result in the foreground.
-            focusNextUpdatePrompt = true
-        } else {
-            check()
+        updateRequestedFromNotification = isChecking
+        if !isChecking { check() }
+    }
+
+    private func updateCheckAvailability(_ canCheck: Bool) {
+        isChecking = !canCheck
+        if canCheck && updateRequestedFromNotification {
+            // Sparkle is still updating its session state inside the KVO callback.
+            DispatchQueue.main.async { [weak self] in self?.showUpdateFromNotification() }
         }
     }
 }
