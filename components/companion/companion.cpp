@@ -571,6 +571,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       const std::string credential = hex(this->identity_.credential, sizeof(this->identity_.credential));
       pairing_lock.unlock();
       companion_runtime_service().set_mac_update_required(false);
+      this->defer([] {
+        if (auto handler = companion_runtime_service().pairing_changed_handler) handler();
+      });
       this->send_(socket_fd, "{\"type\":\"pair.accepted\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"credential\":\"" + credential + "\"}");
       return true;
@@ -1235,7 +1238,10 @@ void CompanionService::revoke_pairing() {
   this->sequence_preferences_.save(&this->last_sequence_);
   this->set_connected_(false);
   // Revoking trust also clears the Mac's lock. Ordinary disconnects retain it.
-  this->defer([]() { screen_lock_set_mac_locked(false); });
+  this->defer([] {
+    screen_lock_set_mac_locked(false);
+    if (auto handler = companion_runtime_service().pairing_changed_handler) handler();
+  });
   if (previous_socket >= 0) httpd_sess_trigger_close(this->server_, previous_socket);
 }
 

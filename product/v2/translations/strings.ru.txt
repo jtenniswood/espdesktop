@@ -230,6 +230,7 @@ update_firmware=Установить
 no_saved_wifi_connection_reinstall_by_usb_to_reconfigure=Нет сохранённого подключения WiFi\nПереустановите через USB для настройки
 open_192_168_4_1=Откройте 192.168.4.1
 open_your_browser_and_configure_your_display=Откройте браузер и\nнастройте дисплей
+download_companion_app_to_pair=Загрузите приложение EspDesktop на компьютер и следуйте инструкциям по сопряжению.
 preparing_the_screen_do_not_power_off=Подготовка экрана\nНе выключайте питание
 restarting_display=Перезапуск дисплея
 see_the_install_guide_for_help=Смотрите руководство по установке

@@ -3,9 +3,10 @@ import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
 import type { NativePanelConfigSnapshot } from "../features/native_panel_config";
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
-import type { ConnectorsPageFeature } from "./connectors_page";
+import { requestedConnectorFromSearch, type ConnectorsPageFeature } from "./connectors_page";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import type { ControlsShellFeature } from "./controls_shell";
+import { createCompanionPairingDetails, type CompanionPairingState } from "./settings_companion_section";
 import {
     companionShortcutPresetCards,
     companionShortcutDefaultTabs,
@@ -90,9 +91,9 @@ interface FirstRunSetupDependencies {
     capacity: number;
     supported: boolean;
     native: NativePanelConfigController;
-    connectors: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">;
+    connectors: Pick<ConnectorsPageFeature, "onCompanionConnectionChange" | "onCompanionPairingChange">;
     fields: Pick<ControlsFieldsFeature, "textInput" | "toggleRow">;
-    shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner" | "createMdiIcon">;
+    shell: Pick<ControlsShellFeature, "switchTab" | "isConfigLocked" | "showBanner" | "createMdiIcon" | "createActionButton">;
     onSaved: (mirrorFailed: boolean) => void;
     autoSwitchEnabled: () => boolean;
 }
@@ -101,11 +102,15 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     const { document, window } = deps;
     const appLimit = setupAppLimit(deps.capacity);
     const catalogue = createCompanionCatalogue(deps.fetch);
+    const pairingLink = requestedConnectorFromSearch(window.location.search) === "mac_companion";
     let dialog: HTMLDialogElement | null = null;
     let eligible = false;
     let replacing: NativePanelConfigGraph | undefined;
     let opening = false;
-    let connected = false;
+    let connected: boolean | null = null;
+    let pairingState: CompanionPairingState | null | undefined;
+    let updatePairingView: (() => void) | undefined;
+    let includePairingStep = false;
     let step = 1;
     let apps: CompanionAction[] = [];
     const selected = new Set<string>();
@@ -140,6 +145,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         dialog?.close();
         dialog?.remove();
         dialog = null;
+        updatePairingView = undefined;
         previousFocus?.focus();
     }
     function dismiss(): void {
@@ -148,7 +154,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         close();
     }
     function show(): void {
-        if (!eligible || dialog) return;
+        if (!eligible || dialog || connected === null || (pairingLink && !connected && !replacing)) return;
+        includePairingStep = !connected;
+        step = connected ? 1 : 0;
         previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
         dialog = element("dialog", "", "sp-settings-modal sp-config sp-first-run");
         dialog.setAttribute("aria-labelledby", "sp-setup-title");
@@ -183,7 +191,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 catalogueRetry = window.setTimeout(() => { void refresh(true); }, 1500);
             }
         } catch {
-            error = "Could not load apps. Check the Mac connection, then reopen setup.";
+            if (connected) error = "Could not load apps. Check the Mac connection, then reopen setup.";
         } finally {
             loading = false;
             render();
@@ -260,24 +268,64 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         label.append(input, copy);
         return label;
     }
+    function renderPairing(content: HTMLElement): void {
+        const status = element("p", "", "sp-companion-status");
+        status.setAttribute("role", "status");
+        if (connected) {
+            status.classList.add("sp-companion-status-connected");
+            status.textContent = "Mac connected. Choose Next to pick your apps.";
+            content.appendChild(status);
+            return;
+        }
+        const steps = element("ol", "", "sp-connector-steps sp-setup-pairing");
+        const link = element("a", "Download the latest EspDesktop Mac app");
+        link.href = "https://github.com/jtenniswood/espdesktop/releases/latest";
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        const install = element("li");
+        install.append(link, ". Open the EspDesktop DMG under Assets, drag EspDesktop into Applications, then open the app.");
+        const pair = element("li", "Select this display in the app and choose Continue. Paste the code below into the app and choose Connect.");
+        steps.append(install, pair);
+        const details = createCompanionPairingDetails(deps, deps.shell.createActionButton);
+        content.append(steps, details.element, status);
+        updatePairingView = () => {
+            details.update(pairingState ?? null);
+            pair.hidden = !!pairingState?.paired;
+            let message = "Open Settings → Unpaired on the display to get a pairing code.";
+            if (pairingState === undefined) message = "Checking for a pairing code…";
+            else if (!pairingState) message = "Could not load the pairing code. Retrying…";
+            else if (pairingState.paired) message = "This display is already paired. Open EspDesktop on your Mac to reconnect.";
+            else if (!details.element.hidden) message = "Waiting for your Mac to connect…";
+            if (status.textContent !== message) status.textContent = message;
+        };
+        updatePairingView();
+    }
     function render(): void {
         if (!dialog) return;
         const focusWasInside = dialog.contains(document.activeElement);
         const focusKey = document.activeElement?.getAttribute("data-setup-key");
         const selectionStart = document.activeElement instanceof HTMLInputElement ? document.activeElement.selectionStart : null;
         dialog.replaceChildren();
+        updatePairingView = undefined;
+        if (!connected && !busy) {
+            includePairingStep = true;
+            step = 0;
+        }
         const supportedCount = supportedApps().length;
         const lastStep = addShortcutPages && supportedCount > 0 ? 3 : 2;
         step = Math.min(step, lastStep);
-        const progress = element("p", `Step ${step} of ${lastStep}`, "sp-setup-step");
-        const title = element("h1", step === 1 ? "Choose your apps" : step === 2 ? "Shortcut pages" : "Finish setup", "sp-setup-title");
+        const titles = ["Connect your Mac", "Choose your apps", "Shortcut pages", "Finish setup"];
+        const pairingOffset = Number(includePairingStep);
+        const progress = element("p", `Step ${step + pairingOffset} of ${lastStep + pairingOffset}`, "sp-setup-step");
+        const title = element("h1", titles[step], "sp-setup-title");
         title.id = "sp-setup-title";
         const explanations = [
-            `Get started by picking your favourite apps to display (up to ${appLimit} apps)`,
+            "Install EspDesktop and pair this display with a Mac on the same network.",
+            `Pick your favourite apps to display (up to ${appLimit} apps).`,
             "Choose what you can do from your app cards.",
             "Choose when the display opens a shortcut page.",
         ];
-        const description = element("p", explanations[step - 1], "sp-setup-description");
+        const description = element("p", explanations[step], "sp-setup-description");
         const closeButton = element("button", "", "sp-settings-close");
         closeButton.type = "button";
         closeButton.disabled = busy;
@@ -286,36 +334,33 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         closeButton.addEventListener("click", dismiss);
         dialog.append(progress, title, description, closeButton);
         const content = element("div", "", step === 1 ? "sp-setup-content sp-setup-apps" : "sp-setup-content");
-        if (step === 1) {
-            if (!connected) {
-                content.appendChild(element("p", "Connect your Mac to see your apps."));
-                content.appendChild(button("Connect your Mac", () => { close(); deps.shell.switchTab("device"); }));
-            } else {
-                const search: HTMLInputElement = deps.fields.textInput("sp-setup-search", query, "Search apps");
-                search.type = "search";
-                search.setAttribute("aria-label", "Search apps");
-                search.setAttribute("data-setup-key", "search");
-                search.disabled = busy;
-                search.addEventListener("input", () => { query = search.value; render(); });
-                const count = element("p", loading ? "Loading apps…" : `${selected.size} of ${appLimit} selected`, "sp-setup-count");
-                count.setAttribute("role", "status");
-                const searchField = element("div", "", "sp-setup-search");
-                searchField.append(deps.shell.createMdiIcon("magnify"), search);
-                content.append(searchField, count);
-                if (!loading && !error && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access on your Mac.", "sp-setting-note"));
-                const list = element("div", "", "sp-light-tab-list sp-setup-list");
-                for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
-                    const row = toggle(`sp-setup-app-${app.id}`, app.label, selected.has(app.id), enabled => {
-                        if (enabled && selected.size < appLimit) selected.add(app.id);
-                        else selected.delete(app.id);
-                        render();
-                    }, loading || (!selected.has(app.id) && selected.size >= appLimit));
-                    row.classList.add("sp-light-tab-row");
-                    row.querySelector(".sp-toggle-label")?.classList.add("sp-light-tab-label");
-                    list.appendChild(row);
-                }
-                content.appendChild(list);
+        if (step === 0) {
+            renderPairing(content);
+        } else if (step === 1) {
+            const search: HTMLInputElement = deps.fields.textInput("sp-setup-search", query, "Search apps");
+            search.type = "search";
+            search.setAttribute("aria-label", "Search apps");
+            search.setAttribute("data-setup-key", "search");
+            search.disabled = busy;
+            search.addEventListener("input", () => { query = search.value; render(); });
+            const count = element("p", loading ? "Loading apps…" : `${selected.size} of ${appLimit} selected`, "sp-setup-count");
+            count.setAttribute("role", "status");
+            const searchField = element("div", "", "sp-setup-search");
+            searchField.append(deps.shell.createMdiIcon("magnify"), search);
+            content.append(searchField, count);
+            if (!loading && !error && apps.length === 0) content.appendChild(element("p", "No apps available. Check app access on your Mac.", "sp-setting-note"));
+            const list = element("div", "", "sp-light-tab-list sp-setup-list");
+            for (const app of apps.filter(app => app.label.toLocaleLowerCase().includes(query.toLocaleLowerCase()))) {
+                const row = toggle(`sp-setup-app-${app.id}`, app.label, selected.has(app.id), enabled => {
+                    if (enabled && selected.size < appLimit) selected.add(app.id);
+                    else selected.delete(app.id);
+                    render();
+                }, loading || (!selected.has(app.id) && selected.size >= appLimit));
+                row.classList.add("sp-light-tab-row");
+                row.querySelector(".sp-toggle-label")?.classList.add("sp-light-tab-label");
+                list.appendChild(row);
             }
+            content.appendChild(list);
         } else if (step === 2) {
             const modes = element("div", "", "sp-setup-modes");
             modes.setAttribute("role", "radiogroup");
@@ -343,7 +388,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             content.appendChild(modes);
         }
         dialog.appendChild(content);
-        if (step > 1 && !connected) {
+        if (step > 0 && !connected) {
             const status = element("p", "Reconnect your Mac to continue.");
             status.setAttribute("role", "status");
             dialog.appendChild(status);
@@ -359,13 +404,13 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             footer.appendChild(button("Skip setup", () => { void finish(true); }));
         }
         const actions = element("div", "", "sp-btn-group-right");
-        if (step > 1) actions.appendChild(button("Back", () => { --step; render(); }));
+        if (step > (includePairingStep ? 0 : 1)) actions.appendChild(button("Back", () => { --step; render(); }));
         const isFinalStep = step === lastStep;
         const finishLabel = replacing || step === 2 ? "Done" : "Save setup";
         const next = button(busy ? "Saving…" : isFinalStep ? finishLabel : "Next", () => {
             if (isFinalStep) void finish(); else { ++step; render(); }
         }, true);
-        next.disabled = busy || loading || !connected || selectedApps().length === 0;
+        next.disabled = busy || !connected || (step !== 0 && (loading || selectedApps().length === 0));
         actions.appendChild(next);
         footer.appendChild(actions);
         dialog.appendChild(footer);
@@ -383,9 +428,12 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const reconnected = value && !connected;
         connected = value;
         render();
-        if (eligible && reconnected) {
-            if (!dialog) show(); else void refresh();
-        }
+        if (!dialog) show();
+        else if (reconnected) void refresh();
+    });
+    deps.connectors.onCompanionPairingChange(value => {
+        pairingState = value;
+        updatePairingView?.();
     });
     return {
         open(): void {
@@ -408,7 +456,6 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
                 query = "";
                 error = "";
-                step = 1;
                 eligible = true;
                 show();
             })().catch(failure => deps.shell.showBanner(failure.message, "error"))
@@ -422,9 +469,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                 const saved = await deps.native.readSnapshot();
                 if (!hasNativeLayout(saved) || !needsFirstRunSetup(saved)) return;
                 eligible = true;
-                const params = new URLSearchParams(window.location.search);
-                const pairingLink = params.get("connector") === "mac_companion" || params.get("tab") === "connectors";
-                if (!pairingLink || connected) show();
+                show();
             })().catch(() => { /* A failed discovery must leave the normal editor available. */ });
         },
     };
