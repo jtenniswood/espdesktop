@@ -1,7 +1,11 @@
 #if WINDOWS
 using System.Diagnostics;
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Controls;
 using System.Windows.Threading;
 using EspDesktop;
+using EspDesktop.Core;
 using ComObject = EspDesktop.Com;
 
 internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string DriveLabel, string UnapprovedAppId,
@@ -34,6 +38,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
             {
                 if (Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted")
                     throw new InvalidOperationException("Run desktop action checks on a disposable GitHub-hosted Windows runner.");
+                await VerifyDiscoveryRefresh();
                 folders = WindowsFolderActions.Create();
                 settings.Folders.Add(new("folder.windows-first", folders.First));
                 settings.Folders.Add(new("folder.windows-second", folders.Second));
@@ -67,6 +72,51 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
     {
         AppActions?.Dispose();
         FolderActions?.Dispose();
+    }
+
+    private static Task VerifyDiscoveryRefresh() => RunOnDesktop(async () =>
+    {
+        _ = new Application { ShutdownMode = ShutdownMode.OnExplicitShutdown };
+        var nextScan = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var lateDisplay = new DiscoveredDisplay("192.168.1.20:8443", "Late test display", new string('a', 64));
+        var scans = 0;
+        var window = new SettingsWindow(smoke: false, discover: _ =>
+        {
+            scans++;
+            if (scans == 2) nextScan.SetResult();
+            return Task.FromResult<DiscoveredDisplay[]>(scans == 2 ? [lateDisplay] : []);
+        });
+        try
+        {
+            window.Show();
+            var fields = Descendants(window).OfType<TextBox>().ToArray();
+            var address = fields.Single(field => AutomationProperties.GetName(field) == "Display address");
+            var code = fields.Single(field => AutomationProperties.GetName(field) == "Pairing code");
+            if (scans != 1 || !Descendants(window).OfType<TextBlock>().Any(text => text.Text.StartsWith("No nearby displays found.")))
+                throw new InvalidOperationException("Windows setup did not start discovery when it opened.");
+            address.Text = "192.168.1.21";
+            code.Text = "123456";
+            await nextScan.Task.WaitAsync(TimeSpan.FromSeconds(16));
+            var display = Descendants(window).OfType<Button>().SingleOrDefault(button =>
+                Equals(button.Content, $"Use {lateDisplay.Name} ({lateDisplay.Address})"));
+            if (display is null || address.Text != "192.168.1.21" || code.Text != "123456")
+                throw new InvalidOperationException("Automatic discovery did not add the display while preserving the setup fields.");
+            window.Hide();
+            window.Show();
+            if (scans != 3 || Descendants(window).OfType<Button>().Contains(display))
+                throw new InvalidOperationException("Reopening setup did not refresh the list of nearby displays.");
+            Console.WriteLine("Passed automatic discovery refresh in Windows Settings, including a late display and preserved pairing fields.");
+        }
+        finally { window.Quit(); }
+    });
+
+    private static IEnumerable<DependencyObject> Descendants(DependencyObject parent)
+    {
+        foreach (var child in LogicalTreeHelper.GetChildren(parent).OfType<DependencyObject>())
+        {
+            yield return child;
+            foreach (var descendant in Descendants(child)) yield return descendant;
+        }
     }
 
     public static Task RunOnDesktop(Func<Task> run) => Sta.Run(() =>

@@ -23,14 +23,18 @@ internal sealed class SettingsWindow : Window
     private readonly bool smoke;
     private readonly LocalStore store = new();
     private readonly WindowsDesktop desktop;
+    private readonly Func<CancellationToken, Task<DiscoveredDisplay[]>> discover;
     private readonly CancellationTokenSource lifetime = new();
+    private readonly DispatcherTimer discoveryTimer = new() { Interval = TimeSpan.FromSeconds(8) };
     private readonly DispatcherTimer updatesTimer = new() { Interval = TimeSpan.FromDays(1) };
     private readonly StackPanel body = new() { Margin = new Thickness(24, 0, 24, 24) };
     private readonly ScrollViewer scroll;
     private readonly TextBlock notice = new() { TextWrapping = TextWrapping.Wrap, Margin = new Thickness(0, 0, 0, 12) };
-    private readonly TextBlock connectionText = new() { TextWrapping = TextWrapping.Wrap };
+    private readonly TextBlock connectionText = new() { TextWrapping = TextWrapping.Wrap, Visibility = Visibility.Collapsed };
     private readonly TextBox address = new() { MinWidth = 270 };
     private readonly TextBox code = new() { MaxLength = 16, CharacterCasing = CharacterCasing.Upper };
+    private readonly StackPanel nearbyDisplays = new();
+    private readonly Button findDisplays;
     private readonly ListBox navigation = new() { BorderThickness = new Thickness(0), Background = Brushes.Transparent };
     private readonly string[] pages = ["Display", "Apps", "Folders", "Updates", "Help"];
     private DiscoveredDisplay[] discovered = [];
@@ -39,23 +43,24 @@ internal sealed class SettingsWindow : Window
     private Pairing? pairing;
     private CancellationTokenSource? connectionCancellation;
     private Task? connectionTask;
-    private bool busy, scanning, appScanning, quitting, updateBusy, installerVerified;
-    private string status = "Pair a display to get started.";
+    private bool busy, scanning, discoveryChecked, appScanning, quitting, updateBusy, installerVerified;
     private WindowsRelease? release;
     private string? updatePath;
     private string updateStatus = "Check for new versions of EspDesktop.";
     public bool HasPairing => pairing is not null;
     public event Action<string>? ConnectionStatusChanged;
 
-    public SettingsWindow(bool smoke)
+    public SettingsWindow(bool smoke, Func<CancellationToken, Task<DiscoveredDisplay[]>>? discover = null)
     {
         this.smoke = smoke;
+        this.discover = discover ?? Discovery.Find;
         desktop = new(store.Settings);
+        findDisplays = Button("Find nearby displays", async () => await Scan(interactive: true));
         if (!smoke)
         {
             pairing = store.LoadPairing();
             address.Text = pairing?.Address ?? "";
-            if (store.PairingUnavailable) status = "Windows couldn’t open the saved pairing. Forget it and pair again.";
+            if (store.PairingUnavailable) Status("Windows couldn’t open the saved pairing. Forget it and pair again.");
         }
         Title = "EspDesktop";
         Icon = BitmapFrame.Create(App.IconUri);
@@ -104,6 +109,8 @@ internal sealed class SettingsWindow : Window
         AutomationProperties.SetLiveSetting(connectionText, AutomationLiveSetting.Polite);
         AutomationProperties.SetLiveSetting(notice, AutomationLiveSetting.Polite);
         code.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await Pair(); } };
+        IsVisibleChanged += (_, _) => UpdateDiscovery();
+        discoveryTimer.Tick += async (_, _) => await Scan();
         updatesTimer.Tick += async (_, _) => await CheckUpdates(false);
     }
 
@@ -127,7 +134,6 @@ internal sealed class SettingsWindow : Window
             return;
         }
         if (pairing != null) StartConnection();
-        else if (!store.PairingUnavailable && IsVisible) _ = Scan();
         updatesTimer.Start();
         _ = CheckUpdates(false);
         Render();
@@ -286,20 +292,54 @@ internal sealed class SettingsWindow : Window
         finally { busy = false; if (!quitting) Render(); }
     }
 
-    private async Task Scan()
+    private void UpdateDiscovery()
     {
-        if (scanning || quitting) return;
+        if (smoke || quitting || !IsVisible || navigation.SelectedIndex != 0 || pairing != null || store.PairingUnavailable)
+        {
+            discoveryTimer.Stop();
+            return;
+        }
+        if (discoveryTimer.IsEnabled) return;
+        discoveryTimer.Start();
+        _ = Scan(interactive: !discoveryChecked);
+    }
+
+    private async Task Scan(bool interactive = false)
+    {
+        if (!discoveryTimer.IsEnabled || busy) return;
+        if (interactive) findDisplays.Content = "Finding displays…";
+        if (scanning) return;
         scanning = true;
-        if (navigation.SelectedIndex == 0) Render();
-        try { discovered = await Discovery.Find(lifetime.Token); }
-        catch (Exception e) when (e is NetworkInformationException or OperationCanceledException) { discovered = []; }
-        finally { scanning = false; if (!quitting && navigation.SelectedIndex == 0) Render(); }
+        try { ShowDiscoveredDisplays(await discover(lifetime.Token)); }
+        catch (NetworkInformationException) { ShowDiscoveredDisplays([]); }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
+        finally
+        {
+            scanning = false;
+            findDisplays.Content = "Find nearby displays";
+        }
+    }
+
+    private void ShowDiscoveredDisplays(DiscoveredDisplay[] found)
+    {
+        if (quitting || (discoveryChecked && discovered.SequenceEqual(found))) return;
+        discovered = found;
+        discoveryChecked = true;
+        nearbyDisplays.Children.Clear();
+        if (found.Length == 0)
+            nearbyDisplays.Children.Add(Paragraph("No nearby displays found. You can enter an address below."));
+        foreach (var display in found)
+            Row(nearbyDisplays, Button($"Use {display.Name} ({display.Address})", () =>
+            {
+                address.Text = display.Address;
+                address.Focus();
+            }));
     }
 
     private void Status(string value)
     {
-        status = value;
         connectionText.Text = value;
+        connectionText.Visibility = value.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
         ConnectionStatusChanged?.Invoke(value);
     }
 
@@ -354,6 +394,7 @@ internal sealed class SettingsWindow : Window
     {
         if (quitting) return;
         quitting = true;
+        discoveryTimer.Stop();
         updatesTimer.Stop();
         await lifetime.CancelAsync();
         await StopConnection();
@@ -384,11 +425,11 @@ internal sealed class SettingsWindow : Window
             case 3: UpdatesPage(); break;
             default: HelpPage(); break;
         }
+        UpdateDiscovery();
     }
 
     private void DisplayPage()
     {
-        connectionText.Text = status;
         if (pairing is { } saved)
         {
             var card = Card(saved.DisplayName ?? "Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Authority);
@@ -407,10 +448,11 @@ internal sealed class SettingsWindow : Window
         {
             var card = Card("Pair your display", "Use the same local network for your PC and EspDesktop display.");
             card.Children.Add(connectionText);
-            foreach (var display in discovered)
-                Row(card, Button($"Use {display.Name} ({display.Address})", () => { address.Text = display.Address; address.Focus(); }));
-            Field(card, "Display address", address,
-                Button(scanning ? "Finding displays…" : "Find nearby displays", async () => await Scan(), !scanning && !busy));
+            if (nearbyDisplays.Parent is Panel previous) previous.Children.Remove(nearbyDisplays);
+            card.Children.Add(nearbyDisplays);
+            if (findDisplays.Parent is Panel previousRow) previousRow.Children.Remove(findDisplays);
+            findDisplays.IsEnabled = !busy;
+            Field(card, "Display address", address, findDisplays);
             Row(card, Button("Open pairing page", () => OpenPanel(pairingPage: true), !busy));
             card.Children.Add(Paragraph("Get the code from the pairing page or press and hold the display’s Wi-Fi icon."));
             var pair = Button("Pair display", async () => await Pair(), !busy);
