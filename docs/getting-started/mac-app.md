@@ -40,4 +40,8 @@ On an empty display, the web page guides you through app setup.
 
 Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → Appearance → App Subpages → Setup Again**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
 
+## Check for Mac app updates
+
+Choose **EspDesktop → Check for Updates…** while the app is open, or choose **Check for Updates…** from the EspDesktop icon in the menu bar. By default, EspDesktop checks daily while it’s running and alerts you when a compatible Mac update is available. To also install updates automatically, turn on **Automatically Install Updates** in **Mac Settings → Updates**.
+
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)

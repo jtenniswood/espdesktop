@@ -23,6 +23,18 @@ struct CompanionApp: App {
                 Button("Mac Settings") { appDelegate.openCompanionWindow() }
                     .keyboardShortcut(",", modifiers: .command)
             }
+            CompanionUpdateCommands(updater: appDelegate.store.updater)
+        }
+    }
+}
+
+private struct CompanionUpdateCommands: Commands {
+    @ObservedObject var updater: CompanionUpdater
+
+    var body: some Commands {
+        CommandGroup(after: .appSettings) {
+            Button("Check for Updates…") { updater.check() }
+                .disabled(updater.isChecking)
         }
     }
 }
@@ -46,7 +58,7 @@ private final class WindowRestorationMarkerView: NSView {
 }
 
 @MainActor
-final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
+final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemValidation, NSWindowDelegate {
     private static let ipcIdentifier = "io.espdesktop.app"
     private static let openSettingsNotification = Notification.Name(
         "\(ipcIdentifier).open-settings"
@@ -144,12 +156,15 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
 
         addMenuItem("Mac Settings", action: #selector(openSettings), key: ",",
                     image: menuSymbol("gearshape", description: "Mac Settings"), to: menu)
-        addMenuItem("Updates",
+        addMenuItem("Check for Updates…",
                     action: #selector(checkForUpdates), key: "u",
-                    image: menuSymbol("arrow.triangle.2.circlepath", description: "Updates"), to: menu)
-        menu.items.last?.isEnabled = !store.updater.isChecking
+                    image: menuSymbol("arrow.triangle.2.circlepath", description: "Check for Updates"), to: menu)
         addMenuItem("Support", action: #selector(openHelp), key: "?",
                     image: menuSymbol("questionmark.circle", description: "Support"), to: menu)
+    }
+
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        menuItem.action != #selector(checkForUpdates) || !store.updater.isChecking
     }
 
     private func connectionStatusItem() -> NSMenuItem {

@@ -56,7 +56,7 @@ SPARKLE_FRAMEWORK="${SPARKLE_ROOT}/Sparkle.xcframework/macos-arm64_x86_64/Sparkl
 mkdir -p "${APP_DIR}/Contents/Frameworks"
 ditto "${SPARKLE_FRAMEWORK}" "${APP_DIR}/Contents/Frameworks/Sparkle.framework"
 PROTOCOL_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["protocol"]["version"])' "${REPOSITORY_DIR}/product/v2/companion_capabilities.json")"
-plutil -replace SUFeedURL -string "https://github.com/jtenniswood/espdesktop/releases/latest/download/companion-appcast-v${PROTOCOL_VERSION}.xml" "${APP_DIR}/Contents/Info.plist"
+plutil -replace SUFeedURL -string "https://jtenniswood.github.io/espdesktop/updates/companion-appcast-v${PROTOCOL_VERSION}.xml" "${APP_DIR}/Contents/Info.plist"
 plutil -replace SUPublicEDKey -string "$(cat "${SCRIPT_DIR}/sparkle-public-key.txt")" "${APP_DIR}/Contents/Info.plist"
 
 

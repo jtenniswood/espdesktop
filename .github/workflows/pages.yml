@@ -172,6 +172,29 @@ jobs:
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
         run: npm run docs:build
 
+      - name: Stage signed Mac update feeds
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          FEED_DIR="docs/.vitepress/dist/updates"
+          mkdir -p "${FEED_DIR}"
+          # Keep the newest stable Mac release for each protocol, even when firmware ships on its own.
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" |
+            jq -rs '[.[][] |
+              select((.draft or .prerelease) | not) |
+              .tag_name as $tag |
+              select($tag | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) |
+              ($tag | ltrimstr("v")) as $version |
+              select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).zip")) |
+              .assets[] | select(.state == "uploaded" and (.name | test("^companion-appcast-v[0-9]+\\.xml$"))) |
+              {tag: $tag, version: ($version | split(".") | map(tonumber)), feed: .name}
+            ] | group_by(.feed)[] | max_by(.version) | [.tag, .feed] | @tsv' |
+            while IFS=$'\t' read -r tag feed; do
+              gh release download "$tag" --repo "${GITHUB_REPOSITORY}" \
+                --pattern "$feed" --output "${FEED_DIR}/${feed}"
+            done
+
       - name: Upload docs artifact
         uses: actions/upload-artifact@v7
         with:
