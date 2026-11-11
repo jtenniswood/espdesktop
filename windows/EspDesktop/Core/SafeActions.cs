@@ -44,7 +44,7 @@ internal static class SafeActions
         else return null;
         // Windows shell and session shortcuts must not be triggered by the panel.
         if ((result.Contains(0x12) && result[^1] is 0x09 or 0x1b or 0x73) ||
-            (result.Contains(0x11) && result.Contains(0x10) && result[^1] == 0x1b)) return null;
+            (result.Contains(0x11) && result[^1] == 0x1b)) return null;
         return [.. result];
     }
 }

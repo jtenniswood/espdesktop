@@ -39,6 +39,8 @@ foreach (var bad in new[] { "file:///C:/Windows", "https://a:b@example.org", "ms
     Check(SafeActions.WebUrl(bad) is null, "refuse unsafe URL");
 Check(SafeActions.Shortcut("shortcut.command+shift+t")?.SequenceEqual(new ushort[] { 0x11, 0x10, 0x54 }) == true, "map Command to Ctrl");
 Check(SafeActions.Shortcut("shortcut.option+f4") is null, "block system window close");
+Check(SafeActions.Shortcut("shortcut.control+escape") is null, "block Start menu");
+Check(SafeActions.Shortcut("shortcut.command+escape") is null, "block Start menu through the Command alias");
 Check(SafeActions.Shortcut("shortcut.control+shift+escape") is null, "block task manager");
 Check(SafeActions.Shortcut("shortcut.command+keycomma") is not null, "match panel punctuation IDs");
 Check(SafeActions.Shortcut("shortcut.command+calc.exe") is null, "no command paths as shortcuts");
