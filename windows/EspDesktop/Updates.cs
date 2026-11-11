@@ -110,12 +110,14 @@ internal static class Updates
     }
 
     private static bool SamePublisher(string path) =>
-        Environment.ProcessPath is { } current && Authenticode.PublisherKey(current) is { } expected &&
-        Authenticode.PublisherKey(path) == expected;
+        Environment.ProcessPath is { } current && Authenticode.MatchesPublisher(current, path);
 }
 
 internal static class Authenticode
 {
+    public static bool MatchesPublisher(string current, string candidate) =>
+        PublisherKey(current) is { } expected && PublisherKey(candidate) == expected;
+
     public static string? PublisherKey(string path)
     {
         var file = new FileInfoNative { Size = (uint)Marshal.SizeOf<FileInfoNative>(), Path = path };

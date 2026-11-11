@@ -9,6 +9,7 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
     <Compile Include="../EspDesktop/Core/*.cs" LinkBase="Core" />
+    <Compile Include="../EspDesktop/Updates.cs" Link="Updates.cs" />
     <EmbeddedResource Include="../../product/v2/companion_capabilities.json" LogicalName="CompanionContract.json" />
     <EmbeddedResource Include="../../compatibility/fixtures/companion_protocol_v4.json" LogicalName="ProtocolFixtures.json" />
   </ItemGroup>

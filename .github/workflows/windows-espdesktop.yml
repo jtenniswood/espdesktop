@@ -92,3 +92,9 @@ jobs:
           name: espdesktop-windows-settings-preview
           path: ${{ runner.temp }}/EspDesktop-settings*.png
           if-no-files-found: error
+
+      - name: Verify signed installers and updater publisher checks
+        shell: pwsh
+        run: |
+          $preview = (Get-ChildItem ./dist/windows/*-Setup.exe).FullName
+          ./windows/EspDesktop.Tests/Test-SignedInstaller.ps1 -Architecture ${{ matrix.arch }} -UnsignedInstaller $preview

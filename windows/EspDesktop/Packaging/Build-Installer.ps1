@@ -4,7 +4,7 @@ param(
     [ValidatePattern('^\d+\.\d+\.\d+$')][string]$Version = '0.1.0',
     [string]$OutputDirectory,
     [ValidatePattern('^[A-Fa-f0-9]{40}$')][string]$SigningThumbprint,
-    [string]$TimestampUrl = 'http://timestamp.digicert.com'
+    [ValidatePattern('^(?:https?://[^\s"$]+)?$')][string]$TimestampUrl = 'http://timestamp.digicert.com'
 )
 $ErrorActionPreference = 'Stop'
 $project = Join-Path $PSScriptRoot '..\EspDesktop.csproj'
@@ -31,9 +31,15 @@ try {
         }
         if (!$sign) { throw 'SignTool was not found in the Windows SDK.' }
         $exe = Join-Path $publish 'EspDesktop.exe'
-        & $sign sign /fd SHA256 /td SHA256 /tr $TimestampUrl /sha1 $SigningThumbprint $exe
+        $timestampArgs = @()
+        $timestampCommand = ''
+        if ($TimestampUrl) {
+            $timestampArgs = @('/td', 'SHA256', '/tr', $TimestampUrl)
+            $timestampCommand = ' /td SHA256 /tr $q{0}$q' -f $TimestampUrl
+        }
+        & $sign sign /fd SHA256 /sha1 $SigningThumbprint @timestampArgs $exe
         if ($LASTEXITCODE) { throw 'Windows app signing failed.' }
-        $signCommand = '"{0}" sign /fd SHA256 /td SHA256 /tr "{1}" /sha1 {2} $f' -f $sign, $TimestampUrl, $SigningThumbprint
+        $signCommand = '$q{0}$q sign /fd SHA256 /sha1 {1}{2} $f' -f $sign, $SigningThumbprint, $timestampCommand
         $isccArgs += '/DSignedBuild=1', "/Sespdesktop=$signCommand"
     }
     & $iscc @isccArgs (Join-Path $PSScriptRoot 'EspDesktop.iss')

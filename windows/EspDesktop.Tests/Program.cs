@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using EspDesktop;
 using EspDesktop.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,6 +15,20 @@ using static EspDesktop.Core.Protocol;
 static void Check(bool condition, string label)
 {
     if (!condition) throw new InvalidOperationException("Failed: " + label);
+}
+
+if (args is ["--verify-windows-signatures", var app, var installer, var uninstaller,
+    var unsigned, var otherPublisher, var modified])
+{
+    Check(OperatingSystem.IsWindows(), "signature checks require Windows");
+    Check(Authenticode.MatchesPublisher(app, installer), "accept the app publisher's installer");
+    Check(Authenticode.MatchesPublisher(app, uninstaller), "verify the installed uninstaller");
+    Check(Authenticode.PublisherKey(otherPublisher) is not null, "other publisher is independently trusted");
+    Check(!Authenticode.MatchesPublisher(app, otherPublisher), "reject a different trusted publisher");
+    Check(!Authenticode.MatchesPublisher(app, unsigned), "reject an unsigned installer");
+    Check(!Authenticode.MatchesPublisher(app, modified), "reject a changed installer");
+    Console.WriteLine("Passed Windows installer publisher and signature checks.");
+    return;
 }
 
 using (var stream = typeof(Protocol).Assembly.GetManifestResourceStream("ProtocolFixtures.json")!)
