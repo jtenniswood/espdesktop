@@ -108,6 +108,9 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published var panelDisplayName: String {
         didSet { defaults.set(panelDisplayName, forKey: Keys.displayName) }
     }
+    @Published var onboardingCompleted: Bool {
+        didSet { defaults.set(onboardingCompleted, forKey: Keys.onboardingCompleted) }
+    }
     private(set) var pairingAccount: String
     @Published private(set) var availableApps: [LaunchableApp] = []
     @Published private(set) var approvedApplicationIdentifiers: Set<String>
@@ -126,6 +129,7 @@ final class CompanionStore: NSObject, ObservableObject {
         static let host = "panelHost"
         static let displayName = "panelDisplayName"
         static let pairingAccount = "pairingAccount"
+        static let onboardingCompleted = "companion.onboarding.completed"
         static let approvedApplications = "approvedApplications"
         static let knownApplications = "knownApplications"
         static let approvedFolders = "approvedFolders"
@@ -161,7 +165,9 @@ final class CompanionStore: NSObject, ObservableObject {
     ) {
         self.mediaController = mediaController
         self.systemMetricsProvider = systemMetricsProvider
-        let stableDefaults = UserDefaults(suiteName: Self.preferencesSuite) ?? .standard
+        let stableDefaults = Bundle.main.bundleIdentifier == Self.preferencesSuite
+            ? UserDefaults.standard
+            : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard)
         defaults = stableDefaults
         approvedApplicationIdentifiers = Set(
             stableDefaults.stringArray(forKey: Keys.approvedApplications) ?? []
@@ -169,15 +175,14 @@ final class CompanionStore: NSObject, ObservableObject {
         approvedFolders = stableDefaults.data(forKey: Keys.approvedFolders)
             .flatMap { try? JSONDecoder().decode([ApprovedFolder].self, from: $0) }
             ?? []
-        let savedPairingAccounts = KeychainStore.accounts(service: KeychainStore.service)
-        let configuredPanelHost = stableDefaults.string(forKey: Keys.host)
-            ?? savedPairingAccounts.first
-            ?? ""
-        panelHost = configuredPanelHost
+        let pairing = CompanionPairingSelection.restore(
+            host: stableDefaults.string(forKey: Keys.host),
+            account: stableDefaults.string(forKey: Keys.pairingAccount)
+        ) { KeychainStore.accounts(service: KeychainStore.service) }
+        panelHost = pairing.host
         panelDisplayName = stableDefaults.string(forKey: Keys.displayName) ?? ""
-        pairingAccount = stableDefaults.string(forKey: Keys.pairingAccount)
-            ?? (savedPairingAccounts.contains(configuredPanelHost) ? configuredPanelHost : nil)
-            ?? (savedPairingAccounts.count == 1 ? savedPairingAccounts[0] : "")
+        pairingAccount = pairing.account
+        onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !pairing.account.isEmpty
         super.init()
         sessionLock.onChange = { [weak self] locked, displayAwake in
             self?.connection.publishSessionLock(locked, displayAwake: displayAwake)
@@ -196,6 +201,7 @@ final class CompanionStore: NSObject, ObservableObject {
             object: nil
         )
         if !pairingAccount.isEmpty { defaults.set(pairingAccount, forKey: Keys.pairingAccount) }
+        if onboardingCompleted { defaults.set(true, forKey: Keys.onboardingCompleted) }
         systemMetricsProvider.onSnapshot = { [weak self] snapshot in
             guard let self else { return }
             guard isConnected && systemMetricsSupported else { return }
@@ -220,7 +226,8 @@ final class CompanionStore: NSObject, ObservableObject {
     func removePreference(forKey key: String) { defaults.removeObject(forKey: key) }
 
     var hasSavedPairing: Bool {
-        !pairingAccount.isEmpty && KeychainStore.accounts(service: KeychainStore.service).contains(pairingAccount)
+        // An unavailable Keychain item is a reconnect error, not a new setup.
+        !pairingAccount.isEmpty
     }
 
     func rememberPairingAccount(_ account: String) {

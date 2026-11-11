@@ -1,6 +1,12 @@
+import { build } from 'esbuild'
+import { copyFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
 import { writeMarkdownPages } from './markdown-export'
+
+const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
 
 function shareImage(file: string, width: number, height: number, alt: string) {
   return {
@@ -38,7 +44,6 @@ export default defineConfig({
   title: 'EspDesktop',
   description:
     'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
-  base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
   lastUpdated: true,
@@ -56,7 +61,19 @@ export default defineConfig({
   ],
   markdown: { config: faqSchema, image: { lazyLoading: true } },
   async buildEnd({ outDir, pages }) {
-    await Promise.all([writeRedirects(outDir), writeMarkdownPages(outDir, pages)])
+    const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
+    await Promise.all([
+      writeRedirects(outDir),
+      writeMarkdownPages(outDir, pages),
+      copyFile(demoRenderer, resolve(outDir, 'editor/renderer.js')),
+      build({
+        entryPoints: [resolve(import.meta.dirname, 'editor-demo.ts')],
+        outfile: resolve(outDir, 'editor/demo.js'),
+        bundle: true,
+        minify: true,
+        target: 'es2020',
+      }),
+    ])
   },
 
   transformHead({ page }) {
@@ -76,7 +93,7 @@ export default defineConfig({
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
       : []),
-    ['link', { rel: 'icon', type: 'image/png', href: '/espdesktop/favicon.png' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/favicon.png' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
     ['meta', { property: 'og:site_name', content: 'EspDesktop' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
@@ -197,7 +214,6 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Supported Display', link: '/screens/4848s040' },
           { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
           { text: 'Getting Setup', link: '/getting-started/install' },
         ],

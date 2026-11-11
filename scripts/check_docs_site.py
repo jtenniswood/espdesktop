@@ -14,7 +14,8 @@ from urllib.request import urlopen
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = 'https://jtenniswood.github.io/espdesktop/'
+BASE = 'https://espdesktop.com/'
+PREVIOUS_BASE = 'https://jtenniswood.github.io/espdesktop/'
 
 
 def normalized(value):
@@ -278,11 +279,11 @@ def check_build(dist):
             source = urljoin(url, image.get('src', ''))
             if 'alt' not in image:
                 errors.append(f'Missing image alt attribute: {url}: {source}')
-            if source.startswith(BASE) and not (dist / unquote(urlsplit(source).path.removeprefix('/espdesktop/'))).is_file():
+            if source.startswith(BASE) and not (dist / unquote(urlsplit(source).path.removeprefix('/'))).is_file():
                 errors.append(f'Missing page image: {url}: {source}')
         for href in page.links:
             target = urlsplit(urljoin(url, href))
-            if target.netloc != urlsplit(BASE).netloc or not target.path.startswith('/espdesktop/'):
+            if target.netloc != urlsplit(BASE).netloc:
                 continue
             target_url = target._replace(query='', fragment='').geturl()
             if target_url.endswith('.html'):
@@ -293,7 +294,7 @@ def check_build(dist):
                 if target.fragment and unquote(target.fragment) not in destination.ids:
                     errors.append(f'Broken anchor from {url}: {href}')
             else:
-                relative = unquote(target.path.removeprefix('/espdesktop/'))
+                relative = unquote(target.path.removeprefix('/'))
                 if not (dist / relative).is_file():
                     errors.append(f'Broken or retired link from {url}: {href}')
 
@@ -353,7 +354,7 @@ def check_build(dist):
         redirects[f'generated/screens/{model}-install'] = install
     baseline = json.loads((ROOT / 'dev-docs/hosting/seo-baseline-2026-09-22.json').read_text())
     for url in baseline['generated_urls']:
-        if url.removeprefix(BASE) not in redirects:
+        if url.removeprefix(PREVIOUS_BASE) not in redirects:
             errors.append(f'Previously published generated page has no redirect: {url}')
     for path, destination in redirects.items():
         file = dist / (path + '.html')
@@ -371,8 +372,9 @@ def check_build(dist):
     for file in (dist / 'generated').rglob('*.html'):
         if file.relative_to(dist).with_suffix('').as_posix() not in redirects:
             errors.append(f'Generated fragment is still published: {file.relative_to(dist)}')
-    if (dist / 'robots.txt').exists():
-        errors.append('Project-path robots.txt cannot control crawling; publish the host-root template instead')
+    robots = dist / 'robots.txt'
+    if not robots.is_file() or f'Sitemap: {BASE}sitemap.xml' not in robots.read_text().splitlines():
+        errors.append('Host-root robots.txt must announce the public sitemap')
 
     if errors:
         raise SystemExit('\n'.join(sorted(set(errors))))
