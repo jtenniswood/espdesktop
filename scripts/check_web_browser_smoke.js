@@ -6951,19 +6951,13 @@ async function assertAppShortcutPreview(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const fixture = nativeConfigState(testCase.slug);
   fixture.document = structuredClone(require("../compatibility/fixtures/companion_nested_pages.json").document);
-  const owner = "com.example.RemoteEditor";
-  fixture.document.subpages[1] = fixture.document.subpages[1].replace("com.apple.Safari,Safari", `${owner},Editor`);
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
-  let connected = true, ready = false;
-  await context.route("**/connectors/status**", route => {
-    const requested = new URL(route.request().url()).searchParams.get("shortcut_owner");
-    return route.fulfill({ status: 200, json: {
-      onboarding_complete: true,
-      mac_companion: { available: true, configured: true, paired: true, connected,
-        shortcut_page_ready: requested === owner ? connected && ready : undefined },
-    } });
-  });
+  const status = {
+    onboarding_complete: true,
+    mac_companion: { available: true, configured: true, paired: true, connected: true, shortcut_page_ready: false },
+  };
+  await context.route("**/connectors/status**", route => route.fulfill({ status: 200, json: status }));
   await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: [] }));
   try {
     const page = await context.newPage();
@@ -6975,21 +6969,28 @@ async function assertAppShortcutPreview(browser) {
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
     await page.locator('.sp-back-btn .sp-app-back-icon.mdi-monitor').waitFor();
     const shortcut = page.locator('.sp-main [data-slot="1"][data-pos="1"]');
-    const unavailable = page.locator('.sp-main .sp-shortcut-unavailable');
-    await unavailable.waitFor();
+    await shortcut.waitFor();
+    async function assertEnabledAfterStatusPoll() {
+      const response = await page.waitForResponse(response => new URL(response.url()).pathname === "/connectors/status");
+      await response.finished();
+      const [cardColor, iconColor, labelColor] = await shortcut.evaluate(card =>
+        [card, card.querySelector(".sp-btn-icon"), card.querySelector(".sp-btn-label")]
+          .map(element => getComputedStyle(element).color));
+      assert.deepEqual([iconColor, labelColor], [cardColor, cardColor],
+        "shortcut labels and icons use the regular card color");
+    }
+    await assertEnabledAfterStatusPoll();
+    status.mac_companion.shortcut_page_ready = true;
+    await assertEnabledAfterStatusPoll();
+    status.mac_companion.connected = false;
+    status.mac_companion.shortcut_page_ready = false;
+    await assertEnabledAfterStatusPoll();
     assert.equal(await shortcut.locator(".sp-btn-label").textContent(), "Address");
-    const savedTile = await shortcut.elementHandle();
-    const unavailableColor = await shortcut.locator(".sp-btn-label").evaluate(node => getComputedStyle(node).color);
-    ready = true;
-    await unavailable.waitFor({ state: "detached" });
-    assert(await savedTile.evaluate(node => node.isConnected), "focus updates the tile without rebuilding the page");
-    assert.notEqual(await shortcut.locator(".sp-btn-label").evaluate(node => getComputedStyle(node).color), unavailableColor);
-    connected = false;
-    await unavailable.waitFor();
-    assert.equal(await shortcut.locator(".sp-btn-label").textContent(), "Address");
+    await shortcut.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).waitFor();
     assert.equal(await shortcut.getAttribute("draggable"), "true");
-    assert.equal(fixture.puts.length, 0, "live app readiness never saves or moves cards");
-    console.log("App shortcut preview keeps saved labels, positions, and Back while focus changes.");
+    assert.equal(fixture.puts.length, 0, "connector status changes never save or move cards");
+    console.log("App shortcut preview keeps cards enabled and editable through focus and connection changes.");
   } finally { await context.close(); }
 }
 

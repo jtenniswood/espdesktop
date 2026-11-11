@@ -12,7 +12,6 @@ import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
 import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
-import { companionShortcutActionIdValid } from "./companion_shortcut_folder";
 import { finderFolderPreview } from "../model/finder_folder_preview";
 import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
@@ -56,11 +55,9 @@ export interface PreviewRenderDependencies {
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
     readonly liveFinderFolders: () => readonly CompanionAction[];
-    readonly shortcutPageReady: (owner: string) => boolean | undefined;
 }
 export interface PreviewRenderFeature {
     render(): void;
-    updateShortcutAvailability(): void;
     registryValue(typeDefinition?: any, key?: any, fallback?: any): any;
     configDisabled(button?: any): boolean;
     defaultTypeForPicker(key?: any): any;
@@ -408,17 +405,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.setAttribute("aria-label", "Rename card");
         title.title = "Click to rename; Enter to save";
     }
-    let renderedShortcutOwner: string | undefined;
-    function updateShortcutAvailability() {
-        const main = els.previewMain as HTMLElement | undefined;
-        if (!main || !renderedShortcutOwner) return;
-        const ready = dependencies.shortcutPageReady(renderedShortcutOwner);
-        for (const card of main.querySelectorAll<HTMLElement>("[data-preview-shortcut]")) {
-            const unavailable = ready === false || card.dataset.previewShortcut === "invalid";
-            card.classList.toggle("sp-shortcut-unavailable", unavailable);
-            card.title = unavailable ? "Shortcut unavailable on the touchscreen." : "";
-        }
-    }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
@@ -437,7 +423,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const selectionEnd = editor?.selectionEnd ?? null;
         const editorSlot = editor?.closest("[data-slot]")?.getAttribute("data-slot");
         main.innerHTML = "";
-        renderedShortcutOwner = undefined;
         main.className = "sp-main" + (state.subpageChevronsOn ? "" : " sp-hide-subpage-chevrons");
         if (gridPreviewBlockedByRotationStartup()) {
             main.className += " sp-grid-loading";
@@ -460,7 +445,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const subpage = pageKey ? getSubpage(pageKey) : null;
         const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
         const shortcutOwner = appShortcutPageOwner(owner);
-        renderedShortcutOwner = shortcutOwner;
         const liveFolders = subpage && shortcutOwner === "com.apple.finder"
             ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
                 dependencies.liveFinderFolders())
@@ -575,9 +559,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
-                if (shortcutOwner && b.type === "companion" && b.entity?.startsWith("shortcut.")) {
-                    btn.dataset.previewShortcut = companionShortcutActionIdValid(b.entity) ? "valid" : "invalid";
-                }
                 var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
                 var sensorBadge: any = hasWhenOn
                     ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'
@@ -657,7 +638,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 editor.setSelectionRange(selectionStart, selectionEnd);
             }
         }
-        updateShortcutAvailability();
         renderSelectionBar(c);
     }
     document.addEventListener("espdesktop:app-icon-cache-cleared", function (event) {
@@ -666,7 +646,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     });
     return {
         render: renderPreview,
-        updateShortcutAvailability,
         registryValue: buttonTypeRegistryValue,
         configDisabled: buttonConfigDisabledForDevice,
         defaultTypeForPicker: defaultButtonTypeForPicker,
