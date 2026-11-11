@@ -45,6 +45,7 @@ export default defineConfig({
   description:
     'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
   lang: 'en-US',
+  appearance: 'force-dark',
   cleanUrls: true,
   lastUpdated: true,
   // Publish only the Mac Companion setup and control guides. The broader
