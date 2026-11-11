@@ -263,6 +263,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     createEventSource: () => new EventSource("/events", { withCredentials: true }),
     schedule: ((callback: TimerHandler, delay?: number) => window.setTimeout(callback, delay)) as typeof setTimeout,
   };
+  const displayDemo = dom.document.documentElement?.hasAttribute("data-espdesktop-display-demo") === true;
   const deviceApi = createDeviceApi((url, init) =>
     dom.fetch(url, init as RequestInit));
   const identity = createPanelIdentityFeature({
@@ -607,6 +608,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     },
   );
   preview = createPreviewRenderFeature({
+    displayDemo,
     updateClockBarItemUi: statusPreview.updateClockBarItemUi,
     document: dom.document,
     layout,
@@ -718,7 +720,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
   const nativePages = createNativePageEditorFeature({ native: nativePanelConfig, codec: configurationCodec, layout, runtime,
-    document: dom.document, shell, closeSettings: selection.closeSettings,
+    document: dom.document, shell, closeSettings: selection.closeSettings, displayDemo,
     render: () => { preview.render(); buttonSettings.render(); appearance.syncColorUi(); },
     canApply: () => !grid.hasPendingMainGridSave(),
   });

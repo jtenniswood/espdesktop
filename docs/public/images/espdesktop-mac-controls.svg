@@ -42,6 +42,11 @@
     <path d="M195 200h10m-5-5v10"/>
     <rect x="290" y="198" width="16" height="13" rx="2"/>
     <path d="M293 198v-4a5 5 0 0 1 10 0v4m-5 6v1"/>
+    <rect x="90" y="276" width="24" height="21" rx="3"/>
+    <path d="M96 273v6m12-6v6m-18 5h24"/>
+    <path d="M188 277h9l3 4h12v15h-24z"/>
+    <rect x="286" y="278" width="24" height="18" rx="3"/>
+    <path d="M292 278v-4h12v4m-18 8h24"/>
   </g>
 
   <g fill="#e8edff" font-family="system-ui, sans-serif" font-size="13" font-weight="600" text-anchor="middle">
@@ -51,13 +56,8 @@
     <text x="102" y="226">Copy Link</text>
     <text x="200" y="226">New Tab</text>
     <text x="298" y="226">Lock Mac</text>
-    <text x="102" y="319">CPU</text>
-    <text x="200" y="319">Memory</text>
-    <text x="298" y="319">Battery</text>
-  </g>
-  <g fill="#a0e2d1" font-family="system-ui, sans-serif" font-size="24" font-weight="650" text-anchor="middle">
-    <text x="102" y="293">14%</text>
-    <text x="200" y="293">46%</text>
-    <text x="298" y="293">82%</text>
+    <text x="102" y="319">Calendar</text>
+    <text x="200" y="319">Downloads</text>
+    <text x="298" y="319">Work</text>
   </g>
 </svg>

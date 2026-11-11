@@ -1,6 +1,6 @@
 # EspDesktop
 
-> EspDesktop pairs a 4-inch Guition 4848S040 ESP32-S3 touchscreen with a macOS menu-bar app. The display can launch apps, open Finder folders and websites, run shortcuts, lock the Mac and show Mac statistics.
+> EspDesktop pairs a 4-inch Guition 4848S040 ESP32-S3 touchscreen with a macOS menu-bar app. The display can launch apps, open Finder folders and websites, run shortcuts and lock the Mac.
 
 The Mac app requires macOS 13 or newer. Connect the display to 2.4 GHz WiFi on the same local network as the Mac. Use firmware and the Mac app from the same EspDesktop release. The Mac Companion app and display pair directly.
 
@@ -8,31 +8,32 @@ The Markdown guides below come from the public documentation. Each guide links t
 
 ## Start here
 
-- [EspDesktop overview](https://jtenniswood.github.io/espdesktop/index.md)
-- [Supported Guition 4848S040 touchscreen](https://jtenniswood.github.io/espdesktop/screens/4848s040.md)
-- [Install firmware and connect to WiFi](https://jtenniswood.github.io/espdesktop/getting-started/install.md)
-- [Install and pair the Mac app](https://jtenniswood.github.io/espdesktop/getting-started/mac-app.md)
-- [Compatibility and setup FAQ](https://jtenniswood.github.io/espdesktop/reference/faq.md)
+- [EspDesktop overview](https://espdesktop.com/index.md)
+- [Supported Guition 4848S040 touchscreen](https://espdesktop.com/screens/4848s040.md)
+- [Install firmware and connect to WiFi](https://espdesktop.com/getting-started/install.md)
+- [Install and pair the Mac app](https://espdesktop.com/getting-started/mac-app.md)
+- [Compatibility and setup FAQ](https://espdesktop.com/reference/faq.md)
 
 ## Configure the touchscreen
 
-- [Web editor and display settings](https://jtenniswood.github.io/espdesktop/features/setup.md)
-- [Subpages and Mac statistics](https://jtenniswood.github.io/espdesktop/features/subpages.md)
-- [Launch Mac apps](https://jtenniswood.github.io/espdesktop/mac-controls/apps.md)
-- [Open websites on the Mac](https://jtenniswood.github.io/espdesktop/mac-controls/websites.md)
-- [Open approved Finder folders](https://jtenniswood.github.io/espdesktop/mac-controls/folders.md)
-- [Run keyboard shortcuts](https://jtenniswood.github.io/espdesktop/mac-controls/shortcuts.md)
+- [Web editor and display settings](https://espdesktop.com/features/setup.md)
+- [Create subpages](https://espdesktop.com/features/subpages.md)
+- [Launch Mac apps](https://espdesktop.com/mac-controls/apps.md)
+- [Open websites on the Mac](https://espdesktop.com/mac-controls/websites.md)
+- [Open approved Finder folders](https://espdesktop.com/mac-controls/folders.md)
+- [Run keyboard shortcuts](https://espdesktop.com/mac-controls/shortcuts.md)
 
 ## Troubleshooting and reference
 
-- [Pairing, network and control troubleshooting](https://jtenniswood.github.io/espdesktop/getting-started/troubleshooting.md)
-- [Mac Companion permissions and security](https://jtenniswood.github.io/espdesktop/mac-controls/security.md)
-- [Mac app and firmware compatibility](https://jtenniswood.github.io/espdesktop/reference/companion-compatibility.md)
+- [Pairing, network and control troubleshooting](https://espdesktop.com/getting-started/troubleshooting.md)
+- [Mac Companion permissions and security](https://espdesktop.com/mac-controls/security.md)
+- [Mac app and firmware compatibility](https://espdesktop.com/reference/companion-compatibility.md)
 
 ## Optional
 
-- [Privacy policy](https://jtenniswood.github.io/espdesktop/reference/privacy.md)
-- [Contribute app shortcut presets](https://jtenniswood.github.io/espdesktop/mac-controls/improve-shortcuts.md)
-- [Request an icon](https://jtenniswood.github.io/espdesktop/reference/request-icons.md)
+- [Privacy policy](https://espdesktop.com/reference/privacy.md)
+- [Support the project](https://espdesktop.com/reference/support.md)
+- [Contribute app shortcut presets](https://espdesktop.com/mac-controls/improve-shortcuts.md)
+- [Request an icon](https://espdesktop.com/reference/request-icons.md)
 - [EspDesktop releases](https://github.com/jtenniswood/espdesktop/releases)
 - [EspControl for Home Assistant](https://jtenniswood.github.io/espcontrol/)

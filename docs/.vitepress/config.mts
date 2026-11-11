@@ -1,6 +1,12 @@
+import { build } from 'esbuild'
+import { copyFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
 import { writeMarkdownPages } from './markdown-export'
+
+const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
 
 function shareImage(file: string, width: number, height: number, alt: string) {
   return {
@@ -13,7 +19,7 @@ function shareImage(file: string, width: number, height: number, alt: string) {
 }
 
 const defaultImage = shareImage('espdesktop-share.png', 1200, 630,
-  'EspDesktop touchscreen controller for Mac with example app, shortcut and status tiles')
+  'EspDesktop touchscreen controller for Mac with example app, website, folder and shortcut tiles')
 const displayImage = shareImage('4848s040-hero.jpg', 1024, 999,
   'The 4-inch Guition 4848S040 touchscreen next to a keyboard')
 const pageImages: Record<string, typeof defaultImage> = {
@@ -38,7 +44,6 @@ export default defineConfig({
   title: 'EspDesktop',
   description:
     'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
-  base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
   lastUpdated: true,
@@ -56,7 +61,19 @@ export default defineConfig({
   ],
   markdown: { config: faqSchema, image: { lazyLoading: true } },
   async buildEnd({ outDir, pages }) {
-    await Promise.all([writeRedirects(outDir), writeMarkdownPages(outDir, pages)])
+    const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
+    await Promise.all([
+      writeRedirects(outDir),
+      writeMarkdownPages(outDir, pages),
+      copyFile(demoRenderer, resolve(outDir, 'editor/renderer.js')),
+      build({
+        entryPoints: [resolve(import.meta.dirname, 'editor-demo.ts')],
+        outfile: resolve(outDir, 'editor/demo.js'),
+        bundle: true,
+        minify: true,
+        target: 'es2020',
+      }),
+    ])
   },
 
   transformHead({ page }) {
@@ -76,7 +93,7 @@ export default defineConfig({
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
       : []),
-    ['link', { rel: 'icon', type: 'image/png', href: '/espdesktop/favicon.png' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/favicon.png' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
     ['meta', { property: 'og:site_name', content: 'EspDesktop' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
@@ -95,7 +112,7 @@ export default defineConfig({
     const description = String(frontmatter.description ?? '')
     const image = pageImages[relativePath] ?? defaultImage
     const isHome = relativePath === 'index.md'
-    const isArticle = !isHome && relativePath !== 'reference/privacy.md' && relativePath !== 'reference/faq.md'
+    const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
 
     frontmatter.head.push(
       ['link', { rel: 'canonical', href: canonicalUrl }],
@@ -197,9 +214,8 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Supported Display', link: '/screens/4848s040' },
-          { text: 'Where to Buy', link: '/#where-to-buy' },
-          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Getting Setup', link: '/getting-started/install' },
         ],
       },
       {
@@ -210,7 +226,7 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Device Features',
+        text: 'Features',
         items: [
           { text: 'Configure the Display', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
@@ -225,6 +241,7 @@ export default defineConfig({
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
+          { text: 'Support the Project', link: '/reference/support' },
           { text: 'Privacy Policy', link: '/reference/privacy' },
         ],
       },

@@ -217,7 +217,11 @@ final class CompanionConnection: NSObject {
             guard let credential else {
                 self.hasTerminalConnectionError = true
                 self.shouldReconnect = false
-                self.updateConnectionStatus("Unlock the Mac or allow Keychain access to reconnect", state: .failed, recovery: "Unlock your Mac and allow EspDesktop to access Keychain, then try again.")
+                self.updateConnectionStatus(
+                    "Could not read the saved display pairing", state: .failed,
+                    recovery: "Unlock your Mac and allow EspDesktop to access Keychain, then try again. " +
+                        "If the pairing was deleted from Keychain, remove the display in Settings and pair it again."
+                )
                 self.handleConnectionFailure(for: webSocketTask, reason: "Authentication credential unavailable")
                 return
             }
@@ -562,7 +566,10 @@ final class CompanionConnection: NSObject {
                     hasTerminalConnectionError = true
                     shouldReconnect = false
                     tearDownConnection()
-                    updateConnectionStatus(message, state: .failed)
+                    let recovery = code == "authentication_failed"
+                        ? "The display rejected this app’s saved pairing. If you paired it with another copy of EspDesktop, choose Remove and pair this copy once."
+                        : nil
+                    updateConnectionStatus(message, state: .failed, recovery: recovery)
                 }
             }
         case .artworkAck, .artworkAbort, .artworkRequest:

@@ -1,7 +1,7 @@
 # Documentation Search and Answer Visibility
 
 The public site uses VitePress under
-`https://jtenniswood.github.io/espdesktop/`. This guide covers maintainer work;
+`https://espdesktop.com/`. This guide covers maintainer work;
 search-provider administration does not belong in installation instructions.
 
 ## Build and Review
@@ -12,6 +12,24 @@ description, one main heading, a canonical URL and a matching share preview.
 It verifies images, breadcrumbs, internal links and anchors, retired-page
 redirects, and FAQ data matching the visible answers. The Pages deployment
 uses Git history to date each sitemap entry.
+
+## Review the Homepage
+
+- Show the first screen briefly to someone unfamiliar with EspDesktop. Ask what
+  it does, what hardware it uses, and where they would go to start setup.
+- Read the feature list aloud. Each item should name a real control and explain
+  when someone would use it. Check that illustrations and screenshots are
+  labelled and show the stated feature.
+- Compare the light and dark layouts on a phone and a desktop. Check the order
+  of the headline, setup link, and product examples. Use the keyboard to follow
+  **Get started**.
+
+Run `npm run docs:check-installer` against the built site to check the homepage
+at 320, 390, 768 and 1440 pixels. The browser checks cover horizontal overflow,
+whether the setup link fits on the first screen, image loading, and keyboard
+navigation into the installer.
+
+## Page Publishing
 
 Generated fragments under `docs/generated/` are include-only. Publish useful
 reference material through a described, linked guide. Runtime coverage belongs in
@@ -48,7 +66,7 @@ The schema here keeps the machine-readable content consistent with the page.
 
 ## Plain-text Editions
 
-The [plain-text docs index](https://jtenniswood.github.io/espdesktop/llms.txt)
+The [plain-text docs index](https://espdesktop.com/llms.txt)
 follows the [llms.txt proposal](https://llmstxt.org/). It groups the public
 guides by task. When adding or retiring a public guide, update
 `docs/public/llms.txt` alongside the site navigation.
@@ -65,31 +83,14 @@ find documentation. Crawler access is governed separately at the host root.
 
 ## Host-root Robots Policy
 
-`/espdesktop/robots.txt` cannot control crawlers. The applicable location is
-`https://jtenniswood.github.io/robots.txt`, which returned HTTP 404 during the
-September 22, 2026 audit. A missing robots file does not block crawling. The
-project-path file has been removed rather than implying it works.
-
-The ready-to-publish [robots.txt](hosting/robots.txt) permits crawling and
-announces the docs sitemap. It belongs in the **root** of a GitHub user Pages
-site, normally the separate `jtenniswood/jtenniswood.github.io` repository.
-That repository was not present in the accessible account during this work.
-Publishing it requires creating/configuring that separate host-root site;
-deploying EspDesktop's project site cannot write the host root.
-The owner chose to keep the prepared file and instructions; no separate
-repository or account-level Pages site was created as part of this change.
-
-After host-root publication, verify:
+The [published robots.txt](../docs/public/robots.txt) allows crawling and
+announces the sitemap at the custom domain root. After deployment, check both
+files:
 
 ```bash
-curl --fail https://jtenniswood.github.io/robots.txt
-curl --fail https://jtenniswood.github.io/espdesktop/sitemap.xml
+curl --fail https://espdesktop.com/robots.txt
+curl --fail https://espdesktop.com/sitemap.xml
 ```
-
-The first response must be HTTP 200 with the template's sitemap URL. A generic
-allow rule permits search crawling without conflating search access with
-provider-specific AI training controls. See Google's
-[robots location rules](https://developers.google.com/crawling/docs/robots-txt/robots-txt-spec).
 
 ## Search Console Ownership and Sitemap Submission
 
@@ -97,9 +98,8 @@ These steps require the owner's Google account; GitHub repository access does
 not grant Search Console access.
 
 1. Add or select the **URL-prefix** property
-   `https://jtenniswood.github.io/espdesktop/` in
+   `https://espdesktop.com/` in
    [Google Search Console](https://search.google.com/search-console).
-   Do not try to verify ownership of the shared `github.io` domain.
 2. If unverified, choose HTML-tag verification. Copy only the supplied `content`
    value into the EspDesktop repository's Actions variable
    `GOOGLE_SITE_VERIFICATION`. The Pages build places it in the HTML head. This
@@ -108,8 +108,8 @@ not grant Search Console access.
    `google-site-verification` value, and complete verification in Search Console.
    Keep the tag deployed after verification.
 4. In **Sitemaps**, submit
-   `https://jtenniswood.github.io/espdesktop/sitemap.xml`. Confirm its processed
-   status in the account. This works independently of host-root robots setup.
+   `https://espdesktop.com/sitemap.xml`. Confirm its processed
+   status in the account.
 5. Inspect the homepage, `/screens/4848s040`, `/getting-started/install`, and
    `/getting-started/mac-app`. Check crawl eligibility and Google's selected canonical.
    Request indexing for the changed landing pages where appropriate.
@@ -127,7 +127,7 @@ and after deployment without changing that inventory:
 
 ```bash
 python3 scripts/check_docs_site.py \
-  --base-url https://jtenniswood.github.io/espdesktop/ \
+  --base-url https://espdesktop.com/ \
   --output /tmp/espdesktop-seo-after.json
 ```
 

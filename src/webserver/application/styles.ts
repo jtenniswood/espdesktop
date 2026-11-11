@@ -561,6 +561,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-cond-field.sp-climate-settings-gap.sp-visible{margin-bottom:24px}" +
         ".sp-disclosure{border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.02);margin-top:4px}" +
         ".sp-disclosure+.sp-disclosure{margin-top:14px}" +
+        ".sp-field.sp-shortcut-settings{margin-bottom:14px}" +
+        ".sp-shortcut-settings fieldset.sp-segment{margin-inline:0;padding:0;min-width:0}" +
         ".sp-disclosure-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;" +
         "padding:12px 14px;background:transparent;border:0;color:var(--text);font:inherit;font-size:.875rem;font-weight:500;cursor:pointer;text-align:left}" +
         ".sp-disclosure-button:hover{background:rgba(255,255,255,.03)}" +
@@ -574,6 +576,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-disclosure-chevron{display:inline-flex;width:20px;height:20px;color:var(--text3);transition:transform .25s ease;flex-shrink:0}" +
         ".sp-disclosure-chevron svg{width:100%;height:100%}" +
         ".sp-disclosure-body{display:none;padding:15px 14px 14px}" +
+        ".sp-shortcut-card-settings .sp-disclosure-body{padding-bottom:24px}" +
         ".sp-disclosure-body.sp-weather-source-fields{padding-bottom:28px}" +
         ".sp-media-card-settings .sp-disclosure-body{padding:14px}" +
         ".sp-app-subpage-settings .sp-disclosure-body{padding:8px 14px 10px}" +
@@ -635,6 +638,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-card-color-editor{display:flex;flex-direction:column;gap:24px}" +
         ".sp-card-color-editor .sp-field{margin-bottom:0}" +
         ".sp-card-color-editor .sp-segment{margin-bottom:16px}" +
+        ".sp-shortcut-card-settings .sp-card-color-editor .sp-segment{margin-bottom:0}" +
+        ".sp-shortcut-card-settings .sp-card-color-editor .sp-segment+.sp-card-color-presets{margin-top:16px}" +
         ".sp-card-color-header{position:relative}" +
         ".sp-disclosure.sp-open .sp-card-color-header .sp-disclosure-button{gap:56px}" +
         ".sp-disclosure:not(.sp-open) .sp-card-color-header .sp-card-header-action{display:none}" +

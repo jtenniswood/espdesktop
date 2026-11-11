@@ -42,6 +42,7 @@ import type { GridFeature } from "./grid";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
 
 export interface PreviewRenderDependencies {
+    readonly displayDemo?: boolean;
     readonly updateClockBarItemUi: () => void;
     readonly document: Document;
     readonly layout: ApplicationLayoutState;
@@ -254,7 +255,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const { getSubpage, serializeSubpageGrid } = dependencies.codec;
     const { gridPreviewBlocked: gridPreviewBlockedByRotationStartup } = dependencies.screenRotation;
     // Loading and saving block interactions, but the preview can render before those locks clear.
-    const { isPreviewReadOnly } = dependencies.shell;
+    const isPreviewReadOnly = () => dependencies.displayDemo || dependencies.shell.isPreviewReadOnly();
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
@@ -423,6 +424,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
         var main: any = els.previewMain;
+        if (dependencies.displayDemo) {
+            main.setAttribute("role", "group");
+            main.setAttribute("aria-label", "Touchscreen cards");
+            if (els.topbar) (els.topbar as HTMLElement).inert = true;
+        }
         weatherLayout.disconnect();
         // Keep the active editor and its selection through device state refreshes.
         const editor = main.querySelector(".sp-card-name-input") as HTMLInputElement | null;
@@ -464,9 +470,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             if (slot === -1)
                 continue;
             if (slot === -2) {
-                var backBtn: any = document.createElement("div");
+                var backBtn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
+                if (dependencies.displayDemo) backBtn.type = "button";
                 var bkSz: any = c.sizes[-2];
                 var backLabel = subpage?.backLabel || "Back";
+                if (dependencies.displayDemo) backBtn.setAttribute("aria-label", backLabel);
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
@@ -538,7 +546,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         cardTextColor: cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary,
                     })
                     : null;
-                const btn: any = document.createElement("div");
+                const btn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
+                if (dependencies.displayDemo) btn.type = "button";
                 btn.className = "sp-btn" +
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
@@ -593,6 +602,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     previewHtmlValue(typePreview, "labelEditable", true)) {
                     makeTitleEditable(btn, b.type === "image");
                 }
+                if (dependencies.displayDemo) {
+                    const visibleLabel = btn.querySelector(".sp-btn-label")?.textContent?.trim();
+                    btn.setAttribute("aria-label", visibleLabel || label);
+                }
                 appendResizeHandle(btn);
                 main.appendChild(btn);
                 const appIconSize = typePreview?.appIconId
@@ -602,6 +615,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
+                    if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
                     loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
