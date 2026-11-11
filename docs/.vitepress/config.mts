@@ -251,7 +251,7 @@ export default defineConfig({
           { text: 'Websites', link: '/mac-controls/websites' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
-          { text: 'Display and Mac App Settings', link: '/features/settings' },
+          { text: 'Settings', link: '/features/settings' },
         ],
       },
       {

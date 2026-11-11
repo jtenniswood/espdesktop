@@ -1,9 +1,9 @@
 ---
-title: EspDesktop Display and Mac App Settings
+title: Settings
 description: Customise your display, back up its settings, and manage the EspDesktop Mac app and firmware.
 ---
 
-# Display and Mac app settings
+# Settings {#display-and-mac-app-settings}
 
 Open the display’s address in your browser, or click **Customize** next to the connected display in the EspDesktop Mac app. Use **Screen** to change how the touchscreen looks and behaves, and **System** to manage the device itself.
 

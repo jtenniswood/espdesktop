@@ -18,7 +18,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 ## Configure the touchscreen
 
 - [First setup](https://espdesktop.com/features/first-run.md)
-- [Display and Mac app settings](https://espdesktop.com/features/settings.md)
+- [Settings](https://espdesktop.com/features/settings.md)
 - [Customise the Home screen](https://espdesktop.com/features/home.md)
 - [Create subpages](https://espdesktop.com/features/subpages.md)
 - [Launch Mac apps](https://espdesktop.com/mac-controls/apps.md)
