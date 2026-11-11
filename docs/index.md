@@ -179,14 +179,18 @@ The preview shows how your layout will look on the display. In this example, bro
   line-height: 1.5;
 }
 
-.homepage-action a {
+.homepage-action a,
+.homepage-grid article > p:last-child > a {
   display: inline-block;
   padding: 8px 16px;
   border-radius: 999px;
-  background: var(--vp-button-brand-bg);
-  color: var(--vp-button-brand-text);
   font-weight: 600;
   text-decoration: none;
+}
+
+.homepage-action a {
+  background: var(--vp-button-brand-bg);
+  color: var(--vp-button-brand-text);
 }
 
 .homepage-action a:hover {
@@ -194,7 +198,8 @@ The preview shows how your layout will look on the display. In this example, bro
   color: var(--vp-button-brand-hover-text);
 }
 
-.homepage-action a:focus-visible {
+.homepage-action a:focus-visible,
+.homepage-grid article > p:last-child > a:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 4px;
 }
@@ -271,6 +276,16 @@ figcaption {
   margin-top: auto;
   padding-top: 6px;
   font-size: 14px;
+}
+
+.homepage-grid article > p:last-child > a {
+  background: var(--vp-button-alt-bg);
+  color: var(--vp-button-alt-text);
+}
+
+.homepage-grid article > p:last-child > a:hover {
+  background: var(--vp-button-alt-hover-bg);
+  color: var(--vp-button-alt-hover-text);
 }
 
 .homepage-editor {
