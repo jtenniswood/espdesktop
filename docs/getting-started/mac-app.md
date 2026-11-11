@@ -1,27 +1,50 @@
 ---
-title: Install and Pair the Mac Companion App
+title: Download EspDesktop for Mac
 description: Download EspDesktop for macOS 13 or newer, pair a Guition 4848S040 display on your local network and add your first app tiles.
 ---
 
-# Install and Pair the EspDesktop Mac App
+<section class="mac-app-hero">
 
-You’ll need a **Mac running macOS 13 or newer** and a [4-inch Guition ESP32-S3 4848S040](/screens/4848s040) on the same local network. Use the Mac app and display firmware from the same release.
+<div>
+
+# EspDesktop <span class="mac-app-platform">for Mac</span> {#install-and-pair-the-espdesktop-mac-app}
+
+Connect your display to your Mac to launch apps, open folders and run shortcuts with a tap.
+
+<p class="mac-app-action">
+  <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac' : 'View Mac downloads' }}</a>
+</p>
+
+<p class="mac-app-requirements">
+  <span v-if="$frontmatter.macReleaseVersion">v{{ $frontmatter.macReleaseVersion }} · DMG · </span>macOS 13 or later · Apple silicon
+</p>
+
+</div>
+
+<figure class="mac-app-preview">
+  <a href="/images/mac-app-display.jpg">
+    <img src="/images/mac-app-display.jpg" alt="EspDesktop Mac app showing a connected display and the Customize button" width="1000" height="1376">
+  </a>
+</figure>
+
+</section>
 
 ## 1. Install the Mac app {#install-a-release}
 
 1. [Install EspDesktop on your display](/getting-started/install) if you haven’t already.
-2. Download the **EspDesktop** DMG from the [same release as your display firmware](https://github.com/jtenniswood/espdesktop/releases).
-3. Open the DMG, drag **EspDesktop** into **Applications**, then open the app. Its icon appears in the menu bar.
+2. Open the downloaded DMG, drag **EspDesktop** into **Applications**, then open the app. Its icon appears in the menu bar.
 
-On an Apple silicon Mac, you can also install the latest stable Mac app with [Homebrew](https://brew.sh/).
+Use the Mac app and display firmware from the same release. For older firmware, [download the matching DMG from GitHub Releases](https://github.com/jtenniswood/espdesktop/releases).
+
+You can also install the latest stable Mac app with [Homebrew](https://brew.sh/).
 
 ```sh
 brew install --cask jtenniswood/tap/espdesktop
 ```
 
-Use the DMG download above if you need the app from a specific release.
-
 ## 2. Pair your display {#pair-the-display}
+
+Connect your Mac and [4-inch Guition ESP32-S3 4848S040](/screens/4848s040) to the same local network.
 
 1. Select your display in the Mac app. Allow local network access if macOS asks.
 2. Choose **Continue** to open the display’s **System → Mac Companion** page in your browser.
@@ -34,8 +57,6 @@ On **Access and startup**, choose **Open Settings** to grant Accessibility acces
 ### Check the Display tab
 
 Open **Display** in the Mac app to confirm it says **Connected**. Select **Customize** to open the display’s web editor.
-
-[![EspDesktop Mac app showing a connected display, the Customize button, and the Open at Startup switch](/images/mac-app-display.jpg)](/images/mac-app-display.jpg)
 
 ## 3. Try your first card {#check-the-connection}
 
@@ -59,3 +80,75 @@ Open EspDesktop from **Applications**, then turn on **Notify Me About Updates** 
 If an update requires newer display firmware, install the app and firmware from the same EspDesktop release. Follow the [display update instructions](/features/setup#update-the-display-firmware).
 
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
+
+<style scoped>
+.mac-app-hero {
+  display: grid;
+  align-items: center;
+  gap: 28px;
+}
+
+.mac-app-hero h1 {
+  max-width: 12ch;
+}
+
+.mac-app-platform {
+  white-space: nowrap;
+}
+
+.mac-app-hero h1 + p {
+  max-width: 36ch;
+  color: var(--vp-c-text-2);
+  font-size: 18px;
+  line-height: 1.55;
+}
+
+.mac-app-action a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 999px;
+  background: var(--vp-button-brand-bg);
+  color: var(--vp-button-brand-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.mac-app-action a:hover {
+  background: var(--vp-button-brand-hover-bg);
+  color: var(--vp-button-brand-hover-text);
+}
+
+.mac-app-hero .mac-app-requirements {
+  margin: 0;
+  color: var(--vp-c-text-2);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mac-app-preview {
+  width: 100%;
+  max-width: 360px;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 20px;
+  background: radial-gradient(ellipse at top, var(--vp-c-brand-soft), transparent 85%), var(--vp-c-bg-soft);
+}
+
+.mac-app-preview img {
+  width: 100%;
+  aspect-ratio: 7 / 6;
+  border: 1px solid var(--vp-c-divider);
+  border-radius: 12px;
+  object-fit: cover;
+  object-position: top;
+}
+
+@media (min-width: 960px) {
+  .mac-app-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  }
+}
+</style>

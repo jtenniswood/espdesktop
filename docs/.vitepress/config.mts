@@ -108,6 +108,17 @@ export default defineConfig({
       return
     }
 
+    if (relativePath === 'getting-started/mac-app.md') {
+      const releases = 'https://github.com/jtenniswood/espdesktop/releases'
+      const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
+      if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
+        throw new Error(`Invalid Mac release tag: ${tag}`)
+      }
+      const version = tag?.replace(/^v/, '')
+      frontmatter.macReleaseVersion = version
+      frontmatter.macDownloadUrl = version ? `${releases}/download/${tag}/EspDesktop-${version}.dmg` : releases
+    }
+
     const canonicalUrl = canonicalUrlFor(relativePath)
     const title = String(frontmatter.title ?? pageData.title)
     const description = String(frontmatter.description ?? '')
