@@ -33,8 +33,9 @@ import type { ConfigModalTabOptionsFeature } from "../application/config_modal_t
 import { state } from "../state/app_instance";
 import {
     COMPANION_SHORTCUT_PREFIX,
+    COMPANION_SHORTCUT_PRESET_OPTION,
+    companionShortcutCatalogApps,
     companionShortcutPresetCards,
-    COMPANION_SHORTCUT_APPS,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
     isSafariUnmodifiedShortcut,
@@ -135,12 +136,15 @@ export function formatCompanionShortcutActionId(actionId: string): string {
 }
 
 export function companionShortcutCatalogSelection(card: any) {
-    for (const app of COMPANION_SHORTCUT_APPS.filter((app) => app.catalog)) {
-        const preset = companionShortcutPresetCards(app.appId).find((preset) =>
-            preset.entity === card?.entity && preset.options === withoutCardColorOptions(card?.options));
-        if (preset) return { ...preset, appId: app.appId };
-    }
-    return undefined;
+    const options = withoutCardColorOptions(card?.options);
+    const marker = configOptionValue(options, COMPANION_SHORTCUT_PRESET_OPTION);
+    const separator = marker.lastIndexOf(":");
+    if (separator < 0) return undefined;
+    const appId = marker.slice(0, separator);
+    if (!companionShortcutCatalogApps().some((app) => app.appId === appId)) return undefined;
+    const preset = companionShortcutPresetCards(appId).find((preset) =>
+        preset.entity === card?.entity && preset.options === options);
+    return preset ? { ...preset, appId } : undefined;
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -856,7 +860,8 @@ export function registerCompanionCardTypes(
             const catalogApp = document.createElement("select");
             catalogApp.className = "sp-select";
             catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
-            for (const [value, label] of [["", "Choose an app…"], ...COMPANION_SHORTCUT_APPS.filter((app) => app.catalog).map((app) => [app.appId, app.label] as const)] as const) {
+            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps());
+            for (const [value, label] of [["", "Choose an app…"], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
                 const option = document.createElement("option");
                 option.value = value;
                 option.textContent = label;
@@ -894,6 +899,7 @@ export function registerCompanionCardTypes(
                 return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
             });
             catalogApp.addEventListener("change", function () {
+                card._shortcutType = "catalog";
                 card._shortcutCatalogApp = catalogApp.value;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
                 card.options = normalizedCardColorOptions(card.options);
@@ -902,6 +908,8 @@ export function registerCompanionCardTypes(
                 renderButtonSettings();
             });
             catalogShortcut.addEventListener("change", function () {
+                card._shortcutType = "catalog";
+                card._shortcutCatalogApp = catalogApp.value;
                 const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
                 if (!preset) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;

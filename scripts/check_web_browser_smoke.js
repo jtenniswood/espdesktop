@@ -4368,7 +4368,12 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await assertPanelSpacing(catalogPanel);
     await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
     assert.strictEqual(await action.isDisabled(), true, "choose an app first");
-    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
+    const appLabels = await app.locator("option").allTextContents();
+    assert.strictEqual(appLabels[0], "Choose an app…");
+    assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
+      "the Application tab includes bundled presets for Safari and other apps");
+    const names = appLabels.slice(1);
+    assert.deepStrictEqual(names, [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })));
     await app.selectOption("com.apple.Safari");
     const safariTemplate = JSON.parse(fs.readFileSync(
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
@@ -4395,6 +4400,21 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await application.click();
     assert.strictEqual(await app.inputValue(), "com.apple.Safari");
     assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
+    const slack = require("../product/v2/app_shortcuts/slack.json");
+    const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
+    await app.selectOption(slack.appId);
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "changing apps keeps the Application tab selected");
+    await action.selectOption(slackPreset);
+    await saveCard();
+    assert(String(nativeState.document.buttons[1]).includes(slackPreset));
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await seedNativeDocument(page, nativeState);
+    await openCard();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true");
+    assert.strictEqual(await app.inputValue(), slack.appId);
+    assert.strictEqual(await action.inputValue(), slackPreset);
     await custom.click();
     assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
     await page.locator('[id$="shortcut-key"]').selectOption("a");
