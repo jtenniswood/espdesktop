@@ -29,10 +29,11 @@ def generate(root):
     layout_scripts = {script["id"]: script for script in button_order.get("script", [])}
     scripts.update(layout_scripts)
     board = (root / "devices/guition-esp32-s3-4848s040/device/sensors.yaml").read_text()
-    scripts["apply_button_grid"] = next(
-        script for script in yaml.load(board.split("\nesphome:\n", 1)[0], Loader)["script"]
-        if script["id"] == "apply_button_grid"
-    )
+    grid_scripts = {
+        script["id"]: script for script in yaml.load(board.split("\nesphome:\n", 1)[0], Loader)["script"]
+        if script["id"] in {"apply_button_grid", "refresh_button_grid"}
+    }
+    scripts.update(grid_scripts)
     selected = {"display_mode_reconcile", "screen_schedule_check", "screen_schedule_wake",
                 "screen_schedule_boot_guard",
                 "display_mode_apply_transition", "display_mode_effect_active",
@@ -40,7 +41,7 @@ def generate(root):
                 "screen_schedule_wake_timeout_check",
                 "screensaver_companion_reconcile", "screensaver_sleep_timer",
                 "display_mode_request_automatic", "display_mode_clear_automatic",
-                "save_button_order", "apply_button_grid", *layout_scripts}
+                "save_button_order", *grid_scripts, *layout_scripts}
     # Exercise the entire ACTIVE branch, including the guarded completion and
     # finalizer call. Other presentation modes are hardware doubles below.
     adapter = scripts["display_mode_apply_transition"]["then"][0]["if"]["then"]
