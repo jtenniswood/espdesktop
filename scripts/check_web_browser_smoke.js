@@ -53,7 +53,10 @@ function casesFromManifest() {
     "esp32-p4-86",
     "guition-esp32-s3-4848s040",
   ]);
-  return Object.entries(manifest.devices || {}).map(([slug, device]) => {
+  const releaseDevices = new Set(require("../product/release_devices.json").devices);
+  const profiles = Object.entries(manifest.devices || {});
+  profiles.sort(([left], [right]) => Number(releaseDevices.has(right)) - Number(releaseDevices.has(left)));
+  return profiles.map(([slug, device]) => {
     const aspect = parseAspect(
       device.web && device.web.screen && device.web.screen.aspect,
     );
@@ -6841,6 +6844,95 @@ async function assertReorderAfterDelete(browser) {
   } finally { await context.close(); }
 }
 
+async function assertLiveFinderPreview(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  const [example] = require("../compatibility/fixtures/finder_folder_preview.json");
+  fixture.document.buttons = { 1: "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts" };
+  const tiles = example.buttons.map((id, index) => `companion,${id},Saved ${index + 1},Auto,Auto`);
+  fixture.document.subpages = { 1: `~${example.order}|${tiles.join("|")}` };
+  fixture.document.settings = { button_order: "1", web_onboarding_complete: "1" };
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    status: 200, json: example.catalogue.map(([id, label]) => ({ id, label })),
+  }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    const live = page.locator(".sp-main .sp-live-folder-preview");
+    await live.first().waitFor();
+    async function assertProjectedTiles() {
+      const values = await live.evaluateAll(tiles => tiles.map(tile =>
+        [Number(tile.parentElement.dataset.pos), tile.textContent, tile.parentElement.hasAttribute("data-slot")]));
+      assert.deepEqual(values, example.expected.map(([position, , label]) => [position, label, false]));
+      assert.equal(await page.locator('.sp-main [data-slot="1"] .sp-btn-label').textContent(), "Saved 1");
+      assert.equal(await page.locator(".sp-main .sp-back-btn").count(), 1);
+    }
+    await assertProjectedTiles();
+    connectorsStatus.mac_companion.connected = false;
+    await live.first().waitFor({ state: "detached" });
+    connectorsStatus.mac_companion.connected = true;
+    await live.first().waitFor();
+    await assertProjectedTiles();
+    assert.equal(fixture.puts.length, 0, "live Finder activity never writes saved pages");
+    console.log("Live Finder placement, disconnect and reconnect browser checks passed.");
+  } finally { await context.close(); }
+}
+
+async function assertAppShortcutPreview(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document = structuredClone(require("../compatibility/fixtures/companion_nested_pages.json").document);
+  const owner = "com.example.RemoteEditor";
+  fixture.document.subpages[1] = fixture.document.subpages[1].replace("com.apple.Safari,Safari", `${owner},Editor`);
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  let connected = true, ready = false;
+  await context.route("**/connectors/status**", route => {
+    const requested = new URL(route.request().url()).searchParams.get("shortcut_owner");
+    return route.fulfill({ status: 200, json: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected,
+        shortcut_page_ready: requested === owner ? connected && ready : undefined },
+    } });
+  });
+  await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: [] }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator('.sp-back-btn .sp-app-back-icon.mdi-monitor').waitFor();
+    const shortcut = page.locator('.sp-main [data-slot="1"][data-pos="1"]');
+    const unavailable = page.locator('.sp-main .sp-shortcut-unavailable');
+    await unavailable.waitFor();
+    assert.equal(await shortcut.locator(".sp-btn-label").textContent(), "Address");
+    const savedTile = await shortcut.elementHandle();
+    const unavailableColor = await shortcut.locator(".sp-btn-label").evaluate(node => getComputedStyle(node).color);
+    ready = true;
+    await unavailable.waitFor({ state: "detached" });
+    assert(await savedTile.evaluate(node => node.isConnected), "focus updates the tile without rebuilding the page");
+    assert.notEqual(await shortcut.locator(".sp-btn-label").evaluate(node => getComputedStyle(node).color), unavailableColor);
+    connected = false;
+    await unavailable.waitFor();
+    assert.equal(await shortcut.locator(".sp-btn-label").textContent(), "Address");
+    assert.equal(await shortcut.getAttribute("draggable"), "true");
+    assert.equal(fixture.puts.length, 0, "live app readiness never saves or moves cards");
+    console.log("App shortcut preview keeps saved labels, positions, and Back while focus changes.");
+  } finally { await context.close(); }
+}
+
 async function assertNestedCompanionPages(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040"), fixture = nativeConfigState(testCase.slug);
   fixture.document = JSON.parse(fs.readFileSync(path.join(ROOT, "compatibility/fixtures/companion_nested_pages.json"))).document;
@@ -7198,7 +7290,12 @@ async function assertFirstRunSetup(browser) {
       console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
       return;
     }
-    if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") { await assertNestedCompanionPages(browser); return; }
+    if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") {
+      await assertNestedCompanionPages(browser);
+      await assertLiveFinderPreview(browser);
+      await assertAppShortcutPreview(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;
@@ -7348,6 +7445,8 @@ async function assertFirstRunSetup(browser) {
     }
     await assertReorderAfterDelete(browser);
     await assertNestedCompanionPages(browser);
+    await assertLiveFinderPreview(browser);
+    await assertAppShortcutPreview(browser);
     await assertFirstRunSetup(browser);
     await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);

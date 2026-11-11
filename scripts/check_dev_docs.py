@@ -76,6 +76,12 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
         "`npm run check:card-contract-outputs` and `npm run check:product`",
     ),
     SourceTruthRow(
+        "product/v2/panel_settings.json",
+        ("components/espdesktop/panel_settings_generated.h", "src/webserver/generated/panel_settings.ts"),
+        "python3 scripts/build.py settings",
+        "`python3 scripts/build.py settings --check` and `npm run check:generated`",
+    ),
+    SourceTruthRow(
         "common/config/card_runtime_inventory.json",
         (
             "common/config/card_runtime_baseline_card_normalization_fixtures.json",

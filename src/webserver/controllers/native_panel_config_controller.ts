@@ -20,6 +20,7 @@ import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
 import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, encodeDisplayThemePreferences,
   type DisplayThemePreferences } from "../model/display_theme_preferences";
 import { pageDepth, parentPageKey } from "../model/page_keys";
+import { validPanelScalarSetting } from "../generated/panel_settings";
 
 export type { NativePanelConfigUpdate } from "../features/native_panel_config";
 export type NativePanelConfigSaveOutcome = NativePanelConfigSaveResult | "legacy-fallback";
@@ -81,7 +82,7 @@ export class NativePanelConfigController {
   }
 
   writeSetting(key: string, value: string): Promise<NativePanelConfigSaveOutcome> | null {
-    if (!key || key.length > 63) return null;
+    if (!key || key.length > 63 || !validPanelScalarSetting(key, value)) return null;
     return this.schedule(this.withNativeEdit(current => updateNativePanelConfigDocument(
       current, this.dependencies.deviceProfile(), "settings", key, value,
     ), draft => draft.writeSetting(key, value)));

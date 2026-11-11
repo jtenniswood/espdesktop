@@ -1110,7 +1110,7 @@ def main() -> int:
         tmp_path = Path(tmp)
         for helper in (
             "button_grid_order_parser.h", "button_grid_subpages.h", "config_field_decode.h",
-            "display_utf8_case.h", "ha_state_limits.h",
+            "display_utf8_case.h", "ha_state_limits.h", "companion_shortcut_page.h",
         ):
             shutil.copy2(PARSER_HEADER.parent / helper, tmp_path / helper)
         shutil.copy2(PARSER_HEADER, tmp_path / "button_grid_config_parser.h")

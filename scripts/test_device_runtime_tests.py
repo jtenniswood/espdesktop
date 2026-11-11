@@ -73,19 +73,40 @@ class ReleaseHardwareTests(unittest.TestCase):
             expected = release_hardware.candidate(manifest, "1234")
             data = snapshot()
             data["firmware"].update(model=release_hardware.DEVICE, project_version="v9.8.7", app_elf_sha256="a" * 64)
+            data["navigation"] = dict.fromkeys(runtime.NAVIGATION_METRICS, 0)
             probe = unittest.mock.Mock()
             probe.sample.side_effect = lambda: deepcopy(data)
             probe.json.return_value = {"mac_companion": {"paired": True, "connected": True}}
 
-            def confirm(prompt):
-                if prompt.startswith("Restart"):
+            config = (15, b"before-digest")
+            probe.native_config_snapshot.side_effect = lambda **_: config
+
+            def confirm(prompt, *, change=True, keep=True, restart=True):
+                nonlocal config
+                if prompt.startswith(release_hardware.NAVIGATION):
+                    data["navigation"].update(page_open_frame_ms=14, back_frame_ms=5)
+                if prompt.startswith("Block internet access") and change:
+                    config = (16, b"saved-digest")
+                if prompt.startswith("Restart") and restart:
+                    if not keep:
+                        config = (15, b"before-digest")
                     data["boot_id"] += 1
                     data["uptime_ms"] = 1
                 return "pass"
 
             with redirect_stdout(io.StringIO()), patch("sys.stderr", new=io.StringIO()):
                 self.assertEqual(release_hardware.run(probe, root / "report", expected, confirm), 0)
-                self.assertEqual(release_hardware.run(probe, root / "no-reboot", expected, lambda _: "pass"), 1)
+                self.assertEqual(probe.native_config_snapshot.call_args_list, [
+                    unittest.mock.call(require_durable_v2=False), unittest.mock.call(), unittest.mock.call(),
+                ])
+                for case, options in (("no-reboot", {"restart": False}),
+                                      ("no-save", {"change": False}), ("lost-save", {"keep": False})):
+                    config = (15, b"before-digest")
+                    def confirm_failure(prompt):
+                        return confirm(prompt, **options)
+
+                    self.assertEqual(release_hardware.run(probe, root / case, expected, confirm_failure), 1)
+                    self.assertEqual(json.loads((root / case / "report.json").read_text())["status"], "failed")
             report = json.loads((root / "report" / "report.json").read_text())
             release_hardware.verify_report(report, expected)
             wrong_build = deepcopy(report)
@@ -94,7 +115,20 @@ class ReleaseHardwareTests(unittest.TestCase):
                 release_hardware.verify_report(wrong_build, expected)
             self.assertEqual(len(report["steps"]), 9)
             self.assertEqual(report["steps"][-1]["after"]["psram_largest_bytes"], 100000)
-            self.assertEqual(json.loads((root / "no-reboot" / "report.json").read_text())["status"], "failed")
+            navigation = report["steps"][1]["navigation"]
+            self.assertEqual(navigation["before"]["page_open_frame_ms"], 0)
+            self.assertEqual(navigation["after"]["page_open_frame_ms"], 14)
+            self.assertEqual(navigation["after"]["back_frame_ms"], 5)
+            missing_navigation = deepcopy(report)
+            del missing_navigation["steps"][1]["navigation"]
+            with self.assertRaisesRegex(ValueError, "missing navigation measurements"):
+                release_hardware.verify_report(missing_navigation, expected)
+            self.assertEqual(report["native_save"], {"before": 15, "saved": 16, "reboot": 16})
+            self.assertNotIn("digest", json.dumps(report["native_save"]))
+            report_without_save = deepcopy(report)
+            del report_without_save["native_save"]
+            with self.assertRaises(ValueError):
+                release_hardware.verify_report(report_without_save, expected)
             with self.assertRaises(ValueError):
                 release_hardware.verify_report(report, release_hardware.candidate(manifest, "1235"))
             manifest.write_text(manifest.read_text() + "\n")
@@ -113,6 +147,16 @@ class ProtocolTests(unittest.TestCase):
         class Handler(BaseHTTPRequestHandler):
             def do_GET(self):
                 owner.paths.append(self.path)
+                if self.path == "/api/v1/config":
+                    owner.requested_version = self.headers.get("X-Panel-Config-Version")
+                    self.send_response(owner.status)
+                    self.send_header("Content-Type", "application/vnd.espdesktop.panel-config")
+                    self.send_header("X-Panel-Config-Version", "2")
+                    self.send_header("X-Panel-Config-Durable-Version", owner.durable_version)
+                    self.send_header("X-Panel-Config-Generation", "42")
+                    self.end_headers()
+                    self.wfile.write(owner.config_bytes)
+                    return
                 bodies = {'/api/v1/identity': owner.identity, '/api/v1/capabilities': {'api': {'version': 1}}, '/api/v1/diagnostics': owner.health}
                 self.send_response(owner.status); self.send_header('Content-Type', owner.content_type); self.end_headers()
                 self.wfile.write(b'x'*(runtime.MAX_BODY+1) if owner.oversized else json.dumps(bodies[self.path]).encode())
@@ -132,6 +176,22 @@ class ProtocolTests(unittest.TestCase):
         self.assertNotIn('secret', json.dumps(s)); self.assertNotIn('private', json.dumps(s))
         self.assertEqual(s['memory']['heap_free_percent'], 40)
         self.assertEqual(self.paths, ['/api/v1/identity', '/api/v1/capabilities', '/api/v1/diagnostics'])
+
+    def test_can_read_a_v1_baseline_but_requires_durable_v2_by_default(self):
+        self.durable_version = "2"
+        self.config_bytes = b"EPCF\x02\x00\x10\x00" + (16).to_bytes(4, "little") + b"\0" * 20
+        generation, fingerprint = self.probe.native_config_snapshot()
+        self.assertEqual(self.requested_version, "2")
+        self.assertEqual(generation, 42)
+        self.assertEqual(len(fingerprint), 32)
+        self.durable_version = "1"
+        with self.assertRaises(ValueError):
+            self.probe.native_config_snapshot()
+        self.assertEqual(self.probe.native_config_snapshot(require_durable_v2=False), (generation, fingerprint))
+        self.durable_version = "2"
+        self.config_bytes = self.config_bytes[:-1]
+        with self.assertRaises(ValueError):
+            self.probe.native_config_snapshot()
 
     def test_mismatched_http_identities_fail(self):
         self.health['mac_suffix'] = 'aabbcc'

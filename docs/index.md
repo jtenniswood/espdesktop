@@ -1,45 +1,65 @@
 ---
 title: EspDesktop — ESP32 Touchscreen Controller for Mac
 titleTemplate: :title
-description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening Finder folders and running keyboard shortcuts.
+description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening websites and Finder folders, and running keyboard shortcuts.
 layout: home
-hero:
-  name: EspDesktop
-  text: A touchscreen controller for your Mac
-  tagline: Put the apps, folders and shortcuts you use every day on a dedicated 4-inch display beside your keyboard.
-  image:
-    src: /images/espdesktop-mac-controls.svg
-    alt: Illustration of an EspDesktop panel with app, folder, shortcut and Mac status tiles
-  actions:
-    - theme: brand
-      text: Get started
-      link: /#get-started
-    - theme: alt
-      text: See what it can do
-      link: /#what-you-can-control
 ---
 
-## What You Can Control
+<section class="homepage-hero">
 
-EspDesktop pairs the [4-inch Guition 4848S040](/screens/4848s040) with a [macOS menu-bar app](/getting-started/mac-app) on your local network. Set up the touchscreen in your browser and place it beside your keyboard.
+<div>
 
-<div class="homepage-features">
+# A touchscreen controller *for your Mac*
+
+Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/screens/4848s040) for less than **$26/£20**. Pair it over your local network with the [Mac app](/getting-started/mac-app), **free for non-commercial use**.
+
+<div class="homepage-action">
+
+[Get started](/getting-started/install)
+
+</div>
+
+</div>
+
+<figure class="homepage-panel">
+
+![Illustrated 4-inch touchscreen with tiles for apps, websites, folders and shortcuts](/images/espdesktop-mac-controls.svg)
+
+</figure>
+
+</section>
+
+<section class="homepage-features">
+
+## What you can control
+
+<div class="homepage-grid">
 
 <article>
 
-### Open apps and websites
+### Launch Mac apps
 
-Bring an app to the front or open a site in your default browser. Give your calendar, team chat or project dashboard a tile of its own.
+Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a tile of its own.
 
-[Apps](/mac-controls/apps) · [Websites](/mac-controls/websites)
+[Apps](/mac-controls/apps)
 
 </article>
 
 <article>
 
-### Jump straight to a Finder folder
+### Open websites
 
-Open an approved folder with a tap. Keep Downloads, client files or your current project within reach.
+Give your calendar or project dashboard a tile that opens it in your default browser.
+
+[Websites](/mac-controls/websites)
+
+</article>
+
+<article>
+
+### Jump to a Finder folder
+
+Give Downloads, client files or your current project a tile of its own.
 
 [Finder folders](/mac-controls/folders)
 
@@ -49,7 +69,7 @@ Open an approved folder with a tap. Keep Downloads, client files or your current
 
 ### Keep shortcuts in view
 
-Turn keyboard combinations into labelled buttons, or start with presets for apps like Safari, Slack and Figma. Shortcut pages can follow the app you’re using.
+Turn key combinations into labelled buttons. Shortcut pages can follow the app you’re using, such as Safari or Figma.
 
 [Keyboard shortcuts](/mac-controls/shortcuts)
 
@@ -59,19 +79,9 @@ Turn keyboard combinations into labelled buttons, or start with presets for apps
 
 ### Lock your Mac
 
-Add a Lock Machine tile to lock your Mac with a tap when you step away.
+Tap the Lock Machine tile when you step away from your desk.
 
-[Mac Lock permissions](/mac-controls/security)
-
-</article>
-
-<article>
-
-### See how your Mac is doing
-
-Check processor load, memory, storage, network activity or battery at a glance while you work.
-
-[Mac statistics](/features/subpages#mac-statistics)
+[Set up Mac Lock](/mac-controls/security)
 
 </article>
 
@@ -79,7 +89,7 @@ Check processor load, memory, storage, network activity or battery at a glance w
 
 ### Make the layout your own
 
-Drag and resize tiles in the browser, choose their labels, icons and colours, and group related controls into pages for work, browsing or creative projects.
+Resize tiles, choose their icons and colours, and group related controls into subpages.
 
 [Customise the display](/features/setup)
 
@@ -87,105 +97,200 @@ Drag and resize tiles in the browser, choose their labels, icons and colours, an
 
 </div>
 
-<div class="homepage-editor">
+</section>
+
+<section class="homepage-editor">
 
 <div>
 
-## A Look at the Web Editor
+## Arrange tiles in your browser {#a-look-at-the-web-editor}
 
-The browser preview shows how your cards will look on the touchscreen. This example groups browser shortcuts on a subpage, with a Back tile to return to the previous page.
+The preview shows how your layout will look on the display. In this example, browser shortcuts share a subpage, with a Back tile to return to the previous page.
 
-[See the editor and settings](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage) · [See the Mac app](/getting-started/mac-app#check-the-display-tab)
+<div class="homepage-editor-actions">
 
-</div>
-
-![Web editor preview of a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
+[Explore the web editor](/features/setup) [Create a subpage](/features/subpages#create-a-subpage)
 
 </div>
 
-## Where to Buy
+</div>
 
-EspDesktop runs on the [4-inch Guition 4848S040 touchscreen](/screens/4848s040). You’ll also need a Mac running macOS 13 or newer and a shared local network with 2.4 GHz WiFi for the display.
+<figure>
 
-- [Buy the Guition 4848S040 on AliExpress](https://s.click.aliexpress.com/e/_c2uYL5dd)
-- [Get the 3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301)
+![EspDesktop web editor showing a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
 
-## Get Started
+</figure>
 
-1. [Install the display firmware](/getting-started/install) using a USB-C data cable and Chrome or Edge, then connect the touchscreen to WiFi.
-2. [Install and pair the EspDesktop menu-bar app](/getting-started/mac-app) using the code shown in the display’s settings.
-3. Use the setup wizard to pick your first apps, or [build your own layout](/features/setup#add-a-mac-control) in the display’s browser editor.
-
-You choose which apps and folders the display can open. Keyboard shortcuts and Mac Lock use macOS Accessibility access. [How pairing and permissions work](/mac-controls/security)
-
-## Support This Project
-
-If you find EspDesktop useful, consider buying me a coffee to support ongoing development.
-
-<a class="homepage-support" href="https://www.buymeacoffee.com/jtenniswood">
-  <img :src="supportButton" alt="Buy me a coffee" width="545" height="153" />
-</a>
-
-<script setup>
-import supportButton from '../common/assets/images/buy-me-a-coffee-button.png'
-</script>
+</section>
 
 <style scoped>
-.homepage-features {
-  display: grid;
-  gap: 16px;
-  margin-top: 24px;
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('./.vitepress/theme/fonts/instrument-serif-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
 }
 
-@media (min-width: 640px) {
-  .homepage-features {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('./.vitepress/theme/fonts/instrument-serif-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
 }
 
-@media (min-width: 960px) {
-  .homepage-features {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.homepage-hero h1,
+.homepage-features h2,
+.homepage-grid h3,
+.homepage-editor h2 {
+  font-family: 'Instrument Serif', Georgia, serif;
+  font-weight: 400;
+  letter-spacing: normal;
 }
 
-.homepage-features article {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  border-radius: 12px;
-  background: var(--vp-c-bg-soft);
-}
-
-.homepage-features h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.homepage-features p {
-  margin: 8px 0 0;
-  color: var(--vp-c-text-2);
-}
-
-.homepage-features article > p + p {
-  margin-top: auto;
-  padding-top: 12px;
-}
-
+.homepage-hero,
 .homepage-editor {
   display: grid;
   align-items: center;
-  gap: 24px;
-  margin-top: 32px;
-  padding: 24px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
+  gap: 32px;
 }
 
-@media (min-width: 768px) {
-  .homepage-editor {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
-  }
+.homepage-hero {
+  padding: clamp(36px, 6vw, 84px) 0 clamp(44px, 7vw, 88px);
+}
+
+.homepage-hero h1 {
+  max-width: 12ch;
+  font-size: clamp(54px, 7.4vw, 112px);
+  line-height: 0.92;
+}
+
+.homepage-hero h1 em {
+  display: block;
+  color: var(--vp-c-brand-1);
+}
+
+.homepage-hero h1 + p {
+  max-width: 48ch;
+  margin-top: 24px;
+  color: var(--vp-c-text-1);
+  font-size: clamp(17px, 1.7vw, 20px);
+  line-height: 1.5;
+}
+
+.homepage-action a,
+.homepage-grid article > p:last-child > a,
+.homepage-editor-actions a {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.homepage-action a {
+  background: var(--vp-button-brand-bg);
+  color: var(--vp-button-brand-text);
+}
+
+.homepage-action a:hover {
+  background: var(--vp-button-brand-hover-bg);
+  color: var(--vp-button-brand-hover-text);
+}
+
+.homepage-action a:focus-visible,
+.homepage-grid article > p:last-child > a:focus-visible,
+.homepage-editor-actions a:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
+}
+
+.homepage-panel {
+  width: min(100%, 440px);
+  justify-self: center;
+}
+
+.homepage-panel img {
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.homepage-panel p,
+.homepage-editor figure p {
+  margin: 0;
+}
+
+.homepage-features h2,
+.homepage-editor h2 {
+  font-size: clamp(40px, 5vw, 64px);
+  line-height: 1;
+}
+
+.homepage-features h2 {
+  margin: 0 0 24px;
+  padding-top: 24px;
+}
+
+.homepage-grid {
+  display: grid;
+  gap: 1px;
+  border: 1px solid var(--vp-c-divider);
+  background: var(--vp-c-divider);
+}
+
+.homepage-grid article {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: clamp(20px, 3vw, 36px);
+  background: var(--vp-c-bg-soft);
+}
+
+.homepage-grid h3,
+.homepage-grid p {
+  margin: 0;
+}
+
+.homepage-grid h3 {
+  font-size: clamp(30px, 3.1vw, 42px);
+  line-height: 1.03;
+  text-wrap: balance;
+}
+
+.homepage-grid p {
+  max-width: 38ch;
+  color: var(--vp-c-text-2);
+}
+
+.homepage-grid p:last-child {
+  margin-top: auto;
+  padding-top: 6px;
+  font-size: 14px;
+}
+
+.homepage-grid article > p:last-child > a,
+.homepage-editor-actions a {
+  background: var(--vp-button-alt-bg);
+  color: var(--vp-button-alt-text);
+}
+
+.homepage-grid article > p:last-child > a:hover,
+.homepage-editor-actions a:hover {
+  background: var(--vp-button-alt-hover-bg);
+  color: var(--vp-button-alt-hover-text);
+}
+
+.homepage-editor {
+  margin-top: clamp(48px, 8vw, 96px);
+}
+
+.homepage-editor-actions p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
 }
 
 .homepage-editor h2 {
@@ -194,26 +299,34 @@ import supportButton from '../common/assets/images/buy-me-a-coffee-button.png'
   border: 0;
 }
 
-.homepage-editor p:last-child {
-  margin-bottom: 0;
-}
-
-.homepage-editor > p {
-  margin: 0;
+.homepage-editor figure {
+  width: min(100%, 420px);
+  justify-self: center;
 }
 
 .homepage-editor img {
   width: 100%;
-  max-width: 300px;
-  border-radius: 8px;
+  aspect-ratio: 620 / 612;
+  border-radius: 6px;
 }
 
-.homepage-support {
-  display: inline-block;
-  max-width: 100%;
+@media (min-width: 620px) {
+  .homepage-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
-.homepage-support img {
-  border-radius: 999px;
+@media (min-width: 768px) {
+  .homepage-hero,
+  .homepage-editor {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: clamp(32px, 6vw, 80px);
+  }
+}
+
+@media (min-width: 960px) {
+  .homepage-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 </style>

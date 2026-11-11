@@ -22,15 +22,17 @@ ZONEINFO_ALIASES = {
 }
 
 
-def load_timezone_select_options() -> list[tuple[int, str]]:
+def load_time_select_options(entity_id: str, time_yaml: Path = TIME_YAML) -> list[tuple[int, str]]:
     options: list[tuple[int, str]] = []
-    in_timezone_select = False
+    in_select = False
     in_options = False
-    for line_no, line in enumerate(TIME_YAML.read_text().splitlines(), 1):
-        if re.match(r"^\s+id:\s*timezone_select\s*$", line):
-            in_timezone_select = True
+    for line_no, line in enumerate(time_yaml.read_text().splitlines(), 1):
+        if line.strip() == f"id: {entity_id}":
+            in_select = True
             continue
-        if in_timezone_select and not in_options:
+        if in_select and not in_options:
+            if line.startswith("  - "):
+                break
             if re.match(r"^\s+options:\s*$", line):
                 in_options = True
             continue
@@ -43,6 +45,10 @@ def load_timezone_select_options() -> list[tuple[int, str]]:
         if line.strip():
             break
     return options
+
+
+def load_timezone_select_options() -> list[tuple[int, str]]:
+    return load_time_select_options("timezone_select")
 
 
 def timezone_option_id(option: str) -> str | None:

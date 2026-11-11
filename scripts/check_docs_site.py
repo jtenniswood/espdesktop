@@ -260,6 +260,7 @@ def check_build(dist):
         BASE + 'reference/faq',
         BASE + 'reference/companion-compatibility',
         BASE + 'reference/privacy',
+        BASE + 'reference/support',
         BASE + 'reference/request-icons',
     }
     if unexpected_pages := set(pages) - mac_docs:
@@ -327,7 +328,7 @@ def check_build(dist):
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
         'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/',
         'features/media-cover-art': BASE + 'features/setup#screen-and-system-settings',
-        'mac-controls/statistics': BASE + 'features/subpages#mac-statistics',
+        'mac-controls/statistics': BASE + '#what-you-can-control',
         'mac-controls/volume': BASE + '#what-you-can-control',
         'guides/index': 'https://jtenniswood.github.io/espcontrol/',
         'immich/index': 'https://jtenniswood.github.io/espcontrol/',
@@ -337,7 +338,7 @@ def check_build(dist):
     }
     redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'
     screen_guides = {
-        '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
+        '4848s040': (BASE + 'screens/4848s040', BASE + 'getting-started/install'),
         'jc1060p470': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc4880p443': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),

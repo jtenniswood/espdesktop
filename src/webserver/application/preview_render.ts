@@ -9,8 +9,12 @@ import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
-import { escHtml } from "./ui_primitives";
-import { companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
+import { escHtml, iconSlug } from "./ui_primitives";
+import { companionCardDefaultIcon } from "../model/companion_card";
+import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { companionShortcutActionIdValid } from "./companion_shortcut_folder";
+import { finderFolderPreview } from "../model/finder_folder_preview";
+import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -50,9 +54,12 @@ export interface PreviewRenderDependencies {
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
+    readonly liveFinderFolders: () => readonly CompanionAction[];
+    readonly shortcutPageReady: (owner: string) => boolean | undefined;
 }
 export interface PreviewRenderFeature {
     render(): void;
+    updateShortcutAvailability(): void;
     registryValue(typeDefinition?: any, key?: any, fallback?: any): any;
     configDisabled(button?: any): boolean;
     defaultTypeForPicker(key?: any): any;
@@ -400,6 +407,17 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.setAttribute("aria-label", "Rename card");
         title.title = "Click to rename; Enter to save";
     }
+    let renderedShortcutOwner: string | undefined;
+    function updateShortcutAvailability() {
+        const main = els.previewMain as HTMLElement | undefined;
+        if (!main || !renderedShortcutOwner) return;
+        const ready = dependencies.shortcutPageReady(renderedShortcutOwner);
+        for (const card of main.querySelectorAll<HTMLElement>("[data-preview-shortcut]")) {
+            const unavailable = ready === false || card.dataset.previewShortcut === "invalid";
+            card.classList.toggle("sp-shortcut-unavailable", unavailable);
+            card.title = unavailable ? "Shortcut unavailable on the touchscreen." : "";
+        }
+    }
     function renderPreview(this: any) {
         appIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
@@ -413,6 +431,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const selectionEnd = editor?.selectionEnd ?? null;
         const editorSlot = editor?.closest("[data-slot]")?.getAttribute("data-slot");
         main.innerHTML = "";
+        renderedShortcutOwner = undefined;
         main.className = "sp-main" + (state.subpageChevronsOn ? "" : " sp-hide-subpage-chevrons");
         if (gridPreviewBlockedByRotationStartup()) {
             main.className += " sp-grid-loading";
@@ -431,6 +450,15 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             if (index !== -1) c.selected.splice(index, 1);
         }
         updatePreviewHint(c);
+        const pageKey = state.editingSubpage;
+        const subpage = pageKey ? getSubpage(pageKey) : null;
+        const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
+        const shortcutOwner = appShortcutPageOwner(owner);
+        renderedShortcutOwner = shortcutOwner;
+        const liveFolders = subpage && shortcutOwner === "com.apple.finder"
+            ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
+                dependencies.liveFinderFolders())
+            : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             if (slot === -1)
@@ -438,17 +466,13 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             if (slot === -2) {
                 var backBtn: any = document.createElement("div");
                 var bkSz: any = c.sizes[-2];
-                var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                const parent = state.editingSubpage != null
-                    ? state.buttons[state.editingSubpage - 1] : null;
-                const appBack = companionAppShortcutFolderEnabled(parent);
                 var backLabel = subpage?.backLabel || "Back";
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
-                        (appBack ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (shortcutOwner ? resolveIcon({ icon: appShortcutPageBackIcon(owner?.icon) }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                        (shortcutOwner ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor
@@ -460,12 +484,12 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
-                if (appBack) {
+                if (shortcutOwner) {
                     backBtn.setAttribute("data-icon-size", "large");
                     backBtn.setAttribute("aria-label", backLabel + " — Home");
                     resizeCardIcon(backBtn);
                     appIconResizeObserver?.observe(backBtn);
-                    loadCardAppIcon(backBtn, parent!.entity, subpage?.backColor || "",
+                    loadCardAppIcon(backBtn, shortcutOwner, subpage?.backColor || "",
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
@@ -542,6 +566,9 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
                 }
+                if (shortcutOwner && b.type === "companion" && b.entity?.startsWith("shortcut.")) {
+                    btn.dataset.previewShortcut = companionShortcutActionIdValid(b.entity) ? "valid" : "invalid";
+                }
                 var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
                 var sensorBadge: any = hasWhenOn
                     ? '<span class="sp-sensor-badge mdi mdi-' + badgeIcon + '"></span>'
@@ -589,6 +616,21 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 empty.className = "sp-empty-cell";
                 empty.setAttribute("data-pos", pos);
                 empty.innerHTML = '<span class="sp-add-pill"><span class="sp-add-icon mdi mdi-plus"></span></span>';
+                const folder = liveFolders?.get(pos);
+                if (folder) {
+                    const tile = document.createElement("div");
+                    tile.className = "sp-live-folder-preview";
+                    tile.title = "Live Finder folder. Click the cell to add a saved tile.";
+                    const icon = document.createElement("span");
+                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon("folder"));
+                    icon.setAttribute("aria-hidden", "true");
+                    const label = document.createElement("span");
+                    label.className = "sp-btn-label";
+                    label.textContent = folder.label;
+                    tile.append(icon, label);
+                    empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    empty.appendChild(tile);
+                }
                 main.appendChild(empty);
             }
         }
@@ -601,6 +643,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 editor.setSelectionRange(selectionStart, selectionEnd);
             }
         }
+        updateShortcutAvailability();
         renderSelectionBar(c);
     }
     document.addEventListener("espdesktop:app-icon-cache-cleared", function (event) {
@@ -609,6 +652,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     });
     return {
         render: renderPreview,
+        updateShortcutAvailability,
         registryValue: buttonTypeRegistryValue,
         configDisabled: buttonConfigDisabledForDevice,
         defaultTypeForPicker: defaultButtonTypeForPicker,

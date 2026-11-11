@@ -7,6 +7,7 @@ export interface MacCompanionConnectorState {
     configured: boolean;
     paired: boolean;
     connected: boolean;
+    shortcut_page_ready?: boolean;
 }
 
 export interface ConnectorsStatus {
@@ -20,6 +21,7 @@ export interface ConnectorsPageFeature {
     companionConfigured(): boolean;
     onStatusChange(callback: () => void): void;
     onCompanionConnectionChange(callback: (connected: boolean) => void): void;
+    shortcutPageReady(owner: string): boolean | undefined;
     // Transitional adapters for shared editors while their retired modes are removed.
     homeAssistantConfigured(): boolean;
     homeAssistantConnected(): boolean;
@@ -44,12 +46,14 @@ export function createConnectorsPageFeature(
     shell: Pick<ControlsShellFeature, "setOnboardingComplete">,
     companionSection: SettingsCompanionSectionFeature,
     companionSupported: boolean,
+    activeShortcutOwner: () => string | undefined = () => undefined,
 ): ConnectorsPageFeature {
     const { document, window, fetch } = dom;
     let current: ConnectorsStatus | null = null;
     let lastConnection: boolean | null = null;
     let timer: number | null = null;
     let refreshInProgress = false;
+    let shortcutStatus: { owner: string; ready: boolean } | undefined;
     const statusListeners: Array<() => void> = [];
     const connectionListeners: Array<(connected: boolean) => void> = [];
 
@@ -70,20 +74,28 @@ export function createConnectorsPageFeature(
     async function refreshStatus(): Promise<void> {
         if (refreshInProgress) return;
         refreshInProgress = true;
+        const owner = activeShortcutOwner();
         try {
-            const response = await fetch("/connectors/status", {
+            const query = owner ? "?shortcut_owner=" + encodeURIComponent(owner) : "";
+            const response = await fetch("/connectors/status" + query, {
                 cache: "no-store", headers: { Accept: "application/json" },
             });
             if (!response.ok) throw new Error("Connector status is unavailable");
             const status = await response.json() as ConnectorsStatus;
             if (!status?.mac_companion || typeof status.mac_companion.paired !== "boolean" ||
                 typeof status.mac_companion.connected !== "boolean") throw new Error("Invalid Companion status");
+            const ready = status.mac_companion.shortcut_page_ready;
+            shortcutStatus = owner && typeof ready === "boolean" ? { owner, ready } : undefined;
             applyStatus(status);
         } catch {
+            const hadShortcutStatus = shortcutStatus !== undefined;
+            shortcutStatus = undefined;
             if (!current) applyStatus(fallbackStatus());
+            else if (hadShortcutStatus) statusListeners.forEach(listener => listener());
         } finally { refreshInProgress = false; }
     }
     function applyCompanionStatus(value: CompanionPairingState): void {
+        if (!value.connected && shortcutStatus) shortcutStatus = { ...shortcutStatus, ready: false };
         applyStatus({ onboarding_complete: true, mac_companion: {
             available: value.available, configured: value.paired, paired: value.paired, connected: value.connected,
         } });
@@ -120,6 +132,7 @@ export function createConnectorsPageFeature(
         companionConfigured: () => !!current?.mac_companion.paired,
         onStatusChange: callback => { statusListeners.push(callback); },
         onCompanionConnectionChange: callback => { connectionListeners.push(callback); },
+        shortcutPageReady: owner => shortcutStatus?.owner === owner ? shortcutStatus.ready : undefined,
         homeAssistantConfigured: () => false,
         homeAssistantConnected: () => false,
         homeAssistantSettingsAvailable: () => false,
