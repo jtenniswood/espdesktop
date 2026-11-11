@@ -21,8 +21,8 @@ function shareImage(file: string, width: number, height: number, alt: string) {
 const defaultImage = shareImage('espdesktop-share.png', 1200, 630,
   'EspDesktop touchscreen controller for Mac with example app, website, folder and shortcut tiles')
 const pageImages: Record<string, typeof defaultImage> = {
-  'screens/4848s040.md': shareImage('4848s040-slack.jpg', 1202, 1100,
-    'Guition 4848S040 touchscreen showing Slack shortcuts beside a keyboard'),
+  'screens/4848s040.md': shareImage('espdesktop-desk.jpg', 1320, 1093,
+    'EspDesktop touchscreen with buttons for Mac apps next to a keyboard'),
   'screens/4848s040-stand.md': shareImage('4848s040-stand-printed.jpg', 1000, 1000,
     'The 3D-printed Guition 4848S040 stand with its mounting clips visible'),
   'getting-started/install.md': shareImage('4848s040-hero.jpg', 1024, 999,
@@ -113,7 +113,7 @@ export default defineConfig({
     }
 
     // These pages have no page-level sidebar link to determine their next step.
-    if (relativePath === 'screens/4848s040.md' || relativePath === 'reference/companion-compatibility.md') {
+    if (relativePath === 'reference/companion-compatibility.md') {
       frontmatter.next = { text: 'Install the display', link: '/getting-started/install' }
     }
 
