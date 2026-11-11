@@ -615,6 +615,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
+                    if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
                     loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);

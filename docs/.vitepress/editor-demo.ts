@@ -138,16 +138,34 @@ if (url.searchParams.size) {
   history.replaceState(null, '', url)
 }
 
+function startAppFocus(grid: HTMLElement) {
+  let activeAppId: string | undefined
+  const appButton = 'button[data-demo-app-id]'
+
+  function paintActiveApp() {
+    for (const tile of grid.querySelectorAll<HTMLButtonElement>(appButton)) {
+      tile.classList.toggle('demo-app-on', tile.dataset.demoAppId === activeAppId)
+    }
+  }
+
+  // Record the app before navigation replaces the grid. Autoplay uses the same click path.
+  grid.addEventListener('click', event => {
+    const tile = event.target instanceof Element ? event.target.closest<HTMLButtonElement>(appButton) : null
+    if (!tile || grid.getAttribute('aria-disabled') !== 'false') return
+    activeAppId = tile.dataset.demoAppId
+    paintActiveApp()
+  }, { capture: true })
+  new MutationObserver(paintActiveApp).observe(grid, { childList: true })
+}
+
 function startIdlePreview(grid: HTMLElement, slackSelector: string) {
   let timer: number | undefined
   let pressed: HTMLButtonElement | null = null
   let openedByDemo = false
-  let slackOn = false
   let visible = !embedded
 
   const backButton = () => grid.querySelector<HTMLButtonElement>('button.sp-back-btn')
   const slackButton = () => backButton() ? null : grid.querySelector<HTMLButtonElement>(slackSelector)
-  const paintSlack = () => slackButton()?.classList.toggle('demo-app-on', slackOn)
 
   function schedule(action: () => void, delay: number) {
     window.clearTimeout(timer)
@@ -172,11 +190,8 @@ function startIdlePreview(grid: HTMLElement, slackSelector: string) {
       schedule(() => {
         releasePress()
         if (target.isConnected) {
-          const returningHome = openedByDemo
           target.click()
           openedByDemo = !!backButton()
-          if (!returningHome && openedByDemo) slackOn = true
-          paintSlack()
         }
         waitForIdle()
       }, pressDurationMs)
@@ -198,7 +213,6 @@ function startIdlePreview(grid: HTMLElement, slackSelector: string) {
     releasePress()
     waitForIdle()
   })
-  new MutationObserver(paintSlack).observe(grid, { childList: true })
   if (embedded) {
     new IntersectionObserver(([entry]) => {
       visible = (entry?.intersectionRatio ?? 0) >= 0.5
@@ -211,13 +225,11 @@ function startIdlePreview(grid: HTMLElement, slackSelector: string) {
 }
 
 const slack = layout.rootCards.find(card => appShortcutPageOwner(card.config) === slackAppId)
-if (slack) {
-  const selector = `button[data-slot="${slack.slot}"]`
-  const ready = new MutationObserver(() => {
-    const grid = document.querySelector<HTMLElement>('.sp-main[aria-disabled="false"]')
-    if (!grid?.querySelector(selector)) return
-    ready.disconnect()
-    startIdlePreview(grid, selector)
-  })
-  ready.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-disabled'] })
-}
+const ready = new MutationObserver(() => {
+  const grid = document.querySelector<HTMLElement>('.sp-main[aria-disabled="false"]')
+  if (!grid?.querySelector('button.sp-btn')) return
+  ready.disconnect()
+  startAppFocus(grid)
+  if (slack) startIdlePreview(grid, `button[data-slot="${slack.slot}"]`)
+})
+ready.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-disabled'] })

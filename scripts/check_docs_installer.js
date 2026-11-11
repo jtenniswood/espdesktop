@@ -140,6 +140,13 @@ async function checkBrowser() {
       await frame.getByRole('button', { name: 'New Message', exact: true }).waitFor();
       await frame.locator('button.sp-back-btn').click();
       await slack.waitFor();
+      assert(await slack.evaluate(tile => tile.classList.contains('demo-app-on')),
+        'The active app stays on after Back');
+      const calendar = frame.getByRole('button', { name: 'Calendar', exact: true });
+      await calendar.click();
+      assert.equal(await frame.locator('button.demo-app-on').count(), 1);
+      assert(await calendar.evaluate(tile => tile.classList.contains('demo-app-on')),
+        'Tapping another app transfers the on state');
     }
     await setup.press('Enter');
     await page.waitForURL(`${home}getting-started/install`);
