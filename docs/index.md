@@ -224,7 +224,7 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app 
 }
 
 .homepage-panel {
-  width: min(100%, 440px);
+  width: min(100%, 560px);
   justify-self: center;
 }
 
@@ -348,15 +348,11 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app 
 @media (min-width: 768px) {
   .homepage-hero,
   .homepage-editor {
-    gap: clamp(32px, 6vw, 80px);
-  }
-
-  .homepage-hero {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .homepage-editor {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(32px, 6vw, 80px);
   }
 
   .homepage-demo {
