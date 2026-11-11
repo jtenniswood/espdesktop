@@ -4416,6 +4416,10 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
     const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
     const key = page.locator('[id$="shortcut-key"]');
+    const [keyBounds, panelBounds] = await Promise.all([key.boundingBox(), shortcutPanel.boundingBox()]);
+    const bottomGap = panelBounds.y + panelBounds.height - keyBounds.y - keyBounds.height;
+    const sideGap = keyBounds.x - panelBounds.x;
+    assert.ok(bottomGap >= sideGap + 9, `Expected extra room below the Key field, got ${bottomGap}px`);
     assert.strictEqual(await command.getAttribute("aria-pressed"), "true", "saved shortcut restores modifier buttons");
     assert.strictEqual(await key.inputValue(), "a", "saved shortcut restores key selector");
     await key.selectOption("w");

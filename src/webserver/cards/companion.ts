@@ -734,6 +734,7 @@ export function registerCompanionCardTypes(
             typeTabs.segment.setAttribute("role", "tablist");
             typeTabs.segment.setAttribute("aria-label", "Shortcut type");
             const customField = document.createElement("div");
+            customField.className = "sp-shortcut-custom-fields";
             const catalogField = document.createElement("div");
             for (const [type, field] of [["custom", customField], ["catalog", catalogField]] as const) {
                 const tab: HTMLButtonElement = typeTabs.buttons[type];
