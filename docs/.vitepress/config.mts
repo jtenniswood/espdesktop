@@ -199,7 +199,7 @@ export default defineConfig({
           { text: 'Overview', link: '/' },
           { text: 'Supported Display', link: '/screens/4848s040' },
           { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
-          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Getting Setup', link: '/getting-started/install' },
         ],
       },
       {
@@ -210,7 +210,7 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Device Features',
+        text: 'Features',
         items: [
           { text: 'Configure the Display', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
