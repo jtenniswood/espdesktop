@@ -26,14 +26,14 @@ export async function runPanelIdentityTests() {
   assert(exporter.fileName("4 inches", new Date(2026, 8, 11), identity) === "espdesktop-4-inch-kitchen-b2c3-2026-09-11.json", "named backup");
   assert(exporter.fileName("4 inches", new Date(2026, 8, 11)) === "espdesktop-4-inch-2026-09-11.json", "legacy filename");
   const document = { title: "" } as Document;
-  let custom = "Kitchen";
-  const title = createAppTitleFeature({ document, panelName: () => custom, eventStreamEnabled: () => false,
+  const current = { name: "Kitchen", mac_suffix: "f45c6c" };
+  const title = createAppTitleFeature({ document, panelIdentity: () => current, eventStreamEnabled: () => false,
     eventSourceAvailable: () => false, createEventSource: () => { throw new Error("unused"); } });
   title.handleWebServerPingEvent({ data: '{"title":"Old model name"}' });
   assert(document.title === "EspDesktop - Kitchen", "server events cannot overwrite custom title");
-  custom = "";
+  current.name = "";
   title.handleWebServerPingEvent({ data: '{"title":"Original"}' });
-  assert(String(document.title) === "Original", "default title restored");
+  assert(String(document.title) === "EspDesktop - 5c6c", "unnamed panel uses the last four MAC characters");
   let requests = 0, restarted = false;
   const feature = createPanelIdentityFeature({ document,
     fetch: (async (_url: unknown, init: RequestInit) => {
