@@ -47,9 +47,19 @@ VerifyLocalStore();
 VerifyAudioLevelPolicy();
 VerifyWindowsPresets();
 var exerciseDesktopActions = args is ["--verify-native-windows", "--exercise-desktop-actions"];
+var verifyWindowsLock = args is ["--verify-windows-lock"];
+if (verifyWindowsLock && Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") != "github-hosted")
+    throw new InvalidOperationException("Run the workstation lock check on a disposable GitHub-hosted Windows runner.");
 using var native = args is ["--verify-native-windows"] || exerciseDesktopActions
     ? await NativeWindowsDesktop.Prepare(exerciseDesktopActions)
     : null;
+var windowsBackend = verifyWindowsLock
+    ? new WindowsDesktop(new LocalSettings
+    {
+        Shortcuts = true,
+        Folders = [new("folder.lock-test", Path.GetTempPath())]
+    })
+    : native?.Desktop;
 #else
 const bool exerciseDesktopActions = false;
 #endif
@@ -158,9 +168,10 @@ server.Map(SocketPath, async context =>
         Check(seq == 8, "repair stale authentication sequence");
         await Send(socket, "auth.accepted", ("capabilityVersion", 7));
 #if WINDOWS
-        if (native is not null)
+        if (windowsBackend is not null)
         {
-            await VerifyNativeDesktop(socket, native);
+            if (native is not null) await VerifyNativeDesktop(socket, native);
+            else await VerifyWindowsLock(socket);
             checks.TrySetResult();
             await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "done", lifetime.Token);
             return;
@@ -211,7 +222,7 @@ var status = "";
 var saved = pairing;
 IDesktop backend = desktop;
 #if WINDOWS
-if (native is not null) backend = native.Desktop;
+if (windowsBackend is not null) backend = windowsBackend;
 #endif
 var session = new DisplaySession(backend, p => saved = p, s => status = s, (_, _) =>
     Task.FromResult<DiscoveredDisplay?>(new(new Uri(address).Authority, "Desk display", pairing.Fingerprint)));
@@ -221,7 +232,7 @@ Check(status.Contains("identity changed", StringComparison.Ordinal) && authentic
 using var sessionLifetime = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
 Task StartSession() => session.RunAsync(pairing, sessionLifetime.Token);
 #if WINDOWS
-var run = native is null ? StartSession() : NativeWindowsDesktop.RunOnDesktop(StartSession);
+var run = windowsBackend is null ? StartSession() : NativeWindowsDesktop.RunOnDesktop(StartSession);
 #else
 var run = StartSession();
 #endif
@@ -234,6 +245,7 @@ finally
 Check(saved.Sequence == 8 && rejectedSequence == 1, "authenticated counter recovery");
 Check(saved.DisplayName == "Desk display", "save the name for the authenticated display at the connected address");
 #if WINDOWS
+if (verifyWindowsLock) return;
 if (native is not null)
 {
     Console.WriteLine("Passed Windows desktop catalogue, approved folder privacy, system metrics, audio and Explorer icon over TLS.");
@@ -483,6 +495,32 @@ static void VerifyAudioLevelPolicy()
         "an endpoint can change volume even when mute is unavailable");
     Check(!Audio.SetLevel(50, WriteLevel, () => true, _ => false), "report an unmute failure to the display");
     Console.WriteLine("Passed Windows audio volume and mute policy checks.");
+}
+
+async Task VerifyWindowsLock(WebSocket socket)
+{
+    var initial = await FindMessage(socket, "session.lock", _ => true);
+    Check(!initial.GetProperty("locked").GetBoolean(), "the Windows test session starts unlocked");
+
+    await Invoke("shortcut.command+control+q", "lock-windows", "performed");
+    await FindMessage(socket, "session.lock", message => message.GetProperty("locked").GetBoolean());
+    await Invoke("folder.lock-test", "locked-folder", "not_allowed");
+    await Invoke("shortcut.command+c", "locked-shortcut", "not_allowed");
+    await Send(socket, "value.set", ("controlId", "media.output_volume"), ("value", 40), ("requestId", "locked-speaker"));
+    await CheckResult("locked-speaker", "not_allowed");
+    Console.WriteLine("Passed native Windows workstation lock, lock-state publication, and blocked commands over TLS.");
+
+    async Task Invoke(string action, string request, string expected)
+    {
+        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", action), ("requestId", request));
+        await CheckResult(request, expected);
+    }
+
+    async Task CheckResult(string request, string expected)
+    {
+        var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == request);
+        Check(Text(result, "status") == expected, request);
+    }
 }
 
 async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)

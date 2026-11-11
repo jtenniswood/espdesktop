@@ -138,3 +138,8 @@ jobs:
         run: |
           $preview = (Get-ChildItem ./dist/windows/*-Setup.exe).FullName
           ./windows/EspDesktop.Tests/Test-SignedInstaller.ps1 -Architecture ${{ matrix.arch }} -UnsignedInstaller $preview
+
+      # Leave this last because the runner's desktop stays locked.
+      - name: Verify Windows locks on a display command
+        timeout-minutes: 2
+        run: dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --verify-windows-lock
