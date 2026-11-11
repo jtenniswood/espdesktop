@@ -31,6 +31,8 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop Mac app showing a connected display and the Customize button'),
   'features/setup.md': shareImage('web-editor-screen-settings.png', 1694, 2266,
     'EspDesktop Screen tab showing appearance, display, and sleep settings'),
+  'features/home.md': shareImage('web-editor-home.png', 1000, 1337,
+    'EspDesktop Home layout with Mac app cards in the web editor'),
   'features/subpages.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
     'Figma app subpage with the Figma icon as the Back tile and a grid of shortcuts'),
   'mac-controls/apps.md': shareImage('web-editor-application-card.png', 1694, 2266,
@@ -245,6 +247,7 @@ export default defineConfig({
         items: [
           { text: 'First Run', link: '/features/first-run' },
           { text: 'Device and System Settings', link: '/features/setup' },
+          { text: 'Home', link: '/features/home' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
           { text: 'Websites', link: '/mac-controls/websites' },

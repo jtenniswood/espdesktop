@@ -68,6 +68,8 @@ Open **Factory Reset** in the **System** tab and choose **Save backup** before r
 
 ## Arrange and personalise cards {#arrange-and-personalise-cards}
 
+The [Home guide](/features/home) walks through editing the grid, adding cards and creating custom subpages.
+
 Use **Layout** to move cards, drag their bottom-right handles to resize them, or click a card name to rename it. Right-click a card to cut it for pasting into another tile or copy its code for another display. You can also [create subpages](/features/subpages) to group related controls. Layout changes take effect when saved.
 
 ### Add a Mac control {#add-a-mac-control}
