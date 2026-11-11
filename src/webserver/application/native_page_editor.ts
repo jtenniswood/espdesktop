@@ -17,6 +17,7 @@ export function createNativePageEditorFeature(options: {
   layout: ApplicationLayoutState;
   runtime: UiRuntimeState;
   document: Document;
+  displayDemo?: boolean;
   shell: Pick<ControlsShellFeature, "showBanner" | "syncConfigLockUi">;
   closeSettings(): void;
   render(): void;
@@ -48,7 +49,7 @@ export function createNativePageEditorFeature(options: {
       state.nativePageSnapshotLoaded = true;
       native.client?.acceptSnapshot(prepared.source, cleaned === snapshot ? nativeLayout : undefined);
       state.nativeHasNestedPages = prepared.nested;
-      state.nativeConfigReadOnly = prepared.nested && native.writableNavigationDepth() < 2;
+      state.nativeConfigReadOnly = !!options.displayDemo || (prepared.nested && native.writableNavigationDepth() < 2);
       state.subpageRaw = {};
       state.subpageSavePending = {};
       state.pendingButtonOrderRaw = cleaned.settings.button_order ?? "";
@@ -68,7 +69,7 @@ export function createNativePageEditorFeature(options: {
       clearTimeout(runtime.sliderMigrationTimer as any);
       runtime.pendingSliderSubpageMigrations = {};
       options.shell.syncConfigLockUi();
-      if (state.nativeConfigReadOnly)
+      if (state.nativeConfigReadOnly && !options.displayDemo)
         options.shell.showBanner("This firmware can display nested pages, but cannot save changes to them.", "warning");
       if (cleaned !== snapshot && !state.nativeConfigReadOnly && !removingOldCards) {
         // Reapply the cleanup to the current device generation so concurrent
