@@ -335,3 +335,5 @@ output_mute=Ausgabe stummschalten
 microphone_mute=Mikrofon stummschalten
 mic=Mikro
 mute=Stumm
+mac_update_required=Mac-App aktualisieren
+mac_update_reconnect=Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.

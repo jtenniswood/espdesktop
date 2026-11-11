@@ -19,6 +19,12 @@ int main() {
   first.companion_runtime().set_connected(true);
   second.companion_runtime().set_actions({{"com.example.Second", "Second"}});
   assert(!second.companion_runtime().connected());
+  second.companion_runtime().set_mac_update_required(true);
+  assert(second.companion_runtime().mac_update_required());
+  assert(!first.companion_runtime().mac_update_required());
+  second.companion_runtime().set_connected(true);
+  second.companion_runtime().set_connected(false);
+  assert(!second.companion_runtime().mac_update_required());
   assert(first.companion_runtime().snapshot().actions[0].id == "com.example.First");
   assert(second.companion_runtime().snapshot().actions[0].id == "com.example.Second");
   const auto before = allocations;

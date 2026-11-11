@@ -335,3 +335,5 @@ output_mute=Slå lyd fra
 microphone_mute=Slå mikrofon fra
 mic=Mikrofon
 mute=Slå lyd fra
+mac_update_required=Opdater Mac-appen
+mac_update_reconnect=Opdater EspDesktop på din Mac for at oprette forbindelse igen.

@@ -335,3 +335,5 @@ output_mute=Couper le son
 microphone_mute=Couper le microphone
 mic=Micro
 mute=Muet
+mac_update_required=Mettre à jour l’app Mac
+mac_update_reconnect=Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.

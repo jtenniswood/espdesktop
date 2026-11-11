@@ -52,3 +52,7 @@ The `EspDesktop_XXXX` setup hotspot can take up to 90 seconds to appear. Connect
 If an ESP32-P4 panel running EspControl can’t join WiFi, see the [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
 
 Save a backup before using **System → System → Factory Reset**. Partial reset retains WiFi and Mac pairing. Complete reset requires typing **RESET**, erases saved WiFi and Mac pairing, and requires pairing the Mac again. It disables WiFi networks compiled into the firmware so newly provisioned credentials remain selected after reboot. Installed firmware remains in place.
+
+## The display says to update the Mac app
+
+A firmware update can require a newer EspDesktop Mac app. When your paired Mac tries to reconnect with an older, incompatible app, the display asks you to update it. Install the Mac app from the same release as your display firmware. The saved pairing is used again when the compatible app reconnects. [EspDesktop releases](https://github.com/jtenniswood/espdesktop/releases)

@@ -255,6 +255,42 @@ inline void network_status_open_pairing() {
   network_status_refresh_page();
 }
 
+// Show once per compatibility failure. Settings retains the status after the
+// banner is dismissed, and a successful connection clears both.
+inline void network_status_sync_mac_update_notice() {
+  static lv_obj_t *notice = nullptr;
+  static bool shown = false;
+  if (!companion_runtime_service().mac_update_required()) {
+    if (notice) lv_obj_del(notice);
+    shown = false;
+    return;
+  }
+  const auto &metrics = control_modal_grid_metrics();
+  if (shown || !metrics.page || control_modal_active().overlay || !lv_layer_top()) return;
+
+  notice = control_modal_open_toast(lv_pct(90), control_modal_card_radius(metrics.first_card),
+      theme_display_color(current_theme().surface_secondary)).box;
+  if (!notice) return;
+  shown = true;
+  lv_obj_set_height(notice, LV_SIZE_CONTENT);
+  lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -12);
+  lv_obj_add_flag(notice, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_add_event_cb(notice, [](lv_event_t *event) {
+    lv_obj_del(lv_event_get_target(event));
+  }, LV_EVENT_CLICKED, nullptr);
+  lv_obj_add_event_cb(notice, [](lv_event_t *) { notice = nullptr; }, LV_EVENT_DELETE, nullptr);
+
+  lv_obj_t *label = lv_label_create(notice);
+  lv_obj_set_width(label, lv_pct(100));
+  lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+  lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
+  lv_obj_set_style_text_color(label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
+  lv_obj_t *reference = metrics.first_card ? metrics.first_card : metrics.page;
+  lv_obj_set_style_text_font(label, lv_obj_get_style_text_font(reference, LV_PART_MAIN), LV_PART_MAIN);
+  lv_label_set_display_text(label, espdesktop_i18n_key("mac_update_reconnect"));
+  apply_text_width_compensation(label);
+}
+
 inline void network_status_refresh_page() {
   auto &ui = network_status_modal_ui();
   if (!ui.overlay) return;
@@ -276,7 +312,8 @@ inline void network_status_refresh_page() {
       state = espdesktop_i18n("Connected");
       icon = "\U000F031A";
     } else if (snapshot.paired) {
-      state = espdesktop_i18n("Disconnected");
+      state = companion_runtime_service().mac_update_required()
+          ? espdesktop_i18n_key("mac_update_required") : espdesktop_i18n("Disconnected");
     } else {
       state = espdesktop_i18n("Not paired");
       icon = "\U000F0D33";

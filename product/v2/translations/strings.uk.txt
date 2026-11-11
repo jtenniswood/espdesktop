@@ -335,3 +335,5 @@ output_mute=Вимкнути звук
 microphone_mute=Вимкнути мікрофон
 mic=Мікрофон
 mute=Без звуку
+mac_update_required=Оновіть застосунок для Mac
+mac_update_reconnect=Оновіть EspDesktop на Mac, щоб відновити з’єднання.

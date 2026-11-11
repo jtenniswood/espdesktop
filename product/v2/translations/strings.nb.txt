@@ -335,3 +335,5 @@ output_mute=Demp lyd
 microphone_mute=Demp mikrofon
 mic=Mikrofon
 mute=Demp
+mac_update_required=Oppdater Mac-appen
+mac_update_reconnect=Oppdater EspDesktop på Macen for å koble til igjen.
