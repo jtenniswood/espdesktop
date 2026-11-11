@@ -76,7 +76,7 @@ def manifest(firmware_dir, companion_dir, source_revision, version, root=ROOT):
 
 def verify(path, firmware_dir, companion_dir, source_revision, version, root=ROOT, *, tested_fingerprint=None):
     if tested_fingerprint is not None and digest(path) != tested_fingerprint:
-        raise ValueError('Candidate fingerprint does not match the hardware-tested build')
+        raise ValueError('Candidate fingerprint does not match the confirmed build')
     expected = manifest(firmware_dir, companion_dir, source_revision, version, root)
     if json.loads(path.read_text()) != expected:
         raise ValueError('Companion compatibility manifest or release artifacts do not match')
@@ -90,7 +90,7 @@ def main():
     parser.add_argument('--source-revision', required=True)
     parser.add_argument('--version', required=True)
     parser.add_argument('--out', type=Path, required=True)
-    parser.add_argument('--tested-fingerprint', help='SHA-256 from the hardware-tested candidate')
+    parser.add_argument('--tested-fingerprint', help='SHA-256 of the confirmed candidate manifest')
     args = parser.parse_args()
     if args.command == 'create':
         if args.tested_fingerprint is not None:

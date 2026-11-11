@@ -112,14 +112,12 @@ workflow artifacts. Its summary gives the candidate run ID and the fingerprint
 of the manifest that records their file hashes and pins the release manifest
 that identifies the hosted editor.
 
-Test the candidate firmware and notarized Mac app together on a paired
-Guition 4848S040 with an existing layout. From the tagged checkout, run the
+Install and open the notarized Mac app from the candidate run. Once the user
+confirms the app works, dispatch **Publish Release** from the same tag with
+the candidate run ID and manifest fingerprint. The workflow checks the
+fingerprint and verifies the candidate artifacts before publishing. Use the
 [S3 hardware session](device-runtime-tests.md#run-the-release-hardware-session)
-with the candidate run ID and the downloaded compatibility manifest.
-
-Dispatch **Publish Release** from the same tag with the candidate run ID and
-the passing hardware report. The workflow checks the report against the
-candidate fingerprint and verifies the tested artifacts before publishing.
+for additional display diagnostics when needed.
 Pages deploys the editor from that successful publish run. Failures leave
 the release as a draft.
 

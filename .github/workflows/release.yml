@@ -672,7 +672,7 @@ jobs:
           if-no-files-found: error
 
   prepare-candidate:
-    name: Prepare Hardware Test Candidate
+    name: Prepare Release Candidate
     needs: [preflight, assemble-release, espdesktop-release]
     runs-on: ubuntu-latest
     steps:
@@ -707,13 +707,11 @@ jobs:
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json
           FINGERPRINT="$(sha256sum dist/companion/companion-compatibility.json | cut -d ' ' -f 1)"
           {
-            printf '## Test the release on a Guition 4848S040\n\n'
+            printf '## Install and confirm the candidate Mac app\n\n'
             printf 'Candidate run: %s\n\n' "${GITHUB_RUN_ID}"
             printf 'Candidate fingerprint: `%s`\n\n' "${FINGERPRINT}"
-            printf '%s\n' 'Use the firmware from **release-dist** and the signed Mac DMG from **espdesktop-app-release**.'
-            printf '%s\n' 'Start with a paired panel and an existing layout. Install both candidate files and download the **release-candidate-compatibility** manifest.'
-            printf '%s\n' 'Run `python3 scripts/test_release_hardware.py record --host PANEL_IP --candidate-run RUN_ID --manifest companion-compatibility.json` from the tagged checkout.'
-            printf '%s\n' 'Submit the resulting report.json to **Publish Release** with the candidate run ID.'
+            printf '%s\n' 'Download **espdesktop-app-release** and **release-candidate-compatibility** from this run.'
+            printf '%s\n' 'Install and open the verified candidate Mac app. Once it is confirmed working, provide this run ID and fingerprint to **Publish Release**.'
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload the candidate fingerprint manifest

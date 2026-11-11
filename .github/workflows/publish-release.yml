@@ -8,11 +8,11 @@ on:
         required: true
         type: string
       candidate_run:
-        description: Successful Build Release run ID for the firmware and Mac app tested together
+        description: Successful Build Release run ID for the installed Mac candidate
         required: true
         type: string
-      hardware_report:
-        description: JSON from the completed S3 hardware test session
+      confirmed_fingerprint:
+        description: Candidate manifest SHA-256 after the installed Mac app is confirmed working
         required: true
         type: string
 
@@ -88,22 +88,18 @@ jobs:
       - name: Verify that the files match the tested candidate
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
-          HARDWARE_REPORT: ${{ inputs.hardware_report }}
+          CONFIRMED_FINGERPRINT: ${{ inputs.confirmed_fingerprint }}
           CANDIDATE_RUN: ${{ inputs.candidate_run }}
         run: |
-          TESTED_FINGERPRINT="$(printf '%s' "${HARDWARE_REPORT}" | python3 scripts/test_release_hardware.py verify \
-            --candidate-run "${CANDIDATE_RUN}" --release-tag "${RELEASE_TAG}" \
-            --manifest dist/companion/companion-compatibility.json)"
           python3 scripts/companion_release.py verify \
             --firmware-dir dist/firmware --companion-dir dist/companion \
             --source-revision "${SOURCE_SHA}" \
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json \
-            --tested-fingerprint "${TESTED_FINGERPRINT}"
+            --tested-fingerprint "${CONFIRMED_FINGERPRINT}"
           {
-            printf '\n## Device verification\n\n'
-            printf '%s\n' 'The Guition 4848S040 ran a shortcut on the paired Mac and reconnected to it after reboot.'
-            printf 'Tested [build run %s](%s/%s/actions/runs/%s) with fingerprint `%s`.\n' \
-              "${CANDIDATE_RUN}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${CANDIDATE_RUN}" "${TESTED_FINGERPRINT}"
+            printf '\n## Mac verification\n\n'
+            printf 'Confirmed the installed Mac app from [build run %s](%s/%s/actions/runs/%s) with fingerprint `%s`.\n' \
+              "${CANDIDATE_RUN}" "${GITHUB_SERVER_URL}" "${GITHUB_REPOSITORY}" "${CANDIDATE_RUN}" "${CONFIRMED_FINGERPRINT}"
           } >> dist/release-notes.md
 
       - name: Make the tested editor available to Pages
