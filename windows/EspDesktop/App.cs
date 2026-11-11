@@ -12,22 +12,19 @@ internal sealed class App : Application
     public static int Main(string[] args)
     {
         var smoke = args.Contains("--smoke-test");
+        // Publish the wake event before taking the mutex so another launch can
+        // request Settings even while this instance is still starting up.
+        using var open = new EventWaitHandle(false, EventResetMode.AutoReset, smoke ? null : @"Local\EspDesktop.Windows.Show");
         using var instance = new Mutex(initiallyOwned: false, smoke ? null : @"Local\EspDesktop.Windows");
         var acquired = false;
         try { acquired = instance.WaitOne(0); }
         catch (AbandonedMutexException) { acquired = true; }
         if (!acquired)
         {
-            try
-            {
-                using var show = EventWaitHandle.OpenExisting(@"Local\EspDesktop.Windows.Show");
-                if (!args.Contains("--background")) show.Set();
-            }
-            catch (WaitHandleCannotBeOpenedException) { }
+            if (!args.Contains("--background")) open.Set();
             return 0;
         }
 
-        using var open = new EventWaitHandle(false, EventResetMode.AutoReset, smoke ? null : @"Local\EspDesktop.Windows.Show");
         var app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
 #pragma warning disable WPF0001 // WPF's system Fluent theme API remains marked experimental.
         app.ThemeMode = smoke && args.Contains("--dark-preview") ? ThemeMode.Dark : ThemeMode.System;

@@ -85,6 +85,7 @@ jobs:
           $startupCommand = '"' + $appPath + '" --background'
           if (!(Test-Path -LiteralPath $runKey)) { New-Item -Path $runKey | Out-Null }
           New-ItemProperty -LiteralPath $runKey -Name EspDesktop -Value $startupCommand -PropertyType String -Force | Out-Null
+          ./windows/EspDesktop.Tests/Test-InstalledLaunch.ps1 -AppPath $appPath -StartMenuLink $startMenuLink
           # Model an update started while the existing instance is still quitting.
           $updateLog = Join-Path $env:RUNNER_TEMP 'EspDesktopUpdate.log'
           $logArgument = '/LOG="' + $updateLog + '"'

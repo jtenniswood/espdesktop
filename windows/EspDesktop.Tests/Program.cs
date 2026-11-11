@@ -353,7 +353,7 @@ static void VerifyInstallerProfile(string mode)
     var store = new LocalStore();
     const string appId = "windows.installer-test";
     var folder = new ApprovedFolder("folder.windows-installer", Path.Combine(Path.GetTempPath(), "EspDesktop installer test"));
-    var expected = new Pairing("192.168.1.20:8443", Hash("installer test display"),
+    var expected = new Pairing("127.0.0.1:42433", Hash("installer test display"),
         SHA256.HashData("installer fixture credential"u8), 12, "Installer test display");
     switch (mode)
     {
@@ -363,6 +363,7 @@ static void VerifyInstallerProfile(string mode)
             store.Settings.AllowedApps.Add(appId);
             store.Settings.Folders.Add(folder);
             store.Settings.Shortcuts = true;
+            store.Settings.CheckForUpdates = false;
             store.Save();
             store.SavePairing(expected);
             break;
