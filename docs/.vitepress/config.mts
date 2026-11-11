@@ -95,7 +95,7 @@ export default defineConfig({
     const description = String(frontmatter.description ?? '')
     const image = pageImages[relativePath] ?? defaultImage
     const isHome = relativePath === 'index.md'
-    const isArticle = !isHome && relativePath !== 'reference/privacy.md' && relativePath !== 'reference/faq.md'
+    const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
 
     frontmatter.head.push(
       ['link', { rel: 'canonical', href: canonicalUrl }],
@@ -198,7 +198,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/' },
           { text: 'Supported Display', link: '/screens/4848s040' },
-          { text: 'Where to Buy', link: '/#where-to-buy' },
+          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
           { text: 'Install Screen', link: '/getting-started/install' },
         ],
       },
@@ -225,6 +225,7 @@ export default defineConfig({
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
+          { text: 'Support the Project', link: '/reference/support' },
           { text: 'Privacy Policy', link: '/reference/privacy' },
         ],
       },

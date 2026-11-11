@@ -6,13 +6,21 @@ next: false
 
 # Install EspDesktop on the 4848S040
 
-Install EspDesktop on the **4-inch Guition ESP32-S3 4848S040** and connect the display to WiFi.
+Install EspDesktop on the [4-inch Guition ESP32-S3 4848S040](/screens/4848s040).
+
+## Get Started
+
+1. [Install the display firmware](#flash-the-firmware), then [connect the touchscreen to WiFi](#connect-the-display-to-wifi).
+2. [Install and pair the EspDesktop menu-bar app](/getting-started/mac-app) using the code shown in the display’s settings.
+3. Use the setup wizard to pick your first apps, or [build your own layout](/features/setup#add-a-mac-control) in the display’s browser editor.
+
+You choose which apps and folders the display can open. Keyboard shortcuts and Mac Lock use macOS Accessibility access. [How pairing and permissions work](/mac-controls/security)
 
 ## Before You Start
 
 - Use Chrome or Edge on a desktop computer.
 - Have a USB-C **data** cable and your 2.4 GHz WiFi name and password ready.
-- Keep the display and Mac on the same local network.
+- Keep the display and a Mac running macOS 13 or newer on the same local network.
 
 ## Flash the Firmware
 

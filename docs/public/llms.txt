@@ -32,6 +32,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 ## Optional
 
 - [Privacy policy](https://jtenniswood.github.io/espdesktop/reference/privacy.md)
+- [Support the project](https://jtenniswood.github.io/espdesktop/reference/support.md)
 - [Contribute app shortcut presets](https://jtenniswood.github.io/espdesktop/mac-controls/improve-shortcuts.md)
 - [Request an icon](https://jtenniswood.github.io/espdesktop/reference/request-icons.md)
 - [EspDesktop releases](https://github.com/jtenniswood/espdesktop/releases)

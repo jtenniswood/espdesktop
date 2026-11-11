@@ -13,7 +13,7 @@ hero:
   actions:
     - theme: brand
       text: Get started
-      link: /#get-started
+      link: /getting-started/install
     - theme: alt
       text: See what it can do
       link: /#what-you-can-control
@@ -103,33 +103,6 @@ The browser preview shows how your cards will look on the touchscreen. This exam
 
 </div>
 
-## Where to Buy
-
-EspDesktop runs on the [4-inch Guition 4848S040 touchscreen](/screens/4848s040). You’ll also need a Mac running macOS 13 or newer and a shared local network with 2.4 GHz WiFi for the display.
-
-- [Buy the Guition 4848S040 on AliExpress](https://s.click.aliexpress.com/e/_c2uYL5dd)
-- [Get the 3D-printable stand on MakerWorld](https://makerworld.com/en/models/2581572-guition-esp32s3-4848s040-case-stand#profileId-2847301)
-
-## Get Started
-
-1. [Install the display firmware](/getting-started/install) using a USB-C data cable and Chrome or Edge, then connect the touchscreen to WiFi.
-2. [Install and pair the EspDesktop menu-bar app](/getting-started/mac-app) using the code shown in the display’s settings.
-3. Use the setup wizard to pick your first apps, or [build your own layout](/features/setup#add-a-mac-control) in the display’s browser editor.
-
-You choose which apps and folders the display can open. Keyboard shortcuts and Mac Lock use macOS Accessibility access. [How pairing and permissions work](/mac-controls/security)
-
-## Support This Project
-
-If you find EspDesktop useful, consider buying me a coffee to support ongoing development.
-
-<a class="homepage-support" href="https://www.buymeacoffee.com/jtenniswood">
-  <img :src="supportButton" alt="Buy me a coffee" width="545" height="153" />
-</a>
-
-<script setup>
-import supportButton from '../common/assets/images/buy-me-a-coffee-button.png'
-</script>
-
 <style scoped>
 .homepage-features {
   display: grid;
@@ -206,14 +179,5 @@ import supportButton from '../common/assets/images/buy-me-a-coffee-button.png'
   width: 100%;
   max-width: 300px;
   border-radius: 8px;
-}
-
-.homepage-support {
-  display: inline-block;
-  max-width: 100%;
-}
-
-.homepage-support img {
-  border-radius: 999px;
 }
 </style>
