@@ -295,8 +295,10 @@ async function checkBrowser() {
     await assertSupportedInstaller();
     await page.goto(`${base}/screens/4848s040`);
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
-    await page.locator('.VPSidebar a[href="/getting-started/install"]').click();
-    await page.waitForURL('**/getting-started/install');
+    await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
+    await page.waitForURL('**/screens/4848s040#install');
+    await page.getByRole('link', { name: 'Flash the device', exact: true }).click();
+    await page.waitForURL('**/getting-started/install#flash-the-firmware');
     await assertSupportedInstaller();
     assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');
     const beforeRetired = manifests.length;
