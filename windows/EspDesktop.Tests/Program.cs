@@ -38,6 +38,7 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
 
 #if WINDOWS
 if (await WindowsAppActions.TryRunTarget(args)) return;
+VerifyAudioLevelPolicy();
 var exerciseDesktopActions = args is ["--verify-native-windows", "--exercise-desktop-actions"];
 using var native = args is ["--verify-native-windows"] || exerciseDesktopActions
     ? await NativeWindowsDesktop.Prepare(exerciseDesktopActions)
@@ -156,13 +157,20 @@ server.Map(SocketPath, async context =>
         }
 #endif
         await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 50);
 
         await Send(socket, "action.invoke", ("kind", "action"), ("actionId", "windows.test"), ("requestId", "1"));
         await FindMessage(socket, "action.result", m => Text(m, "requestId") == "1" && Text(m, "status") == "activated");
         Interlocked.Increment(ref authorizedRequests);
+        await Send(socket, "value.set", ("controlId", FakeDesktop.Speaker), ("value", 65), ("requestId", "volume"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "volume" && Text(m, "status") == "performed");
+        await FindMessage(socket, "value.state", m => Text(m, "controlId") == FakeDesktop.Speaker && UInt(m, "value") == 65);
         desktop.Locked = true;
         await Send(socket, "action.invoke", ("kind", "action"), ("actionId", "windows.test"), ("requestId", "2"));
         await FindMessage(socket, "action.result", m => Text(m, "requestId") == "2" && Text(m, "status") == "not_allowed");
+        await Send(socket, "value.set", ("controlId", FakeDesktop.Speaker), ("value", 20), ("requestId", "locked-volume"));
+        await FindMessage(socket, "action.result", m => Text(m, "requestId") == "locked-volume" && Text(m, "status") == "not_allowed");
+        Check(desktop.SpeakerLevel == 65, "locked audio command left the level unchanged");
         desktop.Locked = false;
 
         await Send(socket, "app_icon.request", ("appId", "windows.test"));
@@ -221,7 +229,7 @@ if (native is not null)
 }
 #endif
 Check(desktop.Actions == 1 && authorizedRequests == 1, "authenticated dispatch and lock enforcement");
-Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, locked action and icon transfer tests.");
+Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, audio dispatch, lock enforcement and icon transfer tests.");
 
 async Task Send(WebSocket socket, string kind, params (string, object?)[] fields) =>
     await socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(Message(kind, fields)), WebSocketMessageType.Text, true, lifetime.Token);
@@ -245,6 +253,24 @@ async Task<JsonElement> FindMessage(WebSocket socket, string kind, Func<JsonElem
 }
 
 #if WINDOWS
+static void VerifyAudioLevelPolicy()
+{
+    var volume = 0.5f;
+    var muted = true;
+    bool WriteLevel(float level) { volume = level; return true; }
+    bool WriteMute(bool value) { muted = value; return true; }
+    Check(Audio.SetLevel(0, WriteLevel, () => muted, WriteMute) && volume == 0 && muted,
+        "setting volume to zero preserves mute");
+    Check(!Audio.SetLevel(40, _ => false, () => muted, WriteMute) && muted,
+        "a failed volume write preserves mute");
+    Check(Audio.SetLevel(40, WriteLevel, () => muted, WriteMute) && volume == 0.4f && !muted,
+        "setting a positive volume unmutes the endpoint");
+    Check(Audio.SetLevel(60, WriteLevel, () => null, _ => false) && volume == 0.6f,
+        "an endpoint can change volume even when mute is unavailable");
+    Check(!Audio.SetLevel(50, WriteLevel, () => true, _ => false), "report an unmute failure to the display");
+    Console.WriteLine("Passed Windows audio volume and mute policy checks.");
+}
+
 async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
 {
     var catalogue = await FindMessage(socket, "catalogue.page", m => m.GetProperty("complete").GetBoolean());
@@ -262,14 +288,14 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
         "publish a friendly drive label");
     Check(entries.Values.All(item => item.EnumerateObject().Count() == 2), "keep private folder paths off the wire");
 
-    var controls = new HashSet<string>(StringComparer.Ordinal);
+    var controls = new Dictionary<string, int?>(StringComparer.Ordinal);
     for (var i = 0; i < 4; i++)
     {
         var volume = await FindMessage(socket, "value.state", _ => true);
         Check(Valid(volume, "mac_to_panel", "connected"), "native audio availability and values");
-        controls.Add(Text(volume, "controlId"));
+        controls.Add(Text(volume, "controlId"), volume.GetProperty("available").GetBoolean() ? (int)UInt(volume, "value") : null);
     }
-    Check(controls.SetEquals(["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]),
+    Check(controls.Keys.ToHashSet().SetEquals(["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]),
         "advertise Windows speaker and microphone controls");
     await FindMessage(socket, "system_metrics", m => Valid(m, "mac_to_panel", "connected") &&
         m.TryGetProperty("memoryUsagePercent", out _) &&
@@ -312,7 +338,63 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     if (fixture.AppActions is { } apps)
         await VerifyAppActions(socket, apps, fixture.UnapprovedAppId);
     if (exerciseDesktopActions)
+    {
         await VerifyWebsiteActions(socket, server.Urls.Single(url => url.StartsWith("http://", StringComparison.Ordinal)));
+        await VerifyAudioActions(socket, controls);
+    }
+}
+
+async Task VerifyAudioActions(WebSocket socket, IReadOnlyDictionary<string, int?> controls)
+{
+    foreach (var direction in new[] { "output", "input" })
+    {
+        var volumeId = $"media.{direction}_volume";
+        var muteId = $"media.{direction}_mute";
+        var volume = controls[volumeId];
+        var mute = controls[muteId];
+        await Set(muteId, 50, "not_allowed");
+        try
+        {
+            await Set(muteId, 100, mute.HasValue ? "performed" : "not_allowed");
+            if (mute.HasValue) await WaitForState(muteId, 100);
+
+            var target = volume is >= 45 ? 35 : 65;
+            await Set(volumeId, target, volume.HasValue ? "performed" : "not_allowed");
+            if (volume.HasValue)
+            {
+                await WaitForState(volumeId, target, tolerance: 5);
+                if (mute.HasValue) await WaitForState(muteId, 0);
+            }
+            Console.WriteLine($"Passed Windows {direction} audio actions over TLS (volume available: {volume.HasValue}, mute available: {mute.HasValue}).");
+        }
+        finally
+        {
+            if (volume.HasValue) _ = Audio.Set(volumeId, volume.Value);
+            if (mute.HasValue) _ = Audio.Set(muteId, mute.Value);
+        }
+    }
+
+    async Task Set(string id, int value, string status)
+    {
+        var request = $"{id}-{value}";
+        await Send(socket, "value.set", ("controlId", id), ("value", value), ("requestId", request));
+        var result = await FindMessage(socket, "action.result", message => Text(message, "requestId") == request);
+        Check(Text(result, "status") == status, $"{request} returned {Text(result, "status")}, expected {status}");
+    }
+
+    async Task WaitForState(string id, int expected, int tolerance = 0)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        deadline.CancelAfter(TimeSpan.FromSeconds(5));
+        while (true)
+        {
+            var message = await Receive(socket, deadline.Token);
+            if (Text(message, "type") != "value.state" || Text(message, "controlId") != id) continue;
+            Check(message.GetProperty("available").GetBoolean() && Math.Abs((int)UInt(message, "value") - expected) <= tolerance,
+                $"Windows reported the updated {id} value of {expected}");
+            return;
+        }
+    }
 }
 
 async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
@@ -487,17 +569,24 @@ sealed class BrowserTestPage(string name)
 
 sealed class FakeDesktop : IDesktop
 {
+    public const string Speaker = "media.output_volume";
     public int CatalogueRevision => 0;
     public bool ShortcutsEnabled => false;
     public bool Locked { get; set; }
     public int Actions { get; private set; }
+    public int SpeakerLevel { get; private set; } = 50;
     public (bool Locked, bool? DisplayAwake) SessionState => (Locked, true);
     public IReadOnlyList<CatalogueItem> Catalogue() => [new("windows.test", "Test app")];
     public IEnumerable<string> Definitions() => [];
     public string[] Focused(IReadOnlyDictionary<string, Uri> urls) => [];
     public byte[] AppIcon(string appId, int side) => new byte[side * side * 3];
     public Task<string> Invoke(JsonElement message, CancellationToken token) { Actions++; return Task.FromResult("activated"); }
-    public bool SetValue(string id, int value) => false;
-    public IEnumerable<(string Id, int? Value)> Values() => [];
+    public bool SetValue(string id, int value)
+    {
+        if (id != Speaker) return false;
+        SpeakerLevel = value;
+        return true;
+    }
+    public IEnumerable<(string Id, int? Value)> Values() => [(Speaker, SpeakerLevel)];
     public Dictionary<string, object?> Metrics(uint generation) => Message("system_metrics", ("generation", generation), ("available", false));
 }

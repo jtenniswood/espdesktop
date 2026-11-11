@@ -175,25 +175,36 @@ internal static class Audio
         {
             var state = WithEndpoint(name == "input", endpoint =>
             {
-                Check(endpoint.GetMasterVolumeLevelScalar(out var volume));
-                Check(endpoint.GetMute(out var mute));
-                return (Volume: (int?)Math.Clamp((int)Math.Round(volume * 100), 0, 100), Mute: (int?)(mute ? 100 : 0));
+                int? volume = endpoint.GetMasterVolumeLevelScalar(out var scalar) >= 0
+                    ? Math.Clamp((int)Math.Round(scalar * 100), 0, 100) : null;
+                int? mute = ReadMute(endpoint) is { } muted ? muted ? 100 : 0 : null;
+                return (Volume: volume, Mute: mute);
             }, default);
             yield return (Prefix + name + "_volume", state.Volume);
             yield return (Prefix + name + "_mute", state.Mute);
         }
     }
 
-    public static bool Set(string id, int value) => WithEndpoint(id.StartsWith("media.input_", StringComparison.Ordinal), endpoint =>
+    public static bool Set(string id, int value)
     {
-        var hr = id switch
+        if (value is < 0 or > 100) return false;
+        return WithEndpoint(id.StartsWith("media.input_", StringComparison.Ordinal), endpoint => id switch
         {
-            "media.input_volume" or "media.output_volume" => endpoint.SetMasterVolumeLevelScalar(value / 100f, 0),
-            "media.input_mute" or "media.output_mute" => endpoint.SetMute(value > 0, 0),
-            _ => -1
-        };
-        return hr >= 0;
-    }, false);
+            "media.input_volume" or "media.output_volume" => SetLevel(value,
+                level => endpoint.SetMasterVolumeLevelScalar(level, 0) >= 0,
+                () => ReadMute(endpoint), muted => endpoint.SetMute(muted, 0) >= 0),
+            "media.input_mute" or "media.output_mute" when value is 0 or 100 => endpoint.SetMute(value == 100, 0) >= 0,
+            _ => false
+        }, false);
+    }
+
+    internal static bool SetLevel(int value, Func<float, bool> writeLevel, Func<bool?> readMute, Func<bool, bool> writeMute)
+    {
+        if (!writeLevel(value / 100f)) return false;
+        return value == 0 || readMute() != true || writeMute(false);
+    }
+
+    private static bool? ReadMute(IAudioEndpointVolume endpoint) => endpoint.GetMute(out var muted) >= 0 ? muted : null;
 
     private static T WithEndpoint<T>(bool input, Func<IAudioEndpointVolume, T> action, T fallback)
     {

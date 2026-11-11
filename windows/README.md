@@ -22,7 +22,7 @@ Existing S3 firmware calls the connector **Mac Companion**. Use that connector f
 - Add **Folder** cards for folders you approve in Windows. File Explorer uses the firmware’s existing Finder slot, so its app subpage can also show approved folders. Folder paths stay on the PC.
 - Add **Website** cards. Links use your default browser; new windows and active site highlighting work with supported browsers. Highlighting depends on the browser exposing its address bar to Windows accessibility. Some browser versions, languages, and installed web apps may not expose it.
 - Add **Key Shortcut** or **Mac Lock** cards. Enable **Allow keyboard shortcuts and screen lock** in the Windows app first. The editor’s Command and Control choices both map to Windows Ctrl; Option maps to Alt. Shortcuts go to an approved app in front and Windows protects apps running as administrator. The existing Mac Lock card locks Windows.
-- Add statistics, speaker and microphone volume, or mute controls. The display receives basic system readings while paired. Actions are blocked while Windows is locked.
+- Add statistics, speaker and microphone volume, or mute controls. Setting a volume above zero unmutes that device. The display receives basic system readings while paired. Actions are blocked while Windows is locked.
 
 Use **Start EspDesktop when I sign in** to keep the display connected after login. To stop the app, choose **Quit EspDesktop** from its notification area icon.
 
