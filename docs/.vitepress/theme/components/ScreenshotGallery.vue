@@ -38,15 +38,15 @@ function move(offset: number) {
         :key="slide.image"
         class="screenshot-slide"
       >
+        <a class="screenshot-link" :href="withBase(slide.image)">
+          <img :src="withBase(slide.image)" :alt="slide.alt" loading="lazy" decoding="async">
+        </a>
+
         <figcaption>
           <p class="slide-position">{{ slideIndex + 1 }} / {{ slides.length }}</p>
           <strong class="slide-title">{{ slide.title }}</strong>
           <p class="slide-caption">{{ slide.caption }}</p>
         </figcaption>
-
-        <a class="screenshot-link" :href="withBase(slide.image)">
-          <img :src="withBase(slide.image)" :alt="slide.alt" loading="lazy" decoding="async">
-        </a>
       </figure>
     </div>
   </div>
@@ -64,7 +64,8 @@ function move(offset: number) {
 .screenshot-slide {
   display: grid;
   gap: 16px;
-  margin: 0;
+  max-width: 540px;
+  margin: 0 auto;
 }
 
 .screenshot-slide .slide-position {
@@ -119,27 +120,18 @@ function move(offset: number) {
 }
 
 .screenshot-link {
-  position: relative;
-  justify-self: center;
-  width: 100%;
-  max-width: 360px;
+  display: block;
   aspect-ratio: 4 / 5;
   border-radius: 8px;
 }
 
 .screenshot-link img {
-  position: absolute;
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
 
-@media (min-width: 640px) {
-  .screenshot-slide {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-    gap: 24px;
-  }
-}
 @media (scripting: none) {
   .gallery-controls {
     display: none;

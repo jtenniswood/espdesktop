@@ -12,7 +12,7 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 - **Move a card.** Drag it to another spot in the grid. If you drop it onto another card, that card shifts to the next available space.
 - **Resize a card.** Hover over it and drag the handle in its bottom-right corner to make it wider, taller or smaller. The available sizes depend on the card and the space in the grid. Press **Escape** during the drag to keep the original size.
 
-Moves and resizes save when you drop the card or release the handle.
+Moves and resizes save when you drop the card or release the handle. Right-click a card to cut it for pasting into another tile or copy its code for another display.
 
 <a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot marked with a plus" width="440" height="588"></a>
 
@@ -22,7 +22,7 @@ Right-click a card to open its menu.
 
 - **Name.** Choose **Edit Card**, change the **Label**, and select **Save**. You can also click a visible card name in the grid, type the new name and press **Enter**.
 - **App icon size.** Choose **App Icon Size** and select **Small**, **Medium** or **Large**. Large fills the card with the app icon and hides the label.
-- **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour.
+- **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
 
 <a href="/images/web-editor-card-menu.webp"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="440" height="608" loading="lazy"></a>
 

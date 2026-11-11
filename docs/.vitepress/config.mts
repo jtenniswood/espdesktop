@@ -29,7 +29,7 @@ const pageImages: Record<string, typeof defaultImage> = {
     'The 4-inch Guition 4848S040 touchscreen next to a keyboard'),
   'getting-started/mac-app.md': shareImage('mac-app-display.jpg', 1000, 1376,
     'EspDesktop Mac app showing a connected display and the Customize button'),
-  'features/setup.md': shareImage('web-editor-screen-settings.png', 1694, 2266,
+  'features/settings.md': shareImage('web-editor-screen-settings.png', 1694, 2266,
     'EspDesktop Screen tab showing appearance, display, and sleep settings'),
   'features/home.md': shareImage('web-editor-home.png', 1000, 1337,
     'EspDesktop Home layout with Mac app cards in the web editor'),
@@ -221,7 +221,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
-      { text: 'Install', link: '/getting-started/install' },
+      { text: 'Get Started', link: '/getting-started/install' },
       { text: 'Download', link: '/getting-started/mac-app' },
     ],
 
@@ -229,35 +229,35 @@ export default defineConfig({
       {
         text: 'Getting Started',
         items: [
-          { text: 'Overview', link: '/' },
-          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
-          { text: '3D-Printable Stand', link: '/screens/4848s040-stand' },
-          { text: 'Getting Setup', link: '/getting-started/install' },
+          { text: '1. Install the display', link: '/getting-started/install' },
+          { text: '2. Install and pair the Mac app', link: '/getting-started/mac-app' },
+          { text: '3. Configure your cards', link: '/features/setup' },
         ],
       },
       {
-        text: 'Companion App',
+        text: 'Hardware',
         items: [
-          { text: 'Install & Pair', link: '/getting-started/mac-app' },
-          { text: 'Permissions & Security', link: '/mac-controls/security' },
+          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: '3D-Printable Stand', link: '/screens/4848s040-stand' },
         ],
       },
       {
         text: 'Features',
         items: [
-          { text: 'First Run', link: '/features/first-run' },
-          { text: 'Device and System Settings', link: '/features/setup' },
+          { text: 'App Setup Wizard', link: '/features/first-run' },
           { text: 'Home', link: '/features/home' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
           { text: 'Websites', link: '/mac-controls/websites' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Display and Mac App Settings', link: '/features/settings' },
         ],
       },
       {
         text: 'Support',
         items: [
+          { text: 'Permissions & Security', link: '/mac-controls/security' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
           { text: 'Support the Project', link: '/reference/support' },
