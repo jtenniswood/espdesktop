@@ -29,7 +29,7 @@ body .sp-support-btn,
   box-sizing: border-box;
   width: var(--frame-size);
   aspect-ratio: 1;
-  padding: calc(var(--frame-size) * 0.071);
+  padding: calc(var(--frame-size) * 0.036);
   border: 2px solid transparent;
   border-radius: calc(var(--frame-size) * 0.034);
   background:
