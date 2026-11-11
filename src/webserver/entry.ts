@@ -268,7 +268,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   const identity = createPanelIdentityFeature({
     document: dom.document, fetch: dom.fetch,
     changed: () => {
-      pageTitle.applyPageTitle(identity.current()?.friendly_name);
+      pageTitle.applyPageTitle();
       const brand = dom.document.querySelector(".sp-brand");
       if (brand) renderPanelBrand(brand, dom.document, identity.current()?.name);
     },
@@ -285,7 +285,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     infoPanel: (id, text) => settingsUi.infoPanel(id, text),
   });
   const pageTitle = createAppTitleFeature({
-    panelName: () => identity.current()?.name,
+    panelIdentity: identity.current,
     document: dom.document,
     eventStreamEnabled: () => {
       try { return new URLSearchParams(dom.window.location.search).get("events") === "1"; }

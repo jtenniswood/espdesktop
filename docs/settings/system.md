@@ -25,7 +25,7 @@ Locking your paired Mac also locks the touchscreen while the EspDesktop Mac app 
 
 ### Rename the display {#naming-your-panel}
 
-Open **System → Device Name** within the **System** tab and choose **Save & Restart** after entering a name. Reopen the editor at the new `.local` address shown there.
+Open **System → Device Name** within the **System** tab and choose **Save & Restart** after entering a name. Reopen the editor at the new `.local` address shown there. The browser tab shows **EspDesktop - Kitchen**, for example, or **EspDesktop - 5c6c** using the last four characters of the device’s MAC address if no name is set.
 
 ### Backup
 
