@@ -4323,6 +4323,18 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => nativeState.puts.length > before, "shortcut card save");
   }
+  async function assertPanelSpacing(shortcutPanel) {
+    const [shortcut, settings, colours] = await Promise.all([
+      shortcutPanel.boundingBox(),
+      ...["Card Settings", "Custom Colours"].map(name => page.locator(".sp-disclosure").filter({
+        has: page.getByRole("button", { name, exact: true }),
+      }).boundingBox()),
+    ]);
+    const shortcutGap = settings.y - shortcut.y - shortcut.height;
+    const coloursGap = colours.y - settings.y - settings.height;
+    assert.ok(shortcutGap > 0 && Math.abs(shortcutGap - coloursGap) < 1,
+      `Expected equal shortcut panel gaps, got ${shortcutGap}px and ${coloursGap}px`);
+  }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
     await page.waitForSelector("#sp-app");
@@ -4348,6 +4360,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
     assert.strictEqual(await app.isVisible(), false);
     assert.strictEqual(await action.isVisible(), false);
+    await assertPanelSpacing(catalogPanel);
     await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
     assert.strictEqual(await action.isDisabled(), true, "choose an app first");
     assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
@@ -4389,6 +4402,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
     await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
+    await assertPanelSpacing(shortcutPanel);
     await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
     const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
     const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });

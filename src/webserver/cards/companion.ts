@@ -712,7 +712,7 @@ export function registerCompanionCardTypes(
             });
 
             const shortcutField = document.createElement("div");
-            shortcutField.className = "sp-field";
+            shortcutField.className = "sp-field sp-shortcut-settings";
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
             const shortcutType = card._shortcutType || (savedCatalogShortcut ? "catalog" : "custom");
             const typeField = document.createElement("div");
