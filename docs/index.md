@@ -182,7 +182,7 @@ The preview shows how your layout will look on the display. In this example, bro
 .homepage-action a {
   display: inline-block;
   padding: 8px 16px;
-  border-radius: 6px;
+  border-radius: 999px;
   background: var(--vp-button-brand-bg);
   color: var(--vp-button-brand-text);
   font-weight: 600;
