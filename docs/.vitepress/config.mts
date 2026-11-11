@@ -31,8 +31,8 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop web editor showing the Screen tab and app subpage settings'),
   'features/subpages.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
     'Figma app subpage with the Figma icon as the Back tile and a grid of shortcuts'),
-  'mac-controls/apps.md': shareImage('web-editor-applications.jpg', 560, 530,
-    'Applications card form with Music selected in the EspDesktop web editor'),
+  'mac-controls/apps.md': shareImage('web-editor-application-card.png', 1694, 2266,
+    'Applications card form with Figma selected in the EspDesktop web editor'),
   'mac-controls/websites.md': shareImage('web-editor-website.jpg', 560, 530,
     'Website card form with an example web address in the EspDesktop web editor'),
 }
