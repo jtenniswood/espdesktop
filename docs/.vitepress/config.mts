@@ -1,3 +1,5 @@
+import { build } from 'esbuild'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
 import { writeMarkdownPages } from './markdown-export'
@@ -56,7 +58,17 @@ export default defineConfig({
   ],
   markdown: { config: faqSchema, image: { lazyLoading: true } },
   async buildEnd({ outDir, pages }) {
-    await Promise.all([writeRedirects(outDir), writeMarkdownPages(outDir, pages)])
+    await Promise.all([
+      writeRedirects(outDir),
+      writeMarkdownPages(outDir, pages),
+      build({
+        entryPoints: [resolve(import.meta.dirname, 'editor-demo.ts')],
+        outfile: resolve(outDir, 'editor/demo.js'),
+        bundle: true,
+        minify: true,
+        target: 'es2020',
+      }),
+    ])
   },
 
   transformHead({ page }) {
