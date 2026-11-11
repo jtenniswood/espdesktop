@@ -230,6 +230,7 @@ update_firmware=Firmware frissítése
 no_saved_wifi_connection_reinstall_by_usb_to_reconfigure=Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz
 open_192_168_4_1=Nyissa meg: 192.168.4.1
 open_your_browser_and_configure_your_display=Nyissa meg a böngészőt, és\nállítsa be a kijelzőt
+download_companion_app_to_pair=Töltse le az EspDesktop alkalmazást a számítógépére, és kövesse a párosítási lépéseket.
 preparing_the_screen_do_not_power_off=Képernyő előkészítése\nNe kapcsolja ki
 restarting_display=Kijelző újraindítása
 see_the_install_guide_for_help=Segítségért nézze meg a telepítési útmutatót

@@ -230,6 +230,7 @@ update_firmware=Oppdater firmware
 no_saved_wifi_connection_reinstall_by_usb_to_reconfigure=Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere
 open_192_168_4_1=Åpne 192.168.4.1
 open_your_browser_and_configure_your_display=Åpne nettleseren og\nkonfigurer skjermen
+download_companion_app_to_pair=Last ned EspDesktop-appen på datamaskinen og følg trinnene for sammenkobling.
 preparing_the_screen_do_not_power_off=Forbereder skjermen\nIkke slå av strømmen
 restarting_display=Starter skjermen på nytt
 see_the_install_guide_for_help=Se installasjonsveiledningen for hjelp

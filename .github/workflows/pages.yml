@@ -178,8 +178,26 @@ jobs:
       - name: Stage the hosted editor loader
         run: node scripts/build_web_bundle.js --bridge-only > docs/public/webserver/www.js
 
+      - name: Find the latest stable Mac installer
+        id: mac-download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASES="${RUNNER_TEMP}/espdesktop-releases.json"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > "${RELEASES}"
+          MAC_TAG=$(jq -rs '[.[][] |
+            select((.draft or .prerelease) | not) |
+            .tag_name as $tag |
+            select($tag | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) |
+            ($tag | ltrimstr("v")) as $version |
+            select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).dmg")) |
+            {tag: $tag, version: ($version | split(".") | map(tonumber))}
+          ] | max_by([.version, .tag]) | .tag // empty' "${RELEASES}")
+          echo "tag=${MAC_TAG}" >> "${GITHUB_OUTPUT}"
+
       - name: Build docs
         env:
+          ESPDESKTOP_MAC_RELEASE_TAG: ${{ steps.mac-download.outputs.tag }}
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
         run: npm run docs:build
 
@@ -191,8 +209,7 @@ jobs:
           FEED_DIR="docs/.vitepress/dist/updates"
           mkdir -p "${FEED_DIR}"
           # Keep the newest stable Mac release for each protocol, even when firmware ships on its own.
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" |
-            jq -rs '[.[][] |
+          jq -rs '[.[][] |
               select((.draft or .prerelease) | not) |
               .tag_name as $tag |
               select($tag | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) |
@@ -200,7 +217,7 @@ jobs:
               select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).zip")) |
               .assets[] | select(.state == "uploaded" and (.name | test("^companion-appcast-v[0-9]+\\.xml$"))) |
               {tag: $tag, version: ($version | split(".") | map(tonumber)), feed: .name}
-            ] | group_by(.feed)[] | max_by(.version) | [.tag, .feed] | @tsv' |
+            ] | group_by(.feed)[] | max_by(.version) | [.tag, .feed] | @tsv' "${RUNNER_TEMP}/espdesktop-releases.json" |
             while IFS=$'\t' read -r tag feed; do
               gh release download "$tag" --repo "${GITHUB_REPOSITORY}" \
                 --pattern "$feed" --output "${FEED_DIR}/${feed}"
