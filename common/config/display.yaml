@@ -182,15 +182,12 @@ script:
               id(main_page)->obj,
               id(espdesktop_app).display().target_mode(),
               id(espdesktop_app).display().target_schedule_inactive());
-          const bool pairing_onboarding =
-              lv_scr_act() == id(button_setup_page)->obj && id(button_order).state.empty();
           bool reserve_clock_bar_space = visibility.reserve_space;
-          bool visible = visibility.visible || pairing_onboarding;
+          const bool visible = visibility.visible;
           bool show_time = visibility.visible && id(clock_bar_time_enabled).state &&
               lv_scr_act() == id(main_page)->obj && navigation_active_subpage_slot() == 0 &&
               clock_bar_left_title().empty();
-          const bool show_network = pairing_onboarding ||
-              (visibility.visible && id(network_status_enabled).state);
+          const bool show_network = visibility.visible && id(network_status_enabled).state;
           bool show_night_mode = visibility.visible && id(clock_bar_night_mode_enabled).state &&
                                  id(clock_bar_night_mode_active);
           int clock_bar_screen_width = clock_bar_current_screen_width(${screen_width});
