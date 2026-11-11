@@ -1,17 +1,25 @@
 ---
-title: Install and Pair the EspDesktop Mac App
-description: Install the EspDesktop Mac app, pair your Guition 4848S040 display, and try your first Mac control.
+title: Install and Pair the Mac Companion App
+description: Download EspDesktop for macOS 13 or newer, pair a Guition 4848S040 display on your local network and add your first app tiles.
 ---
 
 # Install and Pair the EspDesktop Mac App
 
-You’ll need a Mac and a **4-inch Guition ESP32-S3 4848S040** display on the same trusted local network.
+You’ll need a **Mac running macOS 13 or newer** and a [4-inch Guition ESP32-S3 4848S040](/screens/4848s040) on the same local network. Use the Mac app and display firmware from the same release.
 
 ## 1. Install the Mac app {#install-a-release}
 
 1. [Install EspDesktop on your display](/getting-started/install) if you haven’t already.
 2. Download the **EspDesktop** DMG from the [same release as your display firmware](https://github.com/jtenniswood/espdesktop/releases).
 3. Open the DMG, drag **EspDesktop** into **Applications**, then open the app. Its icon appears in the menu bar.
+
+On an Apple silicon Mac, you can also install the latest stable Mac app with [Homebrew](https://brew.sh/).
+
+```sh
+brew install --cask jtenniswood/tap/espdesktop
+```
+
+Use the DMG download above if you need the app from a specific release.
 
 ## 2. Pair your display {#pair-the-display}
 
@@ -22,6 +30,12 @@ You’ll need a Mac and a **4-inch Guition ESP32-S3 4848S040** display on the sa
 **Display missing?** Choose **Enter address manually** and enter its IP address or `.local` name.
 
 On **Access and startup**, choose **Open Settings** to grant Accessibility access if you want keyboard shortcuts or Mac Lock. Turn on **Launch at login** if you want EspDesktop to open when you sign in. Choose **Finish**.
+
+### Check the Display tab
+
+Open **Display** in the Mac app to confirm it says **Connected**. Select **Customize** to open the display’s web editor.
+
+[![EspDesktop Mac app showing a connected display, the Customize button, and the Open at Startup switch](/images/mac-app-display.jpg)](/images/mac-app-display.jpg)
 
 ## 3. Try your first card {#check-the-connection}
 
@@ -34,10 +48,14 @@ On an empty display, the web page guides you through app setup.
 
 Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → Appearance → App Subpages → Setup Again**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
 
-## Update the Mac app
+## Check for Mac app updates
 
-Choose **Updates** from the EspDesktop menu-bar menu to check for a new version. In **Mac Settings → Updates**, use **Check Now** or change the automatic update preferences. The packaged app checks automatically by default. Automatic installation is optional.
+The Mac app keeps your display pairing when it updates and reconnects to the saved display when it reopens.
 
-For a version that needs newer display firmware, install the app and firmware from the same stable release. Follow the [display update instructions](/features/setup#update-the-display-firmware).
+With automatic checks enabled, EspDesktop checks when you launch the app and daily while it’s running. When a compatible update is available, the update window lets you install it or decide later. To check manually, choose **EspDesktop → Check for Updates…** or use the same command from the EspDesktop icon in the menu bar.
+
+Open EspDesktop from **Applications**, then turn on **Notify Me About Updates** in **Mac Settings → Updates** and allow macOS notifications. Click an update notification to open the updater. If you prefer eligible updates to install on quit, turn on **Automatically Install Updates**.
+
+If an update requires newer display firmware, install the app and firmware from the same EspDesktop release. Follow the [display update instructions](/features/setup#update-the-display-firmware).
 
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)

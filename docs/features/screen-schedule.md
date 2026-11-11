@@ -22,9 +22,7 @@ You will find it in **Screen > Sleep & Schedule > Night Schedule** on the [Setup
 - **Clock Brightness** - shown only for **Clock**. It controls the backlight level used by the overnight clock. The default is **10%**.
 - **Clock Text Colour** - shown only for **Clock**. It controls the colour of the overnight schedule clock text.
 
-## Updating an Existing Panel
-
-Saved Home Assistant sensor schedules become **Disabled**, including when importing an older backup. Choose **Time** to configure local hours. Saved schedule choices, hours, night-time actions and brightness settings are preserved.
+## How the Schedule Affects Sleep
 
 When the schedule is disabled, the panel uses the normal [screensaver](/features/screensaver) and [backlight](/features/backlight) rules.
 

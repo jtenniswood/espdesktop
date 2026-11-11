@@ -1,6 +1,6 @@
 ---
-title: Configure Your Mac Control Surface
-description: Add Mac Companion cards, arrange them into pages, and customise the EspDesktop touchscreen from its built-in web editor.
+title: Configure Your Mac Touchscreen in the Web Editor
+description: Use the EspDesktop web editor to add app and shortcut tiles, arrange subpages, and adjust appearance, brightness and sleep settings.
 ---
 
 # Configure Your Mac Control Surface
@@ -30,7 +30,9 @@ The display preview shows the saved arrangement. **Apply Configuration**, at the
 
 ## Screen and System Settings
 
-The 4848S040 offers these settings in stable v1.2.0.
+Use **Screen** for appearance, backlight, rotation and sleep settings. For example, open **Appearance → App Subpages** to choose how the display reacts when you switch apps on your Mac.
+
+[![Screen tab with App Subpages expanded, showing Open app subpages on focus and Return home when switching apps](/images/web-editor-screen-settings.jpg)](/images/web-editor-screen-settings.jpg)
 
 | Setting | Where to find it | Options |
 |---|---|---|
@@ -46,7 +48,9 @@ The 4848S040 offers these settings in stable v1.2.0.
 
 On a new display, Night Schedule dims the screen to **15%** from **7:00 PM to 7:00 AM** in the display’s local time. Tap to wake the display when it is asleep, then tap again to use a card.
 
-Use **System → Mac Companion** to pair or check the connection. To rename the display, open **System → System → Device Name** and choose **Save & Restart**. Reopen the editor at the new `.local` address shown there.
+Use **System → Mac Companion** to pair or check the connection. The **System** tab also contains preferences, backups, firmware updates and reset controls. To rename the display, open **System → System → Device Name** and choose **Save & Restart**. Reopen the editor at the new `.local` address shown there.
+
+[![System tab with Mac Companion expanded and showing a connected status](/images/web-editor-system-settings.jpg)](/images/web-editor-system-settings.jpg)
 
 ## Mac Screen Lock {#protect-the-touchscreen}
 
@@ -62,7 +66,7 @@ Backup files omit Wi-Fi credentials and Mac pairing. On a replacement or fully r
 
 Open **System → System → Firmware → Firmware updates** to check the current and available versions. Choose **Check for Update**, then **Install Update** when offered. Keep the display powered while it restarts. **Auto updates** controls automatic installation and how often the display checks.
 
-Export a backup before updating and use [matching Mac app and firmware releases](/getting-started/mac-app#update-the-mac-app). **Previous firmware** can install an older version when available. If the older version cannot read your current layout, use a backup made before the upgrade.
+Export a backup before updating and use [matching Mac app and firmware releases](/getting-started/mac-app#check-for-mac-app-updates). **Previous firmware** can install an older version when available. If the older version cannot read your current layout, use a backup made before the upgrade.
 
 ## Quick card colours
 

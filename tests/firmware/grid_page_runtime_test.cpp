@@ -131,30 +131,18 @@ int main() {
 
   constexpr std::string_view preference_key = "companion_auto_open_app_subpages";
   auto write_preference = [&](std::string_view name, std::string_view value) {
-    using Kind = PanelConfigV2Kind;
-    PanelConfigV2Writer writer(updated.data(), updated.size());
-    assert(writer.begin() == PanelConfigStatus::OK);
-    for (size_t i = 0; i < reader.record_count(); ++i) {
-      PanelConfigV2Record row;
-      assert(reader.record(i, &row));
-      assert(writer.append(row) == PanelConfigStatus::OK);
-    }
-    PanelConfigV2Record key;
-    key.kind = Kind::STRING; key.id = 1000; key.text = name;
-    assert(writer.append(key) == PanelConfigStatus::OK);
-    PanelConfigV2Record text;
-    text.kind = Kind::STRING; text.id = 1001; text.text = value;
-    assert(writer.append(text) == PanelConfigStatus::OK);
-    PanelConfigV2Record setting;
-    setting.kind = Kind::SETTING; setting.id = key.id; setting.first = text.id;
-    assert(writer.append(setting) == PanelConfigStatus::OK);
-    std::vector<uint64_t> scratch((writer.workspace_bytes() + 7) / 8);
-    assert(writer.finish(scratch.data(), scratch.size() * 8, &size) == PanelConfigStatus::OK);
+    PanelConfigPageAppend edit(reader);
+    assert(edit.set_setting(name, value));
+    assert(edit.finish(updated.data(), updated.size(), &size, allocate, ConfigurationBuffer::release_host));
   };
 
+  using Scalar = panel_settings::ScalarSetting;
   std::vector<bool> applied;
-  GridPageRuntime preference(limits, allocate, ConfigurationBuffer::release_host, {},
-      [&](bool enabled) { applied.push_back(enabled); });
+  GridPageRuntime preference(limits, allocate, ConfigurationBuffer::release_host, {}, {}, {},
+      [&](Scalar setting, std::string_view value) {
+        if (setting == Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) applied.push_back(value == "1");
+      });
+  assert(preference.scalar_setting_value(Scalar::COMPANION_AUTO_OPEN_APP_SUBPAGES) == "1");
   write_preference(preference_key, "0");
   assert(preference.prepare_write(2, updated.data(), size));
   assert(applied.empty());
@@ -163,19 +151,22 @@ int main() {
   write_preference(preference_key, "invalid");
   assert(!preference.prepare_write(2, updated.data(), size));
   assert(applied == std::vector<bool>{false});
+  assert(preference.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(preference.activate_prepared(10, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert((applied == std::vector<bool>{false, true}));
 
   PanelConfigWriter v1(updated.data(), updated.size());
   assert(v1.begin() == PanelConfigStatus::OK);
   assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
       std::strlen(limits.device_profile)) == PanelConfigStatus::OK);
-  const uint8_t enabled[] = "1";
+  const uint8_t disabled[] = "0";
   assert(v1.append_setting(reinterpret_cast<const uint8_t *>(preference_key.data()), preference_key.size(),
-      enabled, sizeof(enabled) - 1) == PanelConfigStatus::OK);
+      disabled, sizeof(disabled) - 1) == PanelConfigStatus::OK);
   assert(v1.finish(&size) == PanelConfigStatus::OK);
   assert(preference.prepare_write(1, updated.data(), size));
-  assert(applied == std::vector<bool>{false});
-  assert(preference.activate_prepared(10, 1, updated.data(), size));
   assert((applied == std::vector<bool>{false, true}));
+  assert(preference.activate_prepared(11, 1, updated.data(), size));
+  assert((applied == std::vector<bool>{false, true, false}));
 
   const auto assert_old_theme = [](const ThemeSettings &settings) {
     assert(settings.mode == ThemeMode::AUTO && settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET);
@@ -185,7 +176,7 @@ int main() {
   std::optional<ThemeSettings> current;
   int theme_layout_refreshes = 0;
   GridPageRuntime theme(limits, allocate, ConfigurationBuffer::release_host,
-      [&] { ++theme_layout_refreshes; }, {},
+      [&] { ++theme_layout_refreshes; },
       [&](const std::optional<ThemeSettings> &value) { current = value; });
   write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,auto,sun,417,1205,-35,12");
   assert(theme.prepare_write(2, updated.data(), size));
@@ -209,26 +200,22 @@ int main() {
   }
 
   // Large flat documents can be durably stored in v1. An entity write
-  // replaces the group without touching their saved cards.
+  // creates or edits the theme without touching their saved cards.
   assert(theme_layout_refreshes == 1);
   write_preference(DISPLAY_THEME_PREFERENCES_KEY, "1,light,time,420,1200,0,0");
   assert(theme.prepare_write(2, updated.data(), size));
   assert(theme.activate_prepared(11, 2, updated.data(), size));
   assert(current && current->mode == ThemeMode::LIGHT && theme_layout_refreshes == 1);
 
-  const auto old_value = encode_display_theme_preferences(*current);
   assert(v1.begin() == PanelConfigStatus::OK);
   assert(v1.append_device_profile(reinterpret_cast<const uint8_t *>(limits.device_profile),
       std::strlen(limits.device_profile)) == PanelConfigStatus::OK);
   const uint8_t card[] = "light.kitchen;Kitchen";
   assert(v1.append_button(1, card, sizeof(card) - 1) == PanelConfigStatus::OK);
-  assert(v1.append_setting(reinterpret_cast<const uint8_t *>(DISPLAY_THEME_PREFERENCES_KEY.data()),
-      DISPLAY_THEME_PREFERENCES_KEY.size(), reinterpret_cast<const uint8_t *>(old_value.data()),
-      old_value.size()) == PanelConfigStatus::OK);
   assert(v1.finish(&size) == PanelConfigStatus::OK);
   std::array<uint8_t, 256> rewritten{};
   size_t rewritten_size = 0;
-  assert(panel_config_replace_existing_setting_v1(updated.data(), size, DISPLAY_THEME_PREFERENCES_KEY,
+  assert(panel_config_set_setting_v1(updated.data(), size, DISPLAY_THEME_PREFERENCES_KEY,
       "1,light,time,480,1260,25,-60", rewritten.data(), rewritten.size(), &rewritten_size));
   assert(theme.prepare_write(1, rewritten.data(), rewritten_size));
   assert(current && current->mode == ThemeMode::LIGHT);
@@ -237,31 +224,111 @@ int main() {
   assert(current && encode_display_theme_preferences(*current) == "1,light,time,480,1260,25,-60");
   assert(grid_layout_card_config(1, {}).entity == "light.kitchen");
 
+  assert(panel_config_set_setting_v1(rewritten.data(), rewritten_size, DISPLAY_THEME_PREFERENCES_KEY,
+      "1,auto,sun,417,1205,-35,12", updated.data(), updated.size(), &size));
+  assert(theme.prepare_write(1, updated.data(), size));
+  assert(theme.activate_prepared(13, 1, updated.data(), size));
+  assert_old_theme(*current);
+  assert(theme_layout_refreshes == 2 && grid_layout_card_config(1, {}).entity == "light.kitchen");
+
 
   int schedule_applies = 0, schedule_layout_refreshes = 0;
-  ScreenSchedulePreferences schedule{};
+  std::optional<ScreenSchedulePreferences> schedule;
   GridPageRuntime schedule_runtime(limits, allocate, ConfigurationBuffer::release_host,
-      [&] { ++schedule_layout_refreshes; }, {}, {},
-      [&](const ScreenSchedulePreferences &value) { schedule = value; ++schedule_applies; });
+      [&] { ++schedule_layout_refreshes; }, {},
+      [&](const std::optional<ScreenSchedulePreferences> &value) { schedule = value; ++schedule_applies; });
   write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,1,7,19,clock,60,10,15,10,C0FFEE");
   assert(schedule_runtime.prepare_write(2, updated.data(), size));
   assert(schedule_applies == 0);
   assert(schedule_runtime.activate_prepared(14, 2, updated.data(), size));
   assert(schedule_applies == 1 && schedule_layout_refreshes == 1);
-  assert(schedule.enabled && schedule.night_mode == ScheduledNightMode::CLOCK &&
-      std::string_view(schedule.clock_color.data()) == "C0FFEE");
+  assert(schedule && schedule->enabled && schedule->night_mode == ScheduledNightMode::CLOCK &&
+      std::string_view(schedule->clock_color.data()) == "C0FFEE");
 
   write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,0,24,22,dim,120,20,5,3,FFFFFF");
   assert(!schedule_runtime.prepare_write(2, updated.data(), size));
-  assert(schedule_applies == 1 && schedule.enabled);
+  assert(schedule_applies == 1 && schedule->enabled);
   write_preference(SCREEN_SCHEDULE_PREFERENCES_KEY, "1,0,9,22,dim,120,20,5,3,FFFFFF");
   assert(schedule_runtime.prepare_write(2, updated.data(), size));
   schedule_runtime.discard_prepared();
-  assert(schedule_applies == 1 && schedule.enabled);
+  assert(schedule_applies == 1 && schedule->enabled);
   assert(schedule_runtime.prepare_write(2, updated.data(), size));
   assert(schedule_runtime.activate_prepared(15, 2, updated.data(), size));
   assert(schedule_applies == 2 && schedule_layout_refreshes == 1);
-  assert(!schedule.enabled && schedule.on_hour == 9 && schedule.off_hour == 22 &&
-      schedule.wake_timeout == 120 && schedule.dimmed_brightness == 5);
+  assert(schedule && !schedule->enabled && schedule->on_hour == 9 && schedule->off_hour == 22 &&
+      schedule->wake_timeout == 120 && schedule->dimmed_brightness == 5);
+  assert(encode_screen_schedule_preferences(*schedule) == "1,0,9,22,dim,120,20,5,3,FFFFFF");
+  assert(schedule_runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(schedule_runtime.activate_prepared(16, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(schedule_applies == 3 && !schedule);
 
+  std::vector<std::pair<Scalar, std::string>> published;
+  GridPageRuntime scalar_runtime(limits, allocate, ConfigurationBuffer::release_host,
+      {}, {}, {}, [&](Scalar setting, std::string_view value) { published.emplace_back(setting, value); });
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_CARD_CURVE) == "Large");
+  write_preference("screen_card_curve", "Medium");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size) && published.empty());
+  assert(scalar_runtime.activate_prepared(17, 2, updated.data(), size));
+  assert(published.size() == 1 && published.back().first == Scalar::SCREEN_CARD_CURVE);
+  assert(published.back().second == "Medium");
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_CARD_CURVE) == "Medium");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(18, 2, updated.data(), size));
+  assert(published.size() == 1);
+  write_preference("screen_card_curve", "invalid");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(published.size() == 1 && scalar_runtime.scalar_setting_value(Scalar::SCREEN_CARD_CURVE) == "Medium");
+  assert(scalar_runtime.prepare_write(2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(scalar_runtime.activate_prepared(19, 2, COMPANION_NESTED_DOCUMENT, sizeof(COMPANION_NESTED_DOCUMENT)));
+  assert(published.size() == 2 && published.back().second == "Large");
+  write_preference("screensaver_timeout", "3601");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screensaver_timeout", "3600");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(20, 2, updated.data(), size));
+  assert(published.back().first == Scalar::SCREENSAVER_TIMEOUT && published.back().second == "3600");
+  write_preference("screen_timezone", "Europe/London");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screen_timezone", "Europe/London (GMT+0)");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(21, 2, updated.data(), size));
+  assert(published.back().first == Scalar::SCREEN_TIMEZONE && published.back().second == "Europe/London (GMT+0)");
+  write_preference("screen_ntp_server_1", "invalid\nserver");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screen_ntp_server_1", "");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(22, 2, updated.data(), size));
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_NTP_SERVER_1).empty());
+  assert(scalar_runtime.scalar_setting_value(Scalar::SCREEN_ROTATION) == "180");
+  assert(panel_settings::scalar_setting_default(Scalar::SCREEN_ROTATION, "esp32-p4-86") == "0");
+  assert(panel_settings::scalar_setting_default(Scalar::SCREEN_ROTATION, "guition-esp32-p4-jc1060p470") == "180");
+  write_preference("screen_rotation", "45");
+  assert(!scalar_runtime.prepare_write(2, updated.data(), size));
+  write_preference("screen_rotation", "90");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(23, 2, updated.data(), size));
+  assert(published.back().first == Scalar::SCREEN_ROTATION && published.back().second == "90");
+  write_preference("firmware_auto_update", "0");
+  assert(scalar_runtime.prepare_write(2, updated.data(), size));
+  assert(scalar_runtime.activate_prepared(24, 2, updated.data(), size));
+  assert(published.back().first == Scalar::FIRMWARE_AUTO_UPDATE && published.back().second == "0");
+  assert_nested_page();
+
+  int brightness_applies = 0;
+  DisplayBrightnessPreferences brightness;
+  GridPageRuntime brightness_runtime(limits, allocate, ConfigurationBuffer::release_host,
+      {}, {}, {}, {}, [&](const DisplayBrightnessPreferences &value) {
+        brightness = value;
+        ++brightness_applies;
+      });
+  write_preference(DISPLAY_BRIGHTNESS_PREFERENCES_KEY, "1,1,0,7340,95,25,360,1080");
+  assert(brightness_runtime.prepare_write(2, updated.data(), size) && brightness_applies == 0);
+  assert(brightness_runtime.activate_prepared(23, 2, updated.data(), size));
+  assert(brightness_applies == 1 && brightness.manual && !brightness.use_sun);
+  assert(std::string_view(brightness.automatic_mode()) == "Fixed times");
+  assert(brightness.manual_level == 7340 && brightness.nighttime == 25);
+  assert(encode_display_brightness_preferences(brightness) == "1,1,0,7340,95,25,360,1080");
+  write_preference(DISPLAY_BRIGHTNESS_PREFERENCES_KEY, "1,1,0,10001,95,25,360,1080");
+  assert(!brightness_runtime.prepare_write(2, updated.data(), size) && brightness_applies == 1);
+  assert_nested_page();
 }

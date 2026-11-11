@@ -75,9 +75,13 @@ python3 scripts/test_release_hardware.py record --host PANEL_IP \
   --candidate-run RUN_ID --manifest companion-compatibility.json
 ```
 
-The runner guides pairing, five nested shortcut and Back cycles, wake, an
-offline editor save, and a reboot. It measures internal heap and PSRAM before
-and after each step and checks the expected reboot and Mac reconnection.
+The release check has two steps.
+
+1. With the candidate Mac app connected, run one nested Mac shortcut and tap Back.
+2. Restart the display and wait for the Mac app to reconnect.
+
+The runner checks the reboot and Mac connection, measures memory, and records
+page-open and Back first-frame timings.
 The session verifies the running firmware’s embedded ELF digest against the
 candidate OTA image, including rebuilds with the same version tag.
 The operator performs and confirms the steps. The runner makes read-only

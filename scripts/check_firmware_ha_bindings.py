@@ -920,15 +920,23 @@ def firmware_display_backlight_manual_sleep_errors(
             errors.append(f"{rel}: missing display_backlight light definition")
             continue
 
-        off_match = re.search(
-            r"(?ms)^    on_turn_off:\s*\n(?P<body>.*?)(?=^    [a-zA-Z_][\w-]*:\s*|\Z)",
-            backlight_block,
-        )
-        if off_match is None:
-            errors.append(f"{rel}: route Display Backlight OFF into manual sleep")
-            continue
+        off_include = re.search(r"(?m)^    on_turn_off: !include (\S+)$", backlight_block)
+        if off_include:
+            wiring = (path.parent / off_include.group(1)).resolve()
+            if not wiring.is_relative_to(root) or not wiring.is_file():
+                errors.append(f"{rel}: missing shared Display Backlight OFF wiring")
+                continue
+            off_body = wiring.read_text(encoding="utf-8")
+        else:
+            off_match = re.search(
+                r"(?ms)^    on_turn_off:\s*\n(?P<body>.*?)(?=^    [a-zA-Z_][\w-]*:\s*|\Z)",
+                backlight_block,
+            )
+            if off_match is None:
+                errors.append(f"{rel}: route Display Backlight OFF into manual sleep")
+                continue
+            off_body = off_match.group("body")
 
-        off_body = off_match.group("body")
         handler_index = off_body.find("script.execute: display_backlight_handle_off")
         if handler_index == -1:
             errors.append(
@@ -944,7 +952,7 @@ def firmware_display_backlight_manual_sleep_errors(
             interactive_index = off_body.find("DisplayTakeoverKind::INTERACTIVE")
             critical_index = off_body.find("DisplayTakeoverKind::CRITICAL")
             restore_index = off_body.find("script.execute: backlight_apply_brightness")
-            else_index = off_body.find("            else:", restore_index)
+            else_index = off_body.find("else:", restore_index)
             if not (
                 interactive_index != -1
                 and critical_index > interactive_index
@@ -1267,11 +1275,12 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
         if migrated_live_schedule:
             boot_guard_index = schedule_text.find("script.execute: screen_schedule_boot_guard")
             boot_guard_prefix = schedule_text[:boot_guard_index] if boot_guard_index != -1 else ""
+            boot_guard_body = yaml_script_body(schedule_text, "screen_schedule_boot_guard") or ""
             if (
                 "priority: -190" not in boot_guard_prefix
-                or "screen_schedule_waiting_for_time(" not in boot_guard_prefix
-                or "screen_schedule_night_active(" not in boot_guard_prefix
-                or "script.execute: screen_schedule_boot_guard" not in schedule_text
+                or "bind_screen_schedule(" not in boot_guard_prefix
+                or "id(schedule_enabled).publish_state(settings.enabled)" not in boot_guard_prefix
+                or "script.execute: display_mode_reconcile" not in boot_guard_body
             ):
                 errors.append(
                     f"{schedule_rel}: publish the live fail-dark schedule before the loading screen can light the panel"
@@ -1771,9 +1780,12 @@ def firmware_c6_update_status_errors(path: Path, root: Path) -> list[str]:
     if (
         'name: "${entity_esp32_c6_auto_update}"' not in text
         or "id: c6_auto_update_switch" not in text
-        or "restore_mode: RESTORE_DEFAULT_ON" not in text
+        or "restore_mode: DISABLED" not in text
+        or "bind_panel_scalar(espdesktop::panel_settings::ScalarSetting::ESP32_C6_AUTO_UPDATE," not in text
+        or any(f'ScalarSetting::ESP32_C6_AUTO_UPDATE, "{value}"' not in text for value in ("0", "1"))
+        or '{"esp32_c6_auto_update", "1",' not in (FIRMWARE_DIR / "panel_settings_generated.h").read_text()
     ):
-        errors.append(f"{rel}: expose a persistent default-on C6 automatic update switch")
+        errors.append(f"{rel}: store the default-on C6 automatic update switch in native panel configuration")
     automatic_script = re.search(
         r"(?ms)^script:\s*.*?id:\s*c6_check_and_install_update\b(?P<body>.*?)(?:^update:|\Z)",
         text,

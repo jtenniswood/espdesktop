@@ -1,23 +1,17 @@
 ---
-title: "Organize Cards in Local Folders"
-description: "Use local Subpages for Mac and panel controls, with optional Mac statistics on folder tiles."
+title: Create Subpages for Mac Controls
+description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, create nested subpages, and organise cards between pages.
 ---
 
-# Subpages
+# Create Subpages for Mac Controls {#subpages}
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 
-## Mac statistics
-
-In the **Subpage** card settings, set **Type** to **Companion Stat** to show a reading while keeping the tile’s navigation action. You can show processor, memory, storage, battery or network throughput. Some readings offer used/free values or a storage-device choice. The paired Mac shares readings while connected. Existing standalone Stats cards can still show readings, while the stable picker offers statistics through **Companion Stat**.
-
 ## App page behavior
 
 Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
-
-In development builds after v1.2.0, waking the display can open the focused app’s subpage when **Open app subpages on focus** is enabled.
 
 ## Create a Subpage
 
@@ -27,6 +21,8 @@ In development builds after v1.2.0, waking the display can open the focused app�
 4. Choose **Edit Subpage** in the card settings.
 5. Add and arrange cards on the subpage as you would on the home screen.
 6. Choose its **Back** card to return to the parent page.
+
+![Subpage editor with a Back tile, four browser shortcuts and dashed empty tiles for adding more controls](/images/web-editor-subpage.jpg)
 
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 

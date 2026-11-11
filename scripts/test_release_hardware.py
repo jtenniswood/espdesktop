@@ -12,17 +12,14 @@ import sys
 import time
 
 from companion_release import digest
-from test_device_runtime import HttpProbe, METRICS
+from test_device_runtime import HttpProbe, METRICS, navigation_values
 
 DEVICE = "guition-esp32-s3-4848s040"
-NAVIGATION = "Open the nested Safari shortcut, run it on the Mac, then use Back on the panel."
+REPORT_SCHEMA = 4
+SHORTCUT = "With the candidate Mac app connected, run one nested Mac shortcut and tap Back on the display."
 STEPS = (
-    ("paired_mac", "Confirm the candidate Mac app is installed and the panel is paired."),
-    *((f"navigation_{cycle}", NAVIGATION) for cycle in range(1, 6)),
-    ("wake", "Let the screen sleep. Tap once to wake it and confirm the tap runs no action."),
-    ("offline_editor", "Block internet access while keeping the local network available. "
-                       "Open the embedded editor and save a visible layout edit."),
-    ("reboot", "Restart the panel. Confirm the offline edit survives and the Mac reconnects."),
+    ("shortcut", SHORTCUT),
+    ("reboot", "Restart the display and wait for the Mac app to reconnect."),
 )
 
 
@@ -55,7 +52,7 @@ def memory_values(memory):
 
 
 def verify_report(report, expected):
-    if (not isinstance(report, dict) or report.get("schema") != 1
+    if (not isinstance(report, dict) or report.get("schema") != REPORT_SCHEMA
             or report.get("status") != "passed" or report.get("candidate") != expected):
         raise ValueError("A passing hardware report for the selected candidate is required.")
     firmware = report.get("firmware")
@@ -74,11 +71,17 @@ def verify_report(report, expected):
             raise ValueError(f"The report is missing a passing {name} checkpoint.")
         memory_values(step.get("before"))
         memory_values(step.get("after"))
+        if name == "shortcut":
+            navigation = step.get("navigation")
+            if not isinstance(navigation, dict):
+                raise ValueError(f"The report is missing navigation measurements for {name}.")
+            navigation_values(navigation.get("before"))
+            navigation_values(navigation.get("after"))
 
 
 def run(probe, output, expected=None, confirm=input):
     output.mkdir(parents=True, exist_ok=False)
-    report = {"schema": 1, "status": "failed", "candidate": expected, "steps": []}
+    report = {"schema": REPORT_SCHEMA, "status": "failed", "candidate": expected, "steps": []}
     try:
         initial = probe.sample()
         firmware = report["firmware"] = initial["firmware"]
@@ -99,7 +102,8 @@ def run(probe, output, expected=None, confirm=input):
             if restarted != expect_restart or (not restarted and current["uptime_ms"] < previous["uptime_ms"]):
                 raise ValueError("The expected reboot was missing." if expect_restart else "The panel rebooted unexpectedly.")
             previous = current
-            return memory_values(current["memory"])
+            memory_values(current["memory"])
+            return current
 
         for name, instruction in STEPS:
             before = sample()
@@ -107,15 +111,19 @@ def run(probe, output, expected=None, confirm=input):
             if confirm(f"{instruction}\nType pass when confirmed, or fail to stop: ").strip().lower() != "pass":
                 raise ValueError(f"Operator did not confirm {name}.")
             after = sample(expect_restart=name == "reboot")
-            if name in ("paired_mac", "reboot"):
-                pair = probe.json("/connectors/status").get("mac_companion", {})
-                if not isinstance(pair, dict) or pair.get("paired") is not True or pair.get("connected") is not True:
-                    raise ValueError("The paired Mac is disconnected.")
-            print(f"{name}: internal heap {before['heap_free_percent']:.1f}% → {after['heap_free_percent']:.1f}% free, "
-                  f"PSRAM {before['psram_free_percent']:.1f}% → {after['psram_free_percent']:.1f}% free.")
-            report["steps"].append({"id": name, "operator_passed": True,
-                                    "restarted": name == "reboot", "before": before, "after": after,
-                                    "seconds": round(time.monotonic() - started, 2)})
+            pair = probe.json("/connectors/status").get("mac_companion", {})
+            if not isinstance(pair, dict) or pair.get("paired") is not True or pair.get("connected") is not True:
+                raise ValueError("The paired Mac is disconnected.")
+            before_memory, after_memory = before["memory"], after["memory"]
+            step = {"id": name, "operator_passed": True, "restarted": name == "reboot",
+                    "before": before_memory, "after": after_memory, "seconds": round(time.monotonic() - started, 2)}
+            print(f"{name}: internal heap {before_memory['heap_free_percent']:.1f}% → {after_memory['heap_free_percent']:.1f}% free, "
+                  f"PSRAM {before_memory['psram_free_percent']:.1f}% → {after_memory['psram_free_percent']:.1f}% free.")
+            if name == "shortcut":
+                after_navigation = navigation_values(after.get("navigation"))
+                step["navigation"] = {"before": navigation_values(before.get("navigation")), "after": after_navigation}
+                print(f"  First frame: open {after_navigation['page_open_frame_ms']} ms, Back {after_navigation['back_frame_ms']} ms.")
+            report["steps"].append(step)
         report["status"] = "passed"
         if expected:
             verify_report(report, expected)

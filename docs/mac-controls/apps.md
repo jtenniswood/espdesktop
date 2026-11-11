@@ -1,17 +1,26 @@
 ---
-title: Launch Mac Apps and Open Websites
-description: Set up EspDesktop Companion cards to launch approved Mac apps and open web addresses in the default browser.
+title: Launch Mac Apps from a Touchscreen
+description: Choose which apps EspDesktop can launch, add an Applications card to your touchscreen and set up shortcut pages for supported apps.
 ---
 
-# Launch Mac Apps and Open Websites
+# Launch Mac Apps
 
-Companion cards can bring an approved application to the front or open a website in the Mac's default browser.
+Tap an Applications card to launch an approved app or bring it to the front on your Mac.
 
 ## Launch an App
 
-1. In the Mac app, open **Apps**. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
-2. In the display's setup page, add a **Companion → Applications** card.
-3. Select an approved application and save the display configuration.
+### Choose apps in the Mac app
+
+Open **Apps** in the Mac app. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
+
+[![EspDesktop Mac app on the Apps tab with the All available apps switch on](/images/mac-app-apps.jpg)](/images/mac-app-apps.jpg)
+
+### Add a card in the web editor
+
+1. In the display’s web editor, select an empty tile and choose **Applications**. If the picker shows connector tabs, look under **Companion**.
+2. Select an approved application and choose **Save**.
+
+![Applications form with Music selected, the optional Add app subpage switch, and the Save button](/images/web-editor-applications.jpg)
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
@@ -21,18 +30,6 @@ App cards use the normal card theme by default. Previously saved custom backgrou
 
 Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. With a matching current Mac app and firmware, macOS activation updates the active colour directly, without waiting for window, Finder-folder or browser-tab checks. The fill has no outline or fade. Detailed focus checks still control app subpages and keyboard shortcuts separately; touch actions and page changes do not wait for either update.
 
-## Open a Website
-
-1. Add a **Companion → Website** card.
-2. Enter an `http://` or `https://` address.
-3. Under **Open in**, keep **New tab** or choose **New window**, then save the card.
-
-The card uses the Mac's default browser. Use matching versions of the Mac app and display firmware to apply the setting. Safari and Google Chrome support both choices when EspDesktop has Automation permission for the browser in macOS System Settings. With other browsers, **New tab** follows the browser's usual behaviour for links opened from another app. If no browser window is open, opening a tab creates a window for it.
-
-Addresses containing an embedded username or password are rejected. Other URL types, including `file://`, are not accepted.
-
-Saved **Web App** cards are removed from layouts when upgrading or restoring a backup. To add a card for a website, choose **Website**.
-
 ## Ready-Made App Subpages
 
 An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Current examples include **Safari**, **Slack**, and **Codex**; community contributions can add more apps.
@@ -41,7 +38,7 @@ An approved **Applications** card can offer an editable subpage when EspDesktop 
 2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
 3. Choose the shortcuts to include and drag them into order.
 
-The page uses the same templates as standalone **Shortcut Catalog** cards and remains editable. Turning the app subpage option off preserves your changes.
+The page uses the same templates as the **Application** tab on a **Key Shortcut** card and remains editable. Turning the app subpage option off preserves your changes.
 
 You can [add a custom shortcut](/mac-controls/shortcuts#create-a-shortcut-card) in an empty tile on the app subpage.
 
@@ -49,8 +46,12 @@ For standalone pages, see [Subpages](/features/subpages). For folders, see [Open
 
 App subpages open automatically when their app gains focus by default. Switching between apps with subpages goes directly to the matching page. Browser tabs and Finder folders are checked separately so they do not hold up app switches. To require a press instead, turn off **Screen → Appearance → App Subpages → Open app subpages on focus**. Press an app card to focus its app, then press it again once the app is active on the Mac to open the subpage. This setting applies to every app subpage on the display.
 
-In development builds after stable v1.2.0, closing the last visible window of the foreground app returns the display to the Home page or subpage you were using before the shortcuts opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
+When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the shortcuts opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
 
 The browser setup page caches app icon previews locally for up to 24 hours, so switching pages and reopening setup can reuse downloaded artwork. Icons refresh when the Mac connection or app icon catalogue changes. **Clear app icon cache** in the Mac Companion settings also clears the browser previews. Browser caching is limited to 64 previews and still works in memory if local storage is unavailable.
 
 The S3 keeps 11 full-resolution app icons in flash and can cache up to 12 additional icons in external RAM, for up to 23 at once when memory is available. The extra copies use lossless compression where it saves space, use at most 2 MB, leave 1 MB of free external-memory headroom when allocated, and reload from the Mac after a restart. Hidden pages can retain up to 2 MB of rendered artwork and release it under memory pressure. If the cache fills, the least recently used overflow icon is replaced; missing artwork downloads again when needed. The browser keeps its own cached copy when an icon is evicted from the display.
+
+## Website Cards {#open-a-website}
+
+To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/websites).

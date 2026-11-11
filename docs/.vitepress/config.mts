@@ -1,158 +1,49 @@
+import { build } from 'esbuild'
+import { copyFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
+import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
-import { faqSchema, hostname, jsonLd, writeRedirects } from './discovery'
+import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
+import { writeMarkdownPages } from './markdown-export'
 
-const defaultImage = {
-  url: `${hostname}images/4848s040-hero.jpg`,
-  width: '1024',
-  height: '999',
-  type: 'image/jpeg',
+const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
+
+function shareImage(file: string, width: number, height: number, alt: string) {
+  return {
+    url: `${hostname}images/${file}`,
+    width: String(width),
+    height: String(height),
+    type: file.endsWith('.png') ? 'image/png' : 'image/jpeg',
+    alt,
+  }
 }
 
+const defaultImage = shareImage('espdesktop-share.png', 1200, 630,
+  'EspDesktop touchscreen controller for Mac with example app, website, folder and shortcut tiles')
+const displayImage = shareImage('4848s040-hero.jpg', 1024, 999,
+  'The 4-inch Guition 4848S040 touchscreen next to a keyboard')
 const pageImages: Record<string, typeof defaultImage> = {
-  'screens/4848s040.md': {
-    url: `${hostname}images/4848s040-hero.jpg`,
-    width: '1024',
-    height: '999',
-    type: 'image/jpeg',
-  },
-  'screens/jc1060p470.md': {
-    url: `${hostname}images/jc1060p470-hero.jpg`,
-    width: '1024',
-    height: '798',
-    type: 'image/jpeg',
-  },
-  'screens/jc4880p443.md': {
-    url: `${hostname}images/jc4880p443-hero.jpg`,
-    width: '800',
-    height: '1024',
-    type: 'image/jpeg',
-  },
-  'features/setup.md': {
-    url: `${hostname}images/screen-setup.png`,
-    width: '625',
-    height: '1024',
-    type: 'image/png',
-  },
-  'features/subpages.md': {
-    url: `${hostname}images/screen-subpage.png`,
-    width: '1024',
-    height: '606',
-    type: 'image/png',
-  },
-  'features/relays.md': {
-    url: `${hostname}images/relay-controls.svg`,
-    width: '646',
-    height: '786',
-    type: 'image/svg+xml',
-  },
-  'card-types/buttons.md': {
-    url: `${hostname}images/card-button.png`,
-    width: '370',
-    height: '336',
-    type: 'image/png',
-  },
-  'card-types/sensors.md': {
-    url: `${hostname}images/card-sensor.png`,
-    width: '368',
-    height: '340',
-    type: 'image/png',
-  },
-  'card-types/switches.md': {
-    url: `${hostname}images/card-toggle.png`,
-    width: '366',
-    height: '340',
-    type: 'image/png',
-  },
-  'getting-started/home-assistant-actions.md': {
-    url: `${hostname}images/ha-actions-step-1.png`,
-    width: '684',
-    height: '508',
-    type: 'image/png',
-  },
+  'screens/4848s040.md': displayImage,
+  'getting-started/install.md': displayImage,
+  'getting-started/mac-app.md': shareImage('mac-app-display.jpg', 1000, 1376,
+    'EspDesktop Mac app showing a connected display and the Customize button'),
+  'features/setup.md': shareImage('web-editor-screen-settings.jpg', 1080, 621,
+    'EspDesktop web editor showing the Screen tab and app subpage settings'),
+  'features/subpages.md': shareImage('web-editor-subpage.jpg', 620, 612,
+    'A subpage with browser shortcuts in the EspDesktop web editor'),
+  'mac-controls/apps.md': shareImage('web-editor-applications.jpg', 560, 530,
+    'Applications card form with Music selected in the EspDesktop web editor'),
+  'mac-controls/websites.md': shareImage('web-editor-website.jpg', 560, 530,
+    'Website card form with an example web address in the EspDesktop web editor'),
 }
 
-const screenProducts: Record<string, Record<string, string>> = {
-  'screens/4848s040.md': {
-    name: 'Guition 4848S040',
-    model: '4848S040',
-    size: '4 inches',
-    resolution: '480 x 480',
-    processor: 'ESP32-S3',
-  },
-  'screens/jc1060p470.md': {
-    name: 'Guition JC1060P470',
-    model: 'JC1060P470',
-    size: '7 inches',
-    resolution: '1024 x 600',
-    processor: 'ESP32-P4',
-  },
-  'screens/jc1060p470-v1.md': {
-    name: 'Guition JC1060P470 V1',
-    model: 'JC1060P470 V1',
-    size: '7 inches',
-    resolution: '1024 x 600',
-    processor: 'ESP32-P4',
-  },
-  'screens/jc1060p470-v2.md': {
-    name: 'Guition JC1060P470 V2',
-    brand: 'Guition',
-    model: 'JC1060P470 V2',
-    size: '7 inches',
-    resolution: '1024 x 600',
-    processor: 'ESP32-P4',
-  },
-  'screens/jc4880p443.md': {
-    name: 'Guition JC4880P443',
-    model: 'JC4880P443',
-    size: '4.3 inches',
-    resolution: '480 x 800',
-    processor: 'ESP32-P4',
-  },
-  'screens/jc8012p4a1.md': {
-    name: 'Guition JC8012P4A1',
-    brand: 'Guition',
-    model: 'JC8012P4A1',
-    size: '10.1 inches',
-    resolution: '1280 x 800',
-    processor: 'ESP32-P4',
-  },
-  'screens/jc8012p4a1-v1.md': {
-    name: 'Guition JC8012P4A1 V1',
-    model: 'JC8012P4A1 V1',
-    size: '10.1 inches',
-    resolution: '1280 x 800',
-    processor: 'ESP32-P4',
-  },
-  'screens/jc8012p4a1-v2.md': {
-    name: 'Guition JC8012P4A1 V2',
-    brand: 'Guition',
-    model: 'JC8012P4A1 V2',
-    size: '10.1 inches',
-    resolution: '1280 x 800',
-    processor: 'ESP32-P4',
-  },
-  'screens/jc8012p4a1-v3.md': {
-    name: 'Guition JC8012P4A1 V3',
-    model: 'JC8012P4A1 V3',
-    size: '10.1 inches',
-    resolution: '1280 x 800',
-    processor: 'ESP32-P4',
-  },
-  'screens/p4-86.md': {
-    name: 'ESP32-P4 86',
-    brand: 'Waveshare',
-    model: 'ESP32-P4-86-Panel-ETH-2RO',
-    size: '4 inches',
-    resolution: '720 x 720',
-    processor: 'ESP32-P4',
-  },
-}
+const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
+const websiteId = `${hostname}#website`
 
 export default defineConfig({
   title: 'EspDesktop',
   description:
     'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
-  base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
   lastUpdated: true,
@@ -168,8 +59,30 @@ export default defineConfig({
     'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc4880p443-v3,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
     'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
   ],
-  markdown: { config: faqSchema },
-  buildEnd: ({ outDir }) => writeRedirects(outDir),
+  markdown: { config: faqSchema, image: { lazyLoading: true } },
+  async buildEnd({ outDir, pages }) {
+    const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
+    await Promise.all([
+      writeRedirects(outDir),
+      writeMarkdownPages(outDir, pages),
+      copyFile(demoRenderer, resolve(outDir, 'editor/renderer.js')),
+      build({
+        entryPoints: [resolve(import.meta.dirname, 'editor-demo.ts')],
+        outfile: resolve(outDir, 'editor/demo.js'),
+        bundle: true,
+        minify: true,
+        target: 'es2020',
+      }),
+    ])
+  },
+
+  transformHead({ page }) {
+    if (page === '404.md') return []
+    return [
+      ['link', { rel: 'describedby', href: llmsIndexUrl }],
+      ['link', { rel: 'alternate', type: 'text/markdown', href: new URL(page, hostname).href }],
+    ]
+  },
 
   sitemap: {
     hostname,
@@ -180,71 +93,31 @@ export default defineConfig({
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
       : []),
-    ['link', { rel: 'icon', type: 'image/png', href: '/espdesktop/favicon.png' }],
-    ['meta', { property: 'og:type', content: 'website' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/favicon.png' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
     ['meta', { property: 'og:site_name', content: 'EspDesktop' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    [
-      'style',
-      {},
-      '.sp-support-btn{position:fixed;right:28px;bottom:28px;z-index:150;display:inline-block;line-height:0}.sp-support-btn img{height:60px;display:block;border-radius:999px}',
-    ],
-    [
-      'script',
-      {},
-      `document.addEventListener('DOMContentLoaded',function(){if(document.querySelector('.sp-support-btn'))return;var link=document.createElement('a');link.className='sp-support-btn';link.href='https://www.buymeacoffee.com/jtenniswood';link.target='_blank';link.rel='noopener';link.innerHTML='<img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" height="60" style="border-radius:999px;">';document.body.appendChild(link);});`,
-    ],
-    [
-      'script',
-      { type: 'application/ld+json' },
-      jsonLd({
-        '@context': 'https://schema.org',
-        '@graph': [
-          {
-            '@type': 'WebSite',
-            '@id': `${hostname}#website`,
-            url: hostname,
-            name: 'EspDesktop',
-            description:
-              'A local touchscreen controller for Mac apps, shortcuts, windows, folders, and websites.',
-            inLanguage: 'en-US',
-          },
-          {
-            '@type': 'SoftwareApplication',
-            '@id': `${hostname}#software`,
-            name: 'EspDesktop',
-            applicationCategory: 'UtilitiesApplication',
-            operatingSystem: 'ESP32 and macOS',
-            description:
-              'Display firmware and a native Mac app that turn a 4-inch ESP32 touchscreen into a local Mac control surface.',
-            url: hostname,
-            author: {
-              '@type': 'Person',
-              name: 'jtenniswood',
-              url: 'https://github.com/jtenniswood',
-            },
-            offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-          },
-        ],
-      }),
-    ],
   ],
 
   transformPageData(pageData) {
-    const canonicalUrl = `${hostname}${pageData.relativePath}`
-      .replace(/index\.md$/, '')
-      .replace(/\.md$/, '')
+    const { relativePath, frontmatter } = pageData
+    frontmatter.head ??= []
+    if (relativePath === '404.md') {
+      frontmatter.head.push(['meta', { name: 'robots', content: 'noindex' }])
+      return
+    }
 
-    const rawTitle = pageData.frontmatter.title ?? pageData.title
-    const title =
-      typeof rawTitle === 'string' ? rawTitle : rawTitle != null ? String(rawTitle) : ''
-    const description = String(pageData.frontmatter.description ?? '')
-    const image = pageImages[pageData.relativePath] ?? defaultImage
+    const canonicalUrl = canonicalUrlFor(relativePath)
+    const title = String(frontmatter.title ?? pageData.title)
+    const description = String(frontmatter.description ?? '')
+    const image = pageImages[relativePath] ?? defaultImage
+    const isHome = relativePath === 'index.md'
+    const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
 
-    pageData.frontmatter.head ??= []
-    pageData.frontmatter.head.push(
+    frontmatter.head.push(
       ['link', { rel: 'canonical', href: canonicalUrl }],
+      ['meta', { name: 'robots', content: 'max-image-preview:large' }],
+      ['meta', { property: 'og:type', content: isArticle ? 'article' : 'website' }],
       ['meta', { property: 'og:title', content: title }],
       ['meta', { property: 'og:description', content: description }],
       ['meta', { property: 'og:url', content: canonicalUrl }],
@@ -252,60 +125,81 @@ export default defineConfig({
       ['meta', { property: 'og:image:width', content: image.width }],
       ['meta', { property: 'og:image:height', content: image.height }],
       ['meta', { property: 'og:image:type', content: image.type }],
+      ['meta', { property: 'og:image:alt', content: image.alt }],
       ['meta', { name: 'twitter:title', content: title }],
       ['meta', { name: 'twitter:description', content: description }],
       ['meta', { name: 'twitter:image', content: image.url }],
+      ['meta', { name: 'twitter:image:alt', content: image.alt }],
     )
 
-    if (pageData.relativePath === '404.md') {
-      pageData.frontmatter.head.push(['meta', { name: 'robots', content: 'noindex' }])
-    }
-
-    if (
-      pageData.relativePath !== 'index.md' &&
-      pageData.relativePath !== '404.md' &&
-      title &&
-      description
-    ) {
-      const articleSchema: Record<string, unknown> = {
-        '@context': 'https://schema.org',
-        '@type': 'TechArticle',
+    const graph: Record<string, unknown>[] = []
+    if (isHome) {
+      graph.push(
+        {
+          '@type': 'WebSite',
+          '@id': websiteId,
+          url: canonicalUrl,
+          name: 'EspDesktop',
+          description,
+          inLanguage: 'en-US',
+        },
+        {
+          '@type': 'SoftwareApplication',
+          '@id': `${hostname}#software`,
+          name: 'EspDesktop',
+          url: canonicalUrl,
+          applicationCategory: 'UtilitiesApplication',
+          operatingSystem: 'macOS 13 or newer',
+          description,
+          author,
+          softwareHelp: `${hostname}getting-started/mac-app`,
+          screenshot: `${hostname}images/mac-app-display.jpg`,
+          offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        },
+      )
+    } else {
+      const breadcrumbs = `${canonicalUrl}#breadcrumbs`
+      const page: Record<string, unknown> = {
+        '@type': 'WebPage',
+        '@id': canonicalUrl,
         name: title,
         description,
         url: canonicalUrl,
-        isPartOf: { '@id': `${hostname}#website` },
-        author: { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' },
+        isPartOf: { '@id': websiteId },
+        breadcrumb: { '@id': breadcrumbs },
       }
-      if (pageData.lastUpdated) {
-        articleSchema.dateModified = new Date(pageData.lastUpdated).toISOString()
+      if (relativePath === 'reference/faq.md') {
+        page['@type'] = 'FAQPage'
+        page.mainEntity = frontmatter.faqAnswers
+        delete frontmatter.faqAnswers
+      } else if (isArticle) {
+        // The page and its article are separate nodes. Breadcrumbs belong to the page.
+        graph.push({
+          '@type': 'TechArticle',
+          '@id': `${canonicalUrl}#guide`,
+          headline: title,
+          description,
+          mainEntityOfPage: { '@id': canonicalUrl },
+          author,
+          image: image.url,
+          ...(pageData.lastUpdated ? { dateModified: new Date(pageData.lastUpdated).toISOString() } : {}),
+        })
+        page.mainEntity = { '@id': `${canonicalUrl}#guide` }
       }
-      if (pageData.relativePath === 'reference/faq.md') {
-        articleSchema['@type'] = 'FAQPage'
-        articleSchema.mainEntity = pageData.frontmatter.faqAnswers
-        delete pageData.frontmatter.faqAnswers
-      }
-      const screenProduct = screenProducts[pageData.relativePath]
-      if (screenProduct) {
-        articleSchema.about = {
-          '@type': 'Product',
-          name: screenProduct.name,
-          brand: { '@type': 'Brand', name: screenProduct.brand ?? 'Guition' },
-          model: screenProduct.model,
-          category: 'ESP32 touchscreen panel',
-          url: canonicalUrl,
-          additionalProperty: [
-            { '@type': 'PropertyValue', name: 'Screen size', value: screenProduct.size },
-            { '@type': 'PropertyValue', name: 'Resolution', value: screenProduct.resolution },
-            { '@type': 'PropertyValue', name: 'Processor', value: screenProduct.processor },
-          ],
-        }
-      }
-      pageData.frontmatter.head.push([
-        'script',
-        { type: 'application/ld+json' },
-        jsonLd(articleSchema),
-      ])
+      graph.push(page, {
+        '@type': 'BreadcrumbList',
+        '@id': breadcrumbs,
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'EspDesktop', item: hostname },
+          { '@type': 'ListItem', position: 2, name: title, item: canonicalUrl },
+        ],
+      })
     }
+    frontmatter.head.push([
+      'script',
+      { type: 'application/ld+json' },
+      jsonLd({ '@context': 'https://schema.org', '@graph': graph }),
+    ])
   },
 
   themeConfig: {
@@ -320,8 +214,8 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Where to Buy', link: '/#where-to-buy' },
-          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Getting Setup', link: '/getting-started/install' },
         ],
       },
       {
@@ -332,11 +226,12 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Device Features',
+        text: 'Features',
         items: [
           { text: 'Configure the Display', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
-          { text: 'Apps & Websites', link: '/mac-controls/apps' },
+          { text: 'Apps', link: '/mac-controls/apps' },
+          { text: 'Websites', link: '/mac-controls/websites' },
           { text: 'Finder Folders', link: '/mac-controls/folders' },
           { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
         ],
@@ -346,6 +241,8 @@ export default defineConfig({
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
+          { text: 'Support the Project', link: '/reference/support' },
+          { text: 'Privacy Policy', link: '/reference/privacy' },
         ],
       },
       {

@@ -2,8 +2,10 @@
 
 This document describes shared display-mode decisions and the effects that
 apply them. Home Assistant alarm controls and presence subscriptions have been
-retired. Saved Sensor screensaver and Night Schedule modes migrate to Disabled
-before restored policy runs; time schedules and Mac playback remain supported.
+retired. The native document stores the screensaver and Night Schedule settings.
+It also stores the normal brightness mode, day and night levels, fixed times,
+and the last automatic timing mode as one record. A switch to Manual saves the
+current level together with the mode. The clock switch reflects the saved screensaver action.
 
 The lifecycle controller decides **what should be visible**. ESPHome scripts
 remain responsible for the physical effects: fades, LVGL page and widget changes,
@@ -19,6 +21,9 @@ The current behaviour is spread across:
   dimmed and clock presentation, setup dimming, and takeover suspension;
 - `common/addon/backlight_schedule.yaml` for boot guard, scheduled modes,
   temporary off-hours wake, and brightness selection;
+- `common/device/display_backlight_on.yaml` for the board event that applies
+  the lifecycle service's backlight-on decision. Board files own PWM wiring.
+  The JC8012P4A1 family also includes the shared takeover-off handler;
 - `components/espdesktop/button_grid_image.h` for interactive image takeovers;
 - generated device slot wiring under `devices/*/device/sensors.yaml`.
 
@@ -33,7 +38,7 @@ The shared controller uses these values:
 | Type | Values | Meaning |
 |---|---|---|
 | `DisplayMode` | `ACTIVE`, `SETUP_DIMMED`, `DIMMED`, `CLOCK`, `DISPLAY_OFF` | The one presentation mode that should be visible. |
-| `DisplayRequestSource` | `ONBOARDING`, `BOOT_GUARD`, `IDLE_TIMER`, `PRESENCE_SENSOR`, `SCREEN_SCHEDULE`, `MANUAL_SLEEP`, `SETUP_TIMEOUT`, `USER_WAKE` | The event or policy currently requesting a mode. |
+| `DisplayRequestSource` | `ONBOARDING`, `BOOT_GUARD`, `IDLE_TIMER`, `PRESENCE_SENSOR`, `SCREEN_SCHEDULE`, `MANUAL_SLEEP`, `SETUP_TIMEOUT`, `USER_WAKE`, `MAC_DISPLAY_SLEEP` | The event or policy currently requesting a mode. |
 | `DisplayTakeoverKind` | `INTERACTIVE`, `CRITICAL` | Interactive or critical display priority; no HA alarm producer remains. |
 | `DisplayTransition` | previous mode, target mode, winning source, generation | The complete decision handed to the effect adapter. |
 
@@ -65,9 +70,10 @@ first matching row wins.
 | 1 | Critical takeover | `ACTIVE` | Shared controller priority, retained for internal callers; no HA alarm producer remains. |
 | 2 | First-time onboarding | `ACTIVE` / `ONBOARDING` | WiFi and tile-configuration instructions remain fully visible while the grid is empty. Saved sleep, schedule, and setup-timeout policy cannot hide or dim setup. |
 | 3 | Manual sleep | `DISPLAY_OFF` / `MANUAL_SLEEP` | Closes ordinary and interactive modals; next deliberate user wake clears it. |
-| 4 | Temporary user wake | `ACTIVE` / `USER_WAKE` | Uses configured wake brightness until the existing 10–3600 second timeout expires. |
-| 5 | Night schedule | Off, `CLOCK`, or `ACTIVE` / `SCREEN_SCHEDULE` | Off and clock close image modals; Screen Dimmed keeps the active UI at `schedule_dimmed_brightness`. An enabled time-based schedule fails dark until local time is valid, whether or not a saved sleep marker exists. |
-| 6 | Interactive takeover | `ACTIVE`, image modal foreground | Automatic idle sleep is deferred. Manual sleep and scheduled off or clock may close it. |
+| 4 | Locked Mac displays asleep in App Connection with Display Off | `DISPLAY_OFF` / `MAC_DISPLAY_SLEEP` | The panel fades out even during scheduled dimming or a temporary wake. The request clears when the paired app reports display wake or unlock. |
+| 5 | Temporary user wake | `ACTIVE` / `USER_WAKE` | Uses configured wake brightness until the existing 10–3600 second timeout expires. |
+| 6 | Night schedule | Off, `CLOCK`, or `ACTIVE` / `SCREEN_SCHEDULE` | Off and clock close image modals. Screen Dimmed keeps the active UI at `schedule_dimmed_brightness`. An enabled time-based schedule fails dark until local time is valid, whether or not a saved sleep marker exists. |
+| 7 | Interactive takeover | `ACTIVE`, image modal foreground | Automatic idle sleep is deferred. Manual sleep and scheduled off or clock may close it. |
 | 8 | Idle timer | Configured `DIMMED`, `CLOCK`, or `DISPLAY_OFF` | Mac playback sleep prevention and shared takeover priorities defer idle sleep. |
 | 9 | Setup timeout outside onboarding | `SETUP_DIMMED` / `SETUP_TIMEOUT` | Static setup pages may still use the existing burn-in dim path. |
 | 10 | No request | `ACTIVE` / default | Normal UI at normal calculated brightness. |
@@ -185,7 +191,7 @@ tests. `gN` denotes a transition generation.
 | Scheduled off and automatic wake | `ACTIVE`; enter off-hours Off; enter normal hours | `SCREEN_SCHEDULE` selects `DISPLAY_OFF`; later clearing that request selects `ACTIVE`, waits for the main page to settle, restores its clock bar and configured brightness, and restarts idle handling through the shared active-display finalizer. |
 | Scheduled clock | `ACTIVE`; enter off-hours Clock; setting or time changes | Select `CLOCK` with scheduled clock brightness. Re-evaluate current schedule on every change; do not restore a previous transient mode. |
 | Temporary off-hours wake | Scheduled off or clock; touch; timeout | `USER_WAKE` selects `ACTIVE` at temporary-wake brightness. On existing timeout, clear it and re-resolve to the current scheduled off or clock mode. |
-| Scheduled Screen Dimmed | Enter off-hours Screen Dimmed | `SCREEN_SCHEDULE` selects `ACTIVE` at `schedule_dimmed_brightness` and suppresses idle sleep for that period. The internal `screen_schedule_always_on_mode` helper name does not change the user-facing mode or its brightness contract. |
+| Scheduled Screen Dimmed | Enter off-hours Screen Dimmed | `SCREEN_SCHEDULE` selects `ACTIVE` at `schedule_dimmed_brightness` and suppresses idle sleep for that period. |
 | Interactive modal defers idle | `ACTIVE`; open image modal; idle timeout or absence; close modal | `INTERACTIVE` keeps `ACTIVE` while recording the automatic request. Closing resolves to the current configured idle mode. |
 | Schedule changes during interactive modal | Open image modal; enter scheduled off or clock | Schedule outranks interactive takeover, closes it, and applies off or clock. Entering normal hours before modal close is resolved from live schedule state. |
 | Rapid opposing requests | Idle requests off `g1`; touch requests active `g2`; schedule requests clock `g3`; old fade callback from `g1` fires | Final mode is `CLOCK` from `g3`; callbacks from `g1` and `g2` are rejected and cannot change widgets or PWM. |

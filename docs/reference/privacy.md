@@ -34,11 +34,8 @@ The site does not intentionally use cookies, advertising trackers, or a
 first-party analytics service. Its search is generated and run in your
 browser.
 
-Every documentation page includes a support button whose image is loaded from
-Buy Me a Coffee's CDN. Loading that image may disclose your IP address and
-browser request information to Buy Me a Coffee or its service providers.
-Following the button takes you to Buy Me a Coffee, which has its own privacy
-policy.
+The support button image is served by this documentation site. Following the
+button takes you to Buy Me a Coffee, which has its own privacy policy.
 
 The install page loads the bundled USB installer from GitHub Pages when the
 browser supports Web Serial and checks a public firmware manifest. These
@@ -50,10 +47,11 @@ third-party websites. Those sites have their own terms and privacy practices.
 
 ## The EspDesktop firmware and device
 
-The firmware exchanges Mac controls, system statistics, app information, Mac
-lock state with the Mac you pair. Saved
-configurations and backups may retain identifiers and other fields from older
-cards so you can identify and replace them.
+The firmware exchanges Mac controls, system statistics, app information, and
+Mac lock state with the Mac you pair. While the Mac is locked, the app also
+reports whether its displays are awake. Saved configurations and backups may
+retain identifiers and other fields from older cards so you can identify and
+replace them.
 
 ## Firmware and asset downloads
 
@@ -66,12 +64,10 @@ saved card data or pairing credentials.
 
 ESPHome OTA or other update methods may contact the services you select.
 
-In v1.2.0, the browser tries to load the display editor from EspDesktop’s
-GitHub Pages site and can fall back to a copy bundled with the firmware. The
-request URL includes the display model and firmware version. GitHub may receive
-those values and normal browser connection metadata. Newer 4848S040 firmware
-builds that start the bundled editor serve it directly from the display. Firmware
-update checks are separate.
+Current 4848S040 firmware serves the bundled editor directly from the display.
+Older firmware may first request the editor from the hosted EspDesktop site. That
+request includes the display model and firmware version along with normal browser
+connection metadata. Firmware update checks are separate.
 
 Networked standard builds automatically synchronize time with the public NTP
 pool at `0.pool.ntp.org`, `1.pool.ntp.org`, and `2.pool.ntp.org`. DNS and NTP
@@ -102,10 +98,11 @@ Removing the application may leave preferences or Keychain items behind, so
 forget the display before uninstalling when you want to remove its pairing.
 EspDesktop does not send these local card data to an analytics service.
 
-The Mac app downloads the public shortcut catalogue from GitHub. The packaged app
-also checks a GitHub release feed when automatic checks are enabled or you check
-manually. GitHub may receive ordinary request information, such as IP address and
-time. You can change automatic update settings in the Mac app’s **Updates** tab.
+The Mac app fetches public catalogues, including shortcut presets, from GitHub.
+The packaged app also checks the EspDesktop update feed when automatic checks are
+enabled or you check manually. The hosting providers may receive ordinary request
+information such as IP address and time. You can change automatic update settings
+in the Mac app’s **Updates** tab.
 
 ## Information you provide to the project
 

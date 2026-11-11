@@ -6,6 +6,7 @@ code. Hardware, rendering and unrelated scripts are doubles. The small script
 runner models restart, delay and wait so both periodic callback orders execute.
 """
 import argparse
+import json
 from pathlib import Path
 import subprocess
 import tempfile
@@ -24,9 +25,12 @@ def generate(root):
         text = (root / "common/addon" / filename).read_text()
         scripts.update({s["id"]: s for s in yaml.load(text[text.index("script:\n"):], Loader)["script"]})
     selected = {"display_mode_reconcile", "screen_schedule_check", "screen_schedule_wake",
+                "screen_schedule_boot_guard",
                 "display_mode_apply_transition", "display_mode_effect_active",
                 "display_active_finalize", "screensaver_idle_check",
-                "screen_schedule_wake_timeout_check"}
+                "screen_schedule_wake_timeout_check",
+                "screensaver_companion_reconcile", "screensaver_sleep_timer",
+                "display_mode_request_automatic", "display_mode_clear_automatic"}
     # Exercise the entire ACTIVE branch, including the guarded completion and
     # finalizer call. Other presentation modes are hardware doubles below.
     adapter = scripts["display_mode_apply_transition"]["then"][0]["if"]["then"]
@@ -87,6 +91,14 @@ def main():
     declarations, setup, helpers = generate(args.root)
     source = (ROOT / "tests/firmware/display_schedule_test.cpp.in").read_text()
     source = source.replace("// SCRIPT_DECLARATIONS", declarations).replace("// SCRIPT_SETUP", setup).replace("// SCHEDULE_HELPERS", helpers)
+    fixtures = json.loads((ROOT / "compatibility/fixtures/panel_settings_records.json").read_text())
+    assertions = [
+        f"  assert({'' if group == 'valid' else '!'}parse_{name}({json.dumps(value)}));"
+        for name, records in fixtures.items()
+        for group, values in records.items()
+        for value in values
+    ]
+    source = source.replace("  // PANEL_SETTING_FIXTURES", "\n".join(assertions))
     with tempfile.TemporaryDirectory() as tmp:
         cpp, binary = Path(tmp) / "test.cpp", Path(tmp) / "test"
         cpp.write_text(source)

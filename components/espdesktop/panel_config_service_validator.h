@@ -2,6 +2,7 @@
 
 #include "configuration_service.h"
 #include "configuration_release_policy.h"
+#include "display_brightness_preferences.h"
 #include "display_theme_preferences.h"
 #include "panel_config_representation.h"
 #include "screen_schedule_preferences.h"
@@ -70,9 +71,11 @@ public:
   }
  private:
   static bool valid_display_setting(std::string_view key, std::string_view value) {
+    if (key == DISPLAY_BRIGHTNESS_PREFERENCES_KEY) return parse_display_brightness_preferences(value).has_value();
     if (key == DISPLAY_THEME_PREFERENCES_KEY) return parse_display_theme_preferences(value).has_value();
     if (key == SCREEN_SCHEDULE_PREFERENCES_KEY) return parse_screen_schedule_preferences(value).has_value();
-    return true;
+    const auto index = panel_settings::scalar_setting_index(key);
+    return index == panel_settings::SCALAR_RULES.size() || panel_settings::SCALAR_RULES[index].valid(value);
   }
   ServiceStatus inspect_v2(const uint8_t *document, size_t size, bool protect_nested,
       bool validate_settings = false) const {

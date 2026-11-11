@@ -1,6 +1,6 @@
 ---
-title: Open Finder Folders
-description: Approve Finder folders in the EspDesktop Mac app and open them from Companion cards on the touchscreen.
+title: Open Finder Folders from Your Touchscreen
+description: Add an approved Finder folder to EspDesktop and open it from a touchscreen tile. Group project folders together on a Finder subpage.
 ---
 
 # Open Finder Folders
@@ -25,10 +25,10 @@ You can show approved folders as tiles on a Finder app subpage:
 2. Turn on **Add app subpage** in the card settings.
 3. Use the folder list under **App Subpage** to choose which folders appear and drag them into order.
 
-Under **App Subpage**, use **Folder shortcuts open in** to set the default window behavior. A folder tile can use the subpage setting or override it under **Advanced → Open folder in**.
+Under **App Subpage**, use **Folder shortcuts open in** to set the default window behaviour. A folder tile can use that default or override it under **Advanced → Open folder in**.
 
-In stable v1.2.0, newly approved folders can be added as saved tiles when there is room. Existing tiles stay in the layout. In newer development builds, approved folders appear in free cells while connected. Use **Pin Finder folders** to keep selected tiles in the saved layout and customise their names or positions.
+While your Mac is connected, approved folders fill spare cells on the touchscreen and in the layout preview. Use **Pin Finder folders** in the Finder card’s settings to keep and reorder selected tiles. Live folders disappear when the Mac disconnects. Pinned tiles stay in place.
 
-A folder tile lights up when its folder is active in Finder. For highlighting, macOS may ask you to allow EspDesktop to control Finder.
+Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
 
-For app launch behavior and other generated app pages, see [Launch Mac apps and open websites](/mac-controls/apps).
+For app launch behavior and other generated app pages, see [Launch Mac apps](/mac-controls/apps).

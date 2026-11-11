@@ -19,17 +19,10 @@ int main() {
   assert(parse_theme_mode("Auto") == ThemeMode::AUTO);
   assert(parse_theme_auto_method("Time") == ThemeAutoMethod::TIME);
   assert(parse_theme_auto_method("Sunrise / Sunset") == ThemeAutoMethod::SUNRISE_SUNSET);
-  assert(parse_theme_mode("") == ThemeMode::DARK);  // Older saved configuration.
+  assert(parse_theme_mode("") == ThemeMode::DARK);
 
   ThemeResolver resolver;
   ThemeSettings settings;
-  assert(migrate_legacy_theme_index(3, settings));
-  assert(settings.mode == ThemeMode::AUTO && settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET);
-  for (size_t index : {0u, 1u, 2u, 4u, 99u}) {
-    assert(!migrate_legacy_theme_index(index, settings));
-    assert(settings.auto_method == ThemeAutoMethod::SUNRISE_SUNSET);
-  }
-  settings = {};
   int offset = 12;
   for (float value : {-180.0f, 0.0f, 180.0f})
     assert(parse_theme_sun_offset(value, offset) && offset == static_cast<int>(value));

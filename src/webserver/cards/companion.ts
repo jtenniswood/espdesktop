@@ -1,6 +1,6 @@
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -33,8 +33,9 @@ import type { ConfigModalTabOptionsFeature } from "../application/config_modal_t
 import { state } from "../state/app_instance";
 import {
     COMPANION_SHORTCUT_PREFIX,
+    COMPANION_SHORTCUT_PRESET_OPTION,
+    companionShortcutCatalogApps,
     companionShortcutPresetCards,
-    COMPANION_SHORTCUT_APPS,
     companionAppShortcutFolderEnabled,
     companionShortcutActionIdValid,
     isSafariUnmodifiedShortcut,
@@ -69,11 +70,11 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
+import { appShortcutPageOwner } from "../model/companion_shortcut_page";
 
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
-export const COMPANION_FOLDER_PREFIX = "folder.";
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
 export const COMPANION_STATS_OPTIONS = COMPANION_SYSTEM_METRICS
     .map((metric) => [metric.mode, metric.label] as const)
@@ -135,12 +136,15 @@ export function formatCompanionShortcutActionId(actionId: string): string {
 }
 
 export function companionShortcutCatalogSelection(card: any) {
-    for (const app of COMPANION_SHORTCUT_APPS.filter((app) => app.catalog)) {
-        const preset = companionShortcutPresetCards(app.appId).find((preset) =>
-            preset.entity === card?.entity && preset.options === withoutCardColorOptions(card?.options));
-        if (preset) return { ...preset, appId: app.appId };
-    }
-    return undefined;
+    const options = withoutCardColorOptions(card?.options);
+    const marker = configOptionValue(options, COMPANION_SHORTCUT_PRESET_OPTION);
+    const separator = marker.lastIndexOf(":");
+    if (separator < 0) return undefined;
+    const appId = marker.slice(0, separator);
+    if (!companionShortcutCatalogApps().some((app) => app.appId === appId)) return undefined;
+    const preset = companionShortcutPresetCards(appId).find((preset) =>
+        preset.entity === card?.entity && preset.options === options);
+    return preset ? { ...preset, appId } : undefined;
 }
 
 export function companionUrlConfig(rawValue: string): string {
@@ -434,6 +438,7 @@ export function registerCompanionCardTypes(
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
+    publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
 ): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
@@ -445,7 +450,9 @@ export function registerCompanionCardTypes(
     const companionCatalogueMonitor = createCompanionCatalogueMonitor(
         () => loadCompanionActions(true),
         function (actions) {
-            if (rememberCompanionApplications(actions)) cardUi.renderPreview();
+            const folders = actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX));
+            const foldersChanged = publishFinderFolders(folders);
+            if (rememberCompanionApplications(actions) || foldersChanged) cardUi.renderPreview();
         },
     );
 
@@ -480,7 +487,10 @@ export function registerCompanionCardTypes(
         }).catch(function () {});
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
-            else companionCatalogueMonitor.stop();
+            else {
+                companionCatalogueMonitor.stop();
+                if (publishFinderFolders([])) cardUi.renderPreview();
+            }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
                 name: "companion-connection", value: String(connected),
             } }));
@@ -706,32 +716,56 @@ export function registerCompanionCardTypes(
             });
 
             const shortcutField = document.createElement("div");
-            shortcutField.className = "sp-field";
+            shortcutField.className = "sp-field sp-shortcut-settings";
+            if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
             const shortcutType = card._shortcutType || (savedCatalogShortcut ? "catalog" : "custom");
-            const typeField = document.createElement("div");
-            typeField.className = "sp-field";
-            typeField.appendChild(fieldLabel("Type", helpers.idPrefix + "shortcut-type"));
-            const typeSelect = document.createElement("select");
-            typeSelect.className = "sp-select";
-            typeSelect.id = helpers.idPrefix + "shortcut-type";
-            for (const [value, label] of [["custom", "Custom Shortcut"], ["catalog", "Shortcut Catalog"]] as const) {
-                const option = document.createElement("option");
-                option.value = value;
-                option.textContent = label;
-                typeSelect.appendChild(option);
+            const typeId = helpers.idPrefix + "shortcut-type";
+            const typeTabs = helpers.segmentControl([
+                ["custom", "Custom"], ["catalog", "Application"],
+            ], shortcutType, function (type: string, tab: HTMLButtonElement) {
+                if (type === shortcutType) return;
+                card._shortcutType = type;
+                card._shortcutCatalogApp = "";
+                // Keep the selected combination when switching to Custom.
+                if (type === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
+                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
+                helpers.saveField("entity", card.entity);
+                helpers.saveField("options", card.options);
+                renderButtonSettings();
+                document.getElementById(tab.id)?.focus({ preventScroll: true });
+            }, "sp-card-type-tabs");
+            typeTabs.segment.id = typeId;
+            typeTabs.segment.setAttribute("role", "tablist");
+            typeTabs.segment.setAttribute("aria-label", "Shortcut type");
+            const customField = document.createElement("div");
+            const catalogField = document.createElement("div");
+            for (const [type, field] of [["custom", customField], ["catalog", catalogField]] as const) {
+                const tab: HTMLButtonElement = typeTabs.buttons[type];
+                const selected = type === shortcutType;
+                tab.id = typeId + "-" + type;
+                tab.className = "sp-card-type-tab";
+                tab.tabIndex = selected ? 0 : -1;
+                tab.setAttribute("role", "tab");
+                tab.setAttribute("aria-selected", String(selected));
+                field.id = tab.id + "-panel";
+                field.hidden = !selected;
+                field.setAttribute("role", "tabpanel");
+                field.setAttribute("aria-labelledby", tab.id);
+                tab.setAttribute("aria-controls", field.id);
             }
-            typeSelect.value = shortcutType;
-            typeField.appendChild(typeSelect);
-            shortcutField.appendChild(typeField);
+            typeTabs.segment.addEventListener("keydown", function (event: KeyboardEvent) {
+                if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+                event.preventDefault();
+                typeTabs.buttons[shortcutType === "custom" ? "catalog" : "custom"].click();
+            });
+            shortcutField.appendChild(typeTabs.segment);
             const shortcutPanel = helpers.disclosureSection(
                 "Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
             );
             shortcutPanel.button.addEventListener("click", function () {
                 card._shortcutPanelOpen = shortcutPanel.panel.classList.contains("sp-open");
             });
-            const customField = document.createElement("div");
-            customField.style.display = shortcutType === "custom" ? "" : "none";
             shortcutPanel.section.appendChild(customField);
             const modifierLabel = document.createElement("div");
             modifierLabel.className = "sp-field-label";
@@ -739,8 +773,6 @@ export function registerCompanionCardTypes(
             customField.appendChild(modifierLabel);
             const modifierButtons = document.createElement("fieldset");
             modifierButtons.className = "sp-segment";
-            modifierButtons.style.padding = "0";
-            modifierButtons.style.minWidth = "0";
             modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
@@ -820,15 +852,14 @@ export function registerCompanionCardTypes(
             }
             syncShortcutBuilder();
 
-            const catalogField = document.createElement("div");
-            catalogField.style.display = shortcutType === "catalog" ? "" : "none";
             const catalogAppField = document.createElement("div");
             catalogAppField.className = "sp-field";
             catalogAppField.appendChild(fieldLabel("App", helpers.idPrefix + "shortcut-catalog-app"));
             const catalogApp = document.createElement("select");
             catalogApp.className = "sp-select";
             catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
-            for (const [value, label] of [["", "Choose an app…"], ...COMPANION_SHORTCUT_APPS.filter((app) => app.catalog).map((app) => [app.appId, app.label] as const)] as const) {
+            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps());
+            for (const [value, label] of [["", "Choose an app…"], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
                 const option = document.createElement("option");
                 option.value = value;
                 option.textContent = label;
@@ -865,17 +896,8 @@ export function registerCompanionCardTypes(
             }, function () {
                 return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
             });
-            typeSelect.addEventListener("change", function () {
-                card._shortcutType = typeSelect.value;
-                card._shortcutCatalogApp = "";
-                // Keep the selected combination when switching to Custom Shortcut.
-                if (typeSelect.value === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
-                card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
-                helpers.saveField("entity", card.entity);
-                helpers.saveField("options", card.options);
-                renderButtonSettings();
-            });
             catalogApp.addEventListener("change", function () {
+                card._shortcutType = "catalog";
                 card._shortcutCatalogApp = catalogApp.value;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
                 card.options = normalizedCardColorOptions(card.options);
@@ -884,6 +906,8 @@ export function registerCompanionCardTypes(
                 renderButtonSettings();
             });
             catalogShortcut.addEventListener("change", function () {
+                card._shortcutType = "catalog";
+                card._shortcutCatalogApp = catalogApp.value;
                 const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
                 if (!preset) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
@@ -1318,14 +1342,10 @@ export function registerCompanionCardTypes(
                     helpers.saveField("label", nextLabel);
                 }
             });
-            if (initialMode === "app") {
-                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
-                    entity: false,
-                    icon: false,
-                });
-            } else {
-                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
-            }
+            helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
+                entity: false,
+                icon: initialMode !== "app",
+            });
             if (canAddSubpage && companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";
@@ -1379,7 +1399,7 @@ export function registerCompanionCardTypes(
             }
             const hideAppLaunchLabel = companionAppLaunchCard(card) &&
                 configOptionEnabled(card.options, "app_hide_label");
-            if (companionAppShortcutFolderEnabled(card)) {
+            if (appShortcutPageOwner(card)) {
                 if (hideAppLaunchLabel) {
                     preview.labelHtml =
                         '<span class="sp-btn-label-row"><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
@@ -1396,7 +1416,7 @@ export function registerCompanionCardTypes(
         },
         contextMenuItems: function (slot?: any, card?: any, helpers?: any) {
             const parent = helpers?.isSub ? state.editingSubpage : null;
-            if (!codec.canCreateSubpage(parent) || !companionAppShortcutFolderEnabled(card)) return;
+            if (!codec.canCreateSubpage(parent) || !appShortcutPageOwner(card)) return;
             helpers.addCtxItem("cog", "Edit Subpage", function () {
                 codec.enterChildSubpage(parent, Number(slot));
             });

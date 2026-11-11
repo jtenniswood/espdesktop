@@ -3,6 +3,24 @@ const { test } = require("node:test");
 const assert = require("node:assert/strict");
 const { loadTypeScriptModule } = require("../../../scripts/load_typescript_module");
 
+test("the shortcut catalogue combines bundled and live presets and preserves saved live presets", () => {
+  const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
+  const safari = require("../../../product/v2/app_shortcuts/safari.json");
+  const live = { ...safari, appId: "org.example.Editor", label: "Example Editor", catalog: false,
+    shortcuts: [{ id: "12", label: "New", shortcut: "command+n", icon: "Plus" }], safariShortcuts: undefined };
+  const card = { type: "companion", entity: "shortcut.command+n", options: "app_shortcut_preset=org.example.Editor%3A12" };
+  assert.equal(api.normalizeCompanionAppShortcutOptions(card), card.options, "keep the preset before its definition arrives");
+  const updatedSafari = { ...safari, label: "Updated Safari" };
+  assert(api.replaceCompanionDefinitions([updatedSafari, live]));
+  const apps = new Map(api.companionShortcutCatalogApps().map(app => [app.appId, app.label]));
+  assert.equal(apps.get(safari.appId), updatedSafari.label);
+  assert.equal(apps.get(live.appId), live.label);
+  assert.equal(apps.get("com.tinyspeck.slackmacgap"), "Slack");
+  assert(!apps.has("io.github.jtenniswood.athena"), "Athena uses an installed web app ID");
+  assert.equal(api.companionShortcutPresetCards(live.appId)[0].options, card.options);
+  assert.equal(api.replaceCompanionDefinitions([updatedSafari, live]), false, "reloading the same catalogue leaves it unchanged");
+});
+
 test("Claude Desktop keeps its existing presets and exposes numbered and scoped shortcuts", () => {
   const api = loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const claude = require("../../../product/v2/app_shortcuts/claude-desktop.json");

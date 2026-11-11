@@ -53,7 +53,10 @@ function casesFromManifest() {
     "esp32-p4-86",
     "guition-esp32-s3-4848s040",
   ]);
-  return Object.entries(manifest.devices || {}).map(([slug, device]) => {
+  const releaseDevices = new Set(require("../product/release_devices.json").devices);
+  const profiles = Object.entries(manifest.devices || {});
+  profiles.sort(([left], [right]) => Number(releaseDevices.has(right)) - Number(releaseDevices.has(left)));
+  return profiles.map(([slug, device]) => {
     const aspect = parseAspect(
       device.web && device.web.screen && device.web.screen.aspect,
     );
@@ -4295,7 +4298,7 @@ async function assertMacLockCard(browser) {
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await editCard(2);
-    await modal.getByLabel("Type", { exact: true }).waitFor();
+    await modal.getByRole("tablist", { name: "Shortcut type" }).waitFor();
     console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
   } finally {
     await context.close();
@@ -4310,6 +4313,10 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
   await installFakeEventSource(page);
+  const toggles = ["Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
+  const [shortcutToggle, settingsToggle, coloursToggle] = toggles;
+  const panels = toggles.map(toggle => page.locator(".sp-disclosure").filter({ has: toggle }));
+  const [shortcutPanel, settingsPanel, coloursPanel] = panels;
   async function openCard() {
     await page.locator('.sp-main [data-slot="1"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -4319,6 +4326,18 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const before = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => nativeState.puts.length > before, "shortcut card save");
+  }
+  async function assertPanelSpacing() {
+    const [shortcut, settings, colours] = await Promise.all(panels.map(panel => panel.boundingBox()));
+    const shortcutGap = settings.y - shortcut.y - shortcut.height;
+    const coloursGap = colours.y - settings.y - settings.height;
+    assert.ok(Math.abs(shortcutGap - 14) < 1 && Math.abs(coloursGap - 14) < 1,
+      `Expected 14px shortcut panel gaps, got ${shortcutGap}px and ${coloursGap}px`);
+  }
+  async function assertPanelBottomPadding(panel, control, label) {
+    const [box, field] = await Promise.all([panel.boundingBox(), control.boundingBox()]);
+    const gap = box.y + box.height - field.y - field.height;
+    assert.ok(Math.abs(gap - 25) < 1, `${label} should have 24px of bottom padding plus the border, got ${gap}px`);
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
@@ -4331,23 +4350,33 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       return icons.length === 1 && getComputedStyle(icons[0], "::before").content.includes(expectedGlyph);
     }, String.fromCodePoint(0xF0633));
     await openCard();
-    const type = page.locator('[id$="shortcut-type"]');
+    const type = page.getByRole("tablist", { name: "Shortcut type" });
+    const custom = type.getByRole("tab", { name: "Custom", exact: true });
+    const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
     const action = page.locator('[id$="shortcut-catalog-action"]');
-    assert.strictEqual(await type.inputValue(), "custom", "existing shortcuts use Custom Shortcut");
+    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
-    await type.selectOption("catalog");
-    const catalogPanel = page.locator(".sp-disclosure").filter({
-      has: page.getByRole("button", { name: "Shortcut", exact: true }),
-    });
-    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
-    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
-    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    await custom.press("ArrowRight");
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true");
+    assert(await application.evaluate(tab => tab === document.activeElement), "arrow keys focus the selected tab");
+    assert(await page.getByRole("tabpanel", { name: "Application" }).isVisible());
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
+    await shortcutToggle.click();
     assert.strictEqual(await app.isVisible(), false);
     assert.strictEqual(await action.isVisible(), false);
-    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    await assertPanelSpacing();
+    await shortcutToggle.click();
+    await assertPanelBottomPadding(shortcutPanel, action, "Application Shortcut field");
+    await assertPanelSpacing();
     assert.strictEqual(await action.isDisabled(), true, "choose an app first");
-    assert.deepStrictEqual(await app.locator("option").allTextContents(), ["Choose an app…", "Safari"]);
+    const appLabels = await app.locator("option").allTextContents();
+    assert.strictEqual(appLabels[0], "Choose an app…");
+    assert(appLabels.includes("Safari") && appLabels.includes("Slack") && appLabels.includes("Figma"),
+      "the Application tab includes bundled presets for Safari and other apps");
+    const names = appLabels.slice(1);
+    assert.deepStrictEqual(names, [...names].sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" })));
     await app.selectOption("com.apple.Safari");
     const safariTemplate = JSON.parse(fs.readFileSync(
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
@@ -4370,28 +4399,62 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
     await seedNativeDocument(page, nativeState);
     await openCard();
-    assert.strictEqual(await type.inputValue(), "catalog", "catalog type survives reload");
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "saved presets open the Application tab");
+    await application.click();
     assert.strictEqual(await app.inputValue(), "com.apple.Safari");
     assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
-    await type.selectOption("custom");
+    const slack = require("../product/v2/app_shortcuts/slack.json");
+    const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
+    await app.selectOption(slack.appId);
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true", "changing apps keeps the Application tab selected");
+    await action.selectOption(slackPreset);
+    await saveCard();
+    assert(String(nativeState.document.buttons[1]).includes(slackPreset));
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.waitForSelector("#sp-app");
+    await page.waitForFunction(() => window.__eventSources && window.__eventSources.length > 0);
+    await seedNativeDocument(page, nativeState);
+    await openCard();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true");
+    assert.strictEqual(await app.inputValue(), slack.appId);
+    assert.strictEqual(await action.inputValue(), slackPreset);
+    await custom.click();
+    assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
     await page.locator('[id$="shortcut-key"]').selectOption("a");
     await saveCard();
     await openCard();
-    assert.strictEqual(await type.inputValue(), "custom", "custom type survives save");
+    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "Custom tab selection survives save");
     assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
-    const shortcutPanel = page.locator(".sp-disclosure").filter({
-      has: page.getByRole("button", { name: "Shortcut", exact: true }),
-    });
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').count(), 1, "key is inside Shortcut panel");
     assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
-    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    await shortcutToggle.click();
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
-    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    await assertPanelSpacing();
+    await shortcutToggle.click();
     const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
     const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
     const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
     const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
     const key = page.locator('[id$="shortcut-key"]');
+    await settingsToggle.click();
+    const icon = settingsPanel.getByRole("textbox", { name: "Icon", exact: true });
+    await coloursToggle.click();
+    const activeColour = coloursPanel.getByRole("group", { name: "Active state colour", exact: true });
+    const swatches = coloursPanel.getByRole("group", { name: "Active state colour presets", exact: true });
+    await assertPanelBottomPadding(coloursPanel, activeColour, "Matching active colour");
+    await activeColour.getByRole("button", { name: "Custom", exact: true }).click();
+    for (const viewport of [testCase.viewport, { width: 360, height: 740 }]) {
+      await page.setViewportSize(viewport);
+      await assertPanelSpacing();
+      await assertPanelBottomPadding(shortcutPanel, key, "Key field");
+      await assertPanelBottomPadding(settingsPanel, icon, "Icon field");
+      await assertPanelBottomPadding(coloursPanel, swatches, "Custom active colour swatches");
+      const [modifierBounds, keyBounds] = await Promise.all([modifiers.boundingBox(), key.boundingBox()]);
+      assert.ok(Math.abs(modifierBounds.x - keyBounds.x) < 1, "Modifier buttons and the Key field align");
+    }
+    await page.setViewportSize(testCase.viewport);
+    await activeColour.getByRole("button", { name: "Matching", exact: true }).click();
+    await coloursToggle.click();
     assert.strictEqual(await command.getAttribute("aria-pressed"), "true", "saved shortcut restores modifier buttons");
     assert.strictEqual(await key.inputValue(), "a", "saved shortcut restores key selector");
     await key.selectOption("w");
@@ -6841,6 +6904,95 @@ async function assertReorderAfterDelete(browser) {
   } finally { await context.close(); }
 }
 
+async function assertLiveFinderPreview(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  const [example] = require("../compatibility/fixtures/finder_folder_preview.json");
+  fixture.document.buttons = { 1: "com.apple.finder;Finder;Auto;Auto;;;companion;;app_shortcuts" };
+  const tiles = example.buttons.map((id, index) => `companion,${id},Saved ${index + 1},Auto,Auto`);
+  fixture.document.subpages = { 1: `~${example.order}|${tiles.join("|")}` };
+  fixture.document.settings = { button_order: "1", web_onboarding_complete: "1" };
+  const connectorsStatus = { onboarding_complete: true, mac_companion: {
+    available: true, configured: true, paired: true, connected: true,
+  } };
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, connectorsStatus, nativeV2: true });
+  await context.route("**/companion/actions", route => route.fulfill({
+    status: 200, json: example.catalogue.map(([id, label]) => ({ id, label })),
+  }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    const live = page.locator(".sp-main .sp-live-folder-preview");
+    await live.first().waitFor();
+    async function assertProjectedTiles() {
+      const values = await live.evaluateAll(tiles => tiles.map(tile =>
+        [Number(tile.parentElement.dataset.pos), tile.textContent, tile.parentElement.hasAttribute("data-slot")]));
+      assert.deepEqual(values, example.expected.map(([position, , label]) => [position, label, false]));
+      assert.equal(await page.locator('.sp-main [data-slot="1"] .sp-btn-label').textContent(), "Saved 1");
+      assert.equal(await page.locator(".sp-main .sp-back-btn").count(), 1);
+    }
+    await assertProjectedTiles();
+    connectorsStatus.mac_companion.connected = false;
+    await live.first().waitFor({ state: "detached" });
+    connectorsStatus.mac_companion.connected = true;
+    await live.first().waitFor();
+    await assertProjectedTiles();
+    assert.equal(fixture.puts.length, 0, "live Finder activity never writes saved pages");
+    console.log("Live Finder placement, disconnect and reconnect browser checks passed.");
+  } finally { await context.close(); }
+}
+
+async function assertAppShortcutPreview(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const fixture = nativeConfigState(testCase.slug);
+  fixture.document = structuredClone(require("../compatibility/fixtures/companion_nested_pages.json").document);
+  const owner = "com.example.RemoteEditor";
+  fixture.document.subpages[1] = fixture.document.subpages[1].replace("com.apple.Safari,Safari", `${owner},Editor`);
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState: fixture, nativeV2: true });
+  let connected = true, ready = false;
+  await context.route("**/connectors/status**", route => {
+    const requested = new URL(route.request().url()).searchParams.get("shortcut_owner");
+    return route.fulfill({ status: 200, json: {
+      onboarding_complete: true,
+      mac_companion: { available: true, configured: true, paired: true, connected,
+        shortcut_page_ready: requested === owner ? connected && ready : undefined },
+    } });
+  });
+  await context.route("**/companion/actions", route => route.fulfill({ status: 200, json: [] }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
+    await page.locator('.sp-back-btn .sp-app-back-icon.mdi-monitor').waitFor();
+    const shortcut = page.locator('.sp-main [data-slot="1"][data-pos="1"]');
+    const unavailable = page.locator('.sp-main .sp-shortcut-unavailable');
+    await unavailable.waitFor();
+    assert.equal(await shortcut.locator(".sp-btn-label").textContent(), "Address");
+    const savedTile = await shortcut.elementHandle();
+    const unavailableColor = await shortcut.locator(".sp-btn-label").evaluate(node => getComputedStyle(node).color);
+    ready = true;
+    await unavailable.waitFor({ state: "detached" });
+    assert(await savedTile.evaluate(node => node.isConnected), "focus updates the tile without rebuilding the page");
+    assert.notEqual(await shortcut.locator(".sp-btn-label").evaluate(node => getComputedStyle(node).color), unavailableColor);
+    connected = false;
+    await unavailable.waitFor();
+    assert.equal(await shortcut.locator(".sp-btn-label").textContent(), "Address");
+    assert.equal(await shortcut.getAttribute("draggable"), "true");
+    assert.equal(fixture.puts.length, 0, "live app readiness never saves or moves cards");
+    console.log("App shortcut preview keeps saved labels, positions, and Back while focus changes.");
+  } finally { await context.close(); }
+}
+
 async function assertNestedCompanionPages(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040"), fixture = nativeConfigState(testCase.slug);
   fixture.document = JSON.parse(fs.readFileSync(path.join(ROOT, "compatibility/fixtures/companion_nested_pages.json"))).document;
@@ -7198,7 +7350,12 @@ async function assertFirstRunSetup(browser) {
       console.log("Companion shortcut, capacity, catalogue and storage browser checks passed.");
       return;
     }
-    if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") { await assertNestedCompanionPages(browser); return; }
+    if (process.env.ESPDESKTOP_NESTED_COMPANION_ONLY === "1") {
+      await assertNestedCompanionPages(browser);
+      await assertLiveFinderPreview(browser);
+      await assertAppShortcutPreview(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_SUBPAGE_TITLE_SETTING_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertSubpageTitleBarSetting(browser, testCase);
       return;
@@ -7348,6 +7505,8 @@ async function assertFirstRunSetup(browser) {
     }
     await assertReorderAfterDelete(browser);
     await assertNestedCompanionPages(browser);
+    await assertLiveFinderPreview(browser);
+    await assertAppShortcutPreview(browser);
     await assertFirstRunSetup(browser);
     await assertAppSubpageOpeningPreference(browser);
     await assertEditorRefresh(browser);

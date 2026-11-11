@@ -30,8 +30,12 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
         const extended = extendedShortcuts.filter((item) => isBooksExtendedShortcut(COMPANION_SHORTCUT_PREFIX + item?.shortcut));
         return { ...app, shortcuts: [...extended, ...app.shortcuts] };
     });
-    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(normalized);
-    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...normalized);
+    // Keep the bundled catalogue available when the Mac supplies fewer definitions.
+    const byAppId = new Map(BUNDLED_SHORTCUT_APPS.map((app) => [app.appId, app]));
+    for (const app of normalized) byAppId.set(app.appId, app);
+    const definitions = [...byAppId.values()];
+    const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(definitions);
+    if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...definitions);
     return shortcutChanged;
 }
 
@@ -58,6 +62,7 @@ export const SAFARI_BUNDLE_ID = "com.apple.Safari";
 const CLAUDE_DESKTOP_BUNDLE_ID = "com.anthropic.claudefordesktop";
 const SAFARI_WEB_APP_TEMPLATE = "com.apple.Safari.WebApp";
 const SAFARI_WEB_APP_BUNDLE_ID = /^com\.apple\.Safari\.WebApp\.[a-fA-F0-9]{8}(?:-[a-fA-F0-9]{4}){3}-[a-fA-F0-9]{12}$/;
+const ATHENA_TEMPLATE_APP_ID = "io.github.jtenniswood.athena";
 export const CODEX_BUNDLE_ID = "com.openai.codex";
 export const CHATGPT_CLEAR_UNREADS_ACTION = "shortcut.shift+escape";
 const LAST_LEGACY_CHATGPT_PRESET_ID = 18;
@@ -352,12 +357,14 @@ function markCompanionShortcutPresets(
     });
 }
 
-function companionShortcutPresetIdentity(card: any, preserveUnavailableSafariPreset = false): string {
+function companionShortcutPresetIdentity(card: any, preserveUnavailablePreset = false): string {
     const raw = configOptionValue(card?.options, COMPANION_SHORTCUT_PRESET_OPTION);
     const match = raw.match(/^(.*):(\d+)$/);
     if (!match) return "";
     const [, bundleIdentifier = "", id = ""] = match;
-    if (preserveUnavailableSafariPreset && SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier) &&
+    // A saved preset may come from definitions the Mac has yet to send.
+    if (preserveUnavailablePreset && bundleIdentifier.length <= 96 &&
+        /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(bundleIdentifier) &&
         /^(0|[1-9][0-9]{0,2})$/.test(id)) return raw;
     return companionShortcutTabDefinitions(bundleIdentifier).some((item) => item.value === id) ? raw : "";
 }
@@ -367,7 +374,7 @@ export function reconnectAthenaShortcutSubpage(
 ): SubpageConfig | null {
     if (!page || !previous || previous === replacement || !SAFARI_WEB_APP_BUNDLE_ID.test(previous) ||
         !SAFARI_WEB_APP_BUNDLE_ID.test(replacement)) return null;
-    const athena = BUNDLED_SHORTCUT_APPS.find(app => app.appId === "io.github.jtenniswood.athena");
+    const athena = BUNDLED_SHORTCUT_APPS.find(app => app.appId === ATHENA_TEMPLATE_APP_ID);
     const target = COMPANION_SHORTCUT_APPS.find(app => app.appId === replacement);
     if (!athena || !target) return null;
     const athenaTabs = new Set(athena.shortcuts.map(shortcut => shortcut.id));
@@ -401,6 +408,11 @@ export function codexShortcutPresetCards(): CompanionShortcutPresetCard[] {
 
 export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
     return companionShortcutPresetCards(SLACK_BUNDLE_ID);
+}
+
+export function companionShortcutCatalogApps(): AppShortcutApplication[] {
+    // The Mac sends Athena under the actual installed web app's bundle ID.
+    return COMPANION_SHORTCUT_APPS.filter((app) => app.appId !== ATHENA_TEMPLATE_APP_ID && app.shortcuts?.length > 0);
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {

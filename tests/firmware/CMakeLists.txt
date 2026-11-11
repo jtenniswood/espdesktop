@@ -82,16 +82,24 @@ target_compile_options(digest_auth_policy_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(digest_auth_policy_test PRIVATE ../../components/web_server_idf)
 add_test(NAME digest_auth_policy_test COMMAND digest_auth_policy_test)
 
-add_executable(companion_shortcut_test companion_shortcut_test.cpp)
+set(finder_preview_fixture "${CMAKE_CURRENT_SOURCE_DIR}/../../compatibility/fixtures/finder_folder_preview.json")
+set(finder_preview_cases "${CMAKE_CURRENT_BINARY_DIR}/finder_folder_preview_cases.inc")
+add_custom_command(OUTPUT "${finder_preview_cases}"
+  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/generate_finder_preview_cases.py"
+    "${finder_preview_fixture}" "${finder_preview_cases}"
+  DEPENDS "${finder_preview_fixture}" generate_finder_preview_cases.py
+  VERBATIM)
+add_executable(companion_shortcut_test companion_shortcut_test.cpp "${finder_preview_cases}")
 target_compile_features(companion_shortcut_test PRIVATE cxx_std_17)
 target_compile_options(companion_shortcut_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(companion_shortcut_test PRIVATE
+  "${CMAKE_CURRENT_BINARY_DIR}"
   stubs
   ../../components/espdesktop
 )
 add_test(NAME companion_shortcut_test COMMAND companion_shortcut_test)
 add_test(NAME companion_subpage_preference_boot_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py ${CMAKE_CXX_COMPILER})
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py)
 
 add_test(NAME companion_navigation_preference_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_navigation_preference_test.py)
@@ -602,8 +610,6 @@ add_test(NAME connector_state_test COMMAND connector_state_test)
 add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)
 
-add_test(NAME retired_camera_migration_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_camera_migration_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME card_retirement_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/card_retirement_test.py ${CMAKE_CXX_COMPILER})

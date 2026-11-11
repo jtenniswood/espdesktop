@@ -3,6 +3,8 @@ import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 import { retiredSavedCardType } from "./card";
 
+export const COMPANION_FOLDER_PREFIX = "folder.";
+
 export function companionMetricForEntity(entity: unknown) {
   const baseEntity = typeof entity === "string" ? entity.split(":", 1)[0] : entity;
   return COMPANION_SYSTEM_METRICS.find((metric) => metric.id === baseEntity || metric.freeId === baseEntity);
@@ -11,7 +13,7 @@ export function companionMetricForEntity(entity: unknown) {
 export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCardModeId {
   const entity = config.entity || "";
   if (entity.startsWith("shortcut.")) return "shortcut";
-  if (entity.startsWith("folder.")) return "folder";
+  if (entity.startsWith(COMPANION_FOLDER_PREFIX)) return "folder";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
   if (config.sensor?.startsWith("url.")) return "url";
   return "app";

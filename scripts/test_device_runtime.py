@@ -6,6 +6,7 @@ import argparse
 import asyncio
 from collections import Counter
 from dataclasses import dataclass, field
+import hashlib
 from datetime import datetime, timezone
 import json
 import math
@@ -16,7 +17,16 @@ import time
 import urllib.request
 
 MAX_BODY = 16384
+MAX_PANEL_CONFIG = 512 * 1024
 METRICS = ("heap_free_percent", "heap_largest_bytes", "psram_free_percent", "psram_largest_bytes")
+NAVIGATION_METRICS = ("pages_built", "pages_evicted", "page_build_ms", "page_open_frame_ms", "back_frame_ms")
+
+
+def navigation_values(value):
+    if (not isinstance(value, dict) or any(type(value.get(key)) is not int or not 0 <= value[key] <= 0xFFFFFFFF
+                                          for key in NAVIGATION_METRICS)):
+        raise ValueError("Missing or invalid navigation diagnostics.")
+    return {key: value[key] for key in NAVIGATION_METRICS}
 
 
 def positive(value):
@@ -73,6 +83,28 @@ class HttpProbe:
             raise ValueError("expected a JSON object")
         return result
 
+    def native_config_snapshot(self, *, require_durable_v2=True):
+        """Return the generation and an in-memory fingerprint of the v2 response."""
+        request = urllib.request.Request(self.base + "/api/v1/config", headers={
+            "User-Agent": "EspDesktop-device-test", "X-Panel-Config-Version": "2",
+        })
+        with self.opener.open(request, timeout=self.timeout) as response:
+            headers = response.headers
+            durable = headers.get("X-Panel-Config-Durable-Version")
+            if (headers.get_content_type() != "application/vnd.espdesktop.panel-config" or
+                    headers.get("X-Panel-Config-Version") != "2" or durable not in ("1", "2")):
+                raise ValueError("expected a native v2 panel configuration response")
+            if require_durable_v2 and durable != "2":
+                raise ValueError("expected a saved native v2 panel configuration")
+            generation = headers.get("X-Panel-Config-Generation", "")
+            if not re.fullmatch(r"[0-9]{1,10}", generation) or int(generation) > 0xFFFFFFFF:
+                raise ValueError("invalid native configuration generation")
+            data = response.read(MAX_PANEL_CONFIG + 1)
+        if (not 32 <= len(data) <= MAX_PANEL_CONFIG or data[:8] != b"EPCF\x02\x00\x10\x00" or
+                int.from_bytes(data[8:12], "little") != len(data) - 16):
+            raise ValueError("invalid native configuration response")
+        return int(generation), hashlib.sha256(data).digest()
+
     def sample(self):
         identity = self.json("/api/v1/identity")
         capabilities = self.json("/api/v1/capabilities")
@@ -109,10 +141,13 @@ class HttpProbe:
             if type(value) not in (int, float) or not math.isfinite(value) or value < 0 or (key.endswith("percent") and value > 100):
                 raise ValueError("invalid memory diagnostics")
         # Whitelist fields so unrelated JSON/config values never enter reports.
-        return {"hostname": hostname, "mac_suffix": suffix,
+        result = {"hostname": hostname, "mac_suffix": suffix,
                 **{key: health[key] for key in ("boot_id", "uptime_ms", "reset_reason")},
                 "firmware": {key: firmware[key] for key in ("esphome_version", "compilation_time", "project_version", "model", "app_elf_sha256") if key in firmware},
                 "memory": {key: memory[key] for key in METRICS if key in memory}}
+        if "navigation" in health:
+            result["navigation"] = navigation_values(health["navigation"])
+        return result
 
 
 @dataclass

@@ -233,14 +233,13 @@ struct CompanionSettings: View {
     @State private var pairingStep: CompanionPairingStep = .address
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
-    @AppStorage("companion.onboarding.completed") private var onboardingCompleted = false
     @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
         Group {
             switch CompanionSetupRoute.resolve(
-                completed: onboardingCompleted,
+                completed: store.onboardingCompleted,
                 showingHelp: store.requestedSettingsPage == "help",
                 hasSavedPairing: store.hasSavedPairing,
                 pairingInProgress: pairingFlowActive,
@@ -256,11 +255,11 @@ struct CompanionSettings: View {
                 CompanionOnboarding(store: store) {
                     pairingFlowActive = false
                     pairingStep = .address
-                    onboardingCompleted = true
+                    store.onboardingCompleted = true
                 }
             }
         }
-        .background(OnboardingWindowTitle(hidden: !onboardingCompleted && store.requestedSettingsPage != "help"))
+        .background(OnboardingWindowTitle(hidden: !store.onboardingCompleted && store.requestedSettingsPage != "help"))
         .onChange(of: store.isConnected) { connected in
             if connected {
                 pairingCode = ""
@@ -331,7 +330,7 @@ struct CompanionSettings: View {
                 startPairingFlow()
                 selectedPageID = CompanionSettingsPage.connection.rawValue
                 store.requestedSettingsPage = CompanionSettingsPage.connection.rawValue
-                onboardingCompleted = false
+                store.onboardingCompleted = false
             }
         } message: {
             Text("Your Mac will disconnect and remove its saved display pairing, then start onboarding again. You’ll need a new pairing code from your display. Your application and folder choices will be kept.")
@@ -904,15 +903,8 @@ struct CompanionSettings: View {
         .formStyle(.grouped)
     }
 
-    private var companionResourceBundle: Bundle {
-        // Installed apps keep resources inside Contents/Resources; SwiftPM runs
-        // use the generated module bundle beside the build output.
-        Bundle.main.url(forResource: "EspDesktop_Companion", withExtension: "bundle")
-            .flatMap { Bundle(url: $0) } ?? .module
-    }
-
     private var supportButtonImage: NSImage? {
-        guard let imageURL = companionResourceBundle.url(
+        guard let imageURL = Bundle.companionResources?.url(
             forResource: "buy-me-a-coffee-button",
             withExtension: "png"
         ) else { return nil }

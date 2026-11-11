@@ -9,6 +9,7 @@ Usage:
     python scripts/build.py devices       # sync public device capabilities only
     python scripts/build.py icons         # sync icons only
     python scripts/build.py i18n          # sync firmware translations only
+    python scripts/build.py settings      # sync portable panel setting readers
     python scripts/build.py companion     # sync shared Companion capabilities
     python scripts/build.py www           # build www.js only
     python scripts/build.py portal        # build offline WiFi setup pages only
@@ -36,6 +37,7 @@ from product_schema import (
     assert_card_contract_valid,
     assert_entity_names_valid as assert_product_entity_names_valid,
 )
+from panel_settings_codegen import generate_panel_settings
 from product_model_v2 import load_product_model_v2, render_catalogue, source_directory, source_path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -4018,6 +4020,23 @@ def sync_captive_portal(check_only=False):
     return dirty
 
 
+def sync_panel_settings(check_only=False):
+    try:
+        outputs = generate_panel_settings(ROOT)
+    except ValueError as exc:
+        raise BuildError(f"Invalid panel settings contract: {exc}") from exc
+    dirty = []
+    for path, content in outputs.items():
+        if path.is_file() and path.read_text(encoding="utf-8") == content:
+            continue
+        dirty.append(path.relative_to(ROOT))
+        if not check_only:
+            write_generated_text(path, content)
+    if check_only and dirty:
+        print("Run 'python scripts/build.py settings' to refresh: " + ", ".join(map(str, dirty)))
+    return dirty
+
+
 def main():
     global GENERATED_TRANSACTION
     args = sys.argv[1:]
@@ -4061,6 +4080,7 @@ def main():
     try:
         for cmd in commands:
             if cmd == "all":
+                settings_dirty = sync_panel_settings(check_only=check_only)
                 portal_dirty = sync_captive_portal(check_only=check_only)
                 entity_dirty = sync_entity_names(check_only=check_only)
                 i18n_dirty = sync_i18n(check_only=check_only)
@@ -4074,16 +4094,19 @@ def main():
                     retain_current_bundle=retain_current_bundle,
                     legacy_web_manifest=legacy_web_manifest,
                 )
-                if check_only and (portal_dirty or entity_dirty or i18n_dirty or contract_dirty or companion_dirty or device_dirty or icon_dirty or www_dirty):
+                if check_only and (settings_dirty or portal_dirty or entity_dirty or i18n_dirty or contract_dirty or companion_dirty or device_dirty or icon_dirty or www_dirty):
                     exit_code = 1
-                elif not portal_dirty and not entity_dirty and not i18n_dirty and not contract_dirty and not companion_dirty and not device_dirty and not icon_dirty and not www_dirty:
+                elif not settings_dirty and not portal_dirty and not entity_dirty and not i18n_dirty and not contract_dirty and not companion_dirty and not device_dirty and not icon_dirty and not www_dirty:
                     print("All outputs are up to date.")
                 else:
                     total = (
                         len(entity_dirty) + len(i18n_dirty) + len(contract_dirty) + len(companion_dirty) + len(device_dirty) +
-                        len(icon_dirty) + len(www_dirty) + len(portal_dirty)
+                        len(icon_dirty) + len(www_dirty) + len(portal_dirty) + len(settings_dirty)
                     )
                     print(f"Updated {total} target(s).")
+            elif cmd == "settings":
+                if sync_panel_settings(check_only=check_only) and check_only:
+                    exit_code = 1
             elif cmd == "portal":
                 dirty = sync_captive_portal(check_only=check_only)
                 if check_only and dirty:
@@ -4158,7 +4181,7 @@ def main():
                 print(f"Unknown command: {cmd}")
                 print(
                     "Usage: python scripts/build.py "
-                    "[all|entities|contract|devices|icons|i18n|portal|www] [--check] "
+                    "[all|entities|contract|devices|icons|i18n|settings|portal|www] [--check] "
                     "[--retain-current-bundle] [--legacy-web-manifest PATH]"
                 )
                 exit_code = 1

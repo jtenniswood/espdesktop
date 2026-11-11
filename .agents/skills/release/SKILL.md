@@ -164,8 +164,9 @@ explicitly requested.
 Use the candidate firmware and notarized Mac app together on the 4848S040.
 Follow the physical check in [Checks and Releases](../../../dev-docs/checks-and-releases.md#release-boundary).
 If hardware testing requires the maintainer, report the candidate artifacts
-and wait for the passing hardware report. Run the scenario from the tagged
-checkout with the downloaded `release-candidate-compatibility` manifest.
+and wait for the passing hardware report. Run the two-step scenario from the
+tagged checkout with the downloaded `release-candidate-compatibility` manifest.
+Run one Mac shortcut, then restart the display and check that it reconnects.
 
 ```bash
 python3 scripts/test_release_hardware.py record --host "$PANEL_IP" \
@@ -214,9 +215,37 @@ check the `Deploy Docs` run triggered by the successful release and its publishe
 links; distinguish publishing from Pages propagation. Do not claim physical
 screen testing or Accessibility permission persistence from CI results.
 
+### Verify Homebrew after publication
+
+For a stable release with a Mac ZIP, verify the Homebrew tap after **Publish
+Release** succeeds and the release is public. Find the automatic run created
+after the publication run and watch it with `gh run watch <run-id> --exit-status`.
+
+```bash
+gh run list --repo jtenniswood/espdesktop --workflow homebrew.yml \
+  --event workflow_run --limit 10 --json databaseId,createdAt,status,conclusion,url
+```
+
+Compare the [public cask](https://github.com/jtenniswood/homebrew-tap/blob/main/Casks/espdesktop.rb)
+with GitHub's published Mac ZIP metadata. Confirm the version, download URL and
+SHA-256 match. If a higher stable Mac version is already public, confirm the tap
+still tracks it. Skip the Homebrew check for prereleases and firmware-only releases.
+
+If the automatic run is missing after a brief wait or fails, inspect the run
+status or logs. After confirming successful publication, dispatch one recovery
+run if the automatic run is missing or a transient failure has cleared.
+
+```bash
+gh workflow run homebrew.yml --repo jtenniswood/espdesktop --ref main
+```
+
+Watch the recovery run and verify the cask again.
+
 ## Report back
 
 Give the tag, release URL and run result; confirm firmware for all declared
 screens, signed/notarized Mac ZIP and DMG, and signed update feed are attached.
 State whether publication and any checked Pages deployment succeeded, along with
-remaining user testing or failures. No local install or screen flash is implied.
+remaining user testing or failures. For stable Mac releases, include the Homebrew
+run URL, verified cask version and any unresolved tap issue. No local install or
+screen flash is implied.

@@ -8,6 +8,8 @@ import * as Model from "./model";
 import { APP_SUBPAGE_PREFERENCE } from "./model/settings";
 import { createDeviceApi } from "./api/device_api";
 import { companionFocusRegistrationValues, createCompanionCatalogue } from "./api/companion_catalogue";
+import type { CompanionAction } from "./api/companion_catalogue";
+import { appShortcutPageOwner, previewSubpageOwner } from "./model/companion_shortcut_page";
 import { NTP_SERVER_DEFAULTS, defaultTimezoneOptionsForDevice } from "./state/app_state";
 import * as AppInstance from "./state/app_instance";
 import { state } from "./state/app_instance";
@@ -139,7 +141,10 @@ const startupState = globalThis as typeof globalThis & {
   __ESPDESKTOP_UI_STARTING__?: boolean;
 };
 
-function registerCards(context: ApplicationContext) {
+function registerCards(
+  context: ApplicationContext,
+  publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
+) {
   const registry = context.cards;
   const fields = context.controllers.fields;
   const cardUi = {
@@ -161,6 +166,7 @@ function registerCards(context: ApplicationContext) {
     context.controllers.selection,
     context.layout.numSlots,
     context.controllers.connectorsPage,
+    publishFinderFolders,
   );
   registerClimateCardTypes(
     registry,
@@ -246,7 +252,7 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
   );
 }
 
-function composeApplicationContext(): ApplicationContext {
+function composeApplicationContext(liveFinderFolders: () => readonly CompanionAction[]): ApplicationContext {
   const fetchService: typeof fetch = typeof fetch === "function"
     ? resetAwareFetch
     : (() => Promise.reject(new Error("Fetch is not available"))) as typeof fetch;
@@ -257,6 +263,7 @@ function composeApplicationContext(): ApplicationContext {
     createEventSource: () => new EventSource("/events", { withCredentials: true }),
     schedule: ((callback: TimerHandler, delay?: number) => window.setTimeout(callback, delay)) as typeof setTimeout,
   };
+  const displayDemo = dom.document.documentElement?.hasAttribute("data-espdesktop-display-demo") === true;
   const deviceApi = createDeviceApi((url, init) =>
     dom.fetch(url, init as RequestInit));
   const identity = createPanelIdentityFeature({
@@ -601,6 +608,7 @@ function composeApplicationContext(): ApplicationContext {
     },
   );
   preview = createPreviewRenderFeature({
+    displayDemo,
     updateClockBarItemUi: statusPreview.updateClockBarItemUi,
     document: dom.document,
     layout,
@@ -613,6 +621,8 @@ function composeApplicationContext(): ApplicationContext {
     grid,
     selection,
     homeAssistantSupported: () => nativePanelConfig.homeAssistantSupportEnabled(),
+    liveFinderFolders,
+    shortcutPageReady: owner => connectorsPage.shortcutPageReady(owner),
   });
   const nativeTransfers = createNativePageTransfersFeature({
     native: nativePanelConfig, editor: () => nativePages, layout, api: requestApi, grid, shell,
@@ -710,7 +720,7 @@ function composeApplicationContext(): ApplicationContext {
   );
   const configEvents = createAppConfigEventsFeature(configurationPersistence, configurationCodec, layout, renderQueue);
   const nativePages = createNativePageEditorFeature({ native: nativePanelConfig, codec: configurationCodec, layout, runtime,
-    document: dom.document, shell, closeSettings: selection.closeSettings,
+    document: dom.document, shell, closeSettings: selection.closeSettings, displayDemo,
     render: () => { preview.render(); buttonSettings.render(); appearance.syncColorUi(); },
     canApply: () => !grid.hasPendingMainGridSave(),
   });
@@ -908,9 +918,12 @@ function composeApplicationContext(): ApplicationContext {
   stateLoader, firmwarePostApi, publicFirmwareInstall, fields,
   settingsHelpers);
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
+  const activeShortcutOwner = () => appShortcutPageOwner(
+    previewSubpageOwner(state.editingSubpage, state.buttons, configurationCodec.getSubpage));
   connectorsPage = createConnectorsPageFeature(
-    dom, shell, companionSection, !!layout.config.features?.companion,
+    dom, shell, companionSection, !!layout.config.features?.companion, activeShortcutOwner,
   );
+  connectorsPage.onStatusChange(preview.updateShortcutAvailability);
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();
   connectorsPage.onStatusChange(() => {
@@ -1055,9 +1068,16 @@ function startEspDesktop(): void {
   if (startupState.__ESPDESKTOP_UI_STARTED__ || startupState.__ESPDESKTOP_UI_STARTING__) return;
   AppInstance.initializeAppState();
 
-  const context = composeApplicationContext();
+  let liveFinderFolders: readonly CompanionAction[] = [];
+  const context = composeApplicationContext(() => liveFinderFolders);
 
-  const lightCards = registerCards(context);
+  const lightCards = registerCards(context, folders => {
+    const changed = folders.length !== liveFinderFolders.length ||
+      folders.some((folder, index) => folder.id !== liveFinderFolders[index]?.id ||
+        folder.label !== liveFinderFolders[index]?.label);
+    if (changed) liveFinderFolders = folders;
+    return changed;
+  });
   if (__ESPDESKTOP_TEST_HOOKS_ENABLED__) {
     installTestHooks(context, lightCards);
   }

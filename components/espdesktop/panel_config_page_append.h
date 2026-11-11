@@ -9,7 +9,7 @@
 
 namespace espdesktop::configuration {
 
-inline bool panel_config_replace_existing_setting_v1(
+inline bool panel_config_set_setting_v1(
     const uint8_t *input, size_t input_size, std::string_view key, std::string_view value,
     uint8_t *output, size_t capacity, size_t *size) {
   PanelConfigReader reader(input, input_size);
@@ -41,11 +41,13 @@ inline bool panel_config_replace_existing_setting_v1(
     }
     if (written != PanelConfigStatus::OK) return false;
   }
-  return next == PanelConfigStatus::END && replaced && writer.finish(size) == PanelConfigStatus::OK;
+  if (next != PanelConfigStatus::END) return false;
+  if (!replaced && writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+      reinterpret_cast<const uint8_t *>(value.data()), value.size()) != PanelConfigStatus::OK) return false;
+  return writer.finish(size) == PanelConfigStatus::OK;
 }
 
-// A narrow, generation-checked producer edit: append newly available Finder
-// folder actions without replacing any other page, card identity or setting.
+// Edit one part of a v2 document while preserving unrelated records.
 class PanelConfigPageAppend {
   using Kind = PanelConfigV2Kind;
   using Row = PanelConfigV2Record;
@@ -89,7 +91,7 @@ public:
     }
     return true;
   }
-  bool set_existing_setting(std::string_view key, std::string_view value) {
+  bool set_setting(std::string_view key, std::string_view value) {
     for (size_t index = 0; index < rows_.size(); ++index) {
       const auto row = rows_[index];
       if (row.kind != Kind::SETTING) continue;
@@ -97,6 +99,10 @@ public:
         return entry.kind == Kind::STRING && entry.id == row.id;
       });
       if (name == rows_.end() || name->text != key) continue;
+      if (value.empty()) {
+        rows_[index].first = 0;
+        return true;
+      }
       const auto previous = row.first;
       // Repeated automation edits should not grow the dictionary when the
       // value was owned by this setting alone.
@@ -128,7 +134,13 @@ public:
       rows_[index].first = text;
       return true;
     }
-    return false;
+    Row setting;
+    setting.kind = Kind::SETTING;
+    setting.id = intern(key);
+    setting.first = intern(value);
+    if (!setting.id || failed_) return false;
+    rows_.push_back(setting);
+    return true;
   }
   bool finish(uint8_t *output, size_t capacity, size_t *size,
       ConfigurationBuffer::Allocate allocate, ConfigurationBuffer::Release release) const {

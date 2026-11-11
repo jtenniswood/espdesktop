@@ -123,8 +123,24 @@ candidate fingerprint and verifies the tested artifacts before publishing.
 Pages deploys the editor from that successful publish run. Failures leave
 the release as a draft.
 
+If a firmware release was published directly on GitHub, **Deploy Docs** can
+pick up the new version before its editor is hosted. It downloads the editor
+from the successful **Build Release** run for the tag and checks it against
+the published release manifest before deploying.
+
 Current generated-output ownership is listed in
 [Source of Truth Contract](source-of-truth.md); upgrade-sensitive public names
 and formats are listed in [Compatibility Contract](compatibility-contract.md).
 Use [Change the Release Workflow](playbooks/change-release-workflow.md) for the
 exact edit and verification procedure.
+
+## Homebrew
+
+The [EspDesktop tap](https://github.com/jtenniswood/homebrew-tap) tracks the
+highest stable version with a published Mac ZIP. **Update Homebrew Tap** runs
+after a successful **Publish Release** workflow or a stable GitHub release
+publication. It uses GitHub's asset checksum and skips firmware-only releases.
+
+If an update fails, rerun **Update Homebrew Tap** from the default branch. It
+only commits when the cask changes. The `HOMEBREW_TAP_DEPLOY_KEY` Actions secret
+holds the SSH deploy key with write access to the tap repository.
