@@ -11,17 +11,13 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps and websites or run keyboard shortcuts from a 4‑inch touchscreen beside your keyboard.
-
-The [Guition 4848S040](/screens/4848s040) touchscreen is available for **under £20 (about US$27)**. It pairs with the [EspDesktop menu-bar app](/getting-started/mac-app) on your local network.
+Open apps, visit websites and run shortcuts from a [4-inch Guition 4848S040 touchscreen](/screens/4848s040) for **under £20 (about US$27)**. Pair it over your local network with the [EspDesktop Mac app](/getting-started/mac-app), **free for non-commercial use**. [Source code](https://github.com/jtenniswood/espdesktop/tree/main/macos/EspDesktop) · [License](https://github.com/jtenniswood/espdesktop/blob/main/LICENSE)
 
 <div class="homepage-action">
 
 [Get started](/getting-started/install)
 
 </div>
-
-The Mac app is **free for non-commercial use**. [Source code](https://github.com/jtenniswood/espdesktop/tree/main/macos/EspDesktop) · [License](https://github.com/jtenniswood/espdesktop/blob/main/LICENSE)
 
 </div>
 
@@ -175,13 +171,8 @@ The preview shows how your layout will look on the display. In this example, bro
   color: var(--vp-c-brand-1);
 }
 
-.homepage-hero p {
-  max-width: 52ch;
-  color: var(--vp-c-text-2);
-}
-
 .homepage-hero h1 + p {
-  max-width: 37ch;
+  max-width: 48ch;
   margin-top: 24px;
   color: var(--vp-c-text-1);
   font-size: clamp(17px, 1.7vw, 20px);
