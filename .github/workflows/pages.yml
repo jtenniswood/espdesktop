@@ -105,14 +105,21 @@ jobs:
           LEGACY_STABLE_TAG=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 \
             --json tagName --jq '.[0].tagName // ""')
           mkdir -p "${LEGACY_WEB_DIR}"
+          RELEASE_MANIFEST="${RUNNER_TEMP}/espdesktop-release-manifest.json"
           BUNDLE_PATH=""
-          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://espdesktop.com/webserver/web-assets.json" \
-            -o "${LEGACY_WEB_MANIFEST}"; then
-            BUNDLE_PATH=$(jq -r --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path // empty' \
-              "${LEGACY_WEB_MANIFEST}")
+          if [ -n "${LEGACY_STABLE_TAG}" ]; then
+            gh release download "${LEGACY_STABLE_TAG}" --pattern release-manifest.json --output "${RELEASE_MANIFEST}"
+            VERIFIED_BUNDLE_PATH=$(jq -er '.webBundle.path' "${RELEASE_MANIFEST}")
+            if curl -fsSL "https://espdesktop.com/webserver/web-assets.json" -o "${LEGACY_WEB_MANIFEST}"; then
+              BUNDLE_PATH=$(jq -r --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path // empty' \
+                "${LEGACY_WEB_MANIFEST}")
+              if [ "${BUNDLE_PATH}" != "${VERIFIED_BUNDLE_PATH}" ]; then
+                BUNDLE_PATH=""
+              fi
+            fi
           fi
           if [ -n "${LEGACY_STABLE_TAG}" ] && [ -z "${BUNDLE_PATH}" ]; then
-            # Recover the verified editor if Pages is unavailable or predates the release.
+            # Recover the verified editor if Pages is unavailable or serves a different bundle.
             RELEASE_SOURCE=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${LEGACY_STABLE_TAG}" --jq .sha)
             RELEASE_RUN=$(gh run list --workflow release.yml --branch "${LEGACY_STABLE_TAG}" \
               --event workflow_dispatch --status success --json databaseId,headSha | \
@@ -122,9 +129,7 @@ jobs:
               exit 1
             fi
             RELEASE_WEB_DIR="${RUNNER_TEMP}/espdesktop-release-web"
-            RELEASE_MANIFEST="${RUNNER_TEMP}/espdesktop-release-manifest.json"
             gh run download "${RELEASE_RUN}" --name release-web-assets --dir "${RELEASE_WEB_DIR}"
-            gh release download "${LEGACY_STABLE_TAG}" --pattern release-manifest.json --output "${RELEASE_MANIFEST}"
             PYTHONPATH=scripts python3 - "${RELEASE_MANIFEST}" "${RELEASE_WEB_DIR}" "${LEGACY_STABLE_TAG}" "${RELEASE_SOURCE}" <<'PY'
           import json
           import sys
