@@ -1,6 +1,6 @@
 # EspDesktop
 
-> EspDesktop pairs a 4-inch Guition 4848S040 ESP32-S3 touchscreen with a macOS menu-bar app. The display can launch apps, open Finder folders and websites, run shortcuts, lock the Mac and show Mac statistics.
+> EspDesktop pairs a 4-inch Guition 4848S040 ESP32-S3 touchscreen with a macOS menu-bar app. The display can launch apps, open Finder folders and websites, run shortcuts and lock the Mac.
 
 The Mac app requires macOS 13 or newer. Connect the display to 2.4 GHz WiFi on the same local network as the Mac. Use firmware and the Mac app from the same EspDesktop release. The Mac Companion app and display pair directly.
 
@@ -17,7 +17,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 ## Configure the touchscreen
 
 - [Web editor and display settings](https://jtenniswood.github.io/espdesktop/features/setup.md)
-- [Subpages and Mac statistics](https://jtenniswood.github.io/espdesktop/features/subpages.md)
+- [Create subpages](https://jtenniswood.github.io/espdesktop/features/subpages.md)
 - [Launch Mac apps](https://jtenniswood.github.io/espdesktop/mac-controls/apps.md)
 - [Open websites on the Mac](https://jtenniswood.github.io/espdesktop/mac-controls/websites.md)
 - [Open approved Finder folders](https://jtenniswood.github.io/espdesktop/mac-controls/folders.md)
@@ -32,6 +32,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 ## Optional
 
 - [Privacy policy](https://jtenniswood.github.io/espdesktop/reference/privacy.md)
+- [Support the project](https://jtenniswood.github.io/espdesktop/reference/support.md)
 - [Contribute app shortcut presets](https://jtenniswood.github.io/espdesktop/mac-controls/improve-shortcuts.md)
 - [Request an icon](https://jtenniswood.github.io/espdesktop/reference/request-icons.md)
 - [EspDesktop releases](https://github.com/jtenniswood/espdesktop/releases)

@@ -16,7 +16,7 @@ export default {
     const { page } = useData()
     return h(DefaultTheme.Layout, null, {
       'nav-bar-content-after': () => h(GitHubStars),
-      'layout-bottom': () => page.value.relativePath !== 'index.md' && h('a', {
+      'layout-bottom': () => !['index.md', 'reference/support.md'].includes(page.value.relativePath) && h('a', {
         class: 'sp-support-btn',
         href: 'https://www.buymeacoffee.com/jtenniswood',
         target: '_blank',

@@ -13,6 +13,24 @@ It verifies images, breadcrumbs, internal links and anchors, retired-page
 redirects, and FAQ data matching the visible answers. The Pages deployment
 uses Git history to date each sitemap entry.
 
+## Review the Homepage
+
+- Show the first screen briefly to someone unfamiliar with EspDesktop. Ask what
+  it does, what hardware it uses, and where they would go to start setup.
+- Read the feature list aloud. Each item should name a real control and explain
+  when someone would use it. Check that illustrations and screenshots are
+  labelled and show the stated feature.
+- Compare the light and dark layouts on a phone and a desktop. Check the order
+  of the headline, setup link, and product examples. Use the keyboard to follow
+  **Get started**.
+
+Run `npm run docs:check-installer` against the built site to check the homepage
+at 320, 390, 768 and 1440 pixels. The browser checks cover horizontal overflow,
+whether the setup link fits on the first screen, image loading, and keyboard
+navigation into the installer.
+
+## Page Publishing
+
 Generated fragments under `docs/generated/` are include-only. Publish useful
 reference material through a described, linked guide. Runtime coverage belongs in
 `dev-docs/generated/card-runtime-coverage.md`. Do not hand-edit generated tables.

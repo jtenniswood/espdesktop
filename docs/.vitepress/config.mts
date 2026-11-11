@@ -15,7 +15,7 @@ function shareImage(file: string, width: number, height: number, alt: string) {
 }
 
 const defaultImage = shareImage('espdesktop-share.png', 1200, 630,
-  'EspDesktop touchscreen controller for Mac with example app, shortcut and status tiles')
+  'EspDesktop touchscreen controller for Mac with example app, website, folder and shortcut tiles')
 const displayImage = shareImage('4848s040-hero.jpg', 1024, 999,
   'The 4-inch Guition 4848S040 touchscreen next to a keyboard')
 const pageImages: Record<string, typeof defaultImage> = {
@@ -107,7 +107,7 @@ export default defineConfig({
     const description = String(frontmatter.description ?? '')
     const image = pageImages[relativePath] ?? defaultImage
     const isHome = relativePath === 'index.md'
-    const isArticle = !isHome && relativePath !== 'reference/privacy.md' && relativePath !== 'reference/faq.md'
+    const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
 
     frontmatter.head.push(
       ['link', { rel: 'canonical', href: canonicalUrl }],
@@ -210,8 +210,8 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/' },
           { text: 'Supported Display', link: '/screens/4848s040' },
-          { text: 'Where to Buy', link: '/#where-to-buy' },
-          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Getting Setup', link: '/getting-started/install' },
         ],
       },
       {
@@ -222,7 +222,7 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Device Features',
+        text: 'Features',
         items: [
           { text: 'Configure the Display', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
@@ -237,6 +237,7 @@ export default defineConfig({
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
+          { text: 'Support the Project', link: '/reference/support' },
           { text: 'Privacy Policy', link: '/reference/privacy' },
         ],
       },
