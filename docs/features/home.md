@@ -14,7 +14,7 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 
 Moves and resizes save when you drop the card or release the handle. Right-click a card to cut it for pasting into another tile or copy its code for another display.
 
-<a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot marked with a plus" width="440" height="588"></a>
+<a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot marked with a plus" width="1000" height="1337"></a>
 
 ## Change how a card looks
 
@@ -24,7 +24,7 @@ Right-click a card to open its menu.
 - **App icon size.** Choose **App Icon Size** and select **Small**, **Medium** or **Large**. Large fills the card with the app icon and hides the label.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
 
-<a href="/images/web-editor-card-menu.webp"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="440" height="608" loading="lazy"></a>
+<a href="/images/web-editor-card-menu.webp"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="1000" height="1382" loading="lazy"></a>
 
 ## Add a card
 
@@ -32,7 +32,7 @@ Right-click a card to open its menu.
 2. In **Choose Card**, pick what the card should do. For example, choose **Applications** to launch a Mac app, **Folder** to open an approved folder, or **Key Shortcut** to run a keyboard shortcut.
 3. Fill in the settings for that card and select **Save**. The card appears on your touchscreen.
 
-<a href="/images/web-editor-choose-card.webp"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="440" height="588" loading="lazy"></a>
+<a href="/images/web-editor-choose-card.webp"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1000" height="1337" loading="lazy"></a>
 
 ## Create a custom subpage
 
