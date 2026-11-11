@@ -46,12 +46,19 @@ async function checkBrowser() {
   const dist = path.join(root, 'docs/.vitepress/dist');
   const server = createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-    const relative = pathname.replace(/^\/espdesktop\//, '');
+    const relative = pathname.replace(/^\/espdesktop\//, '') || 'index.html';
     let file = path.resolve(dist, relative);
     if (!file.startsWith(dist + path.sep)) { response.writeHead(404).end(); return; }
     if (!path.extname(file)) file += '.html';
     if (!fs.existsSync(file)) { response.writeHead(404).end(); return; }
-    response.setHeader('Content-Type', ({ '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json' })[path.extname(file)] || 'application/octet-stream');
+    response.setHeader('Content-Type', ({
+      '.html': 'text/html',
+      '.js': 'text/javascript',
+      '.css': 'text/css',
+      '.json': 'application/json',
+      '.svg': 'image/svg+xml',
+      '.jpg': 'image/jpeg',
+    })[path.extname(file)] || 'application/octet-stream');
     fs.createReadStream(file).pipe(response);
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
@@ -97,7 +104,32 @@ async function checkBrowser() {
       await canceled.getByText('Cancel', { exact: true }).click();
       await canceled.waitFor({ state: 'detached' });
     }
-    await page.goto(`${base}/espdesktop/getting-started/install`);
+    const home = `${base}/espdesktop/`;
+    const setup = page.getByRole('link', { name: 'Get started', exact: true });
+    for (const [width, height, colorScheme] of [
+      [320, 640, 'light'],
+      [390, 844, 'dark'],
+      [768, 900, 'light'],
+      [1440, 900, 'dark'],
+    ]) {
+      await page.setViewportSize({ width, height });
+      await page.emulateMedia({ colorScheme });
+      await page.goto(home);
+      assert.equal(await page.getByRole('heading', { level: 1 }).count(), 1);
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        `Homepage must fit a ${width}px viewport`);
+      const action = await setup.boundingBox();
+      assert(action && action.y >= 0 && action.y + action.height <= height,
+        `Get started must be visible on the first screen at ${width}px`);
+      for (const selector of ['.homepage-hero img', '.homepage-editor img']) {
+        const illustration = page.locator(selector);
+        await illustration.scrollIntoViewIfNeeded();
+        await illustration.evaluate(img => img.decode());
+      }
+    }
+    await setup.press('Enter');
+    await page.waitForURL(`${home}getting-started/install`);
+    console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
     await page.goto(`${base}/espdesktop/screens/4848s040`);
     assert.equal(await page.locator('esp-web-install-button').count(), 0);

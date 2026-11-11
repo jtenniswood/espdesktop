@@ -3,162 +3,195 @@ title: EspDesktop — ESP32 Touchscreen Controller for Mac
 titleTemplate: :title
 description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening Finder folders and running keyboard shortcuts.
 layout: home
-hero:
-  name: EspDesktop
-  text: A touchscreen controller for your Mac
-  tagline: Put the apps, folders and shortcuts you use every day on a dedicated 4-inch display beside your keyboard.
-  image:
-    src: /images/espdesktop-mac-controls.svg
-    alt: Illustration of an EspDesktop panel with app, folder, shortcut and Mac status tiles
-  actions:
-    - theme: brand
-      text: Get started
-      link: /getting-started/install
-    - theme: alt
-      text: See what it can do
-      link: /#what-you-can-control
 ---
 
-## What You Can Control
-
-EspDesktop pairs the [4-inch Guition 4848S040](/screens/4848s040) with a [macOS menu-bar app](/getting-started/mac-app) on your local network. Set up the touchscreen in your browser and place it beside your keyboard.
-
-<div class="homepage-features">
-
-<article>
-
-### Open apps and websites
-
-Bring an app to the front or open a site in your default browser. Give your calendar, team chat or project dashboard a tile of its own.
-
-[Apps](/mac-controls/apps) · [Websites](/mac-controls/websites)
-
-</article>
-
-<article>
-
-### Jump straight to a Finder folder
-
-Open an approved folder with a tap. Keep Downloads, client files or your current project within reach.
-
-[Finder folders](/mac-controls/folders)
-
-</article>
-
-<article>
-
-### Keep shortcuts in view
-
-Turn keyboard combinations into labelled buttons, or start with presets for apps like Safari, Slack and Figma. Shortcut pages can follow the app you’re using.
-
-[Keyboard shortcuts](/mac-controls/shortcuts)
-
-</article>
-
-<article>
-
-### Lock your Mac
-
-Add a Lock Machine tile to lock your Mac with a tap when you step away.
-
-[Mac Lock permissions](/mac-controls/security)
-
-</article>
-
-<article>
-
-### See how your Mac is doing
-
-Check processor load, memory, storage, network activity or battery at a glance while you work.
-
-[Mac statistics](/features/subpages#mac-statistics)
-
-</article>
-
-<article>
-
-### Make the layout your own
-
-Drag and resize tiles in the browser, choose their labels, icons and colours, and group related controls into pages for work, browsing or creative projects.
-
-[Customise the display](/features/setup)
-
-</article>
-
-</div>
-
-<div class="homepage-editor">
+<section class="homepage-hero">
 
 <div>
 
-## A Look at the Web Editor
+# A touchscreen controller for your Mac
 
-The browser preview shows how your cards will look on the touchscreen. This example groups browser shortcuts on a subpage, with a Back tile to return to the previous page.
+Open apps, run keyboard shortcuts and check Mac stats from a 4‑inch touchscreen beside your keyboard.
 
-[See the editor and settings](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage) · [See the Mac app](/getting-started/mac-app#check-the-display-tab)
+EspDesktop pairs the [Guition 4848S040](/screens/4848s040) with a [macOS menu-bar app](/getting-started/mac-app) on your local network.
+
+<div class="homepage-action">
+
+[Get started](/getting-started/install)
 
 </div>
 
-![Web editor preview of a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
+</div>
+
+<figure class="homepage-panel">
+
+![Illustrated 4-inch touchscreen with Safari, Projects, Slack, shortcut and Mac status tiles](/images/espdesktop-mac-controls.svg)
+
+<figcaption>Example touchscreen layout</figcaption>
+
+</figure>
+
+</section>
+
+## What You Can Control
+
+<div class="homepage-controls">
+
+<article>
+
+### Apps and websites
+
+[Launch a Mac app](/mac-controls/apps) or [open a website](/mac-controls/websites) in your default browser.
+
+</article>
+
+<article>
+
+### Finder folders
+
+[Open a folder you’ve approved](/mac-controls/folders), such as Downloads or the project you’re working on.
+
+</article>
+
+<article>
+
+### Keyboard shortcuts
+
+[Add a keyboard shortcut](/mac-controls/shortcuts) or start with a preset. Shortcut pages can follow the app you’re using, such as Safari or Figma.
+
+</article>
+
+<article>
+
+### Mac Lock
+
+Lock your Mac with a tap when you step away. [Set up Mac Lock](/mac-controls/security).
+
+</article>
+
+<article>
+
+### Mac statistics
+
+See processor load, memory, storage, network activity or battery on a [subpage tile](/features/subpages#mac-statistics).
+
+</article>
 
 </div>
+
+<section class="homepage-editor">
+
+<div>
+
+## Arrange tiles in your browser {#a-look-at-the-web-editor}
+
+Drag and resize tiles, change their labels and colours, and group related controls into subpages. The preview shows how they’ll look on your display.
+
+[Explore the web editor](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage)
+
+</div>
+
+<figure>
+
+![EspDesktop web editor showing a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
+
+<figcaption>A browser shortcuts subpage in the editor</figcaption>
+
+</figure>
+
+</section>
 
 <style scoped>
-.homepage-features {
-  display: grid;
-  gap: 16px;
-  margin-top: 24px;
-}
-
-@media (min-width: 640px) {
-  .homepage-features {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 960px) {
-  .homepage-features {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-.homepage-features article {
-  display: flex;
-  flex-direction: column;
-  padding: 24px;
-  border-radius: 12px;
-  background: var(--vp-c-bg-soft);
-}
-
-.homepage-features h3 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.homepage-features p {
-  margin: 8px 0 0;
-  color: var(--vp-c-text-2);
-}
-
-.homepage-features article > p + p {
-  margin-top: auto;
-  padding-top: 12px;
-}
-
+.homepage-hero,
 .homepage-editor {
   display: grid;
   align-items: center;
-  gap: 24px;
-  margin-top: 32px;
-  padding: 24px;
-  border: 1px solid var(--vp-c-divider);
-  border-radius: 12px;
+  gap: 32px;
 }
 
-@media (min-width: 768px) {
-  .homepage-editor {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 300px);
-  }
+.homepage-hero {
+  padding-top: clamp(40px, 7vw, 88px);
+}
+
+.homepage-hero h1 {
+  max-width: 18ch;
+  font-size: clamp(32px, 4vw, 56px);
+  line-height: 1.08;
+  text-wrap: balance;
+}
+
+.homepage-hero p {
+  max-width: 52ch;
+}
+
+.homepage-action a {
+  display: inline-block;
+  padding: 8px 16px;
+  border-radius: 6px;
+  background: var(--vp-button-brand-bg);
+  color: var(--vp-button-brand-text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.homepage-action a:hover {
+  background: var(--vp-button-brand-hover-bg);
+  color: var(--vp-button-brand-hover-text);
+}
+
+.homepage-action a:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
+}
+
+.homepage-panel {
+  width: min(100%, 360px);
+  justify-self: center;
+}
+
+.homepage-panel img {
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.homepage-panel p,
+.homepage-editor figure p {
+  margin: 0;
+}
+
+figcaption {
+  margin-top: 8px;
+  color: var(--vp-c-text-2);
+  font-size: 14px;
+}
+
+.homepage-panel figcaption {
+  text-align: center;
+}
+
+.homepage-controls article {
+  display: grid;
+  gap: 6px;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.homepage-controls h3,
+.homepage-controls p {
+  margin: 0;
+}
+
+.homepage-controls h3 {
+  font-size: 17px;
+}
+
+.homepage-controls p {
+  max-width: 68ch;
+  color: var(--vp-c-text-2);
+}
+
+.homepage-editor {
+  margin-top: 48px;
 }
 
 .homepage-editor h2 {
@@ -167,17 +200,27 @@ The browser preview shows how your cards will look on the touchscreen. This exam
   border: 0;
 }
 
-.homepage-editor p:last-child {
-  margin-bottom: 0;
-}
-
-.homepage-editor > p {
-  margin: 0;
+.homepage-editor figure {
+  width: min(100%, 340px);
+  justify-self: center;
 }
 
 .homepage-editor img {
   width: 100%;
-  max-width: 300px;
-  border-radius: 8px;
+  aspect-ratio: 620 / 612;
+  border-radius: 6px;
+}
+
+@media (min-width: 768px) {
+  .homepage-hero,
+  .homepage-editor {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: clamp(32px, 6vw, 80px);
+  }
+
+  .homepage-controls article {
+    grid-template-columns: minmax(0, 190px) minmax(0, 1fr);
+    gap: 32px;
+  }
 }
 </style>
