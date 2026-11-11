@@ -734,7 +734,7 @@ export function registerCompanionCardTypes(
             typeTabs.segment.setAttribute("role", "tablist");
             typeTabs.segment.setAttribute("aria-label", "Shortcut type");
             const customField = document.createElement("div");
-            customField.className = "sp-shortcut-custom-fields";
+            customField.className = "sp-shortcut-bottom-padding";
             const catalogField = document.createElement("div");
             for (const [type, field] of [["custom", customField], ["catalog", catalogField]] as const) {
                 const tab: HTMLButtonElement = typeTabs.buttons[type];
@@ -1336,13 +1336,14 @@ export function registerCompanionCardTypes(
                     helpers.saveField("label", nextLabel);
                 }
             });
-            if (initialMode === "app") {
+            if (initialMode === "shortcut") {
+                const iconField = helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
+                iconField.classList.add("sp-shortcut-bottom-padding");
+            } else {
                 helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
                     entity: false,
-                    icon: false,
+                    icon: initialMode !== "app",
                 });
-            } else {
-                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
             }
             if (canAddSubpage && companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");

@@ -4420,6 +4420,13 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const bottomGap = panelBounds.y + panelBounds.height - keyBounds.y - keyBounds.height;
     const sideGap = keyBounds.x - panelBounds.x;
     assert.ok(bottomGap >= sideGap + 9, `Expected extra room below the Key field, got ${bottomGap}px`);
+    const settingsToggle = page.getByRole("button", { name: "Card Settings", exact: true });
+    await settingsToggle.click();
+    const settingsPanel = page.locator(".sp-disclosure").filter({ has: settingsToggle });
+    const icon = settingsPanel.getByRole("textbox", { name: "Icon", exact: true });
+    const [iconBounds, settingsBounds] = await Promise.all([icon.boundingBox(), settingsPanel.boundingBox()]);
+    const iconGap = settingsBounds.y + settingsBounds.height - iconBounds.y - iconBounds.height;
+    assert.ok(Math.abs(iconGap - bottomGap) < 1, `Expected matching Key and Icon padding, got ${bottomGap}px and ${iconGap}px`);
     assert.strictEqual(await command.getAttribute("aria-pressed"), "true", "saved shortcut restores modifier buttons");
     assert.strictEqual(await key.inputValue(), "a", "saved shortcut restores key selector");
     await key.selectOption("w");
