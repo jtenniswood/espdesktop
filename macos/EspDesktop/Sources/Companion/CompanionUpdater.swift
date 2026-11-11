@@ -229,7 +229,8 @@ struct CompanionUpdateSettings: View {
                     .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                     .disabled(!updater.automaticallyChecks)
                 Toggle("Notify Me About Updates", isOn: Binding(
-                    get: { updater.sendsUpdateNotifications }, set: updater.setUpdateNotifications
+                    get: { updater.sendsUpdateNotifications },
+                    set: { updater.setUpdateNotifications($0) }
                 ))
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .disabled(updater.requestingNotificationPermission || !updater.message.isEmpty)
