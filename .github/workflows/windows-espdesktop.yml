@@ -37,7 +37,7 @@ jobs:
       - name: Build the per-user installer
         run: ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture ${{ matrix.arch }}
 
-      - name: Install, open, and uninstall the app
+      - name: Install, open, upgrade, and uninstall the app
         shell: pwsh
         run: |
           $ErrorActionPreference = 'Stop'
@@ -58,6 +58,23 @@ jobs:
             if (!$dark.WaitForExit(60000)) { $dark.Kill(); throw 'Dark mode preview timed out.' }
             if ($dark.ExitCode -ne 0) { throw "Dark mode app exit code: $($dark.ExitCode)" }
           }
+          # Model an update started while the existing instance is still quitting.
+          $updateLog = Join-Path $env:RUNNER_TEMP 'EspDesktopUpdate.log'
+          $logArgument = '/LOG="' + $updateLog + '"'
+          $appMutex = [System.Threading.Mutex]::new($false, 'Local\EspDesktop.Windows')
+          try {
+            $update = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART','/EspDesktopUpdate',$directoryArgument,$logArgument -PassThru
+            $deadline = [DateTime]::UtcNow.AddSeconds(15)
+            do {
+              $waiting = Select-String -LiteralPath $updateLog -SimpleMatch 'Waiting for EspDesktop to finish closing.' -Quiet -ErrorAction SilentlyContinue
+              if (!$waiting) { Start-Sleep -Milliseconds 200 }
+            } until ($waiting -or $update.HasExited -or [DateTime]::UtcNow -ge $deadline)
+          }
+          finally {
+            $appMutex.Dispose()
+          }
+          if (!$update.WaitForExit(60000)) { $update.Kill(); throw 'Installer update timed out.' }
+          if (!$waiting -or $update.ExitCode -ne 0) { Get-Content $updateLog; throw 'Installer did not wait for the existing app and upgrade successfully.' }
           $uninstall = Start-Process (Join-Path $installDir 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
           if ($uninstall.ExitCode -ne 0 -or (Test-Path (Join-Path $installDir 'EspDesktop.exe'))) {
             throw 'EspDesktop was not uninstalled.'

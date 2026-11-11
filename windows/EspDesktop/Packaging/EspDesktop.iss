@@ -1,3 +1,5 @@
+#define AppMutexName "Local\EspDesktop.Windows"
+
 [Setup]
 AppId={{1D724D45-B90B-46A2-92AD-4ED719D766A1}
 AppName=EspDesktop
@@ -16,7 +18,7 @@ SetupIconFile=EspDesktop.ico
 WizardStyle=modern
 MinVersion=10.0.22000
 PrivilegesRequired=lowest
-AppMutex=Local\EspDesktop.Windows
+AppMutex={#AppMutexName}
 CloseApplications=yes
 RestartApplications=no
 #if ProductArch == "arm64"
@@ -42,3 +44,27 @@ Filename: "{app}\EspDesktop.exe"; Description: "Open EspDesktop"; Flags: nowait 
 
 [Registry]
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "EspDesktop"; Flags: dontcreatekey uninsdeletevalue
+
+[Code]
+function InitializeSetup(): Boolean;
+var
+  Index, Attempt: Integer;
+begin
+  Result := True;
+  for Index := 1 to ParamCount do
+    if CompareText(ParamStr(Index), '/EspDesktopUpdate') = 0 then
+    begin
+      if CheckForMutexes('{#AppMutexName}') then
+      begin
+        Log('Waiting for EspDesktop to finish closing.');
+        for Attempt := 1 to 100 do
+        begin
+          Sleep(200);
+          if not CheckForMutexes('{#AppMutexName}') then
+            Break;
+        end;
+      end;
+      { Setup checks AppMutex again before it can replace any files. }
+      Exit;
+    end;
+end;

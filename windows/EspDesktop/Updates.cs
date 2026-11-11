@@ -97,7 +97,12 @@ internal static class Updates
     {
         if (!SamePublisher(path)) throw new CryptographicException("Windows could not verify the update publisher.");
         var start = new ProcessStartInfo(path) { UseShellExecute = false };
-        if (quiet) start.ArgumentList.Add("/VERYSILENT");
+        if (quiet)
+        {
+            start.ArgumentList.Add("/VERYSILENT");
+            start.ArgumentList.Add("/SUPPRESSMSGBOXES");
+        }
+        start.ArgumentList.Add("/EspDesktopUpdate");
         start.ArgumentList.Add("/NORESTART");
         start.ArgumentList.Add("/CLOSEAPPLICATIONS");
         using var process = Process.Start(start);
