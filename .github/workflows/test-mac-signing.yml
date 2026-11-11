@@ -29,6 +29,12 @@ jobs:
           python3 scripts/build.py companion --check
           swift test --package-path macos/EspDesktop -Xswiftc -warnings-as-errors
 
+      - name: Install disk image packaging tools
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/dmg-tools"
+          "${RUNNER_TEMP}/dmg-tools/bin/python" -m pip install --require-hashes -r macos/EspDesktop/Packaging/dmg-requirements.txt
+          echo "${RUNNER_TEMP}/dmg-tools/bin" >> "${GITHUB_PATH}"
+
       - name: Sign, notarize, staple, and verify EspDesktop
         env:
           RELEASE_TAG: v0.0.0-signing-test
