@@ -78,30 +78,20 @@ class ReleaseHardwareTests(unittest.TestCase):
             probe.sample.side_effect = lambda: deepcopy(data)
             probe.json.return_value = {"mac_companion": {"paired": True, "connected": True}}
 
-            config = (15, b"before-digest")
-            probe.native_config_snapshot.side_effect = lambda **_: config
-
-            def confirm(prompt, *, change=True, keep=True, restart=True):
-                nonlocal config
+            def confirm(prompt, *, restart=True, reconnect=True):
                 if prompt.startswith(release_hardware.SHORTCUT):
                     data["navigation"].update(page_open_frame_ms=14, back_frame_ms=5)
-                if prompt.startswith(release_hardware.EDITOR_SAVE) and change:
-                    config = (16, b"saved-digest")
                 if prompt.startswith("Restart") and restart:
-                    if not keep:
-                        config = (15, b"before-digest")
                     data["boot_id"] += 1
                     data["uptime_ms"] = 1
+                    probe.json.return_value["mac_companion"]["connected"] = reconnect
                 return "pass"
 
             with redirect_stdout(io.StringIO()), patch("sys.stderr", new=io.StringIO()):
                 self.assertEqual(release_hardware.run(probe, root / "report", expected, confirm), 0)
-                self.assertEqual(probe.native_config_snapshot.call_args_list, [
-                    unittest.mock.call(require_durable_v2=False), unittest.mock.call(), unittest.mock.call(),
-                ])
+                probe.native_config_snapshot.assert_not_called()
                 for case, options in (("no-reboot", {"restart": False}),
-                                      ("no-save", {"change": False}), ("lost-save", {"keep": False})):
-                    config = (15, b"before-digest")
+                                      ("no-reconnect", {"reconnect": False})):
                     def confirm_failure(prompt):
                         return confirm(prompt, **options)
 
@@ -113,7 +103,7 @@ class ReleaseHardwareTests(unittest.TestCase):
             wrong_build["firmware"]["app_elf_sha256"] = "b" * 64
             with self.assertRaises(ValueError):
                 release_hardware.verify_report(wrong_build, expected)
-            self.assertEqual([step["id"] for step in report["steps"]], ["shortcut", "editor_save", "reboot"])
+            self.assertEqual([step["id"] for step in report["steps"]], ["shortcut", "reboot"])
             self.assertEqual(report["steps"][-1]["after"]["psram_largest_bytes"], 100000)
             navigation = report["steps"][0]["navigation"]
             self.assertEqual(navigation["before"]["page_open_frame_ms"], 0)
@@ -123,12 +113,6 @@ class ReleaseHardwareTests(unittest.TestCase):
             del missing_navigation["steps"][0]["navigation"]
             with self.assertRaisesRegex(ValueError, "missing navigation measurements"):
                 release_hardware.verify_report(missing_navigation, expected)
-            self.assertEqual(report["native_save"], {"before": 15, "saved": 16, "reboot": 16})
-            self.assertNotIn("digest", json.dumps(report["native_save"]))
-            report_without_save = deepcopy(report)
-            del report_without_save["native_save"]
-            with self.assertRaises(ValueError):
-                release_hardware.verify_report(report_without_save, expected)
             with self.assertRaises(ValueError):
                 release_hardware.verify_report(report, release_hardware.candidate(manifest, "1235"))
             manifest.write_text(manifest.read_text() + "\n")

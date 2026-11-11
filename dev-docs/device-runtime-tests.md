@@ -75,16 +75,13 @@ python3 scripts/test_release_hardware.py record --host PANEL_IP \
   --candidate-run RUN_ID --manifest companion-compatibility.json
 ```
 
-The release check has three steps.
+The release check has two steps.
 
 1. With the candidate Mac app connected, run one nested Mac shortcut and tap Back.
-2. In the display's embedded editor, select a tile and open **Edit → Card Settings**.
-   Change its **Label**, click **Save**, and wait for the card editor to close.
-3. Restart the display. Confirm the saved label in the editor and check that the Mac reconnects.
+2. Restart the display and wait for the Mac app to reconnect.
 
-The runner checks the saved native configuration before and after reboot and
-reports generation numbers. Layout content stays on the local network. It also
-measures memory and records page-open and Back first-frame timings.
+The runner checks the reboot and Mac connection, measures memory, and records
+page-open and Back first-frame timings.
 The session verifies the running firmware’s embedded ELF digest against the
 candidate OTA image, including rebuilds with the same version tag.
 The operator performs and confirms the steps. The runner makes read-only

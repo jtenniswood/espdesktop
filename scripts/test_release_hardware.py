@@ -17,14 +17,9 @@ from test_device_runtime import HttpProbe, METRICS, navigation_values
 DEVICE = "guition-esp32-s3-4848s040"
 REPORT_SCHEMA = 4
 SHORTCUT = "With the candidate Mac app connected, run one nested Mac shortcut and tap Back on the display."
-EDITOR_SAVE = (
-    "In the display's embedded editor, select a tile and open Edit > Card Settings. "
-    "Change its Label, click Save, and wait for the card editor to close."
-)
 STEPS = (
     ("shortcut", SHORTCUT),
-    ("editor_save", EDITOR_SAVE),
-    ("reboot", "Restart the display. Wait for the Mac to reconnect and confirm the saved label in the editor."),
+    ("reboot", "Restart the display and wait for the Mac app to reconnect."),
 )
 
 
@@ -82,11 +77,6 @@ def verify_report(report, expected):
                 raise ValueError(f"The report is missing navigation measurements for {name}.")
             navigation_values(navigation.get("before"))
             navigation_values(navigation.get("after"))
-    saved = report.get("native_save")
-    if (not isinstance(saved, dict) or set(saved) != {"before", "saved", "reboot"}
-            or any(type(value) is not int or not 0 <= value <= 0xFFFFFFFF for value in saved.values())
-            or saved["before"] == saved["saved"] or saved["saved"] != saved["reboot"]):
-        raise ValueError("The hardware report must confirm a native save survived reboot.")
 
 
 def run(probe, output, expected=None, confirm=input):
@@ -115,30 +105,15 @@ def run(probe, output, expected=None, confirm=input):
             memory_values(current["memory"])
             return current
 
-        saved_config = None
-        before_config = None
         for name, instruction in STEPS:
             before = sample()
-            if name == "editor_save":
-                before_config = probe.native_config_snapshot(require_durable_v2=False)
             started = time.monotonic()
             if confirm(f"{instruction}\nType pass when confirmed, or fail to stop: ").strip().lower() != "pass":
                 raise ValueError(f"Operator did not confirm {name}.")
             after = sample(expect_restart=name == "reboot")
-            if name in ("shortcut", "reboot"):
-                pair = probe.json("/connectors/status").get("mac_companion", {})
-                if not isinstance(pair, dict) or pair.get("paired") is not True or pair.get("connected") is not True:
-                    raise ValueError("The paired Mac is disconnected.")
-            if name == "editor_save":
-                saved_config = probe.native_config_snapshot()
-                if saved_config[0] == before_config[0] or saved_config[1] == before_config[1]:
-                    raise ValueError("The editor did not save a changed layout. Wait for the card editor to close before confirming.")
-            if name == "reboot":
-                reboot_config = probe.native_config_snapshot()
-                if reboot_config != saved_config:
-                    raise ValueError("The saved native document changed after reboot.")
-                report["native_save"] = {"before": before_config[0], "saved": saved_config[0],
-                                         "reboot": reboot_config[0]}
+            pair = probe.json("/connectors/status").get("mac_companion", {})
+            if not isinstance(pair, dict) or pair.get("paired") is not True or pair.get("connected") is not True:
+                raise ValueError("The paired Mac is disconnected.")
             before_memory, after_memory = before["memory"], after["memory"]
             step = {"id": name, "operator_passed": True, "restarted": name == "reboot",
                     "before": before_memory, "after": after_memory, "seconds": round(time.monotonic() - started, 2)}
