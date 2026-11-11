@@ -1,0 +1,61 @@
+name: Windows EspDesktop
+
+on:
+  pull_request:
+    paths:
+      - 'windows/**'
+      - 'product/v2/companion_capabilities.json'
+      - 'compatibility/fixtures/companion_protocol_v4.json'
+      - '.github/workflows/windows-espdesktop.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Windows installer and smoke test (${{ matrix.arch }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            runner: windows-2025
+          - arch: arm64
+            runner: windows-11-arm
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Run shared protocol and connection tests
+        run: dotnet run -c Release --project windows/EspDesktop.Tests
+
+      - name: Build the per-user installer
+        run: ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture ${{ matrix.arch }}
+
+      - name: Install, open, and uninstall the app
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $installer = (Get-ChildItem ./dist/windows/*-Setup.exe).FullName
+          $installDir = Join-Path $env:RUNNER_TEMP 'EspDesktopSmoke'
+          $directoryArgument = '/DIR="' + $installDir + '"'
+          $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',$directoryArgument -Wait -PassThru
+          if ($install.ExitCode -ne 0) { throw "Install exit code: $($install.ExitCode)" }
+          $app = Start-Process (Join-Path $installDir 'EspDesktop.exe') -ArgumentList '--smoke-test' -PassThru
+          if (!$app.WaitForExit(60000)) { $app.Kill(); throw 'Native app smoke test timed out.' }
+          if ($app.ExitCode -ne 0) { throw "App exit code: $($app.ExitCode)" }
+          $uninstall = Start-Process (Join-Path $installDir 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
+          if ($uninstall.ExitCode -ne 0 -or (Test-Path (Join-Path $installDir 'EspDesktop.exe'))) {
+            throw 'EspDesktop was not uninstalled.'
+          }
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: espdesktop-windows-${{ matrix.arch }}-installer
+          path: dist/windows/*-Setup.exe
+          if-no-files-found: error
