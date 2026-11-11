@@ -26,6 +26,8 @@ Before starting the wizard, [install EspDesktop on your display](/getting-starte
 
 <ScreenshotGallery label="Setup wizard preview" :slides="wizardSlides" />
 
+Once your Mac is connected, the web editor for an empty display helps you pick your first apps and set up shortcut pages. [Follow the First Run walkthrough](/features/first-run).
+
 ## Preview the Mac app settings {#check-the-connection}
 
 Once your display is paired, choose **Mac Settings** from the EspDesktop menu bar icon.

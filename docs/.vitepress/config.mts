@@ -245,6 +245,7 @@ export default defineConfig({
       {
         text: 'Features',
         items: [
+          { text: 'First Run', link: '/features/first-run' },
           { text: 'Device and System Settings', link: '/features/setup' },
           { text: 'Home', link: '/features/home' },
           { text: 'Subpages', link: '/features/subpages' },
