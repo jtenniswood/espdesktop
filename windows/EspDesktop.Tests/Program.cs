@@ -53,10 +53,21 @@ Console.WriteLine("Passed local address, action policy and discovery tests.");
 
 using var key = RSA.Create(2048);
 var request = new CertificateRequest("CN=EspDesktop Test", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-using var certificate = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
+var san = new SubjectAlternativeNameBuilder();
+san.AddIpAddress(IPAddress.Loopback);
+request.CertificateExtensions.Add(san.Build());
+request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
+using var ephemeral = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
+// Windows Schannel requires a private key backed by the Windows key store.
+using var certificate = OperatingSystem.IsWindows()
+    ? X509CertificateLoader.LoadPkcs12(ephemeral.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.UserKeySet)
+    : new X509Certificate2(ephemeral);
 using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(25));
 var builder = WebApplication.CreateSlimBuilder();
 builder.Logging.ClearProviders();
+builder.Logging.AddSimpleConsole();
+builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.WebHost.ConfigureKestrel(k => k.Listen(IPAddress.Loopback, 0, o => o.UseHttps(certificate)));
 await using var server = builder.Build();
 server.UseWebSockets();
