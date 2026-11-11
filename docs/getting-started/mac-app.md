@@ -48,4 +48,12 @@ On an empty display, the web page guides you through app setup.
 
 Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → Appearance → App Subpages → Setup Again**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
 
+## Check for Mac app updates
+
+The Mac app keeps your display pairing when it updates and reconnects to the saved display when it reopens.
+
+With automatic checks enabled, EspDesktop checks when you launch the app and daily while it’s running. When a compatible update is available, the update window lets you install it or decide later. To check manually, choose **EspDesktop → Check for Updates…** or use the same command from the EspDesktop icon in the menu bar.
+
+Open EspDesktop from **Applications**, then turn on **Notify Me About Updates** in **Mac Settings → Updates** and allow macOS notifications. Click an update notification to open the updater. If you prefer eligible updates to install on quit, turn on **Automatically Install Updates**.
+
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)

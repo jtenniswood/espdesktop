@@ -56,7 +56,7 @@ SPARKLE_FRAMEWORK="${SPARKLE_ROOT}/Sparkle.xcframework/macos-arm64_x86_64/Sparkl
 mkdir -p "${APP_DIR}/Contents/Frameworks"
 ditto "${SPARKLE_FRAMEWORK}" "${APP_DIR}/Contents/Frameworks/Sparkle.framework"
 PROTOCOL_VERSION="$(python3 -c 'import json,sys; print(json.load(open(sys.argv[1]))["protocol"]["version"])' "${REPOSITORY_DIR}/product/v2/companion_capabilities.json")"
-plutil -replace SUFeedURL -string "https://github.com/jtenniswood/espdesktop/releases/latest/download/companion-appcast-v${PROTOCOL_VERSION}.xml" "${APP_DIR}/Contents/Info.plist"
+plutil -replace SUFeedURL -string "https://jtenniswood.github.io/espdesktop/updates/companion-appcast-v${PROTOCOL_VERSION}.xml" "${APP_DIR}/Contents/Info.plist"
 plutil -replace SUPublicEDKey -string "$(cat "${SCRIPT_DIR}/sparkle-public-key.txt")" "${APP_DIR}/Contents/Info.plist"
 
 
@@ -72,6 +72,9 @@ iconutil --convert icns --output "${APP_DIR}/Contents/Resources/AppIcon.icns" "$
 plutil -replace CFBundleIdentifier -string "${PRODUCT_BUNDLE_IDENTIFIER}" "${APP_DIR}/Contents/Info.plist"
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${APP_DIR}/Contents/Info.plist"
 plutil -replace CFBundleVersion -string "${BUILD_NUMBER}" "${APP_DIR}/Contents/Info.plist"
+if [[ "${ESPDESKTOP_RELEASE_BUILD:-0}" == "1" ]]; then
+    plutil -replace EspDesktopDevelopmentBuild -bool NO "${APP_DIR}/Contents/Info.plist"
+fi
 plutil -lint "${APP_DIR}/Contents/Info.plist"
 plutil -lint "${APP_DIR}/Contents/Resources/PrivacyInfo.xcprivacy"
 
