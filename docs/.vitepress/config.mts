@@ -209,7 +209,6 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Overview', link: '/' },
-          { text: 'Supported Display', link: '/screens/4848s040' },
           { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
           { text: 'Getting Setup', link: '/getting-started/install' },
         ],
