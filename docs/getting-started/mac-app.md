@@ -20,8 +20,8 @@ Open the DMG, drag **EspDesktop** into **Applications**, then open it from there
 ## Pair your display {#pair-the-display}
 
 1. Keep your Mac and display on the same local network. Allow local network access if macOS asks.
-2. Select your discovered display in the Mac app and click **Continue**. If it doesn’t appear, choose **Enter address manually** and enter the display’s IP address or `.local` name. To find the IP address, tap the network icon on the touchscreen to open **Settings**.
-3. In the touchscreen’s **Settings**, tap **Unpaired**. Enter the eight-letter code in the Mac app and click **Connect**. If the device page opened by the app shows the code, you can copy it from there.
+2. Select your display in the Mac app. If it doesn’t appear, find its IP address in your router’s list of connected devices and enter it using **Enter address manually**. Click **Continue**.
+3. The Mac app opens the display’s pairing page in your browser. Copy the eight-letter code shown under **Your pairing code**, paste it into the Mac app, and click **Connect**.
 4. On **Access and startup**, choose whether EspDesktop should launch at login, then click **Finish**. To use keyboard shortcut cards, choose **Open Settings** beside **Enable Shortcuts** and allow EspDesktop in **Accessibility**.
 
 [Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/features/settings#mac-app-settings)
