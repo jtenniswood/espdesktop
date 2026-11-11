@@ -109,7 +109,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     let step = 1;
     let apps: CompanionAction[] = [];
     const selected = new Set<string>();
-    let addShortcutPages = false;
+    let addShortcutPages = true;
     let autoSwitch = true;
     let busy = false;
     let loading = false;
@@ -404,6 +404,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                     selected.add(card.entity);
                     if (configOptionEnabled(card.options, "app_shortcuts")) addShortcutPages = true;
                 }
+                if (!selected.size) addShortcutPages = true;
                 autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
                 query = "";
                 error = "";

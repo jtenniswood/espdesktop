@@ -7169,6 +7169,14 @@ async function assertFirstRunSetup(browser) {
     };
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     catalogueReady = true;
+    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
+    const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
+    await setChecked(dialog.getByLabel("App 0", { exact: true }), true);
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await addPages.isDisabled(), "apps without presets cannot add shortcut pages");
+    assert(await launchOnly.isChecked(), "setup falls back to launch-only when no selected apps have presets");
+    await dialog.getByRole("button", { name: "Back", exact: true }).click();
+    await setChecked(dialog.getByLabel("App 0", { exact: true }), false);
     await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
     // The selection cap disables remaining apps while allowing deselection.
     for (let i = 0; i < appLimit - 1; i++) await setChecked(dialog.getByLabel(`App ${i}`, { exact: true }), true);
@@ -7177,13 +7185,8 @@ async function assertFirstRunSetup(browser) {
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
     await setChecked(dialog.getByLabel("Notes", { exact: true }), true);
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
-    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
-    const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     assert.equal(await dialog.getByRole("radio").count(), 2, "step two offers two exclusive modes");
-    assert(await launchOnly.isChecked(), "fresh setup defaults to launch-only cards");
-    assert(await dialog.getByRole("button", { name: "Done", exact: true }).isVisible(), "launch-only setup ends at step two");
-    await dialog.getByText("Add shortcut pages", { exact: true }).click();
-    assert(await addPages.isChecked(), "clicking the choice card selects it");
+    assert(await addPages.isChecked(), "fresh setup adds shortcut pages by default for supported apps");
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps selected apps");
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
@@ -7294,6 +7297,12 @@ async function assertFirstRunSetup(browser) {
     assert.deepEqual(switches, []);
     await open();
     await dialog.waitFor({ state: "detached" });
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await launchOnly.isChecked(), "setup again restores a saved launch-only layout");
+    await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
     assert.equal(Object.keys(fixture.document.subpages).length, 0, "Done saves launch-only cards directly from step two");
     // Pairing links remain usable before connecting; connection offers setup.
     fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
@@ -7307,6 +7316,12 @@ async function assertFirstRunSetup(browser) {
     await dialog.waitFor({ state: "detached" });
     assert.equal(Object.keys(fixture.document.buttons).length, 0);
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
+    await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await addPages.isChecked(), "setup again defaults to shortcut pages when setup was skipped");
     assert.deepEqual(errors, []);
     console.log("First-run setup with interrupted and confirmed layout saves passed.");
   } finally { await context.close(); }
