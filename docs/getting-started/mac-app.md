@@ -13,6 +13,14 @@ You’ll need a **Mac running macOS 13 or newer** and a [4-inch Guition ESP32-S3
 2. Download the **EspDesktop** DMG from the [same release as your display firmware](https://github.com/jtenniswood/espdesktop/releases).
 3. Open the DMG, drag **EspDesktop** into **Applications**, then open the app. Its icon appears in the menu bar.
 
+On an Apple silicon Mac, you can also install the latest stable Mac app with [Homebrew](https://brew.sh/).
+
+```sh
+brew install --cask jtenniswood/tap/espdesktop
+```
+
+Use the DMG download above if you need the app from a specific release.
+
 ## 2. Pair your display {#pair-the-display}
 
 1. Select your display in the Mac app. Allow local network access if macOS asks.

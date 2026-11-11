@@ -15,6 +15,16 @@ esphome:
     name: jtenniswood.espdesktop
     version: "${firmware_version}"
   on_boot:
+    - priority: -95
+      then:
+        - lambda: |-
+            using Setting = espdesktop::panel_settings::ScalarSetting;
+            id(espdesktop_app).bind_panel_scalar(Setting::FIRMWARE_AUTO_UPDATE, [](std::string_view value) {
+              id(auto_update_switch).publish_state(value == "1");
+            });
+            id(espdesktop_app).bind_panel_scalar(Setting::FIRMWARE_UPDATE_FREQUENCY, [](std::string_view value) {
+              id(update_frequency_select).publish_state(std::string(value));
+            });
     - priority: 200
       then:
         - text_sensor.template.publish:
@@ -212,10 +222,14 @@ switch:
     id: auto_update_switch
     entity_category: config
     icon: "mdi:update"
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     web_server:
       sorting_group_id: sg_firmware
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::FIRMWARE_AUTO_UPDATE, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::FIRMWARE_AUTO_UPDATE, "0");'
 
 select:
   - platform: template
@@ -229,10 +243,12 @@ select:
       - "Weekly"
       - "Monthly"
     initial_option: "Daily"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     web_server:
       sorting_group_id: sg_firmware
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::FIRMWARE_UPDATE_FREQUENCY, std::string_view(x.c_str(), x.size()));'
 
 interval:
   - interval: 1h

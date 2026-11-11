@@ -1,6 +1,6 @@
 ---
 title: Create Subpages for Mac Controls
-description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, create nested pages, or show Mac stats on a subpage tile.
+description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, create nested subpages, and organise cards between pages.
 ---
 
 # Create Subpages for Mac Controls {#subpages}
@@ -8,10 +8,6 @@ description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, c
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
-
-## Mac statistics
-
-Choose **Companion Stat** to show a Mac statistic on the folder tile while keeping the tap action as navigation. Select the statistic and, where available, used/free display or a storage device. A paired Mac provides the readings.
 
 ## App page behavior
 

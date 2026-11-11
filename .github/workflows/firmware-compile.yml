@@ -46,7 +46,7 @@ jobs:
             --paginate \
             --jq '.[].filename' > changed-files.txt
 
-          if grep -Eq '^(\.github/esphome\.env|\.github/workflows/(firmware-compile|firmware-editor|nightly-firmware|release)\.yml|common/.*|components/.*|devices/.*|builds/.*|product/((model_v2|release_devices)\.json|v2/.*)|src/webserver/.*|docs/public/webserver/.*|scripts/(build|check_timezones|release_devices|device_matrix|device_profiles|generate_device_manifest|generate_device_slots|prepare_c6_firmware|product_model_v2|report_firmware_size)\.py|scripts/(build_web_bundle|web_icon_names)\.js|package(-lock)?\.json)$' changed-files.txt; then
+          if grep -Eq '^(\.github/esphome\.env|\.github/workflows/(firmware-compile|firmware-editor|nightly-firmware|release)\.yml|common/.*|components/.*|devices/.*|builds/.*|product/((model_v2|release_devices)\.json|v2/.*)|src/webserver/.*|docs/public/webserver/.*|scripts/(build|check_timezones|release_devices|device_matrix|device_profiles|generate_device_manifest|generate_device_slots|prepare_c6_firmware|product_model_v2|panel_settings_codegen|report_firmware_size)\.py|scripts/(build_web_bundle|web_icon_names)\.js|package(-lock)?\.json)$' changed-files.txt; then
             echo "compile_required=true" >> "$GITHUB_OUTPUT"
           else
             echo "compile_required=false" >> "$GITHUB_OUTPUT"

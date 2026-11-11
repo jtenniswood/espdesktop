@@ -46,6 +46,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180,
           "rotateWidthCompensation": true
         },
@@ -180,6 +181,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180
         },
         "web": {
@@ -583,6 +585,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180
         },
         "web": {
@@ -724,6 +727,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180
         },
         "web": {

@@ -44,6 +44,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180,
         "rotateWidthCompensation": true
       },
@@ -221,6 +222,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180,
         "rotateWidthCompensation": true
       },
@@ -398,6 +400,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -564,6 +567,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -730,6 +734,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -894,6 +899,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],
@@ -1056,6 +1062,7 @@
           "180",
           "270"
         ],
+        "default": "180",
         "displayOffset": 180
       },
       "internalRelays": [],

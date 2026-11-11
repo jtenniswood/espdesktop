@@ -1,6 +1,9 @@
+import {
+  display_theme_preferences_key, display_theme_preferences_version as DISPLAY_THEME_VERSION, read_display_theme_preferences,
+} from "../generated/panel_settings";
 import { normalizeThemeAutoMethod, normalizeThemeMode, normalizeTimeOfDay, parseThemeSunOffset } from "./settings";
 
-export const DISPLAY_THEME_PREFERENCES = "display_theme_preferences";
+export const DISPLAY_THEME_PREFERENCES = display_theme_preferences_key;
 
 export interface DisplayThemePreferences {
   themeMode: string;
@@ -17,7 +20,7 @@ export function encodeDisplayThemePreferences(settings: DisplayThemePreferences)
     return hours! * 60 + minutes!;
   };
   return [
-    1, normalizeThemeMode(settings.themeMode).toLowerCase(),
+    DISPLAY_THEME_VERSION, normalizeThemeMode(settings.themeMode).toLowerCase(),
     normalizeThemeAutoMethod(settings.themeAutoMethod) === "Time" ? "time" : "sun",
     minute(settings.themeLightStart, "07:00"), minute(settings.themeDarkStart, "20:00"),
     parseThemeSunOffset(settings.themeSunriseOffset) ?? 0, parseThemeSunOffset(settings.themeSunsetOffset) ?? 0,
@@ -25,23 +28,17 @@ export function encodeDisplayThemePreferences(settings: DisplayThemePreferences)
 }
 
 export function decodeDisplayThemePreferences(raw?: string): DisplayThemePreferences | undefined {
-  const fields = raw?.split(",");
-  if (!fields || fields.length !== 7) return undefined;
-  const [version, mode, method, light, dark, sunrise, sunset] = fields;
-  if (version !== "1" || !["dark", "light", "auto"].includes(mode!) || !["time", "sun"].includes(method!))
-    return undefined;
-  if (![light, dark].every(value => /^\d+$/.test(value!) && Number(value) <= 1439) ||
-      ![sunrise, sunset].every(value => /^-?\d+$/.test(value!) && parseThemeSunOffset(value) !== null))
-    return undefined;
+  const saved = read_display_theme_preferences(raw);
+  if (!saved) return;
   const time = (minute: number) => [Math.floor(minute / 60), minute % 60]
     .map(value => String(value).padStart(2, "0")).join(":");
   return {
-    themeMode: normalizeThemeMode(mode),
-    themeAutoMethod: normalizeThemeAutoMethod(method),
-    themeLightStart: time(Number(light)),
-    themeDarkStart: time(Number(dark)),
-    themeSunriseOffset: Number(sunrise),
-    themeSunsetOffset: Number(sunset),
+    themeMode: normalizeThemeMode(saved.mode),
+    themeAutoMethod: normalizeThemeAutoMethod(saved.auto_method),
+    themeLightStart: time(saved.light_start),
+    themeDarkStart: time(saved.dark_start),
+    themeSunriseOffset: saved.sunrise_offset,
+    themeSunsetOffset: saved.sunset_offset,
   };
 }
 

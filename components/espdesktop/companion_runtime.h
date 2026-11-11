@@ -22,6 +22,12 @@ inline std::string companion_focus_application_id(const std::string &action_id) 
   return action_id.rfind("folder.", 0) == 0 ? "com.apple.finder" : action_id;
 }
 
+inline bool companion_reported_focus_matches(const std::string &requested,
+    const std::string &focused, const std::vector<std::string> &identifiers) {
+  return std::find(identifiers.begin(), identifiers.end(), requested) != identifiers.end() ||
+      (requested == "com.apple.finder" && companion_focus_application_id(focused) == requested);
+}
+
 struct CompanionAction {
   std::string id;
   std::string label;
@@ -250,6 +256,12 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     keyboard_actions_supported_ = supported;
     request_refresh_();
+  }
+
+  bool shortcut_page_ready(const std::string &owner) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return connected_ && keyboard_actions_supported_ &&
+        companion_reported_focus_matches(owner, focused_action_id_, focused_action_ids_);
   }
 
   void set_value(const std::string &control_id, int value) {
