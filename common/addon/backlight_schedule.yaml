@@ -184,18 +184,14 @@ switch:
     internal: true
     id: schedule_enabled
     optimistic: false
-    restore_mode: ALWAYS_ON
+    # The saved panel configuration publishes the switch state at startup.
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:calendar-clock"
     web_server:
       sorting_group_id: sg_brightness
     turn_on_action:
-      - lambda: |-
-          if (!id(local_display_policy_ready)) {
-            id(schedule_enabled).publish_state(true);
-            return;
-          }
-          id(espdesktop_app).edit_screen_schedule_preference(&espdesktop::ScreenSchedulePreferences::enabled, true);
+      - lambda: 'id(espdesktop_app).edit_screen_schedule_preference(&espdesktop::ScreenSchedulePreferences::enabled, true);'
     turn_off_action:
       - lambda: 'id(espdesktop_app).edit_screen_schedule_preference(&espdesktop::ScreenSchedulePreferences::enabled, false);'
     on_turn_off:
@@ -369,7 +365,7 @@ text:
     id: screen_schedule_trigger
     optimistic: false
     restore_value: false
-    initial_value: "time"
+    initial_value: "disabled"
     min_length: 0
     max_length: 10
     mode: text

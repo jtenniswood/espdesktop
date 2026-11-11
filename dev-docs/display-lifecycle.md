@@ -181,7 +181,7 @@ tests. `gN` denotes a transition generation.
 | Sequence | Events | Expected decisions and checks |
 |---|---|---|
 | Default boot | Boot, valid time, schedule normal | Resolve `ACTIVE`; after the main page settles, the shared active-display finalizer restores the clock bar and normal brightness and starts the idle timers. |
-| First-time onboarding | Boot without WiFi or configured tiles; schedule, sleep, or setup-timeout requests change | `ONBOARDING` keeps the current setup instructions fully visible without a dimming timeout; adding the first tile clears onboarding and resolves live policy. |
+| First-time onboarding | Boot without WiFi or configured tiles; schedule, sleep, or setup-timeout requests change | `ONBOARDING` keeps setup instructions fully visible and holds the first configured grid on screen for 15 seconds before restoring the current display policy. |
 | Fail-dark boot | Enabled time-based schedule; boot; time invalid; repeat before and after upgrading saved settings | `BOOT_GUARD` requests `DISPLAY_OFF` in both cases; PWM remains off. When time becomes valid, clear boot guard and resolve the live schedule. |
 | Idle dim | `ACTIVE`; idle timeout; configured action Dim | `IDLE_TIMER` requests `DIMMED` at `g1`; normal UI remains beneath the dim guard; dim brightness applies. |
 | Idle clock | `ACTIVE`; idle timeout; configured action Clock | `IDLE_TIMER` requests `CLOCK`; full-screen clock alone is visible at day/night clock brightness. |
