@@ -7,11 +7,15 @@ description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, c
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
+![Figma app subpage with the Figma icon as the Back tile and shortcuts such as Frame and Duplicate](/images/web-editor-figma-subpage.png)
+
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 
 ## App page behavior
 
 Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
+
+![App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on](/images/web-editor-app-subpages-settings.png)
 
 ## Create a Subpage
 
@@ -22,7 +26,7 @@ Under **Screen → Appearance → App Subpages**, **Return home when switching a
 5. Add and arrange cards on the subpage as you would on the home screen.
 6. Choose its **Back** card to return to the parent page.
 
-![Subpage editor with a Back tile, four browser shortcuts and dashed empty tiles for adding more controls](/images/web-editor-subpage.jpg)
+![Home layout with chevrons marking app cards that have subpages and a dashed empty tile for adding a card](/images/web-editor-subpage-home.png)
 
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 
