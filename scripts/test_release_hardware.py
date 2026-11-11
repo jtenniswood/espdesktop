@@ -18,13 +18,13 @@ DEVICE = "guition-esp32-s3-4848s040"
 REPORT_SCHEMA = 4
 SHORTCUT = "With the candidate Mac app connected, run one nested Mac shortcut and tap Back on the display."
 EDITOR_SAVE = (
-    "In the display's embedded editor, click a tile label and enter a new name. "
-    "Press Return to save and wait for the new label on the display."
+    "In the display's embedded editor, select a tile and open Edit > Card Settings. "
+    "Change its Label, click Save, and wait for the card editor to close."
 )
 STEPS = (
     ("shortcut", SHORTCUT),
     ("editor_save", EDITOR_SAVE),
-    ("reboot", "Restart the display. Wait for the Mac to reconnect and confirm the renamed tile is still there."),
+    ("reboot", "Restart the display. Wait for the Mac to reconnect and confirm the saved label in the editor."),
 )
 
 
@@ -132,7 +132,7 @@ def run(probe, output, expected=None, confirm=input):
             if name == "editor_save":
                 saved_config = probe.native_config_snapshot()
                 if saved_config[0] == before_config[0] or saved_config[1] == before_config[1]:
-                    raise ValueError("The editor did not save a changed layout. Wait for the renamed tile to appear before confirming.")
+                    raise ValueError("The editor did not save a changed layout. Wait for the card editor to close before confirming.")
             if name == "reboot":
                 reboot_config = probe.native_config_snapshot()
                 if reboot_config != saved_config:
