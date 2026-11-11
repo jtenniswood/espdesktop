@@ -11,13 +11,42 @@ description: Download EspDesktop for macOS 13 or newer, pair a Guition 4848S040 
 
 Connect your display to your Mac to launch apps, open folders and run shortcuts with a tap.
 
+<p class="mac-app-requirements">macOS 13 or later · Apple silicon</p>
+
+<div class="mac-app-tabs" role="tablist" aria-label="Installation method" @keydown="navigateInstallTabs">
+  <button
+    v-for="(label, method) in installMethods"
+    :id="`mac-install-tab-${method}`"
+    :key="method"
+    type="button"
+    role="tab"
+    :aria-selected="activeMethod === method"
+    :aria-controls="`mac-install-panel-${method}`"
+    :tabindex="activeMethod === method ? 0 : -1"
+    @click="activeMethod = method"
+  >{{ label }}</button>
+</div>
+
+<div v-show="activeMethod === 'download'" id="mac-install-panel-download" role="tabpanel" aria-labelledby="mac-install-tab-download">
+
 <p class="mac-app-action">
-  <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac' : 'View Mac downloads' }}</a>
+  <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac' : 'View Mac downloads' }}</a>{{ ' ' }}
+  <span v-if="$frontmatter.macReleaseVersion">v{{ $frontmatter.macReleaseVersion }} · DMG</span>
 </p>
 
-<p class="mac-app-requirements">
-  <span v-if="$frontmatter.macReleaseVersion">v{{ $frontmatter.macReleaseVersion }} · DMG · </span>macOS 13 or later · Apple silicon
-</p>
+Open the DMG and drag **EspDesktop** into **Applications**.
+
+</div>
+
+<div v-show="activeMethod === 'homebrew'" id="mac-install-panel-homebrew" class="mac-app-homebrew" role="tabpanel" aria-labelledby="mac-install-tab-homebrew">
+
+With [Homebrew](https://brew.sh/) installed, run this command in Terminal.
+
+```sh
+brew install --cask jtenniswood/tap/espdesktop
+```
+
+</div>
 
 </div>
 
@@ -31,16 +60,9 @@ Connect your display to your Mac to launch apps, open folders and run shortcuts 
 
 ## 1. Install the Mac app {#install-a-release}
 
-1. [Install EspDesktop on your display](/getting-started/install) if you haven’t already.
-2. Open the downloaded DMG, drag **EspDesktop** into **Applications**, then open the app. Its icon appears in the menu bar.
+[Install EspDesktop on your display](/getting-started/install) if you haven’t already. After installing the Mac app, open **EspDesktop** from **Applications**. Its icon appears in the menu bar.
 
 Use the Mac app and display firmware from the same release. For older firmware, [download the matching DMG from GitHub Releases](https://github.com/jtenniswood/espdesktop/releases).
-
-You can also install the latest stable Mac app with [Homebrew](https://brew.sh/).
-
-```sh
-brew install --cask jtenniswood/tap/espdesktop
-```
 
 ## 2. Pair your display {#pair-the-display}
 
@@ -81,9 +103,36 @@ If an update requires newer display firmware, install the app and firmware from 
 
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
 
+<script setup lang="ts">
+import { ref } from 'vue'
+
+const installMethods = { download: 'Download', homebrew: 'Homebrew' } as const
+const activeMethod = ref<keyof typeof installMethods>('download')
+
+function navigateInstallTabs(event: KeyboardEvent) {
+  switch (event.key) {
+    case 'ArrowLeft':
+    case 'ArrowRight':
+      activeMethod.value = activeMethod.value === 'download' ? 'homebrew' : 'download'
+      break
+    case 'Home':
+      activeMethod.value = 'download'
+      break
+    case 'End':
+      activeMethod.value = 'homebrew'
+      break
+    default:
+      return
+  }
+  event.preventDefault()
+  document.getElementById(`mac-install-tab-${activeMethod.value}`)?.focus()
+}
+</script>
+
 <style scoped>
 .mac-app-hero {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   align-items: center;
   gap: 28px;
 }
@@ -103,6 +152,38 @@ If an update requires newer display firmware, install the app and firmware from 
   line-height: 1.55;
 }
 
+.mac-app-tabs {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  border-bottom: 1px solid var(--vp-c-divider);
+}
+
+.mac-app-tabs button {
+  min-height: 44px;
+  margin-bottom: -1px;
+  padding: 0 8px;
+  border-bottom: 2px solid transparent;
+  color: var(--vp-c-text-2);
+  font-weight: 600;
+}
+
+.mac-app-tabs button:hover,
+.mac-app-tabs button[aria-selected='true'] {
+  color: var(--vp-c-brand-1);
+}
+
+.mac-app-tabs button[aria-selected='true'] {
+  border-bottom-color: currentColor;
+}
+
+.mac-app-hero .mac-app-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+}
+
 .mac-app-action a {
   display: inline-flex;
   align-items: center;
@@ -120,11 +201,44 @@ If an update requires newer display firmware, install the app and firmware from 
   color: var(--vp-button-brand-hover-text);
 }
 
-.mac-app-hero .mac-app-requirements {
+.mac-app-hero .mac-app-requirements,
+.mac-app-action span {
   margin: 0;
   color: var(--vp-c-text-2);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.mac-app-homebrew .language-sh {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  margin-inline: 0;
+  border-radius: 8px;
+}
+
+.mac-app-homebrew .language-sh > button.copy {
+  position: static;
+  flex: none;
+  margin-right: 8px;
+  opacity: 1;
+}
+
+.mac-app-homebrew .language-sh > .lang {
+  display: none;
+}
+
+.mac-app-homebrew .language-sh pre {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 0;
+}
+
+.mac-app-homebrew .language-sh code {
+  width: auto;
+  padding-inline: 14px 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
 .mac-app-preview {
