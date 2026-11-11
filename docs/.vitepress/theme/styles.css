@@ -2,6 +2,20 @@
   display: none;
 }
 
+.sp-support-btn {
+  position: fixed;
+  right: 28px;
+  bottom: 28px;
+  z-index: 150;
+  display: inline-block;
+  line-height: 0;
+}
+
+.sp-support-btn img {
+  display: block;
+  border-radius: 999px;
+}
+
 @media (max-width: 767px) {
   .screen-comparison-hint {
     display: block;

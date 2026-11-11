@@ -3,6 +3,13 @@ import { join } from 'node:path'
 import type { MarkdownRenderer } from 'vitepress'
 
 export const hostname = 'https://jtenniswood.github.io/espdesktop/'
+export const llmsIndexUrl = new URL('llms.txt', hostname).href
+
+export function canonicalUrlFor(relativePath: string) {
+  const path = relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
+  return new URL(path, hostname).href
+}
+
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
 const macControls = `${hostname}#what-you-can-control`
 
@@ -11,6 +18,7 @@ const macControls = `${hostname}#what-you-can-control`
 export const redirects: Record<string, string> = {
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
   'reference/request-device-support': `${hostname}screens/4848s040`,
+  'screens/index': `${hostname}screens/4848s040`,
   'card-types/companion': macControls,
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,

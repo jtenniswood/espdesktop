@@ -1,6 +1,6 @@
 ---
-title: EspDesktop Mac Control FAQ
-description: Answers about installing the EspDesktop Mac app, pairing a display, permissions, and Mac controls.
+title: Touchscreen Compatibility and Setup FAQ
+description: Find out which touchscreen and macOS versions work with EspDesktop, how local pairing works, and what permissions Mac controls need.
 outline: [2, 3]
 ---
 
@@ -11,6 +11,14 @@ outline: [2, 3]
 ### Which display works with Mac controls?
 
 Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See [Supported Display](/screens/4848s040) for the model and [Install](/getting-started/install) for the firmware steps.
+
+### Which macOS versions does EspDesktop support?
+
+The EspDesktop Mac app requires **macOS 13 or newer**. Follow the [Mac app setup guide](/getting-started/mac-app) to download it and pair your display.
+
+### Does EspDesktop need Home Assistant?
+
+EspDesktop connects the touchscreen directly to the Mac Companion app over your local network. For a touchscreen that controls Home Assistant devices, see the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
 
 ### Why can't I see my display in the Mac app?
 
@@ -24,7 +32,7 @@ Use the Mac app and display firmware from the same EspDesktop release. A newer d
 
 ### Why don't keyboard shortcuts work?
 
-Enable EspDesktop in **System Settings → Privacy & Security → Accessibility**.
+Enable EspDesktop in **System Settings → Privacy & Security → Accessibility**. See [Mac Companion permissions](/mac-controls/security) for the controls that use it.
 
 ### Why can't the display open an app or folder?
 

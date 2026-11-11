@@ -1,6 +1,6 @@
 ---
-title: Configure Your Mac Control Surface
-description: Add Mac Companion cards, arrange them into pages, and customise the EspDesktop touchscreen from its built-in web editor.
+title: Configure Your Mac Touchscreen in the Web Editor
+description: Use the EspDesktop web editor to add app and shortcut tiles, arrange subpages, and adjust appearance, brightness and sleep settings.
 ---
 
 # Configure Your Mac Control Surface
@@ -30,9 +30,15 @@ The display preview shows the saved arrangement. Choose **Apply Configuration** 
 
 ## Screen and System Settings
 
-Use **Screen** for appearance, backlight, rotation and sleep settings. Use **System** for Mac Companion pairing and connection status, preferences, backups, firmware updates and reset controls.
+Use **Screen** for appearance, backlight, rotation and sleep settings. For example, open **Appearance → App Subpages** to choose how the display reacts when you switch apps on your Mac.
+
+[![Screen tab with App Subpages expanded, showing Open app subpages on focus and Return home when switching apps](/images/web-editor-screen-settings.jpg)](/images/web-editor-screen-settings.jpg)
 
 On a new display, **Screen → Sleep & Schedule → Night Schedule** dims the screen to **15%** from **7:00 PM to 7:00 AM** in the display’s local time. You can change the hours, brightness or mode there.
+
+Use **System** for Mac Companion pairing and connection status, preferences, backups, firmware updates and reset controls. Open **Mac Companion** to see whether the display is connected to your Mac.
+
+[![System tab with Mac Companion expanded and showing a connected status](/images/web-editor-system-settings.jpg)](/images/web-editor-system-settings.jpg)
 
 ## Mac Screen Lock {#protect-the-touchscreen}
 

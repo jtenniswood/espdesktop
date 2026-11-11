@@ -34,11 +34,8 @@ The site does not intentionally use cookies, advertising trackers, or a
 first-party analytics service. Its search is generated and run in your
 browser.
 
-Every documentation page includes a support button whose image is loaded from
-Buy Me a Coffee's CDN. Loading that image may disclose your IP address and
-browser request information to Buy Me a Coffee or its service providers.
-Following the button takes you to Buy Me a Coffee, which has its own privacy
-policy.
+The support button image is served by this documentation site. Following the
+button takes you to Buy Me a Coffee, which has its own privacy policy.
 
 The install page loads the bundled USB installer from GitHub Pages when the
 browser supports Web Serial and checks a public firmware manifest. These
