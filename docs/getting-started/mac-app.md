@@ -32,6 +32,14 @@ Once your display is paired, choose **Mac Settings** from the EspDesktop menu ba
 
 <ScreenshotGallery label="Mac app settings preview" :slides="settingsSlides" />
 
+## Use EspDesktop from the menu bar
+
+EspDesktop keeps running in the background after you close Mac Settings, so you can keep using your display to control your Mac. Click the laptop icon in the menu bar at the top of your screen to check whether your display is connected.
+
+Choose **Mac Settings** to reopen the app’s settings, or **Customize Display** to open your display’s editor in your browser. To exit EspDesktop, choose **Quit** from the same menu.
+
+![EspDesktop menu open below the laptop icon, showing Connected, Customize Display, Mac Settings, and Quit](/images/mac-connector/mac-menu-bar.png)
+
 ## Check for Mac app updates
 
 In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. If an update requires newer display firmware, follow the [display update instructions](/features/setup#update-the-display-firmware) and use the app and firmware from the same release.
