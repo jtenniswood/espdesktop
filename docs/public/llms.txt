@@ -17,7 +17,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 
 ## Configure the touchscreen
 
-- [App setup wizard](https://espdesktop.com/features/first-run.md)
+- [First setup](https://espdesktop.com/features/first-run.md)
 - [Display and Mac app settings](https://espdesktop.com/features/settings.md)
 - [Customise the Home screen](https://espdesktop.com/features/home.md)
 - [Create subpages](https://espdesktop.com/features/subpages.md)
@@ -34,7 +34,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 
 ## Optional
 
-- [3D-printable stand for the Guition 4848S040](https://espdesktop.com/screens/4848s040-stand.md)
+- [Printable stand](https://espdesktop.com/screens/4848s040-stand.md)
 - [Privacy policy](https://espdesktop.com/reference/privacy.md)
 - [Support the project](https://espdesktop.com/reference/support.md)
 - [Contribute app shortcut presets](https://espdesktop.com/mac-controls/improve-shortcuts.md)

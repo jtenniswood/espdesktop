@@ -238,13 +238,13 @@ export default defineConfig({
         text: 'Hardware',
         items: [
           { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
-          { text: '3D-Printable Stand', link: '/screens/4848s040-stand' },
+          { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
       {
         text: 'Features',
         items: [
-          { text: 'App Setup Wizard', link: '/features/first-run' },
+          { text: 'First setup', link: '/features/first-run' },
           { text: 'Home', link: '/features/home' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
