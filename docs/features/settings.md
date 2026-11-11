@@ -1,9 +1,9 @@
 ---
-title: EspDesktop Display and Mac App Settings
+title: Settings
 description: Customise your display, back up its settings, and manage the EspDesktop Mac app and firmware.
 ---
 
-# Display and Mac app settings
+# Settings {#display-and-mac-app-settings}
 
 Open the display’s address in your browser, or click **Customize** next to the connected display in the EspDesktop Mac app. Use **Screen** to change how the touchscreen looks and behaves, and **System** to manage the device itself.
 
@@ -11,7 +11,7 @@ Choose **Apply Configuration** at the bottom of either tab when you’re ready t
 
 ## Screen settings {#screen-and-system-settings}
 
-[![Screen tab showing Appearance, Display, and Sleep & Schedule settings](/images/web-editor-screen-settings.png)](/images/web-editor-screen-settings.png)
+<a href="/images/web-editor-screen-settings.png"><img src="/images/web-editor-screen-settings.png" alt="Screen tab showing Appearance, Display, and Sleep &amp; Schedule settings" width="1694" height="2266" loading="lazy"></a>
 
 ### Appearance
 
@@ -34,7 +34,7 @@ When the display is asleep, tap once to wake it, then tap a card to use it.
 
 ## System settings
 
-[![System tab showing Mac Companion, Language, Time, Device Name, Backup, Firmware and Factory Reset](/images/web-editor-system-settings.png)](/images/web-editor-system-settings.png)
+<a href="/images/web-editor-system-settings.png"><img src="/images/web-editor-system-settings.png" alt="System tab showing Mac Companion, Language, Time, Device Name, Backup, Firmware and Factory Reset" width="1694" height="2266" loading="lazy"></a>
 
 ### Mac Companion and preferences
 

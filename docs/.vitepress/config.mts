@@ -112,6 +112,11 @@ export default defineConfig({
       return
     }
 
+    // These pages have no page-level sidebar link to determine their next step.
+    if (relativePath === 'screens/4848s040.md' || relativePath === 'reference/companion-compatibility.md') {
+      frontmatter.next = { text: 'Install the display', link: '/getting-started/install' }
+    }
+
     if (relativePath === 'getting-started/mac-app.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
@@ -227,48 +232,48 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Getting Started',
+        text: 'Hardware',
         items: [
-          { text: '1. Install the display', link: '/getting-started/install' },
-          { text: '2. Install and pair the Mac app', link: '/getting-started/mac-app' },
-          { text: '3. Configure your cards', link: '/features/setup' },
+          { text: 'Where to buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
       {
-        text: 'Hardware',
+        text: 'Getting Started',
         items: [
-          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
-          { text: '3D-Printable Stand', link: '/screens/4848s040-stand' },
+          { text: 'Install the display', link: '/getting-started/install' },
+          { text: 'download and pair companion app', link: '/getting-started/mac-app' },
+          { text: 'Configure your cards', link: '/features/setup' },
         ],
       },
       {
         text: 'Features',
         items: [
-          { text: 'App Setup Wizard', link: '/features/first-run' },
+          { text: 'First setup', link: '/features/first-run' },
           { text: 'Home', link: '/features/home' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
           { text: 'Websites', link: '/mac-controls/websites' },
-          { text: 'Finder Folders', link: '/mac-controls/folders' },
-          { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
-          { text: 'Display and Mac App Settings', link: '/features/settings' },
+          { text: 'Finder folders', link: '/mac-controls/folders' },
+          { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Settings', link: '/features/settings' },
         ],
       },
       {
         text: 'Support',
         items: [
-          { text: 'Permissions & Security', link: '/mac-controls/security' },
+          { text: 'Permissions & security', link: '/mac-controls/security' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
-          { text: 'Support the Project', link: '/reference/support' },
-          { text: 'Privacy Policy', link: '/reference/privacy' },
+          { text: 'Support the project', link: '/reference/support' },
+          { text: 'Privacy policy', link: '/reference/privacy' },
         ],
       },
       {
         text: 'Contribute',
         items: [
-          { text: 'App Shortcuts', link: '/mac-controls/improve-shortcuts' },
-          { text: 'Request an Icon', link: '/reference/request-icons' },
+          { text: 'App shortcuts', link: '/mac-controls/improve-shortcuts' },
+          { text: 'Request an icon', link: '/reference/request-icons' },
         ],
       },
     ],

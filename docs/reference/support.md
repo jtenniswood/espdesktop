@@ -3,7 +3,7 @@ title: Support the EspDesktop Project
 description: Support ongoing EspDesktop development through Buy Me a Coffee.
 ---
 
-# Support This Project
+# Support this project
 
 If you find EspDesktop useful, consider buying me a coffee to support ongoing development.
 

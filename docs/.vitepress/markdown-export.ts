@@ -33,6 +33,17 @@ export async function writeMarkdownPages(outDir: string, pages: string[]) {
       installer.parentNode.replaceChild(paragraph, installer)
     }
 
+    const nextPage = document.querySelector('.VPDocFooter a.pager-link.next[href]')
+    const nextTitle = nextPage?.querySelector('.title')?.textContent.trim()
+    if (nextPage && nextTitle) {
+      const paragraph = document.createElement('p')
+      const link = document.createElement('a')
+      link.href = nextPage.getAttribute('href')
+      link.textContent = `Next · ${nextTitle}`
+      paragraph.appendChild(link)
+      content.appendChild(paragraph)
+    }
+
     for (const [selector, attribute] of [['a[href]', 'href'], ['img[src]', 'src']]) {
       for (const node of Array.from(content.querySelectorAll(selector))) {
         node.setAttribute(attribute, new URL(node.getAttribute(attribute), canonical).href)

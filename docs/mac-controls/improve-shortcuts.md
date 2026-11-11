@@ -3,11 +3,11 @@ title: Contribute App Shortcuts
 description: Suggest shortcut corrections, request missing features, or help add a Mac app to the EspDesktop shortcut catalog.
 ---
 
-# Contribute App Shortcuts
+# Contribute app shortcuts
 
 Help improve the Mac app shortcuts available in the **Application** tab of a **Key Shortcut** card and on app subpages.
 
-## Suggest an Addition or Correction
+## Suggest an addition or correction
 
 Use the link below to report an incorrect keyboard shortcut or suggest a missing feature you’d like to use from your EspDesktop. Include the Mac app’s name and what should be corrected or added.
 
@@ -17,7 +17,7 @@ For each shortcut, include the Mac key combination and a brief description of wh
 
 You’ll need a GitHub account. Include the app version, keyboard layout, or settings if they affect the shortcut.
 
-## Add a New App to the Catalog {#contribute-a-template}
+## Add a new app to the catalog {#contribute-a-template}
 
 Send me the Mac app’s name and either a link to its keyboard shortcut reference or a list of the shortcuts you’d like to see. If you share a list, include each key combination and what it does. I can use what you share to add the app and its shortcuts to the catalog.
 
