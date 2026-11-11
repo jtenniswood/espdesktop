@@ -335,3 +335,5 @@ output_mute=Kimenet némítása
 microphone_mute=Mikrofon némítása
 mic=Mikrofon
 mute=Némítás
+mac_update_required=Frissítse a Mac-alkalmazást
+mac_update_reconnect=A csatlakozáshoz frissítse az EspDesktopot a Macen.

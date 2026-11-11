@@ -49,6 +49,7 @@ async def to_code(config):
     esp32.request_tls()
     esp32.require_mbedtls_tls_server()
     esp32.add_idf_sdkconfig_option("CONFIG_HTTPD_WS_SUPPORT", True)
+    esp32.add_idf_sdkconfig_option("CONFIG_HTTPD_WS_POST_HANDSHAKE_CB_SUPPORT", True)
     esp32.add_idf_sdkconfig_option("CONFIG_ESP_HTTPS_SERVER_ENABLE", True)
     esp32.add_idf_sdkconfig_option("CONFIG_MBEDTLS_X509_CRT_WRITE_C", True)
 

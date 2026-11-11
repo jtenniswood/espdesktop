@@ -335,3 +335,5 @@ output_mute=Mykistä ääni
 microphone_mute=Mykistä mikrofoni
 mic=Mikki
 mute=Mykistä
+mac_update_required=Päivitä Mac-sovellus
+mac_update_reconnect=Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.

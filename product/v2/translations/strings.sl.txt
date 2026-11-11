@@ -335,3 +335,5 @@ output_mute=Utišaj zvok
 microphone_mute=Utišaj mikrofon
 mic=Mikrofon
 mute=Utišaj
+mac_update_required=Posodobite aplikacijo za Mac
+mac_update_reconnect=Za ponovno povezavo posodobite EspDesktop na Macu.

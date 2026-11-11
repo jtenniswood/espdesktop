@@ -335,3 +335,5 @@ output_mute=Silenciar saída
 microphone_mute=Silenciar microfone
 mic=Microfone
 mute=Silenciar
+mac_update_required=Atualizar o app do Mac
+mac_update_reconnect=Atualize o EspDesktop no Mac para se reconectar.

@@ -1,9 +1,24 @@
 #pragma once
 
 #include <atomic>
+#include <charconv>
 #include <cstdint>
+#include <string_view>
 
 namespace esphome::companion {
+
+// Protocol v3 introduced the signed authentication request shared by later Mac
+// apps. Only these older clients can prove they hold the saved pairing.
+inline int legacy_protocol_for_path(std::string_view path, int current_protocol) {
+  constexpr std::string_view prefix = "/companion/v";
+  if (path.substr(0, prefix.size()) != prefix) return 0;
+  path.remove_prefix(prefix.size());
+  if (path.empty() || path.front() < '1' || path.front() > '9') return 0;
+  int version = 0;
+  const auto result = std::from_chars(path.data(), path.data() + path.size(), version);
+  return result.ec == std::errc{} && result.ptr == path.data() + path.size() &&
+      version >= 3 && version < current_protocol ? version : 0;
+}
 
 class CompanionSessionState {
  public:
