@@ -63,7 +63,10 @@ export function createCompanionPairingDetails(
     const pairingCode = document.createElement("strong");
     pairingCode.className = "sp-companion-code";
     pairingCodeRow.appendChild(pairingCode);
-    const copyButton = createActionButton("sp-action-btn sp-companion-copy", "Copy", "content-copy", "Copy pairing code");
+    const copyButton = createActionButton(
+        "sp-action-btn sp-transfer-copy-btn sp-companion-copy",
+        "Copy", "content-copy", "Copy pairing code",
+    );
     copyButton.disabled = true;
     pairingCodeRow.appendChild(copyButton);
     const copyFeedback = document.createElement("div");
