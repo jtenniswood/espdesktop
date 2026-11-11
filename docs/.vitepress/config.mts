@@ -27,8 +27,8 @@ const pageImages: Record<string, typeof defaultImage> = {
     'The 4-inch Guition 4848S040 touchscreen next to a keyboard'),
   'getting-started/mac-app.md': shareImage('mac-app-display.jpg', 1000, 1376,
     'EspDesktop Mac app showing a connected display and the Customize button'),
-  'features/setup.md': shareImage('web-editor-screen-settings.jpg', 1080, 621,
-    'EspDesktop web editor showing the Screen tab and app subpage settings'),
+  'features/setup.md': shareImage('web-editor-screen-settings.png', 1694, 2266,
+    'EspDesktop Screen tab showing appearance, display, and sleep settings'),
   'features/subpages.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
     'Figma app subpage with the Figma icon as the Back tile and a grid of shortcuts'),
   'mac-controls/apps.md': shareImage('web-editor-application-card.png', 1694, 2266,
@@ -240,7 +240,7 @@ export default defineConfig({
       {
         text: 'Features',
         items: [
-          { text: 'Configure the Display', link: '/features/setup' },
+          { text: 'Device and System Settings', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
           { text: 'Websites', link: '/mac-controls/websites' },
