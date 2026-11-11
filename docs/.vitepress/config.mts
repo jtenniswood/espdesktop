@@ -112,6 +112,11 @@ export default defineConfig({
       return
     }
 
+    // These pages have no page-level sidebar link to determine their next step.
+    if (relativePath === 'screens/4848s040.md' || relativePath === 'reference/companion-compatibility.md') {
+      frontmatter.next = { text: 'Install the display', link: '/getting-started/install' }
+    }
+
     if (relativePath === 'getting-started/mac-app.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
@@ -227,18 +232,18 @@ export default defineConfig({
 
     sidebar: [
       {
+        text: 'Hardware',
+        items: [
+          { text: 'Where to buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Printable stand', link: '/screens/4848s040-stand' },
+        ],
+      },
+      {
         text: 'Getting Started',
         items: [
           { text: 'Install the display', link: '/getting-started/install' },
           { text: 'download and pair companion app', link: '/getting-started/mac-app' },
           { text: 'Configure your cards', link: '/features/setup' },
-        ],
-      },
-      {
-        text: 'Hardware',
-        items: [
-          { text: 'Where to buy', link: '/screens/4848s040#where-to-buy' },
-          { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
       {
