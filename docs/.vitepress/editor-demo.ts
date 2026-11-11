@@ -4,10 +4,12 @@ import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webs
 const deviceProfile = 'guition-esp32-s3-4848s040'
 const maxConfigBytes = 512 * 1024
 const configType = 'application/vnd.espdesktop.panel-config'
+const editorSessionKey = 'espdesktop-editor-demo-v1'
+const editable = document.documentElement.hasAttribute('data-espdesktop-editor-demo')
 const slackAppId = 'com.tinyspeck.slackmacgap'
 const idleDelayMs = 5000
 const pressDurationMs = 180
-const embedded = window.parent !== window
+const embedded = !editable && window.parent !== window
 
 document.documentElement.toggleAttribute('data-espdesktop-embedded', embedded)
 
@@ -74,60 +76,123 @@ function readSnapshot(snapshot: Snapshot | undefined) {
 }
 
 const snapshot = readSnapshot(window.espDesktopDemoSnapshot)
-const seed = snapshot ?? sample
-const { document: config, layout } = decodePanelPageSnapshot(seed.layout)
+let saved: ReturnType<typeof readSnapshot> = null
+if (editable) {
+  try {
+    saved = readSnapshot(JSON.parse(sessionStorage.getItem(editorSessionKey) || 'null'))
+  } catch {
+    // The editor can still work in memory when browser storage is unavailable.
+  }
+}
+
+const seed = saved ?? snapshot ?? sample
+let bytes = new Uint8Array(seed.layout)
+const initialConfig = decodePanelPageSnapshot(bytes)
+let config = initialConfig.document
+let generation = 1
 const entities = new Map(seed.entities.map(item => [item.id, item]))
 const appIcons = snapshot?.appIcons
 
-const notFound = () => new Response(null, { status: 404 })
+function saveSession() {
+  try {
+    let binary = ''
+    for (const byte of bytes) binary += String.fromCharCode(byte)
+    const saved: Snapshot = { layout: btoa(binary), entities: [...entities.values()] }
+    sessionStorage.setItem(editorSessionKey, JSON.stringify(saved))
+  } catch {
+    // Keep the current edits in memory if they cannot be saved in this tab.
+  }
+}
 
-// The demo serves an immutable snapshot through the editor's normal read
-// paths. All other requests end here, including every device write.
+function configHeaders() {
+  return { ETag: `"v2-${generation}"`, 'X-Panel-Config-Version': '2', 'Content-Type': configType }
+}
+
+const empty = (status: number) => new Response(null, { status })
+
+// Both demos own the transport. The editable demo saves only to this tab.
 window.fetch = async (input, init) => {
-  const url = new URL(input instanceof Request ? input.url : input, window.location.href)
-  const method = init?.method ?? (input instanceof Request ? input.method : 'GET')
-  if (url.origin !== window.location.origin || method.toUpperCase() !== 'GET') return notFound()
+  const request = input instanceof Request ? input : null
+  const url = new URL(request?.url ?? String(input), window.location.href)
+  const method = (init?.method ?? request?.method ?? 'GET').toUpperCase()
+  if (url.origin !== window.location.origin || (!editable && method !== 'GET')) return empty(404)
 
-  switch (url.pathname) {
-    case '/api/v1/capabilities':
-      return Response.json({
-        api: { version: 1 },
-        configuration: {
-          read: true, write: true, document_versions: [2],
-          durable_document_version: 2, max_navigation_depth: 2,
-          writable_navigation_depth: 2, max_v2_document_bytes: maxConfigBytes,
-          max_record_body_bytes: 4096, preserves_inactive_records: true,
-          companion_auto_open_app_subpages: true, display_theme_preferences: true,
-          screen_schedule_preferences: true,
-        },
-      })
-    case '/api/v1/config':
-      return new Response(seed.layout.slice(), {
-        headers: { ETag: '"v2-1"', 'X-Panel-Config-Version': '2', 'Content-Type': configType },
-      })
-    case '/connectors/status':
-      return Response.json({ onboarding_complete: true, mac_companion: {
-        available: true, configured: true, paired: true, connected: false,
-      } })
-    case '/espdesktop/version.json':
-      return Response.json({ device_slug: deviceProfile, version: 'demo' })
-    case '/companion/app-icon': {
-      const appId = url.searchParams.get('appId')
-      const background = url.searchParams.get('background') ?? ''
-      const icon = appIcons?.[JSON.stringify([appId, background])] ?? appIcons?.[JSON.stringify([appId, ''])]
-      if (!icon) return notFound()
-      const pixels = Uint8Array.from(atob(icon.pixels), char => char.charCodeAt(0))
-      const headers = new Headers({ 'X-EspDesktop-Companion-Online': 'true' })
-      if (icon.palette) headers.set('X-EspDesktop-App-Icon-Palette', icon.palette)
-      return new Response(pixels, { headers })
+  if (method === 'GET') {
+    switch (url.pathname) {
+      case '/api/v1/capabilities':
+        return Response.json({
+          api: { version: 1 },
+          configuration: {
+            read: true, write: true, document_versions: [2],
+            durable_document_version: 2, max_navigation_depth: 2,
+            writable_navigation_depth: 2, max_v2_document_bytes: maxConfigBytes,
+            max_record_body_bytes: 4096, preserves_inactive_records: true,
+            companion_auto_open_app_subpages: true, display_theme_preferences: true,
+            screen_schedule_preferences: true,
+          },
+        })
+      case '/api/v1/config':
+        return new Response(bytes, { headers: configHeaders() })
+      case '/connectors/status':
+        return Response.json({ onboarding_complete: true, mac_companion: {
+          available: true, configured: true, paired: true, connected: false,
+        } })
+      case '/espdesktop/version.json':
+        return Response.json({ device_slug: deviceProfile, version: 'demo' })
+      case '/companion/app-icon': {
+        const appId = url.searchParams.get('appId')
+        const background = url.searchParams.get('background') ?? ''
+        const icon = appIcons?.[JSON.stringify([appId, background])] ?? appIcons?.[JSON.stringify([appId, ''])]
+        if (!icon) return empty(404)
+        const pixels = Uint8Array.from(atob(icon.pixels), char => char.charCodeAt(0))
+        const headers = new Headers({ 'X-EspDesktop-Companion-Online': 'true' })
+        if (icon.palette) headers.set('X-EspDesktop-App-Icon-Palette', icon.palette)
+        return new Response(pixels, { headers })
+      }
     }
   }
 
-  const id = decodeURIComponent(url.pathname.slice(1))
-  // The editor uses a legacy read to finish loading its screen settings.
-  if (id === 'text/Button Order') return Response.json(entity(id, config.settings.button_order ?? ''))
+  if (method === 'PUT' && url.pathname === '/api/v1/config') {
+    const next = new Uint8Array(await (init?.body === undefined && request
+      ? request.arrayBuffer() : new Response(init?.body).arrayBuffer()))
+    if (new Headers(init?.headers ?? request?.headers).get('If-Match') !== configHeaders().ETag) return empty(409)
+    if (next.length > maxConfigBytes) return empty(413)
+    try {
+      const decoded = decodePanelPageSnapshot(next).document
+      if (decoded.deviceProfile !== deviceProfile) return empty(422)
+      bytes = next
+      config = decoded
+    } catch {
+      return empty(422)
+    }
+    generation++
+    saveSession()
+    return new Response(null, { status: 204, headers: configHeaders() })
+  }
+
+  const [domain, name, action, extra] = url.pathname.slice(1).split('/').map(decodeURIComponent)
+  if (!domain || !name || extra) return empty(404)
+  const id = `${domain}/${name}`
   const current = entities.get(id)
-  return current ? Response.json(current) : notFound()
+  if (method === 'GET' && !action) {
+    // The editor uses a legacy read to finish loading its screen settings.
+    if (id === 'text/Button Order') return Response.json(entity(id, config.settings.button_order ?? ''))
+    return current ? Response.json(current) : empty(404)
+  }
+
+  if (method === 'POST' && (current || name.startsWith('Screen')) && ['number', 'select', 'switch', 'text'].includes(domain)) {
+    const value = url.searchParams.get('value') ?? url.searchParams.get('option')
+    if (action === 'set' && value !== null) {
+      entities.set(id, entity(id, domain === 'number' ? Number(value) : value, current))
+    } else if (domain === 'switch' && (action === 'turn_on' || action === 'turn_off')) {
+      entities.set(id, entity(id, action === 'turn_on', current))
+    } else {
+      return empty(404)
+    }
+    saveSession()
+    return empty(204)
+  }
+  return empty(404)
 }
 
 // Use the snapshot's HTTP reads and always start on the home screen.
@@ -224,12 +289,21 @@ function startIdlePreview(grid: HTMLElement, slackSelector: string) {
   }
 }
 
-const slack = layout.rootCards.find(card => appShortcutPageOwner(card.config) === slackAppId)
-const ready = new MutationObserver(() => {
-  const grid = document.querySelector<HTMLElement>('.sp-main[aria-disabled="false"]')
-  if (!grid?.querySelector('button.sp-btn')) return
-  ready.disconnect()
-  startAppFocus(grid)
-  if (slack) startIdlePreview(grid, `button[data-slot="${slack.slot}"]`)
-})
-ready.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-disabled'] })
+if (editable) {
+  if (snapshot) document.querySelector('#demo-title')!.textContent = 'Editor demo · Your display'
+  document.querySelector('#reset-demo')!.addEventListener('click', () => {
+    if (!confirm('Reset the demo to its starting layout?')) return
+    try { sessionStorage.removeItem(editorSessionKey) } catch { /* Storage is unavailable. */ }
+    location.reload()
+  })
+} else {
+  const slack = initialConfig.layout.rootCards.find(card => appShortcutPageOwner(card.config) === slackAppId)
+  const ready = new MutationObserver(() => {
+    const grid = document.querySelector<HTMLElement>('.sp-main[aria-disabled="false"]')
+    if (!grid?.querySelector('button.sp-btn')) return
+    ready.disconnect()
+    startAppFocus(grid)
+    if (slack) startIdlePreview(grid, `button[data-slot="${slack.slot}"]`)
+  })
+  ready.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-disabled'] })
+}

@@ -157,6 +157,35 @@ async function checkBrowser() {
       assert(await calendar.evaluate(tile => tile.classList.contains('demo-app-on')),
         'Tapping another app transfers the on state');
     }
+    await page.getByRole('link', { name: 'Open editor demo', exact: true }).click();
+    const editorUrl = `${home}editor-demo/index.html`;
+    await page.waitForURL(editorUrl);
+    await page.getByRole('tab', { name: 'Layout', exact: true }).waitFor();
+    for (const tab of ['Layout', 'Screen', 'System']) {
+      assert(await page.getByRole('tab', { name: tab, exact: true }).isVisible());
+    }
+    const editorGrid = page.locator('.sp-main');
+    const safariTitle = editorGrid.locator('[data-slot="1"] .sp-editable-title');
+    await safariTitle.click();
+    const cardName = page.getByRole('textbox', { name: 'Card name', exact: true });
+    await cardName.fill('My Safari');
+    await cardName.press('Enter');
+    await page.waitForFunction(() => sessionStorage.getItem('espdesktop-editor-demo-v1'));
+    await page.reload();
+    await editorGrid.getByText('My Safari', { exact: true }).waitFor();
+
+    await page.goto(`${home}editor/index.html`);
+    await page.getByRole('button', { name: 'Safari', exact: true }).waitFor();
+    assert.equal(await page.getByRole('tab').count(), 0, 'The touchscreen demo stays read-only');
+
+    await page.goto(editorUrl);
+    await editorGrid.getByText('My Safari', { exact: true }).waitFor();
+    page.once('dialog', dialog => dialog.accept());
+    await page.getByRole('button', { name: 'Reset demo', exact: true }).click();
+    await editorGrid.getByText('Safari', { exact: true }).waitFor();
+    console.log('The separate editor saves and resets its own layout without changing the touchscreen demo.');
+
+    await page.goto(home);
     await setup.press('Enter');
     await page.waitForURL(`${home}getting-started/install`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');

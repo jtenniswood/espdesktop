@@ -109,7 +109,7 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap Back to 
 
 <div class="homepage-editor-actions">
 
-<a href="./editor/index.html" target="_self">Open full-size demo</a> [Get Started](/screens/4848s040#where-to-buy)
+<a href="./editor/index.html" target="_self">Open full-size demo</a> <a href="./editor-demo/index.html" target="_self">Open editor demo</a> [Get Started](/screens/4848s040#where-to-buy)
 
 </div>
 
