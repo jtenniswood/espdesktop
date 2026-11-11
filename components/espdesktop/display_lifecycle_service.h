@@ -82,7 +82,8 @@ class DisplayLifecycleService {
   bool allows_focus_navigation() const {
     return !blank_page_active_ && !wake_touch_guard_ &&
         controller_.current_mode_is(DisplayMode::ACTIVE) &&
-        controller_.target_mode_is(DisplayMode::ACTIVE);
+        controller_.target_mode_is(DisplayMode::ACTIVE) &&
+        !controller_.target_source_is(DisplayRequestSource::ONBOARDING);
   }
 
  private:
