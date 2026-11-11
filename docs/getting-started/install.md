@@ -23,4 +23,4 @@ next: false
 
 [Get help connecting to Wi-Fi](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
 
-**[Next · 2. Install and pair the Mac app](/getting-started/mac-app)**
+**[Next · download and pair companion app](/getting-started/mac-app)**

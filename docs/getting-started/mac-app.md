@@ -1,10 +1,10 @@
 ---
-title: Install and Pair the EspDesktop Mac App
+title: download and pair companion app
 description: Download EspDesktop for Mac, select your display, and enter its pairing code.
 next: false
 ---
 
-# 2. Install and pair the Mac app {#install-and-pair-the-espdesktop-mac-app}
+# download and pair companion app {#install-and-pair-the-espdesktop-mac-app}
 
 ## Install the Mac app {#install-a-release}
 
