@@ -31,8 +31,6 @@ Open apps, visit websites and run shortcuts from this 4-inch touchscreen for les
 
 ## What you can control
 
-These controls are available in the [stable EspDesktop release](https://github.com/jtenniswood/espdesktop/releases/latest). Window Control cards are available in [development builds that enable the preview](https://github.com/jtenniswood/espdesktop/issues/309).
-
 <div class="homepage-grid">
 
 <article>
