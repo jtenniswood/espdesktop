@@ -32,7 +32,12 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
 }
 
 #if WINDOWS
-var native = args is ["--verify-native-windows"] ? await NativeWindowsDesktop.Prepare() : null;
+var exerciseFolderActions = args is ["--verify-native-windows", "--exercise-folder-actions"];
+using var native = args is ["--verify-native-windows"] || exerciseFolderActions
+    ? await NativeWindowsDesktop.Prepare(exerciseFolderActions)
+    : null;
+#else
+const bool exerciseFolderActions = false;
 #endif
 
 using (var stream = typeof(FakeDesktop).Assembly.GetManifestResourceStream("ProtocolFixtures.json")!)
@@ -84,7 +89,7 @@ using var ephemeral = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(
 using var certificate = OperatingSystem.IsWindows()
     ? X509CertificateLoader.LoadPkcs12(ephemeral.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.UserKeySet)
     : new X509Certificate2(ephemeral);
-using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(exerciseFolderActions ? 50 : 25));
 var builder = WebApplication.CreateSlimBuilder();
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole();
@@ -183,9 +188,12 @@ var run = native is null ? StartSession() : NativeWindowsDesktop.RunOnDesktop(St
 #else
 var run = StartSession();
 #endif
-await checks.Task.WaitAsync(lifetime.Token);
-await sessionLifetime.CancelAsync();
-await run;
+try { await checks.Task.WaitAsync(lifetime.Token); }
+finally
+{
+    await sessionLifetime.CancelAsync();
+    await run;
+}
 Check(saved.Sequence == 8 && rejectedSequence == 1, "authenticated counter recovery");
 #if WINDOWS
 if (native is not null)
@@ -223,7 +231,9 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
 {
     var catalogue = await FindMessage(socket, "catalogue.page", m => m.GetProperty("complete").GetBoolean());
     var entries = catalogue.GetProperty("items").EnumerateArray().ToDictionary(item => Text(item, "id"));
-    Check(entries.Count == 3 && entries.ContainsKey(WindowsDesktop.ExplorerId), "publish the approved Explorer entry only");
+    var folderCount = fixture.FolderActions is null ? 2 : 5;
+    Check(entries.Count == folderCount + 1 && entries.ContainsKey(WindowsDesktop.ExplorerId),
+        "publish the approved folders and Explorer entry only");
     Check(entries.TryGetValue("folder.windows-test", out var folder) && Text(folder, "label") == "Project files",
         "publish the approved folder name");
     Check(entries.TryGetValue("folder.windows-drive", out var drive) && Text(drive, "label") == fixture.DriveLabel,
@@ -274,6 +284,36 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     await FindMessage(socket, "app_icon.end", m => UInt(m, "generation") == generation);
     Check(Hash(image) == Text(icon, "sha256") && image.Skip(side * side * 2).Any(alpha => alpha > 0) &&
           image.Take(side * side * 2).Distinct().Count() > 1, "native icon digest and visible pixels");
+
+    if (fixture.FolderActions is { } folders)
+        await VerifyFolderActions(socket, folders);
+}
+
+async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
+{
+    await OpenFolder("folder.windows-denied", "new_window", "not_allowed");
+
+    await OpenFolder("folder.windows-first", "new_window", "opened");
+    var firstWindow = await folders.WaitForWindow(folders.First, lifetime.Token);
+
+    await OpenFolder("folder.windows-second", "same_window", "opened");
+    var secondWindow = await folders.WaitForWindow(folders.Second, lifetime.Token);
+    Check(secondWindow == firstWindow, "Same window navigates the existing File Explorer window");
+
+    await OpenFolder("folder.windows-third", "new_window", "opened");
+    var thirdWindow = await folders.WaitForWindow(folders.Third, lifetime.Token);
+    Check(thirdWindow != secondWindow, "New window opens a separate File Explorer window");
+    Check(!await folders.IsOpen(folders.Denied), "an unapproved folder stays closed");
+    Console.WriteLine("Passed authenticated Windows folder actions with real File Explorer windows.");
+
+    async Task OpenFolder(string id, string behavior, string status)
+    {
+        await Send(socket, "action.invoke", ("kind", "action"), ("actionId", id),
+            ("folderOpenBehavior", behavior), ("requestId", id));
+        var result = await FindMessage(socket, "action.result", m => Text(m, "requestId") == id);
+        var actual = Text(result, "status");
+        Check(actual == status, $"{behavior} for {id} reported {actual}, expected {status}");
+    }
 }
 #endif
 
