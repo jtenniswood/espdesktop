@@ -806,6 +806,9 @@ void EspDesktopApp::loop() {
   const bool focus_pending = companion_runtime_service().focus_refresh_pending();
 #endif
   companion_refresh_cards_if_requested();
+#ifdef USE_COMPANION
+  if (scene_ready) network_status_sync_mac_update_notice();
+#endif
   trace_phase("card refresh");
 #ifdef USE_COMPANION
   // Let the next LVGL pass paint a focus change before starting background

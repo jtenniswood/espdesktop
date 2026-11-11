@@ -75,13 +75,13 @@ python3 scripts/test_release_hardware.py record --host PANEL_IP \
   --candidate-run RUN_ID --manifest companion-compatibility.json
 ```
 
-The runner guides pairing, five nested shortcut and Back cycles, wake, an
-offline editor save, and a reboot. Change a tile, the theme and Night Schedule
-during the offline edit. The runner checks that the panel saved a new native
-configuration and returned the same document after the reboot. The report
-includes generation numbers, while layout content stays on the local network.
-The runner measures internal heap and PSRAM, records page-open and Back
-first-frame times for each navigation cycle, and checks Mac reconnection.
+The release check has two steps.
+
+1. With the candidate Mac app connected, run one nested Mac shortcut and tap Back.
+2. Restart the display and wait for the Mac app to reconnect.
+
+The runner checks the reboot and Mac connection, measures memory, and records
+page-open and Back first-frame timings.
 The session verifies the running firmware’s embedded ELF digest against the
 candidate OTA image, including rebuilds with the same version tag.
 The operator performs and confirms the steps. The runner makes read-only

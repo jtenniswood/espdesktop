@@ -394,10 +394,16 @@ class CompanionRuntimeService {
     return true;
   }
 
+  bool mac_update_required() const { return mac_update_required_.load(); }
+  void set_mac_update_required(bool required) { mac_update_required_.store(required); }
+
   void set_connected(bool connected) {
     std::lock_guard<std::mutex> lock(mutex_);
     connected_ = connected;
-    if (connected_) keyboard_actions_supported_ = true;
+    if (connected_) {
+      keyboard_actions_supported_ = true;
+      set_mac_update_required(false);
+    }
     if (!connected_) {
       values_.clear();
       focused_action_id_.clear();
@@ -440,6 +446,7 @@ class CompanionRuntimeService {
   bool keyboard_actions_supported_{false};
   bool connected_{false};
   CompanionSystemMetricsSnapshot system_metrics_;
+  std::atomic<bool> mac_update_required_{false};
   std::atomic<bool> refresh_requested_{false};
   std::atomic<bool> focus_refresh_requested_{false};
 };

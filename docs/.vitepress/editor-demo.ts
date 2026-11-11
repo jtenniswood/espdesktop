@@ -1,3 +1,4 @@
+import { COMPANION_APP_ICON_SIDE } from '../../src/webserver/generated/companion_capabilities'
 import { COMPANION_FOLDER_PREFIX, companionCardHasAppIcon } from '../../src/webserver/model/companion_card_codec'
 import { appShortcutPageOwner } from '../../src/webserver/model/companion_shortcut_page'
 import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webserver/model/panel_config_conversion'
@@ -5,10 +6,26 @@ import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webs
 const deviceProfile = 'guition-esp32-s3-4848s040'
 const maxConfigBytes = 512 * 1024
 const configType = 'application/vnd.espdesktop.panel-config'
-const editorSessionKey = 'espdesktop-editor-demo-v1'
+const editorSessionKey = 'espdesktop-editor-demo-v2'
 const displayBacklightId = 'light/Display Backlight'
 const editable = document.documentElement.hasAttribute('data-espdesktop-editor-demo')
 const slackAppId = 'com.tinyspeck.slackmacgap'
+// Public demo IDs for the captured web apps are independent of any Mac installation.
+const sampleApps = [
+  { id: 'com.apple.finder', label: 'Finder', icon: 'finder' },
+  { id: 'com.apple.Safari', label: 'Safari', icon: 'safari' },
+  { id: 'demo.web.calendar', label: 'Calendar', icon: 'calendar' },
+  { id: 'demo.web.mail', label: 'Mail', icon: 'mail' },
+  { id: slackAppId, label: 'Slack', icon: 'slack' },
+  { id: 'com.apple.Notes', label: 'Notes', icon: 'notes' },
+  { id: 'demo.web.athena', label: 'Athena', icon: 'athena' },
+  { id: 'com.openai.codex', label: 'ChatGPT', icon: 'chatgpt' },
+  { id: 'com.anthropic.claudefordesktop', label: 'Claude', icon: 'claude' },
+]
+const sampleShortcutPages: Record<string, string> = {
+  'com.apple.Safari': '~B,1,2,3|CP,shortcut.command+l,Address Bar,Magnify|CP,shortcut.command+t,New Tab,Tab Plus|CP,shortcut.command+f,Find,Text Search',
+  [slackAppId]: '~B,1,2,3|CP,shortcut.command+n,New Message,Chat Plus|CP,shortcut.command+g,Search,Magnify|CP,shortcut.command+shift+k,Browse DMs,Chat',
+}
 const idleDelayMs = 5000
 const pressDurationMs = 180
 const embedded = !editable && window.parent !== window
@@ -46,25 +63,21 @@ function entity(id: string, value: Entity['value'], details?: Partial<Entity>): 
 const sample = {
   layout: encodePanelPageDocument({
     deviceProfile,
-    buttons: {
-      1: 'com.apple.Safari;Safari;Web;Auto;;;companion',
-      2: 'com.apple.iCal;Calendar;Calendar;Auto;;;companion',
-      3: 'com.apple.Notes;Notes;Note Text;Auto;;;companion',
-      4: 'shortcut.command+space;Spotlight;Magnify;Auto;;;companion',
-      5: 'stat.memory;Memory;Memory;Auto;;;companion',
-      6: ';Browser;Tab;Auto;;;subpage',
-      7: `${slackAppId};Slack;Chat;Auto;;;companion;;app_shortcuts`,
-    },
-    subpages: {
-      6: '~B,1,2,3|CP,shortcut.command+l,Address Bar,Magnify|CP,shortcut.command+t,New Tab,Tab Plus|CP,shortcut.command+f,Find,Text Search',
-      7: '~B,1,2,3|CP,shortcut.command+n,New Message,Chat Plus|CP,shortcut.command+g,Search,Magnify|CP,shortcut.command+shift+k,Browse DMs,Chat',
-    },
-    settings: { button_order: '1,2,3,4,5,6,7' },
+    buttons: Object.fromEntries(sampleApps.map(({ id, label }, index) => [
+      index + 1,
+      `${id};${label};Auto;Auto;;;companion;;app_hide_label${sampleShortcutPages[id] ? ',app_shortcuts' : ''}`,
+    ])),
+    subpages: Object.fromEntries(sampleApps.flatMap(({ id }, index) => {
+      const page = sampleShortcutPages[id]
+      return page ? [[index + 1, page]] : []
+    })),
+    settings: { button_order: sampleApps.map((_, index) => index + 1).join(',') },
   }),
   entities: [
-    entity('switch/Screen: Clock Bar', true),
+    entity('switch/Screen: Clock Bar', false),
     entity('switch/Screen: Clock Bar Time', true),
-    entity('switch/Screen: Subpage Chevron', true),
+    entity('switch/Screen: Subpage Chevron', false),
+    entity('select/Screen: Default Icon Size', 'Large'),
     entity(displayBacklightId, true, { brightness: 75 }),
   ],
 }
@@ -101,15 +114,50 @@ let generation = 1
 const entities = new Map(seed.entities.map(item => [item.id, item]))
 const appIcons = snapshot?.appIcons
 
-function demoAppIcon(appId: string | null, background = '') {
+function snapshotAppIcon(appId: string, background = '') {
   return appIcons?.[JSON.stringify([appId, background])] ?? appIcons?.[JSON.stringify([appId, ''])]
+}
+
+// The real preview expects packed RGB565 pixels followed by a separate alpha plane.
+const sampleIconRequests = new Map<string, Promise<Uint8Array<ArrayBuffer> | null>>()
+function sampleAppIcon(appId: string) {
+  const app = sampleApps.find(({ id }) => id === appId)
+  if (!app) return null
+  let request = sampleIconRequests.get(appId)
+  if (!request) {
+    const image = new Image()
+    image.src = new URL(`../editor/icons/${app.icon}.png`, location.href).href
+    request = image.decode().then(() => {
+      const side = COMPANION_APP_ICON_SIDE
+      const count = side * side
+      const canvas = document.createElement('canvas')
+      canvas.width = canvas.height = side
+      const context = canvas.getContext('2d')
+      if (!context) return null
+      context.drawImage(image, 0, 0, side, side)
+      const rgba = context.getImageData(0, 0, side, side).data
+      const pixels = new Uint8Array(count * 3)
+      const packed = new DataView(pixels.buffer)
+      for (let i = 0; i < count; i++) {
+        const offset = i * 4
+        const red = (rgba[offset] ?? 0) >> 3
+        const green = (rgba[offset + 1] ?? 0) >> 2
+        const blue = (rgba[offset + 2] ?? 0) >> 3
+        packed.setUint16(i * 2, (red << 11) | (green << 5) | blue, true)
+        pixels[count * 2 + i] = rgba[offset + 3] ?? 0
+      }
+      return pixels
+    }).catch(() => null)
+    sampleIconRequests.set(appId, request)
+  }
+  return request
 }
 
 // Keep the picker tied to the starting layout even after its cards are edited or deleted.
 const demoApps = new Map<string, { id: string; label: string }>()
 if (editable) {
   for (const { config: card } of startingConfig.layout.rootCards) {
-    if (!companionCardHasAppIcon(card) || (appIcons && !demoAppIcon(card.entity))) continue
+    if (!companionCardHasAppIcon(card) || (appIcons && !snapshotAppIcon(card.entity))) continue
     demoApps.set(card.entity, { id: card.entity, label: card.label || card.entity })
   }
 }
@@ -164,12 +212,14 @@ window.fetch = async (input, init) => {
         return editable ? Response.json([...demoApps.values(), ...demoFolders]) : empty(404)
       case '/companion/app-icon': {
         const appId = url.searchParams.get('appId')
-        const background = url.searchParams.get('background') ?? ''
-        const icon = demoAppIcon(appId, background)
-        if (!icon) return empty(404)
-        const pixels = Uint8Array.from(atob(icon.pixels), char => char.charCodeAt(0))
+        if (!appId) return empty(404)
+        const icon = snapshotAppIcon(appId, url.searchParams.get('background') ?? '')
+        const pixels = snapshot
+          ? icon && Uint8Array.from(atob(icon.pixels), char => char.charCodeAt(0))
+          : await sampleAppIcon(appId)
+        if (!pixels) return empty(404)
         const headers = new Headers({ 'X-EspDesktop-Companion-Online': 'true' })
-        if (icon.palette) headers.set('X-EspDesktop-App-Icon-Palette', icon.palette)
+        if (icon?.palette) headers.set('X-EspDesktop-App-Icon-Palette', icon.palette)
         return new Response(pixels, { headers })
       }
     }

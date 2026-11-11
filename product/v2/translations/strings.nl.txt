@@ -335,3 +335,5 @@ output_mute=Uitvoer dempen
 microphone_mute=Microfoon dempen
 mic=Microfoon
 mute=Dempen
+mac_update_required=Update de Mac-app
+mac_update_reconnect=Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.

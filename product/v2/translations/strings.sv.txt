@@ -335,3 +335,5 @@ output_mute=Stäng av ljud
 microphone_mute=Stäng av mikrofon
 mic=Mikrofon
 mute=Tysta
+mac_update_required=Uppdatera Mac-appen
+mac_update_reconnect=Uppdatera EspDesktop på din Mac för att ansluta igen.

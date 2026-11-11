@@ -335,3 +335,5 @@ output_mute=Ztlumit výstup
 microphone_mute=Ztlumit mikrofon
 mic=Mikrofon
 mute=Ztlumit
+mac_update_required=Aktualizovat aplikaci pro Mac
+mac_update_reconnect=Pro opětovné připojení aktualizujte EspDesktop na Macu.

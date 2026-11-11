@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/screens/4848s040) for less than **$26/£20**. Pair it over your local network with the [Mac app](/getting-started/mac-app), **free for non-commercial use**.
+Open apps, visit websites and run shortcuts from this 4-inch touchscreen for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
@@ -30,6 +30,8 @@ Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/scre
 <section class="homepage-features">
 
 ## What you can control
+
+These controls are available in the [stable EspDesktop release](https://github.com/jtenniswood/espdesktop/releases/latest). Window Control cards are available in [development builds that enable the preview](https://github.com/jtenniswood/espdesktop/issues/309).
 
 <div class="homepage-grid">
 
@@ -137,7 +139,7 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app icon to go back home.
+Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap the app icon to go back home.
 
 <div class="homepage-editor-actions">
 
@@ -224,7 +226,7 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app 
 }
 
 .homepage-panel {
-  width: min(100%, 440px);
+  width: min(100%, 560px);
   justify-self: center;
 }
 
@@ -348,15 +350,11 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app 
 @media (min-width: 768px) {
   .homepage-hero,
   .homepage-editor {
-    gap: clamp(32px, 6vw, 80px);
-  }
-
-  .homepage-hero {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .homepage-editor {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(32px, 6vw, 80px);
   }
 
   .homepage-demo {
