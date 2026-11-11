@@ -16,7 +16,7 @@ Connect your [Guition 4848S040](/screens/4848s040) to your Mac with a USB-C data
 
 ## 2. Install and pair the Mac app
 
-On macOS 13 or newer, open the EspDesktop app, choose your screen, and enter the pairing code.
+After WiFi setup, the display shows where to download the EspDesktop app. On macOS 13 or newer, open the app, choose your screen, and enter the pairing code. Once paired, the setup screen shows the display’s local web address.
 
 **[Download and pair the Mac app](/getting-started/mac-app)**
 
