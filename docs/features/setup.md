@@ -18,6 +18,8 @@ Apps and folders must first be approved in the Mac app. Keyboard shortcuts and M
 
 ## Arrange and Personalise Cards
 
+The [Home guide](/features/home) walks through editing the grid, adding cards and creating custom subpages.
+
 - Drag cards to move them. Dropping one onto an occupied tile shifts that card to the next available space.
 - Drag a card’s bottom-right resize handle to make it wider or taller. Press Escape or cancel the drag to keep the original size.
 - Click a displayed card name to rename it and press Enter to save. Escape or clicking away cancels. Generated status text stays automatic.
