@@ -105,7 +105,7 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## Arrange tiles in your browser {#a-look-at-the-web-editor}
 
-Try the touchscreen here. Tap Slack to open its shortcut page, then tap Back to return.
+Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app icon to go back home.
 
 <div class="homepage-editor-actions">
 
