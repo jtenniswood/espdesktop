@@ -9,7 +9,17 @@ namespace EspDesktop;
 
 internal sealed record ApprovedFolder(string Id, string Path)
 {
-    public string Label => System.IO.Path.GetFileName(Path.TrimEnd('\\', '/')) is { Length: > 0 } name ? name : Path;
+    public string Label
+    {
+        get
+        {
+            var name = System.IO.Path.GetFileName(Path.TrimEnd('\\', '/'));
+            if (name.Length > 0) return name;
+            if (Path.Length >= 2 && char.IsAsciiLetter(Path[0]) && Path[1] == ':')
+                return $"Drive {char.ToUpperInvariant(Path[0])}";
+            return "Folder";
+        }
+    }
 }
 
 internal sealed class LocalSettings
