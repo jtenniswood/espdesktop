@@ -144,6 +144,8 @@ internal static class Protocol
 
 internal sealed record DisplayEndpoint(Uri Socket, Uri Settings)
 {
+    public Uri PairingPage => new UriBuilder(Settings) { Query = "tab=connectors&connector=mac_companion" }.Uri;
+
     public static DisplayEndpoint Parse(string value)
     {
         var raw = value.Trim();
@@ -160,7 +162,7 @@ internal sealed record DisplayEndpoint(Uri Socket, Uri Settings)
         var socket = new UriBuilder(uri) { Scheme = "wss", Port = explicitPort ? uri.Port : 8443,
             Path = Protocol.SocketPath, Query = "", Fragment = "" }.Uri;
         var settings = new UriBuilder(uri) { Scheme = uri.Scheme == "https" ? "https" : "http", Port = -1,
-            Path = "/", Query = "tab=connectors&connector=mac_companion", Fragment = "" }.Uri;
+            Path = "/", Query = "", Fragment = "" }.Uri;
         return new(socket, settings);
     }
 

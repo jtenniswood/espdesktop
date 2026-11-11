@@ -43,7 +43,7 @@ internal sealed class App : Application
             {
                 var menu = new Forms.ContextMenuStrip();
                 menu.Items.Add("Open EspDesktop", null, (_, _) => window.ShowSettings());
-                menu.Items.Add("Open display settings", null, (_, _) => window.OpenPanel());
+                menu.Items.Add("Open display editor", null, (_, _) => window.OpenPanel());
                 menu.Items.Add("Connect / disconnect", null, async (_, _) => await window.ToggleConnection());
                 menu.Items.Add(new Forms.ToolStripSeparator());
                 menu.Items.Add("Quit EspDesktop", null, (_, _) => window.Quit());

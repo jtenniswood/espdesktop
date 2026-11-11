@@ -102,6 +102,7 @@ internal sealed class SettingsWindow : Window
         AutomationProperties.SetName(address, "Display address");
         AutomationProperties.SetName(code, "Pairing code");
         AutomationProperties.SetLiveSetting(connectionText, AutomationLiveSetting.Polite);
+        AutomationProperties.SetLiveSetting(notice, AutomationLiveSetting.Polite);
         code.KeyDown += async (_, e) => { if (e.Key == Key.Enter) { e.Handled = true; await Pair(); } };
         updatesTimer.Tick += async (_, _) => await CheckUpdates(false);
     }
@@ -163,14 +164,27 @@ internal sealed class SettingsWindow : Window
         Activate();
     }
 
-    public void OpenPanel()
+    public void OpenPanel() => OpenPanel(pairingPage: false);
+
+    private void OpenPanel(bool pairingPage)
     {
+        DisplayEndpoint endpoint;
+        try { endpoint = DisplayEndpoint.Parse(pairing?.Address ?? address.Text); }
+        catch (ArgumentException e)
+        {
+            ShowSettings();
+            navigation.SelectedIndex = 0;
+            Report(e.Message);
+            return;
+        }
+        Report("");
         try
         {
-            if (!WindowsDesktop.OpenShell(DisplayEndpoint.Parse(pairing?.Address ?? address.Text).Settings.AbsoluteUri))
-                Report("Windows couldn’t open the display’s settings.");
+            if (WindowsDesktop.OpenShell((pairingPage ? endpoint.PairingPage : endpoint.Settings).AbsoluteUri)) return;
         }
-        catch (Exception e) when (WindowsDesktop.IsShellFailure(e)) { Report("Enter a local display address first."); }
+        catch (Exception e) when (WindowsDesktop.IsShellFailure(e)) { }
+        ShowSettings();
+        Report("Windows couldn’t open the display in your browser.");
     }
 
     public async Task ToggleConnection()
@@ -379,7 +393,7 @@ internal sealed class SettingsWindow : Window
         {
             var card = Card(saved.DisplayName ?? "Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Authority);
             card.Children.Add(connectionText);
-            Row(card, Button("Open display settings", OpenPanel),
+            Row(card, Button("Open display editor", OpenPanel),
                 Button(connectionCancellation == null ? "Connect" : "Disconnect", async () => await ToggleConnection()),
                 Button("Forget display", async () => await Forget()));
         }
@@ -397,7 +411,7 @@ internal sealed class SettingsWindow : Window
                 Row(card, Button($"Use {display.Name} ({display.Address})", () => { address.Text = display.Address; address.Focus(); }));
             Field(card, "Display address", address,
                 Button(scanning ? "Finding displays…" : "Find nearby displays", async () => await Scan(), !scanning && !busy));
-            Row(card, Button("Open pairing page", OpenPanel, !busy));
+            Row(card, Button("Open pairing page", () => OpenPanel(pairingPage: true), !busy));
             card.Children.Add(Paragraph("Get the code from the pairing page or press and hold the display’s Wi-Fi icon."));
             var pair = Button("Pair display", async () => await Pair(), !busy);
             if (TryFindResource("AccentButtonStyle") is Style accent) pair.Style = accent;

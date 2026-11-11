@@ -64,8 +64,12 @@ using (var fixtures = JsonDocument.Parse(stream))
 }
 
 Check(DisplayEndpoint.Parse("192.168.1.2").Socket.AbsoluteUri == "wss://192.168.1.2:8443/companion/v4", "default display port");
-Check(DisplayEndpoint.Parse("https://panel.local:9443/path").Settings.AbsoluteUri ==
-      "https://panel.local/?tab=connectors&connector=mac_companion", "display web settings");
+var panelEndpoint = DisplayEndpoint.Parse("https://panel.local:9443/path?tab=device#fragment");
+Check(panelEndpoint.Settings.AbsoluteUri == "https://panel.local/", "open the display editor");
+Check(panelEndpoint.PairingPage.AbsoluteUri ==
+      "https://panel.local/?tab=connectors&connector=mac_companion", "open the display pairing page");
+Check(DisplayEndpoint.Parse("[fd00::1]:9000").PairingPage.AbsoluteUri ==
+      "http://[fd00::1]/?tab=connectors&connector=mac_companion", "open the IPv6 display pairing page");
 Check(DisplayEndpoint.Parse("[fd00::1]:9000").Socket.Port == 9000, "IPv6 display port");
 foreach (var invalid in new[] { "example.com", "172.32.0.1", "8.8.8.8", "http://a@panel.local", "file://panel.local", "0.0.0.0" })
 {

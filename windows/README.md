@@ -13,7 +13,7 @@ Setup installs for the current user and includes the .NET runtime. It does not n
 
 ## Pair and control Windows
 
-Keep the PC and display on the same local network. In **Display**, select a nearby display or enter its address. Choose **Open pairing page**, read the code, and enter it in the Windows app. You can also press and hold the Wi-Fi icon on the display for a code. If the display is paired to a different computer, reset its Companion pairing first. The display pairs with one computer at a time.
+Keep the PC and display on the same local network. In **Display**, select a nearby display or enter its address. Choose **Open pairing page**, read the code, and enter it in the Windows app. You can also press and hold the Wi-Fi icon on the display for a code. If the display is paired to a different computer, reset its Companion pairing first. The display pairs with one computer at a time. After pairing, choose **Open display editor** in Settings or the notification area to customize your cards.
 
 Existing S3 firmware calls the connector **Mac Companion**. Use that connector for Windows too. In the display’s web editor you can:
 
