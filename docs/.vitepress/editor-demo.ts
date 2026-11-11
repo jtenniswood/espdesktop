@@ -6,6 +6,7 @@ const deviceProfile = 'guition-esp32-s3-4848s040'
 const maxConfigBytes = 512 * 1024
 const configType = 'application/vnd.espdesktop.panel-config'
 const editorSessionKey = 'espdesktop-editor-demo-v1'
+const displayBacklightId = 'light/Display Backlight'
 const editable = document.documentElement.hasAttribute('data-espdesktop-editor-demo')
 const slackAppId = 'com.tinyspeck.slackmacgap'
 const idleDelayMs = 5000
@@ -64,7 +65,7 @@ const sample = {
     entity('switch/Screen: Clock Bar', true),
     entity('switch/Screen: Clock Bar Time', true),
     entity('switch/Screen: Subpage Chevron', true),
-    entity('light/Display Backlight', true, { brightness: 75 }),
+    entity(displayBacklightId, true, { brightness: 75 }),
   ],
 }
 
@@ -200,6 +201,15 @@ window.fetch = async (input, init) => {
     // The editor uses a legacy read to finish loading its screen settings.
     if (id === 'text/Button Order') return Response.json(entity(id, config.settings.button_order ?? ''))
     return current ? Response.json(current) : empty(404)
+  }
+
+  if (method === 'POST' && id === displayBacklightId && action === 'turn_on') {
+    const value = url.searchParams.get('brightness')
+    const brightness = Number(value)
+    if (!value?.trim() || !Number.isInteger(brightness) || brightness < 0 || brightness > 255) return empty(400)
+    entities.set(id, entity(id, true, { brightness }))
+    saveSession()
+    return empty(204)
   }
 
   if (method === 'POST' && (current || name.startsWith('Screen')) && ['number', 'select', 'switch', 'text'].includes(domain)) {

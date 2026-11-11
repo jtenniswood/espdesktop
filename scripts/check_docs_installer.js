@@ -207,6 +207,24 @@ async function checkBrowser() {
     await page.reload();
     await editorGrid.getByText('Downloads', { exact: true }).waitFor();
 
+    const openBacklight = async () => {
+      await page.getByRole('tab', { name: 'Screen', exact: true }).click();
+      await page.getByRole('heading', { name: 'Backlight', exact: true }).click();
+    };
+    await openBacklight();
+    await page.getByRole('button', { name: 'Manual', exact: true }).click();
+    const brightnessField = page.locator('.sp-field').filter({ has: page.getByText('Brightness', { exact: true }) });
+    const brightness = brightnessField.getByRole('slider');
+    await brightness.fill('65');
+    await page.waitForFunction(async () => {
+      const response = await fetch('/light/Display%20Backlight');
+      return (await response.json()).brightness === Math.round(65 * 2.55);
+    });
+    await page.reload();
+    await openBacklight();
+    await brightnessField.getByText('65%', { exact: true }).waitFor();
+    assert.equal(await brightness.inputValue(), '65');
+
     await page.goto(`${home}editor/index.html`);
     await page.getByRole('button', { name: 'Safari', exact: true }).waitFor();
     assert.equal(await page.getByRole('tab').count(), 0, 'The touchscreen demo stays read-only');
