@@ -125,13 +125,13 @@ and records that earlier generated validation through
 `--preverified-task generated --preverified-task web-asset-manifest`. Other
 checks run against the prepared assets.
 
-The `pr` matrix selects one representative device per chip family, including
-a P4 recovery image where applicable. The firmware check publishes factory
-and OTA images for each representative panel. Download the
-`pr-firmware-<slug>` artifact from the workflow run for the commit you want
-to test. The `nightly` and `release` matrices
-continue to include every device. This selection is exposed by
-`python3 scripts/device_matrix.py pr`.
+The `pr` matrix compiles public release targets first. It then compiles one
+manual platform target for each remaining chip family, including the P4
+recovery image where applicable. The firmware check publishes factory and OTA
+images in the `pr-firmware-<slug>` artifact for the commit under test.
+Nightly builds cover every device profile. Release builds use the public
+list in `product/release_devices.json`, currently the 4848S040.
+`python3 scripts/device_matrix.py pr` prints the PR build order.
 
 ## Device Build Flags
 

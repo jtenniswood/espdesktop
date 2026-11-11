@@ -9,6 +9,7 @@
 
 #include "application_scene_runtime.h"
 #include "configuration_buffer.h"
+#include "display_brightness_preferences.h"
 #include "display_theme_preferences.h"
 #include "screen_schedule_preferences.h"
 #include "espdesktop_app_core.h"
@@ -18,9 +19,6 @@
 
 #include "panel_identity.h"
 #include "panel_config_text_storage.h"
-namespace esphome::switch_ {
-class Switch;
-}
 namespace esphome::template_ {
 class TemplateText;
 }
@@ -54,24 +52,46 @@ class EspDesktopApp : public esphome::Component {
   const DisplayModeController &display() const { return core_.display(); }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
-  void bind_app_subpage_preference_switch(esphome::switch_::Switch &setting);
-  void bind_screen_schedule(std::function<void(const ScreenSchedulePreferences &)> apply) {
-    apply_screen_schedule_ = std::move(apply);
-    if (screen_schedule_) apply_screen_schedule_(*screen_schedule_);
-  }
-  void bind_display_theme_preferences(std::function<ThemeSettings()> read_legacy,
-      std::function<void(const ThemeSettings &)> publish);
-  // The old entities remain valid input controls. Once a portable group exists,
-  // edit that group so every input shares the same durable configuration.
+  using ScalarSetting = panel_settings::ScalarSetting;
+  using ScalarPublisher = void (*)(std::string_view);
+  void bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish);
+  void edit_panel_scalar(ScalarSetting setting, std::string_view value);
+  void edit_panel_number(ScalarSetting setting, float value);
+  using BrightnessPublisher = void (*)(const DisplayBrightnessPreferences &);
+  void bind_display_brightness_preferences(BrightnessPublisher publish);
+  const DisplayBrightnessPreferences &display_brightness_preferences() const { return display_brightness_; }
+  void save_display_brightness_preferences(const DisplayBrightnessPreferences &settings);
+  void edit_manual_brightness(float fraction);
   template<typename T>
-  bool edit_display_theme_preference(T ThemeSettings::*field, T value) {
-    if (!display_theme_preferences_) return false;
-    if ((*display_theme_preferences_).*field != value) {
-      auto next = *display_theme_preferences_;
-      next.*field = value;
-      save_display_theme_preferences(next);
-    }
-    return true;
+  void edit_display_brightness_preference(T DisplayBrightnessPreferences::*field, T value) {
+    auto next = display_brightness_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_brightness_preferences(next);
+  }
+  void bind_screen_schedule(unsigned default_clock_brightness,
+      std::function<void(const ScreenSchedulePreferences &)> apply);
+  const ScreenSchedulePreferences &screen_schedule_preferences() const {
+    return screen_schedule_ ? *screen_schedule_ : screen_schedule_defaults_;
+  }
+
+  template<typename T>
+  void edit_screen_schedule_preference(T ScreenSchedulePreferences::*field, T value) {
+    auto next = screen_schedule_preferences();
+    if (next.*field == value) return;
+    next.*field = value;
+    save_screen_schedule_preferences(next);
+  }
+  void edit_screen_schedule_number(unsigned ScreenSchedulePreferences::*field, float value);
+  void bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish);
+  const ThemeSettings &display_theme_preferences() const { return display_theme_preferences_; }
+
+  template<typename T>
+  void edit_display_theme_preference(T ThemeSettings::*field, T value) {
+    auto next = display_theme_preferences_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_theme_preferences(next);
   }
 
   // The scene belongs to the firmware application's UI owner and outlives this
@@ -158,9 +178,11 @@ class EspDesktopApp : public esphome::Component {
   void initialize_native_configuration();
   void defer_native_configuration_initialization();
   void apply_boot_configuration();
-  void publish_app_subpage_preference(bool enabled);
   void publish_display_theme_preferences(const std::optional<ThemeSettings> &settings);
   void save_display_theme_preferences(const ThemeSettings &settings);
+  void save_screen_schedule_preferences(const ScreenSchedulePreferences &settings);
+  bool save_panel_setting(std::string_view key, std::string_view value);
+  std::string_view panel_scalar_value(ScalarSetting setting) const;
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
@@ -185,12 +207,13 @@ class EspDesktopApp : public esphome::Component {
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
-  esphome::switch_::Switch *app_subpage_switch_{nullptr};
+  std::array<ScalarPublisher, panel_settings::SCALAR_RULES.size()> scalar_publishers_{};
+  DisplayBrightnessPreferences display_brightness_;
+  BrightnessPublisher apply_display_brightness_{nullptr};
   std::optional<ScreenSchedulePreferences> screen_schedule_;
+  ScreenSchedulePreferences screen_schedule_defaults_{};
   std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;
-  std::optional<ThemeSettings> display_theme_preferences_;
-  std::optional<ThemeSettings> legacy_display_theme_preferences_;
-  std::function<ThemeSettings()> read_legacy_display_theme_preferences_;
+  ThemeSettings display_theme_preferences_{};
   std::function<void(const ThemeSettings &)> display_theme_preferences_changed_;
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};

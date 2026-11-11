@@ -1,6 +1,6 @@
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -69,11 +69,11 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
+import { appShortcutPageOwner } from "../model/companion_shortcut_page";
 
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
 const COMPANION_STATS_PLACEHOLDER = "stats";
-export const COMPANION_FOLDER_PREFIX = "folder.";
 const COMPANION_STATS_MODES = ["stats", ...COMPANION_SYSTEM_METRICS.map((metric) => metric.mode)];
 export const COMPANION_STATS_OPTIONS = COMPANION_SYSTEM_METRICS
     .map((metric) => [metric.mode, metric.label] as const)
@@ -434,6 +434,7 @@ export function registerCompanionCardTypes(
     selection: Pick<ButtonSettingsSelectionFeature, "closeSettings">,
     maxSlots: number,
     connectorStatus: Pick<ConnectorsPageFeature, "onCompanionConnectionChange">,
+    publishFinderFolders: (folders: readonly CompanionAction[]) => boolean,
 ): void {
     const { cardBadgePreview, cardBadgeLabelHtml, cardSensorPreviewHtml, fieldLabel } = fields;
     const { renderButtonSettings, renderPreview } = cardUi;
@@ -445,7 +446,9 @@ export function registerCompanionCardTypes(
     const companionCatalogueMonitor = createCompanionCatalogueMonitor(
         () => loadCompanionActions(true),
         function (actions) {
-            if (rememberCompanionApplications(actions)) cardUi.renderPreview();
+            const folders = actions.filter(action => action.id.startsWith(COMPANION_FOLDER_PREFIX));
+            const foldersChanged = publishFinderFolders(folders);
+            if (rememberCompanionApplications(actions) || foldersChanged) cardUi.renderPreview();
         },
     );
 
@@ -480,7 +483,10 @@ export function registerCompanionCardTypes(
         }).catch(function () {});
         connectorStatus.onCompanionConnectionChange(function (connected) {
             if (connected) companionCatalogueMonitor.start();
-            else companionCatalogueMonitor.stop();
+            else {
+                companionCatalogueMonitor.stop();
+                if (publishFinderFolders([])) cardUi.renderPreview();
+            }
             document.dispatchEvent(new CustomEvent("espdesktop:app-icon-cache-cleared", { detail: {
                 name: "companion-connection", value: String(connected),
             } }));
@@ -1379,7 +1385,7 @@ export function registerCompanionCardTypes(
             }
             const hideAppLaunchLabel = companionAppLaunchCard(card) &&
                 configOptionEnabled(card.options, "app_hide_label");
-            if (companionAppShortcutFolderEnabled(card)) {
+            if (appShortcutPageOwner(card)) {
                 if (hideAppLaunchLabel) {
                     preview.labelHtml =
                         '<span class="sp-btn-label-row"><span class="sp-subpage-badge mdi mdi-chevron-right"></span></span>';
@@ -1396,7 +1402,7 @@ export function registerCompanionCardTypes(
         },
         contextMenuItems: function (slot?: any, card?: any, helpers?: any) {
             const parent = helpers?.isSub ? state.editingSubpage : null;
-            if (!codec.canCreateSubpage(parent) || !companionAppShortcutFolderEnabled(card)) return;
+            if (!codec.canCreateSubpage(parent) || !appShortcutPageOwner(card)) return;
             helpers.addCtxItem("cog", "Edit Subpage", function () {
                 codec.enterChildSubpage(parent, Number(slot));
             });

@@ -23,4 +23,6 @@ Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibil
 
 Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together.
 
+The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
+
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a shortcut](/mac-controls/improve-shortcuts).

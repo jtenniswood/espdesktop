@@ -1,3 +1,5 @@
+import { PANEL_SCALAR_SETTINGS } from "../generated/panel_settings";
+
 export const APP_SUBPAGE_PREFERENCE = "companion_auto_open_app_subpages";
 
 export function nativeAppSubpagePreference(settings?: Readonly<Record<string, string>>): boolean | undefined {
@@ -38,7 +40,8 @@ export function normalizeThemeMode(value: unknown): string {
 
 export function normalizeCardCurve(value: unknown): string {
   const preset = String(value || "").trim().toLowerCase();
-  return preset === "small" ? "Small" : preset === "medium" ? "Medium" : "Large";
+  const rule = PANEL_SCALAR_SETTINGS.screen_card_curve;
+  return rule.choices.find(choice => choice.toLowerCase() === preset) ?? rule.defaultValue;
 }
 
 export function cardCurveRadius(baseRadius: number, preset: unknown, radii?: Readonly<Record<string, number>>): number {

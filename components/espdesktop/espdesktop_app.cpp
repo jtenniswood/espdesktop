@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <array>
 #include <cinttypes>
+#include <cmath>
+#include <limits>
 #include <new>
 
 #ifdef USE_ESP32
@@ -12,7 +14,6 @@
 #endif
 
 #include "esphome/core/log.h"
-#include "esphome/components/switch/switch.h"
 
 #include "button_grid.h"
 #include "grid_page_runtime.h"
@@ -356,11 +357,18 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits,
       allocate_configuration_slot, release_configuration_slot,
       [this]() { layout_changed_.trigger(); },
-      [this](bool enabled) { publish_app_subpage_preference(enabled); },
       [this](const auto &settings) { publish_display_theme_preferences(settings); },
-      [this](const ScreenSchedulePreferences &settings) {
+      [this](const std::optional<ScreenSchedulePreferences> &settings) {
+        if (!settings && !screen_schedule_) return;
         screen_schedule_ = settings;
-        if (apply_screen_schedule_) apply_screen_schedule_(settings);
+        if (apply_screen_schedule_) apply_screen_schedule_(screen_schedule_preferences());
+      },
+      [this](ScalarSetting setting, std::string_view value) {
+        if (const auto publish = scalar_publishers_[size_t(setting)]) publish(value);
+      },
+      [this](const DisplayBrightnessPreferences &settings) {
+        display_brightness_ = settings;
+        if (apply_display_brightness_) apply_display_brightness_(display_brightness_);
       }));
   if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
     native_configuration_runtime_.reset(); return false;
@@ -463,75 +471,124 @@ void EspDesktopApp::apply_boot_configuration() {
   sync_app_icons_from_panel_config(document, loaded.document_size);
 }
 
-void EspDesktopApp::publish_app_subpage_preference(bool enabled) {
-  if (app_subpage_switch_) app_subpage_switch_->publish_state(enabled);
-  if (active_espdesktop_app_core() == &core_) companion_set_auto_open_app_subpages(enabled);
-}
-
-void EspDesktopApp::bind_app_subpage_preference_switch(esphome::switch_::Switch &setting) {
-  app_subpage_switch_ = &setting;
-  // Existing panels retain their preference until it is first saved in the
-  // layout document. Native activation publishes the new value after commit.
-  publish_app_subpage_preference(setting.state);
-}
-
-void EspDesktopApp::bind_display_theme_preferences(std::function<ThemeSettings()> read_legacy,
-    std::function<void(const ThemeSettings &)> publish) {
-  read_legacy_display_theme_preferences_ = std::move(read_legacy);
+void EspDesktopApp::bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish) {
   display_theme_preferences_changed_ = std::move(publish);
-  if (display_theme_preferences_) {
-    legacy_display_theme_preferences_ = read_legacy_display_theme_preferences_();
-    display_theme_preferences_changed_(*display_theme_preferences_);
-  }
+  if (display_theme_preferences_changed_) display_theme_preferences_changed_(display_theme_preferences_);
 }
 
 void EspDesktopApp::publish_display_theme_preferences(const std::optional<ThemeSettings> &settings) {
-  if (settings && display_theme_preferences_ &&
-      same_display_theme_preferences(*settings, *display_theme_preferences_)) return;
-  if (!display_theme_preferences_ && settings && read_legacy_display_theme_preferences_)
-    legacy_display_theme_preferences_ = read_legacy_display_theme_preferences_();
-  display_theme_preferences_ = settings;
-  if (!display_theme_preferences_changed_) return;
-  if (settings) {
-    display_theme_preferences_changed_(*settings);
-  } else if (legacy_display_theme_preferences_) {
-    display_theme_preferences_changed_(*legacy_display_theme_preferences_);
-    legacy_display_theme_preferences_.reset();
-  }
+  const auto next = settings.value_or(ThemeSettings{});
+  if (same_display_theme_preferences(next, display_theme_preferences_)) return;
+  display_theme_preferences_ = next;
+  if (display_theme_preferences_changed_) display_theme_preferences_changed_(display_theme_preferences_);
 }
 
 void EspDesktopApp::save_display_theme_preferences(const ThemeSettings &settings) {
+  if (!save_panel_setting(DISPLAY_THEME_PREFERENCES_KEY, encode_display_theme_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save a theme preference edit");
+}
+
+void EspDesktopApp::bind_screen_schedule(unsigned default_clock_brightness,
+    std::function<void(const ScreenSchedulePreferences &)> apply) {
+  screen_schedule_defaults_.clock_brightness = default_clock_brightness;
+  apply_screen_schedule_ = std::move(apply);
+  if (apply_screen_schedule_) apply_screen_schedule_(screen_schedule_preferences());
+}
+
+void EspDesktopApp::edit_screen_schedule_number(unsigned ScreenSchedulePreferences::*field, float value) {
+  if (!std::isfinite(value) || value < 0 || value > UINT16_MAX || std::floor(value) != value) return;
+  edit_screen_schedule_preference(field, static_cast<unsigned>(value));
+}
+
+void EspDesktopApp::save_screen_schedule_preferences(const ScreenSchedulePreferences &settings) {
+  if (!save_panel_setting(SCREEN_SCHEDULE_PREFERENCES_KEY, encode_screen_schedule_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save a night schedule edit");
+}
+
+std::string_view EspDesktopApp::panel_scalar_value(ScalarSetting setting) const {
+  const auto *runtime = native_configuration_runtime_.get();
+  return runtime && runtime->grid_runtime ? runtime->grid_runtime->scalar_setting_value(setting)
+      : panel_settings::scalar_setting_default(setting, panel_config_device_profile_ ? panel_config_device_profile_ : "");
+}
+
+void EspDesktopApp::bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish) {
+  scalar_publishers_[size_t(setting)] = publish;
+  if (publish) publish(panel_scalar_value(setting));
+}
+
+void EspDesktopApp::edit_panel_scalar(ScalarSetting setting, std::string_view value) {
+  const auto &rule = panel_settings::SCALAR_RULES[size_t(setting)];
+  if (rule.valid(value) && value != panel_scalar_value(setting) && !save_panel_setting(rule.key, value))
+    ESP_LOGW(TAG, "Could not save panel setting %.*s", int(rule.key.size()), rule.key.data());
+}
+
+void EspDesktopApp::edit_panel_number(ScalarSetting setting, float value) {
+  if (!std::isfinite(value) || std::floor(value) != value ||
+      double(value) < std::numeric_limits<int32_t>::min() ||
+      double(value) > std::numeric_limits<int32_t>::max()) return;
+  edit_panel_scalar(setting, std::to_string(static_cast<int32_t>(value)));
+}
+
+void EspDesktopApp::bind_display_brightness_preferences(BrightnessPublisher publish) {
+  apply_display_brightness_ = publish;
+  if (publish) publish(display_brightness_);
+}
+
+void EspDesktopApp::save_display_brightness_preferences(const DisplayBrightnessPreferences &settings) {
+  if (!save_panel_setting(DISPLAY_BRIGHTNESS_PREFERENCES_KEY, encode_display_brightness_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save display brightness preferences");
+}
+
+void EspDesktopApp::edit_manual_brightness(float fraction) {
+  if (!std::isfinite(fraction) || fraction <= 0.0f) return;
+  const unsigned level = std::max(1L, std::lround(std::min(fraction, 1.0f) * 10000.0f));
+  auto next = display_brightness_;
+  if (next.manual && next.manual_level == level) return;
+  next.manual = true;
+  next.manual_level = level;
+  save_display_brightness_preferences(next);
+}
+
+bool EspDesktopApp::save_panel_setting(std::string_view key, std::string_view value) {
   using namespace configuration;
   auto *service = core_.configuration_service();
-  if (!service) return;
-  const auto write = [&]() {
-    const size_t capacity = service->maximum_document_size();
-    ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
-    auto *input = buffer.allocate(capacity * 2);
-    if (!input) return false;
-    auto *output = input + capacity;
-    const auto loaded = service->load(input, capacity);
-    if (!loaded.ok()) return false;
-    const auto value = encode_display_theme_preferences(settings);
-    size_t output_size = 0;
-    if (loaded.document_version == 1) {
-      return panel_config_replace_existing_setting_v1(input, loaded.document_size,
-          DISPLAY_THEME_PREFERENCES_KEY, value, output, capacity, &output_size) &&
-          service->save_if_generation(loaded.generation, 1, output, output_size).ok();
-    }
-    if (loaded.document_version != 2) return false;
-    PanelConfigV2Reader reader(input, loaded.document_size);
-    size_t index_size = 0;
-    if (reader.workspace_bytes(&index_size) != PanelConfigStatus::OK) return false;
-    ConfigurationBuffer scratch(allocate_configuration_slot, release_configuration_slot);
-    auto *index = scratch.allocate(index_size);
-    if (!index || reader.validate(index, index_size) != PanelConfigStatus::OK) return false;
-    PanelConfigPageAppend edit(reader);
-    return edit.set_existing_setting(DISPLAY_THEME_PREFERENCES_KEY, value) &&
-        edit.finish(output, capacity, &output_size, allocate_configuration_slot, release_configuration_slot) &&
-        service->save_if_generation(loaded.generation, 2, output, output_size).ok();
-  };
-  if (!write()) ESP_LOGW(TAG, "Could not save a theme preference edit");
+  if (!service || !native_configuration_runtime_ ||
+      native_configuration_runtime_->boot_configuration_pending || !panel_config_http_context_bound_) return false;
+  reset::ConfigurationWriteLease lease;
+  if (!lease.ready()) return false;
+  const size_t capacity = service->maximum_document_size();
+  ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
+  auto *input = buffer.allocate(capacity * 2);
+  if (!input) return false;
+  auto *output = input + capacity;
+  const auto loaded = service->load(input, capacity);
+  size_t output_size = 0;
+  if (loaded.status == ServiceStatus::EMPTY) {
+    PanelConfigWriter writer(output, capacity);
+    return writer.begin() == PanelConfigStatus::OK &&
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>(panel_config_device_profile_),
+            std::strlen(panel_config_device_profile_)) == PanelConfigStatus::OK &&
+        writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+            reinterpret_cast<const uint8_t *>(value.data()), value.size()) == PanelConfigStatus::OK &&
+        writer.finish(&output_size) == PanelConfigStatus::OK &&
+        service->save_if_generation(0, PANEL_CONFIG_DOCUMENT_VERSION, output, output_size).durable();
+  }
+  if (!loaded.ok()) return false;
+  if (loaded.document_version == PANEL_CONFIG_DOCUMENT_VERSION) {
+    return panel_config_set_setting_v1(input, loaded.document_size, key, value, output, capacity, &output_size) &&
+        service->save_if_generation(loaded.generation, loaded.document_version, output, output_size).durable();
+  }
+  if (loaded.document_version != PANEL_CONFIG_DOCUMENT_VERSION_2) return false;
+  PanelConfigV2Reader reader(input, loaded.document_size);
+  size_t index_size = 0;
+  if (reader.workspace_bytes(&index_size) != PanelConfigStatus::OK) return false;
+  ConfigurationBuffer scratch(allocate_configuration_slot, release_configuration_slot);
+  auto *index = scratch.allocate(index_size);
+  if (!index || reader.validate(index, index_size) != PanelConfigStatus::OK) return false;
+  PanelConfigPageAppend edit(reader);
+  return edit.set_setting(key, value) &&
+      edit.finish(output, capacity, &output_size, allocate_configuration_slot, release_configuration_slot) &&
+      service->save_if_generation(loaded.generation, loaded.document_version, output, output_size).durable();
 }
 
 void EspDesktopApp::retry_configuration_compatibility() {
