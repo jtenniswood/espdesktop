@@ -13,13 +13,13 @@ description: >-
 Use `.github/workflows/release.yml` (`Build Release`) to build both products from
 one immutable source revision. It builds all release devices, signs and notarizes
 EspDesktop on a GitHub Mac runner, and signs the Sparkle automatic-update feed.
-Build Release creates a private test candidate. After the 4848S040 hardware
-test, use `.github/workflows/publish-release.yml` (Publish Release) to verify
-and publish those same files.
+Build Release creates a private candidate. Install and open its notarized app
+on the Mac handling the release, then ask once whether it works. Use
+`.github/workflows/publish-release.yml` (Publish Release) after confirmation
+to verify and publish those same files.
 
-This builds flashable downloads; it does not flash connected screens, install the
-Mac app, or archive the locally installed version. Those are separate requests.
-A request to customize or inspect this skill does not authorize publishing.
+An explicit release request includes this local Mac installation. Editing or
+inspecting this skill does not start a release.
 
 ## 1. Select the source and check readiness
 
@@ -117,7 +117,7 @@ For a new tag:
 git tag -a "$TAG" "$SOURCE_SHA" -m "Release $TAG"
 git push origin "$TAG"
 gh release create "$TAG" --verify-tag --draft \
-  --notes "Screen firmware and the signed Mac app are being built and verified. This draft is awaiting device verification." \
+  --notes "Screen firmware and the signed Mac app are being built and verified. This draft is awaiting confirmation of the local Mac installation." \
   --fail-on-no-commits
 ```
 
@@ -148,7 +148,7 @@ checks. Report meaningful progress and failures for both paths:
 - Firmware assembly, recovery images where declared, manifests and provenance.
 - Mac tests, P12 import, Developer ID signing, Apple acceptance of app and DMG,
   stapling, signature/Gatekeeper checks and Sparkle feed signature verification.
-- Prepare Hardware Test Candidate, which verifies the compatibility manifest
+- Prepare Release Candidate, which verifies the compatibility manifest
   and records the candidate run ID and fingerprint.
 
 On failure, inspect the failed job and confirm the release remains a draft.
@@ -159,26 +159,41 @@ if the same failure recurs without new evidence or a repair. Source changes need
 a new reviewed revision and new tag, not a moved tag. Do not close issues unless
 explicitly requested.
 
-## 6. Verify hardware and publish the tested candidate
+## 6. Install the candidate Mac app and ask once
 
-Use the candidate firmware and notarized Mac app together on the 4848S040.
-Follow the physical check in [Checks and Releases](../../../dev-docs/checks-and-releases.md#release-boundary).
-If hardware testing requires the maintainer, report the candidate artifacts
-and wait for the passing hardware report. Run the two-step scenario from the
-tagged checkout with the downloaded `release-candidate-compatibility` manifest.
-Run one Mac shortcut, then restart the display and check that it reconnects.
+Download the Mac ZIP and compatibility manifest from the successful
+`CANDIDATE_RUN` into a fresh staging directory:
 
 ```bash
-python3 scripts/test_release_hardware.py record --host "$PANEL_IP" \
-  --candidate-run "$CANDIDATE_RUN" --manifest "$CANDIDATE_MANIFEST"
-
-gh workflow run publish-release.yml --ref "$TAG" \
-  -f release_tag="$TAG" -f candidate_run="$CANDIDATE_RUN" \
-  -F hardware_report="@$HARDWARE_REPORT_PATH"
+gh run download "$CANDIDATE_RUN" -n espdesktop-app-release -D "$STAGE/mac"
+gh run download "$CANDIDATE_RUN" -n release-candidate-compatibility -D "$STAGE"
 ```
 
-Monitor Publish Release through completion. Use the same tested run and report
-for a retry if its artifacts are still available.
+Check that `companion-compatibility.json` names the selected tag and source SHA.
+Compare its SHA-256 to the candidate fingerprint in the run summary and check
+the ZIP's SHA-256 against its manifest entry. Retain the matched manifest hash
+as `CANDIDATE_FINGERPRINT`. Extract the ZIP with `ditto -x -k` and verify the
+app's Developer ID signature, notarization ticket and Gatekeeper assessment.
+
+Follow the [archive, install, and open steps](../make-local-signed-app/SKILL.md#archive-install-and-open)
+using the extracted candidate app. Verify that the installed candidate is running
+from `/Applications/EspDesktop.app`. If installation fails, recover the previous
+app as described there and keep the release private.
+
+Ask one question once the candidate is running: “Does EspDesktop $TAG work on
+this Mac?” Wait for a positive answer before dispatching Publish Release. If the
+user reports a problem, keep the draft private. The firmware remains available
+as build artifacts, and a display test is optional.
+
+```bash
+gh workflow run publish-release.yml --ref "$TAG" \
+  -f release_tag="$TAG" -f candidate_run="$CANDIDATE_RUN" \
+  -f confirmed_fingerprint="$CANDIDATE_FINGERPRINT"
+```
+
+Monitor Publish Release through completion. For a retry, reuse the confirmed
+run and fingerprint while its artifacts are still available. Ask for a new
+confirmation if the candidate changes.
 
 ## 7. Verify the complete published distribution
 
@@ -246,6 +261,5 @@ Watch the recovery run and verify the cask again.
 Give the tag, release URL and run result; confirm firmware for all declared
 screens, signed/notarized Mac ZIP and DMG, and signed update feed are attached.
 State whether publication and any checked Pages deployment succeeded, along with
-remaining user testing or failures. For stable Mac releases, include the Homebrew
-run URL, verified cask version and any unresolved tap issue. No local install or
-screen flash is implied.
+the installed Mac version and any failures. For stable Mac releases, include
+the Homebrew run URL, verified cask version and any unresolved tap issue.
