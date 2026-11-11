@@ -12,12 +12,18 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 ## Organise cards
 
 - **Move a card.** Drag it to another spot in the grid. If you drop it onto another card, that card shifts to the next available space.
+
+  <figure>
+    <a href="/images/web-editor-drag-card.png"><img src="/images/web-editor-drag-card.png" alt="Slack card being dragged from the middle of the Home grid towards the highlighted bottom-right tile" width="1209" height="1204" loading="lazy"></a>
+    <figcaption>The blue outline shows where the Slack card will land.</figcaption>
+  </figure>
+
 - **Resize a card.** Hover over it and drag the handle in its bottom-right corner to make it wider, taller or smaller. The available sizes depend on the card and the space in the grid. Press **Escape** during the drag to keep the original size.
 
-<figure>
-  <a href="/images/web-editor-resize-handle.png"><img src="/images/web-editor-resize-handle.png" alt="Slack card beside empty tiles in the web editor, with its resize handle visible" width="576" height="566" loading="lazy"></a>
-  <figcaption>The white curve on the Slack card is the resize handle.</figcaption>
-</figure>
+  <figure>
+    <a href="/images/web-editor-resize-handle.png"><img src="/images/web-editor-resize-handle.png" alt="Slack card beside empty tiles in the web editor, with its resize handle visible" width="576" height="566" loading="lazy"></a>
+    <figcaption>The white curve on the Slack card is the resize handle.</figcaption>
+  </figure>
 
 Moves and resizes save when you drop the card or release the handle. Choose **Save** when editing a card.
 
