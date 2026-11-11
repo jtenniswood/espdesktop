@@ -734,7 +734,7 @@ export function registerCompanionCardTypes(
                 helpers.saveField("options", card.options);
                 renderButtonSettings();
                 document.getElementById(tab.id)?.focus({ preventScroll: true });
-            }, "sp-card-type-tabs");
+            });
             typeTabs.segment.id = typeId;
             typeTabs.segment.setAttribute("role", "tablist");
             typeTabs.segment.setAttribute("aria-label", "Shortcut type");
@@ -744,7 +744,6 @@ export function registerCompanionCardTypes(
                 const tab: HTMLButtonElement = typeTabs.buttons[type];
                 const selected = type === shortcutType;
                 tab.id = typeId + "-" + type;
-                tab.className = "sp-card-type-tab";
                 tab.tabIndex = selected ? 0 : -1;
                 tab.setAttribute("role", "tab");
                 tab.setAttribute("aria-selected", String(selected));

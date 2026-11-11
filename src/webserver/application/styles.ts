@@ -551,6 +551,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         "border:none;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .25s;font-family:inherit}" +
         ".sp-segment button:hover{color:var(--text)}" +
         ".sp-segment button.active{background:var(--accent);color:#fff}" +
+        ".sp-segment[role='tablist'] button:focus-visible{outline:2px solid currentColor;outline-offset:-4px}" +
         ".sp-brightness-mode-segment{margin-bottom:28px}" +
         ".sp-screensaver-mode{margin-bottom:24px}" +
         ".sp-clock-brightness-field{margin:18px 0 22px}" +
