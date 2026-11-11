@@ -28,6 +28,8 @@ Use **Start EspDesktop when I sign in** to keep the display connected after logi
 
 The Display page shows the paired display’s name when available and its current address. If the display gets a new address on your local network, EspDesktop can rediscover it and resume the saved pairing. A new address is saved only after the display proves its identity and accepts the pairing. If you reset or replace the display, forget it in EspDesktop and pair again.
 
+If **Display** says it needs a newer version of EspDesktop for Windows, get the latest Windows installer from [GitHub Releases](https://github.com/jtenniswood/espdesktop/releases). EspDesktop keeps your pairing for the updated app.
+
 ## Build and check
 
 Use the .NET 10 SDK and Inno Setup 6.3 or newer on Windows. From the repository root:

@@ -189,6 +189,11 @@ server.Map(SocketPath, async context =>
             await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "test disconnect", lifetime.Token);
             return;
         }
+        if (seq == 11)
+        {
+            await Send(socket, "error", ("code", "mac_update_required"));
+            return;
+        }
         Check(seq == 8, "repair stale authentication sequence");
         await Send(socket, "auth.accepted", ("capabilityVersion", 7));
 #if WINDOWS
@@ -278,8 +283,25 @@ if (native is not null)
 #endif
 Check(desktop.Actions == 1 && authorizedRequests == 1, "authenticated dispatch and lock enforcement");
 Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, audio dispatch, lock enforcement and icon transfer tests.");
+await VerifyUpdateRequired();
 await VerifyAddressRecovery();
 await VerifyPairingSaveFailure();
+
+async Task VerifyUpdateRequired()
+{
+    var original = saved with { Sequence = 10 };
+    var retained = original;
+    var notice = "";
+    await new DisplaySession(desktop, next => retained = next, message => notice = message,
+        (_, _) => throw new InvalidOperationException("An authenticated update notice should stop reconnecting."))
+        .RunAsync(original, lifetime.Token);
+    Check(notice == "This display needs a newer version of EspDesktop for Windows. Download the latest Windows installer from GitHub Releases.",
+        "report that the display requires a Windows app update");
+    Check(retained.Address == original.Address && retained.Fingerprint == original.Fingerprint &&
+          retained.Key.SequenceEqual(original.Key) && retained.Sequence == original.Sequence + 1,
+        "keep the pairing after the authenticated update notice");
+    Console.WriteLine("Passed the Windows update-required notice and pairing preservation over pinned TLS.");
+}
 
 static async Task VerifyWindowsReleaseSelection()
 {

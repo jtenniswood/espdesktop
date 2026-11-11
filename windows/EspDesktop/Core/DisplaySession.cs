@@ -169,6 +169,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         "invalid_code" or "pairing_invalid_code" or "pairing_failed" => "That code was not accepted. Check the code and pairing window.",
         "pairing_throttled" => "Wait a few seconds and try the code again.",
         "already_paired" => "This display is already paired. Reset pairing in its web settings first.",
+        "mac_update_required" => "This display needs a newer version of EspDesktop for Windows. Download the latest Windows installer from GitHub Releases.",
         _ => fallback
     };
 
