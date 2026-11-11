@@ -266,7 +266,8 @@ final class RemoteCompanionCatalogueStore {
     private static func bundled() -> RemoteCompanionCatalogues {
         let companionVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
         let folder = "AppShortcuts"
-        guard let manifestURL = Bundle.module.url(forResource: "manifest", withExtension: "json", subdirectory: folder),
+        guard let bundle = CompanionResources.bundle,
+              let manifestURL = bundle.url(forResource: "manifest", withExtension: "json", subdirectory: folder),
               let manifestData = try? Data(contentsOf: manifestURL),
               let manifest = try? JSONDecoder().decode(RemoteCatalogueManifest.self, from: manifestData) else { return .empty }
         let applications: [RemoteMacApplicationDefinition]? = decodeBundledCatalogueEntries(
@@ -276,7 +277,7 @@ final class RemoteCompanionCatalogueStore {
             let parent = relative.deletingLastPathComponent
             let subdirectory = parent.isEmpty || parent == "." ? folder : "\(folder)/\(parent)"
             let filename = relative.lastPathComponent as NSString
-            return Bundle.module.url(
+            return bundle.url(
                 forResource: filename.deletingPathExtension,
                 withExtension: filename.pathExtension,
                 subdirectory: subdirectory

@@ -904,15 +904,8 @@ struct CompanionSettings: View {
         .formStyle(.grouped)
     }
 
-    private var companionResourceBundle: Bundle {
-        // Installed apps keep resources inside Contents/Resources; SwiftPM runs
-        // use the generated module bundle beside the build output.
-        Bundle.main.url(forResource: "EspDesktop_Companion", withExtension: "bundle")
-            .flatMap { Bundle(url: $0) } ?? .module
-    }
-
     private var supportButtonImage: NSImage? {
-        guard let imageURL = companionResourceBundle.url(
+        guard let imageURL = CompanionResources.bundle?.url(
             forResource: "buy-me-a-coffee-button",
             withExtension: "png"
         ) else { return nil }
