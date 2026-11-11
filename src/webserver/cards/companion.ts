@@ -717,6 +717,7 @@ export function registerCompanionCardTypes(
 
             const shortcutField = document.createElement("div");
             shortcutField.className = "sp-field sp-shortcut-settings";
+            if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
             const shortcutType = card._shortcutType || (savedCatalogShortcut ? "catalog" : "custom");
             const typeId = helpers.idPrefix + "shortcut-type";
@@ -738,7 +739,6 @@ export function registerCompanionCardTypes(
             typeTabs.segment.setAttribute("role", "tablist");
             typeTabs.segment.setAttribute("aria-label", "Shortcut type");
             const customField = document.createElement("div");
-            customField.className = "sp-shortcut-bottom-padding";
             const catalogField = document.createElement("div");
             for (const [type, field] of [["custom", customField], ["catalog", catalogField]] as const) {
                 const tab: HTMLButtonElement = typeTabs.buttons[type];
@@ -773,8 +773,6 @@ export function registerCompanionCardTypes(
             customField.appendChild(modifierLabel);
             const modifierButtons = document.createElement("fieldset");
             modifierButtons.className = "sp-segment";
-            modifierButtons.style.padding = "0";
-            modifierButtons.style.minWidth = "0";
             modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
@@ -1344,15 +1342,10 @@ export function registerCompanionCardTypes(
                     helpers.saveField("label", nextLabel);
                 }
             });
-            if (initialMode === "shortcut") {
-                const iconField = helpers.renderCardIconPicker(panel, card, helpers, COMPANION_CARD_METADATA.icon);
-                iconField.classList.add("sp-shortcut-bottom-padding");
-            } else {
-                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
-                    entity: false,
-                    icon: initialMode !== "app",
-                });
-            }
+            helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, {
+                entity: false,
+                icon: initialMode !== "app",
+            });
             if (canAddSubpage && companionShortcutFolderEditorAvailable(card, savedParent)) {
                 const editButton = document.createElement("button");
                 editButton.className = "sp-action-btn sp-edit-subpage-btn";

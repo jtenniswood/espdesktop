@@ -4313,6 +4313,10 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
   await installFakeEventSource(page);
+  const toggles = ["Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
+  const [shortcutToggle, settingsToggle, coloursToggle] = toggles;
+  const panels = toggles.map(toggle => page.locator(".sp-disclosure").filter({ has: toggle }));
+  const [shortcutPanel, settingsPanel, coloursPanel] = panels;
   async function openCard() {
     await page.locator('.sp-main [data-slot="1"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
@@ -4323,17 +4327,17 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await waitForNativeState(nativeState, () => nativeState.puts.length > before, "shortcut card save");
   }
-  async function assertPanelSpacing(shortcutPanel) {
-    const [shortcut, settings, colours] = await Promise.all([
-      shortcutPanel.boundingBox(),
-      ...["Card Settings", "Custom Colours"].map(name => page.locator(".sp-disclosure").filter({
-        has: page.getByRole("button", { name, exact: true }),
-      }).boundingBox()),
-    ]);
+  async function assertPanelSpacing() {
+    const [shortcut, settings, colours] = await Promise.all(panels.map(panel => panel.boundingBox()));
     const shortcutGap = settings.y - shortcut.y - shortcut.height;
     const coloursGap = colours.y - settings.y - settings.height;
-    assert.ok(shortcutGap > 0 && Math.abs(shortcutGap - coloursGap) < 1,
-      `Expected equal shortcut panel gaps, got ${shortcutGap}px and ${coloursGap}px`);
+    assert.ok(Math.abs(shortcutGap - 14) < 1 && Math.abs(coloursGap - 14) < 1,
+      `Expected 14px shortcut panel gaps, got ${shortcutGap}px and ${coloursGap}px`);
+  }
+  async function assertPanelBottomPadding(panel, control, label) {
+    const [box, field] = await Promise.all([panel.boundingBox(), control.boundingBox()]);
+    const gap = box.y + box.height - field.y - field.height;
+    assert.ok(Math.abs(gap - 25) < 1, `${label} should have 24px of bottom padding plus the border, got ${gap}px`);
   }
   try {
     await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`, { waitUntil: "domcontentloaded" });
@@ -4357,16 +4361,15 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await application.getAttribute("aria-selected"), "true");
     assert(await application.evaluate(tab => tab === document.activeElement), "arrow keys focus the selected tab");
     assert(await page.getByRole("tabpanel", { name: "Application" }).isVisible());
-    const catalogPanel = page.locator(".sp-disclosure").filter({
-      has: page.getByRole("button", { name: "Shortcut", exact: true }),
-    });
-    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
-    assert.strictEqual(await catalogPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
-    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-app"]').count(), 1);
+    assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-catalog-action"]').count(), 1);
+    await shortcutToggle.click();
     assert.strictEqual(await app.isVisible(), false);
     assert.strictEqual(await action.isVisible(), false);
-    await assertPanelSpacing(catalogPanel);
-    await catalogPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    await assertPanelSpacing();
+    await shortcutToggle.click();
+    await assertPanelBottomPadding(shortcutPanel, action, "Application Shortcut field");
+    await assertPanelSpacing();
     assert.strictEqual(await action.isDisabled(), true, "choose an app first");
     const appLabels = await app.locator("option").allTextContents();
     assert.strictEqual(appLabels[0], "Choose an app…");
@@ -4422,31 +4425,36 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await openCard();
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "Custom tab selection survives save");
     assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
-    const shortcutPanel = page.locator(".sp-disclosure").filter({
-      has: page.getByRole("button", { name: "Shortcut", exact: true }),
-    });
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').count(), 1, "key is inside Shortcut panel");
     assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
-    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    await shortcutToggle.click();
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
-    await assertPanelSpacing(shortcutPanel);
-    await shortcutPanel.getByRole("button", { name: "Shortcut", exact: true }).click();
+    await assertPanelSpacing();
+    await shortcutToggle.click();
     const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
     const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
     const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
     const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
     const key = page.locator('[id$="shortcut-key"]');
-    const [keyBounds, panelBounds] = await Promise.all([key.boundingBox(), shortcutPanel.boundingBox()]);
-    const bottomGap = panelBounds.y + panelBounds.height - keyBounds.y - keyBounds.height;
-    const sideGap = keyBounds.x - panelBounds.x;
-    assert.ok(bottomGap >= sideGap + 9, `Expected extra room below the Key field, got ${bottomGap}px`);
-    const settingsToggle = page.getByRole("button", { name: "Card Settings", exact: true });
     await settingsToggle.click();
-    const settingsPanel = page.locator(".sp-disclosure").filter({ has: settingsToggle });
     const icon = settingsPanel.getByRole("textbox", { name: "Icon", exact: true });
-    const [iconBounds, settingsBounds] = await Promise.all([icon.boundingBox(), settingsPanel.boundingBox()]);
-    const iconGap = settingsBounds.y + settingsBounds.height - iconBounds.y - iconBounds.height;
-    assert.ok(Math.abs(iconGap - bottomGap) < 1, `Expected matching Key and Icon padding, got ${bottomGap}px and ${iconGap}px`);
+    await coloursToggle.click();
+    const activeColour = coloursPanel.getByRole("group", { name: "Active state colour", exact: true });
+    const swatches = coloursPanel.getByRole("group", { name: "Active state colour presets", exact: true });
+    await assertPanelBottomPadding(coloursPanel, activeColour, "Matching active colour");
+    await activeColour.getByRole("button", { name: "Custom", exact: true }).click();
+    for (const viewport of [testCase.viewport, { width: 360, height: 740 }]) {
+      await page.setViewportSize(viewport);
+      await assertPanelSpacing();
+      await assertPanelBottomPadding(shortcutPanel, key, "Key field");
+      await assertPanelBottomPadding(settingsPanel, icon, "Icon field");
+      await assertPanelBottomPadding(coloursPanel, swatches, "Custom active colour swatches");
+      const [modifierBounds, keyBounds] = await Promise.all([modifiers.boundingBox(), key.boundingBox()]);
+      assert.ok(Math.abs(modifierBounds.x - keyBounds.x) < 1, "Modifier buttons and the Key field align");
+    }
+    await page.setViewportSize(testCase.viewport);
+    await activeColour.getByRole("button", { name: "Matching", exact: true }).click();
+    await coloursToggle.click();
     assert.strictEqual(await command.getAttribute("aria-pressed"), "true", "saved shortcut restores modifier buttons");
     assert.strictEqual(await key.inputValue(), "a", "saved shortcut restores key selector");
     await key.selectOption("w");
