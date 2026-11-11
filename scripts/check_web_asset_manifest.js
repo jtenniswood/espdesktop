@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 "use strict";
 
+const { deepEqual } = require("node:assert/strict");
 const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
@@ -194,6 +195,23 @@ async function verifyBridge() {
   assert(releaseLoaded.length === 1, "web bridge must load the supported stable firmware bundle");
   assert(releaseLoaded[0] === `https://assets.example/webserver/${manifest.bundles[2].path}?device=esp32-p4-86&v=${stableVersion}`,
     "web bridge must select the retained bundle for an explicitly requested stable firmware version");
+
+  const legacyRequests = [];
+  const fetchManifest = sandbox.fetch;
+  sandbox.fetch = (url) => {
+    legacyRequests.push(String(url));
+    return fetchManifest(url);
+  };
+  sandbox.document.currentScript.getAttribute = () =>
+    `https://jtenniswood.github.io/espdesktop/webserver/www.js?device=esp32-p4-86&v=${stableVersion}`;
+  releaseLoaded.length = 0;
+  vm.runInContext(fs.readFileSync(path.join(WEB_ROOT, "www.js"), "utf8"), sandbox);
+  await new Promise((resolve) => setImmediate(resolve));
+  deepEqual(legacyRequests, ["https://espdesktop.com/webserver/web-assets.json", "/api/v1/capabilities"]);
+  deepEqual(releaseLoaded, [
+    `https://espdesktop.com/webserver/${manifest.bundles[2].path}?device=esp32-p4-86&v=${stableVersion}`,
+  ], "installed firmware must load the hosted editor without a cross-origin fetch redirect");
+  sandbox.fetch = fetchManifest;
 
   let fallbackStarts = 0;
   sandbox.__ESPDESKTOP_START_EMBEDDED__ = () => { fallbackStarts += 1; };

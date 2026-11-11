@@ -46,7 +46,7 @@ async function checkBrowser() {
   const dist = path.join(root, 'docs/.vitepress/dist');
   const server = createServer((request, response) => {
     const pathname = decodeURIComponent(new URL(request.url, 'http://localhost').pathname);
-    const relative = pathname.replace(/^\/espdesktop\//, '') || 'index.html';
+    const relative = pathname.slice(1) || 'index.html';
     let file = path.resolve(dist, relative);
     if (!file.startsWith(dist + path.sep)) { response.writeHead(404).end(); return; }
     if (!path.extname(file)) file += '.html';
@@ -82,7 +82,7 @@ async function checkBrowser() {
         return route.fulfill({ json: { name: 'EspDesktop', version: 'test', builds: [] } });
       }
       // Website demos must work even when the release editor is unavailable.
-      if (new URL(request.url()).pathname.startsWith('/espdesktop/webserver/')) return route.abort();
+      if (new URL(request.url()).pathname.startsWith('/webserver/')) return route.abort();
       return route.continue();
     });
     await page.addInitScript(() => {
@@ -92,7 +92,7 @@ async function checkBrowser() {
       } } });
     });
     // Public EspDesktop setup targets the supported S3, without a P4 picker.
-    const expected = '/espdesktop/firmware/guition-esp32-s3-4848s040/manifest.json';
+    const expected = '/firmware/guition-esp32-s3-4848s040/manifest.json';
     async function assertSupportedInstaller() {
       await page.waitForFunction(() => !!customElements.get('esp-web-install-button'));
       const install = page.locator('esp-web-install-button');
@@ -106,7 +106,7 @@ async function checkBrowser() {
       await canceled.getByText('Cancel', { exact: true }).click();
       await canceled.waitFor({ state: 'detached' });
     }
-    const home = `${base}/espdesktop/`;
+    const home = `${base}/`;
     const setup = page.locator('.homepage-hero').getByRole('link', { name: 'Get started', exact: true });
     for (const [width, height, colorScheme] of [
       [320, 640, 'light'],
@@ -131,7 +131,7 @@ async function checkBrowser() {
       const demo = page.locator(demoSelector);
       const demoSection = page.locator('.homepage-editor');
       const getStarted = demoSection.getByRole('link', { name: 'Get Started', exact: true });
-      assert.equal(await getStarted.getAttribute('href'), '/espdesktop/screens/4848s040#where-to-buy');
+      assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040#where-to-buy');
       if (width >= 768) {
         const copy = await demoSection.locator(':scope > div').boundingBox();
         const mock = await demo.boundingBox();
@@ -241,14 +241,14 @@ async function checkBrowser() {
     await page.waitForURL(`${home}getting-started/install`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
-    await page.goto(`${base}/espdesktop/screens/4848s040`);
+    await page.goto(`${base}/screens/4848s040`);
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
-    await page.locator('.VPSidebar a[href="/espdesktop/getting-started/install"]').click();
-    await page.waitForURL('**/espdesktop/getting-started/install');
+    await page.locator('.VPSidebar a[href="/getting-started/install"]').click();
+    await page.waitForURL('**/getting-started/install');
     await assertSupportedInstaller();
     assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');
     const beforeRetired = manifests.length;
-    const retired = await page.goto(`${base}/espdesktop/getting-started/c6-recovery`);
+    const retired = await page.goto(`${base}/getting-started/c6-recovery`);
     assert.equal(retired.status(), 404, 'Retired P4 recovery is not a public setup page');
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
     assert.equal(manifests.length, beforeRetired, 'Retired P4 setup must not offer an installer');
