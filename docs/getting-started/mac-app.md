@@ -15,8 +15,6 @@ Use an **Apple silicon Mac with macOS 13 or later**. Use the Mac app from the sa
   <span v-if="$frontmatter.macReleaseVersion">v{{ $frontmatter.macReleaseVersion }} · DMG</span>
 </p>
 
-Open the DMG, drag **EspDesktop** into **Applications**, then open it from there. The app opens its setup wizard.
-
 ## Pair your display {#pair-the-display}
 
 1. Keep your Mac and display on the same local network. Allow local network access if macOS asks.
