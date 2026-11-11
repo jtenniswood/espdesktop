@@ -20,11 +20,11 @@ function shareImage(file: string, width: number, height: number, alt: string) {
 
 const defaultImage = shareImage('espdesktop-share.png', 1200, 630,
   'EspDesktop touchscreen controller for Mac with example app, website, folder and shortcut tiles')
-const displayImage = shareImage('4848s040-hero.jpg', 1024, 999,
-  'The 4-inch Guition 4848S040 touchscreen next to a keyboard')
 const pageImages: Record<string, typeof defaultImage> = {
-  'screens/4848s040.md': displayImage,
-  'getting-started/install.md': displayImage,
+  'screens/4848s040.md': shareImage('4848s040-slack.jpg', 1202, 1100,
+    'Guition 4848S040 touchscreen showing Slack shortcuts beside a keyboard'),
+  'getting-started/install.md': shareImage('4848s040-hero.jpg', 1024, 999,
+    'The 4-inch Guition 4848S040 touchscreen next to a keyboard'),
   'getting-started/mac-app.md': shareImage('mac-app-display.jpg', 1000, 1376,
     'EspDesktop Mac app showing a connected display and the Customize button'),
   'features/setup.md': shareImage('web-editor-screen-settings.jpg', 1080, 621,
@@ -33,8 +33,8 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop Home layout with Mac app cards in the web editor'),
   'features/subpages.md': shareImage('web-editor-subpage.jpg', 620, 612,
     'A subpage with browser shortcuts in the EspDesktop web editor'),
-  'mac-controls/apps.md': shareImage('web-editor-applications.jpg', 560, 530,
-    'Applications card form with Music selected in the EspDesktop web editor'),
+  'mac-controls/apps.md': shareImage('web-editor-application-card.png', 1694, 2266,
+    'Applications card form with Figma selected in the EspDesktop web editor'),
   'mac-controls/websites.md': shareImage('web-editor-website.jpg', 560, 530,
     'Website card form with an example web address in the EspDesktop web editor'),
 }

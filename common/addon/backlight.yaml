@@ -50,6 +50,9 @@ globals:
   - id: connectivity_setup_display_active
     type: bool
     initial_value: 'false'
+  - id: first_layout_preview_active
+    type: bool
+    initial_value: 'false'
 
 esphome:
   on_boot:
@@ -295,6 +298,7 @@ script:
           const bool setup_page_active =
               lv_scr_act() == id(button_setup_page)->obj;
           const bool onboarding = id(connectivity_setup_display_active) ||
+                                  id(first_layout_preview_active) ||
                                   (id(button_order).state.empty() && setup_page_active);
           const bool waiting_for_time = !onboarding && screen_schedule_waiting_for_time(
               id(screen_schedule_trigger).state, id(schedule_enabled).state, now.is_valid());

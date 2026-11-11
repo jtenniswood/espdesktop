@@ -6,6 +6,7 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
 #include "display_brightness_preferences.h"
 #include "display_lifecycle_service.h"
@@ -91,9 +92,13 @@ int *active_page = nullptr;
 int *lv_scr_act() { return active_page; }
 struct Text { std::string state; std::string current_option() { return state; } };
 Text button_order{"1"}, screen_schedule_trigger{"time"}, screensaver_mode{"timer"};
+enum class GridBoardOperation { REBUILD };
+std::string rendered_button_order;
+void grid_run_board(GridBoardOperation) { rendered_button_order = button_order.state; }
 struct Number { float state; } schedule_on_hour{7}, schedule_off_hour{22}, schedule_wake_timeout{60}, screensaver_timeout{300};
 struct Toggle { bool state = false; } schedule_enabled{true};
 bool connectivity_setup_display_active = false,
+     first_layout_preview_active = false,
      schedule_mode_always_on = false, schedule_mode_clock = true,
      clock_bar_night_mode_active = false;
 bool screensaver_companion_ready = true, mac_connected = true;
@@ -117,6 +122,8 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   display_mode_apply_transition.stop(); display_mode_effect_active.stop();
   display_active_finalize.stop(); screensaver_idle_check.stop();
   screen_schedule_wake_timeout_check.stop(); schedule_wake_timeout.state = 60;
+  save_button_order.stop(); first_layout_preview_active = false; button_order.state = "1";
+  rendered_button_order.clear();
   screensaver_idle_check.calls = 0;
   clock_time = {6, true}; active_page = home.obj;
   schedule_enabled.state = true;
@@ -145,10 +152,10 @@ void assert_backlight_on_policy() {
   controller.resolve();
   assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::WAKE);
 
-  // A factory install has the schedule enabled and no network time. WiFi
-  // onboarding must be able to light the screen even after the boot guard.
+  // With Night Schedule enabled, WiFi setup must still light the screen
+  // before network time is available.
   const bool waiting_for_time = screen_schedule_waiting_for_time(
-      "time", ScreenSchedulePreferences{}.enabled, false);
+      "time", /*enabled=*/true, /*time_valid=*/false);
   controller.request(DisplayRequestSource::ONBOARDING, DisplayMode::ACTIVE);
   assert(lifecycle.backlight_on_response(waiting_for_time) == BacklightOnResponse::KEEP_ON);
   controller.clear(DisplayRequestSource::ONBOARDING);
@@ -165,6 +172,10 @@ int main() {
   // SCRIPT_SETUP
   auto &controller = espdesktop_app.display();
   navigate_after_api.io = [] {
+    // Configured navigation reconciles when cancelling the setup dim timer,
+    // and waits for ACTIVE before switching pages.
+    display_mode_reconcile.execute();
+    if (!espdesktop_app.display().target_mode_is(DisplayMode::ACTIVE)) return;
     active_page = home.obj;
     espdesktop_app.display_lifecycle().set_blank_page_active(false);
     display_active_finalize.execute();
@@ -409,14 +420,61 @@ int main() {
   display_mode_reconcile.execute(); advance(301000);
   assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
   assert(screensaver_idle_check.calls == 0);
-  button_order.state = "1";
-  // A new panel without a saved document still starts with the time schedule.
+  // A first save must build and show the new grid without a touch. Check both
+  // factory defaults and a saved Night Schedule, with and without valid time.
+  for (const auto &[schedule_on, time_valid] :
+       {std::pair{false, false}, std::pair{true, false}, std::pair{true, true}}) {
+    reset(DisplayMode::DISPLAY_OFF);
+    clock_time = {6, time_valid};
+    schedule_enabled.state = schedule_on;
+    screen_schedule_trigger.state = schedule_on ? "time" : "disabled";
+    screensaver_mode.state = "disabled";
+    button_order.state.clear();
+    active_page = setup.obj;
+    display_mode_reconcile.execute(); advance(500);
+    assert(controller.current_source_is(DisplayRequestSource::ONBOARDING));
+    button_order.state = "1";
+    save_button_order.execute();
+    display_mode_reconcile.execute();  // Time or Companion callbacks may run during the save.
+    advance(500);
+    assert(active_page == setup.obj);
+    assert(rendered_button_order.empty());
+    assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
+    advance(500);
+    assert(active_page == home.obj);
+    assert(rendered_button_order == "1");
+    assert(controller.current_source_is(DisplayRequestSource::ONBOARDING));
+    assert(!espdesktop_app.display_lifecycle().allows_focus_navigation());
+    assert(espdesktop_app.display_lifecycle().backlight_on_response(!time_valid) ==
+           BacklightOnResponse::KEEP_ON);
+    advance(10000);
+    assert(controller.target_mode_is(DisplayMode::ACTIVE));
+    advance(5000);
+    if (schedule_on) {
+      assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+      assert(controller.current_source_is(time_valid ? DisplayRequestSource::SCREEN_SCHEDULE
+                                                     : DisplayRequestSource::BOOT_GUARD));
+    } else {
+      assert(controller.current_mode_is(DisplayMode::ACTIVE) && active_page == home.obj);
+      assert(espdesktop_app.display_lifecycle().allows_focus_navigation());
+    }
+  }
+  // A new panel stays visible before network time arrives. A saved enabled
+  // schedule still applies its boot guard while the clock is unavailable.
   reset(); controller = {};
   const ScreenSchedulePreferences defaults;
+  assert(!defaults.enabled);
   schedule_enabled.state = defaults.enabled;
+  screen_schedule_trigger.state = "disabled";
   schedule_on_hour.state = defaults.on_hour;
   schedule_off_hour.state = defaults.off_hour;
   clock_time.valid = false;
+  screen_schedule_boot_guard.execute();
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  const auto saved = parse_screen_schedule_preferences("1,1,7,19,dim,60,10,15,10,FFFFFF");
+  assert(saved && saved->enabled);
+  schedule_enabled.state = saved->enabled;
+  screen_schedule_trigger.state = "time";
   screen_schedule_boot_guard.execute();
   assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
   assert(controller.target_source_is(DisplayRequestSource::BOOT_GUARD));

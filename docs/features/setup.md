@@ -48,7 +48,7 @@ Use **Screen** for appearance, backlight, rotation and sleep settings. For examp
 | Language | **System → Preferences → Language** | Choose the language shown on the touchscreen. |
 | Time | **System → Preferences → Time** | Follow the paired Mac’s time zone or choose one. Set a 12- or 24-hour clock and optionally specify your own time servers. |
 
-On a new display, Night Schedule dims the screen to **15%** from **7:00 PM to 7:00 AM** in the display’s local time. Tap to wake the display when it is asleep, then tap again to use a card.
+Night Schedule is disabled on a new display. If you enable it with the preset hours and brightness, the screen dims to **15%** from **7:00 PM to 7:00 AM** in the display’s local time. Tap to wake the display when it is asleep, then tap again to use a card.
 
 Use **System → Mac Companion** to pair or check the connection. The **System** tab also contains preferences, backups, firmware updates and reset controls. To rename the display, open **System → System → Device Name** and choose **Save & Restart**. Reopen the editor at the new `.local` address shown there.
 

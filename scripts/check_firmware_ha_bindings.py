@@ -1359,16 +1359,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
                     button_order_text = button_order_path.read_text(encoding="utf-8")
                     if (
                         "lv_scr_act() == id(button_setup_page)->obj" not in button_order_text
-                        or """            then:
-              - delay: 750ms
-              - script.execute: refresh_button_grid
-              - script.wait: refresh_button_grid
-              - script.execute: navigate_after_api
-              - script.wait: navigate_after_api
-              - script.execute: display_mode_reconcile
-            else:
-              - script.execute: display_mode_reconcile
-""" not in button_order_text
+                        or "script.execute: present_first_layout" not in button_order_text
                     ):
                         errors.append(
                             f"{button_order_path.relative_to(root)}: keep onboarding active until the first configured grid is visible"
