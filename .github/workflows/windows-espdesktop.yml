@@ -95,6 +95,7 @@ jobs:
 
       - name: Verify signed installers and updater publisher checks
         shell: pwsh
+        timeout-minutes: 6
         run: |
           $preview = (Get-ChildItem ./dist/windows/*-Setup.exe).FullName
           ./windows/EspDesktop.Tests/Test-SignedInstaller.ps1 -Architecture ${{ matrix.arch }} -UnsignedInstaller $preview
