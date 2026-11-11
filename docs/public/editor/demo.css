@@ -14,7 +14,9 @@ html[data-espdesktop-display-demo] body {
 body .sp-support-btn,
 #sp-screen .sp-add-pill,
 #sp-screen .sp-empty-cell .sp-card-outline,
-#sp-screen .sp-sensor-badge {
+#sp-screen .sp-sensor-badge,
+#sp-screen .sp-subpage-badge,
+#sp-screen .sp-back-hit.mdi-chevron-left {
   display: none;
 }
 
