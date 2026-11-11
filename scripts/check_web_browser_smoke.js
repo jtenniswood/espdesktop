@@ -5499,6 +5499,9 @@ async function assertPanelNaming(browser) {
     assert.strictEqual(identityState.info.hostname, "bedroom-b2c3", "selected name restore keeps destination suffix");
     assert.strictEqual(identityState.posts.length, 3, "name written once after successful restore");
     await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page.getByRole("tab", { name: "System" }).click();
+    const header = card.locator(".card-header");
+    if (await card.evaluate(element => element.classList.contains("collapsed"))) await header.click();
     await page.locator("#sp-panel-name").fill("");
     await save.click();
     await page.waitForFunction(() => document.title === "EspDesktop - b2c3");
@@ -7394,6 +7397,13 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
+      await assertPageTitleEvents(browser);
+      await assertNamingOfflineBackups(browser);
+      await assertPanelNaming(browser);
+      console.log("Panel naming browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_CARD_REORDER_ONLY === "1") {
       await assertReorderAfterDelete(browser);
       return;
@@ -7568,13 +7578,6 @@ async function assertFirstRunSetup(browser) {
       assert(testCase, "4-inch S3 browser profile is available");
       await assertCompanionOnlyCardPicker(browser, testCase);
       console.log("Home Assistant connection transition browser checks passed.");
-      return;
-    }
-    if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
-      await assertPageTitleEvents(browser);
-      await assertNamingOfflineBackups(browser);
-      await assertPanelNaming(browser);
-      console.log("Panel naming browser checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_HA_VISIBILITY_ONLY === "1") {
