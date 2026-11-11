@@ -263,12 +263,12 @@ export default defineConfig({
           { text: 'Screen Settings', link: '/settings/screen' },
           { text: 'System Settings', link: '/settings/system' },
           { text: 'Backup & Restore', link: '/settings/backup' },
+          { text: 'Permissions & Security', link: '/mac-controls/security' },
         ],
       },
       {
         text: 'Support',
         items: [
-          { text: 'Permissions & Security', link: '/mac-controls/security' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
           { text: 'Support the Project', link: '/reference/support' },
