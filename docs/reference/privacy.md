@@ -4,7 +4,7 @@ description:
   How EspDesktop handles information in the documentation website, firmware, and web configuration interface.
 ---
 
-# Privacy Policy
+# Privacy policy
 
 **Effective date: November 8, 2026**
 

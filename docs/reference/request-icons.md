@@ -3,7 +3,7 @@ title: Request an Icon
 description: Suggest a Material Design Icon for the EspDesktop card icon picker.
 ---
 
-# Request an Icon
+# Request an icon
 
 If you can’t find the icon you need in the EspDesktop card editor, you can request it for the icon picker.
 
