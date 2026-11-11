@@ -2,6 +2,8 @@
 
 **Turn a small touchscreen into a dedicated controller for your Mac.**
 
+![EspDesktop touchscreen showing Mac app tiles beside a keyboard](docs/public/images/espdesktop-desk.jpg)
+
 EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar app through the **Mac Companion** connector. Use the display to launch apps, open folders and websites, run keyboard shortcuts, and lock your Mac.
 
 Set up the display from a normal web browser.
