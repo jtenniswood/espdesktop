@@ -9,6 +9,10 @@ html[data-espdesktop-display-demo] body {
   font-family: system-ui, sans-serif;
 }
 
+html[data-espdesktop-embedded] body {
+  background: transparent;
+}
+
 #sp-app > :not(#sp-screen),
 #sp-screen > :not(.sp-wrap),
 body .sp-support-btn,
@@ -36,6 +40,10 @@ body .sp-support-btn,
     linear-gradient(145deg, #0b0b0b, #030303 45%, #090909) padding-box,
     linear-gradient(155deg, #b7b5af, #555550 19%, #2c2c2b 48%, #73716a 79%, #a8a59d 96%, #50504e) border-box;
   box-shadow: inset 0 0 0 1px #ffffff20, 0 10px 26px #0005;
+}
+
+html[data-espdesktop-embedded] #sp-screen .sp-wrap {
+  box-shadow: inset 0 0 0 1px #ffffff20, 0 4px 12px #0004;
 }
 
 #sp-screen .sp-screen {

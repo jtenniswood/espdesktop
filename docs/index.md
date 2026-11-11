@@ -105,21 +105,22 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## Arrange tiles in your browser {#a-look-at-the-web-editor}
 
-The preview shows how your layout will look on the display. In this example, browser shortcuts share a subpage, with a Back tile to return to the previous page.
+Try the touchscreen here. Tap Slack to open its shortcut page, then tap Back to return.
 
 <div class="homepage-editor-actions">
 
-<a href="./editor/index.html" target="_self">Try the touchscreen demo</a> [Explore the web editor](/features/setup) [Create a subpage](/features/subpages#create-a-subpage)
+<a href="./editor/index.html" target="_self">Open full-size demo</a> [Explore the web editor](/features/setup) [Create a subpage](/features/subpages#create-a-subpage)
 
 </div>
 
 </div>
 
-<figure>
-
-![EspDesktop web editor showing a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
-
-</figure>
+<iframe
+  class="homepage-demo"
+  src="./editor/index.html"
+  title="Interactive EspDesktop touchscreen demo"
+  loading="lazy"
+></iframe>
 
 </section>
 
@@ -216,8 +217,7 @@ The preview shows how your layout will look on the display. In this example, bro
   aspect-ratio: 1;
 }
 
-.homepage-panel p,
-.homepage-editor figure p {
+.homepage-panel p {
   margin: 0;
 }
 
@@ -299,15 +299,13 @@ The preview shows how your layout will look on the display. In this example, bro
   border: 0;
 }
 
-.homepage-editor figure {
-  width: min(100%, 420px);
+.homepage-demo {
+  display: block;
+  width: min(100%, 452px);
+  height: auto;
+  aspect-ratio: 1;
   justify-self: center;
-}
-
-.homepage-editor img {
-  width: 100%;
-  aspect-ratio: 620 / 612;
-  border-radius: 6px;
+  border: 0;
 }
 
 @media (min-width: 620px) {

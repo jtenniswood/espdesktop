@@ -7,6 +7,9 @@ const configType = 'application/vnd.espdesktop.panel-config'
 const slackAppId = 'com.tinyspeck.slackmacgap'
 const idleDelayMs = 5000
 const pressDurationMs = 180
+const embedded = window.parent !== window
+
+document.documentElement.toggleAttribute('data-espdesktop-embedded', embedded)
 
 type Entity = {
   id: string
@@ -140,6 +143,7 @@ function startIdlePreview(grid: HTMLElement, slackSelector: string) {
   let pressed: HTMLButtonElement | null = null
   let openedByDemo = false
   let slackOn = false
+  let visible = !embedded
 
   const backButton = () => grid.querySelector<HTMLButtonElement>('button.sp-back-btn')
   const slackButton = () => backButton() ? null : grid.querySelector<HTMLButtonElement>(slackSelector)
@@ -147,7 +151,7 @@ function startIdlePreview(grid: HTMLElement, slackSelector: string) {
 
   function schedule(action: () => void, delay: number) {
     window.clearTimeout(timer)
-    timer = document.hidden ? undefined : window.setTimeout(action, delay)
+    timer = document.hidden || !visible ? undefined : window.setTimeout(action, delay)
   }
 
   function releasePress() {
@@ -195,7 +199,15 @@ function startIdlePreview(grid: HTMLElement, slackSelector: string) {
     waitForIdle()
   })
   new MutationObserver(paintSlack).observe(grid, { childList: true })
-  waitForIdle()
+  if (embedded) {
+    new IntersectionObserver(([entry]) => {
+      visible = (entry?.intersectionRatio ?? 0) >= 0.5
+      releasePress()
+      waitForIdle()
+    }, { threshold: 0.5 }).observe(grid)
+  } else {
+    waitForIdle()
+  }
 }
 
 const slack = layout.rootCards.find(card => appShortcutPageOwner(card.config) === slackAppId)
