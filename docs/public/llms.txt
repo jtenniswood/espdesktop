@@ -16,6 +16,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 
 ## Configure the touchscreen
 
+- [First Run setup](https://espdesktop.com/features/first-run.md)
 - [Device and system settings](https://espdesktop.com/features/setup.md)
 - [Customise the Home screen](https://espdesktop.com/features/home.md)
 - [Create subpages](https://espdesktop.com/features/subpages.md)
