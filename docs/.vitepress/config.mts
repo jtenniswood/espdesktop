@@ -210,7 +210,7 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Device Features',
+        text: 'Features',
         items: [
           { text: 'Configure the Display', link: '/features/setup' },
           { text: 'Subpages', link: '/features/subpages' },
