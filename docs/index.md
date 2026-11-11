@@ -25,8 +25,6 @@ Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/scre
 
 ![Illustrated 4-inch touchscreen with tiles for apps, websites, folders and shortcuts](/images/espdesktop-mac-controls.svg)
 
-<figcaption>Example touchscreen layout</figcaption>
-
 </figure>
 
 </section>
@@ -229,10 +227,6 @@ figcaption {
   margin-top: 8px;
   color: var(--vp-c-text-2);
   font-size: 14px;
-}
-
-.homepage-panel figcaption {
-  text-align: center;
 }
 
 .homepage-features h2,
