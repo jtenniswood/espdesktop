@@ -2,7 +2,6 @@
 title: Install the EspDesktop Display
 description: Flash your Guition 4848S040 with the EspDesktop web installer and connect it to Wi-Fi.
 prev: false
-next: false
 ---
 
 # Install the display {#set-up-espdesktop}
@@ -22,5 +21,3 @@ next: false
 3. When the display connects and prompts you to download the Mac app, reconnect your Mac to your home network.
 
 [Get help connecting to Wi-Fi](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
-
-**[Next · download and pair companion app](/getting-started/mac-app)**

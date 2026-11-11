@@ -1,7 +1,9 @@
 ---
 title: Configure Your First EspDesktop Cards
 description: Open the display’s web editor and add cards for Mac apps, keyboard shortcuts, Finder folders and websites.
-next: false
+next:
+  text: Home
+  link: /features/home
 ---
 
 # Configure your cards {#_3-configure-your-cards}

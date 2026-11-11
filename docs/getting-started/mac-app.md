@@ -1,7 +1,6 @@
 ---
 title: download and pair companion app
 description: Download EspDesktop for Mac, select your display, and enter its pairing code.
-next: false
 ---
 
 # download and pair companion app {#install-and-pair-the-espdesktop-mac-app}
@@ -20,8 +19,6 @@ Use an **Apple silicon Mac with macOS 13 or later**. Use the Mac app from the sa
 When you first open EspDesktop on your Mac, follow the on-screen instructions to pair it with your display.
 
 [Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/features/settings#mac-app-settings)
-
-**[Next · Configure your cards](/features/setup)**
 
 <style scoped>
 .mac-app-download {
