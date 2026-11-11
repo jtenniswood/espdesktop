@@ -5,7 +5,7 @@ description: Suggest a new shortcut, correct an existing preset, or share a Mac 
 
 # Contribute App Shortcuts
 
-Found a useful shortcut or a preset that needs fixing? Share it so other EspDesktop users can benefit from it in the built-in **Shortcut Catalog** or on an app subpage.
+Found a useful shortcut or a preset that needs fixing? Share it so other EspDesktop users can benefit from it in the **Application** tab of a **Key Shortcut** card or on an app subpage.
 
 ## Suggest an Addition or Correction
 
