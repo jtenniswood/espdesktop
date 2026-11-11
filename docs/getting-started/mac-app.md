@@ -82,14 +82,7 @@ Open **Display** in the Mac app to confirm it says **Connected**. Select **Custo
 
 ## 3. Try your first card {#check-the-connection}
 
-On an empty display, the web page guides you through app setup. If your Mac is still disconnected, the wizard starts with **Connect your Mac**, which has the latest app download and the display’s pairing code. Once your Mac connects, choose **Next** to pick your apps.
-
-1. Pick up to eight apps for the home screen. Setup leaves one slot free.
-2. Setup selects **Add shortcut pages** when at least one of your chosen apps has built-in shortcuts. Keep it or choose **Launch apps only**. If you add pages, choose whether they open automatically when you switch apps on your Mac.
-3. Choose **Done** or **Save setup**. Your cards appear on the display automatically.
-4. Tap a card to open its app or bring it to the front on your Mac.
-
-Choose **Skip setup** to build a custom layout in the editor. To run the wizard again, open **Screen → Appearance → App Subpages → Setup Again**. Saving replaces the home-screen cards and their shortcut pages. Close the wizard with **×** to keep your current layout.
+On an empty display, the web editor helps you pick your apps and set up shortcut pages. Once you’ve saved your layout, tap a card on the display to open its app or bring it to the front. [Follow the First Run walkthrough](/features/first-run).
 
 ## Check for Mac app updates
 

@@ -256,6 +256,7 @@ def check_build(dist):
         BASE + 'mac-controls/shortcuts',
         BASE + 'mac-controls/improve-shortcuts',
         BASE + 'mac-controls/security',
+        BASE + 'features/first-run',
         BASE + 'features/setup',
         BASE + 'features/subpages',
         BASE + 'reference/faq',
