@@ -204,9 +204,8 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
-      { text: 'Setup', link: '/getting-started/install' },
-      { text: 'Issues', link: 'https://github.com/jtenniswood/espdesktop/issues' },
-      { text: 'GitHub', link: 'https://github.com/jtenniswood/espdesktop' },
+      { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
+      { text: 'Install', link: '/getting-started/install' },
     ],
 
     sidebar: [
