@@ -6,7 +6,7 @@ namespace EspDesktop;
 
 internal sealed class App : Application
 {
-    internal static readonly Uri IconUri = new("pack://application:,,,/Packaging/EspDesktop.ico");
+    internal static readonly Uri IconUri = new("pack://application:,,,/EspDesktop;component/Packaging/EspDesktop.ico");
 
     [STAThread]
     public static int Main(string[] args)
