@@ -1,8 +1,12 @@
+import { appShortcutPageOwner } from '../../src/webserver/model/companion_shortcut_page'
 import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webserver/model/panel_config_conversion'
 
 const deviceProfile = 'guition-esp32-s3-4848s040'
 const maxConfigBytes = 512 * 1024
 const configType = 'application/vnd.espdesktop.panel-config'
+const slackAppId = 'com.tinyspeck.slackmacgap'
+const idleDelayMs = 5000
+const pressDurationMs = 180
 
 type Entity = {
   id: string
@@ -38,11 +42,13 @@ const sample = {
       4: 'shortcut.command+space;Spotlight;Magnify;Auto;;;companion',
       5: 'stat.memory;Memory;Memory;Auto;;;companion',
       6: ';Browser;Tab;Auto;;;subpage',
+      7: `${slackAppId};Slack;Chat;Auto;;;companion;;app_shortcuts`,
     },
     subpages: {
       6: '~B,1,2,3|CP,shortcut.command+l,Address Bar,Magnify|CP,shortcut.command+t,New Tab,Tab Plus|CP,shortcut.command+f,Find,Text Search',
+      7: '~B,1,2,3|CP,shortcut.command+n,New Message,Chat Plus|CP,shortcut.command+g,Search,Magnify|CP,shortcut.command+shift+k,Browse DMs,Chat',
     },
-    settings: { button_order: '1,2,3,4,5,6' },
+    settings: { button_order: '1,2,3,4,5,6,7' },
   }),
   entities: [
     entity('switch/Screen: Clock Bar', true),
@@ -66,7 +72,7 @@ function readSnapshot(snapshot: Snapshot | undefined) {
 
 const snapshot = readSnapshot(window.espDesktopDemoSnapshot)
 const seed = snapshot ?? sample
-const config = decodePanelPageSnapshot(seed.layout).document
+const { document: config, layout } = decodePanelPageSnapshot(seed.layout)
 const entities = new Map(seed.entities.map(item => [item.id, item]))
 const appIcons = snapshot?.appIcons
 
@@ -127,4 +133,79 @@ const url = new URL(location.href)
 if (url.searchParams.size) {
   url.search = ''
   history.replaceState(null, '', url)
+}
+
+function startIdlePreview(grid: HTMLElement, slackSelector: string) {
+  let timer: number | undefined
+  let pressed: HTMLButtonElement | null = null
+  let openedByDemo = false
+  let slackOn = false
+
+  const backButton = () => grid.querySelector<HTMLButtonElement>('button.sp-back-btn')
+  const slackButton = () => backButton() ? null : grid.querySelector<HTMLButtonElement>(slackSelector)
+  const paintSlack = () => slackButton()?.classList.toggle('demo-app-on', slackOn)
+
+  function schedule(action: () => void, delay: number) {
+    window.clearTimeout(timer)
+    timer = document.hidden ? undefined : window.setTimeout(action, delay)
+  }
+
+  function releasePress() {
+    pressed?.classList.remove('demo-pressed')
+    pressed = null
+  }
+
+  function waitForIdle() {
+    schedule(() => {
+      const target = openedByDemo ? backButton() : slackButton()
+      if (!target) return
+      if (grid.getAttribute('aria-disabled') !== 'false') {
+        waitForIdle()
+        return
+      }
+      pressed = target
+      target.classList.add('demo-pressed')
+      schedule(() => {
+        releasePress()
+        if (target.isConnected) {
+          const returningHome = openedByDemo
+          target.click()
+          openedByDemo = !!backButton()
+          if (!returningHome && openedByDemo) slackOn = true
+          paintSlack()
+        }
+        waitForIdle()
+      }, pressDurationMs)
+    }, idleDelayMs)
+  }
+
+  function handleActivity(event: Event) {
+    if (!event.isTrusted) return
+    // A user who takes over on the subpage keeps control of that page.
+    openedByDemo = false
+    releasePress()
+    waitForIdle()
+  }
+
+  for (const name of ['pointerdown', 'keydown', 'click', 'wheel']) {
+    document.addEventListener(name, handleActivity, { capture: true, passive: true })
+  }
+  document.addEventListener('visibilitychange', () => {
+    releasePress()
+    waitForIdle()
+  })
+  new MutationObserver(paintSlack).observe(grid, { childList: true })
+  waitForIdle()
+}
+
+const slack = layout.rootCards.find(card => appShortcutPageOwner(card.config) === slackAppId)
+if (slack) {
+  const selector = `button[data-slot="${slack.slot}"]`
+  const ready = new MutationObserver(() => {
+    const grid = document.querySelector<HTMLElement>('.sp-main[aria-disabled="false"]')
+    if (!grid?.querySelector(selector)) return
+    ready.disconnect()
+    startIdlePreview(grid, selector)
+  })
+  ready.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-disabled'] })
 }

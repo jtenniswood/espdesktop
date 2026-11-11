@@ -47,6 +47,16 @@ body .sp-support-btn,
   filter: brightness(1.25);
 }
 
+#sp-screen button.sp-btn:is(.demo-app-on, .demo-pressed) {
+  background-color: var(--card-active-color, var(--screen-primary)) !important;
+  --card-text-color: #212121 !important;
+  transition: none;
+}
+
+#sp-screen button.sp-btn.demo-pressed {
+  filter: brightness(0.85);
+}
+
 #sp-screen button.sp-btn:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: -3px;
