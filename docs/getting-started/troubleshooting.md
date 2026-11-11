@@ -55,4 +55,4 @@ Save a backup before using **System → System → Factory Reset**. Partial rese
 
 ## The display says to update the Mac app
 
-A firmware update can require a newer EspDesktop Mac app. When your paired Mac tries to reconnect with an older, incompatible app, the display asks you to update it. Install the Mac app from the same release as your display firmware. The saved pairing is used again when the compatible app reconnects. [EspDesktop releases](https://github.com/jtenniswood/espdesktop/releases)
+A firmware update can require a newer EspDesktop Mac app. When your paired Mac tries to reconnect with an older, incompatible app, the display shows a full-screen update notice. You can dismiss it with the close button and check the status in Network Settings. Install the Mac app from the same release as your display firmware. The saved pairing is used again when the compatible app reconnects. [EspDesktop releases](https://github.com/jtenniswood/espdesktop/releases)

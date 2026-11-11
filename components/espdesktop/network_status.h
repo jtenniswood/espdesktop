@@ -71,6 +71,11 @@ inline const lv_font_t *&network_status_card_icon_font() {
   return font;
 }
 
+inline const lv_font_t *&network_status_notice_title_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+
 inline NetworkStatusModalUi &network_status_modal_ui() {
   static NetworkStatusModalUi ui;
   return ui;
@@ -256,7 +261,7 @@ inline void network_status_open_pairing() {
 }
 
 // Show once per compatibility failure. Settings retains the status after the
-// banner is dismissed, and a successful connection clears both.
+// notice is dismissed, and a successful connection clears both.
 inline void network_status_sync_mac_update_notice() {
   static lv_obj_t *notice = nullptr;
   static bool shown = false;
@@ -268,27 +273,44 @@ inline void network_status_sync_mac_update_notice() {
   const auto &metrics = control_modal_grid_metrics();
   if (shown || !metrics.page || control_modal_active().overlay || !lv_layer_top()) return;
 
-  notice = control_modal_open_toast(lv_pct(90), control_modal_card_radius(metrics.first_card),
-      theme_display_color(current_theme().surface_secondary)).box;
+  notice = lv_obj_create(lv_layer_top());
   if (!notice) return;
   shown = true;
-  lv_obj_set_height(notice, LV_SIZE_CONTENT);
-  lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -12);
+  const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
+  control_modal_style_overlay(notice);
+  lv_obj_set_style_radius(notice, 0, LV_PART_MAIN);
+  lv_obj_set_style_bg_color(notice, lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(notice, LV_OPA_COVER, LV_PART_MAIN);
+  lv_obj_set_style_pad_row(notice, control_modal_scaled_px(20, layout.short_side), LV_PART_MAIN);
+  lv_obj_set_flex_flow(notice, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(notice, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
   lv_obj_add_flag(notice, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_add_event_cb(notice, [](lv_event_t *event) {
-    lv_obj_del(static_cast<lv_obj_t *>(lv_event_get_target(event)));
-  }, LV_EVENT_CLICKED, nullptr);
   lv_obj_add_event_cb(notice, [](lv_event_t *) { notice = nullptr; }, LV_EVENT_DELETE, nullptr);
 
+  const auto *icon_font = network_status_card_icon_font();
+  if (icon_font) {
+    auto *icon = lv_label_create(notice);
+    lv_obj_set_style_text_font(icon, icon_font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(icon, lv_color_white(), LV_PART_MAIN);
+    lv_label_set_text(icon, find_icon("Sync"));
+  }
   lv_obj_t *label = lv_label_create(notice);
-  lv_obj_set_width(label, lv_pct(100));
+  lv_obj_set_width(label, lv_pct(80));
   lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-  lv_obj_set_style_text_color(label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-  lv_obj_t *reference = metrics.first_card ? metrics.first_card : metrics.page;
-  lv_obj_set_style_text_font(label, lv_obj_get_style_text_font(reference, LV_PART_MAIN), LV_PART_MAIN);
+  lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+  if (const auto *font = network_status_notice_title_font())
+    lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
   lv_label_set_display_text(label, espdesktop_i18n_key("mac_update_reconnect"));
   apply_text_width_compensation(label);
+
+  if (auto *close = control_modal_create_round_button(notice, layout.back_size, "\U000F0156",
+          icon_font, 0, 0, icon_width_compensation_percent())) {
+    lv_obj_add_flag(close, LV_OBJ_FLAG_IGNORE_LAYOUT);
+    control_modal_style_chrome_button(close, layout, true);
+    lv_obj_set_style_text_color(lv_obj_get_child(close, 0), lv_color_white(), LV_PART_MAIN);
+    lv_obj_add_event_cb(close, [](lv_event_t *) { lv_obj_del(notice); }, LV_EVENT_CLICKED, nullptr);
+  }
 }
 
 inline void network_status_refresh_page() {
