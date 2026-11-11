@@ -119,8 +119,6 @@ The preview shows how your layout will look on the display. In this example, bro
 
 ![EspDesktop web editor showing a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
 
-<figcaption>A browser shortcuts subpage in the editor</figcaption>
-
 </figure>
 
 </section>
@@ -221,12 +219,6 @@ The preview shows how your layout will look on the display. In this example, bro
 .homepage-panel p,
 .homepage-editor figure p {
   margin: 0;
-}
-
-figcaption {
-  margin-top: 8px;
-  color: var(--vp-c-text-2);
-  font-size: 14px;
 }
 
 .homepage-features h2,
