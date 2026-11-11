@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { withBase } from 'vitepress'
 
 const props = defineProps<{
@@ -13,7 +13,6 @@ const props = defineProps<{
 }>()
 
 const index = ref(0)
-const slide = computed(() => props.slides[index.value])
 
 function move(offset: number) {
   const count = props.slides.length
@@ -22,34 +21,39 @@ function move(offset: number) {
 </script>
 
 <template>
-  <figure class="screenshot-gallery" :aria-label="label">
-    <figcaption>
-      <div class="gallery-controls" role="group" :aria-label="label + ' controls'">
-        <button type="button" @click="move(-1)">
-          <span aria-hidden="true">←</span> Previous
-        </button>
-        <button type="button" @click="move(1)">
-          Next <span aria-hidden="true">→</span>
-        </button>
-      </div>
-      <div aria-live="polite" aria-atomic="true">
-        <span class="slide-position">{{ index + 1 }} / {{ slides.length }}</span>
-        <strong class="slide-title">{{ slide.title }}</strong>
-        <p>{{ slide.caption }}</p>
-      </div>
-    </figcaption>
+  <div class="screenshot-gallery" role="group" :aria-label="label">
+    <div class="gallery-controls" role="group" :aria-label="label + ' controls'">
+      <button type="button" @click="move(-1)">
+        <span aria-hidden="true">←</span> Previous
+      </button>
+      <button type="button" @click="move(1)">
+        Next <span aria-hidden="true">→</span>
+      </button>
+    </div>
 
-    <a class="screenshot-link" :href="withBase(slide.image)">
-      <img :src="withBase(slide.image)" :alt="slide.alt" loading="lazy" decoding="async">
-    </a>
-  </figure>
+    <div aria-live="polite">
+      <figure
+        v-for="(slide, slideIndex) in slides"
+        v-show="index === slideIndex"
+        :key="slide.image"
+        class="screenshot-slide"
+      >
+        <figcaption>
+          <p class="slide-position">{{ slideIndex + 1 }} / {{ slides.length }}</p>
+          <strong class="slide-title">{{ slide.title }}</strong>
+          <p class="slide-caption">{{ slide.caption }}</p>
+        </figcaption>
+
+        <a class="screenshot-link" :href="withBase(slide.image)">
+          <img :src="withBase(slide.image)" :alt="slide.alt" loading="lazy" decoding="async">
+        </a>
+      </figure>
+    </div>
+  </div>
 </template>
 
 <style scoped>
 .screenshot-gallery {
-  display: grid;
-  align-items: start;
-  gap: 16px;
   margin: 24px 0;
   padding: clamp(16px, 4vw, 28px);
   border: 1px solid var(--vp-c-divider);
@@ -57,7 +61,15 @@ function move(offset: number) {
   background: var(--vp-c-bg-soft);
 }
 
-.slide-position {
+.screenshot-slide {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+}
+
+.screenshot-slide .slide-position {
+  margin: 0;
+  line-height: 1.5;
   color: var(--vp-c-text-2);
   font-size: 13px;
   font-variant-numeric: tabular-nums;
@@ -70,7 +82,7 @@ function move(offset: number) {
   line-height: 1.35;
 }
 
-.screenshot-gallery p {
+.screenshot-slide .slide-caption {
   margin: 8px 0 0;
 }
 
@@ -123,13 +135,22 @@ function move(offset: number) {
 }
 
 @media (min-width: 640px) {
-  .screenshot-gallery {
+  .screenshot-slide {
     grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
     gap: 24px;
   }
+}
+@media (scripting: none) {
+  .gallery-controls {
+    display: none;
+  }
 
-  .screenshot-gallery figcaption {
-    padding-top: 32px;
+  .screenshot-slide {
+    display: grid !important;
+  }
+
+  .screenshot-slide + .screenshot-slide {
+    margin-top: 24px;
   }
 }
 </style>

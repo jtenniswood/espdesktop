@@ -12,7 +12,7 @@ Install the EspDesktop connector to launch Mac apps, open folders and run shortc
 Requires **macOS 13 or later** and **Apple silicon**.
 
 <p class="mac-app-download">
-  <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac' : 'View Mac downloads' }}</a>
+  <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac' : 'View Mac downloads' }}</a>{{ ' ' }}
   <span v-if="$frontmatter.macReleaseVersion">v{{ $frontmatter.macReleaseVersion }} · DMG</span>
 </p>
 
