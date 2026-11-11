@@ -1,18 +1,22 @@
 ---
 title: Customise the EspDesktop Home Screen
-description: Rearrange and resize cards, change their names and colours, and create custom subpages in the EspDesktop web editor.
+description: Rearrange, resize, and move cards between pages, customise their appearance, and create subpages in the EspDesktop web editor.
 ---
 
 # Home
 
 Home is the main screen on your EspDesktop touchscreen. Open your display’s address in a browser and select **Layout** to arrange the cards you want within easy reach.
 
-## Move and resize cards
+<span id="move-and-resize-cards"></span>
+
+## Organise cards
 
 - **Move a card.** Drag it to another spot in the grid. If you drop it onto another card, that card shifts to the next available space.
 - **Resize a card.** Hover over it and drag the handle in its bottom-right corner to make it wider, taller or smaller. The available sizes depend on the card and the space in the grid. Press **Escape** during the drag to keep the original size.
 
-Moves and resizes save when you drop the card or release the handle. Right-click a card to cut it for pasting into another tile or copy its code for another display.
+Moves and resizes save when you drop the card or release the handle. Choose **Save** when editing a card.
+
+To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them. You can also copy a card’s code to use it on another display.
 
 <a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot marked with a plus" width="1000" height="1337"></a>
 
@@ -44,3 +48,11 @@ Group related cards behind a single card on Home. For example, create a **Work**
 4. Use the **Back** card to return to Home. On the touchscreen, tap the subpage card to open it.
 
 See how to add nested pages and organise app-specific shortcuts in the [Subpages guide](/features/subpages).
+
+### Use and customise the Back card
+
+To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups.
+
+Subpage and Back buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
+
+Returning with **Back** or a swipe shows the destination page before loading any missing app artwork. Cached icons appear straight away; other icons can appear shortly afterward.
