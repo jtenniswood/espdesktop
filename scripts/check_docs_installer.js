@@ -1,6 +1,7 @@
 // Check the exact flashing dependency resolved from ESP Web Tools. No USB writes.
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const { hash } = require('node:crypto');
 const path = require('node:path');
 const { createRequire } = require('node:module');
 const { buildSync } = require('esbuild');
@@ -58,6 +59,7 @@ async function checkBrowser() {
       '.json': 'application/json',
       '.svg': 'image/svg+xml',
       '.jpg': 'image/jpeg',
+      '.png': 'image/png',
     })[path.extname(file)] || 'application/octet-stream');
     fs.createReadStream(file).pipe(response);
   });
@@ -67,6 +69,7 @@ async function checkBrowser() {
   try {
     browser = await chromium.launch();
     const page = await browser.newPage();
+    page.setDefaultTimeout(15_000);
     const errors = [];
     const externalScripts = [];
     const manifests = [];
@@ -106,6 +109,27 @@ async function checkBrowser() {
       await canceled.getByText('Cancel', { exact: true }).click();
       await canceled.waitFor({ state: 'detached' });
     }
+    const launcherApps = ['Finder', 'Safari', 'Calendar', 'Mail', 'Slack', 'Notes', 'Athena', 'ChatGPT', 'Claude'];
+    async function checkLauncher(scope, touchscreen = false) {
+      const grid = scope.locator('.sp-main[aria-disabled="false"]');
+      await grid.waitFor();
+      await scope.locator('.sp-topbar').waitFor({ state: 'hidden' });
+      assert.equal(await grid.locator('[data-slot]').count(), launcherApps.length);
+      return Promise.all(launcherApps.map(async (name, index) => {
+        const tile = grid.locator(`[data-slot="${index + 1}"]`);
+        if (touchscreen) assert.equal(await tile.getAttribute('aria-label'), name);
+        const artwork = tile.locator('img.sp-companion-app-icon');
+        await artwork.waitFor();
+        assert.equal(await tile.getAttribute('data-icon-size'), 'large');
+        assert.equal(await tile.locator('.sp-btn-label:visible').count(), 0, `${name} should show only its icon`);
+        const src = await artwork.evaluate(async image => {
+          await image.decode();
+          return image.src;
+        });
+        return hash('sha256', src);
+      }));
+    }
+    let touchscreenIcons;
     const home = `${base}/`;
     const setup = page.locator('.homepage-hero').getByRole('link', { name: 'Get started', exact: true });
     for (const [width, height, colorScheme] of [
@@ -142,6 +166,7 @@ async function checkBrowser() {
       const frame = page.frameLocator(demoSelector);
       const slack = frame.getByRole('button', { name: 'Slack', exact: true });
       await slack.waitFor();
+      touchscreenIcons = await checkLauncher(frame, true);
       const frameScheme = await demo.evaluate(iframe => getComputedStyle(iframe).colorScheme);
       const demoScheme = await frame.locator('html').evaluate(html => getComputedStyle(html).colorScheme);
       assert.equal(frameScheme, demoScheme, 'Matching color schemes keep the iframe canvas transparent');
@@ -167,34 +192,27 @@ async function checkBrowser() {
       assert(await page.getByRole('tab', { name: tab, exact: true }).isVisible());
     }
     const editorGrid = page.locator('.sp-main');
-    const safariTitle = editorGrid.locator('[data-slot="1"] .sp-editable-title');
-    await safariTitle.click();
-    const cardName = page.getByRole('textbox', { name: 'Card name', exact: true });
-    await cardName.fill('My Safari');
-    await cardName.press('Enter');
-    await page.waitForFunction(() => sessionStorage.getItem('espdesktop-editor-demo-v1'));
-    await page.reload();
-    await editorGrid.getByText('My Safari', { exact: true }).waitFor();
-
-    const appTile = editorGrid.locator('[data-slot="2"]');
+    assert.deepEqual(await checkLauncher(page), touchscreenIcons, 'Both demos use the same launcher artwork');
+    const appTile = editorGrid.locator('[data-slot="3"]');
     const applicationPicker = page.getByRole('combobox', { name: 'Application', exact: true });
     const editApplication = async () => {
-      await appTile.locator('.sp-btn-icon').click();
+      await appTile.click();
       await page.getByRole('button', { name: 'Edit', exact: true }).click();
-      await applicationPicker.locator('option[value="com.apple.iCal"]').waitFor({ state: 'attached' });
+      await applicationPicker.locator('option[value="demo.web.calendar"]').waitFor({ state: 'attached' });
       assert.deepEqual(await applicationPicker.locator('option').allTextContents(),
-        ['Choose a Mac app…', 'Calendar', 'Notes', 'Safari', 'Slack']);
+        ['Choose a Mac app…', ...launcherApps.toSorted((a, b) => a.localeCompare(b))]);
     };
     await editApplication();
     await applicationPicker.selectOption('com.apple.Notes');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
     await page.reload();
-    await appTile.getByText('Notes', { exact: true }).waitFor();
     await editApplication();
     assert.equal(await applicationPicker.inputValue(), 'com.apple.Notes');
 
     await page.getByRole('button', { name: 'Close settings' }).click();
+    await appTile.click({ button: 'right' });
+    await page.locator('.sp-ctx-item').getByText('Delete', { exact: true }).click();
     await editorGrid.locator('.sp-empty-cell').first().click();
     await page.locator('[data-card-type="companion_folder"]').click();
     const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
@@ -206,6 +224,11 @@ async function checkBrowser() {
     await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
     await page.reload();
     await editorGrid.getByText('Downloads', { exact: true }).waitFor();
+    await editorGrid.getByRole('button', { name: 'Rename card' }).filter({ hasText: 'Downloads' }).click();
+    const cardName = page.getByRole('textbox', { name: 'Card name', exact: true });
+    await cardName.fill('My Downloads');
+    await cardName.press('Enter');
+    await editorGrid.getByText('My Downloads', { exact: true }).waitFor();
 
     const openBacklight = async () => {
       await page.getByRole('tab', { name: 'Screen', exact: true }).click();
@@ -226,14 +249,14 @@ async function checkBrowser() {
     assert.equal(await brightness.inputValue(), '65');
 
     await page.goto(`${home}editor/index.html`);
-    await page.getByRole('button', { name: 'Safari', exact: true }).waitFor();
+    assert.deepEqual(await checkLauncher(page, true), touchscreenIcons);
     assert.equal(await page.getByRole('tab').count(), 0, 'The touchscreen demo stays read-only');
 
     await page.goto(editorUrl);
-    await editorGrid.getByText('My Safari', { exact: true }).waitFor();
+    await editorGrid.getByText('My Downloads', { exact: true }).waitFor();
     page.once('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Reset demo', exact: true }).click();
-    await editorGrid.getByText('Safari', { exact: true }).waitFor();
+    assert.deepEqual(await checkLauncher(page), touchscreenIcons);
     console.log('The separate editor saves and resets its own layout without changing the touchscreen demo.');
 
     await page.goto(home);

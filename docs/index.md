@@ -137,7 +137,7 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app icon to go back home.
+Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap the app icon to go back home.
 
 <div class="homepage-editor-actions">
 
