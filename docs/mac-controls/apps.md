@@ -57,8 +57,6 @@ When you close the last visible window of the foreground app, the display return
 
 The browser setup page caches app icon previews locally for up to 24 hours, so switching pages and reopening setup can reuse downloaded artwork. Icons refresh when the Mac connection or app icon catalogue changes. **Clear app icon cache** in the Mac Companion settings also clears the browser previews. Browser caching is limited to 64 previews and still works in memory if local storage is unavailable.
 
-The S3 keeps 11 full-resolution app icons in flash and can cache up to 12 additional icons in external RAM, for up to 23 at once when memory is available. The extra copies use lossless compression where it saves space, use at most 2 MB, leave 1 MB of free external-memory headroom when allocated, and reload from the Mac after a restart. Hidden pages can retain up to 2 MB of rendered artwork and release it under memory pressure. If the cache fills, the least recently used overflow icon is replaced; missing artwork downloads again when needed. The browser keeps its own cached copy when an icon is evicted from the display.
-
 ## Website Cards {#open-a-website}
 
 To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/websites).
