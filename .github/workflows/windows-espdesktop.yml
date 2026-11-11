@@ -35,7 +35,13 @@ jobs:
         run: dotnet run -c Release --project windows/EspDesktop.Tests
 
       - name: Verify real Windows desktop data over a display connection
-        run: dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows --exercise-desktop-actions
+        shell: pwsh
+        run: |
+          # Hosted accounts have a fresh browser profile. Open test pages directly.
+          $edgePolicy = 'HKCU:\Software\Policies\Microsoft\Edge'
+          New-Item -Path $edgePolicy -Force | Out-Null
+          New-ItemProperty -Path $edgePolicy -Name HideFirstRunExperience -Value 1 -PropertyType DWord -Force | Out-Null
+          dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows --exercise-desktop-actions
 
       - name: Build the per-user installer
         run: ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture ${{ matrix.arch }}

@@ -440,7 +440,8 @@ static async Task<string> DescribeBrowserWindow(string testAddress)
                 var reportsTestPage = value.Contains(new Uri(testAddress).Authority + "/espdesktop-browser-", StringComparison.Ordinal);
                 return $"{edit.Current.AutomationId}/{edit.Current.Name} (focused={edit.Current.HasKeyboardFocus}, test URL={reportsTestPage})";
             });
-            return $"Foreground: {process.ProcessName} / {element.Current.Name}. Edit controls: {string.Join(", ", details)}.";
+            return $"Foreground: {process.ProcessName} / {process.MainWindowTitle} / {element.Current.ClassName} / {element.Current.Name}. " +
+                $"Edit controls: {string.Join(", ", details)}.";
         }).WaitAsync(TimeSpan.FromSeconds(3));
     }
     catch (Exception e) when (WindowsDesktop.IsShellFailure(e) || e is TimeoutException or ElementNotAvailableException)
