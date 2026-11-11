@@ -1,9 +1,8 @@
 import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webserver/model/panel_config_conversion'
 
 const deviceProfile = 'guition-esp32-s3-4848s040'
-const sessionKey = 'espdesktop-editor-demo-v1'
+const maxConfigBytes = 512 * 1024
 const configType = 'application/vnd.espdesktop.panel-config'
-const maxConfigBytes = 524288
 
 type Entity = {
   id: string
@@ -15,6 +14,7 @@ type Entity = {
 type Snapshot = {
   layout: string
   entities: Entity[]
+  appIcons?: Record<string, { pixels: string; palette: string | null }>
 }
 
 declare global {
@@ -58,130 +58,73 @@ function readSnapshot(snapshot: Snapshot | undefined) {
     const layout = Uint8Array.from(atob(snapshot.layout), char => char.charCodeAt(0))
     if (layout.length > maxConfigBytes || decodePanelPageSnapshot(layout).document.deviceProfile !== deviceProfile)
       return null
-    return { layout, entities: snapshot.entities }
+    return { layout, entities: snapshot.entities, appIcons: snapshot.appIcons }
   } catch {
     return null
   }
 }
 
-const initial = readSnapshot(window.espDesktopDemoSnapshot)
-let saved: ReturnType<typeof readSnapshot> = null
-try {
-  saved = readSnapshot(JSON.parse(sessionStorage.getItem(sessionKey) || 'null'))
-} catch {
-  // Storage can be unavailable in embedded browsers.
-}
-const seed = saved ?? initial ?? sample
-let layout = new Uint8Array(seed.layout)
-let config = decodePanelPageSnapshot(layout).document
-let generation = 1
+const snapshot = readSnapshot(window.espDesktopDemoSnapshot)
+const seed = snapshot ?? sample
+const config = decodePanelPageSnapshot(seed.layout).document
 const entities = new Map(seed.entities.map(item => [item.id, item]))
+const appIcons = snapshot?.appIcons
 
-function saveSession() {
-  try {
-    let binary = ''
-    for (const byte of layout) binary += String.fromCharCode(byte)
-    const snapshot: Snapshot = { layout: btoa(binary), entities: [...entities.values()] }
-    sessionStorage.setItem(sessionKey, JSON.stringify(snapshot))
-  } catch {
-    // Keep the current edits in memory when storage is unavailable.
-  }
-}
+const notFound = () => new Response(null, { status: 404 })
 
-function headers() {
-  return { ETag: `"v2-${generation}"`, 'X-Panel-Config-Version': '2', 'Content-Type': configType }
-}
-
-const empty = (status: number) => new Response(null, { status })
-
-// This document owns the transport. Every device request stays inside the
-// simulation, including requests from editor features that call fetch directly.
+// The demo serves an immutable snapshot through the editor's normal read
+// paths. All other requests end here, including every device write.
 window.fetch = async (input, init) => {
   const url = new URL(input instanceof Request ? input.url : input, window.location.href)
-  if (url.origin !== window.location.origin) return empty(404)
-  const method = (init?.method ?? 'GET').toUpperCase()
+  const method = init?.method ?? (input instanceof Request ? input.method : 'GET')
+  if (url.origin !== window.location.origin || method.toUpperCase() !== 'GET') return notFound()
 
-  if (method === 'GET') {
-    switch (url.pathname) {
-      case '/api/v1/capabilities':
-        return Response.json({
-          api: { version: 1 },
-          configuration: {
-            read: true, write: true, document_versions: [2],
-            durable_document_version: 2, max_navigation_depth: 2,
-            writable_navigation_depth: 2, max_v2_document_bytes: maxConfigBytes,
-            max_record_body_bytes: 4096, preserves_inactive_records: true,
-            companion_auto_open_app_subpages: true, display_theme_preferences: true,
-            screen_schedule_preferences: true,
-          },
-        })
-      case '/api/v1/config':
-        return new Response(layout, { headers: headers() })
-      case '/connectors/status':
-        return Response.json({ onboarding_complete: true, mac_companion: {
-          available: true, configured: true, paired: true, connected: false,
-        } })
-      case '/espdesktop/version.json':
-        return Response.json({ device_slug: deviceProfile, version: 'demo' })
+  switch (url.pathname) {
+    case '/api/v1/capabilities':
+      return Response.json({
+        api: { version: 1 },
+        configuration: {
+          read: true, write: true, document_versions: [2],
+          durable_document_version: 2, max_navigation_depth: 2,
+          writable_navigation_depth: 2, max_v2_document_bytes: maxConfigBytes,
+          max_record_body_bytes: 4096, preserves_inactive_records: true,
+          companion_auto_open_app_subpages: true, display_theme_preferences: true,
+          screen_schedule_preferences: true,
+        },
+      })
+    case '/api/v1/config':
+      return new Response(seed.layout.slice(), {
+        headers: { ETag: '"v2-1"', 'X-Panel-Config-Version': '2', 'Content-Type': configType },
+      })
+    case '/connectors/status':
+      return Response.json({ onboarding_complete: true, mac_companion: {
+        available: true, configured: true, paired: true, connected: false,
+      } })
+    case '/espdesktop/version.json':
+      return Response.json({ device_slug: deviceProfile, version: 'demo' })
+    case '/companion/app-icon': {
+      const appId = url.searchParams.get('appId')
+      const background = url.searchParams.get('background') ?? ''
+      const icon = appIcons?.[JSON.stringify([appId, background])] ?? appIcons?.[JSON.stringify([appId, ''])]
+      if (!icon) return notFound()
+      const pixels = Uint8Array.from(atob(icon.pixels), char => char.charCodeAt(0))
+      const headers = new Headers({ 'X-EspDesktop-Companion-Online': 'true' })
+      if (icon.palette) headers.set('X-EspDesktop-App-Icon-Palette', icon.palette)
+      return new Response(pixels, { headers })
     }
   }
 
-  if (method === 'PUT' && url.pathname === '/api/v1/config') {
-    const next = new Uint8Array(await new Response(init?.body).arrayBuffer())
-    if (new Headers(init?.headers).get('If-Match') !== headers().ETag) return empty(409)
-    if (next.length > maxConfigBytes) return empty(413)
-    try {
-      const decoded = decodePanelPageSnapshot(next).document
-      if (decoded.deviceProfile !== deviceProfile) return empty(422)
-      layout = next
-      config = decoded
-    } catch {
-      return empty(422)
-    }
-    generation++
-    saveSession()
-    return new Response(null, { status: 204, headers: headers() })
-  }
-
-  const [domain, name, action, extra] = url.pathname.slice(1).split('/').map(decodeURIComponent)
-  if (!name || extra) return empty(404)
-  const id = `${domain}/${name}`
-  if (method === 'GET' && !action) {
-    // The editor uses one legacy read to finish loading its settings even
-    // when the layout itself comes from the native document.
-    if (id === 'text/Button Order') return Response.json(entity(id, config.settings.button_order ?? ''))
-    const current = entities.get(id)
-    return current ? Response.json(current) : empty(404)
-  }
-
+  const id = decodeURIComponent(url.pathname.slice(1))
+  // The editor uses a legacy read to finish loading its screen settings.
+  if (id === 'text/Button Order') return Response.json(entity(id, config.settings.button_order ?? ''))
   const current = entities.get(id)
-  if (method === 'POST' && (current || name.startsWith('Screen')) && ['number', 'select', 'switch', 'text'].includes(domain ?? '')) {
-    const value = url.searchParams.get('value') ?? url.searchParams.get('option')
-    if (action === 'set' && value !== null) {
-      entities.set(id, entity(id, domain === 'number' ? Number(value) : value, current))
-    } else if (domain === 'switch' && (action === 'turn_on' || action === 'turn_off')) {
-      entities.set(id, entity(id, action === 'turn_on', current))
-    } else {
-      return empty(404)
-    }
-    saveSession()
-    return empty(204)
-  }
-  return empty(404)
+  return current ? Response.json(current) : notFound()
 }
 
-// SSE is an opt-in troubleshooting path on the physical panel. The demo
-// supplies its initial settings through the editor's normal HTTP loader.
+// Use the snapshot's HTTP reads and always start on the home screen.
 Object.defineProperty(window, 'EventSource', { value: undefined })
 const url = new URL(location.href)
-if (url.searchParams.has('events')) {
-  url.searchParams.delete('events')
+if (url.searchParams.size) {
+  url.search = ''
   history.replaceState(null, '', url)
 }
-
-if (initial) document.querySelector('#demo-title')!.textContent = 'Editor demo · Your display'
-document.querySelector('#reset-demo')!.addEventListener('click', () => {
-  if (!confirm('Reset the demo to its starting layout?')) return
-  try { sessionStorage.removeItem(sessionKey) } catch { /* Storage is unavailable. */ }
-  location.reload()
-})
