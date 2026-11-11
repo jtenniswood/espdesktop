@@ -105,7 +105,7 @@ async function checkBrowser() {
       await canceled.waitFor({ state: 'detached' });
     }
     const home = `${base}/espdesktop/`;
-    const setup = page.getByRole('link', { name: 'Get started', exact: true });
+    const setup = page.locator('.homepage-hero').getByRole('link', { name: 'Get started', exact: true });
     for (const [width, height, colorScheme] of [
       [320, 640, 'light'],
       [390, 844, 'dark'],
@@ -127,6 +127,15 @@ async function checkBrowser() {
 
       const demoSelector = 'iframe.homepage-demo';
       const demo = page.locator(demoSelector);
+      const demoSection = page.locator('.homepage-editor');
+      const getStarted = demoSection.getByRole('link', { name: 'Get Started', exact: true });
+      assert.equal(await getStarted.getAttribute('href'), '/espdesktop/screens/4848s040#where-to-buy');
+      if (width >= 768) {
+        const copy = await demoSection.locator(':scope > div').boundingBox();
+        const mock = await demo.boundingBox();
+        assert(copy && mock && Math.abs(copy.width - mock.width) < 1,
+          'Homepage demo and copy must use equal desktop columns');
+      }
       await demo.scrollIntoViewIfNeeded();
       const frame = page.frameLocator(demoSelector);
       const slack = frame.getByRole('button', { name: 'Slack', exact: true });

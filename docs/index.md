@@ -109,7 +109,7 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap Back to 
 
 <div class="homepage-editor-actions">
 
-<a href="./editor/index.html" target="_self">Open full-size demo</a> [Explore the web editor](/features/setup) [Create a subpage](/features/subpages#create-a-subpage)
+<a href="./editor/index.html" target="_self">Open full-size demo</a> [Get Started](/screens/4848s040#where-to-buy)
 
 </div>
 
@@ -318,8 +318,19 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap Back to 
 @media (min-width: 768px) {
   .homepage-hero,
   .homepage-editor {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     gap: clamp(32px, 6vw, 80px);
+  }
+
+  .homepage-hero {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+
+  .homepage-editor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homepage-demo {
+    width: 100%;
   }
 }
 
