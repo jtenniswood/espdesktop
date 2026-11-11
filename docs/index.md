@@ -125,27 +125,11 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap Back to 
 </section>
 
 <style scoped>
-@font-face {
-  font-family: 'Instrument Serif';
-  src: url('./.vitepress/theme/fonts/instrument-serif-regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Instrument Serif';
-  src: url('./.vitepress/theme/fonts/instrument-serif-italic.woff2') format('woff2');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
 .homepage-hero h1,
 .homepage-features h2,
 .homepage-grid h3,
 .homepage-editor h2 {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--espdesktop-headline-font);
   font-weight: 400;
   letter-spacing: normal;
 }
