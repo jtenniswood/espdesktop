@@ -38,7 +38,6 @@ export default defineConfig({
   title: 'EspDesktop',
   description:
     'Pair a small ESP32 touchscreen with your Mac to launch apps, open folders and websites, and run shortcuts.',
-  base: '/espdesktop/',
   lang: 'en-US',
   cleanUrls: true,
   lastUpdated: true,
@@ -76,7 +75,7 @@ export default defineConfig({
     ...(process.env.GOOGLE_SITE_VERIFICATION
       ? [['meta', { name: 'google-site-verification', content: process.env.GOOGLE_SITE_VERIFICATION }] as [string, Record<string, string>]]
       : []),
-    ['link', { rel: 'icon', type: 'image/png', href: '/espdesktop/favicon.png' }],
+    ['link', { rel: 'icon', type: 'image/png', href: '/favicon.png' }],
     ['meta', { property: 'og:locale', content: 'en_US' }],
     ['meta', { property: 'og:site_name', content: 'EspDesktop' }],
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],

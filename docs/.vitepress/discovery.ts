@@ -2,7 +2,7 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { MarkdownRenderer } from 'vitepress'
 
-export const hostname = 'https://jtenniswood.github.io/espdesktop/'
+export const hostname = 'https://espdesktop.com/'
 export const llmsIndexUrl = new URL('llms.txt', hostname).href
 
 export function canonicalUrlFor(relativePath: string) {
