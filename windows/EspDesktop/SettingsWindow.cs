@@ -132,6 +132,20 @@ internal sealed class SettingsWindow : Window
         Render();
     }
 
+    public void CapturePreview()
+    {
+        if (!smoke || Environment.GetEnvironmentVariable("ESPDESKTOP_SETTINGS_PREVIEW") is not { Length: > 0 } path) return;
+        var content = (FrameworkElement)Content;
+        var dpi = VisualTreeHelper.GetDpi(content);
+        var bitmap = new RenderTargetBitmap((int)Math.Ceiling(content.ActualWidth * dpi.DpiScaleX),
+            (int)Math.Ceiling(content.ActualHeight * dpi.DpiScaleY), dpi.PixelsPerInchX, dpi.PixelsPerInchY, PixelFormats.Pbgra32);
+        bitmap.Render(content);
+        var png = new PngBitmapEncoder();
+        png.Frames.Add(BitmapFrame.Create(bitmap));
+        using var output = File.Create(path);
+        png.Save(output);
+    }
+
     public void ShowSettings()
     {
         if (quitting) return;

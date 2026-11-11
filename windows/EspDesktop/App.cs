@@ -62,6 +62,7 @@ internal sealed class App : Application
                 if (smoke)
                 {
                     await app.Dispatcher.InvokeAsync(() => { }, DispatcherPriority.ApplicationIdle);
+                    window.CapturePreview();
                     window.Quit();
                 }
             });

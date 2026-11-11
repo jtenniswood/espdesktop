@@ -52,6 +52,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         var failures = 0;
         var repairs = 0;
         var attemptedAddress = pairing.Address;
+        string? unverifiedAddress = null;
         while (!token.IsCancellationRequested)
         {
             try
@@ -63,7 +64,15 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 using var client = new Link(pairing.Fingerprint, f => pinMismatch = f != pairing.Fingerprint);
                 try { await client.Connect(DisplayEndpoint.Parse(attemptedAddress).Socket, timeout.Token); }
                 catch (WebSocketException) when (pinMismatch)
-                { throw new SessionException("The display identity changed. If it was reset, forget it and pair again."); }
+                {
+                    if (attemptedAddress == pairing.Address)
+                        throw new SessionException("The display identity changed. If it was reset, forget it and pair again.");
+                    // Discovery is only a hint. Reject a candidate with a wrong
+                    // certificate without replacing the address or pairing.
+                    unverifiedAddress = attemptedAddress;
+                    attemptedAddress = pairing.Address;
+                    continue;
+                }
                 if (pairing.Sequence == uint.MaxValue) throw new SessionException("Forget the display and pair it again.");
                 pairing = pairing with { Sequence = pairing.Sequence + 1 };
                 save(pairing);
@@ -101,7 +110,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 try
                 {
                     var discovered = await recoverAddress(pairing.Fingerprint, token);
-                    attemptedAddress = discovered ?? pairing.Address;
+                    attemptedAddress = discovered is not null && discovered != unverifiedAddress ? discovered : pairing.Address;
                     await Task.Delay(delay, token);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }

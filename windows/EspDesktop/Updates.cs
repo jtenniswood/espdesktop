@@ -37,8 +37,16 @@ internal static class Updates
             return null;
         var arch = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
         var file = $"EspDesktop-Windows-{version}-{arch}-Setup.exe";
-        var expected = new Uri($"https://github.com/jtenniswood/espdesktop/releases/download/{tag}/{file}");
-        foreach (var asset in root.GetProperty("assets").EnumerateArray())
+        var downloads = new Uri($"https://github.com/jtenniswood/espdesktop/releases/download/{tag}/");
+        var expected = new Uri(downloads, file);
+        var compatibility = new Uri(downloads, "companion-compatibility.json");
+        var assets = root.GetProperty("assets");
+        if (!assets.EnumerateArray().Any(a => Protocol.Text(a, "browser_download_url") == compatibility.AbsoluteUri) ||
+            !assets.EnumerateArray().Any(a => Protocol.Text(a, "browser_download_url") == expected.AbsoluteUri)) return null;
+        using var contract = JsonDocument.Parse(await Client.GetByteArrayAsync(compatibility, token));
+        if (!contract.RootElement.TryGetProperty("protocolVersion", out var protocol) ||
+            protocol.ValueKind != JsonValueKind.Number || !protocol.TryGetInt32(out var wire) || wire != Protocol.Version) return null;
+        foreach (var asset in assets.EnumerateArray())
         {
             if (Protocol.Text(asset, "name") != file || Protocol.Text(asset, "browser_download_url") != expected.AbsoluteUri) continue;
             var digest = Protocol.Text(asset, "digest");

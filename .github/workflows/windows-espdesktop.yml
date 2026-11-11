@@ -46,6 +46,9 @@ jobs:
           $directoryArgument = '/DIR="' + $installDir + '"'
           $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',$directoryArgument -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Install exit code: $($install.ExitCode)" }
+          if ('${{ matrix.arch }}' -eq 'x64') {
+            $env:ESPDESKTOP_SETTINGS_PREVIEW = Join-Path $env:RUNNER_TEMP 'EspDesktop-settings.png'
+          }
           $app = Start-Process (Join-Path $installDir 'EspDesktop.exe') -ArgumentList '--smoke-test' -PassThru
           if (!$app.WaitForExit(60000)) { $app.Kill(); throw 'Native app smoke test timed out.' }
           if ($app.ExitCode -ne 0) { throw "App exit code: $($app.ExitCode)" }
@@ -58,4 +61,11 @@ jobs:
         with:
           name: espdesktop-windows-${{ matrix.arch }}-installer
           path: dist/windows/*-Setup.exe
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v7
+        if: matrix.arch == 'x64'
+        with:
+          name: espdesktop-windows-settings-preview
+          path: ${{ runner.temp }}/EspDesktop-settings.png
           if-no-files-found: error
