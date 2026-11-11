@@ -12,12 +12,13 @@ The Markdown guides below come from the public documentation. Each guide links t
 - [Supported Guition 4848S040 touchscreen](https://espdesktop.com/screens/4848s040.md)
 - [Install firmware and connect to WiFi](https://espdesktop.com/getting-started/install.md)
 - [Install and pair the Mac app](https://espdesktop.com/getting-started/mac-app.md)
+- [Configure your first cards](https://espdesktop.com/features/setup.md)
 - [Compatibility and setup FAQ](https://espdesktop.com/reference/faq.md)
 
 ## Configure the touchscreen
 
-- [First Run setup](https://espdesktop.com/features/first-run.md)
-- [Device and system settings](https://espdesktop.com/features/setup.md)
+- [App setup wizard](https://espdesktop.com/features/first-run.md)
+- [Display and Mac app settings](https://espdesktop.com/features/settings.md)
 - [Customise the Home screen](https://espdesktop.com/features/home.md)
 - [Create subpages](https://espdesktop.com/features/subpages.md)
 - [Launch Mac apps](https://espdesktop.com/mac-controls/apps.md)

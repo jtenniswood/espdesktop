@@ -1,9 +1,9 @@
 ---
-title: First Run
+title: EspDesktop App Setup Wizard
 description: Choose your favourite Mac apps, add ready-to-use shortcuts and decide when shortcut pages open on your EspDesktop display.
 ---
 
-# First Run
+# App setup wizard
 
 The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your Mac isn’t connected yet, the wizard starts with **Connect your Mac**, where you’ll find the Mac app download and pairing code. Once connected, choose **Next**. [Install and pair the Mac app](/getting-started/mac-app#pair-the-display).
 

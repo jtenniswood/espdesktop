@@ -1,23 +1,26 @@
 ---
-title: Set Up EspDesktop on Your Screen and Mac
-description: Install EspDesktop on your Guition 4848S040, connect it to WiFi, then install and pair the Mac app.
+title: Install the EspDesktop Display
+description: Flash your Guition 4848S040 with the EspDesktop web installer and connect it to Wi-Fi.
+prev: false
 next: false
 ---
 
-# Set up EspDesktop
+# 1. Install the display {#set-up-espdesktop}
 
-## 1. Install the screen {#flash-the-firmware}
+## Flash the firmware {#flash-the-firmware}
 
-Connect your [Guition 4848S040](/screens/4848s040) to your Mac with a USB-C data cable. In Chrome or Edge, choose **Install EspDesktop** and select the port that appeared when you plugged in the screen.
+1. Open this page in **Chrome** or **Edge** on your Mac.
+2. Connect your [Guition 4848S040](/screens/4848s040) to your Mac with a USB-C data cable.
+3. Click **Install EspDesktop**, select the USB port that appeared when you connected the display, and follow the installer prompts. Keep the cable connected until the display restarts.
 
 <!--@include: ../generated/screens/4848s040-install.md-->
 
-<strong id="connect-the-display-to-wifi">Connect to WiFi.</strong> After the screen restarts, join the hotspot shown on the display and open its setup address. Select your 2.4 GHz WiFi network and save, then reconnect your Mac to that network.
+## Connect the display to Wi-Fi {#connect-the-display-to-wifi}
 
-## 2. Install and pair the Mac app
+1. On your Mac, join the temporary Wi-Fi network named on the display. If the setup page doesn’t open automatically, open the address shown on the display.
+2. Select your **2.4 GHz** home Wi-Fi network, enter its password, and click **Save**.
+3. When the display connects and prompts you to download the Mac app, reconnect your Mac to your home network.
 
-After WiFi setup, the display shows where to download the EspDesktop app. On macOS 13 or newer, open the app, choose your screen, and enter the pairing code. Once paired, the setup screen shows the display’s local web address.
+[Get help connecting to Wi-Fi](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
 
-**[Download and pair the Mac app](/getting-started/mac-app)**
-
-[Troubleshoot setup](/getting-started/troubleshooting#wifi-setup-and-reset-recovery)
+**[Next · 2. Install and pair the Mac app](/getting-started/mac-app)**

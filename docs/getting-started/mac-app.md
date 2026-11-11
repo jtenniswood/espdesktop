@@ -1,110 +1,32 @@
 ---
-title: Download EspDesktop for Mac
-description: Download the EspDesktop connector for macOS, pair your display over Wi-Fi and preview the Mac app settings.
+title: Install and Pair the EspDesktop Mac App
+description: Download EspDesktop for Mac, select your display, and enter its pairing code.
+next: false
 ---
 
-# EspDesktop for Mac {#install-and-pair-the-espdesktop-mac-app}
-
-Install the EspDesktop connector to launch Mac apps, open folders and run shortcuts from your display.
+# 2. Install and pair the Mac app {#install-and-pair-the-espdesktop-mac-app}
 
 ## Install the Mac app {#install-a-release}
 
-Requires **macOS 13 or later** and **Apple silicon**.
+Use an **Apple silicon Mac with macOS 13 or later**. Use the Mac app from the same release as your display firmware. For older firmware, [find the matching DMG under Assets on GitHub](https://github.com/jtenniswood/espdesktop/releases).
 
 <p class="mac-app-download">
   <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac' : 'View Mac downloads' }}</a>{{ ' ' }}
   <span v-if="$frontmatter.macReleaseVersion">v{{ $frontmatter.macReleaseVersion }} · DMG</span>
 </p>
 
-Open the DMG, drag **EspDesktop** into **Applications**, then open it from there. EspDesktop appears in your Mac’s menu bar and opens the setup wizard on first launch.
-
-Use the Mac app and display firmware from the same release. If your display is running older firmware, [download the matching DMG from GitHub Releases](https://github.com/jtenniswood/espdesktop/releases).
+Open the DMG, drag **EspDesktop** into **Applications**, then open it from there. The app opens its setup wizard.
 
 ## Pair your display {#pair-the-display}
 
-Before starting the wizard, [install EspDesktop on your display](/getting-started/install) and [connect it to Wi-Fi](/getting-started/install#connect-the-display-to-wifi). Your Mac and display must be on the same local network.
+1. Keep your Mac and display on the same local network. Allow local network access if macOS asks.
+2. Select your discovered display in the Mac app and click **Continue**. If it doesn’t appear, choose **Enter address manually** and enter the display’s IP address or `.local` name. To find the IP address, tap the network icon on the touchscreen to open **Settings**.
+3. In the touchscreen’s **Settings**, tap **Unpaired**. Enter the eight-letter code in the Mac app and click **Connect**. If the device page opened by the app shows the code, you can copy it from there.
+4. On **Access and startup**, choose whether EspDesktop should launch at login, then click **Finish**. To use keyboard shortcut cards, choose **Open Settings** beside **Enable Shortcuts** and allow EspDesktop in **Accessibility**.
 
-<ScreenshotGallery label="Setup wizard preview" :slides="wizardSlides" />
+[Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/features/settings#mac-app-settings)
 
-Once your Mac is connected, the web editor for an empty display helps you pick your first apps and set up shortcut pages. [Follow the First Run walkthrough](/features/first-run).
-
-## Preview the Mac app settings {#check-the-connection}
-
-Once your display is paired, choose **Mac Settings** from the EspDesktop menu bar icon.
-
-<ScreenshotGallery label="Mac app settings preview" :slides="settingsSlides" />
-
-## Use EspDesktop from the menu bar
-
-EspDesktop keeps running in the background after you close Mac Settings, so you can keep using your display to control your Mac. Click the laptop icon in the menu bar at the top of your screen to check whether your display is connected.
-
-Choose **Mac Settings** to reopen the app’s settings, or **Customize Display** to open your display’s editor in your browser. To exit EspDesktop, choose **Quit** from the same menu.
-
-![EspDesktop menu open below the laptop icon, showing Connected, Customize Display, Mac Settings, and Quit](/images/mac-connector/mac-menu-bar.png)
-
-## Check for Mac app updates
-
-In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. If an update requires newer display firmware, follow the [display update instructions](/features/setup#update-the-display-firmware) and use the app and firmware from the same release.
-
-[Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
-
-<script setup lang="ts">
-import ScreenshotGallery from '../.vitepress/theme/components/ScreenshotGallery.vue'
-
-const wizardSlides = [
-  {
-    image: '/images/mac-connector/mac_wizard1.png',
-    alt: 'Setup wizard listing a discovered display and an option to enter an address manually',
-    title: 'Choose your display',
-    caption: 'Allow local network access if macOS asks. Select your display and choose Continue. If it’s missing, choose Enter address manually and enter its IP address or .local name.',
-  },
-  {
-    image: '/images/mac-connector/mac_wizard2.png',
-    alt: 'Setup wizard with eight pairing code fields and a Connect button',
-    title: 'Pair your display',
-    caption: 'Copy the eight-letter code from System → Mac Companion on the browser page opened by the wizard. Paste it into the Mac app and choose Connect.',
-  },
-  {
-    image: '/images/mac-connector/mac_wizard3.png',
-    alt: 'Access and startup screen showing Launch at login and Finish',
-    title: 'Finish setup',
-    caption: 'Choose Open Settings if you need Accessibility access for keyboard shortcuts or Mac Lock. Set Launch at login to your preference, then choose Finish.',
-  },
-]
-
-const settingsSlides = [
-  {
-    image: '/images/mac-connector/mac_app1.png',
-    alt: 'Display tab showing a connected display, Customize, Remove and Open at Startup',
-    title: 'Display',
-    caption: 'Check that your display says Connected. Choose Customize to open its web editor, or change whether EspDesktop opens at startup.',
-  },
-  {
-    image: '/images/mac-connector/mac_app2.png',
-    alt: 'Apps tab with All available apps switched on',
-    title: 'Apps',
-    caption: 'Leave All available apps on to make every installed app available for shortcuts on your display.',
-  },
-  {
-    image: '/images/mac-connector/mac_app3.png',
-    alt: 'Apps tab listing individual apps with a switch beside each one',
-    title: 'Choose individual apps',
-    caption: 'Turn off All available apps, then switch on the apps you want to launch from your display.',
-  },
-  {
-    image: '/images/mac-connector/mac_app4.png',
-    alt: 'Folders tab showing approved folders and an Add Folder button',
-    title: 'Folders',
-    caption: 'Choose Add Folder to approve a Finder folder you want to open from your display.',
-  },
-  {
-    image: '/images/mac-connector/mac_app5.png',
-    alt: 'Updates tab showing the installed version, Check Now and automatic update switches',
-    title: 'Updates',
-    caption: 'See the installed version, check for a new release and choose how the app handles automatic updates.',
-  },
-]
-</script>
+**[Next · 3. Configure your cards](/features/setup)**
 
 <style scoped>
 .mac-app-download {
