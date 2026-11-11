@@ -13,6 +13,7 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="EspDesktop.Tests" />
     <Using Remove="System.Windows.Forms" />
     <Using Remove="System.Drawing" />
     <EmbeddedResource Include="../../product/v2/companion_capabilities.json" LogicalName="CompanionContract.json" />

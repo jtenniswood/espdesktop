@@ -50,7 +50,7 @@ internal sealed class SettingsWindow : Window
     public SettingsWindow(bool smoke)
     {
         this.smoke = smoke;
-        desktop = new(store);
+        desktop = new(store.Settings);
         if (!smoke)
         {
             pairing = store.LoadPairing();

@@ -34,6 +34,9 @@ jobs:
       - name: Run shared protocol and connection tests
         run: dotnet run -c Release --project windows/EspDesktop.Tests
 
+      - name: Verify real Windows desktop data over a display connection
+        run: dotnet run -c Release --project windows/EspDesktop.Tests -- --verify-native-windows
+
       - name: Build the per-user installer
         run: ./windows/EspDesktop/Packaging/Build-Installer.ps1 -Architecture ${{ matrix.arch }}
 

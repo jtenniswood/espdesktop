@@ -16,7 +16,7 @@ using static EspDesktop.Core.Protocol;
 namespace EspDesktop;
 
 internal sealed record StartApp(string Id, string Name, string Target, string? Executable);
-internal sealed class WindowsDesktop(LocalStore store) : IDesktop
+internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
 {
     // Older panels reserve this identifier for the file manager's live folders.
     public const string ExplorerId = "com.apple.finder";
@@ -34,13 +34,13 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
     private bool? displayAwake;
     public IReadOnlyList<StartApp> Apps => apps;
     public int CatalogueRevision { get; private set; }
-    public bool ShortcutsEnabled => store.Settings.Shortcuts;
+    public bool ShortcutsEnabled => settings.Shortcuts;
     public (bool Locked, bool? DisplayAwake) SessionState => (reportedLocked || !InputSession.IsDefaultInputDesktop(), displayAwake);
 
     public void SessionChanged(bool locked) => reportedLocked = locked;
     public void DisplayChanged(bool awake) => displayAwake = awake;
     public void Changed() => CatalogueRevision++;
-    public bool Allowed(StartApp app) => store.Settings.AllApps || store.Settings.AllowedApps.Contains(app.Id);
+    public bool Allowed(StartApp app) => settings.AllApps || settings.AllowedApps.Contains(app.Id);
 
     public async Task Refresh()
     {
@@ -50,7 +50,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
     }
 
     public IReadOnlyList<CatalogueItem> Catalogue() =>
-        store.Settings.Folders.Select(f => new CatalogueItem(f.Id, Clean(f.Label)))
+        settings.Folders.Select(f => new CatalogueItem(f.Id, Clean(f.Label)))
         .Concat(apps.Where(Allowed).Select(a => new CatalogueItem(a.Id, Clean(a.Name)))).Take(256).ToArray();
     private static string Clean(string label) => Bound(new string(label.Select(c => char.IsControl(c) || c is ',' or '|' ? ' ' : c)
         .ToArray()).Trim(), 96) is { Length: > 0 } name ? name : "Unnamed";
@@ -107,7 +107,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
 
         if (id.StartsWith("folder.", StringComparison.Ordinal))
         {
-            var folder = store.Settings.Folders.Find(f => f.Id == id);
+            var folder = settings.Folders.Find(f => f.Id == id);
             if (folder is null) return "not_allowed";
             if (!Directory.Exists(folder.Path)) return "not_found";
             var same = Text(message, "folderOpenBehavior") == "same_window";
@@ -238,7 +238,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
             }, null);
             if (path != null)
             {
-                var folder = store.Settings.Folders.Find(f => string.Equals(Path.TrimEndingDirectorySeparator(f.Path),
+                var folder = settings.Folders.Find(f => string.Equals(Path.TrimEndingDirectorySeparator(f.Path),
                     Path.TrimEndingDirectorySeparator(path), StringComparison.OrdinalIgnoreCase));
                 if (folder != null) ids.Add(folder.Id);
             }

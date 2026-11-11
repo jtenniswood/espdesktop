@@ -31,7 +31,11 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
     return;
 }
 
-using (var stream = typeof(Protocol).Assembly.GetManifestResourceStream("ProtocolFixtures.json")!)
+#if WINDOWS
+var native = args is ["--verify-native-windows"] ? await NativeWindowsDesktop.Prepare() : null;
+#endif
+
+using (var stream = typeof(FakeDesktop).Assembly.GetManifestResourceStream("ProtocolFixtures.json")!)
 using (var fixtures = JsonDocument.Parse(stream))
 {
     foreach (var test in fixtures.RootElement.EnumerateArray())
@@ -119,6 +123,15 @@ server.Map(SocketPath, async context =>
         }
         Check(seq == 8, "repair stale authentication sequence");
         await Send(socket, "auth.accepted", ("capabilityVersion", 7));
+#if WINDOWS
+        if (native is not null)
+        {
+            await VerifyNativeDesktop(socket, native);
+            checks.TrySetResult();
+            await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "done", lifetime.Token);
+            return;
+        }
+#endif
         await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
 
         await Send(socket, "action.invoke", ("kind", "action"), ("actionId", "windows.test"), ("requestId", "1"));
@@ -155,17 +168,33 @@ Check(pairing.Fingerprint == Hash(certificate.RawData) && pairing.Key.SequenceEq
 
 var status = "";
 var saved = pairing;
-var session = new DisplaySession(desktop, p => saved = p, s => status = s, (_, _) => Task.FromResult<string?>(null));
+IDesktop backend = desktop;
+#if WINDOWS
+if (native is not null) backend = native.Desktop;
+#endif
+var session = new DisplaySession(backend, p => saved = p, s => status = s, (_, _) => Task.FromResult<string?>(null));
 await session.RunAsync(pairing with { Fingerprint = new('0', 64) }, lifetime.Token);
 Check(status.Contains("identity changed", StringComparison.Ordinal) && authenticated == 0, "changed certificate stops before authentication");
 
 using var sessionLifetime = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
-var run = session.RunAsync(pairing, sessionLifetime.Token);
+Task StartSession() => session.RunAsync(pairing, sessionLifetime.Token);
+#if WINDOWS
+var run = native is null ? StartSession() : NativeWindowsDesktop.RunOnDesktop(StartSession);
+#else
+var run = StartSession();
+#endif
 await checks.Task.WaitAsync(lifetime.Token);
 await sessionLifetime.CancelAsync();
 await run;
-Check(saved.Sequence == 8 && rejectedSequence == 1 && desktop.Actions == 1 && authorizedRequests == 1,
-    "authenticated dispatch and lock enforcement");
+Check(saved.Sequence == 8 && rejectedSequence == 1, "authenticated counter recovery");
+#if WINDOWS
+if (native is not null)
+{
+    Console.WriteLine("Passed Windows desktop catalogue, approved folder privacy, system metrics, audio and Explorer icon over TLS.");
+    return;
+}
+#endif
+Check(desktop.Actions == 1 && authorizedRequests == 1, "authenticated dispatch and lock enforcement");
 Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, locked action and icon transfer tests.");
 
 async Task Send(WebSocket socket, string kind, params (string, object?)[] fields) =>
@@ -188,6 +217,65 @@ async Task<JsonElement> FindMessage(WebSocket socket, string kind, Func<JsonElem
         return m;
     }
 }
+
+#if WINDOWS
+async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
+{
+    var catalogue = await FindMessage(socket, "catalogue.page", m => m.GetProperty("complete").GetBoolean());
+    var entries = catalogue.GetProperty("items").EnumerateArray().ToDictionary(item => Text(item, "id"));
+    Check(entries.Count == 3 && entries.ContainsKey(WindowsDesktop.ExplorerId), "publish the approved Explorer entry only");
+    Check(entries.TryGetValue("folder.windows-test", out var folder) && Text(folder, "label") == "Project files",
+        "publish the approved folder name");
+    Check(entries.TryGetValue("folder.windows-drive", out var drive) && Text(drive, "label") == fixture.DriveLabel,
+        "publish a friendly drive label");
+    Check(entries.Values.All(item => item.EnumerateObject().Count() == 2), "keep private folder paths off the wire");
+
+    var controls = new HashSet<string>(StringComparer.Ordinal);
+    for (var i = 0; i < 4; i++)
+    {
+        var volume = await FindMessage(socket, "value.state", _ => true);
+        Check(Valid(volume, "mac_to_panel", "connected"), "native audio availability and values");
+        controls.Add(Text(volume, "controlId"));
+    }
+    Check(controls.SetEquals(["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]),
+        "advertise Windows speaker and microphone controls");
+    await FindMessage(socket, "system_metrics", m => Valid(m, "mac_to_panel", "connected") &&
+        m.TryGetProperty("memoryUsagePercent", out _) &&
+        m.GetProperty("storageDevices").EnumerateArray().Any(d => Text(d, "id") == "startup"));
+
+    await Send(socket, "app_icon.request", ("appId", fixture.UnapprovedAppId));
+    await FindMessage(socket, "app_icon.unavailable", m => Text(m, "appId") == fixture.UnapprovedAppId);
+
+    await Send(socket, "app_icon.request", ("appId", WindowsDesktop.ExplorerId));
+    var icon = await FindMessage(socket, "app_icon.begin", m => Text(m, "appId") == WindowsDesktop.ExplorerId);
+    var generation = UInt(icon, "generation");
+    var side = Limit("appIconSide");
+    var image = new byte[side * side * 3];
+    Check(UInt(icon, "byteLength") == image.Length && Text(icon, "format") == "rgb565a8", "real Explorer icon dimensions");
+    var frame = new byte[Limit("appIconChunkBytes") + 12];
+    var offset = 0;
+    while (offset < image.Length)
+    {
+        await Send(socket, "app_icon.ack", ("generation", generation), ("nextOffset", offset));
+        WebSocketReceiveResult read;
+        do
+        {
+            read = await socket.ReceiveAsync(new ArraySegment<byte>(frame), lifetime.Token);
+            Check(read.EndOfMessage, "complete Windows icon frame");
+        } while (read.MessageType == WebSocketMessageType.Text);
+        Check(read.MessageType == WebSocketMessageType.Binary && read.Count > 12 &&
+              frame.AsSpan(0, 4).SequenceEqual("ICON"u8) &&
+              BinaryPrimitives.ReadUInt32BigEndian(frame.AsSpan(4)) == generation &&
+              BinaryPrimitives.ReadUInt32BigEndian(frame.AsSpan(8)) == offset, "native icon frame header");
+        frame.AsSpan(12, read.Count - 12).CopyTo(image.AsSpan(offset));
+        offset += read.Count - 12;
+    }
+    await Send(socket, "app_icon.ack", ("generation", generation), ("nextOffset", offset));
+    await FindMessage(socket, "app_icon.end", m => UInt(m, "generation") == generation);
+    Check(Hash(image) == Text(icon, "sha256") && image.Skip(side * side * 2).Any(alpha => alpha > 0) &&
+          image.Take(side * side * 2).Distinct().Count() > 1, "native icon digest and visible pixels");
+}
+#endif
 
 static byte[] DiscoveryResponse()
 {
