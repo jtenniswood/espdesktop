@@ -202,7 +202,7 @@ update:
     id: firmware_update
     name: "${entity_firmware_update}"
     internal: true
-    source: https://jtenniswood.github.io/espdesktop/firmware/${firmware_manifest_slug}/manifest.json
+    source: https://espdesktop.com/firmware/${firmware_manifest_slug}/manifest.json
     update_interval: never
     on_update_available:
       then:

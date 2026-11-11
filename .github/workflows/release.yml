@@ -141,7 +141,7 @@ jobs:
           LEGACY_STABLE_TAG=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 \
             --json tagName --jq '.[0].tagName // ""')
           mkdir -p "${LEGACY_WEB_DIR}"
-          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/web-assets.json" \
+          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://espdesktop.com/webserver/web-assets.json" \
             -o "${LEGACY_WEB_MANIFEST}"; then
             BUNDLE_PATH=$(jq -er --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path' \
               "${LEGACY_WEB_MANIFEST}")
@@ -150,7 +150,7 @@ jobs:
               exit 1
             fi
             mkdir -p "docs/public/webserver/$(dirname "${BUNDLE_PATH}")"
-            curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
+            curl -fsSL "https://espdesktop.com/webserver/${BUNDLE_PATH}" \
               -o "docs/public/webserver/${BUNDLE_PATH}"
             # Verify imported bytes before generating or pre-verifying release assets.
             python3 - "${BUNDLE_PATH}" "${LEGACY_WEB_MANIFEST}" "${LEGACY_STABLE_TAG}" <<'PY'
