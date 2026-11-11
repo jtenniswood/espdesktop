@@ -223,9 +223,50 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     private func updateStatusItemImage(connected: Bool) {
         guard let button = statusItem?.button else { return }
         let description = connected ? "EspDesktop connected" : "EspDesktop disconnected"
-        let symbol = connected ? "laptopcomputer" : "laptopcomputer.slash"
-        let image = NSImage(systemSymbolName: symbol, accessibilityDescription: description)
-        image?.isTemplate = true
+        let size = NSSize(width: 18, height: 18)
+        let image = NSImage(size: size, flipped: true) { _ in
+            guard let context = NSGraphicsContext.current?.cgContext else { return false }
+            context.beginTransparencyLayer(auxiliaryInfo: nil)
+            context.setStrokeColor(NSColor.black.cgColor)
+            context.setLineCap(.round)
+            context.setLineWidth(1.45)
+
+            // Four open curves keep the fingerprint readable at menu bar size.
+            let ridges = CGMutablePath()
+            ridges.move(to: CGPoint(x: 3, y: 6))
+            ridges.addQuadCurve(to: CGPoint(x: 15, y: 6), control: CGPoint(x: 9, y: -1))
+            ridges.move(to: CGPoint(x: 2.5, y: 10))
+            ridges.addCurve(to: CGPoint(x: 15.5, y: 10.5),
+                            control1: CGPoint(x: 7, y: 3), control2: CGPoint(x: 12, y: 3))
+            ridges.move(to: CGPoint(x: 3.5, y: 13.5))
+            ridges.addCurve(to: CGPoint(x: 9, y: 8.5),
+                            control1: CGPoint(x: 6.7, y: 11.7), control2: CGPoint(x: 6.4, y: 8.5))
+            ridges.addCurve(to: CGPoint(x: 14.5, y: 13.7),
+                            control1: CGPoint(x: 11.8, y: 8.5), control2: CGPoint(x: 11.8, y: 12.4))
+            ridges.move(to: CGPoint(x: 6, y: 16))
+            ridges.addQuadCurve(to: CGPoint(x: 9.4, y: 11.5), control: CGPoint(x: 8.8, y: 14.4))
+            context.addPath(ridges)
+            context.strokePath()
+
+            if !connected {
+                let slash = CGMutablePath()
+                slash.move(to: CGPoint(x: 3, y: 3))
+                slash.addLine(to: CGPoint(x: 15, y: 15))
+                context.setBlendMode(.clear)
+                context.setLineWidth(3.7)
+                context.addPath(slash)
+                context.strokePath()
+                context.setBlendMode(.normal)
+                context.setLineWidth(1.45)
+                context.addPath(slash)
+                context.strokePath()
+            }
+
+            context.endTransparencyLayer()
+            return true
+        }
+        image.accessibilityDescription = description
+        image.isTemplate = true
         button.image = image
     }
 
