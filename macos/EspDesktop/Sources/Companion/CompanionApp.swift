@@ -101,8 +101,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         if store.hasSavedPairing && !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             store.connect()
         }
-        store.updater.startAutomaticChecks()
-        if !launchedAsLoginItem() {
+        let openedByUser = !launchedAsLoginItem()
+        store.updater.startAutomaticChecks(checkOnLaunch: openedByUser)
+        if openedByUser {
             DispatchQueue.main.async { [weak self] in self?.openCompanionWindow() }
         }
     }
@@ -256,6 +257,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     }
 
     func openCompanionWindow(showHelp: Bool = false) {
+        defer { store.updater.showAvailableUpdate() }
         store.requestedSettingsPage = showHelp ? "help" : "connection"
         store.settingsRequestID = UUID()
         activateCompanionApplication()

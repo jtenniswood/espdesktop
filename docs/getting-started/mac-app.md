@@ -42,6 +42,8 @@ Choose **Skip setup** to build a custom layout in the editor. To run the wizard 
 
 ## Check for Mac app updates
 
-Choose **EspDesktop → Check for Updates…** while the app is open, or choose **Check for Updates…** from the EspDesktop icon in the menu bar. By default, EspDesktop checks daily while it’s running and alerts you when a compatible Mac update is available. To also install updates automatically, turn on **Automatically Install Updates** in **Mac Settings → Updates**.
+With automatic checks enabled, EspDesktop checks when you launch the app and daily while it’s running. When a compatible update is available, the update window lets you install it or decide later. To check manually, choose **EspDesktop → Check for Updates…** or use the same command from the EspDesktop icon in the menu bar.
+
+In **Mac Settings → Updates**, turn on **Notify Me About Updates** and allow macOS notifications to receive a notification for each new version. Click the notification to open the updater. If you prefer eligible updates to install on quit, turn on **Automatically Install Updates**.
 
 [Explore Mac controls](/#what-you-can-control) · [Permissions and security](/mac-controls/security) · [Troubleshoot pairing and controls](/getting-started/troubleshooting)
