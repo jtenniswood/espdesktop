@@ -31,4 +31,6 @@ If the setup wizard opens, choose your favourite apps and follow the prompts, or
 <!-- Keep links to sections of the former settings guide working. -->
 - <span id="arrange-and-personalise-cards"></span><span id="quick-card-colours"></span>[Rearrange and style your Home screen](/features/home).
 - [Group cards into subpages](/features/subpages).
-- <span id="device-and-system-settings"></span><span id="screen-and-system-settings"></span><span id="system-settings"></span><span id="protect-the-touchscreen"></span><span id="naming-your-panel"></span><span id="back-up-your-layout"></span><span id="update-the-display-firmware"></span><span id="reset-the-display"></span>[Change display and Mac app settings](/features/settings).
+- <span id="device-and-system-settings"></span><span id="screen-and-system-settings"></span>[Adjust screen settings](/settings/screen).
+- <span id="system-settings"></span><span id="protect-the-touchscreen"></span><span id="naming-your-panel"></span><span id="update-the-display-firmware"></span><span id="reset-the-display"></span>[Manage system and Mac app settings](/settings/system).
+- <span id="back-up-your-layout"></span>[Back up or restore your setup](/settings/backup).

@@ -24,7 +24,7 @@ Open the DMG, drag **EspDesktop** into **Applications**, then open it from there
 3. The Mac app opens the display’s pairing page in your browser. Copy the eight-letter code shown under **Your pairing code**, paste it into the Mac app, and click **Connect**.
 4. On **Access and startup**, choose whether EspDesktop should launch at login, then click **Finish**. To use keyboard shortcut cards, choose **Open Settings** beside **Enable Shortcuts** and allow EspDesktop in **Accessibility**.
 
-[Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/features/settings#mac-app-settings)
+[Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/settings/system#mac-app-settings)
 
 **[Next · 3. Configure your cards](/features/setup)**
 

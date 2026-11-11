@@ -23,7 +23,9 @@ export const redirects: Record<string, string> = {
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,
   'getting-started/home-assistant-actions': espcontrol,
-  'features/media-cover-art': `${hostname}features/settings#screen-and-system-settings`,
+  'features/settings': `${hostname}settings/system`,
+  'features/backup': `${hostname}settings/backup`,
+  'features/media-cover-art': `${hostname}settings/screen`,
   'mac-controls/statistics': macControls,
   'mac-controls/volume': macControls,
   'guides/index': espcontrol,
@@ -52,15 +54,38 @@ export const redirects: Record<string, string> = {
   'generated/screens/p4-86-install': espcontrol,
 }
 
+const formerSettingsSections = {
+  '#screen-and-system-settings': '/settings/screen',
+  '#appearance': '/settings/screen#appearance',
+  '#display': '/settings/screen#display',
+  '#sleep-schedule': '/settings/screen#sleep-schedule',
+  '#back-up-your-layout': '/settings/backup',
+  '#system-settings': '/settings/system#display-system-settings',
+  '#mac-companion-and-preferences': '/settings/system#mac-companion-and-preferences',
+  '#protect-the-touchscreen': '/settings/system#protect-the-touchscreen',
+  '#naming-your-panel': '/settings/system#naming-your-panel',
+  '#update-the-display-firmware': '/settings/system#update-the-display-firmware',
+  '#reset-the-display': '/settings/system#reset-the-display',
+  '#mac-app-settings': '/settings/system#mac-app-settings',
+  '#check-for-mac-app-updates': '/settings/system#check-for-mac-app-updates',
+}
+
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
     const file = join(outDir, `${path}.html`)
     await mkdir(join(file, '..'), { recursive: true })
+    const fragmentRedirect = path === 'features/settings'
+      ? `<script>
+const target = ${jsonLd(formerSettingsSections)}[location.hash]
+if (target) location.replace(target)
+</script>`
+      : ''
     await writeFile(file, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Page moved | EspDesktop</title>
 <meta name="robots" content="noindex,follow">
 <link rel="canonical" href="${destination.split('#')[0]}">
+${fragmentRedirect}
 <meta http-equiv="refresh" content="0; url=${destination}">
 </head><body><h1>Page moved</h1><p><a href="${destination}">Continue to the current guide</a>.</p></body></html>\n`)
   }
