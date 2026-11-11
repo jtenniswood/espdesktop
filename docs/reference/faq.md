@@ -4,9 +4,9 @@ description: Find out which touchscreen and macOS versions work with EspDesktop,
 outline: [2, 3]
 ---
 
-# Mac Control FAQ
+# Mac control FAQ
 
-## Setup and Pairing
+## Setup and pairing
 
 ### Which display works with Mac controls?
 
@@ -28,7 +28,7 @@ Confirm that the Mac and display are on the same local network and allow EspDesk
 
 Use the Mac app and display firmware from the same EspDesktop release. A newer development build may use Companion features that an older release app does not understand.
 
-## Mac Controls
+## Mac controls
 
 ### Why don't keyboard shortcuts work?
 
@@ -42,6 +42,6 @@ The app or folder must be approved in EspDesktop. Open **Apps** or **Folders** i
 
 Choose **Forget Display** in the Mac app, then reset pairing from **System → Mac Companion** on the display. Pair the replacement using its new temporary code.
 
-## More Help
+## More help
 
 See [Troubleshooting](/getting-started/troubleshooting) or [report a problem](https://github.com/jtenniswood/espdesktop/issues).

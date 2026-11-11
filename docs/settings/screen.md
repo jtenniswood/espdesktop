@@ -9,7 +9,7 @@ Choose **Customize Display** from the EspDesktop menu bar icon, or open the disp
 
 Choose **Apply Configuration** at the bottom of the tab when you’re ready to restart the display and apply your changes.
 
-[![Screen tab showing Appearance, Display, and Sleep & Schedule settings](/images/web-editor-screen-settings.png)](/images/web-editor-screen-settings.png)
+<a href="/images/web-editor-screen-settings.png"><img src="/images/web-editor-screen-settings.png" alt="Screen tab showing Appearance, Display, and Sleep &amp; Schedule settings" width="1694" height="2266" loading="lazy"></a>
 
 ## Appearance
 

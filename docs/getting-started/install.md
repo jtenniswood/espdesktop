@@ -2,16 +2,16 @@
 title: Install the EspDesktop Display
 description: Flash your Guition 4848S040 with the EspDesktop web installer and connect it to Wi-Fi.
 prev: false
-next: false
 ---
 
-# 1. Install the display {#set-up-espdesktop}
+# Install the display {#set-up-espdesktop}
+
+Open this guide in **Chrome** or **Edge** on your Mac to use the browser installer.
 
 ## Flash the firmware {#flash-the-firmware}
 
-1. Open this page in **Chrome** or **Edge** on your Mac.
-2. Connect your [Guition 4848S040](/screens/4848s040) to your Mac with a USB-C data cable.
-3. Click **Install EspDesktop**, select the USB port that appeared when you connected the display, and follow the installer prompts. Keep the cable connected until the display restarts.
+1. Connect your [Guition 4848S040](/screens/4848s040) to your Mac with a USB-C data cable.
+2. Click **Install EspDesktop**, select the USB port that appeared when you connected the display, and follow the installer prompts. Keep the cable connected until the display restarts.
 
 <!--@include: ../generated/screens/4848s040-install.md-->
 
@@ -22,5 +22,3 @@ next: false
 3. When the display connects and prompts you to download the Mac app, reconnect your Mac to your home network.
 
 [Get help connecting to Wi-Fi](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
-
-**[Next · 2. Install and pair the Mac app](/getting-started/mac-app)**

@@ -3,7 +3,7 @@ title: Mac Companion Permissions and Security
 description: Understand the approvals and macOS permissions used by EspDesktop Mac Companion controls.
 ---
 
-# Mac Companion Permissions and Security
+# Mac Companion permissions and security
 
 The display can only use the apps, folders, and actions made available through the Mac app.
 
@@ -15,7 +15,7 @@ The display can only use the apps, folders, and actions made available through t
 
 The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-touchscreen) while the app is running and paired.
 
-## Pairing and Data
+## Pairing and data
 
 - One Mac can be paired to one display at a time.
 - Pairing uses a temporary code that expires after 15 minutes. EspDesktop stores the credential in macOS Keychain and checks the display certificate on later connections.

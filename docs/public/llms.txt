@@ -11,13 +11,13 @@ The Markdown guides below come from the public documentation. Each guide links t
 - [EspDesktop overview](https://espdesktop.com/index.md)
 - [Supported Guition 4848S040 touchscreen](https://espdesktop.com/screens/4848s040.md)
 - [Install firmware and connect to WiFi](https://espdesktop.com/getting-started/install.md)
-- [Install and pair the Mac app](https://espdesktop.com/getting-started/mac-app.md)
+- [download and pair companion app](https://espdesktop.com/getting-started/mac-app.md)
 - [Configure your first cards](https://espdesktop.com/features/setup.md)
 - [Compatibility and setup FAQ](https://espdesktop.com/reference/faq.md)
 
 ## Configure the touchscreen
 
-- [App setup wizard](https://espdesktop.com/features/first-run.md)
+- [First setup](https://espdesktop.com/features/first-run.md)
 - [Customise the Home screen](https://espdesktop.com/features/home.md)
 - [Create subpages](https://espdesktop.com/features/subpages.md)
 - [Launch Mac apps](https://espdesktop.com/mac-controls/apps.md)
@@ -39,7 +39,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 
 ## Optional
 
-- [3D-printable stand for the Guition 4848S040](https://espdesktop.com/screens/4848s040-stand.md)
+- [Printable stand](https://espdesktop.com/screens/4848s040-stand.md)
 - [Privacy policy](https://espdesktop.com/reference/privacy.md)
 - [Support the project](https://espdesktop.com/reference/support.md)
 - [Contribute app shortcut presets](https://espdesktop.com/mac-controls/improve-shortcuts.md)

@@ -1,20 +1,35 @@
 ---
 title: Customise the EspDesktop Home Screen
-description: Rearrange and resize cards, change their names and colours, and create custom subpages in the EspDesktop web editor.
+description: Rearrange, resize, and move cards between pages, customise their appearance, and create subpages in the EspDesktop web editor.
 ---
 
 # Home
 
 Home is the main screen on your EspDesktop touchscreen. Open your display’s address in a browser and select **Layout** to arrange the cards you want within easy reach.
 
-## Move and resize cards
+<span id="move-and-resize-cards"></span>
+
+## Organise cards
 
 - **Move a card.** Drag it to another spot in the grid. If you drop it onto another card, that card shifts to the next available space.
+
+  <figure>
+    <a href="/images/web-editor-drag-card.png"><img src="/images/web-editor-drag-card.png" alt="Slack card being dragged from the middle of the Home grid towards the highlighted bottom-right tile" width="1209" height="1204" loading="lazy"></a>
+    <figcaption>The blue outline shows where the Slack card will land.</figcaption>
+  </figure>
+
 - **Resize a card.** Hover over it and drag the handle in its bottom-right corner to make it wider, taller or smaller. The available sizes depend on the card and the space in the grid. Press **Escape** during the drag to keep the original size.
 
-Moves and resizes save when you drop the card or release the handle. Right-click a card to cut it for pasting into another tile or copy its code for another display.
+  <figure>
+    <a href="/images/web-editor-resize-handle.png"><img src="/images/web-editor-resize-handle.png" alt="Slack card beside empty tiles in the web editor, with its resize handle visible" width="576" height="566" loading="lazy"></a>
+    <figcaption>The white curve on the Slack card is the resize handle.</figcaption>
+  </figure>
 
-<a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot marked with a plus" width="440" height="588"></a>
+Moves and resizes save when you drop the card or release the handle. Choose **Save** when editing a card.
+
+To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them. You can also copy a card’s code to use it on another display.
+
+<a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot marked with a plus" width="1000" height="1337"></a>
 
 ## Change how a card looks
 
@@ -24,7 +39,7 @@ Right-click a card to open its menu.
 - **App icon size.** Choose **App Icon Size** and select **Small**, **Medium** or **Large**. Large fills the card with the app icon and hides the label.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
 
-<a href="/images/web-editor-card-menu.webp"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="440" height="608" loading="lazy"></a>
+<a href="/images/web-editor-card-menu.webp"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="1000" height="1382" loading="lazy"></a>
 
 ## Add a card
 
@@ -32,7 +47,7 @@ Right-click a card to open its menu.
 2. In **Choose Card**, pick what the card should do. For example, choose **Applications** to launch a Mac app, **Folder** to open an approved folder, or **Key Shortcut** to run a keyboard shortcut.
 3. Fill in the settings for that card and select **Save**. The card appears on your touchscreen.
 
-<a href="/images/web-editor-choose-card.webp"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="440" height="588" loading="lazy"></a>
+<a href="/images/web-editor-choose-card.webp"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1000" height="1337" loading="lazy"></a>
 
 ## Create a custom subpage
 
@@ -44,3 +59,11 @@ Group related cards behind a single card on Home. For example, create a **Work**
 4. Use the **Back** card to return to Home. On the touchscreen, tap the subpage card to open it.
 
 See how to add nested pages and organise app-specific shortcuts in the [Subpages guide](/features/subpages).
+
+### Use and customise the Back card
+
+To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups.
+
+Subpage and Back buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
+
+Returning with **Back** or a swipe shows the destination page before loading any missing app artwork. Cached icons appear straight away; other icons can appear shortly afterward.
