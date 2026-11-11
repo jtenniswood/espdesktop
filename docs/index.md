@@ -109,7 +109,11 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 The preview shows how your layout will look on the display. In this example, browser shortcuts share a subpage, with a Back tile to return to the previous page.
 
-[Explore the web editor](/features/setup) · [Create a subpage](/features/subpages#create-a-subpage)
+<div class="homepage-editor-actions">
+
+[Explore the web editor](/features/setup) [Create a subpage](/features/subpages#create-a-subpage)
+
+</div>
 
 </div>
 
@@ -180,7 +184,8 @@ The preview shows how your layout will look on the display. In this example, bro
 }
 
 .homepage-action a,
-.homepage-grid article > p:last-child > a {
+.homepage-grid article > p:last-child > a,
+.homepage-editor-actions a {
   display: inline-block;
   padding: 8px 16px;
   border-radius: 999px;
@@ -199,7 +204,8 @@ The preview shows how your layout will look on the display. In this example, bro
 }
 
 .homepage-action a:focus-visible,
-.homepage-grid article > p:last-child > a:focus-visible {
+.homepage-grid article > p:last-child > a:focus-visible,
+.homepage-editor-actions a:focus-visible {
   outline: 2px solid var(--vp-c-brand-1);
   outline-offset: 4px;
 }
@@ -278,18 +284,27 @@ figcaption {
   font-size: 14px;
 }
 
-.homepage-grid article > p:last-child > a {
+.homepage-grid article > p:last-child > a,
+.homepage-editor-actions a {
   background: var(--vp-button-alt-bg);
   color: var(--vp-button-alt-text);
 }
 
-.homepage-grid article > p:last-child > a:hover {
+.homepage-grid article > p:last-child > a:hover,
+.homepage-editor-actions a:hover {
   background: var(--vp-button-alt-hover-bg);
   color: var(--vp-button-alt-hover-text);
 }
 
 .homepage-editor {
   margin-top: clamp(48px, 8vw, 96px);
+}
+
+.homepage-editor-actions p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 14px;
 }
 
 .homepage-editor h2 {
