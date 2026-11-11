@@ -338,7 +338,7 @@ def check_build(dist):
     }
     redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'
     screen_guides = {
-        '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
+        '4848s040': (BASE + 'screens/4848s040', BASE + 'getting-started/install'),
         'jc1060p470': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc4880p443': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),

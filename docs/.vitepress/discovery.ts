@@ -32,7 +32,7 @@ export const redirects: Record<string, string> = {
   'generated/cards/runtime-coverage':
     'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
   'generated/screens/4848s040-grid': `${hostname}screens/4848s040`,
-  'generated/screens/4848s040-install': `${hostname}screens/4848s040#install`,
+  'generated/screens/4848s040-install': `${hostname}getting-started/install`,
   'generated/screens/jc1060p470-grid': espcontrol,
   'generated/screens/jc1060p470-install': espcontrol,
   'generated/screens/jc1060p470-v2-grid': espcontrol,
