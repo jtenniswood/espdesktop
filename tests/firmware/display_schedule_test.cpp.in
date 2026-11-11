@@ -434,13 +434,22 @@ int main() {
     assert(controller.current_source_is(time_valid ? DisplayRequestSource::SCREEN_SCHEDULE
                                                    : DisplayRequestSource::BOOT_GUARD));
   }
-  // A new panel without a saved document still starts with the time schedule.
+  // A new panel stays visible before network time arrives. A saved enabled
+  // schedule still applies its boot guard while the clock is unavailable.
   reset(); controller = {};
   const ScreenSchedulePreferences defaults;
+  assert(!defaults.enabled);
   schedule_enabled.state = defaults.enabled;
+  screen_schedule_trigger.state = "disabled";
   schedule_on_hour.state = defaults.on_hour;
   schedule_off_hour.state = defaults.off_hour;
   clock_time.valid = false;
+  screen_schedule_boot_guard.execute();
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  const auto saved = parse_screen_schedule_preferences("1,1,7,19,dim,60,10,15,10,FFFFFF");
+  assert(saved && saved->enabled);
+  schedule_enabled.state = saved->enabled;
+  screen_schedule_trigger.state = "time";
   screen_schedule_boot_guard.execute();
   assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
   assert(controller.target_source_is(DisplayRequestSource::BOOT_GUARD));

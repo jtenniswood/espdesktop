@@ -1636,7 +1636,10 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   );
   await nightScheduleCard.locator(".card-header").click();
   const scheduleOnHour = nightScheduleCard.locator("#sp-set-schedule-on-hour");
-  assert(await scheduleOnHour.isVisible(), `${label}: Night Schedule shows time fields by default`);
+  assert.strictEqual(await scheduleOnHour.isVisible(), false,
+    `${label}: Night Schedule starts disabled and hides time fields`);
+  await nightScheduleCard.getByRole("button", { name: "Time", exact: true }).click();
+  assert(await scheduleOnHour.isVisible(), `${label}: enabling Night Schedule shows time fields`);
   await nightScheduleCard.getByRole("button", { name: "Disabled", exact: true }).click();
   assert.strictEqual(await scheduleOnHour.isVisible(), false,
     `${label}: disabled night schedule hides time fields`);
