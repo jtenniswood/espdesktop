@@ -95,7 +95,13 @@ internal static class Updates
 
     public static void Install(string path, bool quiet)
     {
-        if (!SamePublisher(path)) throw new CryptographicException("Windows could not verify the update publisher.");
+        using var process = StartInstaller(path, Environment.ProcessPath, quiet);
+    }
+
+    internal static Process StartInstaller(string path, string? currentApp, bool quiet)
+    {
+        if (currentApp is null || !Authenticode.MatchesPublisher(currentApp, path))
+            throw new CryptographicException("Windows could not verify the update publisher.");
         var start = new ProcessStartInfo(path) { UseShellExecute = false };
         if (quiet)
         {
@@ -105,8 +111,7 @@ internal static class Updates
         start.ArgumentList.Add("/EspDesktopUpdate");
         start.ArgumentList.Add("/NORESTART");
         start.ArgumentList.Add("/CLOSEAPPLICATIONS");
-        using var process = Process.Start(start);
-        if (process is null) throw new IOException("The update installer did not start.");
+        return Process.Start(start) ?? throw new IOException("The update installer did not start.");
     }
 
     private static bool SamePublisher(string path) =>

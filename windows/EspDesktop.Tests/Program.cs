@@ -37,6 +37,28 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
 }
 
 #if WINDOWS
+if (args is ["--verify-windows-signed-upgrade", var installedApp, var upgrade, var expectedVersion])
+{
+    Check(Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") == "github-hosted",
+        "run signed upgrades on a disposable GitHub-hosted Windows runner");
+    var assembly = Path.ChangeExtension(installedApp, ".dll");
+    var previous = System.Reflection.AssemblyName.GetAssemblyName(assembly).Version;
+    var expected = System.Version.Parse(expectedVersion);
+    Check(previous is not null && previous < expected, "test a newer Windows release");
+    using var updater = Updates.StartInstaller(upgrade, installedApp, quiet: true);
+    if (!updater.WaitForExit(90000))
+    {
+        updater.Kill();
+        throw new TimeoutException("The signed update did not finish.");
+    }
+    Check(updater.ExitCode == 0, $"signed upgrade exit code {updater.ExitCode}");
+    Check(System.Reflection.AssemblyName.GetAssemblyName(assembly).Version == expected,
+        "upgrade the existing install directory to the new version");
+    Check(Authenticode.MatchesPublisher(installedApp, upgrade), "the upgraded app is signed by the same publisher");
+    VerifyInstallerProfile("verify");
+    Console.WriteLine("Passed a signed in-app Windows upgrade with the existing install directory, pairing, and approvals preserved.");
+    return;
+}
 if (await WindowsAppActions.TryRunTarget(args)) return;
 if (args is ["--installer-profile", var profileMode])
 {
