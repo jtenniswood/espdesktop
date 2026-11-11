@@ -20,6 +20,8 @@ Set up the display from a normal web browser.
 
 You can organise controls into subpages, resize and rearrange cards, change icons and colours, and back up the finished layout from the display's built-in setup page.
 
+<img src="docs/public/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing a Slack subpage with shortcuts for messages, search, and unread chats" width="600">
+
 ## How It Works
 
 1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
