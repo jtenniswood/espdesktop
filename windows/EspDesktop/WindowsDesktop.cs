@@ -73,14 +73,14 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
         }
     }
 
-    public Task<string> Invoke(JsonElement message, CancellationToken token)
+    public async Task<string> Invoke(JsonElement message, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        try { return Task.FromResult(Perform(message, token)); }
-        catch (Exception e) when (IsShellFailure(e)) { return Task.FromResult("failed"); }
+        try { return await Perform(message, token); }
+        catch (Exception e) when (IsShellFailure(e)) { return "failed"; }
     }
 
-    private string Perform(JsonElement message, CancellationToken token)
+    private async Task<string> Perform(JsonElement message, CancellationToken token)
     {
         if (SessionState.Locked) return "not_allowed";
         if (Text(message, "kind") == "url")
@@ -110,35 +110,79 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
             if (folder is null) return "not_allowed";
             if (!Directory.Exists(folder.Path)) return "not_found";
             var same = Text(message, "folderOpenBehavior") == "same_window";
-            if (same && WithExplorerWindow(InputSession.GetForegroundWindow(), w =>
+            var existingWindow = same ? FindExplorerWindow() : 0;
+            if (existingWindow != 0 && WithExplorerWindow(existingWindow, w =>
             {
                 token.ThrowIfCancellationRequested();
                 if (SessionState.Locked) return false;
                 w.Navigate2(folder.Path);
                 return true;
-            }, false)) return "opened";
+            }, false))
+            {
+                if (IsIconic(existingWindow)) _ = ShowWindowAsync(existingWindow, 9);
+                _ = SetForegroundWindow(existingWindow);
+                return "opened";
+            }
+            token.ThrowIfCancellationRequested();
+            if (SessionState.Locked) return "not_allowed";
             return Start(ExplorerExe, "/n,", folder.Path) ? "opened" : "failed";
         }
 
         var selected = apps.FirstOrDefault(a => a.Id == id && Allowed(a));
         if (selected is null) return "not_allowed";
-        if (TryActivate(selected)) return "activated";
-        if (id == ExplorerId) return Start(ExplorerExe) ? "activated" : "failed";
-        return OpenShell("shell:AppsFolder\\" + selected.Target) ? "activated" : "failed";
+        return await ActivateApplication(selected, token);
     }
 
-    private static bool TryActivate(StartApp app)
+    private async Task<string> ActivateApplication(StartApp app, CancellationToken token)
     {
-        var activated = false;
+        if (IsActive(app)) return "activated";
+
+        var window = FindApplicationWindow(app);
+        token.ThrowIfCancellationRequested();
+        if (SessionState.Locked) return "not_allowed";
+        if (window != 0)
+        {
+            if (IsIconic(window)) _ = ShowWindowAsync(window, 9);
+            _ = SetForegroundWindow(window);
+        }
+        else
+        {
+            var launched = app.Id == ExplorerId
+                ? Start(ExplorerExe)
+                : OpenShell("shell:AppsFolder\\" + app.Target);
+            if (!launched) return "failed";
+        }
+
+        // The panel opens the app's shortcut page only after this result.
+        // Wait for Windows to put the approved app in the foreground.
+        var start = Stopwatch.GetTimestamp();
+        do
+        {
+            token.ThrowIfCancellationRequested();
+            if (SessionState.Locked || !Allowed(app)) return "not_allowed";
+            if (IsActive(app)) return "activated";
+            await Task.Delay(50, token);
+        } while (Stopwatch.GetElapsedTime(start) < TimeSpan.FromSeconds(3));
+        return window == 0 ? "opened" : "failed";
+    }
+
+    private bool IsActive(StartApp app)
+    {
+        var window = InputSession.GetForegroundWindow();
+        return (app.Id != ExplorerId || IsExplorerWindow(window)) && Identify(window)?.Id == app.Id;
+    }
+
+    private nint FindApplicationWindow(StartApp app)
+    {
+        nint match = 0;
         EnumWindows((window, context) =>
         {
-            if (!IsWindowVisible(window) || GetWindow(window, 4) != 0 || !Matches(app, ReadWindow(window))) return true;
-            if (app.Id == ExplorerId && !IsExplorerWindow(window)) return true;
-            if (IsIconic(window)) _ = ShowWindowAsync(window, 9);
-            activated = SetForegroundWindow(window);
-            return !activated;
+            if (!IsWindowVisible(window) || GetWindow(window, 4) != 0 ||
+                (app.Id == ExplorerId && !IsExplorerWindow(window)) || Identify(window)?.Id != app.Id) return true;
+            match = window;
+            return false;
         }, 0);
-        return activated;
+        return match;
     }
 
     public string[] Focused(IReadOnlyDictionary<string, Uri> targets)
@@ -345,6 +389,19 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
         return name.ToString() is "CabinetWClass" or "ExploreWClass";
     }
 
+    private static nint FindExplorerWindow()
+    {
+        var foreground = InputSession.GetForegroundWindow();
+        if (IsExplorerWindow(foreground)) return foreground;
+
+        // Choose the first visible Explorer window in desktop Z order, even
+        // when a different app is in front.
+        var window = GetTopWindow(0);
+        for (var i = 0; window != 0 && i < 1024; i++, window = GetWindow(window, 2))
+            if (IsWindowVisible(window) && IsExplorerWindow(window)) return window;
+        return 0;
+    }
+
     private static T WithExplorerWindow<T>(nint window, Func<dynamic, T> operation, T fallback)
     {
         if (!IsExplorerWindow(window)) return fallback;
@@ -437,6 +494,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool IsIconic(nint window);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool IsWindowVisible(nint window);
     [DllImport("user32.dll")] private static extern nint GetWindow(nint window, uint command);
+    [DllImport("user32.dll")] private static extern nint GetTopWindow(nint window);
     [DllImport("user32.dll", CharSet = CharSet.Unicode)] private static extern int GetClassNameW(nint window, StringBuilder name, int max);
     private delegate bool WindowCallback(nint window, nint context);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool EnumWindows(WindowCallback callback, nint context);
