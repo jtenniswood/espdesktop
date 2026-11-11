@@ -133,7 +133,7 @@ async function checkBrowser() {
     await assertSupportedInstaller();
     await page.goto(`${base}/espdesktop/screens/4848s040`);
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
-    await page.getByRole('link', { name: 'Install Screen', exact: true }).click();
+    await page.locator('.VPSidebar a[href="/espdesktop/getting-started/install"]').click();
     await page.waitForURL('**/espdesktop/getting-started/install');
     await assertSupportedInstaller();
     assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');

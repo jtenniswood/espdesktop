@@ -21,6 +21,8 @@ The [Guition 4848S040](/screens/4848s040) touchscreen is available for **under Â
 
 </div>
 
+The Mac app is **free for non-commercial use**. [Source code](https://github.com/jtenniswood/espdesktop/tree/main/macos/EspDesktop) Â· [License](https://github.com/jtenniswood/espdesktop/blob/main/LICENSE)
+
 </div>
 
 <figure class="homepage-panel">
