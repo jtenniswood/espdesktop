@@ -39,6 +39,7 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
 #if WINDOWS
 if (await WindowsAppActions.TryRunTarget(args)) return;
 VerifyAudioLevelPolicy();
+VerifyWindowsPresets();
 var exerciseDesktopActions = args is ["--verify-native-windows", "--exercise-desktop-actions"];
 using var native = args is ["--verify-native-windows"] || exerciseDesktopActions
     ? await NativeWindowsDesktop.Prepare(exerciseDesktopActions)
@@ -253,6 +254,28 @@ async Task<JsonElement> FindMessage(WebSocket socket, string kind, Func<JsonElem
 }
 
 #if WINDOWS
+static void VerifyWindowsPresets()
+{
+    foreach (var (executable, target, firstKey) in new (string?, string, string)[]
+    {
+        (@"C:\Apps\SLACK.EXE", "Slack", "control+n"),
+        (@"C:\Apps\Discord.exe", "Discord", "control+k"),
+        (@"C:\Apps\Spotify.exe", "Spotify", "control+k"),
+        (@"C:\Apps\GitHubDesktop.exe", "GitHubDesktop", "control+t"),
+        (null, "Microsoft.MicrosoftEdge.Stable_8wekyb3d8bbwe!App", "control+t"),
+        (null, "Microsoft.WindowsNotepad_8wekyb3d8bbwe!App", "control+n")
+    })
+    {
+        var presets = WindowsPresets.For(executable, target);
+        Check(presets.Length > 0 && presets[0].Keys == firstKey, $"preset IDs and shortcut bindings for {target}");
+        Check(presets.All(preset => SafeActions.Shortcut("shortcut." + preset.Keys) is not null),
+            $"Windows can replay each shortcut for {target}");
+    }
+    Check(WindowsPresets.For(null, "MSEdge._pin_example").Length == 0,
+        "a pinned website does not inherit Edge browser presets");
+    Console.WriteLine("Passed Windows application shortcut preset checks.");
+}
+
 static void VerifyAudioLevelPolicy()
 {
     var volume = 0.5f;
@@ -276,7 +299,7 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     var catalogue = await FindMessage(socket, "catalogue.page", m => m.GetProperty("complete").GetBoolean());
     var entries = catalogue.GetProperty("items").EnumerateArray().ToDictionary(item => Text(item, "id"));
     var folderCount = fixture.FolderActions is null ? 2 : 5;
-    var appCount = fixture.AppActions is null ? 1 : 2;
+    var appCount = fixture.AppActions is null ? 1 : 3;
     Check(entries.Count == folderCount + appCount && entries.ContainsKey(WindowsDesktop.ExplorerId) &&
           !entries.ContainsKey(fixture.UnapprovedAppId), "publish only approved folders and apps");
     if (fixture.AppActions is { } approvedApp)
@@ -287,6 +310,23 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
     Check(entries.TryGetValue("folder.windows-drive", out var drive) && Text(drive, "label") == fixture.DriveLabel,
         "publish a friendly drive label");
     Check(entries.Values.All(item => item.EnumerateObject().Count() == 2), "keep private folder paths off the wire");
+
+    var definitions = await FindMessage(socket, "catalogue.definitions.page", m => m.GetProperty("complete").GetBoolean());
+    var items = definitions.GetProperty("items");
+    Check(items.GetArrayLength() == (fixture.Browser is null ? 0 : 1), "publish presets only for approved apps when shortcuts are enabled");
+    if (fixture.Browser is { } browser)
+    {
+        Check(entries.ContainsKey(browser.Id), "the preset's app appears in the approved catalogue");
+        var definition = items[0];
+        Check(Text(definition, "kind") == "application", "publish browser presets as an application definition");
+        using var document = JsonDocument.Parse(Text(definition, "json"));
+        var app = document.RootElement;
+        var newTab = app.GetProperty("shortcuts")[0];
+        Check(Text(app, "appId") == browser.Id && !app.GetProperty("catalog").GetBoolean() &&
+            Text(newTab, "id") == "0" && Text(newTab, "shortcut") == "control+t" && Text(newTab, "icon") == "New Tab",
+            "the display receives the approved browser's New Tab preset with its saved ID and icon");
+        Console.WriteLine($"Passed Windows shortcut preset publication over TLS ({browser.Name}).");
+    }
 
     var controls = new Dictionary<string, int?>(StringComparer.Ordinal);
     for (var i = 0; i < 4; i++)

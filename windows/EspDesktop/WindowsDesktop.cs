@@ -60,7 +60,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         if (!ShortcutsEnabled) yield break;
         foreach (var app in apps.Where(Allowed))
         {
-            var presets = WindowsPresets.For(Path.GetFileName(app.Executable ?? app.Target).ToLowerInvariant());
+            var presets = WindowsPresets.For(app.Executable, app.Target);
             if (presets.Length == 0) continue;
             yield return JsonSerializer.Serialize(new
             {

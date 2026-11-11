@@ -5,7 +5,7 @@ using EspDesktop;
 using ComObject = EspDesktop.Com;
 
 internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string DriveLabel, string UnapprovedAppId,
-    WindowsFolderActions? FolderActions, WindowsAppActions? AppActions) : IDisposable
+    WindowsFolderActions? FolderActions, WindowsAppActions? AppActions, StartApp? Browser) : IDisposable
 {
     public static async Task<NativeWindowsDesktop> Prepare(bool exerciseDesktopActions)
     {
@@ -25,6 +25,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
         var desktop = new WindowsDesktop(settings);
         WindowsAppActions? app = null;
         WindowsFolderActions? folders = null;
+        StartApp? browser = null;
         try
         {
             if (exerciseDesktopActions)
@@ -37,12 +38,16 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
                 settings.Folders.Add(new("folder.windows-third", folders.Third));
                 app = await WindowsAppActions.Create(desktop);
                 settings.AllowedApps.Add(app.Entry.Id);
+                browser = desktop.Apps.FirstOrDefault(candidate =>
+                    WindowsPresets.For(candidate.Executable, candidate.Target).Any(preset => preset.Label == "New Tab"))
+                    ?? throw new InvalidOperationException("The Windows Shell did not list a browser with shortcut presets.");
+                settings.AllowedApps.Add(browser.Id);
             }
             else await desktop.Refresh();
 
             var otherApp = desktop.Apps.FirstOrDefault(candidate => !desktop.Allowed(candidate))
                 ?? throw new InvalidOperationException("The Windows Shell did not supply any unapproved Start menu apps.");
-            return new(desktop, $"Drive {char.ToUpperInvariant(root[0])}", otherApp.Id, folders, app);
+            return new(desktop, $"Drive {char.ToUpperInvariant(root[0])}", otherApp.Id, folders, app, browser);
         }
         catch
         {
