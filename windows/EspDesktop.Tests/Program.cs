@@ -85,18 +85,7 @@ var discovered = Discovery.ParsePackets(DiscoveryResponse());
 Check(discovered is [{ Address: "192.168.1.20:8443", Name: "Desk display" }], "discover by PTR, SRV, TXT and A");
 Console.WriteLine("Passed local address, action policy and discovery tests.");
 
-using var key = RSA.Create(2048);
-var request = new CertificateRequest("CN=EspDesktop Test", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
-var san = new SubjectAlternativeNameBuilder();
-san.AddIpAddress(IPAddress.Loopback);
-request.CertificateExtensions.Add(san.Build());
-request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
-request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
-using var ephemeral = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
-// Windows Schannel requires a private key backed by the Windows key store.
-using var certificate = OperatingSystem.IsWindows()
-    ? X509CertificateLoader.LoadPkcs12(ephemeral.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.UserKeySet)
-    : new X509Certificate2(ephemeral);
+using var certificate = TestCertificate();
 using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(exerciseDesktopActions ? 100 : 25));
 var builder = WebApplication.CreateSlimBuilder();
 builder.Logging.ClearProviders();
@@ -119,6 +108,7 @@ if (exerciseDesktopActions)
 #endif
 var secret = RandomNumberGenerator.GetBytes(32);
 var checks = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+var reconnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 var authorizedRequests = 0;
 var authenticated = 0;
 var rejectedSequence = 0;
@@ -144,6 +134,14 @@ server.Map(SocketPath, async context =>
         {
             Interlocked.Increment(ref rejectedSequence);
             await Send(socket, "error", ("code", "authentication_sequence"), ("lastSequence", 7));
+            return;
+        }
+        if (seq is 9 or 10)
+        {
+            await Send(socket, "auth.accepted", ("capabilityVersion", 7));
+            await FindMessage(socket, "catalogue.page", m => m.GetProperty("items")[0].GetProperty("id").GetString() == "windows.test");
+            if (seq == 10) reconnected.TrySetResult();
+            await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "test disconnect", lifetime.Token);
             return;
         }
         Check(seq == 8, "repair stale authentication sequence");
@@ -191,7 +189,7 @@ server.Map(SocketPath, async context =>
         checks.TrySetResult();
         await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "done", lifetime.Token);
     }
-    catch (Exception e) { checks.TrySetException(e); }
+    catch (Exception e) { if (!checks.TrySetException(e)) reconnected.TrySetException(e); }
 });
 await server.StartAsync(lifetime.Token);
 var address = server.Urls.Single(url => url.StartsWith("https://", StringComparison.Ordinal));
@@ -231,6 +229,89 @@ if (native is not null)
 #endif
 Check(desktop.Actions == 1 && authorizedRequests == 1, "authenticated dispatch and lock enforcement");
 Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, counter repair, catalogue, audio dispatch, lock enforcement and icon transfer tests.");
+await VerifyAddressRecovery();
+await VerifyPairingSaveFailure();
+
+async Task VerifyAddressRecovery()
+{
+    using var wrongCertificate = TestCertificate();
+    var tlsAttempts = 0;
+    var wrongRequests = 0;
+    var oldHost = WebApplication.CreateSlimBuilder();
+    oldHost.Logging.ClearProviders();
+    oldHost.WebHost.ConfigureKestrel(k => k.Listen(IPAddress.Loopback, 0, listen => listen.UseHttps(options =>
+    {
+        options.ServerCertificateSelector = (_, _) =>
+        {
+            Interlocked.Increment(ref tlsAttempts);
+            return wrongCertificate;
+        };
+    })));
+    await using var oldServer = oldHost.Build();
+    oldServer.Map(SocketPath, context =>
+    {
+        Interlocked.Increment(ref wrongRequests);
+        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+        return Task.CompletedTask;
+    });
+    await oldServer.StartAsync(lifetime.Token);
+    var oldAddress = oldServer.Urls.Single();
+    var saves = new List<Pairing>();
+    var lookups = 0;
+    using var deadline = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+    var connection = new DisplaySession(desktop, saves.Add, _ => { }, (pin, _) =>
+    {
+        Check(pin == saved.Fingerprint, "discovery looks for the saved display identity");
+        // Recover the relocated display first. After a disconnect, a stale
+        // advertisement points back to the unrelated server at the old address.
+        return Task.FromResult<string?>(++lookups == 1 ? address : oldAddress);
+    });
+    var recovery = connection.RunAsync(saved with { Address = oldAddress }, deadline.Token);
+    try
+    {
+        var finished = await Task.WhenAny(reconnected.Task, recovery).WaitAsync(lifetime.Token);
+        await finished;
+        Check(reconnected.Task.IsCompletedSuccessfully, "the paired display reconnects after moving and disconnecting");
+    }
+    finally
+    {
+        await deadline.CancelAsync();
+        await recovery;
+    }
+    Check(tlsAttempts >= 2 && wrongRequests == 0, "both attempts rejected the unrelated server before any HTTP or pairing data");
+    Check(saves.Select(item => (item.Address, item.Sequence)).SequenceEqual([(oldAddress, 9u), (address, 9u), (address, 10u)]) &&
+        saves.All(item => item.Fingerprint == saved.Fingerprint && item.Key.SequenceEqual(saved.Key)),
+        "only the authenticated address replaces the saved address, with the pairing credential and sequence preserved");
+    Console.WriteLine("Passed display address recovery, mismatched discovery rejection, and reconnect over real TLS WebSockets.");
+}
+
+async Task VerifyPairingSaveFailure()
+{
+    var lastStatus = "";
+    var authenticationCount = authenticated;
+    var failingSave = new DisplaySession(desktop, _ => throw new IOException("Test write failure"), s => lastStatus = s,
+        (_, _) => throw new InvalidOperationException("A local save failure must not start network discovery."));
+    await failingSave.RunAsync(saved, lifetime.Token);
+    Check(lastStatus.Contains("couldn’t save the pairing", StringComparison.Ordinal) && authenticated == authenticationCount,
+        "a local save failure reports the storage problem and stops before authentication");
+    Console.WriteLine("Passed pairing storage failure reporting over real TLS.");
+}
+
+static X509Certificate2 TestCertificate()
+{
+    using var key = RSA.Create(2048);
+    var request = new CertificateRequest("CN=EspDesktop Test", key, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+    var san = new SubjectAlternativeNameBuilder();
+    san.AddIpAddress(IPAddress.Loopback);
+    request.CertificateExtensions.Add(san.Build());
+    request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature | X509KeyUsageFlags.KeyEncipherment, true));
+    request.CertificateExtensions.Add(new X509EnhancedKeyUsageExtension(new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
+    var ephemeral = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(-1), DateTimeOffset.UtcNow.AddHours(1));
+    if (!OperatingSystem.IsWindows()) return ephemeral;
+    // Windows Schannel requires a private key backed by the Windows key store.
+    using (ephemeral)
+        return X509CertificateLoader.LoadPkcs12(ephemeral.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.UserKeySet);
+}
 
 async Task Send(WebSocket socket, string kind, params (string, object?)[] fields) =>
     await socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(Message(kind, fields)), WebSocketMessageType.Text, true, lifetime.Token);

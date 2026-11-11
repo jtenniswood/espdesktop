@@ -26,6 +26,8 @@ Existing S3 firmware calls the connector **Mac Companion**. Use that connector f
 
 Use **Start EspDesktop when I sign in** to keep the display connected after login. To stop the app, choose **Quit EspDesktop** from its notification area icon.
 
+If the display gets a new address on your local network, EspDesktop can rediscover it and resume the saved pairing. A new address is saved only after the display proves its identity and accepts the pairing. If you reset or replace the display, forget it in EspDesktop and pair again.
+
 ## Build and check
 
 Use the .NET 10 SDK and Inno Setup 6.3 or newer on Windows. From the repository root:

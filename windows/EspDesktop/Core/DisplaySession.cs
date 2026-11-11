@@ -52,7 +52,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         var failures = 0;
         var repairs = 0;
         var attemptedAddress = pairing.Address;
-        string? unverifiedAddress = null;
+        var unverifiedAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         while (!token.IsCancellationRequested)
         {
             try
@@ -65,17 +65,23 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 try { await client.Connect(DisplayEndpoint.Parse(attemptedAddress).Socket, timeout.Token); }
                 catch (WebSocketException) when (pinMismatch)
                 {
-                    if (attemptedAddress == pairing.Address)
-                        throw new SessionException("The display identity changed. If it was reset, forget it and pair again.");
-                    // Discovery is only a hint. Reject a candidate with a wrong
-                    // certificate without replacing the address or pairing.
-                    unverifiedAddress = attemptedAddress;
-                    attemptedAddress = pairing.Address;
+                    if (attemptedAddress != pairing.Address)
+                    {
+                        // Reject a discovered address that cannot prove the pinned identity.
+                        unverifiedAddresses.Add(attemptedAddress);
+                        attemptedAddress = pairing.Address;
+                    }
+                    else
+                    {
+                        // The old address may have been reassigned after the display moved.
+                        attemptedAddress = await FindRecoveryAddress() ??
+                            throw new SessionException("The display identity changed. If it was reset, forget it and pair again.");
+                    }
                     continue;
                 }
                 if (pairing.Sequence == uint.MaxValue) throw new SessionException("Forget the display and pair it again.");
                 pairing = pairing with { Sequence = pairing.Sequence + 1 };
-                save(pairing);
+                SavePairing(pairing);
                 var nonce = Guid.NewGuid().ToString();
                 await client.Send(Message("auth.request", ("sequence", pairing.Sequence), ("nonce", nonce),
                     ("signature", Sign(pairing.Key, pairing.Sequence, nonce))), "authenticating", timeout.Token);
@@ -85,17 +91,18 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     if (Text(reply, "code") == "authentication_sequence" && reply.TryGetProperty("lastSequence", out _) && repairs++ == 0)
                     {
                         pairing = pairing with { Sequence = UInt(reply, "lastSequence") };
-                        save(pairing);
+                        SavePairing(pairing);
                         continue;
                     }
                     throw new SessionException(Error(reply, "The display refused the saved pairing. Pair again after resetting it."));
                 }
                 repairs = 0;
                 failures = 0;
+                unverifiedAddresses.Clear();
                 if (pairing.Address != attemptedAddress)
                 {
                     pairing = pairing with { Address = attemptedAddress };
-                    save(pairing);
+                    SavePairing(pairing);
                 }
                 status($"Connected to {DisplayEndpoint.Parse(pairing.Address).Socket.Host}");
                 await new Connected(client, desktop, UInt(reply, "capabilityVersion"), token).Run();
@@ -109,11 +116,26 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 var delay = TimeSpan.FromSeconds(Math.Min(30, 1 << Math.Min(++failures, 5)));
                 try
                 {
-                    var discovered = await recoverAddress(pairing.Fingerprint, token);
-                    attemptedAddress = discovered is not null && discovered != unverifiedAddress ? discovered : pairing.Address;
+                    attemptedAddress = await FindRecoveryAddress() ?? pairing.Address;
                     await Task.Delay(delay, token);
                 }
                 catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
+            }
+        }
+
+        async Task<string?> FindRecoveryAddress()
+        {
+            var discovered = await recoverAddress(pairing.Fingerprint, token);
+            return discovered is not null && !discovered.Equals(pairing.Address, StringComparison.OrdinalIgnoreCase) &&
+                !unverifiedAddresses.Contains(discovered) ? discovered : null;
+        }
+
+        void SavePairing(Pairing next)
+        {
+            try { save(next); }
+            catch (Exception e) when (e is IOException or UnauthorizedAccessException or CryptographicException)
+            {
+                throw new SessionException("EspDesktop couldn’t save the pairing. Check access to your Windows user profile and reconnect.");
             }
         }
     }
