@@ -16,7 +16,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 
 ## Configure the touchscreen
 
-- [Web editor and display settings](https://espdesktop.com/features/setup.md)
+- [Device and system settings](https://espdesktop.com/features/setup.md)
 - [Create subpages](https://espdesktop.com/features/subpages.md)
 - [Launch Mac apps](https://espdesktop.com/mac-controls/apps.md)
 - [Open websites on the Mac](https://espdesktop.com/mac-controls/websites.md)

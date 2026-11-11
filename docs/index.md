@@ -125,7 +125,7 @@ Tap the Lock Machine tile when you step away from your desk.
 
 Resize tiles, choose their icons and colours, and group related controls into subpages.
 
-[Customise the display](/features/setup)
+[Customise the layout](/features/setup#arrange-and-personalise-cards)
 
 </article>
 
