@@ -78,7 +78,8 @@ python3 scripts/test_release_hardware.py record --host PANEL_IP \
 The release check has three steps.
 
 1. With the candidate Mac app connected, run one nested Mac shortcut and tap Back.
-2. Rename one tile in the display's embedded editor. Wait until the saved label appears on the display.
+2. In the display's embedded editor, click a tile label, enter a new name, and
+   press Return. Wait until the new label appears on the display.
 3. Restart the display and confirm the label survives and the Mac reconnects.
 
 The runner checks the saved native configuration before and after reboot and

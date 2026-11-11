@@ -17,7 +17,10 @@ from test_device_runtime import HttpProbe, METRICS, navigation_values
 DEVICE = "guition-esp32-s3-4848s040"
 REPORT_SCHEMA = 4
 SHORTCUT = "With the candidate Mac app connected, run one nested Mac shortcut and tap Back on the display."
-EDITOR_SAVE = "Open the display's embedded editor, rename one tile, and wait for the saved label to appear on the display."
+EDITOR_SAVE = (
+    "In the display's embedded editor, click a tile label and enter a new name. "
+    "Press Return to save and wait for the new label on the display."
+)
 STEPS = (
     ("shortcut", SHORTCUT),
     ("editor_save", EDITOR_SAVE),
