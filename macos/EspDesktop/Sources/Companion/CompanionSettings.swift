@@ -904,7 +904,7 @@ struct CompanionSettings: View {
     }
 
     private var supportButtonImage: NSImage? {
-        guard let imageURL = CompanionResources.bundle?.url(
+        guard let imageURL = Bundle.companionResources?.url(
             forResource: "buy-me-a-coffee-button",
             withExtension: "png"
         ) else { return nil }
