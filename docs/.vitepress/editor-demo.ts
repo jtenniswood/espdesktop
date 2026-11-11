@@ -1,4 +1,4 @@
-import { companionCardHasAppIcon } from '../../src/webserver/model/companion_card_codec'
+import { COMPANION_FOLDER_PREFIX, companionCardHasAppIcon } from '../../src/webserver/model/companion_card_codec'
 import { appShortcutPageOwner } from '../../src/webserver/model/companion_shortcut_page'
 import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webserver/model/panel_config_conversion'
 
@@ -11,6 +11,10 @@ const slackAppId = 'com.tinyspeck.slackmacgap'
 const idleDelayMs = 5000
 const pressDurationMs = 180
 const embedded = !editable && window.parent !== window
+const demoFolders = ['Desktop', 'Documents', 'Downloads', 'Projects'].map(label => ({
+  id: COMPANION_FOLDER_PREFIX + label.toLowerCase(),
+  label,
+}))
 
 document.documentElement.toggleAttribute('data-espdesktop-embedded', embedded)
 
@@ -156,7 +160,7 @@ window.fetch = async (input, init) => {
       case '/espdesktop/version.json':
         return Response.json({ device_slug: deviceProfile, version: 'demo' })
       case '/companion/actions':
-        return editable ? Response.json([...demoApps.values()]) : empty(404)
+        return editable ? Response.json([...demoApps.values(), ...demoFolders]) : empty(404)
       case '/companion/app-icon': {
         const appId = url.searchParams.get('appId')
         const background = url.searchParams.get('background') ?? ''

@@ -192,6 +192,19 @@ async function checkBrowser() {
     await editApplication();
     assert.equal(await applicationPicker.inputValue(), 'com.apple.Notes');
 
+    await page.getByRole('button', { name: 'Close settings' }).click();
+    await editorGrid.locator('.sp-empty-cell').first().click();
+    await page.locator('[data-card-type="companion_folder"]').click();
+    const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
+    await folderPicker.locator('option[value="folder.downloads"]').waitFor({ state: 'attached' });
+    assert.deepEqual(await folderPicker.locator('option').allTextContents(),
+      ['Choose a folder…', 'Desktop', 'Documents', 'Downloads', 'Projects']);
+    await folderPicker.selectOption('folder.downloads');
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
+    await page.reload();
+    await editorGrid.getByText('Downloads', { exact: true }).waitFor();
+
     await page.goto(`${home}editor/index.html`);
     await page.getByRole('button', { name: 'Safari', exact: true }).waitFor();
     assert.equal(await page.getByRole('tab').count(), 0, 'The touchscreen demo stays read-only');
