@@ -227,7 +227,8 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
     public string[] Focused(IReadOnlyDictionary<string, Uri> targets)
     {
         var window = InputSession.GetForegroundWindow();
-        var app = Identify(window);
+        var identity = ReadWindow(window);
+        var app = Identify(identity);
         var ids = new List<string>();
         if (app?.Id == ExplorerId && IsExplorerWindow(window))
         {
@@ -241,7 +242,7 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         }
 
         if (app != null && Allowed(app) && (app.Id != ExplorerId || IsExplorerWindow(window))) ids.Add(app.Id);
-        if (app?.Executable is { } executable && Browsers.Contains(Path.GetFileName(executable), StringComparer.OrdinalIgnoreCase) &&
+        if (identity.Executable is { } executable && Browsers.Contains(Path.GetFileName(executable), StringComparer.OrdinalIgnoreCase) &&
             targets.Count != 0)
         {
             if (cachedBrowserWindow != window)
@@ -372,13 +373,12 @@ internal sealed class WindowsDesktop(LocalSettings settings) : IDesktop
         return list.DistinctBy(a => a.Id).OrderBy(a => a.Name, StringComparer.CurrentCultureIgnoreCase).ToArray();
     }
 
-    private StartApp? Identify(nint window)
-    {
-        var identity = ReadWindow(window);
-        return apps.Where(a => Matches(a, identity)).OrderByDescending(a =>
+    private StartApp? Identify(nint window) => Identify(ReadWindow(window));
+
+    private StartApp? Identify((string? Aumid, string? Executable) identity) =>
+        apps.Where(a => Matches(a, identity)).OrderByDescending(a =>
             !string.IsNullOrEmpty(identity.Aumid) && a.Target.Equals(identity.Aumid, StringComparison.OrdinalIgnoreCase))
             .ThenByDescending(Allowed).FirstOrDefault();
-    }
 
     private static bool Matches(StartApp app, (string? Aumid, string? Executable) identity) =>
         (!string.IsNullOrEmpty(identity.Aumid) && app.Target.Equals(identity.Aumid, StringComparison.OrdinalIgnoreCase)) ||

@@ -12,6 +12,10 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using static EspDesktop.Core.Protocol;
+#if WINDOWS
+using System.Diagnostics;
+using System.Windows.Automation;
+#endif
 
 static void Check(bool condition, string label)
 {
@@ -99,7 +103,9 @@ builder.Logging.SetMinimumLevel(LogLevel.Warning);
 builder.WebHost.ConfigureKestrel(k =>
 {
     k.Listen(IPAddress.Loopback, 0, o => o.UseHttps(certificate));
+#if WINDOWS
     if (exerciseDesktopActions) k.Listen(IPAddress.Loopback, 0);
+#endif
 });
 await using var server = builder.Build();
 server.UseWebSockets();
@@ -401,7 +407,8 @@ async Task VerifyWebsiteActions(WebSocket socket, string browserAddress)
         }
         catch (OperationCanceledException) when (deadline.IsCancellationRequested && !lifetime.IsCancellationRequested)
         {
-            throw new InvalidOperationException($"The companion did not highlight the expected website after {operation}.");
+            var foreground = await DescribeBrowserWindow(browserAddress);
+            throw new InvalidOperationException($"The companion did not highlight the expected website after {operation}. {foreground}");
         }
     }
 
@@ -412,6 +419,33 @@ async Task VerifyWebsiteActions(WebSocket socket, string browserAddress)
         var result = await FindMessage(socket, "action.result", message => Text(message, "requestId") == requestId);
         var actual = Text(result, "status");
         Check(actual == expected, $"{behavior} for {requestId} reported {actual}, expected {expected}");
+    }
+}
+
+static async Task<string> DescribeBrowserWindow(string testAddress)
+{
+    var window = InputSession.GetForegroundWindow();
+    _ = InputSession.GetWindowThreadProcessId(window, out var pid);
+    try
+    {
+        return await Task.Run(() =>
+        {
+            using var process = Process.GetProcessById((int)pid);
+            var element = AutomationElement.FromHandle(window);
+            var edits = element.FindAll(TreeScope.Descendants,
+                new PropertyCondition(AutomationElement.ControlTypeProperty, ControlType.Edit));
+            var details = edits.Cast<AutomationElement>().Take(8).Select(edit =>
+            {
+                var value = edit.TryGetCurrentPattern(ValuePattern.Pattern, out var pattern) ? ((ValuePattern)pattern).Current.Value : "";
+                var reportsTestPage = value.Contains(new Uri(testAddress).Authority + "/espdesktop-browser-", StringComparison.Ordinal);
+                return $"{edit.Current.AutomationId}/{edit.Current.Name} (focused={edit.Current.HasKeyboardFocus}, test URL={reportsTestPage})";
+            });
+            return $"Foreground: {process.ProcessName} / {element.Current.Name}. Edit controls: {string.Join(", ", details)}.";
+        }).WaitAsync(TimeSpan.FromSeconds(3));
+    }
+    catch (Exception e) when (WindowsDesktop.IsShellFailure(e) || e is TimeoutException or ElementNotAvailableException)
+    {
+        return $"Could not inspect the foreground window (PID {pid}): {e.GetType().Name}.";
     }
 }
 #endif
