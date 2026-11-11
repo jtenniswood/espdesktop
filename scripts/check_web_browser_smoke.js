@@ -919,18 +919,18 @@ async function assertPageTitleEvents(browser) {
     );
 
     await page.evaluate(() =>
-      window.__seedEspPing({ title: "EspDesktop 7inch P4" }),
+      window.__seedEspPing({ title: "Guition ESP32-S3-4848S040 f45c6c" }),
     );
     assert.strictEqual(
       await page.title(),
-      "EspDesktop 7inch P4",
+      "EspDesktop - 5c6c",
       "ping title should set browser title",
     );
 
     await page.evaluate(() => window.__seedEspPing({ uptime: 12 }));
     assert.strictEqual(
       await page.title(),
-      "EspDesktop 7inch P4",
+      "EspDesktop - 5c6c",
       "keepalive ping should preserve browser title",
     );
 
@@ -942,12 +942,12 @@ async function assertPageTitleEvents(browser) {
     );
 
     await page.evaluate(() =>
-      window.__seedEspPing({ title: "EspDesktop 7inch P4" }),
+      window.__seedEspPing({ title: "Guition ESP32-S3-4848S040 f45c6c" }),
     );
     await page.evaluate(() => window.__seedEspPing({}));
     assert.strictEqual(
       await page.title(),
-      "EspDesktop 7inch P4",
+      "EspDesktop - 5c6c",
       "missing ping title should preserve current title",
     );
 
@@ -976,11 +976,11 @@ async function assertPageTitleEvents(browser) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await normalPage.evaluate(() =>
-      window.__seedEspPing({ title: "EspDesktop 4inch S3" }),
+      window.__seedEspPing({ title: "Workshop" }),
     );
     assert.strictEqual(
       await normalPage.title(),
-      "EspDesktop 4inch S3",
+      "EspDesktop - Workshop",
       "normal page should read title from one-shot event stream",
     );
     assert.strictEqual(
@@ -5505,6 +5505,13 @@ async function assertPanelNaming(browser) {
     await page.waitForFunction(() => document.title === "EspDesktop - Bedroom");
     assert.strictEqual(identityState.info.hostname, "bedroom-b2c3", "selected name restore keeps destination suffix");
     assert.strictEqual(identityState.posts.length, 3, "name written once after successful restore");
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page.getByRole("tab", { name: "System" }).click();
+    const header = card.locator(".card-header");
+    if (await card.evaluate(element => element.classList.contains("collapsed"))) await header.click();
+    await page.locator("#sp-panel-name").fill("");
+    await save.click();
+    await page.waitForFunction(() => document.title === "EspDesktop - b2c3");
     assert.deepStrictEqual(errors, [], "naming journey has no browser errors");
   } finally { await context.close(); }
 }
@@ -7397,6 +7404,13 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
+      await assertPageTitleEvents(browser);
+      await assertNamingOfflineBackups(browser);
+      await assertPanelNaming(browser);
+      console.log("Panel naming browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_CARD_REORDER_ONLY === "1") {
       await assertReorderAfterDelete(browser);
       return;
@@ -7571,12 +7585,6 @@ async function assertFirstRunSetup(browser) {
       assert(testCase, "4-inch S3 browser profile is available");
       await assertCompanionOnlyCardPicker(browser, testCase);
       console.log("Home Assistant connection transition browser checks passed.");
-      return;
-    }
-    if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
-      await assertNamingOfflineBackups(browser);
-      await assertPanelNaming(browser);
-      console.log("Panel naming browser checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_HA_VISIBILITY_ONLY === "1") {
