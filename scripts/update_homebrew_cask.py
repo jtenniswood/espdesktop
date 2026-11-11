@@ -41,7 +41,7 @@ def render_cask(releases):
 
   url "{REPOSITORY}/releases/download/{prefix}#{{version}}/EspDesktop-#{{version}}.zip"
   name "EspDesktop"
-  desc "Mac companion for the EspDesktop touchscreen controller"
+  desc "Companion app for an ESP32 touchscreen controller"
   homepage "https://jtenniswood.github.io/espdesktop/"
 
   livecheck do
