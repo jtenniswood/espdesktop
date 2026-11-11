@@ -38,6 +38,7 @@ jobs:
         run: |
           APP="macos/EspDesktop/.build/standalone/EspDesktop.app"
           test -f "${APP}/Contents/Info.plist"
+          test "$(plutil -extract CFBundleIdentifier raw -o - "${APP}/Contents/Info.plist")" = "io.espdesktop.app"
           test -f "${APP}/Contents/Resources/AppIcon.icns"
           cmp common/assets/images/buy-me-a-coffee-button.png "${APP}/Contents/Resources/EspDesktop_Companion.bundle/buy-me-a-coffee-button.png"
           test -f "${APP}/Contents/Resources/PrivacyInfo.xcprivacy"

@@ -42,6 +42,8 @@ Choose **Skip setup** to build a custom layout in the editor. To run the wizard 
 
 ## Check for Mac app updates
 
+The Mac app keeps your display pairing when it updates and reconnects to the saved display when it reopens.
+
 With automatic checks enabled, EspDesktop checks when you launch the app and daily while it’s running. When a compatible update is available, the update window lets you install it or decide later. To check manually, choose **EspDesktop → Check for Updates…** or use the same command from the EspDesktop icon in the menu bar.
 
 Open EspDesktop from **Applications**, then turn on **Notify Me About Updates** in **Mac Settings → Updates** and allow macOS notifications. Click an update notification to open the updater. If you prefer eligible updates to install on quit, turn on **Automatically Install Updates**.
