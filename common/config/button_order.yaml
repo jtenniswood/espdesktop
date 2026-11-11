@@ -34,13 +34,31 @@ text:
                 return !id(button_order).state.empty() &&
                        lv_scr_act() == id(button_setup_page)->obj;
             then:
-              - delay: 750ms
-              - script.execute: refresh_button_grid
-              - script.wait: refresh_button_grid
-              - script.execute: navigate_after_api
-              - script.wait: navigate_after_api
-              - script.execute: display_mode_reconcile
+              - script.execute: present_first_layout
             else:
               - script.execute: display_mode_reconcile
               - delay: 750ms
               - script.execute: refresh_button_grid
+
+script:
+  - id: present_first_layout
+    mode: single
+    then:
+      - globals.set:
+          id: first_layout_preview_active
+          value: 'true'
+      - script.execute: display_mode_reconcile
+      # Let the save finish publishing its card data before rebuilding.
+      - delay: 750ms
+      - script.execute: apply_button_grid
+      - script.wait: apply_button_grid
+      - script.execute: navigate_after_api
+      - script.wait: navigate_after_api
+      - script.execute: clock_bar_apply
+      - script.execute: backlight_apply_brightness
+      # Show the result of setup briefly before the saved sleep rules resume.
+      - delay: 15s
+      - globals.set:
+          id: first_layout_preview_active
+          value: 'false'
+      - script.execute: display_mode_reconcile

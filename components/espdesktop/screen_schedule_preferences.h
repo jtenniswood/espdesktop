@@ -11,7 +11,7 @@ inline constexpr std::string_view SCREEN_SCHEDULE_PREFERENCES_KEY = panel_settin
 enum class ScheduledNightMode { OFF, DIMMED, ALWAYS_ON, CLOCK };
 
 struct ScreenSchedulePreferences {
-  bool enabled{true};
+  bool enabled{false};
   unsigned on_hour{7}, off_hour{19};
   ScheduledNightMode night_mode{ScheduledNightMode::DIMMED};
   unsigned wake_timeout{60}, wake_brightness{10}, dimmed_brightness{15}, clock_brightness{10};
