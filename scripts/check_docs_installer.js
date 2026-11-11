@@ -121,11 +121,25 @@ async function checkBrowser() {
       const action = await setup.boundingBox();
       assert(action && action.y >= 0 && action.y + action.height <= height,
         `Get started must be visible on the first screen at ${width}px`);
-      for (const selector of ['.homepage-hero img', '.homepage-editor img']) {
-        const illustration = page.locator(selector);
-        await illustration.scrollIntoViewIfNeeded();
-        await illustration.evaluate(img => img.decode());
-      }
+      const illustration = page.locator('.homepage-hero img');
+      await illustration.scrollIntoViewIfNeeded();
+      await illustration.evaluate(img => img.decode());
+
+      const demoSelector = 'iframe.homepage-demo';
+      const demo = page.locator(demoSelector);
+      await demo.scrollIntoViewIfNeeded();
+      const frame = page.frameLocator(demoSelector);
+      const slack = frame.getByRole('button', { name: 'Slack', exact: true });
+      await slack.waitFor();
+      const frameScheme = await demo.evaluate(iframe => getComputedStyle(iframe).colorScheme);
+      const demoScheme = await frame.locator('html').evaluate(html => getComputedStyle(html).colorScheme);
+      assert.equal(frameScheme, demoScheme, 'Matching color schemes keep the iframe canvas transparent');
+      assert.equal(await frame.locator('body').evaluate(body => getComputedStyle(body).backgroundColor),
+        'rgba(0, 0, 0, 0)');
+      await slack.click();
+      await frame.getByRole('button', { name: 'New Message', exact: true }).waitFor();
+      await frame.locator('button.sp-back-btn').click();
+      await slack.waitFor();
     }
     await setup.press('Enter');
     await page.waitForURL(`${home}getting-started/install`);

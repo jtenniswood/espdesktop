@@ -9,6 +9,11 @@ html[data-espdesktop-display-demo] body {
   font-family: system-ui, sans-serif;
 }
 
+/* A mismatched iframe color scheme makes its transparent canvas opaque. */
+html[data-espdesktop-embedded] {
+  color-scheme: only light;
+}
+
 html[data-espdesktop-embedded] body {
   background: transparent;
 }

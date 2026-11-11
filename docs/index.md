@@ -306,6 +306,7 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap Back to 
   aspect-ratio: 1;
   justify-self: center;
   border: 0;
+  color-scheme: only light;
 }
 
 @media (min-width: 620px) {
