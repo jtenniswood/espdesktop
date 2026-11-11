@@ -199,7 +199,7 @@ export default defineConfig({
           { text: 'Overview', link: '/' },
           { text: 'Supported Display', link: '/screens/4848s040' },
           { text: 'Where to Buy', link: '/#where-to-buy' },
-          { text: 'Install Screen', link: '/getting-started/install' },
+          { text: 'Getting Setup', link: '/getting-started/install' },
         ],
       },
       {
