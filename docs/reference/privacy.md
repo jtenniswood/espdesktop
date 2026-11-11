@@ -22,29 +22,6 @@ designed to communicate with a paired Mac on your local network and with
 network services you choose to configure. Your device configuration is stored on your
 device or in your own backups.
 
-## The documentation website
-
-The documentation site is hosted by GitHub Pages. When you visit it, GitHub
-may process technical information such as your IP address, browser and device
-information, the pages requested, and timestamps in order to deliver and
-secure the site. GitHub controls that processing under its own policies; see
-the [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement).
-
-The site does not intentionally use cookies, advertising trackers, or a
-first-party analytics service. Its search is generated and run in your
-browser.
-
-The support button image is served by this documentation site. Following the
-button takes you to Buy Me a Coffee, which has its own privacy policy.
-
-The install page loads the bundled USB installer from GitHub Pages when the
-browser supports Web Serial and checks a public firmware manifest. These
-requests may disclose normal request metadata, such as your IP address,
-browser and device information, and request time.
-
-The site also contains links to GitHub, ESPHome, and other
-third-party websites. Those sites have their own terms and privacy practices.
-
 ## The EspDesktop firmware and device
 
 The firmware exchanges Mac controls, system statistics, app information, and
