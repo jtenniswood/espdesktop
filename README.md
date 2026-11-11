@@ -8,7 +8,7 @@ EspDesktop pairs an affordable ESP32 touchscreen with a native macOS menu-bar ap
 
 Set up the display from a normal web browser.
 
-**Documentation and setup guides:** [jtenniswood.github.io/espdesktop](https://jtenniswood.github.io/espdesktop/)
+**Documentation and setup guides:** [espdesktop.com](https://espdesktop.com/)
 
 ## What You Can Control
 
@@ -26,12 +26,12 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 
 1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
 2. **Connect the display to 2.4 GHz WiFi.**
-3. **Install the EspDesktop Mac app** using the current steps on the [documentation site](https://jtenniswood.github.io/espdesktop/getting-started/mac-app).
+3. **Install the EspDesktop Mac app** using the current steps on the [documentation site](https://espdesktop.com/getting-started/mac-app).
 4. **Pair the Mac and display.** Open the display's web settings, choose **System → Mac Companion**, and enter the temporary code in the Mac app.
 5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed for keyboard shortcuts and Mac Lock.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
-Start with the [firmware install guide](https://jtenniswood.github.io/espdesktop/getting-started/install), then follow the [Mac app and pairing guide](https://jtenniswood.github.io/espdesktop/getting-started/mac-app). Install matching firmware and app builds.
+Start with the [firmware install guide](https://espdesktop.com/getting-started/install), then follow the [Mac app and pairing guide](https://espdesktop.com/getting-started/mac-app). Install matching firmware and app builds.
 
 ## Designed to Stay Narrow
 
@@ -57,11 +57,11 @@ The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com
 
 ## Project Links
 
-- [Install EspDesktop firmware](https://jtenniswood.github.io/espdesktop/getting-started/install)
-- [Install and pair the Mac app](https://jtenniswood.github.io/espdesktop/getting-started/mac-app)
-- [Supported display](https://jtenniswood.github.io/espdesktop/screens/4848s040)
-- [Mac controls](https://jtenniswood.github.io/espdesktop/#what-you-can-control)
-- [Companion compatibility](https://jtenniswood.github.io/espdesktop/reference/companion-compatibility)
+- [Install EspDesktop firmware](https://espdesktop.com/getting-started/install)
+- [Install and pair the Mac app](https://espdesktop.com/getting-started/mac-app)
+- [Supported display](https://espdesktop.com/screens/4848s040)
+- [Mac controls](https://espdesktop.com/#what-you-can-control)
+- [Companion compatibility](https://espdesktop.com/reference/companion-compatibility)
 - [Report a bug or request a feature](https://github.com/jtenniswood/espdesktop/issues)
 
 ## Development

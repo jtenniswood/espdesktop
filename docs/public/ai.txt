@@ -1,7 +1,7 @@
 # EspDesktop documentation
 
-The [plain-text documentation index](https://jtenniswood.github.io/espdesktop/llms.txt)
+The [plain-text documentation index](https://espdesktop.com/llms.txt)
 links to Markdown editions of the public guides.
 
-The [EspDesktop website](https://jtenniswood.github.io/espdesktop/) has the
+The [EspDesktop website](https://espdesktop.com/) has the
 original guides, screenshots and browser installer.
