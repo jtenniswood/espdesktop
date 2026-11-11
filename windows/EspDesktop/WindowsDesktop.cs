@@ -215,7 +215,8 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
                 !edit.Current.HasKeyboardFocus && InputSession.GetForegroundWindow() == window)
                 return (window, ((ValuePattern)value).Current.Value);
         }
-        catch (Exception e) when (e is InvalidOperationException or COMException or ArgumentException) { }
+        // A browser can close or replace its address bar during a UI Automation read.
+        catch (Exception e) when (e is ElementNotAvailableException or InvalidOperationException or COMException or ArgumentException) { }
         return (window, null);
     });
 
