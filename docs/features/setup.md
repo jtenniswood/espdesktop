@@ -4,7 +4,7 @@ description: Open the display’s web editor and add cards for Mac apps, keyboar
 next: false
 ---
 
-# 3. Configure your cards
+# Configure your cards {#_3-configure-your-cards}
 
 ## Open the display’s web editor
 

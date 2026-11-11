@@ -21,7 +21,7 @@ When you first open EspDesktop on your Mac, follow the on-screen instructions to
 
 [Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/features/settings#mac-app-settings)
 
-**[Next · 3. Configure your cards](/features/setup)**
+**[Next · Configure your cards](/features/setup)**
 
 <style scoped>
 .mac-app-download {

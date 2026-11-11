@@ -229,9 +229,9 @@ export default defineConfig({
       {
         text: 'Getting Started',
         items: [
-          { text: '1. Install the display', link: '/getting-started/install' },
+          { text: 'Install the display', link: '/getting-started/install' },
           { text: 'download and pair companion app', link: '/getting-started/mac-app' },
-          { text: '3. Configure your cards', link: '/features/setup' },
+          { text: 'Configure your cards', link: '/features/setup' },
         ],
       },
       {

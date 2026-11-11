@@ -5,7 +5,7 @@ prev: false
 next: false
 ---
 
-# 1. Install the display {#set-up-espdesktop}
+# Install the display {#set-up-espdesktop}
 
 ## Flash the firmware {#flash-the-firmware}
 
