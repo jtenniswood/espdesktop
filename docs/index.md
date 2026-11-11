@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/screens/4848s040) for less than **$26/£20**. Pair it over your local network with the [Mac app](/getting-started/mac-app), **free for non-commercial use**.
+Open apps, visit websites and run shortcuts from this 4-inch touchscreen for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
@@ -226,7 +226,7 @@ Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap th
 }
 
 .homepage-panel {
-  width: min(100%, 440px);
+  width: min(100%, 560px);
   justify-self: center;
 }
 
@@ -350,15 +350,11 @@ Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap th
 @media (min-width: 768px) {
   .homepage-hero,
   .homepage-editor {
-    gap: clamp(32px, 6vw, 80px);
-  }
-
-  .homepage-hero {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .homepage-editor {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(32px, 6vw, 80px);
   }
 
   .homepage-demo {
