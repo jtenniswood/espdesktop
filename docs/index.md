@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps, visit websites and run shortcuts from a [4-inch Guition 4848S040 touchscreen](/screens/4848s040) for **under £20 (about US$27)**. Pair it over your local network with the [EspDesktop Mac app](/getting-started/mac-app), **free for non-commercial use**. [Source code](https://github.com/jtenniswood/espdesktop/tree/main/macos/EspDesktop) · [License](https://github.com/jtenniswood/espdesktop/blob/main/LICENSE)
+Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/screens/4848s040) for less than **$26/£20**. Pair it over your local network with the [Mac app](/getting-started/mac-app), **free for non-commercial use**.
 
 <div class="homepage-action">
 
