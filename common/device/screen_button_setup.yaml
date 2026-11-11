@@ -20,6 +20,10 @@ lvgl:
     - id: button_setup_page
       bg_color: $theme_background_color
       scrollable: false
+      on_load:
+        # The load trigger fires before LVGL makes the page active.
+        - delay: 1ms
+        - script.execute: button_setup_text_refresh
       widgets:
         - obj:
             width: $screen_width
@@ -96,6 +100,9 @@ script:
     mode: restart
     then:
       - lambda: |-
+          // Language and pairing callbacks can run during startup. Refresh the
+          // setup widgets only once LVGL has loaded the setup page.
+          if (!id(button_setup_title) || lv_scr_act() != id(button_setup_page)->obj) return;
           const auto pairing = companion_pairing_provider()
               ? companion_pairing_provider()() : CompanionPairingSnapshot{};
           const bool needs_pairing = pairing.available && !pairing.paired;

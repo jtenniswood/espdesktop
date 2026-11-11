@@ -154,8 +154,12 @@ async function checkBrowser() {
       const demoSelector = 'iframe.homepage-demo';
       const demo = page.locator(demoSelector);
       const demoSection = page.locator('.homepage-editor');
-      const getStarted = demoSection.getByRole('link', { name: 'Get Started', exact: true });
+      const actions = demoSection.locator('.homepage-editor-actions');
+      assert.deepEqual(await actions.getByRole('link').allTextContents(), ['Getting Started', 'Preview Editor']);
+      const getStarted = actions.getByRole('link', { name: 'Getting Started', exact: true });
       assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040#where-to-buy');
+      const buttonBackground = link => link.evaluate(element => getComputedStyle(element).backgroundColor);
+      assert.equal(await buttonBackground(getStarted), await buttonBackground(setup));
       if (width >= 768) {
         const copy = await demoSection.locator(':scope > div').boundingBox();
         const mock = await demo.boundingBox();
@@ -184,7 +188,7 @@ async function checkBrowser() {
       assert(await calendar.evaluate(tile => tile.classList.contains('demo-app-on')),
         'Tapping another app transfers the on state');
     }
-    await page.getByRole('link', { name: 'Open editor demo', exact: true }).click();
+    await page.getByRole('link', { name: 'Preview Editor', exact: true }).click();
     const editorUrl = `${home}editor-demo/index.html`;
     await page.waitForURL(editorUrl);
     await page.getByRole('tab', { name: 'Layout', exact: true }).waitFor();

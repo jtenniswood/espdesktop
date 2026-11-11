@@ -226,7 +226,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
-      { text: 'Get Started', link: '/getting-started/install' },
+      { text: 'Install', link: '/getting-started/install' },
       { text: 'Download', link: '/getting-started/mac-app' },
     ],
 
