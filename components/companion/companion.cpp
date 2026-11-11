@@ -38,6 +38,8 @@ static bool app_icon_catalogue_ready = false;
 static constexpr uint32_t PAIRING_WINDOW_MS = COMPANION_PAIRING_WINDOW_SECONDS * 1000;
 static constexpr uint32_t RETRY_DELAY_MS = 30 * 1000;
 static constexpr size_t MAX_WEBSOCKET_FRAME_BYTES = COMPANION_MAXIMUM_TEXT_FRAME_BYTES;
+static constexpr size_t MAX_LEGACY_AUTH_FRAME_BYTES = 512;
+static constexpr char LEGACY_PROTOCOL_ROUTE[] = "/companion/v*";
 static constexpr size_t MAX_CATALOGUE_ACTIONS = 256;
 static constexpr size_t MAX_APP_ICON_CHUNK_BYTES = COMPANION_APP_ICON_CHUNK_BYTES;
 static constexpr uint32_t AUTHENTICATION_TIMEOUT_MS = 15 * 1000;
@@ -277,6 +279,12 @@ bool CompanionService::start_server_() {
   // listener uses a different port.
   config.httpd.ctrl_port += 1;
   config.httpd.close_fn = &CompanionService::session_close_;
+  config.httpd.uri_match_fn = [](const char *route, const char *uri, size_t len) {
+    const std::string_view path(uri, len);
+    return std::strcmp(route, LEGACY_PROTOCOL_ROUTE) == 0
+        ? legacy_protocol_for_path(path, COMPANION_PROTOCOL_VERSION) != 0
+        : path == route;
+  };
   config.port_secure = this->port_;
   config.httpd.global_user_ctx = this;
   config.servercert = this->identity_.certificate;
@@ -286,8 +294,13 @@ bool CompanionService::start_server_() {
   if (httpd_ssl_start(&this->server_, &config) != ESP_OK) return false;
   const httpd_uri_t websocket = {
       .uri = COMPANION_PROTOCOL_PATH, .method = HTTP_GET, .handler = &CompanionService::websocket_handler_, .user_ctx = this,
-      .is_websocket = true, .handle_ws_control_frames = false};
-  return httpd_register_uri_handler(this->server_, &websocket) == ESP_OK;
+      .is_websocket = true, .handle_ws_control_frames = false, .ws_post_handshake_cb = &CompanionService::websocket_opened_};
+  if (httpd_register_uri_handler(this->server_, &websocket) != ESP_OK) return false;
+  const httpd_uri_t legacy_websocket = {
+      .uri = LEGACY_PROTOCOL_ROUTE, .method = HTTP_GET, .handler = &CompanionService::legacy_websocket_handler_,
+      .user_ctx = this, .is_websocket = true, .handle_ws_control_frames = false,
+      .ws_post_handshake_cb = &CompanionService::websocket_opened_};
+  return httpd_register_uri_handler(this->server_, &legacy_websocket) == ESP_OK;
 }
 
 void CompanionService::session_close_(httpd_handle_t server, int socket_fd) {
@@ -320,19 +333,34 @@ esp_err_t CompanionService::websocket_handler_(httpd_req_t *request) {
   return service ? service->handle_websocket_(request) : ESP_FAIL;
 }
 
-esp_err_t CompanionService::handle_websocket_(httpd_req_t *request) {
+esp_err_t CompanionService::legacy_websocket_handler_(httpd_req_t *request) {
+  auto *service = static_cast<CompanionService *>(request->user_ctx);
+  return service ? service->handle_websocket_(request, true) : ESP_FAIL;
+}
+
+esp_err_t CompanionService::websocket_opened_(httpd_req_t *request) {
+  auto *service = static_cast<CompanionService *>(request->user_ctx);
+  if (!service) return ESP_FAIL;
+  const std::string_view uri(request->uri);
+  const int legacy_protocol = legacy_protocol_for_path(uri.substr(0, uri.find('?')), COMPANION_PROTOCOL_VERSION);
   const int socket_fd = httpd_req_to_sockfd(request);
+  // ESP-IDF calls the route handler for frames and the post-handshake hook
+  // for upgrades, where the original URI is still available.
+  service->track_unauthenticated_socket_(socket_fd, legacy_protocol);
+  return service->send_(socket_fd, "{\"type\":\"hello\",\"protocol\":" +
+      std::to_string(legacy_protocol != 0 ? legacy_protocol : COMPANION_PROTOCOL_VERSION) + "}") ? ESP_OK : ESP_FAIL;
+}
+
+esp_err_t CompanionService::handle_websocket_(httpd_req_t *request, bool legacy) {
   if (request->method == HTTP_GET) {
-    this->track_unauthenticated_socket_(socket_fd);
-    this->send_(socket_fd, "{\"type\":\"hello\",\"protocol\":" +
-        std::to_string(COMPANION_PROTOCOL_VERSION) + "}");
-    return ESP_OK;
+    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST, "Expected a WebSocket upgrade");
+    return ESP_FAIL;
   }
+  const int socket_fd = httpd_req_to_sockfd(request);
   httpd_ws_frame_t frame{};
   if (httpd_ws_recv_frame(request, &frame, 0) != ESP_OK) return ESP_FAIL;
-  const size_t max_frame_bytes = frame.type == HTTPD_WS_TYPE_BINARY
-      ? MAX_APP_ICON_CHUNK_BYTES + 12
-      : MAX_WEBSOCKET_FRAME_BYTES;
+  const size_t max_frame_bytes = legacy ? MAX_LEGACY_AUTH_FRAME_BYTES
+      : (frame.type == HTTPD_WS_TYPE_BINARY ? MAX_APP_ICON_CHUNK_BYTES + 12 : MAX_WEBSOCKET_FRAME_BYTES);
   if (frame.len > max_frame_bytes) {
     ESP_LOGW(TAG, "Rejected oversized Companion frame (%u bytes)", static_cast<unsigned>(frame.len));
     return ESP_FAIL;
@@ -342,6 +370,12 @@ esp_err_t CompanionService::handle_websocket_(httpd_req_t *request) {
   if (httpd_ws_recv_frame(request, &frame, frame.len) != ESP_OK) return ESP_FAIL;
   if (frame.type == HTTPD_WS_TYPE_CLOSE) {
     this->set_connected_(false, socket_fd);
+    return ESP_OK;
+  }
+  if (legacy) {
+    if (frame.type == HTTPD_WS_TYPE_TEXT)
+      this->handle_legacy_message_(socket_fd, reinterpret_cast<const char *>(payload.data()));
+    this->expire_unauthenticated_socket_(socket_fd);
     return ESP_OK;
   }
   if (frame.type == HTTPD_WS_TYPE_BINARY) {
@@ -359,9 +393,35 @@ esp_err_t CompanionService::handle_websocket_(httpd_req_t *request) {
   return ESP_OK;
 }
 
+void CompanionService::handle_legacy_message_(int socket_fd, const char *message) {
+  const auto session = std::find_if(this->unauthenticated_sessions_.begin(), this->unauthenticated_sessions_.end(),
+                                    [socket_fd](const auto &entry) { return entry.socket == socket_fd; });
+  if (session == this->unauthenticated_sessions_.end() || session->legacy_protocol == 0) return;
+  const int protocol = session->legacy_protocol;
+  json::parse_json(message, [this, socket_fd, protocol](JsonObject root) -> bool {
+    using companion_protocol::number_valid;
+    if (!number_valid(root["protocol"], protocol, protocol, true) ||
+        std::string_view(root["type"] | "") != "auth.request" ||
+        !number_valid(root["sequence"], 1, UINT32_MAX, true)) return false;
+    uint32_t last_sequence = 0;
+    const auto result = this->authenticate_(root["sequence"].as<uint32_t>(), root["nonce"] | "",
+        root["signature"] | "", last_sequence, /*record_sequence=*/false);
+    const std::string error = "{\"type\":\"error\",\"protocol\":" + std::to_string(protocol);
+    if (result == AuthenticationResult::STALE_SEQUENCE) {
+      this->send_(socket_fd, error + ",\"code\":\"authentication_sequence\",\"lastSequence\":" +
+          std::to_string(last_sequence) + "}");
+    } else if (result == AuthenticationResult::AUTHENTICATED) {
+      this->send_(socket_fd, error + ",\"code\":\"mac_update_required\"}");
+    } else {
+      return false;
+    }
+    return true;
+  });
+}
+
 CompanionService::AuthenticationResult CompanionService::authenticate_(
     uint32_t sequence, const std::string &nonce, const std::string &signature,
-    uint32_t &last_sequence) {
+    uint32_t &last_sequence, bool record_sequence) {
   // Sign a stable protocol-v3 authentication payload. The sequence is strictly
   // increasing, so a captured authenticated frame cannot be replayed.
   std::lock_guard<std::mutex> lock(this->pairing_mutex_);
@@ -375,6 +435,12 @@ CompanionService::AuthenticationResult CompanionService::authenticate_(
   if (!constant_time_equal(hex(digest, sizeof(digest)), signature))
     return AuthenticationResult::FAILED;
   if (sequence <= this->last_sequence_) return AuthenticationResult::STALE_SEQUENCE;
+  // A compatibility check proves possession of the pairing without starting
+  // a session or changing the counter that the updated app will use.
+  if (!record_sequence) {
+    if (!this->session_.connected()) companion_runtime_service().set_mac_update_required(true);
+    return AuthenticationResult::AUTHENTICATED;
+  }
   if (!this->sequence_preferences_.save(&sequence)) {
     ESP_LOGE(TAG, "Could not persist the Companion authentication sequence");
     return AuthenticationResult::FAILED;
@@ -504,6 +570,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->failed_attempts_ = 0;
       const std::string credential = hex(this->identity_.credential, sizeof(this->identity_.credential));
       pairing_lock.unlock();
+      companion_runtime_service().set_mac_update_required(false);
       this->send_(socket_fd, "{\"type\":\"pair.accepted\",\"protocol\":" +
           std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"credential\":\"" + credential + "\"}");
       return true;
@@ -908,33 +975,32 @@ bool CompanionService::send_(int socket_fd, const std::string &message) {
   return true;
 }
 
-void CompanionService::track_unauthenticated_socket_(int socket_fd) {
+void CompanionService::track_unauthenticated_socket_(int socket_fd, int legacy_protocol) {
   const uint32_t deadline = millis() + AUTHENTICATION_TIMEOUT_MS;
   for (auto &session : this->unauthenticated_sessions_) {
     if (session.socket == socket_fd) {
       session.expires_at = deadline;
+      session.legacy_protocol = legacy_protocol;
       this->update_authentication_deadline_();
       return;
     }
   }
   for (auto &session : this->unauthenticated_sessions_) {
     if (session.socket < 0) {
-      session.socket = socket_fd;
-      session.expires_at = deadline;
+      session = {socket_fd, deadline, legacy_protocol};
       this->update_authentication_deadline_();
       return;
     }
   }
   // LRU purging can replace a socket before its close callback is delivered.
-  this->unauthenticated_sessions_[0] = {socket_fd, deadline};
+  this->unauthenticated_sessions_[0] = {socket_fd, deadline, legacy_protocol};
   this->update_authentication_deadline_();
 }
 
 void CompanionService::forget_unauthenticated_socket_(int socket_fd) {
   for (auto &session : this->unauthenticated_sessions_) {
     if (session.socket == socket_fd) {
-      session.socket = -1;
-      session.expires_at = 0;
+      session = {};
     }
   }
   this->update_authentication_deadline_();
@@ -1162,6 +1228,7 @@ void CompanionService::revoke_pairing() {
   std::lock_guard<std::mutex> lock(this->pairing_mutex_);
   const int previous_socket = this->session_.authenticated_socket();
   this->identity_.paired = 0;
+  companion_runtime_service().set_mac_update_required(false);
   this->last_sequence_ = 0;
   std::fill(this->identity_.credential, this->identity_.credential + sizeof(this->identity_.credential), 0);
   this->preferences_.save(&this->identity_);

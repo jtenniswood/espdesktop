@@ -69,20 +69,24 @@ class CompanionService final : public Component {
   enum class AuthenticationResult : uint8_t { FAILED, STALE_SEQUENCE, AUTHENTICATED };
 
   static esp_err_t websocket_handler_(httpd_req_t *request);
+  static esp_err_t legacy_websocket_handler_(httpd_req_t *request);
+  static esp_err_t websocket_opened_(httpd_req_t *request);
   static void session_close_(httpd_handle_t server, int socket_fd);
   static void authentication_expiry_work_(void *context);
-  esp_err_t handle_websocket_(httpd_req_t *request);
+  esp_err_t handle_websocket_(httpd_req_t *request, bool legacy = false);
+  void handle_legacy_message_(int socket_fd, const char *message);
   bool start_server_();
   bool ensure_identity_();
   AuthenticationResult authenticate_(uint32_t sequence, const std::string &nonce,
-                                     const std::string &signature, uint32_t &last_sequence);
+                                     const std::string &signature, uint32_t &last_sequence,
+                                     bool record_sequence = true);
   void defer_session_(std::function<void()> callback, const char *label = "update");
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
   void handle_binary_(int socket_fd, const uint8_t *data, size_t size);
   void reset_app_icon_transfer_();
   bool send_(int socket_fd, const std::string &message);
-  void track_unauthenticated_socket_(int socket_fd);
+  void track_unauthenticated_socket_(int socket_fd, int legacy_protocol);
   void forget_unauthenticated_socket_(int socket_fd);
   void expire_unauthenticated_socket_(int socket_fd);
   void update_authentication_deadline_();
@@ -124,6 +128,7 @@ class CompanionService final : public Component {
   struct UnauthenticatedSession {
     int socket{-1};
     uint32_t expires_at{0};
+    int legacy_protocol{0};
   };
   std::array<UnauthenticatedSession, 2> unauthenticated_sessions_{};
   RAMAllocator<uint8_t> app_icon_allocator_{RAMAllocator<uint8_t>::ALLOC_EXTERNAL};

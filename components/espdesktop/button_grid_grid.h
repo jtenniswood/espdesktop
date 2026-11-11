@@ -1235,6 +1235,7 @@ inline void grid_phase2(
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   display_activate_profile(display);
   network_status_card_icon_font() = display_icon_font(display);
+  network_status_notice_title_font() = display_media_title_font(display);
   int NS = bounded_grid_slots(cfg.num_slots);
   int COLS = cfg.cols > 0 ? cfg.cols : 1;
   grid_navigation_service().layout_slots = NS;
