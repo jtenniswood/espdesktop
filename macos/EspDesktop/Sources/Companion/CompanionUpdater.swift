@@ -1,5 +1,6 @@
 import AppKit
 import Combine
+import OSLog
 import Sparkle
 import SwiftUI
 import UserNotifications
@@ -11,6 +12,10 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
     private nonisolated static let updateNotificationID = "espdesktop-update-available"
     private static let notificationPreferenceKey = "notifyAboutAppUpdates"
     private static let lastNotifiedBuildKey = "lastNotifiedAppUpdateBuild"
+    private static let notificationsDisabledMessage = "Allow notifications for EspDesktop in System Settings → Notifications, then turn this on again."
+    private static let notificationLog = Logger(
+        subsystem: Bundle.main.bundleIdentifier ?? "io.espdesktop.app", category: "UpdateNotifications"
+    )
 
     @Published private(set) var isChecking = false
     @Published private(set) var message = ""
@@ -127,12 +132,34 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
                 sendsUpdateNotifications = granted
                 UserDefaults.standard.set(granted, forKey: Self.notificationPreferenceKey)
                 if !granted {
-                    notificationMessage = "Allow notifications for EspDesktop in System Settings → Notifications, then turn this on again."
+                    notificationMessage = Self.notificationsDisabledMessage
                 }
             } catch {
-                notificationMessage = "Couldn’t request notification permission. Try again."
+                let authorizationStatus = await center.notificationSettings().authorizationStatus
+                explainNotificationAuthorizationError(error, status: authorizationStatus)
             }
         }
+    }
+
+    private func explainNotificationAuthorizationError(_ error: any Error, status: UNAuthorizationStatus) {
+        let error = error as NSError
+        Self.notificationLog.error("Notification permission failed (\(error.domain, privacy: .public) \(error.code, privacy: .public))")
+
+        if status == .denied {
+            notificationMessage = Self.notificationsDisabledMessage
+        } else if error.domain == UNErrorDomain,
+                  error.code == UNError.Code.notificationsNotAllowed.rawValue,
+                  !Self.isRunningFromApplications {
+            notificationMessage = "Move EspDesktop to Applications, reopen it, then turn this on again."
+        } else {
+            notificationMessage = "macOS couldn’t enable update notifications. Check System Settings → Notifications."
+        }
+    }
+
+    private static var isRunningFromApplications: Bool {
+        let appPath = Bundle.main.bundleURL.resolvingSymlinksInPath().pathComponents
+        return FileManager.default.urls(for: .applicationDirectory, in: [.localDomainMask, .userDomainMask])
+            .contains { appPath.starts(with: $0.resolvingSymlinksInPath().pathComponents) }
     }
 
     func updater(_ updater: SPUUpdater, didFindValidUpdate item: SUAppcastItem) {
