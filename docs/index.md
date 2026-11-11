@@ -22,9 +22,7 @@ Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/scre
 </div>
 
 <figure class="homepage-panel">
-
-![Illustrated 4-inch touchscreen with tiles for apps, websites, folders and shortcuts](/images/espdesktop-mac-controls.svg)
-
+  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093">
 </figure>
 
 </section>
@@ -197,12 +195,10 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app 
 }
 
 .homepage-panel img {
+  display: block;
   width: 100%;
-  aspect-ratio: 1;
-}
-
-.homepage-panel p {
-  margin: 0;
+  height: auto;
+  border-radius: 14px;
 }
 
 .homepage-features h2,
