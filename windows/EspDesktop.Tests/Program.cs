@@ -38,6 +38,7 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
 
 #if WINDOWS
 if (await WindowsAppActions.TryRunTarget(args)) return;
+VerifyLocalStore();
 VerifyAudioLevelPolicy();
 VerifyWindowsPresets();
 var exerciseDesktopActions = args is ["--verify-native-windows", "--exercise-desktop-actions"];
@@ -335,6 +336,60 @@ async Task<JsonElement> FindMessage(WebSocket socket, string kind, Func<JsonElem
 }
 
 #if WINDOWS
+static void VerifyLocalStore()
+{
+    var scratch = Directory.CreateTempSubdirectory("EspDesktop profile test ");
+    var profile = Path.Combine(scratch.FullName, "profile");
+    try
+    {
+        var store = new LocalStore(profile);
+        Check(store.Settings.AllApps && !store.Settings.Shortcuts, "first run uses the default approvals");
+        store.ForgetPairing();
+        Check(store.LoadPairing() is null && !store.PairingUnavailable, "an empty profile has no pairing to recover");
+        var folder = new ApprovedFolder("folder.windows-profile", Path.Combine(profile, "Project, résumé"));
+        store.Settings.AllApps = false;
+        store.Settings.AllowedApps.Add("windows.test");
+        store.Settings.Folders.Add(folder);
+        store.Settings.Shortcuts = true;
+        store.Save();
+
+        var pairing = new Pairing("192.168.6.100:8443", Hash("fixture display"), RandomNumberGenerator.GetBytes(32), 4);
+        store.SavePairing(pairing);
+        var protectedData = File.ReadAllBytes(Path.Combine(profile, "pairing.dat"));
+        Check(protectedData.AsSpan().IndexOf(Encoding.UTF8.GetBytes(pairing.Address)) < 0 &&
+              protectedData.AsSpan().IndexOf(Encoding.UTF8.GetBytes(Convert.ToBase64String(pairing.Key))) < 0,
+            "the pairing file keeps the address and credential encrypted");
+
+        var reopened = new LocalStore(profile);
+        var loaded = reopened.LoadPairing();
+        Check(loaded is { Sequence: 4 } && loaded.Address == pairing.Address &&
+              loaded.Fingerprint == pairing.Fingerprint && loaded.Key.SequenceEqual(pairing.Key),
+            "the same Windows user can reopen the protected pairing");
+        Check(!reopened.Settings.AllApps && reopened.Settings.Shortcuts &&
+              reopened.Settings.AllowedApps.SetEquals(["windows.test"]) && reopened.Settings.Folders.SequenceEqual([folder]),
+            "app and folder approvals survive reopening settings");
+        reopened.SavePairing(pairing with { Sequence = 5 });
+        Check(new LocalStore(profile).LoadPairing() is { Sequence: 5 }, "a replaced pairing preserves the latest counter");
+
+        reopened.SavePairing(pairing with { Address = null! });
+        Check(reopened.LoadPairing() is null && reopened.PairingUnavailable, "an incomplete pairing can be recovered through Forget");
+        reopened.ForgetPairing();
+        var forgotten = new LocalStore(profile);
+        Check(forgotten.LoadPairing() is null && !forgotten.PairingUnavailable && forgotten.Settings.AllowedApps.Contains("windows.test"),
+            "forgetting the pairing preserves the user's local approvals");
+
+        foreach (var invalid in new[] { "null", """{"AllowedApps":null}""", """{"Folders":[null]}""" })
+        {
+            File.WriteAllText(Path.Combine(profile, "settings.json"), invalid);
+            var fallback = new LocalStore(profile).Settings;
+            Check(!fallback.AllApps && !fallback.Shortcuts && fallback.AllowedApps.Count == 0 && fallback.Folders.Count == 0,
+                "damaged settings do not silently enable remote app or shortcut access");
+        }
+        Console.WriteLine("Passed Windows protected pairing, saved app and folder approvals, and damaged profile recovery checks.");
+    }
+    finally { scratch.Delete(recursive: true); }
+}
+
 static void VerifyWindowsPresets()
 {
     foreach (var (executable, target, firstKey) in new (string?, string, string)[]

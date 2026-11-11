@@ -34,21 +34,30 @@ internal sealed class LocalSettings
 
 internal sealed class LocalStore
 {
-    private static readonly string Root = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "EspDesktop");
-    public LocalSettings Settings { get; } = LoadSettings();
+    private readonly string root;
+    public LocalSettings Settings { get; }
     public bool PairingUnavailable { get; private set; }
+
+    public LocalStore() : this(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "EspDesktop")) { }
+
+    internal LocalStore(string root)
+    {
+        this.root = root;
+        Settings = LoadSettings();
+    }
 
     public Pairing? LoadPairing()
     {
         try
         {
-            var path = Path.Combine(Root, "pairing.dat");
+            var path = Path.Combine(root, "pairing.dat");
             if (!File.Exists(path)) return null;
             var plain = UserProtection.Transform(File.ReadAllBytes(path), decrypt: true);
             try
             {
                 var pairing = JsonSerializer.Deserialize<Pairing>(plain);
-                if (pairing is null || pairing.Key?.Length != 32 || pairing.Fingerprint?.Length != 64 ||
+                if (pairing is null || string.IsNullOrWhiteSpace(pairing.Address) ||
+                    pairing.Key?.Length != 32 || pairing.Fingerprint?.Length != 64 ||
                     !pairing.Fingerprint.All(Uri.IsHexDigit)) throw new IOException("Invalid saved pairing.");
                 _ = DisplayEndpoint.Parse(pairing.Address);
                 return pairing;
@@ -72,15 +81,20 @@ internal sealed class LocalStore
 
     public void ForgetPairing()
     {
-        File.Delete(Path.Combine(Root, "pairing.dat"));
+        try { File.Delete(Path.Combine(root, "pairing.dat")); }
+        catch (DirectoryNotFoundException) { }
         PairingUnavailable = false;
     }
     public void Save() => Write("settings.json", JsonSerializer.SerializeToUtf8Bytes(Settings));
-    private static LocalSettings LoadSettings()
+    private LocalSettings LoadSettings()
     {
         try
         {
-            return JsonSerializer.Deserialize<LocalSettings>(File.ReadAllBytes(Path.Combine(Root, "settings.json"))) ?? new();
+            var settings = JsonSerializer.Deserialize<LocalSettings>(File.ReadAllBytes(Path.Combine(root, "settings.json")));
+            if (settings?.AllowedApps is null || settings.Folders is null ||
+                settings.Folders.Any(folder => folder is null || string.IsNullOrWhiteSpace(folder.Id) ||
+                    string.IsNullOrWhiteSpace(folder.Path))) throw new JsonException("Invalid saved settings.");
+            return settings;
         }
         catch (FileNotFoundException) { return new(); }
         catch (DirectoryNotFoundException) { return new(); }
@@ -89,10 +103,10 @@ internal sealed class LocalStore
         { return new() { AllApps = false, CheckForUpdates = false }; }
     }
 
-    private static void Write(string name, byte[] bytes)
+    private void Write(string name, byte[] bytes)
     {
-        Directory.CreateDirectory(Root);
-        var file = Path.Combine(Root, name);
+        Directory.CreateDirectory(root);
+        var file = Path.Combine(root, name);
         var temp = file + ".new";
         File.WriteAllBytes(temp, bytes);
         File.Move(temp, file, overwrite: true);
