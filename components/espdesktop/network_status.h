@@ -276,7 +276,7 @@ inline void network_status_sync_mac_update_notice() {
   lv_obj_align(notice, LV_ALIGN_BOTTOM_MID, 0, -12);
   lv_obj_add_flag(notice, LV_OBJ_FLAG_CLICKABLE);
   lv_obj_add_event_cb(notice, [](lv_event_t *event) {
-    lv_obj_del(lv_event_get_target(event));
+    lv_obj_del(static_cast<lv_obj_t *>(lv_event_get_target(event)));
   }, LV_EVENT_CLICKED, nullptr);
   lv_obj_add_event_cb(notice, [](lv_event_t *) { notice = nullptr; }, LV_EVENT_DELETE, nullptr);
 
