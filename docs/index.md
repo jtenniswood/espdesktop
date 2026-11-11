@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/screens/4848s040) for less than **$26/£20**. Pair it over your local network with the [Mac app](/getting-started/mac-app), **free for non-commercial use**.
+Open apps, visit websites and run shortcuts from this 4-inch touchscreen for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
