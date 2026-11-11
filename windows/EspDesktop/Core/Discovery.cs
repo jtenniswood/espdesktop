@@ -72,6 +72,14 @@ internal static class Discovery
 
     internal static DiscoveredDisplay[] ParsePackets(params byte[][] packets) => Join(packets.SelectMany(Read).ToArray());
 
+    internal static string? FriendlyName(string? value)
+    {
+        if (value is null) return null;
+        var clean = string.Concat(value.Where(c => !char.IsControl(c) &&
+            c is not (>= '\u202a' and <= '\u202e' or >= '\u2066' and <= '\u2069'))).Trim();
+        return clean.Length == 0 ? null : Protocol.Bound(clean, 96);
+    }
+
     private static DiscoveredDisplay[] Join(IReadOnlyList<Record> records)
     {
         var results = new List<DiscoveredDisplay>();
@@ -85,8 +93,7 @@ internal static class Discovery
                 !id.All(Uri.IsHexDigit)) continue;
             var ip = records.FirstOrDefault(r => r.Kind == 1 && r.Name == host)?.Target;
             var address = $"{ip ?? host}:{srv.Port}";
-            var name = txt.GetValueOrDefault("name")?.Trim();
-            results.Add(new(address, string.IsNullOrWhiteSpace(name) ? host : Protocol.Bound(name, 96), id.ToLowerInvariant()));
+            results.Add(new(address, FriendlyName(txt.GetValueOrDefault("name")) ?? host, id.ToLowerInvariant()));
         }
         return results.DistinctBy(d => d.Fingerprint).ToArray();
     }

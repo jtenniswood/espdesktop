@@ -60,7 +60,7 @@ internal sealed class LocalStore
                     pairing.Key?.Length != 32 || pairing.Fingerprint?.Length != 64 ||
                     !pairing.Fingerprint.All(Uri.IsHexDigit)) throw new IOException("Invalid saved pairing.");
                 _ = DisplayEndpoint.Parse(pairing.Address);
-                return pairing;
+                return pairing with { DisplayName = Discovery.FriendlyName(pairing.DisplayName) };
             }
             finally { CryptographicOperations.ZeroMemory(plain); }
         }

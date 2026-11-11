@@ -198,10 +198,12 @@ internal sealed class SettingsWindow : Window
             await new DisplaySession(desktop, p =>
             {
                 store.SavePairing(p);
+                var changed = pairing?.Address != p.Address || pairing?.DisplayName != p.DisplayName;
                 pairing = p;
+                if (changed && !quitting && navigation.SelectedIndex == 0) Render();
             }, Status, async (fingerprint, token) =>
             {
-                try { return (await Discovery.Find(token)).FirstOrDefault(d => d.Fingerprint == fingerprint)?.Address; }
+                try { return (await Discovery.Find(token)).FirstOrDefault(d => d.Fingerprint == fingerprint); }
                 catch (NetworkInformationException) { return null; }
             }).RunAsync(saved, cancellation.Token);
         }
@@ -375,7 +377,7 @@ internal sealed class SettingsWindow : Window
         connectionText.Text = status;
         if (pairing is { } saved)
         {
-            var card = Card("Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Authority);
+            var card = Card(saved.DisplayName ?? "Paired display", DisplayEndpoint.Parse(saved.Address).Socket.Authority);
             card.Children.Add(connectionText);
             Row(card, Button("Open display settings", OpenPanel),
                 Button(connectionCancellation == null ? "Connect" : "Disconnect", async () => await ToggleConnection()),

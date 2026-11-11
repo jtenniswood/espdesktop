@@ -84,6 +84,7 @@ using (var duplicate = JsonDocument.Parse("""{"type":"catalogue.request","type":
 Check(Discovery.ParsePackets([0, 0, 0x84, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0xc0, 12], [0]).Length == 0, "reject malformed DNS compression");
 var discovered = Discovery.ParsePackets(DiscoveryResponse());
 Check(discovered is [{ Address: "192.168.1.20:8443", Name: "Desk display" }], "discover by PTR, SRV, TXT and A");
+Check(Discovery.FriendlyName("\0 Desk\u202e display\n ") == "Desk display", "clean a display name before showing it");
 Console.WriteLine("Passed local address, action policy and discovery tests.");
 
 using var certificate = TestCertificate();
@@ -203,7 +204,8 @@ IDesktop backend = desktop;
 #if WINDOWS
 if (native is not null) backend = native.Desktop;
 #endif
-var session = new DisplaySession(backend, p => saved = p, s => status = s, (_, _) => Task.FromResult<string?>(null));
+var session = new DisplaySession(backend, p => saved = p, s => status = s, (_, _) =>
+    Task.FromResult<DiscoveredDisplay?>(new(new Uri(address).Authority, "Desk display", pairing.Fingerprint)));
 await session.RunAsync(pairing with { Fingerprint = new('0', 64) }, lifetime.Token);
 Check(status.Contains("identity changed", StringComparison.Ordinal) && authenticated == 0, "changed certificate stops before authentication");
 
@@ -221,6 +223,7 @@ finally
     await run;
 }
 Check(saved.Sequence == 8 && rejectedSequence == 1, "authenticated counter recovery");
+Check(saved.DisplayName == "Desk display", "save the name for the authenticated display at the connected address");
 #if WINDOWS
 if (native is not null)
 {
@@ -265,7 +268,8 @@ async Task VerifyAddressRecovery()
         Check(pin == saved.Fingerprint, "discovery looks for the saved display identity");
         // Recover the relocated display first. After a disconnect, a stale
         // advertisement points back to the unrelated server at the old address.
-        return Task.FromResult<string?>(++lookups == 1 ? address : oldAddress);
+        return Task.FromResult<DiscoveredDisplay?>(++lookups == 1
+            ? new(address, "Office display", pin) : new(oldAddress, "Unrelated display", pin));
     });
     var recovery = connection.RunAsync(saved with { Address = oldAddress }, deadline.Token);
     try
@@ -283,6 +287,8 @@ async Task VerifyAddressRecovery()
     Check(saves.Select(item => (item.Address, item.Sequence)).SequenceEqual([(oldAddress, 9u), (address, 9u), (address, 10u)]) &&
         saves.All(item => item.Fingerprint == saved.Fingerprint && item.Key.SequenceEqual(saved.Key)),
         "only the authenticated address replaces the saved address, with the pairing credential and sequence preserved");
+    Check(saves.Select(item => item.DisplayName).SequenceEqual(["Desk display", "Office display", "Office display"]),
+        "keep the relocated display's name and reject the name from a mismatched endpoint");
     Console.WriteLine("Passed display address recovery, mismatched discovery rejection, and reconnect over real TLS WebSockets.");
 }
 
@@ -363,13 +369,14 @@ static void VerifyLocalStore()
         var reopened = new LocalStore(profile);
         var loaded = reopened.LoadPairing();
         Check(loaded is { Sequence: 4 } && loaded.Address == pairing.Address &&
-              loaded.Fingerprint == pairing.Fingerprint && loaded.Key.SequenceEqual(pairing.Key),
+              loaded.Fingerprint == pairing.Fingerprint && loaded.Key.SequenceEqual(pairing.Key) && loaded.DisplayName is null,
             "the same Windows user can reopen the protected pairing");
         Check(!reopened.Settings.AllApps && reopened.Settings.Shortcuts &&
               reopened.Settings.AllowedApps.SetEquals(["windows.test"]) && reopened.Settings.Folders.SequenceEqual([folder]),
             "app and folder approvals survive reopening settings");
-        reopened.SavePairing(pairing with { Sequence = 5 });
-        Check(new LocalStore(profile).LoadPairing() is { Sequence: 5 }, "a replaced pairing preserves the latest counter");
+        reopened.SavePairing(pairing with { Sequence = 5, DisplayName = "Office display" });
+        Check(new LocalStore(profile).LoadPairing() is { Sequence: 5, DisplayName: "Office display" },
+            "a replaced pairing preserves the latest counter and display name");
 
         reopened.SavePairing(pairing with { Address = null! });
         Check(reopened.LoadPairing() is null && reopened.PairingUnavailable, "an incomplete pairing can be recovered through Forget");

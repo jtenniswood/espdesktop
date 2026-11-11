@@ -10,7 +10,7 @@ using static EspDesktop.Core.Protocol;
 
 namespace EspDesktop.Core;
 
-internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0);
+internal sealed record Pairing(string Address, string Fingerprint, byte[] Key, uint Sequence = 0, string? DisplayName = null);
 internal sealed record CatalogueItem(string Id, string Label);
 
 internal interface IDesktop
@@ -29,7 +29,7 @@ internal interface IDesktop
 }
 
 internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Action<string> status,
-    Func<string, CancellationToken, Task<string?>> recoverAddress)
+    Func<string, CancellationToken, Task<DiscoveredDisplay?>> findDisplay)
 {
     public static async Task<Pairing> PairAsync(string address, string code, CancellationToken token)
     {
@@ -53,6 +53,8 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
         var repairs = 0;
         var attemptedAddress = pairing.Address;
         var unverifiedAddresses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        DiscoveredDisplay? recoveryCandidate = null;
+        var searchedForName = false;
         while (!token.IsCancellationRequested)
         {
             try
@@ -69,6 +71,7 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                     {
                         // Reject a discovered address that cannot prove the pinned identity.
                         unverifiedAddresses.Add(attemptedAddress);
+                        recoveryCandidate = null;
                         attemptedAddress = pairing.Address;
                     }
                     else
@@ -99,12 +102,22 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
                 repairs = 0;
                 failures = 0;
                 unverifiedAddresses.Clear();
-                if (pairing.Address != attemptedAddress)
+                var endpoint = DisplayEndpoint.Parse(attemptedAddress).Socket;
+                var discovery = recoveryCandidate;
+                if (discovery is null && pairing.DisplayName is null && !searchedForName)
                 {
-                    pairing = pairing with { Address = attemptedAddress };
+                    searchedForName = true;
+                    discovery = await FindPairedDisplay();
+                }
+                var displayName = discovery is not null && DisplayEndpoint.Parse(discovery.Address).Socket == endpoint
+                    ? Discovery.FriendlyName(discovery.Name) ?? pairing.DisplayName : pairing.DisplayName;
+                if (pairing.Address != attemptedAddress || pairing.DisplayName != displayName)
+                {
+                    pairing = pairing with { Address = attemptedAddress, DisplayName = displayName };
                     SavePairing(pairing);
                 }
-                status($"Connected to {DisplayEndpoint.Parse(pairing.Address).Socket.Host}");
+                recoveryCandidate = null;
+                status($"Connected to {displayName ?? endpoint.Host}");
                 await new Connected(client, desktop, UInt(reply, "capabilityVersion"), token).Run();
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested) { return; }
@@ -125,9 +138,19 @@ internal sealed class DisplaySession(IDesktop desktop, Action<Pairing> save, Act
 
         async Task<string?> FindRecoveryAddress()
         {
-            var discovered = await recoverAddress(pairing.Fingerprint, token);
-            return discovered is not null && !discovered.Equals(pairing.Address, StringComparison.OrdinalIgnoreCase) &&
-                !unverifiedAddresses.Contains(discovered) ? discovered : null;
+            var discovered = await FindPairedDisplay();
+            recoveryCandidate = discovered is not null && !unverifiedAddresses.Contains(discovered.Address) ? discovered : null;
+            return recoveryCandidate is not null && !recoveryCandidate.Address.Equals(pairing.Address, StringComparison.OrdinalIgnoreCase)
+                ? recoveryCandidate.Address : null;
+        }
+
+        async Task<DiscoveredDisplay?> FindPairedDisplay()
+        {
+            var display = await findDisplay(pairing.Fingerprint, token);
+            if (display is null || !display.Fingerprint.Equals(pairing.Fingerprint, StringComparison.OrdinalIgnoreCase)) return null;
+            try { _ = DisplayEndpoint.Parse(display.Address); }
+            catch (ArgumentException) { return null; }
+            return display;
         }
 
         void SavePairing(Pairing next)
