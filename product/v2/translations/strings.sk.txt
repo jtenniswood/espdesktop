@@ -230,6 +230,7 @@ update_firmware=Aktualizovať firmvér
 no_saved_wifi_connection_reinstall_by_usb_to_reconfigure=Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie
 open_192_168_4_1=Otvorte 192.168.4.1
 open_your_browser_and_configure_your_display=Otvorte prehliadač a\nnakonfigurujte displej
+download_companion_app_to_pair=Stiahnite si aplikáciu EspDesktop do počítača a postupujte podľa pokynov na párovanie.
 preparing_the_screen_do_not_power_off=Príprava obrazovky\nNevypínajte napájanie
 restarting_display=Reštartovanie displeja
 see_the_install_guide_for_help=Pomoc nájdete v inštalačnej príručke
