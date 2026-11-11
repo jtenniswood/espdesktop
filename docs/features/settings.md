@@ -70,10 +70,47 @@ Open **Factory Reset** in the **System** tab and choose **Save backup** before r
 
 Choose **Mac Settings** from the EspDesktop menu bar icon. The app keeps running when you close the settings window. To stop it, choose **Quit** from the same menu.
 
-- In **Display**, check that the display is connected, set **Launch at login**, or click **Customize** to open the web editor.
-- In **Apps** and **Folders**, choose the [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [folders](/mac-controls/folders#approve-a-folder) the display can open.
-- See [Permissions & Security](/mac-controls/security) for access to keyboard shortcuts and Mac Lock.
+<ScreenshotGallery label="Mac app settings preview" :slides="settingsSlides" />
+
+See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. See [Permissions & Security](/mac-controls/security) for access to keyboard shortcuts and Mac Lock.
 
 ### Check for Mac app updates
 
 In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. Use the Mac app and display firmware from the same EspDesktop release.
+
+<script setup lang="ts">
+import ScreenshotGallery from '../.vitepress/theme/components/ScreenshotGallery.vue'
+
+const settingsSlides = [
+  {
+    image: '/images/mac-connector/mac_app1.png',
+    alt: 'Display tab showing a connected display, Customize, Remove and Open at Startup',
+    title: 'Display',
+    caption: 'Check that your display says Connected. Choose Customize to open its web editor, or choose whether EspDesktop opens at login.',
+  },
+  {
+    image: '/images/mac-connector/mac_app2.png',
+    alt: 'Apps tab with All available apps switched on',
+    title: 'Apps',
+    caption: 'Leave All available apps on to make every installed app available for shortcuts on your display.',
+  },
+  {
+    image: '/images/mac-connector/mac_app3.png',
+    alt: 'Apps tab listing individual apps with a switch beside each one',
+    title: 'Choose individual apps',
+    caption: 'Turn off All available apps, then switch on the apps you want to launch from your display.',
+  },
+  {
+    image: '/images/mac-connector/mac_app4.png',
+    alt: 'Folders tab showing approved folders and an Add Folder button',
+    title: 'Folders',
+    caption: 'Choose Add Folder to approve a Finder folder you want to open from your display.',
+  },
+  {
+    image: '/images/mac-connector/mac_app5.png',
+    alt: 'Updates tab showing the installed version, Check Now and automatic update switches',
+    title: 'Updates',
+    caption: 'See the installed version, check for a new release and choose how the app handles automatic updates.',
+  },
+]
+</script>
