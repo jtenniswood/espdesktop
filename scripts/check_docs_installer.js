@@ -218,7 +218,7 @@ async function checkBrowser() {
     const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
     await folderPicker.locator('option[value="folder.downloads"]').waitFor({ state: 'attached' });
     assert.deepEqual(await folderPicker.locator('option').allTextContents(),
-      ['Choose a folder…', 'Desktop', 'Documents', 'Downloads', 'Projects']);
+      ['Choose a folder…', 'Camera Uploads', 'Desktop', 'Documents', 'Downloads', 'Git', 'Projects']);
     await folderPicker.selectOption('folder.downloads');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
@@ -251,6 +251,31 @@ async function checkBrowser() {
     await page.goto(`${home}editor/index.html`);
     assert.deepEqual(await checkLauncher(page, true), touchscreenIcons);
     assert.equal(await page.getByRole('tab').count(), 0, 'The touchscreen demo stays read-only');
+    const shortcutPages = {
+      Finder: ['Camera Uploads', 'Desktop', 'Downloads', 'Git'],
+      Safari: ['Reload', 'Search Bar', 'Tab Overview', 'Previous Tab', 'Next Tab'],
+      Slack: ['New Message', 'Search', 'Browse DMs', 'Jump Unread', 'All Unread', 'Search chat', 'Shortcuts', 'Previous Unread'],
+      Notes: ['New Note', 'New Folder', 'Search Notes', 'Checklist', 'Cell Paragraph'],
+      ChatGPT: ['Command', 'Approve', 'Browser', 'Sidebar', 'Bottom Terminal', 'Side Terminal', 'Side Terminal'],
+      Claude: ['Quick Entry', 'Code Shortcuts', 'New Session', 'Next Session'],
+    };
+    for (const [app, expectedTiles] of Object.entries(shortcutPages)) {
+      const appTile = page.getByRole('button', { name: app, exact: true });
+      await appTile.click();
+      const back = page.getByRole('button', { name: 'Back — Home', exact: true });
+      const backIcon = back.locator('img.sp-companion-app-icon');
+      await backIcon.waitFor();
+      const icon = await backIcon.evaluate(image => image.src);
+      assert.equal(hash('sha256', icon), touchscreenIcons[launcherApps.indexOf(app)], app + ' Back tile artwork');
+      const shortcutTiles = page.locator('.sp-main button.sp-btn:not(.sp-back-btn)');
+      assert.deepEqual(await shortcutTiles.evaluateAll(tiles => tiles.map(tile => tile.getAttribute('aria-label'))),
+        expectedTiles, app + ' subpage tile order');
+      await shortcutTiles.first().click();
+      assert(await back.isVisible(), app + ' shortcuts should stay on the subpage');
+      await back.click();
+      await appTile.waitFor();
+      assert(await appTile.evaluate(tile => tile.classList.contains('demo-app-on')), app + ' stays active after Back');
+    }
 
     await page.goto(editorUrl);
     await editorGrid.getByText('My Downloads', { exact: true }).waitFor();
