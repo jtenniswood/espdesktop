@@ -39,8 +39,6 @@ network request information, such as the device's IP address and request time,
 as observed by the hosting provider. They are not intended to include your
 saved card data or pairing credentials.
 
-ESPHome OTA or other update methods may contact the services you select.
-
 Current 4848S040 firmware serves the bundled editor directly from the display.
 Older firmware may first request the editor from the hosted EspDesktop site. That
 request includes the display model and firmware version along with normal browser
