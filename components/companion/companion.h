@@ -70,6 +70,7 @@ class CompanionService final : public Component {
 
   static esp_err_t websocket_handler_(httpd_req_t *request);
   static esp_err_t legacy_websocket_handler_(httpd_req_t *request);
+  static esp_err_t websocket_opened_(httpd_req_t *request);
   static void session_close_(httpd_handle_t server, int socket_fd);
   static void authentication_expiry_work_(void *context);
   esp_err_t handle_websocket_(httpd_req_t *request, bool legacy = false);

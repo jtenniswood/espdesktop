@@ -294,11 +294,12 @@ bool CompanionService::start_server_() {
   if (httpd_ssl_start(&this->server_, &config) != ESP_OK) return false;
   const httpd_uri_t websocket = {
       .uri = COMPANION_PROTOCOL_PATH, .method = HTTP_GET, .handler = &CompanionService::websocket_handler_, .user_ctx = this,
-      .is_websocket = true, .handle_ws_control_frames = false};
+      .is_websocket = true, .handle_ws_control_frames = false, .ws_post_handshake_cb = &CompanionService::websocket_opened_};
   if (httpd_register_uri_handler(this->server_, &websocket) != ESP_OK) return false;
   const httpd_uri_t legacy_websocket = {
       .uri = LEGACY_PROTOCOL_ROUTE, .method = HTTP_GET, .handler = &CompanionService::legacy_websocket_handler_,
-      .user_ctx = this, .is_websocket = true, .handle_ws_control_frames = false};
+      .user_ctx = this, .is_websocket = true, .handle_ws_control_frames = false,
+      .ws_post_handshake_cb = &CompanionService::websocket_opened_};
   return httpd_register_uri_handler(this->server_, &legacy_websocket) == ESP_OK;
 }
 
@@ -337,18 +338,25 @@ esp_err_t CompanionService::legacy_websocket_handler_(httpd_req_t *request) {
   return service ? service->handle_websocket_(request, true) : ESP_FAIL;
 }
 
-esp_err_t CompanionService::handle_websocket_(httpd_req_t *request, bool legacy) {
+esp_err_t CompanionService::websocket_opened_(httpd_req_t *request) {
+  auto *service = static_cast<CompanionService *>(request->user_ctx);
+  if (!service) return ESP_FAIL;
+  const std::string_view uri(request->uri);
+  const int legacy_protocol = legacy_protocol_for_path(uri.substr(0, uri.find('?')), COMPANION_PROTOCOL_VERSION);
   const int socket_fd = httpd_req_to_sockfd(request);
+  // ESP-IDF calls the route handler for frames and the post-handshake hook
+  // for upgrades, where the original URI is still available.
+  service->track_unauthenticated_socket_(socket_fd, legacy_protocol);
+  return service->send_(socket_fd, "{\"type\":\"hello\",\"protocol\":" +
+      std::to_string(legacy_protocol != 0 ? legacy_protocol : COMPANION_PROTOCOL_VERSION) + "}") ? ESP_OK : ESP_FAIL;
+}
+
+esp_err_t CompanionService::handle_websocket_(httpd_req_t *request, bool legacy) {
   if (request->method == HTTP_GET) {
-    const std::string_view uri(request->uri);
-    const int legacy_protocol = legacy
-        ? legacy_protocol_for_path(uri.substr(0, uri.find('?')), COMPANION_PROTOCOL_VERSION) : 0;
-    if (legacy && legacy_protocol == 0) return ESP_FAIL;
-    this->track_unauthenticated_socket_(socket_fd, legacy_protocol);
-    this->send_(socket_fd, "{\"type\":\"hello\",\"protocol\":" +
-        std::to_string(legacy ? legacy_protocol : COMPANION_PROTOCOL_VERSION) + "}");
-    return ESP_OK;
+    httpd_resp_send_err(request, HTTPD_400_BAD_REQUEST, "Expected a WebSocket upgrade");
+    return ESP_FAIL;
   }
+  const int socket_fd = httpd_req_to_sockfd(request);
   httpd_ws_frame_t frame{};
   if (httpd_ws_recv_frame(request, &frame, 0) != ESP_OK) return ESP_FAIL;
   const size_t max_frame_bytes = legacy ? MAX_LEGACY_AUTH_FRAME_BYTES
