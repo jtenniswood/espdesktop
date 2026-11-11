@@ -37,7 +37,7 @@ internal sealed record NativeWindowsDesktop(WindowsDesktop Desktop, string Drive
                 folders = WindowsFolderActions.Create();
                 settings.Folders.Add(new("folder.windows-first", folders.First));
                 settings.Folders.Add(new("folder.windows-second", folders.Second));
-                settings.Folders.Add(new("folder.windows-third", folders.Third));
+                settings.Folders.Add(new ApprovedFolder("folder.windows-third", folders.FormerLocation).Relocate(folders.Third));
                 // Fill the panel's picker before the real Explorer entry. These
                 // catalogue-only folders are never opened or created on disk.
                 for (var i = 0; i < CataloguePaddingFolders; i++)
@@ -87,6 +87,7 @@ internal sealed class WindowsFolderActions : IDisposable
     public string First => Path.Combine(root, "First project, notes");
     public string Second => Path.Combine(root, "Second project");
     public string Third => Path.Combine(root, "Third project, résumé");
+    public string FormerLocation => Path.Combine(root, "Original project, résumé");
     public string Denied => Path.Combine(root, "Private project");
 
     private WindowsFolderActions(string root) => this.root = root;

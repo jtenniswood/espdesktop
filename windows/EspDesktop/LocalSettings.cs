@@ -2,17 +2,20 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using EspDesktop.Core;
 using Microsoft.Win32;
 
 namespace EspDesktop;
 
-internal sealed record ApprovedFolder(string Id, string Path)
+internal sealed record ApprovedFolder(string Id, string Path, string? DisplayName = null)
 {
+    [JsonIgnore]
     public string Label
     {
         get
         {
+            if (!string.IsNullOrWhiteSpace(DisplayName)) return DisplayName;
             var name = System.IO.Path.GetFileName(Path.TrimEnd('\\', '/'));
             if (name.Length > 0) return name;
             if (Path.Length >= 2 && char.IsAsciiLetter(Path[0]) && Path[1] == ':')
@@ -20,6 +23,8 @@ internal sealed record ApprovedFolder(string Id, string Path)
             return "Folder";
         }
     }
+
+    public ApprovedFolder Relocate(string path) => this with { Path = path, DisplayName = Label };
 }
 
 internal sealed class LocalSettings

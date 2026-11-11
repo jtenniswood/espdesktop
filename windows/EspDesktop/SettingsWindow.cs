@@ -490,7 +490,7 @@ internal sealed class SettingsWindow : Window
             if (store.Settings.Folders.Count >= 64) { Report("Remove an approved folder before adding another."); return; }
             store.Settings.Folders.Add(new("folder." + Guid.NewGuid().ToString().ToLowerInvariant(), path));
         }
-        else store.Settings.Folders[store.Settings.Folders.IndexOf(folder)] = folder with { Path = path };
+        else store.Settings.Folders[store.Settings.Folders.IndexOf(folder)] = folder.Relocate(path);
         desktop.Changed(); Save(); Render();
     }
 

@@ -412,6 +412,12 @@ static void VerifyLocalStore()
         Check(!reopened.Settings.AllApps && reopened.Settings.Shortcuts &&
               reopened.Settings.AllowedApps.SetEquals(["windows.test"]) && reopened.Settings.Folders.SequenceEqual([folder]),
             "app and folder approvals survive reopening settings");
+        var relocated = folder.Relocate(Path.Combine(profile, "Moved project"));
+        reopened.Settings.Folders[0] = relocated;
+        reopened.Save();
+        var savedFolder = new LocalStore(profile).Settings.Folders.Single();
+        Check(savedFolder.Id == folder.Id && savedFolder.Label == folder.Label && savedFolder.Path == relocated.Path,
+            "a relocated folder keeps its saved card identity and name");
         reopened.SavePairing(pairing with { Sequence = 5, DisplayName = "Office display" });
         Check(new LocalStore(profile).LoadPairing() is { Sequence: 5, DisplayName: "Office display" },
             "a replaced pairing preserves the latest counter and display name");
@@ -504,6 +510,10 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
         "publish the approved folder name");
     Check(entries.TryGetValue("folder.windows-drive", out var drive) && Text(drive, "label") == fixture.DriveLabel,
         "publish a friendly drive label");
+    if (fixture.FolderActions is { } relocatedFolders)
+        Check(entries.TryGetValue("folder.windows-third", out var relocated) &&
+              Text(relocated, "label") == Path.GetFileName(relocatedFolders.FormerLocation).Replace(',', ' ').Trim(),
+            "publish the original name for the relocated folder under the same card ID");
     Check(entries.Values.All(item => item.EnumerateObject().Count() == 2), "keep private folder paths off the wire");
 
     var definitions = await FindMessage(socket, "catalogue.definitions.page", m => m.GetProperty("complete").GetBoolean());
@@ -640,6 +650,7 @@ async Task VerifyAudioActions(WebSocket socket, IReadOnlyDictionary<string, int?
 async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
 {
     await OpenFolder("folder.windows-denied", "new_window", "not_allowed");
+    await OpenFolder("folder.windows-test", "new_window", "not_found");
 
     await OpenFolder("folder.windows-first", "new_window", "opened");
     var firstWindow = await folders.WaitForWindow(folders.First, lifetime.Token);
@@ -652,7 +663,8 @@ async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
     var thirdWindow = await folders.WaitForWindow(folders.Third, lifetime.Token);
     Check(thirdWindow != secondWindow, "New window opens a separate File Explorer window");
     Check(!await folders.IsOpen(folders.Denied), "an unapproved folder stays closed");
-    Console.WriteLine("Passed authenticated Windows folder actions with real File Explorer windows.");
+    Check(!await folders.IsOpen(folders.FormerLocation), "a relocated card opens only the replacement folder");
+    Console.WriteLine("Passed authenticated Windows folder actions, including missing folders and a relocated card, in real File Explorer windows.");
 
     async Task OpenFolder(string id, string behavior, string status)
     {
