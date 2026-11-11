@@ -35,6 +35,13 @@ Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/scre
 
 <article>
 
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+  <rect x="14" y="14" width="7" height="7" rx="1.5" />
+</svg>
+
 ### Launch Mac apps
 
 Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a tile of its own.
@@ -44,6 +51,12 @@ Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a til
 </article>
 
 <article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" />
+  <ellipse cx="12" cy="12" rx="4" ry="9" />
+  <path d="M3 12h18" />
+</svg>
 
 ### Open websites
 
@@ -55,6 +68,10 @@ Give your calendar or project dashboard a tile that opens it in your default bro
 
 <article>
 
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+</svg>
+
 ### Jump to a Finder folder
 
 Give Downloads, client files or your current project a tile of its own.
@@ -64,6 +81,11 @@ Give Downloads, client files or your current project a tile of its own.
 </article>
 
 <article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="2" y="5" width="20" height="14" rx="2" />
+  <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 15h8" />
+</svg>
 
 ### Keep shortcuts in view
 
@@ -75,6 +97,11 @@ Turn key combinations into labelled buttons. Shortcut pages can follow the app y
 
 <article>
 
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="5" y="10" width="14" height="11" rx="2" />
+  <path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2" />
+</svg>
+
 ### Lock your Mac
 
 Tap the Lock Machine tile when you step away from your desk.
@@ -84,6 +111,13 @@ Tap the Lock Machine tile when you step away from your desk.
 </article>
 
 <article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M5 3v9m0 4v5M12 3v4m0 4v10M19 3v12m0 4v2" />
+  <rect x="2" y="12" width="6" height="4" rx="1" />
+  <rect x="9" y="7" width="6" height="4" rx="1" />
+  <rect x="16" y="15" width="6" height="4" rx="1" />
+</svg>
 
 ### Make the layout your own
 
@@ -226,6 +260,22 @@ Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app 
   gap: 10px;
   padding: clamp(20px, 3vw, 36px);
   background: var(--vp-c-bg-soft);
+}
+
+.homepage-feature-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 9px;
+  border-radius: 10px;
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .homepage-grid h3,
