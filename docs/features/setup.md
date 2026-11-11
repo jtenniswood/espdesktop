@@ -8,11 +8,13 @@ next:
 
 # Configure your cards {#_3-configure-your-cards}
 
+Cards are the buttons on your display. You can use them to open an app, folder or website, or send a keyboard shortcut to your Mac.
+
 ## Open the display’s web editor
 
 On your Mac, click the EspDesktop icon in the menu bar and choose **Customize Display**. You can also open the local address shown on the touchscreen in your browser.
 
-If the setup wizard opens, choose your favourite apps and follow the prompts, or choose **Skip setup** to add cards yourself. The [app setup wizard guide](/features/first-run) walks through its shortcut options.
+If the setup wizard opens, choose your favourite apps and follow the prompts, or choose **Skip setup** to add cards yourself. The [First setup guide](/features/first-run) walks through its shortcut options.
 
 ## Add a card {#add-a-mac-control}
 

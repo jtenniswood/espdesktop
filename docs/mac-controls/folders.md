@@ -3,25 +3,28 @@ title: Open Finder Folders from Your Touchscreen
 description: Add an approved Finder folder to EspDesktop and open it from a touchscreen tile. Group project folders together on a Finder subpage.
 ---
 
-# Open Finder Folders
+# Open Finder folders
 
 Folder cards open only the Finder folders you approve in the Mac app. Folder paths stay on the Mac; the display receives a friendly name and an anonymous identifier.
 
-## Approve a Folder
+## Approve a folder
 
 In the EspDesktop Mac app, open **Settings → Folders**, click **Add Folder…** and select a folder.
 
-![Folders tab in EspDesktop Settings showing approved folders and the Add Folder button](/images/mac-app-folders.png)
+<a href="/images/mac-app-folders.png"><img src="/images/mac-app-folders.png" alt="Folders tab in EspDesktop Settings showing approved folders and the Add Folder button" width="1224" height="1488" loading="lazy"></a>
 
-In the display’s web editor, select an empty tile and choose **Folder**. If the card picker shows connector tabs, look under **Companion**. Select the folder you approved and choose **Save**.
+## Add a folder card
 
-![Choose Card dialog in the display’s web editor showing the Folder and Applications options](/images/web-editor-choose-card.png)
+1. In the display’s web editor, select an empty tile and choose **Folder**. If the card picker shows connector tabs, look under **Companion**.
+2. Select the folder you approved and choose **Save**.
+
+<a href="/images/web-editor-choose-card.png"><img src="/images/web-editor-choose-card.png" alt="Choose Card dialog in the display’s web editor showing the Folder and Applications options" width="1694" height="2266" loading="lazy"></a>
 
 In the card’s **Advanced** section, set **Open folder in** to **A new window** or **The same window**.
 
 If a folder is moved or renamed, choose **Choose Again…** in the Mac app to restore its access. Removing a folder from the Mac app makes its card unavailable.
 
-## Finder Folder Subpage
+## Finder folder subpage
 
 To access your approved folders from one Finder card, select an empty tile in the display’s web editor, choose **Applications** and pick **Finder**. If you limit which apps the display can launch, first enable Finder under **Apps** in the Mac app.
 

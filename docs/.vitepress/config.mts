@@ -237,7 +237,7 @@ export default defineConfig({
       {
         text: 'Hardware',
         items: [
-          { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Where to buy', link: '/screens/4848s040#where-to-buy' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
@@ -249,26 +249,26 @@ export default defineConfig({
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
           { text: 'Websites', link: '/mac-controls/websites' },
-          { text: 'Finder Folders', link: '/mac-controls/folders' },
-          { text: 'Keyboard Shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Finder folders', link: '/mac-controls/folders' },
+          { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
           { text: 'Settings', link: '/features/settings' },
         ],
       },
       {
         text: 'Support',
         items: [
-          { text: 'Permissions & Security', link: '/mac-controls/security' },
+          { text: 'Permissions & security', link: '/mac-controls/security' },
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
           { text: 'FAQ', link: '/reference/faq' },
-          { text: 'Support the Project', link: '/reference/support' },
-          { text: 'Privacy Policy', link: '/reference/privacy' },
+          { text: 'Support the project', link: '/reference/support' },
+          { text: 'Privacy policy', link: '/reference/privacy' },
         ],
       },
       {
         text: 'Contribute',
         items: [
-          { text: 'App Shortcuts', link: '/mac-controls/improve-shortcuts' },
-          { text: 'Request an Icon', link: '/reference/request-icons' },
+          { text: 'App shortcuts', link: '/mac-controls/improve-shortcuts' },
+          { text: 'Request an icon', link: '/reference/request-icons' },
         ],
       },
     ],

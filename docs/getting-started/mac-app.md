@@ -5,9 +5,11 @@ description: Download EspDesktop for Mac, select your display, and enter its pai
 
 # download and pair companion app {#install-and-pair-the-espdesktop-mac-app}
 
+Use an **Apple silicon Mac with macOS 13 or later**.
+
 ## Install the Mac app {#install-a-release}
 
-Use an **Apple silicon Mac with macOS 13 or later**. Use the Mac app from the same release as your display firmware. For older firmware, [find the matching DMG under Assets on GitHub](https://github.com/jtenniswood/espdesktop/releases).
+Use the Mac app from the same release as your display firmware. For older firmware, [find the matching DMG under Assets on GitHub](https://github.com/jtenniswood/espdesktop/releases).
 
 <p class="mac-app-download">
   <a :href="$frontmatter.macDownloadUrl">{{ $frontmatter.macReleaseVersion ? 'Download for Mac' : 'View Mac downloads' }}</a>{{ ' ' }}

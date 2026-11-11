@@ -3,11 +3,11 @@ title: Run Mac Keyboard Shortcuts from a Touchscreen
 description: Turn custom Mac keyboard shortcuts into tappable EspDesktop tiles or choose presets for apps such as Safari, Slack and Figma.
 ---
 
-# Run Mac Keyboard Shortcuts
+# Run Mac keyboard shortcuts
 
 Tap a **Key Shortcut** card to send a key combination to the active Mac app.
 
-## Create a Shortcut Card
+## Create a shortcut card
 
 1. In the display’s web editor, select an empty tile and choose **Companion → Key Shortcut**.
 2. Select the **Custom** tab to enter keys such as **⌘ Command + F**, or the **Application** tab to pick a preset for an app.
@@ -17,11 +17,11 @@ The **Application** tab lists apps with shortcut presets. Bundled presets are av
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
 
-## Allow Accessibility Access
+## Allow accessibility access
 
 Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibility** so it can send keystrokes.
 
-## Group Shortcuts by App {#use-a-template-on-an-app-subpage}
+## Group shortcuts by app {#use-a-template-on-an-app-subpage}
 
 Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together.
 
