@@ -18,6 +18,7 @@
 #include "ha_state_limits.h"
 #include "camera_refresh_policy.h"
 #include "companion_capabilities_generated.h"
+#include "companion_shortcut_page.h"
 #include "app_shortcuts_generated.h"
 #include "button_grid_saved_config_access_generated.h"
 #include "button_grid_saved_config_security_generated.h"
@@ -1239,22 +1240,8 @@ inline bool companion_shortcut_template_id_valid(const std::string &value) {
   return std::atoi(value.c_str()) <= 999;
 }
 
-inline bool companion_shortcut_app_id_valid(const std::string &value) {
-  if (value.size() > 96 || value.empty()) return false;
-  const auto &id = value;
-  bool has_separator = false;
-  for (char ch : id) {
-    const bool allowed = (ch >= 'a' && ch <= 'z') || (ch >= 'A' && ch <= 'Z') ||
-      (ch >= '0' && ch <= '9') || ch == '-' || ch == '.';
-    if (!allowed) return false;
-    if (ch == '.' || ch == '-') has_separator = true;
-  }
-  return has_separator && id.find('.') != std::string::npos;
-}
-
 inline bool companion_app_shortcuts_enabled(const ParsedCfg &p) {
-  return p.type == "companion" &&
-         (p.entity == "com.apple.finder" || companion_shortcut_app_id_valid(p.entity)) &&
+  return p.type == "companion" && companion_shortcut_page_app(p.entity) &&
          p.sensor.empty() && cfg_option_token_present(p.options, "app_shortcuts");
 }
 

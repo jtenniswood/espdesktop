@@ -21,7 +21,7 @@ To edit the keys from a catalog preset, open its card settings and choose **Cust
 
 A shortcut card replays keys in the active Mac app. Choosing an app in **Shortcut Catalog** does not launch it. Bring that app to the front before using the card. If the app has an enabled subpage, touching its app card opens that page immediately while asking the Mac to focus the app. The page also follows app focus changes reported by the Mac by default. In **Screen → Appearance → App Subpages**, turn off **Open app subpages on focus** to open subpages only by pressing an app card whose app is already active. Pressing an inactive app card focuses the app; press it again to open its subpage. This preference applies to all app subpages and is saved on the display.
 
-An app subpage can open before its app finishes activating. Its app-specific keyboard shortcuts remain disabled until activation is confirmed, so they cannot act on the previous app.
+An app subpage can open before its app finishes activating. Its app-specific keyboard shortcuts remain disabled until activation is confirmed, so they cannot act on the previous app. The browser preview dims the same tiles when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 
 Custom shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Shift is optional. Modifier-only combinations and unsupported system keys are rejected.
 

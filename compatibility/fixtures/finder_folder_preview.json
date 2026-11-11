@@ -1,0 +1,38 @@
+[
+  {
+    "order": "Bw,,1,2w,,,,,",
+    "buttons": ["folder.pinned", "shortcut.command+n"],
+    "catalogue": [
+      ["folder.pinned", "Live name for pinned folder"],
+      ["folder.", "Invalid"],
+      ["folder.zulu", "Zulu"],
+      ["folder.zulu", "Duplicate"],
+      ["com.apple.Finder", "Finder"],
+      ["folder.alpha", "Alpha"],
+      ["folder.projects", "Projects, 2026 | Archive"]
+    ],
+    "capacity": 9,
+    "expected": [[5, "folder.zulu", "Zulu"], [6, "folder.alpha", "Alpha"], [7, "folder.projects", "Projects, 2026 | Archive"]]
+  },
+  {
+    "order": "B,1",
+    "buttons": ["folder.pinned"],
+    "catalogue": [["folder.one", "First"], ["folder.two", "Second"]],
+    "capacity": 2,
+    "expected": [[2, "folder.one", "First"]]
+  },
+  {
+    "order": "B,1",
+    "buttons": ["folder.pinned"],
+    "catalogue": [],
+    "capacity": 9,
+    "expected": []
+  },
+  {
+    "order": "1",
+    "buttons": ["folder.pinned"],
+    "catalogue": [["folder.one", "First"]],
+    "capacity": 9,
+    "expected": []
+  }
+]

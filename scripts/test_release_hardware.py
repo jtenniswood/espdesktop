@@ -12,17 +12,18 @@ import sys
 import time
 
 from companion_release import digest
-from test_device_runtime import HttpProbe, METRICS
+from test_device_runtime import HttpProbe, METRICS, navigation_values
 
 DEVICE = "guition-esp32-s3-4848s040"
+REPORT_SCHEMA = 3
 NAVIGATION = "Open the nested Safari shortcut, run it on the Mac, then use Back on the panel."
 STEPS = (
     ("paired_mac", "Confirm the candidate Mac app is installed and the panel is paired."),
     *((f"navigation_{cycle}", NAVIGATION) for cycle in range(1, 6)),
     ("wake", "Let the screen sleep. Tap once to wake it and confirm the tap runs no action."),
     ("offline_editor", "Block internet access while keeping the local network available. "
-                       "Open the embedded editor and save a visible layout edit."),
-    ("reboot", "Restart the panel. Confirm the offline edit survives and the Mac reconnects."),
+                       "Open the embedded editor, rename a tile, and change the theme and Night Schedule."),
+    ("reboot", "Restart the panel. Confirm the tile, theme and schedule changes survive and the Mac reconnects."),
 )
 
 
@@ -55,7 +56,7 @@ def memory_values(memory):
 
 
 def verify_report(report, expected):
-    if (not isinstance(report, dict) or report.get("schema") != 1
+    if (not isinstance(report, dict) or report.get("schema") != REPORT_SCHEMA
             or report.get("status") != "passed" or report.get("candidate") != expected):
         raise ValueError("A passing hardware report for the selected candidate is required.")
     firmware = report.get("firmware")
@@ -74,11 +75,22 @@ def verify_report(report, expected):
             raise ValueError(f"The report is missing a passing {name} checkpoint.")
         memory_values(step.get("before"))
         memory_values(step.get("after"))
+        if name.startswith("navigation_"):
+            navigation = step.get("navigation")
+            if not isinstance(navigation, dict):
+                raise ValueError(f"The report is missing navigation measurements for {name}.")
+            navigation_values(navigation.get("before"))
+            navigation_values(navigation.get("after"))
+    saved = report.get("native_save")
+    if (not isinstance(saved, dict) or set(saved) != {"before", "saved", "reboot"}
+            or any(type(value) is not int or not 0 <= value <= 0xFFFFFFFF for value in saved.values())
+            or saved["before"] == saved["saved"] or saved["saved"] != saved["reboot"]):
+        raise ValueError("The hardware report must confirm a native save survived reboot.")
 
 
 def run(probe, output, expected=None, confirm=input):
     output.mkdir(parents=True, exist_ok=False)
-    report = {"schema": 1, "status": "failed", "candidate": expected, "steps": []}
+    report = {"schema": REPORT_SCHEMA, "status": "failed", "candidate": expected, "steps": []}
     try:
         initial = probe.sample()
         firmware = report["firmware"] = initial["firmware"]
@@ -99,10 +111,15 @@ def run(probe, output, expected=None, confirm=input):
             if restarted != expect_restart or (not restarted and current["uptime_ms"] < previous["uptime_ms"]):
                 raise ValueError("The expected reboot was missing." if expect_restart else "The panel rebooted unexpectedly.")
             previous = current
-            return memory_values(current["memory"])
+            memory_values(current["memory"])
+            return current
 
+        saved_config = None
+        before_config = None
         for name, instruction in STEPS:
             before = sample()
+            if name == "offline_editor":
+                before_config = probe.native_config_snapshot(require_durable_v2=False)
             started = time.monotonic()
             if confirm(f"{instruction}\nType pass when confirmed, or fail to stop: ").strip().lower() != "pass":
                 raise ValueError(f"Operator did not confirm {name}.")
@@ -111,11 +128,26 @@ def run(probe, output, expected=None, confirm=input):
                 pair = probe.json("/connectors/status").get("mac_companion", {})
                 if not isinstance(pair, dict) or pair.get("paired") is not True or pair.get("connected") is not True:
                     raise ValueError("The paired Mac is disconnected.")
-            print(f"{name}: internal heap {before['heap_free_percent']:.1f}% → {after['heap_free_percent']:.1f}% free, "
-                  f"PSRAM {before['psram_free_percent']:.1f}% → {after['psram_free_percent']:.1f}% free.")
-            report["steps"].append({"id": name, "operator_passed": True,
-                                    "restarted": name == "reboot", "before": before, "after": after,
-                                    "seconds": round(time.monotonic() - started, 2)})
+            if name == "offline_editor":
+                saved_config = probe.native_config_snapshot()
+                if saved_config[0] == before_config[0] or saved_config[1] == before_config[1]:
+                    raise ValueError("The offline editor did not change the saved native document.")
+            if name == "reboot":
+                reboot_config = probe.native_config_snapshot()
+                if reboot_config != saved_config:
+                    raise ValueError("The saved native document changed after reboot.")
+                report["native_save"] = {"before": before_config[0], "saved": saved_config[0],
+                                         "reboot": reboot_config[0]}
+            before_memory, after_memory = before["memory"], after["memory"]
+            step = {"id": name, "operator_passed": True, "restarted": name == "reboot",
+                    "before": before_memory, "after": after_memory, "seconds": round(time.monotonic() - started, 2)}
+            print(f"{name}: internal heap {before_memory['heap_free_percent']:.1f}% → {after_memory['heap_free_percent']:.1f}% free, "
+                  f"PSRAM {before_memory['psram_free_percent']:.1f}% → {after_memory['psram_free_percent']:.1f}% free.")
+            if name.startswith("navigation_"):
+                after_navigation = navigation_values(after.get("navigation"))
+                step["navigation"] = {"before": navigation_values(before.get("navigation")), "after": after_navigation}
+                print(f"  First frame: open {after_navigation['page_open_frame_ms']} ms, Back {after_navigation['back_frame_ms']} ms.")
+            report["steps"].append(step)
         report["status"] = "passed"
         if expected:
             verify_report(report, expected)

@@ -21,6 +21,10 @@ int main() {
   assert(state.onboarding_complete && state.companion_available && state.companion_paired && !state.companion_connected);
   pairing.connected = true;
   assert(service.status().companion_connected);
+  using espdesktop::connectors::connector_status_json;
+  assert(connector_status_json(service.status()).find("shortcut_page_ready") == std::string::npos);
+  assert(connector_status_json(service.status(), false).find("\"shortcut_page_ready\":false") != std::string::npos);
+  assert(connector_status_json(service.status(), true).find("\"shortcut_page_ready\":true") != std::string::npos);
   pairing.connected = false;
   assert(service.status().companion_paired && service.status().onboarding_complete);
   // Recreating connector setup does not replace or reset the Companion pairing.

@@ -139,6 +139,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-btn.sp-selected:hover{filter:none}" +
         ".sp-btn-icon{position:absolute;left:var(--btn-pad);top:var(--btn-pad);" +
         "font-size:var(--btn-icon);line-height:1;color:var(--card-text-color,var(--preview-text-primary));z-index:1}" +
+        ".sp-shortcut-unavailable .sp-btn-icon,.sp-shortcut-unavailable .sp-btn-label{color:var(--preview-text-disabled)}" +
         ".sp-btn-icon.sp-companion-app-icon{width:var(--btn-icon);height:var(--btn-icon);object-fit:contain;border-radius:0;z-index:0;pointer-events:none}" +
         ".sp-btn.sp-companion-app-icon-fit-card:not(.sp-back-btn):active>.sp-card-outline{" +
         "display:block;stroke:var(--card-active-color);stroke-width:6}" +
@@ -234,6 +235,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-empty-cell{--card-outline-color:color-mix(in srgb,var(--preview-text-muted) 70%,var(--preview-background));border:0;background:transparent;" +
         "border-radius:var(--empty-r);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;" +
         "cursor:pointer;transition:background-color .2s}" +
+        ".sp-live-folder-preview{position:absolute;inset:0;display:flex;align-items:flex-end;padding:var(--btn-pad);min-width:0}" +
+        ".sp-empty-cell:hover>.sp-live-folder-preview{opacity:.45}.sp-empty-cell>.sp-add-pill{z-index:2}" +
         ".sp-info-only-hidden{cursor:default;pointer-events:none}.sp-empty-cell.sp-info-only-hidden>.sp-card-outline{display:none}" +
         ".sp-empty-cell:hover{--card-outline-color:var(--accent)}" +
         ".sp-drag-active .sp-empty-cell:hover{--card-outline-color:color-mix(in srgb,var(--preview-text-muted) 70%,var(--preview-background))}" +

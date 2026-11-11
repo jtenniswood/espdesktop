@@ -12,6 +12,8 @@ enum class DisplayLifecycleState : uint8_t {
   STOPPED,
 };
 
+enum class BacklightOnResponse : uint8_t { KEEP_ON, KEEP_OFF, WAKE };
+
 // Owns display-mode state independently of the ESPHome component lifecycle.
 // The controller accessor remains available while YAML wiring migrates through
 // this service boundary.
@@ -42,6 +44,16 @@ class DisplayLifecycleService {
 
   void set_blank_page_active(bool active) { blank_page_active_ = active; }
   bool blank_page_active() const { return blank_page_active_; }
+
+  BacklightOnResponse backlight_on_response(bool waiting_for_time) const {
+    if (waiting_for_time ||
+        (controller_.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE) &&
+         controller_.target_mode_is(DisplayMode::DISPLAY_OFF))) {
+      return BacklightOnResponse::KEEP_OFF;
+    }
+    return controller_.current_mode_is(DisplayMode::DISPLAY_OFF)
+        ? BacklightOnResponse::WAKE : BacklightOnResponse::KEEP_ON;
+  }
 
   void begin_wake(bool clock_visible) {
     wake_needs_reconcile_ = controller_.has_transition_in_progress() ||

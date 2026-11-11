@@ -9,7 +9,8 @@ backlight = (firmware / 'backlight.h').read_text()
 adapter = backlight[backlight.index('struct SunCalcResult {'):backlight.index('// ── Brightness calculation')]
 wiring = (root / 'common/addon/backlight_schedule.yaml').read_text()
 assert 'id(theme_solar_valid) = r.solar_valid;' in wiring
-assert 'conditions.sun_valid = id(theme_solar_valid) && offsets_valid;' in wiring
+assert 'conditions.sun_valid = id(theme_solar_valid);' in wiring
+assert 'id(espdesktop_app).display_theme_preferences()' in wiring
 assert 'id(sunrise_sunset_valid) = r.valid;' in wiring  # Existing brightness fallback is preserved.
 source = r'''
 #include <string>
