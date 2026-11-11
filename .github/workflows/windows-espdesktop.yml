@@ -52,21 +52,38 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $installer = (Get-ChildItem ./dist/windows/*-Setup.exe).FullName
           $installDir = Join-Path $env:RUNNER_TEMP 'EspDesktopSmoke'
+          $appPath = Join-Path $installDir 'EspDesktop.exe'
           $directoryArgument = '/DIR="' + $installDir + '"'
+          $runKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+          $startMenuLink = Join-Path ([Environment]::GetFolderPath('Programs')) 'EspDesktop.lnk'
           $install = Start-Process $installer -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART',$directoryArgument -Wait -PassThru
           if ($install.ExitCode -ne 0) { throw "Install exit code: $($install.ExitCode)" }
+          if ($null -ne (Get-ItemPropertyValue -LiteralPath $runKey -Name EspDesktop -ErrorAction SilentlyContinue)) {
+            throw 'A fresh install should leave start-at-sign-in disabled.'
+          }
+          if (!(Test-Path -LiteralPath $startMenuLink)) { throw 'Setup did not create the Start menu shortcut.' }
+          $shell = New-Object -ComObject WScript.Shell
+          if ($shell.CreateShortcut($startMenuLink).TargetPath -ne $appPath) {
+            throw 'The Start menu shortcut points to the wrong app.'
+          }
           if ('${{ matrix.arch }}' -eq 'x64') {
             $env:ESPDESKTOP_SETTINGS_PREVIEW = Join-Path $env:RUNNER_TEMP 'EspDesktop-settings.png'
           }
-          $app = Start-Process (Join-Path $installDir 'EspDesktop.exe') -ArgumentList '--smoke-test' -PassThru
+          $app = Start-Process $appPath -ArgumentList '--smoke-test' -PassThru
           if (!$app.WaitForExit(60000)) { $app.Kill(); throw 'Native app smoke test timed out.' }
           if ($app.ExitCode -ne 0) { throw "App exit code: $($app.ExitCode)" }
           if ('${{ matrix.arch }}' -eq 'x64') {
             $env:ESPDESKTOP_SETTINGS_PREVIEW = Join-Path $env:RUNNER_TEMP 'EspDesktop-settings-dark.png'
-            $dark = Start-Process (Join-Path $installDir 'EspDesktop.exe') -ArgumentList '--smoke-test','--dark-preview' -PassThru
+            $dark = Start-Process $appPath -ArgumentList '--smoke-test','--dark-preview' -PassThru
             if (!$dark.WaitForExit(60000)) { $dark.Kill(); throw 'Dark mode preview timed out.' }
             if ($dark.ExitCode -ne 0) { throw "Dark mode app exit code: $($dark.ExitCode)" }
           }
+          # Seed a real per-user profile and the same startup command the app writes.
+          dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --installer-profile prepare
+          if ($LASTEXITCODE -ne 0) { throw 'Could not prepare the Windows test profile.' }
+          $startupCommand = '"' + $appPath + '" --background'
+          if (!(Test-Path -LiteralPath $runKey)) { New-Item -Path $runKey | Out-Null }
+          New-ItemProperty -LiteralPath $runKey -Name EspDesktop -Value $startupCommand -PropertyType String -Force | Out-Null
           # Model an update started while the existing instance is still quitting.
           $updateLog = Join-Path $env:RUNNER_TEMP 'EspDesktopUpdate.log'
           $logArgument = '/LOG="' + $updateLog + '"'
@@ -84,10 +101,20 @@ jobs:
           }
           if (!$update.WaitForExit(60000)) { $update.Kill(); throw 'Installer update timed out.' }
           if (!$waiting -or $update.ExitCode -ne 0) { Get-Content $updateLog; throw 'Installer did not wait for the existing app and upgrade successfully.' }
+          if ((Get-ItemPropertyValue -LiteralPath $runKey -Name EspDesktop) -ne $startupCommand) {
+            throw 'The upgrade changed the start-at-sign-in setting.'
+          }
+          dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --installer-profile verify
+          if ($LASTEXITCODE -ne 0) { throw 'The upgrade changed the saved profile.' }
           $uninstall = Start-Process (Join-Path $installDir 'unins000.exe') -ArgumentList '/VERYSILENT','/SUPPRESSMSGBOXES','/NORESTART' -Wait -PassThru
-          if ($uninstall.ExitCode -ne 0 -or (Test-Path (Join-Path $installDir 'EspDesktop.exe'))) {
+          if ($uninstall.ExitCode -ne 0 -or (Test-Path -LiteralPath $appPath) -or (Test-Path -LiteralPath $startMenuLink)) {
             throw 'EspDesktop was not uninstalled.'
           }
+          if ($null -ne (Get-ItemPropertyValue -LiteralPath $runKey -Name EspDesktop -ErrorAction SilentlyContinue)) {
+            throw 'Uninstall left the start-at-sign-in entry behind.'
+          }
+          dotnet run -c Release --no-build --project windows/EspDesktop.Tests -- --installer-profile verify
+          if ($LASTEXITCODE -ne 0) { throw 'Uninstall removed the saved profile.' }
 
       - uses: actions/upload-artifact@v7
         with:

@@ -38,6 +38,11 @@ if (args is ["--verify-windows-signatures", var app, var installer, var uninstal
 
 #if WINDOWS
 if (await WindowsAppActions.TryRunTarget(args)) return;
+if (args is ["--installer-profile", var profileMode])
+{
+    VerifyInstallerProfile(profileMode);
+    return;
+}
 VerifyLocalStore();
 VerifyAudioLevelPolicy();
 VerifyWindowsPresets();
@@ -342,6 +347,38 @@ async Task<JsonElement> FindMessage(WebSocket socket, string kind, Func<JsonElem
 }
 
 #if WINDOWS
+static void VerifyInstallerProfile(string mode)
+{
+    Check(Environment.GetEnvironmentVariable("RUNNER_ENVIRONMENT") == "github-hosted", "use a disposable Windows runner profile");
+    var store = new LocalStore();
+    const string appId = "windows.installer-test";
+    var folder = new ApprovedFolder("folder.windows-installer", Path.Combine(Path.GetTempPath(), "EspDesktop installer test"));
+    var expected = new Pairing("192.168.1.20:8443", Hash("installer test display"),
+        SHA256.HashData("installer fixture credential"u8), 12, "Installer test display");
+    switch (mode)
+    {
+        case "prepare":
+            Check(store.LoadPairing() is null && !store.PairingUnavailable, "prepare the installer check in an empty profile");
+            store.Settings.AllApps = false;
+            store.Settings.AllowedApps.Add(appId);
+            store.Settings.Folders.Add(folder);
+            store.Settings.Shortcuts = true;
+            store.Save();
+            store.SavePairing(expected);
+            break;
+        case "verify":
+            var actual = store.LoadPairing();
+            Check(actual is not null && actual.Address == expected.Address && actual.Fingerprint == expected.Fingerprint &&
+                actual.Key.SequenceEqual(expected.Key) && actual.Sequence == expected.Sequence && actual.DisplayName == expected.DisplayName,
+                "the installer preserved the protected display pairing");
+            Check(!store.Settings.AllApps && store.Settings.Shortcuts && store.Settings.AllowedApps.SetEquals([appId]) &&
+                store.Settings.Folders.SequenceEqual([folder]), "the installer preserved app and folder approvals");
+            Console.WriteLine("Verified the saved display pairing and approvals after an installer operation.");
+            break;
+        default: throw new ArgumentException("Unknown installer profile mode.", nameof(mode));
+    }
+}
+
 static void VerifyLocalStore()
 {
     var scratch = Directory.CreateTempSubdirectory("EspDesktop profile test ");
