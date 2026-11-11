@@ -48,9 +48,10 @@ script:
           id: first_layout_preview_active
           value: 'true'
       - script.execute: display_mode_reconcile
+      # Let the save finish publishing its card data before rebuilding.
       - delay: 750ms
-      - script.execute: refresh_button_grid
-      - script.wait: refresh_button_grid
+      - script.execute: apply_button_grid
+      - script.wait: apply_button_grid
       - script.execute: navigate_after_api
       - script.wait: navigate_after_api
       - script.execute: clock_bar_apply
