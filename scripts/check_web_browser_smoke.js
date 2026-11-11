@@ -7112,6 +7112,12 @@ async function assertFirstRunSetup(browser) {
   await installRoutes(context, testCase.slug, {
     nativeState: fixture, connectorsStatus: status, nativeV2: true, nativeAppSubpagePreference: true,
   });
+  let pairingUnavailable = false;
+  const pairingState = {
+    available: true, active: false, paired: true, connected: true, expires_in_seconds: 0, pairing_code: "",
+  };
+  await context.route("**/companion/pairing", route => pairingUnavailable
+    ? route.fulfill({ status: 503, body: "" }) : route.fulfill({ json: pairingState }));
   const actions = [
     { id: "com.apple.Safari", label: "Safari" },
     { id: "com.apple.Notes", label: "Notes" },
@@ -7150,11 +7156,15 @@ async function assertFirstRunSetup(browser) {
     const dialog = page.getByRole("dialog");
     const appLimit = 8;
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
+    assert(await dialog.getByText("Step 1 of 2", { exact: true }).isVisible(),
+      "an already connected Mac starts at app selection");
     const title = dialog.getByRole("heading", { name: "Choose your apps", exact: true });
     assert(await title.evaluate(node => node === document.activeElement && getComputedStyle(node).outlineStyle === "none"),
       "the wizard heading receives focus without a visible outline");
     const close = dialog.getByRole("button", { name: "Close setup", exact: true });
-    await page.keyboard.press("Tab");
+    // WebKit on macOS uses Option-Tab to include buttons in the tab order.
+    const macWebKit = process.platform === "darwin" && browser.browserType().name() === "webkit";
+    await page.keyboard.press(macWebKit ? "Alt+Tab" : "Tab");
     assert(await close.evaluate(node => node.matches(":focus-visible") && getComputedStyle(node).boxShadow !== "none"),
       "the wizard controls retain a visible keyboard focus indicator");
     await close.click();
@@ -7169,6 +7179,14 @@ async function assertFirstRunSetup(browser) {
     };
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     catalogueReady = true;
+    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
+    const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
+    await setChecked(dialog.getByLabel("App 0", { exact: true }), true);
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await addPages.isDisabled(), "apps without presets cannot add shortcut pages");
+    assert(await launchOnly.isChecked(), "setup falls back to launch-only when no selected apps have presets");
+    await dialog.getByRole("button", { name: "Back", exact: true }).click();
+    await setChecked(dialog.getByLabel("App 0", { exact: true }), false);
     await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
     // The selection cap disables remaining apps while allowing deselection.
     for (let i = 0; i < appLimit - 1; i++) await setChecked(dialog.getByLabel(`App ${i}`, { exact: true }), true);
@@ -7177,13 +7195,8 @@ async function assertFirstRunSetup(browser) {
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
     await setChecked(dialog.getByLabel("Notes", { exact: true }), true);
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
-    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
-    const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     assert.equal(await dialog.getByRole("radio").count(), 2, "step two offers two exclusive modes");
-    assert(await launchOnly.isChecked(), "fresh setup defaults to launch-only cards");
-    assert(await dialog.getByRole("button", { name: "Done", exact: true }).isVisible(), "launch-only setup ends at step two");
-    await dialog.getByText("Add shortcut pages", { exact: true }).click();
-    assert(await addPages.isChecked(), "clicking the choice card selects it");
+    assert(await addPages.isChecked(), "fresh setup adds shortcut pages by default for supported apps");
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps selected apps");
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
@@ -7294,19 +7307,77 @@ async function assertFirstRunSetup(browser) {
     assert.deepEqual(switches, []);
     await open();
     await dialog.waitFor({ state: "detached" });
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await launchOnly.isChecked(), "setup again restores a saved launch-only layout");
+    await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
     assert.equal(Object.keys(fixture.document.subpages).length, 0, "Done saves launch-only cards directly from step two");
-    // Pairing links remain usable before connecting; connection offers setup.
+    // A fresh display offers download and pairing in the same wizard.
     fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
-    status.mac_companion.connected = false;
+    Object.assign(status.mac_companion, { configured: false, paired: false, connected: false });
+    Object.assign(pairingState, {
+      active: true, paired: false, connected: false, expires_in_seconds: 900, pairing_code: "ABCD-EFGH",
+    });
+    pairingUnavailable = true;
+    await open();
+    const pairingTitle = dialog.getByRole("heading", { name: "Connect your Mac", exact: true });
+    await pairingTitle.waitFor();
+    assert(await dialog.getByText("Step 1 of 3", { exact: true }).isVisible());
+    const download = dialog.getByRole("link", { name: "Download the latest EspDesktop Mac app" });
+    assert.equal(await download.getAttribute("href"), "https://github.com/jtenniswood/espdesktop/releases/latest");
+    assert.equal(await download.getAttribute("target"), "_blank");
+    const next = dialog.getByRole("button", { name: "Next", exact: true });
+    assert(await next.isDisabled(), "the wizard waits for the Mac connection");
+    await dialog.getByText("Could not load the pairing code. Retrying…", { exact: true }).waitFor();
+    pairingUnavailable = false;
+    await dialog.getByText("ABCD-EFGH", { exact: true }).waitFor();
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "clipboard", { value: undefined });
+      document.execCommand = command => {
+        const field = document.activeElement;
+        return command === "copy" && field instanceof HTMLTextAreaElement &&
+          !!field.closest("dialog[open]") &&
+          field.value.slice(field.selectionStart, field.selectionEnd) === "ABCD-EFGH";
+      };
+    });
+    await dialog.getByRole("button", { name: "Copy pairing code" }).click();
+    await dialog.getByText("Copied. Paste it into the Mac app.", { exact: true }).waitFor();
+    pairingState.pairing_code = "JKLM-NPQR";
+    await dialog.getByText("JKLM-NPQR", { exact: true }).waitFor();
+    assert.equal(await dialog.getByText("ABCD-EFGH", { exact: true }).count(), 0, "the old code is cleared");
+    Object.assign(status.mac_companion, { configured: true, paired: true });
+    Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
+    await dialog.getByText("This display is already paired. Open EspDesktop on your Mac to reconnect.").waitFor();
+    assert(await next.isDisabled(), "a saved pairing still needs a live connection");
+    assert.equal(await dialog.getByRole("button", { name: "Copy pairing code" }).count(), 0);
+    status.mac_companion.connected = pairingState.connected = true;
+    await dialog.getByText("Mac connected. Choose Next to pick your apps.", { exact: true }).waitFor();
+    await next.click();
+    await title.waitFor();
+    assert(await dialog.getByText("Step 2 of 3", { exact: true }).isVisible());
+    await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
+    await dialog.getByRole("button", { name: "Back", exact: true }).click();
+    await pairingTitle.waitFor();
+
+    // Pairing links remain usable before connecting; connection offers setup.
+    status.mac_companion.connected = pairingState.connected = false;
     await open("&connector=mac_companion");
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "pairing page must remain accessible");
-    status.mac_companion.connected = true;
+    status.mac_companion.connected = pairingState.connected = true;
     await dialog.waitFor();
     await dialog.getByRole("button", { name: "Skip setup", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert.equal(Object.keys(fixture.document.buttons).length, 0);
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
+    await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await addPages.isChecked(), "setup again defaults to shortcut pages when setup was skipped");
     assert.deepEqual(errors, []);
     console.log("First-run setup with interrupted and confirmed layout saves passed.");
   } finally { await context.close(); }

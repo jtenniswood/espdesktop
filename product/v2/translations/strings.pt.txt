@@ -230,6 +230,7 @@ update_firmware=Atualizar firmware
 no_saved_wifi_connection_reinstall_by_usb_to_reconfigure=Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar
 open_192_168_4_1=Abra 192.168.4.1
 open_your_browser_and_configure_your_display=Abra o navegador e\nconfigure o ecrã
+download_companion_app_to_pair=Transfira a aplicação EspDesktop para o computador e siga os passos para emparelhar o ecrã.
 preparing_the_screen_do_not_power_off=A preparar o ecrã\nNão desligue
 restarting_display=A reiniciar o ecrã
 see_the_install_guide_for_help=Consulte o guia de instalação para obter ajuda

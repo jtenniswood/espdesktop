@@ -22,10 +22,13 @@ The output is `./.build/standalone/EspDesktop.app`. For distribution, set `CODE_
 To build a drag-to-Applications disk image from the local app bundle:
 
 ```bash
+python3 -m venv .build/dmg-tools
+source .build/dmg-tools/bin/activate
+python -m pip install --require-hashes -r Packaging/dmg-requirements.txt
 ALLOW_ADHOC=1 ./Packaging/build_dmg.sh
 ```
 
-The output is `./.build/standalone/EspDesktop-1.0.0.dmg` (with the app version in the filename). It contains the app and an Applications shortcut in a Finder icon view. Pass an existing app bundle path as the first argument when packaging a signed build. Set `SKIP_FINDER_LAYOUT=1` only for headless build machines where Finder cannot be automated.
+The output is `./.build/standalone/EspDesktop-1.0.0.dmg` (with the app version in the filename). Finder shows an arrow from EspDesktop to the Applications shortcut. Pass an existing app bundle path as the first argument when packaging a signed build.
 
 The manual release workflow signs and notarizes this standalone app and its disk image for each firmware release. Configure these repository secrets before using it: `MACOS_DEVELOPER_ID_P12_BASE64`, `MACOS_DEVELOPER_ID_P12_PASSWORD`, `MACOS_DEVELOPER_ID_APPLICATION`, `APPLE_NOTARY_KEY_BASE64`, `APPLE_NOTARY_KEY_ID`, and `APPLE_NOTARY_ISSUER_ID`. The certificate must be a Developer ID Application certificate, and the API key must be permitted to submit software for notarization. The workflow uploads the stapled, verified ZIP and DMG to the GitHub release.
 

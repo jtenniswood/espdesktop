@@ -226,6 +226,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otevřete 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otevřete prohlížeč a\nnastavte displej";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Stáhněte si do počítače aplikaci EspDesktop a postupujte podle pokynů k párování.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Příprava obrazovky\nNevypínejte napájení";
   if (std::strcmp(text, "Restarting display") == 0) return "Restartování displeje";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Viz instalační příručka";
@@ -511,6 +512,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åbn 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Åbn din browser og\nkonfigurer din skærm";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Download EspDesktop-appen på din computer, og følg vejledningen til parring.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Forbereder skærmen\nSluk ikke for strømmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Genstarter skærm";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installationsvejledningen for hjælp";
@@ -792,6 +794,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 öffnen";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Öffnen Sie Ihren Browser und\nkonfigurieren Sie Ihr Display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Laden Sie die EspDesktop-App auf Ihren Computer und folgen Sie den Schritten zur Kopplung.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Bildschirm wird vorbereitet\nNicht ausschalten";
   if (std::strcmp(text, "Restarting display") == 0) return "Display wird neu gestartet";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Installationsanleitung für Hilfe ansehen";
@@ -1085,6 +1088,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abre 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abre tu navegador y\nconfigura la pantalla";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Descarga la app EspDesktop en tu ordenador y sigue los pasos para emparejar la pantalla.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparando la pantalla\nNo apagues el dispositivo";
   if (std::strcmp(text, "Restarting display") == 0) return "Reiniciando pantalla";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulta la guía de instalación para obtener ayuda";
@@ -1391,6 +1395,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Avaa 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Avaa selain ja\nmääritä näyttö";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Lataa EspDesktop-sovellus tietokoneellesi ja noudata pariliitoksen ohjeita.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Valmistellaan näyttöä\nÄlä katkaise virtaa";
   if (std::strcmp(text, "Restarting display") == 0) return "Käynnistetään näyttö uudelleen";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Katso asennusoppaasta ohjeita";
@@ -1675,6 +1680,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Ouvrez 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Ouvrez votre navigateur et\nconfigurez votre écran";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Téléchargez l’application EspDesktop sur votre ordinateur et suivez les étapes de jumelage.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Préparation de l’écran\nNe coupez pas l’alimentation";
   if (std::strcmp(text, "Restarting display") == 0) return "Redémarrage de l’écran";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consultez le guide d’installation pour obtenir de l’aide";
@@ -1991,6 +1997,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "פתחו 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "פתחו את הדפדפן\nוהגדירו את המסך";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "הורידו את אפליקציית EspDesktop למחשב ופעלו לפי הוראות הצימוד.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "מכין את המסך\nאין לנתק מהחשמל";
   if (std::strcmp(text, "Restarting display") == 0) return "מפעיל מחדש את המסך";
   if (std::strcmp(text, "See the install guide for help") == 0) return "לעזרה עיינו במדריך ההתקנה";
@@ -2289,6 +2296,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Nyissa meg: 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Nyissa meg a böngészőt, és\nállítsa be a kijelzőt";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Töltse le az EspDesktop alkalmazást a számítógépére, és kövesse a párosítási lépéseket.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Képernyő előkészítése\nNe kapcsolja ki";
   if (std::strcmp(text, "Restarting display") == 0) return "Kijelző újraindítása";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Segítségért nézze meg a telepítési útmutatót";
@@ -2580,6 +2588,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Apri 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Apri il browser e\nconfigura il display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Scarica l’app EspDesktop sul computer e segui i passaggi per l’abbinamento.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparazione dello schermo\nNon spegnere";
   if (std::strcmp(text, "Restarting display") == 0) return "Riavvio display";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulta la guida di installazione per assistenza";
@@ -2872,6 +2881,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åpne 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Åpne nettleseren og\nkonfigurer skjermen";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Last ned EspDesktop-appen på datamaskinen og følg trinnene for sammenkobling.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Forbereder skjermen\nIkke slå av strømmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Starter skjermen på nytt";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installasjonsveiledningen for hjelp";
@@ -3162,6 +3172,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Install") == 0) return "Firmware bijwerken";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Open uw browser en\nconfigureer uw display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Download de EspDesktop-app op je computer en volg de stappen om het scherm te koppelen.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Scherm voorbereiden\nSchakel de stroom niet uit";
   if (std::strcmp(text, "Restarting display") == 0) return "Display opnieuw starten";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Bekijk de installatiehandleiding voor hulp";
@@ -3448,6 +3459,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otwórz 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otwórz przeglądarkę i\nskonfiguruj wyświetlacz";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Pobierz aplikację EspDesktop na komputer i postępuj zgodnie z instrukcjami parowania.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Przygotowywanie ekranu\nNie wyłączaj zasilania";
   if (std::strcmp(text, "Restarting display") == 0) return "Ponowne uruchamianie wyświetlacza";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Zobacz instrukcję instalacji, aby uzyskać pomoc";
@@ -3739,6 +3751,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abra o navegador e\nconfigure a tela";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Baixe o aplicativo EspDesktop no computador e siga as etapas de pareamento.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparando a tela\nNão desligue";
   if (std::strcmp(text, "Restarting display") == 0) return "Reiniciando tela";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Veja o guia de instalação para obter ajuda";
@@ -4029,6 +4042,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abra o navegador e\nconfigure o ecrã";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Transfira a aplicação EspDesktop para o computador e siga os passos para emparelhar o ecrã.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "A preparar o ecrã\nNão desligue";
   if (std::strcmp(text, "Restarting display") == 0) return "A reiniciar o ecrã";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulte o guia de instalação para obter ajuda";
@@ -4333,6 +4347,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Deschideți 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Deschideți browserul și\nconfigurați afișajul";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Descarcă aplicația EspDesktop pe computer și urmează pașii de asociere.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Se pregătește ecranul\nNu opriți alimentarea";
   if (std::strcmp(text, "Restarting display") == 0) return "Se repornește afișajul";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consultați ghidul de instalare pentru ajutor";
@@ -4639,6 +4654,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Нет сохранённого подключения WiFi\nПереустановите через USB для настройки";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Откройте 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Откройте браузер и\nнастройте дисплей";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Загрузите приложение EspDesktop на компьютер и следуйте инструкциям по сопряжению.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Подготовка экрана\nНе выключайте питание";
   if (std::strcmp(text, "Restarting display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Смотрите руководство по установке";
@@ -4930,6 +4946,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otvorte 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otvorte prehliadač a\nnakonfigurujte displej";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Stiahnite si aplikáciu EspDesktop do počítača a postupujte podľa pokynov na párovanie.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Príprava obrazovky\nNevypínajte napájanie";
   if (std::strcmp(text, "Restarting display") == 0) return "Reštartovanie displeja";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Pomoc nájdete v inštalačnej príručke";
@@ -5226,6 +5243,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Odprite 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Odprite brskalnik in\nkonfigurirajte zaslon";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Prenesite aplikacijo EspDesktop v računalnik in sledite korakom za seznanjanje.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Priprava zaslona\nNe izklapljajte napajanja";
   if (std::strcmp(text, "Restarting display") == 0) return "Ponovni zagon zaslona";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Za pomoč glejte navodila za namestitev";
@@ -5514,6 +5532,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Öppna 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Öppna webbläsaren och\nkonfigurera skärmen";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Ladda ner EspDesktop-appen på datorn och följ stegen för parkoppling.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Förbereder skärmen\nStäng inte av strömmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Startar om skärmen";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installationsguiden för hjälp";
@@ -5812,6 +5831,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 adresini açın";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Tarayıcınızı açın ve\nekranınızı yapılandırın";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "EspDesktop uygulamasını bilgisayarınıza indirin ve eşleştirme adımlarını izleyin.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Ekran hazırlanıyor\nGücü kapatmayın";
   if (std::strcmp(text, "Restarting display") == 0) return "Ekran yeniden başlatılıyor";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Yardım için kurulum kılavuzuna bakın";
@@ -6114,6 +6134,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Відкрийте 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Відкрийте браузер і\nналаштуйте дисплей";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Завантажте застосунок EspDesktop на комп’ютер і виконайте кроки сполучення.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Підготовка екрана\nНе вимикайте живлення";
   if (std::strcmp(text, "Restarting display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Дивіться посібник зі встановлення для допомоги";
@@ -6425,6 +6446,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No saved WiFi connection\nReinstall by USB to reconfigure";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Open 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Open your browser and\nconfigure your display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download the EspDesktop app on your computer and follow the pairing steps.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparing the screen\nDo not power off";
   if (std::strcmp(key, "restarting_display") == 0) return "Restarting display";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "See the install guide for help";
@@ -6740,6 +6762,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otevřete 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otevřete prohlížeč a\nnastavte displej";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Stáhněte si do počítače aplikaci EspDesktop a postupujte podle pokynů k párování.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Příprava obrazovky\nNevypínejte napájení";
   if (std::strcmp(key, "restarting_display") == 0) return "Restartování displeje";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Viz instalační příručka";
@@ -7035,6 +7058,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åbn 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Åbn din browser og\nkonfigurer din skærm";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download EspDesktop-appen på din computer, og følg vejledningen til parring.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Forbereder skærmen\nSluk ikke for strømmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Genstarter skærm";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installationsvejledningen for hjælp";
@@ -7324,6 +7348,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 öffnen";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Öffnen Sie Ihren Browser und\nkonfigurieren Sie Ihr Display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Laden Sie die EspDesktop-App auf Ihren Computer und folgen Sie den Schritten zur Kopplung.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Bildschirm wird vorbereitet\nNicht ausschalten";
   if (std::strcmp(key, "restarting_display") == 0) return "Display wird neu gestartet";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Installationsanleitung für Hilfe ansehen";
@@ -7625,6 +7650,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abre 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abre tu navegador y\nconfigura la pantalla";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Descarga la app EspDesktop en tu ordenador y sigue los pasos para emparejar la pantalla.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparando la pantalla\nNo apagues el dispositivo";
   if (std::strcmp(key, "restarting_display") == 0) return "Reiniciando pantalla";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulta la guía de instalación para obtener ayuda";
@@ -7940,6 +7966,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Avaa 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Avaa selain ja\nmääritä näyttö";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Lataa EspDesktop-sovellus tietokoneellesi ja noudata pariliitoksen ohjeita.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Valmistellaan näyttöä\nÄlä katkaise virtaa";
   if (std::strcmp(key, "restarting_display") == 0) return "Käynnistetään näyttö uudelleen";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Katso asennusoppaasta ohjeita";
@@ -8234,6 +8261,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Ouvrez 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Ouvrez votre navigateur et\nconfigurez votre écran";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Téléchargez l’application EspDesktop sur votre ordinateur et suivez les étapes de jumelage.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Préparation de l’écran\nNe coupez pas l’alimentation";
   if (std::strcmp(key, "restarting_display") == 0) return "Redémarrage de l’écran";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consultez le guide d’installation pour obtenir de l’aide";
@@ -8559,6 +8587,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "פתחו 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "פתחו את הדפדפן\nוהגדירו את המסך";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "הורידו את אפליקציית EspDesktop למחשב ופעלו לפי הוראות הצימוד.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "מכין את המסך\nאין לנתק מהחשמל";
   if (std::strcmp(key, "restarting_display") == 0) return "מפעיל מחדש את המסך";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "לעזרה עיינו במדריך ההתקנה";
@@ -8867,6 +8896,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Nyissa meg: 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Nyissa meg a böngészőt, és\nállítsa be a kijelzőt";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Töltse le az EspDesktop alkalmazást a számítógépére, és kövesse a párosítási lépéseket.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Képernyő előkészítése\nNe kapcsolja ki";
   if (std::strcmp(key, "restarting_display") == 0) return "Kijelző újraindítása";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Segítségért nézze meg a telepítési útmutatót";
@@ -9168,6 +9198,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Apri 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Apri il browser e\nconfigura il display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Scarica l’app EspDesktop sul computer e segui i passaggi per l’abbinamento.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparazione dello schermo\nNon spegnere";
   if (std::strcmp(key, "restarting_display") == 0) return "Riavvio display";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulta la guida di installazione per assistenza";
@@ -9469,6 +9500,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åpne 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Åpne nettleseren og\nkonfigurer skjermen";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Last ned EspDesktop-appen på datamaskinen og følg trinnene for sammenkobling.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Forbereder skjermen\nIkke slå av strømmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Starter skjermen på nytt";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installasjonsveiledningen for hjelp";
@@ -9767,6 +9799,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "update_firmware") == 0) return "Firmware bijwerken";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Open uw browser en\nconfigureer uw display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download de EspDesktop-app op je computer en volg de stappen om het scherm te koppelen.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Scherm voorbereiden\nSchakel de stroom niet uit";
   if (std::strcmp(key, "restarting_display") == 0) return "Display opnieuw starten";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Bekijk de installatiehandleiding voor hulp";
@@ -10060,6 +10093,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otwórz 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otwórz przeglądarkę i\nskonfiguruj wyświetlacz";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Pobierz aplikację EspDesktop na komputer i postępuj zgodnie z instrukcjami parowania.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Przygotowywanie ekranu\nNie wyłączaj zasilania";
   if (std::strcmp(key, "restarting_display") == 0) return "Ponowne uruchamianie wyświetlacza";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Zobacz instrukcję instalacji, aby uzyskać pomoc";
@@ -10361,6 +10395,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abra o navegador e\nconfigure a tela";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Baixe o aplicativo EspDesktop no computador e siga as etapas de pareamento.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparando a tela\nNão desligue";
   if (std::strcmp(key, "restarting_display") == 0) return "Reiniciando tela";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Veja o guia de instalação para obter ajuda";
@@ -10660,6 +10695,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abra o navegador e\nconfigure o ecrã";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Transfira a aplicação EspDesktop para o computador e siga os passos para emparelhar o ecrã.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "A preparar o ecrã\nNão desligue";
   if (std::strcmp(key, "restarting_display") == 0) return "A reiniciar o ecrã";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulte o guia de instalação para obter ajuda";
@@ -10973,6 +11009,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Deschideți 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Deschideți browserul și\nconfigurați afișajul";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Descarcă aplicația EspDesktop pe computer și urmează pașii de asociere.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Se pregătește ecranul\nNu opriți alimentarea";
   if (std::strcmp(key, "restarting_display") == 0) return "Se repornește afișajul";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consultați ghidul de instalare pentru ajutor";
@@ -11289,6 +11326,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Нет сохранённого подключения WiFi\nПереустановите через USB для настройки";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Откройте 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Откройте браузер и\nнастройте дисплей";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Загрузите приложение EspDesktop на компьютер и следуйте инструкциям по сопряжению.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Подготовка экрана\nНе выключайте питание";
   if (std::strcmp(key, "restarting_display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Смотрите руководство по установке";
@@ -11590,6 +11628,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otvorte 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otvorte prehliadač a\nnakonfigurujte displej";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Stiahnite si aplikáciu EspDesktop do počítača a postupujte podľa pokynov na párovanie.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Príprava obrazovky\nNevypínajte napájanie";
   if (std::strcmp(key, "restarting_display") == 0) return "Reštartovanie displeja";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Pomoc nájdete v inštalačnej príručke";
@@ -11896,6 +11935,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Odprite 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Odprite brskalnik in\nkonfigurirajte zaslon";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Prenesite aplikacijo EspDesktop v računalnik in sledite korakom za seznanjanje.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Priprava zaslona\nNe izklapljajte napajanja";
   if (std::strcmp(key, "restarting_display") == 0) return "Ponovni zagon zaslona";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Za pomoč glejte navodila za namestitev";
@@ -12194,6 +12234,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Öppna 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Öppna webbläsaren och\nkonfigurera skärmen";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Ladda ner EspDesktop-appen på datorn och följ stegen för parkoppling.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Förbereder skärmen\nStäng inte av strömmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Startar om skärmen";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installationsguiden för hjälp";
@@ -12500,6 +12541,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 adresini açın";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Tarayıcınızı açın ve\nekranınızı yapılandırın";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "EspDesktop uygulamasını bilgisayarınıza indirin ve eşleştirme adımlarını izleyin.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Ekran hazırlanıyor\nGücü kapatmayın";
   if (std::strcmp(key, "restarting_display") == 0) return "Ekran yeniden başlatılıyor";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Yardım için kurulum kılavuzuna bakın";
@@ -12812,6 +12854,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Відкрийте 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Відкрийте браузер і\nналаштуйте дисплей";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Завантажте застосунок EspDesktop на комп’ютер і виконайте кроки сполучення.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Підготовка екрана\nНе вимикайте живлення";
   if (std::strcmp(key, "restarting_display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Дивіться посібник зі встановлення для допомоги";
