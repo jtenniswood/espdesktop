@@ -9,6 +9,7 @@ using EspDesktop;
 using EspDesktop.Core;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using static EspDesktop.Core.Protocol;
 
@@ -90,14 +91,24 @@ using var ephemeral = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddMinutes(
 using var certificate = OperatingSystem.IsWindows()
     ? X509CertificateLoader.LoadPkcs12(ephemeral.Export(X509ContentType.Pkcs12), null, X509KeyStorageFlags.UserKeySet)
     : new X509Certificate2(ephemeral);
-using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(exerciseDesktopActions ? 60 : 25));
+using var lifetime = new CancellationTokenSource(TimeSpan.FromSeconds(exerciseDesktopActions ? 100 : 25));
 var builder = WebApplication.CreateSlimBuilder();
 builder.Logging.ClearProviders();
 builder.Logging.AddSimpleConsole();
 builder.Logging.SetMinimumLevel(LogLevel.Warning);
-builder.WebHost.ConfigureKestrel(k => k.Listen(IPAddress.Loopback, 0, o => o.UseHttps(certificate)));
+builder.WebHost.ConfigureKestrel(k =>
+{
+    k.Listen(IPAddress.Loopback, 0, o => o.UseHttps(certificate));
+    if (exerciseDesktopActions) k.Listen(IPAddress.Loopback, 0);
+});
 await using var server = builder.Build();
 server.UseWebSockets();
+#if WINDOWS
+var browserPages = new[] { "first", "second", "third" }.Select(name => new BrowserTestPage(name)).ToArray();
+if (exerciseDesktopActions)
+    foreach (var page in browserPages)
+        server.MapGet(page.Path, page.Visit);
+#endif
 var secret = RandomNumberGenerator.GetBytes(32);
 var checks = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 var authorizedRequests = 0;
@@ -168,7 +179,7 @@ server.Map(SocketPath, async context =>
     catch (Exception e) { checks.TrySetException(e); }
 });
 await server.StartAsync(lifetime.Token);
-var address = server.Urls.Single();
+var address = server.Urls.Single(url => url.StartsWith("https://", StringComparison.Ordinal));
 var pairing = await DisplaySession.PairAsync(address, "ABCD-EFGH", lifetime.Token);
 Check(pairing.Fingerprint == Hash(certificate.RawData) && pairing.Key.SequenceEqual(secret), "pin TLS and save the credential");
 
@@ -208,10 +219,10 @@ Console.WriteLine("Passed real TLS WebSocket pairing, certificate pinning, count
 
 async Task Send(WebSocket socket, string kind, params (string, object?)[] fields) =>
     await socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(Message(kind, fields)), WebSocketMessageType.Text, true, lifetime.Token);
-async Task<JsonElement> Receive(WebSocket socket)
+async Task<JsonElement> Receive(WebSocket socket, CancellationToken? token = null)
 {
     var buffer = new byte[16384];
-    var r = await socket.ReceiveAsync(buffer.AsMemory(), lifetime.Token);
+    var r = await socket.ReceiveAsync(buffer.AsMemory(), token ?? lifetime.Token);
     Check(r.MessageType == WebSocketMessageType.Text && r.EndOfMessage, "text envelope");
     using var document = JsonDocument.Parse(buffer.AsMemory(0, r.Count));
     return document.RootElement.Clone();
@@ -294,6 +305,8 @@ async Task VerifyNativeDesktop(WebSocket socket, NativeWindowsDesktop fixture)
         await VerifyFolderActions(socket, folders);
     if (fixture.AppActions is { } apps)
         await VerifyAppActions(socket, apps, fixture.UnapprovedAppId);
+    if (exerciseDesktopActions)
+        await VerifyWebsiteActions(socket, server.Urls.Single(url => url.StartsWith("http://", StringComparison.Ordinal)));
 }
 
 async Task VerifyFolderActions(WebSocket socket, WindowsFolderActions folders)
@@ -344,6 +357,63 @@ async Task VerifyAppActions(WebSocket socket, WindowsAppActions app, string deni
         return actual;
     }
 }
+
+async Task VerifyWebsiteActions(WebSocket socket, string browserAddress)
+{
+    var pages = browserPages.Select((page, i) => (Page: page,
+        Id: $"urlcard.{i + 1:x16}", Url: browserAddress + page.Path)).ToArray();
+    await Send(socket, "focus.targets", ("items", pages.Select(page => new { id = page.Id, url = page.Url }).ToArray()));
+    await OpenUrl("file:///C:/Windows", "new_tab", "website-denied", "not_allowed");
+
+    var first = await OpenPage(0, "new_tab");
+    var second = await OpenPage(1, "new_tab");
+    Check(first == second, "opening a website in a new tab keeps the browser window");
+    Check(InputSession.Replay(second, [0x11, 0x10, 0x09]), "switch to the previous browser tab with Ctrl+Shift+Tab");
+    await WaitForHighlight(pages[0].Id, "switching back to the original browser tab");
+    var third = await OpenPage(2, "new_window");
+    Check(third != second, "opening a website in a new window creates a separate browser window");
+    Console.WriteLine("Passed authenticated website actions, new browser tabs and windows, and active website highlighting.");
+
+    async Task<nint> OpenPage(int i, string behavior)
+    {
+        var (page, id, url) = pages[i];
+        await OpenUrl(url, behavior, id, "opened");
+        try { await page.Loaded.Task.WaitAsync(TimeSpan.FromSeconds(15), lifetime.Token); }
+        catch (TimeoutException) { throw new InvalidOperationException($"The default browser did not load {page.Path}."); }
+        await WaitForHighlight(id, $"opening {page.Path}");
+        var window = InputSession.GetForegroundWindow();
+        Check(window != 0, "website focus has a foreground browser window");
+        return window;
+    }
+
+    async Task WaitForHighlight(string id, string operation)
+    {
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
+        deadline.CancelAfter(TimeSpan.FromSeconds(10));
+        try
+        {
+            while (true)
+            {
+                var reply = await Receive(socket, deadline.Token);
+                if (Text(reply, "type") == "focus.changed" && reply.GetProperty("actionIds").EnumerateArray()
+                    .Any(entry => entry.GetString() == id)) break;
+            }
+        }
+        catch (OperationCanceledException) when (deadline.IsCancellationRequested && !lifetime.IsCancellationRequested)
+        {
+            throw new InvalidOperationException($"The companion did not highlight the expected website after {operation}.");
+        }
+    }
+
+    async Task OpenUrl(string url, string behavior, string requestId, string expected)
+    {
+        await Send(socket, "action.invoke", ("kind", "url"), ("appId", "system.default_browser"),
+            ("encodedUrl", Uri.EscapeDataString(url)), ("urlOpenBehavior", behavior), ("requestId", requestId));
+        var result = await FindMessage(socket, "action.result", message => Text(message, "requestId") == requestId);
+        var actual = Text(result, "status");
+        Check(actual == expected, $"{behavior} for {requestId} reported {actual}, expected {expected}");
+    }
+}
 #endif
 
 static byte[] DiscoveryResponse()
@@ -365,6 +435,20 @@ static byte[] DiscoveryResponse()
         packet.Write(data);
     }
 }
+
+#if WINDOWS
+sealed class BrowserTestPage(string name)
+{
+    public string Path { get; } = $"/espdesktop-browser-{name}";
+    public TaskCompletionSource Loaded { get; } = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    public IResult Visit()
+    {
+        Loaded.TrySetResult();
+        return Results.Content($"<!doctype html><title>EspDesktop {name}</title><h1>EspDesktop {name}</h1>", "text/html");
+    }
+}
+#endif
 
 sealed class FakeDesktop : IDesktop
 {
