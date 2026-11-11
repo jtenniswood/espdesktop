@@ -20,7 +20,7 @@ Use the Mac app from the same release as your display firmware. For older firmwa
 
 When you first open EspDesktop on your Mac, follow the on-screen instructions to pair it with your display.
 
-[Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/features/settings#mac-app-settings)
+[Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/settings/system#mac-app-settings)
 
 <style scoped>
 .mac-app-download {
