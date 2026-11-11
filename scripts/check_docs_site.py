@@ -247,6 +247,7 @@ def check_build(dist):
     mac_docs = {
         BASE,
         BASE + 'screens/4848s040',
+        BASE + 'screens/4848s040-stand',
         BASE + 'getting-started/install',
         BASE + 'getting-started/mac-app',
         BASE + 'getting-started/troubleshooting',

@@ -24,6 +24,8 @@ const displayImage = shareImage('4848s040-hero.jpg', 1024, 999,
   'The 4-inch Guition 4848S040 touchscreen next to a keyboard')
 const pageImages: Record<string, typeof defaultImage> = {
   'screens/4848s040.md': displayImage,
+  'screens/4848s040-stand.md': shareImage('4848s040-stand-printed.jpg', 1000, 1000,
+    'The 3D-printed Guition 4848S040 stand with its mounting clips visible'),
   'getting-started/install.md': displayImage,
   'getting-started/mac-app.md': shareImage('mac-app-display.jpg', 1000, 1376,
     'EspDesktop Mac app showing a connected display and the Customize button'),
@@ -215,6 +217,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/' },
           { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: '3D-Printable Stand', link: '/screens/4848s040-stand' },
           { text: 'Getting Setup', link: '/getting-started/install' },
         ],
       },
