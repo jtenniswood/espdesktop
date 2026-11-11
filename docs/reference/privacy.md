@@ -50,7 +50,7 @@ requests may disclose normal connection metadata to the pool operators. This
 traffic occurs even when no optional cards or services are configured and the
 EspDesktop update checker is disabled.
 
-## Optional EspDesktop macOS app
+## EspDesktop macOS app
 
 EspDesktop connects to the display you pair on your local network. It stores
 connection preferences and approved-folder bookmarks locally on the Mac, and
