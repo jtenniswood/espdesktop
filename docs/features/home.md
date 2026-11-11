@@ -14,6 +14,11 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 - **Move a card.** Drag it to another spot in the grid. If you drop it onto another card, that card shifts to the next available space.
 - **Resize a card.** Hover over it and drag the handle in its bottom-right corner to make it wider, taller or smaller. The available sizes depend on the card and the space in the grid. Press **Escape** during the drag to keep the original size.
 
+<figure>
+  <a href="/images/web-editor-resize-handle.png"><img src="/images/web-editor-resize-handle.png" alt="Slack card beside empty tiles in the web editor, with its resize handle visible" width="576" height="566" loading="lazy"></a>
+  <figcaption>The white curve on the Slack card is the resize handle.</figcaption>
+</figure>
+
 Moves and resizes save when you drop the card or release the handle. Choose **Save** when editing a card.
 
 To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them. You can also copy a card’s code to use it on another display.
