@@ -2,18 +2,17 @@
   <title id="title">EspDesktop app icon</title>
   <defs>
     <linearGradient id="aluminum">
-      <stop stop-color="#766f70"/>
-      <stop offset=".16" stop-color="#c5bcbe"/>
-      <stop offset=".37" stop-color="#837c7d"/>
-      <stop offset=".62" stop-color="#b8adae"/>
-      <stop offset=".86" stop-color="#b2a8aa"/>
-      <stop offset="1" stop-color="#6c6464"/>
+      <stop stop-color="#514c4d"/>
+      <stop offset=".18" stop-color="#aaa1a3"/>
+      <stop offset=".43" stop-color="#786f72"/>
+      <stop offset=".73" stop-color="#aaa0a2"/>
+      <stop offset="1" stop-color="#655c5e"/>
     </linearGradient>
     <linearGradient id="rim" x2="0" y2="1" gradientUnits="objectBoundingBox">
-      <stop stop-color="#f2eeee"/>
-      <stop offset=".32" stop-color="#c2b9ba"/>
-      <stop offset=".82" stop-color="#5a5253"/>
-      <stop offset="1" stop-color="#f5f0f0"/>
+      <stop stop-color="#9d9595"/>
+      <stop offset=".25" stop-color="#5b5353"/>
+      <stop offset=".7" stop-color="#494143"/>
+      <stop offset="1" stop-color="#d6cdce"/>
     </linearGradient>
     <linearGradient id="bezel" x2="0" y2="1" gradientUnits="objectBoundingBox">
       <stop stop-color="#312a28"/>
@@ -29,28 +28,30 @@
       <stop stop-color="#0093fa"/>
       <stop offset="1" stop-color="#009afc"/>
     </linearGradient>
-    <linearGradient id="base-shade" x1="0" y1="846" x2="0" y2="924" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#fff" stop-opacity=".48"/>
-      <stop offset=".28" stop-color="#fff" stop-opacity="0"/>
-      <stop offset=".85" stop-color="#161211" stop-opacity=".08"/>
-      <stop offset="1" stop-color="#161211" stop-opacity=".54"/>
+    <linearGradient id="metal-shade" x2="0" y2="1">
+      <stop stop-color="#1e1919" stop-opacity=".44"/>
+      <stop offset=".72" stop-color="#1e1919" stop-opacity=".42"/>
+      <stop offset=".9" stop-color="#fff" stop-opacity=".16"/>
+      <stop offset=".95" stop-color="#fff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#1e1919" stop-opacity=".38"/>
     </linearGradient>
-    <pattern id="brush" width="5" height="4" patternUnits="userSpaceOnUse">
-      <path d="M0 .5H5" stroke="#fff" stroke-opacity=".08"/>
-      <path d="M0 2.5H5" stroke="#292222" stroke-opacity=".06"/>
-    </pattern>
-    <!-- The enclosure fills the centered 824 px macOS icon outline. -->
-    <path id="enclosure" d="M332 100H692C781 100 826 100 872 146S924 243 924 332V692C924 781 924 826 878 872S781 924 692 924H332C243 924 198 924 152 878S100 781 100 692V332C100 243 100 198 146 152S243 100 332 100Z"/>
-    <path id="glass" d="M332 105H692C781 105 825 105 869 149S919 243 919 332V626C919 715 919 759 875 803S781 853 692 853H332C243 853 199 853 155 809S105 715 105 626V332C105 243 105 199 149 155S243 105 332 105Z"/>
-    <path id="display" d="M332 151H692C766 151 802 151 839 188S881 267 881 341V617C881 691 881 727 844 764S766 806 692 806H332C258 806 222 806 185 769S143 691 143 617V341C143 267 143 231 180 194S258 151 332 151Z"/>
-    <clipPath id="face-clip"><use href="#glass"/></clipPath>
+    <!-- Use one continuous corner curve for the enclosure, bezel, and screen. -->
+    <path id="outline" d="M278 0H546
+      C684 0 724 26 761 63C798 100 824 140 824 278V546
+      C824 684 798 724 761 761C724 798 684 824 546 824H278
+      C140 824 100 798 63 761C26 724 0 684 0 546V278
+      C0 140 26 100 63 63C100 26 140 0 278 0Z"/>
+    <clipPath id="enclosure-clip"><use href="#outline" x="100" y="100"/></clipPath>
+    <symbol id="face" viewBox="0 0 824 824" preserveAspectRatio="none" overflow="visible">
+      <use href="#outline"/>
+    </symbol>
   </defs>
-  <use href="#enclosure" fill="url(#aluminum)"/>
-  <use href="#enclosure" fill="url(#brush)"/>
-  <use href="#enclosure" fill="url(#base-shade)"/>
-  <use href="#glass" fill="url(#bezel)" stroke="url(#rim)" stroke-width="5"/>
-  <path d="M745 106H899L920 232L872 324H637Z" fill="#fff" opacity=".1" clip-path="url(#face-clip)"/>
-  <use href="#display" fill="url(#screen)" stroke="#030303" stroke-width="4"/>
+  <g clip-path="url(#enclosure-clip)">
+    <rect x="100" y="100" width="824" height="824" fill="url(#aluminum)"/>
+    <rect x="100" y="100" width="824" height="824" fill="url(#metal-shade)"/>
+  </g>
+  <use href="#face" x="106" y="106" width="812" height="749" fill="url(#bezel)" stroke="url(#rim)" stroke-width="3"/>
+  <use href="#face" x="143" y="147" width="738" height="669" fill="url(#screen)" stroke="#080708" stroke-width="3"/>
   <g fill="url(#fingerprint)" transform="translate(-45 -63) scale(.89)">
     <path d="M584.5 270 Q612 266 641 267.5 Q670 269 685.5 272.5 Q701 276 714.5 280.5 Q728 285 751.5 297 Q775 309 788.5 318.5 Q802 328 812.5 337 Q823 346 837.5 361.5 Q852 377 866 396 Q880 415 891.5 434.5 Q903 454 912.5 473.5 Q922 493 923 500 Q924 507 922 512 Q920 517 915 520.5 Q910 524 901.5 523 Q893 522 888.5 517 Q884 512 875 491.5 Q866 471 857 455.5 Q848 440 830.5 417 Q813 394 802 383 Q791 372 780.5 363.5 Q770 355 754 345 Q738 335 723 328.5 Q708 322 695 318 Q682 314 668 311.5 Q654 309 629.5 308.5 Q605 308 586 311 Q567 314 548.5 319.5 Q530 325 513 332.5 Q496 340 486 345.5 Q476 351 453 366 Q430 381 418.5 390.5 Q407 400 387 422.5 Q367 445 361 447 Q355 449 349.5 447.5 Q344 446 341 443 Q338 440 336.5 436.5 Q335 433 335 428.5 Q335 424 337 419.5 Q339 415 359 393.5 Q379 372 389.5 363 Q400 354 413 344.5 Q426 335 454 318.5 Q482 302 497.5 295 Q513 288 535 281 Q557 274 584.5 270 Z"/>
     <path d="M580 345 Q603 341 629 341.5 Q655 342 672 345.5 Q689 349 702 353.5 Q715 358 729 365 Q743 372 753.5 379 Q764 386 772 392.5 Q780 399 791.5 410.5 Q803 422 812.5 434 Q822 446 828.5 456 Q835 466 854 505.5 Q873 545 877.5 552.5 Q882 560 891.5 570.5 Q901 581 913.5 587.5 Q926 594 929 598.5 Q932 603 932.5 611 Q933 619 930 624.5 Q927 630 923.5 632.5 Q920 635 917 636 Q914 637 908.5 637 Q903 637 898 635 Q893 633 880.5 623.5 Q868 614 858.5 602 Q849 590 841 575 Q833 560 820 529 Q807 498 799 484.5 Q791 471 785 463 Q779 455 767.5 443 Q756 431 750 426 Q744 421 730 412 Q716 403 710.5 401 Q705 399 694.5 394.5 Q684 390 672 387 Q660 384 636 382.5 Q612 381 591.5 384 Q571 387 548.5 394.5 Q526 402 507.5 411.5 Q489 421 472.5 432.5 Q456 444 447.5 451 Q439 458 420 477 Q401 496 378 525.5 Q355 555 349 558 Q343 561 339.5 561 Q336 561 331 559 Q326 557 323 553.5 Q320 550 318.5 546 Q317 542 317 538 Q317 534 318.5 530 Q320 526 347 496 Q374 466 387.5 452.5 Q401 439 415 427 Q429 415 440.5 406.5 Q452 398 466.5 389 Q481 380 496 372.5 Q511 365 528.5 358.5 Q546 352 551.5 350.5 Q557 349 580 345 Z"/>
