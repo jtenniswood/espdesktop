@@ -13,7 +13,7 @@ layout: home
 
 Open apps, run keyboard shortcuts and check Mac stats from a 4‑inch touchscreen beside your keyboard.
 
-EspDesktop pairs the [Guition 4848S040](/screens/4848s040) with a [macOS menu-bar app](/getting-started/mac-app) on your local network.
+The [Guition 4848S040](/screens/4848s040) touchscreen is available for **under £20 (about US$27)**. It pairs with the [EspDesktop menu-bar app](/getting-started/mac-app) on your local network.
 
 <div class="homepage-action">
 
