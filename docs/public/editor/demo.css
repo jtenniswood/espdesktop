@@ -25,14 +25,25 @@ body .sp-support-btn,
 }
 
 #sp-screen .sp-wrap {
-  padding: 0;
+  --frame-size: min(544px, calc(100vw - 2rem), calc(100dvh - 2rem));
+  box-sizing: border-box;
+  width: var(--frame-size);
+  aspect-ratio: 1;
+  padding: calc(var(--frame-size) * 0.071);
+  border: 2px solid transparent;
+  border-radius: calc(var(--frame-size) * 0.034);
+  background:
+    linear-gradient(145deg, #0b0b0b, #030303 45%, #090909) padding-box,
+    linear-gradient(155deg, #b7b5af, #555550 19%, #2c2c2b 48%, #73716a 79%, #a8a59d 96%, #50504e) border-box;
+  box-shadow: inset 0 0 0 1px #ffffff20, 0 10px 26px #0005;
 }
 
 #sp-screen .sp-screen {
   box-sizing: border-box;
-  width: min(480px, calc(100vw - 2rem), calc(100dvh - 2rem));
-  border: 8px solid #111216;
-  border-radius: 18px;
+  width: 100%;
+  border: 1px solid #171717;
+  border-radius: 2px;
+  box-shadow: none;
 }
 
 #sp-screen .sp-empty-cell {
