@@ -16,7 +16,9 @@ function freshWebOutputDir(options = {}) {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), `espdesktop-web-${key}-`));
   const args = [path.join(ROOT, "scripts", "build.py"), "www", "--temporary-output", outputDir];
   if (testHooks) args.push("--test-hooks");
-  const result = childProcess.spawnSync("python3", args, { cwd: ROOT, encoding: "utf8" });
+  const env = { ...process.env };
+  delete env.ESPDESKTOP_LEGACY_WEB_MANIFEST;
+  const result = childProcess.spawnSync("python3", args, { cwd: ROOT, encoding: "utf8", env });
   if (result.status !== 0) {
     fs.rmSync(outputDir, { recursive: true, force: true });
     throw new Error(result.stderr || result.stdout || "Fresh web bundle build failed");

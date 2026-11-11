@@ -1,8 +1,12 @@
 import { build } from 'esbuild'
+import { copyFile } from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
 import { writeMarkdownPages } from './markdown-export'
+
+const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
 
 function shareImage(file: string, width: number, height: number, alt: string) {
   return {
@@ -58,9 +62,11 @@ export default defineConfig({
   ],
   markdown: { config: faqSchema, image: { lazyLoading: true } },
   async buildEnd({ outDir, pages }) {
+    const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
     await Promise.all([
       writeRedirects(outDir),
       writeMarkdownPages(outDir, pages),
+      copyFile(demoRenderer, resolve(outDir, 'editor/renderer.js')),
       build({
         entryPoints: [resolve(import.meta.dirname, 'editor-demo.ts')],
         outfile: resolve(outDir, 'editor/demo.js'),

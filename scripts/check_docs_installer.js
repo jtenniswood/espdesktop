@@ -81,6 +81,8 @@ async function checkBrowser() {
         manifests.push(request.url());
         return route.fulfill({ json: { name: 'EspDesktop', version: 'test', builds: [] } });
       }
+      // Website demos must work even when the release editor is unavailable.
+      if (new URL(request.url()).pathname.startsWith('/espdesktop/webserver/')) return route.abort();
       return route.continue();
     });
     await page.addInitScript(() => {

@@ -10,6 +10,7 @@ on:
       - 'common/assets/**'
       - 'product/v2/**'
       - 'scripts/build_web_bundle.js'
+      - 'scripts/web_source.js'
       - 'scripts/web_icon_names.js'
       - 'scripts/device_profiles.py'
       - 'devices/**'
