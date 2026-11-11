@@ -13,14 +13,17 @@ Tap an Applications card to launch an approved app or bring it to the front on y
 
 Open **Apps** in the Mac app. **All available apps** is on by default. To limit what the display can launch, turn it off and enable the apps you want to use.
 
-[![EspDesktop Mac app on the Apps tab with the All available apps switch on](/images/mac-app-apps.jpg)](/images/mac-app-apps.jpg)
+[![EspDesktop Mac app on the Apps tab with the All available apps switch on](/images/mac-app-available-apps.png)](/images/mac-app-available-apps.png)
 
 ### Add a card in the web editor
 
 1. In the display’s web editor, select an empty tile and choose **Applications**. If the picker shows connector tabs, look under **Companion**.
+
+   ![Choose Card dialog with Applications as the first option](/images/web-editor-choose-card.png)
+
 2. Select an approved application and choose **Save**.
 
-![Applications form with Music selected, the optional Add app subpage switch, and the Save button](/images/web-editor-applications.jpg)
+   ![Applications card form with Figma selected, the Add app subpage switch off, and the Save button visible](/images/web-editor-application-card.png)
 
 The card uses the app's friendly name by default. Enter a custom title in its settings to show a different name.
 
@@ -38,7 +41,11 @@ An approved **Applications** card can offer an editable subpage when EspDesktop 
 2. Open **App Subpage** in its card settings and turn on **Add app subpage**.
 3. Choose the shortcuts to include and drag them into order.
 
+![Figma Applications card settings with Add app subpage on and shortcuts that can be enabled and reordered](/images/web-editor-app-subpage-shortcuts.png)
+
 The page uses the same templates as the **Application** tab on a **Key Shortcut** card and remains editable. Turning the app subpage option off preserves your changes.
+
+![Figma app subpage in the web editor with a back tile and shortcuts such as Frame, Duplicate, and Copy PNG](/images/web-editor-figma-subpage.png)
 
 You can [add a custom shortcut](/mac-controls/shortcuts#create-a-shortcut-card) in an empty tile on the app subpage.
 
