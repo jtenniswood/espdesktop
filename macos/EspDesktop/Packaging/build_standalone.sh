@@ -72,6 +72,9 @@ iconutil --convert icns --output "${APP_DIR}/Contents/Resources/AppIcon.icns" "$
 plutil -replace CFBundleIdentifier -string "${PRODUCT_BUNDLE_IDENTIFIER}" "${APP_DIR}/Contents/Info.plist"
 plutil -replace CFBundleShortVersionString -string "${VERSION}" "${APP_DIR}/Contents/Info.plist"
 plutil -replace CFBundleVersion -string "${BUILD_NUMBER}" "${APP_DIR}/Contents/Info.plist"
+if [[ "${ESPDESKTOP_RELEASE_BUILD:-0}" == "1" ]]; then
+    plutil -replace EspDesktopDevelopmentBuild -bool NO "${APP_DIR}/Contents/Info.plist"
+fi
 plutil -lint "${APP_DIR}/Contents/Info.plist"
 plutil -lint "${APP_DIR}/Contents/Resources/PrivacyInfo.xcprivacy"
 

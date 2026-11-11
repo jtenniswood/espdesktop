@@ -34,7 +34,13 @@ final class CompanionUpdater: NSObject, ObservableObject, SPUUpdaterDelegate,
             controller.updater.automaticallyDownloadsUpdates = automaticallyInstalls
         }
     }
-    let installedVersion = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Development build"
+    let installedVersion: String = {
+        let bundle = Bundle.main
+        if bundle.object(forInfoDictionaryKey: "EspDesktopDevelopmentBuild") as? Bool == true {
+            return "Dev"
+        }
+        return bundle.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "Dev"
+    }()
     private lazy var controller = SPUStandardUpdaterController(
         startingUpdater: false, updaterDelegate: self, userDriverDelegate: self
     )
