@@ -771,9 +771,8 @@ export function registerCompanionCardTypes(
             modifierLabel.className = "sp-field-label";
             modifierLabel.textContent = "Modifiers";
             customField.appendChild(modifierLabel);
-            const modifierButtons = document.createElement("div");
-            modifierButtons.className = "sp-card-type-tabs sp-shortcut-modifiers";
-            modifierButtons.setAttribute("role", "group");
+            const modifierButtons = document.createElement("fieldset");
+            modifierButtons.className = "sp-segment";
             modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
@@ -787,7 +786,6 @@ export function registerCompanionCardTypes(
             for (const [modifier, label] of modifiers) {
                 const button = document.createElement("button");
                 button.type = "button";
-                button.className = "sp-card-type-tab";
                 button.textContent = label;
                 button.addEventListener("click", function () {
                     if (selectedModifiers.has(modifier)) selectedModifiers.delete(modifier);
@@ -837,7 +835,9 @@ export function registerCompanionCardTypes(
             shortcutField.appendChild(shortcutPanel.panel);
             function syncShortcutBuilder(): void {
                 for (const [modifier, button] of modifierControls) {
-                    button.setAttribute("aria-pressed", String(selectedModifiers.has(modifier)));
+                    const selected = selectedModifiers.has(modifier);
+                    button.classList.toggle("active", selected);
+                    button.setAttribute("aria-pressed", String(selected));
                 }
                 keySelect.value = selectedKey;
             }

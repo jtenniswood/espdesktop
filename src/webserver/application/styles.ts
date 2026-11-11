@@ -356,10 +356,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-card-type-picker-field{margin-bottom:0}" +
         ".sp-card-type-tabs{display:flex;gap:6px;margin:0 0 14px;padding-bottom:2px;border-bottom:1px solid var(--border)}" +
         ".sp-card-type-tab{border:0;border-bottom:2px solid transparent;background:none;color:var(--text2);padding:8px 10px;font:inherit;font-size:.84rem;cursor:pointer}" +
-        ".sp-card-type-tab[aria-selected='true'],.sp-card-type-tab[aria-pressed='true']{color:var(--text);border-bottom-color:var(--accent)}" +
-        ".sp-card-type-tab[aria-selected='true']{font-weight:600}" +
+        ".sp-card-type-tab[aria-selected='true']{color:var(--text);border-bottom-color:var(--accent);font-weight:600}" +
         ".sp-card-type-tab:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-soft);border-radius:4px}" +
-        ".sp-shortcut-modifiers{flex-wrap:wrap}.sp-shortcut-modifiers .sp-card-type-tab{font-weight:500}" +
         ".sp-card-type-readonly .sp-readonly-value{padding:10px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-size:.9rem}" +
         ".sp-card-type-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}" +
         ".sp-card-type-option{min-width:0;min-height:112px;display:flex;align-items:flex-start;gap:13px;" +
@@ -417,6 +415,12 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-field-info-button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:2px}" +
         ".sp-field-info-text{display:none;font-size:.75rem;color:var(--text2);line-height:1.35;margin:6px 0 8px}" +
         ".sp-field-info-text.sp-visible{display:block}" +
+        ".sp-shortcut-modifiers{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}" +
+        ".sp-shortcut-modifier{min-height:36px;padding:7px 10px;border:1px solid var(--border);border-radius:9px;" +
+        "background:var(--surface2);color:var(--text2);font:inherit;font-size:.8rem;cursor:pointer}" +
+        ".sp-shortcut-modifier:hover{color:var(--text);border-color:var(--text3)}" +
+        ".sp-shortcut-modifier.active{background:var(--accent-soft);border-color:var(--accent);color:var(--text)}" +
+        ".sp-shortcut-modifier:focus-visible{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-setting-note{margin:-2px 0 14px;color:var(--text2);font-size:var(--text-sm);line-height:1.4;overflow-wrap:anywhere}" +
         ".sp-input,.sp-select{width:100%;padding:10px 12px;background:var(--surface2);" +
         "border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:var(--text-md);" +
@@ -558,6 +562,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-disclosure{border:1px solid var(--border);border-radius:8px;background:rgba(255,255,255,.02);margin-top:4px}" +
         ".sp-disclosure+.sp-disclosure{margin-top:14px}" +
         ".sp-field.sp-shortcut-settings{margin-bottom:14px}" +
+        ".sp-shortcut-settings fieldset.sp-segment{margin-inline:0;padding:0;min-width:0}" +
         ".sp-disclosure-button{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;" +
         "padding:12px 14px;background:transparent;border:0;color:var(--text);font:inherit;font-size:.875rem;font-weight:500;cursor:pointer;text-align:left}" +
         ".sp-disclosure-button:hover{background:rgba(255,255,255,.03)}" +
