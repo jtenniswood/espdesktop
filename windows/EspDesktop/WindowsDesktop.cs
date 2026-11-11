@@ -28,6 +28,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
     private string? cachedAddressBar;
     private nint cachedBrowserWindow;
     private Task<(nint Window, string? Address)>? browserRead;
+    private Task? windowFocusRequest;
     private long browserReadAt;
     private bool reportedLocked;
     private bool? displayAwake;
@@ -119,8 +120,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
                 return true;
             }, false))
             {
-                if (IsIconic(existingWindow)) _ = ShowWindowAsync(existingWindow, 9);
-                _ = SetForegroundWindow(existingWindow);
+                RequestWindowFocus(existingWindow, token);
                 return "opened";
             }
             token.ThrowIfCancellationRequested();
@@ -142,8 +142,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
         if (SessionState.Locked) return "not_allowed";
         if (window != 0)
         {
-            if (IsIconic(window)) _ = ShowWindowAsync(window, 9);
-            _ = SetForegroundWindow(window);
+            RequestWindowFocus(window, token);
         }
         else
         {
@@ -163,7 +162,47 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
             if (IsActive(app)) return "activated";
             await Task.Delay(50, token);
         } while (Stopwatch.GetElapsedTime(start) < TimeSpan.FromSeconds(3));
-        return window == 0 ? "opened" : "failed";
+        if (window == 0) return "opened";
+        if (Identify(window)?.Id == app.Id) FlashTaskbar(window);
+        return "failed";
+    }
+
+    private void RequestWindowFocus(nint window, CancellationToken token)
+    {
+        if (token.IsCancellationRequested || SessionState.Locked) return;
+        if (IsIconic(window)) _ = ShowWindowAsync(window, 9);
+        if (SetForegroundWindow(window) || windowFocusRequest is { IsCompleted: false }) return;
+
+        // Try the target window's UI Automation provider when Windows denies
+        // the ordinary activation request. Keep provider calls off the UI thread.
+        _ = InputSession.GetWindowThreadProcessId(window, out var processId);
+        if (processId == 0) return;
+        var requestedAt = Stopwatch.GetTimestamp();
+        windowFocusRequest = Task.Run(() =>
+        {
+            try
+            {
+                var target = AutomationElement.FromHandle(window);
+                if (target.Current.ProcessId != processId || token.IsCancellationRequested ||
+                    Stopwatch.GetElapsedTime(requestedAt) >= TimeSpan.FromSeconds(1) ||
+                    !InputSession.IsDefaultInputDesktop()) return;
+                target.SetFocus();
+            }
+            catch (Exception e) when (e is ElementNotAvailableException or ElementNotEnabledException ||
+                                      IsShellFailure(e)) { }
+        });
+    }
+
+    private static void FlashTaskbar(nint window)
+    {
+        var info = new FlashInfo
+        {
+            Size = (uint)Marshal.SizeOf<FlashInfo>(),
+            Window = window,
+            Flags = 2, // FLASHW_TRAY
+            Count = 3
+        };
+        _ = FlashWindowEx(ref info);
     }
 
     private bool IsActive(StartApp app)
@@ -461,6 +500,13 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
     private readonly record struct SizeNative(int Width, int Height);
     [StructLayout(LayoutKind.Sequential, Pack = 4)]
     private readonly record struct PropertyKey(Guid Format, uint Id);
+    [StructLayout(LayoutKind.Sequential)]
+    private struct FlashInfo
+    {
+        public uint Size;
+        public nint Window;
+        public uint Flags, Count, Timeout;
+    }
     [StructLayout(LayoutKind.Explicit, Size = 24)]
     private struct PropVariant
     {
@@ -490,6 +536,7 @@ internal sealed class WindowsDesktop(LocalStore store) : IDesktop
     private static extern bool QueryFullProcessImageNameW(nint process, uint flags, StringBuilder image, ref uint size);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool LockWorkStation();
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool SetForegroundWindow(nint window);
+    [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool FlashWindowEx(ref FlashInfo info);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool ShowWindowAsync(nint window, int command);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool IsIconic(nint window);
     [DllImport("user32.dll")] [return: MarshalAs(UnmanagedType.Bool)] private static extern bool IsWindowVisible(nint window);

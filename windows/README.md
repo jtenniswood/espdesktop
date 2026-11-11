@@ -18,6 +18,7 @@ Keep the PC and display on the same local network. In **Display**, select a near
 Existing S3 firmware calls the connector **Mac Companion**. Use that connector for Windows too. In the display’s web editor you can:
 
 - Add **Applications** cards for approved Start menu apps, with icons and active app highlighting. Shortcut presets are included for common browsers, VS Code, Cursor, Office and Notepad where the app can identify them. You can create a custom shortcut for any approved app.
+- If Windows keeps another app in front, use the flashing taskbar button to switch to the requested app. Shortcut pages require the matching app to be in the foreground.
 - Add **Folder** cards for folders you approve in Windows. File Explorer uses the firmware’s existing Finder slot, so its app subpage can also show approved folders. Folder paths stay on the PC.
 - Add **Website** cards. Links use your default browser; new windows and active site highlighting work with supported browsers. Highlighting depends on the browser exposing its address bar to Windows accessibility. Some browser versions, languages, and installed web apps may not expose it.
 - Add **Key Shortcut** or **Mac Lock** cards. Enable **Allow keyboard shortcuts and screen lock** in the Windows app first. The editor’s Command and Control choices both map to Windows Ctrl; Option maps to Alt. Shortcuts go to an approved app in front and Windows protects apps running as administrator. The existing Mac Lock card locks Windows.
