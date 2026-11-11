@@ -22,9 +22,7 @@ Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/scre
 </div>
 
 <figure class="homepage-panel">
-
-![Illustrated 4-inch touchscreen with tiles for apps, websites, folders and shortcuts](/images/espdesktop-mac-controls.svg)
-
+  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093">
 </figure>
 
 </section>
@@ -37,6 +35,13 @@ Open apps, visit websites and run shortcuts from this [4-inch touchscreen](/scre
 
 <article>
 
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="3" y="3" width="7" height="7" rx="1.5" />
+  <rect x="14" y="3" width="7" height="7" rx="1.5" />
+  <rect x="3" y="14" width="7" height="7" rx="1.5" />
+  <rect x="14" y="14" width="7" height="7" rx="1.5" />
+</svg>
+
 ### Launch Mac apps
 
 Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a tile of its own.
@@ -46,6 +51,12 @@ Open an app or bring it to the front with a tap. Give Slack, Mail or Figma a til
 </article>
 
 <article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <circle cx="12" cy="12" r="9" />
+  <ellipse cx="12" cy="12" rx="4" ry="9" />
+  <path d="M3 12h18" />
+</svg>
 
 ### Open websites
 
@@ -57,6 +68,10 @@ Give your calendar or project dashboard a tile that opens it in your default bro
 
 <article>
 
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+</svg>
+
 ### Jump to a Finder folder
 
 Give Downloads, client files or your current project a tile of its own.
@@ -66,6 +81,11 @@ Give Downloads, client files or your current project a tile of its own.
 </article>
 
 <article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="2" y="5" width="20" height="14" rx="2" />
+  <path d="M6 9h.01M10 9h.01M14 9h.01M18 9h.01M6 12h.01M10 12h.01M14 12h.01M18 12h.01M8 15h8" />
+</svg>
 
 ### Keep shortcuts in view
 
@@ -77,6 +97,11 @@ Turn key combinations into labelled buttons. Shortcut pages can follow the app y
 
 <article>
 
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="5" y="10" width="14" height="11" rx="2" />
+  <path d="M8 10V7a4 4 0 1 1 8 0v3m-4 5v2" />
+</svg>
+
 ### Lock your Mac
 
 Tap the Lock Machine tile when you step away from your desk.
@@ -86,6 +111,13 @@ Tap the Lock Machine tile when you step away from your desk.
 </article>
 
 <article>
+
+<svg class="homepage-feature-icon" viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M5 3v9m0 4v5M12 3v4m0 4v10M19 3v12m0 4v2" />
+  <rect x="2" y="12" width="6" height="4" rx="1" />
+  <rect x="9" y="7" width="6" height="4" rx="1" />
+  <rect x="16" y="15" width="6" height="4" rx="1" />
+</svg>
 
 ### Make the layout your own
 
@@ -103,48 +135,33 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 <div>
 
-## Arrange tiles in your browser {#a-look-at-the-web-editor}
+## EspDesktop in action {#a-look-at-the-web-editor}
 
-The preview shows how your layout will look on the display. In this example, browser shortcuts share a subpage, with a Back tile to return to the previous page.
+Try the touchscreen here. Tap Slack to open its shortcut page, then tap the app icon to go back home.
 
 <div class="homepage-editor-actions">
 
-[Explore the web editor](/features/setup) [Create a subpage](/features/subpages#create-a-subpage)
+<a href="./editor/index.html" target="_self">Open full-size demo</a> <a href="./editor-demo/index.html" target="_self">Open editor demo</a> [Get Started](/screens/4848s040#where-to-buy)
 
 </div>
 
 </div>
 
-<figure>
-
-![EspDesktop web editor showing a subpage with Back, Address Bar, New Tab, Find and Close Tab tiles](/images/web-editor-subpage.jpg)
-
-</figure>
+<iframe
+  class="homepage-demo"
+  src="./editor/index.html"
+  title="Interactive EspDesktop touchscreen demo"
+  loading="lazy"
+></iframe>
 
 </section>
 
 <style scoped>
-@font-face {
-  font-family: 'Instrument Serif';
-  src: url('./.vitepress/theme/fonts/instrument-serif-regular.woff2') format('woff2');
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Instrument Serif';
-  src: url('./.vitepress/theme/fonts/instrument-serif-italic.woff2') format('woff2');
-  font-weight: 400;
-  font-style: italic;
-  font-display: swap;
-}
-
 .homepage-hero h1,
 .homepage-features h2,
 .homepage-grid h3,
 .homepage-editor h2 {
-  font-family: 'Instrument Serif', Georgia, serif;
+  font-family: var(--espdesktop-headline-font);
   font-weight: 400;
   letter-spacing: normal;
 }
@@ -212,13 +229,10 @@ The preview shows how your layout will look on the display. In this example, bro
 }
 
 .homepage-panel img {
+  display: block;
   width: 100%;
-  aspect-ratio: 1;
-}
-
-.homepage-panel p,
-.homepage-editor figure p {
-  margin: 0;
+  height: auto;
+  border-radius: 14px;
 }
 
 .homepage-features h2,
@@ -246,6 +260,22 @@ The preview shows how your layout will look on the display. In this example, bro
   gap: 10px;
   padding: clamp(20px, 3vw, 36px);
   background: var(--vp-c-bg-soft);
+}
+
+.homepage-feature-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  padding: 9px;
+  border-radius: 10px;
+  background: var(--vp-c-brand-soft);
+  color: var(--vp-c-brand-1);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .homepage-grid h3,
@@ -299,15 +329,14 @@ The preview shows how your layout will look on the display. In this example, bro
   border: 0;
 }
 
-.homepage-editor figure {
-  width: min(100%, 420px);
+.homepage-demo {
+  display: block;
+  width: min(100%, 452px);
+  height: auto;
+  aspect-ratio: 1;
   justify-self: center;
-}
-
-.homepage-editor img {
-  width: 100%;
-  aspect-ratio: 620 / 612;
-  border-radius: 6px;
+  border: 0;
+  color-scheme: only light;
 }
 
 @media (min-width: 620px) {
@@ -319,8 +348,19 @@ The preview shows how your layout will look on the display. In this example, bro
 @media (min-width: 768px) {
   .homepage-hero,
   .homepage-editor {
-    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     gap: clamp(32px, 6vw, 80px);
+  }
+
+  .homepage-hero {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  }
+
+  .homepage-editor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .homepage-demo {
+    width: 100%;
   }
 }
 

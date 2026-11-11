@@ -13,6 +13,7 @@
     "target": "ES2022"
   },
   "include": [
+    "docs/.vitepress/editor-demo.ts",
     "src/webserver/**/*.ts",
     "tests/web/**/*.ts"
   ]
