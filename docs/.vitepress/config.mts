@@ -23,6 +23,8 @@ const defaultImage = shareImage('espdesktop-share.png', 1200, 630,
 const pageImages: Record<string, typeof defaultImage> = {
   'screens/4848s040.md': shareImage('4848s040-slack.jpg', 1202, 1100,
     'Guition 4848S040 touchscreen showing Slack shortcuts beside a keyboard'),
+  'screens/4848s040-stand.md': shareImage('4848s040-stand-printed.jpg', 1000, 1000,
+    'The 3D-printed Guition 4848S040 stand with its mounting clips visible'),
   'getting-started/install.md': shareImage('4848s040-hero.jpg', 1024, 999,
     'The 4-inch Guition 4848S040 touchscreen next to a keyboard'),
   'getting-started/mac-app.md': shareImage('mac-app-display.jpg', 1000, 1376,
@@ -227,6 +229,7 @@ export default defineConfig({
         items: [
           { text: 'Overview', link: '/' },
           { text: 'Where to Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: '3D-Printable Stand', link: '/screens/4848s040-stand' },
           { text: 'Getting Setup', link: '/getting-started/install' },
         ],
       },
