@@ -17,10 +17,7 @@ Use an **Apple silicon Mac with macOS 13 or later**. Use the Mac app from the sa
 
 ## Pair your display {#pair-the-display}
 
-1. Keep your Mac and display on the same local network. Allow local network access if macOS asks.
-2. Select your display in the Mac app. If it doesn’t appear, find its IP address in your router’s list of connected devices and enter it using **Enter address manually**. Click **Continue**.
-3. The Mac app opens the display’s pairing page in your browser. Copy the eight-letter code shown under **Your pairing code**, paste it into the Mac app, and click **Connect**.
-4. On **Access and startup**, choose whether EspDesktop should launch at login, then click **Finish**. To use keyboard shortcut cards, choose **Open Settings** beside **Enable Shortcuts** and allow EspDesktop in **Accessibility**.
+When you first open EspDesktop on your Mac, follow the on-screen instructions to pair it with your display.
 
 [Get help with discovery or pairing](/getting-started/troubleshooting) · <span id="check-the-connection"></span><span id="check-for-mac-app-updates"></span>[Mac app settings and updates](/features/settings#mac-app-settings)
 
