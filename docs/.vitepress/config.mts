@@ -6,6 +6,7 @@ import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
 import { writeMarkdownPages } from './markdown-export'
 import { unpublishedMarkdown, writeGuideIndex } from './public-guides'
+import productFacts from './product-facts.json'
 
 const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
 
@@ -165,7 +166,8 @@ export default defineConfig({
           name: 'EspDesktop',
           url: canonicalUrl,
           applicationCategory: 'UtilitiesApplication',
-          operatingSystem: 'macOS 13 or newer',
+          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer`,
+          processorRequirements: productFacts.macProcessor,
           description,
           author,
           softwareHelp: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,

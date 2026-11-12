@@ -3,6 +3,7 @@ import { writeFile } from 'node:fs/promises'
 import { resolve } from 'node:path'
 import { hostname, redirects } from './discovery'
 import guideGroups from './public-guides.json'
+import productFacts from './product-facts.json'
 
 const docs = resolve(import.meta.dirname, '..')
 const guides = Object.values(guideGroups).flat()
@@ -32,9 +33,9 @@ export async function writeGuideIndex(outDir: string, pages: string[], metadata:
   const lines = [
     '# EspDesktop',
     '',
-    '> EspDesktop pairs a 4-inch Guition 4848S040 ESP32-S3 touchscreen with a macOS menu-bar app. Use it to launch apps, open Finder folders and websites, run shortcuts and lock the Mac.',
+    `> EspDesktop pairs a ${productFacts.displayLabel} touchscreen with a macOS menu-bar app. Use it to launch apps, open Finder folders and websites, run shortcuts and lock the Mac.`,
     '',
-    'The Mac app requires Apple silicon and macOS 13 or newer. The display needs 2.4 GHz Wi-Fi on the same local network as the Mac. Use firmware and the Mac app from the same EspDesktop release.',
+    `The Mac app requires ${productFacts.macProcessor} and macOS ${productFacts.minimumMacOS} or newer. The display needs ${productFacts.displayWiFiBand} Wi-Fi on the same local network as the Mac. Use firmware and the Mac app from the ${productFacts.matchedRelease}.`,
     '',
     'Each Markdown guide links to its original web page. Open the original installation page to run the interactive installer.',
   ]

@@ -18,7 +18,7 @@ The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Follow 
 
 ### Does EspDesktop need Home Assistant?
 
-EspDesktop connects the touchscreen directly to the Mac Companion app over your local network. For a touchscreen that controls Home Assistant devices, see the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+EspDesktop connects the touchscreen directly to the Mac Companion app over your local network. The display uses 2.4 GHz Wi-Fi. For a touchscreen that controls Home Assistant devices, see the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
 
 ### Why can't I see my display in the Mac app?
 

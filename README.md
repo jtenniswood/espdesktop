@@ -31,7 +31,7 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed for keyboard shortcuts and Mac Lock.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
-Start with the [firmware install guide](https://espdesktop.com/screens/4848s040#set-up-espdesktop), then follow the [Mac app and pairing guide](https://espdesktop.com/screens/4848s040#install-and-pair-the-espdesktop-mac-app). Install matching firmware and app builds.
+Start with the [firmware install guide](https://espdesktop.com/screens/4848s040#set-up-espdesktop), then follow the [Mac app and pairing guide](https://espdesktop.com/screens/4848s040#install-and-pair-the-espdesktop-mac-app). Install the firmware and Mac app from the same EspDesktop release.
 
 ## Designed to Stay Narrow
 
@@ -51,7 +51,7 @@ Pair on a trusted local network and remove a display from the Mac app before rep
 - A USB-C data cable for the first firmware install
 - Chrome or Edge for browser-based flashing
 - A 2.4 GHz WiFi network shared by the display and Mac
-- A Mac running macOS 13 or newer
+- An Apple silicon Mac running macOS 13 or newer
 
 The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com/e/_c2uYL5dd), with a compatible [3D-printable stand on MakerWorld](https://makerworld.com/en/models/3592833-espdesktop-4inch-screen-stand#profileId-4115394).
 

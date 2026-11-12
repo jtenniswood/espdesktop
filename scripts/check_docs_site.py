@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 import json
 from pathlib import Path
+import plistlib
 import re
 from urllib.parse import unquote, urljoin, urlsplit
 from urllib.request import urlopen
@@ -199,6 +200,40 @@ def check_markdown_guides(dist, pages):
     return errors
 
 
+def check_product_facts(dist, pages):
+    facts = json.loads((ROOT / 'docs/.vitepress/product-facts.json').read_text())
+    devices = json.loads((ROOT / 'devices/manifest.json').read_text())['devices']
+    release = json.loads((ROOT / 'product/generated/companion_compatibility.json').read_text())
+    info = plistlib.loads((ROOT / 'macos/EspDesktop/Packaging/Info.plist').read_bytes())
+    errors = []
+
+    if release['supportedDevices'] != [facts['displaySlug']]:
+        errors.append('Discovery facts must match the Companion-supported displays')
+    device = devices[facts['displaySlug']]
+    manufacturer, model = device['public']['name'].split(' ', 1)
+    size = device['public']['screenSize'].split(' ', 1)[0]
+    chip = device['firmware']['build']['chip']
+    if facts['displayLabel'] != f'{size}-inch {manufacturer} {chip} {model}':
+        errors.append('Discovery display label must match the device manifest')
+    if facts['minimumMacOS'] != info['LSMinimumSystemVersion'].removesuffix('.0'):
+        errors.append('Discovery macOS minimum must match the packaged app')
+
+    required = [
+        facts['displayLabel'], facts['macProcessor'], f"macOS {facts['minimumMacOS']} or newer",
+        facts['displayWiFiBand'], facts['matchedRelease'],
+    ]
+    for label, copy in [
+        ('README', (ROOT / 'README.md').read_text()),
+        ('HTML FAQ', ' '.join(answer for _question, answer in pages[BASE + 'reference/faq'].faq)),
+        ('Markdown FAQ', (dist / 'reference/faq.md').read_text()),
+        ('AI reading index', (dist / 'llms.txt').read_text()),
+    ]:
+        for term in required:
+            if term not in copy:
+                errors.append(f'{label} omitted the supported product fact: {term}')
+    return errors
+
+
 def check_build(dist):
     errors = []
     pages = {}
@@ -260,6 +295,7 @@ def check_build(dist):
     if missing_pages := mac_docs - set(pages):
         errors.append(f'Missing sitemap pages: {sorted(missing_pages)}')
     errors.extend(check_markdown_guides(dist, pages))
+    errors.extend(check_product_facts(dist, pages))
     for field in ('duplicate_titles', 'duplicate_descriptions'):
         if report[field]:
             errors.append(f'{field}: {report[field]}')
