@@ -68,8 +68,11 @@ The schema here keeps the machine-readable content consistent with the page.
 
 The [plain-text docs index](https://espdesktop.com/llms.txt)
 follows the [llms.txt proposal](https://llmstxt.org/). It groups the public
-guides by task. When adding or retiring a public guide, update
-`docs/public/llms.txt` alongside the site navigation.
+guides by task. Add or retire guides in `docs/.vitepress/public-guides.json`
+and update the navigation or redirects as needed. The build uses this inventory
+to select the public articles and generates `llms.txt` from their titles and
+descriptions. The 404 page, redirects, demos and generated includes are outside
+the guide inventory.
 
 VitePress exports Markdown from the rendered public articles at build time.
 The HTML pages link to their Markdown equivalents and to the index through
@@ -84,8 +87,14 @@ find documentation. Crawler access is governed separately at the host root.
 ## Host-root Robots Policy
 
 The [published robots.txt](../docs/public/robots.txt) allows crawling and
-announces the sitemap at the custom domain root. After deployment, check both
-files:
+announces the sitemap at the custom domain root. It explicitly allows
+`OAI-SearchBot` and `Claude-SearchBot` for search discovery. Training crawlers
+such as `GPTBot` and `ClaudeBot` fall under the default public crawl policy.
+Review training permissions independently when changing that policy.
+See the [OpenAI crawler roles](https://developers.openai.com/api/docs/bots)
+and [Claude crawler roles](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler).
+
+After deployment, check both files:
 
 ```bash
 curl --fail https://espdesktop.com/robots.txt

@@ -183,6 +183,11 @@ def check_markdown_guides(dist, pages):
         guide = file.read_text()
         if not guide.startswith('# ') or f'[Original EspDesktop guide]({url})' not in guide:
             errors.append(f'Markdown edition needs a heading and original page link: {url}')
+        elif len(page.h1) == 1 and normalized(guide.splitlines()[0][2:]) != normalized(page.h1[0]):
+            errors.append(f'Markdown heading differs from the guide: {url}')
+        for link in page.links:
+            if link.startswith('https://github.com/jtenniswood/espdesktop/releases/download/') and link not in guide:
+                errors.append(f'Markdown edition omitted a release download: {url}')
 
     links = [url for url in re.findall(r'^- \[[^\]]+\]\((https://[^)\s]+)\)', index, re.MULTILINE)
              if url.startswith(BASE)]
@@ -244,29 +249,11 @@ def check_build(dist):
             errors.append(f'Incorrect breadcrumb trail: {url}')
 
     report = snapshot(pages)
+    groups = json.loads((ROOT / 'docs/.vitepress/public-guides.json').read_text())
     mac_docs = {
-        BASE,
-        BASE + 'screens/4848s040',
-        BASE + 'screens/4848s040-stand',
-        BASE + 'getting-started/troubleshooting',
-        BASE + 'mac-controls/apps',
-        BASE + 'mac-controls/websites',
-        BASE + 'mac-controls/folders',
-        BASE + 'mac-controls/shortcuts',
-        BASE + 'mac-controls/improve-shortcuts',
-        BASE + 'mac-controls/security',
-        BASE + 'features/first-run',
-        BASE + 'settings/screen',
-        BASE + 'settings/system',
-        BASE + 'settings/mac-app',
-        BASE + 'settings/backup',
-        BASE + 'features/home',
-        BASE + 'features/subpages',
-        BASE + 'reference/faq',
-        BASE + 'reference/companion-compatibility',
-        BASE + 'reference/privacy',
-        BASE + 'reference/support',
-        BASE + 'reference/request-icons',
+        BASE + (path.removesuffix('index.md') if path == 'index.md' or path.endswith('/index.md')
+                else path.removesuffix('.md'))
+        for paths in groups.values() for path in paths
     }
     if unexpected_pages := set(pages) - mac_docs:
         errors.append(f'Unexpected sitemap pages: {sorted(unexpected_pages)}')

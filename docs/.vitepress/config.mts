@@ -5,6 +5,7 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
 import { writeMarkdownPages } from './markdown-export'
+import { unpublishedMarkdown, writeGuideIndex } from './public-guides'
 
 const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
 
@@ -45,6 +46,7 @@ const pageImages: Record<string, typeof defaultImage> = {
 
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
 const websiteId = `${hostname}#website`
+const guideMetadata = new Map<string, { title: string; description: string }>()
 
 export default defineConfig({
   title: 'EspDesktop',
@@ -54,24 +56,14 @@ export default defineConfig({
   appearance: 'force-dark',
   cleanUrls: true,
   lastUpdated: true,
-  // Publish only the Mac Companion setup and control guides. The broader
-  // Home Assistant panel documentation lives in the EspControl docs.
-  srcExclude: [
-    'generated/**',
-    'guides/**',
-    'immich/**',
-    'card-types/{actions,alarms,buttons,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,lawn-mower,lights,local-actions,locks,media,option-select,presence,sliders,switches,timers,vacuum,weather,weather-forecast}.md',
-    'features/{appearance,backlight,battery,clock,clock-bar,firmware-updates,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
-    'getting-started/{c6-recovery,home-assistant-actions,manual-esphome-setup,migrate-esphome-media-player}.md',
-    'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc4880p443-v3,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
-    'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
-  ],
+  srcExclude: unpublishedMarkdown,
   markdown: { config: faqSchema, image: { lazyLoading: true } },
   async buildEnd({ outDir, pages }) {
     const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
     await Promise.all([
       writeRedirects(outDir),
       writeMarkdownPages(outDir, pages),
+      writeGuideIndex(outDir, pages, guideMetadata),
       copyFile(demoRenderer, resolve(outDir, 'editor/renderer.js')),
       build({
         entryPoints: [resolve(import.meta.dirname, 'editor-demo.ts')],
@@ -133,6 +125,7 @@ export default defineConfig({
     const canonicalUrl = canonicalUrlFor(relativePath)
     const title = String(frontmatter.title ?? pageData.title)
     const description = String(frontmatter.description ?? '')
+    guideMetadata.set(relativePath, { title, description })
     const image = pageImages[relativePath] ?? defaultImage
     const isHome = relativePath === 'index.md'
     const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
