@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-EspDesktop turns the 4-inch Guition 4848S040 into a touchscreen controller for opening apps, visiting websites and running shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
+EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
