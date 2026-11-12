@@ -47,7 +47,7 @@ For a Cloudflare rollout, build the intended release of the docs and export
 its exact-path rules.
 
 ```bash
-python3 scripts/export_docs_redirects.py --dist docs/.vitepress/dist --output /tmp/espdesktop-redirects.csv
+python3 scripts/export_docs_redirects.py --dist ./docs/.vitepress/dist --output /tmp/espdesktop-redirects.csv
 ```
 
 The export includes clean-URL aliases and retired pages with a single
