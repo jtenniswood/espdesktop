@@ -148,3 +148,17 @@ factual accuracy for a fixed sample of supported hardware, macOS versions,
 pairing, and installation requirements. Results vary and
 are observations, not guaranteed rankings. Google includes AI-feature traffic
 within its Web search reporting rather than providing an isolated AEO score.
+
+## Notify search engines with IndexNow
+
+After verifying the canonical site in Bing Webmaster Tools, set the
+`INDEXNOW_KEY` Actions secret in the `github-pages` environment. Use a new
+random key of 8–128 letters, digits or hyphens. The deployment publishes its
+verification file and submits added, changed and retired guide URLs once those
+changes are visible on the public site. A navigation-only change to a guide's
+next-page link is ignored.
+
+Review the **Notify IndexNow of published guide changes** step after deployment.
+HTTP 200 or 202 confirms receipt. Inspect the submitted pages in Bing to see
+their crawl and indexing status. With no key configured, the workflow skips
+submission. [IndexNow protocol](https://www.indexnow.org/documentation)
