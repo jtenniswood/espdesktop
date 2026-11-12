@@ -252,7 +252,6 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
-          { text: 'Install firmware', link: '/screens/4848s040#install' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
