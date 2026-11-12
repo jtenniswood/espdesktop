@@ -15,7 +15,7 @@ Open apps, visit websites and run shortcuts from this 4-inch touchscreen for les
 
 <div class="homepage-action">
 
-[Get started](/screens/4848s040#set-up-espdesktop)
+[Get started](/screens/4848s040)
 
 </div>
 
@@ -141,7 +141,7 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 
 <div class="homepage-editor-actions">
 
-[Getting Started](/screens/4848s040#where-to-buy) <a href="./editor-demo/index.html" target="_self">Preview Editor</a>
+[Getting Started](/screens/4848s040) <a href="./editor-demo/index.html" target="_self">Preview Editor</a>
 
 </div>
 

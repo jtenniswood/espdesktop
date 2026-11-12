@@ -157,7 +157,7 @@ async function checkBrowser() {
       const actions = demoSection.locator('.homepage-editor-actions');
       assert.deepEqual(await actions.getByRole('link').allTextContents(), ['Getting Started', 'Preview Editor']);
       const getStarted = actions.getByRole('link', { name: 'Getting Started', exact: true });
-      assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040#where-to-buy');
+      assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040');
       const buttonBackground = link => link.evaluate(element => getComputedStyle(element).backgroundColor);
       assert.equal(await buttonBackground(getStarted), await buttonBackground(setup));
       if (width >= 768) {
@@ -290,7 +290,7 @@ async function checkBrowser() {
 
     await page.goto(home);
     await setup.press('Enter');
-    await page.waitForURL(`${home}screens/4848s040#set-up-espdesktop`);
+    await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
     await page.goto(`${base}/screens/4848s040`);
