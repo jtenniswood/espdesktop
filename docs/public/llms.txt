@@ -35,6 +35,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 
 ## Troubleshooting and reference
 
+- [Supported Mac controls by release](https://espdesktop.com/reference/mac-controls-by-release.md)
 - [Compare Mac touchscreen controllers](https://espdesktop.com/reference/mac-touchscreen-controller.md)
 - [Choose between EspDesktop and EspControl](https://espdesktop.com/reference/espdesktop-or-espcontrol.md)
 

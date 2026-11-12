@@ -22,3 +22,5 @@ The comparison uses the documented setup and capabilities for each option. Check
 - **You need to feel the buttons without looking.** Consider a physical Stream Deck and check the plugins or actions you depend on.
 - **You already have a spare tablet or phone.** Try the mobile app on that screen before buying dedicated hardware.
 - **You are buying the 4848S040 for Home Assistant.** See [which EspDesktop or EspControl installer to use](/reference/espdesktop-or-espcontrol).
+
+Check the [supported EspDesktop controls by release](/reference/mac-controls-by-release) before setting up a workflow.
