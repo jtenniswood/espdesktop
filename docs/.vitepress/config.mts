@@ -306,10 +306,10 @@ export default defineConfig({
       {
         text: 'Reference',
         items: [
-          { text: 'Setup and compatibility FAQ', link: '/reference/faq' },
-          { text: 'App and firmware compatibility', link: '/reference/companion-compatibility' },
-          { text: 'Support the project', link: '/reference/support' },
-          { text: 'Privacy policy', link: '/reference/privacy' },
+          { text: 'FAQ', link: '/reference/faq' },
+          { text: 'Compatibility', link: '/reference/companion-compatibility' },
+          { text: 'Support', link: '/reference/support' },
+          { text: 'Privacy', link: '/reference/privacy' },
         ],
       },
       {
