@@ -89,8 +89,12 @@ def verify(dist, base):
                 return None
             return f'{url}: expected a permanent redirect to {target}, got HTTP {status}'
         media_type, path = files[route]
-        if status != 200 or headers.get_content_type() != media_type:
-            return f'{url}: expected HTTP 200 and {media_type}, got HTTP {status} and {headers.get_content_type()}'
+        served_type = headers.get_content_type()
+        accepted_types = {media_type}
+        if media_type == 'application/xml':
+            accepted_types.add('text/xml')
+        if status != 200 or served_type not in accepted_types:
+            return f'{url}: expected HTTP 200 and {media_type}, got HTTP {status} and {served_type}'
         if body != path.read_bytes():
             return f'{url}: response differs from the deployment artifact'
         return None
