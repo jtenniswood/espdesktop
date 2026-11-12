@@ -13,6 +13,27 @@ It verifies images, breadcrumbs, internal links and anchors, retired-page
 redirects, and FAQ data matching the visible answers. The Pages deployment
 uses Git history to date each sitemap entry.
 
+## Verify the Setup Docs for Each Stable Release
+
+Before publishing a candidate, open the [firmware install guide](https://espdesktop.com/getting-started/install),
+[Mac pairing guide](https://espdesktop.com/getting-started/mac-app), and
+[compatibility reference](https://espdesktop.com/reference/companion-compatibility)
+from the candidate docs build. If setup changed, compare the instructions with
+the candidate's interface, including button names, prerequisites, and what
+success looks like. Check changed recovery steps using the same build.
+
+On a Guition 4848S040 test display, follow the USB installer, connect to Wi-Fi,
+pair the matching Mac app, and launch one app from a tile. Record the date,
+release tag, display model, macOS version, browser, and which steps passed in
+the candidate test notes. Record any skipped or failed steps there as well.
+Keep that result separate from the CI build and browser checks.
+
+After Pages deploys, open the [official download](https://espdesktop.com/download)
+and the firmware installer. Confirm that the download, installer manifest and
+compatibility reference identify the same stable release. Check the published
+installer's availability and inspect the deployment results before sharing
+the release links.
+
 ## Review the Homepage
 
 - Show the first screen briefly to someone unfamiliar with EspDesktop. Ask what
