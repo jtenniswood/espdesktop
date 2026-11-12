@@ -3,7 +3,7 @@ title: Customise the EspDesktop Home Screen
 description: Rearrange, resize, and move cards between pages, customise their appearance, and create subpages in the EspDesktop web editor.
 ---
 
-# Home
+# Customise the EspDesktop touchscreen layout {#home}
 
 Home is the main screen on your EspDesktop touchscreen. Open your display’s address in a browser and select **Layout** to arrange the cards you want within easy reach.
 
