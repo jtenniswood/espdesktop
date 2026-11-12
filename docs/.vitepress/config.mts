@@ -239,14 +239,6 @@ export default defineConfig({
         ],
       },
       {
-        text: 'Getting Started',
-        items: [
-          { text: 'Install the display', link: '/screens/4848s040#set-up-espdesktop' },
-          { text: 'Download and pair the Mac app', link: '/screens/4848s040#install-and-pair-the-espdesktop-mac-app' },
-          { text: 'Configure your cards', link: '/screens/4848s040#_3-configure-your-cards' },
-        ],
-      },
-      {
         text: 'Features',
         items: [
           { text: 'First setup', link: '/features/first-run' },
