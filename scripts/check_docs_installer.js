@@ -297,17 +297,12 @@ async function checkBrowser() {
     const setupDownloadHref = await setupDownload.getAttribute('href');
     const wizard = page.locator('.display-setup-step a.display-setup-button').getByText('View setup wizard', { exact: true });
     assert.equal(await wizard.getAttribute('href'), '/features/first-run');
-    const installGuide = page.getByRole('link', { name: 'firmware installer and step-by-step guide' });
-    await installGuide.click();
-    await page.waitForURL('**/getting-started/install');
-    await assertSupportedInstaller();
-    await page.goto(`${base}/screens/4848s040`);
+    const setupPage = `${base}/screens/4848s040`;
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
-    await page.waitForURL('**/getting-started/install');
-    await assertSupportedInstaller();
-    assert(manifests.length >= 3, 'The setup page and install guide must check the S3 manifest');
+    await page.waitForURL(`${setupPage}#install`);
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Download', exact: true }).click();
     await page.waitForURL('**/download');
+    await page.getByRole('heading', { name: 'Download EspDesktop for Mac', level: 1 }).waitFor();
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
@@ -341,6 +336,17 @@ async function checkBrowser() {
       const photo = await step.locator('img').boundingBox();
       assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
     }
+    const canonicalSetup = 'https://espdesktop.com/screens/4848s040';
+    // Intercept canonical redirect targets without contacting production.
+    await page.route(canonicalSetup, route => route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><title>EspDesktop setup destination</title>',
+    }));
+    await page.goto(`${base}/getting-started/install`);
+    await page.waitForURL(`${canonicalSetup}#install`);
+    await page.goto(`${base}/getting-started/install#connect-the-display-to-wifi`);
+    await page.waitForURL(`${canonicalSetup}#connect-the-display-to-wifi`);
     const beforeRetired = manifests.length;
     const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting';
     await page.route(recovery, route => route.fulfill({ contentType: 'text/html', body: 'EspControl recovery guide' }));

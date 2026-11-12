@@ -131,7 +131,7 @@ export default defineConfig({
 
     // These pages have no page-level sidebar link to determine their next step.
     if (relativePath === 'reference/companion-compatibility.md') {
-      frontmatter.next = { text: 'Install the display', link: '/getting-started/install' }
+      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }
     }
 
     if (relativePath === 'download.md' || relativePath === 'screens/4848s040.md') {
@@ -243,7 +243,7 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
-      { text: 'Install', link: '/getting-started/install' },
+      { text: 'Install', link: '/screens/4848s040#install' },
       { text: 'Download', link: '/download' },
     ],
 
@@ -252,7 +252,7 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
-          { text: 'Install firmware', link: '/getting-started/install' },
+          { text: 'Install firmware', link: '/screens/4848s040#install' },
           { text: 'Pair the Mac app', link: '/getting-started/mac-app' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],

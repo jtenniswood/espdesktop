@@ -249,7 +249,6 @@ def check_build(dist):
         BASE + 'screens/4848s040',
         BASE + 'screens/4848s040-stand',
         BASE + 'getting-started/troubleshooting',
-        BASE + 'getting-started/install',
         BASE + 'getting-started/mac-app',
         BASE + 'download',
         BASE + 'mac-controls/apps',
@@ -330,6 +329,7 @@ def check_build(dist):
 
     redirects = {
         'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
+        'getting-started/install': BASE + 'screens/4848s040#install',
         'getting-started/c6-recovery': 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi',
         'immich/installation': 'https://jtenniswood.github.io/espcontrol/immich/#installation',
         'screens/p4-86': 'https://jtenniswood.github.io/espcontrol/screens/p4-86',
@@ -361,7 +361,7 @@ def check_build(dist):
     }
     redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'
     screen_guides = {
-        '4848s040': (BASE + 'screens/4848s040', BASE + 'getting-started/install'),
+        '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
         'jc1060p470': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470'),
         'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2'),
         'jc4880p443': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443'),

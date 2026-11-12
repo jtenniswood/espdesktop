@@ -31,7 +31,7 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed for keyboard shortcuts and Mac Lock.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
-Start with the [firmware install guide](https://espdesktop.com/getting-started/install), then follow the [Mac app and pairing guide](https://espdesktop.com/getting-started/mac-app). Install matching firmware and app builds.
+Start with the [firmware installation steps](https://espdesktop.com/screens/4848s040#install), then follow the [Mac app and pairing guide](https://espdesktop.com/getting-started/mac-app). Install matching firmware and app builds.
 
 ## Designed to Stay Narrow
 
@@ -57,7 +57,7 @@ The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com
 
 ## Project Links
 
-- [Install EspDesktop firmware](https://espdesktop.com/getting-started/install)
+- [Install EspDesktop firmware](https://espdesktop.com/screens/4848s040#install)
 - [Install and pair the Mac app](https://espdesktop.com/getting-started/mac-app)
 - [Supported display](https://espdesktop.com/screens/4848s040)
 - [Mac controls](https://espdesktop.com/#what-you-can-control)

@@ -10,7 +10,7 @@ outline: [2, 3]
 
 ### Which display works with Mac controls?
 
-Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See [Supported Display](/screens/4848s040) for the model and [Install](/getting-started/install) for the firmware steps.
+Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See [Supported Display](/screens/4848s040) for the model and [Install](/screens/4848s040#install) for the firmware steps.
 
 ### Which Macs does EspDesktop support? {#which-macos-versions-does-espdesktop-support}
 

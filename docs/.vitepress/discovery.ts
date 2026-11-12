@@ -19,6 +19,7 @@ const macControls = `${hostname}#what-you-can-control`
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
   'card-types/climate': `${espcontrol}card-types/climate`,
+  'getting-started/install': `${displaySetup}#install`,
   'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
   'immich/installation': `${immichGuide}#installation`,
   'screens/p4-86': `${espcontrol}screens/p4-86`,
@@ -49,7 +50,7 @@ export const redirects: Record<string, string> = {
   'generated/cards/runtime-coverage':
     'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
   'generated/screens/4848s040-grid': `${hostname}screens/4848s040`,
-  'generated/screens/4848s040-install': `${hostname}getting-started/install`,
+  'generated/screens/4848s040-install': `${displaySetup}#install`,
   'generated/screens/jc1060p470-grid': `${espcontrol}screens/jc1060p470`,
   'generated/screens/jc1060p470-install': `${espcontrol}screens/jc1060p470`,
   'generated/screens/jc1060p470-v2-grid': `${espcontrol}screens/jc1060p470-v2`,
@@ -108,6 +109,8 @@ export async function writeRedirects(outDir: string) {
     await mkdir(join(file, '..'), { recursive: true })
     const formerSections = path === 'features/setup' ? formerCardSections
       : path === 'features/settings' ? formerSettingsSections
+      : path === 'getting-started/install'
+        ? { '#connect-the-display-to-wifi': `${displaySetup}#connect-the-display-to-wifi` }
       : path === 'immich/installation' ? formerImmichSections
       : undefined
     const fragmentRedirect = formerSections

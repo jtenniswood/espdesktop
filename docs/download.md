@@ -14,6 +14,6 @@ EspDesktop requires **Apple silicon and macOS 13 or newer**. It pairs with the *
 
 Use the Mac app and firmware from the **same EspDesktop release**. If your display already runs an older version, find the matching DMG under **Assets** in [GitHub releases](https://github.com/jtenniswood/espdesktop/releases). Each release also lists its changes and firmware assets.
 
-- [Install firmware on the display](/getting-started/install)
+- [Install firmware on the display](/screens/4848s040#install)
 - [Install and pair the Mac app](/getting-started/mac-app)
 - [Check app and firmware compatibility](/reference/companion-compatibility)

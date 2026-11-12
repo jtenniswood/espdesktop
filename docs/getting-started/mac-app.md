@@ -5,7 +5,7 @@ description: Connect a Guition 4848S040 touchscreen to EspDesktop on an Apple si
 
 # Install and pair the EspDesktop Mac app {#install-and-pair-the-espdesktop-mac-app}
 
-Use an **Apple silicon Mac with macOS 13 or newer**. Finish [installing the display firmware](/getting-started/install) first and connect the Mac and touchscreen to the same local network.
+Use an **Apple silicon Mac with macOS 13 or newer**. Finish [installing the display firmware](/screens/4848s040#install) first and connect the Mac and touchscreen to the same local network.
 
 ## Install a matching release {#install-a-release}
 
