@@ -41,6 +41,30 @@ does not provide configurable HTTP 301 redirects. These pages are intentionally
 absent from the sitemap. Keep redirect destinations and existing FAQ question
 anchors working when reorganising content.
 
+### Prepare HTTP redirects
+
+For a Cloudflare rollout, build the intended release of the docs and export
+its exact-path rules.
+
+```bash
+python3 scripts/export_docs_redirects.py --dist docs/.vitepress/dist --output /tmp/espdesktop-redirects.csv
+```
+
+The export includes clean-URL aliases and retired pages with a single
+destination. Pages that map old section links in the browser keep their HTML
+fallback. Search and tracking query strings are preserved for destinations on
+espdesktop.com. The export leaves firmware, app updates, demos and Markdown
+endpoints outside the redirect list.
+
+Review the file against the deployed sitemap before importing it as a
+[Cloudflare Bulk Redirect list](https://developers.cloudflare.com/rules/url-forwarding/bulk-redirects/reference/csv-file-format/).
+The host needs to be proxied for Cloudflare to apply the rules. Verify
+strict HTTPS to the origin before enabling the rule. Confirm a clean guide
+loads, a known alias returns a single 301, and a retired hardware URL reaches
+the correct EspControl guide. Check the firmware installer, editor and Mac
+update feed after routing changes. Disabling the rule restores GitHub Pages'
+HTML fallbacks.
+
 ## Content Maintenance
 
 Give each page a distinct, descriptive `title` and `description`. Use the
