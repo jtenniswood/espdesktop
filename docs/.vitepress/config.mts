@@ -94,11 +94,18 @@ export default defineConfig({
   sitemap: {
     hostname,
     transformItems(items) {
+      const macReleaseTag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       const releaseDate = Date.parse(process.env.ESPDESKTOP_MAC_RELEASE_DATE ?? '')
-      const download = items.find(item => item.url === 'download')
-      if (download && process.env.ESPDESKTOP_MAC_RELEASE_TAG && Number.isFinite(releaseDate)) {
-        const sourceDate = new Date(download.lastmod ?? 0).getTime()
-        download.lastmod = new Date(Math.max(sourceDate || 0, releaseDate)).toISOString()
+      if (macReleaseTag && Number.isFinite(releaseDate)) {
+        const releasePages = ['download']
+        if (process.env.ESPDESKTOP_MATCHED_RELEASE_TAG === macReleaseTag) {
+          releasePages.push('reference/companion-compatibility')
+        }
+        for (const item of items) {
+          if (!releasePages.includes(item.url)) continue
+          const sourceDate = new Date(item.lastmod ?? 0).getTime()
+          item.lastmod = new Date(Math.max(sourceDate || 0, releaseDate)).toISOString()
+        }
       }
       return items.filter(item => item.url !== '404' && item.url !== '/404')
     },
