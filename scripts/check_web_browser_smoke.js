@@ -5509,7 +5509,12 @@ async function assertPanelNaming(browser) {
     await page.getByRole("tab", { name: "System" }).click();
     const header = card.locator(".card-header");
     if (await card.evaluate(element => element.classList.contains("collapsed"))) await header.click();
-    await page.locator("#sp-panel-name").fill("");
+    const nameInput = page.locator("#sp-panel-name");
+    await page.waitForFunction(() => {
+      const input = document.querySelector("#sp-panel-name");
+      return input?.value === "Bedroom" && !input.disabled;
+    });
+    await nameInput.fill("");
     await save.click();
     await page.waitForFunction(() => document.title === "EspDesktop - b2c3");
     assert.deepStrictEqual(errors, [], "naming journey has no browser errors");
