@@ -293,9 +293,9 @@ async function checkBrowser() {
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
-    const setupDownload = page.locator('.display-setup-step .mac-app-download a.display-setup-button');
+    const setupDownload = page.locator('.display-setup-step .mac-app-download a.docs-primary-action');
     const setupDownloadHref = await setupDownload.getAttribute('href');
-    const wizard = page.locator('.display-setup-step a.display-setup-button').getByText('View setup wizard', { exact: true });
+    const wizard = page.locator('.display-setup-step a.docs-primary-action').getByText('View setup wizard', { exact: true });
     assert.equal(await wizard.getAttribute('href'), '/features/first-run');
     const setupPage = `${base}/screens/4848s040`;
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();

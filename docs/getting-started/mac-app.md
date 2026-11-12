@@ -9,7 +9,9 @@ Use an **Apple silicon Mac with macOS 13 or newer**. Finish [installing the disp
 
 ## Install a matching release {#install-a-release}
 
-[Download EspDesktop for Mac](/download). Use the Mac app and display firmware from the **same EspDesktop release**. Open the DMG, move EspDesktop to Applications, and open it. If macOS asks for Local Network access, choose **Allow** so the app can find the display.
+<a class="docs-primary-action" href="/download">Download EspDesktop for Mac</a>
+
+Use the Mac app and display firmware from the **same EspDesktop release**. Open the DMG, move EspDesktop to Applications, and open it. If macOS asks for Local Network access, choose **Allow** so the app can find the display.
 
 ## Pair the display
 
