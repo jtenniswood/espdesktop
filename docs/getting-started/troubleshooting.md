@@ -43,7 +43,7 @@ A working installer shows an **Install EspDesktop** button and opens the USB por
 - Check that guest WiFi or router client isolation is not separating devices.
 - In the Mac app, choose **Enter address manually** and enter the display's IP address or `.local` name.
 
-Discovery only locates a display; it does not configure its WiFi. For a first-time firmware install, follow [Install EspDesktop](/screens/4848s040#set-up-espdesktop).
+Discovery only locates a display; it does not configure its WiFi. For a first-time firmware install, follow [Install EspDesktop](/screens/4848s040#install).
 
 ## The display will not pair
 

@@ -193,6 +193,8 @@ jobs:
             select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).dmg")) |
             {tag: $tag, version: ($version | split(".") | map(tonumber))}
           ] | max_by([.version, .tag]) | .tag // empty' "${RELEASES}")
+          RELEASE_DATE=$(jq -rs --arg tag "${MAC_TAG}" '[.[][] | select(.tag_name == $tag) | .published_at] | first // empty' "${RELEASES}")
+          echo "release_date=${RELEASE_DATE}" >> "${GITHUB_OUTPUT}"
           echo "tag=${MAC_TAG}" >> "${GITHUB_OUTPUT}"
           MATCHED_TAG=$(jq -rs --arg tag "${MAC_TAG}" '
             [.[][] | select(.tag_name == $tag) |
@@ -206,6 +208,7 @@ jobs:
 
       - name: Build docs
         env:
+          ESPDESKTOP_MAC_RELEASE_DATE: ${{ steps.mac-download.outputs.release_date }}
           ESPDESKTOP_MAC_RELEASE_TAG: ${{ steps.mac-download.outputs.tag }}
           ESPDESKTOP_MATCHED_RELEASE_TAG: ${{ steps.mac-download.outputs.matched_tag }}
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
