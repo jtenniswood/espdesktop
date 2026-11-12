@@ -39,7 +39,11 @@ In the **System** tab, open **Firmware → Firmware updates** and choose **Check
 
 ### Reset the display
 
-Open **Factory Reset** in the **System** tab and choose **Save backup** before resetting.
+Open **Factory Reset** in the **System** tab.
+
+::: warning Back up before resetting
+Choose **Save backup** before either reset. Both options clear saved cards and layouts.
+:::
 
 - **Partial reset** clears cards, layouts, subpages, the saved device name and display preferences. It keeps your Wi-Fi connection and Mac pairing.
 - **Complete reset** also clears saved Wi-Fi and Mac pairing. Type **RESET** to confirm, then follow the first-time setup instructions on the display.
