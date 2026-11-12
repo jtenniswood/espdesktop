@@ -26,7 +26,10 @@ class NoRedirect(HTTPRedirectHandler):
 
 
 def fetch(url):
-    request = Request(url, headers={'Cache-Control': 'no-cache'})
+    request = Request(url, headers={
+        'Cache-Control': 'no-cache',
+        'User-Agent': 'EspDesktop-Docs-Verification/1.0 (+https://github.com/jtenniswood/espdesktop)',
+    })
     try:
         with build_opener(NoRedirect).open(request, timeout=15) as response:
             return response.status, response.headers, response.read()
