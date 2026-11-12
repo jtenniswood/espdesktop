@@ -368,13 +368,20 @@ struct CompanionSettings: View {
             pairingFlowPage
         } else {
             Form {
-                Section("Displays") {
-                    ForEach(store.displays) { display in
-                        displayRow(display)
+                ForEach(store.displays) { display in
+                    Section {
+                        displayCard(display)
                     }
+                }
+                Section {
                     Button(action: startPairingFlow) {
                         Label("Add Display", systemImage: "plus")
+                            .padding(.vertical, 4)
                     }
+                    .buttonStyle(.bordered)
+                    .modifier(CompanionCapsuleButton())
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 4)
                 }
                 accessibilityAndStartupSections
             }
@@ -382,39 +389,68 @@ struct CompanionSettings: View {
         }
     }
 
-    private func displayRow(_ display: CompanionDisplay) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(alignment: .top, spacing: 12) {
-                Image(systemName: display.state.symbol)
-                    .foregroundStyle(.secondary)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text(display.name).font(.headline)
-                    if display.name != display.panelHost {
-                        Text(display.panelHost).font(.caption).foregroundStyle(.secondary)
+    private func displayCard(_ display: CompanionDisplay) -> some View {
+        VStack(spacing: 20) {
+            VStack(spacing: 10) {
+                Toggle(isOn: Binding(
+                    get: { display.state == .connected || display.state.isBusy },
+                    set: { store.setConnection($0, for: display) }
+                )) {
+                    Text("\(display.name) connection")
+                }
+                .labelsHidden()
+                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                .controlSize(displaySwitchSize)
+
+                HStack(spacing: 8) {
+                    if display.state.isBusy {
+                        ProgressView().controlSize(.small).accessibilityHidden(true)
                     }
-                    Text(display.state.title).font(.callout).foregroundStyle(.secondary)
+                    Text(display.state.title)
+                        .font(.title.weight(.semibold))
                 }
-                Spacer()
-                if display.state.isBusy {
-                    ProgressView().controlSize(.small)
-                        .accessibilityLabel(display.state.title)
+
+                Text(display.name)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .help(display.panelHost)
+                    .textSelection(.enabled)
+
+                if display.state == .failed {
+                    Text(display.recoveryMessage)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
                 }
             }
-            if display.state == .failed {
-                Text(display.recoveryMessage).font(.callout).foregroundStyle(.secondary)
-            }
-            HStack {
-                let enabled = display.state == .connected || display.state.isBusy
-                Button(enabled ? "Disconnect" : "Connect") {
-                    store.setConnection(!enabled, for: display)
+            HStack(spacing: 12) {
+                Button {
+                    store.openPanelWebServer(display)
+                } label: {
+                    Label("Customize", systemImage: "rectangle.grid.2x2")
+                        .padding(.vertical, 4)
                 }
-                Button("Customize") { store.openPanelWebServer(display) }
-                Spacer()
-                Button("Forget", role: .destructive) { displayToForget = display }
+                .modifier(CompanionCapsuleButton())
+
+                Button(role: .destructive) {
+                    displayToForget = display
+                } label: {
+                    Label("Forget", systemImage: "trash")
+                        .padding(.vertical, 4)
+                }
+                .modifier(CompanionCapsuleButton())
             }
             .buttonStyle(.bordered)
         }
-        .padding(.vertical, 8)
+        .multilineTextAlignment(.center)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+    }
+
+    private var displaySwitchSize: ControlSize {
+        #if compiler(>=6.2)
+        if #available(macOS 26.0, *) { return .extraLarge }
+        #endif
+        return .large
     }
 
     private var pairingFlowPage: some View {
