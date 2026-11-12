@@ -24,4 +24,4 @@ If no port appears, try a cable you know carries data. If the installer reports 
 3. Select your **2.4 GHz** home Wi-Fi network, enter its password and choose **Save**.
 4. When the display confirms the Wi-Fi details were saved, reconnect your computer to the home network.
 
-The display should prompt you to download the Mac app. [Install and pair the Mac app](/getting-started/mac-app) next. If the display stays on the Wi-Fi setup screen, see [Wi-Fi setup and reset recovery](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
+The display should prompt you to download the Mac app. USB is used for flashing. Once paired, the display controls your Mac over the local network. [Install and pair the Mac app](/getting-started/mac-app) next. If the display stays on the Wi-Fi setup screen, see [Wi-Fi setup and reset recovery](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
