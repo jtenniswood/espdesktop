@@ -7,11 +7,19 @@ protocol CompanionSessionPreferences: AnyObject {
     var panelHost: String { get set }
     var pairingAccount: String { get }
     var hasSavedPairing: Bool { get }
+    var newPairingAccount: String { get }
+    func allowsPairing(certificateFingerprint: String) -> Bool
     func stringPreference(forKey key: String) -> String?
     func integerPreference(forKey key: String) -> Int
     func setPreference(_ value: Any, forKey key: String)
     func removePreference(forKey key: String)
     func rememberPairingAccount(_ account: String)
+}
+
+@MainActor
+extension CompanionSessionPreferences {
+    var newPairingAccount: String { panelHost }
+    func allowsPairing(certificateFingerprint: String) -> Bool { true }
 }
 
 @MainActor
@@ -22,8 +30,7 @@ protocol CompanionSessionResources: AnyObject {
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
     func immediateFocusedApplicationIdentifier() -> String?
-    func focusedCompanionActionIdentifiers() async -> [String]
-    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)])
+    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String]
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
@@ -57,9 +64,8 @@ extension CompanionSessionResources {
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
-    func focusedCompanionActionIdentifiers() async -> [String] {
+    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()
         return identifier.isEmpty ? [] : [identifier]
     }
-    func setCompanionFocusRegistrations(_ targets: [(id: String, url: URL)]) {}
 }

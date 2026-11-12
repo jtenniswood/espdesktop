@@ -62,6 +62,13 @@ through `CompanionSessionPorts.swift` and publishes events observed by the store
 Native settings views live in `CompanionSettings.swift`; application lifecycle
 and the menu bar remain in `CompanionApp.swift`.
 
+Each saved display owns a connection, Keychain account, certificate pin,
+authentication sequence, and reconnect preference. Mac permissions, approved
+resources, media state, and system metrics are shared by the store. The store
+samples Mac state and publishes it to connected sessions. Each session keeps
+its own capabilities, focus registrations, pending replies, and icon transfers.
+The legacy display record keeps its original Keychain account during migration.
+
 Browser card variants live in `model/companion_card.ts`. The saved-format adapter
 in `model/companion_card_codec.ts` retains current bytes and unknown options;
 `api/companion_catalogue.ts` owns isolated request/cache state. Offline catalogue

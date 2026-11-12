@@ -16,13 +16,13 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 ## The display will not pair
 
-Select the display in the Mac app and click **Continue** to open its pairing page in your browser. Enter the code from that page in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget Display** in the app and reset its pairing from the connector page before trying again.
+Select the display in the Mac app and click **Continue** to open its pairing page in your browser. Enter the code from that page in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget** beside it in **Mac Settings → Displays** and reset its pairing from the connector page before trying again.
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
 If the Mac app asks you to unlock your Mac or allow Keychain access, do that first, then choose **Retry** on the **Display** tab.
 
-To go through first-run setup again, open **Support → Restart Setup** in the Mac app. This clears the saved pairing and requires a fresh code. Your app and folder choices are kept.
+If you have one display paired, **Support → Restart Setup** clears its pairing and takes you through first-run setup again. With several displays paired, use **Forget** and **Add Display** on the **Displays** page to set up one display again. Your app and folder choices are kept.
 
 ## A card does not work
 
