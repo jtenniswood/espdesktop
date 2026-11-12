@@ -193,7 +193,10 @@ export default defineConfig({
           releaseNotes: 'https://github.com/jtenniswood/espdesktop/releases',
           description,
           author,
-          softwareHelp: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,
+          softwareHelp: {
+            '@type': 'WebPage',
+            url: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,
+          },
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },

@@ -253,6 +253,23 @@ def check_build(dist):
                     or any(item not in urls for _pos, item in trail)):
                 errors.append(f'Incorrect breadcrumb trail: {url}')
 
+    homepage_schemas = pages[BASE].schemas
+    software = [entry for entry in homepage_schemas if entry.get('@type') == 'SoftwareApplication']
+    sites = [entry for entry in homepage_schemas if entry.get('@type') == 'WebSite']
+    if (len(software) != 1 or len(sites) != 1 or not software[0].get('@id')
+            or sites[0].get('about') != {'@id': software[0]['@id']}):
+        errors.append('The homepage website data must identify one EspDesktop software application')
+    else:
+        help_page = software[0].get('softwareHelp')
+        if not isinstance(help_page, dict) or help_page.get('@type') != 'WebPage':
+            errors.append('Software help structured data must describe a web page')
+            help_page = {}
+        for label, link in [('installUrl', software[0].get('installUrl')), ('softwareHelp', help_page.get('url'))]:
+            target = urlsplit(link if isinstance(link, str) else '')
+            target_page = pages.get(target._replace(fragment='').geturl())
+            if target_page is None or (target.fragment and unquote(target.fragment) not in target_page.ids):
+                errors.append(f'Software {label} must point to a published page or section: {link}')
+
     report = snapshot(pages)
     mac_docs = {
         BASE,
