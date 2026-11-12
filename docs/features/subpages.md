@@ -7,7 +7,7 @@ description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, c
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
-<a href="/images/web-editor-figma-subpage.png"><img src="/images/web-editor-figma-subpage.png" alt="Figma app subpage with the Figma icon as the Back tile and shortcuts such as Frame and Duplicate" width="1562" height="2134" loading="lazy"></a>
+<a href="/images/espdesktop-slack-subpage.jpg"><img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing the Slack subpage with shortcuts for new messages, search, and direct messages" width="1320" height="1208" loading="lazy"></a>
 
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 
