@@ -310,8 +310,13 @@ async function checkBrowser() {
     await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
     await page.waitForURL('**/getting-started/mac-app');
     await page.locator('#pair-the-display').waitFor();
-    await page.goto(`${base}/screens/4848s040#where-to-buy`);
-    await page.getByText('Intel Macs are unsupported.', { exact: false }).waitFor();
+    const buySection = `${base}/screens/4848s040#where-to-buy`;
+    await page.goto(buySection);
+    await page.locator('section[aria-labelledby="where-to-buy"]')
+      .getByRole('link', { name: 'Check Mac requirements' }).click();
+    await page.waitForURL(`${base}/reference/faq#which-macos-versions-does-espdesktop-support`);
+    await page.getByText('Intel Macs are unsupported', { exact: false }).waitFor();
+    await page.goto(buySection);
     assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
     for (const width of [320, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
