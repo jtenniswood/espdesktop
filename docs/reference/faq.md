@@ -12,9 +12,9 @@ outline: [2, 3]
 
 Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See [Supported Display](/screens/4848s040) for the model and [Install](/screens/4848s040#set-up-espdesktop) for the firmware steps.
 
-### Which macOS versions does EspDesktop support?
+### Which Macs does EspDesktop support? {#which-macos-versions-does-espdesktop-support}
 
-The EspDesktop Mac app requires **macOS 13 or newer**. Follow the [Mac app setup guide](/screens/4848s040#install-and-pair-the-espdesktop-mac-app) to download it and pair your display.
+The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Follow the [Mac app setup guide](/screens/4848s040#install-and-pair-the-espdesktop-mac-app) to download it and pair your display.
 
 ### Does EspDesktop need Home Assistant?
 
