@@ -15,6 +15,18 @@ The display can only use the apps, folders, and actions made available through t
 
 The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-touchscreen) while the app is running and paired.
 
+## macOS permission prompts
+
+<figure>
+  <a href="/images/mac-companion-shortcut-access.png"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></a>
+  <figcaption>macOS can show this prompt when you choose Enable Shortcuts in EspDesktop.</figcaption>
+</figure>
+
+<figure>
+  <a href="/images/mac-companion-finder-access.png"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></a>
+  <figcaption>Folder highlighting may ask for permission to control Finder.</figcaption>
+</figure>
+
 ## Pairing and data
 
 If macOS asks for **Local Network** access, choose **Allow** so EspDesktop can find your display.
