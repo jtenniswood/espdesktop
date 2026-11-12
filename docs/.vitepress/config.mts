@@ -134,7 +134,7 @@ export default defineConfig({
       frontmatter.next = { text: 'Install the display', link: '/getting-started/install' }
     }
 
-    if (relativePath === 'download.md') {
+    if (relativePath === 'download.md' || relativePath === 'screens/4848s040.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {

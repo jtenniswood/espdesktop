@@ -292,6 +292,11 @@ async function checkBrowser() {
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
+    await assertSupportedInstaller();
+    const setupDownload = page.locator('.display-setup-step .mac-app-download a.display-setup-button');
+    const setupDownloadHref = await setupDownload.getAttribute('href');
+    const wizard = page.locator('.display-setup-step a.display-setup-button').getByText('View setup wizard', { exact: true });
+    assert.equal(await wizard.getAttribute('href'), '/features/first-run');
     const installGuide = page.getByRole('link', { name: 'firmware installer and step-by-step guide' });
     await installGuide.click();
     await page.waitForURL('**/getting-started/install');
@@ -300,13 +305,15 @@ async function checkBrowser() {
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
     await page.waitForURL('**/getting-started/install');
     await assertSupportedInstaller();
-    assert(manifests.length >= 2, 'Both routes to the install guide must check the S3 manifest');
+    assert(manifests.length >= 3, 'The setup page and install guide must check the S3 manifest');
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Download', exact: true }).click();
     await page.waitForURL('**/download');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
       /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
+    const officialDownloadHref = await download.getAttribute('href');
+    assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download');
     await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
     await page.waitForURL('**/getting-started/mac-app');
     await page.locator('#pair-the-display').waitFor();
