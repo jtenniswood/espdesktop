@@ -312,11 +312,10 @@ async function checkBrowser() {
     }
     const steps = page.locator('.display-setup-step');
     assert.equal(await steps.count(), 4);
-    for (const [index, step] of (await steps.all()).entries()) {
+    for (const step of await steps.all()) {
       const copy = await step.locator('.display-setup-copy').boundingBox();
       const photo = await step.locator('img').boundingBox();
-      assert(index % 2 === 1 ? photo.x + photo.width <= copy.x : copy.x + copy.width <= photo.x,
-        'Desktop setup images must alternate sides');
+      assert(copy.x + copy.width <= photo.x, 'Desktop setup images must appear to the right of the instructions');
     }
     await page.setViewportSize({ width: 390, height: 844 });
     for (const step of await steps.all()) {
