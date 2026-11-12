@@ -232,9 +232,9 @@ export default defineConfig({
 
     sidebar: [
       {
-        text: 'Hardware',
+        text: 'Getting Started',
         items: [
-          { text: 'Where to buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
