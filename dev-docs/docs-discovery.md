@@ -161,6 +161,8 @@ Do not claim causation from small or seasonal changes.
 
 ### Check the answers people receive
 
+The [12 November AI answer baseline](hosting/ai-answer-baseline-2026-11-12.md) records the observed pre-deployment answers and citations.
+
 Run the same prompts in fresh conversations with web search enabled in ChatGPT
 Search, Google AI Mode, Microsoft Copilot and Claude. Record the date, surface,
 prompt, factual errors, each cited URL and the final destination after redirects.
