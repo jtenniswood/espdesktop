@@ -93,7 +93,15 @@ export default defineConfig({
 
   sitemap: {
     hostname,
-    transformItems: (items) => items.filter((item) => item.url !== '404' && item.url !== '/404'),
+    transformItems(items) {
+      const releaseDate = Date.parse(process.env.ESPDESKTOP_MAC_RELEASE_DATE ?? '')
+      const download = items.find(item => item.url === 'download')
+      if (download && process.env.ESPDESKTOP_MAC_RELEASE_TAG && Number.isFinite(releaseDate)) {
+        const sourceDate = new Date(download.lastmod ?? 0).getTime()
+        download.lastmod = new Date(Math.max(sourceDate || 0, releaseDate)).toISOString()
+      }
+      return items.filter(item => item.url !== '404' && item.url !== '/404')
+    },
   },
 
   head: [
