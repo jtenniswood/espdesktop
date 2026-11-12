@@ -84,7 +84,12 @@ Install the Mac app and display firmware from the same EspDesktop release. If yo
 
 The `EspDesktop_XXXX` setup hotspot can take up to 90 seconds to appear. Connect to the hotspot named on the display and open its shown address if the offline setup page does not open automatically. A custom hotspot name or address is preserved. After **WiFi details saved**, reconnect your phone or computer to home WiFi and follow the display's instructions. USB Improv provisioning is also available after installation.
 
-<img src="/images/device-setup-wifi-screen.jpg" alt="EspDesktop touchscreen showing the Wi-Fi setup hotspot name and browser address" width="2803" height="2803" loading="lazy">
+<a href="/images/device-setup-wifi-screen.jpg">
+<picture>
+  <source type="image/avif" srcset="/images/device-setup-wifi-screen-480.avif 480w, /images/device-setup-wifi-screen-960.avif 960w" sizes="(min-width: 768px) 480px, 90vw">
+  <img src="/images/device-setup-wifi-screen.jpg" alt="EspDesktop touchscreen showing the Wi-Fi setup hotspot name and browser address" width="2803" height="2803" loading="lazy">
+</picture>
+</a>
 
 If an ESP32-P4 panel running EspControl can’t join WiFi, see the [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
 

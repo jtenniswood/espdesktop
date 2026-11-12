@@ -150,8 +150,9 @@ async function checkBrowser() {
       const illustration = page.locator('.homepage-hero img');
       await illustration.scrollIntoViewIfNeeded();
       await illustration.evaluate(img => img.decode());
+      assert.match(await illustration.evaluate(img => img.currentSrc), /espdesktop-desk-(480|960)\.avif$/);
 
-      const demoSelector = 'iframe.homepage-demo';
+      const demoSelector = '.homepage-demo iframe';
       const demo = page.locator(demoSelector);
       const demoSection = page.locator('.homepage-editor');
       const actions = demoSection.locator('.homepage-editor-actions');
@@ -162,10 +163,12 @@ async function checkBrowser() {
       assert.equal(await buttonBackground(getStarted), await buttonBackground(setup));
       if (width >= 768) {
         const copy = await demoSection.locator(':scope > div').boundingBox();
-        const mock = await demo.boundingBox();
+        const mock = await demoSection.locator('figure.homepage-demo').boundingBox();
         assert(copy && mock && Math.abs(copy.width - mock.width) < 1,
           'Homepage demo and copy must use equal desktop columns');
       }
+      assert.equal(await demoSection.locator('figure.homepage-demo img').count(), 0);
+      assert.equal(await demo.getAttribute('loading'), 'lazy');
       await demo.scrollIntoViewIfNeeded();
       const frame = page.frameLocator(demoSelector);
       const slack = frame.getByRole('button', { name: 'Slack', exact: true });
