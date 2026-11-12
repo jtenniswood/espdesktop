@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 import re
 from urllib.parse import unquote, urljoin, urlsplit
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -153,7 +153,8 @@ def snapshot(pages):
 
 def live_snapshot(base):
     def get(url):
-        with urlopen(url, timeout=30) as response:
+        request = Request(url, headers={'User-Agent': 'EspDesktop-Docs-Verification/1.0 (+https://github.com/jtenniswood/espdesktop)'})
+        with urlopen(request, timeout=30) as response:
             return response.read().decode()
 
     urls = sitemap_urls(get(urljoin(base, 'sitemap.xml')))
@@ -249,6 +250,7 @@ def check_build(dist):
         BASE + 'screens/4848s040',
         BASE + 'screens/4848s040-stand',
         BASE + 'getting-started/troubleshooting',
+        BASE + 'download',
         BASE + 'mac-controls/apps',
         BASE + 'mac-controls/websites',
         BASE + 'reference/shortcut-presets',
@@ -330,37 +332,49 @@ def check_build(dist):
             errors.append('FAQ structured answers differ from the rendered questions or answers')
 
     redirects = {
-        'getting-started/install': BASE + 'screens/4848s040#set-up-espdesktop',
-        'getting-started/mac-app': BASE + 'screens/4848s040#install-and-pair-the-espdesktop-mac-app',
+        'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
+        'getting-started/mac-app': BASE + 'screens/4848s040#download',
+        'getting-started/install': BASE + 'screens/4848s040#install',
+        'getting-started/c6-recovery': 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi',
+        'immich/installation': 'https://jtenniswood.github.io/espcontrol/immich/#installation',
+        'screens/p4-86': 'https://jtenniswood.github.io/espcontrol/screens/p4-86',
+        'screens/jc8012p4a1-v3': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3',
+        'screens/jc8012p4a1-v2': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2',
+        'screens/jc8012p4a1-v1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v1',
+        'screens/jc8012p4a1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1',
+        'screens/jc4880p443': 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443',
+        'screens/jc1060p470-v2': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2',
+        'screens/jc1060p470-v1': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v1',
+        'screens/jc1060p470': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470',
         'features/setup': BASE + 'features/home',
         'reference/request-device-support': BASE + 'screens/4848s040',
         'screens/index': BASE + 'screens/4848s040',
         'card-types/companion': BASE + '#what-you-can-control',
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
-        'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/',
+        'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/getting-started/home-assistant-actions',
         'features/settings': BASE + 'settings/system',
         'features/backup': BASE + 'settings/backup',
         'features/media-cover-art': BASE + 'settings/screen',
         'mac-controls/statistics': BASE + 'reference/mac-controls-by-release#mac-statistics-and-volume',
         'mac-controls/volume': BASE + 'reference/mac-controls-by-release#mac-statistics-and-volume',
         'guides/index': 'https://jtenniswood.github.io/espcontrol/',
-        'immich/index': 'https://jtenniswood.github.io/espcontrol/',
+        'immich/index': 'https://jtenniswood.github.io/espcontrol/immich/',
         'generated/companion-compatibility': BASE + 'reference/companion-compatibility',
         'generated/cards/capabilities': BASE + '#what-you-can-control',
         'generated/cards/runtime-coverage': 'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
     }
     redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'
     screen_guides = {
-        '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#set-up-espdesktop'),
-        'jc1060p470': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc4880p443': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
+        'jc1060p470': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470'),
+        'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2'),
+        'jc4880p443': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443'),
         'jc4880p443-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'),
-        'jc8012p4a1': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc8012p4a1-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc8012p4a1-v3': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'p4-86': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc8012p4a1': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1'),
+        'jc8012p4a1-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2'),
+        'jc8012p4a1-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3'),
+        'p4-86': ('https://jtenniswood.github.io/espcontrol/screens/p4-86', 'https://jtenniswood.github.io/espcontrol/screens/p4-86'),
     }
     for model, (grid, install) in screen_guides.items():
         redirects[f'generated/screens/{model}-grid'] = grid

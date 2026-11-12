@@ -11,18 +11,27 @@ export function canonicalUrlFor(relativePath: string) {
 }
 
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
+const immichGuide = `${espcontrol}immich/`
 const displaySetup = `${hostname}screens/4848s040`
 const macControls = `${hostname}#what-you-can-control`
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
-const setupRedirects: Record<string, string> = {
-  'getting-started/install': `${displaySetup}#set-up-espdesktop`,
-  'getting-started/mac-app': `${displaySetup}#install-and-pair-the-espdesktop-mac-app`,
-}
-
 export const redirects: Record<string, string> = {
-  ...setupRedirects,
+  'card-types/climate': `${espcontrol}card-types/climate`,
+  'getting-started/mac-app': `${displaySetup}#download`,
+  'getting-started/install': `${displaySetup}#install`,
+  'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
+  'immich/installation': `${immichGuide}#installation`,
+  'screens/p4-86': `${espcontrol}screens/p4-86`,
+  'screens/jc8012p4a1-v3': `${espcontrol}screens/jc8012p4a1-v3`,
+  'screens/jc8012p4a1-v2': `${espcontrol}screens/jc8012p4a1-v2`,
+  'screens/jc8012p4a1-v1': `${espcontrol}screens/jc8012p4a1-v1`,
+  'screens/jc8012p4a1': `${espcontrol}screens/jc8012p4a1`,
+  'screens/jc4880p443': `${espcontrol}screens/jc4880p443`,
+  'screens/jc1060p470-v2': `${espcontrol}screens/jc1060p470-v2`,
+  'screens/jc1060p470-v1': `${espcontrol}screens/jc1060p470-v1`,
+  'screens/jc1060p470': `${espcontrol}screens/jc1060p470`,
   'features/setup': `${hostname}features/home`,
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
   'reference/request-device-support': `${hostname}screens/4848s040`,
@@ -30,36 +39,36 @@ export const redirects: Record<string, string> = {
   'card-types/companion': macControls,
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,
-  'getting-started/home-assistant-actions': espcontrol,
+  'getting-started/home-assistant-actions': `${espcontrol}getting-started/home-assistant-actions`,
   'features/settings': `${hostname}settings/system`,
   'features/backup': `${hostname}settings/backup`,
   'features/media-cover-art': `${hostname}settings/screen`,
   'mac-controls/statistics': `${hostname}reference/mac-controls-by-release#mac-statistics-and-volume`,
   'mac-controls/volume': `${hostname}reference/mac-controls-by-release#mac-statistics-and-volume`,
   'guides/index': espcontrol,
-  'immich/index': espcontrol,
+  'immich/index': `${espcontrol}immich/`,
   'generated/cards/capabilities': macControls,
   'generated/cards/runtime-coverage':
     'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
   'generated/screens/4848s040-grid': `${hostname}screens/4848s040`,
-  'generated/screens/4848s040-install': setupRedirects['getting-started/install'],
-  'generated/screens/jc1060p470-grid': espcontrol,
-  'generated/screens/jc1060p470-install': espcontrol,
-  'generated/screens/jc1060p470-v2-grid': espcontrol,
-  'generated/screens/jc1060p470-v2-install': espcontrol,
-  'generated/screens/jc4880p443-grid': espcontrol,
-  'generated/screens/jc4880p443-install': espcontrol,
+  'generated/screens/4848s040-install': `${displaySetup}#install`,
+  'generated/screens/jc1060p470-grid': `${espcontrol}screens/jc1060p470`,
+  'generated/screens/jc1060p470-install': `${espcontrol}screens/jc1060p470`,
+  'generated/screens/jc1060p470-v2-grid': `${espcontrol}screens/jc1060p470-v2`,
+  'generated/screens/jc1060p470-v2-install': `${espcontrol}screens/jc1060p470-v2`,
+  'generated/screens/jc4880p443-grid': `${espcontrol}screens/jc4880p443`,
+  'generated/screens/jc4880p443-install': `${espcontrol}screens/jc4880p443`,
   'generated/screens/jc4880p443-v3-grid': `${espcontrol}screens/jc4880p443-v3`,
   'generated/screens/jc4880p443-v3-install': `${espcontrol}screens/jc4880p443-v3`,
   'screens/jc4880p443-v3': `${espcontrol}screens/jc4880p443-v3`,
-  'generated/screens/jc8012p4a1-grid': espcontrol,
-  'generated/screens/jc8012p4a1-install': espcontrol,
-  'generated/screens/jc8012p4a1-v2-grid': espcontrol,
-  'generated/screens/jc8012p4a1-v2-install': espcontrol,
-  'generated/screens/jc8012p4a1-v3-grid': espcontrol,
-  'generated/screens/jc8012p4a1-v3-install': espcontrol,
-  'generated/screens/p4-86-grid': espcontrol,
-  'generated/screens/p4-86-install': espcontrol,
+  'generated/screens/jc8012p4a1-grid': `${espcontrol}screens/jc8012p4a1`,
+  'generated/screens/jc8012p4a1-install': `${espcontrol}screens/jc8012p4a1`,
+  'generated/screens/jc8012p4a1-v2-grid': `${espcontrol}screens/jc8012p4a1-v2`,
+  'generated/screens/jc8012p4a1-v2-install': `${espcontrol}screens/jc8012p4a1-v2`,
+  'generated/screens/jc8012p4a1-v3-grid': `${espcontrol}screens/jc8012p4a1-v3`,
+  'generated/screens/jc8012p4a1-v3-install': `${espcontrol}screens/jc8012p4a1-v3`,
+  'generated/screens/p4-86-grid': `${espcontrol}screens/p4-86`,
+  'generated/screens/p4-86-install': `${espcontrol}screens/p4-86`,
 }
 
 const formerSettingsSections = {
@@ -86,23 +95,39 @@ const formerCardSections = {
   '#device-and-system-settings': '/settings/screen',
 }
 
+const formerImmichSections = Object.fromEntries([
+  'installation-status',
+  'hacs-installation',
+  'manual-installation',
+  'immich-connection-and-permissions',
+  'image-quality',
+  'troubleshooting',
+].map(section => [`#${section}`, `${immichGuide}#${section}`]))
+
+const formerMacAppSections = Object.fromEntries([
+  'install-a-release',
+  'pair-the-display',
+  'check-the-connection',
+  'check-for-mac-app-updates',
+].map(section => [`#${section}`, `${displaySetup}#${section}`]))
+
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
     const file = join(outDir, `${path}.html`)
     await mkdir(join(file, '..'), { recursive: true })
     const formerSections = path === 'features/setup' ? formerCardSections
       : path === 'features/settings' ? formerSettingsSections
+      : path === 'getting-started/install'
+        ? { '#connect-the-display-to-wifi': `${displaySetup}#connect-the-display-to-wifi` }
+      : path === 'getting-started/mac-app' ? formerMacAppSections
+      : path === 'immich/installation' ? formerImmichSections
       : undefined
     const fragmentRedirect = formerSections
       ? `<script>
 const target = ${jsonLd(formerSections)}[location.hash]
 if (target) location.replace(target)
 </script>`
-      : Object.hasOwn(setupRedirects, path)
-        ? `<script>
-if (location.hash) location.replace(${jsonLd(displaySetup)} + location.hash)
-</script>`
-        : ''
+      : ''
     await writeFile(file, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Page moved | EspDesktop</title>
