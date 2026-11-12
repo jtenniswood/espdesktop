@@ -23,6 +23,8 @@ Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibil
 
 <a href="/images/mac-companion-shortcut-access.png"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></a>
 
+If a tile still does nothing, follow [the shortcut and Mac Lock troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
+
 ## Group shortcuts by app {#use-a-template-on-an-app-subpage}
 
 Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together.

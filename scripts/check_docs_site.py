@@ -240,8 +240,18 @@ def check_build(dist):
         breadcrumb_schema = [entry for entry in page.schemas if entry.get('@type') == 'BreadcrumbList']
         trails = [[(item.get('position'), item.get('item')) for item in entry.get('itemListElement', [])]
                   for entry in breadcrumb_schema]
-        if trails != ([[(1, BASE), (2, url)]] if url != BASE else []):
-            errors.append(f'Incorrect breadcrumb trail: {url}')
+        if url == BASE:
+            if trails:
+                errors.append('Homepage must have no breadcrumb trail')
+        elif len(trails) != 1 or len(trails[0]) not in (2, 3):
+            errors.append(f'Incorrect breadcrumb length: {url}')
+        else:
+            trail = trails[0]
+            expected_positions = list(range(1, len(trail) + 1))
+            if (trail[0] != (1, BASE) or trail[-1] != (len(trail), url)
+                    or [pos for pos, _item in trail] != expected_positions
+                    or any(item not in urls for _pos, item in trail)):
+                errors.append(f'Incorrect breadcrumb trail: {url}')
 
     report = snapshot(pages)
     mac_docs = {
