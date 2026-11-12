@@ -18,6 +18,7 @@ on:
       - 'scripts/release_devices.py'
       - 'scripts/check_public_firmware.py'
       - 'scripts/check_docs_site.py'
+      - 'scripts/check_published_docs.py'
       - 'scripts/check_docs_installer.js'
       - 'scripts/build.py'
       - 'scripts/prepare_release_web_assets.py'
@@ -538,6 +539,8 @@ jobs:
             product/release_devices.json
             scripts/release_devices.py
             scripts/check_public_firmware.py
+            scripts/check_docs_site.py
+            scripts/check_published_docs.py
           sparse-checkout-cone-mode: false
 
       - name: Download docs artifact
@@ -571,6 +574,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Verify published documentation
+        run: python3 scripts/check_published_docs.py --dist dist
 
       - name: Verify public firmware assets
         if: needs.download-firmware.outputs.has_stable == 'true'
