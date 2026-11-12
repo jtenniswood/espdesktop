@@ -22,7 +22,6 @@ The Markdown guides below come from the public documentation. Each guide links t
 - [Open approved Finder folders](https://espdesktop.com/mac-controls/folders.md)
 - [Run keyboard shortcuts](https://espdesktop.com/mac-controls/shortcuts.md)
 
-- [Build a Figma shortcut panel](https://espdesktop.com/mac-controls/figma.md)
 - [Mac keyboard shortcut presets by app](https://espdesktop.com/reference/shortcut-presets.md)
 
 ## Settings

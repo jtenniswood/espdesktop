@@ -251,7 +251,6 @@ def check_build(dist):
         BASE + 'getting-started/troubleshooting',
         BASE + 'mac-controls/apps',
         BASE + 'mac-controls/websites',
-        BASE + 'mac-controls/figma',
         BASE + 'reference/shortcut-presets',
         BASE + 'reference/espdesktop-or-espcontrol',
         BASE + 'reference/mac-touchscreen-controller',

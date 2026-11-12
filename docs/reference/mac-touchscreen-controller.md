@@ -18,7 +18,7 @@ The comparison uses the documented setup and capabilities for each option. Check
 
 ## Decide based on your desk
 
-- **You want a dedicated display and a local Mac setup.** EspDesktop pairs on your local network. Check the [4848S040 and Mac requirements](/screens/4848s040#where-to-buy), then see how to [set up a Figma shortcut page](/mac-controls/figma).
+- **You want a dedicated display and a local Mac setup.** EspDesktop pairs on your local network. Check [which display to buy](/screens/4848s040#where-to-buy), then [set up your first app tiles](/features/first-run).
 - **You need to feel the buttons without looking.** Consider a physical Stream Deck and check the plugins or actions you depend on.
 - **You already have a spare tablet or phone.** Try the mobile app on that screen before buying dedicated hardware.
 - **You are buying the 4848S040 for Home Assistant.** See [which EspDesktop or EspControl installer to use](/reference/espdesktop-or-espcontrol).

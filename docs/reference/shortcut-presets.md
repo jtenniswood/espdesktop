@@ -11,6 +11,6 @@ import ShortcutPresetReference from '../.vitepress/theme/components/ShortcutPres
 
 These are the presets defined in the EspDesktop shortcut catalog. The options on your display depend on your EspDesktop version and the app you select. Enable [macOS Accessibility access](/mac-controls/shortcuts#allow-accessibility-access) and bring the app to the front before trying a shortcut. Some shortcuts also need a particular window, view or selection.
 
-[Create a shortcut tile](/mac-controls/shortcuts#create-a-shortcut-card) or [build a Figma shortcut panel](/mac-controls/figma) using the presets below.
+[Create a shortcut tile](/mac-controls/shortcuts#create-a-shortcut-card) using the presets below.
 
 <ShortcutPresetReference />
