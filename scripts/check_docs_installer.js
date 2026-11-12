@@ -335,12 +335,19 @@ async function checkBrowser() {
       assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
     }
     const beforeRetired = manifests.length;
-    const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery';
+    const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting';
     await page.route(recovery, route => route.fulfill({ contentType: 'text/html', body: 'EspControl recovery guide' }));
     await page.goto(`${base}/getting-started/c6-recovery`);
-    await page.waitForURL(recovery);
+    await page.waitForURL(`${recovery}#a-p4-panel-has-unreliable-wifi`);
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
     assert.equal(manifests.length, beforeRetired, 'Retired P4 setup must not offer an installer');
+    const immich = 'https://jtenniswood.github.io/espcontrol/immich/';
+    await page.route(immich, route => route.fulfill({ contentType: 'text/html', body: 'EspControl Immich guide' }));
+    await page.goto(`${base}/immich/installation`);
+    await page.waitForURL(`${immich}#installation`);
+    await page.goto(`${base}/immich/installation#manual-installation`);
+    await page.waitForURL(`${immich}#manual-installation`);
+
     await page.goto(`${base}/features/setup#add-a-mac-control`);
     await page.waitForURL(`${base}/features/home#add-a-card`);
     assert.deepEqual(errors, []);

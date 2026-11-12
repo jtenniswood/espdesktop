@@ -11,6 +11,7 @@ export function canonicalUrlFor(relativePath: string) {
 }
 
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
+const immichGuide = `${espcontrol}immich/`
 const displaySetup = `${hostname}screens/4848s040`
 const macControls = `${hostname}#what-you-can-control`
 
@@ -18,8 +19,8 @@ const macControls = `${hostname}#what-you-can-control`
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
   'card-types/climate': `${espcontrol}card-types/climate`,
-  'getting-started/c6-recovery': `${espcontrol}getting-started/c6-recovery`,
-  'immich/installation': `${espcontrol}immich/installation`,
+  'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
+  'immich/installation': `${immichGuide}#installation`,
   'screens/p4-86': `${espcontrol}screens/p4-86`,
   'screens/jc8012p4a1-v3': `${espcontrol}screens/jc8012p4a1-v3`,
   'screens/jc8012p4a1-v2': `${espcontrol}screens/jc8012p4a1-v2`,
@@ -92,12 +93,22 @@ const formerCardSections = {
   '#device-and-system-settings': '/settings/screen',
 }
 
+const formerImmichSections = Object.fromEntries([
+  'installation-status',
+  'hacs-installation',
+  'manual-installation',
+  'immich-connection-and-permissions',
+  'image-quality',
+  'troubleshooting',
+].map(section => [`#${section}`, `${immichGuide}#${section}`]))
+
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
     const file = join(outDir, `${path}.html`)
     await mkdir(join(file, '..'), { recursive: true })
     const formerSections = path === 'features/setup' ? formerCardSections
       : path === 'features/settings' ? formerSettingsSections
+      : path === 'immich/installation' ? formerImmichSections
       : undefined
     const fragmentRedirect = formerSections
       ? `<script>
