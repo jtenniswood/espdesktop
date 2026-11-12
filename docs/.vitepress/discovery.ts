@@ -11,11 +11,19 @@ export function canonicalUrlFor(relativePath: string) {
 }
 
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
+const displaySetup = `${hostname}screens/4848s040`
 const macControls = `${hostname}#what-you-can-control`
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
+const setupRedirects: Record<string, string> = {
+  'getting-started/install': `${displaySetup}#set-up-espdesktop`,
+  'getting-started/mac-app': `${displaySetup}#install-and-pair-the-espdesktop-mac-app`,
+  'features/setup': `${displaySetup}#_3-configure-your-cards`,
+}
+
 export const redirects: Record<string, string> = {
+  ...setupRedirects,
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
   'reference/request-device-support': `${hostname}screens/4848s040`,
   'screens/index': `${hostname}screens/4848s040`,
@@ -34,7 +42,7 @@ export const redirects: Record<string, string> = {
   'generated/cards/runtime-coverage':
     'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
   'generated/screens/4848s040-grid': `${hostname}screens/4848s040`,
-  'generated/screens/4848s040-install': `${hostname}getting-started/install`,
+  'generated/screens/4848s040-install': setupRedirects['getting-started/install'],
   'generated/screens/jc1060p470-grid': espcontrol,
   'generated/screens/jc1060p470-install': espcontrol,
   'generated/screens/jc1060p470-v2-grid': espcontrol,
@@ -79,7 +87,11 @@ export async function writeRedirects(outDir: string) {
 const target = ${jsonLd(formerSettingsSections)}[location.hash]
 if (target) location.replace(target)
 </script>`
-      : ''
+      : Object.hasOwn(setupRedirects, path)
+        ? `<script>
+if (location.hash) location.replace(${jsonLd(displaySetup)} + location.hash)
+</script>`
+        : ''
     await writeFile(file, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Page moved | EspDesktop</title>

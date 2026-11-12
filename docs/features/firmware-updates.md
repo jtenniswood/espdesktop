@@ -18,7 +18,7 @@ The JC8012P4A1 V3 rejects browser OTA firmware uploads; use native ESPHome OTA a
 
 ## Update Settings
 
-These are configured from the **System** tab in the [Setup](/features/setup) under **System > Firmware**.
+These are configured from the **System** tab in the [System settings](/settings/system#update-the-display-firmware) under **System > Firmware**.
 
 - **Current version** and **Available version** — compare the firmware running on your panel with the latest stable release.
 - **Auto updates** — open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.

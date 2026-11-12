@@ -25,10 +25,6 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop touchscreen with buttons for Mac apps next to a keyboard'),
   'screens/4848s040-stand.md': shareImage('4848s040-stand-printed.jpg', 1000, 1000,
     'The 3D-printed Guition 4848S040 stand with its mounting clips visible'),
-  'getting-started/install.md': shareImage('4848s040-hero.jpg', 1024, 999,
-    'The 4-inch Guition 4848S040 touchscreen next to a keyboard'),
-  'getting-started/mac-app.md': shareImage('mac-app-display.jpg', 1000, 1376,
-    'EspDesktop Mac app showing a connected display and the Customize button'),
   'settings/screen.md': shareImage('web-editor-screen-settings.png', 1694, 2266,
     'EspDesktop Screen tab showing appearance, display, and sleep settings'),
   'settings/system.md': shareImage('web-editor-system-settings.png', 1694, 2266,
@@ -118,10 +114,10 @@ export default defineConfig({
 
     // These pages have no page-level sidebar link to determine their next step.
     if (relativePath === 'reference/companion-compatibility.md') {
-      frontmatter.next = { text: 'Install the display', link: '/getting-started/install' }
+      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#set-up-espdesktop' }
     }
 
-    if (relativePath === 'getting-started/mac-app.md') {
+    if (relativePath === 'screens/4848s040.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
@@ -177,7 +173,7 @@ export default defineConfig({
           operatingSystem: 'macOS 13 or newer',
           description,
           author,
-          softwareHelp: `${hostname}getting-started/mac-app`,
+          softwareHelp: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },
@@ -245,9 +241,9 @@ export default defineConfig({
       {
         text: 'Getting Started',
         items: [
-          { text: 'Install the display', link: '/getting-started/install' },
-          { text: 'download and pair companion app', link: '/getting-started/mac-app' },
-          { text: 'Configure your cards', link: '/features/setup' },
+          { text: 'Install the display', link: '/screens/4848s040#set-up-espdesktop' },
+          { text: 'Download and pair the Mac app', link: '/screens/4848s040#install-and-pair-the-espdesktop-mac-app' },
+          { text: 'Configure your cards', link: '/screens/4848s040#_3-configure-your-cards' },
         ],
       },
       {

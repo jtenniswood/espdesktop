@@ -110,8 +110,7 @@ not grant Search Console access.
 4. In **Sitemaps**, submit
    `https://espdesktop.com/sitemap.xml`. Confirm its processed
    status in the account.
-5. Inspect the homepage, `/screens/4848s040`, `/getting-started/install`, and
-   `/getting-started/mac-app`. Check crawl eligibility and Google's selected canonical.
+5. Inspect the homepage and `/screens/4848s040`. Check crawl eligibility and Google's selected canonical.
    Request indexing for the changed landing pages where appropriate.
 
 See Google's [verification tag guidance](https://developers.google.com/search/docs/crawling-indexing/special-tags)

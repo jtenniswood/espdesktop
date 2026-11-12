@@ -24,7 +24,7 @@ Keep the file private if your cards contain personal web addresses or other sens
 3. If **Restore backup** appears, leave **Also restore panel name** unchecked to keep the display’s current name and address. Check the box to reuse the saved name. Click **Restore** to continue. If the name changes, reopen the editor at the address shown in the dialog after the display restarts.
 4. Wait for the import to finish. Review any messages in the editor, then open **Layout** and check that your cards and subpages are where you expect them.
 
-On a replacement display or after a complete reset, [connect the display to Wi-Fi](/getting-started/install#connect-the-display-to-wifi) before importing. [Pair the Mac app](/getting-started/mac-app#pair-the-display) separately. The backup covers the display configuration. Wi-Fi credentials, Mac pairing and settings stored in the Mac app stay separate.
+On a replacement display or after a complete reset, [connect the display to Wi-Fi](/screens/4848s040#connect-the-display-to-wifi) before importing. [Pair the Mac app](/screens/4848s040#pair-the-display) separately. The backup covers the display configuration. Wi-Fi credentials, Mac pairing and settings stored in the Mac app stay separate.
 
 ## Restore to a different display or firmware version
 

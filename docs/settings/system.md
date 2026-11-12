@@ -15,7 +15,7 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 
 ### Mac Companion and preferences
 
-- **Connectors → Mac Companion** is where you [pair the Mac app](/getting-started/mac-app#pair-the-display) and check its connection.
+- **Connectors → Mac Companion** is where you [pair the Mac app](/screens/4848s040#pair-the-display) and check its connection.
 - **Preferences → Language** changes the language shown on the touchscreen.
 - **Preferences → Time** lets you follow the paired Mac’s time zone or choose one yourself. You can also switch between 12- and 24-hour time and set custom time servers.
 

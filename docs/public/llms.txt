@@ -9,10 +9,7 @@ The Markdown guides below come from the public documentation. Each guide links t
 ## Start here
 
 - [EspDesktop overview](https://espdesktop.com/index.md)
-- [Supported Guition 4848S040 touchscreen](https://espdesktop.com/screens/4848s040.md)
-- [Install firmware and connect to WiFi](https://espdesktop.com/getting-started/install.md)
-- [download and pair companion app](https://espdesktop.com/getting-started/mac-app.md)
-- [Configure your first cards](https://espdesktop.com/features/setup.md)
+- [Buy and set up the Guition 4848S040 touchscreen](https://espdesktop.com/screens/4848s040.md)
 - [Compatibility and setup FAQ](https://espdesktop.com/reference/faq.md)
 
 ## Configure the touchscreen

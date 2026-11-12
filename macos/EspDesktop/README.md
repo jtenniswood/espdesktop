@@ -32,7 +32,7 @@ The output is `./.build/standalone/EspDesktop-1.0.0.dmg` (with the app version i
 
 The manual release workflow signs and notarizes this standalone app and its disk image for each firmware release. Configure these repository secrets before using it: `MACOS_DEVELOPER_ID_P12_BASE64`, `MACOS_DEVELOPER_ID_P12_PASSWORD`, `MACOS_DEVELOPER_ID_APPLICATION`, `APPLE_NOTARY_KEY_BASE64`, `APPLE_NOTARY_KEY_ID`, and `APPLE_NOTARY_ISSUER_ID`. The certificate must be a Developer ID Application certificate, and the API key must be permitted to submit software for notarization. The workflow uploads the stapled, verified ZIP and DMG to the GitHub release.
 
-For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run. See the [public Mac app guide](https://espdesktop.com/getting-started/mac-app) for pairing, Accessibility and first-run setup.
+For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run. See the [public Mac app guide](https://espdesktop.com/screens/4848s040#install-and-pair-the-espdesktop-mac-app) for pairing, Accessibility and first-run setup.
 
 Use the menu-bar icon to connect or disconnect, open the browser editor with **Customize Display**, or open **Mac Settings**. Add displays under **Mac Settings → Displays**. The settings toolbar offers **Displays**, **Apps**, **Folders**, **Updates** and **Support**. **Launch at login** is available in the packaged app. The local Swift launcher shows installation guidance for this setting.
 
