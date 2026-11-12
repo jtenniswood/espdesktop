@@ -226,6 +226,7 @@ struct CompanionSettings: View {
     @State private var selectedDisplayID: String?
     @State private var pairingCode = ""
     @State private var displayToForget: CompanionDisplay?
+    @State private var confirmingRestartSetup = false
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -315,6 +316,19 @@ struct CompanionSettings: View {
             }
         } message: { display in
             Text("Your Mac will remove its saved pairing with \(display.name). To pair it again, reset pairing on that display and enter a new code.")
+        }
+        .alert("Restart setup?", isPresented: $confirmingRestartSetup) {
+            Button("Cancel", role: .cancel) {}
+            Button("Restart Setup", role: .destructive) {
+                guard store.displays.count <= 1 else { return }
+                if let display = store.displays.first { store.forgetDisplay(display) }
+                startPairingFlow()
+                selectedPageID = CompanionSettingsPage.connection.rawValue
+                store.requestedSettingsPage = CompanionSettingsPage.connection.rawValue
+                store.onboardingCompleted = false
+            }
+        } message: {
+            Text("This removes the saved display pairing and starts onboarding again. Your app and folder choices will be kept.")
         }
         .alert("Remove folder?", isPresented: Binding(
             get: { folderToRemove != nil },
@@ -836,6 +850,10 @@ struct CompanionSettings: View {
             }
             Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
+                if store.displays.count <= 1 {
+                    Button("Restart Setup") { confirmingRestartSetup = true }
+                        .buttonStyle(.link)
+                }
             } header: {
                 Text("Support")
                     .padding(.top, 16)

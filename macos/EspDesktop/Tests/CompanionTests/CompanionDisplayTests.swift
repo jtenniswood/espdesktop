@@ -48,6 +48,17 @@ final class CompanionDisplayTests: XCTestCase {
     }
 
     @MainActor
+    func testLegacyMigrationCanRetryWhenKeychainIsInitiallyUnavailable() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        defaults.set("office.local", forKey: "panelHost")
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        XCTAssertTrue(saved.load { [] }.isEmpty)
+        XCTAssertEqual(saved.load { ["office.local"] }.map(\.account), ["office.local"])
+    }
+
+    @MainActor
     func testDisplayFailureDoesNotStopMetricsForOtherDisplay() {
         let suite = "CompanionDisplayTests.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!

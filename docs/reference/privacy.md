@@ -63,7 +63,7 @@ Opening the display’s Companion setup page starts pairing on an unpaired
 display and shows a temporary code. This uses the display’s configured web
 authentication; without a web password, anyone who can reach that page can
 start pairing. The Mac stores the paired credential in Keychain and pins the
-display certificate. **Forget Display** removes those saved pairing values.
+display certificate. **Forget** in **Mac Settings → Displays** removes the saved pairing values for the selected display.
 
 Folder access is granted through the native folder picker. Finder automation
 can identify an approved folder in the frontmost Finder window; optional

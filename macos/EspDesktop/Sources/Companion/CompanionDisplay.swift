@@ -26,8 +26,9 @@ struct CompanionSavedDisplays {
            let records = try? JSONDecoder().decode([CompanionDisplayRecord].self, from: data) {
             return records
         }
+        let legacyHost = defaults.string(forKey: "panelHost")
         let legacy = CompanionPairingSelection.restore(
-            host: defaults.string(forKey: "panelHost"),
+            host: legacyHost,
             account: defaults.string(forKey: "pairingAccount"),
             readKeychainAccounts: readKeychainAccounts
         )
@@ -35,7 +36,9 @@ struct CompanionSavedDisplays {
             CompanionDisplayRecord(host: legacy.host, name: defaults.string(forKey: "panelDisplayName") ?? "",
                                    account: legacy.account)
         ]
-        save(records)
+        // A host without a saved account may still have a legacy Keychain entry.
+        // Retry migration on a later launch if Keychain was unavailable this time.
+        if !records.isEmpty || legacyHost == "" { save(records) }
         return records
     }
 
