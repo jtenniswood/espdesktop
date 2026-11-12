@@ -10,7 +10,7 @@ import json
 from pathlib import Path
 import re
 from urllib.parse import unquote, urljoin, urlsplit
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -153,7 +153,8 @@ def snapshot(pages):
 
 def live_snapshot(base):
     def get(url):
-        with urlopen(url, timeout=30) as response:
+        request = Request(url, headers={'User-Agent': 'EspDesktop-Docs-Verification/1.0 (+https://github.com/jtenniswood/espdesktop)'})
+        with urlopen(request, timeout=30) as response:
             return response.read().decode()
 
     urls = sitemap_urls(get(urljoin(base, 'sitemap.xml')))
