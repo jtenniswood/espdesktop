@@ -129,6 +129,17 @@ export default defineConfig({
       return
     }
 
+    if (relativePath === 'reference/companion-compatibility.md') {
+      const matchedTag = process.env.ESPDESKTOP_MATCHED_RELEASE_TAG
+      if (matchedTag) {
+        if (!/^v?\d+\.\d+\.\d+$/.test(matchedTag)) {
+          throw new Error(`Invalid matching release tag: ${matchedTag}`)
+        }
+        frontmatter.matchedReleaseTag = matchedTag
+        frontmatter.matchedReleaseUrl = `https://github.com/jtenniswood/espdesktop/releases/tag/${matchedTag}`
+      }
+    }
+
     // These pages have no page-level sidebar link to determine their next step.
     if (relativePath === 'reference/companion-compatibility.md') {
       frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }

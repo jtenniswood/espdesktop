@@ -35,7 +35,17 @@ Open **Backup** under the **System** heading in the **System** tab. Use **Export
 
 In the **System** tab, open **Firmware → Firmware updates** and choose **Check for Update**. If an update is available, choose **Install Update** and keep the display powered while it restarts. **Auto updates** controls automatic installation and how often the display checks.
 
-[Export a backup](/settings/backup#export-a-backup) before updating and use [matching Mac app and firmware releases](/settings/mac-app#check-for-mac-app-updates). **Previous firmware** can install an older version when available. If it can’t read your current layout, use a backup made before the upgrade.
+### Update the Mac app and display together
+
+1. [Export a layout backup](/settings/backup#export-a-backup) and record the installed Mac app and firmware versions before starting.
+2. Open the [EspDesktop releases](https://github.com/jtenniswood/espdesktop/releases) and choose a stable release with both the Mac DMG and 4848S040 firmware. Use the firmware update option above and install the Mac app from the same release. If **Check Now** in the Mac app offers a different version, use the DMG for the matching release.
+3. After both have restarted, check that the Mac app shows the display connected and tap a known app tile to verify that the Mac responds.
+
+### Roll back to a matching release
+
+In **Firmware updates**, use **Previous firmware** if it offers the version you need. Install the Mac app from that same release. If the older firmware cannot read the current layout, [restore the backup](/settings/backup) you made before the update. Verify the connection and test an app tile again.
+
+If an update leaves the display unpaired or unavailable, see [update and compatibility troubleshooting](/getting-started/troubleshooting#a-mac-app-or-display-update-breaks-compatibility).
 
 ### Reset the display
 

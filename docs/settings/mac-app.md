@@ -15,7 +15,7 @@ See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Fin
 
 ## Check for Mac app updates
 
-In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. Use the Mac app and display firmware from the same EspDesktop release.
+In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. Follow [update the Mac app and display together](/settings/system#update-the-mac-app-and-display-together) to keep their releases matched.
 
 <script setup lang="ts">
 import ScreenshotGallery from '../.vitepress/theme/components/ScreenshotGallery.vue'

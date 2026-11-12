@@ -23,9 +23,9 @@ EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening 
 
 <figure class="homepage-panel">
   <picture>
-    <source type="image/webp" srcset="/images/espdesktop-desk-640.webp 640w, /images/espdesktop-desk-1320.webp 1320w" sizes="(min-width: 768px) 45vw, (min-width: 608px) 560px, calc(100vw - 48px)">
-    <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093" fetchpriority="high">
-  </picture>
+  <source type="image/avif" srcset="/images/espdesktop-desk-480.avif 480w, /images/espdesktop-desk-960.avif 960w" sizes="(min-width: 768px) 480px, 90vw">
+  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093" fetchpriority="high">
+</picture>
 </figure>
 
 </section>
@@ -150,12 +150,13 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 
 </div>
 
-<iframe
-  class="homepage-demo"
-  src="./editor/index.html"
-  title="Interactive EspDesktop touchscreen demo"
-  loading="lazy"
-></iframe>
+<figure class="homepage-demo">
+  <iframe
+    src="./editor/index.html"
+    title="Interactive EspDesktop touchscreen demo"
+    loading="lazy"
+  ></iframe>
+</figure>
 
 </section>
 
@@ -337,10 +338,18 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 .homepage-demo {
   display: block;
   width: min(100%, 452px);
-  height: auto;
+  margin: 0;
   aspect-ratio: 1;
   justify-self: center;
+}
+
+.homepage-demo iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
   border: 0;
+  border-radius: 18px;
   color-scheme: only light;
 }
 

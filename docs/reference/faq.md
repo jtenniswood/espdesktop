@@ -20,6 +20,14 @@ The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Intel M
 
 EspDesktop runs Mac controls over your local network without Home Assistant. Use USB for the firmware installation, then connect the display to Wi-Fi for Mac control. For a touchscreen that controls Home Assistant devices, see the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
 
+### Can I use EspDesktop over USB without Wi-Fi?
+
+Use a USB-C data cable to install firmware on the Guition 4848S040. For Mac controls, the display needs 2.4 GHz Wi-Fi and must be on the same local network as your Mac. See [Wi-Fi setup and recovery](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
+
+### Can I use several EspDesktop displays with one Mac?
+
+EspDesktop v1.2.6 supports multiple Guition 4848S040 displays connected to one Mac. Open **Mac Settings → Displays → Add Display** and pair each one with its own code. You can connect or disconnect one display while the others stay available. See [Mac app settings](/settings/mac-app).
+
 ### Why can't I see my display in the Mac app?
 
 Confirm that the Mac and display are on the same local network and allow EspDesktop local-network access if macOS asks. Some guest WiFi or network-isolation settings prevent discovery. Choose **Enter address manually** in the app and enter the display's IP address or `.local` name if needed.
