@@ -290,22 +290,43 @@ async function checkBrowser() {
 
     await page.goto(home);
     await setup.press('Enter');
-    await page.waitForURL(`${home}getting-started/install`);
+    await page.waitForURL(`${home}screens/4848s040#set-up-espdesktop`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
     await page.goto(`${base}/screens/4848s040`);
-    assert.equal(await page.locator('esp-web-install-button').count(), 0);
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
     await page.waitForURL('**/screens/4848s040#install');
     await page.getByRole('link', { name: 'Set up the screen', exact: true }).click();
-    await page.waitForURL('**/getting-started/install');
+    await page.waitForURL('**/screens/4848s040#set-up-espdesktop');
     await assertSupportedInstaller();
     assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');
+    await page.getByRole('link', { name: 'Get the Mac app', exact: true }).click();
+    await page.waitForURL('**/screens/4848s040#install-and-pair-the-espdesktop-mac-app');
+    const download = page.locator('.mac-app-download a');
+    await download.waitFor();
+    assert.match(await download.getAttribute('href'),
+      /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
+    await page.locator('h2[id="_3-configure-your-cards"]').waitFor();
+    for (const width of [320, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        `Display setup must fit a ${width}px viewport`);
+    }
     const beforeRetired = manifests.length;
     const retired = await page.goto(`${base}/getting-started/c6-recovery`);
     assert.equal(retired.status(), 404, 'Retired P4 recovery is not a public setup page');
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
     assert.equal(manifests.length, beforeRetired, 'Retired P4 setup must not offer an installer');
+    const publishedSetup = 'https://espdesktop.com/screens/4848s040';
+    await page.route(publishedSetup, route => route.fulfill({ contentType: 'text/html', body: 'Redirect target' }));
+    for (const [formerUrl, section] of [
+      ['/getting-started/install', 'set-up-espdesktop'],
+      ['/getting-started/mac-app#pair-the-display', 'pair-the-display'],
+      ['/features/setup#add-a-mac-control', 'add-a-mac-control'],
+    ]) {
+      await page.goto(base + formerUrl);
+      await page.waitForURL(`${publishedSetup}#${section}`);
+    }
     assert.deepEqual(errors, []);
     assert.deepEqual(externalScripts, [], 'USB installer must work without third-party scripts');
     console.log('Built-site installer checks passed (mocked Web Serial, no physical flashing).');

@@ -10,7 +10,7 @@ The panel can display a clock in the top bar, updated every minute from network 
 
 ## Settings
 
-Configured in **System > Preferences > Time** in [Setup](/features/setup).
+Configured in **System > Preferences > Time** in [System settings](/settings/system#display-system-settings).
 
 - **Timezone** — use **Auto (Mac Companion)** to follow the paired Mac’s timezone, or select a fixed timezone from the dropdown. This also determines sunrise and sunset times used by the [backlight schedule](/features/backlight).
 - **Clock Format** — choose **12-hour** for time without an AM/PM suffix, or **24-hour** for 24-hour time. Defaults to 24h.

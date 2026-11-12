@@ -5,7 +5,7 @@ description: Choose your favourite Mac apps, add ready-to-use shortcuts and deci
 
 # First setup {#app-setup-wizard}
 
-The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your Mac isn’t connected yet, the wizard starts with **Connect your Mac**, where you’ll find the Mac app download and pairing code. Once connected, choose **Next**. [Install and pair the Mac app](/getting-started/mac-app#pair-the-display).
+The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your Mac isn’t connected yet, the wizard starts with **Connect your Mac**, where you’ll find the Mac app download and pairing code. Once connected, choose **Next**. [Install and pair the Mac app](/screens/4848s040#pair-the-display).
 
 ## 1. Choose your apps
 
@@ -34,7 +34,7 @@ Choose **Save setup**. You can change this choice later under **Screen → Appea
 
 ## Your Home screen
 
-Your app cards appear on the display and in the web editor’s **Layout** tab. A small arrow on a card shows that it has a shortcut page. Use the empty tile to add another control. [Add a Mac control](/features/setup#add-a-mac-control).
+Your app cards appear on the display and in the web editor’s **Layout** tab. A small arrow on a card shows that it has a shortcut page. Use the empty tile to add another control. [Add a Mac control](/screens/4848s040#add-a-mac-control).
 
 <a href="/images/first-run-home.png"><img src="/images/first-run-home.png" alt="Example Home screen in the Layout tab with eight app cards and one empty tile" width="1694" height="2266" loading="lazy"></a>
 
