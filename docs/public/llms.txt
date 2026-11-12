@@ -25,7 +25,8 @@ The Markdown guides below come from the public documentation. Each guide links t
 ## Settings
 
 - [Screen settings](https://espdesktop.com/settings/screen.md)
-- [System and Mac app settings](https://espdesktop.com/settings/system.md)
+- [System settings](https://espdesktop.com/settings/system.md)
+- [Mac app settings](https://espdesktop.com/settings/mac-app.md)
 - [Backup and restore](https://espdesktop.com/settings/backup.md)
 - [Mac Companion permissions and security](https://espdesktop.com/mac-controls/security.md)
 

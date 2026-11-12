@@ -29,6 +29,8 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop Screen tab showing appearance, display, and sleep settings'),
   'settings/system.md': shareImage('web-editor-system-settings.png', 1694, 2266,
     'EspDesktop System tab showing device preferences and maintenance options'),
+  'settings/mac-app.md': shareImage('mac-connector/mac_app1.png', 1224, 1488,
+    'EspDesktop Mac app showing a connected display and the Customize button'),
   'settings/backup.md': shareImage('web-editor-backup.png', 1292, 771,
     'EspDesktop Backup settings showing Export and Import'),
   'features/home.md': shareImage('web-editor-home.png', 1694, 2266,
@@ -255,6 +257,7 @@ export default defineConfig({
         items: [
           { text: 'Screen settings', link: '/settings/screen' },
           { text: 'System settings', link: '/settings/system' },
+          { text: 'Mac app settings', link: '/settings/mac-app' },
           { text: 'Backup & restore', link: '/settings/backup' },
           { text: 'Permissions & security', link: '/mac-controls/security' },
         ],

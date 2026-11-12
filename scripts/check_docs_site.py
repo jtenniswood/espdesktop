@@ -258,6 +258,7 @@ def check_build(dist):
         BASE + 'features/first-run',
         BASE + 'settings/screen',
         BASE + 'settings/system',
+        BASE + 'settings/mac-app',
         BASE + 'settings/backup',
         BASE + 'features/home',
         BASE + 'features/subpages',

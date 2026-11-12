@@ -74,8 +74,8 @@ const formerSettingsSections = {
   '#naming-your-panel': '/settings/system#naming-your-panel',
   '#update-the-display-firmware': '/settings/system#update-the-display-firmware',
   '#reset-the-display': '/settings/system#reset-the-display',
-  '#mac-app-settings': '/settings/system#mac-app-settings',
-  '#check-for-mac-app-updates': '/settings/system#check-for-mac-app-updates',
+  '#mac-app-settings': '/settings/mac-app',
+  '#check-for-mac-app-updates': '/settings/mac-app#check-for-mac-app-updates',
 }
 
 const formerCardSections = {
