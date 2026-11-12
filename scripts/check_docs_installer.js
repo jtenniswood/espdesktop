@@ -310,9 +310,11 @@ async function checkBrowser() {
     const officialDownloadHref = await download.getAttribute('href');
     assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download');
     await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
-    await page.waitForURL('**/getting-started/mac-app');
-    await page.locator('#pair-the-display').waitFor();
-    await page.getByText('Apple silicon Mac with macOS 13 or newer').waitFor();
+    await page.waitForURL(`${setupPage}#download`);
+    await page.getByRole('heading', { name: 'Set up the Companion app' }).waitFor();
+    assert.equal(await page.locator('.VPSidebar a[href="/getting-started/mac-app"]').count(), 0);
+    await page.locator('#pair-the-display').waitFor({ state: 'attached' });
+    await page.getByText('Apple silicon Mac with macOS 13 or newer', { exact: true }).waitFor();
     await page.goto(`${base}/screens/4848s040#where-to-buy`);
     const buySection = page.locator('section[aria-labelledby="where-to-buy"]');
     await buySection.getByRole('link', { name: 'Buy on AliExpress' }).waitFor();
@@ -347,6 +349,10 @@ async function checkBrowser() {
     await page.waitForURL(`${canonicalSetup}#install`);
     await page.goto(`${base}/getting-started/install#connect-the-display-to-wifi`);
     await page.waitForURL(`${canonicalSetup}#connect-the-display-to-wifi`);
+    await page.goto(`${base}/getting-started/mac-app`);
+    await page.waitForURL(`${canonicalSetup}#download`);
+    await page.goto(`${base}/getting-started/mac-app#pair-the-display`);
+    await page.waitForURL(`${canonicalSetup}#pair-the-display`);
     const beforeRetired = manifests.length;
     const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting';
     await page.route(recovery, route => route.fulfill({ contentType: 'text/html', body: 'EspControl recovery guide' }));

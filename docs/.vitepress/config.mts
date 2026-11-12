@@ -190,7 +190,7 @@ export default defineConfig({
           operatingSystem: 'macOS 13 or newer',
           description,
           author,
-          softwareHelp: `${hostname}getting-started/mac-app`,
+          softwareHelp: `${hostname}screens/4848s040#download`,
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },
@@ -253,7 +253,6 @@ export default defineConfig({
         items: [
           { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
           { text: 'Install firmware', link: '/screens/4848s040#install' },
-          { text: 'Pair the Mac app', link: '/getting-started/mac-app' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },

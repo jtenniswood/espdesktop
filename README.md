@@ -26,12 +26,12 @@ You can organise controls into subpages, resize and rearrange cards, change icon
 
 1. **Install EspDesktop firmware** on a supported touchscreen from Chrome or Edge.
 2. **Connect the display to 2.4 GHz WiFi.**
-3. **Install the EspDesktop Mac app** using the current steps on the [documentation site](https://espdesktop.com/getting-started/mac-app).
+3. **Install the EspDesktop Mac app** using the current steps on the [documentation site](https://espdesktop.com/screens/4848s040#download).
 4. **Pair the Mac and display.** Open the display's web settings, choose **System → Mac Companion**, and enter the temporary code in the Mac app.
 5. **Approve access.** Choose the applications and folders the display may use. macOS Accessibility permission is needed for keyboard shortcuts and Mac Lock.
 6. **Build your control surface.** Add Companion cards and arrange them from the display's web page.
 
-Start with the [firmware installation steps](https://espdesktop.com/screens/4848s040#install), then follow the [Mac app and pairing guide](https://espdesktop.com/getting-started/mac-app). Install matching firmware and app builds.
+Start with the [firmware installation steps](https://espdesktop.com/screens/4848s040#install), then follow the [Mac app and pairing steps](https://espdesktop.com/screens/4848s040#download). Install matching firmware and app builds.
 
 ## Designed to Stay Narrow
 
@@ -58,7 +58,7 @@ The 4848S040 panel is available from [AliExpress](https://s.click.aliexpress.com
 ## Project Links
 
 - [Install EspDesktop firmware](https://espdesktop.com/screens/4848s040#install)
-- [Install and pair the Mac app](https://espdesktop.com/getting-started/mac-app)
+- [Install and pair the Mac app](https://espdesktop.com/screens/4848s040#download)
 - [Supported display](https://espdesktop.com/screens/4848s040)
 - [Mac controls](https://espdesktop.com/#what-you-can-control)
 - [Companion compatibility](https://espdesktop.com/reference/companion-compatibility)

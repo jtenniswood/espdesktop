@@ -19,6 +19,7 @@ const macControls = `${hostname}#what-you-can-control`
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
   'card-types/climate': `${espcontrol}card-types/climate`,
+  'getting-started/mac-app': `${displaySetup}#download`,
   'getting-started/install': `${displaySetup}#install`,
   'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
   'immich/installation': `${immichGuide}#installation`,
@@ -103,6 +104,13 @@ const formerImmichSections = Object.fromEntries([
   'troubleshooting',
 ].map(section => [`#${section}`, `${immichGuide}#${section}`]))
 
+const formerMacAppSections = Object.fromEntries([
+  'install-a-release',
+  'pair-the-display',
+  'check-the-connection',
+  'check-for-mac-app-updates',
+].map(section => [`#${section}`, `${displaySetup}#${section}`]))
+
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
     const file = join(outDir, `${path}.html`)
@@ -111,6 +119,7 @@ export async function writeRedirects(outDir: string) {
       : path === 'features/settings' ? formerSettingsSections
       : path === 'getting-started/install'
         ? { '#connect-the-display-to-wifi': `${displaySetup}#connect-the-display-to-wifi` }
+      : path === 'getting-started/mac-app' ? formerMacAppSections
       : path === 'immich/installation' ? formerImmichSections
       : undefined
     const fragmentRedirect = formerSections

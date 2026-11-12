@@ -249,7 +249,6 @@ def check_build(dist):
         BASE + 'screens/4848s040',
         BASE + 'screens/4848s040-stand',
         BASE + 'getting-started/troubleshooting',
-        BASE + 'getting-started/mac-app',
         BASE + 'download',
         BASE + 'mac-controls/apps',
         BASE + 'mac-controls/websites',
@@ -329,6 +328,7 @@ def check_build(dist):
 
     redirects = {
         'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
+        'getting-started/mac-app': BASE + 'screens/4848s040#download',
         'getting-started/install': BASE + 'screens/4848s040#install',
         'getting-started/c6-recovery': 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi',
         'immich/installation': 'https://jtenniswood.github.io/espcontrol/immich/#installation',
