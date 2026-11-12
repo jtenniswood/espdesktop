@@ -296,12 +296,10 @@ async function checkBrowser() {
     await page.goto(`${base}/screens/4848s040`);
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
     await page.waitForURL('**/screens/4848s040#install');
-    await page.getByRole('link', { name: 'Set up the screen', exact: true }).click();
-    await page.waitForURL('**/screens/4848s040#set-up-espdesktop');
     await assertSupportedInstaller();
     assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');
-    await page.getByRole('link', { name: 'Get the Mac app', exact: true }).click();
-    await page.waitForURL('**/screens/4848s040#install-and-pair-the-espdesktop-mac-app');
+    await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Download', exact: true }).click();
+    await page.waitForURL('**/screens/4848s040#download');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
@@ -311,6 +309,20 @@ async function checkBrowser() {
       await page.setViewportSize({ width, height: 900 });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         `Display setup must fit a ${width}px viewport`);
+    }
+    const steps = page.locator('.display-setup-step');
+    assert.equal(await steps.count(), 3);
+    for (const [index, step] of (await steps.all()).entries()) {
+      const copy = await step.locator('.display-setup-copy').boundingBox();
+      const photo = await step.locator('img').boundingBox();
+      assert(index === 1 ? photo.x + photo.width <= copy.x : copy.x + copy.width <= photo.x,
+        'Desktop setup images must alternate sides');
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const step of await steps.all()) {
+      const copy = await step.locator('.display-setup-copy').boundingBox();
+      const photo = await step.locator('img').boundingBox();
+      assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
     }
     const beforeRetired = manifests.length;
     const retired = await page.goto(`${base}/getting-started/c6-recovery`);
