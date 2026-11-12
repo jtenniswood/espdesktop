@@ -86,7 +86,22 @@ export default defineConfig({
 
   sitemap: {
     hostname,
-    transformItems: (items) => items.filter((item) => item.url !== '404' && item.url !== '/404'),
+    transformItems(items) {
+      const macReleaseTag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
+      const releaseDate = Date.parse(process.env.ESPDESKTOP_MAC_RELEASE_DATE ?? '')
+      if (macReleaseTag && Number.isFinite(releaseDate)) {
+        const releasePages = ['download']
+        if (process.env.ESPDESKTOP_MATCHED_RELEASE_TAG === macReleaseTag) {
+          releasePages.push('reference/companion-compatibility')
+        }
+        for (const item of items) {
+          if (!releasePages.includes(item.url)) continue
+          const sourceDate = new Date(item.lastmod ?? 0).getTime()
+          item.lastmod = new Date(Math.max(sourceDate || 0, releaseDate)).toISOString()
+        }
+      }
+      return items.filter(item => item.url !== '404' && item.url !== '/404')
+    },
   },
 
   head: [
@@ -107,12 +122,23 @@ export default defineConfig({
       return
     }
 
-    // These pages have no page-level sidebar link to determine their next step.
     if (relativePath === 'reference/companion-compatibility.md') {
-      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#set-up-espdesktop' }
+      const matchedTag = process.env.ESPDESKTOP_MATCHED_RELEASE_TAG
+      if (matchedTag) {
+        if (!/^v?\d+\.\d+\.\d+$/.test(matchedTag)) {
+          throw new Error(`Invalid matching release tag: ${matchedTag}`)
+        }
+        frontmatter.matchedReleaseTag = matchedTag
+        frontmatter.matchedReleaseUrl = `https://github.com/jtenniswood/espdesktop/releases/tag/${matchedTag}`
+      }
     }
 
-    if (relativePath === 'screens/4848s040.md') {
+    // These pages have no page-level sidebar link to determine their next step.
+    if (relativePath === 'reference/companion-compatibility.md') {
+      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }
+    }
+
+    if (relativePath === 'download.md' || relativePath === 'screens/4848s040.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
@@ -170,7 +196,7 @@ export default defineConfig({
           processorRequirements: productFacts.macProcessor,
           description,
           author,
-          softwareHelp: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,
+          softwareHelp: `${hostname}screens/4848s040#download`,
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },
@@ -224,7 +250,7 @@ export default defineConfig({
     nav: [
       { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
       { text: 'Install', link: '/screens/4848s040#install' },
-      { text: 'Download', link: '/screens/4848s040#download' },
+      { text: 'Download', link: '/download' },
     ],
 
     sidebar: [
@@ -245,6 +271,7 @@ export default defineConfig({
           { text: 'Websites', link: '/mac-controls/websites' },
           { text: 'Finder folders', link: '/mac-controls/folders' },
           { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
         ],
       },
       {

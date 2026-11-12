@@ -10,15 +10,23 @@ outline: [2, 3]
 
 ### Which display works with Mac controls?
 
-Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See [Supported Display](/screens/4848s040) for the model and [Install](/screens/4848s040#set-up-espdesktop) for the firmware steps.
+Mac Companion currently works with the **4-inch Guition ESP32-S3 4848S040**. See [Supported Display](/screens/4848s040) for the model and [Install](/screens/4848s040#install) for the firmware steps.
 
 ### Which Macs does EspDesktop support? {#which-macos-versions-does-espdesktop-support}
 
-The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Follow the [Mac app setup guide](/screens/4848s040#install-and-pair-the-espdesktop-mac-app) to download it and pair your display.
+The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Intel Macs are unsupported, including 2019 Intel MacBook Pro and iMac models. Follow the [Mac app setup guide](/screens/4848s040#download) to download it and pair your display.
 
 ### Does EspDesktop need Home Assistant?
 
-EspDesktop connects the touchscreen directly to the Mac Companion app over your local network. The display uses 2.4 GHz Wi-Fi. For a touchscreen that controls Home Assistant devices, see the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+EspDesktop runs Mac controls over your local network without Home Assistant. Use USB for the firmware installation, then connect the display to 2.4 GHz Wi-Fi for Mac control. For a touchscreen that controls Home Assistant devices, see the [EspDesktop and EspControl comparison](/reference/espdesktop-or-espcontrol).
+
+### Can I use EspDesktop over USB without Wi-Fi?
+
+Use a USB-C data cable to install firmware on the Guition 4848S040. For Mac controls, the display needs 2.4 GHz Wi-Fi and must be on the same local network as your Mac. See [Wi-Fi setup and recovery](/getting-started/troubleshooting#wifi-setup-and-reset-recovery).
+
+### Can I use several EspDesktop displays with one Mac?
+
+EspDesktop v1.2.6 supports multiple Guition 4848S040 displays connected to one Mac. Open **Mac Settings → Displays → Add Display** and pair each one with its own code. You can connect or disconnect one display while the others stay available. See [Mac app settings](/settings/mac-app).
 
 ### Why can't I see my display in the Mac app?
 

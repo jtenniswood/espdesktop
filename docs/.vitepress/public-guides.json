@@ -2,11 +2,15 @@
   "Start here": [
     "index.md",
     "screens/4848s040.md",
+    "download.md",
     "reference/faq.md"
   ],
   "Troubleshooting and compatibility": [
     "getting-started/troubleshooting.md",
-    "reference/companion-compatibility.md"
+    "reference/companion-compatibility.md",
+    "reference/espdesktop-or-espcontrol.md",
+    "reference/mac-touchscreen-controller.md",
+    "reference/mac-controls-by-release.md"
   ],
   "Configure the touchscreen": [
     "features/first-run.md",
@@ -15,7 +19,8 @@
     "mac-controls/apps.md",
     "mac-controls/websites.md",
     "mac-controls/folders.md",
-    "mac-controls/shortcuts.md"
+    "mac-controls/shortcuts.md",
+    "reference/shortcut-presets.md"
   ],
   "Settings and permissions": [
     "settings/screen.md",

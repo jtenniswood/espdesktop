@@ -18,6 +18,7 @@ on:
       - 'scripts/release_devices.py'
       - 'scripts/check_public_firmware.py'
       - 'scripts/check_docs_site.py'
+      - 'scripts/check_published_docs.py'
       - 'scripts/check_docs_installer.js'
       - 'scripts/build.py'
       - 'scripts/prepare_release_web_assets.py'
@@ -193,11 +194,24 @@ jobs:
             select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).dmg")) |
             {tag: $tag, version: ($version | split(".") | map(tonumber))}
           ] | max_by([.version, .tag]) | .tag // empty' "${RELEASES}")
+          RELEASE_DATE=$(jq -rs --arg tag "${MAC_TAG}" '[.[][] | select(.tag_name == $tag) | .published_at] | first // empty' "${RELEASES}")
+          echo "release_date=${RELEASE_DATE}" >> "${GITHUB_OUTPUT}"
           echo "tag=${MAC_TAG}" >> "${GITHUB_OUTPUT}"
+          MATCHED_TAG=$(jq -rs --arg tag "${MAC_TAG}" '
+            [.[][] | select(.tag_name == $tag) |
+              [.assets[] | select(.state == "uploaded") | .name] as $assets |
+              select(["companion-compatibility.json",
+                "guition-esp32-s3-4848s040.manifest.json",
+                "guition-esp32-s3-4848s040.factory.bin",
+                "guition-esp32-s3-4848s040.ota.bin"] - $assets == []) |
+              .tag_name] | first // empty' "${RELEASES}")
+          echo "matched_tag=${MATCHED_TAG}" >> "${GITHUB_OUTPUT}"
 
       - name: Build docs
         env:
+          ESPDESKTOP_MAC_RELEASE_DATE: ${{ steps.mac-download.outputs.release_date }}
           ESPDESKTOP_MAC_RELEASE_TAG: ${{ steps.mac-download.outputs.tag }}
+          ESPDESKTOP_MATCHED_RELEASE_TAG: ${{ steps.mac-download.outputs.matched_tag }}
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
         run: npm run docs:build
 
@@ -525,6 +539,8 @@ jobs:
             product/release_devices.json
             scripts/release_devices.py
             scripts/check_public_firmware.py
+            scripts/check_docs_site.py
+            scripts/check_published_docs.py
           sparse-checkout-cone-mode: false
 
       - name: Download docs artifact
@@ -558,6 +574,9 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Verify published documentation
+        run: python3 scripts/check_published_docs.py --dist dist
 
       - name: Verify public firmware assets
         if: needs.download-firmware.outputs.has_stable == 'true'
