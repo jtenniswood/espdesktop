@@ -5,19 +5,6 @@ description: Launch apps, open websites and Finder folders, and run keyboard sho
 layout: home
 ---
 
-<script setup>
-import { nextTick, ref } from 'vue'
-
-const showTouchscreenDemo = ref(false)
-const touchscreenDemo = ref(null)
-
-async function openTouchscreenDemo() {
-  showTouchscreenDemo.value = true
-  await nextTick()
-  touchscreenDemo.value?.focus()
-}
-</script>
-
 <section class="homepage-hero">
 
 <div>
@@ -165,19 +152,10 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 
 <figure class="homepage-demo">
   <iframe
-    v-if="showTouchscreenDemo"
-    ref="touchscreenDemo"
     src="./editor/index.html"
     title="Interactive EspDesktop touchscreen demo"
+    loading="lazy"
   ></iframe>
-  <template v-else>
-    <picture>
-      <source type="image/avif" srcset="/images/espdesktop-slack-subpage-480.avif 480w, /images/espdesktop-slack-subpage-960.avif 960w" sizes="(min-width: 768px) 452px, 90vw">
-      <img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing a Slack shortcut page with buttons for messages, search and unread chats" width="1320" height="1208" loading="lazy">
-    </picture>
-    <button type="button" class="homepage-demo-launch" @click="openTouchscreenDemo">Try the touchscreen</button>
-    <noscript><a href="./editor/index.html">Open the touchscreen demo</a></noscript>
-  </template>
 </figure>
 
 </section>
@@ -360,13 +338,11 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 .homepage-demo {
   display: block;
   width: min(100%, 452px);
-  position: relative;
   margin: 0;
   aspect-ratio: 1;
   justify-self: center;
 }
 
-.homepage-demo img,
 .homepage-demo iframe {
   display: block;
   width: 100%;
@@ -374,31 +350,7 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
   aspect-ratio: 1;
   border: 0;
   border-radius: 18px;
-}
-
-.homepage-demo img {
-  object-fit: cover;
-}
-
-.homepage-demo iframe {
   color-scheme: only light;
-}
-
-.homepage-demo-launch {
-  position: absolute;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px 16px;
-  border-radius: 999px;
-  background: var(--vp-button-brand-bg);
-  color: var(--vp-button-brand-text);
-  white-space: nowrap;
-}
-
-.homepage-demo-launch:focus-visible {
-  outline: 2px solid var(--vp-button-brand-text);
-  outline-offset: 3px;
 }
 
 @media (min-width: 620px) {

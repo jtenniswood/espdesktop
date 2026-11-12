@@ -167,12 +167,9 @@ async function checkBrowser() {
         assert(copy && mock && Math.abs(copy.width - mock.width) < 1,
           'Homepage demo and copy must use equal desktop columns');
       }
-      const preview = demoSection.locator('figure.homepage-demo img');
-      await preview.scrollIntoViewIfNeeded();
-      await preview.evaluate(img => img.decode());
-      assert.match(await preview.evaluate(img => img.currentSrc), /espdesktop-slack-subpage-(480|960)\.avif$/);
-      assert.equal(await demo.count(), 0, 'Scrolling must leave the demo renderer unloaded');
-      await demoSection.getByRole('button', { name: 'Try the touchscreen' }).press('Enter');
+      assert.equal(await demoSection.locator('figure.homepage-demo img').count(), 0);
+      assert.equal(await demo.getAttribute('loading'), 'lazy');
+      await demo.scrollIntoViewIfNeeded();
       const frame = page.frameLocator(demoSelector);
       const slack = frame.getByRole('button', { name: 'Slack', exact: true });
       await slack.waitFor();

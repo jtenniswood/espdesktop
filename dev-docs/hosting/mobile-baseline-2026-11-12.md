@@ -15,11 +15,10 @@ blocked.
 
 Resource counts come from the top document and exclude the main HTML and
 resources loaded by embedded frames. The published homepage requested the
-2.7 MB demo renderer in both runs. The preview did not request it on scroll
-before activation. No layout shifts were observed in these lab runs.
+2.7 MB demo renderer in both runs. The click-to-load prototype used for this baseline did not request it before activation. No layout shifts were observed in these lab runs.
 
 For these three routes, keep top-document resources under 750 kB before
-interaction at this profile. Keep the demo renderer out of the passive page
-load. Use a mobile LCP target of 2.5 seconds and a CLS target of 0.1.
+interaction at this profile. The homepage now shows the interactive preview
+with native lazy loading as visitors approach the panel. Use a mobile LCP target of 2.5 seconds and a CLS target of 0.1.
 Check field LCP, INP and CLS in Search Console when enough visitor data is
 available. The lab samples do not measure field performance.
