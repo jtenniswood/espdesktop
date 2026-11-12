@@ -112,6 +112,10 @@ workflow artifacts. Its summary gives the candidate run ID and the fingerprint
 of the manifest that records their file hashes and pins the release manifest
 that identifies the hosted editor.
 
+Follow the [stable release setup docs checklist](docs-discovery.md#verify-the-setup-docs-for-each-stable-release)
+with the candidate and again after Pages deploys. Record any physical setup
+results in the candidate test notes.
+
 Install and open the notarized Mac app from the candidate run. Once the user
 confirms the app works, dispatch **Publish Release** from the same tag with
 the candidate run ID and manifest fingerprint. The workflow checks the

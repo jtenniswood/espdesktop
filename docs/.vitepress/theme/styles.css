@@ -111,3 +111,26 @@
     display: none;
   }
 }
+
+.vp-doc .docs-primary-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  color: var(--vp-button-brand-text);
+  background: var(--vp-button-brand-bg);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.vp-doc .docs-primary-action:hover {
+  color: var(--vp-button-brand-text);
+  background: var(--vp-button-brand-hover-bg);
+}
+
+.vp-doc .docs-primary-action:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
+}

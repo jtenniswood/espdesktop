@@ -296,17 +296,32 @@ async function checkBrowser() {
     await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
-    await page.goto(`${base}/screens/4848s040`);
+    const setupDownload = page.locator('.display-setup-step .mac-app-download a.docs-primary-action');
+    const setupDownloadHref = await setupDownload.getAttribute('href');
+    const wizard = page.locator('.display-setup-step a.docs-primary-action').getByText('View setup wizard', { exact: true });
+    assert.equal(await wizard.getAttribute('href'), '/features/first-run');
+    const setupPage = `${base}/screens/4848s040`;
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
-    await page.waitForURL('**/screens/4848s040#install');
-    await assertSupportedInstaller();
-    assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');
+    await page.waitForURL(`${setupPage}#install`);
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Download', exact: true }).click();
-    await page.waitForURL('**/screens/4848s040#download');
+    await page.waitForURL('**/download');
+    await page.getByRole('heading', { name: 'Download EspDesktop for Mac', level: 1 }).waitFor();
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
       /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
+    const officialDownloadHref = await download.getAttribute('href');
+    assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download');
+    await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
+    await page.waitForURL(`${setupPage}#download`);
+    await page.getByRole('heading', { name: 'Set up the Companion app' }).waitFor();
+    assert.equal(await page.locator('.VPSidebar a[href="/getting-started/mac-app"]').count(), 0);
+    await page.locator('#pair-the-display').waitFor({ state: 'attached' });
+    await page.getByText('Apple silicon Mac with macOS 13 or newer', { exact: true }).waitFor();
+    await page.goto(`${base}/screens/4848s040#where-to-buy`);
+    const buySection = page.locator('section[aria-labelledby="where-to-buy"]');
+    await buySection.getByRole('link', { name: 'Buy on AliExpress' }).waitFor();
+    assert.equal(await buySection.getByRole('link', { name: 'Check Mac requirements' }).count(), 0);
     assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
     for (const width of [320, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
@@ -326,21 +341,37 @@ async function checkBrowser() {
       const photo = await step.locator('img').boundingBox();
       assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
     }
+    const canonicalSetup = 'https://espdesktop.com/screens/4848s040';
+    // Intercept canonical redirect targets without contacting production.
+    await page.route(canonicalSetup, route => route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><title>EspDesktop setup destination</title>',
+    }));
+    await page.goto(`${base}/getting-started/install`);
+    await page.waitForURL(`${canonicalSetup}#install`);
+    await page.goto(`${base}/getting-started/install#connect-the-display-to-wifi`);
+    await page.waitForURL(`${canonicalSetup}#connect-the-display-to-wifi`);
+    await page.goto(`${base}/getting-started/mac-app`);
+    await page.waitForURL(`${canonicalSetup}#download`);
+    await page.goto(`${base}/getting-started/mac-app#pair-the-display`);
+    await page.waitForURL(`${canonicalSetup}#pair-the-display`);
     const beforeRetired = manifests.length;
-    const retired = await page.goto(`${base}/getting-started/c6-recovery`);
-    assert.equal(retired.status(), 404, 'Retired P4 recovery is not a public setup page');
+    const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting';
+    await page.route(recovery, route => route.fulfill({ contentType: 'text/html', body: 'EspControl recovery guide' }));
+    await page.goto(`${base}/getting-started/c6-recovery`);
+    await page.waitForURL(`${recovery}#a-p4-panel-has-unreliable-wifi`);
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
     assert.equal(manifests.length, beforeRetired, 'Retired P4 setup must not offer an installer');
-    const publishedSetup = 'https://espdesktop.com/screens/4848s040';
-    await page.route(publishedSetup, route => route.fulfill({ contentType: 'text/html', body: 'Redirect target' }));
-    for (const [formerUrl, destination] of [
-      ['/getting-started/install', `${publishedSetup}#set-up-espdesktop`],
-      ['/getting-started/mac-app#pair-the-display', `${publishedSetup}#pair-the-display`],
-      ['/features/setup#add-a-mac-control', `${base}/features/home#add-a-card`],
-    ]) {
-      await page.goto(base + formerUrl);
-      await page.waitForURL(destination);
-    }
+    const immich = 'https://jtenniswood.github.io/espcontrol/immich/';
+    await page.route(immich, route => route.fulfill({ contentType: 'text/html', body: 'EspControl Immich guide' }));
+    await page.goto(`${base}/immich/installation`);
+    await page.waitForURL(`${immich}#installation`);
+    await page.goto(`${base}/immich/installation#manual-installation`);
+    await page.waitForURL(`${immich}#manual-installation`);
+
+    await page.goto(`${base}/features/setup#add-a-mac-control`);
+    await page.waitForURL(`${base}/features/home#add-a-card`);
     assert.deepEqual(errors, []);
     assert.deepEqual(externalScripts, [], 'USB installer must work without third-party scripts');
     console.log('Built-site installer checks passed (mocked Web Serial, no physical flashing).');

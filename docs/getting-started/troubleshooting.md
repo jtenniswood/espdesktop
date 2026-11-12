@@ -1,9 +1,40 @@
 ---
-title: Troubleshoot Mac Controls
-description: Resolve common EspDesktop Mac app pairing, network, permissions, and control issues.
+title: Fix EspDesktop installer, Wi-Fi and Mac pairing problems
+description: Fix a missing USB port, Wi-Fi setup hotspot, Mac pairing error or unresponsive shortcut on the EspDesktop 4848S040.
 ---
 
-# Troubleshoot Mac controls
+# Troubleshoot EspDesktop setup and Mac controls {#troubleshoot-mac-controls}
+
+Find the symptom you see on your 4848S040 or Mac.
+
+| What you see | First check |
+| --- | --- |
+| [The installer shows no USB port](#no-usb-port-appears) | Try a USB-C cable that carries data. |
+| [The firmware installer will not load](#the-firmware-installer-will-not-load) | Open the installer in desktop Chrome or Edge. |
+| [The Wi-Fi hotspot does not appear](#wifi-setup-and-reset-recovery) | Give the display up to 90 seconds and check the network name shown on the screen. |
+| [The Mac app cannot find the display](#the-display-does-not-appear-in-espdesktop) | Check that the Mac and display are on the same local network. |
+| [The display appears but will not pair](#the-display-will-not-pair) | Open the display's pairing page and use its current code. |
+| [Shortcuts or Mac Lock do nothing](#a-card-does-not-work) | Check macOS Accessibility access for EspDesktop. |
+
+## No USB port appears
+
+1. Connect the 4848S040 directly to the computer with a known USB-C data cable. Try another cable or USB port if needed.
+2. In desktop Chrome or Edge, open [the EspDesktop installer](/screens/4848s040#flash-the-firmware) and select **Install EspDesktop**.
+3. Pick the port that appeared when you connected the display. If you cannot identify it before flashing starts, cancel and compare the port list with the display disconnected.
+
+The port should appear in the browser's device picker before you start flashing.
+
+## The firmware installer will not load
+
+| Installer message | What to do |
+| --- | --- |
+| **Your browser does not support WebSerial. Use Chrome or Edge on desktop.** | Reopen the guide in desktop Chrome or Edge. |
+| **Could not check for WebInstall firmware. Check your connection.** | Check your internet connection, then choose **Try again**. |
+| **Could not check for WebInstall firmware (HTTP …).** | Retry once and check whether the [latest stable release](https://github.com/jtenniswood/espdesktop/releases/latest) lists 4848S040 firmware assets. Include the HTTP status if you report the problem. |
+| **Browser-installable firmware for this display has not been published yet.** | The installer could not find its firmware manifest. Check the official releases for 4848S040 assets. If a stable release contains them, report the message and release version so the hosted installer can be checked. |
+| **Failed to load the USB installer.** | Reload in a current Chrome or Edge window. If the message returns, include the full message and browser version when reporting it. |
+
+A working installer shows an **Install EspDesktop** button and opens the USB port picker when selected.
 
 ## The display does not appear in EspDesktop
 
@@ -12,7 +43,7 @@ description: Resolve common EspDesktop Mac app pairing, network, permissions, an
 - Check that guest WiFi or router client isolation is not separating devices.
 - In the Mac app, choose **Enter address manually** and enter the display's IP address or `.local` name.
 
-Discovery only locates a display; it does not configure its WiFi. For a first-time firmware install, follow [Install EspDesktop](/screens/4848s040#set-up-espdesktop).
+Discovery only locates a display; it does not configure its WiFi. For a first-time firmware install, follow [Install EspDesktop](/screens/4848s040#install).
 
 ## The display will not pair
 
@@ -22,7 +53,13 @@ Select the display in the Mac app and click **Continue** to open its pairing pag
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
-If the Mac app asks you to unlock your Mac or allow Keychain access, do that first, then choose **Retry** on the **Display** tab.
+| Pairing message | What to do |
+| --- | --- |
+| **Could not open the display pairing page.** | Confirm the display is on the same local network as your Mac. If the app still cannot open the page, go back and enter the display’s current IP address or `.local` name. |
+| **Enter the eight-letter pairing code shown on the display.** | Copy the full eight-letter code from the display’s pairing page. If it has expired, get a fresh code and select **Connect**. |
+| **Unlock your Mac and allow EspDesktop to access Keychain, then try again.** | Unlock the Mac and allow Keychain access if prompted. Return to the pairing code step and select **Connect** again. |
+
+When pairing works, the Mac app shows **You’re connected**.
 
 If you have one display paired, **Support → Restart Setup** clears its pairing and takes you through first-run setup again. With several displays paired, use **Forget** and **Add Display** on the **Displays** page to set up one display again. Your app and folder choices are kept.
 
@@ -60,4 +97,4 @@ If an ESP32-P4 panel running EspControl can’t join WiFi, see the [C6 WiFi reco
 
 ## Still stuck?
 
-Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues).
+Open **Support** in the Mac app or [report an issue](https://github.com/jtenniswood/espdesktop/issues). Include the display model, macOS and Mac app versions, display firmware version, and the exact message you saw. Leave out Wi-Fi passwords and pairing codes.

@@ -2,7 +2,7 @@
 
 > EspDesktop pairs a 4-inch Guition 4848S040 ESP32-S3 touchscreen with a macOS menu-bar app. The display can launch apps, open Finder folders and websites, run shortcuts and lock the Mac.
 
-The Mac app requires macOS 13 or newer. Connect the display to 2.4 GHz WiFi on the same local network as the Mac. Use firmware and the Mac app from the same EspDesktop release. The Mac Companion app and display pair directly.
+The Mac app requires Apple silicon and macOS 13 or newer. Connect the display to 2.4 GHz WiFi on the same local network as the Mac. Use firmware and the Mac app from the same EspDesktop release. The Mac Companion app and display pair directly.
 
 The Markdown guides below come from the public documentation. Each guide links to its original web page. Use the web installation guide to run the interactive firmware installer.
 
@@ -11,6 +11,8 @@ The Markdown guides below come from the public documentation. Each guide links t
 - [EspDesktop overview](https://espdesktop.com/index.md)
 - [Buy and set up the Guition 4848S040 touchscreen](https://espdesktop.com/screens/4848s040.md)
 - [Compatibility and setup FAQ](https://espdesktop.com/reference/faq.md)
+
+- [Download EspDesktop for Mac](https://espdesktop.com/download.md)
 
 ## Configure the touchscreen
 
