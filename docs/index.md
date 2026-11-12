@@ -1,7 +1,7 @@
 ---
-title: EspDesktop — ESP32 Touchscreen Controller for Mac
+title: EspDesktop — A touchscreen controller for your Mac
 titleTemplate: :title
-description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening websites and Finder folders, and running keyboard shortcuts.
+description: Launch apps, open websites and Finder folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
 ---
 
