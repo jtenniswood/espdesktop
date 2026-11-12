@@ -99,9 +99,9 @@ final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     @Published var settingsRequestID: UUID?
     var requestedSettingsPage = "connection"
-    static let privacyPolicyURL = URL(string: "https://jtenniswood.github.io/espdesktop/reference/privacy")!
+    static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
     static let issuesURL = URL(string: "https://github.com/jtenniswood/espdesktop/issues")!
-    static let supportURL = URL(string: "https://jtenniswood.github.io/espdesktop/getting-started/troubleshooting")!
+    static let supportURL = URL(string: "https://espdesktop.com/getting-started/troubleshooting")!
     static let buyMeACoffeeURL = URL(string: "https://www.buymeacoffee.com/jtenniswood")!
 
     @Published var panelHost: String { didSet { defaults.set(panelHost, forKey: Keys.host) } }

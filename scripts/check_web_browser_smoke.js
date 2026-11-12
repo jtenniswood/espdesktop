@@ -511,7 +511,7 @@ async function installRoutes(context, slug, options = {}) {
       await route.fulfill({ status: 204, contentType: "text/plain", body: "" });
       return;
     }
-    if (requestUrl.hostname === "jtenniswood.github.io") {
+    if (requestUrl.origin === "https://espdesktop.com" && requestUrl.pathname.startsWith("/firmware/")) {
       if (requestUrl.pathname.endsWith("/manifest.json")) {
         await route.fulfill({
           status: 200,
@@ -1525,7 +1525,7 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
       `${label}: install progress should stay in the action button`,
     );
     assert.strictEqual(
-      await firmwareCard.locator(".sp-fw-overview .sp-fw-status").innerText(),
+      await firmwareCard.locator("#sp-fw-status").innerText(),
       "",
       `${label}: install progress should not be duplicated below the action`,
     );
@@ -5201,7 +5201,7 @@ async function assertHostedCompatibility(browser) {
   const firmwareBody = "test firmware download";
   let releaseDownload;
   const downloadReady = new Promise(resolve => { releaseDownload = resolve; });
-  await context.route("https://jtenniswood.github.io/**/*.ota.bin", async route => {
+  await context.route("https://espdesktop.com/firmware/**/*.ota.bin", async route => {
     await downloadReady;
     return route.fulfill({
       status: 200,
@@ -5234,9 +5234,9 @@ async function assertHostedCompatibility(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), seededEvents());
     await page.waitForFunction(() => ["manifest.json", "versions.json"].every(name =>
-      window.__compatRequests.some(item => item.url.startsWith("https://jtenniswood.github.io/espdesktop/firmware/") && item.url.endsWith(name) && item.status === 200)));
+      window.__compatRequests.some(item => item.url.startsWith("https://espdesktop.com/firmware/") && item.url.endsWith(name) && item.status === 200)));
     const requests = await page.evaluate(() => window.__compatRequests);
-    for (const request of requests.filter(item => item.url.startsWith("https://jtenniswood.github.io/espdesktop/firmware/"))) {
+    for (const request of requests.filter(item => item.url.startsWith("https://espdesktop.com/firmware/"))) {
       assert.equal(request.credentials, "omit", "public metadata must not include browser credentials");
     }
     assert(requests.some(item => item.url.endsWith("/espdesktop/version") && item.credentials === "include"), "device state requests retain authentication");
@@ -5256,6 +5256,8 @@ async function assertHostedCompatibility(browser) {
     await page.waitForFunction(() => window.__compatRequests.some(item => item.url.endsWith(".ota.bin")));
     const download = await page.evaluate(() => window.__compatRequests.find(item => item.url.endsWith(".ota.bin")));
     assert.equal(download.credentials, "omit", "public firmware downloads must not include browser credentials");
+    assert.equal(download.url, `https://espdesktop.com/firmware/${testCase.slug}/versions/v1.11.0/${testCase.slug}.ota.bin`,
+      "rollback downloads the selected version directly from the firmware host");
     await page.evaluate(() => window.__seedEspState([
       { id: "update-firmware__update", state: "NO UPDATE", current_version: "v1.12.0", latest_version: "v1.13.0" },
     ]));
@@ -5270,6 +5272,10 @@ async function assertHostedCompatibility(browser) {
     assert(uploads[0].postData().includes(firmwareBody), "the downloaded firmware reaches the device upload");
     assert(uploads[0].postData().includes(`${testCase.slug}.ota.bin`), "the upload retains the device firmware filename");
     await page.getByText("Firmware uploaded. Waiting for device to restart…", { exact: true }).waitFor();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "text_sensor-firmware__version", state: "v1.11.0" },
+    ]));
+    await firmwareCard.getByText("Firmware v1.11.0 installed.", { exact: true }).waitFor();
   } finally { await context.close(); }
 }
 
@@ -5278,7 +5284,7 @@ async function assertFirmwareRetryFeedback(browser) {
   for (const action of ["check", "install", "check_then_install"]) {
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: nativeConfigState(testCase.slug) });
-    await context.route("https://jtenniswood.github.io/**/*.ota.bin", route => route.fulfill({
+    await context.route("https://espdesktop.com/firmware/**/*.ota.bin", route => route.fulfill({
       status: 503, headers: { "Access-Control-Allow-Origin": "*" }, body: "Unavailable",
     }));
     const page = await context.newPage();
@@ -5294,14 +5300,15 @@ async function assertFirmwareRetryFeedback(browser) {
       await page.locator("#sp-fw-previous-panel .sp-disclosure-button").click();
       page.once("dialog", dialog => dialog.accept());
       await page.locator("#sp-fw-previous-panel .sp-fw-btn").click();
-      const status = page.locator("#sp-fw-updates-panel .sp-fw-status");
-      await page.waitForFunction(() => document.querySelector("#sp-fw-updates-panel .sp-fw-status")?.textContent.includes("Firmware update failed"));
+      const status = page.locator("#sp-fw-status");
+      await page.waitForFunction(() => document.querySelector("#sp-fw-status")?.textContent.includes("Firmware update failed"));
       await page.evaluate(action => window.__seedEspState([{
         id: "update-firmware__update",
         state: action === "install" ? "UPDATE AVAILABLE" : "NO UPDATE",
         current_version: action === "check" ? "v1.13.0" : "v1.12.0",
         latest_version: "v1.13.0",
       }]), action);
+      assert(await status.isVisible(), `${action}: rollback failure is visible with Firmware updates closed`);
       assert((await status.textContent()).includes("Firmware update failed"), `${action}: idle refresh preserves failure`);
       await page.locator("#sp-fw-updates-panel .sp-disclosure-button").click();
       await page.locator("#sp-fw-updates-panel .sp-fw-btn").click();

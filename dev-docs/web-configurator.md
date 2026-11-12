@@ -58,7 +58,7 @@ factory and OTA binaries under the matching `pr-firmware-<slug>` artifact.
 GitHub Pages publishes the hosted version at:
 
 ```text
-https://jtenniswood.github.io/espdesktop/webserver/<slug>/www.js
+https://espdesktop.com/webserver/<slug>/www.js
 ```
 
 The fallback hosted bundle URL is set as `js_url` in
