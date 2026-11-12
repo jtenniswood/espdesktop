@@ -93,7 +93,22 @@ export default defineConfig({
 
   sitemap: {
     hostname,
-    transformItems: (items) => items.filter((item) => item.url !== '404' && item.url !== '/404'),
+    transformItems(items) {
+      const macReleaseTag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
+      const releaseDate = Date.parse(process.env.ESPDESKTOP_MAC_RELEASE_DATE ?? '')
+      if (macReleaseTag && Number.isFinite(releaseDate)) {
+        const releasePages = ['download']
+        if (process.env.ESPDESKTOP_MATCHED_RELEASE_TAG === macReleaseTag) {
+          releasePages.push('reference/companion-compatibility')
+        }
+        for (const item of items) {
+          if (!releasePages.includes(item.url)) continue
+          const sourceDate = new Date(item.lastmod ?? 0).getTime()
+          item.lastmod = new Date(Math.max(sourceDate || 0, releaseDate)).toISOString()
+        }
+      }
+      return items.filter(item => item.url !== '404' && item.url !== '/404')
+    },
   },
 
   head: [
@@ -116,10 +131,10 @@ export default defineConfig({
 
     // These pages have no page-level sidebar link to determine their next step.
     if (relativePath === 'reference/companion-compatibility.md') {
-      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#set-up-espdesktop' }
+      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }
     }
 
-    if (relativePath === 'screens/4848s040.md') {
+    if (relativePath === 'download.md' || relativePath === 'screens/4848s040.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
@@ -175,7 +190,7 @@ export default defineConfig({
           operatingSystem: 'macOS 13 or newer',
           description,
           author,
-          softwareHelp: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,
+          softwareHelp: `${hostname}screens/4848s040#download`,
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },
@@ -229,7 +244,7 @@ export default defineConfig({
     nav: [
       { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
       { text: 'Install', link: '/screens/4848s040#install' },
-      { text: 'Download', link: '/screens/4848s040#download' },
+      { text: 'Download', link: '/download' },
     ],
 
     sidebar: [
