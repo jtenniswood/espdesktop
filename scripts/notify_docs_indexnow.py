@@ -14,6 +14,8 @@ from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
+from check_docs_site import Page
+
 HOST = 'espdesktop.com'
 BASE = f'https://{HOST}'
 ENDPOINT = 'https://api.indexnow.org/indexnow'
@@ -36,10 +38,21 @@ def markdown_path(route):
     return route + ('index.md' if route.endswith('/') else '.md')
 
 
-def digest(markdown):
+def digest(markdown, html):
+    page = Page(html.decode('utf-8'))
+    search_metadata = json.dumps({
+        'title': page.title,
+        'canonical': page.canonicals,
+        'meta': {name: value for name, value in page.meta.items()
+                 if name in ('description', 'robots') or name.startswith(('og:', 'twitter:'))},
+    }, sort_keys=True).encode('utf-8')
     # The next-guide footer changes when the sidebar changes.
     article = re.sub(rb'\n\[Next \xc2\xb7 [^\n]+\]\([^\n]+\)\s*$', b'', markdown)
-    return sha256(article.strip()).hexdigest()
+    return sha256(search_metadata + b'\n' + article.strip()).hexdigest()
+
+
+def live_digest(route):
+    return digest(read_live(markdown_path(route)), read_live(route))
 
 
 def read_live(path):
@@ -54,8 +67,9 @@ def prepare(dist, key, receipt):
 
     def find_update(route):
         relative = markdown_path(route)
-        current = digest((dist / relative.lstrip('/')).read_bytes())
-        if route not in before or current != digest(read_live(relative)):
+        source = dist / relative.lstrip('/')
+        current = digest(source.read_bytes(), source.with_suffix('.html').read_bytes())
+        if route not in before or current != live_digest(route):
             return route, current
         return None
 
@@ -82,7 +96,7 @@ def submit(key, receipt):
                 if expected is None:
                     if route in current:
                         raise ValueError(f'Retired guide still in sitemap: {route}')
-                elif route not in current or digest(read_live(markdown_path(route))) != expected:
+                elif route not in current or live_digest(route) != expected:
                     raise ValueError(f'Updated guide is not yet live: {route}')
             break
         except (ValueError, OSError, URLError) as error:

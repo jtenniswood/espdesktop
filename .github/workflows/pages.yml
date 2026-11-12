@@ -525,6 +525,7 @@ jobs:
             devices/manifest.json
             product/release_devices.json
             scripts/notify_docs_indexnow.py
+            scripts/check_docs_site.py
             scripts/release_devices.py
             scripts/check_public_firmware.py
           sparse-checkout-cone-mode: false
