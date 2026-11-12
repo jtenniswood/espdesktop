@@ -490,6 +490,8 @@ struct CompanionSettings: View {
                                 pairingStep = .address
                                 focusedField = .panelHost
                             }
+                        } else if store.onboardingCompleted {
+                            Button("Cancel", action: finishPairingFlow)
                         }
                         if pairingStep == .code { Spacer() }
                         Button(pairingStep == .address ? "Continue" : "Connect") {
@@ -505,7 +507,7 @@ struct CompanionSettings: View {
                     Button("Done", action: finishPairingFlow)
                         .buttonStyle(.borderedProminent)
                 }
-                if store.onboardingCompleted && pairingStep != .connected {
+                if store.onboardingCompleted && (pairingStep == .code || pairingStep == .connecting) {
                     Button("Cancel", action: finishPairingFlow)
                 }
             }
