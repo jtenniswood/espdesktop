@@ -1,0 +1,39 @@
+{
+  "Start here": [
+    "index.md",
+    "screens/4848s040.md",
+    "download.md",
+    "reference/faq.md"
+  ],
+  "Troubleshooting and compatibility": [
+    "getting-started/troubleshooting.md",
+    "reference/companion-compatibility.md",
+    "reference/espdesktop-or-espcontrol.md",
+    "reference/mac-touchscreen-controller.md",
+    "reference/mac-controls-by-release.md"
+  ],
+  "Configure the touchscreen": [
+    "features/first-run.md",
+    "features/home.md",
+    "features/subpages.md",
+    "mac-controls/apps.md",
+    "mac-controls/websites.md",
+    "mac-controls/folders.md",
+    "mac-controls/shortcuts.md",
+    "reference/shortcut-presets.md"
+  ],
+  "Settings and permissions": [
+    "settings/screen.md",
+    "settings/system.md",
+    "settings/mac-app.md",
+    "settings/backup.md",
+    "mac-controls/security.md"
+  ],
+  "Optional": [
+    "screens/4848s040-stand.md",
+    "reference/privacy.md",
+    "reference/support.md",
+    "mac-controls/improve-shortcuts.md",
+    "reference/request-icons.md"
+  ]
+}

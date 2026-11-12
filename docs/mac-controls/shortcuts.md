@@ -17,11 +17,15 @@ The **Application** tab lists apps with shortcut presets. Bundled presets are av
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
 
+[Look up keyboard shortcut presets by app](/reference/shortcut-presets).
+
 ## Allow accessibility access
 
 Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibility** so it can send keystrokes.
 
 <a href="/images/mac-companion-shortcut-access.png"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></a>
+
+If a tile still does nothing, follow [the shortcut and Mac Lock troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
 
 ## Group shortcuts by app {#use-a-template-on-an-app-subpage}
 
