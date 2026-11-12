@@ -18,6 +18,8 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 Select the display in the Mac app and click **Continue** to open its pairing page in your browser. Enter the code from that page in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget** beside it in **Mac Settings → Displays** and reset its pairing from the connector page before trying again.
 
+<a href="/images/mac-companion-enter-pairing-code.png"><img src="/images/mac-companion-enter-pairing-code.png" alt="Mac Companion app showing the empty fields for entering the display’s pairing code" width="1224" height="1600" loading="lazy"></a>
+
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
 If the Mac app asks you to unlock your Mac or allow Keychain access, do that first, then choose **Retry** on the **Display** tab.

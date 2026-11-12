@@ -31,7 +31,7 @@ const pageImages: Record<string, typeof defaultImage> = {
     'EspDesktop System tab showing device preferences and maintenance options'),
   'settings/backup.md': shareImage('web-editor-backup.png', 1292, 771,
     'EspDesktop Backup settings showing Export and Import'),
-  'features/home.md': shareImage('web-editor-home.png', 1000, 1337,
+  'features/home.md': shareImage('web-editor-home.png', 1694, 2266,
     'EspDesktop Home layout with Mac app cards in the web editor'),
   'features/subpages.md': shareImage('web-editor-figma-subpage.png', 1562, 2134,
     'Figma app subpage with the Figma icon as the Back tile and a grid of shortcuts'),
