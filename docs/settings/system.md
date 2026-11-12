@@ -50,6 +50,8 @@ Both options keep the installed firmware. Wait for the reset to finish before im
 
 Choose **Mac Settings** from the EspDesktop menu bar icon. The app keeps running when you close the settings window. To stop it, choose **Quit** from the same menu.
 
+<a href="/images/mac-companion-menu.png"><img src="/images/mac-companion-menu.png" alt="EspDesktop menu showing a connected display and the Mac Settings option" width="376" height="242" loading="lazy"></a>
+
 <ScreenshotGallery label="Mac app settings preview" :slides="settingsSlides" />
 
 See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. See [Permissions & Security](/mac-controls/security) for access to keyboard shortcuts and Mac Lock.

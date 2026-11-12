@@ -36,4 +36,6 @@ Under **App Subpage**, use **Folder shortcuts open in** to set the default windo
 
 Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
 
+<a href="/images/mac-companion-finder-access.png"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></a>
+
 For app launch behavior and other generated app pages, see [Launch Mac apps](/mac-controls/apps).
