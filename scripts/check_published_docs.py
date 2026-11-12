@@ -12,6 +12,7 @@ from urllib.parse import urljoin
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from check_docs_site import BASE, Page, sitemap_urls
+from check_public_firmware import PublicFirmwareError, assert_url_non_empty
 
 DISPLAY = 'guition-esp32-s3-4848s040'
 DMG = re.compile(
@@ -77,6 +78,8 @@ def verify(dist, base):
     manifest = dist / manifest_path
     if manifest.is_file():
         files[manifest_path] = ('application/json', manifest)
+    for feed in sorted((dist / 'updates').glob('companion-appcast-v*.xml')):
+        files[feed.relative_to(dist).as_posix()] = ('application/xml', feed)
 
     def check(route):
         url = urljoin(base, route)
@@ -109,15 +112,23 @@ def verify(dist, base):
     with ThreadPoolExecutor(max_workers=8) as executor:
         errors = [error for error in executor.map(check, [*files, *redirects]) if error]
 
+    version = None
     if manifest.is_file():
         version = json.loads(manifest.read_text(encoding='utf-8'))['version'].removeprefix('v')
-        downloads = dist / 'download.html'
-        if not downloads.is_file():
-            downloads = dist / 'screens/4848s040.html'
-        for link in Page(downloads.read_text(encoding='utf-8')).links:
-            match = DMG.fullmatch(link)
-            if match and match[1] != version:
-                errors.append(f'Mac download {match[1]} and hosted 4848S040 firmware {version} differ')
+    downloads = dist / 'download.html'
+    if not downloads.is_file():
+        downloads = dist / 'screens/4848s040.html'
+    for link in sorted(set(Page(downloads.read_text(encoding='utf-8')).links)):
+        match = DMG.fullmatch(link)
+        if not match:
+            continue
+        if version and match[1] != version:
+            errors.append(f'Mac download {match[1]} and hosted 4848S040 firmware {version} differ')
+            continue
+        try:
+            assert_url_non_empty(link)
+        except (OSError, PublicFirmwareError) as error:
+            errors.append(f'Mac download {link} could not be verified: {error}')
     if not errors:
         print(f'Published docs verified: {len(files)} files and {len(redirects)} redirects')
     return errors
