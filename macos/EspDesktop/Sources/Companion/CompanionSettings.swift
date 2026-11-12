@@ -12,7 +12,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     var id: String { rawValue }
     var title: String {
         switch self {
-        case .connection: return "Display"
+        case .connection: return "Displays"
         case .applications: return "Apps"
         case .folders: return "Folders"
         case .updates: return "Updates"
@@ -225,8 +225,7 @@ struct CompanionSettings: View {
     @State private var customizingApplications: Bool?
     @State private var selectedDisplayID: String?
     @State private var pairingCode = ""
-    @State private var confirmingForget = false
-    @State private var confirmingRestartSetup = false
+    @State private var displayToForget: CompanionDisplay?
     @State private var folderToRemove: ApprovedFolder?
     @State private var accessibilityGranted = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -253,23 +252,24 @@ struct CompanionSettings: View {
                     .onAppear { if !pairingFlowActive { startPairingFlow() } }
             case .preferences:
                 CompanionOnboarding(store: store) {
-                    pairingFlowActive = false
-                    pairingStep = .address
                     store.onboardingCompleted = true
+                    finishPairingFlow()
                 }
             }
         }
         .background(OnboardingWindowTitle(hidden: !store.onboardingCompleted && store.requestedSettingsPage != "help"))
-        .onChange(of: store.isConnected) { connected in
-            if connected {
+        .onChange(of: store.pairingState) { state in
+            guard pairingFlowActive else { return }
+            if state == .connected {
                 pairingCode = ""
-                if pairingFlowActive { pairingStep = .connected }
-            }
-        }
-        .onChange(of: store.connectionState) { state in
-            if pairingFlowActive && pairingStep == .connecting && state == .failed {
-                pairingStep = .code
-                pairingFlowError = store.connectionRecoveryMessage
+                pairingStep = .connected
+            } else if pairingStep == .connecting {
+                if store.hasSavedPairingInProgress && (state == .failed || state == .disconnected) {
+                    finishPairingFlow()
+                } else if state == .failed {
+                    pairingStep = .code
+                    pairingFlowError = store.pairingRecoveryMessage
+                }
             }
         }
         .onChange(of: pairingStep) { step in
@@ -296,9 +296,6 @@ struct CompanionSettings: View {
             }
         .onAppear {
             selectedPageID = store.requestedSettingsPage
-            if !store.hasSavedPairing && !pairingFlowActive && store.requestedSettingsPage != "help" {
-                startPairingFlow()
-            }
             refreshAccessibilityStatus()
         }
         .onChange(of: store.settingsRequestID) { _ in
@@ -307,33 +304,17 @@ struct CompanionSettings: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
         }
-        .alert("Forget this display?", isPresented: $confirmingForget) {
-            Button("Cancel", role: .cancel) {}
+        .alert("Forget this display?", isPresented: Binding(
+            get: { displayToForget != nil },
+            set: { if !$0 { displayToForget = nil } }
+        ), presenting: displayToForget) { display in
+            Button("Cancel", role: .cancel) { displayToForget = nil }
             Button("Forget Display", role: .destructive) {
-                store.forgetPanel()
-                selectedDisplayID = nil
-                manualAddress = false
-                pairingCode = ""
-                pairingFlowActive = true
-                pairingStep = .address
-                pairingFlowError = ""
-                focusedField = .panelHost
+                store.forgetDisplay(display)
+                displayToForget = nil
             }
-        } message: {
-            Text("Your Mac will disconnect and remove its saved pairing. You’ll need the code from the device webpage to pair again. Your application and folder choices will be kept.")
-        }
-        .alert("Restart setup?", isPresented: $confirmingRestartSetup) {
-            Button("Cancel", role: .cancel) {}
-            Button("Restart Setup", role: .destructive) {
-                store.forgetPanel()
-                pairingCode = ""
-                startPairingFlow()
-                selectedPageID = CompanionSettingsPage.connection.rawValue
-                store.requestedSettingsPage = CompanionSettingsPage.connection.rawValue
-                store.onboardingCompleted = false
-            }
-        } message: {
-            Text("Your Mac will disconnect and remove its saved display pairing, then start onboarding again. You’ll need a new pairing code from your display. Your application and folder choices will be kept.")
+        } message: { display in
+            Text("Your Mac will remove its saved pairing with \(display.name). To pair it again, reset pairing on that display and enter a new code.")
         }
         .alert("Remove folder?", isPresented: Binding(
             get: { folderToRemove != nil },
@@ -345,7 +326,7 @@ struct CompanionSettings: View {
                 folderToRemove = nil
             }
         } message: {
-            Text("This folder will no longer be available to your display. The folder and its files will stay on your Mac.")
+            Text("This folder will no longer be available to your displays. The folder and its files will stay on your Mac.")
         }
     }
 
@@ -367,53 +348,59 @@ struct CompanionSettings: View {
         Binding(get: { selectedPage }, set: { selectedPageID = $0.rawValue })
     }
 
+    @ViewBuilder
     private var connectionPage: some View {
-        Group {
-            if store.hasSavedPairing && !pairingFlowActive {
-                Form {
-                    Section {
-                        VStack(spacing: 20) {
-                            connectionStatus
-                            HStack(spacing: 12) {
-                                if store.connectionState == .failed {
-                                    Button {
-                                        store.connect()
-                                    } label: {
-                                        Label("Retry", systemImage: "arrow.clockwise")
-                                            .padding(.vertical, 4)
-                                    }
-                                    .help("Try connecting to this display again")
-                                    .modifier(CompanionCapsuleButton())
-                                }
-                                Button {
-                                    store.openPanelWebServer()
-                                } label: {
-                                    Label("Customize", systemImage: "rectangle.grid.2x2")
-                                        .padding(.vertical, 4)
-                                }
-                                    .help("Open the display’s configuration in your browser")
-                                    .modifier(CompanionCapsuleButton())
-                                Button(role: .destructive) {
-                                    confirmingForget = true
-                                } label: {
-                                    Label("Remove", systemImage: "trash")
-                                        .padding(.vertical, 4)
-                                }
-                                    .help("Remove this display’s pairing")
-                                    .modifier(CompanionCapsuleButton())
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 24)
+        if pairingFlowActive {
+            pairingFlowPage
+        } else {
+            Form {
+                Section("Displays") {
+                    ForEach(store.displays) { display in
+                        displayRow(display)
                     }
-                    accessibilityAndStartupSections
+                    Button(action: startPairingFlow) {
+                        Label("Add Display", systemImage: "plus")
+                    }
                 }
-                .formStyle(.grouped)
-            } else {
-                pairingFlowPage
+                accessibilityAndStartupSections
             }
+            .formStyle(.grouped)
         }
+    }
+
+    private func displayRow(_ display: CompanionDisplay) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .top, spacing: 12) {
+                Image(systemName: display.state.symbol)
+                    .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(display.name).font(.headline)
+                    if display.name != display.panelHost {
+                        Text(display.panelHost).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Text(display.state.title).font(.callout).foregroundStyle(.secondary)
+                }
+                Spacer()
+                if display.state.isBusy {
+                    ProgressView().controlSize(.small)
+                        .accessibilityLabel(display.state.title)
+                }
+            }
+            if display.state == .failed {
+                Text(display.recoveryMessage).font(.callout).foregroundStyle(.secondary)
+            }
+            HStack {
+                let enabled = display.state == .connected || display.state.isBusy
+                Button(enabled ? "Disconnect" : "Connect") {
+                    store.setConnection(!enabled, for: display)
+                }
+                Button("Customize") { store.openPanelWebServer(display) }
+                Spacer()
+                Button("Forget", role: .destructive) { displayToForget = display }
+            }
+            .buttonStyle(.bordered)
+        }
+        .padding(.vertical, 8)
     }
 
     private var pairingFlowPage: some View {
@@ -465,11 +452,11 @@ struct CompanionSettings: View {
                     ProgressView()
                         .accessibilityLabel("Connecting to display")
                 } else {
-                    Button("Done") {
-                        pairingFlowActive = false
-                        pairingStep = .address
-                    }
-                    .buttonStyle(.borderedProminent)
+                    Button("Done", action: finishPairingFlow)
+                        .buttonStyle(.borderedProminent)
+                }
+                if store.onboardingCompleted && pairingStep != .connected {
+                    Button("Cancel", action: finishPairingFlow)
                 }
             }
             .controlSize(.large)
@@ -508,18 +495,20 @@ struct CompanionSettings: View {
                 }
             }
             ForEach(discovery.displays) { display in
+                let paired = store.isSavedDisplay(fingerprint: display.id)
                 Button {
                     selectedDisplayID = display.id
                 } label: {
                     displayOption(
                         title: display.name,
-                        subtitle: display.hostname,
-                        icon: selectedDisplayID == display.id ? "checkmark.circle.fill" : "circle",
+                        subtitle: paired ? "Already paired" : display.hostname,
+                        icon: paired ? "checkmark.circle" : selectedDisplayID == display.id ? "checkmark.circle.fill" : "circle",
                         selected: selectedDisplayID == display.id
                     )
                 }
                 .buttonStyle(.plain)
-                .accessibilityLabel("\(display.name), \(display.hostname)")
+                .disabled(paired)
+                .accessibilityLabel(paired ? "\(display.name), already paired" : "\(display.name), \(display.hostname)")
                 .accessibilityAddTraits(selectedDisplayID == display.id ? .isSelected : [])
             }
             Button {
@@ -603,76 +592,30 @@ struct CompanionSettings: View {
         }
     }
 
-    private var connectionStatus: some View {
-        VStack(spacing: 10) {
-            connectionSwitch
-            HStack(spacing: 8) {
-                if store.connectionState.isBusy {
-                    ProgressView().controlSize(.small)
-                }
-                Text(store.connectionState.title)
-                    .font(.title.weight(.semibold))
-            }
-            .accessibilityElement(children: .combine)
-            Text(store.panelDisplayName.isEmpty ? store.panelHost : store.panelDisplayName)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .textSelection(.enabled)
-            if store.connectionState == .failed || store.connectionState == .reconnecting {
-                Text(store.connectionState == .reconnecting
-                     ? "Check that your display is powered on and connected to the same network. EspDesktop will try again automatically."
-                     : store.connectionRecoveryMessage)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-        }
-        .multilineTextAlignment(.center)
-    }
-
-    private var connectionSwitch: some View {
-        Toggle("Display connection", isOn: connectionToggleBinding)
-            .labelsHidden()
-            .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-            .controlSize(largeSwitchSize)
-            .disabled(store.connectionState.isBusy)
-            .accessibilityLabel("Display connection")
-    }
-
-    private var largeSwitchSize: ControlSize {
-        #if compiler(>=6.2)
-        if #available(macOS 26.0, *) { return .extraLarge }
-        #endif
-        return .large
-    }
-
-    private var connectionToggleBinding: Binding<Bool> {
-        Binding(
-            get: { store.isConnected },
-            set: { enabled in
-                if enabled {
-                    store.connect()
-                } else {
-                    store.disconnect()
-                }
-            }
-        )
-    }
-
     private var canPair: Bool {
-        !store.connectionState.isBusy && CompanionPairingInput.isValid(host: store.panelHost, code: pairingCode)
+        !store.pairingState.isBusy && CompanionPairingInput.isValid(host: store.panelHost, code: pairingCode)
     }
 
     private var canOpenPairingPage: Bool {
         manualAddress ? CompanionStore.panelWebServerURL(from: store.panelHost) != nil
-            : discovery.displays.contains(where: { $0.id == selectedDisplayID })
+            : discovery.displays.contains { $0.id == selectedDisplayID && !store.isSavedDisplay(fingerprint: $0.id) }
     }
 
     private func startPairingFlow() {
+        store.resetPairing()
+        pairingCode = ""
         selectedDisplayID = nil
         manualAddress = false
         pairingFlowActive = true
         pairingStep = .address
         pairingFlowError = ""
+    }
+
+    private func finishPairingFlow() {
+        pairingFlowActive = false
+        pairingStep = .address
+        pairingCode = ""
+        store.resetPairing()
     }
 
     private func openPairingPage() {
@@ -702,7 +645,7 @@ struct CompanionSettings: View {
             pairingFlowError = "Go back and choose a display or enter a valid local address."
             return
         }
-        guard !store.connectionState.isBusy else { return }
+        guard !store.pairingState.isBusy else { return }
         pairingFlowError = ""
         pairingStep = .connecting
         store.pair(code: pairingCode)
@@ -893,8 +836,6 @@ struct CompanionSettings: View {
             }
             Section {
                 Link("Privacy Policy", destination: CompanionStore.privacyPolicyURL)
-                Button("Restart Setup") { confirmingRestartSetup = true }
-                    .buttonStyle(.link)
             } header: {
                 Text("Support")
                     .padding(.top, 16)

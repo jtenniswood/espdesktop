@@ -17,11 +17,11 @@ The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-t
 
 ## Pairing and data
 
-- One Mac can be paired to one display at a time.
+- One Mac can connect to several paired displays at the same time. Each display has its own pairing credential and can access the apps and folders you’ve approved in the Mac app.
 - Pairing uses a temporary code that expires after 15 minutes. EspDesktop stores the credential in macOS Keychain and checks the display certificate on later connections.
 - Folder paths stay on the Mac. The display receives a friendly folder name and an anonymous identifier.
 - The connector accepts only its defined controls. It does not run shell commands or accept incoming network connections on the Mac.
 
-To replace a display, choose **Forget Display** in the Mac app and reset pairing under **System → Mac Companion** on the old display. Then pair using the new display's code.
+To remove a display, choose **Forget** beside it in **Mac Settings → Displays**. To pair that display again, reset pairing under **System → Mac Companion** on the display and use its new code.
 
 See the [EspDesktop privacy policy](/reference/privacy) for how the app, display and docs handle information.

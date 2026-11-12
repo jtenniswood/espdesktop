@@ -75,6 +75,7 @@ final class CompanionConnection: NSObject {
     private var appIconGeneration: UInt32 = 0
     private var appIconOffset = 0
     private var pendingAppIconRequests: [CompanionWireAppIconRequest] = []
+    private var focusTargets: [(id: String, url: URL)] = []
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
@@ -173,6 +174,9 @@ final class CompanionConnection: NSObject {
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        pendingCertificateFingerprint = nil
+        focusTargets = []
+        applicationFocusPublisher.reset()
         supportsAlphaAppIcons = false
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
@@ -267,7 +271,13 @@ final class CompanionConnection: NSObject {
         }
         let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data).map { String(format: "%02x", $0) }.joined()
         let saved = preferences.stringPreference(forKey: certificateFingerprintKey)
-        if let saved, saved != fingerprint {
+        if case .pair = mode, !preferences.allowsPairing(certificateFingerprint: fingerprint) {
+            shouldReconnect = false
+            hasTerminalConnectionError = true
+            updateConnectionStatus("Display already paired", state: .failed,
+                                   recovery: "This display is already in Displays. Select it there to reconnect.")
+            completionHandler(.cancelAuthenticationChallenge, nil)
+        } else if let saved, saved != fingerprint {
             shouldReconnect = false
             hasTerminalConnectionError = true
             updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code from its webpage.")
@@ -344,6 +354,9 @@ final class CompanionConnection: NSObject {
         }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        pendingCertificateFingerprint = nil
+        focusTargets = []
+        applicationFocusPublisher.reset()
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         connectionTimeoutTask?.cancel()
@@ -430,14 +443,14 @@ final class CompanionConnection: NSObject {
         case .pairAccepted(let payload):
             guard let credential = Data(hex: payload.credential) else { updateConnectionStatus("Pairing failed", state: .failed); return true }
             guard let fingerprint = pendingCertificateFingerprint else { updateConnectionStatus("Pairing failed", state: .failed); return true }
-            let pairingAccount = preferences.panelHost
+            let pairingAccount = preferences.newPairingAccount
             guard credentials.save(credential, account: pairingAccount) else {
                 updateConnectionStatus("Pairing failed: the credential could not be saved in Keychain", state: .failed, recovery: "Unlock your Mac and allow EspDesktop to access Keychain, then try again.")
                 return true
             }
+            preferences.setPreference(fingerprint, forKey: "companion.certificateFingerprint.\(pairingAccount)")
+            preferences.removePreference(forKey: "companion.authenticationSequence.\(pairingAccount)")
             preferences.rememberPairingAccount(pairingAccount)
-            preferences.setPreference(fingerprint, forKey: certificateFingerprintKey)
-            preferences.removePreference(forKey: authenticationSequenceKey)
             pendingCertificateFingerprint = nil
             updateConnectionStatus("Paired — reconnecting", state: .connecting)
             connect(mode: .authenticate)
@@ -488,8 +501,8 @@ final class CompanionConnection: NSObject {
                       (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
                 return (item.id, url)
             }
-            resources.setCompanionFocusRegistrations(Array(targets.prefix(64)))
-            publishFocusedAction()
+            focusTargets = Array(targets.prefix(64))
+            publishFocusedAction(invalidatePendingQuery: true)
         case .actionInvoke(let payload):
             guard sessionAuthenticated else { return false }
             let requestIdentifier = payload.requestId
@@ -783,7 +796,7 @@ final class CompanionConnection: NSObject {
         guard sessionAuthenticated, focusPublicationTask == nil, let requestingTask = task else { return }
         focusPublicationTask = Task { [weak self, weak requestingTask] in
             guard let self else { return }
-            let focused = await self.resources.focusedCompanionActionIdentifiers()
+            let focused = await self.resources.focusedCompanionActionIdentifiers(for: self.focusTargets)
             guard !Task.isCancelled, let requestingTask, self.task === requestingTask,
                   self.sessionAuthenticated else { return }
             self.focusPublicationTask = nil
