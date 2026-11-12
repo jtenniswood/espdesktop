@@ -250,6 +250,8 @@ export default defineConfig({
           { text: 'Websites', link: '/mac-controls/websites' },
           { text: 'Finder folders', link: '/mac-controls/folders' },
           { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Figma shortcut panel', link: '/mac-controls/figma' },
+          { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
         ],
       },
       {
