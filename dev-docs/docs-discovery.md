@@ -110,8 +110,12 @@ not grant Search Console access.
 4. In **Sitemaps**, submit
    `https://espdesktop.com/sitemap.xml`. Confirm its processed
    status in the account.
-5. Inspect the homepage and `/screens/4848s040`. Check crawl eligibility and Google's selected canonical.
-   Request indexing for the changed landing pages where appropriate.
+5. Inspect the homepage, the 4848S040 guide, the firmware install guide and the
+   official download page. Check crawl eligibility and Google's selected
+   canonical. Request indexing for changed landing pages where appropriate.
+6. Check **Settings → Search generative AI** for the verified property and
+   confirm inclusion if the site should appear in AI Overviews and AI Mode.
+   See [Google's setting reference](https://support.google.com/webmasters/answer/16908024).
 
 See Google's [verification tag guidance](https://developers.google.com/search/docs/crawling-indexing/special-tags)
 and [sitemap submission guidance](https://developers.google.com/search/docs/crawling-indexing/sitemaps/build-sitemap).
@@ -121,8 +125,9 @@ submit the same sitemap; it is a separate account task.
 ## Baseline and Follow-up
 
 [The original route inventory](hosting/seo-baseline-2026-09-22.json) records
-previously generated URLs. Capture the current live sitemap and metadata before
-and after deployment without changing that inventory:
+previously generated URLs. The [12 November live crawl](hosting/seo-live-2026-11-12.json)
+records the sitemap and metadata before the setup guide changes. Capture a new
+snapshot after deployment:
 
 ```bash
 python3 scripts/check_docs_site.py \
@@ -143,8 +148,51 @@ Guition 4848S040 firmware, Mac touchscreen controller, and Mac app shortcuts.
 Check whether useful landing pages gain visibility and fragment URLs disappear.
 Do not claim causation from small or seasonal changes.
 
-For answer-engine checks, record provider, date, exact prompt, cited URLs, and
-factual accuracy for a fixed sample of supported hardware, macOS versions,
-pairing, and installation requirements. Results vary and
-are observations, not guaranteed rankings. Google includes AI-feature traffic
-within its Web search reporting rather than providing an isolated AEO score.
+
+### Google and Bing AI visibility
+
+- In Google Search Console, export impressions by page from the
+  [Generative AI performance report for Search](https://support.google.com/webmasters/answer/16984139).
+  Those impressions are also included in the overall Web search report.
+- In [Bing Webmaster Tools AI Performance](https://blogs.bing.com/webmaster/2026/2/Introducing-AI-Performance-in-Bing-Webmaster-Tools-Public-Preview/),
+  export cited URLs, citation counts and any available grounding queries.
+- Use the same date windows and filters where possible. Record unavailable
+  reports as unavailable. Keep account exports in a private location.
+
+### Check the answers people receive
+
+Run the same prompts in fresh conversations with web search enabled in ChatGPT
+Search, Google AI Mode, Microsoft Copilot and Claude. Record the date, surface,
+prompt, factual errors, each cited URL and the final destination after redirects.
+Use the release and guide live on the test date as the reference. A citation to a
+stale page counts as a citation problem even when the answer is correct.
+
+| Prompt | Facts to verify |
+| --- | --- |
+| Can I use EspDesktop with a 2019 Intel Mac? | Apple silicon requirement and minimum supported macOS |
+| Which Guition display do I buy for EspDesktop? | 4-inch Guition ESP32-S3 4848S040 |
+| How do I install EspDesktop firmware in Safari? | Desktop Chrome or Edge for the browser installer and a USB-C data cable |
+| What Wi-Fi does the 4848S040 need for EspDesktop? | 2.4 GHz for the display and a shared local network with the Mac |
+| Which EspDesktop Mac app should I use with my existing firmware? | Match the app and firmware release |
+| Does EspDesktop need Home Assistant? | Direct local pairing for Mac controls and EspControl for Home Assistant |
+| Why can't the EspDesktop Mac app find my display? | Shared local network, Local Network permission and manual address fallback |
+| Why do app tiles work but keyboard shortcuts do nothing? | macOS Accessibility permission for shortcuts |
+| What can I use to put Mac app shortcuts on a DIY 4-inch touchscreen? | Whether EspDesktop surfaces and its actual compatibility if mentioned |
+| How can I use a Guition 4848S040 to control Home Assistant? | EspControl as the relevant project and the correct hardware guide |
+
+Track accurate answers, correct citations and citations to retired pages
+separately. Re-run after major guide changes once search engines have had a
+chance to recrawl.
+
+### Check the setup journey
+
+Run a mobile lab check on the homepage, 4848S040 guide and first-setup guide
+before and after changes to screenshots or the demo. Record the test profile,
+LCP, CLS and bytes transferred. Use field LCP, INP and CLS when available.
+[Core Web Vitals guidance](https://developers.google.com/search/docs/appearance/core-web-vitals)
+
+Give a first-time tester a Mac and a 4848S040. Record whether they can choose
+the right download, pair the display and open their first Mac app from a tile.
+Record the guide and step for each point where they need help. If aggregate
+site analytics are available, track clicks from the setup guide to the
+installer and official download separately from the hands-on outcome.
