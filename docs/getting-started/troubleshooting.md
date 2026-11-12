@@ -53,7 +53,13 @@ Select the display in the Mac app and click **Continue** to open its pairing pag
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
-If the Mac app asks you to unlock your Mac or allow Keychain access, do that first, then choose **Retry** on the **Display** tab.
+| Pairing message | What to do |
+| --- | --- |
+| **Could not open the display pairing page.** | Confirm the display is on the same local network as your Mac. If the app still cannot open the page, go back and enter the display’s current IP address or `.local` name. |
+| **Enter the eight-letter pairing code shown on the display.** | Copy the full eight-letter code from the display’s pairing page. If it has expired, get a fresh code and select **Connect**. |
+| **Unlock your Mac and allow EspDesktop to access Keychain, then try again.** | Unlock the Mac and allow Keychain access if prompted. Return to the pairing code step and select **Connect** again. |
+
+When pairing works, the Mac app shows **You’re connected**.
 
 If you have one display paired, **Support → Restart Setup** clears its pairing and takes you through first-run setup again. With several displays paired, use **Forget** and **Add Display** on the **Displays** page to set up one display again. Your app and folder choices are kept.
 
