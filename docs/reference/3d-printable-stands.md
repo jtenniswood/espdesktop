@@ -23,5 +23,5 @@ Choose the print file that matches your exact screen model. The cases are shaped
 
 ## Related Links
 
-- [Install EspDesktop](/getting-started/install)
+- [Install EspDesktop](/screens/4848s040#set-up-espdesktop)
 - [Supported Screens](/screens/jc1060p470)

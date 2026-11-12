@@ -248,8 +248,6 @@ def check_build(dist):
         BASE,
         BASE + 'screens/4848s040',
         BASE + 'screens/4848s040-stand',
-        BASE + 'getting-started/install',
-        BASE + 'getting-started/mac-app',
         BASE + 'getting-started/troubleshooting',
         BASE + 'mac-controls/apps',
         BASE + 'mac-controls/websites',
@@ -258,7 +256,6 @@ def check_build(dist):
         BASE + 'mac-controls/improve-shortcuts',
         BASE + 'mac-controls/security',
         BASE + 'features/first-run',
-        BASE + 'features/setup',
         BASE + 'settings/screen',
         BASE + 'settings/system',
         BASE + 'settings/backup',
@@ -328,6 +325,9 @@ def check_build(dist):
             errors.append('FAQ structured answers differ from the rendered questions or answers')
 
     redirects = {
+        'getting-started/install': BASE + 'screens/4848s040#set-up-espdesktop',
+        'getting-started/mac-app': BASE + 'screens/4848s040#install-and-pair-the-espdesktop-mac-app',
+        'features/setup': BASE + 'screens/4848s040#_3-configure-your-cards',
         'reference/request-device-support': BASE + 'screens/4848s040',
         'screens/index': BASE + 'screens/4848s040',
         'card-types/companion': BASE + '#what-you-can-control',
@@ -347,7 +347,7 @@ def check_build(dist):
     }
     redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'
     screen_guides = {
-        '4848s040': (BASE + 'screens/4848s040', BASE + 'getting-started/install'),
+        '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#set-up-espdesktop'),
         'jc1060p470': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
         'jc4880p443': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),

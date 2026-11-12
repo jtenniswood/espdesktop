@@ -15,7 +15,7 @@ Open apps, visit websites and run shortcuts from this 4-inch touchscreen for les
 
 <div class="homepage-action">
 
-[Get started](/getting-started/install)
+[Get started](/screens/4848s040#set-up-espdesktop)
 
 </div>
 

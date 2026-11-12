@@ -38,7 +38,7 @@ The curve setting is included in configuration backups. Restoring an older
 backup without it keeps the current choice. Change **Card Curve** in the web editor. Changes update the preview immediately
 and redraw the physical cards after the display's brief refresh delay.
 
-Find these controls in **Screen → Appearance** on the [Setup](/features/setup) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
+Find these controls in **Screen → Appearance** on the [Screen settings](/settings/screen#appearance) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
 
 ## App icon size
 

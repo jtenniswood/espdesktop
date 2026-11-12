@@ -46,4 +46,4 @@ Matching screen size, resolution, or processor is not sufficient. The common Che
 
 Each model guide above links to its seller and installation instructions. Seller prices and revisions can change; confirm the exact model before ordering. Match [printable stands and mounts](/reference/3d-printable-stands) to the rear board and cable clearance as well as the screen size.
 
-Once you have the correct screen, follow **[Install EspDesktop](/getting-started/install)**. On the 4848S040, pair the Mac app and test one control before building the rest of your layout.
+Once you have the correct screen, follow **[Install EspDesktop](/screens/4848s040#set-up-espdesktop)**. On the 4848S040, pair the Mac app and test one control before building the rest of your layout.
