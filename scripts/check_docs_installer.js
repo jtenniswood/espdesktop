@@ -150,8 +150,9 @@ async function checkBrowser() {
       const illustration = page.locator('.homepage-hero img');
       await illustration.scrollIntoViewIfNeeded();
       await illustration.evaluate(img => img.decode());
+      assert.match(await illustration.evaluate(img => img.currentSrc), /espdesktop-desk-(480|960)\.avif$/);
 
-      const demoSelector = 'iframe.homepage-demo';
+      const demoSelector = '.homepage-demo iframe';
       const demo = page.locator(demoSelector);
       const demoSection = page.locator('.homepage-editor');
       const actions = demoSection.locator('.homepage-editor-actions');
@@ -162,11 +163,16 @@ async function checkBrowser() {
       assert.equal(await buttonBackground(getStarted), await buttonBackground(setup));
       if (width >= 768) {
         const copy = await demoSection.locator(':scope > div').boundingBox();
-        const mock = await demo.boundingBox();
+        const mock = await demoSection.locator('figure.homepage-demo').boundingBox();
         assert(copy && mock && Math.abs(copy.width - mock.width) < 1,
           'Homepage demo and copy must use equal desktop columns');
       }
-      await demo.scrollIntoViewIfNeeded();
+      const preview = demoSection.locator('figure.homepage-demo img');
+      await preview.scrollIntoViewIfNeeded();
+      await preview.evaluate(img => img.decode());
+      assert.match(await preview.evaluate(img => img.currentSrc), /espdesktop-slack-subpage-(480|960)\.avif$/);
+      assert.equal(await demo.count(), 0, 'Scrolling must leave the demo renderer unloaded');
+      await demoSection.getByRole('button', { name: 'Try the touchscreen' }).press('Enter');
       const frame = page.frameLocator(demoSelector);
       const slack = frame.getByRole('button', { name: 'Slack', exact: true });
       await slack.waitFor();
