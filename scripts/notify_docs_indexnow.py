@@ -56,7 +56,10 @@ def live_digest(route):
 
 
 def read_live(path):
-    request = Request(BASE + path, headers={'Cache-Control': 'no-cache'})
+    request = Request(BASE + path, headers={
+        'Cache-Control': 'no-cache',
+        'User-Agent': 'EspDesktop-Docs-Verification/1.0 (+https://github.com/jtenniswood/espdesktop)',
+    })
     with urlopen(request, timeout=15) as response:
         return response.read()
 
