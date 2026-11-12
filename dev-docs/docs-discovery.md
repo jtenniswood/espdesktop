@@ -214,8 +214,18 @@ before and after changes to screenshots or the demo. Record the test profile,
 LCP, CLS and bytes transferred. Use field LCP, INP and CLS when available.
 [Core Web Vitals guidance](https://developers.google.com/search/docs/appearance/core-web-vitals)
 
+On 12 November 2026, the [mobile PageSpeed Insights report for espdesktop.com](https://pagespeed.web.dev/analysis/https-espdesktop-com/ce3fwikvf4?form_factor=mobile)
+showed **No Data** for real-user performance. Keep the mobile lab measurements
+as a separate baseline and check for field data again after deployment.
+
 Give a first-time tester a Mac and a 4848S040. Record whether they can choose
 the right download, pair the display and open their first Mac app from a tile.
 Record the guide and step for each point where they need help. If aggregate
 site analytics are available, track clicks from the setup guide to the
 installer and official download separately from the hands-on outcome.
+
+On 12 November 2026, GitHub reported three downloads of
+`EspDesktop-1.2.6.dmg` on the [v1.2.6 release](https://github.com/jtenniswood/espdesktop/releases/tag/v1.2.6).
+Record the release tag and capture date when comparing this count. GitHub
+combines downloads from all sources. The counter cannot tell us which
+downloads came from the docs or whether anyone paired a display.
