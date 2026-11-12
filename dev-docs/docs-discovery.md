@@ -52,8 +52,9 @@ python3 scripts/export_docs_redirects.py --dist ./docs/.vitepress/dist --output 
 
 The export includes clean-URL aliases and retired pages with a single
 destination. Pages that map old section links in the browser keep their HTML
-fallback. Search and tracking query strings are preserved for destinations on
-espdesktop.com. The export leaves firmware, app updates, demos and Markdown
+fallback. The deployment check compares those HTML responses with the built
+files to catch lost section mappings. Search and tracking query strings are
+preserved for destinations on espdesktop.com. The export leaves firmware, app updates, demos and Markdown
 endpoints outside the redirect list.
 
 Review the file against the deployed sitemap before importing it as a

@@ -61,10 +61,10 @@ def expected_routes(dist):
         route = html_route(path.relative_to(dist))
         if route in files:
             continue
-        page = Page(path.read_text(encoding='utf-8'))
-        refresh = page.meta.get('refresh', '')
+        html = path.read_text(encoding='utf-8')
+        refresh = Page(html).meta.get('refresh', '')
         if refresh.startswith('0; url='):
-            redirects[route] = refresh.removeprefix('0; url=')
+            redirects[route] = (refresh.removeprefix('0; url='), path, 'location.hash' in html)
     return files, redirects
 
 
@@ -82,10 +82,14 @@ def verify(dist, base):
         except (OSError, URLError) as error:
             return f'{url}: {error}'
         if route in redirects:
-            target = redirects[route]
+            target, path, uses_fragment = redirects[route]
+            if status == 200:
+                if body == path.read_bytes():
+                    return None
+                return f'{url}: redirect HTML differs from the deployment artifact'
+            if uses_fragment:
+                return f'{url}: expected HTML that preserves section links, got HTTP {status}'
             if status in (301, 308) and urljoin(url, headers.get('Location', '')) == target:
-                return None
-            if status == 200 and Page(body.decode('utf-8')).meta.get('refresh') == f'0; url={target}':
                 return None
             return f'{url}: expected a permanent redirect to {target}, got HTTP {status}'
         media_type, path = files[route]

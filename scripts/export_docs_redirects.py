@@ -36,11 +36,10 @@ def redirect_rows(dist):
         for alias in variants(route, file):
             add(alias, BASE + route)
 
-    for route, destination in legacy.items():
-        filename = f'{route}index.html' if route.endswith('/') else f'{route}.html'
-        if 'location.hash' in (dist / filename).read_text(encoding='utf-8'):
+    for route, (destination, file, uses_fragment) in legacy.items():
+        if uses_fragment:
             continue
-        for alias in [route, *variants(route, Path(filename))]:
+        for alias in [route, *variants(route, file)]:
             add(alias, destination)
 
     for source, destination in sorted(targets.items()):
