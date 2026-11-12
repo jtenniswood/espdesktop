@@ -98,4 +98,42 @@ final class CompanionDisplayTests: XCTestCase {
         XCTAssertEqual(store.connectedDisplayCount, 0)
         XCTAssertEqual(metrics.stops, 1)
     }
+
+    @MainActor
+    func testForgettingDisplayPreservesOtherActivePairing() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        let first = CompanionDisplayRecord(host: "office.local", account: "\(suite).office")
+        let second = CompanionDisplayRecord(host: "desk.local", account: "\(suite).desk")
+        saved.save([first, second])
+        let firstPin = "companion.certificateFingerprint.\(first.account)"
+        let secondPin = "companion.certificateFingerprint.\(second.account)"
+        let secondSequence = "companion.authenticationSequence.\(second.account)"
+        defaults.set("office-pin", forKey: firstPin)
+        defaults.set("desk-pin", forKey: secondPin)
+        defaults.set(9, forKey: secondSequence)
+
+        let metrics = DisplayMetricsFixture()
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: metrics,
+                                   defaults: defaults)
+        for display in store.displays {
+            display.connection.onEvent?(.connection(message: "Connected", state: .connected, recovery: nil))
+            display.connection.onEvent?(.capabilities(systemMetrics: true))
+        }
+        XCTAssertEqual(store.connectedDisplayCount, 2)
+        XCTAssertEqual(metrics.starts, 1)
+
+        store.forgetDisplay(store.displays[1])
+
+        XCTAssertEqual(store.connectedDisplayCount, 1)
+        XCTAssertEqual(store.displays.map(\.state), [.connected])
+        XCTAssertEqual(metrics.stops, 0)
+        XCTAssertEqual(saved.load { [second.account] }, [first])
+        XCTAssertEqual(defaults.string(forKey: firstPin), "office-pin")
+        XCTAssertNil(defaults.object(forKey: secondPin))
+        XCTAssertNil(defaults.object(forKey: secondSequence))
+        store.setConnection(false, for: store.displays[0])
+    }
 }
