@@ -116,10 +116,10 @@ export default defineConfig({
 
     // These pages have no page-level sidebar link to determine their next step.
     if (relativePath === 'reference/companion-compatibility.md') {
-      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#set-up-espdesktop' }
+      frontmatter.next = { text: 'Install the display', link: '/getting-started/install' }
     }
 
-    if (relativePath === 'screens/4848s040.md') {
+    if (relativePath === 'download.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
@@ -175,7 +175,7 @@ export default defineConfig({
           operatingSystem: 'macOS 13 or newer',
           description,
           author,
-          softwareHelp: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,
+          softwareHelp: `${hostname}getting-started/mac-app`,
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },
@@ -228,8 +228,8 @@ export default defineConfig({
   themeConfig: {
     nav: [
       { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
-      { text: 'Install', link: '/screens/4848s040#install' },
-      { text: 'Download', link: '/screens/4848s040#download' },
+      { text: 'Install', link: '/getting-started/install' },
+      { text: 'Download', link: '/download' },
     ],
 
     sidebar: [
@@ -237,6 +237,8 @@ export default defineConfig({
         text: 'Getting Started',
         items: [
           { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Install firmware', link: '/getting-started/install' },
+          { text: 'Pair the Mac app', link: '/getting-started/mac-app' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
