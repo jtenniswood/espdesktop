@@ -22,7 +22,10 @@ EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening 
 </div>
 
 <figure class="homepage-panel">
-  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093">
+  <picture>
+    <source type="image/webp" srcset="/images/espdesktop-desk-640.webp 640w, /images/espdesktop-desk-1320.webp 1320w" sizes="(min-width: 768px) 45vw, (min-width: 608px) 560px, calc(100vw - 48px)">
+    <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093" fetchpriority="high">
+  </picture>
 </figure>
 
 </section>

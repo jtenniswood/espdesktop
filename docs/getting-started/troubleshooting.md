@@ -1,6 +1,6 @@
 ---
-title: Troubleshoot Mac Controls
-description: Resolve common EspDesktop Mac app pairing, network, permissions, and control issues.
+title: Troubleshoot Wi-Fi, Pairing and Mac Controls
+description: Fix EspDesktop display discovery and Wi-Fi setup, reset Mac pairing, and check macOS permissions when apps or keyboard shortcuts stop working.
 ---
 
 # Troubleshoot Mac controls
@@ -47,7 +47,10 @@ Install the Mac app and display firmware from the same EspDesktop release. If yo
 
 The `EspDesktop_XXXX` setup hotspot can take up to 90 seconds to appear. Connect to the hotspot named on the display and open its shown address if the offline setup page does not open automatically. A custom hotspot name or address is preserved. After **WiFi details saved**, reconnect your phone or computer to home WiFi and follow the display's instructions. USB Improv provisioning is also available after installation.
 
-<img src="/images/device-setup-wifi-screen.jpg" alt="EspDesktop touchscreen showing the Wi-Fi setup hotspot name and browser address" width="2803" height="2803" loading="lazy">
+<picture>
+  <source type="image/webp" srcset="/images/device-setup-wifi-screen-640.webp 640w, /images/device-setup-wifi-screen-1320.webp 1320w" sizes="(max-width: 688px) calc(100vw - 48px), 640px">
+  <img src="/images/device-setup-wifi-screen.jpg" alt="EspDesktop touchscreen showing the Wi-Fi setup hotspot name and browser address" width="2803" height="2803" loading="lazy" decoding="async">
+</picture>
 
 If an ESP32-P4 panel running EspControl can’t join WiFi, see the [C6 WiFi recovery guide](https://jtenniswood.github.io/espcontrol/getting-started/c6-recovery).
 
