@@ -29,7 +29,7 @@ Moves and resizes save when you drop the card or release the handle. Choose **Sa
 
 To move or copy a card between Home and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty tile on the destination page and choose **Paste**. Clipboard actions save the layout as you make them. You can also copy a card’s code to use it on another display.
 
-<a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot marked with a plus" width="1000" height="1337"></a>
+<a href="/images/web-editor-home.png"><img src="/images/web-editor-home.png" alt="Home layout in the web editor with eight app cards and an empty slot" width="1694" height="2266"></a>
 
 ## Change how a card looks
 

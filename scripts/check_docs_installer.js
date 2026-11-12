@@ -296,21 +296,32 @@ async function checkBrowser() {
     await page.goto(`${base}/screens/4848s040`);
     await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
     await page.waitForURL('**/screens/4848s040#install');
-    await page.getByRole('link', { name: 'Set up the screen', exact: true }).click();
-    await page.waitForURL('**/screens/4848s040#set-up-espdesktop');
     await assertSupportedInstaller();
     assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');
-    await page.getByRole('link', { name: 'Get the Mac app', exact: true }).click();
-    await page.waitForURL('**/screens/4848s040#install-and-pair-the-espdesktop-mac-app');
+    await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Download', exact: true }).click();
+    await page.waitForURL('**/screens/4848s040#download');
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
       /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
-    await page.locator('h2[id="_3-configure-your-cards"]').waitFor();
+    assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
     for (const width of [320, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
         `Display setup must fit a ${width}px viewport`);
+    }
+    const steps = page.locator('.display-setup-step');
+    assert.equal(await steps.count(), 4);
+    for (const step of await steps.all()) {
+      const copy = await step.locator('.display-setup-copy').boundingBox();
+      const photo = await step.locator('img').boundingBox();
+      assert(copy.x + copy.width <= photo.x, 'Desktop setup images must appear to the right of the instructions');
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const step of await steps.all()) {
+      const copy = await step.locator('.display-setup-copy').boundingBox();
+      const photo = await step.locator('img').boundingBox();
+      assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
     }
     const beforeRetired = manifests.length;
     const retired = await page.goto(`${base}/getting-started/c6-recovery`);
@@ -319,13 +330,13 @@ async function checkBrowser() {
     assert.equal(manifests.length, beforeRetired, 'Retired P4 setup must not offer an installer');
     const publishedSetup = 'https://espdesktop.com/screens/4848s040';
     await page.route(publishedSetup, route => route.fulfill({ contentType: 'text/html', body: 'Redirect target' }));
-    for (const [formerUrl, section] of [
-      ['/getting-started/install', 'set-up-espdesktop'],
-      ['/getting-started/mac-app#pair-the-display', 'pair-the-display'],
-      ['/features/setup#add-a-mac-control', 'add-a-mac-control'],
+    for (const [formerUrl, destination] of [
+      ['/getting-started/install', `${publishedSetup}#set-up-espdesktop`],
+      ['/getting-started/mac-app#pair-the-display', `${publishedSetup}#pair-the-display`],
+      ['/features/setup#add-a-mac-control', `${base}/features/home#add-a-card`],
     ]) {
       await page.goto(base + formerUrl);
-      await page.waitForURL(`${publishedSetup}#${section}`);
+      await page.waitForURL(destination);
     }
     assert.deepEqual(errors, []);
     assert.deepEqual(externalScripts, [], 'USB installer must work without third-party scripts');

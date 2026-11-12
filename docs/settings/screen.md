@@ -18,6 +18,8 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 - **Theme** offers Dark, Light or Automatic. Automatic follows sunrise and sunset or times you set.
 - **Clock Bar** shows or hides the status bar on the home screen.
 
+<a href="/images/web-editor-card-style.png"><img src="/images/web-editor-card-style.png" alt="Card Style controls for card curve and default app icon size" width="1694" height="1470" loading="lazy"></a>
+
 ## Display
 
 - **Backlight** controls brightness. Choose **Manual** for a fixed level, **Automatic** to follow sunrise and sunset, or **Timed** to set your own dawn and dusk times. Automatic and Timed let you set separate day and night levels.
