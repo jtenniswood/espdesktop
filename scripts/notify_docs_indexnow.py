@@ -62,6 +62,8 @@ def read_live(path):
 
 
 def prepare(dist, key, receipt):
+    # Keep ownership verification in the deployment if the live crawl fails.
+    (dist / f'{key}.txt').write_text(key, encoding='utf-8')
     before = routes(read_live('/sitemap.xml'))
     after = routes((dist / 'sitemap.xml').read_bytes())
 
@@ -77,7 +79,6 @@ def prepare(dist, key, receipt):
         changes = dict(item for item in executor.map(find_update, sorted(after)) if item)
     changes.update({route: None for route in sorted(before - after)})
     receipt.write_text(json.dumps(changes), encoding='utf-8')
-    (dist / f'{key}.txt').write_text(key, encoding='utf-8')
     print(f'IndexNow prepared {len(changes)} changed guide URLs')
 
 
