@@ -47,6 +47,19 @@ const pageImages: Record<string, typeof defaultImage> = {
 
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
 const websiteId = `${hostname}#website`
+const softwareId = `${hostname}#software`
+const guideParents = {
+  'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
+  'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
+  'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/improve-shortcuts.md': { name: 'Keyboard shortcuts', path: 'mac-controls/shortcuts.md' },
+  'reference/companion-compatibility.md': { name: 'Setup and compatibility FAQ', path: 'reference/faq.md' },
+} as Record<string, { name: string; path: string }>
+
 const guideMetadata = new Map<string, { title: string; description: string }>()
 
 export default defineConfig({
@@ -185,24 +198,38 @@ export default defineConfig({
           name: 'EspDesktop',
           description,
           inLanguage: 'en-US',
+          about: { '@id': softwareId },
         },
         {
           '@type': 'SoftwareApplication',
-          '@id': `${hostname}#software`,
+          '@id': softwareId,
           name: 'EspDesktop',
           url: canonicalUrl,
           applicationCategory: 'UtilitiesApplication',
           operatingSystem: `macOS ${productFacts.minimumMacOS} or newer`,
           processorRequirements: productFacts.macProcessor,
+          sameAs: 'https://github.com/jtenniswood/espdesktop',
+          installUrl: `${hostname}download`,
+          releaseNotes: 'https://github.com/jtenniswood/espdesktop/releases',
           description,
           author,
-          softwareHelp: `${hostname}screens/4848s040#download`,
+          softwareHelp: {
+            '@type': 'WebPage',
+            url: `${hostname}screens/4848s040#download`,
+          },
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },
       )
     } else {
       const breadcrumbs = `${canonicalUrl}#breadcrumbs`
+      const parent = guideParents[relativePath]
+      const trail = [
+        { name: 'EspDesktop', item: hostname },
+        ...(parent ? [{ name: parent.name, item: canonicalUrlFor(parent.path) }] : []),
+        { name: title, item: canonicalUrl },
+      ]
+      frontmatter.breadcrumbTrail = trail
       const page: Record<string, unknown> = {
         '@type': 'WebPage',
         '@id': canonicalUrl,
@@ -233,10 +260,9 @@ export default defineConfig({
       graph.push(page, {
         '@type': 'BreadcrumbList',
         '@id': breadcrumbs,
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'EspDesktop', item: hostname },
-          { '@type': 'ListItem', position: 2, name: title, item: canonicalUrl },
-        ],
+        itemListElement: trail.map((crumb, index) => ({
+          '@type': 'ListItem', position: index + 1, ...crumb,
+        })),
       })
     }
     frontmatter.head.push([
@@ -248,24 +274,32 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
-      { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
+      {
+        text: 'Guides',
+        items: [
+          { text: 'Get started', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Customise', link: '/features/home' },
+          { text: 'Troubleshoot', link: '/getting-started/troubleshooting' },
+          { text: 'Reference', link: '/reference/faq' },
+        ],
+      },
       { text: 'Install', link: '/screens/4848s040#install' },
       { text: 'Download', link: '/download' },
     ],
 
     sidebar: [
       {
-        text: 'Getting Started',
+        text: 'Get started',
         items: [
           { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
       {
-        text: 'Features',
+        text: 'Customise',
         items: [
           { text: 'First setup', link: '/features/first-run' },
-          { text: 'Home', link: '/features/home' },
+          { text: 'Touchscreen layout', link: '/features/home' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
           { text: 'Websites', link: '/mac-controls/websites' },
@@ -288,9 +322,15 @@ export default defineConfig({
         text: 'Support',
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
+        ],
+      },
+      {
+        text: 'Reference',
+        items: [
           { text: 'FAQ', link: '/reference/faq' },
-          { text: 'Support the project', link: '/reference/support' },
-          { text: 'Privacy policy', link: '/reference/privacy' },
+          { text: 'Compatibility', link: '/reference/companion-compatibility' },
+          { text: 'Support', link: '/reference/support' },
+          { text: 'Privacy', link: '/reference/privacy' },
         ],
       },
       {

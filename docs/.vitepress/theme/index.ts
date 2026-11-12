@@ -8,6 +8,7 @@ import EspInstallSelector from './components/EspInstallSelector.vue'
 import C6RecoveryCallout from './components/C6RecoveryCallout.vue'
 import C6RecoverySelector from './components/C6RecoverySelector.vue'
 import GitHubStars from './components/GitHubStars.vue'
+import GuideBreadcrumbs from './components/GuideBreadcrumbs.vue'
 import IconGallery from './components/IconGallery.vue'
 
 export default {
@@ -16,6 +17,7 @@ export default {
     const { page } = useData()
     return h(DefaultTheme.Layout, null, {
       'nav-bar-content-after': () => h(GitHubStars),
+      'doc-before': () => h(GuideBreadcrumbs),
       'layout-bottom': () => !['index.md', 'reference/support.md'].includes(page.value.relativePath) && h('a', {
         class: 'sp-support-btn',
         href: 'https://www.buymeacoffee.com/jtenniswood',
