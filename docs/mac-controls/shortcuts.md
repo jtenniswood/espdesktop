@@ -17,6 +17,8 @@ The **Application** tab lists apps with shortcut presets. Bundled presets are av
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
 
+[Look up keyboard shortcut presets by app](/reference/shortcut-presets).
+
 ## Allow accessibility access
 
 Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibility** so it can send keystrokes.

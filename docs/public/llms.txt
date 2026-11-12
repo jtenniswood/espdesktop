@@ -24,6 +24,8 @@ The Markdown guides below come from the public documentation. Each guide links t
 - [Open approved Finder folders](https://espdesktop.com/mac-controls/folders.md)
 - [Run keyboard shortcuts](https://espdesktop.com/mac-controls/shortcuts.md)
 
+- [Mac keyboard shortcut presets by app](https://espdesktop.com/reference/shortcut-presets.md)
+
 ## Settings
 
 - [Screen settings](https://espdesktop.com/settings/screen.md)
@@ -33,6 +35,10 @@ The Markdown guides below come from the public documentation. Each guide links t
 - [Mac Companion permissions and security](https://espdesktop.com/mac-controls/security.md)
 
 ## Troubleshooting and reference
+
+- [Supported Mac controls by release](https://espdesktop.com/reference/mac-controls-by-release.md)
+- [Compare Mac touchscreen controllers](https://espdesktop.com/reference/mac-touchscreen-controller.md)
+- [Choose between EspDesktop and EspControl](https://espdesktop.com/reference/espdesktop-or-espcontrol.md)
 
 - [Pairing, network and control troubleshooting](https://espdesktop.com/getting-started/troubleshooting.md)
 - [Mac app and firmware compatibility](https://espdesktop.com/reference/companion-compatibility.md)
