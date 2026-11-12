@@ -306,7 +306,7 @@ async function checkBrowser() {
     await download.waitFor();
     assert.match(await download.getAttribute('href'),
       /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
-    await page.locator('h2[id="_3-configure-your-cards"]').waitFor();
+    assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
     for (const width of [320, 768, 1440]) {
       await page.setViewportSize({ width, height: 900 });
       assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
@@ -319,13 +319,13 @@ async function checkBrowser() {
     assert.equal(manifests.length, beforeRetired, 'Retired P4 setup must not offer an installer');
     const publishedSetup = 'https://espdesktop.com/screens/4848s040';
     await page.route(publishedSetup, route => route.fulfill({ contentType: 'text/html', body: 'Redirect target' }));
-    for (const [formerUrl, section] of [
-      ['/getting-started/install', 'set-up-espdesktop'],
-      ['/getting-started/mac-app#pair-the-display', 'pair-the-display'],
-      ['/features/setup#add-a-mac-control', 'add-a-mac-control'],
+    for (const [formerUrl, destination] of [
+      ['/getting-started/install', `${publishedSetup}#set-up-espdesktop`],
+      ['/getting-started/mac-app#pair-the-display', `${publishedSetup}#pair-the-display`],
+      ['/features/setup#add-a-mac-control', `${base}/features/home#add-a-card`],
     ]) {
       await page.goto(base + formerUrl);
-      await page.waitForURL(`${publishedSetup}#${section}`);
+      await page.waitForURL(destination);
     }
     assert.deepEqual(errors, []);
     assert.deepEqual(externalScripts, [], 'USB installer must work without third-party scripts');

@@ -34,7 +34,7 @@ Choose **Save setup**. You can change this choice later under **Screen → Appea
 
 ## Your Home screen
 
-Your app cards appear on the display and in the web editor’s **Layout** tab. A small arrow on a card shows that it has a shortcut page. Use the empty tile to add another control. [Add a Mac control](/screens/4848s040#add-a-mac-control).
+Your app cards appear on the display and in the web editor’s **Layout** tab. A small arrow on a card shows that it has a shortcut page. Use the empty tile to add another control. [Add a card](/features/home#add-a-card).
 
 <a href="/images/first-run-home.png"><img src="/images/first-run-home.png" alt="Example Home screen in the Layout tab with eight app cards and one empty tile" width="1694" height="2266" loading="lazy"></a>
 

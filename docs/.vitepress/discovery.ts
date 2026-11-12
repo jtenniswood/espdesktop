@@ -19,11 +19,11 @@ const macControls = `${hostname}#what-you-can-control`
 const setupRedirects: Record<string, string> = {
   'getting-started/install': `${displaySetup}#set-up-espdesktop`,
   'getting-started/mac-app': `${displaySetup}#install-and-pair-the-espdesktop-mac-app`,
-  'features/setup': `${displaySetup}#_3-configure-your-cards`,
 }
 
 export const redirects: Record<string, string> = {
   ...setupRedirects,
+  'features/setup': `${hostname}features/home`,
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
   'reference/request-device-support': `${hostname}screens/4848s040`,
   'screens/index': `${hostname}screens/4848s040`,
@@ -78,13 +78,24 @@ const formerSettingsSections = {
   '#check-for-mac-app-updates': '/settings/system#check-for-mac-app-updates',
 }
 
+const formerCardSections = {
+  ...formerSettingsSections,
+  '#add-a-mac-control': '/features/home#add-a-card',
+  '#arrange-and-personalise-cards': '/features/home#organise-cards',
+  '#quick-card-colours': '/features/home#change-how-a-card-looks',
+  '#device-and-system-settings': '/settings/screen',
+}
+
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
     const file = join(outDir, `${path}.html`)
     await mkdir(join(file, '..'), { recursive: true })
-    const fragmentRedirect = path === 'features/settings'
+    const formerSections = path === 'features/setup' ? formerCardSections
+      : path === 'features/settings' ? formerSettingsSections
+      : undefined
+    const fragmentRedirect = formerSections
       ? `<script>
-const target = ${jsonLd(formerSettingsSections)}[location.hash]
+const target = ${jsonLd(formerSections)}[location.hash]
 if (target) location.replace(target)
 </script>`
       : Object.hasOwn(setupRedirects, path)

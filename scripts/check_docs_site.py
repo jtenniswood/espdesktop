@@ -327,7 +327,7 @@ def check_build(dist):
     redirects = {
         'getting-started/install': BASE + 'screens/4848s040#set-up-espdesktop',
         'getting-started/mac-app': BASE + 'screens/4848s040#install-and-pair-the-espdesktop-mac-app',
-        'features/setup': BASE + 'screens/4848s040#_3-configure-your-cards',
+        'features/setup': BASE + 'features/home',
         'reference/request-device-support': BASE + 'screens/4848s040',
         'screens/index': BASE + 'screens/4848s040',
         'card-types/companion': BASE + '#what-you-can-control',
