@@ -5,7 +5,7 @@ description: Flash the Guition 4848S040 using Chrome or Edge, connect it to 2.4 
 
 # Install EspDesktop firmware {#set-up-espdesktop}
 
-Use this browser installer for the **4-inch Guition ESP32-S3 4848S040**. Open this page in desktop **Chrome or Edge** and have a USB-C data cable and your 2.4 GHz Wi-Fi password ready. [Check the hardware and Mac requirements](/screens/4848s040#where-to-buy).
+Use this browser installer for the **4-inch Guition ESP32-S3 4848S040**. Open this page in desktop **Chrome or Edge** and have a USB-C data cable and your 2.4 GHz Wi-Fi password ready. [Check which Macs are supported](/reference/faq#which-macos-versions-does-espdesktop-support).
 
 ## Flash the firmware
 
