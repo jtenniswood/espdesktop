@@ -706,6 +706,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-companion-code-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}" +
         ".sp-companion-code{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto repeat(4,minmax(0,1fr));gap:clamp(2px,1vw,6px);" +
         "align-items:center;width:min(100%,380px);color:var(--text);font:600 clamp(1rem,5vw,1.5rem)/1 ui-monospace,SFMono-Regular,Menlo,monospace;user-select:all}" +
+        ".sp-companion-code:not(:has(.sp-companion-code-dash)){grid-template-columns:repeat(4,minmax(0,1fr));width:min(100%,190px)}" +
         ".sp-companion-code-letter{display:grid;place-items:center;aspect-ratio:4/5;border:1px solid #66666e;border-radius:clamp(5px,1.6vw,10px);background:var(--bg)}" +
         ".sp-companion-code-dash{color:var(--text2);text-align:center}" +
         ".sp-companion-copy{flex-shrink:0}.sp-companion-copy-feedback{font-size:var(--text-sm);color:var(--text2)}.sp-companion-copy-feedback:empty{display:none}" +

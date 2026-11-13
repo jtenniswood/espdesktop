@@ -770,7 +770,7 @@ final class CompanionStore: NSObject, ObservableObject {
         objectWillChange.send()
         display.recoveryMessage = recovery ?? (display.hasSavedPairing && !display.connection.isPairing
             ? "Check that your display is on and connected to the same network, then try Connect again."
-            : "Start pairing on your display and enter the current eight-letter code to try again.")
+            : "Start pairing on your display and enter the current pairing code to try again.")
         display.state = state
         if display === pairingDisplay {
             pairingRecoveryMessage = display.recoveryMessage

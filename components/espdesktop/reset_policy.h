@@ -48,7 +48,8 @@ inline bool preserve_key(Mode mode, const std::string &ns, const std::string &ke
          key == std::to_string(FACTORY_WIFI_RESET_DONE_KEY) ||
          key == std::to_string(companion_preference_key("companion_identity")) ||
          key == std::to_string(companion_preference_key("companion_auth_sequence")) ||
-         key == std::to_string(companion_preference_key("companion_pairing_code"));
+         key == std::to_string(companion_preference_key("companion_pairing_code")) ||
+         key == std::to_string(companion_preference_key("companion_pairing_code_v2"));
 }
 class Storage {
  public:

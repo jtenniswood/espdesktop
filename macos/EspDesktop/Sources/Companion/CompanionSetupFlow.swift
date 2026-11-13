@@ -5,12 +5,20 @@ enum CompanionSettingsDestination {
 }
 
 enum CompanionPairingPrompt: Equatable {
-    case code, reset, unavailable
+    case code(Int), reset(Int), unavailable
+
+    var letterCount: Int? {
+        switch self {
+        case let .code(length), let .reset(length): return length
+        case .unavailable: return nil
+        }
+    }
 
     private struct Status: Decodable {
         let available: Bool
         let active: Bool
         let paired: Bool
+        let code_length: Int?
     }
 
     private final class LocalRequestDelegate: NSObject, URLSessionTaskDelegate {
@@ -36,8 +44,10 @@ enum CompanionPairingPrompt: Equatable {
               let status = try? JSONDecoder().decode(Status.self, from: data), status.available else {
             return .unavailable
         }
-        if status.paired { return .reset }
-        return status.active ? .code : .unavailable
+        let length = status.code_length == CompanionPairingInput.shortLength
+            ? CompanionPairingInput.shortLength : CompanionPairingInput.legacyLength
+        if status.paired { return .reset(length) }
+        return status.active ? .code(length) : .unavailable
     }
 }
 

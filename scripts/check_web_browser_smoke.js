@@ -5542,7 +5542,7 @@ async function assertHomeAssistantConnectorLayout(browser) {
     await installRoutes(context, testCase.slug, { connectorsStatus: connectorStatus });
     const pairingState = {
       available: true, active: true, paired: false, connected: false,
-      pairing_code: "ABCD-EFGH",
+      pairing_code: "ABCD",
     };
     if (testCase.companionSupported) {
       await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
@@ -5609,8 +5609,8 @@ async function assertHomeAssistantConnectorLayout(browser) {
         const companion = connectors.locator(".card").filter({ hasText: "Mac Companion" });
         const code = companion.locator(".sp-companion-code");
         await code.waitFor({ state: "visible" });
-        assert.deepEqual(await code.locator(".sp-companion-code-letter").allTextContents(), [..."ABCDEFGH"]);
-        assert.equal(await code.textContent(), "ABCD-EFGH", "the boxes preserve the complete code for selection");
+        assert.deepEqual(await code.locator(".sp-companion-code-letter").allTextContents(), [..."ABCD"]);
+        assert.equal(await code.textContent(), "ABCD", "the boxes preserve the complete code for selection");
         const copy = companion.getByRole("button", { name: "Copy pairing code" });
         await copy.waitFor({ state: "visible" });
         await page.setViewportSize({ width: 320, height: 740 });

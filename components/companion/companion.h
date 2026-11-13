@@ -53,7 +53,7 @@ class CompanionService final : public Component {
   void loop() override;
   void dump_config() override;
 
-  // The panel and its web setup page share an active eight-letter code.
+  // The panel and its web setup page share an active pairing code.
   void begin_pairing();
   std::string pairing_code() const;
   bool pairing_active() const;
@@ -99,7 +99,7 @@ class CompanionService final : public Component {
   bool invoke_url_(const std::string &encoded_url, const std::string &request_id, bool new_window);
   bool invoke_value_(const std::string &control_id, int value,
                      const std::string &request_id);
-  using PairingCode = std::array<char, 9>;
+  using PairingCode = std::array<char, COMPANION_PAIRING_CODE_LENGTH>;
   bool begin_pairing_locked_(bool reset, bool show_on_display = false);
   bool revoke_pairing_locked_(const PairingCode *code = nullptr, bool show_on_display = false);
   bool pairing_active_locked_() const;

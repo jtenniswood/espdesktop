@@ -13,7 +13,8 @@ private final class PairingPromptURLProtocol: URLProtocol, @unchecked Sendable {
         }
         let status = url.host == "unsupported.local" ? 404 : 200
         let paired = url.host == "paired.local"
-        let payload = Data("{\"available\":true,\"active\":\(!paired),\"paired\":\(paired)}".utf8)
+        let codeLength = url.host == "legacy.local" ? "" : ",\"code_length\":4"
+        let payload = Data("{\"available\":true,\"active\":\(!paired),\"paired\":\(paired)\(codeLength)}".utf8)
         let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil)!
         client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
         client?.urlProtocol(self, didLoad: payload)
@@ -35,8 +36,10 @@ final class CompanionSetupFlowTests: XCTestCase {
         let unsupported = await CompanionPairingPrompt.request(on: URL(string: "http://unsupported.local")!, session: session)
         let external = await CompanionPairingPrompt.request(on: URL(string: "http://example.com")!, session: session)
 
-        XCTAssertEqual(paired, .reset)
-        XCTAssertEqual(unpaired, .code)
+        let legacy = await CompanionPairingPrompt.request(on: URL(string: "http://legacy.local")!, session: session)
+        XCTAssertEqual(paired, .reset(4))
+        XCTAssertEqual(unpaired, .code(4))
+        XCTAssertEqual(legacy, .code(8))
         XCTAssertEqual(unsupported, .unavailable)
         XCTAssertEqual(external, .unavailable)
     }

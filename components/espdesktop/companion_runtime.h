@@ -136,6 +136,8 @@ struct CompanionPendingActions {
   std::array<CompanionPendingAction, MAX_PENDING> entries{};
 };
 
+inline constexpr size_t COMPANION_PAIRING_CODE_LENGTH = 4;
+
 struct CompanionPairingSnapshot {
   bool available{false};
   bool active{false};

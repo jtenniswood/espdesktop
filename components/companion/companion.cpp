@@ -118,7 +118,8 @@ void CompanionService::setup() {
   this->sequence_preferences_ =
       global_preferences->make_preference<uint32_t>(fnv1a_hash("companion_auth_sequence"));
   this->pairing_code_preferences_ =
-      global_preferences->make_preference<PairingCode>(fnv1a_hash("companion_pairing_code"));
+      // A separate key lets older firmware keep its original code format after a downgrade.
+      global_preferences->make_preference<PairingCode>(fnv1a_hash("companion_pairing_code_v2"));
   PairingCode saved_code{};
   if (!this->identity_.paired && this->pairing_code_preferences_.load(&saved_code)) {
     this->pairing_code_.assign(saved_code.begin(), saved_code.end());
@@ -555,7 +556,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       this->identity_.paired = 1;
       this->last_sequence_ = 0;
       auto next_code = generate_pairing_code_();
-      while (std::equal(next_code.begin(), next_code.end(), this->pairing_code_.begin()))
+      while (std::equal(next_code.begin(), next_code.end(), this->pairing_code_.begin(), this->pairing_code_.end()))
         next_code = generate_pairing_code_();
       if (!this->preferences_.save(&this->identity_) ||
           !this->sequence_preferences_.save(&this->last_sequence_) ||
@@ -1195,8 +1196,8 @@ bool CompanionService::begin_pairing_locked_(bool reset, bool show_on_display) {
 
 CompanionService::PairingCode CompanionService::generate_pairing_code_() {
   PairingCode code{};
-  for (size_t i = 0; i < code.size(); i++) {
-    code[i] = i == 4 ? '-' : PAIRING_ALPHABET[esp_random() % (sizeof(PAIRING_ALPHABET) - 1)];
+  for (auto &letter : code) {
+    letter = PAIRING_ALPHABET[esp_random() % (sizeof(PAIRING_ALPHABET) - 1)];
   }
   return code;
 }

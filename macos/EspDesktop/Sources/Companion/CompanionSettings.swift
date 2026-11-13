@@ -538,7 +538,7 @@ struct CompanionSettings: View {
                     }
                 case .code:
                     VStack(spacing: 14) {
-                        CompanionPairingCodeField(code: $pairingCode, onSubmit: pairDisplay)
+                        CompanionPairingCodeField(code: $pairingCode, letterCount: pairingPrompt.letterCount, onSubmit: pairDisplay)
                         pairingErrorLabel
                         HStack(spacing: 8) {
                             Button("Back") {
@@ -719,11 +719,11 @@ struct CompanionSettings: View {
         case .code:
             switch pairingPrompt {
             case .code:
-                return "Enter the eight-letter code shown on your display."
+                return "Enter the code shown on your display."
             case .reset:
                 return "Confirm Reset pairing on the touchscreen, then enter the new code. If the prompt is missing, open Settings → Paired on the display."
             case .unavailable:
-                return "Open pairing from the display’s Settings or webpage, then enter the eight-letter code."
+                return "Open pairing from the display’s Settings or webpage, then enter the code."
             }
         case .connecting:
             return "Keep your Mac and display on the same network."
@@ -733,7 +733,7 @@ struct CompanionSettings: View {
     }
 
     private var canPair: Bool {
-        !store.pairingState.isBusy && CompanionPairingInput.isValid(host: store.panelHost, code: pairingCode)
+        !store.pairingState.isBusy && CompanionPairingInput.isValid(host: store.panelHost, code: pairingCode, letterCount: pairingPrompt.letterCount)
     }
 
     private var canRequestPairingCode: Bool {
@@ -782,8 +782,8 @@ struct CompanionSettings: View {
     }
 
     private func pairDisplay() {
-        guard CompanionPairingInput.normalizedCode(pairingCode) != nil else {
-            pairingFlowError = "Enter the eight-letter pairing code shown on the display."
+        guard CompanionPairingInput.normalizedCode(pairingCode, letterCount: pairingPrompt.letterCount) != nil else {
+            pairingFlowError = "Enter the pairing code shown on the display."
             return
         }
         guard ConnectionEndpointPolicy.isLocalEndpoint(store.panelHost) else {

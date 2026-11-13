@@ -6,7 +6,6 @@
 #include "companion_controls.h"
 #include "screen_lock_state.h"
 
-inline constexpr size_t DEVICE_PAIRING_CODE_LENGTH = 9;  // Four letters, a dash, four letters.
 struct DevicePairingButtonColors {
   uint32_t fill;
   uint32_t pressed;
@@ -23,7 +22,7 @@ struct DevicePairingUi {
   lv_timer_t *refresh_timer = nullptr;
   lv_obj_t *code_row = nullptr;
   lv_obj_t *status = nullptr;
-  std::array<lv_obj_t *, DEVICE_PAIRING_CODE_LENGTH> letters{};
+  std::array<lv_obj_t *, COMPANION_PAIRING_CODE_LENGTH> letters{};
   std::string displayed_code;
   const lv_font_t *text_font = nullptr;
   const lv_font_t *title_font = nullptr;
@@ -184,9 +183,9 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
   lv_obj_set_style_pad_bottom(ui.code_row, code_row_padding, LV_PART_MAIN);
   lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_style_base_dir(ui.code_row, LV_BASE_DIR_LTR, LV_PART_MAIN);
-  const lv_coord_t dash_width = control_modal_scaled_px(20, layout.short_side);
-  const lv_coord_t tile_width = std::min(control_modal_scaled_px(50, layout.short_side),
-                                         (content_width - dash_width - gap * 8) / 8);
+  const auto letter_count = static_cast<lv_coord_t>(ui.letters.size());
+  const lv_coord_t tile_width = std::min<lv_coord_t>(control_modal_scaled_px(50, layout.short_side),
+      (content_width - gap * (letter_count - 1)) / letter_count);
   const lv_coord_t tile_height = control_modal_scaled_px(58, layout.short_side);
   // Some narrow displays use a larger heading font. Leave room for the
   // widest pairing letter and the outline on both sides of its box.
@@ -196,16 +195,6 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     code_font = text_font;
   }
   for (size_t i = 0; i < ui.letters.size(); ++i) {
-    if (i == 4) {
-      auto *dash = lv_label_create(ui.code_row);
-      lv_obj_set_width(dash, dash_width);
-      lv_obj_set_style_text_align(dash, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-      if (code_font) lv_obj_set_style_text_font(dash, code_font, LV_PART_MAIN);
-      lv_obj_set_style_text_color(dash, lv_color_hex(theme.text_muted), LV_PART_MAIN);
-      ui.letters[i] = dash;
-      continue;
-    }
-
     auto *tile = lv_obj_create(ui.code_row);
     lv_obj_remove_style_all(tile);
     lv_obj_clear_flag(tile, LV_OBJ_FLAG_SCROLLABLE);

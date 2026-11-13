@@ -49,14 +49,14 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 Select the display in the Mac app and click **Continue**. Enter the code shown on the touchscreen. If the display already has a saved pairing, confirm **Reset pairing** on the touchscreen to get a new code. If the Mac app shows **Pairing Required**, choose **Re-pair** beside that display in **Settings → Displays**.
 
-<a href="/images/mac-companion-enter-pairing-code.png"><img src="/images/mac-companion-enter-pairing-code.png" alt="Mac app pairing screen with fields for the eight-letter code and a Connect button" width="1224" height="1600" loading="lazy"></a>
+<a href="/images/mac-companion-enter-pairing-code.png"><img src="/images/mac-companion-enter-pairing-code.png" alt="Mac app pairing screen with fields for the pairing code and a Connect button" width="1224" height="1600" loading="lazy"></a>
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
 | Pairing message | What to do |
 | --- | --- |
 | **Could not open the display pairing page.** | Confirm the display is on the same local network as your Mac. If the app still cannot open the page, go back and enter the display’s current IP address or `.local` name. |
-| **Enter the eight-letter pairing code shown on the display.** | Enter all eight letters from the touchscreen or use **Open pairing webpage** to copy the code, then select **Connect**. |
+| **Enter the pairing code shown on the display.** | Enter the code from the touchscreen or use **Open pairing webpage** to copy the code, then select **Connect**. |
 | **Unlock your Mac and allow EspDesktop to access Keychain, then try again.** | Unlock the Mac and allow Keychain access if prompted. Return to the pairing code step and select **Connect** again. |
 
 When pairing works, the Mac app shows **You’re connected**.
