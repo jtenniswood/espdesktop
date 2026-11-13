@@ -119,6 +119,10 @@ void CompanionService::setup() {
       global_preferences->make_preference<uint32_t>(fnv1a_hash("companion_auth_sequence"));
   this->pairing_code_preferences_ =
       global_preferences->make_preference<PairingCode>(fnv1a_hash("companion_pairing_code"));
+  PairingCode saved_code{};
+  if (!this->identity_.paired && this->pairing_code_preferences_.load(&saved_code)) {
+    this->pairing_code_.assign(saved_code.begin(), saved_code.end());
+  }
   this->focus_targets_preferences_ = global_preferences->make_preference<CompanionFocusTargetsPreference>(
       fnv1a_hash("companion_focus_targets"));
   this->restore_focus_targets_();
