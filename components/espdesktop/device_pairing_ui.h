@@ -10,6 +10,8 @@ inline constexpr size_t DEVICE_PAIRING_CODE_LENGTH = 9;  // Four letters, a dash
 // Match the website's dark-mode button blue.
 inline constexpr uint32_t DEVICE_PAIRING_BUTTON_BLUE = 0x3E63DD;
 inline constexpr uint32_t DEVICE_PAIRING_BUTTON_PRESSED = 0x3451B2;
+// A mid-grey outline stays visible against both the dark and light panels.
+inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x808080;
 
 struct DevicePairingUi {
   lv_obj_t *overlay = nullptr;
@@ -198,7 +200,7 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     lv_obj_clear_flag(tile, LV_OBJ_FLAG_CLICKABLE);
     lv_obj_set_size(tile, tile_width, tile_height);
     lv_obj_set_style_border_width(tile, 2, LV_PART_MAIN);
-    lv_obj_set_style_border_color(tile, lv_color_hex(theme_display_color(theme.border)), LV_PART_MAIN);
+    lv_obj_set_style_border_color(tile, lv_color_hex(theme_display_color(DEVICE_PAIRING_TILE_BORDER)), LV_PART_MAIN);
     lv_obj_set_style_radius(tile, tile_radius, LV_PART_MAIN);
     auto *letter = lv_label_create(tile);
     if (code_font) lv_obj_set_style_text_font(letter, code_font, LV_PART_MAIN);
