@@ -640,7 +640,7 @@ final class CompanionConnection: NSObject {
         return true
     }
 
-    private static let rePairingInstructions = "The saved pairing is no longer valid. Select Re-pair to connect this display again."
+    private static let rePairingInstructions = "Select Re-pair to reconnect."
 
     nonisolated static func requiresNewPairing(errorCode: String, authenticated: Bool, authenticating: Bool) -> Bool {
         switch errorCode {

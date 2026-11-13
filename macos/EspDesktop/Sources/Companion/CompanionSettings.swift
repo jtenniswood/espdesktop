@@ -434,16 +434,17 @@ struct CompanionSettings: View {
     private func displayCard(_ display: CompanionDisplay) -> some View {
         VStack(spacing: 20) {
             VStack(spacing: 10) {
-                Toggle(isOn: Binding(
-                    get: { display.state == .connected || display.state.isBusy },
-                    set: { store.setConnection($0, for: display) }
-                )) {
-                    Text("\(display.name) connection")
+                if display.state != .needsPairing {
+                    Toggle(isOn: Binding(
+                        get: { display.state == .connected || display.state.isBusy },
+                        set: { store.setConnection($0, for: display) }
+                    )) {
+                        Text("\(display.name) connection")
+                    }
+                    .labelsHidden()
+                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                    .controlSize(displaySwitchSize)
                 }
-                .labelsHidden()
-                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                .controlSize(displaySwitchSize)
-                .disabled(display.state == .needsPairing)
 
                 HStack(spacing: 8) {
                     if display.state.isBusy {
@@ -479,7 +480,7 @@ struct CompanionSettings: View {
                 Button {
                     store.openPanelWebServer(display)
                 } label: {
-                    Label("Customize", systemImage: "rectangle.grid.2x2")
+                    Label("Device", systemImage: "display")
                         .padding(.vertical, 4)
                 }
                 .modifier(CompanionCapsuleButton())
