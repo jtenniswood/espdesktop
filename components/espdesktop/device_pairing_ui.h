@@ -7,9 +7,15 @@
 #include "screen_lock_state.h"
 
 inline constexpr size_t DEVICE_PAIRING_CODE_LENGTH = 9;  // Four letters, a dash, four letters.
+struct DevicePairingButtonColors {
+  uint32_t fill;
+  uint32_t pressed;
+};
+
 // Match the website's dark-mode button blue.
-inline constexpr uint32_t DEVICE_PAIRING_BUTTON_BLUE = 0x3E63DD;
-inline constexpr uint32_t DEVICE_PAIRING_BUTTON_PRESSED = 0x3451B2;
+inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_BLUE{0x3E63DD, 0x3451B2};
+inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_GREY{0x6C6C6C, 0x555555};
+inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_RED{0xC63D4A, 0xA72C39};
 // A mid-grey outline stays visible against both the dark and light panels.
 inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x6C6C6C;
 
@@ -66,20 +72,22 @@ inline lv_obj_t *device_pairing_row(lv_obj_t *parent, lv_coord_t gap) {
   return row;
 }
 
-inline void device_pairing_style_button(lv_obj_t *button) {
+inline void device_pairing_style_button(lv_obj_t *button,
+                                        DevicePairingButtonColors colors = DEVICE_PAIRING_BUTTON_BLUE) {
   lv_obj_set_style_radius(button, LV_RADIUS_CIRCLE, LV_PART_MAIN);
-  lv_obj_set_style_bg_color(button, lv_color_hex(theme_display_color(DEVICE_PAIRING_BUTTON_BLUE)), LV_PART_MAIN);
-  control_modal_apply_pressed_fill_color(button, theme_display_color(DEVICE_PAIRING_BUTTON_PRESSED));
+  lv_obj_set_style_bg_color(button, lv_color_hex(theme_display_color(colors.fill)), LV_PART_MAIN);
+  control_modal_apply_pressed_fill_color(button, theme_display_color(colors.pressed));
   auto *label = lv_obj_get_child(button, 0);
   theme_set_content_foreground(label);
   lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
 }
 
 inline lv_obj_t *device_pairing_button(lv_obj_t *parent, const char *text, lv_coord_t max_width,
-                                      lv_coord_t min_width, lv_coord_t height, const lv_font_t *font) {
+                                      lv_coord_t min_width, lv_coord_t height, const lv_font_t *font,
+                                      DevicePairingButtonColors colors = DEVICE_PAIRING_BUTTON_BLUE) {
   auto *button = control_modal_create_text_button(parent, text, max_width, min_width, height,
-      LV_RADIUS_CIRCLE, theme_display_color(DEVICE_PAIRING_BUTTON_BLUE), font);
-  device_pairing_style_button(button);
+      LV_RADIUS_CIRCLE, theme_display_color(colors.fill), font);
+  device_pairing_style_button(button, colors);
   return button;
 }
 
@@ -148,9 +156,9 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     const lv_coord_t width = std::min<lv_coord_t>((content_width - gap * 2) / 2,
         control_modal_scaled_px(192, layout.short_side));
     auto *cancel = device_pairing_button(actions, espdesktop_i18n_key("cancel"),
-        width, width, button_height, text_font);
+        width, width, button_height, text_font, DEVICE_PAIRING_BUTTON_GREY);
     auto *reset = device_pairing_button(actions, espdesktop_i18n_key("reset_pairing"),
-        width, width, button_height, text_font);
+        width, width, button_height, text_font, DEVICE_PAIRING_BUTTON_RED);
     bind_immediate_button_action(cancel, [](lv_event_t *) { control_modal_close_nested_menu(); }, nullptr);
 
     ui.text_font = text_font;
