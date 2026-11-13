@@ -26,6 +26,19 @@
 	<array>
 		<string>MacOSX</string>
 	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Viewer</string>
+			<key>CFBundleURLName</key>
+			<string>io.espdesktop.app.open</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>espdesktop</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>EspDesktopDevelopmentBuild</key>

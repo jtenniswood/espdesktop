@@ -7380,6 +7380,8 @@ async function assertFirstRunSetup(browser) {
     const pairingTitle = dialog.getByRole("heading", { name: "Connect your Mac", exact: true });
     await pairingTitle.waitFor();
     assert(await dialog.getByText("Step 1 of 3", { exact: true }).isVisible());
+    const openApp = dialog.getByRole("link", { name: "Open EspDesktop", exact: true });
+    assert.equal(await openApp.getAttribute("href"), "espdesktop://open");
     const download = dialog.getByRole("link", { name: "Download EspDesktop for Mac" });
     assert.equal(await download.getAttribute("href"), "https://github.com/jtenniswood/espdesktop/releases/latest");
     assert.equal(await download.getAttribute("target"), "_blank");
@@ -7405,6 +7407,8 @@ async function assertFirstRunSetup(browser) {
     Object.assign(status.mac_companion, { configured: true, paired: true });
     Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
     await dialog.getByText("Open EspDesktop on your Mac to reconnect.", { exact: true }).waitFor();
+    assert(await openApp.isVisible(), "the launch link stays available when reconnecting");
+    assert(await download.isVisible(), "the download link stays available when reconnecting");
     assert(await next.isDisabled(), "a saved pairing still needs a live connection");
     assert.equal(await dialog.getByRole("button", { name: "Copy pairing code" }).count(), 0);
     status.mac_companion.connected = pairingState.connected = true;

@@ -125,6 +125,11 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         return true
     }
 
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard urls.contains(where: { $0.absoluteString == "espdesktop://open" }) else { return }
+        openCompanionWindow()
+    }
+
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         let menu = NSMenu()
         addContextualControlMenuItems(to: menu, isMenuBarMenu: false)

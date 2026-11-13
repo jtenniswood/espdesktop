@@ -278,14 +278,16 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             content.appendChild(status);
             return;
         }
-        const download = element("p", "", "sp-setup-pairing");
-        const link = element("a", "Download EspDesktop for Mac");
-        link.href = "https://github.com/jtenniswood/espdesktop/releases/latest";
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        download.appendChild(link);
+        const actions = element("p", "", "sp-setup-pairing");
+        const open = element("a", "Open EspDesktop");
+        open.href = "espdesktop://open";
+        const download = element("a", "Download EspDesktop for Mac");
+        download.href = "https://github.com/jtenniswood/espdesktop/releases/latest";
+        download.target = "_blank";
+        download.rel = "noopener noreferrer";
+        actions.append(open, download);
         const details = createCompanionPairingDetails(deps, deps.shell.createActionButton);
-        content.append(details.element, download, status);
+        content.append(details.element, actions, status);
         updatePairingView = () => {
             details.update(pairingState ?? null);
             let message = "Open Settings → Unpaired on the display to get a pairing code.";
