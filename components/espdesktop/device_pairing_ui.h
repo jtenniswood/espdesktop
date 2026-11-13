@@ -170,6 +170,9 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
   device_pairing_label(shell.panel, espdesktop_i18n_key("pairing"), title_font, theme.text_primary);
   ui.status = device_pairing_label(shell.panel, espdesktop_i18n("Expired"), text_font, theme.text_muted);
   ui.code_row = device_pairing_row(shell.panel, gap);
+  const lv_coord_t code_row_padding = control_modal_scaled_px(12, layout.short_side);
+  lv_obj_set_style_pad_top(ui.code_row, code_row_padding, LV_PART_MAIN);
+  lv_obj_set_style_pad_bottom(ui.code_row, code_row_padding, LV_PART_MAIN);
   lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_style_base_dir(ui.code_row, LV_BASE_DIR_LTR, LV_PART_MAIN);
   const lv_coord_t dash_width = control_modal_scaled_px(20, layout.short_side);
