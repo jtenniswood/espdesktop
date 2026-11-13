@@ -11,7 +11,7 @@ inline constexpr size_t DEVICE_PAIRING_CODE_LENGTH = 9;  // Four letters, a dash
 inline constexpr uint32_t DEVICE_PAIRING_BUTTON_BLUE = 0x3E63DD;
 inline constexpr uint32_t DEVICE_PAIRING_BUTTON_PRESSED = 0x3451B2;
 // A mid-grey outline stays visible against both the dark and light panels.
-inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x808080;
+inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x6C6C6C;
 
 struct DevicePairingUi {
   lv_obj_t *overlay = nullptr;
