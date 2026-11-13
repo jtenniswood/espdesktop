@@ -47,6 +47,10 @@ details {
   scroll-margin-top: calc(var(--vp-nav-height) + 16px);
 }
 
+details[open] {
+  padding-bottom: 16px;
+}
+
 details > summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto 16px;
