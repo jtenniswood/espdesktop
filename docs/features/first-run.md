@@ -11,7 +11,7 @@ The setup wizard helps you build your first Home screen. Open the web editor for
 
 Use **Search apps** to find the Mac apps you use most often. Turn on the apps you want on your display, then choose **Next**. You can pick up to eight, depending on your display’s grid size. Setup leaves at least one tile free.
 
-<a href="/images/first-run-choose-apps.png"><picture><source type="image/avif" srcset="/images/first-run-choose-apps-480.avif 480w, /images/first-run-choose-apps-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/first-run-choose-apps.png" alt="Choose your apps screen with a search field and a switch beside each app" width="1422" height="1696" loading="lazy"></picture></a>
+<a href="/images/first-run-choose-apps.png"><picture><source type="image/avif" srcset="/images/first-run-choose-apps-480.avif 480w, /images/first-run-choose-apps-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/first-run-choose-apps.png" alt="Choose your apps screen with a search field and a switch beside each app" width="1422" height="1696" loading="eager"></picture></a>
 
 ## 2. Choose whether to add shortcut pages
 

@@ -1,5 +1,5 @@
 ---
-title: Fix EspDesktop installer, Wi-Fi and Mac pairing problems
+title: Fix USB, Wi-Fi and Mac pairing problems
 description: Fix a missing USB port, Wi-Fi setup hotspot, Mac pairing error or unresponsive shortcut on the EspDesktop 4848S040.
 ---
 
