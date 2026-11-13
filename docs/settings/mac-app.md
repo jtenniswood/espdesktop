@@ -22,31 +22,31 @@ import ScreenshotGallery from '../.vitepress/theme/components/ScreenshotGallery.
 
 const settingsSlides = [
   {
-    image: '/images/mac-connector/mac_app1.png',
+    imageBase: '/images/mac-connector/mac_app1',
     alt: 'Display tab showing a connected display, Customize, Remove and Open at Startup',
     title: 'Display',
     caption: 'Check that your display says Connected. Choose Customize to open its web editor, or choose whether EspDesktop opens at login.',
   },
   {
-    image: '/images/mac-connector/mac_app2.png',
+    imageBase: '/images/mac-connector/mac_app2',
     alt: 'Apps tab with All available apps switched on',
     title: 'Apps',
     caption: 'Leave All available apps on to make every installed app available for shortcuts on your display.',
   },
   {
-    image: '/images/mac-connector/mac_app3.png',
+    imageBase: '/images/mac-connector/mac_app3',
     alt: 'Apps tab listing individual apps with a switch beside each one',
     title: 'Choose individual apps',
     caption: 'Turn off All available apps, then switch on the apps you want to launch from your display.',
   },
   {
-    image: '/images/mac-connector/mac_app4.png',
+    imageBase: '/images/mac-connector/mac_app4',
     alt: 'Folders tab showing approved folders and an Add Folder button',
     title: 'Folders',
     caption: 'Choose Add Folder to approve a Finder folder you want to open from your display.',
   },
   {
-    image: '/images/mac-connector/mac_app5.png',
+    imageBase: '/images/mac-connector/mac_app5',
     alt: 'Updates tab showing the installed version, Check Now and automatic update switches',
     title: 'Updates',
     caption: 'See the installed version, check for a new release and choose how the app handles automatic updates.',

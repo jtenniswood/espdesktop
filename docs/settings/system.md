@@ -11,7 +11,7 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 
 ## Display system settings
 
-<a href="/images/web-editor-system-settings.png"><img src="/images/web-editor-system-settings.png" alt="System tab showing Mac Companion, Language, Time, Device Name, Backup, Firmware and Factory Reset" width="1694" height="2266" loading="lazy"></a>
+<a href="/images/web-editor-system-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-system-settings-480.avif 480w, /images/web-editor-system-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-system-settings.png" alt="System tab showing Mac Companion, Language, Time, Device Name, Backup, Firmware and Factory Reset" width="1694" height="2266" loading="lazy"></picture></a>
 
 ### Mac Companion and preferences
 

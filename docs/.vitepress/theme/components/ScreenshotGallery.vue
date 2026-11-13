@@ -7,7 +7,7 @@ const props = defineProps<{
   width: number
   height: number
   slides: ReadonlyArray<{
-    image: string
+    imageBase: string
     alt: string
     title: string
     caption: string
@@ -37,11 +37,18 @@ function move(offset: number) {
       <figure
         v-for="(slide, slideIndex) in slides"
         v-show="index === slideIndex"
-        :key="slide.image"
+        :key="slide.imageBase"
         class="screenshot-slide"
       >
-        <a class="screenshot-link" :href="withBase(slide.image)">
-          <img :src="withBase(slide.image)" :alt="slide.alt" :width="width" :height="height" loading="lazy" decoding="async">
+        <a class="screenshot-link" :href="withBase(slide.imageBase + '.png')">
+          <picture>
+            <source
+              type="image/avif"
+              :srcset="`${withBase(slide.imageBase)}-480.avif 480w, ${withBase(slide.imageBase)}-960.avif 960w`"
+              sizes="(min-width: 768px) 540px, 90vw"
+            >
+            <img :src="withBase(slide.imageBase + '.png')" :alt="slide.alt" :width="width" :height="height" loading="lazy" decoding="async">
+          </picture>
         </a>
 
         <figcaption>
@@ -125,6 +132,10 @@ function move(offset: number) {
   display: block;
   aspect-ratio: 4 / 5;
   border-radius: 8px;
+}
+
+.screenshot-link picture {
+  display: contents;
 }
 
 .screenshot-link img {

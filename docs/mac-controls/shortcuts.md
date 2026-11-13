@@ -23,7 +23,7 @@ Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shif
 
 Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibility** so it can send keystrokes.
 
-<a href="/images/mac-companion-shortcut-access.png"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></a>
+<a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
 
 If a tile still does nothing, follow [the shortcut and Mac Lock troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
 

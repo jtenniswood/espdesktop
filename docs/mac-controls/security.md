@@ -20,12 +20,12 @@ The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-t
 ## macOS permission prompts
 
 <figure>
-  <a href="/images/mac-companion-shortcut-access.png"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></a>
+  <a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
   <figcaption>macOS can show this prompt when you choose Enable Shortcuts in EspDesktop.</figcaption>
 </figure>
 
 <figure>
-  <a href="/images/mac-companion-finder-access.png"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></a>
+  <a href="/images/mac-companion-finder-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-finder-access-480.avif 480w, /images/mac-companion-finder-access-772.avif 772w" sizes="(min-width: 768px) 386px, 90vw"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></picture></a>
   <figcaption>Folder highlighting may ask for permission to control Finder.</figcaption>
 </figure>
 
@@ -33,7 +33,7 @@ The [touchscreen follows your Mac’s lock state](/settings/system#protect-the-t
 
 If macOS asks for **Local Network** access, choose **Allow** so EspDesktop can find your display.
 
-<a href="/images/mac-companion-local-network.png"><img src="/images/mac-companion-local-network.png" alt="macOS asking whether EspDesktop can find devices on the local network" width="386" height="390" loading="lazy"></a>
+<a href="/images/mac-companion-local-network.png"><picture><source type="image/avif" srcset="/images/mac-companion-local-network-480.avif 480w, /images/mac-companion-local-network-772.avif 772w" sizes="(min-width: 768px) 386px, 90vw"><img src="/images/mac-companion-local-network.png" alt="macOS asking whether EspDesktop can find devices on the local network" width="386" height="390" loading="lazy"></picture></a>
 
 - One Mac can connect to several paired displays at the same time. Each display has its own pairing credential and can access the apps and folders you’ve approved in the Mac app.
 - Pairing uses a temporary code that expires after 15 minutes. EspDesktop stores the credential in macOS Keychain and checks the display certificate on later connections.
