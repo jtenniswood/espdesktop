@@ -1175,6 +1175,7 @@ export function registerCompanionCardTypes(
                 modalTabs.renderModalTabSettings(appSubpageDisclosure.section, card, helpers, {
                     definitions: function () { return companionShortcutTabDefinitions(card.entity); },
                     searchPlaceholder: "Find a shortcut…",
+                    dragOnly: true,
                     tabs: (button: any) => companionShortcutTabsForCapacity(
                         companionShortcutTabs(button), maxSlots,
                     ),

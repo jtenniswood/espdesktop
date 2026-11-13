@@ -4685,7 +4685,11 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     assert(await rows.filter({ hasText: safariShortcutLabel(2) }).first().isVisible());
     assert(!(await rows.filter({ hasText: safariShortcutLabel(3) }).first().isVisible()));
     await filter.clear();
-    await rows.locator('[aria-label="Move ' + safariShortcutLabel(3) + ' up"]').first().click();
+    assert.strictEqual(await rows.locator(".sp-light-tab-move").count(), 0, "shortcuts use drag handles to reorder");
+    const drag = rows.locator('[aria-label="Drag ' + safariShortcutLabel(3) + '"]').first();
+    await drag.dragTo(appSubpage.locator('.sp-light-tab-row[data-tab="2"]'), {
+      targetPosition: { x: 16, y: 6 },
+    });
     assert.strictEqual(
       await appSubpage.locator(".sp-disclosure-button").getAttribute("aria-expanded"),
       "true",

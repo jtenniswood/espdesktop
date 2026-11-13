@@ -348,19 +348,23 @@ export function createConfigModalTabOptionsFeature(
             drag.className = "sp-light-tab-drag mdi mdi-drag";
             drag.setAttribute("aria-label", "Drag " + definition.label);
             drag.tabIndex = -1;
-            var moveUp: any = dependencies.document.createElement("button");
-            moveUp.type = "button";
-            moveUp.className = "sp-light-tab-move mdi mdi-chevron-up";
-            moveUp.setAttribute("aria-label", "Move " + definition.label + " up");
-            var moveDown: any = dependencies.document.createElement("button");
-            moveDown.type = "button";
-            moveDown.className = "sp-light-tab-move mdi mdi-chevron-down";
-            moveDown.setAttribute("aria-label", "Move " + definition.label + " down");
-            moveUp.disabled = !available;
-            moveDown.disabled = !available;
             controls.appendChild(drag);
-            controls.appendChild(moveUp);
-            controls.appendChild(moveDown);
+            if (!config.dragOnly) {
+                var moveUp: any = dependencies.document.createElement("button");
+                moveUp.type = "button";
+                moveUp.className = "sp-light-tab-move mdi mdi-chevron-up";
+                moveUp.setAttribute("aria-label", "Move " + definition.label + " up");
+                var moveDown: any = dependencies.document.createElement("button");
+                moveDown.type = "button";
+                moveDown.className = "sp-light-tab-move mdi mdi-chevron-down";
+                moveDown.setAttribute("aria-label", "Move " + definition.label + " down");
+                moveUp.disabled = !available;
+                moveDown.disabled = !available;
+                controls.appendChild(moveUp);
+                controls.appendChild(moveDown);
+                moveUp.addEventListener("click", function (this: any) { moveRow(row, -1); });
+                moveDown.addEventListener("click", function (this: any) { moveRow(row, 1); });
+            }
             row.appendChild(controls);
             var label: any = dependencies.document.createElement("label");
             label.className = "sp-light-tab-label";
@@ -394,8 +398,6 @@ export function createConfigModalTabOptionsFeature(
                 }
                 saveTabsFromRows();
             });
-            moveUp.addEventListener("click", function (this: any) { moveRow(row, -1); });
-            moveDown.addEventListener("click", function (this: any) { moveRow(row, 1); });
             row.addEventListener("dragstart", function (this: any, event?: any) {
                 if (!available)
                     return;
