@@ -4312,6 +4312,8 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
+  nativeState.document.buttons[4] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[4] = "~B,1|companion,shortcut.command%2Bl,Address,Keyboard";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
@@ -4486,6 +4488,37 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const beforeMissingKeySave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeMissingKeySave, "a modifier without a key cannot save");
+
+    await page.locator(".sp-settings-close").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    const addShortcut = async () => {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await chooseCardType(page, "Key Shortcut");
+    };
+    await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
+    await addShortcut();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true");
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari", "new shortcuts start with the page's app");
+    assert.strictEqual(await action.inputValue(), "", "the user still chooses a shortcut");
+    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    await app.selectOption("");
+    assert.strictEqual(await app.inputValue(), "", "the app selection can be cleared");
+    await app.selectOption(slack.appId);
+    await custom.click();
+    assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
+    await application.click();
+    assert.strictEqual(await app.inputValue(), slack.appId, "switching tabs retains the user's app choice");
+    await action.selectOption(slackPreset);
+    await saveCard();
+    const savedSubpage = nativeState.document.subpages[4];
+    assert(decodeURIComponent(savedSubpage).includes(slackPreset), "the saved shortcut keeps the selected preset");
+    await addShortcut();
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari", "each new card starts with the page's app");
+    await page.locator(".sp-settings-close").click();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    await addShortcut();
+    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "generic subpages still start on Custom");
 
   } finally {
     await context.close();
@@ -7076,6 +7109,12 @@ async function assertNestedCompanionPages(browser) {
     // Start the independent edit/reload scenario with a custom existing card.
     fixture.document = existing; fixture.generation++; fixture.puts = [];
     await open();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "Key Shortcut");
+    assert.strictEqual(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
+    assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
+      "a nested app page uses the app that owns the inner page");
+    await page.locator(".sp-settings-close").click();
     await page.locator(".sp-back-btn .sp-back-hit").click();
     await page.getByText("Safari", { exact: true }).first().waitFor();
     await page.locator('.sp-main [data-slot="1"]').click();

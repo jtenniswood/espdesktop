@@ -446,9 +446,14 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
     return companionShortcutPresetCards(SLACK_BUNDLE_ID);
 }
 
-export function companionShortcutCatalogApps(): AppShortcutApplication[] {
+export function companionShortcutCatalogApps(appId?: string): AppShortcutApplication[] {
     // The Mac sends Athena under the actual installed web app's bundle ID.
-    return COMPANION_SHORTCUT_APPS.filter((app) => app.appId !== ATHENA_TEMPLATE_APP_ID && app.shortcuts?.length > 0);
+    const apps = COMPANION_SHORTCUT_APPS.filter((app) => app.appId !== ATHENA_TEMPLATE_APP_ID && app.shortcuts?.length > 0);
+    if (appId && appId !== ATHENA_TEMPLATE_APP_ID && !apps.some(app => app.appId === appId)) {
+        const template = companionShortcutApp(appId);
+        if (template) apps.push({ ...template, appId });
+    }
+    return apps;
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {

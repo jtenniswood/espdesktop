@@ -31,6 +31,8 @@ If a tile still does nothing, follow [the shortcut and Mac Lock troubleshooting 
 
 Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together. New pages start with a selection of useful shortcuts for the app. Smaller displays show as many as will fit, with space for **Back**. In the subpage settings, use **Find a shortcut** to add other shortcuts, or rearrange the ones on the page.
 
+When you add a **Key Shortcut** card inside an app subpage, the **Application** tab opens with that app selected. You can pick a different app or switch to **Custom**.
+
 The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a shortcut](/mac-controls/improve-shortcuts).

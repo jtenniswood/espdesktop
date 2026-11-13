@@ -71,7 +71,7 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
-import { appShortcutPageOwner } from "../model/companion_shortcut_page";
+import { appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
 
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
@@ -147,7 +147,7 @@ export function companionShortcutCatalogSelection(card: any) {
     const separator = marker.lastIndexOf(":");
     if (separator < 0) return undefined;
     const appId = marker.slice(0, separator);
-    if (!companionShortcutCatalogApps().some((app) => app.appId === appId)) return undefined;
+    if (!companionShortcutCatalogApps(appId).some((app) => app.appId === appId)) return undefined;
     const preset = companionShortcutPresetCards(appId).find((preset) =>
         preset.entity === card?.entity && preset.options === options);
     return preset ? { ...preset, appId } : undefined;
@@ -725,14 +725,19 @@ export function registerCompanionCardTypes(
             shortcutField.className = "sp-field sp-shortcut-settings";
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
-            const shortcutType = card._shortcutType || (savedCatalogShortcut ? "catalog" : "custom");
+            const pageApp = initialMode === "shortcut" && state.settingsDraft?.isNew
+                ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
+                : undefined;
+            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps(savedCatalogShortcut?.appId || pageApp));
+            const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
+            const shortcutType = card._shortcutType || (savedCatalogShortcut || defaultCatalogApp ? "catalog" : "custom");
             const typeId = helpers.idPrefix + "shortcut-type";
             const typeTabs = helpers.segmentControl([
                 ["custom", "Custom"], ["catalog", "Application"],
             ], shortcutType, function (type: string, tab: HTMLButtonElement) {
                 if (type === shortcutType) return;
                 card._shortcutType = type;
-                card._shortcutCatalogApp = "";
+                if (!defaultCatalogApp) card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom.
                 if (type === "catalog" || String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
@@ -865,14 +870,13 @@ export function registerCompanionCardTypes(
             const catalogApp = document.createElement("select");
             catalogApp.className = "sp-select";
             catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
-            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps());
             for (const [value, label] of [["", "Choose an app…"], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
                 const option = document.createElement("option");
                 option.value = value;
                 option.textContent = label;
                 catalogApp.appendChild(option);
             }
-            catalogApp.value = savedCatalogShortcut?.appId || card._shortcutCatalogApp || "";
+            catalogApp.value = savedCatalogShortcut?.appId ?? card._shortcutCatalogApp ?? defaultCatalogApp ?? "";
             catalogAppField.appendChild(catalogApp);
             catalogField.appendChild(catalogAppField);
             const catalogShortcutField = document.createElement("div");
