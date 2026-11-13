@@ -53,7 +53,6 @@ describe("browserless application contracts", () => {
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
-    assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
     assert.match(companion, /setHidden\(instructions, value\.connected \|\| waitingForDisplayReset\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Connect your Mac/);
@@ -61,7 +60,6 @@ describe("browserless application contracts", () => {
     assert.match(companion, /Copy pairing code/);
     assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
-    assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });
 
   test("offers local screensaver modes and follows Companion availability", () => {

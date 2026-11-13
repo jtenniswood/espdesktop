@@ -37,7 +37,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal.sp-first-run{position:fixed;inset:0;margin:auto;box-sizing:border-box;width:min(640px,calc(100% - 48px));height:min(680px,calc(100dvh - 48px));max-width:none;max-height:none;padding:32px;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}" +
         ".sp-first-run[open]{display:flex;flex-direction:column;overflow:hidden}.sp-first-run>h1,.sp-first-run>p,.sp-setup-footer{flex-shrink:0}" +
         ".sp-first-run::backdrop{background:#0008;backdrop-filter:blur(4px)}.sp-first-run .sp-settings-close{top:20px;right:20px}" +
-        ".sp-setup-step{margin:0 44px 10px 0;color:var(--text2);font-size:var(--text-sm);font-weight:600}.sp-setup-title{margin:0 44px 8px 0;font-size:1.75rem;line-height:1.15;letter-spacing:-.025em}.sp-setup-description{margin:0;color:var(--text2);font-size:var(--text-md);line-height:1.5}" +
+        ".sp-setup-step{margin:0 52px 10px 0;color:var(--text2);font-size:var(--text-sm);font-weight:600}.sp-setup-title{margin:0 52px 8px 0;font-size:1.75rem;line-height:1.15;letter-spacing:-.025em}.sp-setup-description{margin:0;color:var(--text2);font-size:var(--text-md);line-height:1.5}" +
         ".sp-setup-title:focus{outline:none}" +
         ".sp-setup-content{margin:24px 0;overflow:auto;min-height:0;flex:1 1 auto}.sp-setup-apps{display:flex;flex-direction:column}" +
         ".sp-setup-pairing a{color:var(--accent-hover);font-weight:600}" +
@@ -494,10 +494,16 @@ export function createWebStyles(dragAnimation: boolean): string {
         "transition:background .25s,opacity .25s,box-shadow .25s}" +
         ".sp-action-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-soft)}" +
         ".sp-action-btn:active{opacity:.85}" +
+        // The documentation site's dark-mode primary button uses this blue.
+        ".sp-pairing-action{display:inline-flex;align-items:center;justify-content:center;gap:8px;" +
+        "box-sizing:border-box;min-height:44px;border:0;border-radius:var(--action-r);background:#3e63dd;color:#fff}" +
+        ".sp-action-btn.sp-pairing-action{min-width:96px;padding:10px 20px;font-weight:600}" +
+        ".sp-settings-close.sp-pairing-action{width:44px;height:44px}" +
+        ".sp-pairing-action:hover:enabled,.sp-pairing-action:active:enabled{background:#3451b2;color:#fff;opacity:1}" +
+        ".sp-pairing-action:focus-visible{outline:2px solid var(--accent-hover);outline-offset:3px;box-shadow:none}" +
+        ".sp-pairing-action:disabled{opacity:.55;cursor:default}" +
         ".sp-delete-btn,.sp-hide-btn,.sp-cancel-btn,.sp-neutral-btn{background:var(--surface2);color:var(--text);display:inline-flex;align-items:center;gap:6px}" +
         ".sp-delete-btn:hover,.sp-hide-btn:hover,.sp-cancel-btn:hover,.sp-neutral-btn:hover{background:var(--border);color:var(--text)}" +
-        ".sp-delete-btn.sp-destructive-btn{background:var(--danger);color:#fff}" +
-        ".sp-delete-btn.sp-destructive-btn:hover{filter:brightness(.9)}" +
         ".sp-save-btn{background:var(--accent);color:#fff}" +
         ".sp-save-btn:hover{background:var(--accent-hover)}" +
         ".sp-transfer-copy-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;" +

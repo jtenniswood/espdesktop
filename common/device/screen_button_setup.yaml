@@ -10,6 +10,7 @@ esphome:
     - priority: -210
       then:
         - lambda: |-
+            device_pairing_style_button(id(button_setup_pair));
             register_theme_static_page(id(button_setup_page)->obj);
             companion_runtime_service().pairing_changed_handler = [] {
               id(button_setup_text_refresh).execute();
@@ -90,9 +91,10 @@ lvgl:
                         hidden: true
                         width: SIZE_CONTENT
                         height: SIZE_CONTENT
-                        pad_all: 14
-                        radius: 10
-                        bg_color: $theme_setup_action_color
+                        pad_top: 18
+                        pad_bottom: 18
+                        pad_left: 36
+                        pad_right: 36
                         on_press:
                           - lambda: |-
                               consume_button_touch_press(id(button_setup_pair));
@@ -103,7 +105,6 @@ lvgl:
                               id: button_setup_pair_label
                               text: ""
                               text_font: $setup_body_font_id
-                              text_color: $theme_text_primary_color
                     - label:
                         id: setup_ip_label
                         text: "http://..."

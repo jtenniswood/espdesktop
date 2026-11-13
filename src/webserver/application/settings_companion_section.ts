@@ -65,7 +65,7 @@ export function createCompanionPairingDetails(
     pairingCode.className = "sp-companion-code";
     pairingCodeRow.appendChild(pairingCode);
     const copyButton = createActionButton(
-        "sp-action-btn sp-transfer-copy-btn sp-companion-copy",
+        "sp-action-btn sp-pairing-action sp-companion-copy",
         "Copy", "content-copy", "Copy pairing code",
     );
     copyButton.disabled = true;
@@ -104,6 +104,39 @@ export function createCompanionPairingDetails(
             setHidden(pairingDetails, !visible);
         },
     };
+}
+
+function confirmPairingReset(
+    document: Document,
+    createActionButton: ControlsShellFeature["createActionButton"],
+): Promise<boolean> {
+    return new Promise(resolve => {
+        const dialog = document.createElement("dialog");
+        dialog.className = "sp-reset-dialog";
+        dialog.setAttribute("aria-labelledby", "sp-pairing-reset-title");
+        dialog.setAttribute("aria-describedby", "sp-pairing-reset-message");
+        const title = document.createElement("h2");
+        title.id = "sp-pairing-reset-title";
+        title.textContent = "Reset pairing?";
+        const message = document.createElement("p");
+        message.id = "sp-pairing-reset-message";
+        message.textContent = "This will disconnect and remove the saved Mac Companion pairing. You will need to pair the display again.";
+        const actions = document.createElement("div");
+        actions.className = "sp-btn-row";
+        const cancel = createActionButton("sp-action-btn sp-pairing-action", "Cancel");
+        cancel.autofocus = true;
+        cancel.addEventListener("click", () => dialog.close());
+        const reset = createActionButton("sp-action-btn sp-pairing-action", "Reset pairing");
+        reset.addEventListener("click", () => dialog.close("reset"));
+        dialog.addEventListener("close", () => {
+            dialog.remove();
+            resolve(dialog.returnValue === "reset");
+        }, { once: true });
+        actions.append(cancel, reset);
+        dialog.append(title, message, actions);
+        document.body.appendChild(dialog);
+        dialog.showModal();
+    });
 }
 
 export function createSettingsCompanionSectionFeature(
@@ -213,7 +246,7 @@ export function createSettingsCompanionSectionFeature(
         clearIconCacheButton.addEventListener("click", () => { void clearIconCache(); });
 
         const resetButton = createActionButton(
-            "sp-action-btn sp-delete-btn sp-destructive-btn",
+            "sp-action-btn sp-pairing-action",
             "Reset pairing",
             "restore",
             "Reset Mac Companion pairing",
@@ -224,12 +257,10 @@ export function createSettingsCompanionSectionFeature(
 
         async function resetPairing(): Promise<void> {
             if (resetInProgress || !latestState?.paired) return;
-            if (!window.confirm(
-                "Reset pairing? This will disconnect and remove the saved Mac Companion pairing. You will need to pair the display again.",
-            )) return;
             resetInProgress = true;
-            resetButton.disabled = true;
             try {
+                if (!(await confirmPairingReset(document, createActionButton)) || !latestState?.paired) return;
+                resetButton.disabled = true;
                 const response = await fetch("/companion/pairing/reset", {
                     method: "POST",
                     headers: { Accept: "application/json" },

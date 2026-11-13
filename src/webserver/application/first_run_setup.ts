@@ -134,8 +134,8 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         if (className) node.className = className;
         return node;
     }
-    function button(text: string, action: () => void, primary = false): HTMLButtonElement {
-        const node = element("button", text, "sp-action-btn " + (primary ? "sp-save-btn" : "sp-cancel-btn"));
+    function button(text: string, action: () => void): HTMLButtonElement {
+        const node = element("button", text, "sp-action-btn sp-pairing-action");
         node.type = "button";
         node.disabled = busy;
         node.addEventListener("click", action);
@@ -330,7 +330,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         if (step === 1 && replacing && (replacing.layout.rootCards.length || replacing.layout.pages.length)) {
             description.append(" Saving setup replaces the current Home layout.");
         }
-        const closeButton = element("button", "", "sp-settings-close");
+        const closeButton = element("button", "", "sp-settings-close sp-pairing-action");
         closeButton.type = "button";
         closeButton.disabled = busy;
         closeButton.setAttribute("aria-label", "Close setup");
@@ -413,7 +413,7 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const finishLabel = replacing || step === 2 ? "Done" : "Save setup";
         const next = button(busy ? "Saving…" : isFinalStep ? finishLabel : "Next", () => {
             if (isFinalStep) void finish(); else { ++step; render(); }
-        }, true);
+        });
         next.disabled = busy || !connected || (step !== 0 && (loading || selectedApps().length === 0));
         actions.appendChild(next);
         footer.appendChild(actions);

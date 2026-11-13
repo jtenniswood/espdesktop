@@ -45,6 +45,25 @@ struct CompanionCapsuleButton: ViewModifier {
     }
 }
 
+private struct CompanionPairingButtonStyle: ButtonStyle {
+    @Environment(\.isEnabled) private var isEnabled
+
+    func makeBody(configuration: Configuration) -> some View {
+        // Match the website's dark-mode button blue.
+        let blue = Color(.sRGB, red: 62.0 / 255, green: 99.0 / 255, blue: 221.0 / 255)
+        let pressedBlue = Color(.sRGB, red: 52.0 / 255, green: 81.0 / 255, blue: 178.0 / 255)
+        return configuration.label
+            .font(.body.weight(.semibold))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 8)
+            .frame(minWidth: 104, minHeight: 44)
+            .background(configuration.isPressed ? pressedBlue : blue, in: Capsule())
+            .contentShape(Capsule())
+            .opacity(isEnabled ? 1 : 0.5)
+    }
+}
+
 private struct CompanionSetupHeading: View {
     let step: Int
     let title: String
@@ -167,9 +186,8 @@ private struct CompanionPairingActions: View {
 
     var body: some View {
         VStack(spacing: 10) {
-            HStack {
+            HStack(spacing: 12) {
                 Button(finishLabel, action: onComplete)
-                    .buttonStyle(.bordered)
                 Button("Configure Screen") {
                     if openSetup() {
                         onComplete()
@@ -177,8 +195,8 @@ private struct CompanionPairingActions: View {
                         failedToOpenSetup = true
                     }
                 }
-                .buttonStyle(.borderedProminent)
             }
+            .buttonStyle(CompanionPairingButtonStyle())
             if failedToOpenSetup {
                 Label("Could not open the display’s setup wizard.", systemImage: "exclamationmark.circle")
                     .font(.callout)
@@ -416,8 +434,7 @@ struct CompanionSettings: View {
                         Label("Add Display", systemImage: "plus")
                             .padding(.vertical, 4)
                     }
-                    .buttonStyle(.bordered)
-                    .modifier(CompanionCapsuleButton())
+                    .buttonStyle(CompanionPairingButtonStyle())
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 4)
                 }
@@ -521,7 +538,7 @@ struct CompanionSettings: View {
                     }
                     .font(.title3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack {
+                    HStack(spacing: 12) {
                         if pairingStep == .code {
                             Button("Back") {
                                 pairingFlowError = ""
@@ -535,9 +552,9 @@ struct CompanionSettings: View {
                         Button(pairingStep == .address ? "Continue" : "Connect") {
                             if pairingStep == .address { openPairingPage() } else { pairDisplay() }
                         }
-                        .buttonStyle(.borderedProminent)
                         .disabled(pairingStep == .address ? !canOpenPairingPage : !canPair)
                     }
+                    .buttonStyle(CompanionPairingButtonStyle())
                 } else if pairingStep == .connecting {
                     ProgressView()
                         .accessibilityLabel("Connecting to display")
@@ -546,6 +563,7 @@ struct CompanionSettings: View {
                 }
                 if store.onboardingCompleted && (pairingStep == .code || pairingStep == .connecting) {
                     Button("Cancel", action: finishPairingFlow)
+                        .buttonStyle(CompanionPairingButtonStyle())
                 }
             }
             .controlSize(.large)
@@ -568,8 +586,7 @@ struct CompanionSettings: View {
                 manualAddress = false
                 selectedDisplayID = nil
             }
-            .buttonStyle(.link)
-            .font(.callout)
+            .buttonStyle(CompanionPairingButtonStyle())
         } else {
             if discovery.displays.isEmpty {
                 displayOption(
@@ -581,6 +598,7 @@ struct CompanionSettings: View {
                 )
                 if !discovery.isSearching {
                     Button("Retry discovery") { discovery.stop(); discovery.start() }
+                        .buttonStyle(CompanionPairingButtonStyle())
                 }
             }
             ForEach(discovery.displays) { display in
