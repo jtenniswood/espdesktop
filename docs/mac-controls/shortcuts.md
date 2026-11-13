@@ -13,7 +13,7 @@ Tap a **Key Shortcut** card to send a key combination to the active Mac app.
 2. Select the **Custom** tab to enter keys such as **⌘ Command + F**, or the **Application** tab to pick a preset for an app.
 3. Save the card. Bring the app to the front on your Mac, then tap the card.
 
-The **Application** tab lists apps with shortcut presets. Bundled presets are available while the Mac is offline. Expanded presets can include single keys and sequences, and need an updated display and Mac Companion. Bring the approved app to the front before tapping one.
+The **Application** tab lists apps with shortcut presets. After choosing an app, use **Search by name or keys** to narrow the list. For example, type **New Tab** or **Cmd+T**. Bundled presets are available while the Mac is offline. Expanded presets can include single keys and sequences, and need an updated display and Mac Companion. Bring the approved app to the front before tapping one.
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
 

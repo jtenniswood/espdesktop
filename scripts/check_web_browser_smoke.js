@@ -4360,6 +4360,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
     const action = page.locator('[id$="shortcut-catalog-action"]');
+    const search = page.getByRole("searchbox", { name: "Search by name or keys" });
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
     await custom.press("ArrowRight");
@@ -4393,10 +4394,30 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       safariShortcutCount + 1,
       "Safari catalog shortcuts plus placeholder",
     );
+    const reloadPreset = "app_shortcut_preset=com.apple.Safari%3A2";
+    for (const query of ["reload", "Cmd+R", "⌘R"]) {
+      await search.fill(query);
+      const results = await action.locator("option").allTextContents();
+      assert(results.length < safariShortcutCount + 1);
+      assert(results.includes("Reload (⌘R)"), query);
+    }
+    await search.fill("ctrl shift tab");
+    assert((await action.locator("option").allTextContents()).includes("Previous Tab (⌃⇧Tab)"));
+    await search.fill("tab");
+    assert((await action.locator("option").allTextContents()).includes("Next Field (Tab)"));
+    await search.fill("zzzz");
+    await page.getByRole("status").filter({ hasText: "No matching shortcuts" }).waitFor();
+    assert.strictEqual(await action.locator("option").count(), 1);
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
-    await action.selectOption("app_shortcut_preset=com.apple.Safari%3A2");
+    await search.fill("reload");
+    await action.selectOption(reloadPreset);
+    assert.strictEqual(await search.inputValue(), "reload", "choosing a shortcut keeps the filter");
+    await search.fill("zzzz");
+    assert.strictEqual(await action.inputValue(), reloadPreset, "filtering keeps the selected shortcut");
+    await search.fill("");
+    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -4410,7 +4431,16 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
     const slack = require("../product/v2/app_shortcuts/slack.json");
     const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
+    await app.selectOption("com.apple.FinalCut");
+    assert((await action.locator("option").count()) > 350, "Final Cut Pro has a large catalog");
+    await search.fill("blade at playhead");
+    assert.deepStrictEqual(await action.locator("option").allTextContents(),
+      ["Choose a shortcut…", "Blade at Playhead (⌘B)"]);
+    await search.fill("Cmd+B");
+    assert((await action.locator("option").allTextContents()).includes("Blade at Playhead (⌘B)"));
+    await search.fill("reload");
     await app.selectOption(slack.appId);
+    assert.strictEqual(await search.inputValue(), "", "switching apps clears the filter");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "changing apps keeps the Application tab selected");
     await action.selectOption(slackPreset);
     await saveCard();
@@ -4501,6 +4531,8 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await app.inputValue(), "com.apple.Safari", "new shortcuts start with the page's app");
     assert.strictEqual(await action.inputValue(), "", "the user still chooses a shortcut");
     assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    await search.fill("new tab");
+    assert((await action.locator("option").allTextContents()).includes("New Tab (⌘T)"));
     await app.selectOption("");
     assert.strictEqual(await app.inputValue(), "", "the app selection can be cleared");
     await app.selectOption(slack.appId);

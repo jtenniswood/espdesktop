@@ -141,6 +141,18 @@ export function formatCompanionShortcutActionId(actionId: string): string {
     }).join(" then ");
 }
 
+const SHORTCUT_SEARCH_ALIASES: Readonly<Record<string, string>> = {
+    "⌘": "cmd", "⌃": "ctrl", "⌥": "alt", "⇧": "shift",
+    "←": "left", "→": "right", "↑": "up", "↓": "down",
+    command: "cmd", control: "ctrl", option: "alt", function: "fn",
+    return: "enter", escape: "esc",
+};
+
+function shortcutSearchKeys(value: string): string[] {
+    return value.toLowerCase().replace(/[⌘⌃⌥⇧←→↑↓]/g, key => " " + SHORTCUT_SEARCH_ALIASES[key] + " ")
+        .split(/[+\s]+/).filter(Boolean).map(key => SHORTCUT_SEARCH_ALIASES[key] ?? key);
+}
+
 export function companionShortcutCatalogSelection(card: any) {
     const options = withoutCardColorOptions(card?.options);
     const marker = configOptionValue(options, COMPANION_SHORTCUT_PRESET_OPTION);
@@ -737,6 +749,7 @@ export function registerCompanionCardTypes(
             ], shortcutType, function (type: string, tab: HTMLButtonElement) {
                 if (type === shortcutType) return;
                 card._shortcutType = type;
+                card._shortcutCatalogSearch = "";
                 if (!defaultCatalogApp) card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom.
                 if (type === "catalog" || String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
@@ -885,21 +898,51 @@ export function registerCompanionCardTypes(
             const catalogShortcut = document.createElement("select");
             catalogShortcut.className = "sp-select";
             catalogShortcut.id = helpers.idPrefix + "shortcut-catalog-action";
-            const catalogPlaceholder = document.createElement("option");
-            catalogPlaceholder.value = "";
-            catalogPlaceholder.textContent = "Choose a shortcut…";
-            catalogShortcut.appendChild(catalogPlaceholder);
-            if (catalogApp.value) {
-                sortCompanionLabels(companionShortcutPresetCards(catalogApp.value)).forEach((preset) => {
-                    const option = document.createElement("option");
-                    option.value = preset.options;
-                    option.textContent = preset.label + " (" + formatCompanionShortcutActionId(preset.entity) + ")";
-                    catalogShortcut.appendChild(option);
-                });
-            }
+            const presets = sortCompanionLabels(companionShortcutPresetCards(catalogApp.value));
+            const choices = presets.map(preset => {
+                const keys = formatCompanionShortcutActionId(preset.entity);
+                return {
+                    label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys),
+                    option: new Option(preset.label + " (" + keys + ")", preset.options),
+                };
+            });
+            const search = document.createElement("input");
+            search.type = "search";
+            search.className = "sp-input";
+            search.placeholder = "Search by name or keys";
+            search.setAttribute("aria-label", search.placeholder);
+            search.value = card._shortcutCatalogSearch ?? "";
+            const noMatches = document.createElement("div");
+            noMatches.className = "sp-field-info-text";
+            noMatches.setAttribute("role", "status");
+            const fields = document.createElement("div");
+            fields.className = "sp-field-stack";
+            search.hidden = !catalogApp.value;
             catalogShortcut.disabled = !catalogApp.value;
-            catalogShortcut.value = savedCatalogShortcut?.options || "";
-            catalogShortcutField.appendChild(catalogShortcut);
+            fields.append(search, catalogShortcut, noMatches);
+            catalogShortcutField.appendChild(fields);
+            function filterShortcuts() {
+                const query = search.value.trim().toLowerCase();
+                const keys = shortcutSearchKeys(query);
+                const selected = savedCatalogShortcut?.options ?? "";
+                const options = [new Option("Choose a shortcut…", "")];
+                let found = false;
+                for (const choice of choices) {
+                    const matches = !query || choice.label.includes(query) ||
+                        (keys.length > 0 && keys.every(key => choice.keys.includes(key)));
+                    found ||= matches;
+                    if (matches || choice.option.value === selected) options.push(choice.option);
+                }
+                catalogShortcut.replaceChildren(...options);
+                catalogShortcut.value = selected;
+                noMatches.textContent = query && !found ? "No matching shortcuts" : "";
+                noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
+            }
+            search.addEventListener("input", () => {
+                card._shortcutCatalogSearch = search.value;
+                filterShortcuts();
+            });
+            filterShortcuts();
             catalogField.appendChild(catalogShortcutField);
             shortcutPanel.section.appendChild(catalogField);
             helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
@@ -908,6 +951,7 @@ export function registerCompanionCardTypes(
                 return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
             });
             catalogApp.addEventListener("change", function () {
+                card._shortcutCatalogSearch = "";
                 card._shortcutType = "catalog";
                 card._shortcutCatalogApp = catalogApp.value;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
@@ -919,7 +963,7 @@ export function registerCompanionCardTypes(
             catalogShortcut.addEventListener("change", function () {
                 card._shortcutType = "catalog";
                 card._shortcutCatalogApp = catalogApp.value;
-                const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
+                const preset = presets.find(item => item.options === catalogShortcut.value);
                 if (!preset) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
                     card.options = normalizedCardColorOptions(card.options);
