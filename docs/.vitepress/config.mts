@@ -62,6 +62,19 @@ const guideParents = {
 
 const guideMetadata = new Map<string, { title: string; description: string }>()
 
+const customiseLinks = [
+  { text: 'First setup', link: '/features/first-run' },
+  { text: 'Touchscreen layout', link: '/features/home' },
+  { text: 'Subpages', link: '/features/subpages' },
+  { text: 'Apps', link: '/mac-controls/apps' },
+  { text: 'Websites', link: '/mac-controls/websites' },
+  { text: 'Finder folders', link: '/mac-controls/folders' },
+  { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
+  { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
+]
+const screenSettingsLink = { text: 'Screen settings', link: '/settings/screen' }
+const systemSettingsLink = { text: 'System settings', link: '/settings/system' }
+
 export default defineConfig({
   title: 'EspDesktop',
   description:
@@ -275,16 +288,17 @@ export default defineConfig({
   themeConfig: {
     nav: [
       {
-        text: 'Guides',
+        text: 'Getting started',
         items: [
-          { text: 'Get started', link: '/screens/4848s040#where-to-buy' },
-          { text: 'Customise', link: '/features/home' },
-          { text: 'Troubleshoot', link: '/getting-started/troubleshooting' },
-          { text: 'Reference', link: '/reference/faq' },
+          { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Install', link: '/screens/4848s040#install' },
+          { text: 'Download', link: '/screens/4848s040#download' },
         ],
       },
-      { text: 'Install', link: '/screens/4848s040#install' },
-      { text: 'Download', link: '/download' },
+      {
+        text: 'Customise',
+        items: [...customiseLinks, screenSettingsLink, systemSettingsLink],
+      },
     ],
 
     sidebar: [
@@ -297,22 +311,13 @@ export default defineConfig({
       },
       {
         text: 'Customise',
-        items: [
-          { text: 'First setup', link: '/features/first-run' },
-          { text: 'Touchscreen layout', link: '/features/home' },
-          { text: 'Subpages', link: '/features/subpages' },
-          { text: 'Apps', link: '/mac-controls/apps' },
-          { text: 'Websites', link: '/mac-controls/websites' },
-          { text: 'Finder folders', link: '/mac-controls/folders' },
-          { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
-          { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
-        ],
+        items: customiseLinks,
       },
       {
         text: 'Settings',
         items: [
-          { text: 'Screen settings', link: '/settings/screen' },
-          { text: 'System settings', link: '/settings/system' },
+          screenSettingsLink,
+          systemSettingsLink,
           { text: 'Mac app settings', link: '/settings/mac-app' },
           { text: 'Backup & restore', link: '/settings/backup' },
           { text: 'Permissions & security', link: '/mac-controls/security' },

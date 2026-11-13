@@ -39,7 +39,7 @@ Right-click a card to open its menu.
 - **App icon size.** Choose **App Icon Size** and select **Small**, **Medium** or **Large**. Large fills the card with the app icon and hides the label.
 - **Background colour.** Open **Card Colour** and pick a preset or use the eyedropper to choose a custom colour. Choose **Reset Colour** to restore the default background.
 
-<a href="/images/web-editor-card-menu.webp"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="1000" height="1382" loading="lazy"></a>
+<a href="/images/web-editor-card-menu.webp"><picture><source type="image/avif" srcset="/images/web-editor-card-menu-480.avif 480w, /images/web-editor-card-menu-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-card-menu.webp" alt="Right-click menu on an app card showing Edit Card, App Icon Size, Card Colour and Edit Subpage" width="1205" height="1205" loading="lazy"></picture></a>
 
 ## Add a card
 
@@ -47,7 +47,7 @@ Right-click a card to open its menu.
 2. In **Choose Card**, pick what the card should do. For example, choose [**Applications**](/mac-controls/apps) to launch a Mac app, [**Folder**](/mac-controls/folders) to open an approved folder, or [**Key Shortcut**](/mac-controls/shortcuts) to run a keyboard shortcut.
 3. Fill in the settings for that card and select **Save**. The card appears on your touchscreen.
 
-<a href="/images/web-editor-choose-card.webp"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1000" height="1337" loading="lazy"></a>
+<a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1269" height="1022" loading="lazy"></picture></a>
 
 ## Create a custom subpage
 
