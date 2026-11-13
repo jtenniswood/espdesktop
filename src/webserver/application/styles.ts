@@ -583,6 +583,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-app-subpage-settings .sp-disclosure-body{padding:8px 14px 10px}" +
         ".sp-app-subpage-settings .sp-disclosure-body>.sp-field{margin-bottom:12px}" +
         ".sp-app-subpage-settings .sp-toggle-row{margin-bottom:0}" +
+        ".sp-app-subpage-settings .sp-input[type=search]{margin-block:8px 12px}" +
         ".sp-app-subpage-settings .sp-light-tab-list{margin:0}" +
         ".sp-app-subpage-shortcut-actions{border-top:1px solid var(--border);padding:12px 0 10px}" +
         ".sp-app-subpage-settings .sp-app-subpage-options-divider{margin:4px 0 8px}" +
