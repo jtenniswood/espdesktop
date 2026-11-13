@@ -541,15 +541,14 @@ struct CompanionSettings: View {
                         CompanionPairingCodeField(code: $pairingCode, onSubmit: pairDisplay)
                         pairingErrorLabel
                         HStack(spacing: 8) {
-                            if !store.isRePairing {
-                                Button("Back") {
-                                    pairingFlowError = ""
-                                    pairingStep = .address
-                                    focusedField = .panelHost
+                            Button("Back") {
+                                if store.isRePairing {
+                                    finishPairingFlow()
+                                    return
                                 }
-                            }
-                            if store.onboardingCompleted {
-                                Button("Cancel", action: finishPairingFlow)
+                                pairingFlowError = ""
+                                pairingStep = .address
+                                focusedField = .panelHost
                             }
                             Button("Connect", action: pairDisplay)
                                 .buttonStyle(.borderedProminent)
