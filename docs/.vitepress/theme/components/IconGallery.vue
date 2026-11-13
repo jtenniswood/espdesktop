@@ -402,8 +402,6 @@ const ICON_GROUPS = {
   'Paint Format': 'Creative & Development',
   'Subscript': 'Creative & Development',
   'Superscript': 'Creative & Development',
-  'Repeat': 'Audio & Meetings',
-  'Shuffle': 'Audio & Meetings',
   'Subtitles': 'Audio & Meetings',
 }
 
