@@ -3,6 +3,7 @@
   "appId": "com.apple.Maps",
   "label": "Maps",
   "catalog": false,
+  "defaultShortcutIds": ["4", "14", "10", "11", "12", "13", "15", "16"],
   "shortcuts": [
     {
       "id": "0",
@@ -36,7 +37,7 @@
     {"id": "7", "label": "Move up, left", "shortcut": "scoped.up", "icon": "Arrow Down"},
     {"id": "8", "label": "Move down, right", "shortcut": "scoped.down", "icon": "Arrow Down"},
     {"id": "9", "label": "Return to north-facing orientation", "shortcut": "scoped.command+shift+up", "icon": "Arrow Up"},
-    {"id": "10", "label": "Zoom", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "10", "label": "Zoom In", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
     {"id": "11", "label": "Zoom out", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
     {"id": "12", "label": "Toggle 3D map", "shortcut": "scoped.command+d", "icon": "Eye Off"},
     {"id": "13", "label": "Toggle Look Around", "shortcut": "scoped.command+k", "icon": "Eye Off"},

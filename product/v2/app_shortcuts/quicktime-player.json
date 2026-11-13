@@ -3,6 +3,7 @@
   "appId": "com.apple.QuickTimePlayerX",
   "label": "QuickTime Player",
   "catalog": false,
+  "defaultShortcutIds": ["14", "2", "0", "1", "46", "45", "25", "28"],
   "shortcuts": [
     {
       "id": "0",

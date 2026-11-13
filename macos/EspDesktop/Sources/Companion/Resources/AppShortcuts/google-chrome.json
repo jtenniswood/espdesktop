@@ -3,6 +3,7 @@
   "appId": "com.google.Chrome",
   "label": "Google Chrome",
   "catalog": false,
+  "defaultShortcutIds": ["22", "24", "2", "47", "3", "10", "7", "1"],
   "shortcuts": [
     {
       "id": "0",

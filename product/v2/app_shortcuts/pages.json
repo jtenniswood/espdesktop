@@ -3,6 +3,7 @@
   "appId": "com.apple.iWork.Pages",
   "label": "Pages",
   "catalog": false,
+  "defaultShortcutIds": ["0", "4", "8", "117", "27", "111", "31", "13"],
   "shortcuts": [
     {
       "id": "0",

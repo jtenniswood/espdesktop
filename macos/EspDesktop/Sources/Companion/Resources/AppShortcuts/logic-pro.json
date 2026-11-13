@@ -3,6 +3,7 @@
   "appId": "com.apple.logic10",
   "label": "Logic Pro",
   "catalog": false,
+  "defaultShortcutIds": ["13", "6", "69", "76", "1", "9", "163", "158"],
   "shortcuts": [
     {
       "id": "0",

@@ -365,7 +365,7 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.control+tab",
   ];
   if (codexPreset.slice(0, expectedCodexShortcuts.length).map((card) => card.entity).join("|") !== expectedCodexShortcuts.join("|")) {
-    throw new Error("Codex shortcut defaults changed");
+    throw new Error("Codex starter presets changed");
   }
   if (!codexPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Codex presets must contain only Companion keyboard shortcuts");
@@ -400,7 +400,7 @@ export function runCompanionShortcutFeatureTests(): void {
     "shortcut.command+k",
   ];
   if (slackPreset.slice(0, expectedSlackShortcuts.length).map((card) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
-    throw new Error("Slack shortcut defaults changed");
+    throw new Error("Slack starter presets changed");
   }
   if (!slackPreset.every((card) => card.type === "companion" && companionShortcutActionIdValid(card.entity))) {
     throw new Error("Slack presets must contain only Companion keyboard shortcuts");
@@ -428,7 +428,7 @@ export function runCompanionShortcutFeatureTests(): void {
     }
   }
   const safariSubpage = createSafariShortcutSubpage();
-  const expectedSafariOrder = ["B", ...expectedSafariShortcuts.map((_shortcut, index) => String(index + 1))];
+  const expectedSafariOrder = ["B", ...expectedSafariShortcuts.slice(0, 8).map((_shortcut, index) => String(index + 1))];
   if (safariSubpage.backLabel !== "Back" || safariSubpage.order.join("|") !== expectedSafariOrder.join("|")) {
     throw new Error("Safari app subpage layout changed");
   }
@@ -524,10 +524,10 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Users must be able to turn off every preset shortcut");
   }
   const codexSubpage = createCodexShortcutSubpage();
-  const codexDefaults = codexPreset.slice(0, 72);
+  const codexDefaults = [0, 1, 2, 3, 4, 6, 11, 7].map(index => codexPreset[index]);
   if (codexSubpage.backLabel !== "Back" || codexSubpage.order.length !== codexDefaults.length + 1 ||
       codexSubpage.order[0] !== "B" ||
-      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexDefaults.map((card) => card.entity).join("|")) {
+      codexSubpage.buttons.map((card: any) => card.entity).join("|") !== codexDefaults.map((card) => card?.entity).join("|")) {
     throw new Error("Codex app subpage layout changed");
   }
   const savedApprove = {
@@ -541,8 +541,13 @@ export function runCompanionShortcutFeatureTests(): void {
     throw new Error("Adding New Chat must preserve a previously saved Approve card");
   }
   const slackSubpage = createSlackShortcutSubpage();
-  if (slackSubpage.backLabel !== "Back" || slackSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8|9|10" ||
-      slackSubpage.buttons.map((card: any) => card.entity).join("|") !== expectedSlackShortcuts.join("|")) {
+  const slackDefaults = [
+    "shortcut.command+k", "shortcut.command+g", "shortcut.command+n", "shortcut.command+shift+a",
+    "shortcut.scoped.command+shift+space", "shortcut.scoped.command+shift+t", "shortcut.command+f",
+    "shortcut.command+shift+k",
+  ];
+  if (slackSubpage.backLabel !== "Back" || slackSubpage.order.join("|") !== "B|1|2|3|4|5|6|7|8" ||
+      slackSubpage.buttons.map((card: any) => card.entity).join("|") !== slackDefaults.join("|")) {
     throw new Error("Slack app subpage layout changed");
   }
   const ipCard: any = { type: "companion", entity: "stat.ip_address:en1", icon: "Auto" };

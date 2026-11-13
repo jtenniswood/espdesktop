@@ -3,6 +3,7 @@
   "appId": "com.adobe.PremierePro",
   "label": "Adobe Premiere Pro",
   "catalog": false,
+  "defaultShortcutIds": ["40", "59", "60", "68", "53", "44", "6", "7"],
   "shortcuts": [
     {
       "id": "0",
@@ -115,7 +116,7 @@
     {"id": "56", "label": "Add caption at playhead", "shortcut": "scoped.command+option+c", "icon": "Subtitles"},
     {"id": "57", "label": "Next caption segment", "shortcut": "scoped.command+option+down", "icon": "Subtitles"},
     {"id": "58", "label": "Previous caption segment", "shortcut": "scoped.command+option+up", "icon": "Subtitles"},
-    {"id": "59", "label": "Mark", "shortcut": "scoped.i", "icon": "Shortcut Command"},
+    {"id": "59", "label": "Mark In", "shortcut": "scoped.i", "icon": "Shortcut Command"},
     {"id": "60", "label": "Mark Out", "shortcut": "scoped.o", "icon": "Shortcut Command"},
     {"id": "61", "label": "Mark Clip", "shortcut": "scoped.x", "icon": "Video Edit"},
     {"id": "62", "label": "Mark Selection", "shortcut": "scoped.keyslash", "icon": "Group Selection"},

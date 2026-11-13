@@ -3,6 +3,7 @@
   "appId": "com.anthropic.claudefordesktop",
   "label": "Claude Desktop",
   "catalog": false,
+  "defaultShortcutIds": ["2", "4", "6", "54", "33", "46", "45", "80"],
   "shortcuts": [
     {
       "id": "0",

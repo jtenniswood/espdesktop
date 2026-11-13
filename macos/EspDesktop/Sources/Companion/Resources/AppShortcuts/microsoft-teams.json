@@ -3,6 +3,7 @@
   "appId": "com.microsoft.teams2",
   "label": "Microsoft Teams",
   "catalog": false,
+  "defaultShortcutIds": ["88", "92", "91", "0", "1", "6", "57", "103"],
   "shortcuts": [
     {
       "id": "0",

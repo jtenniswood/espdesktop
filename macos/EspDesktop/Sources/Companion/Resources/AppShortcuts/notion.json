@@ -3,6 +3,7 @@
   "appId": "notion.id",
   "label": "Notion",
   "catalog": false,
+  "defaultShortcutIds": ["1", "6", "26", "23", "0", "13", "2", "49"],
   "shortcuts": [
     {
       "id": "0",

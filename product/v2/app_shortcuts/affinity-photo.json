@@ -3,6 +3,7 @@
   "appId": "com.seriflabs.affinityphoto2",
   "label": "Affinity Photo",
   "catalog": false,
+  "defaultShortcutIds": ["6", "80", "83", "85", "15", "68", "55", "13"],
   "shortcuts": [
     {
       "id": "0",

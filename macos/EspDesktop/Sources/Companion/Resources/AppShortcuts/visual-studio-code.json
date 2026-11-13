@@ -3,6 +3,7 @@
   "appId": "com.microsoft.VSCode",
   "label": "Visual Studio Code",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "8", "133", "142", "69", "92", "123"],
   "shortcuts": [
     {
       "id": "0",

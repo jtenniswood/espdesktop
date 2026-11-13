@@ -3,6 +3,7 @@
   "appId": "org.whispersystems.signal-desktop",
   "label": "Signal",
   "catalog": false,
+  "defaultShortcutIds": ["1", "2", "3", "15", "14", "34", "30", "7"],
   "shortcuts": [
     {
       "id": "0",

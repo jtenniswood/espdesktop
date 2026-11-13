@@ -3,6 +3,7 @@
   "appId": "com.github.GitHubClient",
   "label": "GitHub Desktop",
   "catalog": false,
+  "defaultShortcutIds": ["4", "5", "25", "3", "7", "9", "21", "26"],
   "shortcuts": [
     {
       "id": "0",

@@ -13,6 +13,8 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         let more = try XCTUnwrap(finalCut.moreShortcuts)
         XCTAssertGreaterThan(more.count, 300)
         XCTAssertNil(finalCut.starter.moreShortcuts)
+        XCTAssertEqual(finalCut.starter.defaultShortcutIds?.prefix(3), ["279", "18", "177"])
+        XCTAssertTrue(finalCut.expandedPages().allSatisfy { $0.defaultShortcutIds == nil })
         XCTAssertEqual(finalCut.expandedPages().flatMap { $0.moreShortcuts ?? [] }, more)
 
         XCTAssertLessThanOrEqual(catalogue.applications.reduce(0) { $0 + 1 + $1.expandedPages().count }, 256)
@@ -181,6 +183,8 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native])
         XCTAssertEqual(resolved.filter { $0.label == "Athena" }.map(\.appId), [athena.bundleIdentifier])
         XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.shortcuts, template.shortcuts)
+        XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.defaultShortcutIds,
+                       template.defaultShortcutIds)
         XCTAssertTrue(resolved.contains { $0.appId == "com.apple.Safari.WebApp" })
     }
 

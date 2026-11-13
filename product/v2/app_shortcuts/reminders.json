@@ -3,6 +3,7 @@
   "appId": "com.apple.reminders",
   "label": "Reminders",
   "catalog": false,
+  "defaultShortcutIds": ["0", "4", "25", "26", "20", "1", "2", "23"],
   "shortcuts": [
     {
       "id": "0",

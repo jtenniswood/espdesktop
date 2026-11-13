@@ -47,6 +47,9 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
             }
         }
         const { moreShortcuts: _remote, ...starter } = app;
+        const template = SAFARI_WEB_APP_BUNDLE_ID.test(app.appId) && app.label === "Athena"
+            ? byAppId.get(ATHENA_TEMPLATE_APP_ID) : bundled;
+        if (template?.defaultShortcutIds) starter.defaultShortcutIds ??= template.defaultShortcutIds;
         byAppId.set(app.appId, more.size ? { ...starter, moreShortcuts: [...more.values()] } : starter);
     }
     const definitions = [...byAppId.values()];
@@ -255,7 +258,14 @@ export function companionShortcutTabDefinitions(bundleIdentifier: string): Compa
 
 export function companionShortcutDefaultTabs(bundleIdentifier: string): string[] {
     if (bundleIdentifier === "com.apple.finder") return [];
-    return companionShortcutApp(bundleIdentifier)?.shortcuts.map(item => item.id) ?? [];
+    const app = companionShortcutApp(bundleIdentifier);
+    if (!app) return [];
+    if (Array.isArray(app.defaultShortcutIds)) {
+        const available = new Set(companionShortcutChoices(bundleIdentifier).map(item => item.id));
+        const defaults = [...new Set(app.defaultShortcutIds)].filter(id => available.has(id));
+        if (defaults.length) return defaults;
+    }
+    return app.shortcuts.map(item => item.id);
 }
 
 export function companionShortcutTabs(card: any): string[] {
@@ -581,7 +591,8 @@ function legacyCompanionShortcutPresetKeys(
     const safariPresetIDs = SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)
         ? new Set(COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE)?.shortcuts.map((item) => item.id))
         : undefined;
-    const starterIDs = new Set(companionShortcutDefaultTabs(bundleIdentifier));
+    const starterIDs = bundleIdentifier === "com.apple.finder" ? new Set<string>()
+        : new Set(companionShortcutApp(bundleIdentifier)?.shortcuts.map(item => item.id));
     presets.forEach(card => {
         const key = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
         const id = key.slice(bundleIdentifier.length + 1);

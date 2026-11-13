@@ -3,6 +3,7 @@
   "appId": "com.colliderli.iina",
   "label": "IINA",
   "catalog": false,
+  "defaultShortcutIds": ["8", "11", "10", "26", "59", "28", "29", "16"],
   "shortcuts": [
     {
       "id": "0",

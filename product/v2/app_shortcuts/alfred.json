@@ -3,6 +3,7 @@
   "appId": "com.runningwithcrayons.Alfred",
   "label": "Alfred",
   "catalog": false,
+  "defaultShortcutIds": ["0", "39", "18", "19", "1", "4"],
   "shortcuts": [
     {
       "id": "0",

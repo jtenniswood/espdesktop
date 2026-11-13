@@ -3,6 +3,7 @@
   "appId": "com.apple.garageband10",
   "label": "GarageBand",
   "catalog": false,
+  "defaultShortcutIds": ["26", "29", "3", "48", "49", "10", "44", "42"],
   "shortcuts": [
     {
       "id": "0",

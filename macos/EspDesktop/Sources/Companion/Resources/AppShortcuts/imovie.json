@@ -3,6 +3,7 @@
   "appId": "com.apple.iMovieApp",
   "label": "iMovie",
   "catalog": false,
+  "defaultShortcutIds": ["4", "27", "19", "3", "48", "22", "46", "44"],
   "shortcuts": [
     {
       "id": "0",
@@ -20,7 +21,7 @@
   "moreShortcuts": [
     {"id": "2", "label": "Open iMovie Help menu", "shortcut": "scoped.command+shift+keyslash", "icon": "Help"},
     {"id": "3", "label": "Import media", "shortcut": "scoped.command+i", "icon": "Import"},
-    {"id": "4", "label": "Play video beginning", "shortcut": "scoped.space", "icon": "Play"},
+    {"id": "4", "label": "Play from Playhead", "shortcut": "scoped.space", "icon": "Play"},
     {"id": "5", "label": "Play selection", "shortcut": "scoped.keyslash", "icon": "Group Selection"},
     {"id": "6", "label": "Play selected event, clip, or project", "shortcut": "scoped.keybackslash", "icon": "Play"},
     {"id": "7", "label": "Move playhead one frame forward", "shortcut": "scoped.right", "icon": "Timeline"},

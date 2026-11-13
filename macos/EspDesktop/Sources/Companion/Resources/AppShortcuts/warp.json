@@ -3,6 +3,7 @@
   "appId": "dev.warp.Warp-Stable",
   "label": "Warp",
   "catalog": false,
+  "defaultShortcutIds": ["0", "2", "5", "8", "3", "12", "11", "111"],
   "shortcuts": [
     {
       "id": "0",

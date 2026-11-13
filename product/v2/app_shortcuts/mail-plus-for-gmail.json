@@ -3,6 +3,7 @@
   "appId": "com.rockysandstudio.DeskApp-for-Gmail",
   "label": "Mail Plus for Gmail",
   "catalog": false,
+  "defaultShortcutIds": ["3", "4", "7", "10", "12", "20", "14", "1"],
   "shortcuts": [
     {
       "id": "0",

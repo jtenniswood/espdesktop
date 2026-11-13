@@ -3,6 +3,7 @@
   "appId": "com.culturedcode.ThingsMac",
   "label": "Things 3",
   "catalog": false,
+  "defaultShortcutIds": ["0", "3", "18", "35", "6", "34", "43", "10"],
   "shortcuts": [
     {
       "id": "0",

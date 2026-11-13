@@ -3,6 +3,7 @@
   "appId": "com.evernote.Evernote",
   "label": "Evernote",
   "catalog": false,
+  "defaultShortcutIds": ["1", "0", "4", "30", "31", "2", "44", "45"],
   "shortcuts": [
     {
       "id": "0",

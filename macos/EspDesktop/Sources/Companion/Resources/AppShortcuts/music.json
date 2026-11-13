@@ -3,6 +3,7 @@
   "appId": "com.apple.Music",
   "label": "Music",
   "catalog": false,
+  "defaultShortcutIds": ["6", "11", "10", "13", "4", "16", "17", "36"],
   "shortcuts": [
     {
       "id": "0",

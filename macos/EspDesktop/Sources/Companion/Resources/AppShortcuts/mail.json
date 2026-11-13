@@ -3,6 +3,7 @@
   "appId": "com.apple.mail",
   "label": "Mail",
   "catalog": false,
+  "defaultShortcutIds": ["0", "7", "8", "4", "17", "15", "18", "9"],
   "shortcuts": [
     {
       "id": "0",

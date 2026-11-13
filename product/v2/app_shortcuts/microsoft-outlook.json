@@ -3,6 +3,7 @@
   "appId": "com.microsoft.Outlook",
   "label": "Microsoft Outlook",
   "catalog": false,
+  "defaultShortcutIds": ["1", "2", "39", "60", "22", "21", "58", "41"],
   "shortcuts": [
     {
       "id": "0",

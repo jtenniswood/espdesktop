@@ -3,6 +3,7 @@
   "appId": "com.adobe.Reader",
   "label": "Adobe Acrobat Reader",
   "catalog": false,
+  "defaultShortcutIds": ["1", "58", "60", "68", "69", "2", "54", "56"],
   "shortcuts": [
     {
       "id": "1",
@@ -88,7 +89,7 @@
     {"id": "65", "label": "Scroll up", "shortcut": "scoped.up", "icon": "Arrow Up"},
     {"id": "66", "label": "Scroll down", "shortcut": "scoped.down", "icon": "Arrow Down"},
     {"id": "67", "label": "Scroll", "shortcut": "scoped.space", "icon": "Shortcut Space"},
-    {"id": "68", "label": "Zoom", "shortcut": "scoped.command+keyequal", "icon": "Zoom In"},
+    {"id": "68", "label": "Zoom In", "shortcut": "scoped.command+keyequal", "icon": "Zoom In"},
     {"id": "69", "label": "Zoom out", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
     {"id": "70", "label": "Move focus to previous row when", "shortcut": "scoped.up", "icon": "View Grid"},
     {"id": "71", "label": "Move focus to next row when", "shortcut": "scoped.down", "icon": "View Grid"},

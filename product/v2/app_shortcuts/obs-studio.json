@@ -3,6 +3,7 @@
   "appId": "com.obsproject.obs-studio",
   "label": "OBS Studio",
   "catalog": false,
+  "defaultShortcutIds": ["4", "12", "14", "0", "1", "2", "3", "5"],
   "shortcuts": [
     {
       "id": "0",

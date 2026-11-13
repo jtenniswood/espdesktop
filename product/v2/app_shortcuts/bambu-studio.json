@@ -3,6 +3,7 @@
   "appId": "com.bambulab.bambu-studio",
   "label": "BambuStudio",
   "catalog": false,
+  "defaultShortcutIds": ["3", "19", "21", "4", "64", "53", "9", "2"],
   "shortcuts": [
     {
       "id": "0",

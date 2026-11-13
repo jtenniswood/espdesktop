@@ -3,6 +3,7 @@
   "appId": "com.orcaslicer.OrcaSlicer",
   "label": "OrcaSlicer",
   "catalog": false,
+  "defaultShortcutIds": ["4", "77", "5", "113", "42", "6", "8", "2"],
   "shortcuts": [
     {
       "id": "0",

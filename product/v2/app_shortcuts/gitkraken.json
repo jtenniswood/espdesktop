@@ -3,6 +3,7 @@
   "appId": "com.axosoft.gitkraken",
   "label": "GitKraken",
   "catalog": false,
+  "defaultShortcutIds": ["30", "1", "0", "5", "2", "3", "32", "12"],
   "shortcuts": [
     {
       "id": "0",

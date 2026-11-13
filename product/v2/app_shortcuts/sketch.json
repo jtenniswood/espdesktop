@@ -3,6 +3,7 @@
   "appId": "com.bohemiancoding.sketch3",
   "label": "Sketch",
   "catalog": false,
+  "defaultShortcutIds": ["9", "31", "32", "43", "12", "45", "122", "5"],
   "shortcuts": [
     {
       "id": "0",
@@ -82,7 +83,7 @@
     {"id": "28", "label": "Toggle full screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
     {"id": "29", "label": "Zoom", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
     {"id": "30", "label": "Zoom to 100%", "shortcut": "scoped.command+0", "icon": "Fit to Screen"},
-    {"id": "31", "label": "Zoom to fit all layers in Canvas", "shortcut": "scoped.command+1", "icon": "Zoom In"},
+    {"id": "31", "label": "Zoom to Fit", "shortcut": "scoped.command+1", "icon": "Zoom In"},
     {"id": "32", "label": "Zoom to fit selection", "shortcut": "scoped.command+2", "icon": "Fit to Screen"},
     {"id": "33", "label": "Center selection in Canvas", "shortcut": "scoped.command+3", "icon": "Group Selection"},
     {"id": "34", "label": "Zoom to fit top-level frame", "shortcut": "scoped.command+4", "icon": "Fit to Screen"},

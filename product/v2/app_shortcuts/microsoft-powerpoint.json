@@ -3,6 +3,7 @@
   "appId": "com.microsoft.Powerpoint",
   "label": "Microsoft PowerPoint",
   "catalog": false,
+  "defaultShortcutIds": ["6", "7", "5", "8", "24", "26", "30", "38"],
   "shortcuts": [
     {
       "id": "0",

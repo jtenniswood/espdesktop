@@ -3,6 +3,7 @@
   "appId": "com.apple.freeform",
   "label": "Freeform",
   "catalog": false,
+  "defaultShortcutIds": ["0", "2", "33", "1", "7", "15", "16", "28"],
   "shortcuts": [
     {
       "id": "0",
@@ -69,7 +70,7 @@
     {"id": "30", "label": "Move item in front of all items", "shortcut": "scoped.command+shift+f", "icon": "Shortcut Command"},
     {"id": "31", "label": "Move item behind one item", "shortcut": "scoped.command+option+shift+b", "icon": "Shortcut Command"},
     {"id": "32", "label": "Move item behind all items", "shortcut": "scoped.command+shift+b", "icon": "Shortcut Command"},
-    {"id": "33", "label": "Group multiple items to become one unit (after", "shortcut": "scoped.command+option+g", "icon": "Group Selection"},
+    {"id": "33", "label": "Group Selection", "shortcut": "scoped.command+option+g", "icon": "Group Selection"},
     {"id": "34", "label": "Ungroup selected group", "shortcut": "scoped.command+option+shift+g", "icon": "Group Selection"},
     {"id": "35", "label": "Lock items (after selecting them)", "shortcut": "scoped.command+l", "icon": "Shortcut Command"},
     {"id": "36", "label": "Unlock selection", "shortcut": "scoped.command+option+l", "icon": "Group Selection"},

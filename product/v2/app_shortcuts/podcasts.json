@@ -3,6 +3,7 @@
   "appId": "com.apple.podcasts",
   "label": "Podcasts",
   "catalog": false,
+  "defaultShortcutIds": ["7", "9", "8", "2", "12", "13", "10", "11"],
   "shortcuts": [
     {
       "id": "0",
@@ -34,8 +35,8 @@
     {"id": "5", "label": "Close Podcasts window", "shortcut": "scoped.command+w", "icon": "Application"},
     {"id": "6", "label": "Toggle full-screen view", "shortcut": "scoped.function+f", "icon": "Full Screen Exit"},
     {"id": "7", "label": "Start playing or pause selected episode", "shortcut": "scoped.space", "icon": "Pause"},
-    {"id": "8", "label": "Skip forward or backward", "shortcut": "scoped.command+shift+right", "icon": "Skip Previous"},
-    {"id": "9", "label": "Skip forward or backward", "shortcut": "scoped.command+shift+left", "icon": "Skip Previous"},
+    {"id": "8", "label": "Skip Forward", "shortcut": "scoped.command+shift+right", "icon": "Skip Previous"},
+    {"id": "9", "label": "Skip Back", "shortcut": "scoped.command+shift+left", "icon": "Skip Previous"},
     {"id": "10", "label": "Increase volume", "shortcut": "scoped.command+up", "icon": "Volume Up"},
     {"id": "11", "label": "Decrease volume", "shortcut": "scoped.command+down", "icon": "Volume Down"},
     {"id": "12", "label": "Increase playback speed", "shortcut": "scoped.command+option+up", "icon": "Speed Up"},

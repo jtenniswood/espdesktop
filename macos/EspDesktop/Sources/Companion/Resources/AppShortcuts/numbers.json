@@ -3,6 +3,7 @@
   "appId": "com.apple.iWork.Numbers",
   "label": "Numbers",
   "catalog": false,
+  "defaultShortcutIds": ["0", "237", "242", "18", "19", "3", "6", "12"],
   "shortcuts": [
     {
       "id": "0",

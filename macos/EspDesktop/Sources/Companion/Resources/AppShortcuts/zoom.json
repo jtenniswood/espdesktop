@@ -3,6 +3,7 @@
   "appId": "us.zoom.xos",
   "label": "Zoom",
   "catalog": false,
+  "defaultShortcutIds": ["84", "1", "14", "24", "21", "20", "0", "17"],
   "shortcuts": [
     {
       "id": "0",
@@ -36,7 +37,7 @@
     },
     {
       "id": "5",
-      "label": "Toggle Mic",
+      "label": "Toggle Zoom Phone Mic",
       "shortcut": "control+shift+m",
       "icon": "Microphone Off"
     },
@@ -128,6 +129,7 @@
     {"id": "80", "label": "Bold text", "shortcut": "scoped.command+b", "icon": "Bold"},
     {"id": "81", "label": "Italicize text", "shortcut": "scoped.command+i", "icon": "Italic"},
     {"id": "82", "label": "Strikethrough text", "shortcut": "scoped.command+shift+x", "icon": "Strikethrough"},
-    {"id": "83", "label": "Create bulleted list", "shortcut": "scoped.command+shift+8", "icon": "Bullet List"}
+    {"id": "83", "label": "Create bulleted list", "shortcut": "scoped.command+shift+8", "icon": "Bullet List"},
+    {"id": "84", "label": "Toggle Meeting Mic", "shortcut": "scoped.command+shift+a", "icon": "Microphone Off"}
   ]
 }

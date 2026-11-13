@@ -3,6 +3,7 @@
   "appId": "com.pixelmatorteam.pixelmator.x",
   "label": "Pixelmator Pro",
   "catalog": false,
+  "defaultShortcutIds": ["7", "23", "6", "40", "4", "27", "3", "12"],
   "shortcuts": [
     {
       "id": "0",

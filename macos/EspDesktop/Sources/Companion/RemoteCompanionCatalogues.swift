@@ -12,6 +12,7 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     var appId: String
     let label: String
     let catalog: Bool
+    var defaultShortcutIds: [String]?
     var shortcuts: [RemoteShortcutDefinition]
     var extendedShortcuts: [RemoteShortcutDefinition]?
     var additionalShortcuts: [RemoteShortcutDefinition]?
@@ -29,6 +30,7 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
         guard let moreShortcuts, !moreShortcuts.isEmpty else { return [] }
         var page = starter
         page.shortcuts = []
+        page.defaultShortcutIds = nil
         page.extendedShortcuts = nil
         page.additionalShortcuts = nil
         page.claudeShortcuts = nil
@@ -150,6 +152,11 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
         let more = app.moreShortcuts ?? []
         let starterShortcuts = app.shortcuts + extended + additional + claude + safari
         let allShortcuts = starterShortcuts + more
+        let allIDs = Set(allShortcuts.map(\.id))
+        if let defaults = app.defaultShortcutIds {
+            guard (1...8).contains(defaults.count), Set(defaults).count == defaults.count,
+                  defaults.allSatisfy(allIDs.contains) else { return false }
+        }
         let validSafari = safari.isEmpty ||
             (extended.isEmpty && CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
                 safari.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isSafariUnmodifiedShortcut($0.shortcut) })
@@ -175,7 +182,7 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
             (app.appId == CompanionKeyboardShortcut.booksBundleIdentifier && !app.catalog &&
                 extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isBooksExtendedShortcut($0.shortcut) })) &&
         validAdditional && validClaude && validSafari &&
-        Set(allShortcuts.map(\.id)).count == allShortcuts.count && encodedSize <= 12_000
+        allIDs.count == allShortcuts.count && encodedSize <= 12_000
     }
 
     private static func validRegularShortcut(_ shortcut: RemoteShortcutDefinition) -> Bool {

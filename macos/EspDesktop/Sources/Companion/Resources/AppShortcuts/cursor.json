@@ -3,6 +3,7 @@
   "appId": "com.todesktop.230313mzl4w4u92",
   "label": "Cursor",
   "catalog": false,
+  "defaultShortcutIds": ["25", "1", "0", "8", "2", "5", "10", "49"],
   "shortcuts": [
     {
       "id": "0",

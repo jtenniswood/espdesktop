@@ -3,6 +3,7 @@
   "appId": "com.apple.Photos",
   "label": "Photos",
   "catalog": false,
+  "defaultShortcutIds": ["1", "11", "19", "15", "20", "2", "17", "38"],
   "shortcuts": [
     {
       "id": "0",
@@ -51,7 +52,7 @@
     {"id": "17", "label": "Rotate photo", "shortcut": "scoped.command+option+r", "icon": "Rotate Left"},
     {"id": "18", "label": "Rotate photo", "shortcut": "scoped.command+r", "icon": "Rotate Left"},
     {"id": "19", "label": "Automatically enhance photo", "shortcut": "scoped.command+e", "icon": "Image"},
-    {"id": "20", "label": "Show unadjusted photo without additional", "shortcut": "scoped.control+m", "icon": "Rotate Left"},
+    {"id": "20", "label": "Show Original", "shortcut": "scoped.control+m", "icon": "Rotate Left"},
     {"id": "21", "label": "Delete selected photos", "shortcut": "scoped.delete", "icon": "Delete"},
     {"id": "22", "label": "Delete selected photos without confirming", "shortcut": "scoped.command+delete", "icon": "Delete"},
     {"id": "23", "label": "Play or pause Live Photo or video", "shortcut": "scoped.option+space", "icon": "Play Pause"},

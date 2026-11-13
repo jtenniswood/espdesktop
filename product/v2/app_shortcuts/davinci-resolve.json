@@ -3,6 +3,7 @@
   "appId": "com.blackmagic-design.DaVinciResolve",
   "label": "DaVinci Resolve",
   "catalog": false,
+  "defaultShortcutIds": ["27", "43", "31", "32", "39", "19", "21", "23"],
   "shortcuts": [
     {
       "id": "0",
@@ -52,7 +53,7 @@
     {"id": "28", "label": "Play in reverse", "shortcut": "scoped.j", "icon": "Play"},
     {"id": "29", "label": "Stop playback", "shortcut": "scoped.k", "icon": "Stop"},
     {"id": "30", "label": "Play forward", "shortcut": "scoped.l", "icon": "Play"},
-    {"id": "31", "label": "Mark", "shortcut": "scoped.i", "icon": "Shortcut Command"},
+    {"id": "31", "label": "Mark In", "shortcut": "scoped.i", "icon": "Shortcut Command"},
     {"id": "32", "label": "Mark Out", "shortcut": "scoped.o", "icon": "Shortcut Command"},
     {"id": "33", "label": "Clear In and Out marks", "shortcut": "scoped.option+x", "icon": "Delete"},
     {"id": "34", "label": "Step one frame backward or forward", "shortcut": "scoped.left", "icon": "Skip Previous"},

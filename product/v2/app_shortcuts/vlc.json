@@ -3,6 +3,7 @@
   "appId": "org.videolan.vlc",
   "label": "VLC",
   "catalog": false,
+  "defaultShortcutIds": ["2", "11", "12", "0", "38", "24", "25", "36"],
   "shortcuts": [
     {
       "id": "0",

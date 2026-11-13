@@ -3,6 +3,7 @@
   "appId": "company.thebrowser.Browser",
   "label": "Arc",
   "catalog": false,
+  "defaultShortcutIds": ["0", "2", "5", "8", "9", "23", "24", "3"],
   "shortcuts": [
     {
       "id": "0",

@@ -3,6 +3,7 @@
   "appId": "ru.keepcoder.Telegram",
   "label": "Telegram",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "2", "3", "4", "11"],
   "shortcuts": [
     {
       "id": "0",
@@ -42,7 +43,7 @@
     {"id": "8", "label": "Telegram for macOS — Go back", "shortcut": "scoped.left", "icon": "Arrow Left"},
     {"id": "9", "label": "Telegram", "shortcut": "scoped.command+f", "icon": "Search"},
     {"id": "10", "label": "Telegram", "shortcut": "scoped.escape", "icon": "Close"},
-    {"id": "11", "label": "Telegram for macOS — Open Saved Messages", "shortcut": "scoped.command+0", "icon": "Open File"},
+    {"id": "11", "label": "Saved Messages", "shortcut": "scoped.command+0", "icon": "Open File"},
     {"id": "12", "label": "Telegram for macOS — Jump to folder 1", "shortcut": "scoped.command+1", "icon": "Folder Open Outline"},
     {"id": "13", "label": "Telegram for macOS — Jump to folder 2", "shortcut": "scoped.command+2", "icon": "Folder Open Outline"},
     {"id": "14", "label": "Telegram for macOS — Jump to folder 3", "shortcut": "scoped.command+3", "icon": "Folder Open Outline"},

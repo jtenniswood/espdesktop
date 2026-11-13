@@ -3,6 +3,7 @@
   "appId": "com.microsoft.Word",
   "label": "Microsoft Word",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "14", "94", "163", "21", "2", "184"],
   "shortcuts": [
     {
       "id": "0",

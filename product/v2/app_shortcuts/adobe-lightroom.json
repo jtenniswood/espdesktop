@@ -3,6 +3,7 @@
   "appId": "com.adobe.LightroomCC",
   "label": "Adobe Lightroom",
   "catalog": false,
+  "defaultShortcutIds": ["41", "10", "17", "29", "60", "55", "14", "33"],
   "shortcuts": [
     {
       "id": "0",

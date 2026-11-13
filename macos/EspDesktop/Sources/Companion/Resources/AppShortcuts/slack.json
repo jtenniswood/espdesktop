@@ -3,6 +3,7 @@
   "appId": "com.tinyspeck.slackmacgap",
   "label": "Slack",
   "catalog": false,
+  "defaultShortcutIds": ["9", "1", "0", "4", "23", "36", "5", "2"],
   "shortcuts": [
     {
       "id": "0",
@@ -92,7 +93,7 @@
     {"id": "33", "label": "Open Home view", "shortcut": "scoped.control+1", "icon": "Application"},
     {"id": "34", "label": "Open Activity view**", "shortcut": "scoped.command+shift+m", "icon": "Application"},
     {"id": "35", "label": "Open More view", "shortcut": "scoped.control+0", "icon": "Application"},
-    {"id": "36", "label": "Open Threads view**", "shortcut": "scoped.command+shift+t", "icon": "Application"},
+    {"id": "36", "label": "Open Threads", "shortcut": "scoped.command+shift+t", "icon": "Application"},
     {"id": "37", "label": "Browse channels**", "shortcut": "scoped.command+shift+l", "icon": "Shortcut Command"},
     {"id": "38", "label": "Open conversation details", "shortcut": "scoped.command+shift+i", "icon": "Chat"},
     {"id": "39", "label": "Move focus to next section", "shortcut": "scoped.f6", "icon": "Arrow Right"},

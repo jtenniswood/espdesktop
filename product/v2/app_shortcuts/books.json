@@ -3,6 +3,7 @@
   "appId": "com.apple.iBooksX",
   "label": "Books",
   "catalog": false,
+  "defaultShortcutIds": ["29", "30", "2", "3", "1", "13", "14", "9"],
   "shortcuts": [
     {
       "id": "2",

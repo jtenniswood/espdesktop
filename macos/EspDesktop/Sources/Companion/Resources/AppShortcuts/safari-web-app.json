@@ -3,6 +3,7 @@
   "appId": "com.apple.Safari.WebApp",
   "label": "Safari Web App",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "2", "6", "8", "10", "11", "14"],
   "shortcuts": [
     {
       "id": "0",

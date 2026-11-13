@@ -3,6 +3,7 @@
   "appId": "io.github.jtenniswood.athena",
   "label": "Athena",
   "catalog": false,
+  "defaultShortcutIds": ["100", "101", "102", "104", "106", "103", "105", "109"],
   "shortcuts": [
     {
       "id": "100",

@@ -3,6 +3,7 @@
   "appId": "com.todoist.mac.Todoist",
   "label": "Todoist",
   "catalog": false,
+  "defaultShortcutIds": ["1", "0", "19", "20", "5", "2", "11", "17"],
   "shortcuts": [
     {
       "id": "0",

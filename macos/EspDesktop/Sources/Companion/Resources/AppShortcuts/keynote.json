@@ -3,6 +3,7 @@
   "appId": "com.apple.iWork.Keynote",
   "label": "Keynote",
   "catalog": false,
+  "defaultShortcutIds": ["297", "298", "290", "307", "278", "282", "27", "6"],
   "shortcuts": [
     {
       "id": "0",

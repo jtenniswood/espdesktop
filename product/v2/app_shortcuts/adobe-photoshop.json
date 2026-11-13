@@ -3,6 +3,7 @@
   "appId": "com.adobe.Photoshop",
   "label": "Adobe Photoshop",
   "catalog": false,
+  "defaultShortcutIds": ["11", "3", "4", "18", "0", "15", "5", "2"],
   "shortcuts": [
     {
       "id": "0",

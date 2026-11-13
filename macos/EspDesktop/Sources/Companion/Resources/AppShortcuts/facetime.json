@@ -3,6 +3,7 @@
   "appId": "com.apple.FaceTime",
   "label": "FaceTime",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "2"],
   "shortcuts": [
     {
       "id": "0",

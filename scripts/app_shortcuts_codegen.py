@@ -60,9 +60,10 @@ def validate_app(data, icons):
 
     require(isinstance(data, dict), 'expected an app object')
     fields = {'version', 'appId', 'label', 'catalog', 'shortcuts'}
-    optional = {'extendedShortcuts', 'additionalShortcuts', 'claudeShortcuts', 'safariShortcuts', 'moreShortcuts'}
+    optional = {'extendedShortcuts', 'additionalShortcuts', 'claudeShortcuts', 'safariShortcuts',
+                'moreShortcuts', 'defaultShortcutIds'}
     require(set(data) - optional == fields,
-            'expected version, appId, label, catalog, shortcuts and supported optional shortcut lists')
+            'expected version, appId, label, catalog, shortcuts and supported optional fields')
     require(type(data['version']) is int and data['version'] == 1, 'version must be 1')
     require(text(data['appId'], 96) and re.fullmatch(r'[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+', data['appId']), 'appId must be a Mac bundle identifier (maximum 96 bytes)')
     require(text(data['label'], 48), 'label must contain 1–48 bytes of text')
@@ -112,6 +113,12 @@ def validate_app(data, icons):
             valid = shortcut_valid(shortcut) or scoped_shortcut_valid(shortcut)
         require(valid, f'{ident}: invalid keyboard shortcut: {shortcut!r}')
         require(isinstance(item['icon'], str) and item['icon'] in icons and text(item['icon'], 48), f'{ident}: icon must be a name from product/v2/icons.json')
+    if 'defaultShortcutIds' in data:
+        defaults = data['defaultShortcutIds']
+        require(isinstance(defaults, list) and 1 <= len(defaults) <= 8 and
+                all(isinstance(ident, str) and ident in ids for ident in defaults) and
+                len(set(defaults)) == len(defaults),
+                'defaultShortcutIds must contain 1–8 distinct IDs from this template')
     base = {key: value for key, value in data.items() if key != 'moreShortcuts'}
     require(len(json.dumps(base, ensure_ascii=False, separators=(',', ':')).encode('utf-8')) <= 12000,
             'compact starter definition exceeds 12000 bytes')
@@ -214,6 +221,7 @@ export interface AppShortcutApplication {
     readonly appId: string;
     readonly label: string;
     readonly catalog: boolean;
+    readonly defaultShortcutIds?: readonly string[];
     readonly shortcuts: readonly AppShortcutDefinition[];
     readonly extendedShortcuts?: readonly AppShortcutDefinition[];
     readonly additionalShortcuts?: readonly AppShortcutDefinition[];

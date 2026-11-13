@@ -3,6 +3,7 @@
   "appId": "net.whatsapp.WhatsApp",
   "label": "WhatsApp",
   "catalog": false,
+  "defaultShortcutIds": ["4", "9", "7", "0", "1", "6", "3", "2"],
   "shortcuts": [
     {
       "id": "0",

@@ -3,6 +3,7 @@
   "appId": "com.seriflabs.affinitydesigner2",
   "label": "Affinity Designer",
   "catalog": false,
+  "defaultShortcutIds": ["21", "23", "8", "58", "15", "67", "17", "12"],
   "shortcuts": [
     {
       "id": "0",

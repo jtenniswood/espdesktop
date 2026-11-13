@@ -14,7 +14,7 @@ EspDesktop builds also bundle a starter copy for offline use. `python3 scripts/b
      "/Applications/Your App.app/Contents/Info.plist"
    ```
 
-3. Add shortcuts in the order you want them shown. Use the field rules below and keep existing shortcut IDs stable.
+3. Add shortcuts using the field rules below and keep existing shortcut IDs stable. Set the order of the preselected shortcuts with `defaultShortcutIds`.
 4. Add the new template filename to `manifest.json` and increment `catalogueVersion` whenever a template or the manifest changes. Keep `formatVersion` at `1` unless the manifest structure changes. Raise `minimumCompanionVersion` only when the new data needs a newer Companion reader.
 5. Run the validation and generation commands below, then submit the template, manifest, and generated outputs together in a PR.
 
@@ -28,6 +28,7 @@ The manifest must list every top-level template JSON file in this folder exactly
   "appId": "org.example.Editor",
   "label": "Example Editor",
   "catalog": true,
+  "defaultShortcutIds": ["0"],
   "shortcuts": [
     { "id": "0", "label": "New Document", "shortcut": "command+n", "icon": "Plus" }
   ]
@@ -38,6 +39,7 @@ The manifest must list every top-level template JSON file in this folder exactly
 - `label`: app name shown in Companion; up to 48 bytes.
 - `catalog`: retained for older editors, where `true` enables the standalone **Shortcut Catalog** picker. The **Application** tab in current editors lists all available templates.
 - `shortcuts`: 1–64 items. IDs are permanent numeric strings from `"0"` to `"999"`; keep an ID when renaming or reordering a shortcut, and never reuse a removed ID.
+- `defaultShortcutIds` lists 1–8 distinct shortcut IDs from any list in the template, ordered by priority. Put the most useful actions first so they fit on smaller displays. Templates without this field use the starter list.
 - Use a short action label (up to 48 UTF-8 bytes) and put the key combination in the shortcut field.
 - Each shortcut's `icon` must be a name from `product/v2/icons.json`. Choose a [Material Design Icon](https://pictogrammers.com/library/mdi/) that represents the action.
 
@@ -53,12 +55,12 @@ The ChatGPT Desktop subpage uses the `com.openai.codex` bundle ID and supports u
 
 Athena uses a template identifier in the catalogue. Mac Companion matches the installed Safari web app by its web manifest name and sends the definition under the installation’s bundle ID. Athena shortcut IDs start at 100 so saved generic Safari web app presets keep their IDs.
 
-Use `moreShortcuts` for additional presets. These are available in the shortcut picker and when editing an app subpage. They are not preselected on new subpages. Finder presets are offered only in the standalone picker. The expanded list shares permanent IDs with the starter and other lists and allows up to 900 entries per app.
+Use `moreShortcuts` for additional presets. These are available in the shortcut picker and when editing an app subpage. Include their IDs in `defaultShortcutIds` to preselect them on new subpages. Finder presets are offered only in the standalone picker. The expanded list shares permanent IDs with the starter and other lists and allows up to 900 entries per app.
 
 - Use `scoped.` for app-specific commands, for example `scoped.space`, `scoped.shift+left` or `scoped.command+k~command+s`. Companion checks that the approved app is frontmost before sending each key. The separator `~` denotes a sequence of up to three strokes. Scoped keys also support `function` and distinct keypad keys, such as `keypad0` and `keypadenter`.
 - Use the regular shortcut syntax for documented global hotkeys. The display sends those to macOS regardless of the frontmost app.
 - Add a preset for each documented action and useful key alternative. Context-dependent actions can share the same keys. Avoid adding gestures, held keys, user-assigned shortcuts, or commands without a verified Mac binding.
-- Preserve the starter list, especially existing IDs and the default order. Older Companion installations ignore the expanded field. New builds carry the additional choices in bounded pages for approved apps, with a bundled offline copy in the editor.
+- Preserve the starter list order and existing IDs for older Companion and display builds. Older Companion installations ignore the expanded field. New builds carry the additional choices in bounded pages for approved apps, with a bundled offline copy in the editor.
 
 The templates were compared with the original macOS shortcut research and supplemented with [first-party references](research-sources.md). Spotlight is system-wide. Finder shortcuts are available in the standalone picker alongside its dedicated folder page. Terminal-only OpenCode and browser-only Onshape are outside these native templates.
 

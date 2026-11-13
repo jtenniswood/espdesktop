@@ -3,6 +3,7 @@
   "appId": "org.audacityteam.audacity",
   "label": "Audacity",
   "catalog": false,
+  "defaultShortcutIds": ["47", "51", "21", "0", "9", "61", "68", "5"],
   "shortcuts": [
     {
       "id": "0",

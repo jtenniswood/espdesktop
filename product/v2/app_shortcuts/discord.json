@@ -3,6 +3,7 @@
   "appId": "com.hnc.Discord",
   "label": "Discord",
   "catalog": false,
+  "defaultShortcutIds": ["3", "1", "2", "4", "5", "32", "31", "10"],
   "shortcuts": [
     {
       "id": "0",

@@ -3,6 +3,7 @@
   "appId": "org.mozilla.firefox",
   "label": "Firefox",
   "catalog": false,
+  "defaultShortcutIds": ["8", "9", "29", "1", "6", "32", "36", "31"],
   "shortcuts": [
     {
       "id": "0",

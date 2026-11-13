@@ -3,6 +3,7 @@
   "appId": "com.figma.Desktop",
   "label": "Figma",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "3", "2", "53", "17", "5", "34"],
   "shortcuts": [
     {
       "id": "0",

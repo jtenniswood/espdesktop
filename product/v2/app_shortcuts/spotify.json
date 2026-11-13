@@ -3,6 +3,7 @@
   "appId": "com.spotify.client",
   "label": "Spotify",
   "catalog": false,
+  "defaultShortcutIds": ["10", "25", "26", "22", "0", "24", "7", "28"],
   "shortcuts": [
     {
       "id": "0",

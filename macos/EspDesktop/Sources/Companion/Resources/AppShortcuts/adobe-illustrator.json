@@ -3,6 +3,7 @@
   "appId": "com.adobe.illustrator",
   "label": "Adobe Illustrator",
   "catalog": false,
+  "defaultShortcutIds": ["31", "32", "35", "55", "0", "90", "30", "27"],
   "shortcuts": [
     {
       "id": "0",
@@ -78,7 +79,7 @@
     {"id": "24", "label": "Browse in Adobe Bridge", "shortcut": "scoped.command+option+o", "icon": "Shortcut Command"},
     {"id": "25", "label": "Close document window", "shortcut": "scoped.command+w", "icon": "Application"},
     {"id": "26", "label": "Save document as script files", "shortcut": "scoped.command+f12", "icon": "Save"},
-    {"id": "27", "label": "Open Export for screens dialog box", "shortcut": "scoped.command+option+e", "icon": "Export"},
+    {"id": "27", "label": "Export for Screens", "shortcut": "scoped.command+option+e", "icon": "Export"},
     {"id": "28", "label": "Package document", "shortcut": "scoped.command+option+shift+p", "icon": "Open File"},
     {"id": "29", "label": "Print", "shortcut": "scoped.command+p", "icon": "Printer"},
     {"id": "30", "label": "Artboard tool", "shortcut": "scoped.shift+o", "icon": "Shortcut Command"},

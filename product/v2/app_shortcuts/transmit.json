@@ -3,6 +3,7 @@
   "appId": "com.panic.Transmit",
   "label": "Transmit",
   "catalog": false,
+  "defaultShortcutIds": ["54", "0", "1", "11", "2", "3", "19", "10"],
   "shortcuts": [
     {
       "id": "0",

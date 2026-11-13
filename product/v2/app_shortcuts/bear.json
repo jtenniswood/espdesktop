@@ -3,6 +3,7 @@
   "appId": "net.shinyfrog.bear",
   "label": "Bear",
   "catalog": false,
+  "defaultShortcutIds": ["8", "9", "4", "5", "7", "0", "19", "53"],
   "shortcuts": [
     {
       "id": "0",

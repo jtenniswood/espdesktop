@@ -85,6 +85,8 @@ test("Athena presets use the installed Safari web app ID and preserve existing t
   assert.equal(api.normalizeCompanionAppShortcutOptions(savedTile), savedTile.options);
 
   api.replaceCompanionDefinitions([safari, { ...athena, appId }]);
+  assert.deepEqual(api.companionShortcutDefaultTabs(appId), athena.defaultShortcutIds);
+  assert.deepEqual(api.companionShortcutDefaultTabs(otherAppId), safari.defaultShortcutIds);
   assert.equal(api.companionShortcutFolderAppLabel(appId), "Athena");
   assert.equal(api.companionShortcutFolderAppLabel(otherAppId), "Safari Web App");
   assert.deepEqual(api.companionShortcutTabs(card), [newChat.id]);
@@ -98,6 +100,10 @@ test("Athena presets use the installed Safari web app ID and preserve existing t
   assert.deepEqual(api.companionShortcutTabsFromSubpage(appId, page), [copyLink.id, newChat.id]);
   assert.equal(api.companionShortcutPresetCards(appId).length, athena.shortcuts.length + athena.moreShortcuts.length + 17 + safari.moreShortcuts.length);
   assert.equal(api.companionShortcutPresetCards(otherAppId).length, 17 + safari.moreShortcuts.length);
+
+  const { defaultShortcutIds, moreShortcuts, ...legacyAthena } = athena;
+  api.replaceCompanionDefinitions([safari, { ...legacyAthena, appId }]);
+  assert.deepEqual(api.companionShortcutDefaultTabs(appId), defaultShortcutIds);
 });
 
 test("ChatGPT Desktop uses the installed app identifier and keeps its numbered shortcuts distinct", () => {
@@ -231,7 +237,8 @@ test("every packed offline shortcut preserves the authored ID, keys, icon and la
   const directory = path.resolve(__dirname, "../../../product/v2/app_shortcuts");
   const { bundledExpandedShortcuts } = loadTypeScriptModule("src/webserver/application/companion_shortcut_data.ts");
   const { companionShortcutActionIdValid, companionShortcutPresetCards, companionShortcutDefaultTabs,
-    createCompanionShortcutSubpage, companionShortcutTabsFromSubpage, replaceCompanionDefinitions } =
+    createCompanionShortcutSubpage, companionShortcutTabsForCapacity, companionShortcutTabsFromSubpage,
+    replaceCompanionDefinitions } =
     loadTypeScriptModule("src/webserver/application/companion_shortcut_folder.ts");
   const canonical = key => key.split("~").map(stroke => {
     const parts = stroke.split("+");
@@ -245,14 +252,32 @@ test("every packed offline shortcut preserves the authored ID, keys, icon and la
     assert.deepEqual(decoded.map(item => ({ ...item, shortcut: canonical(item.shortcut) })),
       expected.map(item => ({ ...item, shortcut: canonical(item.shortcut) })), filename);
     assert(decoded.every(item => companionShortcutActionIdValid("shortcut." + item.shortcut)), filename);
+    const defaults = companionShortcutDefaultTabs(app.appId);
+    if (app.appId === "com.apple.finder") {
+      assert.deepEqual(defaults, [], filename);
+    } else {
+      assert(app.defaultShortcutIds?.length <= 8, filename);
+      assert.deepEqual(defaults, app.defaultShortcutIds, filename);
+      assert.equal(createCompanionShortcutSubpage(app.appId).buttons.length, defaults.length, filename);
+    }
   }
 
   const finalCut = require("../../../product/v2/app_shortcuts/final-cut-pro.json");
-  const { moreShortcuts, ...starter } = finalCut;
+  const { defaultShortcutIds, moreShortcuts, ...starter } = finalCut;
   replaceCompanionDefinitions([starter]);
   const last = moreShortcuts.at(-1);
   assert(companionShortcutPresetCards(finalCut.appId).length > 300, "a legacy Companion must not hide bundled choices");
-  assert(!companionShortcutDefaultTabs(finalCut.appId).includes(last.id), "expanded choices are opt-in");
+  const defaults = companionShortcutDefaultTabs(finalCut.appId);
+  assert.deepEqual(defaults, defaultShortcutIds);
+  const compactPage = createCompanionShortcutSubpage(finalCut.appId, companionShortcutTabsForCapacity(defaults, 4));
+  assert.deepEqual(compactPage.order, ["B", "1", "2", "3"]);
+  assert.deepEqual(compactPage.buttons.map(card => card.label), ["Play/Pause", "Blade at Playhead", "Add marker"]);
+  assert(!defaults.includes(last.id), "extra presets remain available in the picker");
+  const legacyPage = createCompanionShortcutSubpage(finalCut.appId, ["0"]);
+  legacyPage.buttons[0].options = "";
+  assert.deepEqual(companionShortcutTabsFromSubpage(finalCut.appId, legacyPage), ["0"]);
+  replaceCompanionDefinitions([{ ...starter, defaultShortcutIds: [last.id, "0", "999"] }]);
+  assert.deepEqual(companionShortcutDefaultTabs(finalCut.appId), [last.id, "0"]);
   const page = createCompanionShortcutSubpage(finalCut.appId, [last.id]);
   assert.deepEqual(companionShortcutTabsFromSubpage(finalCut.appId, page), [last.id]);
   assert.equal(page.buttons[0].entity, "shortcut." + last.shortcut);

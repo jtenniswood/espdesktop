@@ -3,6 +3,7 @@
   "appId": "com.nousresearch.hermes",
   "label": "Hermes",
   "catalog": false,
+  "defaultShortcutIds": ["1", "2", "0", "6", "7", "42", "26", "8"],
   "shortcuts": [
     {
       "id": "0",

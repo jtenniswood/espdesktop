@@ -3,6 +3,7 @@
   "appId": "com.googlecode.iterm2",
   "label": "iTerm2",
   "catalog": false,
+  "defaultShortcutIds": ["32", "0", "1", "2", "3", "33", "4", "6"],
   "shortcuts": [
     {
       "id": "0",

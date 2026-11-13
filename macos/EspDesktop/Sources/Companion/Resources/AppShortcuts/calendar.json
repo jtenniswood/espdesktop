@@ -3,6 +3,7 @@
   "appId": "com.apple.iCal",
   "label": "Calendar",
   "catalog": false,
+  "defaultShortcutIds": ["6", "0", "9", "8", "7", "1", "3", "10"],
   "shortcuts": [
     {
       "id": "0",

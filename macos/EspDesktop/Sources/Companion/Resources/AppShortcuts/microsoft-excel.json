@@ -3,6 +3,7 @@
   "appId": "com.microsoft.Excel",
   "label": "Microsoft Excel",
   "catalog": false,
+  "defaultShortcutIds": ["5", "57", "149", "40", "2", "26", "44", "67"],
   "shortcuts": [
     {
       "id": "0",

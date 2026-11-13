@@ -3,6 +3,7 @@
   "appId": "com.seriflabs.affinitypublisher2",
   "label": "Affinity Publisher",
   "catalog": false,
+  "defaultShortcutIds": ["10", "75", "3", "19", "59", "33", "69", "11"],
   "shortcuts": [
     {
       "id": "0",
