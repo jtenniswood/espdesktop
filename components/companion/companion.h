@@ -52,14 +52,12 @@ class CompanionService final : public Component {
   void loop() override;
   void dump_config() override;
 
-  // Called by the panel web setup page. It rotates the eight-letter setup code
-  // and invalidates any unfinished attempt. The resulting trust is persistent.
+  // The panel and its web setup page share an active eight-letter code.
   void begin_pairing();
   std::string pairing_code() const;
   bool pairing_active() const;
-  uint32_t pairing_expires_in_seconds() const;
-  bool paired() const;
-  void revoke_pairing();
+  bool revoke_pairing();
+  bool reset_and_begin_pairing();
   void request_app_icon(const std::string &application_id);
   void refresh_app_icons_after_cache_clear();
 
@@ -77,9 +75,9 @@ class CompanionService final : public Component {
   void handle_legacy_message_(int socket_fd, const char *message);
   bool start_server_();
   bool ensure_identity_();
-  AuthenticationResult authenticate_(uint32_t sequence, const std::string &nonce,
-                                     const std::string &signature, uint32_t &last_sequence,
-                                     bool record_sequence = true);
+  AuthenticationResult authenticate_locked_(uint32_t sequence, const std::string &nonce,
+                                            const std::string &signature, uint32_t &last_sequence,
+                                            bool record_sequence = true);
   void defer_session_(std::function<void()> callback, const char *label = "update");
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
@@ -100,6 +98,8 @@ class CompanionService final : public Component {
   bool invoke_url_(const std::string &encoded_url, const std::string &request_id, bool new_window);
   bool invoke_value_(const std::string &control_id, int value,
                      const std::string &request_id);
+  void begin_pairing_locked_();
+  bool revoke_pairing_locked_();
   bool pairing_active_locked_(uint32_t now) const;
 
   ESPPreferenceObject preferences_;

@@ -1339,8 +1339,11 @@ class CompanionPairingResetHandler : public esphome::web_server_idf::AsyncWebHan
       httpd_resp_send(raw_request, "Companion pairing is unavailable", HTTPD_RESP_USE_STRLEN);
       return;
     }
-    revoke();
     httpd_req_t *raw_request = *request;
+    if (!revoke()) {
+      httpd_resp_send_err(raw_request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not reset Companion pairing");
+      return;
+    }
     httpd_resp_set_status(raw_request, "200 OK");
     httpd_resp_set_type(raw_request, "application/json");
     httpd_resp_set_hdr(raw_request, "Cache-Control", "no-store");

@@ -160,7 +160,8 @@ class CompanionRuntimeService {
   CompanionValueSender value_sender;
   CompanionPairingProvider pairing_provider;
   std::function<void()> begin_pairing;
-  std::function<void()> revoke_pairing;
+  std::function<bool()> revoke_pairing;
+  std::function<bool()> reset_and_begin_pairing;
   std::function<bool()> clear_app_icon_cache;
   void (*pairing_changed_handler)() = nullptr;
   CompanionConnectionChangedHandler connection_changed_handler;
@@ -176,6 +177,11 @@ class CompanionRuntimeService {
   std::vector<CompanionAction> actions() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return actions_;
+  }
+
+  uint32_t system_metrics_generation() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return system_metrics_.generation;
   }
 
   CompanionSystemMetricsSnapshot system_metrics() const {
