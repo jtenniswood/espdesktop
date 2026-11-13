@@ -184,15 +184,23 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
   lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_style_base_dir(ui.code_row, LV_BASE_DIR_LTR, LV_PART_MAIN);
   const auto letter_count = static_cast<lv_coord_t>(ui.letters.size());
-  const lv_coord_t tile_width = std::min<lv_coord_t>(control_modal_scaled_px(50, layout.short_side),
+  const lv_coord_t tile_width = std::min<lv_coord_t>(control_modal_scaled_px(72, layout.short_side),
       (content_width - gap * (letter_count - 1)) / letter_count);
-  const lv_coord_t tile_height = control_modal_scaled_px(58, layout.short_side);
-  // Some narrow displays use a larger heading font. Leave room for the
-  // widest pairing letter and the outline on both sides of its box.
-  const lv_font_t *code_font = title_font;
-  if (!code_font || lv_font_get_glyph_width(code_font, 'W', 0) + 4 > tile_width ||
-      lv_font_get_line_height(code_font) + 4 > tile_height) {
-    code_font = text_font;
+  const lv_coord_t tile_height = control_modal_scaled_px(80, layout.short_side);
+  // Allow room for the outline and the display's text width compensation.
+  const int text_scale = width_compensation_scale(text_width_compensation_percent());
+  const bool scale_height = width_compensation_vertical_axis();
+  const auto font_fits = [&](const lv_font_t *font) {
+    if (!font) return false;
+    const auto width = lv_font_get_glyph_width(font, 'W', 0);
+    const auto height = lv_font_get_line_height(font);
+    return width > 0 &&
+        width * (scale_height ? 256 : text_scale) <= (tile_width - 4) * 256 &&
+        height * (scale_height ? text_scale : 256) <= (tile_height - 4) * 256;
+  };
+  const lv_font_t *code_font = display_active_pairing_code_font();
+  if (!font_fits(code_font)) {
+    code_font = font_fits(title_font) ? title_font : text_font;
   }
   for (size_t i = 0; i < ui.letters.size(); ++i) {
     auto *tile = lv_obj_create(ui.code_row);
