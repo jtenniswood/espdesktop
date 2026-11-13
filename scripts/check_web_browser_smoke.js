@@ -4645,6 +4645,15 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     for (const viewport of [testCase.viewport, { width: 360, height: 640 }]) {
       await page.setViewportSize(viewport);
       await body.evaluate(el => { el.scrollTop = 0; });
+      assert(await body.evaluate(el => {
+        const modal = el.closest(".sp-settings-modal");
+        const bounds = el.getBoundingClientRect();
+        const style = getComputedStyle(modal);
+        const edges = modal.getBoundingClientRect();
+        return getComputedStyle(el).borderRadius === "0px" &&
+          Math.abs(bounds.left - edges.left - parseFloat(style.borderLeftWidth)) < 1 &&
+          Math.abs(edges.right - bounds.right - parseFloat(style.borderRightWidth)) < 1;
+      }), "the square scrolling area extends to the modal's inside edges");
       const beforeScroll = await footer.boundingBox();
       await body.evaluate(el => { el.scrollTop = 400; });
       assert(await body.evaluate(el => el.scrollTop) > 0, "the settings body scrolls");

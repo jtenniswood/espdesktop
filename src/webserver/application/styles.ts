@@ -288,8 +288,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         "overflow:hidden;box-shadow:var(--shadow-3);margin:40px}" +
         ".sp-settings-modal.sp-card-type-picker-open{max-width:720px}" +
         ".sp-settings-overlay>.sp-settings-modal{display:flex}" +
-        ".sp-settings-modal>.sp-config{display:flex;flex-direction:column;flex:1;min-width:0}" +
-        ".sp-settings-modal>.sp-config>.sp-panel{flex:1 1 auto;overflow:auto}" +
+        ".sp-settings-modal>.sp-config{display:flex;flex-direction:column;flex:1;min-width:0;padding-inline:0}" +
+        ".sp-settings-modal>.sp-config>.sp-panel{flex:1 1 auto;overflow:auto;border-radius:0;padding-inline:var(--gap)}" +
         ".sp-settings-modal .sp-btn-row--save{flex:none}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
         "height:100dvh;margin:0;border-radius:0;border:none}}" +
@@ -352,6 +352,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal .sp-section-title{font-size:1.05rem;color:var(--text);" +
         "margin:0 0 20px;letter-spacing:-.01em}" +
         ".sp-settings-modal .sp-panel{background:none;border:none;padding:0;margin:0}" +
+        ".sp-settings-modal>.sp-config>:is(.sp-section-title,.sp-btn-row--save){margin-inline:var(--gap)}" +
         ".sp-card-type-picker-field{margin-bottom:0}" +
         ".sp-card-type-tabs{display:flex;gap:6px;margin:0 0 14px;padding-bottom:2px;border-bottom:1px solid var(--border)}" +
         ".sp-card-type-tab{border:0;border-bottom:2px solid transparent;background:none;color:var(--text2);padding:8px 10px;font:inherit;font-size:.84rem;cursor:pointer}" +
