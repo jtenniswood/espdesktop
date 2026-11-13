@@ -2199,12 +2199,12 @@ async function assertConnectorsManagement(page, testCase) {
     `${testCase.name}: retired Home Assistant connector is absent`);
   if (testCase.companionSupported) {
     assert(
-      await page.locator("#sp-connectors").getByText("Connect your Mac").count() > 0,
+      await page.locator("#sp-connectors").getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
       `${testCase.name}: Mac Companion remains available`,
     );
   } else {
     assert(
-      await page.locator("#sp-connectors .sp-companion-heading").count() === 0,
+      await page.locator("#sp-connectors").getByRole("heading", { name: "Mac Companion", exact: true }).count() === 0,
       `${testCase.name}: unsupported profiles hide Mac Companion setup`,
     );
   }
@@ -5585,7 +5585,7 @@ async function assertHomeAssistantConnectorLayout(browser) {
       );
       if (testCase.companionSupported) {
         assert(
-          await connectors.getByText("Connect your Mac").count() > 0,
+          await connectors.getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
           `${testCase.name}: Mac Companion setup remains available`,
         );
       } else {
@@ -5598,14 +5598,28 @@ async function assertHomeAssistantConnectorLayout(browser) {
         await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&${query}`, { waitUntil: "domcontentloaded" });
         await page.waitForSelector("#sp-device.active #sp-connectors");
         if (testCase.companionSupported) {
-          assert(await page.locator("#sp-connectors").getByText("Connect your Mac").isVisible(),
-            `${testCase.name}: pairing link opens Mac Companion in System`);
+          const card = connectors.locator(".card").filter({ hasText: "Mac Companion" });
+          if (query === "tab=connectors") await card.getByRole("heading", { name: "Mac Companion", exact: true }).click();
+          await connectors.getByText("Choose this display in the Mac app and enter the code.", { exact: true }).waitFor();
         }
       }
       if (testCase.companionSupported) {
         const companion = connectors.locator(".card").filter({ hasText: "Mac Companion" });
-        const status = companion.getByRole("status").filter({ hasText: "Ready to pair" });
-        await status.waitFor({ state: "visible" });
+        const code = companion.locator(".sp-companion-code");
+        await code.waitFor({ state: "visible" });
+        assert.deepEqual(await code.locator(".sp-companion-code-letter").allTextContents(), [..."ABCDEFGH"]);
+        assert.equal(await code.textContent(), "ABCD-EFGH", "the boxes preserve the complete code for selection");
+        const copy = companion.getByRole("button", { name: "Copy pairing code" });
+        await copy.waitFor({ state: "visible" });
+        await page.setViewportSize({ width: 320, height: 740 });
+        assert(await code.evaluate(element => {
+          const codeBounds = element.getBoundingClientRect();
+          const letters = [...element.querySelectorAll(".sp-companion-code-letter")];
+          return codeBounds.right <= innerWidth && letters.every(letter =>
+            letter.getBoundingClientRect().top === letters[0].getBoundingClientRect().top);
+        }), `${testCase.name}: all code boxes fit on one line at phone width`);
+        assert.equal(await companion.getByText("Ready to pair", { exact: true }).isVisible(), false);
+        assert.equal(await companion.getByRole("button", { name: "Clear downloaded app icons" }).isVisible(), false);
 
         Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
         await companion.getByText("Mac paired, but not connected", { exact: true }).waitFor({ state: "visible" });
@@ -7364,7 +7378,7 @@ async function assertFirstRunSetup(browser) {
     const pairingTitle = dialog.getByRole("heading", { name: "Connect your Mac", exact: true });
     await pairingTitle.waitFor();
     assert(await dialog.getByText("Step 1 of 3", { exact: true }).isVisible());
-    const download = dialog.getByRole("link", { name: "Download the latest EspDesktop Mac app" });
+    const download = dialog.getByRole("link", { name: "Download EspDesktop for Mac" });
     assert.equal(await download.getAttribute("href"), "https://github.com/jtenniswood/espdesktop/releases/latest");
     assert.equal(await download.getAttribute("target"), "_blank");
     const next = dialog.getByRole("button", { name: "Next", exact: true });
@@ -7382,17 +7396,17 @@ async function assertFirstRunSetup(browser) {
       };
     });
     await dialog.getByRole("button", { name: "Copy pairing code" }).click();
-    await dialog.getByText("Copied. Paste it into the Mac app.", { exact: true }).waitFor();
+    await dialog.getByText("Copied", { exact: true }).waitFor();
     pairingState.pairing_code = "JKLM-NPQR";
     await dialog.getByText("JKLM-NPQR", { exact: true }).waitFor();
     assert.equal(await dialog.getByText("ABCD-EFGH", { exact: true }).count(), 0, "the old code is cleared");
     Object.assign(status.mac_companion, { configured: true, paired: true });
     Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
-    await dialog.getByText("This display is already paired. Open EspDesktop on your Mac to reconnect.").waitFor();
+    await dialog.getByText("Open EspDesktop on your Mac to reconnect.", { exact: true }).waitFor();
     assert(await next.isDisabled(), "a saved pairing still needs a live connection");
     assert.equal(await dialog.getByRole("button", { name: "Copy pairing code" }).count(), 0);
     status.mac_companion.connected = pairingState.connected = true;
-    await dialog.getByText("Mac connected. Choose Next to pick your apps.", { exact: true }).waitFor();
+    await dialog.getByText("Mac connected. Choose Next.", { exact: true }).waitFor();
     await next.click();
     await title.waitFor();
     assert(await dialog.getByText("Step 2 of 3", { exact: true }).isVisible());
@@ -7406,7 +7420,7 @@ async function assertFirstRunSetup(browser) {
     const showCode = page.waitForResponse(response => new URL(response.url()).searchParams.get("show_on_display") === "1");
     await open("&connector=mac_companion");
     await showCode;
-    await page.getByText("This display is already paired. Confirm Reset pairing on the touchscreen to get a new code.", { exact: true }).waitFor();
+    await page.getByText("Confirm Reset pairing on the touchscreen.", { exact: true }).waitFor();
     assert.equal(await page.getByRole("button", { name: "Copy pairing code" }).count(), 0,
       "an already paired display requires confirmation before exposing a code");
     await page.waitForResponse(response => {
