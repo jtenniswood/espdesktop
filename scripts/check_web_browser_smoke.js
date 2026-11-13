@@ -5599,7 +5599,9 @@ async function assertHomeAssistantConnectorLayout(browser) {
         await page.waitForSelector("#sp-device.active #sp-connectors");
         if (testCase.companionSupported) {
           const card = connectors.locator(".card").filter({ hasText: "Mac Companion" });
-          if (query === "tab=connectors") await card.getByRole("heading", { name: "Mac Companion", exact: true }).click();
+          if (await card.evaluate(element => element.classList.contains("collapsed"))) {
+            await card.getByRole("heading", { name: "Mac Companion", exact: true }).click();
+          }
           await connectors.getByText("Choose this display in the Mac app and enter the code.", { exact: true }).waitFor();
         }
       }
