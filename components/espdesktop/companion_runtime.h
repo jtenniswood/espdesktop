@@ -162,7 +162,9 @@ class CompanionRuntimeService {
   std::function<void()> begin_pairing;
   std::function<bool()> revoke_pairing;
   std::function<bool()> reset_and_begin_pairing;
+  std::function<void()> request_pairing_display;
   std::function<bool()> clear_app_icon_cache;
+  void (*show_pairing_code_handler)() = nullptr;
   void (*pairing_changed_handler)() = nullptr;
   CompanionConnectionChangedHandler connection_changed_handler;
   std::function<void()> focus_registrations_changed_handler;

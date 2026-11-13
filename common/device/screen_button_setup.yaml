@@ -14,6 +14,9 @@ esphome:
             companion_runtime_service().pairing_changed_handler = [] {
               id(button_setup_text_refresh).execute();
             };
+            companion_runtime_service().show_pairing_code_handler = [] {
+              id(button_setup_show_pairing_code).execute();
+            };
 
 lvgl:
   pages:
@@ -119,6 +122,35 @@ lvgl:
                         text_align: center
 
 script:
+  - id: button_setup_show_pairing_code
+    mode: single
+    then:
+      - if:
+          condition:
+            lambda: |-
+              const auto &display = id(espdesktop_app).display();
+              return !device_pairing_ui().overlay && !screen_lock_enabled() &&
+                  !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL);
+          then:
+            - if:
+                condition:
+                  lambda: |-
+                    return !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);
+                then:
+                  - script.execute: screensaver_wake
+                  - script.wait: screensaver_wake
+            - lambda: |-
+                const auto &display = id(espdesktop_app).display();
+                if (!display.current_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                    !display.target_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                    display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL) ||
+                    device_pairing_ui().overlay || screen_lock_enabled()) return;
+                const auto pairing = device_pairing_snapshot();
+                if (!pairing.available || !pairing.active || pairing.paired) return;
+                device_pairing_show(id(${setup_body_font_id})->get_lv_font(),
+                                    id(${setup_title_font_id})->get_lv_font(),
+                                    false, network_status_ip_address());
+
   - id: button_setup_text_refresh
     mode: restart
     then:

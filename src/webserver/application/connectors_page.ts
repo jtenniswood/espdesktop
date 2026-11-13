@@ -103,7 +103,7 @@ export function createConnectorsPageFeature(
         config.appendChild(heading);
         if (companionSupported) {
             const open = requestedConnectorFromSearch(window.location.search) === "mac_companion";
-            config.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open));
+            config.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
         } else {
             const message = document.createElement("p");
             message.className = "sp-connectors-unavailable";

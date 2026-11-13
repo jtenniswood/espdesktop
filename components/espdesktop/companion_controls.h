@@ -1312,6 +1312,10 @@ class CompanionPairingHandler : public esphome::web_server_idf::AsyncWebHandler 
       });
     if (!result) return;
     const auto &snapshot = *result;
+    if (snapshot.available && snapshot.active && !snapshot.paired && request->arg("show_on_display") == "1") {
+      const auto &show = companion_runtime_service().request_pairing_display;
+      if (show) show();
+    }
     const std::string json = companion_pairing_json(snapshot);
     httpd_req_t *req = *request;
     httpd_resp_set_status(req, snapshot.available ? "200 OK" : "404 Not Found");

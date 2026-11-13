@@ -140,6 +140,11 @@ void CompanionService::setup() {
   companion_runtime_service().begin_pairing = [this] { this->begin_pairing(); };
   companion_runtime_service().revoke_pairing = [this] { return this->revoke_pairing(); };
   companion_runtime_service().reset_and_begin_pairing = [this] { return this->reset_and_begin_pairing(); };
+  companion_runtime_service().request_pairing_display = [this] {
+    this->defer("show-pairing-code", [] {
+      if (auto handler = companion_runtime_service().show_pairing_code_handler) handler();
+    });
+  };
   companion_runtime_service().clear_app_icon_cache = [] { return clear_companion_app_icon_cache(); };
   register_companion_pairing_provider([this] {
     const auto &runtime = companion_runtime_service();

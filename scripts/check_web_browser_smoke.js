@@ -5545,7 +5545,7 @@ async function assertHomeAssistantConnectorLayout(browser) {
       expires_in_seconds: 900, pairing_code: "123456",
     };
     if (testCase.companionSupported) {
-      await context.route("**/companion/pairing", route => route.fulfill({ json: pairingState }));
+      await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
     }
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -7138,8 +7138,11 @@ async function assertFirstRunSetup(browser) {
   const pairingState = {
     available: true, active: false, paired: true, connected: true, expires_in_seconds: 0, pairing_code: "",
   };
-  await context.route("**/companion/pairing", route => pairingUnavailable
-    ? route.fulfill({ status: 503, body: "" }) : route.fulfill({ json: pairingState }));
+  let displayCodeRequests = 0;
+  await context.route(/\/companion\/pairing(?:\?.*)?$/, route => {
+    if (new URL(route.request().url()).searchParams.get("show_on_display") === "1") displayCodeRequests++;
+    return pairingUnavailable ? route.fulfill({ status: 503, body: "" }) : route.fulfill({ json: pairingState });
+  });
   const actions = [
     { id: "com.apple.Safari", label: "Safari" },
     { id: "com.apple.Notes", label: "Notes" },
@@ -7398,8 +7401,16 @@ async function assertFirstRunSetup(browser) {
     await pairingTitle.waitFor();
 
     // Pairing links remain usable before connecting; connection offers setup.
+    assert.equal(displayCodeRequests, 0, "opening the normal editor and wizard does not show a code on the display");
     status.mac_companion.connected = pairingState.connected = false;
+    const showCode = page.waitForResponse(response => new URL(response.url()).searchParams.get("show_on_display") === "1");
     await open("&connector=mac_companion");
+    await showCode;
+    await page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === "/companion/pairing" && !url.search;
+    });
+    assert.equal(displayCodeRequests, 1, "the pairing link shows the code once and subsequent polling leaves the display alone");
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "pairing page must remain accessible");
     status.mac_companion.connected = pairingState.connected = true;

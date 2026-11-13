@@ -20,6 +20,7 @@ export interface SettingsCompanionSectionFeature {
     buildCompanionSettingsCard(
         onStatus?: (state: CompanionPairingState | null) => void,
         defaultCollapsed?: boolean,
+        showOnDisplay?: boolean,
     ): HTMLElement;
 }
 
@@ -113,13 +114,14 @@ export function createSettingsCompanionSectionFeature(
     const { document, window, fetch } = dom;
     const { createActionButton, showBanner } = shell;
 
-    async function requestPairing(): Promise<CompanionPairingState> {
+    async function requestPairing(showOnDisplay = false): Promise<CompanionPairingState> {
         const options: RequestInit = {
             method: "GET",
             cache: "no-store",
             headers: { Accept: "application/json" },
         };
-        const response = await fetch("/companion/pairing", options);
+        const path = showOnDisplay ? "/companion/pairing?show_on_display=1" : "/companion/pairing";
+        const response = await fetch(path, options);
         if (!response.ok) throw new Error("Companion pairing is not available on this panel");
         const state = await response.json() as CompanionPairingState;
         if (typeof state?.paired !== "boolean" || typeof state.connected !== "boolean" ||
@@ -130,6 +132,7 @@ export function createSettingsCompanionSectionFeature(
     function buildCompanionSettingsCard(
         onStatus?: (state: CompanionPairingState | null) => void,
         defaultCollapsed = true,
+        showOnDisplay = false,
     ): HTMLElement {
         let latestState: CompanionPairingState | null = null;
         const body = document.createElement("div");
@@ -283,7 +286,7 @@ export function createSettingsCompanionSectionFeature(
         }
 
         let refreshInProgress = true;
-        requestPairing().then(render).catch(function () {
+        requestPairing(showOnDisplay).then(render).catch(function () {
             showUnavailable("Companion pairing is unavailable");
         }).finally(function () {
             refreshInProgress = false;
