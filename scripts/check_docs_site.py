@@ -266,7 +266,8 @@ def check_build(dist):
         if page.meta.get('og:url') != url:
             errors.append(f'Share URL does not match the canonical URL: {url}')
         for field in ('title', 'description', 'image', 'image:alt'):
-            if not page.meta.get(f'og:{field}') or page.meta.get(f'twitter:{field}') != page.meta.get(f'og:{field}'):
+            value = page.meta.get(f'og:{field}', '')
+            if not value.strip() or page.meta.get(f'twitter:{field}') != value:
                 errors.append(f'Missing or inconsistent share {field}: {url}')
         share_image = page.meta.get('og:image', '')
         if not share_image.startswith(BASE) or not (dist / share_image.removeprefix(BASE)).is_file():
@@ -332,8 +333,11 @@ def check_build(dist):
     for url, page in pages.items():
         for image in page.images:
             source = urljoin(url, image.get('src', ''))
+            decorative = image.get('aria-hidden') == 'true' or image.get('role') in ('none', 'presentation')
             if 'alt' not in image:
                 errors.append(f'Missing image alt attribute: {url}: {source}')
+            elif not (image['alt'] or '').strip() and not decorative:
+                errors.append(f'Blank alt text on an image not marked decorative: {url}: {source}')
             if source.startswith(BASE) and not (dist / unquote(urlsplit(source).path.removeprefix('/'))).is_file():
                 errors.append(f'Missing page image: {url}: {source}')
         for href in page.links:

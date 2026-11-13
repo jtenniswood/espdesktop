@@ -4,6 +4,8 @@ import { withBase } from 'vitepress'
 
 const props = defineProps<{
   label: string
+  width: number
+  height: number
   slides: ReadonlyArray<{
     image: string
     alt: string
@@ -39,7 +41,7 @@ function move(offset: number) {
         class="screenshot-slide"
       >
         <a class="screenshot-link" :href="withBase(slide.image)">
-          <img :src="withBase(slide.image)" :alt="slide.alt" loading="lazy" decoding="async">
+          <img :src="withBase(slide.image)" :alt="slide.alt" :width="width" :height="height" loading="lazy" decoding="async">
         </a>
 
         <figcaption>
