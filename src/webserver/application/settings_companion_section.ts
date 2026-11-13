@@ -10,7 +10,6 @@ export interface CompanionPairingState {
     active: boolean;
     paired: boolean;
     connected: boolean;
-    expires_in_seconds: number;
     port?: number;
     pairing_code: string;
     mdns_name?: string;
@@ -30,16 +29,8 @@ function setHidden(element: HTMLElement, hidden: boolean): void {
 }
 
 export function companionPairingStatusText(state: CompanionPairingState): string {
-    if (state.active) {
-        const hours = Math.ceil(state.expires_in_seconds / 3600);
-        const minutes = Math.max(1, Math.ceil(state.expires_in_seconds / 60));
-        const duration = hours >= 2
-            ? hours + (hours === 1 ? " hour" : " hours")
-            : minutes + (minutes === 1 ? " minute" : " minutes");
-        const pairing = "Pairing is open for about " + duration + ".";
-        return state.connected ? "Mac Companion connected. " + pairing : pairing;
-    }
     if (state.connected) return "Mac Companion connected";
+    if (state.active && !state.paired) return "Ready to pair";
     return state.paired ? "Mac paired, but not connected" : "No Mac paired";
 }
 

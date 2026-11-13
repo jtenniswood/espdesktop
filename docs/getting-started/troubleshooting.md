@@ -47,7 +47,7 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 ## The display will not pair
 
-Select the display in the Mac app and click **Continue** to open its pairing page in your browser. Enter the code from that page in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget** beside it in **Settings → Displays** and reset its pairing from the connector page before trying again.
+Select the display in the Mac app and click **Continue**. Enter the code shown on the touchscreen. If the display already has a saved pairing, confirm **Reset pairing** on the touchscreen to get a new code. If the Mac app shows **Pairing Required**, choose **Re-pair** beside that display in **Settings → Displays**.
 
 <a href="/images/mac-companion-enter-pairing-code.png"><img src="/images/mac-companion-enter-pairing-code.png" alt="Mac app pairing screen with fields for the eight-letter code and a Connect button" width="1224" height="1600" loading="lazy"></a>
 
@@ -56,7 +56,7 @@ The Mac stores its credential in Keychain and checks the paired display certific
 | Pairing message | What to do |
 | --- | --- |
 | **Could not open the display pairing page.** | Confirm the display is on the same local network as your Mac. If the app still cannot open the page, go back and enter the display’s current IP address or `.local` name. |
-| **Enter the eight-letter pairing code shown on the display.** | Copy the full eight-letter code from the display’s pairing page. If it has expired, get a fresh code and select **Connect**. |
+| **Enter the eight-letter pairing code shown on the display.** | Enter all eight letters from the touchscreen or use **Open pairing webpage** to copy the code, then select **Connect**. |
 | **Unlock your Mac and allow EspDesktop to access Keychain, then try again.** | Unlock the Mac and allow Keychain access if prompted. Return to the pairing code step and select **Connect** again. |
 
 When pairing works, the Mac app shows **You’re connected**.

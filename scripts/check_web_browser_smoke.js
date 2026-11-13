@@ -5542,7 +5542,7 @@ async function assertHomeAssistantConnectorLayout(browser) {
     await installRoutes(context, testCase.slug, { connectorsStatus: connectorStatus });
     const pairingState = {
       available: true, active: true, paired: false, connected: false,
-      expires_in_seconds: 900, pairing_code: "123456",
+      pairing_code: "ABCD-EFGH",
     };
     if (testCase.companionSupported) {
       await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
@@ -5604,7 +5604,7 @@ async function assertHomeAssistantConnectorLayout(browser) {
       }
       if (testCase.companionSupported) {
         const companion = connectors.locator(".card").filter({ hasText: "Mac Companion" });
-        const status = companion.getByRole("status").filter({ hasText: "Pairing is open" });
+        const status = companion.getByRole("status").filter({ hasText: "Ready to pair" });
         await status.waitFor({ state: "visible" });
 
         Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
@@ -7136,7 +7136,7 @@ async function assertFirstRunSetup(browser) {
   });
   let pairingUnavailable = false;
   const pairingState = {
-    available: true, active: false, paired: true, connected: true, expires_in_seconds: 0, pairing_code: "",
+    available: true, active: false, paired: true, connected: true, pairing_code: "",
   };
   let displayCodeRequests = 0;
   await context.route(/\/companion\/pairing(?:\?.*)?$/, route => {
@@ -7357,7 +7357,7 @@ async function assertFirstRunSetup(browser) {
     fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
     Object.assign(status.mac_companion, { configured: false, paired: false, connected: false });
     Object.assign(pairingState, {
-      active: true, paired: false, connected: false, expires_in_seconds: 900, pairing_code: "ABCD-EFGH",
+      active: true, paired: false, connected: false, pairing_code: "ABCD-EFGH",
     });
     pairingUnavailable = true;
     await open();

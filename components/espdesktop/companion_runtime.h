@@ -141,7 +141,6 @@ struct CompanionPairingSnapshot {
   bool active{false};
   bool paired{false};
   bool connected{false};
-  uint32_t expires_in_seconds{0};
   uint16_t port{8443};
   uint32_t system_metrics_generation{0};
   std::string pairing_code;

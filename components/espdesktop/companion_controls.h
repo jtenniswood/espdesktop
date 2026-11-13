@@ -1287,7 +1287,6 @@ inline std::string companion_pairing_json(const CompanionPairingSnapshot &snapsh
     ",\"active\":" + (snapshot.active ? "true" : "false") +
     ",\"paired\":" + (snapshot.paired ? "true" : "false") +
     ",\"connected\":" + (snapshot.connected ? "true" : "false") +
-    ",\"expires_in_seconds\":" + std::to_string(snapshot.expires_in_seconds) +
     ",\"port\":" + std::to_string(snapshot.port) +
     ",\"system_metrics_generation\":" + std::to_string(snapshot.system_metrics_generation) +
     ",\"pairing_code\":\"" + companion_json_escape(pairing_code) + "\",\"mdns_name\":\"" +

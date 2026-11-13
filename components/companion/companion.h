@@ -11,6 +11,7 @@
 #include <atomic>
 #include <array>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -98,21 +99,22 @@ class CompanionService final : public Component {
   bool invoke_url_(const std::string &encoded_url, const std::string &request_id, bool new_window);
   bool invoke_value_(const std::string &control_id, int value,
                      const std::string &request_id);
-  void begin_pairing_locked_();
+  bool begin_pairing_locked_(bool reset);
   bool revoke_pairing_locked_();
-  bool pairing_active_locked_(uint32_t now) const;
+  bool pairing_active_locked_() const;
+  using PairingCode = std::array<char, 9>;
+  static PairingCode generate_pairing_code_();
 
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
+  ESPPreferenceObject pairing_code_preferences_;
   ESPPreferenceObject focus_targets_preferences_;
   CompanionIdentityPreference identity_{};
   httpd_handle_t server_{nullptr};
   uint16_t port_{8443};
   CompanionSessionState session_{};
   uint32_t last_sequence_{0};
-  uint32_t pairing_expires_at_{0};
-  uint32_t next_attempt_at_{0};
-  uint8_t failed_attempts_{0};
+  std::optional<uint32_t> last_failed_pairing_at_;
   mutable std::mutex pairing_mutex_;
   std::string pairing_code_;
   std::atomic<uint32_t> focus_targets_generation_{0};

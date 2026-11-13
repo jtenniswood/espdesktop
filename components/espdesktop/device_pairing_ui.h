@@ -12,7 +12,6 @@ inline constexpr uint32_t DEVICE_PAIRING_BUTTON_BLUE = 0x3E63DD;
 inline constexpr uint32_t DEVICE_PAIRING_BUTTON_PRESSED = 0x3451B2;
 // A mid-grey outline stays visible against both the dark and light panels.
 inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x6C6C6C;
-inline constexpr lv_state_t DEVICE_PAIRING_EXPIRED = LV_STATE_USER_1;
 
 struct DevicePairingUi {
   lv_obj_t *overlay = nullptr;
@@ -103,12 +102,7 @@ inline void device_pairing_refresh() {
     return;
   }
   if (!snapshot.active || snapshot.pairing_code.size() != ui.letters.size()) {
-    if (!lv_obj_has_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN)) {
-      ui.displayed_code.clear();
-      lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
-      lv_label_set_display_text(ui.status, espdesktop_i18n("Expired"));
-      lv_obj_add_state(ui.status, DEVICE_PAIRING_EXPIRED);
-    }
+    control_modal_close_nested_menu();
     return;
   }
   if (snapshot.pairing_code == ui.displayed_code) return;
@@ -118,8 +112,6 @@ inline void device_pairing_refresh() {
     lv_label_set_text(ui.letters[i], glyph);
   }
   lv_obj_clear_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_display_text(ui.status, espdesktop_i18n_key("pairing_instructions"));
-  lv_obj_clear_state(ui.status, DEVICE_PAIRING_EXPIRED);
 }
 
 inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *title_font,
@@ -177,11 +169,9 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
   }
 
   device_pairing_label(shell.panel, espdesktop_i18n_key("pairing"), title_font, theme.text_primary);
-  ui.status = device_pairing_label(shell.panel, espdesktop_i18n("Expired"), text_font, theme.text_muted);
+  device_pairing_label(shell.panel, espdesktop_i18n_key("pairing_instructions"), text_font, theme.text_muted);
   ui.code_row = device_pairing_row(shell.panel, gap);
   const lv_coord_t code_row_padding = control_modal_scaled_px(12, layout.short_side);
-  lv_obj_set_style_pad_bottom(ui.status, code_row_padding, DEVICE_PAIRING_EXPIRED);
-  lv_obj_add_state(ui.status, DEVICE_PAIRING_EXPIRED);
   lv_obj_set_style_pad_top(ui.code_row, code_row_padding, LV_PART_MAIN);
   lv_obj_set_style_pad_bottom(ui.code_row, code_row_padding, LV_PART_MAIN);
   lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);

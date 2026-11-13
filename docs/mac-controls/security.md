@@ -36,7 +36,7 @@ If macOS asks for **Local Network** access, choose **Allow** so EspDesktop can f
 <a href="/images/mac-companion-local-network.png"><img src="/images/mac-companion-local-network.png" alt="macOS asking whether EspDesktop can find devices on the local network" width="386" height="390" loading="lazy"></a>
 
 - One Mac can connect to several paired displays at the same time. Each display has its own pairing credential and can access the apps and folders you’ve approved in the Mac app.
-- Pairing uses a temporary code that expires after 15 minutes. EspDesktop stores the credential in macOS Keychain and checks the display certificate on later connections.
+- The pairing code stays valid until pairing succeeds. The display generates a new code for the next pairing. EspDesktop stores the credential in macOS Keychain and checks the display certificate on later connections.
 - Folder paths stay on the Mac. The display receives a friendly folder name and an anonymous identifier.
 - The connector accepts only its defined controls. It does not run shell commands or accept incoming network connections on the Mac.
 

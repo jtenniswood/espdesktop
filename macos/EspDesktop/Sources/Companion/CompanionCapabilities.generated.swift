@@ -15,7 +15,6 @@ enum CompanionCapabilities {
     static let appIconsCapability = "app_icons"
     static let appIconsAlphaCapability = "app_icons_alpha"
     static let appIconsHighResolutionCapability = "app_icons_240"
-    static let pairingWindowSeconds = 900
     static let protocolMessages: Set<String> = [
         "hello",
         "pair.request",

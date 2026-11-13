@@ -19,7 +19,6 @@ constexpr size_t COMPANION_APP_ICON_PIXEL_BYTES = 172800;
 constexpr const char *COMPANION_APP_ICONS_CAPABILITY = "app_icons";
 constexpr const char *COMPANION_APP_ICONS_ALPHA_CAPABILITY = "app_icons_alpha";
 constexpr const char *COMPANION_APP_ICONS_HIGH_RESOLUTION_CAPABILITY = "app_icons_240";
-constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = 900;
 
 constexpr bool COMPANION_BROWSER_STARTS_PAIRING = true;
 constexpr bool COMPANION_BROWSER_EXPOSES_PAIRING_CODE = true;

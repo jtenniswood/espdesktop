@@ -400,8 +400,6 @@ def load_companion_capabilities_data():
     security = data.get("security")
     if not isinstance(security, dict) or security.get("pairingAuthorization") not in {"physical_presence", "device_web_access"}:
         raise BuildError("Unsupported Companion pairing authorization")
-    if not isinstance(security.get("pairingWindowSeconds"), int) or security["pairingWindowSeconds"] < 30:
-        raise BuildError("Companion pairing window must be at least 30 seconds")
 
     card_modes = data.get("cardModes")
     card_mode_ids = [item.get("id") for item in card_modes] if isinstance(card_modes, list) else []
@@ -843,7 +841,7 @@ def gen_companion_capabilities_h(data):
         f"constexpr const char *COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])};\n",
         f"constexpr const char *COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])};\n",
         f"constexpr const char *COMPANION_APP_ICONS_HIGH_RESOLUTION_CAPABILITY = {json.dumps(protocol['appIconsHighResolutionCapability'])};\n",
-        f"constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = {data['security']['pairingWindowSeconds']};\n\n",
+        "\n",
         f"constexpr bool COMPANION_BROWSER_STARTS_PAIRING = {str(data['security']['pairingAuthorization'] == 'device_web_access').lower()};\n",
         f"constexpr bool COMPANION_BROWSER_EXPOSES_PAIRING_CODE = {str(data['security']['browserExposesPairingCode']).lower()};\n",
         "struct CompanionProtocolMessagePolicy { const char *id; const char *direction; const char *authorization; };\n",
@@ -891,7 +889,6 @@ def gen_companion_capabilities_swift(data):
         f"    static let appIconsCapability = {json.dumps(data['protocol']['appIconsCapability'])}\n",
         f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
         f"    static let appIconsHighResolutionCapability = {json.dumps(data['protocol']['appIconsHighResolutionCapability'])}\n",
-        f"    static let pairingWindowSeconds = {data['security']['pairingWindowSeconds']}\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]
     lines.extend(f"        {json.dumps(item['id'])},\n" for item in data["protocol"]["messages"])
