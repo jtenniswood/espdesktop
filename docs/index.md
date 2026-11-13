@@ -1,5 +1,5 @@
 ---
-title: EspDesktop — A touchscreen controller for your Mac
+title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
 description: Launch apps, open websites and Finder folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
@@ -11,7 +11,7 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps, visit websites and run shortcuts from this 4-inch touchscreen for less than **$26/£20**. Pair it over your local network with the free Mac app.
+EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
@@ -22,7 +22,10 @@ Open apps, visit websites and run shortcuts from this 4-inch touchscreen for les
 </div>
 
 <figure class="homepage-panel">
-  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093">
+  <picture>
+  <source type="image/avif" srcset="/images/espdesktop-desk-480.avif 480w, /images/espdesktop-desk-960.avif 960w" sizes="(min-width: 768px) 480px, 90vw">
+  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen beside a Mac keyboard, with tiles for Finder, Safari, Slack and other apps" width="1320" height="1093" fetchpriority="high">
+</picture>
 </figure>
 
 </section>
@@ -147,12 +150,13 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 
 </div>
 
-<iframe
-  class="homepage-demo"
-  src="./editor/index.html"
-  title="Interactive EspDesktop touchscreen demo"
-  loading="lazy"
-></iframe>
+<figure class="homepage-demo">
+  <iframe
+    src="./editor/index.html"
+    title="Interactive EspDesktop touchscreen demo"
+    loading="lazy"
+  ></iframe>
+</figure>
 
 </section>
 
@@ -334,10 +338,18 @@ Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Find
 .homepage-demo {
   display: block;
   width: min(100%, 452px);
-  height: auto;
+  margin: 0;
   aspect-ratio: 1;
   justify-self: center;
+}
+
+.homepage-demo iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
   border: 0;
+  border-radius: 18px;
   color-scheme: only light;
 }
 

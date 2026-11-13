@@ -5,6 +5,8 @@ import { resolve } from 'node:path'
 import { defineConfig } from 'vitepress'
 import { canonicalUrlFor, faqSchema, hostname, jsonLd, llmsIndexUrl, writeRedirects } from './discovery'
 import { writeMarkdownPages } from './markdown-export'
+import { unpublishedMarkdown, writeGuideIndex } from './public-guides'
+import productFacts from './product-facts.json'
 
 const { freshWebOutputDir } = createRequire(import.meta.url)(resolve(import.meta.dirname, '../../scripts/web_source.js'))
 
@@ -45,6 +47,20 @@ const pageImages: Record<string, typeof defaultImage> = {
 
 const author = { '@type': 'Person', name: 'jtenniswood', url: 'https://github.com/jtenniswood' }
 const websiteId = `${hostname}#website`
+const softwareId = `${hostname}#software`
+const guideParents = {
+  'screens/4848s040-stand.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
+  'features/first-run.md': { name: '4848S040 setup guide', path: 'screens/4848s040.md' },
+  'features/subpages.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/apps.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/websites.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/folders.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/shortcuts.md': { name: 'Customise the layout', path: 'features/home.md' },
+  'mac-controls/improve-shortcuts.md': { name: 'Keyboard shortcuts', path: 'mac-controls/shortcuts.md' },
+  'reference/companion-compatibility.md': { name: 'Setup and compatibility FAQ', path: 'reference/faq.md' },
+} as Record<string, { name: string; path: string }>
+
+const guideMetadata = new Map<string, { title: string; description: string }>()
 
 export default defineConfig({
   title: 'EspDesktop',
@@ -54,24 +70,14 @@ export default defineConfig({
   appearance: 'force-dark',
   cleanUrls: true,
   lastUpdated: true,
-  // Publish only the Mac Companion setup and control guides. The broader
-  // Home Assistant panel documentation lives in the EspControl docs.
-  srcExclude: [
-    'generated/**',
-    'guides/**',
-    'immich/**',
-    'card-types/{actions,alarms,buttons,cameras,climate,covers,doors-windows,fans,garage-doors,gates,index,lawn-mower,lights,local-actions,locks,media,option-select,presence,sliders,switches,timers,vacuum,weather,weather-forecast}.md',
-    'features/{appearance,backlight,battery,clock,clock-bar,firmware-updates,language,relays,rotation,screen-schedule,screensaver,speaker-groups,temperature,voice-control}.md',
-    'getting-started/{c6-recovery,home-assistant-actions,manual-esphome-setup,migrate-esphome-media-player}.md',
-    'screens/{index,jc1060p470,jc1060p470-v1,jc1060p470-v2,jc4880p443,jc4880p443-v3,jc8012p4a1,jc8012p4a1-v1,jc8012p4a1-v2,jc8012p4a1-v3,p4-86}.md',
-    'reference/{3d-printable-stands,card-capabilities,collect-usb-logs,contributing,icons,language-support,partnerships}.md',
-  ],
+  srcExclude: unpublishedMarkdown,
   markdown: { config: faqSchema, image: { lazyLoading: true } },
   async buildEnd({ outDir, pages }) {
     const demoRenderer = resolve(freshWebOutputDir({ testHooks: false }), 'app.js')
     await Promise.all([
       writeRedirects(outDir),
       writeMarkdownPages(outDir, pages),
+      writeGuideIndex(outDir, pages, guideMetadata),
       copyFile(demoRenderer, resolve(outDir, 'editor/renderer.js')),
       build({
         entryPoints: [resolve(import.meta.dirname, 'editor-demo.ts')],
@@ -93,7 +99,22 @@ export default defineConfig({
 
   sitemap: {
     hostname,
-    transformItems: (items) => items.filter((item) => item.url !== '404' && item.url !== '/404'),
+    transformItems(items) {
+      const macReleaseTag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
+      const releaseDate = Date.parse(process.env.ESPDESKTOP_MAC_RELEASE_DATE ?? '')
+      if (macReleaseTag && Number.isFinite(releaseDate)) {
+        const releasePages = ['download']
+        if (process.env.ESPDESKTOP_MATCHED_RELEASE_TAG === macReleaseTag) {
+          releasePages.push('reference/companion-compatibility')
+        }
+        for (const item of items) {
+          if (!releasePages.includes(item.url)) continue
+          const sourceDate = new Date(item.lastmod ?? 0).getTime()
+          item.lastmod = new Date(Math.max(sourceDate || 0, releaseDate)).toISOString()
+        }
+      }
+      return items.filter(item => item.url !== '404' && item.url !== '/404')
+    },
   },
 
   head: [
@@ -114,12 +135,23 @@ export default defineConfig({
       return
     }
 
-    // These pages have no page-level sidebar link to determine their next step.
     if (relativePath === 'reference/companion-compatibility.md') {
-      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#set-up-espdesktop' }
+      const matchedTag = process.env.ESPDESKTOP_MATCHED_RELEASE_TAG
+      if (matchedTag) {
+        if (!/^v?\d+\.\d+\.\d+$/.test(matchedTag)) {
+          throw new Error(`Invalid matching release tag: ${matchedTag}`)
+        }
+        frontmatter.matchedReleaseTag = matchedTag
+        frontmatter.matchedReleaseUrl = `https://github.com/jtenniswood/espdesktop/releases/tag/${matchedTag}`
+      }
     }
 
-    if (relativePath === 'screens/4848s040.md') {
+    // These pages have no page-level sidebar link to determine their next step.
+    if (relativePath === 'reference/companion-compatibility.md') {
+      frontmatter.next = { text: 'Install the display', link: '/screens/4848s040#install' }
+    }
+
+    if (relativePath === 'download.md' || relativePath === 'screens/4848s040.md') {
       const releases = 'https://github.com/jtenniswood/espdesktop/releases'
       const tag = process.env.ESPDESKTOP_MAC_RELEASE_TAG
       if (tag && !/^v?\d+\.\d+\.\d+$/.test(tag)) {
@@ -133,6 +165,7 @@ export default defineConfig({
     const canonicalUrl = canonicalUrlFor(relativePath)
     const title = String(frontmatter.title ?? pageData.title)
     const description = String(frontmatter.description ?? '')
+    guideMetadata.set(relativePath, { title, description })
     const image = pageImages[relativePath] ?? defaultImage
     const isHome = relativePath === 'index.md'
     const isArticle = !['index.md', 'reference/privacy.md', 'reference/faq.md', 'reference/support.md'].includes(relativePath)
@@ -165,23 +198,38 @@ export default defineConfig({
           name: 'EspDesktop',
           description,
           inLanguage: 'en-US',
+          about: { '@id': softwareId },
         },
         {
           '@type': 'SoftwareApplication',
-          '@id': `${hostname}#software`,
+          '@id': softwareId,
           name: 'EspDesktop',
           url: canonicalUrl,
           applicationCategory: 'UtilitiesApplication',
-          operatingSystem: 'macOS 13 or newer',
+          operatingSystem: `macOS ${productFacts.minimumMacOS} or newer`,
+          processorRequirements: productFacts.macProcessor,
+          sameAs: 'https://github.com/jtenniswood/espdesktop',
+          installUrl: `${hostname}download`,
+          releaseNotes: 'https://github.com/jtenniswood/espdesktop/releases',
           description,
           author,
-          softwareHelp: `${hostname}screens/4848s040#install-and-pair-the-espdesktop-mac-app`,
+          softwareHelp: {
+            '@type': 'WebPage',
+            url: `${hostname}screens/4848s040#download`,
+          },
           screenshot: `${hostname}images/mac-app-display.jpg`,
           offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
         },
       )
     } else {
       const breadcrumbs = `${canonicalUrl}#breadcrumbs`
+      const parent = guideParents[relativePath]
+      const trail = [
+        { name: 'EspDesktop', item: hostname },
+        ...(parent ? [{ name: parent.name, item: canonicalUrlFor(parent.path) }] : []),
+        { name: title, item: canonicalUrl },
+      ]
+      frontmatter.breadcrumbTrail = trail
       const page: Record<string, unknown> = {
         '@type': 'WebPage',
         '@id': canonicalUrl,
@@ -212,10 +260,9 @@ export default defineConfig({
       graph.push(page, {
         '@type': 'BreadcrumbList',
         '@id': breadcrumbs,
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'EspDesktop', item: hostname },
-          { '@type': 'ListItem', position: 2, name: title, item: canonicalUrl },
-        ],
+        itemListElement: trail.map((crumb, index) => ({
+          '@type': 'ListItem', position: index + 1, ...crumb,
+        })),
       })
     }
     frontmatter.head.push([
@@ -227,29 +274,38 @@ export default defineConfig({
 
   themeConfig: {
     nav: [
-      { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
+      {
+        text: 'Guides',
+        items: [
+          { text: 'Get started', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Customise', link: '/features/home' },
+          { text: 'Troubleshoot', link: '/getting-started/troubleshooting' },
+          { text: 'Reference', link: '/reference/faq' },
+        ],
+      },
       { text: 'Install', link: '/screens/4848s040#install' },
-      { text: 'Download', link: '/screens/4848s040#download' },
+      { text: 'Download', link: '/download' },
     ],
 
     sidebar: [
       {
-        text: 'Getting Started',
+        text: 'Get started',
         items: [
           { text: 'Setup guide', link: '/screens/4848s040#where-to-buy' },
           { text: 'Printable stand', link: '/screens/4848s040-stand' },
         ],
       },
       {
-        text: 'Features',
+        text: 'Customise',
         items: [
           { text: 'First setup', link: '/features/first-run' },
-          { text: 'Home', link: '/features/home' },
+          { text: 'Touchscreen layout', link: '/features/home' },
           { text: 'Subpages', link: '/features/subpages' },
           { text: 'Apps', link: '/mac-controls/apps' },
           { text: 'Websites', link: '/mac-controls/websites' },
           { text: 'Finder folders', link: '/mac-controls/folders' },
           { text: 'Keyboard shortcuts', link: '/mac-controls/shortcuts' },
+          { text: 'Shortcut presets', link: '/reference/shortcut-presets' },
         ],
       },
       {
@@ -266,9 +322,15 @@ export default defineConfig({
         text: 'Support',
         items: [
           { text: 'Troubleshooting', link: '/getting-started/troubleshooting' },
+        ],
+      },
+      {
+        text: 'Reference',
+        items: [
           { text: 'FAQ', link: '/reference/faq' },
-          { text: 'Support the project', link: '/reference/support' },
-          { text: 'Privacy policy', link: '/reference/privacy' },
+          { text: 'Compatibility', link: '/reference/companion-compatibility' },
+          { text: 'Support', link: '/reference/support' },
+          { text: 'Privacy', link: '/reference/privacy' },
         ],
       },
       {

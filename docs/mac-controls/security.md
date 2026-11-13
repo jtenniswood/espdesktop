@@ -5,7 +5,9 @@ description: Understand the approvals and macOS permissions used by EspDesktop M
 
 # Mac Companion permissions and security
 
-The display can only use the apps, folders, and actions made available through the Mac app.
+The EspDesktop touchscreen sends its requests over your local network to the paired Mac app. The app checks the request and acts on the Mac. It opens only apps and folders you approve, and sends keyboard shortcuts only after you enable Accessibility for EspDesktop.
+
+Folder paths stay on the Mac. The display uses a friendly name and an anonymous identifier for each folder. Firmware and app update checks can contact the project's public hosting, separately from local pairing and control.
 
 | Feature | Approval or permission |
 |---|---|

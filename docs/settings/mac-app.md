@@ -9,13 +9,13 @@ Choose **Mac Settings** from the EspDesktop menu bar icon. The app keeps running
 
 <a href="/images/mac-companion-menu.png"><img src="/images/mac-companion-menu.png" alt="EspDesktop menu showing a connected display and the Mac Settings option" width="376" height="242" loading="lazy"></a>
 
-<ScreenshotGallery label="Mac app settings preview" :slides="settingsSlides" />
+<ScreenshotGallery label="Mac app settings preview" :width="1224" :height="1488" :slides="settingsSlides" />
 
 See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. See [Permissions & Security](/mac-controls/security) for access to keyboard shortcuts and Mac Lock.
 
 ## Check for Mac app updates
 
-In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. Use the Mac app and display firmware from the same EspDesktop release.
+In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. Follow [update the Mac app and display together](/settings/system#update-the-mac-app-and-display-together) to keep their releases matched.
 
 <script setup lang="ts">
 import ScreenshotGallery from '../.vitepress/theme/components/ScreenshotGallery.vue'

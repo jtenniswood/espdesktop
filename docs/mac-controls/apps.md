@@ -55,6 +55,8 @@ For standalone pages, see [Subpages](/features/subpages). For folders, see [Open
 
 When you close the last visible window of the foreground app, the display returns to the Home page or subpage you were using before the shortcuts opened. This also applies to pages opened by tapping an app card. **Return home when switching apps** controls what happens when you switch to another Mac app.
 
+See [all app presets](/reference/shortcut-presets).
+
 ## Website cards {#open-a-website}
 
 To add a tile for a web address, see [Open Websites on Your Mac](/mac-controls/websites).

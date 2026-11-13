@@ -121,19 +121,19 @@ const devices = [
       {
         slug: 'guition-esp32-p4-jc8012p4a1-v3',
         number: 3,
-        label: 'V3 — Production silicon',
+        label: 'V3: Production silicon',
         revision: 'ESP32-P4 v3.x silicon; confirm with chip information first'
       },
       {
         slug: 'guition-esp32-p4-jc8012p4a1',
         number: 1,
-        label: 'V1 — Original panel',
+        label: 'V1: Original panel',
         revision: 'Rear case 2627 or lower'
       },
       {
         slug: 'guition-esp32-p4-jc8012p4a1-v2',
         number: 2,
-        label: 'V2 — New panel',
+        label: 'V2: New panel',
         revision: 'Rear case 2628 or higher'
       }
     ]
@@ -153,13 +153,13 @@ const devices = [
       {
         slug: 'guition-esp32-p4-jc1060p470',
         number: 1,
-        label: 'V1 — Original panel',
+        label: 'V1: Original panel',
         revision: 'Unmarked case; board date before 2622'
       },
       {
         slug: 'guition-esp32-p4-jc1060p470-v2',
         number: 2,
-        label: 'V2 — New panel',
+        label: 'V2: New panel',
         revision: 'Case marked V2; board date 2622 or newer'
       }
     ]
@@ -179,13 +179,13 @@ const devices = [
       {
         slug: 'guition-esp32-p4-jc4880p443',
         number: 1,
-        label: 'V1 — Original panel',
+        label: 'V1: Original panel',
         revision: 'ESP32-P4 engineering sample, below v3.0; not SKU V3'
       },
       {
         slug: 'guition-esp32-p4-jc4880p443-v3',
         number: 3,
-        label: 'V3 — Not yet supported',
+        label: 'V3: Not yet supported',
         revision: 'ESP32-P4 v3.x production silicon; firmware support is pending',
         unsupported: true
       }
@@ -206,7 +206,7 @@ const devices = [
       {
         slug: 'esp32-p4-86',
         number: 1,
-        label: 'V1 — Original panel'
+        label: 'V1: Original panel'
       }
     ]
   },
@@ -225,7 +225,7 @@ const devices = [
       {
         slug: 'guition-esp32-s3-4848s040',
         number: 1,
-        label: 'V1 — Original panel'
+        label: 'V1: Original panel'
       }
     ]
   }

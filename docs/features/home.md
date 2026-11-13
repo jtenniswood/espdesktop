@@ -3,7 +3,7 @@ title: Customise the EspDesktop Home Screen
 description: Rearrange, resize, and move cards between pages, customise their appearance, and create subpages in the EspDesktop web editor.
 ---
 
-# Home
+# Customise the EspDesktop touchscreen layout {#home}
 
 Home is the main screen on your EspDesktop touchscreen. Open your display’s address in a browser and select **Layout** to arrange the cards you want within easy reach.
 
@@ -14,7 +14,7 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 - **Move a card.** Drag it to another spot in the grid. If you drop it onto another card, that card shifts to the next available space.
 
   <figure>
-    <a href="/images/web-editor-drag-card.png"><img src="/images/web-editor-drag-card.png" alt="Slack card being dragged from the middle of the Home grid towards the highlighted bottom-right tile" width="1209" height="1204" loading="lazy"></a>
+    <a href="/images/web-editor-drag-card.png"><picture><source type="image/avif" srcset="/images/web-editor-drag-card-480.avif 480w, /images/web-editor-drag-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-drag-card.png" alt="Slack card being dragged from the middle of the Home grid towards the highlighted bottom-right tile" width="1209" height="1204" loading="eager"></picture></a>
     <figcaption>The blue outline shows where the Slack card will land.</figcaption>
   </figure>
 
@@ -44,7 +44,7 @@ Right-click a card to open its menu.
 ## Add a card
 
 1. Click the **+** in an empty spot on the grid.
-2. In **Choose Card**, pick what the card should do. For example, choose **Applications** to launch a Mac app, **Folder** to open an approved folder, or **Key Shortcut** to run a keyboard shortcut.
+2. In **Choose Card**, pick what the card should do. For example, choose [**Applications**](/mac-controls/apps) to launch a Mac app, [**Folder**](/mac-controls/folders) to open an approved folder, or [**Key Shortcut**](/mac-controls/shortcuts) to run a keyboard shortcut.
 3. Fill in the settings for that card and select **Save**. The card appears on your touchscreen.
 
 <a href="/images/web-editor-choose-card.webp"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications, Folder, Key Shortcut, Lock Machine, Subpage and Website options" width="1000" height="1337" loading="lazy"></a>
