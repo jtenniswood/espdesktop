@@ -140,7 +140,6 @@
     {"id": "86", "label": "End audio call", "shortcut": "scoped.command+shift+h", "icon": "Audio Settings"},
     {"id": "87", "label": "End video call", "shortcut": "scoped.command+shift+h", "icon": "Video"},
     {"id": "88", "label": "Toggle mute", "shortcut": "scoped.command+shift+m", "icon": "Mute"},
-    {"id": "89", "label": "Temporarily unmute", "shortcut": "scoped.option+space", "icon": "Mute"},
     {"id": "90", "label": "Announce raised hands (screen reader)", "shortcut": "scoped.command+shift+l", "icon": "Shortcut Command"},
     {"id": "91", "label": "Raise or lower your hand", "shortcut": "scoped.command+shift+k", "icon": "Shortcut Command"},
     {"id": "92", "label": "Toggle video", "shortcut": "scoped.command+shift+o", "icon": "Video"},

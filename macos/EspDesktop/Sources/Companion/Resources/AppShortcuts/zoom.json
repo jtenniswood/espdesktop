@@ -58,7 +58,6 @@
     {"id": "9", "label": "Schedule meeting", "shortcut": "scoped.command+d", "icon": "Shortcut Command"},
     {"id": "10", "label": "Mute audio for everyone except host", "shortcut": "scoped.command+control+m", "icon": "Mute"},
     {"id": "11", "label": "Unmute audio for everyone except host", "shortcut": "scoped.command+control+u", "icon": "Mute"},
-    {"id": "12", "label": "And hold to temporarily unmute", "shortcut": "scoped.space", "icon": "Mute"},
     {"id": "13", "label": "Switch camera", "shortcut": "scoped.command+shift+n", "icon": "Shortcut Command"},
     {"id": "14", "label": "Start/stop screen share", "shortcut": "scoped.command+shift+s", "icon": "Stop"},
     {"id": "15", "label": "Start/stop computer recording", "shortcut": "scoped.command+shift+r", "icon": "Stop"},
