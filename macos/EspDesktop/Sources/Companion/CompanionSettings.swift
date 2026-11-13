@@ -178,6 +178,7 @@ private struct CompanionPairingActions: View {
                     }
                 }
                 .buttonStyle(.borderedProminent)
+                .tint(.blue)
             }
             if failedToOpenSetup {
                 Label("Could not open the display’s setup wizard.", systemImage: "exclamationmark.circle")
