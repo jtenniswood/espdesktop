@@ -75,6 +75,7 @@ final class CompanionConnection: NSObject {
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
+    private var expandedShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -216,6 +217,7 @@ final class CompanionConnection: NSObject {
         supportsAlphaAppIcons = false
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
+        expandedShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -396,6 +398,7 @@ final class CompanionConnection: NSObject {
         applicationFocusPublisher.reset()
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
+        expandedShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -500,6 +503,7 @@ final class CompanionConnection: NSObject {
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
+            expandedShortcutsSupported = payload.capabilityVersion >= 9
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -551,7 +555,8 @@ final class CompanionConnection: NSObject {
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
                     let status = await self.resources.performResultStatus(
                         actionIdentifier: actionIdentifier,
-                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window"
+                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
+                        shortcutAppID: payload.appId
                     )
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
@@ -800,8 +805,20 @@ final class CompanionConnection: NSObject {
         }
         if remoteCatalogueDefinitionsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
-            let payloads: [(String, Data)] = definitions.compactMap { app in
-                guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
+            let installedIDs = Set(apps.map(\.bundleIdentifier))
+            let starter = definitions.map(\.starter)
+            let expanded = expandedShortcutsSupported ? definitions.filter { app in
+                installedIDs.contains(app.appId) ||
+                    (app.appId == "com.apple.Safari.WebApp" && installedIDs.contains {
+                        $0 != "com.apple.Safari" && CompanionKeyboardShortcut.isSafariApplication($0)
+                    }) ||
+                    (app.appId == "com.adobe.PremierePro" && installedIDs.contains {
+                        CompanionKeyboardShortcut.scopedTargetMatches(app.appId, frontmost: $0, approved: installedIDs)
+                    })
+            }.flatMap { $0.expandedPages() } : []
+            let encoder = JSONEncoder()
+            let payloads: [(String, Data)] = (starter + expanded).prefix(256).compactMap { app in
+                guard let data = try? encoder.encode(app), data.count <= 12_000 else { return nil }
                 return ("application", data)
             }
             let definitionPages = max(payloads.count, 1)

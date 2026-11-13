@@ -3,6 +3,7 @@
   "appId": "com.apple.iBooksX",
   "label": "Books",
   "catalog": false,
+  "defaultShortcutIds": ["29", "30", "2", "3", "1", "13", "14", "9"],
   "shortcuts": [
     {
       "id": "2",
@@ -204,5 +205,11 @@
       "shortcut": "space",
       "icon": "Play Pause"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "33", "label": "Next Page", "shortcut": "scoped.down", "icon": "Page Next"},
+    {"id": "34", "label": "Next Page", "shortcut": "scoped.pagedown", "icon": "Page Next"},
+    {"id": "35", "label": "Previous Page", "shortcut": "scoped.up", "icon": "Page Previous"},
+    {"id": "36", "label": "Previous Page", "shortcut": "scoped.pageup", "icon": "Page Previous"}
   ]
 }

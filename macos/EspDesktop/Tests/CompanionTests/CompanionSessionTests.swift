@@ -18,7 +18,7 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
     func launchableApps() -> [LaunchableApp] { [] }
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data? { nil }
     func focusedCompanionActionIdentifier() -> String { "" }
-    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String { "not_allowed" }
+    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String { "not_allowed" }
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool { false }
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool { false }
     func load(account: String) -> Data? { credentialReads += 1; return nil }

@@ -1,4 +1,5 @@
-import { childPageKey, parentPageKey } from "../model/page_keys";
+import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
+import { previewSubpageOwner } from "../model/companion_shortcut_page";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
 import { state } from "../state/app_instance";
 import * as EspDesktopModel from "../model";
@@ -27,7 +28,8 @@ import type { PreviewRenderFeature } from "./preview_render";
 import { cardPickerConnectors, type CardPickerConnector } from "../features/preview";
 import type { PreviewInteractionsFeature } from "./preview_interactions";
 import type { ControlsFieldsFeature } from "./controls_fields";
-import { cardOwnsSubpage, reconnectAthenaShortcutSubpage } from "./companion_shortcut_folder";
+import { cardOwnsSubpage, COMPANION_APP_SHORTCUTS_TABS_OPTION, editableAppShortcutPage,
+    reconnectAthenaShortcutSubpage } from "./companion_shortcut_folder";
 
 export function entityMatchesDomains(entityId?: any, domains?: any): boolean {
     var value: any = String(entityId || "").trim();
@@ -37,6 +39,7 @@ export function entityMatchesDomains(entityId?: any, domains?: any): boolean {
 
 export interface ButtonSettingsFeature {
     openCardSettings(...args: any[]): any;
+    openAppShortcutSettings(): void;
     renderBackButtonSettings(...args: any[]): any;
     render(...args: any[]): any;
 }
@@ -110,7 +113,6 @@ export function createButtonSettingsFeature(
     } = imageOptions;
     const { cardOnPattern, setCardOnPattern } = confirmationOptions;
     const {
-        normalizeButtonConfig,
         normalizeCardSizeForConfig,
         serializeButtonConfig,
         getSubpage,
@@ -120,12 +122,26 @@ export function createButtonSettingsFeature(
     function openCardSettings(this: any, slot?: any) {
         if (isConfigLocked())
             return;
+        if (state.settingsDraft?.appShortcutPage) state.settingsDraft = null;
         var c: any = ctx();
         if ((slot > 0 || (slot === -2 && c.isSub)) && c.selected.indexOf(slot) === -1) {
             c.setSelected([slot]);
             c.setLastClicked(slot);
             renderPreview();
         }
+        renderButtonSettings(true);
+    }
+    function openAppShortcutSettings(): void {
+        const page = state.editingSubpage;
+        if (!page || isConfigLocked()) return;
+        const owner = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
+        const homeSlot = parentPageKey(page) || null;
+        if (!owner || !editableAppShortcutPage(owner) || !codec.canCreateSubpage(homeSlot)) return;
+        const location = { slot: pageOwnerSlot(page), homeSlot, isSub: homeSlot !== null };
+        state.settingsDraft = {
+            ...cardEditorDraftController.ensureExistingDraft(null, location, owner),
+            appShortcutPage: page,
+        };
         renderButtonSettings(true);
     }
     function renderColourSettings(panel: HTMLElement, idPrefix: string, value: () => string, onChange: (hex: string) => void, onReset?: () => void) {
@@ -201,13 +217,13 @@ export function createButtonSettingsFeature(
         var doneBtn: any = createActionButton("sp-action-btn sp-save-btn", "Done");
         doneBtn.addEventListener("click", closeSettings);
         doneRow.appendChild(doneBtn);
-        panel.appendChild(doneRow);
-        container.appendChild(panel);
+        container.append(panel, doneRow);
         return true;
     }
     function renderButtonSettings(this: any, forceOpen?: any) {
         els.cardColorPresets = null;
         var container: any = els.buttonSettings;
+        const scrollTop = forceOpen ? 0 : container.querySelector(".sp-panel")?.scrollTop ?? 0;
         var openDisclosureIds: any = {};
         container.querySelectorAll(".sp-disclosure.sp-open").forEach(function (this: any, disclosure?: any) {
             var button: any = disclosure.querySelector(".sp-disclosure-button");
@@ -217,41 +233,35 @@ export function createButtonSettingsFeature(
         var settingsModal: any = els.settingsOverlay ? els.settingsOverlay.querySelector(".sp-settings-modal") : null;
         if (settingsModal)
             settingsModal.classList.remove("sp-card-type-picker-open");
-        var c: any = ctx();
-        if (isConfigLocked()) {
-            hideSettingsOverlay();
+        const shortcutDraft = state.settingsDraft?.appShortcutPage ? state.settingsDraft : null;
+        const shortcutPage = shortcutDraft?.appShortcutPage;
+        const homeSlot = shortcutDraft ? shortcutDraft.homeSlot : state.editingSubpage;
+        var c: any = ctx(homeSlot);
+        if (shortcutPage && shortcutPage !== state.editingSubpage) {
+            closeSettings();
             return;
         }
-        if (c.selected.length === 0) {
-            hideSettingsOverlay();
-            return;
-        }
-        if (c.selected.length > 1) {
-            hideSettingsOverlay();
-            return;
-        }
-        if (!forceOpen && !runtime.isSettingsOpen()) {
+        if (isConfigLocked() || (!shortcutDraft && c.selected.length !== 1) ||
+            (!forceOpen && !runtime.isSettingsOpen())) {
             hideSettingsOverlay();
             return;
         }
         if (els.settingsOverlay)
             els.settingsOverlay.classList.add("sp-visible");
-        if (renderBackButtonSettings(container, c))
+        if (!shortcutDraft && renderBackButtonSettings(container, c))
             return;
-        var slot: any = c.selected[0];
+        var slot: any = shortcutDraft?.slot ?? c.selected[0];
         var bIdx: any = slot - 1;
-        var location: any = { slot: slot, homeSlot: state.editingSubpage, isSub: c.isSub };
+        var location: any = { slot: slot, homeSlot: homeSlot, isSub: c.isSub };
         var pendingNewDraft: any = cardEditorDraftController.matchesNewDraft(state.settingsDraft, location);
-        if (bIdx < 0 || (!pendingNewDraft && bIdx >= c.buttons.length))
+        if (bIdx < 0 || (!pendingNewDraft && bIdx >= c.buttons.length)) {
+            if (shortcutDraft) closeSettings();
             return;
+        }
         var liveButton: any = pendingNewDraft ? null : c.buttons[bIdx];
         var draftKey: any = pendingNewDraft ? state.settingsDraft!.key : cardEditorDraftController.keyFor(location);
         function cloneButtonConfig(this: any, src?: any) {
             return EspDesktopModel.cloneCardConfig(src);
-        }
-        function copyButtonConfig(this: any, target?: any, src?: any) {
-            EspDesktopModel.copyCardConfig(target, src);
-            normalizeButtonConfig(target);
         }
         if (!pendingNewDraft)
             state.settingsDraft = cardEditorDraftController.ensureExistingDraft(state.settingsDraft, location, liveButton);
@@ -421,7 +431,7 @@ export function createButtonSettingsFeature(
         function validateImageCardLimit(this: any) {
             var count: any = imageCardCountWithCandidate({
                 isSub: c.isSub,
-                homeSlot: state.editingSubpage,
+                homeSlot: homeSlot,
                 slot: slot,
                 button: b,
             });
@@ -465,7 +475,7 @@ export function createButtonSettingsFeature(
             if (isConfigLocked() || !state.settingsDraft || state.settingsDraft.key !== draftKey)
                 return Promise.resolve(false);
             var draft: any = state.settingsDraft;
-            if (draft.button.type === "subpage" && !codec.canCreateSubpage(c.isSub ? state.editingSubpage : null)) {
+            if (draft.button.type === "subpage" && !codec.canCreateSubpage(homeSlot)) {
                 showBanner("Subpages are not available at this level on this firmware.", "error");
                 return Promise.resolve(false);
             }
@@ -474,7 +484,7 @@ export function createButtonSettingsFeature(
             var originalGrid: any = c.grid.slice();
             var originalButtons: any = c.buttons.map(cloneButtonConfig);
             var originalSizes: any = Object.assign({}, c.sizes || {});
-            var subpageHomeSlot: any = state.editingSubpage;
+            var subpageHomeSlot: any = homeSlot;
             var originalMainSubpage: any = !c.isSub ? state.subpages[slot] : undefined;
             var originalSubpageOrder: any = c.isSub
                 ? (getSubpage(subpageHomeSlot).order || []).slice() : null;
@@ -500,7 +510,7 @@ export function createButtonSettingsFeature(
                 state.subpageSavePending = originalPending;
                 // Rollback replaces page objects; keep this open dialog bound
                 // to the restored live arrays when the user retries Save.
-                c = ctx();
+                c = ctx(homeSlot);
                 state.settingsDraft = draft;
                 renderPreview();
             }
@@ -526,7 +536,7 @@ export function createButtonSettingsFeature(
                 (savedButton.type !== "companion" || savedButton.sensor ||
                     originalSubpageOwner.type !== savedButton.type ||
                     originalSubpageOwner.entity !== savedButton.entity);
-            var sizeChanged: any = applyCardSizeConstraint(savedButton);
+            var sizeChanged: any = !shortcutPage && applyCardSizeConstraint(savedButton);
             var orderChanged: any = !saved.saveSubpage && (saved.saveGrid || sizeChanged);
             const atomicEdit = configPersistence.beginAtomicEdit?.();
             var persistence: any;
@@ -887,6 +897,54 @@ export function createButtonSettingsFeature(
                 }
             });
         }
+        function settingsSaveButton(): HTMLButtonElement {
+            const saveBtn = createActionButton("sp-action-btn sp-save-btn", "Save");
+            saveBtn.addEventListener("click", async () => {
+                if (saveBtn.disabled || isConfigLocked() || state.settingsDraft?.button !== b) return;
+                if (shortcutPage) {
+                    if (!state.settingsDraft?.dirty) {
+                        closeSettings();
+                        return;
+                    }
+                    c = ctx(homeSlot);
+                    const owner = c.buttons[slot - 1];
+                    if (state.editingSubpage !== shortcutPage || !editableAppShortcutPage(owner) ||
+                        owner.entity !== b.entity || !codec.canCreateSubpage(homeSlot)) {
+                        showBanner("This app subpage has changed. Reopen its shortcut settings to try again.", "error");
+                        return;
+                    }
+                    const tabs = configOptionValue(b.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
+                    const options = setConfigOptionValue(owner.options, COMPANION_APP_SHORTCUTS_TABS_OPTION, tabs);
+                    EspDesktopModel.copyCardConfig(b, { ...owner, options, _appShortcutSelectionChanged: true });
+                }
+                if (!validateSettingsDraft() || !validateImageCardLimit() || !validateConfigSize()) return;
+                saveBtn.disabled = true;
+                if (await applySettingsDraft()) {
+                    closeSettings();
+                    return;
+                }
+                saveBtn.disabled = false;
+            });
+            return saveBtn;
+        }
+        if (shortcutPage) {
+            const renderShortcuts = cardRegistry.definitions.companion?.renderAppShortcutSettings;
+            if (!renderShortcuts || !editableAppShortcutPage(liveButton) || liveButton.entity !== b.entity) {
+                closeSettings();
+                return;
+            }
+            title.textContent = "Edit App Shortcuts";
+            panel.classList.add("sp-app-subpage-settings");
+            renderShortcuts(panel, b, shortcutPage, { idPrefix, saveField });
+            const footer = document.createElement("div");
+            footer.className = "sp-btn-row sp-btn-row--save";
+            const cancel = createActionButton("sp-action-btn sp-cancel-btn", "Cancel");
+            cancel.addEventListener("click", closeSettings);
+            footer.append(cancel, settingsSaveButton());
+            container.append(panel, footer);
+            panel.scrollTop = scrollTop;
+            return;
+        }
         var isNewDraftWithoutType: any = isNewDraft && !state.settingsDraft?.typeSelected;
         var rawTypeDef: any = isNewDraftWithoutType ? null : (cardRegistry.definitions[b.type || ""] || cardRegistry.definitions[""]);
         var typeDef: any = rawTypeDef;
@@ -1081,30 +1139,14 @@ export function createButtonSettingsFeature(
         else if (editSubBtn) {
             rightGroup.appendChild(editSubBtn);
         }
-        var saveBtn: any = createActionButton("sp-action-btn sp-save-btn", "Save");
-        saveBtn.addEventListener("click", async function (this: any) {
-            if (saveBtn.disabled)
-                return;
-            if (!validateSettingsDraft())
-                return;
-            if (!validateImageCardLimit())
-                return;
-            if (!validateConfigSize())
-                return;
-            saveBtn.disabled = true;
-            if (await applySettingsDraft()) {
-                closeSettings();
-                return;
-            }
-            saveBtn.disabled = false;
-        });
-        rightGroup.appendChild(saveBtn);
+        rightGroup.appendChild(settingsSaveButton());
         saveRow.appendChild(rightGroup);
-        panel.appendChild(saveRow);
-        container.appendChild(panel);
+        container.append(panel, saveRow);
+        panel.scrollTop = scrollTop;
     }
     return {
         openCardSettings,
+        openAppShortcutSettings,
         renderBackButtonSettings,
         render: renderButtonSettings,
     };

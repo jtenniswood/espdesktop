@@ -3,6 +3,7 @@
   "appId": "net.whatsapp.WhatsApp",
   "label": "WhatsApp",
   "catalog": false,
+  "defaultShortcutIds": ["4", "9", "7", "0", "1", "6", "3", "2"],
   "shortcuts": [
     {
       "id": "0",
@@ -58,5 +59,13 @@
       "shortcut": "command+control+l",
       "icon": "Lock"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "9", "label": "Search Chat", "shortcut": "scoped.command+control+keyslash", "icon": "Search"},
+    {"id": "10", "label": "Close Chat", "shortcut": "scoped.escape", "icon": "Chat"},
+    {"id": "11", "label": "Open Profile and About", "shortcut": "scoped.command+control+p", "icon": "Open File"},
+    {"id": "12", "label": "Open Settings", "shortcut": "scoped.command+control+keycomma", "icon": "Settings"},
+    {"id": "13", "label": "Open GIF panel", "shortcut": "scoped.command+control+g", "icon": "Application"},
+    {"id": "14", "label": "Open sticker panel", "shortcut": "scoped.command+control+s", "icon": "Application"}
   ]
 }

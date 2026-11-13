@@ -1,5 +1,7 @@
 import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS } from "../generated/app_shortcuts";
+import { bundledExpandedShortcuts, SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
+export { SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
 
 export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
@@ -32,7 +34,24 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
     });
     // Keep the bundled catalogue available when the Mac supplies fewer definitions.
     const byAppId = new Map(BUNDLED_SHORTCUT_APPS.map((app) => [app.appId, app]));
-    for (const app of normalized) byAppId.set(app.appId, app);
+    for (const app of normalized) {
+        const bundled = byAppId.get(app.appId);
+        const more = new Map(bundled?.moreShortcuts?.map(item => [item.id, item]));
+        if (Array.isArray(app.moreShortcuts)) {
+            for (const item of app.moreShortcuts) {
+                if (typeof item?.id === "string" && /^(0|[1-9][0-9]{0,2})$/.test(item.id) &&
+                    typeof item.label === "string" && typeof item.icon === "string" && typeof item.shortcut === "string" &&
+                    companionShortcutActionIdValid(COMPANION_SHORTCUT_PREFIX + item.shortcut)) {
+                    more.set(item.id, item);
+                }
+            }
+        }
+        const { moreShortcuts: _remote, ...starter } = app;
+        const template = SAFARI_WEB_APP_BUNDLE_ID.test(app.appId) && app.label === "Athena"
+            ? byAppId.get(ATHENA_TEMPLATE_APP_ID) : bundled;
+        if (template?.defaultShortcutIds) starter.defaultShortcutIds ??= template.defaultShortcutIds;
+        byAppId.set(app.appId, more.size ? { ...starter, moreShortcuts: [...more.values()] } : starter);
+    }
     const definitions = [...byAppId.values()];
     const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(definitions);
     if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...definitions);
@@ -48,6 +67,8 @@ import {
     preserveCardColorOptions,
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
+import { appShortcutPageOwner } from "../model/companion_shortcut_page";
+import type { CardConfig } from "../contracts/types";
 import { isBackOrderToken } from "../model/subpage";
 import type { SubpageConfig } from "../contracts/types";
 
@@ -106,7 +127,7 @@ function companionShortcutApp(bundleIdentifier: string): AppShortcutApplication 
         if (!exact || !fallback) return exact ?? fallback;
         // Keep the generic presets available for already-saved Safari web app cards.
         const ids = new Set(exact.shortcuts.map((shortcut) => shortcut.id));
-        return { ...exact, shortcuts: [...exact.shortcuts, ...fallback.shortcuts.filter((shortcut) => !ids.has(shortcut.id))] };
+        return { ...exact, shortcuts: [...exact.shortcuts, ...fallback.shortcuts.filter(shortcut => !ids.has(shortcut.id))] };
     }
     return exact ?? COMPANION_SHORTCUT_APPS.find((app) => app.appId === "com.adobe.PremierePro" &&
         /^com\.adobe\.PremierePro\.\d+$/.test(bundleIdentifier));
@@ -116,6 +137,11 @@ export function companionAppShortcutFolderEnabled(card: any): boolean {
     return !!card && card.type === "companion" && !!companionShortcutFolderAppLabel(card.entity) &&
         !card.sensor &&
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION);
+}
+
+export function editableAppShortcutPage(card?: CardConfig): boolean {
+    const app = appShortcutPageOwner(card);
+    return !!app && app !== "com.apple.finder" && companionShortcutChoices(app).length > 0;
 }
 
 export function normalizeCompanionAppShortcutOptions(card: any): string {
@@ -234,14 +260,19 @@ export function syncInheritedFinderOpenBehavior(subpage: any, behavior: FinderOp
 }
 
 export function companionShortcutTabDefinitions(bundleIdentifier: string): CompanionShortcutTabDefinition[] {
-    const appShortcuts = companionShortcutApp(bundleIdentifier)?.shortcuts;
-    return (appShortcuts || []).map((item) => ({ value: item.id, label: item.label }));
+    return companionShortcutChoices(bundleIdentifier).map((item) => ({ value: item.id, label: item.label }));
 }
 
 export function companionShortcutDefaultTabs(bundleIdentifier: string): string[] {
-    return companionShortcutTabDefinitions(bundleIdentifier).map(function (definition) {
-        return definition.value;
-    });
+    if (bundleIdentifier === "com.apple.finder") return [];
+    const app = companionShortcutApp(bundleIdentifier);
+    if (!app) return [];
+    if (Array.isArray(app.defaultShortcutIds)) {
+        const available = new Set(companionShortcutChoices(bundleIdentifier).map(item => item.id));
+        const defaults = [...new Set(app.defaultShortcutIds)].filter(id => available.has(id));
+        if (defaults.length) return defaults;
+    }
+    return app.shortcuts.map(item => item.id);
 }
 
 export function companionShortcutTabs(card: any): string[] {
@@ -249,7 +280,7 @@ export function companionShortcutTabs(card: any): string[] {
     const raw = configOptionValue(card?.options, COMPANION_APP_SHORTCUTS_TABS_OPTION);
     if (!raw) return defaults;
     if (raw === "none") return [];
-    const valid = new Set(defaults);
+    const valid = new Set(companionShortcutChoices(card?.entity || "").map(item => item.id));
     const tabs: string[] = [];
     raw.split("|").forEach(function (value) {
         if (valid.has(value) && tabs.indexOf(value) < 0) tabs.push(value);
@@ -260,7 +291,7 @@ export function companionShortcutTabs(card: any): string[] {
 export function setCompanionShortcutTabs(card: any, tabs: readonly string[]): string {
     if (!card) return "";
     const defaults = companionShortcutDefaultTabs(card.entity);
-    const valid = new Set(defaults);
+    const valid = new Set(companionShortcutChoices(card?.entity || "").map(item => item.id));
     const normalized: string[] = [];
     (tabs || []).forEach(function (value) {
         if (valid.has(value) && normalized.indexOf(value) < 0) normalized.push(value);
@@ -305,8 +336,24 @@ export function isBooksExtendedShortcut(actionId: string): boolean {
         actionId === "shortcut.space" || actionId === "shortcut.function+f";
 }
 
+function shortcutKeyValid(key: string, scoped = false): boolean {
+    return /^[a-z0-9]$/.test(key) || COMPANION_SHORTCUT_KEYS.has(key) ||
+        /^f(?:[1-9]|1[0-9]|20)$/.test(key) ||
+        (scoped && /^keypad(?:[0-9]|plus|minus|multiply|divide|decimal|equal|enter|clear)$/.test(key));
+}
+
 export function companionShortcutActionIdValid(actionId: unknown): boolean {
-    if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX)) return false;
+    if (typeof actionId !== "string" || !actionId.startsWith(COMPANION_SHORTCUT_PREFIX) || actionId.length > 96) return false;
+    if (actionId.startsWith(SCOPED_SHORTCUT_PREFIX)) {
+        const strokes = actionId.slice(SCOPED_SHORTCUT_PREFIX.length).split("~");
+        return strokes.length <= 3 && strokes.every(stroke => {
+            const parts = stroke.split("+");
+            const key = parts.pop() || "";
+            return new Set(parts).size === parts.length &&
+                parts.every(part => part === "function" || COMPANION_SHORTCUT_MODIFIERS.has(part)) &&
+                shortcutKeyValid(key, true);
+        });
+    }
     if (isSafariUnmodifiedShortcut(actionId) || isClaudeScopedShortcut(actionId)) return true;
     if (isBooksExtendedShortcut(actionId) || actionId === CHATGPT_CLEAR_UNREADS_ACTION) return true;
     const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
@@ -318,8 +365,7 @@ export function companionShortcutActionIdValid(actionId: unknown): boolean {
         !modifiers.some((modifier) => modifier === "command" || modifier === "control" || modifier === "option")) {
         return false;
     }
-    if (/^[a-z0-9]$/.test(key) || COMPANION_SHORTCUT_KEYS.has(key)) return true;
-    return /^f(?:[1-9]|1[0-9]|20)$/.test(key);
+    return shortcutKeyValid(key);
 }
 
 function shortcutCard(entity: string, label: string, icon: string): CompanionShortcutPresetCard {
@@ -336,25 +382,21 @@ function shortcutCard(entity: string, label: string, icon: string): CompanionSho
     };
 }
 
-function companionShortcutPresetKey(bundleIdentifier: string, index: number): string {
-    const id = companionShortcutTabDefinitions(bundleIdentifier)[index]?.value;
-    return id == null ? "" : bundleIdentifier + ":" + id;
-}
-
-function markCompanionShortcutPresets(
-    bundleIdentifier: string,
-    cards: CompanionShortcutPresetCard[],
-): CompanionShortcutPresetCard[] {
-    return cards.map(function (card, index) {
-        return {
-            ...card,
-            options: setConfigOptionValue(
-                card.options,
-                COMPANION_SHORTCUT_PRESET_OPTION,
-                companionShortcutPresetKey(bundleIdentifier, index),
-            ),
-        };
-    });
+function companionShortcutChoices(bundleIdentifier: string) {
+    const app = companionShortcutApp(bundleIdentifier);
+    if (!app) return [];
+    const more = new Map<string, ReturnType<typeof bundledExpandedShortcuts>[number]>();
+    const merge = (source: AppShortcutApplication) => {
+        for (const item of bundledExpandedShortcuts(source.appId)) more.set(item.id, item);
+        for (const item of source.moreShortcuts ?? []) more.set(item.id, item);
+    };
+    if (SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)) {
+        const fallback = COMPANION_SHORTCUT_APPS.find(item => item.appId === SAFARI_WEB_APP_TEMPLATE);
+        if (fallback) merge(fallback);
+    }
+    merge(app);
+    for (const item of app.shortcuts) more.delete(item.id);
+    return [...app.shortcuts, ...more.values()];
 }
 
 function companionShortcutPresetIdentity(card: any, preserveUnavailablePreset = false): string {
@@ -366,7 +408,7 @@ function companionShortcutPresetIdentity(card: any, preserveUnavailablePreset = 
     if (preserveUnavailablePreset && bundleIdentifier.length <= 96 &&
         /^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$/.test(bundleIdentifier) &&
         /^(0|[1-9][0-9]{0,2})$/.test(id)) return raw;
-    return companionShortcutTabDefinitions(bundleIdentifier).some((item) => item.value === id) ? raw : "";
+    return companionShortcutChoices(bundleIdentifier).some(item => item.id === id) ? raw : "";
 }
 
 export function reconnectAthenaShortcutSubpage(
@@ -377,13 +419,14 @@ export function reconnectAthenaShortcutSubpage(
     const athena = BUNDLED_SHORTCUT_APPS.find(app => app.appId === ATHENA_TEMPLATE_APP_ID);
     const target = COMPANION_SHORTCUT_APPS.find(app => app.appId === replacement);
     if (!athena || !target) return null;
-    const athenaTabs = new Set(athena.shortcuts.map(shortcut => shortcut.id));
+    const athenaTabs = new Set([...athena.shortcuts, ...bundledExpandedShortcuts(ATHENA_TEMPLATE_APP_ID)]
+        .map(shortcut => shortcut.id));
     const preset = (card: { options: string }) => configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
     const wasAthena = page.buttons.some(card => {
         const [id, tab] = preset(card).split(":");
         return id === previous && tab !== undefined && athenaTabs.has(tab);
     });
-    if (!wasAthena || !target.shortcuts.some(shortcut => athenaTabs.has(shortcut.id))) return null;
+    if (!wasAthena || !companionShortcutChoices(target.appId).some(shortcut => athenaTabs.has(shortcut.id))) return null;
 
     const availableTabs = new Set(companionShortcutTabDefinitions(replacement).map(tab => tab.value));
     return {
@@ -410,15 +453,21 @@ export function slackShortcutPresetCards(): CompanionShortcutPresetCard[] {
     return companionShortcutPresetCards(SLACK_BUNDLE_ID);
 }
 
-export function companionShortcutCatalogApps(): AppShortcutApplication[] {
+export function companionShortcutCatalogApps(appId?: string): AppShortcutApplication[] {
     // The Mac sends Athena under the actual installed web app's bundle ID.
-    return COMPANION_SHORTCUT_APPS.filter((app) => app.appId !== ATHENA_TEMPLATE_APP_ID && app.shortcuts?.length > 0);
+    const apps = COMPANION_SHORTCUT_APPS.filter((app) => app.appId !== ATHENA_TEMPLATE_APP_ID && app.shortcuts?.length > 0);
+    if (appId && appId !== ATHENA_TEMPLATE_APP_ID && !apps.some(app => app.appId === appId)) {
+        const template = companionShortcutApp(appId);
+        if (template) apps.push({ ...template, appId });
+    }
+    return apps;
 }
 
 export function companionShortcutPresetCards(bundleIdentifier: string): CompanionShortcutPresetCard[] {
-    const app = companionShortcutApp(bundleIdentifier);
-    return markCompanionShortcutPresets(bundleIdentifier, (app?.shortcuts || []).map((item) =>
-        shortcutCard(COMPANION_SHORTCUT_PREFIX + item.shortcut, item.label, item.icon)));
+    return companionShortcutChoices(bundleIdentifier).map(item => ({
+        ...shortcutCard(COMPANION_SHORTCUT_PREFIX + item.shortcut, item.label, item.icon),
+        options: setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, bundleIdentifier + ":" + item.id),
+    }));
 }
 
 export function createCompanionShortcutSubpage(bundleIdentifier: string, tabs?: readonly string[]) {
@@ -527,10 +576,8 @@ export function companionShortcutTabsFromSubpage(
     subpage: any,
 ): string[] {
     const presets = companionShortcutPresetCards(bundleIdentifier);
-    const presetIndex = new Map(presets.map(function (card, index) {
-        const key = companionShortcutPresetKey(bundleIdentifier, index);
-        return [key, key.slice(bundleIdentifier.length + 1)] as const;
-    }));
+    const presetIndex = new Map(companionShortcutChoices(bundleIdentifier).map(item =>
+        [bundleIdentifier + ":" + item.id, item.id] as const));
     const legacyPresetKeys = legacyCompanionShortcutPresetKeys(bundleIdentifier, presets);
     const tabs: string[] = [];
     const visited = new Set<number>();
@@ -556,12 +603,14 @@ function legacyCompanionShortcutPresetKeys(
     const safariPresetIDs = SAFARI_WEB_APP_BUNDLE_ID.test(bundleIdentifier)
         ? new Set(COMPANION_SHORTCUT_APPS.find((app) => app.appId === SAFARI_WEB_APP_TEMPLATE)?.shortcuts.map((item) => item.id))
         : undefined;
-    presets.forEach((card, index) => {
-        const key = companionShortcutPresetKey(bundleIdentifier, index);
+    const starterIDs = bundleIdentifier === "com.apple.finder" ? new Set<string>()
+        : new Set(companionShortcutApp(bundleIdentifier)?.shortcuts.map(item => item.id));
+    presets.forEach(card => {
+        const key = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
         const id = key.slice(bundleIdentifier.length + 1);
         // New app-specific presets already save an ID. Keep older custom tiles
         // with the same keys separate from those presets.
-        if (safariPresetIDs && !safariPresetIDs.has(id)) return;
+        if (!starterIDs.has(id) || (safariPresetIDs && !safariPresetIDs.has(id))) return;
         if (bundleIdentifier !== CODEX_BUNDLE_ID || Number(id) <= LAST_LEGACY_CHATGPT_PRESET_ID) {
             keys.set(card.entity, key);
         }

@@ -133,8 +133,9 @@ void CompanionService::setup() {
   if (!this->identity_.paired || !this->sequence_preferences_.load(&this->last_sequence_))
     this->last_sequence_ = 0;
   register_companion_action_sender([this](const std::string &action, const std::string &request,
-                                          const std::string &folder_open_behavior) {
-    return this->invoke_(action, request, folder_open_behavior);
+                                          const std::string &folder_open_behavior,
+                                          const std::string &shortcut_app_id) {
+    return this->invoke_(action, request, folder_open_behavior, shortcut_app_id);
   });
   register_companion_url_sender([this](const std::string &url, const std::string &request, bool new_window) {
     return this->invoke_url_(url, request, new_window);
@@ -1133,7 +1134,7 @@ void CompanionService::save_focus_targets_() {
 }
 
 bool CompanionService::invoke_(const std::string &action_id, const std::string &request_id,
-                               const std::string &folder_open_behavior) {
+                               const std::string &folder_open_behavior, const std::string &shortcut_app_id) {
   const int socket_fd = this->session_.authenticated_socket();
   if (socket_fd < 0 || !safe_field(action_id, 96) || !safe_field(request_id, 64) ||
       (folder_open_behavior != "new_window" && folder_open_behavior != "same_window")) return false;
@@ -1141,6 +1142,10 @@ bool CompanionService::invoke_(const std::string &action_id, const std::string &
   payload.requestId = request_id;
   payload.kind = "action";
   payload.actionId = action_id;
+  if (!shortcut_app_id.empty()) {
+    if (!safe_application_id(shortcut_app_id)) return false;
+    payload.appId = shortcut_app_id;
+  }
   if (action_id.rfind("folder.", 0) == 0) payload.folderOpenBehavior = folder_open_behavior;
   return this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
     companion_protocol::encode(root, payload);

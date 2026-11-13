@@ -1,6 +1,9 @@
 import { createColorSwatches } from "../components/color_swatches";
 import { cardIconSizeOverride, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
+import { previewSubpageOwner } from "../model/companion_shortcut_page";
+import { parentPageKey } from "../model/page_keys";
+import { editableAppShortcutPage } from "./companion_shortcut_folder";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import type { ConfigPersistenceFeature } from "./config_post_api";
 import { state } from "../state/app_instance";
@@ -51,6 +54,7 @@ export interface PreviewContextMenuDependencies {
     readonly renderPreview: () => void;
     readonly renderButtonSettings: () => void;
     readonly openCardSettings: (slot: number) => void;
+    readonly openAppShortcutSettings: () => void;
 
     readonly addSlot: (position: number) => void;
     readonly addSubpageSlot: (position: number) => void;
@@ -397,7 +401,16 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         }
         addCtxSubmenu("arrow-expand", "App Icon Size", submenu);
     }
+    function addAppShortcutMenuItem() {
+        const page = state.editingSubpage;
+        if (!page || !dependencies.codec.canCreateSubpage(parentPageKey(page) || null)) return;
+        const owner = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
+        if (editableAppShortcutPage(owner)) {
+            addCtxItem("keyboard-settings-outline", "Edit App Shortcuts", dependencies.openAppShortcutSettings);
+        }
+    }
     function addBulkCardMenuItems(this: any, slots?: any) {
+        addAppShortcutMenuItem();
         addIconSizeMenuItem(slots);
         addColourMenuItem(slots);
         addCtxItem("clipboard-outline", "Copy " + slots.length + " Cards", function (this: any) { copyButtons(slots); });
@@ -440,6 +453,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         var c: any = ctx();
         var b: any = c.buttons[slot - 1];
         addCtxItem("pencil", "Edit Card", function (this: any) { openCardSettings(slot); });
+        addAppShortcutMenuItem();
         addIconSizeMenuItem([slot]);
         addColourMenuItem([slot]);
         var ctxTypeDef: any = dependencies.cards.definitions[(b && b.type) || ""];
@@ -546,6 +560,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     }
     function addBackButtonMenuItems(this: any) {
         addCtxItem("pencil", "Edit Label", function (this: any) { openCardSettings(-2); });
+        addAppShortcutMenuItem();
         addColourMenuItem([-2]);
         addCtxItem("keyboard-return", "Exit Subpage", function (this: any) { exitSubpage(); });
     }
@@ -557,6 +572,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         ctxMenu.className = "sp-ctx-menu";
         var c: any = ctx();
         addCtxItem("plus", "Create Card", function (this: any) { addSlot(pos); });
+        addAppShortcutMenuItem();
         if (!c.isSub) {
             addCtxItem("folder-plus", "Create Subpage", function (this: any) { addSubpageSlot(pos); });
         }

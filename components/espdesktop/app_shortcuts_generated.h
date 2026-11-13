@@ -39,7 +39,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "net.shinyfrog.bear") return "Bear";
   if (app == "com.apple.iBooksX") return "Books";
   if (app == "com.apple.iCal") return "Calendar";
-  if (app == "com.openai.chat") return "ChatGPT";
+  if (app == "com.openai.chat") return "ChatGPT Classic";
   if (app == "com.openai.codex") return "ChatGPT Desktop";
   if (app == "com.anthropic.claudefordesktop") return "Claude Desktop";
   if (app == "com.todesktop.230313mzl4w4u92") return "Cursor";
@@ -49,6 +49,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.apple.FaceTime") return "FaceTime";
   if (app == "com.figma.Desktop") return "Figma";
   if (app == "com.apple.FinalCut") return "Final Cut Pro";
+  if (app == "com.apple.finder") return "Finder";
   if (app == "org.mozilla.firefox") return "Firefox";
   if (app == "com.apple.freeform") return "Freeform";
   if (app == "com.apple.garageband10") return "GarageBand";
@@ -116,7 +117,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.seriflabs.affinitypublisher2") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.runningwithcrayons.Alfred") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
   if (app == "company.thebrowser.Browser") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
-  if (app == "io.github.jtenniswood.athena") return id == "100" || id == "101" || id == "102" || id == "103" || id == "104" || id == "105" || id == "106" || id == "107" || id == "108" || id == "109" || id == "110" || id == "111" || id == "112" || id == "113" || id == "114" || id == "115" || id == "116" || id == "117" || id == "118" || id == "119";
+  if (app == "io.github.jtenniswood.athena") return id == "100" || id == "101" || id == "102" || id == "103" || id == "104" || id == "105" || id == "106" || id == "107" || id == "108" || id == "109" || id == "110" || id == "111" || id == "112" || id == "113" || id == "114" || id == "115" || id == "116" || id == "117" || id == "118" || id == "119" || id == "120" || id == "121" || id == "122" || id == "123" || id == "124" || id == "125";
   if (app == "org.audacityteam.audacity") return id == "0" || id == "1";
   if (app == "com.bambulab.bambu-studio") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
   if (app == "net.shinyfrog.bear") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
@@ -132,6 +133,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.apple.FaceTime") return id == "0" || id == "1";
   if (app == "com.figma.Desktop") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9" || id == "10" || id == "11" || id == "12" || id == "13" || id == "14" || id == "15" || id == "16" || id == "17" || id == "18" || id == "19" || id == "20" || id == "21" || id == "22" || id == "23" || id == "24" || id == "25" || id == "26" || id == "27" || id == "28" || id == "29" || id == "30" || id == "31" || id == "32" || id == "33" || id == "34" || id == "35" || id == "36" || id == "37" || id == "38";
   if (app == "com.apple.FinalCut") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
+  if (app == "com.apple.finder") return id == "0" || id == "1" || id == "2";
   if (app == "org.mozilla.firefox") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7";
   if (app == "com.apple.freeform") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "com.apple.garageband10") return id == "0" || id == "1" || id == "2" || id == "3";

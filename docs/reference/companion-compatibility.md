@@ -16,7 +16,7 @@ For an older version, find the matching Mac DMG and 4848S040 firmware in [GitHub
 
 ## Protocol and layout details
 
-Companion and firmware currently use protocol 4 and capability version 8.
+Companion and firmware currently use protocol 4 and capability version 9.
 
 Supported display: guition-esp32-s3-4848s040.
 

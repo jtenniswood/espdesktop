@@ -16,6 +16,8 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
+  parseRawButtonConfig,
+  setConfigOptionValue,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
 const { encodePanelPageDocument, decodePanelPageSnapshot } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
@@ -4312,6 +4314,8 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
+  nativeState.document.buttons[4] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[4] = "~B,1|companion,shortcut.command%2Bl,Address,Keyboard";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
@@ -4358,6 +4362,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
     const action = page.locator('[id$="shortcut-catalog-action"]');
+    const search = page.getByRole("searchbox", { name: "Search by name or keys" });
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
     await custom.press("ArrowRight");
@@ -4385,16 +4390,36 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0);
+    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0) + (safariTemplate.moreShortcuts?.length || 0);
     assert.strictEqual(
       await action.locator("option").count(),
       safariShortcutCount + 1,
       "Safari catalog shortcuts plus placeholder",
     );
+    const reloadPreset = "app_shortcut_preset=com.apple.Safari%3A2";
+    for (const query of ["reload", "Cmd+R", "⌘R"]) {
+      await search.fill(query);
+      const results = await action.locator("option").allTextContents();
+      assert(results.length < safariShortcutCount + 1);
+      assert(results.includes("Reload (⌘R)"), query);
+    }
+    await search.fill("ctrl shift tab");
+    assert((await action.locator("option").allTextContents()).includes("Previous Tab (⌃⇧Tab)"));
+    await search.fill("tab");
+    assert((await action.locator("option").allTextContents()).includes("Next Field (Tab)"));
+    await search.fill("zzzz");
+    await page.getByRole("status").filter({ hasText: "No matching shortcuts" }).waitFor();
+    assert.strictEqual(await action.locator("option").count(), 1);
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
-    await action.selectOption("app_shortcut_preset=com.apple.Safari%3A2");
+    await search.fill("reload");
+    await action.selectOption(reloadPreset);
+    assert.strictEqual(await search.inputValue(), "reload", "choosing a shortcut keeps the filter");
+    await search.fill("zzzz");
+    assert.strictEqual(await action.inputValue(), reloadPreset, "filtering keeps the selected shortcut");
+    await search.fill("");
+    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -4408,7 +4433,16 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
     const slack = require("../product/v2/app_shortcuts/slack.json");
     const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
+    await app.selectOption("com.apple.FinalCut");
+    assert((await action.locator("option").count()) > 350, "Final Cut Pro has a large catalog");
+    await search.fill("blade at playhead");
+    assert.deepStrictEqual(await action.locator("option").allTextContents(),
+      ["Choose a shortcut…", "Blade at Playhead (⌘B)"]);
+    await search.fill("Cmd+B");
+    assert((await action.locator("option").allTextContents()).includes("Blade at Playhead (⌘B)"));
+    await search.fill("reload");
     await app.selectOption(slack.appId);
+    assert.strictEqual(await search.inputValue(), "", "switching apps clears the filter");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "changing apps keeps the Application tab selected");
     await action.selectOption(slackPreset);
     await saveCard();
@@ -4487,6 +4521,39 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeMissingKeySave, "a modifier without a key cannot save");
 
+    await page.locator(".sp-settings-close").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    const addShortcut = async () => {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await chooseCardType(page, "Key Shortcut");
+    };
+    await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
+    await addShortcut();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true");
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari", "new shortcuts start with the page's app");
+    assert.strictEqual(await action.inputValue(), "", "the user still chooses a shortcut");
+    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    await search.fill("new tab");
+    assert((await action.locator("option").allTextContents()).includes("New Tab (⌘T)"));
+    await app.selectOption("");
+    assert.strictEqual(await app.inputValue(), "", "the app selection can be cleared");
+    await app.selectOption(slack.appId);
+    await custom.click();
+    assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
+    await application.click();
+    assert.strictEqual(await app.inputValue(), slack.appId, "switching tabs retains the user's app choice");
+    await action.selectOption(slackPreset);
+    await saveCard();
+    const savedSubpage = nativeState.document.subpages[4];
+    assert(decodeURIComponent(savedSubpage).includes(slackPreset), "the saved shortcut keeps the selected preset");
+    await addShortcut();
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari", "each new card starts with the page's app");
+    await page.locator(".sp-settings-close").click();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    await addShortcut();
+    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "generic subpages still start on Custom");
+
   } finally {
     await context.close();
   }
@@ -4497,6 +4564,10 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] =
     "com.apple.Safari;Safari;Shortcut Command;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[1] = "~B,1,2,3,4,5,6,7,8|" +
+    require("../product/v2/app_shortcuts/safari.json").shortcuts.slice(0, 8).map(shortcut =>
+      ["companion", "shortcut." + shortcut.shortcut, shortcut.label, shortcut.icon].join(",")
+    ).join("|");
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
@@ -4521,8 +4592,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       '"' + String.fromCodePoint(0xF0633) + '"',
       "saved Command cards render the bundled MDI glyph",
     );
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const appCard = page.locator('.sp-main [data-slot="1"]');
+    await appCard.click({ button: "right" });
+    const menu = page.locator(".sp-ctx-menu");
+    assert.strictEqual(await menu.getByText("Edit App Shortcuts", { exact: true }).count(), 0,
+      "the shortcut editor is available inside app subpages");
+    await menu.getByText("Edit Card", { exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
 
     const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({
@@ -4549,15 +4624,99 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? [])];
+    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? []), ...(safariTemplate.moreShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
+    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) shortcuts/ });
+    const toggleActions = appSubpage.locator(".sp-app-subpage-shortcut-actions");
+    const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
+    assert.strictEqual(await visibleRows.count(), 20);
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "false");
+    const assertToggleBelowRows = async () => {
+      assert.strictEqual(await visibleRows.last().evaluate(row => getComputedStyle(row).borderBottomWidth), "0px");
+      assert.strictEqual(await visibleRows.first().evaluate(row => getComputedStyle(row).borderBottomWidth), "1px");
+      assert.strictEqual(await toggleActions.evaluate(el => getComputedStyle(el).borderTopWidth), "1px");
+      const lastRow = await visibleRows.last().boundingBox();
+      const actions = await toggleActions.boundingBox();
+      const toggle = await toggleList.boundingBox();
+      assert(actions.y >= lastRow.y + lastRow.height && toggle.y > actions.y,
+        "the divider separates the visible rows from the button");
+      assert(actions.y + actions.height > toggle.y + toggle.height, "the button has space below it");
+    };
+    await assertToggleBelowRows();
+    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
+    const lastShortcut = safariShortcuts.at(-1);
+    await filter.fill(lastShortcut.label);
+    assert(!(await toggleActions.isVisible()), "search hides the button and its divider");
+    assert(await rows.filter({ has: page.getByText(lastShortcut.label, { exact: true }) }).last().isVisible(),
+      "search includes shortcuts beyond the first 20");
+    await filter.clear();
+    assert.strictEqual(await visibleRows.count(), 20);
+    await toggleList.click();
+    assert.strictEqual(await visibleRows.count(), safariShortcuts.length);
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "true");
+    await assertToggleBelowRows();
+    await toggleList.click();
+    assert.strictEqual(await visibleRows.count(), 20);
+    await toggleList.click();
+
+    const modal = page.locator(".sp-settings-modal");
+    const body = modal.locator(".sp-config > .sp-panel");
+    const footer = modal.locator(".sp-btn-row--save");
+    for (const viewport of [testCase.viewport, { width: 360, height: 640 }]) {
+      await page.setViewportSize(viewport);
+      await body.evaluate(el => { el.scrollTop = 0; });
+      assert(await body.evaluate(el => {
+        const modal = el.closest(".sp-settings-modal");
+        const bounds = el.getBoundingClientRect();
+        const style = getComputedStyle(modal);
+        const edges = modal.getBoundingClientRect();
+        return getComputedStyle(el).borderRadius === "0px" &&
+          Math.abs(bounds.left - edges.left - parseFloat(style.borderLeftWidth)) < 1 &&
+          Math.abs(edges.right - bounds.right - parseFloat(style.borderRightWidth)) < 1;
+      }), "the square scrolling area extends to the modal's inside edges");
+      const beforeScroll = await footer.boundingBox();
+      await body.evaluate(el => { el.scrollTop = el.scrollHeight; });
+      assert(await body.evaluate(el => el.scrollTop) > 0, "the settings body scrolls");
+      const lastSection = body.locator(".sp-disclosure").last();
+      const panelBounds = await body.boundingBox();
+      const lastBounds = await lastSection.boundingBox();
+      assert(panelBounds.y + panelBounds.height - (lastBounds.y + lastBounds.height) >= 11,
+        "the last section scrolls fully into view with space below it");
+      assert.deepStrictEqual(await footer.boundingBox(), beforeScroll, "the action row stays fixed while settings scroll");
+      for (const control of [".sp-delete-btn", ".sp-edit-subpage-btn", ".sp-save-btn"]) {
+        assert(await footer.locator(control).evaluate(el => {
+          const bounds = el.getBoundingClientRect();
+          return bounds.top >= 0 && bounds.bottom <= window.innerHeight &&
+            el.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
+        }), control + " is visible and clickable while the body is scrolled");
+      }
+    }
+    await page.setViewportSize(testCase.viewport);
+    await body.evaluate(el => { el.scrollTop = 0; });
+
     assert.deepStrictEqual(
       await rows.locator(".sp-light-tab-label").allTextContents(),
       safariShortcuts.map((shortcut) => shortcut.label),
       `${testCase.name}: Safari should expose its reorderable shortcut list`,
     );
-    await page.getByRole("button", { name: `Move ${safariShortcutLabel(3)} up` }).click();
+    await filter.fill("Reload");
+    assert(await rows.filter({ hasText: safariShortcutLabel(2) }).first().isVisible());
+    assert(!(await rows.filter({ hasText: safariShortcutLabel(3) }).first().isVisible()));
+    assert.strictEqual(await visibleRows.last().evaluate(row => getComputedStyle(row).borderBottomWidth), "0px",
+      "the last filtered shortcut has no trailing divider");
+    await filter.clear();
+    assert.strictEqual(await rows.locator(".sp-light-tab-move").count(), 0, "shortcuts use drag handles to reorder");
+    const drag = rows.locator('[aria-label="Drag ' + safariShortcutLabel(3) + '"]').first();
+    assert.strictEqual(await drag.getAttribute("tabindex"), "0", "the drag handle is keyboard accessible");
+    await drag.press("ArrowUp");
+    assert.strictEqual(await rows.nth(2).getAttribute("data-tab"), "3", "Arrow Up reorders the shortcut");
+    assert(await drag.evaluate(handle => handle === document.activeElement), "the moved handle retains focus");
+    await page.keyboard.press("ArrowDown");
+    assert.strictEqual(await rows.nth(3).getAttribute("data-tab"), "3", "Arrow Down reorders the shortcut");
+    await drag.dragTo(appSubpage.locator('.sp-light-tab-row[data-tab="2"]'), {
+      targetPosition: { x: 16, y: 6 },
+    });
     assert.strictEqual(
       await appSubpage.locator(".sp-disclosure-button").getAttribute("aria-expanded"),
       "true",
@@ -4569,6 +4728,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       "true",
       `${testCase.name}: App subpage stays open after toggling a shortcut`,
     );
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "true", "expanded list stays open after edits");
     const enabledOrder = ["0", "3", "2", "4", "5", "6", "7"];
     const disabledLabels = safariShortcuts.filter(shortcut => !enabledOrder.includes(shortcut.id))
       .map(shortcut => shortcut.label);
@@ -4597,6 +4757,41 @@ async function assertCompanionShortcutSettings(browser, testCase) {
         !subpage.includes("shortcut.command+keybracketright"),
       `${testCase.name}: saving should generate only enabled shortcuts`,
     );
+    const appWithoutShortcutSelection = (value) => {
+      const card = parseRawButtonConfig(value);
+      return { ...card, options: setConfigOptionValue(card.options, "app_shortcuts_tabs", "") };
+    };
+    const parentBefore = appWithoutShortcutSelection(nativeState.document.buttons[1]);
+    await appCard.locator(".sp-subpage-badge").click();
+    const shortcutCard = page.locator('.sp-main [data-slot="1"]');
+    const dialog = page.locator(".sp-settings-modal");
+    const showShortcuts = async (target = shortcutCard) => {
+      await target.click({ button: "right" });
+      await menu.getByText("Edit App Shortcuts", { exact: true }).click();
+      await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
+    };
+    await showShortcuts();
+    assert.strictEqual(await dialog.getByText("Card Settings", { exact: true }).count(), 0);
+    assert.strictEqual(await dialog.getByText("Add app subpage", { exact: true }).count(), 0);
+    const back = dialog.getByRole("checkbox", { name: safariShortcutLabel(0), exact: true });
+    assert(await back.isChecked(), "the shortcut editor reads the existing page selection");
+    await back.evaluate(input => input.click());
+    const beforeCancel = nativeState.puts.length;
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeCancel, "cancelling discards shortcut changes");
+    await showShortcuts();
+    assert(await back.isChecked(), "reopening after cancellation restores the saved selection");
+    await back.evaluate(input => input.click());
+    await dialog.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      !nativeState.document.subpages[1].includes("shortcut.command+keybracketleft"),
+    "save shortcuts from inside the app page");
+    assert.deepStrictEqual(appWithoutShortcutSelection(nativeState.document.buttons[1]), parentBefore,
+      "only the parent app's shortcut option changes");
+    const backCard = page.locator(".sp-main .sp-back-btn");
+    assert(await backCard.isVisible(), "Save stays on the app subpage");
+    await showShortcuts(backCard);
+    assert(!(await back.isChecked()), "reopening shows the updated selection");
   } finally {
     await context.close();
   }
@@ -7059,8 +7254,11 @@ async function assertNestedCompanionPages(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const folderAppCard = page.locator('.sp-main [data-slot="1"]');
+    await folderAppCard.click({ button: "right" });
+    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Edit App Shortcuts", { exact: true }).count(), 0,
+      "ordinary folders do not have a shortcut editor");
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
     if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
     await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
@@ -7071,12 +7269,15 @@ async function assertNestedCompanionPages(browser) {
     // Start the independent edit/reload scenario with a custom existing card.
     fixture.document = existing; fixture.generation++; fixture.puts = [];
     await open();
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await page.getByText("Safari", { exact: true }).first().waitFor();
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
-    if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await app.locator(".sp-disclosure-button").click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "Key Shortcut");
+    assert.strictEqual(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
+    assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
+      "a nested app page uses the app that owns the inner page");
+    await page.locator(".sp-settings-close").click();
+    await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit App Shortcuts", { exact: true }).click();
+    await page.locator(".sp-settings-modal").getByText("Edit App Shortcuts", { exact: true }).waitFor();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
     let rejectNext = true;
     await page.route("**/api/v1/config", async route => {
@@ -7102,6 +7303,8 @@ async function assertNestedCompanionPages(browser) {
     const parsed = loadTypeScriptModule("src/webserver/model/subpage.ts").parseRawSubpageConfig(fixture.document.subpages[33], code => code);
     const back = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/app_shortcuts/safari.json"))).shortcuts.find(shortcut => shortcut.id === "1");
     assert(parsed.buttons.some(card => card.entity === "shortcut." + back.shortcut), "retry in the same dialog saves the newly selected shortcut");
+    assert(await page.locator(".sp-main").getByText("Address", { exact: true }).isVisible(),
+      "saving the nested shortcut list stays on that page");
     await open();
 
     const stale = await context.newPage();

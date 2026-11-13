@@ -23,10 +23,13 @@ export async function runCompanionCatalogueTests(): Promise<void> {
       requestedPages.push(page);
       if (emptyDefinitions) return new Response(JSON.stringify({ page, hasMore: false, definitions: [] }), { status: 200 });
       if (page === 0) return new Response(JSON.stringify({ page, hasMore: true, definitions: [
-        { kind: "application", definition: { appId: "org.example." + definitionId } },
+        { kind: "application", definition: { appId: "org.example." + definitionId,
+          shortcuts: [{ id: "0", label: "Save", shortcut: "command+s", icon: "Save" }] } },
         { kind: "webapp", definition: { id: definitionId } },
       ] }), { status: 200 });
       return new Response(JSON.stringify({ page, hasMore: false, definitions: [
+        { kind: "application", definition: { appId: "org.example." + definitionId, shortcuts: [],
+          moreShortcuts: [{ id: "65", label: "Page Down", shortcut: "scoped.pagedown", icon: "Page Next" }] } },
         { kind: "webapp", definition: null },
         { kind: "other", definition: { id: "ignored" } },
       ] }), { status: 200 });
@@ -37,7 +40,8 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   const catalogue = createCompanionCatalogue(fetchImpl);
   const definitions = await catalogue.loadDefinitions();
   if (definitions.applications.length !== 1 ||
-      definitions.applications[0]?.appId !== "org.example.example" || requestedPages.slice(0, 2).join("|") !== "0|1") {
+      definitions.applications[0]?.appId !== "org.example.example" ||
+      definitions.applications[0]?.moreShortcuts?.[0]?.id !== "65" || requestedPages.slice(0, 2).join("|") !== "0|1") {
     throw new Error("Remote Companion definitions must load all pages and retain native application definitions");
   }
   definitionId = "updated";
