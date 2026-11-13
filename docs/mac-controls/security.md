@@ -40,6 +40,6 @@ If macOS asks for **Local Network** access, choose **Allow** so EspDesktop can f
 - Folder paths stay on the Mac. The display receives a friendly folder name and an anonymous identifier.
 - The connector accepts only its defined controls. It does not run shell commands or accept incoming network connections on the Mac.
 
-To remove a display, choose **Forget** beside it in **Mac Settings → Displays**. To pair that display again, reset pairing under **System → Mac Companion** on the display and use its new code.
+To remove a display, choose **Forget** beside it in **Settings → Displays**. To pair that display again, reset pairing under **System → Mac Companion** on the display and use its new code.
 
 See the [EspDesktop privacy policy](/reference/privacy) for how the app, display and docs handle information.

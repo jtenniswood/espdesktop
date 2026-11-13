@@ -20,7 +20,7 @@ struct CompanionApp: App {
                 }
             }
             CommandGroup(replacing: .appSettings) {
-                Button("Mac Settings") { appDelegate.openCompanionWindow() }
+                Button("Settings") { appDelegate.openCompanionWindow() }
                     .keyboardShortcut(",", modifiers: .command)
             }
             CompanionUpdateCommands(updater: appDelegate.store.updater)
@@ -127,7 +127,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
 
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         let menu = NSMenu()
-        addContextualControlMenuItems(to: menu)
+        addContextualControlMenuItems(to: menu, includeUpdateCheck: true)
         return menu
     }
 
@@ -136,13 +136,13 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.addItem(connectionStatusItem())
         menu.addItem(.separator())
 
-        addContextualControlMenuItems(to: menu)
+        addContextualControlMenuItems(to: menu, includeUpdateCheck: false)
         addMenuItem(
             "Quit", action: #selector(quit), key: "q",
             image: menuSymbol("power", description: "Quit"), to: menu)
     }
 
-    private func addContextualControlMenuItems(to menu: NSMenu) {
+    private func addContextualControlMenuItems(to menu: NSMenu, includeUpdateCheck: Bool) {
         for display in store.displays {
             let item = NSMenuItem(title: display.name, action: nil, keyEquivalent: "")
             item.image = menuSymbol(display.state.symbol, description: display.state.title)
@@ -167,11 +167,13 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         }
         if !store.displays.isEmpty { menu.addItem(.separator()) }
 
-        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",",
-                    image: menuSymbol("gearshape", description: "Mac Settings"), to: menu)
-        addMenuItem("Check for Updates…",
-                    action: #selector(checkForUpdates), key: "u",
-                    image: menuSymbol("arrow.triangle.2.circlepath", description: "Check for Updates"), to: menu)
+        addMenuItem("Settings", action: #selector(openSettings), key: ",",
+                    image: menuSymbol("gearshape", description: "Settings"), to: menu)
+        if includeUpdateCheck {
+            addMenuItem("Check for Updates…",
+                        action: #selector(checkForUpdates), key: "u",
+                        image: menuSymbol("arrow.triangle.2.circlepath", description: "Check for Updates"), to: menu)
+        }
         addMenuItem("Support", action: #selector(openHelp), key: "?",
                     image: menuSymbol("questionmark.circle", description: "Support"), to: menu)
     }
