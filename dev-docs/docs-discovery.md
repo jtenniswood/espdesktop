@@ -114,8 +114,11 @@ The schema here keeps the machine-readable content consistent with the page.
 
 The [plain-text docs index](https://espdesktop.com/llms.txt)
 follows the [llms.txt proposal](https://llmstxt.org/). It groups the public
-guides by task. When adding or retiring a public guide, update
-`docs/public/llms.txt` alongside the site navigation.
+guides by task. Add or retire guides in `docs/.vitepress/public-guides.json`
+and update the navigation or redirects as needed. The build uses this inventory
+to select the public articles and generates `llms.txt` from their titles and
+descriptions. The 404 page, redirects, demos and generated includes are outside
+the guide inventory.
 
 VitePress exports Markdown from the rendered public articles at build time.
 The HTML pages link to their Markdown equivalents and to the index through
@@ -130,8 +133,14 @@ find documentation. Crawler access is governed separately at the host root.
 ## Host-root Robots Policy
 
 The [published robots.txt](../docs/public/robots.txt) allows crawling and
-announces the sitemap at the custom domain root. After deployment, check both
-files:
+announces the sitemap at the custom domain root. It explicitly allows
+`OAI-SearchBot` and `Claude-SearchBot` for search discovery. Training crawlers
+such as `GPTBot` and `ClaudeBot` fall under the default public crawl policy.
+Review training permissions independently when changing that policy.
+See the [OpenAI crawler roles](https://developers.openai.com/api/docs/bots)
+and [Claude crawler roles](https://support.claude.com/en/articles/8896518-does-anthropic-crawl-data-from-the-web-and-how-can-site-owners-block-the-crawler).
+
+After deployment, check both files:
 
 ```bash
 curl --fail https://espdesktop.com/robots.txt
@@ -254,3 +263,17 @@ On 12 November 2026, GitHub reported three downloads of
 Record the release tag and capture date when comparing this count. GitHub
 combines downloads from all sources. The counter cannot tell us which
 downloads came from the docs or whether anyone paired a display.
+
+## Notify search engines with IndexNow
+
+After verifying the canonical site in Bing Webmaster Tools, set the
+`INDEXNOW_KEY` Actions secret in the `github-pages` environment. Use a new
+random key of 8–128 letters, digits or hyphens. The deployment publishes its
+verification file and submits added, changed and retired guide URLs once those
+changes are visible on the public site. A navigation-only change to a guide's
+next-page link is ignored.
+
+Review the **Notify IndexNow of published guide changes** step after deployment.
+HTTP 200 or 202 confirms receipt. Inspect the submitted pages in Bing to see
+their crawl and indexing status. With no key configured, the workflow skips
+submission. [IndexNow protocol](https://www.indexnow.org/documentation)

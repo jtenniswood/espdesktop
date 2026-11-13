@@ -22,6 +22,7 @@ on:
       - 'scripts/check_docs_installer.js'
       - 'scripts/build.py'
       - 'scripts/prepare_release_web_assets.py'
+      - 'scripts/notify_docs_indexnow.py'
       - 'scripts/prune_actions_cache.sh'
       - 'package.json'
       - 'package-lock.json'
@@ -537,9 +538,10 @@ jobs:
           sparse-checkout: |
             devices/manifest.json
             product/release_devices.json
+            scripts/notify_docs_indexnow.py
+            scripts/check_docs_site.py
             scripts/release_devices.py
             scripts/check_public_firmware.py
-            scripts/check_docs_site.py
             scripts/check_published_docs.py
           sparse-checkout-cone-mode: false
 
@@ -566,6 +568,13 @@ jobs:
               mv "${manifest}.tmp" "$manifest"
             done
 
+      - name: Compare public guides for IndexNow
+        id: indexnow-prepare
+        continue-on-error: true
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: python3 scripts/notify_docs_indexnow.py prepare --dist dist --receipt "${RUNNER_TEMP}/indexnow-changes.json"
+
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
@@ -576,7 +585,8 @@ jobs:
         uses: actions/deploy-pages@v5
 
       - name: Verify published documentation
-        run: python3 scripts/check_published_docs.py --dist dist
+        # GitHub Pages can serve the prior artifact for its 10-minute cache lifetime.
+        run: python3 scripts/check_published_docs.py --dist dist --attempts 45
 
       - name: Verify public firmware assets
         if: needs.download-firmware.outputs.has_stable == 'true'
@@ -587,3 +597,10 @@ jobs:
           --optional-stable-slugs guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc4880p443-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
           --retries 5
           --delay 20
+
+      - name: Notify IndexNow of published guide changes
+        if: steps.indexnow-prepare.outcome == 'success'
+        continue-on-error: true
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: python3 scripts/notify_docs_indexnow.py submit --receipt "${RUNNER_TEMP}/indexnow-changes.json"

@@ -18,7 +18,7 @@ The EspDesktop Mac app requires **Apple silicon and macOS 13 or newer**. Intel M
 
 ### Does EspDesktop need Home Assistant?
 
-EspDesktop runs Mac controls over your local network without Home Assistant. Use USB for the firmware installation, then connect the display to Wi-Fi for Mac control. For a touchscreen that controls Home Assistant devices, see the [EspControl docs](https://jtenniswood.github.io/espcontrol/).
+EspDesktop runs Mac controls over your local network without Home Assistant. Use USB for the firmware installation, then connect the display to 2.4 GHz Wi-Fi for Mac control. For a touchscreen that controls Home Assistant devices, see the [EspDesktop and EspControl comparison](/reference/espdesktop-or-espcontrol).
 
 ### Can I use EspDesktop over USB without Wi-Fi?
 

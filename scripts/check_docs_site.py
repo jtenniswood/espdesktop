@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 import json
 from pathlib import Path
+import plistlib
 import re
 from urllib.parse import unquote, urljoin, urlsplit
 from urllib.request import Request, urlopen
@@ -184,6 +185,11 @@ def check_markdown_guides(dist, pages):
         guide = file.read_text()
         if not guide.startswith('# ') or f'[Original EspDesktop guide]({url})' not in guide:
             errors.append(f'Markdown edition needs a heading and original page link: {url}')
+        elif len(page.h1) == 1 and normalized(guide.splitlines()[0][2:]) != normalized(page.h1[0]):
+            errors.append(f'Markdown heading differs from the guide: {url}')
+        for link in page.links:
+            if link.startswith('https://github.com/jtenniswood/espdesktop/releases/download/') and link not in guide:
+                errors.append(f'Markdown edition omitted a release download: {url}')
 
     links = [url for url in re.findall(r'^- \[[^\]]+\]\((https://[^)\s]+)\)', index, re.MULTILINE)
              if url.startswith(BASE)]
@@ -192,6 +198,40 @@ def check_markdown_guides(dist, pages):
     markdown_files = {BASE + file.relative_to(dist).as_posix() for file in dist.rglob('*.md')}
     if markdown_files != expected:
         errors.append(f'Markdown editions must match public guides: {sorted(markdown_files ^ expected)}')
+    return errors
+
+
+def check_product_facts(dist, pages):
+    facts = json.loads((ROOT / 'docs/.vitepress/product-facts.json').read_text())
+    devices = json.loads((ROOT / 'devices/manifest.json').read_text())['devices']
+    release = json.loads((ROOT / 'product/generated/companion_compatibility.json').read_text())
+    info = plistlib.loads((ROOT / 'macos/EspDesktop/Packaging/Info.plist').read_bytes())
+    errors = []
+
+    if release['supportedDevices'] != [facts['displaySlug']]:
+        errors.append('Discovery facts must match the Companion-supported displays')
+    device = devices[facts['displaySlug']]
+    manufacturer, model = device['public']['name'].split(' ', 1)
+    size = device['public']['screenSize'].split(' ', 1)[0]
+    chip = device['firmware']['build']['chip']
+    if facts['displayLabel'] != f'{size}-inch {manufacturer} {chip} {model}':
+        errors.append('Discovery display label must match the device manifest')
+    if facts['minimumMacOS'] != info['LSMinimumSystemVersion'].removesuffix('.0'):
+        errors.append('Discovery macOS minimum must match the packaged app')
+
+    required = [
+        facts['displayLabel'], facts['macProcessor'], f"macOS {facts['minimumMacOS']} or newer",
+        facts['displayWiFiBand'], facts['matchedRelease'],
+    ]
+    for label, copy in [
+        ('README', (ROOT / 'README.md').read_text()),
+        ('HTML FAQ', ' '.join(answer for _question, answer in pages[BASE + 'reference/faq'].faq)),
+        ('Markdown FAQ', (dist / 'reference/faq.md').read_text()),
+        ('AI reading index', (dist / 'llms.txt').read_text()),
+    ]:
+        for term in required:
+            if term not in copy:
+                errors.append(f'{label} omitted the supported product fact: {term}')
     return errors
 
 
@@ -242,40 +282,49 @@ def check_build(dist):
         breadcrumb_schema = [entry for entry in page.schemas if entry.get('@type') == 'BreadcrumbList']
         trails = [[(item.get('position'), item.get('item')) for item in entry.get('itemListElement', [])]
                   for entry in breadcrumb_schema]
-        if trails != ([[(1, BASE), (2, url)]] if url != BASE else []):
-            errors.append(f'Incorrect breadcrumb trail: {url}')
+        if url == BASE:
+            if trails:
+                errors.append('Homepage must have no breadcrumb trail')
+        elif len(trails) != 1 or len(trails[0]) not in (2, 3):
+            errors.append(f'Incorrect breadcrumb length: {url}')
+        else:
+            trail = trails[0]
+            expected_positions = list(range(1, len(trail) + 1))
+            if (trail[0] != (1, BASE) or trail[-1] != (len(trail), url)
+                    or [pos for pos, _item in trail] != expected_positions
+                    or any(item not in urls for _pos, item in trail)):
+                errors.append(f'Incorrect breadcrumb trail: {url}')
+
+    homepage_schemas = pages[BASE].schemas
+    software = [entry for entry in homepage_schemas if entry.get('@type') == 'SoftwareApplication']
+    sites = [entry for entry in homepage_schemas if entry.get('@type') == 'WebSite']
+    if (len(software) != 1 or len(sites) != 1 or not software[0].get('@id')
+            or sites[0].get('about') != {'@id': software[0]['@id']}):
+        errors.append('The homepage website data must identify one EspDesktop software application')
+    else:
+        help_page = software[0].get('softwareHelp')
+        if not isinstance(help_page, dict) or help_page.get('@type') != 'WebPage':
+            errors.append('Software help structured data must describe a web page')
+            help_page = {}
+        for label, link in [('installUrl', software[0].get('installUrl')), ('softwareHelp', help_page.get('url'))]:
+            target = urlsplit(link if isinstance(link, str) else '')
+            target_page = pages.get(target._replace(fragment='').geturl())
+            if target_page is None or (target.fragment and unquote(target.fragment) not in target_page.ids):
+                errors.append(f'Software {label} must point to a published page or section: {link}')
 
     report = snapshot(pages)
+    groups = json.loads((ROOT / 'docs/.vitepress/public-guides.json').read_text())
     mac_docs = {
-        BASE,
-        BASE + 'screens/4848s040',
-        BASE + 'screens/4848s040-stand',
-        BASE + 'getting-started/troubleshooting',
-        BASE + 'download',
-        BASE + 'mac-controls/apps',
-        BASE + 'mac-controls/websites',
-        BASE + 'mac-controls/folders',
-        BASE + 'mac-controls/shortcuts',
-        BASE + 'mac-controls/improve-shortcuts',
-        BASE + 'mac-controls/security',
-        BASE + 'features/first-run',
-        BASE + 'settings/screen',
-        BASE + 'settings/system',
-        BASE + 'settings/mac-app',
-        BASE + 'settings/backup',
-        BASE + 'features/home',
-        BASE + 'features/subpages',
-        BASE + 'reference/faq',
-        BASE + 'reference/companion-compatibility',
-        BASE + 'reference/privacy',
-        BASE + 'reference/support',
-        BASE + 'reference/request-icons',
+        BASE + (path.removesuffix('index.md') if path == 'index.md' or path.endswith('/index.md')
+                else path.removesuffix('.md'))
+        for paths in groups.values() for path in paths
     }
     if unexpected_pages := set(pages) - mac_docs:
         errors.append(f'Unexpected sitemap pages: {sorted(unexpected_pages)}')
     if missing_pages := mac_docs - set(pages):
         errors.append(f'Missing sitemap pages: {sorted(missing_pages)}')
     errors.extend(check_markdown_guides(dist, pages))
+    errors.extend(check_product_facts(dist, pages))
     for field in ('duplicate_titles', 'duplicate_descriptions'):
         if report[field]:
             errors.append(f'{field}: {report[field]}')
@@ -356,8 +405,8 @@ def check_build(dist):
         'features/settings': BASE + 'settings/system',
         'features/backup': BASE + 'settings/backup',
         'features/media-cover-art': BASE + 'settings/screen',
-        'mac-controls/statistics': BASE + '#what-you-can-control',
-        'mac-controls/volume': BASE + '#what-you-can-control',
+        'mac-controls/statistics': BASE + 'reference/mac-controls-by-release#mac-statistics-and-volume',
+        'mac-controls/volume': BASE + 'reference/mac-controls-by-release#mac-statistics-and-volume',
         'guides/index': 'https://jtenniswood.github.io/espcontrol/',
         'immich/index': 'https://jtenniswood.github.io/espcontrol/immich/',
         'generated/companion-compatibility': BASE + 'reference/companion-compatibility',
