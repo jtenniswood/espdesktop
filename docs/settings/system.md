@@ -5,17 +5,22 @@ description: Manage Mac pairing, language, time, device name, backups, firmware 
 
 # System settings
 
-Choose **Customize Display** from the EspDesktop menu bar icon, or open the display’s local address in your browser. Select the **System** tab to manage the device.
+Choose **Device** in the Mac app under **Settings → Displays**, or open the display’s local address in your browser. Select the **System** tab to manage the device.
 
 Choose **Apply Configuration** at the bottom of the tab when you’re ready to restart the display and apply your changes.
 
 ## Display system settings
 
-<a href="/images/web-editor-system-settings.png"><img src="/images/web-editor-system-settings.png" alt="System tab showing Mac Companion, Language, Time, Device Name, Backup, Firmware and Factory Reset" width="1694" height="2266" loading="lazy"></a>
+### Mac Companion
 
-### Mac Companion and preferences
+Open **Connectors → Mac Companion** to check the connection. While the display is unpaired, choose **Copy** to copy the four-letter code, then paste it into the Mac app. [Pair the Mac app](/screens/4848s040#pair-the-display).
 
-- **Connectors → Mac Companion** is where you [pair the Mac app](/screens/4848s040#pair-the-display) and check its connection.
+<a href="/images/web-editor-mac-companion-pairing.png"><img src="/images/web-editor-mac-companion-pairing.png" alt="Mac Companion card in the System tab showing four boxed letters and a Copy button" width="1372" height="1686" loading="lazy"></a>
+
+To replace a saved pairing, choose **Reset pairing** and confirm. The touchscreen shows a new code. If the Mac app shows **Pairing Required**, choose **Re-pair** in **Settings → Displays** and enter the code.
+
+### Preferences
+
 - **Preferences → Language** changes the language shown on the touchscreen.
 - **Preferences → Time** lets you follow the paired Mac’s time zone or choose one yourself. You can also switch between 12- and 24-hour time and set custom time servers.
 
