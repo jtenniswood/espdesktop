@@ -138,7 +138,6 @@ void CompanionService::setup() {
     return this->invoke_value_(control, value, request);
   });
   companion_runtime_service().begin_pairing = [this] { this->begin_pairing(); };
-  companion_runtime_service().revoke_pairing = [this] { return this->revoke_pairing(); };
   companion_runtime_service().reset_and_begin_pairing = [this] { return this->reset_and_begin_pairing(); };
   companion_runtime_service().request_pairing_display = [this] {
     this->defer("show-pairing-code", [] {

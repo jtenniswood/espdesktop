@@ -160,7 +160,6 @@ class CompanionRuntimeService {
   CompanionValueSender value_sender;
   CompanionPairingProvider pairing_provider;
   std::function<void()> begin_pairing;
-  std::function<bool()> revoke_pairing;
   std::function<bool()> reset_and_begin_pairing;
   std::function<void()> request_pairing_display;
   std::function<bool()> clear_app_icon_cache;

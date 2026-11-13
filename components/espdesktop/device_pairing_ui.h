@@ -84,14 +84,20 @@ inline lv_obj_t *device_pairing_button(lv_obj_t *parent, const char *text, lv_co
   return button;
 }
 
+inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *title_font,
+                                bool confirm_reset);
+
 inline void device_pairing_refresh() {
   auto &ui = device_pairing_ui();
   if (screen_lock_enabled()) {
     control_modal_close_nested_menu();
     return;
   }
-  if (!ui.code_row) return;
   const auto snapshot = device_pairing_snapshot();
+  if (!ui.code_row) {
+    if (!snapshot.paired && snapshot.active) device_pairing_show(ui.text_font, ui.title_font, false);
+    return;
+  }
   if (snapshot.paired) {
     control_modal_close_nested_menu();
     return;
