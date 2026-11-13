@@ -139,6 +139,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
     private let savedDisplays: CompanionSavedDisplays
+    private var forgettingDisplays: Set<UUID> = []
     private lazy var pairingDisplay = makeDisplay(CompanionDisplayRecord())
     private(set) var isRePairing = false
     var canRetryRePairing: Bool { isRePairing && pairingDisplay.connection.isPairing }
@@ -729,8 +730,10 @@ final class CompanionStore: NSObject, ObservableObject {
         pairingDisplay.connection.connect(mode: .pair(code: normalizedCode))
     }
 
-    func forgetDisplay(_ display: CompanionDisplay) {
-        guard displays.contains(where: { $0.id == display.id }) else { return }
+    func forgetDisplay(_ display: CompanionDisplay) async {
+        guard displays.contains(where: { $0 === display }), forgettingDisplays.insert(display.id).inserted else { return }
+        defer { forgettingDisplays.remove(display.id) }
+        await display.connection.showPairingBeforeDisconnecting()
         display.connection.disconnect()
         display.onRecordChange = nil
         display.connection.onEvent = nil

@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -954,6 +954,15 @@
             "optional": true
           }
         },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "pair.reset",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {},
         "states": [
           "connected"
         ]

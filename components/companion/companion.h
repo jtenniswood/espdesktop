@@ -99,10 +99,10 @@ class CompanionService final : public Component {
   bool invoke_url_(const std::string &encoded_url, const std::string &request_id, bool new_window);
   bool invoke_value_(const std::string &control_id, int value,
                      const std::string &request_id);
-  bool begin_pairing_locked_(bool reset);
-  bool revoke_pairing_locked_();
-  bool pairing_active_locked_() const;
   using PairingCode = std::array<char, 9>;
+  bool begin_pairing_locked_(bool reset, bool show_on_display = false);
+  bool revoke_pairing_locked_(const PairingCode *code = nullptr, bool show_on_display = false);
+  bool pairing_active_locked_() const;
   static PairingCode generate_pairing_code_();
 
   ESPPreferenceObject preferences_;

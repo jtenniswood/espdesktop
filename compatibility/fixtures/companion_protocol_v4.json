@@ -1406,6 +1406,20 @@
     "valid": true
   },
   {
+    "name": "authenticated Mac can reset pairing",
+    "message": { "protocol": 4, "type": "pair.reset" },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "unauthenticated Mac cannot reset pairing",
+    "message": { "protocol": 4, "type": "pair.reset" },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
     "name": "media.output_mute value.state 100",
     "message": {
       "protocol": 4,

@@ -71,6 +71,9 @@ final class CompanionConnection: NSObject {
     private var supportsHighResolutionAppIcons = false
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
+    private var supportsPairingReset = false
+    private var pairingResetCompletion: CheckedContinuation<Void, Never>?
+    private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
@@ -181,7 +184,29 @@ final class CompanionConnection: NSObject {
                                recovery: Self.rePairingInstructions)
     }
 
+    func showPairingBeforeDisconnecting() async {
+        guard sessionAuthenticated, supportsPairingReset, pairingResetCompletion == nil else { return }
+        shouldReconnect = false
+        await withCheckedContinuation { continuation in
+            pairingResetCompletion = continuation
+            pairingResetTimeout = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+                self?.finishPairingResetRequest()
+            }
+            sendJSON(["type": "pair.reset"])
+        }
+    }
+
+    private func finishPairingResetRequest() {
+        pairingResetTimeout?.cancel()
+        pairingResetTimeout = nil
+        pairingResetCompletion?.resume()
+        pairingResetCompletion = nil
+    }
+
     private func tearDownConnection() {
+        finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
         sessionAuthenticated = false
@@ -359,6 +384,7 @@ final class CompanionConnection: NSObject {
 
     private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        finishPairingResetRequest()
         print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
             updateConnectionStatus("Pairing failed — try again", state: .failed)
@@ -473,6 +499,7 @@ final class CompanionConnection: NSObject {
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
             supportsSessionLock = payload.capabilityVersion >= 7
+            supportsPairingReset = payload.capabilityVersion >= 8
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -576,13 +603,17 @@ final class CompanionConnection: NSObject {
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
             let code = payload.code
+            if code == "pairing_reset_failed" { finishPairingResetRequest() }
             if Self.requiresNewPairing(errorCode: code, authenticated: sessionAuthenticated,
                                        authenticating: authenticationRequestOutstanding) {
+                let isForgetting = pairingResetCompletion != nil
                 hasTerminalConnectionError = true
                 shouldReconnect = false
                 tearDownConnection()
-                updateConnectionStatus("Display needs to be paired again", state: .needsPairing,
-                                       recovery: Self.rePairingInstructions)
+                if !isForgetting {
+                    updateConnectionStatus("Display needs to be paired again", state: .needsPairing,
+                                           recovery: Self.rePairingInstructions)
+                }
             } else if code == "authentication_sequence",
                let panelSequence = payload.lastSequence,
                panelSequence < UInt32.max {

@@ -338,21 +338,23 @@ struct CompanionSettings: View {
         ), presenting: displayToForget) { display in
             Button("Cancel", role: .cancel) { displayToForget = nil }
             Button("Forget Display", role: .destructive) {
-                store.forgetDisplay(display)
                 displayToForget = nil
+                Task { await store.forgetDisplay(display) }
             }
         } message: { display in
-            Text("Your Mac will remove its saved pairing with \(display.name). To pair it again, reset pairing on that display and enter a new code.")
+            Text("Your Mac will remove its saved pairing with \(display.name). If the display is connected and supports remote reset, it will show a new pairing code.")
         }
         .alert("Restart setup?", isPresented: $confirmingRestartSetup) {
             Button("Cancel", role: .cancel) {}
             Button("Restart Setup", role: .destructive) {
                 guard store.displays.count <= 1 else { return }
-                if let display = store.displays.first { store.forgetDisplay(display) }
-                startPairingFlow()
-                selectedPageID = CompanionSettingsPage.connection.rawValue
-                store.requestedSettingsDestination = .displays
-                store.onboardingCompleted = false
+                Task {
+                    if let display = store.displays.first { await store.forgetDisplay(display) }
+                    startPairingFlow()
+                    selectedPageID = CompanionSettingsPage.connection.rawValue
+                    store.requestedSettingsDestination = .displays
+                    store.onboardingCompleted = false
+                }
             }
         } message: {
             Text("This removes the saved display pairing and starts onboarding again. Your app and folder choices will be kept.")

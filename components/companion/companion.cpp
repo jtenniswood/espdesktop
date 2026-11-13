@@ -583,6 +583,14 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
       return true;
     }
 
+    if (std::holds_alternative<companion_protocol::PairReset>(*decoded)) {
+      std::lock_guard<std::mutex> lock(this->pairing_mutex_);
+      if (socket_fd != this->session_.authenticated_socket() || !this->begin_pairing_locked_(true, true)) {
+        send_error("pairing_reset_failed");
+      }
+      return true;
+    }
+
     if (const auto *payload = std::get_if<companion_protocol::Capabilities>(&*decoded)) {
       bool keyboard_actions = false;
       bool keyboard_actions_capability_received = false;
@@ -1165,7 +1173,7 @@ void CompanionService::begin_pairing() {
   this->begin_pairing_locked_(false);
 }
 
-bool CompanionService::begin_pairing_locked_(bool reset) {
+bool CompanionService::begin_pairing_locked_(bool reset, bool show_on_display) {
   if (this->identity_.paired && !reset) return false;
   if (this->pairing_active_locked_()) return true;
   PairingCode code{};
@@ -1176,7 +1184,7 @@ bool CompanionService::begin_pairing_locked_(bool reset) {
       return false;
     }
   }
-  if (this->identity_.paired && !this->revoke_pairing_locked_()) return false;
+  if (this->identity_.paired) return this->revoke_pairing_locked_(&code, show_on_display);
   this->pairing_code_.assign(code.begin(), code.end());
   return true;
 }
@@ -1240,7 +1248,7 @@ bool CompanionService::reset_and_begin_pairing() {
   return this->begin_pairing_locked_(true);
 }
 
-bool CompanionService::revoke_pairing_locked_() {
+bool CompanionService::revoke_pairing_locked_(const PairingCode *code, bool show_on_display) {
   auto unpaired_identity = this->identity_;
   unpaired_identity.paired = 0;
   std::fill(std::begin(unpaired_identity.credential), std::end(unpaired_identity.credential), 0);
@@ -1249,22 +1257,26 @@ bool CompanionService::revoke_pairing_locked_() {
   if (!this->preferences_.save(&unpaired_identity)) return false;
 
   const int previous_socket = this->session_.authenticated_socket();
-  if (previous_socket >= 0) {
-    this->send_(previous_socket, "{\"type\":\"error\",\"protocol\":" +
-        std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"code\":\"pairing_reset\"}");
-  }
   this->identity_ = unpaired_identity;
   this->last_sequence_ = 0;
-  this->pairing_code_.clear();
+  if (code) this->pairing_code_.assign(code->begin(), code->end());
+  else this->pairing_code_.clear();
   this->last_failed_pairing_at_.reset();
   companion_runtime_service().set_mac_update_required(false);
   this->set_connected_(false);
   // Revoking trust also clears the Mac's lock. Ordinary disconnects retain it.
-  this->defer([] {
+  this->defer([show_on_display] {
     screen_lock_set_mac_locked(false);
     if (auto handler = companion_runtime_service().pairing_changed_handler) handler();
+    if (show_on_display) {
+      if (auto handler = companion_runtime_service().show_pairing_code_handler) handler();
+    }
   });
-  if (previous_socket >= 0) httpd_sess_trigger_close(this->server_, previous_socket);
+  if (previous_socket >= 0) {
+    this->send_(previous_socket, "{\"type\":\"error\",\"protocol\":" +
+        std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"code\":\"pairing_reset\"}");
+    httpd_sess_trigger_close(this->server_, previous_socket);
+  }
   return true;
 }
 
