@@ -127,7 +127,7 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
 
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         let menu = NSMenu()
-        addContextualControlMenuItems(to: menu, includeUpdateCheck: true)
+        addContextualControlMenuItems(to: menu, isMenuBarMenu: false)
         return menu
     }
 
@@ -136,13 +136,13 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menu.addItem(connectionStatusItem())
         menu.addItem(.separator())
 
-        addContextualControlMenuItems(to: menu, includeUpdateCheck: false)
+        addContextualControlMenuItems(to: menu, isMenuBarMenu: true)
         addMenuItem(
             "Quit", action: #selector(quit), key: "q",
             image: menuSymbol("power", description: "Quit"), to: menu)
     }
 
-    private func addContextualControlMenuItems(to menu: NSMenu, includeUpdateCheck: Bool) {
+    private func addContextualControlMenuItems(to menu: NSMenu, isMenuBarMenu: Bool) {
         for display in store.displays {
             let item = NSMenuItem(title: display.name, action: nil, keyEquivalent: "")
             item.image = menuSymbol(display.state.symbol, description: display.state.title)
@@ -167,9 +167,13 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         }
         if !store.displays.isEmpty { menu.addItem(.separator()) }
 
+        if isMenuBarMenu {
+            addMenuItem("Add device", action: #selector(addDevice),
+                        image: menuSymbol("plus", description: "Add device"), to: menu)
+        }
         addMenuItem("Settings", action: #selector(openSettings), key: ",",
                     image: menuSymbol("gearshape", description: "Settings"), to: menu)
-        if includeUpdateCheck {
+        if !isMenuBarMenu {
             addMenuItem("Check for Updates…",
                         action: #selector(checkForUpdates), key: "u",
                         image: menuSymbol("arrow.triangle.2.circlepath", description: "Check for Updates"), to: menu)
@@ -222,10 +226,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         button.image = image
     }
 
+    @objc private func addDevice() { openCompanionWindow(destination: .addDevice) }
     @objc private func openSettings() { openCompanionWindow() }
-    @objc private func openHelp() {
-        openCompanionWindow(showHelp: true)
-    }
+    @objc private func openHelp() { openCompanionWindow(destination: .support) }
     @objc private func checkForUpdates() { store.updater.check() }
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func existingInstanceWasOpened(_ notification: Notification) { openCompanionWindow() }
@@ -249,9 +252,11 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             .booleanValue == true
     }
 
-    func openCompanionWindow(showHelp: Bool = false) {
-        defer { store.updater.showAvailableUpdate() }
-        store.requestedSettingsPage = showHelp ? "help" : "connection"
+    func openCompanionWindow(destination: CompanionSettingsDestination = .displays) {
+        defer {
+            if destination != .addDevice { store.updater.showAvailableUpdate() }
+        }
+        store.requestedSettingsDestination = destination
         store.settingsRequestID = UUID()
         activateCompanionApplication()
 

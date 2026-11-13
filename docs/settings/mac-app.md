@@ -7,6 +7,8 @@ description: Open EspDesktop on your Mac, manage apps and folders, and check for
 
 Choose **Settings** from the EspDesktop menu bar icon. The app keeps running when you close the settings window. To stop it, choose **Quit** from the same menu.
 
+Choose **Add device** from the menu bar icon to search for and pair a display.
+
 <ScreenshotGallery label="Mac app settings preview" :slides="settingsSlides" />
 
 See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. See [Permissions & Security](/mac-controls/security) for access to keyboard shortcuts and Mac Lock.

@@ -237,10 +237,11 @@ struct CompanionSettings: View {
     @FocusState private var focusedField: CompanionSettingsField?
 
     var body: some View {
+        let showingSupport = store.requestedSettingsDestination == .support
         Group {
             switch CompanionSetupRoute.resolve(
                 completed: store.onboardingCompleted,
-                showingHelp: store.requestedSettingsPage == "help",
+                showingHelp: showingSupport,
                 hasSavedPairing: store.hasSavedPairing,
                 pairingInProgress: pairingFlowActive,
                 pairingConnected: pairingStep == .connected
@@ -258,7 +259,9 @@ struct CompanionSettings: View {
                 }
             }
         }
-        .background(OnboardingWindowTitle(hidden: !store.onboardingCompleted && store.requestedSettingsPage != "help"))
+        .background(OnboardingWindowTitle(hidden: !store.onboardingCompleted && !showingSupport))
+        .onAppear(perform: applySettingsRequest)
+        .onChange(of: store.settingsRequestID) { _ in applySettingsRequest() }
         .onChange(of: store.pairingState) { state in
             guard pairingFlowActive else { return }
             if state == .connected {
@@ -295,13 +298,7 @@ struct CompanionSettings: View {
                     .padding(.top, 16)
                     .padding(.bottom, 24)
             }
-        .onAppear {
-            selectedPageID = store.requestedSettingsPage
-            refreshAccessibilityStatus()
-        }
-        .onChange(of: store.settingsRequestID) { _ in
-            selectedPageID = store.requestedSettingsPage
-        }
+        .onAppear(perform: refreshAccessibilityStatus)
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             refreshAccessibilityStatus()
         }
@@ -324,7 +321,7 @@ struct CompanionSettings: View {
                 if let display = store.displays.first { store.forgetDisplay(display) }
                 startPairingFlow()
                 selectedPageID = CompanionSettingsPage.connection.rawValue
-                store.requestedSettingsPage = CompanionSettingsPage.connection.rawValue
+                store.requestedSettingsDestination = .displays
                 store.onboardingCompleted = false
             }
         } message: {
@@ -360,6 +357,19 @@ struct CompanionSettings: View {
 
     private var selectedPageBinding: Binding<CompanionSettingsPage> {
         Binding(get: { selectedPage }, set: { selectedPageID = $0.rawValue })
+    }
+
+    private func applySettingsRequest() {
+        switch store.requestedSettingsDestination {
+        case .displays:
+            selectedPageID = CompanionSettingsPage.connection.rawValue
+        case .support:
+            selectedPageID = CompanionSettingsPage.help.rawValue
+        case .addDevice:
+            selectedPageID = CompanionSettingsPage.connection.rawValue
+            store.requestedSettingsDestination = .displays
+            if !pairingFlowActive { startPairingFlow() }
+        }
     }
 
     @ViewBuilder
