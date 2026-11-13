@@ -4708,6 +4708,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await filter.clear();
     assert.strictEqual(await rows.locator(".sp-light-tab-move").count(), 0, "shortcuts use drag handles to reorder");
     const drag = rows.locator('[aria-label="Drag ' + safariShortcutLabel(3) + '"]').first();
+    assert.strictEqual(await drag.getAttribute("tabindex"), "0", "the drag handle is keyboard accessible");
+    await drag.press("ArrowUp");
+    assert.strictEqual(await rows.nth(2).getAttribute("data-tab"), "3", "Arrow Up reorders the shortcut");
+    assert(await drag.evaluate(handle => handle === document.activeElement), "the moved handle retains focus");
+    await page.keyboard.press("ArrowDown");
+    assert.strictEqual(await rows.nth(3).getAttribute("data-tab"), "3", "Arrow Down reorders the shortcut");
     await drag.dragTo(appSubpage.locator('.sp-light-tab-row[data-tab="2"]'), {
       targetPosition: { x: 16, y: 6 },
     });

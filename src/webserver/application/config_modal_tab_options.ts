@@ -347,7 +347,24 @@ export function createConfigModalTabOptionsFeature(
             drag.type = "button";
             drag.className = "sp-light-tab-drag mdi mdi-drag";
             drag.setAttribute("aria-label", "Drag " + definition.label);
-            drag.tabIndex = -1;
+            drag.tabIndex = config.dragOnly && available && visible ? 0 : -1;
+            if (drag.tabIndex === 0) {
+                drag.title = "Use the Up and Down arrow keys to reorder";
+                drag.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown");
+                drag.addEventListener("keydown", (event: KeyboardEvent) => {
+                    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                    event.preventDefault();
+                    const rows: HTMLElement[] = listRows().filter((item: HTMLElement) =>
+                        !item.hidden && item.querySelector<HTMLInputElement>("input[type=checkbox]")?.checked);
+                    const previous = event.key === "ArrowUp";
+                    const target = rows[rows.indexOf(row) + (previous ? -1 : 1)];
+                    if (!target) return;
+                    list.insertBefore(row, previous ? target : target.nextElementSibling);
+                    saveTabsFromRows();
+                    dependencies.document.getElementById(input.id)?.closest(".sp-light-tab-row")
+                        ?.querySelector<HTMLButtonElement>(".sp-light-tab-drag")?.focus();
+                });
+            }
             controls.appendChild(drag);
             if (!config.dragOnly) {
                 var moveUp: any = dependencies.document.createElement("button");

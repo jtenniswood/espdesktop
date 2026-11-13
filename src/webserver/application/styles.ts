@@ -540,6 +540,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-light-tab-drag{cursor:grab;font-size:20px}" +
         ".sp-light-tab-row.sp-dragging .sp-light-tab-drag{cursor:grabbing}" +
         ".sp-light-tab-drag:hover,.sp-light-tab-move:hover{background:var(--surface2);color:var(--text)}" +
+        ".sp-light-tab-drag:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}" +
         ".sp-light-tab-label{min-width:0;color:var(--text);font-size:.9rem;line-height:1.25;cursor:pointer}" +
         ".sp-segment{display:flex;border-radius:var(--action-r);overflow:hidden;border:1px solid var(--border);margin-bottom:14px}" +
         ".sp-segment-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none}" +
