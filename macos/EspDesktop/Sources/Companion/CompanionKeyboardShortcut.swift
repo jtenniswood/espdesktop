@@ -50,6 +50,25 @@ final class CompanionAccessibilityAuthorizer {
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
     static let installedWebAppActionPrefix = "shortcut.@"
+    static let scopedPrefix = "scoped."
+
+    static func scopedStrokes(_ keys: String) -> [Self]? {
+        guard keys.hasPrefix(scopedPrefix), keys.utf8.count <= 87 else { return nil }
+        let parts = keys.dropFirst(scopedPrefix.count).split(separator: "~", omittingEmptySubsequences: false)
+        guard (1...3).contains(parts.count) else { return nil }
+        let strokes = parts.compactMap { Self(keys: String($0), scoped: true) }
+        return strokes.count == parts.count ? strokes : nil
+    }
+
+    static func scopedTargetMatches(_ expected: String, frontmost: String,
+                                    approved: Set<String>) -> Bool {
+        guard approved.contains(frontmost) else { return false }
+        if expected == frontmost { return true }
+        if expected == safariWebAppTemplate { return frontmost != safariBundleIdentifier && isSafariApplication(frontmost) }
+        let premiere = "com.adobe.PremierePro"
+        return expected == premiere && frontmost.range(of: #"^com\.adobe\.PremierePro\.[0-9]+$"#,
+                                                      options: .regularExpression) != nil
+    }
     static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
     private static let claudeEscapeShortcut = "claude-escape"
     static let claudeRewindShortcut = "escape-twice"
@@ -110,12 +129,16 @@ struct CompanionKeyboardShortcut {
     let keyCode: CGKeyCode
     let flags: CGEventFlags
 
+    private init(keyCode: CGKeyCode, flags: CGEventFlags) {
+        self.keyCode = keyCode
+        self.flags = flags
+    }
+
     init?(actionIdentifier: String) {
         guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
         let keys = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
         if let extended = Self.booksExtendedKeys[keys], let keyCode = Self.keyCodes[extended.key] {
-            self.keyCode = keyCode
-            self.flags = extended.flags
+            self.init(keyCode: keyCode, flags: extended.flags)
             return
         }
         if Self.isClaudeScopedShortcut(keys) {
@@ -125,18 +148,20 @@ struct CompanionKeyboardShortcut {
                 keys.replacingOccurrences(of: "shift+", with: "")
             }
             guard let keyCode = Self.keyCodes[key] else { return nil }
-            self.keyCode = keyCode
-            self.flags = keys == "shift+f6" ? .maskShift : []
+            self.init(keyCode: keyCode, flags: keys == "shift+f6" ? .maskShift : [])
             return
         }
         if keys == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
-            self.keyCode = keyCode
-            self.flags = .maskShift
+            self.init(keyCode: keyCode, flags: .maskShift)
             return
         }
+        self.init(keys: keys, scoped: false)
+    }
+
+    private init?(keys: String, scoped: Bool) {
         var parts = keys.split(separator: "+", omittingEmptySubsequences: false)
-        guard parts.count <= 5, let key = parts.popLast().map(String.init),
-              let keyCode = Self.keyCodes[key] else { return nil }
+        guard parts.count <= (scoped ? 6 : 5), let key = parts.popLast().map(String.init),
+              let keyCode = Self.keyCodes[key], scoped || !key.hasPrefix("keypad") else { return nil }
 
         var flags: CGEventFlags = []
         var seen = Set<Substring>()
@@ -147,15 +172,16 @@ struct CompanionKeyboardShortcut {
             case "control": flags.insert(.maskControl)
             case "option": flags.insert(.maskAlternate)
             case "shift": flags.insert(.maskShift)
+            case "function" where scoped: flags.insert(.maskSecondaryFn)
             default: return nil
             }
         }
-        guard (parts.isEmpty && Self.isSafariUnmodifiedShortcut(key)) ||
+        guard scoped || (parts.isEmpty && Self.isSafariUnmodifiedShortcut(key)) ||
               flags.contains(.maskCommand) || flags.contains(.maskControl) || flags.contains(.maskAlternate) else {
             return nil
         }
         self.keyCode = keyCode
-        self.flags = flags
+        self.flags = key.hasPrefix("keypad") ? flags.union(.maskNumericPad) : flags
     }
 
     @MainActor
@@ -194,5 +220,9 @@ struct CompanionKeyboardShortcut {
         "f6": 97, "f7": 98, "f8": 100, "f9": 101, "f10": 109,
         "f11": 103, "f12": 111, "f13": 105, "f14": 107, "f15": 113,
         "f16": 106, "f17": 64, "f18": 79, "f19": 80, "f20": 90,
+        "keypad0": 82, "keypad1": 83, "keypad2": 84, "keypad3": 85, "keypad4": 86,
+        "keypad5": 87, "keypad6": 88, "keypad7": 89, "keypad8": 91, "keypad9": 92,
+        "keypadplus": 69, "keypadminus": 78, "keypadmultiply": 67, "keypaddivide": 75,
+        "keypaddecimal": 65, "keypadequal": 81, "keypadenter": 76, "keypadclear": 71,
     ]
 }

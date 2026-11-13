@@ -124,5 +124,13 @@
       "shortcut": "command+0",
       "icon": "Refresh"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "120", "label": "Dismiss Drawer", "shortcut": "scoped.escape", "icon": "Shortcut Escape"},
+    {"id": "121", "label": "Send Prompt", "shortcut": "scoped.enter", "icon": "Send"},
+    {"id": "122", "label": "Alternate Submit", "shortcut": "scoped.command+enter", "icon": "Send"},
+    {"id": "123", "label": "Insert Line Break", "shortcut": "scoped.shift+enter", "icon": "Shortcut Return"},
+    {"id": "124", "label": "Scale Up", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "125", "label": "Scale Down", "shortcut": "scoped.command+shift+keyminus", "icon": "Zoom Out"}
   ]
 }

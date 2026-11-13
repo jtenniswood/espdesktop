@@ -564,5 +564,12 @@
       "shortcut": "9",
       "icon": "Menu"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "93", "label": "Send Quick Entry prompt", "shortcut": "scoped.enter", "icon": "Send"},
+    {"id": "94", "label": "Next Code session", "shortcut": "scoped.command+shift+keybracketright", "icon": "Code"},
+    {"id": "95", "label": "Previous Code session", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Code"},
+    {"id": "96", "label": "Toggle Browser pane", "shortcut": "scoped.command+shift+b", "icon": "Application"},
+    {"id": "97", "label": "Toggle terminal pane", "shortcut": "scoped.control+keybackquote", "icon": "Terminal"}
   ]
 }

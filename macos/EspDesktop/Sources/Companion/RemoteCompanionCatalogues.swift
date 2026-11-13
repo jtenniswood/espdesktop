@@ -12,11 +12,35 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     var appId: String
     let label: String
     let catalog: Bool
-    let shortcuts: [RemoteShortcutDefinition]
-    let extendedShortcuts: [RemoteShortcutDefinition]?
-    let additionalShortcuts: [RemoteShortcutDefinition]?
-    let claudeShortcuts: [RemoteShortcutDefinition]?
-    let safariShortcuts: [RemoteShortcutDefinition]?
+    var shortcuts: [RemoteShortcutDefinition]
+    var extendedShortcuts: [RemoteShortcutDefinition]?
+    var additionalShortcuts: [RemoteShortcutDefinition]?
+    var claudeShortcuts: [RemoteShortcutDefinition]?
+    var safariShortcuts: [RemoteShortcutDefinition]?
+    var moreShortcuts: [RemoteShortcutDefinition]?
+
+    var starter: Self {
+        var app = self
+        app.moreShortcuts = nil
+        return app
+    }
+
+    func expandedPages() -> [Self] {
+        guard let moreShortcuts, !moreShortcuts.isEmpty else { return [] }
+        var page = starter
+        page.shortcuts = []
+        page.extendedShortcuts = nil
+        page.additionalShortcuts = nil
+        page.claudeShortcuts = nil
+        page.safariShortcuts = nil
+        // Keep the escaped JSON comfortably below the existing 16 KB frame limit.
+        let pageSize = 48
+        return stride(from: 0, to: moreShortcuts.count, by: pageSize).map { offset in
+            var chunk = page
+            chunk.moreShortcuts = Array(moreShortcuts[offset..<min(offset + pageSize, moreShortcuts.count)])
+            return chunk
+        }
+    }
 }
 
 struct RemoteCatalogueManifest: Decodable, Sendable {
@@ -117,12 +141,14 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     }
 
     fileprivate static func valid(_ app: RemoteMacApplicationDefinition) -> Bool {
-        let encodedSize = (try? JSONEncoder().encode(app).count) ?? Int.max
+        let encodedSize = (try? JSONEncoder().encode(app.starter).count) ?? Int.max
         let extended = app.extendedShortcuts ?? []
         let additional = app.additionalShortcuts ?? []
         let claude = app.claudeShortcuts ?? []
         let safari = app.safariShortcuts ?? []
-        let allShortcuts = app.shortcuts + extended + additional + claude + safari
+        let more = app.moreShortcuts ?? []
+        let starterShortcuts = app.shortcuts + extended + additional + claude + safari
+        let allShortcuts = starterShortcuts + more
         let validSafari = safari.isEmpty ||
             (extended.isEmpty && CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
                 safari.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isSafariUnmodifiedShortcut($0.shortcut) })
@@ -138,7 +164,9 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
                 })
         return app.version == 1 && !app.label.isEmpty && app.label.utf8.count <= 48 &&
         app.appId.range(of: #"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil &&
-        !app.shortcuts.isEmpty && app.shortcuts.count + extended.count + safari.count <= 64 && allShortcuts.count <= 96 &&
+        !app.shortcuts.isEmpty && app.shortcuts.count + extended.count + safari.count <= 64 && starterShortcuts.count <= 96 &&
+        more.count <= 900 && more.allSatisfy { validRegularShortcut($0) ||
+            (validMetadata($0) && CompanionKeyboardShortcut.scopedStrokes($0.shortcut) != nil) } &&
         app.shortcuts.allSatisfy(validRegularShortcut) &&
         (extended.isEmpty ||
             (CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
@@ -160,7 +188,10 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
 
     private static func validMetadata(_ shortcut: RemoteShortcutDefinition) -> Bool {
         shortcut.id.range(of: #"^(0|[1-9][0-9]{0,2})$"#, options: .regularExpression) != nil &&
-            !shortcut.label.isEmpty && shortcut.label.utf8.count <= 48 && !shortcut.icon.isEmpty
+            !shortcut.label.isEmpty && shortcut.label.utf8.count <= 48 &&
+            !shortcut.icon.isEmpty && shortcut.icon.utf8.count <= 48 &&
+            !shortcut.label.unicodeScalars.contains { $0.value < 32 } &&
+            !shortcut.icon.unicodeScalars.contains { $0.value < 32 }
     }
 
     enum CatalogueError: Error { case incompatible, invalid }

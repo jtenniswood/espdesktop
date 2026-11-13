@@ -28,5 +28,17 @@
       "shortcut": "command+l",
       "icon": "Podcast"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "4", "label": "Open Podcasts settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "5", "label": "Close Podcasts window", "shortcut": "scoped.command+w", "icon": "Application"},
+    {"id": "6", "label": "Toggle full-screen view", "shortcut": "scoped.function+f", "icon": "Full Screen Exit"},
+    {"id": "7", "label": "Start playing or pause selected episode", "shortcut": "scoped.space", "icon": "Pause"},
+    {"id": "8", "label": "Skip forward or backward", "shortcut": "scoped.command+shift+right", "icon": "Skip Previous"},
+    {"id": "9", "label": "Skip forward or backward", "shortcut": "scoped.command+shift+left", "icon": "Skip Previous"},
+    {"id": "10", "label": "Increase volume", "shortcut": "scoped.command+up", "icon": "Volume Up"},
+    {"id": "11", "label": "Decrease volume", "shortcut": "scoped.command+down", "icon": "Volume Down"},
+    {"id": "12", "label": "Increase playback speed", "shortcut": "scoped.command+option+up", "icon": "Speed Up"},
+    {"id": "13", "label": "Decrease playback speed", "shortcut": "scoped.command+option+down", "icon": "Speed Up"}
   ]
 }

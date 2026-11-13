@@ -856,10 +856,11 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func performResultStatus(actionIdentifier: String,
-                             folderOpenBehavior: String = "new_window") async -> String {
+                             folderOpenBehavior: String = "new_window",
+                             shortcutAppID: String? = nil) async -> String {
         guard !sessionLock.refresh() else { return "not_allowed" }
         let performed = await perform(actionIdentifier: actionIdentifier,
-                                      folderOpenBehavior: folderOpenBehavior)
+                                      folderOpenBehavior: folderOpenBehavior, shortcutAppID: shortcutAppID)
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
     }
 
@@ -910,7 +911,8 @@ final class CompanionStore: NSObject, ObservableObject {
         return true
     }
 
-    func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window") async -> Bool {
+    func perform(actionIdentifier: String, folderOpenBehavior: String = "new_window",
+                 shortcutAppID: String? = nil) async -> Bool {
         if actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix) {
             return openFolder(actionIdentifier: actionIdentifier, behavior: folderOpenBehavior)
         }
@@ -936,11 +938,31 @@ final class CompanionStore: NSObject, ObservableObject {
             }
             return true
         }
+        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
+        if keys.hasPrefix(CompanionKeyboardShortcut.scopedPrefix) {
+            guard let shortcutAppID, let application = NSWorkspace.shared.frontmostApplication,
+                  let bundleID = application.bundleIdentifier,
+                  CompanionKeyboardShortcut.scopedTargetMatches(shortcutAppID, frontmost: bundleID,
+                                                               approved: approvedApplicationIdentifiers),
+                  let strokes = CompanionKeyboardShortcut.scopedStrokes(keys) else {
+                updateStatus("Bring the approved app for this shortcut to the front")
+                return false
+            }
+            for (index, stroke) in strokes.enumerated() {
+                if index > 0 {
+                    do { try await Task.sleep(for: .milliseconds(80)) } catch { return false }
+                }
+                guard !sessionLock.refresh(),
+                      approvedApplicationIdentifiers.contains(bundleID),
+                      NSWorkspace.shared.frontmostApplication?.processIdentifier == application.processIdentifier,
+                      stroke.replay(to: application.processIdentifier) else { return false }
+            }
+            return true
+        }
         guard let shortcut = CompanionKeyboardShortcut(actionIdentifier: actionIdentifier) else {
             updateStatus("Blocked an invalid keyboard shortcut")
             return false
         }
-        let keys = String(actionIdentifier.dropFirst(CompanionKeyboardShortcut.actionPrefix.count))
         if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
            !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
             updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")

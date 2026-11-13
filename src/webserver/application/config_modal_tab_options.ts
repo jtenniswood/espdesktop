@@ -281,8 +281,24 @@ export function createConfigModalTabOptionsFeature(
             heading.appendChild(helpers.fieldLabel("Modal Tabs"));
             section.appendChild(heading);
         }
+        const search = config.searchPlaceholder && orderedDefinitions.length > 20
+            ? dependencies.document.createElement("input") : null;
+        if (search) {
+            search.type = "search";
+            search.className = "sp-input";
+            search.placeholder = config.searchPlaceholder;
+            search.setAttribute("aria-label", config.searchPlaceholder);
+            section.appendChild(search);
+        }
         var list: any = dependencies.document.createElement("div");
         list.className = "sp-light-tab-list";
+        search?.addEventListener("input", () => {
+            const query = search.value.trim().toLowerCase();
+            for (const row of listRows()) {
+                const label = row.querySelector(".sp-light-tab-label")?.textContent ?? "";
+                row.style.display = query && !label.toLowerCase().includes(query) ? "none" : "";
+            }
+        });
         section.appendChild(list);
         function listRows(this: any) {
             return Array.prototype.slice.call(list.querySelectorAll(".sp-light-tab-row"));

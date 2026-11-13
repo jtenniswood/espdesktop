@@ -2,7 +2,7 @@
 
 This folder contains the editable templates used for native Mac app shortcuts. The Mac Companion reads `manifest.json` and its listed templates from the EspDesktop GitHub repository at launch and reconnect. It sends the validated definitions to the paired display, where the web configurator uses them to build app subpages and shortcut choices. The display does not fetch GitHub directly.
 
-EspDesktop builds also bundle a starter copy for offline use. `python3 scripts/build.py companion` regenerates that starter copy and the browser/firmware lookup tables from the live catalogue files. A merged template update is fetched by existing Mac Companion installations without a new app release.
+EspDesktop builds also bundle a starter copy for offline use. `python3 scripts/build.py companion` regenerates that starter copy and the browser/firmware lookup tables from the live catalogue files. Compatible template updates are fetched on launch or reconnect. Expanded presets require a display and Companion build with expanded shortcut support.
 
 ## Add or update a native app
 
@@ -38,7 +38,7 @@ The manifest must list every top-level template JSON file in this folder exactly
 - `label`: app name shown in Companion; up to 48 bytes.
 - `catalog`: retained for older editors, where `true` enables the standalone **Shortcut Catalog** picker. The **Application** tab in current editors lists all available templates.
 - `shortcuts`: 1–64 items. IDs are permanent numeric strings from `"0"` to `"999"`; keep an ID when renaming or reordering a shortcut, and never reuse a removed ID.
-- Use one or two words for each shortcut label so it fits on the display.
+- Use a short action label (up to 48 UTF-8 bytes) and put the key combination in the shortcut field.
 - Each shortcut's `icon` must be a name from `product/v2/icons.json`. Choose a [Material Design Icon](https://pictogrammers.com/library/mdi/) that represents the action.
 
 Supported shortcut strings use lowercase modifiers `command`, `control`, `option`, and `shift`, followed by a supported key, such as `command+shift+t` or `control+tab`. A shortcut sends keyboard input to the active Mac app; it does not launch an app or run a shell command. Check each binding in the named app and record any app-version or keyboard-layout requirements in the PR.
@@ -47,13 +47,20 @@ The Safari templates use `safariShortcuts` for unmodified Tab and Escape. Both l
 
 Books also has an optional `extendedShortcuts` list for its Left Arrow, Right Arrow, Space and Fn–F presets. These entries require updated Companion and display firmware and only run when Books is active. Older Companion versions can still read the regular `shortcuts` list. Both lists share the same shortcut IDs and 64-entry limit.
 
-The Claude Desktop subpage supports up to 96 entries to include its numbered environment, session and menu choices. The optional `claudeShortcuts` list contains those extra choices and app-scoped keys such as Shift–F6 and double Escape. Both Claude lists share the same IDs and the same 12,000-byte catalogue limit. Older Companion versions read the regular list.
+The Claude Desktop starter supports up to 96 entries to include its numbered environment, session and menu choices. The optional `claudeShortcuts` list contains those extra choices and app-scoped keys such as Shift–F6 and double Escape. Both Claude lists share the same IDs and the same 12,000-byte catalogue limit. Older Companion versions read the regular list.
 
-The ChatGPT Desktop subpage uses the `com.openai.codex` bundle ID and supports up to 96 presets with its optional `additionalShortcuts` list. IDs remain unique across both lists, and older Companion versions can read the regular list. Shift–Escape only runs while ChatGPT Desktop is active.
+The ChatGPT Desktop subpage uses the `com.openai.codex` bundle ID and supports up to 96 starter presets with its optional `additionalShortcuts` list. IDs remain unique across both lists, and older Companion versions can read the regular list. Shift–Escape only runs while ChatGPT Desktop is active.
 
 Athena uses a template identifier in the catalogue. Mac Companion matches the installed Safari web app by its web manifest name and sends the definition under the installation’s bundle ID. Athena shortcut IDs start at 100 so saved generic Safari web app presets keep their IDs.
 
-Research-based starter templates cover supported native apps from the shortcut research index. Each includes up to ten confirmed, highlighted shortcuts that this controller can send. Spotlight controls are system-wide, OpenCode shortcuts are for a terminal interface, Finder uses its dedicated folder page, and Onshape is a separate browser-based app; those pages do not have native app templates.
+Use `moreShortcuts` for additional presets. These are available in the shortcut picker and when editing an app subpage. They are not preselected on new subpages. Finder presets are offered only in the standalone picker. The expanded list shares permanent IDs with the starter and other lists and allows up to 900 entries per app.
+
+- Use `scoped.` for app-specific commands, for example `scoped.space`, `scoped.shift+left` or `scoped.command+k~command+s`. Companion checks that the approved app is frontmost before sending each key. The separator `~` denotes a sequence of up to three strokes. Scoped keys also support `function` and distinct keypad keys, such as `keypad0` and `keypadenter`.
+- Use the regular shortcut syntax for documented global hotkeys. The display sends those to macOS regardless of the frontmost app.
+- Add a preset for each documented action and useful key alternative. Context-dependent actions can share the same keys. Avoid adding gestures, held keys, user-assigned shortcuts, or commands without a verified Mac binding.
+- Preserve the starter list, especially existing IDs and the default order. Older Companion installations ignore the expanded field. New builds carry the additional choices in bounded pages for approved apps, with a bundled offline copy in the editor.
+
+The templates were compared with the original macOS shortcut research and supplemented with [first-party references](research-sources.md). Spotlight is system-wide. Finder shortcuts are available in the standalone picker alongside its dedicated folder page. Terminal-only OpenCode and browser-only Onshape are outside these native templates.
 
 ## Validate and generate
 

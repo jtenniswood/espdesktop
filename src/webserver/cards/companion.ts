@@ -42,6 +42,7 @@ import {
     CHATGPT_CLEAR_UNREADS_ACTION,
     isBooksExtendedShortcut,
     isClaudeScopedShortcut,
+    SCOPED_SHORTCUT_PREFIX,
     companionShortcutFolderAppLabel,
     companionShortcutFolderEditorAvailable,
     companionShortcutSelectionMatchesSavedParent,
@@ -126,13 +127,18 @@ export function companionShortcutActionId(event: Pick<KeyboardEvent,
 
 export function formatCompanionShortcutActionId(actionId: string): string {
     if (!companionShortcutActionIdValid(actionId)) return "";
-    const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
-    const key = parts.pop() || "";
+    const scoped = actionId.startsWith(SCOPED_SHORTCUT_PREFIX);
+    const strokes = actionId.slice((scoped ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX).length).split("~");
     const symbols: Readonly<Record<string, string>> = {
         command: "⌘", control: "⌃", option: "⌥", shift: "⇧", function: "Fn ",
     };
-    const keyLabel = COMPANION_SHORTCUT_KEY_LABELS[key] || key.toUpperCase();
-    return parts.map((part) => symbols[part]).join("") + keyLabel;
+    return strokes.map(stroke => {
+        const parts = stroke.split("+");
+        const key = parts.pop() || "";
+        const label = COMPANION_SHORTCUT_KEY_LABELS[key] ||
+            (key.startsWith("keypad") ? "Keypad " + key.slice(6) : key.toUpperCase());
+        return parts.map(part => symbols[part]).join("") + label;
+    }).join(" then ");
 }
 
 export function companionShortcutCatalogSelection(card: any) {
@@ -728,7 +734,9 @@ export function registerCompanionCardTypes(
                 card._shortcutType = type;
                 card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom.
-                if (type === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
+                if (type === "catalog" || String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
+                    card.entity = COMPANION_SHORTCUT_PREFIX;
+                }
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
@@ -878,7 +886,7 @@ export function registerCompanionCardTypes(
             catalogPlaceholder.textContent = "Choose a shortcut…";
             catalogShortcut.appendChild(catalogPlaceholder);
             if (catalogApp.value) {
-                companionShortcutPresetCards(catalogApp.value).forEach((preset) => {
+                sortCompanionLabels(companionShortcutPresetCards(catalogApp.value)).forEach((preset) => {
                     const option = document.createElement("option");
                     option.value = preset.options;
                     option.textContent = preset.label + " (" + formatCompanionShortcutActionId(preset.entity) + ")";
@@ -926,6 +934,7 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
+                    !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX) &&
                     ((!isSafariUnmodifiedShortcut(card.entity) &&
                         !isBooksExtendedShortcut(card.entity) && !isClaudeScopedShortcut(card.entity) && card.entity !== CHATGPT_CLEAR_UNREADS_ACTION) ||
                         card.entity === currentEntity);
@@ -1117,6 +1126,7 @@ export function registerCompanionCardTypes(
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
                 modalTabs.renderModalTabSettings(appSubpageDisclosure.section, card, helpers, {
                     definitions: function () { return companionShortcutTabDefinitions(card.entity); },
+                    searchPlaceholder: "Find a shortcut…",
                     tabs: (button: any) => companionShortcutTabsForCapacity(
                         companionShortcutTabs(button), maxSlots,
                     ),

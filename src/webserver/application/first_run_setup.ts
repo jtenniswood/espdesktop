@@ -8,7 +8,6 @@ import type { ControlsFieldsFeature } from "./controls_fields";
 import type { ControlsShellFeature } from "./controls_shell";
 import { createCompanionPairingDetails, type CompanionPairingState } from "./settings_companion_section";
 import {
-    companionShortcutPresetCards,
     companionShortcutDefaultTabs,
     companionShortcutTabsForCapacity,
     createCompanionShortcutSubpage,
@@ -41,7 +40,7 @@ export function firstRunApplications(actions: readonly CompanionAction[]): Compa
 }
 
 export function supportsSetupShortcuts(id: string): boolean {
-    return companionShortcutPresetCards(id).length > 0;
+    return companionShortcutDefaultTabs(id).length > 0;
 }
 
 function layoutSignature({ document: { deviceProfile, settings }, layout }: NativePanelConfigGraph): string {

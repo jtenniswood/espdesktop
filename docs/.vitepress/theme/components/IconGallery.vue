@@ -390,6 +390,21 @@ const ICON_GROUPS = {
   'Window Maximise': 'Window Management',
   'Full Screen Exit': 'Window Management',
   'Picture in Picture': 'Window Management',
+  'Duplicate': 'Creative & Development',
+  'Align Left': 'Creative & Development',
+  'Align Right': 'Creative & Development',
+  'Align Center': 'Creative & Development',
+  'Justify': 'Creative & Development',
+  'Strikethrough': 'Creative & Development',
+  'Numbered List': 'Creative & Development',
+  'Decrease Indent': 'Creative & Development',
+  'Increase Indent': 'Creative & Development',
+  'Paint Format': 'Creative & Development',
+  'Subscript': 'Creative & Development',
+  'Superscript': 'Creative & Development',
+  'Repeat': 'Audio & Meetings',
+  'Shuffle': 'Audio & Meetings',
+  'Subtitles': 'Audio & Meetings',
 }
 
 const icons = iconOptions.map(name => ({ name, mdi: iconSlug(name) }))

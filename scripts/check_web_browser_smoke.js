@@ -4385,7 +4385,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0);
+    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0) + (safariTemplate.moreShortcuts?.length || 0);
     assert.strictEqual(
       await action.locator("option").count(),
       safariShortcutCount + 1,
@@ -4549,7 +4549,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? [])];
+    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? []), ...(safariTemplate.moreShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
     assert.deepStrictEqual(
@@ -4557,7 +4557,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       safariShortcuts.map((shortcut) => shortcut.label),
       `${testCase.name}: Safari should expose its reorderable shortcut list`,
     );
-    await page.getByRole("button", { name: `Move ${safariShortcutLabel(3)} up` }).click();
+    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
+    await filter.fill("Reload");
+    assert(await rows.filter({ hasText: safariShortcutLabel(2) }).first().isVisible());
+    assert(!(await rows.filter({ hasText: safariShortcutLabel(3) }).first().isVisible()));
+    await filter.clear();
+    await rows.locator('[aria-label="Move ' + safariShortcutLabel(3) + ' up"]').first().click();
     assert.strictEqual(
       await appSubpage.locator(".sp-disclosure-button").getAttribute("aria-expanded"),
       "true",

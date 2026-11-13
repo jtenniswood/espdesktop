@@ -108,5 +108,22 @@
       "shortcut": "escape",
       "icon": "Shortcut Escape"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "17", "label": "Scroll Left", "shortcut": "scoped.left", "icon": "Arrow Left"},
+    {"id": "18", "label": "Scroll Right", "shortcut": "scoped.right", "icon": "Arrow Right"},
+    {"id": "19", "label": "Scroll Up", "shortcut": "scoped.up", "icon": "Arrow Up"},
+    {"id": "20", "label": "Scroll Down", "shortcut": "scoped.down", "icon": "Arrow Down"},
+    {"id": "21", "label": "Scroll Left Fast", "shortcut": "scoped.option+left", "icon": "Arrow Left"},
+    {"id": "22", "label": "Scroll Right Fast", "shortcut": "scoped.option+right", "icon": "Arrow Right"},
+    {"id": "23", "label": "Scroll Up Fast", "shortcut": "scoped.option+up", "icon": "Arrow Up"},
+    {"id": "24", "label": "Scroll Down Fast", "shortcut": "scoped.option+down", "icon": "Arrow Down"},
+    {"id": "25", "label": "Page Down", "shortcut": "scoped.pagedown", "icon": "Page Next"},
+    {"id": "26", "label": "Page Down", "shortcut": "scoped.space", "icon": "Page Next"},
+    {"id": "27", "label": "Page Up", "shortcut": "scoped.pageup", "icon": "Page Previous"},
+    {"id": "28", "label": "Page Up", "shortcut": "scoped.shift+space", "icon": "Page Previous"},
+    {"id": "29", "label": "Scroll to Top", "shortcut": "scoped.command+up", "icon": "Arrow Up"},
+    {"id": "30", "label": "Scroll to Bottom", "shortcut": "scoped.command+down", "icon": "Arrow Down"},
+    {"id": "31", "label": "Close Reader", "shortcut": "scoped.escape", "icon": "Book"}
   ]
 }

@@ -32,7 +32,7 @@ protocol CompanionSessionResources: AnyObject {
     func immediateFocusedApplicationIdentifier() -> String?
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String]
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
-    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String
+    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
 }

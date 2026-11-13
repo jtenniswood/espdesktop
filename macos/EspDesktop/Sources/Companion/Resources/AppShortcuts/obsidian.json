@@ -64,5 +64,23 @@
       "shortcut": "command+shift+t",
       "icon": "Tab Restore"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "And run Command Palette result", "shortcut": "scoped.up", "icon": "Keyboard"},
+    {"id": "11", "label": "And run Command Palette result", "shortcut": "scoped.down~enter", "icon": "Keyboard"},
+    {"id": "12", "label": "Switch between recent notes", "shortcut": "scoped.command+o~down~enter", "icon": "Notes"},
+    {"id": "13", "label": "Switch directly to tab by position 2", "shortcut": "scoped.command+2", "icon": "Tab"},
+    {"id": "14", "label": "Switch directly to tab by position 3", "shortcut": "scoped.command+3", "icon": "Tab"},
+    {"id": "15", "label": "Switch directly to tab by position 4", "shortcut": "scoped.command+4", "icon": "Tab"},
+    {"id": "16", "label": "Switch directly to tab by position 5", "shortcut": "scoped.command+5", "icon": "Tab"},
+    {"id": "17", "label": "Switch directly to tab by position 6", "shortcut": "scoped.command+6", "icon": "Tab"},
+    {"id": "18", "label": "Switch directly to tab by position 7", "shortcut": "scoped.command+7", "icon": "Tab"},
+    {"id": "19", "label": "Switch directly to tab by position 8", "shortcut": "scoped.command+8", "icon": "Tab"},
+    {"id": "20", "label": "Switch directly to tab by position 9", "shortcut": "scoped.command+9", "icon": "Tab"},
+    {"id": "21", "label": "Copy paragraph", "shortcut": "scoped.command+c", "icon": "Copy"},
+    {"id": "22", "label": "Cut paragraph", "shortcut": "scoped.command+x", "icon": "Cut"},
+    {"id": "23", "label": "Format text as bold", "shortcut": "scoped.command+b", "icon": "Bold"},
+    {"id": "24", "label": "Format text as italic", "shortcut": "scoped.command+i", "icon": "Italic"},
+    {"id": "25", "label": "Delete line", "shortcut": "scoped.command+shift+k", "icon": "Delete"}
   ]
 }
