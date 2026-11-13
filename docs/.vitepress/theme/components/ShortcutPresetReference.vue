@@ -28,7 +28,7 @@ function anchor(appId: string) {
       <span class="preset-count">{{ app.shortcuts.length }} {{ app.shortcuts.length === 1 ? 'shortcut' : 'shortcuts' }}</span>
       <span class="preset-chevron" aria-hidden="true"></span>
     </summary>
-    <table>
+    <table :aria-label="`${app.label} shortcuts`">
       <thead>
         <tr><th scope="col">Action</th><th scope="col">Keys</th></tr>
       </thead>
@@ -103,16 +103,23 @@ details[open] .preset-chevron {
 details > table {
   display: table;
   width: 100%;
-  margin: 0;
+  margin: 12px 0 0;
+  border: 1px solid var(--vp-c-divider);
   table-layout: fixed;
 }
 
 table th,
 table td {
   border: 0;
-  padding: 8px;
+  padding: 8px 12px;
+  text-align: left;
   vertical-align: top;
   overflow-wrap: anywhere;
+}
+
+table th + th,
+table td + td {
+  border-inline-start: 1px solid var(--vp-c-divider);
 }
 
 table th {
