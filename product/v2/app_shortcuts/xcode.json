@@ -77,7 +77,7 @@
     {"id": "28", "label": "Find next match", "shortcut": "scoped.command+shift+g", "icon": "Search"},
     {"id": "29", "label": "Find and replace in file", "shortcut": "scoped.command+option+f", "icon": "Find Replace"},
     {"id": "30", "label": "Go back in navigation history", "shortcut": "scoped.command+control+left", "icon": "Arrow Left"},
-    {"id": "31", "label": "Go forward in navigation history", "shortcut": "scoped.command+control+right", "icon": "Arrow Left"},
+    {"id": "31", "label": "Go forward in navigation history", "shortcut": "scoped.command+control+right", "icon": "Arrow Right"},
     {"id": "32", "label": "Jump to definition", "shortcut": "scoped.command+shift+d", "icon": "Shortcut Command"},
     {"id": "33", "label": "Jump to current selection", "shortcut": "scoped.command+j", "icon": "Group Selection"},
     {"id": "34", "label": "Switch between implementation and header Up", "shortcut": "scoped.command+option+up", "icon": "Arrow Up"},

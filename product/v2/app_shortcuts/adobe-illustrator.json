@@ -178,7 +178,7 @@
     {"id": "124", "label": "Move down one line", "shortcut": "scoped.down", "icon": "Arrow Down"},
     {"id": "125", "label": "Move one word right", "shortcut": "scoped.command+right", "icon": "Arrow Right"},
     {"id": "126", "label": "Move one word left", "shortcut": "scoped.left", "icon": "Arrow Left"},
-    {"id": "127", "label": "Move up one paragraph", "shortcut": "scoped.command+up", "icon": "Arrow Down"},
+    {"id": "127", "label": "Move up one paragraph", "shortcut": "scoped.command+up", "icon": "Arrow Up"},
     {"id": "128", "label": "Move down one paragraph", "shortcut": "scoped.down", "icon": "Arrow Down"},
     {"id": "129", "label": "Select one word right", "shortcut": "scoped.command+shift+right", "icon": "Group Selection"},
     {"id": "130", "label": "Select one word left", "shortcut": "scoped.left", "icon": "Group Selection"},

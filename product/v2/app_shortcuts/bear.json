@@ -90,7 +90,7 @@
     {"id": "31", "label": "Delete table column", "shortcut": "scoped.command+control+shift+delete", "icon": "Delete"},
     {"id": "32", "label": "Shift line right", "shortcut": "scoped.command+option+right", "icon": "Code"},
     {"id": "33", "label": "Shift line left", "shortcut": "scoped.command+option+left", "icon": "Code"},
-    {"id": "34", "label": "Move line up", "shortcut": "scoped.command+option+up", "icon": "Arrow Down"},
+    {"id": "34", "label": "Move line up", "shortcut": "scoped.command+option+up", "icon": "Arrow Up"},
     {"id": "35", "label": "Move line down", "shortcut": "scoped.command+option+down", "icon": "Arrow Down"},
     {"id": "36", "label": "Indent / outdent list item", "shortcut": "scoped.tab", "icon": "Decrease Indent"},
     {"id": "37", "label": "Indent / outdent list item", "shortcut": "scoped.shift+tab", "icon": "Decrease Indent"},
