@@ -280,7 +280,7 @@ final class CompanionConnection: NSObject {
         } else if let saved, saved != fingerprint {
             shouldReconnect = false
             hasTerminalConnectionError = true
-            updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code from its webpage.")
+            updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code shown on its touchscreen.")
             completionHandler(.cancelAuthenticationChallenge, nil)
         } else if saved != nil {
             endpointRecovery.verifiedFingerprint = fingerprint
@@ -292,7 +292,7 @@ final class CompanionConnection: NSObject {
             pendingCertificateFingerprint = fingerprint
             completionHandler(.useCredential, URLCredential(trust: trust))
         } else {
-            updateConnectionStatus("Open the device webpage to start pairing", state: .failed)
+            updateConnectionStatus("Start pairing on the display and enter its code", state: .failed)
             completionHandler(.cancelAuthenticationChallenge, nil)
         }
     }

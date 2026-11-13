@@ -1,7 +1,46 @@
 import XCTest
 @testable import Companion
 
+private final class PairingPromptURLProtocol: URLProtocol, @unchecked Sendable {
+    override class func canInit(with request: URLRequest) -> Bool { true }
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest { request }
+
+    override func startLoading() {
+        guard let url = request.url, url.path == "/companion/pairing", url.query == "show_on_display=1",
+              request.httpMethod == "GET", request.value(forHTTPHeaderField: "Accept") == "application/json" else {
+            client?.urlProtocol(self, didFailWithError: URLError(.badURL))
+            return
+        }
+        let status = url.host == "unsupported.local" ? 404 : 200
+        let paired = url.host == "paired.local"
+        let payload = Data("{\"available\":true,\"active\":\(!paired),\"paired\":\(paired)}".utf8)
+        let response = HTTPURLResponse(url: url, statusCode: status, httpVersion: nil, headerFields: nil)!
+        client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+        client?.urlProtocol(self, didLoad: payload)
+        client?.urlProtocolDidFinishLoading(self)
+    }
+
+    override func stopLoading() {}
+}
+
 final class CompanionSetupFlowTests: XCTestCase {
+    func testDirectPairingRequestsTheAppropriateTouchscreenPrompt() async {
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [PairingPromptURLProtocol.self]
+        let session = URLSession(configuration: configuration)
+        defer { session.invalidateAndCancel() }
+
+        let paired = await CompanionPairingPrompt.request(on: URL(string: "http://paired.local")!, session: session)
+        let unpaired = await CompanionPairingPrompt.request(on: URL(string: "http://unpaired.local")!, session: session)
+        let unsupported = await CompanionPairingPrompt.request(on: URL(string: "http://unsupported.local")!, session: session)
+        let external = await CompanionPairingPrompt.request(on: URL(string: "http://example.com")!, session: session)
+
+        XCTAssertEqual(paired, .reset)
+        XCTAssertEqual(unpaired, .code)
+        XCTAssertEqual(unsupported, .unavailable)
+        XCTAssertEqual(external, .unavailable)
+    }
+
     func testNewSetupRequiresPairingBeforePreferences() {
         XCTAssertEqual(route(saved: false), .pairing)
         XCTAssertEqual(route(saved: false, pairing: true), .pairing)
