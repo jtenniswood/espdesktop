@@ -21,7 +21,7 @@ Open **Apps** in the Mac app. **All available apps** is on by default. To limit 
 
 1. In the display’s web editor, select an empty tile and choose **Applications**. If the picker shows connector tabs, look under **Companion**.
 
-   <a href="/images/web-editor-choose-card.png"><img src="/images/web-editor-choose-card.png" alt="Choose Card dialog with Applications as the first option" width="1694" height="2266" loading="lazy"></a>
+   <a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog with Applications as the first option" width="1269" height="1022" loading="lazy"></picture></a>
 
 2. Select an approved application and choose **Save**.
 

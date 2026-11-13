@@ -18,7 +18,7 @@ In the EspDesktop Mac app, open **Settings → Folders**, click **Add Folder…*
 1. In the display’s web editor, select an empty tile and choose **Folder**. If the card picker shows connector tabs, look under **Companion**.
 2. Select the folder you approved and choose **Save**.
 
-<a href="/images/web-editor-choose-card.png"><img src="/images/web-editor-choose-card.png" alt="Choose Card dialog in the display’s web editor showing the Folder and Applications options" width="1694" height="2266" loading="lazy"></a>
+<a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog in the display’s web editor showing the Folder and Applications options" width="1269" height="1022" loading="lazy"></picture></a>
 
 In the card’s **Advanced** section, set **Open folder in** to **A new window** or **The same window**.
 
