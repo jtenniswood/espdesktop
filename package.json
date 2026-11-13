@@ -70,7 +70,7 @@
   "devDependencies": {
     "@mixmark-io/domino": "2.2.0",
     "esbuild": "^0.28.0",
-    "esp-web-tools": "10.4.0",
+    "esp-web-tools": "10.5.2",
     "playwright": "^1.60.0",
     "postcss": "^8.5.15",
     "turndown": "7.2.5",
