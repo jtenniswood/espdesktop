@@ -584,7 +584,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-app-subpage-settings .sp-disclosure-body>.sp-field{margin-bottom:12px}" +
         ".sp-app-subpage-settings .sp-toggle-row{margin-bottom:0}" +
         ".sp-app-subpage-settings .sp-light-tab-list{margin:0}" +
-        ".sp-app-subpage-settings .sp-secondary-btn{margin-top:8px}" +
+        ".sp-app-subpage-shortcut-actions{border-top:1px solid var(--border);padding:12px 0 10px}" +
         ".sp-app-subpage-settings .sp-app-subpage-options-divider{margin:4px 0 8px}" +
         ".sp-app-subpage-folder-list{border-top:1px solid var(--border);padding-top:8px;margin-top:4px}" +
         ".sp-disclosure.sp-open .sp-disclosure-chevron{transform:rotate(180deg)}" +

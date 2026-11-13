@@ -4622,20 +4622,26 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
     const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) shortcuts/ });
+    const toggleActions = appSubpage.locator(".sp-app-subpage-shortcut-actions");
     const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await visibleRows.count(), 20);
     assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "false");
     const assertToggleBelowRows = async () => {
       assert.strictEqual(await visibleRows.last().evaluate(row => getComputedStyle(row).borderBottomWidth), "0px");
       assert.strictEqual(await visibleRows.first().evaluate(row => getComputedStyle(row).borderBottomWidth), "1px");
+      assert.strictEqual(await toggleActions.evaluate(el => getComputedStyle(el).borderTopWidth), "1px");
       const lastRow = await visibleRows.last().boundingBox();
+      const actions = await toggleActions.boundingBox();
       const toggle = await toggleList.boundingBox();
-      assert(toggle.y >= lastRow.y + lastRow.height, "the expand or collapse button follows the visible rows");
+      assert(actions.y >= lastRow.y + lastRow.height && toggle.y > actions.y,
+        "the divider separates the visible rows from the button");
+      assert(actions.y + actions.height > toggle.y + toggle.height, "the button has space below it");
     };
     await assertToggleBelowRows();
     const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
     const lastShortcut = safariShortcuts.at(-1);
     await filter.fill(lastShortcut.label);
+    assert(!(await toggleActions.isVisible()), "search hides the button and its divider");
     assert(await rows.filter({ has: page.getByText(lastShortcut.label, { exact: true }) }).last().isVisible(),
       "search includes shortcuts beyond the first 20");
     await filter.clear();

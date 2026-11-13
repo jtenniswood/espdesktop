@@ -424,12 +424,15 @@ export function createConfigModalTabOptionsFeature(
             list.appendChild(row);
         });
         if (search) {
+            const actions = dependencies.document.createElement("div");
+            actions.className = "sp-app-subpage-shortcut-actions";
             const more = dependencies.document.createElement("button");
             more.type = "button";
             more.className = "sp-secondary-btn";
             list.id = helpers.idPrefix + config.idPrefix + "list";
             more.setAttribute("aria-controls", list.id);
-            section.appendChild(more);
+            actions.appendChild(more);
+            section.appendChild(actions);
 
             function updateRows() {
                 const query = b._modalTabsSearch?.trim().toLowerCase();
@@ -439,7 +442,7 @@ export function createConfigModalTabOptionsFeature(
                         ? !row.querySelector(".sp-light-tab-label")!.textContent!.toLowerCase().includes(query)
                         : !expanded && index >= 20;
                 });
-                more.hidden = !!query;
+                actions.hidden = !!query;
                 more.textContent = expanded ? "Show fewer shortcuts" : "Show all shortcuts";
                 more.setAttribute("aria-expanded", String(expanded));
             }
