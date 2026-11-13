@@ -33,8 +33,9 @@ struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
         page.additionalShortcuts = nil
         page.claudeShortcuts = nil
         page.safariShortcuts = nil
-        // Keep the escaped JSON comfortably below the existing 16 KB frame limit.
-        let pageSize = 48
+        // At the catalogue's field limits, 52 entries still fit the escaped
+        // 16 KB frame. This also leaves room for every bundled app to sync.
+        let pageSize = 52
         return stride(from: 0, to: moreShortcuts.count, by: pageSize).map { offset in
             var chunk = page
             chunk.moreShortcuts = Array(moreShortcuts[offset..<min(offset + pageSize, moreShortcuts.count)])

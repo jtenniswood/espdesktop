@@ -15,6 +15,8 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         XCTAssertNil(finalCut.starter.moreShortcuts)
         XCTAssertEqual(finalCut.expandedPages().flatMap { $0.moreShortcuts ?? [] }, more)
 
+        XCTAssertLessThanOrEqual(catalogue.applications.reduce(0) { $0 + 1 + $1.expandedPages().count }, 256)
+
         // Validate the actual escaped frames, including labels with punctuation.
         let encoder = JSONEncoder()
         for app in catalogue.applications {
