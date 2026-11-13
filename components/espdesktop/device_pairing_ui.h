@@ -152,16 +152,23 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
   ui.code_row = device_pairing_row(shell.panel, gap);
   lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_style_base_dir(ui.code_row, LV_BASE_DIR_LTR, LV_PART_MAIN);
-  const lv_coord_t dash_width = control_modal_scaled_px(16, layout.short_side);
+  const lv_coord_t dash_width = control_modal_scaled_px(20, layout.short_side);
   const lv_coord_t tile_width = std::min(control_modal_scaled_px(50, layout.short_side),
                                          (content_width - dash_width - gap * 8) / 8);
   const lv_coord_t tile_height = control_modal_scaled_px(58, layout.short_side);
+  // Some narrow displays use a larger heading font. Leave room for the
+  // widest pairing letter and the outline on both sides of its box.
+  const lv_font_t *code_font = title_font;
+  if (!code_font || lv_font_get_glyph_width(code_font, 'W', 0) + 4 > tile_width ||
+      lv_font_get_line_height(code_font) + 4 > tile_height) {
+    code_font = text_font;
+  }
   for (size_t i = 0; i < ui.letters.size(); ++i) {
     if (i == 4) {
       auto *dash = lv_label_create(ui.code_row);
       lv_obj_set_width(dash, dash_width);
       lv_obj_set_style_text_align(dash, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-      if (title_font) lv_obj_set_style_text_font(dash, title_font, LV_PART_MAIN);
+      if (code_font) lv_obj_set_style_text_font(dash, code_font, LV_PART_MAIN);
       lv_obj_set_style_text_color(dash, lv_color_hex(theme.text_muted), LV_PART_MAIN);
       ui.letters[i] = dash;
       continue;
@@ -176,7 +183,7 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     lv_obj_set_style_border_color(tile, lv_color_hex(theme_display_color(theme.border)), LV_PART_MAIN);
     lv_obj_set_style_radius(tile, button_radius, LV_PART_MAIN);
     auto *letter = lv_label_create(tile);
-    if (title_font) lv_obj_set_style_text_font(letter, title_font, LV_PART_MAIN);
+    if (code_font) lv_obj_set_style_text_font(letter, code_font, LV_PART_MAIN);
     lv_obj_set_style_text_color(letter, lv_color_hex(theme.text_primary), LV_PART_MAIN);
     apply_text_width_compensation(letter);
     lv_obj_center(letter);
