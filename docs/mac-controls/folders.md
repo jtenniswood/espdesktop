@@ -11,7 +11,7 @@ Folder cards open only the Finder folders you approve in the Mac app. Folder pat
 
 In the EspDesktop Mac app, open **Settings → Folders**, click **Add Folder…** and select a folder.
 
-<a href="/images/mac-app-folders.png"><img src="/images/mac-app-folders.png" alt="Folders tab in EspDesktop Settings showing approved folders and the Add Folder button" width="1224" height="1488" loading="lazy"></a>
+<a href="/images/mac-app-folders.png"><picture><source type="image/avif" srcset="/images/mac-connector/mac_app4-480.avif 480w, /images/mac-connector/mac_app4-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/mac-app-folders.png" alt="Folders tab in EspDesktop Settings showing approved folders and the Add Folder button" width="1224" height="1488" loading="lazy"></picture></a>
 
 ## Add a folder card
 
@@ -36,6 +36,6 @@ Under **App Subpage**, use **Folder shortcuts open in** to set the default windo
 
 Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
 
-<a href="/images/mac-companion-finder-access.png"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></a>
+<a href="/images/mac-companion-finder-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-finder-access-480.avif 480w, /images/mac-companion-finder-access-772.avif 772w" sizes="(min-width: 768px) 386px, 90vw"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></picture></a>
 
 For app launch behavior and other generated app pages, see [Launch Mac apps](/mac-controls/apps).
