@@ -123,11 +123,6 @@ table th:first-child {
   width: 45%;
 }
 
-table th:last-child,
-table td:last-child {
-  text-align: right;
-}
-
 table tbody tr:nth-child(even) {
   background: var(--vp-c-bg);
 }
