@@ -289,7 +289,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-modal.sp-card-type-picker-open{max-width:720px}" +
         ".sp-settings-overlay>.sp-settings-modal{display:flex}" +
         ".sp-settings-modal>.sp-config{display:flex;flex-direction:column;flex:1;min-width:0;padding-inline:0}" +
-        ".sp-settings-modal>.sp-config>.sp-panel{flex:1 1 auto;overflow:auto;border-radius:0;padding-inline:var(--gap)}" +
+        ".sp-settings-modal>.sp-config>.sp-panel{flex:1 1 auto;overflow:auto;border-radius:0;padding-inline:var(--gap);padding-bottom:12px}" +
         ".sp-settings-modal .sp-btn-row--save{flex:none}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
         "height:100dvh;margin:0;border-radius:0;border:none}}" +

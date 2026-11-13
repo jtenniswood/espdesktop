@@ -4676,8 +4676,13 @@ async function assertCompanionShortcutSettings(browser, testCase) {
           Math.abs(edges.right - bounds.right - parseFloat(style.borderRightWidth)) < 1;
       }), "the square scrolling area extends to the modal's inside edges");
       const beforeScroll = await footer.boundingBox();
-      await body.evaluate(el => { el.scrollTop = 400; });
+      await body.evaluate(el => { el.scrollTop = el.scrollHeight; });
       assert(await body.evaluate(el => el.scrollTop) > 0, "the settings body scrolls");
+      const lastSection = body.locator(".sp-disclosure").last();
+      const panelBounds = await body.boundingBox();
+      const lastBounds = await lastSection.boundingBox();
+      assert(panelBounds.y + panelBounds.height - (lastBounds.y + lastBounds.height) >= 11,
+        "the last section scrolls fully into view with space below it");
       assert.deepStrictEqual(await footer.boundingBox(), beforeScroll, "the action row stays fixed while settings scroll");
       for (const control of [".sp-delete-btn", ".sp-edit-subpage-btn", ".sp-save-btn"]) {
         assert(await footer.locator(control).evaluate(el => {
