@@ -533,7 +533,55 @@ export function registerCompanionCardTypes(
         card.icon = companionSubtypeDefaultIcon(mode);
     }
 
+    function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
+        helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }): void {
+        const savedShortcutSubpage = state.subpages[page];
+        const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
+        if (savedShortcutSubpage &&
+            companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
+            card._appShortcutSelectionChanged !== true) {
+            setCompanionShortcutTabs(
+                card,
+                companionShortcutTabsFromSubpage(card.entity, savedShortcutSubpage),
+            );
+        }
+        modalTabs.renderModalTabSettings(panel, card, helpers, {
+            definitions: function () { return companionShortcutTabDefinitions(card.entity); },
+            searchPlaceholder: "Find a shortcut…",
+            dragOnly: true,
+            tabs: (button: any) => companionShortcutTabsForCapacity(
+                companionShortcutTabs(button), maxSlots,
+            ),
+            normalizeOptions: function (options: string) {
+                return normalizeCompanionAppShortcutOptions({ ...card, options });
+            },
+            setTabs: function (button: any, tabs: string[]) {
+                const candidate = reconnectAthenaShortcutSubpage(
+                    savedShortcutSubpage ?? undefined, savedParent?.entity, button.entity,
+                ) ?? savedShortcutSubpage;
+                if (!companionShortcutTabsFitSubpage(button.entity, tabs, candidate, maxSlots)) {
+                    button._appShortcutCapacityRejected = true;
+                    return false;
+                }
+                delete button._appShortcutCapacityRejected;
+                setCompanionShortcutTabs(button, tabs);
+                button._appShortcutSelectionChanged = true;
+                return true;
+            },
+            idPrefix: "companion-shortcut-",
+            hideHeading: true,
+            allowEmpty: true,
+        });
+        if (card._appShortcutCapacityRejected === true) {
+            const capacityNote = document.createElement("div");
+            capacityNote.className = "sp-field-info-text sp-visible";
+            capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another shortcut.";
+            panel.appendChild(capacityNote);
+        }
+    }
+
     const companionDefinition: any = {
+        renderAppShortcutSettings,
         label: function () { return cardContractCardLabel("companion"); },
         allowInSubpage: function () { return cardContractAllowInSubpage("companion"); },
         pickerKey: function () { return cardContractPickerKey("companion"); },
@@ -1048,14 +1096,6 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(appSubpageDisclosure.panel);
             const savedShortcutSubpage = subpageKey ? state.subpages[subpageKey] : null;
-            if (savedShortcutSubpage &&
-                companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
-                card._appShortcutSelectionChanged !== true) {
-                setCompanionShortcutTabs(
-                    card,
-                    companionShortcutTabsFromSubpage(card.entity, savedShortcutSubpage),
-                );
-            }
             const shortcutFolderField = document.createElement("div");
             shortcutFolderField.className = "sp-field";
             const folderToggle = helpers.toggleRow(
@@ -1168,43 +1208,11 @@ export function registerCompanionCardTypes(
                 finderFolderList.className = "sp-app-subpage-folder-list";
                 appSubpageDisclosure.section.appendChild(finderFolderList);
             }
-            if (companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
+            if (subpageKey && companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
                 const shortcutOptionsDivider = document.createElement("div");
                 shortcutOptionsDivider.className = "sp-app-subpage-options-divider";
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
-                modalTabs.renderModalTabSettings(appSubpageDisclosure.section, card, helpers, {
-                    definitions: function () { return companionShortcutTabDefinitions(card.entity); },
-                    searchPlaceholder: "Find a shortcut…",
-                    dragOnly: true,
-                    tabs: (button: any) => companionShortcutTabsForCapacity(
-                        companionShortcutTabs(button), maxSlots,
-                    ),
-                    normalizeOptions: function (options: string) {
-                        return normalizeCompanionAppShortcutOptions({ ...card, options });
-                    },
-                    setTabs: function (button: any, tabs: string[]) {
-                        const page = reconnectAthenaShortcutSubpage(
-                            savedShortcutSubpage ?? undefined, savedParent?.entity, button.entity,
-                        ) ?? savedShortcutSubpage;
-                        if (!companionShortcutTabsFitSubpage(button.entity, tabs, page, maxSlots)) {
-                            button._appShortcutCapacityRejected = true;
-                            return false;
-                        }
-                        delete button._appShortcutCapacityRejected;
-                        setCompanionShortcutTabs(button, tabs);
-                        button._appShortcutSelectionChanged = true;
-                        return true;
-                    },
-                    idPrefix: "companion-shortcut-",
-                    hideHeading: true,
-                    allowEmpty: true,
-                });
-                if (card._appShortcutCapacityRejected === true) {
-                    const capacityNote = document.createElement("div");
-                    capacityNote.className = "sp-field-info-text sp-visible";
-                    capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another shortcut.";
-                    appSubpageDisclosure.section.appendChild(capacityNote);
-                }
+                renderAppShortcutSettings(appSubpageDisclosure.section, card, subpageKey, helpers);
             }
 
             function syncMode(mode: string): void {

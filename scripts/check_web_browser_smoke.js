@@ -16,6 +16,8 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
+  parseRawButtonConfig,
+  setConfigOptionValue,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
 const { encodePanelPageDocument, decodePanelPageSnapshot } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
@@ -4590,8 +4592,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       '"' + String.fromCodePoint(0xF0633) + '"',
       "saved Command cards render the bundled MDI glyph",
     );
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const appCard = page.locator('.sp-main [data-slot="1"]');
+    await appCard.click({ button: "right" });
+    const menu = page.locator(".sp-ctx-menu");
+    assert.strictEqual(await menu.getByText("Edit App Shortcuts", { exact: true }).count(), 0,
+      "the shortcut editor is available inside app subpages");
+    await menu.getByText("Edit Card", { exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
 
     const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({
@@ -4740,6 +4746,41 @@ async function assertCompanionShortcutSettings(browser, testCase) {
         !subpage.includes("shortcut.command+keybracketright"),
       `${testCase.name}: saving should generate only enabled shortcuts`,
     );
+    const appWithoutShortcutSelection = (value) => {
+      const card = parseRawButtonConfig(value);
+      return { ...card, options: setConfigOptionValue(card.options, "app_shortcuts_tabs", "") };
+    };
+    const parentBefore = appWithoutShortcutSelection(nativeState.document.buttons[1]);
+    await appCard.locator(".sp-subpage-badge").click();
+    const shortcutCard = page.locator('.sp-main [data-slot="1"]');
+    const dialog = page.locator(".sp-settings-modal");
+    const showShortcuts = async (target = shortcutCard) => {
+      await target.click({ button: "right" });
+      await menu.getByText("Edit App Shortcuts", { exact: true }).click();
+      await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
+    };
+    await showShortcuts();
+    assert.strictEqual(await dialog.getByText("Card Settings", { exact: true }).count(), 0);
+    assert.strictEqual(await dialog.getByText("Add app subpage", { exact: true }).count(), 0);
+    const back = dialog.getByRole("checkbox", { name: safariShortcutLabel(0), exact: true });
+    assert(await back.isChecked(), "the shortcut editor reads the existing page selection");
+    await back.evaluate(input => input.click());
+    const beforeCancel = nativeState.puts.length;
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeCancel, "cancelling discards shortcut changes");
+    await showShortcuts();
+    assert(await back.isChecked(), "reopening after cancellation restores the saved selection");
+    await back.evaluate(input => input.click());
+    await dialog.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      !nativeState.document.subpages[1].includes("shortcut.command+keybracketleft"),
+    "save shortcuts from inside the app page");
+    assert.deepStrictEqual(appWithoutShortcutSelection(nativeState.document.buttons[1]), parentBefore,
+      "only the parent app's shortcut option changes");
+    const backCard = page.locator(".sp-main .sp-back-btn");
+    assert(await backCard.isVisible(), "Save stays on the app subpage");
+    await showShortcuts(backCard);
+    assert(!(await back.isChecked()), "reopening shows the updated selection");
   } finally {
     await context.close();
   }
@@ -7202,8 +7243,11 @@ async function assertNestedCompanionPages(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const folderAppCard = page.locator('.sp-main [data-slot="1"]');
+    await folderAppCard.click({ button: "right" });
+    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Edit App Shortcuts", { exact: true }).count(), 0,
+      "ordinary folders do not have a shortcut editor");
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
     if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
     await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
@@ -7220,12 +7264,9 @@ async function assertNestedCompanionPages(browser) {
     assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
       "a nested app page uses the app that owns the inner page");
     await page.locator(".sp-settings-close").click();
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await page.getByText("Safari", { exact: true }).first().waitFor();
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
-    if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await app.locator(".sp-disclosure-button").click();
+    await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Edit App Shortcuts", { exact: true }).click();
+    await page.locator(".sp-settings-modal").getByText("Edit App Shortcuts", { exact: true }).waitFor();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
     let rejectNext = true;
     await page.route("**/api/v1/config", async route => {
@@ -7251,6 +7292,8 @@ async function assertNestedCompanionPages(browser) {
     const parsed = loadTypeScriptModule("src/webserver/model/subpage.ts").parseRawSubpageConfig(fixture.document.subpages[33], code => code);
     const back = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/app_shortcuts/safari.json"))).shortcuts.find(shortcut => shortcut.id === "1");
     assert(parsed.buttons.some(card => card.entity === "shortcut." + back.shortcut), "retry in the same dialog saves the newly selected shortcut");
+    assert(await page.locator(".sp-main").getByText("Address", { exact: true }).isVisible(),
+      "saving the nested shortcut list stays on that page");
     await open();
 
     const stale = await context.newPage();

@@ -1,4 +1,5 @@
 import { cardRuntimeRetired, cardTypeConnector } from "../model/legacy_home_assistant";
+import type { CardConfig } from "../contracts/types";
 import { CARD_RUNTIME_SPECS } from "../generated/card_contract";
 
 export type CardDefinitionValue<T> = T | (() => T);
@@ -16,6 +17,8 @@ export interface CardDefinition {
   readonly onSelect?: ((button: any) => void) | null;
   readonly renderSettingsBeforeLabel?: ((...args: any[]) => unknown) | null;
   readonly renderSettings?: ((...args: any[]) => unknown) | null;
+  readonly renderAppShortcutSettings?: (panel: HTMLElement, card: CardConfig, page: number,
+    helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }) => void;
   /** Preview results set labelEditable to false when their label shows generated state instead of the card name. */
   readonly renderPreview?: ((...args: any[]) => unknown) | null;
   readonly contextMenuItems?: ((...args: any[]) => unknown) | null;

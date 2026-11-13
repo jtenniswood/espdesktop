@@ -112,6 +112,7 @@ export interface SettingsDraft {
   isNew?: boolean;
   pos?: number;
   typeSelected?: boolean;
+  appShortcutPage?: number;
   autoSelectedButton?: CardConfig | null;
 }
 

@@ -67,6 +67,8 @@ import {
     preserveCardColorOptions,
 } from "../model/config_primitives";
 import { cardTransferOwnsSubpage } from "../model/card_transfer";
+import { appShortcutPageOwner } from "../model/companion_shortcut_page";
+import type { CardConfig } from "../contracts/types";
 import { isBackOrderToken } from "../model/subpage";
 import type { SubpageConfig } from "../contracts/types";
 
@@ -135,6 +137,11 @@ export function companionAppShortcutFolderEnabled(card: any): boolean {
     return !!card && card.type === "companion" && !!companionShortcutFolderAppLabel(card.entity) &&
         !card.sensor &&
         configOptionEnabled(card.options, COMPANION_APP_SHORTCUTS_OPTION);
+}
+
+export function editableAppShortcutPage(card?: CardConfig): boolean {
+    const app = appShortcutPageOwner(card);
+    return !!app && app !== "com.apple.finder" && companionShortcutChoices(app).length > 0;
 }
 
 export function normalizeCompanionAppShortcutOptions(card: any): string {
