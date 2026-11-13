@@ -427,7 +427,7 @@ export function createConfigModalTabOptionsFeature(
             more.className = "sp-secondary-btn";
             list.id = helpers.idPrefix + config.idPrefix + "list";
             more.setAttribute("aria-controls", list.id);
-            section.insertBefore(more, list);
+            section.appendChild(more);
 
             function updateRows() {
                 const query = b._modalTabsSearch?.trim().toLowerCase();
@@ -448,6 +448,7 @@ export function createConfigModalTabOptionsFeature(
             more.addEventListener("click", () => {
                 b._modalTabsExpanded = !b._modalTabsExpanded;
                 updateRows();
+                if (!b._modalTabsExpanded) more.scrollIntoView({ block: "nearest" });
             });
             updateRows();
         }

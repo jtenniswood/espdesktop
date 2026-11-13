@@ -4625,6 +4625,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await visibleRows.count(), 20);
     assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "false");
+    const assertToggleBelowRows = async () => {
+      const lastRow = await visibleRows.last().boundingBox();
+      const toggle = await toggleList.boundingBox();
+      assert(toggle.y >= lastRow.y + lastRow.height, "the expand or collapse button follows the visible rows");
+    };
+    await assertToggleBelowRows();
     const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
     const lastShortcut = safariShortcuts.at(-1);
     await filter.fill(lastShortcut.label);
@@ -4635,6 +4641,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await toggleList.click();
     assert.strictEqual(await visibleRows.count(), safariShortcuts.length);
     assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "true");
+    await assertToggleBelowRows();
     await toggleList.click();
     assert.strictEqual(await visibleRows.count(), 20);
     await toggleList.click();
