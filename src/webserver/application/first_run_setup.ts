@@ -102,7 +102,8 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     const { document, window } = deps;
     const appLimit = setupAppLimit(deps.capacity);
     const catalogue = createCompanionCatalogue(deps.fetch);
-    const pairingLink = requestedConnectorFromSearch(window.location.search) === "mac_companion";
+    const setupLink = new URLSearchParams(window.location.search).get("setup") === "1";
+    const pairingLink = !setupLink && requestedConnectorFromSearch(window.location.search) === "mac_companion";
     let dialog: HTMLDialogElement | null = null;
     let eligible = false;
     let replacing: NativePanelConfigGraph | undefined;
@@ -326,6 +327,9 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             "Choose when the display opens a shortcut page.",
         ];
         const description = element("p", explanations[step], "sp-setup-description");
+        if (step === 1 && replacing && (replacing.layout.rootCards.length || replacing.layout.pages.length)) {
+            description.append(" Saving setup replaces the current Home layout.");
+        }
         const closeButton = element("button", "", "sp-settings-close");
         closeButton.type = "button";
         closeButton.disabled = busy;
@@ -435,17 +439,17 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         pairingState = value;
         updatePairingView?.();
     });
-    return {
-        open(): void {
-            if (!deps.supported || dialog || opening) return;
-            opening = true;
-            void (async () => {
-                if (!await supportsSetup())
-                    throw new Error("Update the display firmware to use app setup.");
-                const saved = await deps.native.readSnapshot();
-                if (!hasNativeLayout(saved)) throw new Error("Could not load the display’s native layout. Check its connection and firmware.");
-                replacing = saved;
-                selected.clear();
+    function open(fromLink = false): void {
+        if (!deps.supported || dialog || opening) return;
+        opening = true;
+        void (async () => {
+            if (!await supportsSetup()) throw new Error("Update the display firmware to use app setup.");
+            const saved = await deps.native.readSnapshot();
+            if (!hasNativeLayout(saved)) throw new Error("Could not load the display’s native layout. Check its connection and firmware.");
+            replacing = fromLink && needsFirstRunSetup(saved) ? undefined : saved;
+            selected.clear();
+            addShortcutPages = true;
+            if (replacing) {
                 addShortcutPages = false;
                 for (const { config: card } of saved.layout.rootCards) {
                     if (card.type !== "companion" || !card.entity || card.sensor || selected.size >= appLimit) continue;
@@ -453,21 +457,28 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                     if (configOptionEnabled(card.options, "app_shortcuts")) addShortcutPages = true;
                 }
                 if (!selected.size) addShortcutPages = true;
-                autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
-                query = "";
-                error = "";
-                eligible = true;
-                show();
-            })().catch(failure => deps.shell.showBanner(failure.message, "error"))
-                .finally(() => { opening = false; });
-        },
+            }
+            autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
+            query = "";
+            error = "";
+            eligible = true;
+            show();
+        })().catch(failure => deps.shell.showBanner(failure.message, "error"))
+            .finally(() => { opening = false; });
+    }
+    return {
+        open: () => open(),
         start(): void {
             if (!deps.supported || started) return;
             started = true;
+            if (setupLink) {
+                open(true);
+                return;
+            }
             void (async () => {
                 if (!await supportsSetup()) return;
                 const saved = await deps.native.readSnapshot();
-                if (!hasNativeLayout(saved) || !needsFirstRunSetup(saved)) return;
+                if (opening || eligible || !hasNativeLayout(saved) || !needsFirstRunSetup(saved)) return;
                 eligible = true;
                 show();
             })().catch(() => { /* A failed discovery must leave the normal editor available. */ });

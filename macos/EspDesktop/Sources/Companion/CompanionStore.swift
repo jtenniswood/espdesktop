@@ -655,8 +655,12 @@ final class CompanionStore: NSObject, ObservableObject {
         openPanelWebServer(host: panelHost, tab: "connectors", connector: "mac_companion")
     }
 
-    private func openPanelWebServer(host: String, tab: String?, connector: String? = nil) -> Bool {
-        guard let url = Self.panelWebServerURL(from: host, tab: tab, connector: connector),
+    func openPanelSetup() -> Bool {
+        openPanelWebServer(host: panelHost, setup: true)
+    }
+
+    private func openPanelWebServer(host: String, tab: String? = nil, connector: String? = nil, setup: Bool = false) -> Bool {
+        guard let url = Self.panelWebServerURL(from: host, tab: tab, connector: connector, setup: setup),
               NSWorkspace.shared.open(url) else {
             updateStatus("Could not open display settings")
             return false
@@ -668,6 +672,7 @@ final class CompanionStore: NSObject, ObservableObject {
         from value: String,
         tab: String? = nil,
         connector: String? = nil,
+        setup: Bool = false
     ) -> URL? {
         let raw = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parsed = URL(string: raw.contains("://") ? raw : "http://\(raw)"),
@@ -683,6 +688,9 @@ final class CompanionStore: NSObject, ObservableObject {
             components.queryItems = (components.queryItems ?? []) + [
                 URLQueryItem(name: "connector", value: connector),
             ]
+        }
+        if setup {
+            components.queryItems = (components.queryItems ?? []) + [URLQueryItem(name: "setup", value: "1")]
         }
         return components.url
     }

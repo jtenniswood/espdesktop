@@ -7192,7 +7192,10 @@ async function assertFirstRunSetup(browser) {
     await close.click();
     await dialog.waitFor({ state: "detached" });
     assert.equal(fixture.puts.length, 0, "closing setup leaves it available on reload");
-    await open();
+    await open("&setup=1");
+    await title.waitFor();
+    assert(await dialog.getByRole("button", { name: "Skip setup", exact: true }).isVisible(),
+      "the Mac setup link on an empty display opens first-time setup");
     const setChecked = async (input, checked) => {
       const track = input.locator("..").locator(".sp-toggle-track");
       await track.waitFor();
@@ -7264,6 +7267,17 @@ async function assertFirstRunSetup(browser) {
     await open();
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "completion survives page reload");
+    const beforeSetupLink = JSON.stringify(fixture.document);
+    await open("&setup=1");
+    await title.waitFor();
+    await dialog.getByText(/Saving setup replaces the current Home layout/).waitFor();
+    await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
+    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "the Mac setup link restores existing app selections");
+    assert.equal(await dialog.getByRole("button", { name: "Skip setup", exact: true }).count(), 0);
+    await close.click();
+    await dialog.waitFor({ state: "detached" });
+    assert.equal(JSON.stringify(fixture.document), beforeSetupLink, "opening and closing the Mac setup link preserves the layout");
+    assert.equal(fixture.puts.length, 1, "the setup link never saves automatically");
     // A second browser sees the same completion marker on the display.
     const second = await context.newPage();
     await second.goto(`http://espdesktop.test/${testCase.slug}`);

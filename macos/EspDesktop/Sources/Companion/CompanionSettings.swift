@@ -159,6 +159,35 @@ private struct OnboardingWindowTitle: NSViewRepresentable {
     }
 }
 
+private struct CompanionPairingActions: View {
+    let finishLabel: String
+    let openSetup: () -> Bool
+    let onComplete: () -> Void
+    @State private var failedToOpenSetup = false
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Button(finishLabel, action: onComplete)
+                    .buttonStyle(.bordered)
+                Button("Configure Screen") {
+                    if openSetup() {
+                        onComplete()
+                    } else {
+                        failedToOpenSetup = true
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            if failedToOpenSetup {
+                Label("Could not open the display’s setup wizard.", systemImage: "exclamationmark.circle")
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+            }
+        }
+    }
+}
+
 private struct CompanionOnboarding: View {
     @ObservedObject var store: CompanionStore
     let onComplete: () -> Void
@@ -169,8 +198,8 @@ private struct CompanionOnboarding: View {
             VStack(spacing: 24) {
                 CompanionSetupHeading(
                     step: 3,
-                    title: "Access and startup",
-                    summary: "Your display is paired. Choose what to enable."
+                    title: "You’re connected",
+                    summary: "Choose what to enable on your Mac, then configure your screen."
                 )
 
                 GroupBox {
@@ -195,8 +224,7 @@ private struct CompanionOnboarding: View {
                     .padding(12)
                 }
 
-                Button("Finish") { onComplete() }
-                    .buttonStyle(.borderedProminent)
+                CompanionPairingActions(finishLabel: "Finish", openSetup: store.openPanelSetup, onComplete: onComplete)
             }
             .controlSize(.large)
             .frame(maxWidth: 380)
@@ -514,8 +542,7 @@ struct CompanionSettings: View {
                     ProgressView()
                         .accessibilityLabel("Connecting to display")
                 } else {
-                    Button("Done", action: finishPairingFlow)
-                        .buttonStyle(.borderedProminent)
+                    CompanionPairingActions(finishLabel: "Done", openSetup: store.openPanelSetup, onComplete: finishPairingFlow)
                 }
                 if store.onboardingCompleted && (pairingStep == .code || pairingStep == .connecting) {
                     Button("Cancel", action: finishPairingFlow)
