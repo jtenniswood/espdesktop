@@ -297,7 +297,8 @@ struct CompanionSettings: View {
                 pairingCode = ""
                 pairingStep = .connected
             } else if pairingStep == .connecting {
-                if store.hasSavedPairingInProgress && (state == .failed || state == .disconnected) {
+                if store.hasSavedPairingInProgress && !store.canRetryRePairing &&
+                    (state == .failed || state == .needsPairing || state == .disconnected) {
                     finishPairingFlow()
                 } else if state == .failed {
                     pairingStep = .code
@@ -440,6 +441,7 @@ struct CompanionSettings: View {
                 .labelsHidden()
                 .toggleStyle(SwitchToggleStyle(tint: .accentColor))
                 .controlSize(displaySwitchSize)
+                .disabled(display.state == .needsPairing)
 
                 HStack(spacing: 8) {
                     if display.state.isBusy {
@@ -455,13 +457,23 @@ struct CompanionSettings: View {
                     .help(display.panelHost)
                     .textSelection(.enabled)
 
-                if display.state == .failed {
+                if display.state == .failed || display.state == .needsPairing {
                     Text(display.recoveryMessage)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
             }
             HStack(spacing: 12) {
+                if display.state == .needsPairing {
+                    Button {
+                        startRePairing(display)
+                    } label: {
+                        Label("Re-pair", systemImage: "link")
+                            .padding(.vertical, 4)
+                    }
+                    .modifier(CompanionCapsuleButton())
+                }
+
                 Button {
                     store.openPanelWebServer(display)
                 } label: {
@@ -528,13 +540,13 @@ struct CompanionSettings: View {
                     .font(.title3)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     HStack {
-                        if pairingStep == .code {
+                        if pairingStep == .code && !store.isRePairing {
                             Button("Back") {
                                 pairingFlowError = ""
                                 pairingStep = .address
                                 focusedField = .panelHost
                             }
-                        } else if store.onboardingCompleted {
+                        } else if pairingStep == .address && store.onboardingCompleted {
                             Button("Cancel", action: finishPairingFlow)
                         }
                         if pairingStep == .code { Spacer() }
@@ -725,6 +737,14 @@ struct CompanionSettings: View {
         pairingFlowActive = true
         pairingStep = .address
         pairingFlowError = ""
+    }
+
+    private func startRePairing(_ display: CompanionDisplay) {
+        guard store.prepareRePairing(display) else { return }
+        pairingCode = ""
+        pairingFlowActive = true
+        pairingFlowError = ""
+        pairingStep = .requestingCode
     }
 
     private func finishPairingFlow() {

@@ -452,7 +452,7 @@ CompanionService::AuthenticationResult CompanionService::authenticate_locked_(
   }
   if (!this->sequence_preferences_.save(&sequence)) {
     ESP_LOGE(TAG, "Could not persist the Companion authentication sequence");
-    return AuthenticationResult::FAILED;
+    return AuthenticationResult::STORAGE_FAILED;
   }
   this->last_sequence_ = sequence;
   last_sequence = sequence;
@@ -511,7 +511,9 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         return true;
       }
       if (authentication != AuthenticationResult::AUTHENTICATED) {
-        send_error("authentication_failed");
+        const char *code = this->identity_.paired ? "authentication_failed" : "pairing_reset";
+        if (authentication == AuthenticationResult::STORAGE_FAILED) code = "authentication_storage_failed";
+        send_error(code);
         this->expire_unauthenticated_socket_(socket_fd);
         return true;
       }
@@ -1248,6 +1250,10 @@ bool CompanionService::revoke_pairing_locked_() {
   if (!this->preferences_.save(&unpaired_identity)) return false;
 
   const int previous_socket = this->session_.authenticated_socket();
+  if (previous_socket >= 0) {
+    this->send_(previous_socket, "{\"type\":\"error\",\"protocol\":" +
+        std::to_string(COMPANION_PROTOCOL_VERSION) + ",\"code\":\"pairing_reset\"}");
+  }
   this->identity_ = unpaired_identity;
   this->last_sequence_ = 0;
   this->pairing_code_.clear();

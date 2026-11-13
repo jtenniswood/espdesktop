@@ -64,7 +64,7 @@ class CompanionService final : public Component {
  protected:
   void advertise_discovery_();
   bool discovery_advertised_{false};
-  enum class AuthenticationResult : uint8_t { FAILED, STALE_SEQUENCE, AUTHENTICATED };
+  enum class AuthenticationResult : uint8_t { FAILED, STORAGE_FAILED, STALE_SEQUENCE, AUTHENTICATED };
 
   static esp_err_t websocket_handler_(httpd_req_t *request);
   static esp_err_t legacy_websocket_handler_(httpd_req_t *request);

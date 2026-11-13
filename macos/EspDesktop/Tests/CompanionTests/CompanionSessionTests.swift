@@ -26,6 +26,15 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
 }
 
 final class CompanionSessionTests: XCTestCase {
+    func testOnlyPairingErrorsChangeTheSavedDisplayToPairingRequired() {
+        XCTAssertTrue(CompanionConnection.requiresNewPairing(errorCode: "pairing_reset", authenticated: true, authenticating: false))
+        XCTAssertTrue(CompanionConnection.requiresNewPairing(errorCode: "pairing_reset", authenticated: false, authenticating: true))
+        XCTAssertTrue(CompanionConnection.requiresNewPairing(errorCode: "authentication_failed", authenticated: false, authenticating: true))
+        XCTAssertFalse(CompanionConnection.requiresNewPairing(errorCode: "authentication_storage_failed", authenticated: false, authenticating: true))
+        XCTAssertFalse(CompanionConnection.requiresNewPairing(errorCode: "authentication_sequence", authenticated: false, authenticating: true))
+        XCTAssertFalse(CompanionConnection.requiresNewPairing(errorCode: "authentication_failed", authenticated: false, authenticating: false))
+    }
+
     @MainActor
     func testIndependentSessionsAndInvalidEndpointNeedNoSystemServices() {
         let firstPorts = SessionFixture(), secondPorts = SessionFixture()

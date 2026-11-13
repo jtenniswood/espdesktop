@@ -54,6 +54,10 @@ final class CompanionConnection: NSObject {
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
     private var mode: Mode = .authenticate
+    var isPairing: Bool {
+        if case .pair = mode { return true }
+        return false
+    }
     private var receiveTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
     private var reconnectAttempt = 0
@@ -168,6 +172,13 @@ final class CompanionConnection: NSObject {
         reconnectTask = nil
         tearDownConnection()
         updateConnectionStatus("Not connected", state: .disconnected)
+    }
+
+    func cancelRePairing() {
+        guard isPairing else { return }
+        tearDownConnection()
+        updateConnectionStatus("Display needs to be paired again", state: .needsPairing,
+                               recovery: Self.rePairingInstructions)
     }
 
     private func tearDownConnection() {
@@ -565,7 +576,14 @@ final class CompanionConnection: NSObject {
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
             let code = payload.code
-            if code == "authentication_sequence",
+            if Self.requiresNewPairing(errorCode: code, authenticated: sessionAuthenticated,
+                                       authenticating: authenticationRequestOutstanding) {
+                hasTerminalConnectionError = true
+                shouldReconnect = false
+                tearDownConnection()
+                updateConnectionStatus("Display needs to be paired again", state: .needsPairing,
+                                       recovery: Self.rePairingInstructions)
+            } else if code == "authentication_sequence",
                let panelSequence = payload.lastSequence,
                panelSequence < UInt32.max {
                 preferences.setPreference(Int(panelSequence), forKey: authenticationSequenceKey)
@@ -579,10 +597,7 @@ final class CompanionConnection: NSObject {
                     hasTerminalConnectionError = true
                     shouldReconnect = false
                     tearDownConnection()
-                    let recovery = code == "authentication_failed"
-                        ? "The display rejected this app’s saved pairing. If you paired it with another copy of EspDesktop, choose Remove and pair this copy once."
-                        : nil
-                    updateConnectionStatus(message, state: .failed, recovery: recovery)
+                    updateConnectionStatus(message, state: .failed)
                 }
             }
         case .artworkAck, .artworkAbort, .artworkRequest:
@@ -592,6 +607,16 @@ final class CompanionConnection: NSObject {
             return false
         }
         return true
+    }
+
+    private static let rePairingInstructions = "The saved pairing is no longer valid. Select Re-pair to connect this display again."
+
+    nonisolated static func requiresNewPairing(errorCode: String, authenticated: Bool, authenticating: Bool) -> Bool {
+        switch errorCode {
+        case "pairing_reset": return authenticated || authenticating
+        case "authentication_failed": return authenticating
+        default: return false
+        }
     }
 
     func publishSystemMetrics(_ snapshot: CompanionSystemMetricsSnapshot, force: Bool = false) {

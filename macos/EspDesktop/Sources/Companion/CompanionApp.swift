@@ -160,8 +160,10 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             actions.addItem(status)
             actions.addItem(.separator())
             let enabled = display.state == .connected || display.state.isBusy
-            let toggle = NSMenuItem(title: enabled ? "Disconnect" : "Connect",
-                                    action: #selector(toggleDisplayConnection(_:)), keyEquivalent: "")
+            let toggle = display.state == .needsPairing
+                ? NSMenuItem(title: "Display Settings…", action: #selector(openSettings), keyEquivalent: "")
+                : NSMenuItem(title: enabled ? "Disconnect" : "Connect",
+                             action: #selector(toggleDisplayConnection(_:)), keyEquivalent: "")
             toggle.target = self
             toggle.representedObject = display
             actions.addItem(toggle)

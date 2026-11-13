@@ -2,7 +2,7 @@ import Foundation
 
 /// Connection progress is independent of diagnostic text and action errors.
 enum CompanionConnectionState: Equatable {
-    case disconnected, connecting, reconnecting, connected, failed
+    case disconnected, connecting, reconnecting, connected, needsPairing, failed
 
     var isBusy: Bool { self == .connecting || self == .reconnecting }
     var title: String {
@@ -11,13 +11,14 @@ enum CompanionConnectionState: Equatable {
         case .connecting: return "Connecting…"
         case .reconnecting: return "Reconnecting…"
         case .connected: return "Connected"
+        case .needsPairing: return "Pairing Required"
         case .failed: return "Connection Needs Attention"
         }
     }
     var symbol: String {
         switch self {
         case .connected: return "checkmark.circle"
-        case .failed: return "exclamationmark.triangle"
+        case .needsPairing, .failed: return "exclamationmark.triangle"
         default: return "display"
         }
     }
