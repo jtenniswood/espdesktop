@@ -15,7 +15,7 @@ All subpages hide the top title and clock bar so the cards use the full screen. 
 
 Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
 
-<a href="/images/web-editor-app-subpages-settings.png"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1338" loading="lazy"></a>
+<a href="/images/web-editor-app-subpages-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpages-settings-480.avif 480w, /images/web-editor-app-subpages-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1338" loading="lazy"></picture></a>
 
 ## Create a subpage
 
@@ -26,7 +26,7 @@ Under **Screen → Appearance → App Subpages**, **Return home when switching a
 5. Add and arrange cards on the subpage as you would on the home screen.
 6. Choose its **Back** card to return to the parent page.
 
-<a href="/images/web-editor-subpage-home.png"><img src="/images/web-editor-subpage-home.png" alt="Home layout with chevrons marking app cards that have subpages and a dashed empty tile for adding a card" width="1694" height="2266" loading="lazy"></a>
+<a href="/images/web-editor-subpage-home.png"><picture><source type="image/avif" srcset="/images/web-editor-home-480.avif 480w, /images/web-editor-home-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-subpage-home.png" alt="Home layout with chevrons marking app cards that have subpages and a dashed empty tile for adding a card" width="1694" height="2266" loading="lazy"></picture></a>
 
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 

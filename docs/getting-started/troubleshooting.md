@@ -51,7 +51,7 @@ Select the display in the Mac app and choose **Continue**. Enter the four letter
 
 If the touchscreen asks **Reset pairing?**, confirm to replace the display’s saved pairing. If the Mac shows **Pairing Required**, open **Settings → Displays**, choose **Re-pair** beside the display, and enter the current code. The code stays valid until pairing succeeds.
 
-<a href="/images/mac-companion-enter-pairing-code.png"><img src="/images/mac-companion-enter-pairing-code.png" alt="EspDesktop Mac app with four pairing code boxes, a Connect button, and the Open pairing webpage link" width="1224" height="1600" loading="lazy"></a>
+<a href="/images/mac-companion-enter-pairing-code.png"><picture><source type="image/avif" srcset="/images/mac-companion-enter-pairing-code-480.avif 480w, /images/mac-companion-enter-pairing-code-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/mac-companion-enter-pairing-code.png" alt="EspDesktop Mac app with four pairing code boxes, a Connect button, and the Open pairing webpage link" width="1224" height="1600" loading="lazy"></picture></a>
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 

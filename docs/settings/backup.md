@@ -7,7 +7,7 @@ description: Export an EspDesktop configuration to a backup file and import it a
 
 Export a backup before a firmware update or factory reset, or when you want to move your setup to a replacement display. The file includes your cards, layout, subpages and display settings such as colours, brightness, sleep schedules, language and time preferences.
 
-<a href="/images/web-editor-backup.png"><img src="/images/web-editor-backup.png" alt="Backup panel expanded between Device Name and Firmware, with Export and Import buttons" width="1292" height="771" loading="lazy"></a>
+<a href="/images/web-editor-backup.png"><picture><source type="image/avif" srcset="/images/web-editor-backup-480.avif 480w, /images/web-editor-backup-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-backup.png" alt="Backup panel expanded between Device Name and Firmware, with Export and Import buttons" width="1292" height="771" loading="lazy"></picture></a>
 
 ## Export a backup
 

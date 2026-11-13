@@ -15,7 +15,7 @@ Choose **Apply Configuration** at the bottom of the tab when you’re ready to r
 
 Open **Connectors → Mac Companion** to check the connection. While the display is unpaired, choose **Copy** to copy the four-letter code, then paste it into the Mac app. [Pair the Mac app](/screens/4848s040#pair-the-display).
 
-<a href="/images/web-editor-mac-companion-pairing.png"><img src="/images/web-editor-mac-companion-pairing.png" alt="Mac Companion card in the System tab showing four boxed letters and a Copy button" width="1372" height="1686" loading="lazy"></a>
+<a href="/images/web-editor-mac-companion-pairing.png"><picture><source type="image/avif" srcset="/images/web-editor-mac-companion-pairing-480.avif 480w, /images/web-editor-mac-companion-pairing-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-mac-companion-pairing.png" alt="Mac Companion card in the System tab showing four boxed letters and a Copy button" width="1372" height="1686" loading="lazy"></picture></a>
 
 To replace a saved pairing, choose **Reset pairing** and confirm. The touchscreen shows a new code. If the Mac app shows **Pairing Required**, choose **Re-pair** in **Settings → Displays** and enter the code.
 
