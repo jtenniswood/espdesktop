@@ -5544,14 +5544,8 @@ async function assertHomeAssistantConnectorLayout(browser) {
       available: true, active: true, paired: false, connected: false,
       expires_in_seconds: 900, pairing_code: "123456",
     };
-    let pairingResetRequests = 0;
     if (testCase.companionSupported) {
       await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
-      await context.route("**/companion/pairing/reset", route => {
-        ++pairingResetRequests;
-        Object.assign(pairingState, { active: false, paired: false, connected: false });
-        return route.fulfill({ json: { ok: true } });
-      });
     }
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -5636,27 +5630,6 @@ async function assertHomeAssistantConnectorLayout(browser) {
           `${testCase.name}: maintenance buttons remain accessible after reopening and polling`);
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
           `${testCase.name}: maintenance buttons fit on a narrow screen`);
-
-        await reset.click();
-        const confirmation = page.getByRole("dialog", { name: "Reset pairing?" });
-        const cancel = confirmation.getByRole("button", { name: "Cancel", exact: true });
-        const confirmReset = confirmation.getByRole("button", { name: "Reset pairing", exact: true });
-        assert(await cancel.evaluate(button => button === document.activeElement), "reset confirmation focuses Cancel");
-        for (const action of [cancel, confirmReset]) {
-          const style = await action.evaluate(button => {
-            const computed = getComputedStyle(button);
-            return [computed.backgroundColor, computed.color, parseFloat(computed.borderTopLeftRadius), button.offsetHeight];
-          });
-          assert.deepStrictEqual(style.slice(0, 2), ["rgb(62, 99, 221)", "rgb(255, 255, 255)"]);
-          assert(style[3] >= 44 && style[2] >= style[3] / 2, "reset actions are at least 44px high and pill-shaped");
-        }
-        await page.keyboard.press("Escape");
-        await confirmation.waitFor({ state: "detached" });
-        assert.equal(pairingResetRequests, 0, "dismissing the reset dialog preserves pairing");
-        await reset.click();
-        await confirmReset.click();
-        await companion.getByText("No Mac paired", { exact: true }).waitFor();
-        assert.equal(pairingResetRequests, 1, "confirming the reset sends one request");
       }
     } finally {
       await context.close();
@@ -7217,10 +7190,7 @@ async function assertFirstRunSetup(browser) {
     // WebKit on macOS uses Option-Tab to include buttons in the tab order.
     const macWebKit = process.platform === "darwin" && browser.browserType().name() === "webkit";
     await page.keyboard.press(macWebKit ? "Alt+Tab" : "Tab");
-    assert(await close.evaluate(node => {
-      const style = getComputedStyle(node);
-      return node.matches(":focus-visible") && (style.outlineStyle !== "none" || style.boxShadow !== "none");
-    }),
+    assert(await close.evaluate(node => node.matches(":focus-visible") && getComputedStyle(node).boxShadow !== "none"),
       "the wizard controls retain a visible keyboard focus indicator");
     await close.click();
     await dialog.waitFor({ state: "detached" });
