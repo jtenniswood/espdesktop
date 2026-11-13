@@ -47,12 +47,13 @@ details {
   scroll-margin-top: calc(var(--vp-nav-height) + 16px);
 }
 
-summary {
+details > summary {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto 16px;
   align-items: center;
   gap: 12px;
   min-height: 48px;
+  margin: 0;
   padding: 10px 8px;
   cursor: pointer;
   list-style: none;
@@ -93,5 +94,32 @@ summary:focus-visible {
 
 details[open] .preset-chevron {
   transform: translateY(2px) rotate(225deg);
+}
+
+details > table {
+  display: table;
+  width: 100%;
+  margin: 0;
+  table-layout: fixed;
+}
+
+table th,
+table td {
+  border: 0;
+  padding: 8px;
+  vertical-align: top;
+  overflow-wrap: anywhere;
+}
+
+table th {
+  font-size: 13px;
+}
+
+table th:first-child {
+  width: 45%;
+}
+
+table tbody tr:nth-child(even) {
+  background: var(--vp-c-bg);
 }
 </style>
