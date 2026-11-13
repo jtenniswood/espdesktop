@@ -301,10 +301,18 @@ async function checkBrowser() {
     const wizard = page.locator('.display-setup-step a.docs-primary-action').getByText('View setup wizard', { exact: true });
     assert.equal(await wizard.getAttribute('href'), '/features/first-run');
     const setupPage = `${base}/screens/4848s040`;
-    await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Install', exact: true }).click();
+    const gettingStarted = page.locator('.VPNavBarMenu .VPFlyout').filter({
+      has: page.getByRole('button', { name: 'Getting started', exact: true }),
+    });
+    const gettingStartedButton = gettingStarted.getByRole('button', { name: 'Getting started', exact: true });
+    await gettingStartedButton.hover();
+    await gettingStarted.getByRole('link', { name: 'Install', exact: true }).click();
     await page.waitForURL(`${setupPage}#install`);
-    await page.locator('.VPNavBarMenu').getByRole('link', { name: 'Download', exact: true }).click();
-    await page.waitForURL('**/download');
+    await gettingStartedButton.hover();
+    await gettingStarted.getByRole('link', { name: 'Download', exact: true }).click();
+    await page.waitForURL(`${setupPage}#download`);
+    await page.getByRole('link', { name: /^(See all|View) Mac downloads$/ }).click();
+    await page.waitForURL(`${base}/download`);
     await page.getByRole('heading', { name: 'Download EspDesktop for Mac', level: 1 }).waitFor();
     const download = page.locator('.mac-app-download a');
     await download.waitFor();
