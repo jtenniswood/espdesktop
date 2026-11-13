@@ -15,7 +15,6 @@ struct DevicePairingButtonColors {
 // Match the website's dark-mode button blue.
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_BLUE{0x3E63DD, 0x3451B2};
 inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_GREY{0x6C6C6C, 0x555555};
-inline constexpr DevicePairingButtonColors DEVICE_PAIRING_BUTTON_RED{0xC63D4A, 0xA72C39};
 // A mid-grey outline stays visible against both the dark and light panels.
 inline constexpr uint32_t DEVICE_PAIRING_TILE_BORDER = 0x6C6C6C;
 
@@ -153,12 +152,13 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     ui.status = device_pairing_label(shell.panel, espdesktop_i18n_key("reset_pairing_warning"),
                                       text_font, theme.text_muted);
     auto *actions = device_pairing_row(shell.panel, gap * 2);
+    lv_obj_set_style_pad_top(actions, control_modal_scaled_px(16, layout.short_side), LV_PART_MAIN);
     const lv_coord_t width = std::min<lv_coord_t>((content_width - gap * 2) / 2,
         control_modal_scaled_px(192, layout.short_side));
     auto *cancel = device_pairing_button(actions, espdesktop_i18n_key("cancel"),
-        width, width, button_height, text_font, DEVICE_PAIRING_BUTTON_GREY);
+        width, width, button_height, text_font);
     auto *reset = device_pairing_button(actions, espdesktop_i18n_key("reset_pairing"),
-        width, width, button_height, text_font, DEVICE_PAIRING_BUTTON_RED);
+        width, width, button_height, text_font, DEVICE_PAIRING_BUTTON_GREY);
     bind_immediate_button_action(cancel, [](lv_event_t *) { control_modal_close_nested_menu(); }, nullptr);
 
     ui.text_font = text_font;
