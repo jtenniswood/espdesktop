@@ -5,7 +5,7 @@ description: Choose your favourite Mac apps, add ready-to-use shortcuts and deci
 
 # Set up your first touchscreen layout {#app-setup-wizard}
 
-The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your Mac isn’t connected yet, the wizard starts with **Connect your Mac**, where you’ll find the Mac app download and pairing code. Once connected, choose **Next**. [Install and pair the Mac app](/screens/4848s040#pair-the-display).
+The setup wizard helps you build your first Home screen. Open the web editor for an empty display. If your Mac isn’t connected yet, the wizard starts with **Connect your Mac**. Choose **Open EspDesktop** on your Mac if you have a version that supports the launch link, or choose **Download EspDesktop for Mac** to get the app. Use the pairing code if prompted. Once connected, choose **Next**. [Install and pair the Mac app](/screens/4848s040#pair-the-display).
 
 ## 1. Choose your apps
 
