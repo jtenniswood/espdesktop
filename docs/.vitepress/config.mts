@@ -275,16 +275,21 @@ export default defineConfig({
   themeConfig: {
     nav: [
       {
+        text: 'Getting started',
+        items: [
+          { text: 'Buy', link: '/screens/4848s040#where-to-buy' },
+          { text: 'Install', link: '/screens/4848s040#install' },
+          { text: 'Download', link: '/screens/4848s040#download' },
+        ],
+      },
+      {
         text: 'Guides',
         items: [
-          { text: 'Get started', link: '/screens/4848s040#where-to-buy' },
           { text: 'Customise', link: '/features/home' },
           { text: 'Troubleshoot', link: '/getting-started/troubleshooting' },
           { text: 'Reference', link: '/reference/faq' },
         ],
       },
-      { text: 'Install', link: '/screens/4848s040#install' },
-      { text: 'Download', link: '/download' },
     ],
 
     sidebar: [
