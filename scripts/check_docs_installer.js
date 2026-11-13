@@ -328,7 +328,8 @@ async function checkBrowser() {
     await page.getByText('Apple silicon Mac with macOS 13 or newer', { exact: true }).waitFor();
     await page.goto(`${base}/screens/4848s040#where-to-buy`);
     const buySection = page.locator('section[aria-labelledby="where-to-buy"]');
-    await buySection.getByRole('link', { name: 'Buy on AliExpress' }).waitFor();
+    await buySection.getByRole('link', { name: 'AliExpress (US)', exact: true }).waitFor();
+    await buySection.getByRole('link', { name: 'AliExpress (Global)', exact: true }).waitFor();
     assert.equal(await buySection.getByRole('link', { name: 'Check Mac requirements' }).count(), 0);
     assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
     for (const width of [320, 768, 1440]) {
