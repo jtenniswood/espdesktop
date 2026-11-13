@@ -515,60 +515,61 @@ struct CompanionSettings: View {
                     summary: pairingStepDescription
                 )
 
-                if pairingStep == .address || pairingStep == .code {
+                switch pairingStep {
+                case .address:
                     VStack(alignment: .leading, spacing: 10) {
-                        if pairingStep == .address {
-                            displaySelection
-                                .onAppear { if !manualAddress { discovery.start() } }
-                                .onDisappear { discovery.stop() }
-                                .onChange(of: manualAddress) { manual in
-                                    if manual { discovery.stop() } else { discovery.start() }
-                                }
-                        } else {
-                            CompanionPairingCodeField(code: $pairingCode, onSubmit: pairDisplay)
-                            Button("Open pairing webpage") {
-                                pairingFlowError = store.openPanelPairing() ? "" : "Could not open the display pairing page."
+                        displaySelection
+                            .onAppear { if !manualAddress { discovery.start() } }
+                            .onDisappear { discovery.stop() }
+                            .onChange(of: manualAddress) { manual in
+                                if manual { discovery.stop() } else { discovery.start() }
                             }
-                            .buttonStyle(.link)
-                            .font(.callout)
-                        }
-                        if !pairingFlowError.isEmpty {
-                            Label(pairingFlowError, systemImage: "exclamationmark.circle")
-                                .font(.callout)
-                                .foregroundStyle(.orange)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                        pairingErrorLabel
                     }
                     .font(.title3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack {
-                        if pairingStep == .code && !store.isRePairing {
-                            Button("Back") {
-                                pairingFlowError = ""
-                                pairingStep = .address
-                                focusedField = .panelHost
-                            }
-                        } else if pairingStep == .address && store.onboardingCompleted {
+                    HStack(spacing: 8) {
+                        if store.onboardingCompleted {
                             Button("Cancel", action: finishPairingFlow)
                         }
-                        if pairingStep == .code { Spacer() }
-                        Button(pairingStep == .address ? "Continue" : "Connect") {
-                            if pairingStep == .address { requestPairingCode() } else { pairDisplay() }
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(pairingStep == .address ? !canRequestPairingCode : !canPair)
+                        Button("Continue", action: requestPairingCode)
+                            .buttonStyle(.borderedProminent)
+                            .disabled(!canRequestPairingCode)
                     }
-                } else if pairingStep == .requestingCode {
+                case .code:
+                    VStack(spacing: 14) {
+                        CompanionPairingCodeField(code: $pairingCode, onSubmit: pairDisplay)
+                        pairingErrorLabel
+                        HStack(spacing: 8) {
+                            if !store.isRePairing {
+                                Button("Back") {
+                                    pairingFlowError = ""
+                                    pairingStep = .address
+                                    focusedField = .panelHost
+                                }
+                            }
+                            if store.onboardingCompleted {
+                                Button("Cancel", action: finishPairingFlow)
+                            }
+                            Button("Connect", action: pairDisplay)
+                                .buttonStyle(.borderedProminent)
+                                .disabled(!canPair)
+                        }
+                        Button("Open pairing webpage") {
+                            pairingFlowError = store.openPanelPairing() ? "" : "Could not open the display pairing page."
+                        }
+                        .buttonStyle(.link)
+                        .font(.callout)
+                    }
+                case .requestingCode, .connecting:
                     ProgressView()
-                        .accessibilityLabel("Requesting a pairing code")
-                } else if pairingStep == .connecting {
-                    ProgressView()
-                        .accessibilityLabel("Connecting to display")
-                } else {
+                        .accessibilityLabel(pairingStep == .requestingCode
+                            ? "Requesting a pairing code" : "Connecting to display")
+                    if store.onboardingCompleted {
+                        Button("Cancel", action: finishPairingFlow)
+                    }
+                case .connected:
                     CompanionPairingActions(finishLabel: "Done", openSetup: store.openPanelSetup, onComplete: finishPairingFlow)
-                }
-                if store.onboardingCompleted && (pairingStep == .requestingCode || pairingStep == .code || pairingStep == .connecting) {
-                    Button("Cancel", action: finishPairingFlow)
                 }
             }
             .controlSize(.large)
@@ -584,6 +585,16 @@ struct CompanionSettings: View {
             guard !Task.isCancelled, pairingFlowActive, pairingStep == .requestingCode else { return }
             pairingPrompt = prompt
             pairingStep = .code
+        }
+    }
+
+    @ViewBuilder
+    private var pairingErrorLabel: some View {
+        if !pairingFlowError.isEmpty {
+            Label(pairingFlowError, systemImage: "exclamationmark.circle")
+                .font(.callout)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
