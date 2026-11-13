@@ -145,9 +145,10 @@ script:
                     display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL) ||
                     device_pairing_ui().overlay || screen_lock_enabled()) return;
                 const auto pairing = device_pairing_snapshot();
-                if (!pairing.available || !pairing.active || pairing.paired) return;
+                if (!companion_pairing_can_show_on_display(pairing)) return;
+                if (pairing.paired && !companion_runtime_service().reset_and_begin_pairing) return;
                 device_pairing_show(id(${setup_body_font_id})->get_lv_font(),
-                                    id(${setup_title_font_id})->get_lv_font(), false);
+                                    id(${setup_title_font_id})->get_lv_font(), pairing.paired);
 
   - id: button_setup_text_refresh
     mode: restart

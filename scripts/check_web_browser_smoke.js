@@ -7406,6 +7406,9 @@ async function assertFirstRunSetup(browser) {
     const showCode = page.waitForResponse(response => new URL(response.url()).searchParams.get("show_on_display") === "1");
     await open("&connector=mac_companion");
     await showCode;
+    await page.getByText("This display is already paired. Confirm Reset pairing on the touchscreen to get a new code.", { exact: true }).waitFor();
+    assert.equal(await page.getByRole("button", { name: "Copy pairing code" }).count(), 0,
+      "an already paired display requires confirmation before exposing a code");
     await page.waitForResponse(response => {
       const url = new URL(response.url());
       return url.pathname === "/companion/pairing" && !url.search;
@@ -7413,6 +7416,11 @@ async function assertFirstRunSetup(browser) {
     assert.equal(displayCodeRequests, 1, "the pairing link shows the code once and subsequent polling leaves the display alone");
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "pairing page must remain accessible");
+    Object.assign(status.mac_companion, { configured: false, paired: false });
+    Object.assign(pairingState, { active: true, paired: false, pairing_code: "STUV-WXYZ" });
+    await page.getByText("STUV-WXYZ", { exact: true }).waitFor();
+    Object.assign(status.mac_companion, { configured: true, paired: true });
+    Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
     status.mac_companion.connected = pairingState.connected = true;
     await dialog.waitFor();
     await dialog.getByRole("button", { name: "Skip setup", exact: true }).click();

@@ -1312,7 +1312,7 @@ class CompanionPairingHandler : public esphome::web_server_idf::AsyncWebHandler 
       });
     if (!result) return;
     const auto &snapshot = *result;
-    if (snapshot.available && snapshot.active && !snapshot.paired && request->arg("show_on_display") == "1") {
+    if (companion_pairing_can_show_on_display(snapshot) && request->arg("show_on_display") == "1") {
       const auto &show = companion_runtime_service().request_pairing_display;
       if (show) show();
     }

@@ -135,6 +135,7 @@ export function createSettingsCompanionSectionFeature(
         showOnDisplay = false,
     ): HTMLElement {
         let latestState: CompanionPairingState | null = null;
+        let waitingForDisplayReset = showOnDisplay;
         const body = document.createElement("div");
         const instructions = document.createElement("div");
         instructions.className = "sp-connector-instructions";
@@ -255,15 +256,18 @@ export function createSettingsCompanionSectionFeature(
         const card: HTMLElement = fields.makeCollapsibleCard("Mac Companion", body, defaultCollapsed, badge);
 
         function render(value: CompanionPairingState): void {
-            if (value.connected && !latestState?.connected) {
+            waitingForDisplayReset = waitingForDisplayReset && value.paired;
+            if (value.connected && !latestState?.connected && !waitingForDisplayReset) {
                 card.classList.add("collapsed");
             }
             latestState = value;
             pairingDetails.update(value);
             onStatus?.(value);
-            status.textContent = companionPairingStatusText(value);
+            status.textContent = waitingForDisplayReset
+                ? "This display is already paired. Confirm Reset pairing on the touchscreen to get a new code."
+                : companionPairingStatusText(value);
             status.classList.toggle("sp-companion-status-connected", value.connected);
-            setHidden(instructions, value.connected);
+            setHidden(instructions, value.connected || waitingForDisplayReset);
             setHidden(badge, !value.paired);
             setHidden(resetButton, !value.paired);
             setHidden(iconCacheNote, !value.available);
