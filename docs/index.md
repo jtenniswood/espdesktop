@@ -1,5 +1,5 @@
 ---
-title: EspDesktop — A touchscreen controller for your Mac
+title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
 description: Launch apps, open websites and Finder folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
