@@ -97,8 +97,7 @@ lvgl:
                           - lambda: |-
                               consume_button_touch_press(id(button_setup_pair));
                               device_pairing_open(id(${setup_body_font_id})->get_lv_font(),
-                                                  id(${setup_title_font_id})->get_lv_font(),
-                                                  network_status_ip_address());
+                                                  id(${setup_title_font_id})->get_lv_font());
                         widgets:
                           - label:
                               id: button_setup_pair_label
@@ -148,8 +147,7 @@ script:
                 const auto pairing = device_pairing_snapshot();
                 if (!pairing.available || !pairing.active || pairing.paired) return;
                 device_pairing_show(id(${setup_body_font_id})->get_lv_font(),
-                                    id(${setup_title_font_id})->get_lv_font(),
-                                    false, network_status_ip_address());
+                                    id(${setup_title_font_id})->get_lv_font(), false);
 
   - id: button_setup_text_refresh
     mode: restart

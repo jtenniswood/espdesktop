@@ -17,7 +17,6 @@ struct DevicePairingUi {
   std::string displayed_code;
   const lv_font_t *text_font = nullptr;
   const lv_font_t *title_font = nullptr;
-  std::string ip_address;
 };
 
 inline DevicePairingUi &device_pairing_ui() {
@@ -78,8 +77,8 @@ inline void device_pairing_refresh() {
     if (!lv_obj_has_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN)) {
       ui.displayed_code.clear();
       lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
-      lv_label_set_display_text(ui.status, espdesktop_i18n("Expired"));
     }
+    lv_obj_clear_flag(ui.status, LV_OBJ_FLAG_HIDDEN);
     return;
   }
   if (snapshot.pairing_code == ui.displayed_code) return;
@@ -89,11 +88,11 @@ inline void device_pairing_refresh() {
     lv_label_set_text(ui.letters[i], glyph);
   }
   lv_obj_clear_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
-  lv_label_set_display_text(ui.status, espdesktop_i18n("Enter this code into the desktop app"));
+  lv_obj_add_flag(ui.status, LV_OBJ_FLAG_HIDDEN);
 }
 
 inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *title_font,
-                                 bool confirm_reset, const std::string &ip_address) {
+                                bool confirm_reset) {
   const auto &theme = current_theme();
   const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
   const lv_coord_t radius = control_modal_card_radius(nullptr);
@@ -132,7 +131,6 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
 
     ui.text_font = text_font;
     ui.title_font = title_font;
-    ui.ip_address = ip_address;
     bind_immediate_button_action(reset, [](lv_event_t *) {
       const auto &reset_pairing = companion_runtime_service().reset_and_begin_pairing;
       if (screen_lock_enabled() || !reset_pairing || !device_pairing_snapshot().available) return;
@@ -141,14 +139,12 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
         return;
       }
       const auto &ui = device_pairing_ui();
-      const auto ip_address = ui.ip_address;
-      device_pairing_show(ui.text_font, ui.title_font, false, ip_address);
+      device_pairing_show(ui.text_font, ui.title_font, false);
     }, nullptr);
     return;
   }
 
-  device_pairing_label(shell.panel, espdesktop_i18n("Pairing"), title_font, theme.text_primary);
-  ui.status = device_pairing_label(shell.panel, espdesktop_i18n("Expired"), text_font, theme.text_muted);
+  device_pairing_label(shell.panel, espdesktop_i18n_key("companion_pairing"), title_font, theme.text_primary);
   ui.code_row = device_pairing_row(shell.panel, gap);
   lv_obj_add_flag(ui.code_row, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_style_base_dir(ui.code_row, LV_BASE_DIR_LTR, LV_PART_MAIN);
@@ -190,23 +186,23 @@ inline void device_pairing_show(const lv_font_t *text_font, const lv_font_t *tit
     ui.letters[i] = letter;
   }
 
-  device_pairing_label(shell.panel, ip_address.c_str(), text_font, theme.text_muted);
+  ui.status = device_pairing_label(shell.panel, espdesktop_i18n("Expired"), text_font, theme.text_muted);
+  lv_obj_add_flag(ui.status, LV_OBJ_FLAG_HIDDEN);
   auto *done = control_modal_create_text_button(shell.panel, espdesktop_i18n("Done"),
       content_width, button_height * 2, button_height, button_radius, button_fill, text_font);
   bind_immediate_button_action(done, [](lv_event_t *) { control_modal_close_nested_menu(); }, nullptr);
   device_pairing_refresh();
 }
 
-inline void device_pairing_open(const lv_font_t *text_font, const lv_font_t *title_font,
-                                 const std::string &ip_address) {
+inline void device_pairing_open(const lv_font_t *text_font, const lv_font_t *title_font) {
   const auto &runtime = companion_runtime_service();
   if (screen_lock_enabled() || !runtime.begin_pairing) return;
   const auto snapshot = device_pairing_snapshot();
   if (!snapshot.available) return;
   if (snapshot.paired) {
-    if (runtime.reset_and_begin_pairing) device_pairing_show(text_font, title_font, true, ip_address);
+    if (runtime.reset_and_begin_pairing) device_pairing_show(text_font, title_font, true);
     return;
   }
   runtime.begin_pairing();
-  device_pairing_show(text_font, title_font, false, ip_address);
+  device_pairing_show(text_font, title_font, false);
 }

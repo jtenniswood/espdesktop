@@ -369,7 +369,7 @@ inline void network_status_open_modal(const std::string &device_name,
       ui.pairing_label = slot.text_lbl;
       bind_immediate_button_action(button, [](lv_event_t *) {
         const auto &ui = network_status_modal_ui();
-        device_pairing_open(ui.text_font, ui.title_font, network_status_ip_address());
+        device_pairing_open(ui.text_font, ui.title_font);
       }, nullptr);
       continue;
     }

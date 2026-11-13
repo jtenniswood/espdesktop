@@ -256,8 +256,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Konektor";
   if (std::strcmp(text, "Disconnected") == 0) return "Odpojeno";
   if (std::strcmp(text, "Not paired") == 0) return "Nespárováno";
-  if (std::strcmp(text, "Pairing") == 0) return "Párování";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadejte tento kód do desktopové aplikace";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Párování s Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Zrušit";
   if (std::strcmp(text, "Reset pairing") == 0) return "Zrušit párování";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Zrušit párování?";
@@ -545,8 +544,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Forbindelse";
   if (std::strcmp(text, "Disconnected") == 0) return "Afbrudt";
   if (std::strcmp(text, "Not paired") == 0) return "Ikke parret";
-  if (std::strcmp(text, "Pairing") == 0) return "Parring";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Indtast denne kode i desktopappen";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion-parring";
   if (std::strcmp(text, "Cancel") == 0) return "Annuller";
   if (std::strcmp(text, "Reset pairing") == 0) return "Nulstil parring";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Nulstil parring?";
@@ -832,8 +830,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "IP address") == 0) return "IP-Adresse";
   if (std::strcmp(text, "Disconnected") == 0) return "Getrennt";
   if (std::strcmp(text, "Not paired") == 0) return "Nicht gekoppelt";
-  if (std::strcmp(text, "Pairing") == 0) return "Kopplung";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Gib diesen Code in der Desktop-App ein";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion-Kopplung";
   if (std::strcmp(text, "Cancel") == 0) return "Abbrechen";
   if (std::strcmp(text, "Reset pairing") == 0) return "Kopplung zurücksetzen";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Kopplung zurücksetzen?";
@@ -1133,8 +1130,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Conector";
   if (std::strcmp(text, "Disconnected") == 0) return "Desconectado";
   if (std::strcmp(text, "Not paired") == 0) return "Sin emparejar";
-  if (std::strcmp(text, "Pairing") == 0) return "Emparejamiento";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduce este código en la aplicación de escritorio";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Emparejamiento con Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
   if (std::strcmp(text, "Reset pairing") == 0) return "Restablecer enlace";
   if (std::strcmp(text, "Reset pairing?") == 0) return "¿Restablecer el enlace?";
@@ -1445,8 +1441,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Yhdistin";
   if (std::strcmp(text, "Disconnected") == 0) return "Yhteys katkaistu";
   if (std::strcmp(text, "Not paired") == 0) return "Ei paritettu";
-  if (std::strcmp(text, "Pairing") == 0) return "Paritus";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion-pariliitos";
   if (std::strcmp(text, "Cancel") == 0) return "Peruuta";
   if (std::strcmp(text, "Reset pairing") == 0) return "Nollaa pariliitos";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Nollataanko pariliitos?";
@@ -1735,8 +1730,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Connecteur";
   if (std::strcmp(text, "Disconnected") == 0) return "Déconnecté";
   if (std::strcmp(text, "Not paired") == 0) return "Non jumelé";
-  if (std::strcmp(text, "Pairing") == 0) return "Jumelage";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Saisissez ce code dans l’application de bureau";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Jumelage avec Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Annuler";
   if (std::strcmp(text, "Reset pairing") == 0) return "Réinitialiser le jumelage";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Réinitialiser le jumelage ?";
@@ -2057,8 +2051,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "מחבר";
   if (std::strcmp(text, "Disconnected") == 0) return "מנותק";
   if (std::strcmp(text, "Not paired") == 0) return "לא מותאם";
-  if (std::strcmp(text, "Pairing") == 0) return "התאמה";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "הזן קוד זה באפליקציה למחשב";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "צימוד ל-Companion";
   if (std::strcmp(text, "Cancel") == 0) return "ביטול";
   if (std::strcmp(text, "Reset pairing") == 0) return "איפוס הצימוד";
   if (std::strcmp(text, "Reset pairing?") == 0) return "לאפס את הצימוד?";
@@ -2360,8 +2353,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Csatlakozó";
   if (std::strcmp(text, "Disconnected") == 0) return "Leválasztva";
   if (std::strcmp(text, "Not paired") == 0) return "Nincs párosítva";
-  if (std::strcmp(text, "Pairing") == 0) return "Párosítás";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion párosítása";
   if (std::strcmp(text, "Cancel") == 0) return "Mégse";
   if (std::strcmp(text, "Reset pairing") == 0) return "Párosítás visszaállítása";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Visszaállítod a párosítást?";
@@ -2657,8 +2649,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Connettore";
   if (std::strcmp(text, "Disconnected") == 0) return "Disconnesso";
   if (std::strcmp(text, "Not paired") == 0) return "Non abbinato";
-  if (std::strcmp(text, "Pairing") == 0) return "Abbinamento";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Inserisci questo codice nell’app desktop";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Abbinamento con Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Annulla";
   if (std::strcmp(text, "Reset pairing") == 0) return "Reimposta abbinamento";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Reimpostare l’abbinamento?";
@@ -2956,8 +2947,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Tilkobling";
   if (std::strcmp(text, "Disconnected") == 0) return "Frakoblet";
   if (std::strcmp(text, "Not paired") == 0) return "Ikke paret";
-  if (std::strcmp(text, "Pairing") == 0) return "Paring";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Skriv inn denne koden i skrivebordsappen";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion-paring";
   if (std::strcmp(text, "Cancel") == 0) return "Avbryt";
   if (std::strcmp(text, "Reset pairing") == 0) return "Nullstill sammenkobling";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Nullstille sammenkoblingen?";
@@ -3249,8 +3239,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "IP address") == 0) return "IP-adres";
   if (std::strcmp(text, "Disconnected") == 0) return "Verbinding verbroken";
   if (std::strcmp(text, "Not paired") == 0) return "Niet gekoppeld";
-  if (std::strcmp(text, "Pairing") == 0) return "Koppelen";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Voer deze code in de desktopapp in";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion koppelen";
   if (std::strcmp(text, "Cancel") == 0) return "Annuleren";
   if (std::strcmp(text, "Reset pairing") == 0) return "Koppeling wissen";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Koppeling wissen?";
@@ -3544,8 +3533,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Łącznik";
   if (std::strcmp(text, "Disconnected") == 0) return "Rozłączono";
   if (std::strcmp(text, "Not paired") == 0) return "Niesparowano";
-  if (std::strcmp(text, "Pairing") == 0) return "Parowanie";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Wpisz ten kod w aplikacji komputerowej";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Parowanie z Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Anuluj";
   if (std::strcmp(text, "Reset pairing") == 0) return "Zresetuj parowanie";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Zresetować parowanie?";
@@ -3841,8 +3829,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Conector";
   if (std::strcmp(text, "Disconnected") == 0) return "Desconectado";
   if (std::strcmp(text, "Not paired") == 0) return "Não pareado";
-  if (std::strcmp(text, "Pairing") == 0) return "Pareamento";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Digite este código no aplicativo para computador";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Pareamento com Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
   if (std::strcmp(text, "Reset pairing") == 0) return "Redefinir pareamento";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Redefinir o pareamento?";
@@ -4137,8 +4124,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Conector";
   if (std::strcmp(text, "Disconnected") == 0) return "Desligado";
   if (std::strcmp(text, "Not paired") == 0) return "Não emparelhado";
-  if (std::strcmp(text, "Pairing") == 0) return "Emparelhamento";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduza este código na aplicação para computador";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Emparelhamento com Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
   if (std::strcmp(text, "Reset pairing") == 0) return "Repor emparelhamento";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Repor o emparelhamento?";
@@ -4447,8 +4433,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Conector";
   if (std::strcmp(text, "Disconnected") == 0) return "Deconectat";
   if (std::strcmp(text, "Not paired") == 0) return "Neasociat";
-  if (std::strcmp(text, "Pairing") == 0) return "Asociere";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introdu acest cod în aplicația desktop";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Asociere cu Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Anulează";
   if (std::strcmp(text, "Reset pairing") == 0) return "Resetează asocierea";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Resetezi asocierea?";
@@ -4759,8 +4744,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Коннектор";
   if (std::strcmp(text, "Disconnected") == 0) return "Отключено";
   if (std::strcmp(text, "Not paired") == 0) return "Не сопряжено";
-  if (std::strcmp(text, "Pairing") == 0) return "Сопряжение";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введите этот код в приложении для компьютера";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Сопряжение с Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Отмена";
   if (std::strcmp(text, "Reset pairing") == 0) return "Сбросить сопряжение";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Сбросить сопряжение?";
@@ -5056,8 +5040,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Konektor";
   if (std::strcmp(text, "Disconnected") == 0) return "Odpojené";
   if (std::strcmp(text, "Not paired") == 0) return "Nespárované";
-  if (std::strcmp(text, "Pairing") == 0) return "Párovanie";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadajte tento kód do počítačovej aplikácie";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Párovanie s Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Zrušiť";
   if (std::strcmp(text, "Reset pairing") == 0) return "Zrušiť párovanie";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Zrušiť párovanie?";
@@ -5358,8 +5341,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Povezovalnik";
   if (std::strcmp(text, "Disconnected") == 0) return "Prekinjeno";
   if (std::strcmp(text, "Not paired") == 0) return "Ni seznanjeno";
-  if (std::strcmp(text, "Pairing") == 0) return "Seznanjanje";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Vnesite to kodo v namizno aplikacijo";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Seznanjanje s Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Prekliči";
   if (std::strcmp(text, "Reset pairing") == 0) return "Ponastavi seznanjanje";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Ponastavim seznanjanje?";
@@ -5651,8 +5633,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Anslutning";
   if (std::strcmp(text, "Disconnected") == 0) return "Frånkopplad";
   if (std::strcmp(text, "Not paired") == 0) return "Inte parkopplad";
-  if (std::strcmp(text, "Pairing") == 0) return "Parkoppling";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Ange den här koden i skrivbordsappen";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion-parkoppling";
   if (std::strcmp(text, "Cancel") == 0) return "Avbryt";
   if (std::strcmp(text, "Reset pairing") == 0) return "Återställ parkoppling";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Återställa parkopplingen?";
@@ -5956,8 +5937,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Bağlayıcı";
   if (std::strcmp(text, "Disconnected") == 0) return "Bağlantı kesildi";
   if (std::strcmp(text, "Not paired") == 0) return "Eşleştirilmedi";
-  if (std::strcmp(text, "Pairing") == 0) return "Eşleştirme";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Bu kodu masaüstü uygulamasına girin";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Companion eşleştirmesi";
   if (std::strcmp(text, "Cancel") == 0) return "İptal";
   if (std::strcmp(text, "Reset pairing") == 0) return "Eşlemeyi sıfırla";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Eşleme sıfırlansın mı?";
@@ -6264,8 +6244,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Connector") == 0) return "Конектор";
   if (std::strcmp(text, "Disconnected") == 0) return "Відключено";
   if (std::strcmp(text, "Not paired") == 0) return "Не сполучено";
-  if (std::strcmp(text, "Pairing") == 0) return "Сполучення";
-  if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введіть цей код у програмі для комп’ютера";
+  if (std::strcmp(text, "Companion Pairing") == 0) return "Сполучення з Companion";
   if (std::strcmp(text, "Cancel") == 0) return "Скасувати";
   if (std::strcmp(text, "Reset pairing") == 0) return "Скинути сполучення";
   if (std::strcmp(text, "Reset pairing?") == 0) return "Скинути сполучення?";
@@ -6582,8 +6561,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Connector";
   if (std::strcmp(key, "disconnected") == 0) return "Disconnected";
   if (std::strcmp(key, "not_paired") == 0) return "Not paired";
-  if (std::strcmp(key, "pairing") == 0) return "Pairing";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code into the desktop app";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion Pairing";
   if (std::strcmp(key, "cancel") == 0) return "Cancel";
   if (std::strcmp(key, "reset_pairing") == 0) return "Reset pairing";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Reset pairing?";
@@ -6904,8 +6882,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Konektor";
   if (std::strcmp(key, "disconnected") == 0) return "Odpojeno";
   if (std::strcmp(key, "not_paired") == 0) return "Nespárováno";
-  if (std::strcmp(key, "pairing") == 0) return "Párování";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód do desktopové aplikace";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Párování s Companion";
   if (std::strcmp(key, "cancel") == 0) return "Zrušit";
   if (std::strcmp(key, "reset_pairing") == 0) return "Zrušit párování";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Zrušit párování?";
@@ -7203,8 +7180,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Forbindelse";
   if (std::strcmp(key, "disconnected") == 0) return "Afbrudt";
   if (std::strcmp(key, "not_paired") == 0) return "Ikke parret";
-  if (std::strcmp(key, "pairing") == 0) return "Parring";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i desktopappen";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion-parring";
   if (std::strcmp(key, "cancel") == 0) return "Annuller";
   if (std::strcmp(key, "reset_pairing") == 0) return "Nulstil parring";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Nulstil parring?";
@@ -7498,8 +7474,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "ip_address") == 0) return "IP-Adresse";
   if (std::strcmp(key, "disconnected") == 0) return "Getrennt";
   if (std::strcmp(key, "not_paired") == 0) return "Nicht gekoppelt";
-  if (std::strcmp(key, "pairing") == 0) return "Kopplung";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Gib diesen Code in der Desktop-App ein";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion-Kopplung";
   if (std::strcmp(key, "cancel") == 0) return "Abbrechen";
   if (std::strcmp(key, "reset_pairing") == 0) return "Kopplung zurücksetzen";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Kopplung zurücksetzen?";
@@ -7807,8 +7782,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Conector";
   if (std::strcmp(key, "disconnected") == 0) return "Desconectado";
   if (std::strcmp(key, "not_paired") == 0) return "Sin emparejar";
-  if (std::strcmp(key, "pairing") == 0) return "Emparejamiento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la aplicación de escritorio";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Emparejamiento con Companion";
   if (std::strcmp(key, "cancel") == 0) return "Cancelar";
   if (std::strcmp(key, "reset_pairing") == 0) return "Restablecer enlace";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "¿Restablecer el enlace?";
@@ -8128,8 +8102,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Yhdistin";
   if (std::strcmp(key, "disconnected") == 0) return "Yhteys katkaistu";
   if (std::strcmp(key, "not_paired") == 0) return "Ei paritettu";
-  if (std::strcmp(key, "pairing") == 0) return "Paritus";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion-pariliitos";
   if (std::strcmp(key, "cancel") == 0) return "Peruuta";
   if (std::strcmp(key, "reset_pairing") == 0) return "Nollaa pariliitos";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Nollataanko pariliitos?";
@@ -8428,8 +8401,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Connecteur";
   if (std::strcmp(key, "disconnected") == 0) return "Déconnecté";
   if (std::strcmp(key, "not_paired") == 0) return "Non jumelé";
-  if (std::strcmp(key, "pairing") == 0) return "Jumelage";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application de bureau";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Jumelage avec Companion";
   if (std::strcmp(key, "cancel") == 0) return "Annuler";
   if (std::strcmp(key, "reset_pairing") == 0) return "Réinitialiser le jumelage";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Réinitialiser le jumelage ?";
@@ -8759,8 +8731,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "מחבר";
   if (std::strcmp(key, "disconnected") == 0) return "מנותק";
   if (std::strcmp(key, "not_paired") == 0) return "לא מותאם";
-  if (std::strcmp(key, "pairing") == 0) return "התאמה";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציה למחשב";
+  if (std::strcmp(key, "companion_pairing") == 0) return "צימוד ל-Companion";
   if (std::strcmp(key, "cancel") == 0) return "ביטול";
   if (std::strcmp(key, "reset_pairing") == 0) return "איפוס הצימוד";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "לאפס את הצימוד?";
@@ -9072,8 +9043,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Csatlakozó";
   if (std::strcmp(key, "disconnected") == 0) return "Leválasztva";
   if (std::strcmp(key, "not_paired") == 0) return "Nincs párosítva";
-  if (std::strcmp(key, "pairing") == 0) return "Párosítás";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion párosítása";
   if (std::strcmp(key, "cancel") == 0) return "Mégse";
   if (std::strcmp(key, "reset_pairing") == 0) return "Párosítás visszaállítása";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Visszaállítod a párosítást?";
@@ -9379,8 +9349,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Connettore";
   if (std::strcmp(key, "disconnected") == 0) return "Disconnesso";
   if (std::strcmp(key, "not_paired") == 0) return "Non abbinato";
-  if (std::strcmp(key, "pairing") == 0) return "Abbinamento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app desktop";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Abbinamento con Companion";
   if (std::strcmp(key, "cancel") == 0) return "Annulla";
   if (std::strcmp(key, "reset_pairing") == 0) return "Reimposta abbinamento";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Reimpostare l’abbinamento?";
@@ -9687,8 +9656,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Tilkobling";
   if (std::strcmp(key, "disconnected") == 0) return "Frakoblet";
   if (std::strcmp(key, "not_paired") == 0) return "Ikke paret";
-  if (std::strcmp(key, "pairing") == 0) return "Paring";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i skrivebordsappen";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion-paring";
   if (std::strcmp(key, "cancel") == 0) return "Avbryt";
   if (std::strcmp(key, "reset_pairing") == 0) return "Nullstill sammenkobling";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Nullstille sammenkoblingen?";
@@ -9988,8 +9956,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "ip_address") == 0) return "IP-adres";
   if (std::strcmp(key, "disconnected") == 0) return "Verbinding verbroken";
   if (std::strcmp(key, "not_paired") == 0) return "Niet gekoppeld";
-  if (std::strcmp(key, "pairing") == 0) return "Koppelen";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de desktopapp in";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion koppelen";
   if (std::strcmp(key, "cancel") == 0) return "Annuleren";
   if (std::strcmp(key, "reset_pairing") == 0) return "Koppeling wissen";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Koppeling wissen?";
@@ -10290,8 +10257,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Łącznik";
   if (std::strcmp(key, "disconnected") == 0) return "Rozłączono";
   if (std::strcmp(key, "not_paired") == 0) return "Niesparowano";
-  if (std::strcmp(key, "pairing") == 0) return "Parowanie";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji komputerowej";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Parowanie z Companion";
   if (std::strcmp(key, "cancel") == 0) return "Anuluj";
   if (std::strcmp(key, "reset_pairing") == 0) return "Zresetuj parowanie";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Zresetować parowanie?";
@@ -10597,8 +10563,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Conector";
   if (std::strcmp(key, "disconnected") == 0) return "Desconectado";
   if (std::strcmp(key, "not_paired") == 0) return "Não pareado";
-  if (std::strcmp(key, "pairing") == 0) return "Pareamento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para computador";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Pareamento com Companion";
   if (std::strcmp(key, "cancel") == 0) return "Cancelar";
   if (std::strcmp(key, "reset_pairing") == 0) return "Redefinir pareamento";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Redefinir o pareamento?";
@@ -10902,8 +10867,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Conector";
   if (std::strcmp(key, "disconnected") == 0) return "Desligado";
   if (std::strcmp(key, "not_paired") == 0) return "Não emparelhado";
-  if (std::strcmp(key, "pairing") == 0) return "Emparelhamento";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para computador";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Emparelhamento com Companion";
   if (std::strcmp(key, "cancel") == 0) return "Cancelar";
   if (std::strcmp(key, "reset_pairing") == 0) return "Repor emparelhamento";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Repor o emparelhamento?";
@@ -11221,8 +11185,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Conector";
   if (std::strcmp(key, "disconnected") == 0) return "Deconectat";
   if (std::strcmp(key, "not_paired") == 0) return "Neasociat";
-  if (std::strcmp(key, "pairing") == 0) return "Asociere";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Introdu acest cod în aplicația desktop";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Asociere cu Companion";
   if (std::strcmp(key, "cancel") == 0) return "Anulează";
   if (std::strcmp(key, "reset_pairing") == 0) return "Resetează asocierea";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Resetezi asocierea?";
@@ -11543,8 +11506,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Коннектор";
   if (std::strcmp(key, "disconnected") == 0) return "Отключено";
   if (std::strcmp(key, "not_paired") == 0) return "Не сопряжено";
-  if (std::strcmp(key, "pairing") == 0) return "Сопряжение";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для компьютера";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Сопряжение с Companion";
   if (std::strcmp(key, "cancel") == 0) return "Отмена";
   if (std::strcmp(key, "reset_pairing") == 0) return "Сбросить сопряжение";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Сбросить сопряжение?";
@@ -11850,8 +11812,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Konektor";
   if (std::strcmp(key, "disconnected") == 0) return "Odpojené";
   if (std::strcmp(key, "not_paired") == 0) return "Nespárované";
-  if (std::strcmp(key, "pairing") == 0) return "Párovanie";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód do počítačovej aplikácie";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Párovanie s Companion";
   if (std::strcmp(key, "cancel") == 0) return "Zrušiť";
   if (std::strcmp(key, "reset_pairing") == 0) return "Zrušiť párovanie";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Zrušiť párovanie?";
@@ -12162,8 +12123,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Povezovalnik";
   if (std::strcmp(key, "disconnected") == 0) return "Prekinjeno";
   if (std::strcmp(key, "not_paired") == 0) return "Ni seznanjeno";
-  if (std::strcmp(key, "pairing") == 0) return "Seznanjanje";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v namizno aplikacijo";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Seznanjanje s Companion";
   if (std::strcmp(key, "cancel") == 0) return "Prekliči";
   if (std::strcmp(key, "reset_pairing") == 0) return "Ponastavi seznanjanje";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Ponastavim seznanjanje?";
@@ -12465,8 +12425,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Anslutning";
   if (std::strcmp(key, "disconnected") == 0) return "Frånkopplad";
   if (std::strcmp(key, "not_paired") == 0) return "Inte parkopplad";
-  if (std::strcmp(key, "pairing") == 0) return "Parkoppling";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i skrivbordsappen";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion-parkoppling";
   if (std::strcmp(key, "cancel") == 0) return "Avbryt";
   if (std::strcmp(key, "reset_pairing") == 0) return "Återställ parkoppling";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Återställa parkopplingen?";
@@ -12778,8 +12737,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Bağlayıcı";
   if (std::strcmp(key, "disconnected") == 0) return "Bağlantı kesildi";
   if (std::strcmp(key, "not_paired") == 0) return "Eşleştirilmedi";
-  if (std::strcmp(key, "pairing") == 0) return "Eşleştirme";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu masaüstü uygulamasına girin";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Companion eşleştirmesi";
   if (std::strcmp(key, "cancel") == 0) return "İptal";
   if (std::strcmp(key, "reset_pairing") == 0) return "Eşlemeyi sıfırla";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Eşleme sıfırlansın mı?";
@@ -13096,8 +13054,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "connector") == 0) return "Конектор";
   if (std::strcmp(key, "disconnected") == 0) return "Відключено";
   if (std::strcmp(key, "not_paired") == 0) return "Не сполучено";
-  if (std::strcmp(key, "pairing") == 0) return "Сполучення";
-  if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для комп’ютера";
+  if (std::strcmp(key, "companion_pairing") == 0) return "Сполучення з Companion";
   if (std::strcmp(key, "cancel") == 0) return "Скасувати";
   if (std::strcmp(key, "reset_pairing") == 0) return "Скинути сполучення";
   if (std::strcmp(key, "reset_pairing_question") == 0) return "Скинути сполучення?";
