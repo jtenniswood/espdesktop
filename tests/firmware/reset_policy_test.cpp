@@ -172,7 +172,7 @@ int main() {
     assert(!gate.begin_configuration_write());
   }
 
-  for (const char *name : {"companion_identity", "companion_auth_sequence"}) {
+  for (const char *name : {"companion_identity", "companion_auth_sequence", "companion_pairing_code", "companion_pairing_code_v2"}) {
     const auto key = std::to_string(companion_preference_key(name));
     assert(preserve_key(Mode::CUSTOMIZATION, "esphome", key, 88491487));
     assert(!preserve_key(Mode::FACTORY, "esphome", key, 88491487));

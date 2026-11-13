@@ -10,7 +10,6 @@ export interface CompanionPairingState {
     active: boolean;
     paired: boolean;
     connected: boolean;
-    expires_in_seconds: number;
     port?: number;
     pairing_code: string;
     mdns_name?: string;
@@ -20,6 +19,7 @@ export interface SettingsCompanionSectionFeature {
     buildCompanionSettingsCard(
         onStatus?: (state: CompanionPairingState | null) => void,
         defaultCollapsed?: boolean,
+        showOnDisplay?: boolean,
     ): HTMLElement;
 }
 
@@ -29,16 +29,8 @@ function setHidden(element: HTMLElement, hidden: boolean): void {
 }
 
 export function companionPairingStatusText(state: CompanionPairingState): string {
-    if (state.active) {
-        const hours = Math.ceil(state.expires_in_seconds / 3600);
-        const minutes = Math.max(1, Math.ceil(state.expires_in_seconds / 60));
-        const duration = hours >= 2
-            ? hours + (hours === 1 ? " hour" : " hours")
-            : minutes + (minutes === 1 ? " minute" : " minutes");
-        const pairing = "Pairing is open for about " + duration + ".";
-        return state.connected ? "Mac Companion connected. " + pairing : pairing;
-    }
     if (state.connected) return "Mac Companion connected";
+    if (state.active && !state.paired) return "Ready to pair";
     return state.paired ? "Mac paired, but not connected" : "No Mac paired";
 }
 
@@ -54,14 +46,14 @@ export function createCompanionPairingDetails(
     const pairingDetails = document.createElement("div");
     pairingDetails.className = "sp-companion-details";
     setHidden(pairingDetails, true);
+    const instructions = document.createElement("p");
+    instructions.className = "sp-setting-note sp-companion-instructions";
+    instructions.textContent = "Choose this display in the Mac app and enter the code.";
     const pairingCodeRow = document.createElement("div");
     pairingCodeRow.className = "sp-companion-code-row";
-    const codeLabel = document.createElement("div");
-    codeLabel.className = "sp-companion-code-label";
-    codeLabel.textContent = "YOUR PAIRING CODE";
-    pairingDetails.appendChild(codeLabel);
-    const pairingCode = document.createElement("strong");
+    const pairingCode = document.createElement("code");
     pairingCode.className = "sp-companion-code";
+    pairingCode.dir = "ltr";
     pairingCodeRow.appendChild(pairingCode);
     const copyButton = createActionButton(
         "sp-action-btn sp-transfer-copy-btn sp-companion-copy",
@@ -81,16 +73,15 @@ export function createCompanionPairingDetails(
         copyButton.disabled = true;
         try {
             await copyCompanionCode(document, window.navigator, code, pairingDetails);
-            if (latestState?.pairing_code === code) copyFeedback.textContent = "Copied. Paste it into the Mac app.";
+            if (latestState?.pairing_code === code) copyFeedback.textContent = "Copied";
         } catch {
-            copyFeedback.textContent = "Select the code and press ⌘C on Mac or Ctrl+C to copy.";
+            if (latestState?.pairing_code === code) copyFeedback.textContent = "Select the code to copy it manually.";
         } finally {
             copying = false;
             copyButton.disabled = !latestState || !companionPairingCodeVisible(latestState);
         }
     });
-    pairingDetails.appendChild(pairingCodeRow);
-    pairingDetails.appendChild(copyFeedback);
+    pairingDetails.append(instructions, pairingCodeRow, copyFeedback);
     return {
         element: pairingDetails,
         update(state) {
@@ -99,7 +90,14 @@ export function createCompanionPairingDetails(
             latestState = state;
             copyButton.disabled = copying || !visible;
             const code = visible ? state.pairing_code : "";
-            if (pairingCode.textContent !== code) pairingCode.textContent = code;
+            if (pairingCode.textContent !== code) {
+                pairingCode.replaceChildren(...Array.from(code, character => {
+                    const glyph = document.createElement("span");
+                    glyph.className = character === "-" ? "sp-companion-code-dash" : "sp-companion-code-letter";
+                    glyph.textContent = character;
+                    return glyph;
+                }));
+            }
             setHidden(pairingDetails, !visible);
         },
     };
@@ -113,13 +111,14 @@ export function createSettingsCompanionSectionFeature(
     const { document, window, fetch } = dom;
     const { createActionButton, showBanner } = shell;
 
-    async function requestPairing(): Promise<CompanionPairingState> {
+    async function requestPairing(showOnDisplay = false): Promise<CompanionPairingState> {
         const options: RequestInit = {
             method: "GET",
             cache: "no-store",
             headers: { Accept: "application/json" },
         };
-        const response = await fetch("/companion/pairing", options);
+        const path = showOnDisplay ? "/companion/pairing?show_on_display=1" : "/companion/pairing";
+        const response = await fetch(path, options);
         if (!response.ok) throw new Error("Companion pairing is not available on this panel");
         const state = await response.json() as CompanionPairingState;
         if (typeof state?.paired !== "boolean" || typeof state.connected !== "boolean" ||
@@ -130,33 +129,11 @@ export function createSettingsCompanionSectionFeature(
     function buildCompanionSettingsCard(
         onStatus?: (state: CompanionPairingState | null) => void,
         defaultCollapsed = true,
+        showOnDisplay = false,
     ): HTMLElement {
         let latestState: CompanionPairingState | null = null;
+        let waitingForDisplayReset = showOnDisplay;
         const body = document.createElement("div");
-        const instructions = document.createElement("div");
-        instructions.className = "sp-connector-instructions";
-        const note = document.createElement("p");
-        note.className = "sp-setting-note sp-companion-note";
-        const heading = document.createElement("h3");
-        heading.className = "sp-companion-heading";
-        heading.textContent = "Connect your Mac";
-        instructions.appendChild(heading);
-        note.textContent = "Your display and Mac, working together. Pair once to get started.";
-        instructions.appendChild(note);
-
-        const steps = document.createElement("ol");
-        steps.className = "sp-connector-steps";
-        [
-            "Choose this display in the EspDesktop Mac app, or enter its address manually.",
-            "Copy the code below, paste it into the app, then select Connect.",
-        ].forEach(function (text) {
-            const item = document.createElement("li");
-            item.textContent = text;
-            steps.appendChild(item);
-        });
-        instructions.appendChild(steps);
-        body.appendChild(instructions);
-
         const pairingDetails = createCompanionPairingDetails(dom, createActionButton);
         body.appendChild(pairingDetails.element);
 
@@ -167,10 +144,6 @@ export function createSettingsCompanionSectionFeature(
         status.setAttribute("aria-live", "polite");
         body.appendChild(status);
 
-        const iconCacheNote = document.createElement("p");
-        iconCacheNote.className = "sp-setting-note sp-companion-note";
-        iconCacheNote.textContent = "Clear downloaded app icons if you need to refresh them. Icons used by your cards will be requested again from the Mac app.";
-        body.appendChild(iconCacheNote);
         const actions = document.createElement("div");
         actions.className = "sp-companion-actions";
         body.appendChild(actions);
@@ -252,19 +225,21 @@ export function createSettingsCompanionSectionFeature(
         const card: HTMLElement = fields.makeCollapsibleCard("Mac Companion", body, defaultCollapsed, badge);
 
         function render(value: CompanionPairingState): void {
-            if (value.connected && !latestState?.connected) {
+            waitingForDisplayReset = waitingForDisplayReset && value.paired;
+            if (value.connected && !latestState?.connected && !waitingForDisplayReset) {
                 card.classList.add("collapsed");
             }
             latestState = value;
             pairingDetails.update(value);
             onStatus?.(value);
-            status.textContent = companionPairingStatusText(value);
+            status.textContent = waitingForDisplayReset
+                ? "Confirm Reset pairing on the touchscreen."
+                : companionPairingStatusText(value);
             status.classList.toggle("sp-companion-status-connected", value.connected);
-            setHidden(instructions, value.connected);
+            setHidden(status, !pairingDetails.element.hidden);
             setHidden(badge, !value.paired);
             setHidden(resetButton, !value.paired);
-            setHidden(iconCacheNote, !value.available);
-            setHidden(clearIconCacheButton, !value.available);
+            setHidden(clearIconCacheButton, !value.available || !value.paired);
         }
 
         async function refreshStatus(): Promise<void> {
@@ -280,10 +255,11 @@ export function createSettingsCompanionSectionFeature(
             onStatus?.(null);
             status.textContent = message;
             status.classList.remove("sp-companion-status-connected");
+            setHidden(status, false);
         }
 
         let refreshInProgress = true;
-        requestPairing().then(render).catch(function () {
+        requestPairing(showOnDisplay).then(render).catch(function () {
             showUnavailable("Companion pairing is unavailable");
         }).finally(function () {
             refreshInProgress = false;

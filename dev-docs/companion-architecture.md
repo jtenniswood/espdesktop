@@ -29,10 +29,11 @@ Protocol v4 uses typed JSON control messages on `/companion/v4`; only bounded
 artwork and app-icon chunks are binary. New messages and card modes must be added to the
 product contract before they are implemented. Pairing starts when an unpaired display’s Companion setup page is opened.
 The endpoint applies the configured device web authentication before starting
-a pairing window or returning its code. Without device web authentication,
-anyone with network access to that page can start pairing. The code expires
-after 15 minutes and is hidden once paired; the touchscreen can also activate
-pairing. This is a device-web-access policy, not a physical-presence guarantee.
+pairing or returning its code. Without device web authentication, anyone with
+network access to that page can start pairing. The touchscreen can also start
+pairing. The code persists across reboots and rotates after successful pairing.
+The display only shows it while unpaired. Pairing is authorized by access to
+the device webserver.
 
 ## Compatibility and testing
 

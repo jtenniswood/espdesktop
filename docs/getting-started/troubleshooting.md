@@ -13,7 +13,7 @@ Find the symptom you see on your 4848S040 or Mac.
 | [The firmware installer will not load](#the-firmware-installer-will-not-load) | Open the installer in desktop Chrome or Edge. |
 | [The Wi-Fi hotspot does not appear](#wifi-setup-and-reset-recovery) | Give the display up to 90 seconds and check the network name shown on the screen. |
 | [The Mac app cannot find the display](#the-display-does-not-appear-in-espdesktop) | Check that the Mac and display are on the same local network. |
-| [The display appears but will not pair](#the-display-will-not-pair) | Open the display's pairing page and use its current code. |
+| [The display appears but will not pair](#the-display-will-not-pair) | Check for the code or a reset prompt on the touchscreen. |
 | [Shortcuts or Mac Lock do nothing](#a-card-does-not-work) | Check macOS Accessibility access for EspDesktop. |
 
 ## No USB port appears
@@ -47,16 +47,18 @@ Discovery only locates a display; it does not configure its WiFi. For a first-ti
 
 ## The display will not pair
 
-Select the display in the Mac app and click **Continue** to open its pairing page in your browser. Enter the code from that page in the Mac app before it expires (after 15 minutes). If this display was paired previously, choose **Forget** beside it in **Settings → Displays** and reset its pairing from the connector page before trying again.
+Select the display in the Mac app and choose **Continue**. Enter the four letters shown on the touchscreen and choose **Connect**. If the code screen is closed, tap **Pair** on the display’s Setup screen or **Unpaired** in its Settings. You can also choose **Open pairing webpage**, then **Copy** and paste the code into the Mac app.
 
-<a href="/images/mac-companion-enter-pairing-code.png"><picture><source type="image/avif" srcset="/images/mac-companion-enter-pairing-code-480.avif 480w, /images/mac-companion-enter-pairing-code-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/mac-companion-enter-pairing-code.png" alt="Mac app pairing screen with fields for the eight-letter code and a Connect button" width="1224" height="1600" loading="lazy"></picture></a>
+If the touchscreen asks **Reset pairing?**, confirm to replace the display’s saved pairing. If the Mac shows **Pairing Required**, open **Settings → Displays**, choose **Re-pair** beside the display, and enter the current code. The code stays valid until pairing succeeds.
+
+<a href="/images/mac-companion-enter-pairing-code.png"><picture><source type="image/avif" srcset="/images/mac-companion-enter-pairing-code-480.avif 480w, /images/mac-companion-enter-pairing-code-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/mac-companion-enter-pairing-code.png" alt="EspDesktop Mac app with four pairing code boxes, a Connect button, and the Open pairing webpage link" width="1224" height="1600" loading="lazy"></picture></a>
 
 The Mac stores its credential in Keychain and checks the paired display certificate. If the certificate changed, forget the display and pair again rather than accepting the change silently.
 
 | Pairing message | What to do |
 | --- | --- |
 | **Could not open the display pairing page.** | Confirm the display is on the same local network as your Mac. If the app still cannot open the page, go back and enter the display’s current IP address or `.local` name. |
-| **Enter the eight-letter pairing code shown on the display.** | Copy the full eight-letter code from the display’s pairing page. If it has expired, get a fresh code and select **Connect**. |
+| **Enter the pairing code shown on the display.** | Enter the code from the touchscreen or use **Open pairing webpage** to copy the code, then select **Connect**. |
 | **Unlock your Mac and allow EspDesktop to access Keychain, then try again.** | Unlock the Mac and allow Keychain access if prompted. Return to the pairing code step and select **Connect** again. |
 
 When pairing works, the Mac app shows **You’re connected**.

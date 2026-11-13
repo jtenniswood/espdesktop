@@ -57,8 +57,6 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-connector-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}" +
         ".sp-connector-status-connected{color:var(--success)}" +
         ".sp-connector-status-connected::before{background:var(--success);box-shadow:0 0 0 3px rgba(48,164,108,.16)}" +
-        ".sp-connector-steps{margin:0 0 18px;padding-left:22px;color:var(--text2);font-size:.86rem;line-height:1.55}" +
-        ".sp-connector-steps li+li{margin-top:7px}" +
         ".sp-connector-info{margin:0 0 18px;padding:14px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:.86rem;line-height:1.5}" +
         ".sp-ha-connector{max-width:64ch;font-size:var(--text-lg);line-height:1.6;overflow-wrap:anywhere}" +
         ".sp-ha-connector .sp-connector-status{font-size:var(--text-md);font-weight:600;line-height:1.5;color:var(--text);margin-bottom:4px}" +
@@ -703,8 +701,16 @@ export function createWebStyles(dragAnimation: boolean): string {
         "bottom:max(calc(88px + var(--gap)),env(safe-area-inset-bottom))}}" +
         "@media(prefers-reduced-motion:no-preference){.sp-banner{animation:fadeIn .18s ease-out}}" +
         ".sp-backup-btns{display:flex;gap:8px}" +
-        ".sp-companion-note{margin-top:0}.sp-companion-status{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--text2);font-size:.86rem}.sp-companion-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}.sp-companion-status.sp-companion-status-connected{color:var(--success)}.sp-companion-status.sp-companion-status-connected::before{background:var(--success);box-shadow:0 0 0 3px rgba(48,164,108,.16)}.sp-companion-details{display:grid;gap:10px;margin:0 0 16px;padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface2)}" +
-        ".sp-companion-heading{margin:0 0 8px;font-size:1.3rem;color:var(--text)}.sp-companion-code-label{font-size:.68rem;letter-spacing:.12em;font-weight:600;color:var(--text2)}.sp-companion-details{max-width:480px;padding:22px;border-left:3px solid var(--accent)}.sp-companion-code-row{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}.sp-companion-code{color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:clamp(1.4rem,4vw,2rem);letter-spacing:.1em;user-select:all}.sp-companion-copy{flex-shrink:0}.sp-companion-copy-feedback{font-size:.8rem;color:var(--text2)}.sp-companion-copy-feedback:empty{display:none}.sp-companion-actions{display:flex;flex-wrap:wrap;gap:8px}" +
+        ".sp-companion-status{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--text2);font-size:.86rem}.sp-companion-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}.sp-companion-status.sp-companion-status-connected{color:var(--success)}.sp-companion-status.sp-companion-status-connected::before{background:var(--success);box-shadow:0 0 0 3px rgba(48,164,108,.16)}" +
+        ".sp-companion-details{display:grid;gap:12px}.sp-companion-details .sp-companion-instructions{margin:0}" +
+        ".sp-companion-code-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap}" +
+        ".sp-companion-code{display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto repeat(4,minmax(0,1fr));gap:clamp(2px,1vw,6px);" +
+        "align-items:center;width:min(100%,380px);color:var(--text);font:600 clamp(1rem,5vw,1.5rem)/1 ui-monospace,SFMono-Regular,Menlo,monospace;user-select:all}" +
+        ".sp-companion-code:not(:has(.sp-companion-code-dash)){grid-template-columns:repeat(4,minmax(0,1fr));width:min(100%,190px)}" +
+        ".sp-companion-code-letter{display:grid;place-items:center;aspect-ratio:4/5;border:1px solid #66666e;border-radius:clamp(5px,1.6vw,10px);background:var(--bg)}" +
+        ".sp-companion-code-dash{color:var(--text2);text-align:center}" +
+        ".sp-companion-copy{flex-shrink:0}.sp-companion-copy-feedback{font-size:var(--text-sm);color:var(--text2)}.sp-companion-copy-feedback:empty{display:none}" +
+        ".sp-companion-actions{display:flex;flex-wrap:wrap;gap:8px}" +
         ".sp-backup-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;" +
         "padding:10px 16px;border:1px solid var(--border);border-radius:var(--action-r);font-size:.8rem;font-weight:500;" +
         "cursor:pointer;font-family:inherit;transition:all .25s;background:var(--surface2);" +

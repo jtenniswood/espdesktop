@@ -1287,9 +1287,9 @@ inline std::string companion_pairing_json(const CompanionPairingSnapshot &snapsh
     ",\"active\":" + (snapshot.active ? "true" : "false") +
     ",\"paired\":" + (snapshot.paired ? "true" : "false") +
     ",\"connected\":" + (snapshot.connected ? "true" : "false") +
-    ",\"expires_in_seconds\":" + std::to_string(snapshot.expires_in_seconds) +
     ",\"port\":" + std::to_string(snapshot.port) +
     ",\"system_metrics_generation\":" + std::to_string(snapshot.system_metrics_generation) +
+    ",\"code_length\":" + std::to_string(COMPANION_PAIRING_CODE_LENGTH) +
     ",\"pairing_code\":\"" + companion_json_escape(pairing_code) + "\",\"mdns_name\":\"" +
     companion_json_escape(snapshot.mdns_name) + "\"}";
 }
@@ -1312,6 +1312,10 @@ class CompanionPairingHandler : public esphome::web_server_idf::AsyncWebHandler 
       });
     if (!result) return;
     const auto &snapshot = *result;
+    if (companion_pairing_can_show_on_display(snapshot) && request->arg("show_on_display") == "1") {
+      const auto &show = companion_runtime_service().request_pairing_display;
+      if (show) show();
+    }
     const std::string json = companion_pairing_json(snapshot);
     httpd_req_t *req = *request;
     httpd_resp_set_status(req, snapshot.available ? "200 OK" : "404 Not Found");
@@ -1331,16 +1335,20 @@ class CompanionPairingResetHandler : public esphome::web_server_idf::AsyncWebHan
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
     if (!companion_authorize_web_request(request)) return;
-    auto &revoke = companion_runtime_service().revoke_pairing;
-    if (!revoke || !companion_pairing_provider() || !companion_pairing_provider()().available) {
+    const auto &runtime = companion_runtime_service();
+    if (!runtime.reset_and_begin_pairing || !companion_pairing_provider() || !companion_pairing_provider()().available) {
       httpd_req_t *raw_request = *request;
       httpd_resp_set_status(raw_request, "404 Not Found");
       httpd_resp_set_type(raw_request, "text/plain");
       httpd_resp_send(raw_request, "Companion pairing is unavailable", HTTPD_RESP_USE_STRLEN);
       return;
     }
-    revoke();
     httpd_req_t *raw_request = *request;
+    if (!runtime.reset_and_begin_pairing()) {
+      httpd_resp_send_err(raw_request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not reset Companion pairing");
+      return;
+    }
+    if (runtime.request_pairing_display) runtime.request_pairing_display();
     httpd_resp_set_status(raw_request, "200 OK");
     httpd_resp_set_type(raw_request, "application/json");
     httpd_resp_set_hdr(raw_request, "Cache-Control", "no-store");

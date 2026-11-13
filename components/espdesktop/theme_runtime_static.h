@@ -26,7 +26,7 @@ inline void theme_collect_static_labels(lv_obj_t *obj, ThemeStaticPageTargets &t
     if (targets.action_count < 2) targets.actions[targets.action_count++] = obj;
     else ESP_LOGW("theme", "Static action targets full (2); action will not follow theme changes");
   }
-  if (lv_obj_check_type(obj, &lv_label_class)) {
+  if (lv_obj_check_type(obj, &lv_label_class) && !lv_obj_has_flag(obj, LV_OBJ_FLAG_USER_2)) {
     const lv_color_t color = lv_obj_get_style_text_color(obj, LV_PART_MAIN);
     uint8_t role = 0;
     if (theme_color_matches(color, initial.text_primary)) role = 1;

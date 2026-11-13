@@ -54,10 +54,7 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
-    assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
-    assert.match(companion, /Connect your Mac/);
-    assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
     assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);

@@ -11,6 +11,7 @@
 #include <atomic>
 #include <array>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -52,21 +53,19 @@ class CompanionService final : public Component {
   void loop() override;
   void dump_config() override;
 
-  // Called by the panel web setup page. It rotates the eight-letter setup code
-  // and invalidates any unfinished attempt. The resulting trust is persistent.
+  // The panel and its web setup page share an active pairing code.
   void begin_pairing();
   std::string pairing_code() const;
   bool pairing_active() const;
-  uint32_t pairing_expires_in_seconds() const;
-  bool paired() const;
-  void revoke_pairing();
+  bool revoke_pairing();
+  bool reset_and_begin_pairing();
   void request_app_icon(const std::string &application_id);
   void refresh_app_icons_after_cache_clear();
 
  protected:
   void advertise_discovery_();
   bool discovery_advertised_{false};
-  enum class AuthenticationResult : uint8_t { FAILED, STALE_SEQUENCE, AUTHENTICATED };
+  enum class AuthenticationResult : uint8_t { FAILED, STORAGE_FAILED, STALE_SEQUENCE, AUTHENTICATED };
 
   static esp_err_t websocket_handler_(httpd_req_t *request);
   static esp_err_t legacy_websocket_handler_(httpd_req_t *request);
@@ -77,9 +76,9 @@ class CompanionService final : public Component {
   void handle_legacy_message_(int socket_fd, const char *message);
   bool start_server_();
   bool ensure_identity_();
-  AuthenticationResult authenticate_(uint32_t sequence, const std::string &nonce,
-                                     const std::string &signature, uint32_t &last_sequence,
-                                     bool record_sequence = true);
+  AuthenticationResult authenticate_locked_(uint32_t sequence, const std::string &nonce,
+                                            const std::string &signature, uint32_t &last_sequence,
+                                            bool record_sequence = true);
   void defer_session_(std::function<void()> callback, const char *label = "update");
   void handle_message_(int socket_fd, const std::string &message);
   void handle_json_(int socket_fd, const std::string &message);
@@ -100,19 +99,22 @@ class CompanionService final : public Component {
   bool invoke_url_(const std::string &encoded_url, const std::string &request_id, bool new_window);
   bool invoke_value_(const std::string &control_id, int value,
                      const std::string &request_id);
-  bool pairing_active_locked_(uint32_t now) const;
+  using PairingCode = std::array<char, COMPANION_PAIRING_CODE_LENGTH>;
+  bool begin_pairing_locked_(bool reset, bool show_on_display = false);
+  bool revoke_pairing_locked_(const PairingCode *code = nullptr, bool show_on_display = false);
+  bool pairing_active_locked_() const;
+  static PairingCode generate_pairing_code_();
 
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
+  ESPPreferenceObject pairing_code_preferences_;
   ESPPreferenceObject focus_targets_preferences_;
   CompanionIdentityPreference identity_{};
   httpd_handle_t server_{nullptr};
   uint16_t port_{8443};
   CompanionSessionState session_{};
   uint32_t last_sequence_{0};
-  uint32_t pairing_expires_at_{0};
-  uint32_t next_attempt_at_{0};
-  uint8_t failed_attempts_{0};
+  std::optional<uint32_t> last_failed_pairing_at_;
   mutable std::mutex pairing_mutex_;
   std::string pairing_code_;
   std::atomic<uint32_t> focus_targets_generation_{0};

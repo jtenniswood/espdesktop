@@ -21,6 +21,31 @@ private final class DisplayMediaFixture: MediaControlling {
 
 final class CompanionDisplayTests: XCTestCase {
     @MainActor
+    func testPreparingAndCancellingRePairingKeepsTheExistingDisplay() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let record = CompanionDisplayRecord(host: "office.local", name: "Office", account: "office")
+        let saved = CompanionSavedDisplays(defaults: defaults)
+        saved.save([record])
+        defaults.set("office-pin", forKey: "companion.certificateFingerprint.office")
+        let store = CompanionStore(mediaController: DisplayMediaFixture(), systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let display = store.displays[0]
+        XCTAssertFalse(store.prepareRePairing(display))
+        display.connection.onEvent?(.connection(message: "Pairing reset", state: .needsPairing, recovery: nil))
+        XCTAssertTrue(store.prepareRePairing(display))
+        XCTAssertTrue(store.isRePairing)
+        XCTAssertEqual(store.panelHost, record.host)
+        XCTAssertEqual(store.panelDisplayName, record.name)
+        store.resetPairing()
+        XCTAssertFalse(store.isRePairing)
+        XCTAssertEqual(display.state, .needsPairing)
+        XCTAssertEqual(saved.load { [] }, [record])
+        XCTAssertEqual(display.certificateFingerprint, "office-pin")
+    }
+
+    @MainActor
     func testUpgradeKeepsPairingAccountAndDoesNotRestoreForgottenDisplay() {
         let suite = "CompanionDisplayTests.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
@@ -100,7 +125,7 @@ final class CompanionDisplayTests: XCTestCase {
     }
 
     @MainActor
-    func testForgettingDisplayPreservesOtherActivePairing() {
+    func testForgettingDisplayPreservesOtherActivePairing() async {
         let suite = "CompanionDisplayTests.\(UUID())"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
@@ -125,7 +150,7 @@ final class CompanionDisplayTests: XCTestCase {
         XCTAssertEqual(store.connectedDisplayCount, 2)
         XCTAssertEqual(metrics.starts, 1)
 
-        store.forgetDisplay(store.displays[1])
+        await store.forgetDisplay(store.displays[1])
 
         XCTAssertEqual(store.connectedDisplayCount, 1)
         XCTAssertEqual(store.displays.map(\.state), [.connected])

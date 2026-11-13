@@ -31,7 +31,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
 }
 
 private enum CompanionPairingStep {
-    case address, code, connecting, connected
+    case address, requestingCode, code, connecting, connected
 }
 
 struct CompanionCapsuleButton: ViewModifier {
@@ -159,6 +159,35 @@ private struct OnboardingWindowTitle: NSViewRepresentable {
     }
 }
 
+private struct CompanionPairingActions: View {
+    let finishLabel: String
+    let openSetup: () -> Bool
+    let onComplete: () -> Void
+    @State private var failedToOpenSetup = false
+
+    var body: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Button(finishLabel, action: onComplete)
+                    .buttonStyle(.bordered)
+                Button("Configure Screen") {
+                    if openSetup() {
+                        onComplete()
+                    } else {
+                        failedToOpenSetup = true
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+            }
+            if failedToOpenSetup {
+                Label("Could not open the display’s setup wizard.", systemImage: "exclamationmark.circle")
+                    .font(.callout)
+                    .foregroundStyle(.orange)
+            }
+        }
+    }
+}
+
 private struct CompanionOnboarding: View {
     @ObservedObject var store: CompanionStore
     let onComplete: () -> Void
@@ -169,8 +198,8 @@ private struct CompanionOnboarding: View {
             VStack(spacing: 24) {
                 CompanionSetupHeading(
                     step: 3,
-                    title: "Access and startup",
-                    summary: "Your display is paired. Choose what to enable."
+                    title: "You’re connected",
+                    summary: "Choose what to enable on your Mac, then configure your screen."
                 )
 
                 GroupBox {
@@ -195,8 +224,7 @@ private struct CompanionOnboarding: View {
                     .padding(12)
                 }
 
-                Button("Finish") { onComplete() }
-                    .buttonStyle(.borderedProminent)
+                CompanionPairingActions(finishLabel: "Finish", openSetup: store.openPanelSetup, onComplete: onComplete)
             }
             .controlSize(.large)
             .frame(maxWidth: 380)
@@ -231,6 +259,7 @@ struct CompanionSettings: View {
     @State private var accessibilityGranted = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var pairingStep: CompanionPairingStep = .address
+    @State private var pairingPrompt: CompanionPairingPrompt = .unavailable
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
     @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
@@ -268,7 +297,8 @@ struct CompanionSettings: View {
                 pairingCode = ""
                 pairingStep = .connected
             } else if pairingStep == .connecting {
-                if store.hasSavedPairingInProgress && (state == .failed || state == .disconnected) {
+                if store.hasSavedPairingInProgress && !store.canRetryRePairing &&
+                    (state == .failed || state == .needsPairing || state == .disconnected) {
                     finishPairingFlow()
                 } else if state == .failed {
                     pairingStep = .code
@@ -280,7 +310,7 @@ struct CompanionSettings: View {
             switch step {
             case .address: focusedField = .panelHost
             case .code: focusedField = .pairingCode
-            case .connecting, .connected: focusedField = nil
+            case .requestingCode, .connecting, .connected: focusedField = nil
             }
         }
     }
@@ -308,21 +338,23 @@ struct CompanionSettings: View {
         ), presenting: displayToForget) { display in
             Button("Cancel", role: .cancel) { displayToForget = nil }
             Button("Forget Display", role: .destructive) {
-                store.forgetDisplay(display)
                 displayToForget = nil
+                Task { await store.forgetDisplay(display) }
             }
         } message: { display in
-            Text("Your Mac will remove its saved pairing with \(display.name). To pair it again, reset pairing on that display and enter a new code.")
+            Text("Your Mac will remove its saved pairing with \(display.name). If the display is connected and supports remote reset, it will show a new pairing code.")
         }
         .alert("Restart setup?", isPresented: $confirmingRestartSetup) {
             Button("Cancel", role: .cancel) {}
             Button("Restart Setup", role: .destructive) {
                 guard store.displays.count <= 1 else { return }
-                if let display = store.displays.first { store.forgetDisplay(display) }
-                startPairingFlow()
-                selectedPageID = CompanionSettingsPage.connection.rawValue
-                store.requestedSettingsDestination = .displays
-                store.onboardingCompleted = false
+                Task {
+                    if let display = store.displays.first { await store.forgetDisplay(display) }
+                    startPairingFlow()
+                    selectedPageID = CompanionSettingsPage.connection.rawValue
+                    store.requestedSettingsDestination = .displays
+                    store.onboardingCompleted = false
+                }
             }
         } message: {
             Text("This removes the saved display pairing and starts onboarding again. Your app and folder choices will be kept.")
@@ -402,15 +434,17 @@ struct CompanionSettings: View {
     private func displayCard(_ display: CompanionDisplay) -> some View {
         VStack(spacing: 20) {
             VStack(spacing: 10) {
-                Toggle(isOn: Binding(
-                    get: { display.state == .connected || display.state.isBusy },
-                    set: { store.setConnection($0, for: display) }
-                )) {
-                    Text("\(display.name) connection")
+                if display.state != .needsPairing {
+                    Toggle(isOn: Binding(
+                        get: { display.state == .connected || display.state.isBusy },
+                        set: { store.setConnection($0, for: display) }
+                    )) {
+                        Text("\(display.name) connection")
+                    }
+                    .labelsHidden()
+                    .toggleStyle(SwitchToggleStyle(tint: .accentColor))
+                    .controlSize(displaySwitchSize)
                 }
-                .labelsHidden()
-                .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-                .controlSize(displaySwitchSize)
 
                 HStack(spacing: 8) {
                     if display.state.isBusy {
@@ -426,17 +460,27 @@ struct CompanionSettings: View {
                     .help(display.panelHost)
                     .textSelection(.enabled)
 
-                if display.state == .failed {
+                if display.state == .failed || display.state == .needsPairing {
                     Text(display.recoveryMessage)
                         .font(.callout)
                         .foregroundStyle(.secondary)
                 }
             }
             HStack(spacing: 12) {
+                if display.state == .needsPairing {
+                    Button {
+                        startRePairing(display)
+                    } label: {
+                        Label("Re-pair", systemImage: "link")
+                            .padding(.vertical, 4)
+                    }
+                    .modifier(CompanionCapsuleButton())
+                }
+
                 Button {
                     store.openPanelWebServer(display)
                 } label: {
-                    Label("Customize", systemImage: "rectangle.grid.2x2")
+                    Label("Device", systemImage: "display")
                         .padding(.vertical, 4)
                 }
                 .modifier(CompanionCapsuleButton())
@@ -472,53 +516,60 @@ struct CompanionSettings: View {
                     summary: pairingStepDescription
                 )
 
-                if pairingStep == .address || pairingStep == .code {
+                switch pairingStep {
+                case .address:
                     VStack(alignment: .leading, spacing: 10) {
-                        if pairingStep == .address {
-                            displaySelection
-                                .onAppear { if !manualAddress { discovery.start() } }
-                                .onDisappear { discovery.stop() }
-                                .onChange(of: manualAddress) { manual in
-                                    if manual { discovery.stop() } else { discovery.start() }
-                                }
-                        } else {
-                            CompanionPairingCodeField(code: $pairingCode, onSubmit: pairDisplay)
-                        }
-                        if !pairingFlowError.isEmpty {
-                            Label(pairingFlowError, systemImage: "exclamationmark.circle")
-                                .font(.callout)
-                                .foregroundStyle(.orange)
-                                .fixedSize(horizontal: false, vertical: true)
-                        }
+                        displaySelection
+                            .onAppear { if !manualAddress { discovery.start() } }
+                            .onDisappear { discovery.stop() }
+                            .onChange(of: manualAddress) { manual in
+                                if manual { discovery.stop() } else { discovery.start() }
+                            }
+                        pairingErrorLabel
                     }
                     .font(.title3)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    HStack {
-                        if pairingStep == .code {
+                    HStack(spacing: 8) {
+                        if store.onboardingCompleted {
+                            Button("Cancel", action: finishPairingFlow)
+                        }
+                        Button("Continue", action: requestPairingCode)
+                            .buttonStyle(.borderedProminent)
+                            .disabled(!canRequestPairingCode)
+                    }
+                case .code:
+                    VStack(spacing: 14) {
+                        CompanionPairingCodeField(code: $pairingCode, letterCount: pairingPrompt.letterCount, onSubmit: pairDisplay)
+                        pairingErrorLabel
+                        HStack(spacing: 8) {
                             Button("Back") {
+                                if store.isRePairing {
+                                    finishPairingFlow()
+                                    return
+                                }
                                 pairingFlowError = ""
                                 pairingStep = .address
                                 focusedField = .panelHost
                             }
-                        } else if store.onboardingCompleted {
-                            Button("Cancel", action: finishPairingFlow)
+                            Button("Connect", action: pairDisplay)
+                                .buttonStyle(.borderedProminent)
+                                .disabled(!canPair)
                         }
-                        if pairingStep == .code { Spacer() }
-                        Button(pairingStep == .address ? "Continue" : "Connect") {
-                            if pairingStep == .address { openPairingPage() } else { pairDisplay() }
+                        Button("Open pairing webpage") {
+                            pairingFlowError = store.openPanelPairing() ? "" : "Could not open the display pairing page."
                         }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(pairingStep == .address ? !canOpenPairingPage : !canPair)
+                        .buttonStyle(.link)
+                        .font(.callout)
                     }
-                } else if pairingStep == .connecting {
+                case .requestingCode, .connecting:
                     ProgressView()
-                        .accessibilityLabel("Connecting to display")
-                } else {
-                    Button("Done", action: finishPairingFlow)
-                        .buttonStyle(.borderedProminent)
-                }
-                if store.onboardingCompleted && (pairingStep == .code || pairingStep == .connecting) {
-                    Button("Cancel", action: finishPairingFlow)
+                        .accessibilityLabel(pairingStep == .requestingCode
+                            ? "Requesting a pairing code" : "Connecting to display")
+                    if store.onboardingCompleted {
+                        Button("Cancel", action: finishPairingFlow)
+                    }
+                case .connected:
+                    CompanionPairingActions(finishLabel: "Done", openSetup: store.openPanelSetup, onComplete: finishPairingFlow)
                 }
             }
             .controlSize(.large)
@@ -526,6 +577,24 @@ struct CompanionSettings: View {
             .padding(.horizontal, 24)
             .padding(.vertical, 32)
             .frame(maxWidth: .infinity)
+        }
+        .task(id: pairingStep) {
+            guard pairingStep == .requestingCode,
+                  let webServer = CompanionStore.panelWebServerURL(from: store.panelHost) else { return }
+            let prompt = await CompanionPairingPrompt.request(on: webServer)
+            guard !Task.isCancelled, pairingFlowActive, pairingStep == .requestingCode else { return }
+            pairingPrompt = prompt
+            pairingStep = .code
+        }
+    }
+
+    @ViewBuilder
+    private var pairingErrorLabel: some View {
+        if !pairingFlowError.isEmpty {
+            Label(pairingFlowError, systemImage: "exclamationmark.circle")
+                .font(.callout)
+                .foregroundStyle(.orange)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 
@@ -536,7 +605,7 @@ struct CompanionSettings: View {
                 .textFieldStyle(.roundedBorder)
                 .accessibilityLabel("Display address")
                 .focused($focusedField, equals: .panelHost)
-                .onSubmit { openPairingPage() }
+                .onSubmit { requestPairingCode() }
             Button("Find displays automatically") {
                 manualAddress = false
                 selectedDisplayID = nil
@@ -627,7 +696,7 @@ struct CompanionSettings: View {
     private var pairingStepNumber: Int {
         switch pairingStep {
         case .address: return 1
-        case .code, .connecting: return 2
+        case .requestingCode, .code, .connecting: return 2
         case .connected: return 3
         }
     }
@@ -635,6 +704,7 @@ struct CompanionSettings: View {
     private var pairingStepTitle: String {
         switch pairingStep {
         case .address: return "Choose your display"
+        case .requestingCode: return "Requesting a pairing code"
         case .code: return "Enter pairing code"
         case .connecting: return "Connecting your display"
         case .connected: return "You’re connected"
@@ -645,8 +715,17 @@ struct CompanionSettings: View {
         switch pairingStep {
         case .address:
             return "Your Mac and display must be on the same network."
+        case .requestingCode:
+            return "Looking for your display on the local network."
         case .code:
-            return "Start pairing in your browser, then enter the eight-letter code."
+            switch pairingPrompt {
+            case .code:
+                return "Enter the code shown on your display."
+            case .reset:
+                return "Confirm Reset pairing on the touchscreen, then enter the new code. If the prompt is missing, open Settings → Paired on the display."
+            case .unavailable:
+                return "Open pairing from the display’s Settings or webpage, then enter the code."
+            }
         case .connecting:
             return "Keep your Mac and display on the same network."
         case .connected:
@@ -655,10 +734,10 @@ struct CompanionSettings: View {
     }
 
     private var canPair: Bool {
-        !store.pairingState.isBusy && CompanionPairingInput.isValid(host: store.panelHost, code: pairingCode)
+        !store.pairingState.isBusy && CompanionPairingInput.isValid(host: store.panelHost, code: pairingCode, letterCount: pairingPrompt.letterCount)
     }
 
-    private var canOpenPairingPage: Bool {
+    private var canRequestPairingCode: Bool {
         manualAddress ? CompanionStore.panelWebServerURL(from: store.panelHost) != nil
             : discovery.displays.contains { $0.id == selectedDisplayID && !store.isSavedDisplay(fingerprint: $0.id) }
     }
@@ -673,6 +752,14 @@ struct CompanionSettings: View {
         pairingFlowError = ""
     }
 
+    private func startRePairing(_ display: CompanionDisplay) {
+        guard store.prepareRePairing(display) else { return }
+        pairingCode = ""
+        pairingFlowActive = true
+        pairingFlowError = ""
+        pairingStep = .requestingCode
+    }
+
     private func finishPairingFlow() {
         pairingFlowActive = false
         pairingStep = .address
@@ -680,27 +767,24 @@ struct CompanionSettings: View {
         store.resetPairing()
     }
 
-    private func openPairingPage() {
+    private func requestPairingCode() {
+        guard pairingStep == .address else { return }
         if !manualAddress {
             guard let display = discovery.displays.first(where: { $0.id == selectedDisplayID }) else { return }
             store.panelHost = display.endpoint
             store.panelDisplayName = display.name
         }
-        guard canOpenPairingPage else {
+        guard canRequestPairingCode else {
             pairingFlowError = "Enter a valid local IP address or name.local."
             return
         }
-        guard store.openPanelPairing() else {
-            pairingFlowError = "Could not open the display pairing page."
-            return
-        }
         pairingFlowError = ""
-        pairingStep = .code
+        pairingStep = .requestingCode
     }
 
     private func pairDisplay() {
-        guard CompanionPairingInput.normalizedCode(pairingCode) != nil else {
-            pairingFlowError = "Enter the eight-letter pairing code shown on the display."
+        guard CompanionPairingInput.normalizedCode(pairingCode, letterCount: pairingPrompt.letterCount) != nil else {
+            pairingFlowError = "Enter the pairing code shown on the display."
             return
         }
         guard ConnectionEndpointPolicy.isLocalEndpoint(store.panelHost) else {

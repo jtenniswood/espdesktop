@@ -102,7 +102,8 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
     const { document, window } = deps;
     const appLimit = setupAppLimit(deps.capacity);
     const catalogue = createCompanionCatalogue(deps.fetch);
-    const pairingLink = requestedConnectorFromSearch(window.location.search) === "mac_companion";
+    const setupLink = new URLSearchParams(window.location.search).get("setup") === "1";
+    const pairingLink = !setupLink && requestedConnectorFromSearch(window.location.search) === "mac_companion";
     let dialog: HTMLDialogElement | null = null;
     let eligible = false;
     let replacing: NativePanelConfigGraph | undefined;
@@ -273,29 +274,26 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         status.setAttribute("role", "status");
         if (connected) {
             status.classList.add("sp-companion-status-connected");
-            status.textContent = "Mac connected. Choose Next to pick your apps.";
+            status.textContent = "Mac connected. Choose Next.";
             content.appendChild(status);
             return;
         }
-        const steps = element("ol", "", "sp-connector-steps sp-setup-pairing");
-        const link = element("a", "Download the latest EspDesktop Mac app");
+        const download = element("p", "", "sp-setup-pairing");
+        const link = element("a", "Download EspDesktop for Mac");
         link.href = "https://github.com/jtenniswood/espdesktop/releases/latest";
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        const install = element("li");
-        install.append(link, ". Open the EspDesktop DMG under Assets, drag EspDesktop into Applications, then open the app.");
-        const pair = element("li", "Select this display in the app and choose Continue. Paste the code below into the app and choose Connect.");
-        steps.append(install, pair);
+        download.appendChild(link);
         const details = createCompanionPairingDetails(deps, deps.shell.createActionButton);
-        content.append(steps, details.element, status);
+        content.append(details.element, download, status);
         updatePairingView = () => {
             details.update(pairingState ?? null);
-            pair.hidden = !!pairingState?.paired;
             let message = "Open Settings → Unpaired on the display to get a pairing code.";
             if (pairingState === undefined) message = "Checking for a pairing code…";
             else if (!pairingState) message = "Could not load the pairing code. Retrying…";
-            else if (pairingState.paired) message = "This display is already paired. Open EspDesktop on your Mac to reconnect.";
-            else if (!details.element.hidden) message = "Waiting for your Mac to connect…";
+            else if (pairingState.paired) message = "Open EspDesktop on your Mac to reconnect.";
+            status.hidden = !details.element.hidden;
+            status.classList.toggle("sp-hidden", status.hidden);
             if (status.textContent !== message) status.textContent = message;
         };
         updatePairingView();
@@ -320,12 +318,15 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         const title = element("h1", titles[step], "sp-setup-title");
         title.id = "sp-setup-title";
         const explanations = [
-            "Install EspDesktop and pair this display with a Mac on the same network.",
+            "Connect to a Mac on the same network.",
             `Pick your favourite apps to display (up to ${appLimit} apps).`,
             "Choose what you can do from your app cards.",
             "Choose when the display opens a shortcut page.",
         ];
         const description = element("p", explanations[step], "sp-setup-description");
+        if (step === 1 && replacing && (replacing.layout.rootCards.length || replacing.layout.pages.length)) {
+            description.append(" Saving setup replaces the current Home layout.");
+        }
         const closeButton = element("button", "", "sp-settings-close");
         closeButton.type = "button";
         closeButton.disabled = busy;
@@ -435,17 +436,17 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
         pairingState = value;
         updatePairingView?.();
     });
-    return {
-        open(): void {
-            if (!deps.supported || dialog || opening) return;
-            opening = true;
-            void (async () => {
-                if (!await supportsSetup())
-                    throw new Error("Update the display firmware to use app setup.");
-                const saved = await deps.native.readSnapshot();
-                if (!hasNativeLayout(saved)) throw new Error("Could not load the display’s native layout. Check its connection and firmware.");
-                replacing = saved;
-                selected.clear();
+    function open(fromLink = false): void {
+        if (!deps.supported || dialog || opening) return;
+        opening = true;
+        void (async () => {
+            if (!await supportsSetup()) throw new Error("Update the display firmware to use app setup.");
+            const saved = await deps.native.readSnapshot();
+            if (!hasNativeLayout(saved)) throw new Error("Could not load the display’s native layout. Check its connection and firmware.");
+            replacing = fromLink && needsFirstRunSetup(saved) ? undefined : saved;
+            selected.clear();
+            addShortcutPages = true;
+            if (replacing) {
                 addShortcutPages = false;
                 for (const { config: card } of saved.layout.rootCards) {
                     if (card.type !== "companion" || !card.entity || card.sensor || selected.size >= appLimit) continue;
@@ -453,21 +454,28 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
                     if (configOptionEnabled(card.options, "app_shortcuts")) addShortcutPages = true;
                 }
                 if (!selected.size) addShortcutPages = true;
-                autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
-                query = "";
-                error = "";
-                eligible = true;
-                show();
-            })().catch(failure => deps.shell.showBanner(failure.message, "error"))
-                .finally(() => { opening = false; });
-        },
+            }
+            autoSwitch = nativeAppSubpagePreference(saved.document.settings) ?? deps.autoSwitchEnabled();
+            query = "";
+            error = "";
+            eligible = true;
+            show();
+        })().catch(failure => deps.shell.showBanner(failure.message, "error"))
+            .finally(() => { opening = false; });
+    }
+    return {
+        open: () => open(),
         start(): void {
             if (!deps.supported || started) return;
             started = true;
+            if (setupLink) {
+                open(true);
+                return;
+            }
             void (async () => {
                 if (!await supportsSetup()) return;
                 const saved = await deps.native.readSnapshot();
-                if (!hasNativeLayout(saved) || !needsFirstRunSetup(saved)) return;
+                if (opening || eligible || !hasNativeLayout(saved) || !needsFirstRunSetup(saved)) return;
                 eligible = true;
                 show();
             })().catch(() => { /* A failed discovery must leave the normal editor available. */ });

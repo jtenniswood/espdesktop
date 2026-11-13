@@ -48,7 +48,7 @@ The app or folder must be approved in EspDesktop. Open **Apps** or **Folders** i
 
 ### How do I replace a display or reset pairing?
 
-In **Settings → Displays**, choose **Forget** beside the display you’re replacing. To reuse a previously paired display, reset its pairing under **System → Mac Companion**. Pair the replacement using its new temporary code.
+In **Settings → Displays**, choose **Forget** beside the display you’re replacing. To reuse a previously paired display, tap **Paired** in the touchscreen’s Settings and confirm **Reset pairing**. Enter the new code in the Mac app.
 
 ## More help
 

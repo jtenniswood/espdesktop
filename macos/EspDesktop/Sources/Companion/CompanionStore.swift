@@ -139,7 +139,10 @@ final class CompanionStore: NSObject, ObservableObject {
     private static let preferencesSuite = "io.espdesktop.app"
     private let defaults: UserDefaults
     private let savedDisplays: CompanionSavedDisplays
+    private var forgettingDisplays: Set<UUID> = []
     private lazy var pairingDisplay = makeDisplay(CompanionDisplayRecord())
+    private(set) var isRePairing = false
+    var canRetryRePairing: Bool { isRePairing && pairingDisplay.connection.isPairing }
     private var connectedDisplays: [CompanionDisplay] { displays.filter { $0.state == .connected } }
     private var metricsDisplays: [CompanionDisplay] { connectedDisplays.filter(\.supportsSystemMetrics) }
     private var systemMetricsActive = false
@@ -638,7 +641,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func setConnection(_ enabled: Bool, for display: CompanionDisplay) {
-        guard displays.contains(where: { $0.id == display.id }) else { return }
+        guard display.state != .needsPairing, displays.contains(where: { $0.id == display.id }) else { return }
         display.record.connectAtLaunch = enabled
         if enabled {
             display.connection.connect(mode: .authenticate)
@@ -655,8 +658,12 @@ final class CompanionStore: NSObject, ObservableObject {
         openPanelWebServer(host: panelHost, tab: "connectors", connector: "mac_companion")
     }
 
-    private func openPanelWebServer(host: String, tab: String?, connector: String? = nil) -> Bool {
-        guard let url = Self.panelWebServerURL(from: host, tab: tab, connector: connector),
+    func openPanelSetup() -> Bool {
+        openPanelWebServer(host: panelHost, setup: true)
+    }
+
+    private func openPanelWebServer(host: String, tab: String? = nil, connector: String? = nil, setup: Bool = false) -> Bool {
+        guard let url = Self.panelWebServerURL(from: host, tab: tab, connector: connector, setup: setup),
               NSWorkspace.shared.open(url) else {
             updateStatus("Could not open display settings")
             return false
@@ -668,6 +675,7 @@ final class CompanionStore: NSObject, ObservableObject {
         from value: String,
         tab: String? = nil,
         connector: String? = nil,
+        setup: Bool = false
     ) -> URL? {
         let raw = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let parsed = URL(string: raw.contains("://") ? raw : "http://\(raw)"),
@@ -684,6 +692,9 @@ final class CompanionStore: NSObject, ObservableObject {
                 URLQueryItem(name: "connector", value: connector),
             ]
         }
+        if setup {
+            components.queryItems = (components.queryItems ?? []) + [URLQueryItem(name: "setup", value: "1")]
+        }
         return components.url
     }
     func isSavedDisplay(fingerprint: String) -> Bool {
@@ -692,20 +703,37 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func resetPairing() {
         let previous = pairingDisplay
+        let wasRePairing = isRePairing
+        isRePairing = false
         pairingDisplay = makeDisplay(CompanionDisplayRecord())
-        if !previous.hasSavedPairing { previous.connection.disconnect() }
+        if wasRePairing {
+            previous.connection.cancelRePairing()
+        } else if !previous.hasSavedPairing {
+            previous.connection.disconnect()
+        }
         pairingRecoveryMessage = ""
         pairingState = .disconnected
     }
 
+    func prepareRePairing(_ display: CompanionDisplay) -> Bool {
+        guard display.state == .needsPairing, displays.contains(where: { $0 === display }) else { return false }
+        resetPairing()
+        pairingDisplay = display
+        isRePairing = true
+        return true
+    }
+
     func pair(code: String) {
-        guard !pairingDisplay.hasSavedPairing, !pairingState.isBusy, ConnectionEndpointPolicy.isLocalEndpoint(panelHost),
+        guard isRePairing || !pairingDisplay.hasSavedPairing,
+              !pairingState.isBusy, ConnectionEndpointPolicy.isLocalEndpoint(panelHost),
               let normalizedCode = CompanionPairingInput.normalizedCode(code) else { return }
         pairingDisplay.connection.connect(mode: .pair(code: normalizedCode))
     }
 
-    func forgetDisplay(_ display: CompanionDisplay) {
-        guard displays.contains(where: { $0.id == display.id }) else { return }
+    func forgetDisplay(_ display: CompanionDisplay) async {
+        guard displays.contains(where: { $0 === display }), forgettingDisplays.insert(display.id).inserted else { return }
+        defer { forgettingDisplays.remove(display.id) }
+        await display.connection.showPairingBeforeDisconnecting()
         display.connection.disconnect()
         display.onRecordChange = nil
         display.connection.onEvent = nil
@@ -740,9 +768,9 @@ final class CompanionStore: NSObject, ObservableObject {
     private func updateConnectionStatus(_ message: String, state: CompanionConnectionState,
                                         recovery: String?, for display: CompanionDisplay) {
         objectWillChange.send()
-        display.recoveryMessage = recovery ?? (display.hasSavedPairing
+        display.recoveryMessage = recovery ?? (display.hasSavedPairing && !display.connection.isPairing
             ? "Check that your display is on and connected to the same network, then try Connect again."
-            : "Open the device webpage at its local address, start pairing, and enter the current eight-letter code to try again.")
+            : "Start pairing on your display and enter the current pairing code to try again.")
         display.state = state
         if display === pairingDisplay {
             pairingRecoveryMessage = display.recoveryMessage

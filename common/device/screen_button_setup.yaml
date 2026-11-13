@@ -10,9 +10,13 @@ esphome:
     - priority: -210
       then:
         - lambda: |-
+            device_pairing_style_button(id(button_setup_pair));
             register_theme_static_page(id(button_setup_page)->obj);
             companion_runtime_service().pairing_changed_handler = [] {
               id(button_setup_text_refresh).execute();
+            };
+            companion_runtime_service().show_pairing_code_handler = [] {
+              id(button_setup_show_pairing_code).execute();
             };
 
 lvgl:
@@ -24,6 +28,9 @@ lvgl:
         # The load trigger fires before LVGL makes the page active.
         - delay: 1ms
         - script.execute: button_setup_text_refresh
+      on_unload:
+        - lambda: |-
+            if (device_pairing_ui().overlay) control_modal_close_nested_menu();
       widgets:
         - obj:
             width: $screen_width
@@ -79,6 +86,25 @@ lvgl:
                         text_color: $theme_text_muted_color
                         width: $content_width
                         text_align: center
+                    - button:
+                        id: button_setup_pair
+                        hidden: true
+                        width: SIZE_CONTENT
+                        height: SIZE_CONTENT
+                        pad_top: 18
+                        pad_bottom: 18
+                        pad_left: 36
+                        pad_right: 36
+                        on_press:
+                          - lambda: |-
+                              consume_button_touch_press(id(button_setup_pair));
+                              device_pairing_open(id(${setup_body_font_id})->get_lv_font(),
+                                                  id(${setup_title_font_id})->get_lv_font());
+                        widgets:
+                          - label:
+                              id: button_setup_pair_label
+                              text: ""
+                              text_font: $setup_body_font_id
                     - label:
                         id: setup_ip_label
                         text: "http://..."
@@ -96,6 +122,35 @@ lvgl:
                         text_align: center
 
 script:
+  - id: button_setup_show_pairing_code
+    mode: single
+    then:
+      - if:
+          condition:
+            lambda: |-
+              const auto &display = id(espdesktop_app).display();
+              return !device_pairing_ui().overlay && !screen_lock_enabled() &&
+                  !display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL);
+          then:
+            - if:
+                condition:
+                  lambda: |-
+                    return !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);
+                then:
+                  - script.execute: screensaver_wake
+                  - script.wait: screensaver_wake
+            - lambda: |-
+                const auto &display = id(espdesktop_app).display();
+                if (!display.current_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                    !display.target_mode_is(espdesktop::DisplayMode::ACTIVE) ||
+                    display.takeover_active(espdesktop::DisplayTakeoverKind::CRITICAL) ||
+                    device_pairing_ui().overlay || screen_lock_enabled()) return;
+                const auto pairing = device_pairing_snapshot();
+                if (!companion_pairing_can_show_on_display(pairing)) return;
+                if (pairing.paired && !companion_runtime_service().reset_and_begin_pairing) return;
+                device_pairing_show(id(${setup_body_font_id})->get_lv_font(),
+                                    id(${setup_title_font_id})->get_lv_font(), pairing.paired);
+
   - id: button_setup_text_refresh
     mode: restart
     then:
@@ -111,5 +166,8 @@ script:
               id(button_setup_instructions),
               needs_pairing ? espdesktop_i18n_key("download_companion_app_to_pair")
                             : espdesktop_i18n("Open your browser and\nconfigure your display"));
+          lv_label_set_display_text(id(button_setup_pair_label), espdesktop_i18n("Pair"));
+          lv_obj_set_flag(id(button_setup_pair), LV_OBJ_FLAG_HIDDEN,
+                          !needs_pairing || !companion_runtime_service().begin_pairing);
           lv_obj_set_flag(id(setup_ip_label), LV_OBJ_FLAG_HIDDEN, needs_pairing);
           lv_obj_set_flag(id(setup_app_url_label), LV_OBJ_FLAG_HIDDEN, !needs_pairing);

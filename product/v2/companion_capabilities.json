@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 8,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -957,6 +957,15 @@
         "states": [
           "connected"
         ]
+      },
+      {
+        "id": "pair.reset",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {},
+        "states": [
+          "connected"
+        ]
       }
     ],
     "appIconLegacySide": 144,
@@ -965,7 +974,6 @@
   "security": {
     "pairingAuthorization": "device_web_access",
     "browserExposesPairingCode": true,
-    "pairingWindowSeconds": 900,
     "credentialStorage": "keychain",
     "certificatePolicy": "trust_on_first_pair_then_pin",
     "transport": "tls_websocket",
