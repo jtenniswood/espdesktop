@@ -98,7 +98,7 @@ struct ApprovedFolder: Codable, Identifiable, Hashable {
 final class CompanionStore: NSObject, ObservableObject {
     let updater = CompanionUpdater()
     @Published var settingsRequestID: UUID?
-    var requestedSettingsPage = "connection"
+    var requestedSettingsDestination: CompanionSettingsDestination = .displays
     static let privacyPolicyURL = URL(string: "https://espdesktop.com/reference/privacy")!
     static let issuesURL = URL(string: "https://github.com/jtenniswood/espdesktop/issues")!
     static let supportURL = URL(string: "https://espdesktop.com/getting-started/troubleshooting")!
