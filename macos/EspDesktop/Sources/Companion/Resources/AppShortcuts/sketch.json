@@ -289,8 +289,11 @@
     {"id": "235", "label": "Subtract", "shortcut": "scoped.keyminus", "icon": "Shortcut Command"},
     {"id": "236", "label": "Multiply", "shortcut": "scoped.shift+8", "icon": "Shortcut Command"},
     {"id": "237", "label": "Divide", "shortcut": "scoped.keyslash", "icon": "Shortcut Command"},
-    {"id": "238", "label": "Increase or decrease value by 1", "shortcut": "scoped.up~down", "icon": "Shortcut Command"},
-    {"id": "239", "label": "Increase or decrease value by 10", "shortcut": "scoped.shift+up~down", "icon": "Shortcut Command"},
-    {"id": "240", "label": "Increase or decrease value by 0.1", "shortcut": "scoped.option+up~down", "icon": "Shortcut Command"}
+    {"id": "238", "label": "Increase Value by 1", "shortcut": "scoped.up", "icon": "Arrow Up"},
+    {"id": "241", "label": "Decrease Value by 1", "shortcut": "scoped.down", "icon": "Arrow Down"},
+    {"id": "239", "label": "Increase Value by 10", "shortcut": "scoped.shift+up", "icon": "Arrow Up"},
+    {"id": "242", "label": "Decrease Value by 10", "shortcut": "scoped.shift+down", "icon": "Arrow Down"},
+    {"id": "240", "label": "Increase Value by 0.1", "shortcut": "scoped.option+up", "icon": "Arrow Up"},
+    {"id": "243", "label": "Decrease Value by 0.1", "shortcut": "scoped.option+down", "icon": "Arrow Down"}
   ]
 }
