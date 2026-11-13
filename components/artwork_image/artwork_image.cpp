@@ -1745,6 +1745,9 @@ void ArtworkImage::draw_pixel_to_buffer_(uint8_t *buffer, int width, int x, int 
       }
       break;
     }
+    default:
+      // The artwork schema accepts only the formats encoded above.
+      break;
   }
 }
 
