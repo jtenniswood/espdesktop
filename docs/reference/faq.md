@@ -26,7 +26,7 @@ Use a USB-C data cable to install firmware on the Guition 4848S040. For Mac cont
 
 ### Can I use several EspDesktop displays with one Mac?
 
-EspDesktop v1.2.6 supports multiple Guition 4848S040 displays connected to one Mac. Open **Mac Settings → Displays → Add Display** and pair each one with its own code. You can connect or disconnect one display while the others stay available. See [Mac app settings](/settings/mac-app).
+EspDesktop v1.2.6 supports multiple Guition 4848S040 displays connected to one Mac. Open **Settings → Displays → Add Display** and pair each one with its own code. You can connect or disconnect one display while the others stay available. See [Mac app settings](/settings/mac-app).
 
 ### Why can't I see my display in the Mac app?
 
@@ -48,7 +48,7 @@ The app or folder must be approved in EspDesktop. Open **Apps** or **Folders** i
 
 ### How do I replace a display or reset pairing?
 
-In **Mac Settings → Displays**, choose **Forget** beside the display you’re replacing. To reuse a previously paired display, reset its pairing under **System → Mac Companion**. Pair the replacement using its new temporary code.
+In **Settings → Displays**, choose **Forget** beside the display you’re replacing. To reuse a previously paired display, reset its pairing under **System → Mac Companion**. Pair the replacement using its new temporary code.
 
 ## More help
 

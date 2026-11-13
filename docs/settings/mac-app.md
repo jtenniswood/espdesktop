@@ -5,9 +5,9 @@ description: Open EspDesktop on your Mac, manage apps and folders, and check for
 
 # Mac app settings
 
-Choose **Mac Settings** from the EspDesktop menu bar icon. The app keeps running when you close the settings window. To stop it, choose **Quit** from the same menu.
+Choose **Settings** from the EspDesktop menu bar icon. The app keeps running when you close the settings window. To stop it, choose **Quit** from the same menu.
 
-<a href="/images/mac-companion-menu.png"><img src="/images/mac-companion-menu.png" alt="EspDesktop menu showing a connected display and the Mac Settings option" width="376" height="242" loading="lazy"></a>
+Choose **Add device** from the menu bar icon to search for and pair a display.
 
 <ScreenshotGallery label="Mac app settings preview" :width="1224" :height="1488" :slides="settingsSlides" />
 
@@ -15,7 +15,7 @@ See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Fin
 
 ## Check for Mac app updates
 
-In **Mac Settings → Updates**, choose **Check Now** or set your automatic update preferences. Follow [update the Mac app and display together](/settings/system#update-the-mac-app-and-display-together) to keep their releases matched.
+In **Settings → Updates**, choose **Check Now** or set your automatic update preferences. Follow [update the Mac app and display together](/settings/system#update-the-mac-app-and-display-together) to keep their releases matched.
 
 <script setup lang="ts">
 import ScreenshotGallery from '../.vitepress/theme/components/ScreenshotGallery.vue'

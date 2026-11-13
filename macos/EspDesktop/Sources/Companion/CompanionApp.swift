@@ -20,7 +20,7 @@ struct CompanionApp: App {
                 }
             }
             CommandGroup(replacing: .appSettings) {
-                Button("Mac Settings") { appDelegate.openCompanionWindow() }
+                Button("Settings") { appDelegate.openCompanionWindow() }
                     .keyboardShortcut(",", modifiers: .command)
             }
             CompanionUpdateCommands(updater: appDelegate.store.updater)
@@ -127,25 +127,33 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
 
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         let menu = NSMenu()
-        addContextualControlMenuItems(to: menu)
+        addContextualControlMenuItems(to: menu, isMenuBarMenu: false)
         return menu
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
-        menu.addItem(connectionStatusItem())
-        menu.addItem(.separator())
+        if store.displays.isEmpty {
+            menu.addItem(NSMenuItem(title: "No displays paired", action: nil, keyEquivalent: ""))
+            menu.addItem(.separator())
+        }
 
-        addContextualControlMenuItems(to: menu)
+        addContextualControlMenuItems(to: menu, isMenuBarMenu: true)
         addMenuItem(
             "Quit", action: #selector(quit), key: "q",
             image: menuSymbol("power", description: "Quit"), to: menu)
     }
 
-    private func addContextualControlMenuItems(to menu: NSMenu) {
+    private func addContextualControlMenuItems(to menu: NSMenu, isMenuBarMenu: Bool) {
         for display in store.displays {
             let item = NSMenuItem(title: display.name, action: nil, keyEquivalent: "")
-            item.image = menuSymbol(display.state.symbol, description: display.state.title)
+            if isMenuBarMenu {
+                item.onStateImage = connectionDot(connected: true)
+                item.offStateImage = connectionDot(connected: false)
+                item.state = display.state == .connected ? .on : .off
+            } else {
+                item.image = menuSymbol(display.state.symbol, description: display.state.title)
+            }
             item.toolTip = display.panelHost
             let actions = NSMenu()
             let status = NSMenuItem(title: display.state.title, action: nil, keyEquivalent: "")
@@ -167,11 +175,17 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         }
         if !store.displays.isEmpty { menu.addItem(.separator()) }
 
-        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",",
-                    image: menuSymbol("gearshape", description: "Mac Settings"), to: menu)
-        addMenuItem("Check for Updates…",
-                    action: #selector(checkForUpdates), key: "u",
-                    image: menuSymbol("arrow.triangle.2.circlepath", description: "Check for Updates"), to: menu)
+        if isMenuBarMenu {
+            addMenuItem("Add device", action: #selector(addDevice),
+                        image: menuSymbol("plus", description: "Add device"), to: menu)
+        }
+        addMenuItem("Settings", action: #selector(openSettings), key: ",",
+                    image: menuSymbol("gearshape", description: "Settings"), to: menu)
+        if !isMenuBarMenu {
+            addMenuItem("Check for Updates…",
+                        action: #selector(checkForUpdates), key: "u",
+                        image: menuSymbol("arrow.triangle.2.circlepath", description: "Check for Updates"), to: menu)
+        }
         addMenuItem("Support", action: #selector(openHelp), key: "?",
                     image: menuSymbol("questionmark.circle", description: "Support"), to: menu)
     }
@@ -180,10 +194,18 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menuItem.action != #selector(checkForUpdates) || !store.updater.isChecking
     }
 
-    private func connectionStatusItem() -> NSMenuItem {
-        let total = store.displays.count
-        let title = total == 0 ? "No displays paired" : "\(store.connectedDisplayCount) of \(total) connected"
-        return NSMenuItem(title: title, action: nil, keyEquivalent: "")
+    private func connectionDot(connected: Bool) -> NSImage {
+        NSImage(size: NSSize(width: 12, height: 12), flipped: false) { bounds in
+            let dot = NSBezierPath(ovalIn: bounds.insetBy(dx: 2.5, dy: 2.5))
+            if connected {
+                NSColor.systemGreen.setFill()
+                dot.fill()
+            } else {
+                NSColor.secondaryLabelColor.setStroke()
+                dot.stroke()
+            }
+            return true
+        }
     }
 
     private func addMenuItem(
@@ -220,10 +242,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         button.image = image
     }
 
+    @objc private func addDevice() { openCompanionWindow(destination: .addDevice) }
     @objc private func openSettings() { openCompanionWindow() }
-    @objc private func openHelp() {
-        openCompanionWindow(showHelp: true)
-    }
+    @objc private func openHelp() { openCompanionWindow(destination: .support) }
     @objc private func checkForUpdates() { store.updater.check() }
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func existingInstanceWasOpened(_ notification: Notification) { openCompanionWindow() }
@@ -247,9 +268,11 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             .booleanValue == true
     }
 
-    func openCompanionWindow(showHelp: Bool = false) {
-        defer { store.updater.showAvailableUpdate() }
-        store.requestedSettingsPage = showHelp ? "help" : "connection"
+    func openCompanionWindow(destination: CompanionSettingsDestination = .displays) {
+        defer {
+            if destination != .addDevice { store.updater.showAvailableUpdate() }
+        }
+        store.requestedSettingsDestination = destination
         store.settingsRequestID = UUID()
         activateCompanionApplication()
 

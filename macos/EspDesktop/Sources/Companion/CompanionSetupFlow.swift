@@ -1,3 +1,7 @@
+enum CompanionSettingsDestination {
+    case displays, addDevice, support
+}
+
 /// Pair first, then customize. A previously paired display opens Settings directly.
 enum CompanionSetupRoute: Equatable {
     case settings, pairing, preferences
