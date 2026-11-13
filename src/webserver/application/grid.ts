@@ -9,7 +9,7 @@ import type { ApplicationApiFeature } from "./api";
 import type { ButtonSettingsRenderQueueFeature } from "./button_settings_render_queue";
 
 export interface GridFeature {
-    ctx(): any;
+    ctx(page?: number | null): any;
     scheduleMainGridSave(): void;
     cancelMainGridSave(): void;
     hasPendingMainGridSave(): boolean;
@@ -44,9 +44,9 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
         cancelMainGridSave();
         requestApi.postText(entityName("button_order"), serializeGrid(state.grid));
     }
-    function ctx(this: any) {
-        if (state.editingSubpage) {
-            var sp: any = getSubpage(state.editingSubpage);
+    function ctx(this: any, page = state.editingSubpage) {
+        if (page) {
+            var sp: any = getSubpage(page);
             return {
                 grid: sp.grid, sizes: sp.sizes, buttons: sp.buttons,
                 maxSlots: layout.previewSlots, maxSlotId: sp.buttons.length, selected: state.subpageSelectedSlots,
@@ -54,7 +54,7 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
                 setSelected: function (this: any, s?: any) { state.subpageSelectedSlots = s; },
                 setLastClicked: function (this: any, s?: any) { state.subpageLastClicked = s; },
                 getLastClicked: function (this: any) { return state.subpageLastClicked; },
-                save: function (this: any) { saveSubpageConfig(state.editingSubpage); },
+                save: function (this: any) { saveSubpageConfig(page); },
             };
         }
         return {

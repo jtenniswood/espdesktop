@@ -4,6 +4,38 @@ import XCTest
 
 final class RemoteCompanionCataloguesTests: XCTestCase {
     @MainActor
+    func testLargeBundledCatalogueFitsInBoundedFrames() throws {
+        let suite = "ExpandedCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let finalCut = try XCTUnwrap(catalogue.applications.first { $0.appId == "com.apple.FinalCut" })
+        let more = try XCTUnwrap(finalCut.moreShortcuts)
+        XCTAssertGreaterThan(more.count, 300)
+        XCTAssertNil(finalCut.starter.moreShortcuts)
+        XCTAssertEqual(finalCut.starter.defaultShortcutIds?.prefix(3), ["279", "18", "177"])
+        XCTAssertTrue(finalCut.expandedPages().allSatisfy { $0.defaultShortcutIds == nil })
+        XCTAssertEqual(finalCut.expandedPages().flatMap { $0.moreShortcuts ?? [] }, more)
+
+        XCTAssertLessThanOrEqual(catalogue.applications.reduce(0) { $0 + 1 + $1.expandedPages().count }, 256)
+
+        // Validate the actual escaped frames, including labels with punctuation.
+        let encoder = JSONEncoder()
+        for app in catalogue.applications {
+            for (index, page) in ([app.starter] + app.expandedPages()).enumerated() {
+                let data = try encoder.encode(page)
+                let frame = try JSONSerialization.data(withJSONObject: [
+                    "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+                    "page": index, "generation": 1, "complete": false,
+                    "items": [["kind": "application", "json": String(decoding: data, as: UTF8.self)]],
+                ])
+                XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected), app.appId)
+                XCTAssertLessThanOrEqual(frame.count, CompanionCapabilities.maximumTextFrameBytes)
+            }
+        }
+    }
+
+    @MainActor
     func testBundledClaudePresetsTakePriorityOverOlderCachedCatalogue() throws {
         let suite = "ClaudeCatalogueTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
@@ -151,6 +183,8 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native])
         XCTAssertEqual(resolved.filter { $0.label == "Athena" }.map(\.appId), [athena.bundleIdentifier])
         XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.shortcuts, template.shortcuts)
+        XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.defaultShortcutIds,
+                       template.defaultShortcutIds)
         XCTAssertTrue(resolved.contains { $0.appId == "com.apple.Safari.WebApp" })
     }
 

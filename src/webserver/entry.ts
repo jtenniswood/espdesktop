@@ -674,6 +674,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     renderPreview: () => preview.render(),
     renderButtonSettings: () => buttonSettings.render(),
     openCardSettings: (slot) => buttonSettings.openCardSettings(slot),
+    openAppShortcutSettings: () => buttonSettings.openAppShortcutSettings(),
 
     addSlot: (position) => interactions.addSlot(position),
     addSubpageSlot: (position) => interactions.addSubpageSlot(position),

@@ -13,7 +13,7 @@ Tap a **Key Shortcut** card to send a key combination to the active Mac app.
 2. Select the **Custom** tab to enter keys such as **⌘ Command + F**, or the **Application** tab to pick a preset for an app.
 3. Save the card. Bring the app to the front on your Mac, then tap the card.
 
-The **Application** tab lists apps with shortcut presets. Bundled presets are available while the Mac is offline.
+The **Application** tab lists apps with shortcut presets. After choosing an app, use **Search by name or keys** to narrow the list. For example, type **New Tab** or **Cmd+T**. Bundled presets are available while the Mac is offline. Expanded presets can include single keys and sequences, and need an updated display and Mac Companion. Bring the approved app to the front before tapping one.
 
 Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
 
@@ -29,7 +29,9 @@ If a tile still does nothing, follow [the shortcut and Mac Lock troubleshooting 
 
 ## Group shortcuts by app {#use-a-template-on-an-app-subpage}
 
-Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together.
+Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together. New pages start with a selection of useful shortcuts for the app. Smaller displays show as many as will fit, with space for **Back**. From inside an app’s subpage in the web editor, right-click a card and choose **Edit App Shortcuts** to change which presets appear and how they’re ordered. Use **Show all shortcuts** to expand long lists or **Find a shortcut** to search the whole list. You can add shortcuts or rearrange the ones on the page.
+
+When you add a **Key Shortcut** card inside an app subpage, the **Application** tab opens with that app selected. You can pick a different app or switch to **Custom**.
 
 The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 

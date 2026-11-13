@@ -87,10 +87,12 @@ class AppShortcutTests(unittest.TestCase):
             (root / 'product/v2/icons.json').write_text((ROOT / 'product/v2/icons.json').read_text())
             self.app.update(appId='org.example.Editor', label='Example Editor', catalog=True)
             self.app['shortcuts'][0]['id'] = '99'
+            self.app['defaultShortcutIds'] = ['99']
             self.app['shortcuts'].reverse()
             (directory / 'example.json').write_text(json.dumps(self.app))
             apps = load_apps(root)
             self.assertEqual(apps[0]['shortcuts'][-1]['id'], '99')
+            self.assertEqual(apps[0]['defaultShortcutIds'], ['99'])
             generated = dict((path.suffix, content) for path, content in outputs(root))
             self.assertIn('org.example.Editor', generated['.ts'])
             self.assertIn('id == "99"', generated['.h'])

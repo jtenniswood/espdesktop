@@ -390,6 +390,19 @@ export const GENERATED_ICON_SLUGS: Readonly<Record<string, string>> = {
     "Font Size Increase": "format-font-size-increase",
     "Page Next": "page-next",
     "Page Previous": "page-previous",
+    "Duplicate": "content-duplicate",
+    "Align Left": "format-align-left",
+    "Align Right": "format-align-right",
+    "Align Center": "format-align-center",
+    "Justify": "format-align-justify",
+    "Strikethrough": "format-strikethrough-variant",
+    "Numbered List": "format-list-numbered",
+    "Decrease Indent": "format-indent-decrease",
+    "Increase Indent": "format-indent-increase",
+    "Paint Format": "format-paint",
+    "Subscript": "format-subscript",
+    "Superscript": "format-superscript",
+    "Subtitles": "subtitles-outline",
 };
 export const GENERATED_ICON_NAMES: readonly string[] = [
     "Shortcut Command", "Account", "Application", "Battery", "Battery Alert", "Battery Charging",
@@ -449,7 +462,9 @@ export const GENERATED_ICON_NAMES: readonly string[] = [
     "Theme", "Train", "Underline", "Zoom In", "Zoom Out", "Compare Selection",
     "Filmstrip Stack", "Group Selection", "Movie Plus", "Timeline Plus", "File Search", "File Tree",
     "Message Alert", "Robot", "Web Plus", "Book Alphabet", "Bookmark Multiple", "Bookmark Plus",
-    "Card Text", "Font Size Decrease", "Font Size Increase", "Page Next", "Page Previous",
+    "Card Text", "Font Size Decrease", "Font Size Increase", "Page Next", "Page Previous", "Duplicate",
+    "Align Left", "Align Right", "Align Center", "Justify", "Strikethrough", "Numbered List",
+    "Decrease Indent", "Increase Indent", "Paint Format", "Subscript", "Superscript", "Subtitles",
   ];
 // --- GENERATED:ICONS END ---
 

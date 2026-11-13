@@ -3,6 +3,7 @@
   "appId": "com.openai.codex",
   "label": "ChatGPT Desktop",
   "catalog": false,
+  "defaultShortcutIds": ["7", "0", "8", "9", "6", "11", "14", "2"],
   "shortcuts": [
     {
       "id": "7",
@@ -438,5 +439,40 @@
       "shortcut": "control+9",
       "icon": "Chat"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "73", "label": "Command Palette", "shortcut": "scoped.command+shift+p", "icon": "Keyboard"},
+    {"id": "74", "label": "Command Palette", "shortcut": "scoped.command+k", "icon": "Keyboard"},
+    {"id": "75", "label": "Increase text size", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "76", "label": "Increase text size", "shortcut": "scoped.command+keypadplus", "icon": "Zoom In"},
+    {"id": "77", "label": "Decrease text size", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "78", "label": "Decrease text size", "shortcut": "scoped.command+keypadminus", "icon": "Zoom Out"},
+    {"id": "79", "label": "Reset text size", "shortcut": "scoped.command+0", "icon": "Heading"},
+    {"id": "80", "label": "Reset text size", "shortcut": "scoped.command+keypad0", "icon": "Heading"},
+    {"id": "81", "label": "Clear terminal", "shortcut": "scoped.control+l", "icon": "Delete"},
+    {"id": "82", "label": "Clear terminal", "shortcut": "scoped.command+k", "icon": "Delete"},
+    {"id": "83", "label": "Undo last app action", "shortcut": "scoped.command+z", "icon": "Undo"},
+    {"id": "84", "label": "Redo last app action", "shortcut": "scoped.command+shift+z", "icon": "Redo"},
+    {"id": "85", "label": "Toggle full screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "86", "label": "Quit ChatGPT", "shortcut": "scoped.command+q", "icon": "Application Exit"},
+    {"id": "87", "label": "New chat", "shortcut": "scoped.command+shift+o", "icon": "Chat Plus"},
+    {"id": "88", "label": "Quick chat", "shortcut": "scoped.command+option+n", "icon": "Chat"},
+    {"id": "89", "label": "New temporary chat", "shortcut": "scoped.command+shift+n", "icon": "Chat"},
+    {"id": "90", "label": "Find next match", "shortcut": "scoped.command+g", "icon": "Search"},
+    {"id": "91", "label": "Find previous match", "shortcut": "scoped.command+shift+g", "icon": "Search"},
+    {"id": "92", "label": "Previous chat or tab", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Tab"},
+    {"id": "93", "label": "Previous chat or tab", "shortcut": "scoped.command+option+left", "icon": "Tab"},
+    {"id": "94", "label": "Next chat or tab", "shortcut": "scoped.command+shift+keybracketright", "icon": "Tab"},
+    {"id": "95", "label": "Next chat or tab", "shortcut": "scoped.command+option+right", "icon": "Tab"},
+    {"id": "96", "label": "Start dictation", "shortcut": "scoped.control+shift+d", "icon": "Microphone"},
+    {"id": "97", "label": "Restore previous composer prompt", "shortcut": "scoped.up", "icon": "Arrow Left"},
+    {"id": "98", "label": "Run primary environment action", "shortcut": "scoped.command+shift+d", "icon": "Run"},
+    {"id": "99", "label": "Focus browser address bar or go to line", "shortcut": "scoped.command+l", "icon": "Code"},
+    {"id": "100", "label": "Browser back", "shortcut": "scoped.command+left", "icon": "Arrow Left"},
+    {"id": "101", "label": "Browser forward", "shortcut": "scoped.command+right", "icon": "Arrow Right"},
+    {"id": "102", "label": "Copy browser URL", "shortcut": "scoped.command+shift+c", "icon": "Copy"},
+    {"id": "103", "label": "Toggle browser browse or comment mode", "shortcut": "scoped.command+keyperiod", "icon": "Chat"},
+    {"id": "104", "label": "Copy session ID", "shortcut": "scoped.command+option+c", "icon": "Copy"},
+    {"id": "105", "label": "Copy working directory", "shortcut": "scoped.command+shift+c", "icon": "Copy"}
   ]
 }

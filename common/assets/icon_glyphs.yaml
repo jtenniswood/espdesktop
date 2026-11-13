@@ -378,4 +378,16 @@
 - "\U000F09F4"  # mdi-format-font-size-increase
 - "\U000F0BB0"  # mdi-page-next
 - "\U000F0BB2"  # mdi-page-previous
+- "\U000F0191"  # mdi-content-duplicate
+- "\U000F0262"  # mdi-format-align-left
+- "\U000F0263"  # mdi-format-align-right
+- "\U000F0260"  # mdi-format-align-center
+- "\U000F0261"  # mdi-format-align-justify
+- "\U000F0281"  # mdi-format-strikethrough-variant
+- "\U000F027B"  # mdi-format-list-numbered
+- "\U000F0275"  # mdi-format-indent-decrease
+- "\U000F027C"  # mdi-format-paint
+- "\U000F0282"  # mdi-format-subscript
+- "\U000F0283"  # mdi-format-superscript
+- "\U000F0A17"  # mdi-subtitles-outline
 # --- GENERATED:ICONS END ---
