@@ -18,20 +18,24 @@ export function bundledExpandedShortcuts(appId: string): readonly AppShortcutDef
     if (!packed) return [];
     const pair = (row: string, offset: number) =>
         alphabet.indexOf(row.charAt(offset)) * 64 + alphabet.indexOf(row.charAt(offset + 1));
+    let id = -1;
     const decoded = packed.split("\n").map(row => {
-        const header = alphabet.indexOf(row.charAt(4));
+        const delta = alphabet.indexOf(row.charAt(0));
+        const iconOffset = delta ? 1 : 3;
+        id = delta ? id + delta : pair(row, 1);
+        const header = alphabet.indexOf(row.charAt(iconOffset + 2));
         const scoped = header > 3;
         const count = scoped ? header - 3 : header;
         const strokes = Array.from({ length: count }, (_, index) => {
-            const offset = 5 + index * 3;
+            const offset = iconOffset + 3 + index * 3;
             const flags = alphabet.indexOf(row.charAt(offset));
             return [...modifiers.filter((_, i) => (flags & (1 << i)) !== 0),
                 EXPANDED_SHORTCUT_KEYS[pair(row, offset + 1)]].join("+");
         });
         return {
-            id: String(pair(row, 0)),
-            icon: EXPANDED_SHORTCUT_ICONS[pair(row, 2)] ?? "Shortcut Command",
-            label: row.slice(5 + count * 3),
+            id: String(id),
+            icon: EXPANDED_SHORTCUT_ICONS[pair(row, iconOffset)] ?? "Shortcut Command",
+            label: row.slice(iconOffset + 3 + count * 3),
             shortcut: (scoped ? "scoped." : "") + strokes.join("~"),
         };
     });

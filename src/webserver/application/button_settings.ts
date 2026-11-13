@@ -201,13 +201,13 @@ export function createButtonSettingsFeature(
         var doneBtn: any = createActionButton("sp-action-btn sp-save-btn", "Done");
         doneBtn.addEventListener("click", closeSettings);
         doneRow.appendChild(doneBtn);
-        panel.appendChild(doneRow);
-        container.appendChild(panel);
+        container.append(panel, doneRow);
         return true;
     }
     function renderButtonSettings(this: any, forceOpen?: any) {
         els.cardColorPresets = null;
         var container: any = els.buttonSettings;
+        const scrollTop = forceOpen ? 0 : container.querySelector(".sp-panel")?.scrollTop ?? 0;
         var openDisclosureIds: any = {};
         container.querySelectorAll(".sp-disclosure.sp-open").forEach(function (this: any, disclosure?: any) {
             var button: any = disclosure.querySelector(".sp-disclosure-button");
@@ -1100,8 +1100,8 @@ export function createButtonSettingsFeature(
         });
         rightGroup.appendChild(saveBtn);
         saveRow.appendChild(rightGroup);
-        panel.appendChild(saveRow);
-        container.appendChild(panel);
+        container.append(panel, saveRow);
+        panel.scrollTop = scrollTop;
     }
     return {
         openCardSettings,

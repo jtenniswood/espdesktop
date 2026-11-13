@@ -284,14 +284,15 @@ export function createWebStyles(dragAnimation: boolean): string {
         "backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}" +
         ".sp-settings-overlay.sp-visible{display:flex}" +
         ".sp-settings-modal{position:relative;background:var(--bg);border:1px solid var(--border);" +
-        "border-radius:var(--radius);width:90%;max-width:420px;max-height:80vh;" +
-        "overflow-y:auto;box-shadow:var(--shadow-3);margin:40px;scrollbar-color:#fff transparent}" +
+        "border-radius:var(--radius);width:90%;max-width:420px;max-height:80dvh;" +
+        "overflow:hidden;box-shadow:var(--shadow-3);margin:40px}" +
         ".sp-settings-modal.sp-card-type-picker-open{max-width:720px}" +
-        ".sp-settings-modal::-webkit-scrollbar{width:10px}" +
-        ".sp-settings-modal::-webkit-scrollbar-track{background:transparent}" +
-        ".sp-settings-modal::-webkit-scrollbar-thumb{background:#fff;border-radius:999px}" +
+        ".sp-settings-overlay>.sp-settings-modal{display:flex}" +
+        ".sp-settings-modal>.sp-config{display:flex;flex-direction:column;flex:1;min-width:0}" +
+        ".sp-settings-modal>.sp-config>.sp-panel{flex:1 1 auto;overflow:auto}" +
+        ".sp-settings-modal .sp-btn-row--save{flex:none}" +
         "@media(max-width:600px){.sp-settings-modal{width:100%;max-width:none;max-height:none;" +
-        "height:100%;margin:0;border-radius:0;border:none}}" +
+        "height:100dvh;margin:0;border-radius:0;border:none}}" +
         ".sp-settings-close{position:absolute;top:10px;right:12px;width:36px;height:36px;" +
         "border-radius:999px;border:1px solid var(--border);background:var(--surface2);" +
         "color:var(--text2);display:flex;align-items:center;justify-content:center;" +
@@ -582,6 +583,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-app-subpage-settings .sp-disclosure-body>.sp-field{margin-bottom:12px}" +
         ".sp-app-subpage-settings .sp-toggle-row{margin-bottom:0}" +
         ".sp-app-subpage-settings .sp-light-tab-list{margin:0}" +
+        ".sp-app-subpage-settings .sp-secondary-btn{margin-top:8px}" +
         ".sp-app-subpage-settings .sp-app-subpage-options-divider{margin:4px 0 8px}" +
         ".sp-app-subpage-folder-list{border-top:1px solid var(--border);padding-top:8px;margin-top:4px}" +
         ".sp-disclosure.sp-open .sp-disclosure-chevron{transform:rotate(180deg)}" +

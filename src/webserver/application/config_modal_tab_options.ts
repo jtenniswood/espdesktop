@@ -288,17 +288,11 @@ export function createConfigModalTabOptionsFeature(
             search.className = "sp-input";
             search.placeholder = config.searchPlaceholder;
             search.setAttribute("aria-label", config.searchPlaceholder);
+            search.value = b._modalTabsSearch ?? "";
             section.appendChild(search);
         }
         var list: any = dependencies.document.createElement("div");
         list.className = "sp-light-tab-list";
-        search?.addEventListener("input", () => {
-            const query = search.value.trim().toLowerCase();
-            for (const row of listRows()) {
-                const label = row.querySelector(".sp-light-tab-label")?.textContent ?? "";
-                row.style.display = query && !label.toLowerCase().includes(query) ? "none" : "";
-            }
-        });
         section.appendChild(list);
         function listRows(this: any) {
             return Array.prototype.slice.call(list.querySelectorAll(".sp-light-tab-row"));
@@ -427,6 +421,36 @@ export function createConfigModalTabOptionsFeature(
             });
             list.appendChild(row);
         });
+        if (search) {
+            const more = dependencies.document.createElement("button");
+            more.type = "button";
+            more.className = "sp-secondary-btn";
+            list.id = helpers.idPrefix + config.idPrefix + "list";
+            more.setAttribute("aria-controls", list.id);
+            section.insertBefore(more, list);
+
+            function updateRows() {
+                const query = b._modalTabsSearch?.trim().toLowerCase();
+                const expanded = b._modalTabsExpanded === true;
+                listRows().forEach((row: HTMLElement, index: number) => {
+                    row.hidden = query
+                        ? !row.querySelector(".sp-light-tab-label")!.textContent!.toLowerCase().includes(query)
+                        : !expanded && index >= 20;
+                });
+                more.hidden = !!query;
+                more.textContent = expanded ? "Show fewer shortcuts" : "Show all shortcuts";
+                more.setAttribute("aria-expanded", String(expanded));
+            }
+            search.addEventListener("input", () => {
+                b._modalTabsSearch = search.value;
+                updateRows();
+            });
+            more.addEventListener("click", () => {
+                b._modalTabsExpanded = !b._modalTabsExpanded;
+                updateRows();
+            });
+            updateRows();
+        }
         return section;
     }
     return {

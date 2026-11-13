@@ -1362,6 +1362,8 @@ export function registerCompanionCardTypes(
                     resetCompanionShortcutTabs(card);
                 }
                 if (appChanged) {
+                    delete card._modalTabsExpanded;
+                    delete card._modalTabsSearch;
                     delete card._appShortcutDisabledTabs;
                     const changedFromSavedApp = card.entity !== savedParent?.entity;
                     card._appShortcutSelectionChanged = changedFromSavedApp;

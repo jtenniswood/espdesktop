@@ -4562,6 +4562,10 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] =
     "com.apple.Safari;Safari;Shortcut Command;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[1] = "~B,1,2,3,4,5,6,7,8|" +
+    require("../product/v2/app_shortcuts/safari.json").shortcuts.slice(0, 8).map(shortcut =>
+      ["companion", "shortcut." + shortcut.shortcut, shortcut.label, shortcut.icon].join(",")
+    ).join("|");
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
@@ -4617,12 +4621,50 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? []), ...(safariTemplate.moreShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
+    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) shortcuts/ });
+    const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
+    assert.strictEqual(await visibleRows.count(), 20);
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "false");
+    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
+    const lastShortcut = safariShortcuts.at(-1);
+    await filter.fill(lastShortcut.label);
+    assert(await rows.filter({ has: page.getByText(lastShortcut.label, { exact: true }) }).last().isVisible(),
+      "search includes shortcuts beyond the first 20");
+    await filter.clear();
+    assert.strictEqual(await visibleRows.count(), 20);
+    await toggleList.click();
+    assert.strictEqual(await visibleRows.count(), safariShortcuts.length);
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "true");
+    await toggleList.click();
+    assert.strictEqual(await visibleRows.count(), 20);
+    await toggleList.click();
+
+    const modal = page.locator(".sp-settings-modal");
+    const body = modal.locator(".sp-config > .sp-panel");
+    const footer = modal.locator(".sp-btn-row--save");
+    for (const viewport of [testCase.viewport, { width: 360, height: 640 }]) {
+      await page.setViewportSize(viewport);
+      await body.evaluate(el => { el.scrollTop = 0; });
+      const beforeScroll = await footer.boundingBox();
+      await body.evaluate(el => { el.scrollTop = 400; });
+      assert(await body.evaluate(el => el.scrollTop) > 0, "the settings body scrolls");
+      assert.deepStrictEqual(await footer.boundingBox(), beforeScroll, "the action row stays fixed while settings scroll");
+      for (const control of [".sp-delete-btn", ".sp-edit-subpage-btn", ".sp-save-btn"]) {
+        assert(await footer.locator(control).evaluate(el => {
+          const bounds = el.getBoundingClientRect();
+          return bounds.top >= 0 && bounds.bottom <= window.innerHeight &&
+            el.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
+        }), control + " is visible and clickable while the body is scrolled");
+      }
+    }
+    await page.setViewportSize(testCase.viewport);
+    await body.evaluate(el => { el.scrollTop = 0; });
+
     assert.deepStrictEqual(
       await rows.locator(".sp-light-tab-label").allTextContents(),
       safariShortcuts.map((shortcut) => shortcut.label),
       `${testCase.name}: Safari should expose its reorderable shortcut list`,
     );
-    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
     await filter.fill("Reload");
     assert(await rows.filter({ hasText: safariShortcutLabel(2) }).first().isVisible());
     assert(!(await rows.filter({ hasText: safariShortcutLabel(3) }).first().isVisible()));
@@ -4639,6 +4681,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       "true",
       `${testCase.name}: App subpage stays open after toggling a shortcut`,
     );
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "true", "expanded list stays open after edits");
     const enabledOrder = ["0", "3", "2", "4", "5", "6", "7"];
     const disabledLabels = safariShortcuts.filter(shortcut => !enabledOrder.includes(shortcut.id))
       .map(shortcut => shortcut.label);
