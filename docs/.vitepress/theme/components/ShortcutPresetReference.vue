@@ -102,8 +102,8 @@ details[open] .preset-chevron {
 
 details > table {
   display: table;
-  width: 100%;
-  margin: 12px 0 0;
+  width: calc(100% - 32px);
+  margin: 12px auto 0;
   border: 1px solid var(--vp-c-divider);
   table-layout: fixed;
 }
