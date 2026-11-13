@@ -133,8 +133,10 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
-        menu.addItem(connectionStatusItem())
-        menu.addItem(.separator())
+        if store.displays.isEmpty {
+            menu.addItem(NSMenuItem(title: "No displays paired", action: nil, keyEquivalent: ""))
+            menu.addItem(.separator())
+        }
 
         addContextualControlMenuItems(to: menu, isMenuBarMenu: true)
         addMenuItem(
@@ -145,7 +147,13 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
     private func addContextualControlMenuItems(to menu: NSMenu, isMenuBarMenu: Bool) {
         for display in store.displays {
             let item = NSMenuItem(title: display.name, action: nil, keyEquivalent: "")
-            item.image = menuSymbol(display.state.symbol, description: display.state.title)
+            if isMenuBarMenu {
+                item.onStateImage = connectionDot(connected: true)
+                item.offStateImage = connectionDot(connected: false)
+                item.state = display.state == .connected ? .on : .off
+            } else {
+                item.image = menuSymbol(display.state.symbol, description: display.state.title)
+            }
             item.toolTip = display.panelHost
             let actions = NSMenu()
             let status = NSMenuItem(title: display.state.title, action: nil, keyEquivalent: "")
@@ -186,10 +194,18 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         menuItem.action != #selector(checkForUpdates) || !store.updater.isChecking
     }
 
-    private func connectionStatusItem() -> NSMenuItem {
-        let total = store.displays.count
-        let title = total == 0 ? "No displays paired" : "\(store.connectedDisplayCount) of \(total) connected"
-        return NSMenuItem(title: title, action: nil, keyEquivalent: "")
+    private func connectionDot(connected: Bool) -> NSImage {
+        NSImage(size: NSSize(width: 12, height: 12), flipped: false) { bounds in
+            let dot = NSBezierPath(ovalIn: bounds.insetBy(dx: 2.5, dy: 2.5))
+            if connected {
+                NSColor.systemGreen.setFill()
+                dot.fill()
+            } else {
+                NSColor.secondaryLabelColor.setStroke()
+                dot.stroke()
+            }
+            return true
+        }
     }
 
     private func addMenuItem(
