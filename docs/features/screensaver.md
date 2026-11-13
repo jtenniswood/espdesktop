@@ -31,9 +31,9 @@ If the 10 or 30 second choices are not shown, update the panel firmware first. T
 
 Use **Then** to choose what happens when the screensaver activates:
 
-- **Screen Dimmed** — keeps the normal screen visible, but lowers the backlight. The first tap wakes the screen instead of pressing a card.
-- **Clock** — shows a large drifting clock at reduced brightness. The time updates at each minute boundary, and the clock repositions itself to prevent burn-in.
-- **Display Off** (the default) — switches to a black screen and turns the backlight off completely. While the backlight is off, EspDesktop can exercise the LCD pixels in the background to reduce burn-in risk; this should not be visible.
+- **Screen Dimmed**: keeps the normal screen visible, but lowers the backlight. The first tap wakes the screen instead of pressing a card.
+- **Clock**: shows a large drifting clock at reduced brightness. The time updates at each minute boundary, and the clock repositions itself to prevent burn-in.
+- **Display Off** (the default): switches to a black screen and turns the backlight off completely. While the backlight is off, EspDesktop can exercise the LCD pixels in the background to reduce burn-in risk; this should not be visible.
 
 When Screen Dimmed is selected, Manual brightness mode uses **Dimmed Screen Brightness**. Automatic and Timed brightness modes use separate **Daytime Dimmed Screen Brightness** and **Nighttime Dimmed Screen Brightness** values, changing at the same sunrise/sunset or dawn/dusk boundary as the main screen. When Clock is selected, set separate **Daytime Clock Brightness** and **Nighttime Clock Brightness** values.
 

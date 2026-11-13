@@ -14,7 +14,7 @@ Home is the main screen on your EspDesktop touchscreen. Open your display’s ad
 - **Move a card.** Drag it to another spot in the grid. If you drop it onto another card, that card shifts to the next available space.
 
   <figure>
-    <a href="/images/web-editor-drag-card.png"><img src="/images/web-editor-drag-card.png" alt="Slack card being dragged from the middle of the Home grid towards the highlighted bottom-right tile" width="1209" height="1204" loading="lazy"></a>
+    <a href="/images/web-editor-drag-card.png"><picture><source type="image/avif" srcset="/images/web-editor-drag-card-480.avif 480w, /images/web-editor-drag-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-drag-card.png" alt="Slack card being dragged from the middle of the Home grid towards the highlighted bottom-right tile" width="1209" height="1204" loading="eager"></picture></a>
     <figcaption>The blue outline shows where the Slack card will land.</figcaption>
   </figure>
 

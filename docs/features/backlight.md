@@ -12,9 +12,9 @@ The panel can keep one brightness level under manual control, or automatically u
 
 The **Backlight** card gives you three choices:
 
-- **Manual** — keeps the brightness level you choose.
-- **Automatic** — uses your **Daytime Brightness** and **Nighttime Brightness**, changing at locally calculated sunrise and sunset.
-- **Timed** — uses the same day and night levels, changing at the **Dawn** and **Dusk** times you choose.
+- **Manual**: keeps the brightness level you choose.
+- **Automatic**: uses your **Daytime Brightness** and **Nighttime Brightness**, changing at locally calculated sunrise and sunset.
+- **Timed**: uses the same day and night levels, changing at the **Dawn** and **Dusk** times you choose.
 
 Sunrise and sunset are calculated on-device from your selected timezone using a NOAA solar algorithm. The transition is checked every 60 seconds and recalculated at midnight. No internet connection or Home Assistant is required.
 
@@ -23,10 +23,10 @@ Sunrise and sunset are calculated on-device from your selected timezone using a 
 Configured in **Screen > Display > Backlight** in [Screen settings](/settings/screen#display).
 
 - Choose **Manual**, **Automatic**, or **Timed** at the top of the card.
-- **Brightness** — shown in Manual mode and sets the normal screen brightness (10%–100% in the web slider).
-- **Daytime Brightness** — shown in either automatic mode and sets the daytime level (10%–100%, default 100%).
-- **Nighttime Brightness** — shown in either automatic mode and sets the nighttime level (10%–100%, default 75%).
-- **Dawn / Dusk** — shown in Timed mode and decides when the panel switches between the day and night levels.
+- **Brightness**: shown in Manual mode and sets the normal screen brightness (10%–100% in the web slider).
+- **Daytime Brightness**: shown in either automatic mode and sets the daytime level (10%–100%, default 100%).
+- **Nighttime Brightness**: shown in either automatic mode and sets the nighttime level (10%–100%, default 75%).
+- **Dawn / Dusk**: shown in Timed mode and decides when the panel switches between the day and night levels.
 
 In Automatic mode, read-only sunrise and sunset times appear below the brightness sliders. They are derived from the timezone set in [Time Settings](/features/clock).
 

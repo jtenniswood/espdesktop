@@ -1,5 +1,5 @@
 ---
-title: EspDesktop or EspControl for the Guition 4848S040?
+title: EspDesktop vs EspControl on the 4848S040
 description: Choose the correct Guition 4848S040 firmware for Mac app shortcuts or Home Assistant controls.
 ---
 

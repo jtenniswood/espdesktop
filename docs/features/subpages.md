@@ -7,7 +7,7 @@ description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, c
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
-<a href="/images/espdesktop-slack-subpage.jpg"><img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing the Slack subpage with shortcuts for new messages, search, and direct messages" width="1320" height="1208" loading="lazy"></a>
+<a href="/images/espdesktop-slack-subpage.jpg"><picture><source type="image/avif" srcset="/images/espdesktop-slack-subpage-480.avif 480w, /images/espdesktop-slack-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing the Slack subpage with shortcuts for new messages, search, and direct messages" width="1320" height="1208" loading="eager"></picture></a>
 
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 

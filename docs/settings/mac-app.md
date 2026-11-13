@@ -9,7 +9,7 @@ Choose **Settings** from the EspDesktop menu bar icon. The app keeps running whe
 
 Choose **Add device** from the menu bar icon to search for and pair a display.
 
-<ScreenshotGallery label="Mac app settings preview" :slides="settingsSlides" />
+<ScreenshotGallery label="Mac app settings preview" :width="1224" :height="1488" :slides="settingsSlides" />
 
 See how to choose [apps](/mac-controls/apps#choose-apps-in-the-mac-app) and [Finder folders](/mac-controls/folders#approve-a-folder) for your display. See [Permissions & Security](/mac-controls/security) for access to keyboard shortcuts and Mac Lock.
 

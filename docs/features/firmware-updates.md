@@ -6,7 +6,7 @@ description:
 
 # Firmware Updates
 
-Your panel can update its firmware over the air — no USB cable or computer needed after the initial install. When a new version is available, the panel downloads and installs it automatically (if enabled) or waits for you to trigger the update manually.
+Your panel can update its firmware over the air without a USB cable or computer after the initial install. When a new version is available, the panel downloads and installs it automatically (if enabled) or waits for you to trigger the update manually.
 
 ## Stable Releases, Development Builds, and Custom Firmware
 
@@ -20,10 +20,10 @@ The JC8012P4A1 V3 rejects browser OTA firmware uploads; use native ESPHome OTA a
 
 These are configured from the **System** tab in the [System settings](/settings/system#update-the-display-firmware) under **System > Firmware**.
 
-- **Current version** and **Available version** — compare the firmware running on your panel with the latest stable release.
-- **Auto updates** — open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
-- **Previous firmware** — open this panel to choose and install one of the available previous stable versions.
-- **Check for Update** — press this button to check for a new version right now, regardless of the automatic schedule.
+- **Current version** and **Available version**: compare the firmware running on your panel with the latest stable release.
+- **Auto updates**: open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
+- **Previous firmware**: open this panel to choose and install one of the available previous stable versions.
+- **Check for Update**: press this button to check for a new version right now, regardless of the automatic schedule.
 
 When either a panel firmware update or WiFi co-processor update is available, the collapsed **Firmware** section shows an **Update available** badge so you do not need to open each update panel to check.
 
