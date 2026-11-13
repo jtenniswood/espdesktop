@@ -4626,6 +4626,8 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     assert.strictEqual(await visibleRows.count(), 20);
     assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "false");
     const assertToggleBelowRows = async () => {
+      assert.strictEqual(await visibleRows.last().evaluate(row => getComputedStyle(row).borderBottomWidth), "0px");
+      assert.strictEqual(await visibleRows.first().evaluate(row => getComputedStyle(row).borderBottomWidth), "1px");
       const lastRow = await visibleRows.last().boundingBox();
       const toggle = await toggleList.boundingBox();
       assert(toggle.y >= lastRow.y + lastRow.height, "the expand or collapse button follows the visible rows");
@@ -4684,6 +4686,8 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     await filter.fill("Reload");
     assert(await rows.filter({ hasText: safariShortcutLabel(2) }).first().isVisible());
     assert(!(await rows.filter({ hasText: safariShortcutLabel(3) }).first().isVisible()));
+    assert.strictEqual(await visibleRows.last().evaluate(row => getComputedStyle(row).borderBottomWidth), "0px",
+      "the last filtered shortcut has no trailing divider");
     await filter.clear();
     assert.strictEqual(await rows.locator(".sp-light-tab-move").count(), 0, "shortcuts use drag handles to reorder");
     const drag = rows.locator('[aria-label="Drag ' + safariShortcutLabel(3) + '"]').first();
