@@ -145,8 +145,8 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
-                        ["mac_output", "Mac output volume"],
-                        ["mac_input", "Mic"],
+                        ["mac_output", "Audio Output"],
+                        ["mac_input", "Audio Input"],
                         ["mac_output_mute", "Output mute"],
                         ["mac_input_mute", "Microphone mute"],
                     ],
