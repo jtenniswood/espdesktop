@@ -82,7 +82,8 @@
       "subpage": "product/v2/cards/subpage.json",
       "weather": "product/v2/cards/weather.json",
       "image": "product/v2/cards/image.json",
-      "weather_forecast": "product/v2/cards/weather_forecast.json"
+      "weather_forecast": "product/v2/cards/weather_forecast.json",
+      "webhook": "product/v2/cards/webhook.json"
     },
     "devices": {
       "guition-esp32-p4-jc1060p470": "product/v2/devices/guition-esp32-p4-jc1060p470.json",

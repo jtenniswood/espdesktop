@@ -43,6 +43,7 @@ import { createPublicFirmwareInstallFeature, type PublicFirmwareInstallFeature }
 import { createConfigMediaOptionsFeature } from "./application/config_media_options";
 import { createConfigImageOptionsFeature } from "./application/config_image_options";
 import { createConfigWeatherOptionsFeature } from "./application/config_weather_options";
+import { createConfigWebhookOptionsFeature } from "./application/config_webhook_options";
 import { createConfigRobotCardOptionsFeature } from "./application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "./application/config_lock_options";
 import { createConfigModalTabOptionsFeature } from "./application/config_modal_tab_options";
@@ -125,6 +126,7 @@ import { registerSwitchCardTypes } from "./cards/switch";
 import { registerVacuumCardTypes } from "./cards/vacuum";
 import { registerWeatherCardTypes } from "./cards/weather";
 import { registerWeatherForecastCardTypes } from "./cards/weather_forecast";
+import { registerWebhookCardTypes } from "./cards/webhook";
 import { createAppTestHookRegistrar } from "./testing/app_test_hooks";
 import { installAppTestHooksConfig } from "./testing/app_test_hooks_config";
 import { installAppTestHooksPreview } from "./testing/app_test_hooks_preview";
@@ -209,6 +211,7 @@ function registerCards(
   registerVacuumCardTypes(registry, context.configuration.robotOptions, fields, cardUi);
   const weatherCards = registerWeatherCardTypes(registry, context.configuration.weatherOptions, fields, cardUi);
   registerWeatherForecastCardTypes(registry, weatherCards, fields);
+  registerWebhookCardTypes(registry, context.configuration.webhookOptions, fields, cardUi);
   return lightCards;
 }
 
@@ -220,6 +223,7 @@ function installTestHooks(context: ApplicationContext, lightCards: ReturnType<ty
     context.configuration.mediaOptions,
     context.configuration.imageOptions,
     context.configuration.weatherOptions,
+    context.configuration.webhookOptions,
     context.configuration.lockOptions,
     context.configuration.modalTabs,
     context.configuration.accessClimateAlarm,
@@ -401,6 +405,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     showBanner: shell.showBanner,
   });
   const weatherConfigurationOptions = createConfigWeatherOptionsFeature(layout.config);
+  const webhookConfigurationOptions = createConfigWebhookOptionsFeature();
   const robotConfigurationOptions = createConfigRobotCardOptionsFeature();
   const lockConfigurationOptions = createConfigLockOptionsFeature();
   let configurationCodec: ReturnType<typeof createConfigCodecFeature>;
@@ -428,6 +433,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     mediaConfigurationOptions,
     imageConfigurationOptions,
     weatherConfigurationOptions,
+    webhookConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
     modalTabOptions,
@@ -996,6 +1002,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     mediaConfigurationOptions,
     imageConfigurationOptions,
     weatherConfigurationOptions,
+    webhookConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
     modalTabOptions,

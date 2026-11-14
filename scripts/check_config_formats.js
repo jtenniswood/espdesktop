@@ -270,6 +270,7 @@ assertButtonTypeSpecBacked("light_temperature", "light temperature card");
 assertButtonTypeSpecBacked("light_control", "full light control card");
 assertButtonTypeSpecBacked("weather", "weather card");
 assertButtonTypeSpecBacked("push", "push card");
+assertButtonTypeSpecBacked("webhook", "webhook card");
 for (const type of ["wifi_qr", "wifi_qr_card"]) {
   const retired = hooks.parseButtonConfig(`;;;;;;${type};;ssid64=R3Vlc3Q,pass64=cGFzc3dvcmQ`);
   assert.strictEqual(retired.options, "", "removed card credentials are discarded when loading saved layouts");
@@ -335,6 +336,8 @@ assert.strictEqual(hooks.normalizeLockMode("unlock"), "unlock", "lock unlock mod
 assert.strictEqual(hooks.normalizeLockMode("bad"), "", "lock invalid mode falls back to toggle");
 assert.strictEqual(hooks.pushDefaultIcon(), "Gesture Tap", "push default icon is spec-backed");
 assert.strictEqual(hooks.pushDefaultIconOn(), "Auto", "push on icon cleanup is spec-backed");
+assert.strictEqual(hooks.webhookMethod("post"), "POST", "webhook method normalizes to uppercase");
+assert.strictEqual(hooks.webhookMethod("bad"), "GET", "webhook invalid method falls back to GET");
 assert.deepStrictEqual(
   Array.from(hooks.mediaModeOptionValues()),
   ["control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"],
@@ -970,6 +973,18 @@ assertButtonMigration(
   }
 );
 
+
+assertButtonRoundTrip(hooks, "webhook post json", {
+  entity: "https://maker.ifttt.com/trigger/door/json/with/key/test",
+  label: "Door Alert",
+  icon: "Auto",
+  icon_on: "Auto",
+  sensor: "POST",
+  unit: "{\"value1\":\"Front door\"}",
+  type: "webhook",
+  precision: "",
+  options: "webhook_headers=Content-Type%3A application/json%3B Authorization%3A Bearer token",
+}, false);
 
 assertButtonRoundTrip(hooks, "garage label button", {
   entity: "cover.garage",
@@ -2929,6 +2944,22 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|A,scene.movie
     buttonShape({ type: "A" }),
   ],
 }, "compact action subpage state entity parse");
+
+assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|WH,https%3A//webhook-test.net/abc,Door%20Alert,,,POST,%7B%22value%22%3Atrue%7D,,webhook_headers=Content-Type%253A%20application/json")), {
+  order: ["1", "B"],
+  buttons: [
+    buttonShape({
+      entity: "https://webhook-test.net/abc",
+      label: "Door Alert",
+      icon: "Auto",
+      icon_on: "Auto",
+      sensor: "POST",
+      unit: "{\"value\":true}",
+      type: "webhook",
+      options: "webhook_headers=Content-Type%3A application/json",
+    }),
+  ],
+}, "compact webhook subpage parse");
 
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|U,input_select.house_mode,House%20Mode,Chevron%20Down")), {
   order: ["1", "B"],

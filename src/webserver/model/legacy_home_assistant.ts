@@ -70,7 +70,6 @@ export function cardRuntimeRetired(key: string, card?: {
   readonly entity?: string | null; readonly sensor?: string | null;
   readonly label?: string | null; readonly options?: string | null;
 } | null): boolean {
-  if (key === "webhook") return true;
   if (!key && !card?.entity && !card?.sensor && !card?.label) return false;
   if (key === "local" || key === "subpage" || key === "wifi_qr" || key === "wifi_qr_card") return false;
   return cardRequiresHomeAssistant(key, card);

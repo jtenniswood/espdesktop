@@ -194,6 +194,21 @@ esphome:
               cfg.image_card_images = image_card_downloaders;
               cfg.image_card_modal_image = id(image_card_modal_download_1);
               cfg.image_card_image_count = 6;
+              register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {
+                auto response = id(http_req).start(url, method, body, headers);
+                if (response == nullptr) {
+                  ESP_LOGW("webhook", "Webhook %s request failed to start", method.c_str());
+                  return false;
+                }
+                int status = response->status_code;
+                response->end();
+                if (!esphome::http_request::is_success(status)) {
+                  ESP_LOGW("webhook", "Webhook %s returned HTTP %d", method.c_str(), status);
+                  return false;
+                }
+                ESP_LOGI("webhook", "Webhook %s returned HTTP %d", method.c_str(), status);
+                return true;
+              });
               set_width_compensation_vertical_axis(cfg.width_compensation_vertical);
               set_text_width_compensation_percent(cfg.text_width_compensation_percent);
               apply_text_width_compensation(id(display_time));

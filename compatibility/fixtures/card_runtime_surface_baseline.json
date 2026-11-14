@@ -2,6 +2,68 @@
   "baselineVersion": 1,
   "cases": [
     {
+      "name": "webhook: get",
+      "sourceKind": "contract",
+      "sourceType": "webhook",
+      "mode": "get",
+      "canonicalType": "webhook",
+      "web": {
+        "registration": "webhook",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "cf8dc0f94ab055bc"
+        }
+      },
+      "firmware": {
+        "family": "WEBHOOK"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "http"
+        ],
+        "actions": [
+          "http"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "webhook: post",
+      "sourceKind": "contract",
+      "sourceType": "webhook",
+      "mode": "post",
+      "canonicalType": "webhook",
+      "web": {
+        "registration": "webhook",
+        "picker": {
+          "main": true,
+          "subpage": true,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "cf8dc0f94ab055bc"
+        }
+      },
+      "firmware": {
+        "family": "WEBHOOK"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "http"
+        ],
+        "actions": [
+          "http"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "timer: countdown",
       "sourceKind": "contract",
       "sourceType": "timer",

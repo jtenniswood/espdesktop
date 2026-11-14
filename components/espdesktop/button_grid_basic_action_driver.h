@@ -1,10 +1,10 @@
 #pragma once
 
-// Mac Companion controls.
+// Webhooks and Mac Companion controls.
 // The same visual, binding, interaction, layout, and cleanup entry points serve
 // main-grid and subpage cards while preserving their established ownership.
 // Contract coverage markers: type == "", "alarm_action",
-// "companion", "fan_switch", "light_switch", "push".
+// "companion", "fan_switch", "light_switch", "push", "webhook".
 
 namespace espdesktop::cards {
 
@@ -13,6 +13,7 @@ inline bool basic_action_driver_matches(const Context &context,
   using Driver = card_runtime::CardDriverId;
   switch (context.runtime.driver) {
     case Driver::COMPANION:
+    case Driver::WEBHOOK:
       return true;
     default:
       return false;
@@ -173,6 +174,14 @@ inline bool basic_action_driver_bind_subpage(
       }, click);
       break;
     }
+    case Driver::WEBHOOK: {
+      ParsedCfg *click = grid_delete_with_owner(slot.btn, new ParsedCfg(config));
+      bind_immediate_button_action(slot.btn, [](lv_event_t *event) {
+        ParsedCfg *card = static_cast<ParsedCfg *>(lv_event_get_user_data(event));
+        if (card) send_webhook_action(*card);
+      }, click);
+      break;
+    }
     default:
       break;
   }
@@ -224,6 +233,9 @@ inline bool basic_action_driver_handle_main_click(
       }
       break;
     }
+    case Driver::WEBHOOK:
+      send_webhook_action(config);
+      break;
     default:
       break;
   }

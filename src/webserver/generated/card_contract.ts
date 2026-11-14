@@ -10,10 +10,10 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "subpage"];
+const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "subpage", "webhook"];
 const PREVIEW_CARD_TYPES: readonly string[] = ["companion_window"];
 const REMOVE_ON_EDIT: readonly string[] = ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card", "companion_window"];
-export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "companion_webapp", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
+export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "companion_webapp", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U"];
 export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || ""); }
 export function cardContractRemoveOnEdit(type: string | null | undefined): boolean { return REMOVE_ON_EDIT.includes(type || ""); }
 export function cardContractAvailability(type: string): "stable" | "preview" | "retired" | null {
@@ -21,7 +21,7 @@ export function cardContractAvailability(type: string): "stable" | "preview" | "
   if (PREVIEW_CARD_TYPES.includes(type)) return "preview";
   return Object.hasOwn(CARD_CONTRACT_CARDS, type) || cardContractTypeRetired(type) ? "retired" : null;
 }
-export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
+export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields", "normalize_webhook_fields", "normalize_webhook_options"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
   "legacy_weather_forecast": {
     "when": [
@@ -88,7 +88,7 @@ export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationA
     "hook": "normalize_vacuum_fields"
   }
 };
-export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS", "I", "SL", "SS", "A", "U", "WH"] as const;
+export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = ["S", "LS", "I", "SL", "SS", "A", "U"] as const;
 export const CARD_CONFIG_FIELDS = ["entity", "label", "icon", "icon_on", "sensor", "unit", "type", "precision", "options"] as const satisfies readonly SavedConfigField[];
 export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
   "timer": {
@@ -3183,6 +3183,73 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "precision": "tomorrow",
       "options": ""
     }
+  },
+  "webhook": {
+    "label": "Webhook",
+    "allowInSubpage": true,
+    "domains": [],
+    "options": [
+      {
+        "name": "webhook_headers",
+        "label": "Headers",
+        "kind": "text",
+        "defaultValue": "",
+        "omitDefault": true
+      }
+    ],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "keep"
+        },
+        "label": {
+          "policy": "keep"
+        },
+        "icon": {
+          "policy": "hook",
+          "hook": "normalize_webhook_fields"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "hook",
+          "hook": "normalize_webhook_fields"
+        },
+        "unit": {
+          "policy": "hook",
+          "hook": "normalize_webhook_fields"
+        },
+        "type": {
+          "policy": "default",
+          "value": "webhook"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "hook",
+          "hook": "normalize_webhook_options"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": [
+        "webhook_headers"
+      ],
+      "optionHook": "normalize_webhook_options"
+    },
+    "default": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "GET",
+      "unit": "",
+      "type": "webhook",
+      "precision": "",
+      "options": ""
+    }
   }
 };
 export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
@@ -3607,6 +3674,18 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "runtimeAllocation": true,
       "subpage": true
     }
+  },
+  "webhook": {
+    "driver": "webhook",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": true,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
   }
 };
 export const CARD_CONTRACT_MIGRATION_ALIASES: Readonly<Record<string, Partial<CardConfig>>> = {
@@ -3663,7 +3742,8 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "push": "P",
   "companion": "CP",
   "companion_mac_lock": "ML",
-  "subpage": "G"
+  "subpage": "G",
+  "webhook": "WH"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
   "TM": "timer",
@@ -3699,7 +3779,8 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "P": "push",
   "CP": "companion",
   "ML": "companion_mac_lock",
-  "G": "subpage"
+  "G": "subpage",
+  "WH": "webhook"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
   "": true,
@@ -3773,6 +3854,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "vacuum_mode": "vacuum_mode",
   "volume_max": "volume_max",
   "weather_mode": "weather_mode",
+  "webhook_headers": "webhook_headers",
   "wind_source": "wind_source"
 };
 

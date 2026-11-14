@@ -565,6 +565,16 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(globals, /\bvar (?:WEATHER_CARD_METADATA|WEATHER_FORECAST_CARD_METADATA|normalizeWeatherCardMode|weatherCardDefaultForecastLabel|weatherCardIsForecastMode|weatherForecastCardsSupported|weatherModeOptionValues|weatherModeOptions):/);
   });
 
+  test("registers the webhook card through explicit shared options", () => {
+    const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
+    const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/webhook.ts"), "utf8");
+    const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
+    assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal)\b/);
+    assert.match(entry, /registerWebhookCardTypes\(registry, context\.configuration\.webhookOptions, fields, cardUi\);/);
+    assert.doesNotMatch(entry, /registerCompatibility\(registerWebhookCardTypes/);
+    assert.doesNotMatch(globals, /\bvar (?:WEBHOOK_CARD_METADATA|WEBHOOK_HEADERS_OPTION|WEBHOOK_METHODS|normalizeWebhookConfig|setWebhookHeaders|webhookHeaders|webhookMethod):/);
+  });
+
   test("registers the Companion card through profile and browser services", () => {
     const entry = fs.readFileSync(path.join(ROOT, "src/webserver/entry.ts"), "utf8");
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");

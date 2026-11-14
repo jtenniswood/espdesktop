@@ -2058,7 +2058,7 @@ async function assertEmptyCellSettings(page, posts, label) {
     0,
     `${label}: card choices do not display connector source labels`,
   );
-  for (const retired of ["Webhook", "Switch", "Trigger", "Action"]) {
+  for (const retired of ["Switch", "Trigger", "Action"]) {
     assert.strictEqual(await page.getByRole("button", { name: `${retired} card type`, exact: true }).count(), 0,
       `${label}: retired ${retired} is absent from the picker`);
   }
@@ -2844,6 +2844,224 @@ async function assertSliderActiveColours(page, label) {
       }
     }
   }
+}
+
+async function assertFanOptionalLightSettings(page, label) {
+  await page.getByRole("tab", { name: "Layout" }).click();
+  await page.waitForSelector("#sp-screen.sp-page.active");
+  const emptyCell = page
+    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
+    .first();
+  if ((await emptyCell.count()) === 0) return;
+  await emptyCell.click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  if ((await page.getByRole("button", { name: "Fans card type" }).count()) === 0) {
+    await page.locator(".sp-settings-close").click();
+    await page.waitForFunction(() => {
+      const overlay = document.querySelector(".sp-settings-overlay");
+      return overlay && !overlay.classList.contains("sp-visible");
+    });
+    return;
+  }
+  await chooseCardType(page, "Fans");
+  const fanType = page.locator(
+    '.sp-settings-modal .sp-panel > [data-sp-card-primary="type"] select',
+  );
+  await fanType.selectOption("fan_control");
+  await page.getByRole("button", { name: "Modal Settings" }).click();
+
+  const lightTab = page.locator("#sp-inp-fan-tab-light");
+  assert.strictEqual(
+    await lightTab.isDisabled(),
+    true,
+    `${label}: Light tab should wait for an optional light entity`,
+  );
+
+  await page.getByRole("button", { name: "Optional Light" }).click();
+  const lightEntity = page.locator("#sp-inp-fan-light-entity");
+  await lightEntity.evaluate((input) => {
+    input.value = "light.bedroom_fan";
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+    input.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+  await page.waitForFunction(() => {
+    const input = document.querySelector("#sp-inp-fan-tab-light");
+    return input instanceof HTMLInputElement && !input.disabled;
+  });
+  assert.strictEqual(
+    await lightTab.isChecked(),
+    true,
+    `${label}: configuring a light should enable its tab automatically`,
+  );
+  assert.strictEqual(
+    await lightTab.isDisabled(),
+    false,
+    `${label}: configured light tab should be editable`,
+  );
+
+  await page.getByRole("button", { name: "Move Light up" }).click();
+  const orderedTabs = await page
+    .locator(".sp-settings-modal .sp-light-tab-row")
+    .evaluateAll((rows) => rows.map((row) => row.getAttribute("data-tab")));
+  assert(
+    orderedTabs.indexOf("light") < orderedTabs.indexOf("direction"),
+    `${label}: Light tab should be movable with the other fan tabs`,
+  );
+
+  await page
+    .locator('.sp-light-tab-row[data-tab="light"] .sp-toggle-track')
+    .click();
+  assert.strictEqual(
+    await page.locator("#sp-inp-fan-tab-light").isChecked(),
+    false,
+    `${label}: configured Light tab should be disableable without clearing its entity`,
+  );
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => {
+    const overlay = document.querySelector(".sp-settings-overlay");
+    return overlay && !overlay.classList.contains("sp-visible");
+  });
+}
+
+async function assertWebhookSettingsPanel(page, posts, label) {
+  await page.getByRole("tab", { name: "Layout" }).click();
+  await page.waitForSelector("#sp-screen.sp-page.active");
+  const emptyCell = page
+    .locator(".sp-empty-cell:not(.sp-info-only-hidden)")
+    .first();
+  if ((await emptyCell.count()) === 0) return;
+  const before = posts.length;
+  await emptyCell.click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+  await chooseCardType(page, "Webhook");
+
+  const webhookSettingsButton = page.getByRole("button", {
+    name: "Webhook Settings",
+    exact: true,
+  });
+  assert(
+    await webhookSettingsButton.isVisible(),
+    `${label}: Webhook card should show a Webhook Settings panel`,
+  );
+  assert.strictEqual(
+    await webhookSettingsButton.getAttribute("aria-expanded"),
+    "false",
+    `${label}: Webhook Settings should start collapsed`,
+  );
+  assert.deepStrictEqual(
+    await page
+      .locator(".sp-settings-modal .sp-panel > .sp-disclosure > .sp-disclosure-button > span:first-child")
+      .evaluateAll((headings) => headings.map((heading) => heading.textContent)),
+    ["Webhook Settings", "Card Settings"],
+    `${label}: Webhook groups should show Webhook Settings before Card Settings`,
+  );
+  for (const fieldId of ["#sp-inp-webhook-method", "#sp-inp-webhook-url"]) {
+    assert.strictEqual(
+      await page.locator(fieldId).evaluate((element) => {
+        const disclosure = element.closest(".sp-disclosure");
+        const heading = disclosure && disclosure.querySelector(".sp-disclosure-button > span:first-child");
+        return heading && heading.textContent;
+      }),
+      "Webhook Settings",
+      `${label}: ${fieldId} should be inside Webhook Settings`,
+    );
+  }
+
+  await webhookSettingsButton.click();
+  assert(
+    await page.locator("#sp-inp-webhook-headers").isVisible(),
+    `${label}: Webhook Settings should contain Headers`,
+  );
+  await page.locator("#sp-inp-webhook-method").selectOption("POST");
+  assert.strictEqual(
+    await webhookSettingsButton.getAttribute("aria-expanded"),
+    "false",
+    `${label}: rerendered Webhook Settings should start collapsed`,
+  );
+  await webhookSettingsButton.click();
+  assert(
+    await page.locator("#sp-inp-webhook-body").isVisible(),
+    `${label}: POST Body should remain inside Webhook Settings`,
+  );
+  assert(
+    await page.locator("#sp-inp-webhook-headers").isVisible(),
+    `${label}: POST Headers should remain inside Webhook Settings`,
+  );
+
+  await webhookSettingsButton.click();
+  await page.getByRole("button", { name: "Save", exact: true }).click();
+  assert.strictEqual(
+    await webhookSettingsButton.getAttribute("aria-expanded"),
+    "true",
+    `${label}: missing URL validation should open Webhook Settings`,
+  );
+  assert.strictEqual(
+    await page.locator("#sp-inp-webhook-url").getAttribute("aria-invalid"),
+    "true",
+    `${label}: missing webhook URL should remain visibly invalid`,
+  );
+
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => {
+    const overlay = document.querySelector(".sp-settings-overlay");
+    return overlay && !overlay.classList.contains("sp-visible");
+  });
+  assert.strictEqual(
+    posts.length,
+    before,
+    `${label}: Webhook Settings audit should not save a card`,
+  );
+}
+
+async function assertCoverSettingsPanels(page, label) {
+  await page.getByRole("tab", { name: "Layout" }).click();
+  await page.waitForSelector("#sp-screen.sp-page.active");
+  await page.locator('.sp-main [data-slot="5"]').click();
+  await page.getByRole("button", { name: "Edit", exact: true }).click();
+  await page.waitForSelector(".sp-settings-overlay.sp-visible");
+
+  const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Card Settings" }).first();
+  const modalSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({ hasText: "Modal Settings" }).first();
+  assert(await cardSettings.isVisible(), `${label}: cover card settings panel should render`);
+  assert(await modalSettings.isVisible(), `${label}: cover modal settings panel should render`);
+  assert(!(await cardSettings.getAttribute("class")).includes("sp-open"), `${label}: cover card settings panel should start collapsed`);
+  assert(!(await modalSettings.getAttribute("class")).includes("sp-open"), `${label}: cover modal settings panel should start collapsed`);
+  assert.strictEqual(
+    await page.locator("#sp-inp-cover-interaction").evaluate((el) => !!el.closest(".sp-disclosure")),
+    false,
+    `${label}: cover type selector should sit outside collapsible panels`
+  );
+  assert.strictEqual(
+    await page.locator("#sp-inp-entity").evaluate((el) => !!el.closest(".sp-disclosure")),
+    false,
+    `${label}: cover entity field should sit outside collapsible panels`
+  );
+
+  await modalSettings.locator(".sp-disclosure-button").click();
+  assert(await modalSettings.getByText("Controls", { exact: true }).isVisible(), `${label}: cover modal settings panel should contain modal tab controls`);
+  assert.strictEqual(
+    await modalSettings.getByText("Modal Tabs", { exact: true }).count(),
+    0,
+    `${label}: cover modal settings panel should not show a Modal Tabs heading`
+  );
+  assert(
+    await modalSettings.locator(".sp-light-tab-move").count() > 0,
+    `${label}: cover modal settings panel should include non-drag move controls`
+  );
+  await page.locator("#sp-inp-cover-interaction").selectOption("toggle");
+  await page.waitForFunction(() => {
+    var panels = Array.from(document.querySelectorAll(".sp-settings-modal .sp-disclosure"));
+    var panel = panels.find(function (item) {
+      return item.textContent && item.textContent.indexOf("Modal Settings") !== -1;
+    });
+    return panel && getComputedStyle(panel).display === "none";
+  });
+
+  await page.locator(".sp-settings-close").click();
+  await page.waitForFunction(() => {
+    var overlay = document.querySelector(".sp-settings-overlay");
+    return overlay && !overlay.classList.contains("sp-visible");
+  });
 }
 
 async function assertCameraRefreshSettings(page, posts, label) {
@@ -5339,6 +5557,7 @@ async function runCase(browser, testCase) {
       await assertAutomaticAppIcons(browser, testCase);
       await assertCardActiveColourControls(page, posts, testCase.name);
       await assertMobileTabLayout(page, testCase.name, testCase.viewport);
+    await assertWebhookSettingsPanel(page, posts, testCase.name);
       await assertCameraRefreshSettings(page, posts, testCase.name);
     }
     await assertEmptyCellSettings(page, posts, testCase.name);

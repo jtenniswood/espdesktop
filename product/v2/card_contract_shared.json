@@ -26,7 +26,9 @@
     "normalize_subpage_fields",
     "normalize_subpage_options",
     "normalize_switch_options",
-    "normalize_vacuum_fields"
+    "normalize_vacuum_fields",
+    "normalize_webhook_fields",
+    "normalize_webhook_options"
   ],
   "fields": [
     "entity",
@@ -75,7 +77,8 @@
       "subpage",
       "weather",
       "image",
-      "timer"
+      "timer",
+      "webhook"
     ],
     "capabilities": [
       "informationOnly",
@@ -508,6 +511,18 @@
           "runtimeAllocation": true,
           "subpage": true
         }
+      },
+      "webhook": {
+        "driver": "webhook",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
       }
     }
   },
@@ -638,8 +653,7 @@
     "SL",
     "SS",
     "A",
-    "U",
-    "WH"
+    "U"
   ],
   "subpageTypeCodes": {
     "timer": "TM",
@@ -675,14 +689,28 @@
     "push": "P",
     "companion": "CP",
     "companion_mac_lock": "ML",
-    "subpage": "G"
+    "subpage": "G",
+    "webhook": "WH"
   },
   "releaseAvailability": {
-    "stable": ["companion", "companion_mac_lock", "subpage"],
+    "stable": [
+      "companion",
+      "companion_mac_lock",
+      "subpage",
+      "webhook"
+    ],
     "preview": {
-      "companion_window": { "label": "Window Control", "issue": 309 }
+      "companion_window": {
+        "label": "Window Control",
+        "issue": 309
+      }
     },
-    "removeOnEdit": ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card"]
+    "removeOnEdit": [
+      "companion_webapp",
+      "companion_audio",
+      "wifi_qr",
+      "wifi_qr_card"
+    ]
   },
   "retiredCardTypes": [
     "sensor",
@@ -699,7 +727,6 @@
     "calendar",
     "clock",
     "timezone",
-    "webhook",
     "companion_webapp",
     "companion_audio"
   ]
