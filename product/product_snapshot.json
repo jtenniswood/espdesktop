@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 33,
+    "cardTypes": 34,
     "entityNames": 92,
     "icons": 360,
     "structuralIcons": 39,
@@ -1983,6 +1983,18 @@
           "capabilities": {
             "informationOnly": false,
             "subscriptions": false,
+            "actions": true,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": false,
+            "subpage": true
+          }
+        },
+        "companion_cough": {
+          "driver": "numeric",
+          "capabilities": {
+            "informationOnly": false,
+            "subscriptions": true,
             "actions": true,
             "numericControl": false,
             "modal": false,
@@ -4496,6 +4508,62 @@
           "options": ""
         }
       },
+      "companion_cough": {
+        "label": "Cough",
+        "allowInSubpage": true,
+        "domains": [],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "clear"
+            },
+            "label": {
+              "policy": "default_if_empty",
+              "value": "Cough"
+            },
+            "icon": {
+              "policy": "alias",
+              "aliases": {
+                "": "Microphone",
+                "Auto": "Microphone"
+              }
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "companion_cough"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "clear"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": []
+        },
+        "default": {
+          "entity": "",
+          "label": "Cough",
+          "icon": "Microphone",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "companion_cough",
+          "precision": "",
+          "options": ""
+        }
+      },
       "companion_mac_lock": {
         "label": "Mac Lock",
         "pickerLabel": "Lock Machine",
@@ -5324,12 +5392,14 @@
       "push": "P",
       "companion": "CP",
       "companion_mac_lock": "ML",
+      "companion_cough": "CC",
       "subpage": "G"
     },
     "releaseAvailability": {
       "stable": [
         "companion",
         "companion_mac_lock",
+        "companion_cough",
         "subpage"
       ],
       "preview": {

@@ -16,10 +16,38 @@ private final class DisplayMetricsFixture: SystemMetricsProviding {
 private final class DisplayMediaFixture: MediaControlling {
     func values() -> [String: Int] { [:] }
     func setValue(_ value: Int, controlIdentifier: String) -> Bool { false }
+    var coughStarts = 0
+    var coughEnds = 0
+    func beginCoughMute() -> Bool { coughStarts += 1; return true }
+    func endCoughMute() -> Bool { coughEnds += 1; return true }
     func unavailableVolumeIDs(values: [String: Int], previousValues: [String: Int], force: Bool) -> Set<String> { [] }
 }
 
 final class CompanionDisplayTests: XCTestCase {
+    @MainActor
+    func testCoughReleaseWaitsForAllHoldsAndLateRenewalCannotMuteAgain() {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let media = DisplayMediaFixture()
+        let store = CompanionStore(mediaController: media, systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let first = NSObject(), second = NSObject()
+        let a = ObjectIdentifier(first), b = ObjectIdentifier(second)
+
+        XCTAssertFalse(store.setCoughButtonValue(50, from: a))
+        XCTAssertTrue(store.setCoughButtonValue(100, from: a))
+        XCTAssertTrue(store.setCoughButtonValue(50, from: a))
+        XCTAssertTrue(store.setCoughButtonValue(100, from: b))
+        XCTAssertEqual(media.coughStarts, 1)
+        XCTAssertTrue(store.setCoughButtonValue(0, from: a))
+        XCTAssertEqual(media.coughEnds, 0)
+        XCTAssertFalse(store.setCoughButtonValue(50, from: a))
+        XCTAssertTrue(store.setCoughButtonValue(0, from: b))
+        XCTAssertEqual(media.coughEnds, 1)
+        XCTAssertFalse(store.setCoughButtonValue(50, from: b))
+    }
+
     @MainActor
     func testPreparingAndCancellingRePairingKeepsTheExistingDisplay() {
         let suite = "CompanionDisplayTests.\(UUID())"

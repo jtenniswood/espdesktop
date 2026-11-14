@@ -62,6 +62,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   "": { icon: "toggle-switch", description: "Toggle lights, switches, helpers, or fans." },
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
+  companion_cough: { icon: "microphone-off", description: "Hold to mute the paired Mac’s microphone." },
   companion_app: { icon: "application-outline", description: "Launch an app on the Mac." },
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
   companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },

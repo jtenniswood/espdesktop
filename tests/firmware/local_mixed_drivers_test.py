@@ -42,6 +42,8 @@ void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
 bool companion_mute_control_valid(const std::string &key) { return key == "media.output_mute" || key == "media.input_mute"; }
 bool companion_volume_control_valid(const std::string &key) { return key == "media.output_volume" || key == "media.input_volume" || companion_mute_control_valid(key); }
 const char *companion_volume_control_label(const std::string &key) { return companion_mute_control_valid(key) ? "Mute" : key == "media.output_volume" ? "Lautstärke" : "Mic"; }
+void unbind_cough_button(lv_obj_t *) {}
+void bind_cough_button(lv_obj_t *, lv_obj_t *, const char *, const char *, bool) {}
 bool companion_forget_mute(lv_obj_t *) { return false; }
 void set_card_checked_state(lv_obj_t *, bool) {}
 void set_card_disabled_state(lv_obj_t *, bool) {}

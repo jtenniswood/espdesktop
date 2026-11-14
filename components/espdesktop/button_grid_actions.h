@@ -1,6 +1,7 @@
 #pragma once
 #include "grid_layout_config.h"
 #include "screen_lock_state.h"
+#include "button_grid_cough.h"
 
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
@@ -26,6 +27,10 @@ inline void handle_button_press(const std::string &cfg, int slot_num,
   if (screen_lock_enabled()) return;
   if (slot_num <= 0 || slot_num > MAX_GRID_SLOTS) return;
   const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
+  if (p.type == "companion_cough") {
+    cough_button_press(btn_obj);
+    return;
+  }
   if (navigation_handle_button_press(p, slot_num, btn_obj)) return;
   consume_button_touch_press(btn_obj);
   handle_button_click(cfg, slot_num, btn_obj);

@@ -7,12 +7,19 @@ final class SystemMediaController {
     static let inputVolumeID = "media.input_volume"
     static let outputMuteID = "media.output_mute"
     static let inputMuteID = "media.input_mute"
-    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID, outputMuteID, inputMuteID])
+    static let coughID = "media.cough"
+    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID, outputMuteID, inputMuteID, coughID])
 
     private struct DeviceKey: Hashable {
         let device: AudioDeviceID
         let scope: AudioObjectPropertyScope
     }
+    private enum CoughInput {
+        case unchanged
+        case nativeMute
+        case inputLevel(Float32)
+    }
+    private var coughRestore: (device: AudioDeviceID, input: CoughInput)?
     private var restoreLevels: [DeviceKey: Float32] = [:]
     private let findDevice: (AudioObjectPropertyScope) -> AudioDeviceID?
     private let readVolume: (AudioDeviceID, AudioObjectPropertyScope) -> Float32?
@@ -52,19 +59,58 @@ final class SystemMediaController {
             guard let device = findDevice(scope) else { continue }
             let level = readVolume(device, scope)
             let key = DeviceKey(device: device, scope: scope)
+            let nativeMute = readMute(device, scope)
+            if scope == kAudioDevicePropertyScopeInput, nativeMute != nil || level != nil {
+                let muted = nativeMute ?? (level == 0)
+                result[Self.coughID] = muted ? 100 : 0
+            }
             // An external volume adjustment ends the zero-level fallback mute.
             if let level {
                 if level > 0 { restoreLevels.removeValue(forKey: key) }
                 result[volumeID] = Int((level * 100).rounded()).clampedPercentage
             }
             // Never offer an unmute that would have to guess an unknown level.
-            if let muted = readMute(device, scope) {
+            if let muted = nativeMute {
                 result[muteID] = muted ? 100 : 0
             } else if let level, level > 0 || restoreLevels[key] != nil {
                 result[muteID] = level == 0 ? 100 : 0
             }
         }
         return result
+    }
+
+    func beginCoughMute() -> Bool {
+        let scope = kAudioDevicePropertyScopeInput
+        guard endCoughMute(), let device = findDevice(scope) else { return false }
+        let input: CoughInput
+        if let muted = readMute(device, scope) {
+            guard muted || writeMute(true, device, scope) else { return false }
+            input = muted ? .unchanged : .nativeMute
+        } else if let level = readVolume(device, scope) {
+            guard level == 0 || writeVolume(0, device, scope) else { return false }
+            input = level == 0 ? .unchanged : .inputLevel(level)
+        } else {
+            return false
+        }
+        coughRestore = (device, input)
+        return true
+    }
+
+    func endCoughMute() -> Bool {
+        guard let (device, input) = coughRestore else { return true }
+        let scope = kAudioDevicePropertyScopeInput
+        switch input {
+        case .unchanged:
+            break
+        case .nativeMute:
+            guard let muted = readMute(device, scope),
+                  !muted || writeMute(false, device, scope) else { return false }
+        case .inputLevel(let previous):
+            guard let level = readVolume(device, scope),
+                  level > 0 || writeVolume(previous, device, scope) else { return false }
+        }
+        coughRestore = nil
+        return true
     }
 
     func setValue(_ value: Int, controlIdentifier: String) -> Bool {

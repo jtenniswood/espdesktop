@@ -157,6 +157,8 @@ final class CompanionStore: NSObject, ObservableObject {
     private var browserFocusQuery: Task<URL?, Never>?
     private var browserFocusGeneration = 0
     private var lastMediaControlValues: [String: Int] = [:]
+    private var coughHolds: [ObjectIdentifier: Task<Void, Never>] = [:]
+    private var coughRestoreRetry: Task<Void, Never>?
 
     override convenience init() {
         self.init(
@@ -189,6 +191,7 @@ final class CompanionStore: NSObject, ObservableObject {
         super.init()
         displays = records.map(makeDisplay)
         sessionLock.onChange = { [weak self] locked, displayAwake in
+            if locked || displayAwake == false { self?.releaseCoughButtons() }
             self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
         }
         sessionLock.start()
@@ -1012,6 +1015,57 @@ final class CompanionStore: NSObject, ObservableObject {
         guard mediaController.setValue(value, controlIdentifier: controlIdentifier) else { return false }
         publishMediaControlValues(force: true)
         return true
+    }
+
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool {
+        // Always accept release, including when the session has just locked.
+        if value == 0 {
+            if let hold = coughHolds.removeValue(forKey: session) {
+                hold.cancel()
+                if coughHolds.isEmpty { restoreCoughInput() }
+            }
+            return true
+        }
+        guard value == 50 || value == 100, !sessionLock.refresh() else { return false }
+        // A renewal cannot start a new hold after disconnect, sleep or expiry.
+        if coughHolds[session] == nil {
+            guard value == 100 else { return false }
+            if coughHolds.isEmpty {
+                guard mediaController.beginCoughMute() else { return false }
+                coughRestoreRetry?.cancel()
+                coughRestoreRetry = nil
+            }
+        }
+        coughHolds[session]?.cancel()
+        coughHolds[session] = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(1))
+            guard !Task.isCancelled else { return }
+            _ = self?.setCoughButtonValue(0, from: session)
+        }
+        if value == 100 { publishMediaControlValues() }
+        return true
+    }
+
+    func releaseCoughButtons() {
+        for hold in coughHolds.values { hold.cancel() }
+        coughHolds.removeAll()
+        restoreCoughInput()
+    }
+
+    private func restoreCoughInput() {
+        if mediaController.endCoughMute() {
+            coughRestoreRetry?.cancel()
+            coughRestoreRetry = nil
+            publishMediaControlValues()
+        } else if coughRestoreRetry == nil {
+            // The original device can become temporarily unavailable while held.
+            coughRestoreRetry = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(1))
+                guard !Task.isCancelled, let self else { return }
+                coughRestoreRetry = nil
+                restoreCoughInput()
+            }
+        }
     }
 
     private func startMediaControlPublishing() {

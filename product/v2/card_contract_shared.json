@@ -449,6 +449,18 @@
           "subpage": true
         }
       },
+      "companion_cough": {
+        "driver": "numeric",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
       "slider": {
         "driver": "numeric",
         "capabilities": {
@@ -675,10 +687,11 @@
     "push": "P",
     "companion": "CP",
     "companion_mac_lock": "ML",
+    "companion_cough": "CC",
     "subpage": "G"
   },
   "releaseAvailability": {
-    "stable": ["companion", "companion_mac_lock", "subpage"],
+    "stable": ["companion", "companion_mac_lock", "companion_cough", "subpage"],
     "preview": {
       "companion_window": { "label": "Window Control", "issue": 309 }
     },

@@ -72,6 +72,7 @@ final class CompanionConnection: NSObject {
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
     private var supportsPairingReset = false
+    private var supportsCoughButton = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -207,6 +208,7 @@ final class CompanionConnection: NSObject {
     }
 
     private func tearDownConnection() {
+        releaseCoughButton()
         finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
@@ -386,6 +388,7 @@ final class CompanionConnection: NSObject {
 
     private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        releaseCoughButton()
         finishPairingResetRequest()
         print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
@@ -412,6 +415,12 @@ final class CompanionConnection: NSObject {
         session?.invalidateAndCancel()
         session = nil
         scheduleReconnect()
+    }
+
+    private func releaseCoughButton() {
+        guard supportsCoughButton else { return }
+        supportsCoughButton = false
+        _ = resources.setCoughButtonValue(0, from: ObjectIdentifier(self))
     }
 
     private func resetAppIconTransferState(clearPendingRequests: Bool = false) {
@@ -504,6 +513,7 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            supportsCoughButton = payload.capabilityVersion >= 10
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -603,7 +613,11 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let controlIdentifier = payload.controlId
             let value = Int(payload.value)
-            let changed = resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            let changed = if controlIdentifier == SystemMediaController.coughID {
+                supportsCoughButton && resources.setCoughButtonValue(value, from: ObjectIdentifier(self))
+            } else {
+                resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            }
             sendJSON(["type": "action.result", "requestId": requestIdentifier,
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
@@ -885,11 +899,11 @@ final class CompanionConnection: NSObject {
     }
 
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {
-        for identifier in unavailable.sorted() where Self.validMediaControlIdentifier(identifier) {
+        for identifier in unavailable.sorted() where validMediaControlIdentifier(identifier) {
             sendJSON(["type": "value.state", "controlId": identifier, "available": false])
         }
         for (identifier, value) in values.sorted(by: { $0.key < $1.key }) {
-            guard Self.validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
+            guard validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
             sendJSON(["type": "value.state", "controlId": identifier, "available": true, "value": value])
         }
     }
@@ -962,8 +976,9 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private static func validMediaControlIdentifier(_ value: String) -> Bool {
-        SystemMediaController.volumeControlIDs.contains(value)
+    private func validMediaControlIdentifier(_ value: String) -> Bool {
+        SystemMediaController.volumeControlIDs.contains(value) &&
+            (value != SystemMediaController.coughID || supportsCoughButton)
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

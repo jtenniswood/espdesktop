@@ -1572,6 +1572,24 @@ export function registerCompanionCardTypes(
         }),
     });
 
+    const coughDefaults = cardContractDefaultConfig("companion_cough");
+    registry.register("companion_cough", {
+        label: coughDefaults.label,
+        allowInSubpage: cardContractAllowInSubpage("companion_cough"),
+        isAvailable: () => supported,
+        labelPlaceholder: coughDefaults.label,
+        defaultConfig: () => coughDefaults,
+        onSelect: (card) => Object.assign(card, coughDefaults),
+        renderSettings: (panel, card, _slot, helpers) => {
+            helpers.renderCardIconPicker(panel, card, helpers, { fallback: coughDefaults.icon });
+        },
+        renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+            iconFallback: coughDefaults.icon,
+            badge: COMPANION_CARD_METADATA.preview.badge,
+            label: card.label || coughDefaults.label,
+        }),
+    });
+
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
         ["companion_shortcut", "Key Shortcut", "shortcut"],

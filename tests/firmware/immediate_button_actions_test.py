@@ -39,8 +39,10 @@ TOUCH_HELPER
 bool locked = false;
 bool screen_lock_enabled() { return locked; }
 constexpr int MAX_GRID_SLOTS = 36;
-struct ParsedCfg {};
-ParsedCfg grid_layout_card_config(int, const std::string &) { return {}; }
+struct ParsedCfg { std::string type; };
+ParsedCfg grid_layout_card_config(int, const std::string &type) { return {type}; }
+int cough_presses = 0;
+void cough_button_press(lv_obj_t *) { ++cough_presses; }
 bool navigation = false;
 bool navigation_handle_button_press(const ParsedCfg &, int, lv_obj_t *) { return navigation; }
 int calls = 0;
@@ -73,7 +75,10 @@ int main() {
     assert(calls == before + 1);
   }
   const auto before = calls;
-  pointer.waiting = false; locked = true;
+  pointer.waiting = false;
+  handle_button_press("companion_cough", 1, &button);
+  assert(cough_presses == 1 && !pointer.waiting && calls == before);
+  locked = true;
   handle_button_press("app", 1, &button);
   assert(calls == before && !pointer.waiting);
   locked = false;

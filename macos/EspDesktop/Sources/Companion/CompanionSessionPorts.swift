@@ -35,6 +35,7 @@ protocol CompanionSessionResources: AnyObject {
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool
 }
 
 @MainActor
@@ -61,6 +62,7 @@ enum CompanionSessionEvent {
 
 @MainActor
 extension CompanionSessionResources {
+    func setCoughButtonValue(_ value: Int, from session: ObjectIdentifier) -> Bool { false }
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
