@@ -6,7 +6,7 @@ description:
 
 # Language Support
 
-Card labels come from your saved configuration. Mac app names, statistics and Now Playing metadata come from your paired Mac and retain the text it supplies.
+Card labels come from your saved configuration. Mac app names and statistics come from your paired Mac and retain the text it supplies.
 
 EspDesktop only keeps its own translations for text that is built into the screen firmware, such as fixed button labels, status messages, month names, and confirmation prompts.
 

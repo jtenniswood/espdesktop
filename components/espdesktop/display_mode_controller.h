@@ -12,7 +12,6 @@ enum class DisplayMode : uint8_t {
   SETUP_DIMMED,
   DIMMED,
   CLOCK,
-  COVER_ART,
   DISPLAY_OFF,
 };
 
@@ -23,9 +22,9 @@ enum class DisplayRequestSource : uint8_t {
   PRESENCE_SENSOR,
   SCREEN_SCHEDULE,
   MANUAL_SLEEP,
-  MEDIA_PLAYBACK,
   SETUP_TIMEOUT,
   USER_WAKE,
+  MAC_DISPLAY_SLEEP,
 };
 
 enum class DisplayTakeoverKind : uint8_t {
@@ -136,6 +135,7 @@ class DisplayModeController {
     }
 
     if (apply_source(DisplayRequestSource::MANUAL_SLEEP, result)) return result;
+    if (apply_source(DisplayRequestSource::MAC_DISPLAY_SLEEP, result)) return result;
     if (apply_source(DisplayRequestSource::USER_WAKE, result)) return result;
     if (apply_source(DisplayRequestSource::BOOT_GUARD, result)) return result;
     if (apply_source(DisplayRequestSource::SCREEN_SCHEDULE, result)) return result;
@@ -146,7 +146,6 @@ class DisplayModeController {
       return result;
     }
 
-    if (apply_source(DisplayRequestSource::MEDIA_PLAYBACK, result)) return result;
     if (apply_most_recent(DisplayRequestSource::IDLE_TIMER,
                           DisplayRequestSource::PRESENCE_SENSOR, result)) {
       return result;
@@ -302,14 +301,13 @@ class DisplayModeController {
       case DisplayRequestSource::ONBOARDING:
         return mode == DisplayMode::ACTIVE;
       case DisplayRequestSource::BOOT_GUARD:
+      case DisplayRequestSource::MAC_DISPLAY_SLEEP:
         return mode == DisplayMode::DISPLAY_OFF;
       case DisplayRequestSource::MANUAL_SLEEP:
         return mode == DisplayMode::DISPLAY_OFF || mode == DisplayMode::DIMMED ||
                mode == DisplayMode::CLOCK;
       case DisplayRequestSource::USER_WAKE:
         return mode == DisplayMode::ACTIVE;
-      case DisplayRequestSource::MEDIA_PLAYBACK:
-        return mode == DisplayMode::COVER_ART;
       case DisplayRequestSource::SETUP_TIMEOUT:
         return mode == DisplayMode::SETUP_DIMMED;
       case DisplayRequestSource::SCREEN_SCHEDULE:
@@ -335,7 +333,8 @@ class DisplayModeController {
     bool active{false};
   };
 
-  static constexpr std::size_t kRequestCount = 9;
+  static constexpr std::size_t kRequestCount =
+      static_cast<std::size_t>(DisplayRequestSource::MAC_DISPLAY_SLEEP) + 1;
   static constexpr std::size_t kTakeoverCount = 2;
 
   static constexpr std::size_t source_index(DisplayRequestSource source) {
@@ -398,7 +397,6 @@ inline const char *display_mode_name(DisplayMode mode) {
     case DisplayMode::SETUP_DIMMED: return "setup_dimmed";
     case DisplayMode::DIMMED: return "dimmed";
     case DisplayMode::CLOCK: return "clock";
-    case DisplayMode::COVER_ART: return "cover_art";
     case DisplayMode::DISPLAY_OFF: return "display_off";
   }
   return "unknown";
@@ -414,9 +412,9 @@ inline const char *display_request_source_name(
     case DisplayRequestSource::PRESENCE_SENSOR: return "presence_sensor";
     case DisplayRequestSource::SCREEN_SCHEDULE: return "screen_schedule";
     case DisplayRequestSource::MANUAL_SLEEP: return "manual_sleep";
-    case DisplayRequestSource::MEDIA_PLAYBACK: return "media_playback";
     case DisplayRequestSource::SETUP_TIMEOUT: return "setup_timeout";
     case DisplayRequestSource::USER_WAKE: return "user_wake";
+    case DisplayRequestSource::MAC_DISPLAY_SLEEP: return "mac_display_sleep";
   }
   return "unknown";
 }

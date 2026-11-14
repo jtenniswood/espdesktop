@@ -144,7 +144,7 @@ const importedPortraitSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, 3));
 assert.strictEqual(importedPortraitSubpage.subpages["1"].order[0], "1", "a portrait backup import normalizes a subpage 4x3 card before saving");
 assert.strictEqual(importedPortraitSubpage.subpages["1"].sizes["1"], undefined, "a portrait backup import removes the invalid subpage 4x3 size");
@@ -159,42 +159,10 @@ const restoredLandscapeSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1l",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
   settings: { screen_rotation: "0" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, restoredLandscapeCols));
 assert.strictEqual(restoredLandscapeSubpage.subpages["1"].order[0], "1l", "restoring landscape preserves a valid subpage 4x3 card");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_cover_art_on_external_input"),
-  "cover art external-input post aliases include the full generated object id"
-);
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_for_external_sources"),
-  "cover art external-input post aliases include the legacy external-sources object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(30)), [
-  "/number/screen_saver__cover_art_delay/set?value=30",
-  "/number/screen_saver_cover_art_delay/set?value=30",
-  "/number/cover_art_delay/set?value=30",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=30",
-], "cover art delay posts include all firmware object id aliases");
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(0)), [
-  "/number/screen_saver__cover_art_delay/set?value=3",
-  "/number/screen_saver_cover_art_delay/set?value=3",
-  "/number/cover_art_delay/set?value=3",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=3",
-], "legacy immediate cover art delay posts as three seconds");
-assert.strictEqual(hooks.normalizeCoverArtDelay(0), 3, "cover art delay UI normalizes legacy immediate values");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_track_overlay_duration")).includes("screen_saver__show_track_overlay"),
-  "cover art track-overlay post aliases include the legacy show-track-overlay object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtTrackOverlayDurationPostUrls(15)), [
-  "/number/screen_saver__track_overlay_duration/set?value=15",
-  "/number/screen_saver_track_overlay_duration/set?value=15",
-  "/number/track_overlay_duration/set?value=15",
-  "/number/screen_saver__show_track_overlay/set?value=15",
-  "/number/Screen%20Saver%3A%20Show%20Track%20Overlay/set?value=15",
-], "cover art track-overlay posts include all firmware object id aliases");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "off"), true, "clock bar preview is visible when enabled");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "dim"), true, "clock bar preview stays visible for dimmed screen saver");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), true, "clock bar preview stays visible when clock screen saver is configured");
@@ -1508,7 +1476,7 @@ const publicManifest = {
 assert.deepStrictEqual(plain(hooks.firmwareInfoFromPublicManifest(publicManifest)), {
   latest_version: "v1.12.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 });
@@ -1540,13 +1508,13 @@ const publicVersionIndex = {
 assert.deepStrictEqual(plain(hooks.firmwareInfosFromPublicVersions(publicVersionIndex)), [{
   latest_version: "v1.12.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 }, {
   latest_version: "v1.11.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.11.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "abcdef0123456789abcdef0123456789",
 }]);
@@ -1568,7 +1536,7 @@ assert.deepStrictEqual(plain(hooks.firmwareStateAfterVersionIndex("v1.12.0", pub
 });
 assert.strictEqual(
   hooks.firmwareOtaUrlAfterVersionIndex("v1.12.0", publicVersionIndex, "v1.11.0"),
-  "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   "latest firmware OTA resolution must not follow the selected previous version"
 );
 assert.strictEqual(hooks.firmwareVersionLabelFor("", true), "Checking version...");

@@ -30,7 +30,6 @@ enum class Family : uint8_t {
   SUBPAGE,
   VACUUM,
   WEATHER,
-  WEBHOOK,
   UNKNOWN,
 };
 

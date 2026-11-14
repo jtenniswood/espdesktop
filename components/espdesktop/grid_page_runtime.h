@@ -1,33 +1,41 @@
 #pragma once
 
 #include <array>
+#include <functional>
 #include <memory>
-#include <string>
+#include <new>
+#include <optional>
+#include <string_view>
+#include <utility>
 #include <vector>
 
 #include "application_scene_runtime.h"
+#include "display_brightness_preferences.h"
+#include "display_theme_preferences.h"
 #include "grid_native_pages.h"
 #include "page_store_runtime.h"
-#include "panel_config_text_bindings.h"
-#include "panel_config_representation.h"
+#include "panel_config_document.h"
+#include "panel_config_document_v2.h"
+#include "screen_schedule_preferences.h"
+
 
 namespace espdesktop {
 // Retain EspDesktop's existing card drivers (including Companion). Only page
 // definitions change: one prepared native graph feeds the established renderer.
 class GridPageRuntime final : public ApplicationSceneRuntime {
   using Store = pages::PageStore;
-  using Field = pages::CardField;
+  using ScalarValues = std::array<std::optional<std::string_view>, panel_settings::SCALAR_RULES.size()>;
   struct Snapshot : GridNativePages {
-    Snapshot(configuration::ConfigurationBuffer::Allocate allocate, configuration::ConfigurationBuffer::Release release) : storage(allocate, release) {}
-    configuration::ConfigurationBuffer storage;
-    struct Value {
-      configuration::PanelConfigRecordType type;
-      uint8_t slot;
-      std::string key, value;
-    };
-    std::vector<Value> values;
-    configuration::PanelConfigRecord *records{nullptr};
-    size_t record_count{0};
+    std::optional<ThemeSettings> theme_preferences;
+    std::string accent;
+    std::string schedule_record;
+    std::optional<ScreenSchedulePreferences> schedule;
+    std::string_view brightness_record;
+    DisplayBrightnessPreferences brightness;
+    // These views borrow strings from the staged PageStore arena. Activation
+    // publishes them before that arena can be retired.
+    ScalarValues scalars;
+    bool refresh_layout{true};
   };
   class Resources final : public pages::PageRuntimeResources {
   public:
@@ -59,12 +67,23 @@ class GridPageRuntime final : public ApplicationSceneRuntime {
   };
 public:
   GridPageRuntime(const DeviceUiLimits &limits,
-      configuration::PanelConfigTextBindings &bindings,
       configuration::ConfigurationBuffer::Allocate allocate,
-      configuration::ConfigurationBuffer::Release release)
-      : limits_(limits), bindings_(bindings), allocate_(allocate), release_(release),
+      configuration::ConfigurationBuffer::Release release,
+      std::function<void()> refresh_layout = {},
+      std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences = {},
+      std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule = {},
+      std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar = {},
+      std::function<void(const DisplayBrightnessPreferences &)> publish_brightness = {})
+      : limits_(limits), allocate_(allocate), release_(release),
+        refresh_layout_(std::move(refresh_layout)),
+        publish_theme_preferences_(std::move(publish_theme_preferences)),
+        publish_schedule_(std::move(publish_schedule)), publish_scalar_(std::move(publish_scalar)),
+        publish_brightness_(std::move(publish_brightness)),
         allocator_(allocate, release), resources_(*this), runtime_(limits_, allocator_, limits.page_store_bytes, &resources_) {}
-  bool ready() const override { return bindings_.configured() && !stopped_; }
+  bool ready() const override { return !stopped_; }
+  std::string_view scalar_setting_value(panel_settings::ScalarSetting setting) const {
+    return scalar_value(active_.get(), size_t(setting));
+  }
   bool maintenance_ready() const override { return ready(); }
   void loop() override {}
   void stop() override { stopped_ = true; grid_native_pages() = nullptr; }
@@ -83,31 +102,16 @@ public:
   void discard_prepared() override { runtime_.discard_prepared(); }
   bool activate_prepared(uint32_t generation, uint16_t version,
       const uint8_t *data, size_t size) override {
-    published_ = false;
-    return runtime_.activate_prepared(generation, version, data, size) && published_;
+    return runtime_.activate_prepared(generation, version, data, size);
   }
   bool apply(uint16_t, const uint8_t *, size_t) override { return false; }
 private:
-  static std::string encoded(std::string_view value) {
-    std::string out;
-    constexpr char hex[] = "0123456789ABCDEF";
-    for (unsigned char c : value) {
-      if (c == '%' || c == ',' || c == ';' || c == '|' || c == ':') {
-        out += '%'; out += hex[c >> 4]; out += hex[c & 15];
-      } else out += char(c);
-    }
-    return out;
+  std::string_view scalar_value(const Snapshot *snapshot, size_t index) const {
+    const auto fallback = panel_settings::scalar_setting_default(
+        static_cast<panel_settings::ScalarSetting>(index), limits_.device_profile);
+    return snapshot ? snapshot->scalars[index].value_or(fallback) : fallback;
   }
-  static std::string card(const Store &store, const pages::CardDefinition &definition, bool child) {
-    static constexpr size_t child_order[] = {6, 0, 1, 2, 3, 4, 5, 7, 8};
-    std::string out = child ? "" : "~";
-    for (size_t i = 0; i < 9; ++i) {
-      if (i) out += ',';
-      const auto index = child ? child_order[i] : i;
-      out += encoded(store.field(definition, static_cast<Field>(index)));
-    }
-    return out;
-  }
+
   int key(const Store &store, pages::PageId id) const {
     if (!id) return 0;
     const auto *page = store.page(id);
@@ -117,9 +121,30 @@ private:
     const auto parent = key(store, page->parent);
     return parent > 0 && parent <= 32 ? 32 + (parent - 1) * 32 + owner->slot : -1;
   }
+  // Compare before activation, while both arenas are still available.
+  // String identities are local to each arena, so compare their contents.
+  static bool same_layout(const Store &before, const Store &after) {
+    if (before.page_count() != after.page_count() || before.card_count() != after.card_count()) return false;
+    for (pages::PageId id = 0; id < after.page_count(); ++id) {
+      const auto &left = *before.page(id);
+      const auto &right = *after.page(id);
+      if (left.parent != right.parent || left.owner != right.owner ||
+          left.first_card != right.first_card || left.card_count != right.card_count ||
+          left.navigable != right.navigable || left.runtime_card_mask != right.runtime_card_mask ||
+          before.string(left.order) != after.string(right.order)) return false;
+    }
+    for (pages::CardId id = 0; id < after.card_count(); ++id) {
+      const auto &left = *before.card(id);
+      const auto &right = *after.card(id);
+      if (left.slot != right.slot || left.target != right.target) return false;
+      for (size_t index = 0; index < left.fields.size(); ++index)
+        if (before.string(left.fields[index]) != after.string(right.fields[index])) return false;
+    }
+    return true;
+  }
   bool prepare_snapshot(const Store &store) {
     capacity_exceeded_ = false;
-    staged_.reset(new (std::nothrow) Snapshot(allocate_, release_));
+    staged_.reset(new (std::nothrow) Snapshot);
     if (!staged_) { allocation_failed_ = true; return false; }
     size_t visible = limits_.slot_count;
     size_t secondary_widgets = 0;
@@ -156,16 +181,6 @@ private:
         secondary_widgets > size_t(limits_.slot_count) * limits_.slot_count) {
       capacity_exceeded_ = true; return false;
     }
-    using Kind = configuration::PanelConfigRecordType;
-    auto value = [&](Kind type, uint8_t slot, std::string key, std::string text) {
-      staged_->values.push_back({type, slot, std::move(key), std::move(text)});
-    };
-    value(Kind::DEVICE_PROFILE, 0, "", limits_.device_profile);
-    const auto *root = store.page(0);
-    for (size_t i = 0; i < root->card_count; ++i) {
-      const auto *definition = store.card(root->first_card + i);
-      value(Kind::BUTTON, definition->slot, "", card(store, *definition, false));
-    }
     for (pages::PageId id = 1; id < store.page_count(); ++id) {
       const auto *page = store.page(id);
       if (!page->navigable) continue;
@@ -173,18 +188,33 @@ private:
       if (path < 1) return false;
       GridNativePage next;
       next.key = path; next.parent = key(store, page->parent);
+      next.id = id;
       const auto *owner = store.card(page->owner);
       next.owner_slot = owner->slot;
-      next.owner_config = card(store, *owner, false);
-      next.config = "~" + std::string(store.string(page->order));
-      for (size_t i = 0; i < page->card_count; ++i) {
-        next.config += '|'; next.config += card(store, *store.card(page->first_card + i), true);
-      }
-      if (!next.parent) value(Kind::SUBPAGE, next.owner_slot, "", next.config);
       staged_->pages.push_back(std::move(next));
     }
     auto setting = [&](std::string_view name, std::string_view value) {
-      staged_->values.push_back({Kind::SETTING, 0, std::string(name), std::string(value)});
+      if (name == "button_on_color") {
+        staged_->accent = value;
+      } else if (name == DISPLAY_THEME_PREFERENCES_KEY) {
+        staged_->theme_preferences = parse_display_theme_preferences(value);
+        if (!staged_->theme_preferences) return false;
+      } else if (name == SCREEN_SCHEDULE_PREFERENCES_KEY) {
+        staged_->schedule = parse_screen_schedule_preferences(value);
+        if (!staged_->schedule) return false;
+        staged_->schedule_record = value;
+      } else if (name == DISPLAY_BRIGHTNESS_PREFERENCES_KEY) {
+        const auto brightness = parse_display_brightness_preferences(value);
+        if (!brightness) return false;
+        staged_->brightness = *brightness;
+        staged_->brightness_record = value;
+      } else {
+        const auto index = panel_settings::scalar_setting_index(name);
+        if (index < staged_->scalars.size()) {
+          if (!panel_settings::SCALAR_RULES[index].valid(value)) return false;
+          staged_->scalars[index] = value;
+        }
+      }
       return true;
     };
     if (store.source_version() == 1) {
@@ -210,35 +240,44 @@ private:
             !setting(reader.string(record.id), reader.string(record.first))) return false;
       }
     }
-    staged_->record_count = staged_->values.size();
-    auto *memory = staged_->storage.allocate(staged_->record_count * sizeof(configuration::PanelConfigRecord));
-    if (!memory) { allocation_failed_ = true; return false; }
-    staged_->records = reinterpret_cast<configuration::PanelConfigRecord *>(memory);
-    for (size_t i = 0; i < staged_->record_count; ++i) {
-      const auto &owned = staged_->values[i];
-      auto &record = *new (staged_->records + i) configuration::PanelConfigRecord{};
-      record.type = owned.type; record.slot = owned.slot;
-      record.key = reinterpret_cast<const uint8_t *>(owned.key.data()); record.key_size = owned.key.size();
-      record.value = reinterpret_cast<const uint8_t *>(owned.value.data()); record.value_size = owned.value.size();
-    }
-    return bindings_.validate_runtime_records(staged_->records, staged_->record_count);
+    staged_->refresh_layout = !active_ || active_->accent != staged_->accent ||
+        !same_layout(*active_->store, store);
+    return true;
   }
 
-  void activate_snapshot(const Store &) {
+  void activate_snapshot(const Store &store) {
+    const bool schedule_changed = !active_ || active_->schedule_record != staged_->schedule_record;
+    const auto previous = std::move(active_);
     active_ = std::move(staged_);
+    active_->store = &store;
     grid_native_pages() = active_.get();
-    published_ = bindings_.publish_runtime_records(active_->records, active_->record_count);
-    if (published_) bindings_.refresh_runtime_pages();
+    // Apply only after the configuration service commits and activates this snapshot.
+    if (publish_theme_preferences_) publish_theme_preferences_(active_->theme_preferences);
+    if (schedule_changed && publish_schedule_) publish_schedule_(active_->schedule);
+    if (publish_brightness_ && active_->brightness_record != (previous ? previous->brightness_record : std::string_view{}))
+      publish_brightness_(active_->brightness);
+    if (publish_scalar_) {
+      for (size_t index = 0; index < active_->scalars.size(); ++index) {
+        const auto value = scalar_value(active_.get(), index);
+        if (value != scalar_value(previous.get(), index))
+          publish_scalar_(static_cast<panel_settings::ScalarSetting>(index), value);
+      }
+    }
+    if (active_->refresh_layout && refresh_layout_) refresh_layout_();
   }
   void retire_snapshot() { grid_native_pages() = nullptr; active_.reset(); }
   const DeviceUiLimits &limits_;
-  configuration::PanelConfigTextBindings &bindings_;
   configuration::ConfigurationBuffer::Allocate allocate_;
   configuration::ConfigurationBuffer::Release release_;
+  std::function<void()> refresh_layout_;
+  std::function<void(const std::optional<ThemeSettings> &)> publish_theme_preferences_;
+  std::function<void(const std::optional<ScreenSchedulePreferences> &)> publish_schedule_;
+  std::function<void(panel_settings::ScalarSetting, std::string_view)> publish_scalar_;
+  std::function<void(const DisplayBrightnessPreferences &)> publish_brightness_;
   Allocator allocator_;
   Resources resources_;
   std::unique_ptr<Snapshot> staged_, active_;
   pages::PageStoreRuntime runtime_;
-  bool stopped_{false}, capacity_exceeded_{false}, allocation_failed_{false}, published_{false};
+  bool stopped_{false}, capacity_exceeded_{false}, allocation_failed_{false};
 };
 } // namespace espdesktop

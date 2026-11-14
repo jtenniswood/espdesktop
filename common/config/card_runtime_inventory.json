@@ -6,6 +6,27 @@
     "modalOwners": ["none", "alarm", "climate", "cover", "image", "media", "weather"]
   },
   "types": {
+    "timezone": {
+      "classification": "canonical", "canonicalType": "timezone", "webRegistration": "timezone", "firmwareFamily": "DATE_TIME",
+      "lifecycle": { "subscriptions": ["time"], "actions": ["none"], "modalOwner": "none" },
+      "modes": [{ "name": "timezone", "config": { "entity": "Europe/London", "type": "timezone" } }]
+    },
+    "clock": {
+      "classification": "canonical",
+      "canonicalType": "clock",
+      "webRegistration": "clock",
+      "firmwareFamily": "DATE_TIME",
+      "lifecycle": { "subscriptions": ["time"], "actions": ["none"], "modalOwner": "none" },
+      "modes": [{ "name": "local_time", "config": { "type": "clock" } }]
+    },
+    "calendar": {
+      "classification": "canonical",
+      "canonicalType": "calendar",
+      "webRegistration": "calendar",
+      "firmwareFamily": "DATE_TIME",
+      "lifecycle": { "subscriptions": ["state", "time"], "actions": ["none"], "modalOwner": "none" },
+      "modes": [{ "name": "date", "config": { "type": "calendar" } }]
+    },
     "timer": {
       "classification": "canonical",
       "canonicalType": "timer",
@@ -269,13 +290,10 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "approved_app", "config": { "entity": "com.apple.Safari", "label": "Safari" } }]
     },
-    "webhook": {
-      "classification": "canonical", "canonicalType": "webhook", "webRegistration": "webhook", "firmwareFamily": "WEBHOOK",
-      "lifecycle": { "subscriptions": ["http"], "actions": ["http"], "modalOwner": "none" },
-      "modes": [
-        { "name": "get", "config": { "entity": "https://example.invalid/hook", "sensor": "GET" } },
-        { "name": "post", "config": { "entity": "https://example.invalid/hook", "sensor": "POST", "unit": "{}" } }
-      ]
+    "companion_mac_lock": {
+      "classification": "canonical", "canonicalType": "companion_mac_lock", "webRegistration": "companion_mac_lock", "firmwareFamily": "COMPANION",
+      "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "lock", "config": {} }]
     },
     "slider": {
       "classification": "canonical", "canonicalType": "slider", "webRegistration": "slider", "firmwareFamily": "SLIDER",

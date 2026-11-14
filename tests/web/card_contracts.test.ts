@@ -54,4 +54,7 @@ export function runCardContractTests(): void {
     equal(cardContractCard(type), null, `${type} stays outside the card contract`);
     equal(cardRuntimeSpec(type), null, `${type} has no runtime driver`);
   }
+  for (const code of ["SL", "SS"]) {
+    equal(cardContractSubpageTypeFromCode(code), code, `${code} stays retired`);
+  }
 }

@@ -4,7 +4,9 @@ import type { RuntimeSubpage } from "../state/types";
 import type { PanelConfigDocument } from "../model/panel_config";
 import type { NativePanelConfigSnapshot } from "./native_panel_config";
 import { pageDepth, pageOwnerSlot, parentPageKey } from "../model/page_keys";
-import { panelPageDocumentDepth } from "../model/panel_config_conversion";
+import { panelPageDocumentDepth, type NativePageLayout } from "../model/panel_config_conversion";
+import { cloneCardConfig } from "../model/card";
+import { parseSubpageOrder } from "../model/subpage";
 
 export interface PageEditorDocument {
   readonly buttons: CardConfig[];
@@ -13,23 +15,38 @@ export interface PageEditorDocument {
   readonly nested: boolean;
 }
 export interface PageEditorCodec {
+  normalizeButtonConfig(button: CardConfig): CardConfig;
   parseButtonConfig(value: string): CardConfig;
   parseSubpageConfig(value: string): RuntimeSubpage;
   buildSubpageGrid(page: RuntimeSubpage): unknown;
 }
 
 /** Parse everything privately before replacing any live editor state. */
-export function preparePageEditorDocument(document: PanelConfigDocument, slots: number, codec: PageEditorCodec): PageEditorDocument {
-  const buttons = Array.from({ length: slots }, (_, index) => codec.parseButtonConfig(document.buttons[index + 1] ?? ""));
+export function preparePageEditorDocument(document: PanelConfigDocument, slots: number, codec: PageEditorCodec,
+    layout?: NativePageLayout): PageEditorDocument {
   const subpages: Record<number, RuntimeSubpage> = Object.create(null) as Record<number, RuntimeSubpage>;
+  const source = { ...document, buttons: { ...document.buttons }, subpages: { ...document.subpages }, settings: { ...document.settings } };
+  if (layout) {
+    const normalize = (card?: Readonly<CardConfig>) => codec.normalizeButtonConfig(cloneCardConfig(card));
+    const bySlot = new Map(layout.rootCards.map(card => [card.slot, card.config]));
+    const buttons = Array.from({ length: slots }, (_, index) => normalize(bySlot.get(index + 1)));
+    for (const page of layout.pages) {
+      const runtimePage: RuntimeSubpage = {
+        ...parseSubpageOrder(page.order), buttons: page.cards.map(card => normalize(card.config)), grid: [], sizes: {},
+      };
+      codec.buildSubpageGrid(runtimePage);
+      subpages[page.key] = runtimePage;
+    }
+    return { buttons, subpages, source, nested: layout.nested };
+  }
+  const buttons = Array.from({ length: slots }, (_, index) => codec.parseButtonConfig(document.buttons[index + 1] ?? ""));
   for (const [key, value] of Object.entries(document.subpages)) {
     if (!/^[1-9][0-9]*$/.test(key) || !pageDepth(Number(key))) throw new Error("Invalid page path");
     const page = codec.parseSubpageConfig(value);
     codec.buildSubpageGrid(page);
     subpages[Number(key)] = page;
   }
-  return { buttons, subpages, nested: panelPageDocumentDepth(document) > 1,
-    source: { ...document, buttons: { ...document.buttons }, subpages: { ...document.subpages }, settings: { ...document.settings } } };
+  return { buttons, subpages, nested: panelPageDocumentDepth(document) > 1, source };
 }
 
 export function editorPageOwner(key: number, buttons: readonly CardConfig[], subpages: Readonly<Record<number, RuntimeSubpage>>): CardConfig | undefined {
@@ -49,7 +66,7 @@ export interface NativePageEditorLoaderOptions {
   revision(): number;
   read(signal: AbortSignal): Promise<NativePanelConfigSnapshot | null>;
   canApply(): boolean;
-  apply(document: PanelConfigDocument): void;
+  apply(document: PanelConfigDocument, layout?: NativePageLayout, preserveSelection?: boolean): void;
   failed(error: unknown): void;
   loading?(active: boolean): void;
   schedule?(callback: () => void): ReturnType<typeof setTimeout>;
@@ -85,7 +102,9 @@ export class NativePageEditorLoader {
       else void this.refresh();
     });
   }
-  replace(document: PanelConfigDocument): void { this.invalidate(); this.options.apply(document); }
+  replace(document: PanelConfigDocument, layout?: NativePageLayout, preserveSelection = false): void {
+    this.invalidate(); this.options.apply(document, layout, preserveSelection);
+  }
   refreshAfterChange(): void {
     // A pending response may predate the event. Coalesce events into one
     // subsequent read instead of accepting that response as the latest state.
@@ -110,7 +129,7 @@ export class NativePageEditorLoader {
           this.deferRefresh();
           return false;
         }
-        this.options.apply(snapshot.document);
+        this.options.apply(snapshot.document, snapshot.layout);
         return true;
       } catch (error) {
         if (epoch === this.epoch) this.options.failed(error);

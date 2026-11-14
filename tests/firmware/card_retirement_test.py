@@ -15,12 +15,11 @@ bool card_runtime_type_retired(const std::string &type) { return card_contract_t
 #define ESP_LOGE(...) ((void)0)
 struct ParsedCfg { std::string type,entity,sensor,label,options; } current;
 struct lv_obj_t {};
-ParsedCfg parse_cfg(const std::string &) {return current;}
+ParsedCfg grid_layout_card_config(int, const std::string &) {return current;}
 int card_runtime_context(const ParsedCfg &) {return 0;}
 bool card_runtime_passive(int) {return false;}
+bool screen_lock_enabled() {return false;}
 namespace espdesktop {
-struct Pin {bool locked(){return false;}};
-Pin &screensaver_pin(){static Pin pin; return pin;}
 namespace cards {
 '''
 for name in set(re.findall(r'espdesktop::cards::(\w+_handle_main_click)',click)):

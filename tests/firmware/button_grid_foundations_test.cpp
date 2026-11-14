@@ -100,7 +100,6 @@ int main() {
   const auto light_switch = card_runtime_context("light_switch");
   const auto raw_local_action_alias = card_runtime_context("local");
   const auto push = card_runtime_context("push");
-  const auto webhook = card_runtime_context("webhook");
   const auto slider = card_runtime_context("slider");
   const auto light_brightness = card_runtime_context("light_brightness");
   const auto light_temperature = card_runtime_context("light_temperature");
@@ -138,7 +137,7 @@ int main() {
       !toggle.known || action.known || !alarm_action.known ||
       !fan_switch.known || !light_switch.known ||
       raw_local_action_alias.known ||
-      !push.known || !webhook.known ||
+      !push.known ||
       slider.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
       light_brightness.runtime.driver != espdesktop::card_runtime::CardDriverId::NUMERIC ||
       light_temperature.runtime.driver !=
@@ -266,7 +265,6 @@ int main() {
     "light_control", "light_switch", "light_temperature", "lock",
     "media", "presence", "push",
     "slider", "subpage", "timezone", "vacuum", "weather", "weather_forecast",
-    "webhook",
   };
   for (const char *type : contract_card_types) {
     const auto registration = card_runtime_registration(type);

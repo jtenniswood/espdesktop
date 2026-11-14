@@ -141,46 +141,6 @@ device testing.
 
 Use the firmware UI playbook for subscription and runtime checks.
 
-## Cover Art activation and the S3 stack
-
-ESPHome's automation actions call the next action synchronously. Keep the 1 ms
-yield at the start of `display_mode_effect_cover_art`: layout and logging must
-not inherit the controller's nested action stack. Keep artwork preparation in
-the restartable `cover_art_prepare_activation` script with its own yield. The
-parent waits for preparation before completing the transition. After the yield,
-validate the display transition generation and Mac artwork generation, and
-confirm playback and the feature are still enabled. Obsolete work must not
-rebind an older track’s pixels.
-
-The authenticated Mac Companion connection pushes fullscreen artwork bytes.
-`cover_art_request_artwork` reuses its decoded image while requesting the current
-Mac artwork generation. Fullscreen artwork has no Home Assistant subscriptions,
-URL downloads, entity filters, or playback commands. Camera/image consumers
-continue using their separate download queue until their integration is retired.
-
-`tests/firmware/cover_art_activation_test.py` executes the production scheduling
-and presentation bodies with an ESPHome action-chain excerpt and simulated
-LVGL/scheduler boundaries. Its `--mutations` option verifies the yields,
-stale-track cancellation and image ownership. Use `--esphome-source
-<generated-src>/esphome` after a toolchain update to verify the automation excerpt.
-Run it with the pinned ESPHome Python environment for PyYAML.
-`check_companion_artwork.py` guards the stream-only transport and pixel ownership.
-
-The anonymized `tests/firmware/fixtures/issue1854-cover-art.json` backup is retained
-for compatibility/import checks. Its former Home Assistant artwork and presence
-settings are not a supported playback test setup.
-
-Home Assistant reconnect recovery lives in the restartable
-`ha_refresh_after_connect` script. A Home Assistant disconnect cancels its delayed
-refreshes only when no authenticated Home Assistant connection remains. An old
-socket disconnecting must preserve a replacement's recovery and pending requests,
-including before state subscriptions are ready. Diagnostic API clients must not
-start or cancel that work. Artwork recovery
-rechecks source URLs without forcing a healthy cached image to download again.
-Real metadata changes still force a refresh when a provider reuses its URL.
-That refresh requirement survives attribute timeouts until artwork is handed to
-the download path; retries for a missing optional attribute then stay unforced.
-
 ## Config Parser Rules
 
 `button_grid_config.h` should accept existing saved values after an upgrade. Be

@@ -1,0 +1,33 @@
+name: Build Firmware Editor
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  editor:
+    name: Build offline editor
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 26
+
+      - name: Install locked dependencies
+        run: npm ci --prefer-offline
+
+      - name: Build and verify the offline editor
+        run: |
+          npm run webserver:build
+          node scripts/check_web_asset_manifest.js --manifest-only
+
+      - name: Upload offline editor
+        uses: actions/upload-artifact@v7
+        with:
+          name: firmware-editor
+          path: docs/public/webserver/embedded/www.js
+          if-no-files-found: error

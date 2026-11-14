@@ -194,7 +194,7 @@ def check_root(root: Path) -> list[str]:
             or "navigation_driver_bind_main( s, p, context, navigation_state)" not in compact_grid
             or "navigation_driver_own_subpage( owner_slot, p, parent_context, navigation_slot, display_order, sub_scr)" not in compact_grid
             or "card_palette_for_config(palette, p, display)" not in compact_grid
-            or "card_palette_for_config(palette, sb_cfg, display)" not in compact_grid
+            or not re.search(r"card_palette_for_config\((?:page_)?palette, sb_cfg, display\)", compact_grid)
             or "bind_passive_card(s, p, context, card_palette)" not in compact_grid
             or "bind_passive_card(sub_slot, sb_cfg, context, card_palette)" not in compact_grid
         ):
@@ -212,10 +212,10 @@ def check_root(root: Path) -> list[str]:
             'sb_cfg.type == "weather"', 'sb_cfg.type == "weather_forecast"',
             'p.type == "push"',
             'p.type == "alarm_action"',
-            'p.type == "local"', 'p.type == "webhook"',
+            'p.type == "local"',
             'sb_cfg.type == "push"',
             'sb_cfg.type == "alarm_action"',
-            'sb_cfg.type == "local"', 'sb_cfg.type == "webhook"',
+            'sb_cfg.type == "local"',
             'p.type == "slider"', 'p.type == "light_brightness"',
             'p.type == "light_temperature"', 'p.type == "fan_speed"',
             'p.type == "fan_oscillate"', 'p.type == "fan_direction"',
@@ -475,7 +475,6 @@ def check_root(root: Path) -> list[str]:
             "basic_action_driver_refresh_layout",
             "basic_action_driver_cleanup",
             "basic_action_driver_handle_main_click",
-            "send_webhook_action",
         )
         for needle in required:
             if needle not in text:
@@ -500,7 +499,8 @@ def check_root(root: Path) -> list[str]:
             "numeric_selectable_driver_bind_slider",
             "companion_volume_control_valid",
             "companion_track_slider",
-            "send_slider_action",
+            "companion_track_mute",
+            "companion_toggle_mute",
             '"light_brightness"',
             '"light_temperature"',
             '"fan_speed"',

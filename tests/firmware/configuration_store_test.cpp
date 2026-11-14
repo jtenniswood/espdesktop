@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "configuration_store.h"
+#include "display_theme_preferences.h"
+#include "panel_config_document.h"
 
 namespace {
 
@@ -147,6 +149,55 @@ bool conditional_commit_rejects_a_stale_generation() {
   const LoadResult loaded = store.load(output.data(), output.size());
   return committed.ok() && committed.generation == 2 &&
          payload_equals(output, second, loaded);
+}
+
+bool interrupted_theme_save_restores_a_complete_group() {
+  using namespace espdesktop;
+  using namespace espdesktop::configuration;
+  const auto encode = [](std::string_view value) -> std::vector<uint8_t> {
+    std::array<uint8_t, 128> buffer{};
+    PanelConfigWriter writer(buffer.data(), buffer.size());
+    const auto *key = reinterpret_cast<const uint8_t *>(DISPLAY_THEME_PREFERENCES_KEY.data());
+    const auto *data = reinterpret_cast<const uint8_t *>(value.data());
+    size_t size = 0;
+    if (writer.begin() != PanelConfigStatus::OK ||
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>("panel"), 5) != PanelConfigStatus::OK ||
+        writer.append_setting(key, DISPLAY_THEME_PREFERENCES_KEY.size(), data, value.size()) != PanelConfigStatus::OK ||
+        writer.finish(&size) != PanelConfigStatus::OK) return {};
+    return {buffer.begin(), buffer.begin() + size};
+  };
+  const auto old_record = "1,auto,sun,415,1235,-35,45";
+  const auto new_record = "1,light,time,480,1199,20,-30";
+  const auto old_document = encode(old_record);
+  const auto new_document = encode(new_record);
+  if (old_document.empty() || new_document.empty()) return false;
+
+  // Cut writes at every byte across staging and publishing the new slot.
+  for (size_t cut = 0; cut <= new_document.size() + 3 * CONFIGURATION_ENVELOPE_HEADER_SIZE; ++cut) {
+    MemoryBackend backend(256);
+    ConfigurationStore writer(backend);
+    if (!writer.commit(old_document.data(), old_document.size()).ok()) return false;
+    backend.fail_writes_after(cut);
+    const auto committed = writer.commit(new_document.data(), new_document.size());
+    ConfigurationStore reboot(backend);
+    std::array<uint8_t, 128> output{};
+    const auto loaded = reboot.load(output.data(), output.size());
+    if (!loaded.ok() || loaded.generation != (committed.ok() ? 2u : 1u)) return false;
+    PanelConfigReader reader(output.data(), loaded.payload_size);
+    if (reader.validate() != PanelConfigStatus::OK || reader.begin() != PanelConfigStatus::OK) return false;
+    PanelConfigRecord record;
+    bool found = false;
+    while (reader.next(&record) == PanelConfigStatus::OK) {
+      if (record.type != PanelConfigRecordType::SETTING) continue;
+      const std::string_view raw(reinterpret_cast<const char *>(record.value), record.value_size);
+      const auto settings = parse_display_theme_preferences(raw);
+      if (!settings || encode_display_theme_preferences(*settings) != (committed.ok() ? new_record : old_record))
+        return false;
+      found = true;
+    }
+    if (!found) return false;
+  }
+  return true;
 }
 
 bool corrupt_newest_falls_back() {
@@ -310,6 +361,7 @@ int main() {
   const bool passed =
       verified_prefix_preserves_payload_selection() && empty_store_is_reported() && commit_and_load_round_trip() &&
       newest_generation_wins() && conditional_commit_rejects_a_stale_generation() &&
+      interrupted_theme_save_restores_a_complete_group() &&
       corrupt_newest_falls_back() &&
       corrupt_stale_generation_cannot_promote_old_payload() &&
       partial_payload_write_preserves_previous() &&

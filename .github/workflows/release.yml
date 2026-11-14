@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       release_tag:
-        description: Existing draft release tag to build, verify, and publish
+        description: Existing draft release tag to build for device testing
         required: true
         type: string
 
 permissions:
-  contents: write
+  contents: read
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -24,8 +24,11 @@ jobs:
   preflight:
     name: Product Preflight
     runs-on: self-hosted
+    permissions:
+      contents: write
     outputs:
       source_sha: ${{ steps.source.outputs.sha }}
+      embedded_editor_sha256: ${{ steps.web-assets.outputs.embedded_editor_sha256 }}
     steps:
       - name: Prepare self-hosted workspace
         run: |
@@ -119,10 +122,13 @@ jobs:
           python3 scripts/build.py --self-test
           python3 scripts/build.py --check
 
-      - name: Verify checked-in web asset manifest
-        run: node scripts/check_web_asset_manifest.js
+      - name: Build and verify source revision web assets
+        run: |
+          npm run webserver:build
+          node scripts/check_web_asset_manifest.js
 
       - name: Prepare release web assets
+        id: web-assets
         env:
           GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
@@ -135,7 +141,7 @@ jobs:
           LEGACY_STABLE_TAG=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 \
             --json tagName --jq '.[0].tagName // ""')
           mkdir -p "${LEGACY_WEB_DIR}"
-          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/web-assets.json" \
+          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://espdesktop.com/webserver/web-assets.json" \
             -o "${LEGACY_WEB_MANIFEST}"; then
             BUNDLE_PATH=$(jq -er --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path' \
               "${LEGACY_WEB_MANIFEST}")
@@ -144,7 +150,7 @@ jobs:
               exit 1
             fi
             mkdir -p "docs/public/webserver/$(dirname "${BUNDLE_PATH}")"
-            curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
+            curl -fsSL "https://espdesktop.com/webserver/${BUNDLE_PATH}" \
               -o "docs/public/webserver/${BUNDLE_PATH}"
             # Verify imported bytes before generating or pre-verifying release assets.
             python3 - "${BUNDLE_PATH}" "${LEGACY_WEB_MANIFEST}" "${LEGACY_STABLE_TAG}" <<'PY'
@@ -172,6 +178,9 @@ jobs:
           fi
           python3 scripts/build.py www --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
           python3 scripts/build.py www --check --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
+          node scripts/check_web_asset_manifest.js --manifest-only
+          EDITOR_HASH=$(sha256sum docs/public/webserver/embedded/www.js)
+          echo "embedded_editor_sha256=${EDITOR_HASH%% *}" >> "$GITHUB_OUTPUT"
 
           # Ship every verified bundle referenced by either compatibility alias,
           # together with retained release bundles, loaders and the offline editor.
@@ -251,6 +260,21 @@ jobs:
             echo "::error::Expected C6 recovery build file is missing: builds/${{ matrix.slug }}.recovery.yaml"
             exit 1
           fi
+
+      - name: Download the verified release editor
+        uses: actions/download-artifact@v8
+        with:
+          name: release-web-assets
+          path: release-web-assets
+
+      - name: Install the verified offline editor before compilation
+        working-directory: espdesktop-${{ matrix.slug }}
+        env:
+          EXPECTED_EDITOR_SHA256: ${{ needs.preflight.outputs.embedded_editor_sha256 }}
+        run: |
+          EDITOR="${GITHUB_WORKSPACE}/release-web-assets/embedded/www.js"
+          printf '%s  %s\n' "${EXPECTED_EDITOR_SHA256}" "${EDITOR}" | sha256sum -c -
+          install -D -m 644 "${EDITOR}" docs/public/webserver/embedded/www.js
 
       - name: Load ESPHome version
         working-directory: espdesktop-${{ matrix.slug }}
@@ -555,6 +579,12 @@ jobs:
           python3 scripts/build.py companion --check
           swift test --package-path macos/EspDesktop -Xswiftc -warnings-as-errors
 
+      - name: Install disk image packaging tools
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/dmg-tools"
+          "${RUNNER_TEMP}/dmg-tools/bin/python" -m pip install --require-hashes -r macos/EspDesktop/Packaging/dmg-requirements.txt
+          echo "${RUNNER_TEMP}/dmg-tools/bin" >> "${GITHUB_PATH}"
+
       - name: Sign, notarize, staple, and verify EspDesktop
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
@@ -613,6 +643,7 @@ jobs:
             -S apple-tool:,apple:,codesign: \
             -s -k "${KEYCHAIN_PASSWORD}" "${KEYCHAIN_PATH}"
 
+          ESPDESKTOP_RELEASE_BUILD=1 \
           MARKETING_VERSION="${BUNDLE_VERSION}" \
           CURRENT_PROJECT_VERSION="${GITHUB_RUN_NUMBER}" \
           CODE_SIGN_IDENTITY="${DEVELOPER_ID_APPLICATION}" \
@@ -640,16 +671,11 @@ jobs:
             ${{ runner.temp }}/espdesktop-app/companion-appcast-v*.xml
           if-no-files-found: error
 
-  publish:
-    name: Publish Verified Draft
+  prepare-candidate:
+    name: Prepare Release Candidate
     needs: [preflight, assemble-release, espdesktop-release]
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     steps:
-      - name: Prepare self-hosted workspace
-        run: |
-          rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?* 2>/dev/null ||
-            sudo rm -rf "${GITHUB_WORKSPACE:?}/"* "${GITHUB_WORKSPACE:?}/".[!.]* "${GITHUB_WORKSPACE:?}/"..?*
-
       - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ needs.preflight.outputs.source_sha }}
@@ -666,42 +692,31 @@ jobs:
           name: espdesktop-app-release
           path: dist/companion
 
-      - name: Use release web assets
-        run: cp -a dist/release-web-assets/. docs/public/webserver/
-
-      - name: Upload, verify, and publish draft release
+      - name: Record the firmware and Mac app to test
         env:
-          GH_TOKEN: ${{ github.token }}
           RELEASE_TAG: ${{ inputs.release_tag }}
+          SOURCE_SHA: ${{ needs.preflight.outputs.source_sha }}
         run: |
-          mapfile -t DEVICE_SLUGS < <(python3 scripts/device_matrix.py release | jq -r '.include[].slug')
-          mapfile -t RECOVERY_SLUGS < <(python3 scripts/device_matrix.py release | jq -r '.include[] | select(.recovery) | .slug')
-          COMPANION_ZIP="$(find dist/companion -maxdepth 1 -type f -name '*.zip' -print -quit)"
-          COMPANION_DMG="$(find dist/companion -maxdepth 1 -type f -name '*.dmg' -print -quit)"
-          if [[ -z "${COMPANION_ZIP}" || -z "${COMPANION_DMG}" ]]; then
-            echo "The notarized Companion ZIP or DMG release asset is missing" >&2
-            exit 1
-          fi
-          PROTOCOL_VERSION="$(python3 -c 'import json; print(json.load(open("product/v2/companion_capabilities.json"))["protocol"]["version"])')"
-          COMPANION_FEED="dist/companion/companion-appcast-v${PROTOCOL_VERSION}.xml"
-          test -s "${COMPANION_FEED}"
           python3 scripts/companion_release.py create \
             --firmware-dir dist/firmware --companion-dir dist/companion \
-            --source-revision "${{ needs.preflight.outputs.source_sha }}" \
+            --source-revision "${SOURCE_SHA}" \
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json
           python3 scripts/companion_release.py verify \
             --firmware-dir dist/firmware --companion-dir dist/companion \
-            --source-revision "${{ needs.preflight.outputs.source_sha }}" \
+            --source-revision "${SOURCE_SHA}" \
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json
-          python3 scripts/firmware_release.py publish-draft \
-            --version "${RELEASE_TAG}" \
-            --dir dist/firmware \
-            --slugs "${DEVICE_SLUGS[@]}" \
-            --recovery-slugs "${RECOVERY_SLUGS[@]}" \
-            --repo "${GITHUB_REPOSITORY}" \
-            --notes dist/release-notes.md \
-            --source-revision "${{ needs.preflight.outputs.source_sha }}" \
-            --release-contract product/release_contract.json \
-            --web-manifest docs/public/webserver/web-assets.json \
-            --web-root docs/public/webserver \
-            --additional-files "${COMPANION_ZIP}" "${COMPANION_DMG}" "${COMPANION_FEED}" dist/companion/companion-compatibility.json
+          FINGERPRINT="$(sha256sum dist/companion/companion-compatibility.json | cut -d ' ' -f 1)"
+          {
+            printf '## Install and confirm the candidate Mac app\n\n'
+            printf 'Candidate run: %s\n\n' "${GITHUB_RUN_ID}"
+            printf 'Candidate fingerprint: `%s`\n\n' "${FINGERPRINT}"
+            printf '%s\n' 'Download **espdesktop-app-release** and **release-candidate-compatibility** from this run.'
+            printf '%s\n' 'Install and open the verified candidate Mac app. Once it is confirmed working, provide this run ID and fingerprint to **Publish Release**.'
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Upload the candidate fingerprint manifest
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-candidate-compatibility
+          path: dist/companion/companion-compatibility.json
+          if-no-files-found: error

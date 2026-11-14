@@ -1,7 +1,7 @@
 import { NativePanelConfigController } from "../../src/webserver/controllers/native_panel_config_controller";
 import { createConfigPersistenceFeature } from "../../src/webserver/application/config_post_api";
 import { createNativePanelConfigClient, type NativePanelConfigResponse } from "../../src/webserver/features/native_panel_config";
-import { decodePanelConfig, encodePanelConfig, parseLegacySubpageConfig, serializeLegacySubpageConfig } from "../../src/webserver/model";
+import { decodePanelConfig, encodePanelConfig, parseRawButtonConfig, parseLegacySubpageConfig, serializeLegacySubpageConfig } from "../../src/webserver/model";
 import { initializeDeviceConfig } from "../../src/webserver/device_config";
 import { initializeAppState, state } from "../../src/webserver/state/app_instance";
 
@@ -63,7 +63,9 @@ export async function runConfigCapacityTests(): Promise<void> {
     { showBanner: (message) => banners.push(message) });
   persistence.connectRequestApi(api as any);
   persistence.connectCodec({ serializeButtonConfig: () => "light.kitchen",
-    serializeSubpageConfig: () => largeSubpage });
+    serializeSubpageConfig: () => largeSubpage,
+    parseButtonConfig: parseRawButtonConfig, parseSubpageConfig: parseLegacySubpageConfig,
+    buttonConfigFields: () => [], subpageSerializedOrder: () => [] });
   equal(persistence.buttonConfigByteLimit(), 255, "undiscovered firmware keeps the safe card limit");
   equal(persistence.subpageConfigFits(largeSubpage), false, "undiscovered firmware keeps the configured chunk limit");
   await controller.begin();

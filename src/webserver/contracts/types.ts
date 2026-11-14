@@ -97,6 +97,7 @@ export interface CardTypeSpec {
   default: CardConfig;
   domains: readonly string[];
   pickerKey?: string;
+  pickerLabel?: string;
   hidden?: boolean;
   options?: readonly CardOptionSpec[];
   normalization?: CardNormalizationSpec;

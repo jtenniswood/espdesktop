@@ -143,6 +143,14 @@ def run_self_test() -> int:
     reused_retired_code["retiredSubpageTypeCodes"] = [next(iter(reused_retired_code["subpageTypeCodes"].values()))]
     expect_error(validate_card_contract(reused_retired_code), "reuses active codes")
 
+    preview_in_stable = copy.deepcopy(card_contract)
+    preview_in_stable["releaseAvailability"]["stable"].extend(preview_in_stable["releaseAvailability"]["preview"])
+    expect_error(validate_card_contract(preview_in_stable), "must list existing stable card definitions")
+
+    remove_stable = copy.deepcopy(card_contract)
+    remove_stable["releaseAvailability"]["removeOnEdit"].append("companion_mac_lock")
+    expect_error(validate_card_contract(remove_stable), "must reference retired card IDs")
+
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
         valid = root / "valid.json"

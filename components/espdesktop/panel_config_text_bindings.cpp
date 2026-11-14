@@ -304,37 +304,13 @@ bool PanelConfigTextBindings::apply_document(const uint8_t *document,
                                              ApplyMode mode) {
   PanelConfigReader reader(document, document_size);
   if (reader.begin() != PanelConfigStatus::OK) return false;
-  return apply_records(&reader, nullptr, 0, mode);
-}
-
-bool PanelConfigTextBindings::validate_runtime_records(const PanelConfigRecord *records, size_t count) const {
-  if (!configured() || !records || !count) return false;
-  const auto &profile = records[0];
-  return profile.type == PanelConfigRecordType::DEVICE_PROFILE &&
-      profile.value_size == device_profile_.size() &&
-      std::memcmp(profile.value, device_profile_.data(), profile.value_size) == 0;
-}
-
-bool PanelConfigTextBindings::publish_runtime_records(const PanelConfigRecord *records, size_t count) {
-  return validate_runtime_records(records, count) && apply_records(nullptr, records, count, ApplyMode::PUBLISH);
-}
-
-bool PanelConfigTextBindings::apply_records(PanelConfigReader *reader,
-    const PanelConfigRecord *records, size_t count, ApplyMode mode) {
-  size_t index = 0;
-  auto next = [&](PanelConfigRecord *record) {
-    if (reader) return reader->next(record);
-    if (index == count) return PanelConfigStatus::END;
-    *record = records[index++];
-    return PanelConfigStatus::OK;
-  };
   uint32_t button_slots = 0;
   uint32_t subpage_slots = 0;
   bool has_button_order = false;
   bool has_button_on_color = false;
   PanelConfigRecord record;
   PanelConfigStatus status = PanelConfigStatus::OK;
-  while ((status = next(&record)) == PanelConfigStatus::OK) {
+  while ((status = reader.next(&record)) == PanelConfigStatus::OK) {
     // Stored slots outside this profile are retained by the native document;
     // they are not compatibility text fields and consume no preference budget.
     if (!owns_record(record)) continue;

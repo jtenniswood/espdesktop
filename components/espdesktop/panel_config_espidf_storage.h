@@ -28,6 +28,7 @@ class EspIdfPanelConfigBlobStorage final : public BlobStorage {
   bool sync() override;
   StoreStatus sync_failure() const override { return sync_failure_; }
   bool supports_range_io() const override;
+  bool prepare_range_slot(uint8_t slot, size_t size) override;
   bool read_range(uint8_t slot, size_t offset, uint8_t *output,
                   size_t size) override;
   bool write_range(uint8_t slot, size_t offset, const uint8_t *data,
@@ -46,7 +47,7 @@ private:
   size_t partition_slot_offset(uint8_t slot) const;
   bool load_partition_blob(uint8_t slot, uint8_t *output, size_t capacity);
   bool save_partition_blob(uint8_t slot, const uint8_t *data, size_t size);
-  bool erase_partition_slot(uint8_t slot);
+  bool erase_partition_slot(uint8_t slot, size_t size);
 
   nvs_handle_t handle_{0};
   const esp_partition_t *partition_{nullptr};

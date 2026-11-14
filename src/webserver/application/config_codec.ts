@@ -1,4 +1,5 @@
-import { cardContractTypeRetired } from "../generated/card_contract";
+import { isRetiredLayoutCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
+import { retiredSavedCardType } from "../model/card";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
 import { companionCardHasAppIcon, companionMetricForEntity } from "../model/companion_card_codec";
 import { childPageKey, pageDepth, parentPageKey } from "../model/page_keys";
@@ -52,7 +53,6 @@ import { migrateSavedConfigWeatherLegacy, normalizeSavedConfigWeather } from "..
 import { normalizeSavedConfigImage } from "../generated/saved_config_image";
 import { normalizeSavedConfigClimate } from "../generated/saved_config_climate";
 import { normalizeSavedConfigLightControl } from "../generated/saved_config_light_control";
-import { normalizeSavedConfigWebhook } from "../generated/saved_config_webhook";
 import { normalizeSavedConfigSubpage } from "../generated/saved_config_subpage";
 import { normalizeSavedConfigSwitch } from "../generated/saved_config_switch";
 import { normalizeCompanionCardOptions } from "./companion_shortcut_folder";
@@ -79,7 +79,6 @@ import {
 } from "./config_action_contract";
 import { normalizeCoverMode } from "./config_cover_contract";
 import type { ConfigWeatherOptionsFeature } from "./config_weather_options";
-import type { ConfigWebhookOptionsFeature } from "./config_webhook_options";
 import type { ConfigRobotCardOptionsFeature } from "./config_robot_card_options";
 import type { ConfigLockOptionsFeature } from "./config_lock_options";
 import type { ConfigDateTimeOptionsFeature } from "./config_date_time_options";
@@ -93,7 +92,6 @@ export function createConfigCodecFeature(
     mediaOptions: ConfigMediaOptionsFeature,
     imageOptions: ConfigImageOptionsFeature,
     weatherOptions: ConfigWeatherOptionsFeature,
-    webhookOptions: ConfigWebhookOptionsFeature,
     robotOptions: ConfigRobotCardOptionsFeature,
     lockOptions: ConfigLockOptionsFeature,
     dateTimeOptions: ConfigDateTimeOptionsFeature,
@@ -139,7 +137,6 @@ export function createConfigCodecFeature(
         normalizeImageOptions,
     } = imageOptions;
     const { normalizeWeatherCardMode, weatherWindUsesSensors, normalizeWeatherOptions } = weatherOptions;
-    const { normalizeWebhookConfig, webhookMethod } = webhookOptions;
     const {
         lawnMowerModeDefaultIcon,
         normalizeLawnMowerMode,
@@ -394,19 +391,6 @@ export function createConfigCodecFeature(
     function normalizeSavedConfigLightControlOptions(this: any, options?: any, _b?: any) {
         return normalizeLightControlOptions(options || "");
     }
-    function normalizeSavedConfigWebhookFields(this: any, b?: any) {
-        if (!b)
-            return;
-        b.sensor = webhookMethod(b.sensor);
-        if (b.sensor === "GET" || b.sensor === "DELETE")
-            b.unit = "";
-        if (!b.icon)
-            b.icon = "Auto";
-    }
-    function normalizeSavedConfigWebhookOptions(this: any, options?: any, _b?: any) {
-        var headers: any = configOptionValue(options || "", "webhook_headers");
-        return headers ? setConfigOptionValue("", "webhook_headers", headers) : "";
-    }
     function normalizeSavedConfigSubpageFields(this: any, b?: any) {
         if (subpageKind(b) === "companion_stat") {
             var metric: any = companionMetricForEntity(b.entity) || COMPANION_SYSTEM_METRICS[0];
@@ -431,9 +415,18 @@ export function createConfigCodecFeature(
     function normalizeSavedConfigSubpageOptions(this: any, options?: any, b?: any) {
         return normalizeSubpageOptions(options || "", b && b.sensor, b && b.precision);
     }
+    const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
     function normalizeButtonConfig(this: any, b?: any) {
-        if (b && cardContractTypeRetired(b.type)) {
-            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: b.type });
+        // The original picker used a regular shortcut with the Mac Lock label and icon.
+        // A saved card may have one of those fields customized.
+        if (b?.type === "companion" && b.entity === macLockDefaults.entity && !b.sensor &&
+            !configOptionValue(b.options, "app_shortcut_preset") &&
+            (b.label === macLockDefaults.label || b.icon === macLockDefaults.icon)) {
+            b.type = macLockDefaults.type;
+        }
+        const retiredType = retiredSavedCardType(b);
+        if (retiredType) {
+            return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: retiredType });
         }
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
@@ -460,8 +453,6 @@ export function createConfigCodecFeature(
         var normalizedSavedAccess: any = !!(b && normalizeSavedConfigAccess(b, normalizeSavedConfigAccessFields, normalizeSavedConfigAccessOptions));
         if (b)
             normalizeSavedConfigSecurity(b, normalizeSavedConfigSecurityFields, normalizeSavedConfigSecurityOptions);
-        if (b)
-            normalizeSavedConfigWebhook(b, normalizeSavedConfigWebhookFields, normalizeSavedConfigWebhookOptions);
         normalizeWithRegisteredCardType(b);
         var normalizedSavedStatic: any = !!(b && normalizeSavedConfigStatic(b));
         if (b)
@@ -474,7 +465,7 @@ export function createConfigCodecFeature(
             normalizeSavedConfigSubpage(b, normalizeSavedConfigSubpageFields, normalizeSavedConfigSubpageOptions);
         var normalizedSavedOccupancy: any = !!(b && normalizeSavedConfigOccupancy(b, normalizeSavedConfigOccupancyFields, normalizeSavedConfigOccupancyOptions));
         var normalizedSavedSwitch: any = !!(b && normalizeSavedConfigSwitch(b, normalizeSwitchConfirmationOptions));
-        if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "webhook" && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
+        if (b && !normalizedSavedSwitch && !normalizedSavedAccess && !normalizedSavedOccupancy && !normalizedSavedStatic && !normalizedSavedFan && !normalizedSavedMower && b.type !== "action" && b.type !== "alarm" && b.type !== "alarm_action" && !isClimateCardType(b.type) && b.type !== "media" && b.type !== "companion" && b.type !== "subpage" && b.type !== "image" && b.type !== "light_control" && b.type !== "vacuum" && b.type !== "weather" && !cardLargeNumbersSupported(b)) {
             b.options = "";
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
@@ -505,8 +496,9 @@ export function createConfigCodecFeature(
         return EspDesktopModel.trimConfigFields(fields);
     }
     function buttonConfigFields(this: any, b?: any) {
-        if (b && cardContractTypeRetired(b.type)) {
-            return trimConfigFields(["", "", "Auto", "Auto", "", "", b.type]);
+        const retiredType = retiredSavedCardType(b);
+        if (retiredType) {
+            return trimConfigFields(["", "", "Auto", "Auto", "", "", retiredType]);
         }
         var type: any = b && b.type || "";
         if (b && type === "subpage" && subpageKind(b)) {
@@ -643,15 +635,6 @@ export function createConfigCodecFeature(
                     options,
                 });
         }
-        else if (type === "webhook") {
-            var webhookButton: any = EspDesktopModel.cloneCardConfig(b || {});
-            normalizeWebhookConfig(webhookButton);
-            sensor = webhookButton.sensor;
-            unit = webhookButton.unit;
-            iconOn = webhookButton.icon_on || "Auto";
-            precision = webhookButton.precision || "";
-            options = webhookButton.options || "";
-        }
         else if (type === "lock") {
             options = "";
         }
@@ -685,7 +668,7 @@ export function createConfigCodecFeature(
         else if (isActionOptionSelect || isFanCardType(type)) {
             options = "";
         }
-        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "webhook" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
+        else if (type !== "action" && type !== "alarm_action" && !isClimateCardType(type) && type !== "cover" && type !== "garage" && type !== "gate" && type !== "media" && type !== "presence" && type !== "light_control" && type !== "fan_control" && type !== "weather" && !cardLargeNumbersSupported({ type: type, precision: precision })) {
             options = "";
         }
         if (type === "image") {
@@ -927,10 +910,13 @@ export function createConfigCodecFeature(
         if (combined) {
             var migrateConfig: any = subpageConfigNeedsMigration(combined);
             var sp: any = parseSubpageConfig(combined);
+            const retired = removeRetiredSubpageRecords(combined, sp.buttons, isRetiredLayoutCard);
             sp.sizes = sp.sizes || {};
             var layoutNormalized: any = buildSubpageGridAndNormalizeOrder(sp);
             state.subpages[slot] = sp;
-            if (migrateConfig || layoutNormalized)
+            if (retired.slots.size)
+                scheduleSliderSubpageMigration(slot, retired.value);
+            else if (!pending && (migrateConfig || layoutNormalized))
                 scheduleSliderSubpageMigration(slot);
         }
         else {
@@ -955,6 +941,9 @@ export function createConfigCodecFeature(
         var result: any = EspDesktopModel.buildSubpageGrid(sp, layout.totalSlots, layout.gridCols, layout.previewSlots);
         sp.grid = result.grid;
         sp.sizes = result.sizes;
+        if (removeRetiredCards(sp.grid, sp.sizes, sp.buttons, layout.gridCols, isRetiredLayoutCard).length) {
+            sp.order = serializeSubpageGrid(sp);
+        }
         return sp.grid;
     }
     function buildSubpageGridAndNormalizeOrder(this: any, sp?: any) {

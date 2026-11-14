@@ -9,6 +9,13 @@ final class CompanionPairingInputTests: XCTestCase {
         XCTAssertTrue(CompanionPairingInput.isValid(host: "display.local", code: "ABCD-EFGH"))
     }
 
+    func testShortCodeAndExpectedLength() {
+        XCTAssertEqual(CompanionPairingInput.normalizedCode(" abcd\n"), "ABCD")
+        XCTAssertNil(CompanionPairingInput.normalizedCode("AB-CD"))
+        XCTAssertNil(CompanionPairingInput.normalizedCode("ABCDEFGH", letterCount: 4))
+        XCTAssertNil(CompanionPairingInput.normalizedCode("ABCD", letterCount: 8))
+    }
+
     func testDiscoveredEndpointAndSmartDashCanPair() {
         for host in ["display.local:8443", "display.local:9443", "192.168.6.100:8443", "wss://display.local:8443", "[fd00::1]:8443"] {
             for dash in ["-", "‐", "‑", "–", "—", "−"] {

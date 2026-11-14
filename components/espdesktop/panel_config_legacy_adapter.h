@@ -5,15 +5,16 @@
 
 namespace espdesktop::configuration {
 
-// Imports preference-backed fields once, publishes live compatibility text
-// after activation, and mirrors preferences while the checked release policy
-// still promises downgrade compatibility.
+// Imports preference-backed layouts once. Current firmware publishes the
+// screen settings that still use ESPHome text bindings. Dual-write releases
+// can also publish and mirror card text for older firmware.
 class PanelConfigLegacyAdapter final : public LegacyConfigurationAdapter {
  public:
   explicit PanelConfigLegacyAdapter(PanelConfigTextBindings &bindings,
       ConfigurationBuffer::Allocate allocate = ConfigurationBuffer::allocate_host,
-      ConfigurationBuffer::Release release = ConfigurationBuffer::release_host)
-      : bindings_(bindings), allocate_(allocate), release_(release) {}
+      ConfigurationBuffer::Release release = ConfigurationBuffer::release_host,
+      LegacyConfigurationMode mode = LegacyConfigurationMode::DUAL_WRITE)
+      : bindings_(bindings), allocate_(allocate), release_(release), mode_(mode) {}
 
   bool configured() const { return bindings_.configured(); }
   LegacyLoadResult load(uint8_t *output, size_t output_capacity) override;
@@ -41,6 +42,7 @@ class PanelConfigLegacyAdapter final : public LegacyConfigurationAdapter {
   PanelConfigTextBindings &bindings_;
   ConfigurationBuffer::Allocate allocate_;
   ConfigurationBuffer::Release release_;
+  LegacyConfigurationMode mode_;
 };
 
 }  // namespace espdesktop::configuration

@@ -11,8 +11,6 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"lawn_mower", true},
     {"alarm", true},
     {"alarm_action", true},
-    {"calendar", true},
-    {"clock", true},
     {"climate", true},
     {"climate_control", true},
     {"cover", true},
@@ -33,14 +31,16 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"lock", true},
     {"media", true},
     {"push", true},
+    {"companion_mac_lock", true},
     {"companion", true},
-    {"webhook", true},
     {"slider", true},
     {"subpage", true},
-    {"timezone", true},
     {"weather", true},
     {"image", true},
     {"weather_forecast", true},
+    {"calendar", true},
+    {"clock", true},
+    {"timezone", true},
 };
 
 inline constexpr DeviceUiLimits DEVICE_UI_PROFILES[] = {

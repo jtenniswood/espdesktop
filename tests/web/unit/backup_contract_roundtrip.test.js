@@ -15,12 +15,15 @@ for (const version of [1, 2]) {
   test(`application export/import round trip accepts native v${version}`, () => {
     const document = structuredClone(fixture);
     if (version === 1) document.subpages = { 1: "~B,1|companion,shortcut.command%2Bl,Address" };
+    document.buttons[2] = "media.output_volume;Saved volume;Auto;Auto;;;slider;;";
+    document.settings.button_order = "1,2";
+    document.subpages[1] = document.subpages[1].replace("~B,1|", "~B,1,2|") + "|slider,media.input_volume,Saved mic";
     const bytes = version === 1 ? model.encodePanelConfig(document) : graph.encodePanelPageDocument(document);
     const feature = createBackupFeature({ deviceId: document.deviceProfile, gridCols: 3, numSlots: 9,
       normalizeButtonConfig: model.cloneCardConfig, parseSubpageConfig: parse,
       serializeSubpageConfig: () => document.subpages[1], buildSubpageGrid: sp => model.buildSubpageGrid(sp, 9, 3).grid });
     const buttons = Array.from({ length: 9 }, (_, index) => model.parseRawButtonConfig(document.buttons[index + 1]));
-    const outer = feature.createBackupConfig({ buttons, subpages: { 1: parse(document.subpages[1]) }, button_order: "1" });
+    const outer = feature.createBackupConfig({ buttons, subpages: { 1: parse(document.subpages[1]) }, button_order: "1,2" });
     const exporter = createBackupExportController({ serializeButtonConfig: () => "", serializeSubpageConfig: () => "" });
     const exported = exporter.addNativeConfig(outer, { deviceProfile: document.deviceProfile, buttons,
       subpages: {}, nativeDocumentBytes: bytes });

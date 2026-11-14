@@ -1,3 +1,4 @@
+import type { CardConfig } from "../contracts/types";
 import type { PanelConfigDocument } from "./panel_config";
 import { CARD_CONFIG_FIELDS } from "./card";
 import { CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE } from "../generated/card_contract";
@@ -17,29 +18,36 @@ export function updateEditorPage(current: PanelConfigDocument, key: number, valu
     ? (CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE[code as keyof typeof CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE] ?? code) : code;
   const oldCards = parseRawSubpageConfig(current.subpages[key], decode).buttons;
   const nextCards = parseRawSubpageConfig(value, decode).buttons;
-  const identity = (card: typeof oldCards[number]) => JSON.stringify(CARD_CONFIG_FIELDS.map(field => card[field] || ""));
-  const matched = new Map<number, number>(), used = new Set<number>();
-  // Reserve unchanged siblings before comparing editable card fields. An
-  // edited folder may acquire the same label/configuration as its neighbour.
-  nextCards.slice(0, 32).forEach((card, index) => {
-    if (oldCards[index] && identity(card) === identity(oldCards[index])) {
-      matched.set(index, index); used.add(index);
-    }
-  });
-  nextCards.slice(0, 32).forEach((card, index) => {
-    if (matched.has(index)) return;
-    const previous = oldCards.findIndex((old, oldIndex) => !used.has(oldIndex) && identity(old) === identity(card));
-    if (previous >= 0) { matched.set(index, previous); used.add(previous); }
-  });
-  // A normal field edit keeps the card identity at its existing position.
-  nextCards.slice(0, 32).forEach((_card, index) => {
-    if (!matched.has(index) && index < oldCards.length && !used.has(index)) {
-      matched.set(index, index); used.add(index);
-    }
-  });
+  const matched = matchPageCards(oldCards, nextCards, 32);
   for (const [index, previous] of matched) {
     const raw = current.subpages[childPageKey(key, previous + 1)];
     if (raw !== undefined) subpages[childPageKey(key, index + 1)] = raw;
   }
   return { ...current, subpages };
+}
+
+export function matchPageCards(oldCards: readonly Readonly<CardConfig>[], nextCards: readonly Readonly<CardConfig>[],
+    limit = nextCards.length): Map<number, number> {
+  const next = nextCards.slice(0, limit);
+  const identity = (card: Readonly<CardConfig>) => JSON.stringify(CARD_CONFIG_FIELDS.map(field => card[field] || ""));
+  const matched = new Map<number, number>(), used = new Set<number>();
+  // Reserve unchanged siblings before comparing editable card fields. An
+  // edited folder may acquire the same label/configuration as its neighbour.
+  next.forEach((card, index) => {
+    if (oldCards[index] && identity(card) === identity(oldCards[index])) {
+      matched.set(index, index); used.add(index);
+    }
+  });
+  next.forEach((card, index) => {
+    if (matched.has(index)) return;
+    const previous = oldCards.findIndex((old, oldIndex) => !used.has(oldIndex) && identity(old) === identity(card));
+    if (previous >= 0) { matched.set(index, previous); used.add(previous); }
+  });
+  // A normal field edit keeps the card identity at its existing position.
+  next.forEach((_card, index) => {
+    if (!matched.has(index) && index < oldCards.length && !used.has(index)) {
+      matched.set(index, index); used.add(index);
+    }
+  });
+  return matched;
 }

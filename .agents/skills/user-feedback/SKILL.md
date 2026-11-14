@@ -18,12 +18,7 @@ Create a complete draft that the user can review before it is posted. Do not pub
      espdesktop_component_ref: "<branch>"
    ```
 
-4. If the feature changes the web UI, point `web_server.js_url` at the matching branch web asset when practical. Prefer the repository’s established jsDelivr pattern:
-
-   ```yaml
-   web_server:
-     js_url: https://cdn.jsdelivr.net/gh/jtenniswood/espdesktop@<branch>/docs/public/webserver/embedded/www.js?device=<device-slug>&v=<test-label>
-   ```
+4. If the feature changes the web UI, use the branch's matching editor. Prefer the factory or OTA binary in the `pr-firmware-<slug>` artifact for the exact workflow run. For a manual ESPHome package install, provide a reachable URL serving the generated branch editor before suggesting a `web_server.js_url` override.
 
 5. Include a complete, copyable ESPHome YAML example. Use the device’s documented `packages.yaml` path and matching device slug; do not invent paths. Include Wi-Fi placeholders using the repository’s normal `!secret` convention unless the user requests inline credentials.
 6. Give testers a short numbered checklist tied to the feature’s acceptance criteria. For climate controls, cover capability visibility, the old control’s behavior, the new control’s behavior, independent backend attributes/services, labels, and unsupported-entity behavior when relevant.

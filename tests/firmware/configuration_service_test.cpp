@@ -155,7 +155,7 @@ std::vector<uint8_t> bytes(const char *value) {
   return std::vector<uint8_t>(value, value + std::strlen(value));
 }
 
-std::vector<uint8_t> panel_config_document() {
+std::vector<uint8_t> panel_config_document(std::string_view theme = {}) {
   std::array<uint8_t, 128> buffer{};
   PanelConfigWriter writer(buffer.data(), buffer.size());
   if (writer.begin() != PanelConfigStatus::OK ||
@@ -166,9 +166,30 @@ std::vector<uint8_t> panel_config_document() {
                            13) != PanelConfigStatus::OK) {
     return {};
   }
+  if (!theme.empty()) {
+    const auto key = espdesktop::DISPLAY_THEME_PREFERENCES_KEY;
+    if (writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+        reinterpret_cast<const uint8_t *>(theme.data()), theme.size()) != PanelConfigStatus::OK) return {};
+  }
   size_t document_size = 0;
   if (writer.finish(&document_size) != PanelConfigStatus::OK) return {};
   return {buffer.begin(), buffer.begin() + document_size};
+}
+
+bool invalid_theme_is_a_document_error() {
+  PanelConfigDocumentValidator validator;
+  for (const bool valid : {false, true}) {
+    const auto bytes = panel_config_document(valid ? "1,auto,sun,415,1200,-35,45"
+                                                  : "1,auto,sun,1440,1200,-35,45");
+    const auto expected = valid ? ServiceStatus::OK : ServiceStatus::INVALID_DOCUMENT;
+    if (bytes.empty() || validator.write_validation_status(1, bytes.data(), bytes.size()) != expected)
+      return false;
+    PanelConfigRepresentation representation(ConfigurationBuffer::allocate_host, ConfigurationBuffer::release_host);
+    if (representation.convert(1, 2, bytes.data(), bytes.size(), 1024) != PanelConfigRepresentationStatus::OK ||
+        validator.write_validation_status(2, representation.data(), representation.size()) != expected)
+      return false;
+  }
+  return true;
 }
 
 bool legacy_is_imported_once() {
@@ -927,6 +948,7 @@ int main() {
       conditional_save_rejects_a_stale_generation() &&
       version_and_buffer_failures_are_explicit() &&
       malformed_store_document_is_not_treated_as_legacy() &&
+      invalid_theme_is_a_document_error() &&
       panel_config_validator_protects_the_atomic_store() &&
       panel_config_validator_rejects_invalid_stored_documents() &&
       panel_config_validator_rejects_invalid_legacy_imports() &&
