@@ -1,7 +1,6 @@
 #pragma once
 
 #include <ctime>
-#include "token_usage_icons.h"
 
 struct TokenUsageTileRow {
   lv_obj_t *value{nullptr};
@@ -75,33 +74,15 @@ inline void token_usage_tile_tick(lv_timer_t *timer) {
   if (lv_obj_get_screen(tile->container) == lv_scr_act()) refresh_token_usage_tile(*tile);
 }
 
-#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-inline const lv_image_dsc_t *token_usage_icon(size_t index) {
-  static const auto descriptors = [] {
-    std::array<lv_image_dsc_t, static_cast<size_t>(TokenUsageService::COUNT)> result{};
-    const uint8_t *pixels[] = {token_usage_codex_icon, token_usage_claude_icon, token_usage_opencode_go_icon,
-                               token_usage_claude_icon};
-    for (size_t i = 0; i < result.size(); ++i) {
-      auto &icon = result[i];
-      icon.header.magic = LV_IMAGE_HEADER_MAGIC;
-      icon.header.cf = LV_COLOR_FORMAT_A8;
-      icon.header.w = icon.header.h = 32;
-      icon.header.stride = 32;
-      icon.data_size = sizeof(token_usage_codex_icon);
-      icon.data = pixels[i];
-    }
-    return result;
-  }();
-  return &descriptors[index];
-}
-#endif
-
 // Contract coverage marker: "token_usage".
 inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
                                     const DisplayProfile &display, const CardPalette &palette) {
   const auto service = token_usage_service(cfg_option_value(config.options, "services"));
   lv_obj_clear_flag(slot.btn, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_add_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+  // Use the standard icon label so the glyph follows the card size and theme.
+  constexpr const char *glyphs[] = {"\uE900", "\uE901", "\uE902", "\uE901"};
+  lv_obj_clear_flag(slot.icon_lbl, LV_OBJ_FLAG_HIDDEN);
+  lv_label_set_text(slot.icon_lbl, glyphs[static_cast<size_t>(service)]);
   lv_obj_add_flag(slot.text_lbl, LV_OBJ_FLAG_HIDDEN);
   lv_obj_add_flag(slot.sensor_container, LV_OBJ_FLAG_HIDDEN);
   lv_obj_set_style_bg_color(slot.btn, lv_color_hex(palette.has_off ? palette.off_val : palette.sensor_val),
@@ -118,18 +99,6 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   const auto foreground = lv_obj_get_style_text_color(slot.text_lbl, LV_PART_MAIN);
 
   tile->service = static_cast<size_t>(service);
-#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-  auto *icon = lv_image_create(container);
-  lv_image_set_src(icon, token_usage_icon(tile->service));
-  lv_obj_set_style_image_recolor(icon, foreground, LV_PART_MAIN);
-  lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, LV_PART_MAIN);
-#else
-  auto *icon = lv_label_create(container);
-  const char *names[] = {"Codex", "Claude", "OpenCode Go", "Claude Enterprise"};
-  lv_label_set_text(icon, names[tile->service]);
-#endif
-  lv_obj_clear_flag(icon, LV_OBJ_FLAG_CLICKABLE);
-  lv_obj_align(icon, LV_ALIGN_TOP_LEFT, 0, 0);
   auto *value = lv_label_create(container);
   auto *reset = lv_label_create(container);
   for (auto *label : {value, reset}) {

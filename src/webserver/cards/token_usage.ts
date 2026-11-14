@@ -2,7 +2,6 @@ import type { CardRegistry, CardUiServices } from "../application/card_registry"
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import { cardContractDefaultConfig } from "../generated/card_contract";
 import { configOptionValue, setConfigOptionValue } from "../model/config_primitives";
-import { TOKEN_USAGE_ICONS } from "./token_usage_icons";
 
 const SERVICES = [
   ["codex", "ChatGPT (Codex)"],
@@ -51,9 +50,10 @@ export function registerTokenUsageCard(
     renderPreview: (card, helpers) => {
       const selected = selectedServices(card.options);
       const enterprise = selected === "claude-enterprise";
+      const glyph = selected === "codex" ? "\uE900" : selected === "opencode-go" ? "\uE902" : "\uE901";
       const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
         (selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +
-        '" style="--token-usage-icon:url(' + TOKEN_USAGE_ICONS[enterprise ? "claude" : selected] + ')"></span>';
+        '">' + glyph + '</span>';
       const value = (left: string) =>
         '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) + '</span>';
       const reset = (text: string) =>

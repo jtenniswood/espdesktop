@@ -4294,7 +4294,14 @@ async function assertTokenUsageCard(browser) {
       "Token Usage saves Claude");
     await page.reload();
     await load();
-    await tile().getByRole("img", { name: "Claude" }).waitFor();
+    const claudeIcon = tile().getByRole("img", { name: "Claude" });
+    await claudeIcon.waitFor();
+    assert.strictEqual(await claudeIcon.evaluate(async (icon) => {
+      const { fontFamily, fontSize } = getComputedStyle(icon);
+      if (!fontFamily.includes("EspDesktop Usage Icons")) return false;
+      const fonts = await document.fonts.load(fontSize + " " + fontFamily, icon.textContent);
+      return fonts.some(font => font.status === "loaded");
+    }), true);
     assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(),
       ["Resets 2d 9h"]);
     await edit();

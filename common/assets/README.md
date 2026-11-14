@@ -7,6 +7,12 @@ The Material Design Icons font is committed under `common/assets/fonts/` so
 firmware builds do not depend on downloading it during ESPHome configuration.
 Keep its filename version aligned with `MDI_VERSION` in `scripts/build.py`.
 
+Token Usage service glyphs come from the SVG outlines in `token_usage/`.
+Run `python3 scripts/generate_token_usage_font.py` with FontTools installed
+to regenerate the shared font used by the S3 and offline editor. The
+ChatGPT knot and Claude mark come from Simple Icons (CC0), and the OpenCode
+glyph uses the outer shape of the OpenCode mark.
+
 ## Font style names
 
 Device fonts use functional style IDs instead of physical names such as
