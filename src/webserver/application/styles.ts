@@ -754,6 +754,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-fw-btn.sp-fw-btn-busy:hover{background:rgba(35,37,43,.5);border-color:rgba(74,77,84,.45)}" +
         ".sp-btn-label-row{display:flex;align-items:last baseline;gap:4px;width:100%;overflow:hidden;position:relative;z-index:1}" +
         ".sp-btn-label-row .sp-btn-label{flex:0 1 auto;min-width:0}" +
+        ".sp-field.sp-token-usage-limit{margin-bottom:12px}" +
         ".sp-token-usage-icon{pointer-events:none}" +
         ".sp-btn-label-row.sp-token-usage-single{display:flex;flex-direction:column;align-items:flex-start;gap:0}" +
         ".sp-token-usage-value,.sp-token-usage-reset{display:block;white-space:nowrap}" +

@@ -57,6 +57,7 @@ export function registerTokenUsageCard(
           helpers.saveField("options", card.options);
           cardUi.renderPreview();
         });
+      limit.field.classList.add("sp-token-usage-limit");
       limit.field.style.display = selectedServices(card.options) === "opencode-go" ? "" : "none";
       const usageFields = panel.ownerDocument.createElement("div");
       usageFields.append(field.field, limit.field);
