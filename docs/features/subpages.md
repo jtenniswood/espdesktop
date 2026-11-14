@@ -48,6 +48,12 @@ Use **Next Sidebar Item** and **Previous Sidebar Item** on your ChatGPT Desktop 
 
 If you already have **Next Chat** and **Previous Chat** cards that send **Control + Tab** and **Control + Shift + Tab**, those keys now switch tabs by default. You can replace the saved cards with the sidebar presets in the EspDesktop editor. To keep cycling through recently viewed chats with your existing cards, open **Settings → Keyboard Shortcuts** in ChatGPT Desktop. Assign **Control + Tab** to **Next recently viewed chat** and **Control + Shift + Tab** to **Previous recently viewed chat**.
 
+## Dictate in ChatGPT Desktop
+
+Use the **Dictate** microphone beside the message box to turn speech into draft text. If you have a saved **Start dictation** tile that sends **Control + Shift + D**, that combination is a browser shortcut.
+
+If **Single-tap dictation** is available under **Settings → Keyboard Shortcuts** in ChatGPT Desktop, assign it a shortcut with **Command**, **Control**, or **Option** plus a key. In EspDesktop, replace the old tile with a **Key Shortcut** card and enter the same keys in the **Custom** tab. Tap the tile once to start dictation and again to stop.
+
 ## Swipe back
 
 Swipe right from the left edge of a subpage to use its **Back** action. This also works on app subpages while the touchscreen is unlocked and showing its cards.

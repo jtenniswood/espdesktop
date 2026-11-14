@@ -464,7 +464,6 @@
     {"id": "93", "label": "Previous Sidebar Item", "shortcut": "scoped.command+option+left", "icon": "Tab"},
     {"id": "94", "label": "Next Tab", "shortcut": "scoped.command+shift+keybracketright", "icon": "Tab"},
     {"id": "95", "label": "Next Sidebar Item", "shortcut": "scoped.command+option+right", "icon": "Tab"},
-    {"id": "96", "label": "Start dictation", "shortcut": "scoped.control+shift+d", "icon": "Microphone"},
     {"id": "97", "label": "Restore previous composer prompt", "shortcut": "scoped.up", "icon": "Arrow Left"},
     {"id": "98", "label": "Run primary environment action", "shortcut": "scoped.command+shift+d", "icon": "Run"},
     {"id": "99", "label": "Focus browser address bar or go to line", "shortcut": "scoped.command+l", "icon": "Code"},

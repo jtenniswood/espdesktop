@@ -114,6 +114,7 @@ test("ChatGPT Desktop uses the installed app identifier and keeps its numbered s
   assert.equal(api.companionShortcutFolderAppLabel(app.appId), "ChatGPT Desktop");
   const presets = api.companionShortcutPresetCards(app.appId);
   assert.equal(presets.length, 72 + app.moreShortcuts.length);
+  assert(!presets.some(card => card.label === "Start dictation"), "browser dictation is unavailable in ChatGPT Desktop");
   assert.equal(api.companionShortcutPresetCards(legacy.appId).length, legacy.shortcuts.length + legacy.moreShortcuts.length);
   assert(presets.every(card => api.companionShortcutActionIdValid(card.entity)));
   assert(!api.companionShortcutActionIdValid("shortcut.shift+tab"));
