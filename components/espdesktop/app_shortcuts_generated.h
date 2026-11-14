@@ -77,6 +77,7 @@ inline const char *app_label(const std::string &app) {
   if (app == "com.apple.iWork.Numbers") return "Numbers";
   if (app == "com.obsproject.obs-studio") return "OBS Studio";
   if (app == "md.obsidian") return "Obsidian";
+  if (app == "ai.opencode.desktop") return "OpenCode";
   if (app == "com.orcaslicer.OrcaSlicer") return "OrcaSlicer";
   if (app == "com.apple.iWork.Pages") return "Pages";
   if (app == "com.apple.Photos") return "Photos";
@@ -161,6 +162,7 @@ inline bool has_shortcut(const std::string &app, const std::string &id) {
   if (app == "com.apple.iWork.Numbers") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6";
   if (app == "com.obsproject.obs-studio") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5";
   if (app == "md.obsidian") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9";
+  if (app == "ai.opencode.desktop") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8" || id == "9" || id == "10" || id == "11";
   if (app == "com.orcaslicer.OrcaSlicer") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
   if (app == "com.apple.iWork.Pages") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4" || id == "5" || id == "6" || id == "7" || id == "8";
   if (app == "com.apple.Photos") return id == "0" || id == "1" || id == "2" || id == "3" || id == "4";
