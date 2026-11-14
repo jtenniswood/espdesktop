@@ -3,11 +3,14 @@
 
 // Local Mac output/input volume sliders. Legacy numeric, light, fan and
 // option_select identifiers remain in the saved contract; their drivers retire.
-// Contract coverage markers: "slider", "light_brightness", "light_temperature",
+// Contract coverage markers: "companion_app_volume", "slider", "light_brightness", "light_temperature",
 // "fan_speed", "fan_oscillate", "fan_direction", "fan_preset", "option_select".
 namespace espdesktop::cards {
 inline bool numeric_selectable_driver_matches(const Context &, const ParsedCfg &config) {
-  return config.type == "slider" && companion_volume_control_valid(config.entity);
+  if (config.type == "companion_app_volume")
+    return companion_app_volume_control_valid(config.entity);
+  return config.type == "slider" && companion_volume_control_valid(config.entity) &&
+    !companion_app_volume_control_valid(config.entity);
 }
 inline void numeric_selectable_driver_track_slider_cleanup(BtnSlot &slot) {
   lv_obj_t *slider = slot.sensor_container
@@ -56,7 +59,6 @@ inline bool numeric_selectable_driver_cleanup(
   return numeric_selectable_driver_matches(context, config);
 }
 inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg &config) {
-  if (config.type != "slider" || !companion_volume_control_valid(config.entity)) return;
   if (companion_mute_control_valid(config.entity)) {
     const bool microphone = config.entity == "media.input_mute";
     const char *previous_default_label = microphone ? "Microphone Mute" : "Output Mute";

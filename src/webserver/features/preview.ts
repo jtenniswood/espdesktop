@@ -64,6 +64,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
   companion_app: { icon: "application-outline", description: "Launch an app on the Mac." },
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
+  companion_app_volume: { icon: "volume-high", description: "Adjust the sound from one Mac app." },
   companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
   companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },

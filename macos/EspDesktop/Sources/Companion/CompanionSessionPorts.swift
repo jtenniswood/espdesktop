@@ -34,7 +34,7 @@ protocol CompanionSessionResources: AnyObject {
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
-    func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool
+    func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool
 }
 
 @MainActor

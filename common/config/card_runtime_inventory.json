@@ -253,6 +253,11 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "approved_app", "config": { "entity": "com.apple.Safari", "label": "Safari" } }]
     },
+    "companion_app_volume": {
+      "classification": "canonical", "canonicalType": "companion_app_volume", "webRegistration": "companion_app_volume", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "approved_app", "config": { "entity": "app.volume.com.example.Player", "label": "Player" } }]
+    },
     "companion_mac_lock": {
       "classification": "canonical", "canonicalType": "companion_mac_lock", "webRegistration": "companion_mac_lock", "firmwareFamily": "COMPANION",
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },

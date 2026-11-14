@@ -1431,5 +1431,82 @@
     "direction": "mac_to_panel",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "app volume command",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com.example.Player",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume state",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "app.volume.com.example.Player",
+      "available": true,
+      "value": 35
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume unavailable",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "app.volume.com.example.Player",
+      "available": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "app volume with invalid identifier",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com/example",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "app volume with empty bundle identifier",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "app volume before authentication",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "app.volume.com.example.Player",
+      "requestId": "v2",
+      "value": 35
+    },
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": false
   }
 ]

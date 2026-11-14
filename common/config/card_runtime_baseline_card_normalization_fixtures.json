@@ -960,6 +960,21 @@
     }
   },
   {
+    "name": "companion_app_volume: approved_app",
+    "input": "~app.volume.com.example.Player,Player,Volume%20High,Auto,,,companion_app_volume,,",
+    "expected": {
+      "entity": "app.volume.com.example.Player",
+      "label": "Player",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_app_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "companion_mac_lock: lock",
     "input": "~shortcut.command%2Bcontrol%2Bq,Mac%20Lock,Lock,Auto,,,companion_mac_lock,,",
     "expected": {

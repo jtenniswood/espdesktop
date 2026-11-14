@@ -152,6 +152,9 @@ final class CompanionStore: NSObject, ObservableObject {
     private var latestSystemMetricsSnapshot: CompanionSystemMetricsSnapshot?
     private let sessionLock = MacSessionLockMonitor()
     private var mediaControlTimer: Timer?
+    private var appVolumeController: (any AppVolumeControlling)?
+    private var appVolumeRefresh: Task<Void, Never>?
+    private var lastAppVolumeValues: [String: Int] = [:]
     private var focusTimer: Timer?
     private var activatedApplicationPID: pid_t?
     private var browserFocusQuery: Task<URL?, Never>?
@@ -187,6 +190,7 @@ final class CompanionStore: NSObject, ObservableObject {
         let records = savedDisplays.load { KeychainStore.accounts(service: KeychainStore.service) }
         onboardingCompleted = stableDefaults.bool(forKey: Keys.onboardingCompleted) || !records.isEmpty
         super.init()
+        if #available(macOS 14.2, *) { appVolumeController = AppVolumeController() }
         displays = records.map(makeDisplay)
         sessionLock.onChange = { [weak self] locked, displayAwake in
             self?.publishToConnectedDisplays { $0.publishSessionLock(locked, displayAwake: displayAwake) }
@@ -406,6 +410,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
         publishToConnectedDisplays { $0.publishCatalogue() }
+        refreshAppVolumeValues()
     }
 
     func setApplication(_ application: LaunchableApp, approved: Bool) {
@@ -416,6 +421,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         defaults.set(approvedApplicationIdentifiers.sorted(), forKey: Keys.approvedApplications)
         publishToConnectedDisplays { $0.publishCatalogue() }
+        refreshAppVolumeValues()
     }
 
     func folderActions() -> [ApprovedFolder] { approvedFolders }
@@ -762,6 +768,8 @@ final class CompanionStore: NSObject, ObservableObject {
                 display.connection.publishSystemMetrics(snapshot, force: true)
             }
             publishMediaControlValues(force: true, to: display)
+            display.connection.publishMediaControlValues(lastAppVolumeValues, unavailable: [])
+            refreshAppVolumeValues()
         }
     }
 
@@ -795,6 +803,12 @@ final class CompanionStore: NSObject, ObservableObject {
             activatedApplicationPID = nil
             invalidateBrowserFocusQuery()
             lastMediaControlValues = [:]
+            lastAppVolumeValues = [:]
+            appVolumeRefresh?.cancel()
+            appVolumeRefresh = nil
+            if let controller = appVolumeController {
+                Task { await controller.reset() }
+            }
         }
     }
 
@@ -1007,8 +1021,22 @@ final class CompanionStore: NSObject, ObservableObject {
         return true
     }
 
-    func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool {
+    func setMediaControlValue(_ value: Int, controlIdentifier: String) async -> Bool {
         guard !sessionLock.refresh() else { return false }
+        if let bundleID = CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) {
+            guard let controller = appVolumeController,
+                  let url = launchableApps().first(where: { $0.bundleIdentifier == bundleID })?.url else {
+                return false
+            }
+            let changed = await controller.setLevel(value, for: bundleID, bundleURL: url)
+            if !changed {
+                // Return the slider to its normal level even if the failed
+                // request left the last published state at 100%.
+                publishToConnectedDisplays { $0.publishMediaControlValues([controlIdentifier: 100], unavailable: []) }
+            }
+            refreshAppVolumeValues()
+            return changed
+        }
         guard mediaController.setValue(value, controlIdentifier: controlIdentifier) else { return false }
         publishMediaControlValues(force: true)
         return true
@@ -1019,6 +1047,7 @@ final class CompanionStore: NSObject, ObservableObject {
             mediaControlTimer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
                     self?.publishMediaControlValues()
+                    self?.refreshAppVolumeValues()
                 }
             }
         }
@@ -1048,6 +1077,29 @@ final class CompanionStore: NSObject, ObservableObject {
         } else {
             lastMediaControlValues = values
             publishToConnectedDisplays { $0.publishMediaControlValues(values, unavailable: unavailable) }
+        }
+    }
+
+    private func refreshAppVolumeValues() {
+        guard connectedDisplayCount > 0, appVolumeRefresh == nil,
+              let controller = appVolumeController else { return }
+        let selectedApps = Dictionary(uniqueKeysWithValues: launchableApps().map { ($0.bundleIdentifier, $0.url) })
+        appVolumeRefresh = Task { [weak self] in
+            let levels = await controller.levels(for: selectedApps)
+            guard !Task.isCancelled, let self else { return }
+            appVolumeRefresh = nil
+            let apps = launchableApps().prefix(max(0, 256 - folderActions().count))
+            let values: [String: Int] = Dictionary(uniqueKeysWithValues: apps.compactMap { app in
+                let id = "app.volume." + app.bundleIdentifier
+                guard CompanionProtocolDecoder.appVolumeBundleIdentifier(id) != nil else { return nil }
+                return (id, levels[app.bundleIdentifier] ?? 100)
+            })
+            let changed = values.filter { lastAppVolumeValues[$0.key] != $0.value }
+            let unavailable = Set(lastAppVolumeValues.keys).subtracting(values.keys)
+            lastAppVolumeValues = values
+            if !changed.isEmpty || !unavailable.isEmpty {
+                publishToConnectedDisplays { $0.publishMediaControlValues(changed, unavailable: unavailable) }
+            }
         }
     }
 

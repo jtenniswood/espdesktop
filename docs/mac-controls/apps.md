@@ -35,6 +35,14 @@ App cards use the normal card theme by default. Previously saved custom backgrou
 
 Approve **Finder** in the Mac app to use its launch card. Touching an app card sends its action immediately. With a matching current Mac app and firmware, macOS activation updates the active colour directly, without waiting for window, Finder-folder or browser-tab checks. The fill has no outline or fade. Detailed focus checks still control app subpages and keyboard shortcuts separately; touch actions and page changes do not wait for either update.
 
+## Adjust an app’s volume
+
+With macOS 14.2 or later and matching EspDesktop firmware and Mac companion, add an **App Volume** card in the display editor. Select an app enabled in the Mac companion’s **Apps** tab and save. Add another card to control a second app independently.
+
+Play sound in the app and drag its card on the display. Allow **System Audio Recording** on the Mac when prompted. The control applies to audio the app plays through the Mac’s default output. At 100%, the app plays at its normal level. At 0%, the card silences its output. EspDesktop resets these adjustments when the last display disconnects.
+
+Browser tabs that share an audio process use the same app volume. Some apps and audio devices use audio paths the card cannot adjust.
+
 ## Ready-Made app subpages
 
 An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Current examples include **Safari**, **Slack**, and **Codex**; community contributions can add more apps.

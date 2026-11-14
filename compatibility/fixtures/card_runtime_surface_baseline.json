@@ -2021,6 +2021,37 @@
       }
     },
     {
+      "name": "companion_app_volume: approved_app",
+      "sourceKind": "contract",
+      "sourceType": "companion_app_volume",
+      "mode": "approved_app",
+      "canonicalType": "companion_app_volume",
+      "web": {
+        "registration": "companion_app_volume",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "f7b2d092803dd5ae"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "companion_mac_lock: lock",
       "sourceKind": "contract",
       "sourceType": "companion_mac_lock",

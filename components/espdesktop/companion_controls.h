@@ -302,9 +302,19 @@ inline bool companion_mute_control_valid(const std::string &control_id) {
   return control_id == "media.output_mute" || control_id == "media.input_mute";
 }
 
+inline bool companion_app_volume_control_valid(const std::string &control_id) {
+  constexpr std::string_view prefix = "app.volume.";
+  if (control_id.size() <= prefix.size() || control_id.size() > 107 ||
+      control_id.compare(0, prefix.size(), prefix) != 0) return false;
+  return std::all_of(control_id.begin() + prefix.size(), control_id.end(), [](char c) {
+    return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+           (c >= '0' && c <= '9') || c == '.' || c == '-';
+  });
+}
+
 inline bool companion_volume_control_valid(const std::string &control_id) {
   return control_id == "media.output_volume" || control_id == "media.input_volume" ||
-    companion_mute_control_valid(control_id);
+    companion_mute_control_valid(control_id) || companion_app_volume_control_valid(control_id);
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
@@ -321,7 +331,13 @@ inline bool companion_value(const std::string &control_id, int &value) {
 inline void companion_set_value(const std::string &control_id, int value) {
   if (!companion_volume_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
-  companion_runtime_service().set_value(control_id, value);
+  if (companion_app_volume_control_valid(control_id)) {
+    // A regular Mac catalogue is bounded. Apply the same bound to the audio
+    // values arriving over the paired connection.
+    companion_runtime_service().set_value(control_id, value, 260);
+  } else {
+    companion_runtime_service().set_value(control_id, value);
+  }
 }
 
 inline void companion_remove_value(const std::string &control_id) {
