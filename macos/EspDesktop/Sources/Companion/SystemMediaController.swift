@@ -30,6 +30,7 @@ final class SystemMediaController {
     private var coughRestores: [AudioDeviceID: CoughInput] = [:]
     private var restoreLevels: [DeviceKey: Float32] = [:]
     private let findDevice: (AudioObjectPropertyScope) -> AudioDeviceID?
+    private let findInputDevices: () -> [InputDevice]
     private let readVolume: (AudioDeviceID, AudioObjectPropertyScope) -> Float32?
     private let writeVolume: (Float32, AudioDeviceID, AudioObjectPropertyScope) -> Bool
     private let readMute: (AudioDeviceID, AudioObjectPropertyScope) -> Bool?
@@ -40,9 +41,11 @@ final class SystemMediaController {
         volume: @escaping (AudioDeviceID, AudioObjectPropertyScope) -> Float32? = SystemMediaController.volume,
         setVolume: @escaping (Float32, AudioDeviceID, AudioObjectPropertyScope) -> Bool = SystemMediaController.setVolume,
         mute: @escaping (AudioDeviceID, AudioObjectPropertyScope) -> Bool? = SystemMediaController.mute,
-        setMute: @escaping (Bool, AudioDeviceID, AudioObjectPropertyScope) -> Bool = SystemMediaController.setMute
+        setMute: @escaping (Bool, AudioDeviceID, AudioObjectPropertyScope) -> Bool = SystemMediaController.setMute,
+        inputDevices: @escaping () -> [InputDevice] = SystemMediaController.availableInputDevices
     ) {
         findDevice = defaultDevice
+        findInputDevices = inputDevices
         readVolume = volume
         writeVolume = setVolume
         readMute = mute
@@ -65,7 +68,7 @@ final class SystemMediaController {
 
     @discardableResult
     func refreshInputDevices() -> Bool {
-        let devices = Self.availableInputDevices()
+        let devices = findInputDevices()
         guard devices != inputDevices else { return false }
         inputDevices = devices
         return true
@@ -187,8 +190,8 @@ final class SystemMediaController {
     func setValue(_ value: Int, controlIdentifier: String) -> Bool {
         if CompanionProtocolDecoder.isInputDeviceControl(controlIdentifier) {
             // Resolve the stable identifier against the current hardware before writing.
-            guard let input = Self.availableInputDevices().first(where: { $0.controlID == controlIdentifier }) else { return false }
-            return writeVolume(Float32(value.clampedPercentage) / 100, input.device, kAudioDevicePropertyScopeInput)
+            guard let input = findInputDevices().first(where: { $0.controlID == controlIdentifier }) else { return false }
+            return setLevel(value, device: input.device, scope: kAudioDevicePropertyScopeInput)
         }
         let scope: AudioObjectPropertyScope
         switch controlIdentifier {
@@ -197,8 +200,8 @@ final class SystemMediaController {
         default: return false
         }
         guard let device = findDevice(scope) else { return false }
-        let key = DeviceKey(device: device, scope: scope)
         if controlIdentifier == Self.outputMuteID || controlIdentifier == Self.inputMuteID {
+            let key = DeviceKey(device: device, scope: scope)
             guard value == 0 || value == 100 else { return false }
             // Native mute preserves the device's level and works across app restarts.
             if readMute(device, scope) != nil {
@@ -216,9 +219,13 @@ final class SystemMediaController {
             restoreLevels.removeValue(forKey: key)
             return true
         }
+        return setLevel(value, device: device, scope: scope)
+    }
+
+    private func setLevel(_ value: Int, device: AudioDeviceID, scope: AudioObjectPropertyScope) -> Bool {
         guard writeVolume(Float32(value.clampedPercentage) / 100, device, scope) else { return false }
         if value > 0 {
-            restoreLevels.removeValue(forKey: key)
+            restoreLevels.removeValue(forKey: DeviceKey(device: device, scope: scope))
             if readMute(device, scope) == true { return writeMute(false, device, scope) }
         }
         return true

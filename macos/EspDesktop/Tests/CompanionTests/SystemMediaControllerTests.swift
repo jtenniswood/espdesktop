@@ -44,6 +44,7 @@ final class SystemMediaControllerTests: XCTestCase {
         var input: AudioDeviceID = 2
         var levels: [AudioDeviceID: Float32] = [1: 0.7345, 2: 0.4187, 3: 0.25]
         var nativeMutes: [AudioDeviceID: Bool] = [:]
+        var inputDevices: [SystemMediaController.InputDevice] = []
         var writeSucceeds = true
         var writes = 0
         func controller() -> SystemMediaController {
@@ -61,7 +62,8 @@ final class SystemMediaControllerTests: XCTestCase {
                     guard self.writeSucceeds else { return false }
                     self.nativeMutes[device] = muted
                     return true
-                }
+                },
+                inputDevices: { self.inputDevices }
             )
         }
     }
@@ -241,6 +243,21 @@ final class SystemMediaControllerTests: XCTestCase {
         audio.nativeMutes.removeAll()
         XCTAssertTrue(controller.values().isEmpty)
         XCTAssertFalse(controller.setValue(100, controlIdentifier: SystemMediaController.inputMuteID))
+    }
+
+    func testPerDeviceSliderUnmutesTheSelectedMicrophoneAtPositiveLevels() {
+        let audio = AudioFixture()
+        let control = "input.level." + String(repeating: "c", count: 64)
+        audio.inputDevices = [.init(controlID: control, name: "USB microphone", device: 3)]
+        audio.nativeMutes = [2: true, 3: true]
+        let controller = audio.controller()
+
+        XCTAssertTrue(controller.setValue(0, controlIdentifier: control))
+        XCTAssertEqual(audio.nativeMutes[3], true)
+        XCTAssertTrue(controller.setValue(40, controlIdentifier: control))
+        XCTAssertEqual(audio.levels[3], 0.4)
+        XCTAssertEqual(audio.nativeMutes[3], false)
+        XCTAssertEqual(audio.nativeMutes[2], true)
     }
 
 }
