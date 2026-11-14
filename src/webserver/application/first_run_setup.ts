@@ -8,7 +8,6 @@ import type { ControlsFieldsFeature } from "./controls_fields";
 import type { ControlsShellFeature } from "./controls_shell";
 import { createCompanionPairingDetails, type CompanionPairingState } from "./settings_companion_section";
 import {
-    companionShortcutPresetCards,
     companionShortcutDefaultTabs,
     companionShortcutTabsForCapacity,
     createCompanionShortcutSubpage,
@@ -41,7 +40,7 @@ export function firstRunApplications(actions: readonly CompanionAction[]): Compa
 }
 
 export function supportsSetupShortcuts(id: string): boolean {
-    return companionShortcutPresetCards(id).length > 0;
+    return companionShortcutDefaultTabs(id).length > 0;
 }
 
 function layoutSignature({ document: { deviceProfile, settings }, layout }: NativePanelConfigGraph): string {
@@ -278,14 +277,16 @@ export function createFirstRunSetup(deps: FirstRunSetupDependencies): { start():
             content.appendChild(status);
             return;
         }
-        const download = element("p", "", "sp-setup-pairing");
-        const link = element("a", "Download EspDesktop for Mac");
-        link.href = "https://github.com/jtenniswood/espdesktop/releases/latest";
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        download.appendChild(link);
+        const actions = element("p", "", "sp-setup-pairing");
+        const open = element("a", "Open EspDesktop");
+        open.href = "espdesktop://open";
+        const download = element("a", "Download EspDesktop for Mac");
+        download.href = "https://github.com/jtenniswood/espdesktop/releases/latest";
+        download.target = "_blank";
+        download.rel = "noopener noreferrer";
+        actions.append(open, download);
         const details = createCompanionPairingDetails(deps, deps.shell.createActionButton);
-        content.append(details.element, download, status);
+        content.append(details.element, actions, status);
         updatePairingView = () => {
             details.update(pairingState ?? null);
             let message = "Open Settings → Unpaired on the display to get a pairing code.";

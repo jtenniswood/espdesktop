@@ -14,6 +14,13 @@ validates and discovers these files, generating shared browser definitions and
 firmware app names/shortcut IDs. The catalog and app subpages consume the same
 definitions; adding a file requires no app-specific code.
 
+Capability 9 adds optional expanded presets. The browser bundles them in a
+compact per-app format and decodes them on demand. Companion sends a starter
+definition followed by bounded pages for approved apps, using the existing
+catalogue transport. Older displays receive starter definitions only. A scoped
+action carries its target using the existing action app ID field, and Companion
+checks approval and foreground focus before every stroke.
+
 ## Ownership boundaries
 
 - `components/companion/` owns TLS, pairing, authentication, protocol parsing,

@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { COMPANION_SHORTCUT_APPS } from '../../../../src/webserver/generated/app_shortcuts'
+import { bundledExpandedShortcuts } from '../../../../src/webserver/application/companion_shortcut_data'
+
+const apps = COMPANION_SHORTCUT_APPS.map(app => ({
+  ...app, shortcuts: [...app.shortcuts, ...bundledExpandedShortcuts(app.appId)],
+}))
 
 const keyLabels: Record<string, string> = {
   command: 'Command', control: 'Control', option: 'Option',
@@ -11,9 +16,10 @@ const keyLabels: Record<string, string> = {
 function displayKeys(shortcut: string) {
   if (shortcut === 'escape-twice') return 'Escape twice'
   if (shortcut === 'claude-escape') return 'Escape (Claude)'
-  return shortcut.split('+')
-    .map(key => keyLabels[key] ?? key[0].toUpperCase() + key.slice(1))
-    .join(' + ')
+  return shortcut.replace(/^scoped\./, '').split('~').map(stroke => stroke.split('+')
+    .map(key => keyLabels[key] ?? (key.startsWith('keypad')
+      ? 'Keypad ' + key.slice(6) : key[0].toUpperCase() + key.slice(1)))
+    .join(' + ')).join(' then ')
 }
 
 function anchor(appId: string) {
@@ -22,7 +28,7 @@ function anchor(appId: string) {
 </script>
 
 <template>
-  <details v-for="app in COMPANION_SHORTCUT_APPS" :id="anchor(app.appId)" :key="app.appId">
+  <details v-for="app in apps" :id="anchor(app.appId)" :key="app.appId">
     <summary>
       <span class="preset-name">{{ app.label }}</span>
       <span class="preset-count">{{ app.shortcuts.length }} {{ app.shortcuts.length === 1 ? 'shortcut' : 'shortcuts' }}</span>

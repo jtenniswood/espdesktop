@@ -155,8 +155,8 @@ int main() {
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
-  assert(companion_remote_definition_capacity_available("application", 127));
-  assert(!companion_remote_definition_capacity_available("application", 128));
+  assert(companion_remote_definition_capacity_available("application", 255));
+  assert(!companion_remote_definition_capacity_available("application", 256));
   assert(!companion_remote_definition_capacity_available("webapp", 0));
 
   const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
@@ -497,7 +497,9 @@ int main() {
   assert(companion_action_active("folder.one"));
   int guarded_invocations = 0;
   companion_set_keyboard_actions_supported(true);
-  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &) {
+  std::string shortcut_target;
+  register_companion_action_sender([&](const std::string &, const std::string &, const std::string &, const std::string &app) {
+    shortcut_target = app;
     ++guarded_invocations; return true;
   });
   companion_set_focused_actions({"A"});
@@ -510,6 +512,13 @@ int main() {
   assert(guarded_invocations == 1);
   assert(invoke_companion_action_for_app("shortcut.control+w", "standalone", ""));
   assert(guarded_invocations == 2);
+  assert(companion_shortcut_action_valid("shortcut.scoped.command+k~command+s"));
+  assert(companion_shortcut_action_valid("shortcut.scoped.shift+keypadenter"));
+  assert(!companion_shortcut_action_valid("shortcut.scoped.a~b~c~d"));
+  assert(!companion_shortcut_action_valid("shortcut.scoped.command+command+a"));
+  assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", ""));
+  assert(invoke_companion_action_for_app("shortcut.scoped.space", "app-preset", "", "new_window", "org.videolan.vlc:12"));
+  assert(shortcut_target == "org.videolan.vlc");
   companion_set_value("media.output_volume", 72);
   bool volume_invoked = false;
   register_companion_value_sender([&volume_invoked](const std::string &control, int value,

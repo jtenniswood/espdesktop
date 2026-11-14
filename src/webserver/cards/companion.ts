@@ -42,6 +42,7 @@ import {
     CHATGPT_CLEAR_UNREADS_ACTION,
     isBooksExtendedShortcut,
     isClaudeScopedShortcut,
+    SCOPED_SHORTCUT_PREFIX,
     companionShortcutFolderAppLabel,
     companionShortcutFolderEditorAvailable,
     companionShortcutSelectionMatchesSavedParent,
@@ -70,7 +71,7 @@ import {
     setCompanionShortcutTabs,
     syncCompanionShortcutSubpage,
 } from "../application/companion_shortcut_folder";
-import { appShortcutPageOwner } from "../model/companion_shortcut_page";
+import { appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
 
 const COMPANION_URL_PREFIX = "url.";
 const COMPANION_DEFAULT_BROWSER = "system.default_browser";
@@ -126,13 +127,30 @@ export function companionShortcutActionId(event: Pick<KeyboardEvent,
 
 export function formatCompanionShortcutActionId(actionId: string): string {
     if (!companionShortcutActionIdValid(actionId)) return "";
-    const parts = actionId.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
-    const key = parts.pop() || "";
+    const scoped = actionId.startsWith(SCOPED_SHORTCUT_PREFIX);
+    const strokes = actionId.slice((scoped ? SCOPED_SHORTCUT_PREFIX : COMPANION_SHORTCUT_PREFIX).length).split("~");
     const symbols: Readonly<Record<string, string>> = {
         command: "⌘", control: "⌃", option: "⌥", shift: "⇧", function: "Fn ",
     };
-    const keyLabel = COMPANION_SHORTCUT_KEY_LABELS[key] || key.toUpperCase();
-    return parts.map((part) => symbols[part]).join("") + keyLabel;
+    return strokes.map(stroke => {
+        const parts = stroke.split("+");
+        const key = parts.pop() || "";
+        const label = COMPANION_SHORTCUT_KEY_LABELS[key] ||
+            (key.startsWith("keypad") ? "Keypad " + key.slice(6) : key.toUpperCase());
+        return parts.map(part => symbols[part]).join("") + label;
+    }).join(" then ");
+}
+
+const SHORTCUT_SEARCH_ALIASES: Readonly<Record<string, string>> = {
+    "⌘": "cmd", "⌃": "ctrl", "⌥": "alt", "⇧": "shift",
+    "←": "left", "→": "right", "↑": "up", "↓": "down",
+    command: "cmd", control: "ctrl", option: "alt", function: "fn",
+    return: "enter", escape: "esc",
+};
+
+function shortcutSearchKeys(value: string): string[] {
+    return value.toLowerCase().replace(/[⌘⌃⌥⇧←→↑↓]/g, key => " " + SHORTCUT_SEARCH_ALIASES[key] + " ")
+        .split(/[+\s]+/).filter(Boolean).map(key => SHORTCUT_SEARCH_ALIASES[key] ?? key);
 }
 
 export function companionShortcutCatalogSelection(card: any) {
@@ -141,7 +159,7 @@ export function companionShortcutCatalogSelection(card: any) {
     const separator = marker.lastIndexOf(":");
     if (separator < 0) return undefined;
     const appId = marker.slice(0, separator);
-    if (!companionShortcutCatalogApps().some((app) => app.appId === appId)) return undefined;
+    if (!companionShortcutCatalogApps(appId).some((app) => app.appId === appId)) return undefined;
     const preset = companionShortcutPresetCards(appId).find((preset) =>
         preset.entity === card?.entity && preset.options === options);
     return preset ? { ...preset, appId } : undefined;
@@ -515,7 +533,56 @@ export function registerCompanionCardTypes(
         card.icon = companionSubtypeDefaultIcon(mode);
     }
 
+    function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
+        helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll = false): void {
+        const savedShortcutSubpage = state.subpages[page];
+        const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
+        if (savedShortcutSubpage &&
+            companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
+            card._appShortcutSelectionChanged !== true) {
+            setCompanionShortcutTabs(
+                card,
+                companionShortcutTabsFromSubpage(card.entity, savedShortcutSubpage),
+            );
+        }
+        modalTabs.renderModalTabSettings(panel, card, helpers, {
+            definitions: function () { return companionShortcutTabDefinitions(card.entity); },
+            searchPlaceholder: "Find a shortcut…",
+            showAll,
+            dragOnly: true,
+            tabs: (button: any) => companionShortcutTabsForCapacity(
+                companionShortcutTabs(button), maxSlots,
+            ),
+            normalizeOptions: function (options: string) {
+                return normalizeCompanionAppShortcutOptions({ ...card, options });
+            },
+            setTabs: function (button: any, tabs: string[]) {
+                const candidate = reconnectAthenaShortcutSubpage(
+                    savedShortcutSubpage ?? undefined, savedParent?.entity, button.entity,
+                ) ?? savedShortcutSubpage;
+                if (!companionShortcutTabsFitSubpage(button.entity, tabs, candidate, maxSlots)) {
+                    button._appShortcutCapacityRejected = true;
+                    return false;
+                }
+                delete button._appShortcutCapacityRejected;
+                setCompanionShortcutTabs(button, tabs);
+                button._appShortcutSelectionChanged = true;
+                return true;
+            },
+            idPrefix: "companion-shortcut-",
+            hideHeading: true,
+            allowEmpty: true,
+        });
+        if (card._appShortcutCapacityRejected === true) {
+            const capacityNote = document.createElement("div");
+            capacityNote.className = "sp-field-info-text sp-visible";
+            capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another shortcut.";
+            panel.appendChild(capacityNote);
+        }
+    }
+
     const companionDefinition: any = {
+        renderAppShortcutSettings,
         label: function () { return cardContractCardLabel("companion"); },
         allowInSubpage: function () { return cardContractAllowInSubpage("companion"); },
         pickerKey: function () { return cardContractPickerKey("companion"); },
@@ -719,16 +786,24 @@ export function registerCompanionCardTypes(
             shortcutField.className = "sp-field sp-shortcut-settings";
             if (initialMode === "shortcut") panel?.classList.add("sp-shortcut-card-settings");
             const savedCatalogShortcut = companionShortcutCatalogSelection(card);
-            const shortcutType = card._shortcutType || (savedCatalogShortcut ? "catalog" : "custom");
+            const pageApp = initialMode === "shortcut" && state.settingsDraft?.isNew
+                ? appShortcutPageOwner(previewSubpageOwner(parentPage, state.buttons, key => state.subpages[key]))
+                : undefined;
+            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps(savedCatalogShortcut?.appId || pageApp));
+            const defaultCatalogApp = catalogueApps.find(app => app.appId === pageApp)?.appId;
+            const shortcutType = card._shortcutType || (savedCatalogShortcut || defaultCatalogApp ? "catalog" : "custom");
             const typeId = helpers.idPrefix + "shortcut-type";
             const typeTabs = helpers.segmentControl([
                 ["custom", "Custom"], ["catalog", "Application"],
             ], shortcutType, function (type: string, tab: HTMLButtonElement) {
                 if (type === shortcutType) return;
                 card._shortcutType = type;
-                card._shortcutCatalogApp = "";
+                card._shortcutCatalogSearch = "";
+                if (!defaultCatalogApp) card._shortcutCatalogApp = "";
                 // Keep the selected combination when switching to Custom.
-                if (type === "catalog") card.entity = COMPANION_SHORTCUT_PREFIX;
+                if (type === "catalog" || String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX)) {
+                    card.entity = COMPANION_SHORTCUT_PREFIX;
+                }
                 card.options = preserveCardColorOptions(card.options, "app_shortcut_preset=custom");
                 helpers.saveField("entity", card.entity);
                 helpers.saveField("options", card.options);
@@ -857,14 +932,13 @@ export function registerCompanionCardTypes(
             const catalogApp = document.createElement("select");
             catalogApp.className = "sp-select";
             catalogApp.id = helpers.idPrefix + "shortcut-catalog-app";
-            const catalogueApps = sortCompanionLabels(companionShortcutCatalogApps());
             for (const [value, label] of [["", "Choose an app…"], ...catalogueApps.map((app) => [app.appId, app.label] as const)] as const) {
                 const option = document.createElement("option");
                 option.value = value;
                 option.textContent = label;
                 catalogApp.appendChild(option);
             }
-            catalogApp.value = savedCatalogShortcut?.appId || card._shortcutCatalogApp || "";
+            catalogApp.value = savedCatalogShortcut?.appId ?? card._shortcutCatalogApp ?? defaultCatalogApp ?? "";
             catalogAppField.appendChild(catalogApp);
             catalogField.appendChild(catalogAppField);
             const catalogShortcutField = document.createElement("div");
@@ -873,21 +947,51 @@ export function registerCompanionCardTypes(
             const catalogShortcut = document.createElement("select");
             catalogShortcut.className = "sp-select";
             catalogShortcut.id = helpers.idPrefix + "shortcut-catalog-action";
-            const catalogPlaceholder = document.createElement("option");
-            catalogPlaceholder.value = "";
-            catalogPlaceholder.textContent = "Choose a shortcut…";
-            catalogShortcut.appendChild(catalogPlaceholder);
-            if (catalogApp.value) {
-                companionShortcutPresetCards(catalogApp.value).forEach((preset) => {
-                    const option = document.createElement("option");
-                    option.value = preset.options;
-                    option.textContent = preset.label + " (" + formatCompanionShortcutActionId(preset.entity) + ")";
-                    catalogShortcut.appendChild(option);
-                });
-            }
+            const presets = sortCompanionLabels(companionShortcutPresetCards(catalogApp.value));
+            const choices = presets.map(preset => {
+                const keys = formatCompanionShortcutActionId(preset.entity);
+                return {
+                    label: preset.label.toLowerCase(), keys: shortcutSearchKeys(keys),
+                    option: new Option(preset.label + " (" + keys + ")", preset.options),
+                };
+            });
+            const search = document.createElement("input");
+            search.type = "search";
+            search.className = "sp-input";
+            search.placeholder = "Search by name or keys";
+            search.setAttribute("aria-label", search.placeholder);
+            search.value = card._shortcutCatalogSearch ?? "";
+            const noMatches = document.createElement("div");
+            noMatches.className = "sp-field-info-text";
+            noMatches.setAttribute("role", "status");
+            const fields = document.createElement("div");
+            fields.className = "sp-field-stack";
+            search.hidden = !catalogApp.value;
             catalogShortcut.disabled = !catalogApp.value;
-            catalogShortcut.value = savedCatalogShortcut?.options || "";
-            catalogShortcutField.appendChild(catalogShortcut);
+            fields.append(search, catalogShortcut, noMatches);
+            catalogShortcutField.appendChild(fields);
+            function filterShortcuts() {
+                const query = search.value.trim().toLowerCase();
+                const keys = shortcutSearchKeys(query);
+                const selected = savedCatalogShortcut?.options ?? "";
+                const options = [new Option("Choose a shortcut…", "")];
+                let found = false;
+                for (const choice of choices) {
+                    const matches = !query || choice.label.includes(query) ||
+                        (keys.length > 0 && keys.every(key => choice.keys.includes(key)));
+                    found ||= matches;
+                    if (matches || choice.option.value === selected) options.push(choice.option);
+                }
+                catalogShortcut.replaceChildren(...options);
+                catalogShortcut.value = selected;
+                noMatches.textContent = query && !found ? "No matching shortcuts" : "";
+                noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
+            }
+            search.addEventListener("input", () => {
+                card._shortcutCatalogSearch = search.value;
+                filterShortcuts();
+            });
+            filterShortcuts();
             catalogField.appendChild(catalogShortcutField);
             shortcutPanel.section.appendChild(catalogField);
             helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
@@ -896,6 +1000,7 @@ export function registerCompanionCardTypes(
                 return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
             });
             catalogApp.addEventListener("change", function () {
+                card._shortcutCatalogSearch = "";
                 card._shortcutType = "catalog";
                 card._shortcutCatalogApp = catalogApp.value;
                 card.entity = COMPANION_SHORTCUT_PREFIX;
@@ -907,7 +1012,7 @@ export function registerCompanionCardTypes(
             catalogShortcut.addEventListener("change", function () {
                 card._shortcutType = "catalog";
                 card._shortcutCatalogApp = catalogApp.value;
-                const preset = companionShortcutPresetCards(catalogApp.value).find((item) => item.options === catalogShortcut.value);
+                const preset = presets.find(item => item.options === catalogShortcut.value);
                 if (!preset) {
                     card.entity = COMPANION_SHORTCUT_PREFIX;
                     card.options = normalizedCardColorOptions(card.options);
@@ -926,6 +1031,7 @@ export function registerCompanionCardTypes(
                 return initialMode === "shortcut" && shortcutType === "custom";
             }, function () {
                 return companionShortcutActionIdValid(card.entity) && !!selectedKey &&
+                    !String(card.entity).startsWith(SCOPED_SHORTCUT_PREFIX) &&
                     ((!isSafariUnmodifiedShortcut(card.entity) &&
                         !isBooksExtendedShortcut(card.entity) && !isClaudeScopedShortcut(card.entity) && card.entity !== CHATGPT_CLEAR_UNREADS_ACTION) ||
                         card.entity === currentEntity);
@@ -991,14 +1097,6 @@ export function registerCompanionCardTypes(
             });
             panel?.appendChild(appSubpageDisclosure.panel);
             const savedShortcutSubpage = subpageKey ? state.subpages[subpageKey] : null;
-            if (savedShortcutSubpage &&
-                companionShortcutSelectionMatchesSavedParent(card, savedParent) &&
-                card._appShortcutSelectionChanged !== true) {
-                setCompanionShortcutTabs(
-                    card,
-                    companionShortcutTabsFromSubpage(card.entity, savedShortcutSubpage),
-                );
-            }
             const shortcutFolderField = document.createElement("div");
             shortcutFolderField.className = "sp-field";
             const folderToggle = helpers.toggleRow(
@@ -1111,41 +1209,11 @@ export function registerCompanionCardTypes(
                 finderFolderList.className = "sp-app-subpage-folder-list";
                 appSubpageDisclosure.section.appendChild(finderFolderList);
             }
-            if (companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
+            if (subpageKey && companionAppShortcutFolderEnabled(card) && card.entity !== "com.apple.finder") {
                 const shortcutOptionsDivider = document.createElement("div");
                 shortcutOptionsDivider.className = "sp-app-subpage-options-divider";
                 appSubpageDisclosure.section.appendChild(shortcutOptionsDivider);
-                modalTabs.renderModalTabSettings(appSubpageDisclosure.section, card, helpers, {
-                    definitions: function () { return companionShortcutTabDefinitions(card.entity); },
-                    tabs: (button: any) => companionShortcutTabsForCapacity(
-                        companionShortcutTabs(button), maxSlots,
-                    ),
-                    normalizeOptions: function (options: string) {
-                        return normalizeCompanionAppShortcutOptions({ ...card, options });
-                    },
-                    setTabs: function (button: any, tabs: string[]) {
-                        const page = reconnectAthenaShortcutSubpage(
-                            savedShortcutSubpage ?? undefined, savedParent?.entity, button.entity,
-                        ) ?? savedShortcutSubpage;
-                        if (!companionShortcutTabsFitSubpage(button.entity, tabs, page, maxSlots)) {
-                            button._appShortcutCapacityRejected = true;
-                            return false;
-                        }
-                        delete button._appShortcutCapacityRejected;
-                        setCompanionShortcutTabs(button, tabs);
-                        button._appShortcutSelectionChanged = true;
-                        return true;
-                    },
-                    idPrefix: "companion-shortcut-",
-                    hideHeading: true,
-                    allowEmpty: true,
-                });
-                if (card._appShortcutCapacityRejected === true) {
-                    const capacityNote = document.createElement("div");
-                    capacityNote.className = "sp-field-info-text sp-visible";
-                    capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another shortcut.";
-                    appSubpageDisclosure.section.appendChild(capacityNote);
-                }
+                renderAppShortcutSettings(appSubpageDisclosure.section, card, subpageKey, helpers);
             }
 
             function syncMode(mode: string): void {
@@ -1304,6 +1372,8 @@ export function registerCompanionCardTypes(
                     resetCompanionShortcutTabs(card);
                 }
                 if (appChanged) {
+                    delete card._modalTabsExpanded;
+                    delete card._modalTabsSearch;
                     delete card._appShortcutDisabledTabs;
                     const changedFromSavedApp = card.entity !== savedParent?.entity;
                     card._appShortcutSelectionChanged = changedFromSavedApp;

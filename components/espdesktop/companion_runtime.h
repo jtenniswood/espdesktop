@@ -77,7 +77,7 @@ struct CompanionFocusTargetsState {
   uint32_t generation{0};
 };
 
-inline constexpr size_t COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE = 128;
+inline constexpr size_t COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE = 256;
 
 inline bool companion_json_payload_valid(const std::string &value, size_t limit) {
   if (value.size() < 2 || value.size() > limit) return false;
@@ -116,7 +116,7 @@ inline std::string companion_network_address(const CompanionRuntimeSnapshot &sna
   return "--";
 }
 
-using CompanionActionSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
+using CompanionActionSender = std::function<bool(const std::string &, const std::string &, const std::string &, const std::string &)>;
 using CompanionUrlSender = std::function<bool(const std::string &encoded_url, const std::string &request_id,
                                               bool new_window)>;
 using CompanionValueSender = std::function<bool(const std::string &, int, const std::string &)>;

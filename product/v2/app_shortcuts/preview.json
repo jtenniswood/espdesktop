@@ -3,6 +3,7 @@
   "appId": "com.apple.Preview",
   "label": "Preview",
   "catalog": false,
+  "defaultShortcutIds": ["15", "14", "17", "16", "0", "1", "5", "6"],
   "shortcuts": [
     {
       "id": "0",
@@ -28,5 +29,24 @@
       "shortcut": "option+pageup",
       "icon": "Arrow Left"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "4", "label": "Save file", "shortcut": "scoped.command+s", "icon": "Save"},
+    {"id": "5", "label": "Enter full screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "6", "label": "Print current PDF or image", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "7", "label": "Copy text or area to Clipboard", "shortcut": "scoped.command+c", "icon": "Copy"},
+    {"id": "8", "label": "Cut item and copy it to Clipboard", "shortcut": "scoped.command+x", "icon": "Cut"},
+    {"id": "9", "label": "Paste contents of Clipboard into image", "shortcut": "scoped.command+v", "icon": "Paste"},
+    {"id": "10", "label": "Scroll down line", "shortcut": "scoped.down", "icon": "Dock Left"},
+    {"id": "11", "label": "Scroll up line", "shortcut": "scoped.up", "icon": "Dock Left"},
+    {"id": "12", "label": "Scroll down one screen", "shortcut": "scoped.pagedown", "icon": "Arrow Down"},
+    {"id": "13", "label": "Scroll up one screen", "shortcut": "scoped.pageup", "icon": "Arrow Up"},
+    {"id": "14", "label": "Next page", "shortcut": "scoped.option+down", "icon": "Page Next"},
+    {"id": "15", "label": "Previous page", "shortcut": "scoped.option+up", "icon": "Page Previous"},
+    {"id": "16", "label": "Zoom all images to actual size", "shortcut": "scoped.command+option+0", "icon": "Fit to Screen"},
+    {"id": "17", "label": "Zoom all images to fit", "shortcut": "scoped.command+option+9", "icon": "Fit to Screen"},
+    {"id": "18", "label": "Zoom all images", "shortcut": "scoped.command+option+shift+keyequal", "icon": "Zoom In"},
+    {"id": "19", "label": "Zoom all images out", "shortcut": "scoped.command+option+keyminus", "icon": "Zoom Out"},
+    {"id": "20", "label": "Remove background", "shortcut": "scoped.command+shift+k", "icon": "Delete"}
   ]
 }

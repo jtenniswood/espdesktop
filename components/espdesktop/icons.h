@@ -403,6 +403,19 @@ static const IconEntry ICON_ENTRIES[] = {
     {"Font Size Increase",           "\U000F09F4"},
     {"Page Next",                    "\U000F0BB0"},
     {"Page Previous",                "\U000F0BB2"},
+    {"Duplicate",                    "\U000F0191"},
+    {"Align Left",                   "\U000F0262"},
+    {"Align Right",                  "\U000F0263"},
+    {"Align Center",                 "\U000F0260"},
+    {"Justify",                      "\U000F0261"},
+    {"Strikethrough",                "\U000F0281"},
+    {"Numbered List",                "\U000F027B"},
+    {"Decrease Indent",              "\U000F0275"},
+    {"Increase Indent",              "\U000F0276"},
+    {"Paint Format",                 "\U000F027C"},
+    {"Subscript",                    "\U000F0282"},
+    {"Superscript",                  "\U000F0283"},
+    {"Subtitles",                    "\U000F0A17"},
     // --- GENERATED:ICONS END ---
 };
 

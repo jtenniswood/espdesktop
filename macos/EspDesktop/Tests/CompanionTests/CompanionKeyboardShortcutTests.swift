@@ -65,6 +65,24 @@ final class CompanionKeyboardShortcutTests: XCTestCase {
         XCTAssertEqual(promptCount, 0)
     }
 
+    func testScopedStrokesRequireAnApprovedMatchingTarget() throws {
+        XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "shortcut.scoped.a"))
+        let sequence = try XCTUnwrap(CompanionKeyboardShortcut.scopedStrokes("scoped.command+k~shift+keypadenter"))
+        XCTAssertEqual(sequence.map(\.keyCode), [40, 76])
+        XCTAssertEqual(sequence.map(\.flags), [.maskCommand, [.maskShift, .maskNumericPad]])
+        XCTAssertNil(CompanionKeyboardShortcut.scopedStrokes("scoped.a~b~c~d"))
+        XCTAssertNil(CompanionKeyboardShortcut.scopedStrokes("scoped.command+command+a"))
+        let safari = "com.apple.Safari.WebApp.01234567-89AB-CDEF-0123-456789abcdef"
+        XCTAssertTrue(CompanionKeyboardShortcut.scopedTargetMatches(
+            "com.apple.Safari.WebApp", frontmost: safari, approved: [safari]))
+        XCTAssertFalse(CompanionKeyboardShortcut.scopedTargetMatches(
+            "com.apple.Safari.WebApp", frontmost: "com.apple.Safari", approved: ["com.apple.Safari"]))
+        XCTAssertFalse(CompanionKeyboardShortcut.scopedTargetMatches(
+            "org.videolan.vlc", frontmost: "org.videolan.vlc", approved: []))
+        XCTAssertFalse(CompanionKeyboardShortcut.scopedTargetMatches(
+            "org.videolan.vlc", frontmost: "com.apple.Safari", approved: ["com.apple.Safari"]))
+    }
+
     func testRejectsLegacyWindowActionsAndFreeFormFn() {
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "window.close"))
         XCTAssertNil(CompanionKeyboardShortcut(actionIdentifier: "window.left"))
