@@ -99,7 +99,7 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   lv_obj_clear_flag(container, LV_OBJ_FLAG_CLICKABLE);
   auto *tile = new TokenUsageTile{container};
   const auto *primary_font = lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN);
-  const auto *secondary_font = display_sensor_font(display) ? display_sensor_font(display) : primary_font;
+  const auto *secondary_font = display_small_text_font(display, primary_font);
   const int line_height = lv_font_get_line_height(secondary_font);
   const auto foreground = lv_obj_get_style_text_color(slot.text_lbl, LV_PART_MAIN);
 
@@ -114,7 +114,8 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
     lv_label_set_text(icon, i == 0 ? "Codex" : "Claude");
 #endif
     lv_obj_clear_flag(icon, LV_OBJ_FLAG_CLICKABLE);
-    lv_obj_align(icon, both && i == 1 ? LV_ALIGN_BOTTOM_LEFT : LV_ALIGN_TOP_LEFT, 0, 0);
+    const auto row_anchor = both && i == 1 ? LV_ALIGN_BOTTOM_LEFT : LV_ALIGN_TOP_LEFT;
+    lv_obj_align(icon, row_anchor, 0, both && i == 1 ? -line_height / 3 : 0);
 
     auto *value = lv_label_create(container);
     auto *reset = lv_label_create(container);
@@ -122,10 +123,13 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
     for (auto *label : {value, reset}) {
       lv_obj_set_style_text_color(label, foreground, LV_PART_MAIN);
       lv_obj_set_style_text_font(label, label == value ? value_font : secondary_font, LV_PART_MAIN);
-      lv_obj_set_width(label, LV_PCT(100));
+      lv_obj_set_width(label, lv_pct(both ? 76 : 100));
+      lv_obj_set_height(label, LV_SIZE_CONTENT);
       lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
     }
     lv_obj_set_style_text_opa(reset, LV_OPA_80, LV_PART_MAIN);
+    lv_obj_set_style_text_align(value, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
+    lv_obj_set_style_text_align(reset, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     if (both && i == 0) {
       lv_obj_align(value, LV_ALIGN_TOP_LEFT, left, 0);
       lv_obj_align(reset, LV_ALIGN_TOP_LEFT, left, line_height);
