@@ -26,7 +26,9 @@
       "omitDefault": false,
       "aliases": {
         "controls": "play_pause"
-      }
+      },
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "media_display",
@@ -49,7 +51,9 @@
             "position"
           ]
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "media_now_playing_controls",
@@ -70,7 +74,9 @@
           "operator": "equals",
           "value": "now_playing"
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "cover_art_details",
@@ -84,7 +90,9 @@
           "operator": "equals",
           "value": "cover_art"
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "cover_art_secondary_entity",
@@ -98,7 +106,9 @@
           "operator": "equals",
           "value": "cover_art"
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "volume_max",
@@ -121,7 +131,9 @@
             "volume"
           ]
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "speaker_group_entity",
@@ -139,7 +151,9 @@
             "speaker_group"
           ]
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "power_entity",
@@ -156,7 +170,9 @@
             "cover_art"
           ]
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "media_tabs",
@@ -181,7 +197,9 @@
             "cover_art"
           ]
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "label_display",
@@ -200,7 +218,9 @@
           "operator": "equals",
           "value": "control_modal"
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "number_display",
@@ -219,7 +239,9 @@
           "operator": "equals",
           "value": "control_modal"
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "playlist_content_id",
@@ -233,7 +255,9 @@
           "operator": "equals",
           "value": "playlist"
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "playlist_content_type",
@@ -264,7 +288,9 @@
           "operator": "equals",
           "value": "playlist"
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     },
     {
       "name": "large_numbers",
@@ -281,7 +307,9 @@
             "position"
           ]
         }
-      ]
+      ],
+      "hidden": true,
+      "docsHidden": true
     }
   ],
   "normalization": {
@@ -364,5 +392,6 @@
     "type": "media",
     "precision": "",
     "options": ""
-  }
+  },
+  "hidden": true
 }

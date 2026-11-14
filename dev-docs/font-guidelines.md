@@ -18,7 +18,7 @@ Use the existing functional font roles first:
 - large sensor numbers
 - modal numbers
 - modal/supporting labels
-- cover-art title, artist, and time text
+- media card title and artist text
 
 If text does not fit, fix the layout before adding a font size:
 

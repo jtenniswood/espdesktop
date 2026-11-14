@@ -7,45 +7,20 @@ export const SSE_ALIAS_GROUPS = {
   clockBar: ["switch-screen__clock_bar", "switch-screen_clock_bar", "switch-clock_bar_enabled"],
   clockBarTime: ["switch-screen__clock_bar_time", "switch-screen_clock_bar_time", "switch-clock_bar_time_enabled"],
   clockBarNightMode: ["switch-screen__clock_bar_night_mode_icon", "switch-screen_clock_bar_night_mode_icon", "switch-clock_bar_night_mode_enabled"],
-  clockBarTemperatureEntities: ["text-clock_bar_temperature_entities", "text-clock_bar__temperature_entities"],
   networkStatus: ["switch-screen__network_status_icon", "switch-screen_network_status_icon", "switch-network_status_enabled"],
   batteryStatus: ["switch-screen__battery_status", "switch-screen_battery_status", "switch-battery_status_enabled"],
-  voiceServices: ["switch-voice_services", "switch-voice_services_enabled"],
-  alarmDelayAudio: ["switch-alarm_delay__audio", "switch-alarm_delay_audio", "switch-alarm_delay_audio_enabled"],
-  alarmDelayTts: ["switch-alarm_delay__tts", "switch-alarm_delay_tts", "switch-alarm_delay_tts_enabled"],
-  alarmDelayEntryAnnouncement: ["text-alarm_delay__entry_announcement", "text-alarm_delay_entry_announcement"],
-  alarmDelayExitAnnouncement: ["text-alarm_delay__exit_announcement", "text-alarm_delay_exit_announcement"],
-  alarmDelayBeepVolume: ["number-alarm_delay__beep_volume", "number-alarm_delay_beep_volume"],
-  alarmDelayFinalCountdown: ["number-alarm_delay__final_countdown", "number-alarm_delay_final_countdown", "number-alarm_delay_final_countdown_seconds"],
-  temperatureDegreeSymbol: ["switch-screen__temperature_degree_symbol", "switch-screen_temperature_degree_symbol", "switch-temperature_degree_symbol_enabled"],
+
   subpageTitleBar: ["switch-screen__subpage_title_bar", "switch-screen_subpage_title_bar", "switch-subpage_title_bar_enabled"],
   autoOpenAppSubpages: ["switch-companion__auto_open_app_subpages", "switch-companion_auto_open_app_subpages", "switch-companion_auto_open_app_subpages_enabled"],
   returnHomeOnAppSwitch: ["switch-companion__return_home_on_app_switch", "switch-companion_return_home_on_app_switch", "switch-companion_return_home_on_app_switch_enabled"],
   subpageChevron: ["switch-screen__subpage_chevron", "switch-screen_subpage_chevron", "switch-subpage_chevrons_enabled"],
   screensaverTimeout: ["number-screensaver_timeout", "number-screen_saver__timeout", "number-screen_saver_timeout"],
   clockScreensaver: ["switch-screen_saver__clock", "switch-screen_saver_clock", "switch-clock_screensaver_enabled"],
-  coverArtPlaybackControl: ["switch-screen_saver__cover_art_playback_control", "switch-screen_saver_cover_art_playback_control", "switch-cover_art_playback_control_enabled"],
-  mediaPlayerSleepPrevention: ["switch-screen_saver__media_player_sleep_prevention", "switch-screen_saver_media_player_sleep_prevention", "switch-media_player_sleep_prevention_enabled"],
-  mediaPlayerSleepPreventionEntity: ["text-media_player_sleep_prevention_entity"],
-  coverArt: ["switch-screen_saver__cover_art", "switch-screen_saver_cover_art", "switch-screensaver_cover_art"],
-  coverArtSource: ["select-cover_art_source"],
 
   cameraDimming: ["number-screen_saver__camera_dimming", "number-screen_saver_camera_dimming", "number-screensaver_camera_dimming"],
   clockDate: ["switch-screen_saver__show_date", "switch-screen_saver_show_date", "switch-clock_screensaver_show_date"],
   clockOverlay: ["switch-screen_saver__clock_overlay", "switch-screen_saver_clock_overlay", "switch-clock_overlay_enabled"],
   metadataOverlay: ["switch-screen_saver__metadata_overlay", "switch-screen_saver_metadata_overlay", "switch-metadata_overlay_enabled"],
-  coverArtEntity: ["text-screen_saver__cover_art_entity", "text-screen_saver_cover_art_entity", "text-cover_art_media_player_entity"],
-  coverArtSecondaryEntity: ["text-screen_saver__external_source_media_entity", "text-screen_saver_cover_art_secondary_entity", "text-cover_art_secondary_media_player_entity"],
-  coverArtConditions: ["text-screen_saver__cover_art_conditions", "text-screen_saver_cover_art_conditions", "text-cover_art_attribute_conditions"],
-  coverArtDelay: ["number-screen_saver__cover_art_delay", "number-screen_saver_cover_art_delay", "number-cover_art_delay"],
-  trackOverlayDuration: ["number-screen_saver__track_overlay_duration", "number-screen_saver_track_overlay_duration", "number-track_overlay_duration", "number-screen_saver__show_track_overlay"],
-  coverArtHideExternalInput: ["switch-screen_saver__hide_cover_art_on_external_input", "switch-screen_saver_hide_cover_art_on_external_input", "switch-hide_cover_art_on_external_input", "switch-cover_art_hide_external_input", "switch-screen_saver__hide_for_external_sources"],
-  homeAssistantArtworkProtocol: ["select-home_assistant_artwork_protocol", "select-cover_art_home_assistant_artwork_protocol"],
-  homeAssistantArtworkPort: ["number-home_assistant_artwork_port"],
-  homeAssistantArtworkHost: ["text-home_assistant_artwork_host"],
-  homeAssistantArtworkEndpointMode: ["select-home_assistant_artwork_endpoint_mode", "select-home_assistant_artwork_connection"],
-  homeAssistantArtworkEndpointStatus: ["text_sensor-home_assistant_artwork_endpoint_status", "text_sensor-home_assistant_artwork_endpoint"],
-  homeAssistantArtworkEndpointHealth: ["text_sensor-home_assistant_artwork_endpoint_health", "text_sensor-home_assistant_artwork_connection_health"],
   scheduleTrigger: ["text-screen__schedule_trigger", "text-screen_schedule_trigger", "text-schedule_trigger"],
   scheduleSensorActivation: ["select-screen__schedule_sensor_activation", "select-screen_schedule_sensor_activation", "select-schedule_sensor_activation"],
   scheduleWakeTimeout: ["number-screen__schedule_wake_timeout", "number-screen_schedule_wake_timeout", "number-schedule_wake_timeout"],
@@ -73,45 +48,20 @@ export function applySseHandlerAliases(handlers: SseHandlers): void {
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockBar, "switch-screen__clock_bar");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockBarTime, "switch-screen__clock_bar_time");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockBarNightMode, "switch-screen__clock_bar_night_mode_icon");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.clockBarTemperatureEntities, "text-clock_bar_temperature_entities");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.networkStatus, "switch-screen__network_status_icon");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.batteryStatus, "switch-screen__battery_status");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.voiceServices, "switch-voice_services");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayAudio, "switch-alarm_delay__audio");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayTts, "switch-alarm_delay__tts");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayEntryAnnouncement, "text-alarm_delay__entry_announcement");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayExitAnnouncement, "text-alarm_delay__exit_announcement");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayBeepVolume, "number-alarm_delay__beep_volume");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.alarmDelayFinalCountdown, "number-alarm_delay__final_countdown");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.temperatureDegreeSymbol, "switch-screen__temperature_degree_symbol");
+
   addSseAliases(handlers, SSE_ALIAS_GROUPS.subpageTitleBar, "switch-screen__subpage_title_bar");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.autoOpenAppSubpages, "switch-companion__auto_open_app_subpages");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.returnHomeOnAppSwitch, "switch-companion__return_home_on_app_switch");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.subpageChevron, "switch-screen__subpage_chevron");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.screensaverTimeout, "number-screensaver_timeout");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockScreensaver, "switch-screen_saver__clock");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtPlaybackControl, "switch-screen_saver__cover_art_playback_control");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.mediaPlayerSleepPrevention, "switch-screen_saver__media_player_sleep_prevention");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.mediaPlayerSleepPreventionEntity, "text-media_player_sleep_prevention_entity");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArt, "switch-screen_saver__cover_art");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtSource, "select-cover_art_source");
 
   addSseAliases(handlers, SSE_ALIAS_GROUPS.cameraDimming, "number-screen_saver__camera_dimming");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockDate, "switch-screen_saver__show_date");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockOverlay, "switch-screen_saver__clock_overlay");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.metadataOverlay, "switch-screen_saver__metadata_overlay");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtEntity, "text-screen_saver__cover_art_entity");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtSecondaryEntity, "text-screen_saver__external_source_media_entity");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtConditions, "text-screen_saver__cover_art_conditions");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtDelay, "number-screen_saver__cover_art_delay");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.trackOverlayDuration, "number-screen_saver__track_overlay_duration");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.coverArtHideExternalInput, "switch-screen_saver__hide_cover_art_on_external_input");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.homeAssistantArtworkProtocol, "select-home_assistant_artwork_protocol");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.homeAssistantArtworkPort, "number-home_assistant_artwork_port");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.homeAssistantArtworkHost, "text-home_assistant_artwork_host");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.homeAssistantArtworkEndpointMode, "select-home_assistant_artwork_endpoint_mode");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.homeAssistantArtworkEndpointStatus, "text_sensor-home_assistant_artwork_endpoint_status");
-  addSseAliases(handlers, SSE_ALIAS_GROUPS.homeAssistantArtworkEndpointHealth, "text_sensor-home_assistant_artwork_endpoint_health");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.scheduleTrigger, "text-screen__schedule_trigger");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.scheduleSensorActivation, "select-screen__schedule_sensor_activation");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.scheduleWakeTimeout, "number-screen__schedule_wake_timeout");

@@ -1,0 +1,552 @@
+[
+  {
+    "card": {
+      "type": "timer",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "action",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "vacuum",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "lawn_mower",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "alarm",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "alarm_action",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "calendar",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "clock",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "climate",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "climate_control",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "cover",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "door_window",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "presence",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "fan_direction",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "fan_oscillate",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "fan_preset",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "fan_speed",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "fan_control",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "fan_switch",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "garage",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "gate",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "internal",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "light_brightness",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "light_switch",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "light_temperature",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "light_control",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "lock",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "media",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "option_select",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "push",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "companion",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "screen_lock",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "webhook",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "sensor",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "local_sensor",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "slider",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "subpage",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "timezone",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "weather",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "image",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "wifi_qr",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "wifi_qr_card",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "type": "weather_forecast",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": true
+  },
+  {
+    "card": {
+      "type": "screensaver",
+      "entity": "light.saved",
+      "sensor": "sensor.saved",
+      "label": "Saved",
+      "options": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "zoom_mute",
+      "sensor": "local",
+      "label": "Saved",
+      "options": "",
+      "type": "action"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "cpu_temp",
+      "sensor": "local",
+      "label": "Saved",
+      "options": "",
+      "type": "sensor"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "zoom_mute",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "local"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "cpu_temp",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "local_sensor"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "media.output_volume",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "slider"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "media.input_volume",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "slider"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "sensor.date",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "calendar"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "",
+      "sensor": "",
+      "label": "",
+      "options": "",
+      "type": ""
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "media.output_mute",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "slider"
+    },
+    "retired": false
+  },
+  {
+    "card": {
+      "entity": "media.input_mute",
+      "sensor": "",
+      "label": "Saved",
+      "options": "",
+      "type": "slider"
+    },
+    "retired": false
+  }
+]

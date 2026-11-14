@@ -2,7 +2,7 @@ import { cardTransferOwnsSubpage } from "../model/card_transfer";
 import { state } from "../state/app_instance";
 import type { NativePageTransfersFeature } from "./native_page_transfers";
 import * as EspDesktopModel from "../model";
-import { coveredCells } from "../model/grid";
+import { coveredCells, serializeGridOrder } from "../model/grid";
 import type { CardEditorDraftController } from "../features/card_editor_draft_controller";
 import type { ConfigPersistenceFeature } from "./config_post_api";
 import type { ApplicationLayoutState } from "./application_context";
@@ -32,7 +32,7 @@ export interface PreviewInteractionsDependencies {
     readonly requestApi: Pick<ApplicationApiFeature, "postText">;
     readonly grid: Pick<GridFeature, "ctx" | "serializeGrid">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "selectClockBarItem">;
-    readonly placement: Pick<PreviewGridPlacementFeature, "findDuplicatePlacement" | "getCellFromEvent" | "moveSelectedToCell" | "moveToCell" | "placeSlotAt">;
+    readonly placement: Pick<PreviewGridPlacementFeature, "findDuplicatePlacement" | "getCellFromEvent" | "planMove" | "applyMove" | "placeSlotAt">;
     readonly contextMenu: PreviewContextMenuFeature;
     readonly renderPreview: () => void;
     readonly renderButtonSettings: (force?: boolean) => void;
@@ -61,7 +61,7 @@ export function createPreviewInteractionsFeature(
     const { isConfigLocked, showBanner } = dependencies.shell;
     const { ctx, serializeGrid } = dependencies.grid;
     const { hideSettingsOverlay, selectClockBarItem } = dependencies.selection;
-    const { findDuplicatePlacement, getCellFromEvent, moveSelectedToCell, moveToCell, placeSlotAt } = dependencies.placement;
+    const { findDuplicatePlacement, getCellFromEvent, planMove, applyMove, placeSlotAt } = dependencies.placement;
     const { renderPreview, renderButtonSettings } = dependencies;
     const { showClockBar, showEmpty, showCard, showBack } = dependencies.contextMenu;
     const els = runtime.els;
@@ -107,7 +107,7 @@ export function createPreviewInteractionsFeature(
         input.className = "sp-card-name-input";
         input.setAttribute("aria-label", "Card name");
         input.dataset.homeSlot = String(homeSlot || "");
-        const defaultBackLabel = homeSlot === -1 ? "Close" : "Back";
+        const defaultBackLabel = "Back";
         input.value = back ? back.backLabel || defaultBackLabel : button.label || "";
         input.placeholder = title.textContent || "Card name";
         let finished = false;
@@ -123,7 +123,9 @@ export function createPreviewInteractionsFeature(
                     saveSubpageConfig(homeSlot);
                 } else {
                     const live = current.buttons[slot - 1];
-                    if (live && live.label !== label) {
+                    if (live && live.label !== label && dependencies.nativeTransfers?.available()) {
+                        void dependencies.nativeTransfers.rename(slot, label);
+                    } else if (live && live.label !== label) {
                         live.label = label;
                         const draft = state.settingsDraft;
                         if (draft && draft.slot === slot && draft.isSub === c.isSub &&
@@ -174,15 +176,6 @@ export function createPreviewInteractionsFeature(
         var container: any = els.previewMain;
         var pendingCellIdx: any = -1;
         state.clockBarDragItem = "";
-        if (els.specialPageEntry) {
-            els.specialPageEntry.addEventListener("click", function (this: any, e?: any) {
-                if (isConfigLocked()) {
-                    e.preventDefault();
-                    return;
-                }
-                dependencies.codec.enterSubpage(-1);
-            });
-        }
         if (els.topbar) {
             els.topbar.addEventListener("click", function (this: any, e?: any) {
                 if (isConfigLocked()) {
@@ -447,12 +440,20 @@ export function createPreviewInteractionsFeature(
                 runtime.dragSrcPos = -1;
                 return;
             }
-            if (!moveSelectedToCell(runtime.dragSrcPos, toPos))
-                moveToCell(runtime.dragSrcPos, toPos);
+            const move = planMove(runtime.dragSrcPos, toPos);
+            runtime.dragSrcPos = -1;
+            if (!move.accepted) return;
+            if (dependencies.nativeTransfers?.available()) {
+                const order = c.isSub
+                    ? serializeSubpageGrid({ ...getSubpage(state.editingSubpage), ...move }).join(",")
+                    : serializeGridOrder(move.grid, move.sizes);
+                void dependencies.nativeTransfers.place(order);
+                return;
+            }
+            applyMove(move);
             renderPreview();
             renderButtonSettings();
             c.save();
-            runtime.dragSrcPos = -1;
         });
     }
     function handleBtnClick(this: any, e?: any, slot?: any, pos?: any) {

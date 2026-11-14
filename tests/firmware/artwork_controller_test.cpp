@@ -30,7 +30,6 @@ using espdesktop::artwork::artwork_refresh_forced;
 using espdesktop::artwork::artwork_response_needs_processing;
 using espdesktop::artwork::artwork_selection_needs_download;
 using espdesktop::artwork::source_response_can_apply_immediately;
-using espdesktop::cover_art::RuntimeState;
 using espdesktop::cover_art::media_card_artwork_suppressed;
 using espdesktop::cover_art::media_cover_art_idle_placeholder_visible;
 using espdesktop::cover_art::media_external_source_stale_for_current_content;
@@ -391,21 +390,4 @@ int main() {
   assert(selected.primary == "remote-d");
   assert(selected.fallback == "stable-local");
   assert(selected.preferred_refreshed_remote);
-
-  // Download completions from an old track must not make the controller think
-  // the newly selected track is current.
-  RuntimeState runtime;
-  runtime.select_source("track-a");
-  runtime.begin_download("track-a?refresh=1");
-  runtime.select_source("track-b");
-  assert(runtime.apply_download("track-a?refresh=1"));
-  assert(runtime.loaded_url == "track-a");
-  assert(runtime.needs_download());
-
-  runtime.sources.update(false, "remote-track-b");
-  runtime.sources.update(true, "local-track-b");
-  runtime.clear_image();
-  assert(runtime.sources.empty());
-  assert(!runtime.download_active());
-  assert(!runtime.needs_download());
 }

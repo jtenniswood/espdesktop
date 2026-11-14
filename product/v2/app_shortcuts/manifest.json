@@ -1,6 +1,6 @@
 {
   "formatVersion": 1,
-  "catalogueVersion": 7,
+  "catalogueVersion": 20,
   "minimumCompanionVersion": "1.0.0",
   "entries": [
     {
@@ -35,6 +35,9 @@
     },
     {
       "path": "arc.json"
+    },
+    {
+      "path": "athena.json"
     },
     {
       "path": "audacity.json"
@@ -80,6 +83,9 @@
     },
     {
       "path": "final-cut-pro.json"
+    },
+    {
+      "path": "finder.json"
     },
     {
       "path": "firefox.json"
@@ -191,6 +197,9 @@
     },
     {
       "path": "safari.json"
+    },
+    {
+      "path": "safari-web-app.json"
     },
     {
       "path": "signal.json"

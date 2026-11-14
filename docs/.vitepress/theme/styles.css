@@ -1,5 +1,55 @@
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('./fonts/instrument-serif-regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Instrument Serif';
+  src: url('./fonts/instrument-serif-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --espdesktop-headline-font: 'Instrument Serif', Georgia, serif;
+}
+
+.vp-doc h1 {
+  font-family: var(--espdesktop-headline-font);
+  font-size: clamp(44px, 5vw, 72px);
+  font-weight: 400;
+  line-height: 0.98;
+  letter-spacing: normal;
+}
+
 .screen-comparison-hint {
   display: none;
+}
+
+.sp-support-btn {
+  position: fixed;
+  right: calc(16px + env(safe-area-inset-right));
+  bottom: calc(16px + env(safe-area-inset-bottom));
+  z-index: calc(var(--vp-z-index-footer) + 1);
+  width: clamp(160px, 20vw, 214px);
+  border-radius: 999px;
+  line-height: 0;
+}
+
+.sp-support-btn:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
+}
+
+.sp-support-btn img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: inherit;
 }
 
 @media (max-width: 767px) {
@@ -7,13 +57,6 @@
     display: block;
     color: var(--vp-c-text-2);
     font-size: 14px;
-  }
-
-  body .sp-support-btn {
-    position: static;
-    display: block;
-    width: max-content;
-    margin: 24px auto;
   }
 }
 
@@ -77,4 +120,27 @@
   .github-stars {
     display: none;
   }
+}
+
+.vp-doc .docs-primary-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 18px;
+  border-radius: 999px;
+  color: var(--vp-button-brand-text);
+  background: var(--vp-button-brand-bg);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.vp-doc .docs-primary-action:hover {
+  color: var(--vp-button-brand-text);
+  background: var(--vp-button-brand-hover-bg);
+}
+
+.vp-doc .docs-primary-action:focus-visible {
+  outline: 2px solid var(--vp-c-brand-1);
+  outline-offset: 4px;
 }

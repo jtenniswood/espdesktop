@@ -127,26 +127,15 @@ npm run check:firmware-card-runtime
 
 Stop if a card can be saved by the web UI but has no firmware rendering path.
 
-## Home Assistant Action Does Nothing
+## Mac Card Action Does Nothing
 
-First files:
+Check `components/espdesktop/button_grid_actions.h`, the relevant local card
+driver, and the Companion connection. Saved HA cards are intentionally
+unavailable; their identifiers remain readable for backups, but no native HA
+API or service dispatch is present.
 
-- `components/espdesktop/button_grid_actions.h`
-- `components/espdesktop/button_grid_ha.h`
-- `components/espdesktop/button_grid_contract_generated.h`
-- The card-specific firmware header
-
-Likely cause: service mapping, target entity, action permission, or runtime
-context is missing.
-
-Fastest checks:
-
-```bash
-npm run check:firmware-ha-bindings
-npm run check:firmware-card-runtime
-```
-
-Also confirm the user enabled Home Assistant actions for the ESPHome device.
+Run `npm run check:firmware-card-runtime` and confirm that the Mac is paired
+and the card uses a supported Mac or local action.
 
 ## Public Docs Build Fails
 

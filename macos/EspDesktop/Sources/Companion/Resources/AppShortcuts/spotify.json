@@ -3,42 +3,68 @@
   "appId": "com.spotify.client",
   "label": "Spotify",
   "catalog": false,
+  "defaultShortcutIds": ["10", "25", "26", "22", "0", "24", "7", "28"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Search",
+      "label": "Search",
       "shortcut": "command+k",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "1",
       "label": "Select All",
       "shortcut": "command+a",
-      "icon": "Application"
+      "icon": "Select All"
     },
     {
       "id": "2",
-      "label": "Go to Playlists",
+      "label": "Playlists",
       "shortcut": "option+shift+1",
-      "icon": "Play"
+      "icon": "Playlist Music"
     },
     {
       "id": "3",
-      "label": "Go to Now Playing",
+      "label": "Now Playing",
       "shortcut": "option+shift+j",
       "icon": "Play"
     },
     {
       "id": "4",
-      "label": "Open Context Menu",
+      "label": "Context Menu",
       "shortcut": "option+j",
-      "icon": "Folder"
+      "icon": "Dots Horizontal"
     },
     {
       "id": "5",
-      "label": "Toggle Now Playing View Sidebar",
+      "label": "Playing Sidebar",
       "shortcut": "option+shift+r",
-      "icon": "Play"
+      "icon": "Dock Right"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "6", "label": "Open Help", "shortcut": "scoped.command+keyslash", "icon": "Help"},
+    {"id": "7", "label": "Like/Dislike Song", "shortcut": "scoped.option+shift+b", "icon": "Shortcut Command"},
+    {"id": "8", "label": "Log Out", "shortcut": "scoped.option+shift+f6", "icon": "Shortcut Command"},
+    {"id": "9", "label": "Filter", "shortcut": "scoped.command+f", "icon": "Search"},
+    {"id": "10", "label": "Play/Pause", "shortcut": "scoped.space", "icon": "Play Pause"},
+    {"id": "11", "label": "Library", "shortcut": "scoped.option+shift+0", "icon": "Book"},
+    {"id": "12", "label": "Podcasts", "shortcut": "scoped.option+shift+2", "icon": "Shortcut Command"},
+    {"id": "13", "label": "Artists", "shortcut": "scoped.option+shift+3", "icon": "Shortcut Command"},
+    {"id": "14", "label": "Albums", "shortcut": "scoped.option+shift+4", "icon": "Shortcut Command"},
+    {"id": "15", "label": "Audiobooks", "shortcut": "scoped.option+shift+5", "icon": "Shortcut Command"},
+    {"id": "16", "label": "Home", "shortcut": "scoped.option+shift+h", "icon": "Home"},
+    {"id": "17", "label": "Preferences", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "18", "label": "Liked Songs", "shortcut": "scoped.option+shift+s", "icon": "Shortcut Command"},
+    {"id": "19", "label": "Made For You", "shortcut": "scoped.option+shift+m", "icon": "Shortcut Command"},
+    {"id": "20", "label": "New Releases", "shortcut": "scoped.option+shift+n", "icon": "Plus"},
+    {"id": "21", "label": "Charts", "shortcut": "scoped.option+shift+c", "icon": "Shortcut Command"},
+    {"id": "22", "label": "Queue", "shortcut": "scoped.option+shift+q", "icon": "Shortcut Command"},
+    {"id": "23", "label": "Toggle Your Library Sidebar", "shortcut": "scoped.option+shift+l", "icon": "Dock Left"},
+    {"id": "24", "label": "Mute/Unmute", "shortcut": "scoped.m", "icon": "Mute"},
+    {"id": "25", "label": "Previous", "shortcut": "scoped.up", "icon": "Arrow Left"},
+    {"id": "26", "label": "Next", "shortcut": "scoped.down", "icon": "Arrow Right"},
+    {"id": "27", "label": "Add to Library", "shortcut": "scoped.left", "icon": "Book"},
+    {"id": "28", "label": "Add to Queue", "shortcut": "scoped.right", "icon": "Plus"}
   ]
 }

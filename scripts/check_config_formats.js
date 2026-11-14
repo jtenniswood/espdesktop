@@ -268,17 +268,17 @@ assert.deepStrictEqual(
 assertButtonTypeSpecBacked("light_switch", "light switch card");
 assertButtonTypeSpecBacked("light_temperature", "light temperature card");
 assertButtonTypeSpecBacked("light_control", "full light control card");
-assertButtonTypeSpecBacked("calendar", "calendar card");
-assertButtonTypeSpecBacked("clock", "clock card");
-assertButtonTypeSpecBacked("timezone", "timezone card");
 assertButtonTypeSpecBacked("weather", "weather card");
 assertButtonTypeSpecBacked("push", "push card");
-assertButtonTypeSpecBacked("webhook", "webhook card");
 for (const type of ["wifi_qr", "wifi_qr_card"]) {
   const retired = hooks.parseButtonConfig(`;;;;;;${type};;ssid64=R3Vlc3Q,pass64=cGFzc3dvcmQ`);
   assert.strictEqual(retired.options, "", "removed card credentials are discarded when loading saved layouts");
   assert(!hooks.serializeButtonConfig(retired).includes("pass64"), "removed card credentials cannot be re-saved");
 }
+const oldAudioFolder = hooks.parseSubpageConfig("~B,1,2|L,media.input_mute,Mute|L,number.level,Level");
+assert.strictEqual(oldAudioFolder.buttons[0].type, "companion_audio", "compact Mac audio cards retire inside folders");
+assert.strictEqual(oldAudioFolder.buttons[1].type, "slider", "the same compact code still reads other slider records");
+assert.strictEqual(oldAudioFolder.buttons[1].entity, "number.level");
 assertButtonTypeSpecBacked("garage", "garage card");
 assertButtonTypeSpecBacked("gate", "gate card");
 assertButtonTypeSpecBacked("lock", "lock card");
@@ -286,14 +286,6 @@ assertButtonTypeSpecBacked("media", "media card");
 assertButtonTypeSpecBacked("alarm", "alarm card");
 assertButtonTypeSpecBacked("alarm_action", "alarm action card");
 assertButtonTypeSpecBacked("climate", "climate card");
-assert.deepStrictEqual(
-  Array.from(hooks.dateTimeModeOptionValues()),
-  ["clock", "timezone"],
-  "date/time mode options are spec-backed"
-);
-assert.strictEqual(hooks.normalizeDateTimeCardMode("clock"), "clock", "date/time clock mode is allowed by spec");
-assert.strictEqual(hooks.normalizeDateTimeCardMode("timezone"), "timezone", "date/time world clock mode is allowed by spec");
-assert.strictEqual(hooks.normalizeDateTimeCardMode("bad"), "clock", "date/time invalid mode falls back to clock mode");
 assert.deepStrictEqual(
   Array.from(hooks.weatherModeOptionValues()),
   ["", "today", "tomorrow", "daily", "wind", "rainfall"],
@@ -343,8 +335,6 @@ assert.strictEqual(hooks.normalizeLockMode("unlock"), "unlock", "lock unlock mod
 assert.strictEqual(hooks.normalizeLockMode("bad"), "", "lock invalid mode falls back to toggle");
 assert.strictEqual(hooks.pushDefaultIcon(), "Gesture Tap", "push default icon is spec-backed");
 assert.strictEqual(hooks.pushDefaultIconOn(), "Auto", "push on icon cleanup is spec-backed");
-assert.strictEqual(hooks.webhookMethod("post"), "POST", "webhook method normalizes to uppercase");
-assert.strictEqual(hooks.webhookMethod("bad"), "GET", "webhook invalid method falls back to GET");
 assert.deepStrictEqual(
   Array.from(hooks.mediaModeOptionValues()),
   ["control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"],
@@ -716,15 +706,10 @@ Object.entries(current.generatedContract.migrationAliases).forEach(([alias, expe
     `generated contract exposes ${alias} migration alias`
   );
 });
-assert.strictEqual(hooks.normalizeTemperatureUnit("fahrenheit"), "°F", "fahrenheit unit normalization");
-assert.strictEqual(hooks.normalizeTemperatureUnit("centigrade"), "°C", "centigrade unit normalization");
 assert.strictEqual(hooks.normalizeScreensaverAction("Screen Dimmed"), "dim", "dimmed screensaver action normalization");
 assert.strictEqual(hooks.screensaverActionOption("dim"), "Screen Dimmed", "dimmed screensaver action option");
 assert.strictEqual(hooks.normalizeScreensaverDimmedBrightness(0), 10, "dimmed screensaver brightness fallback");
 assert.strictEqual(hooks.normalizeScreensaverDimmedBrightness(101), 100, "dimmed screensaver brightness maximum");
-assert.strictEqual(hooks.temperatureUnitSymbolFor("America/New_York (GMT-5)", "Auto"), "°F", "auto unit for US timezone");
-assert.strictEqual(hooks.temperatureUnitSymbolFor("Europe/London (GMT+0)", "Auto"), "°C", "auto unit for UK timezone");
-assert.strictEqual(hooks.temperatureUnitSymbolFor("Europe/London (GMT+0)", "°F"), "°F", "manual fahrenheit override");
 assert.strictEqual(hooks.networkPreviewIconSlug("wifi", 0), "wifi-strength-1", "wifi preview first strength icon");
 assert.strictEqual(hooks.networkPreviewIconSlug("wifi", 49), "wifi-strength-2", "wifi preview second strength icon");
 assert.strictEqual(hooks.networkPreviewIconSlug("wifi", 74), "wifi-strength-3", "wifi preview third strength icon");
@@ -817,12 +802,8 @@ assert.deepStrictEqual(buttonShape(numericBackupPlan.buttons[0]), buttonShape({
   type: "slider",
 }), "backup import preserves native number sliders");
 assert.deepStrictEqual(buttonShape(numericBackupPlan.buttons[1]), buttonShape({
-  entity: "input_number.test_level",
-  label: "Test",
-  sensor: "input_number.set_value",
-  unit: "2.5",
   type: "action",
-}), "backup import preserves number helper actions");
+}), "backup import discards retired Action payloads");
 
 assertButtonRoundTrip(hooks, "normal button", {
   entity: "light.kitchen",
@@ -989,18 +970,6 @@ assertButtonMigration(
   }
 );
 
-
-assertButtonRoundTrip(hooks, "webhook post json", {
-  entity: "https://maker.ifttt.com/trigger/door/json/with/key/test",
-  label: "Door Alert",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "POST",
-  unit: "{\"value1\":\"Front door\"}",
-  type: "webhook",
-  precision: "",
-  options: "webhook_headers=Content-Type%3A application/json%3B Authorization%3A Bearer token",
-}, false);
 
 assertButtonRoundTrip(hooks, "garage label button", {
   entity: "cover.garage",
@@ -1466,86 +1435,6 @@ assertButtonRoundTrip(hooks, "cover set position command button", {
   unit: "50",
   type: "cover",
   precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar date card", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar date and time card", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "datetime",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar large numbers option", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "datetime",
-  options: "large_numbers",
-}, false);
-
-assertButtonRoundTrip(hooks, "clock card", {
-  entity: "",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "clock",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "clock large numbers option", {
-  entity: "",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "clock",
-  precision: "",
-  options: "large_numbers",
-}, false);
-
-assertButtonRoundTrip(hooks, "timezone card", {
-  entity: "America/New_York (GMT-5)",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "timezone",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "timezone large numbers option", {
-  entity: "America/New_York (GMT-5)",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "timezone",
-  precision: "",
-  options: "large_numbers",
 }, false);
 
 assertButtonRoundTrip(hooks, "weather current conditions card", {
@@ -2538,210 +2427,16 @@ assertButtonMigration(hooks, "legacy media controls card", "media_player.living_
   precision: "",
 });
 
-assertButtonRoundTrip(hooks, "scene action card", {
-  entity: "scene.movie_mode",
-  label: "Movie Mode",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "scene.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "script action card", {
-  entity: "script.goodnight",
-  label: "Goodnight",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-const scriptActionStateCard = {
-  entity: "script.kitchen_lights",
-  label: "Kitchen Lights",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "state_entity=light.kitchen",
-};
-assertButtonRoundTrip(hooks, "script action card with state entity", scriptActionStateCard, false);
-assert.strictEqual(
-  hooks.actionCardStateEntity(hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionStateCard))),
-  "light.kitchen",
-  "action card state entity option"
-);
-assert.strictEqual(
-  hooks.actionCardStateDisplayMode(hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionStateCard))),
-  "text",
-  "legacy action card state entity defaults to text display in editor"
-);
-
-const scriptActionNumericStateCard = {
-  entity: "script.kitchen_lights",
-  label: "Kitchen Lights",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "state_entity=sensor.kitchen_power,state_unit=W,state_precision=1",
-};
-assertButtonRoundTrip(hooks, "script action card with numeric state display", scriptActionNumericStateCard, false);
-const parsedActionNumericState = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionNumericStateCard));
-assert.strictEqual(hooks.actionCardStateDisplayMode(parsedActionNumericState), "numeric", "action card numeric state mode");
-assert.strictEqual(hooks.actionCardStateUnit(parsedActionNumericState), "W", "action card numeric state unit");
-assert.strictEqual(hooks.actionCardStatePrecision(parsedActionNumericState), "1", "action card numeric state precision");
-
-const scriptActionZeroPrecisionStateCard = {
-  entity: "script.kitchen_lights",
-  label: "Kitchen Lights",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "state_entity=sensor.kitchen_power,state_precision=0",
-};
-assertButtonRoundTrip(hooks, "script action card with zero-precision numeric state display", scriptActionZeroPrecisionStateCard, false);
-const parsedActionZeroPrecisionState = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionZeroPrecisionStateCard));
-assert.strictEqual(hooks.actionCardStateDisplayMode(parsedActionZeroPrecisionState), "numeric", "action card zero-precision numeric state mode");
-assert.strictEqual(hooks.actionCardStatePrecision(parsedActionZeroPrecisionState), "0", "action card zero-precision numeric state precision");
-
-const scriptActionTextStateCard = {
-  entity: "script.washer",
-  label: "Washer",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "state_entity=text_sensor.washer_state,state_precision=text",
-};
-assertButtonRoundTrip(hooks, "script action card with text state display", scriptActionTextStateCard, false);
-const parsedActionTextState = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionTextStateCard));
-assert.strictEqual(hooks.actionCardStateDisplayMode(parsedActionTextState), "text", "action card text state mode");
-assert.strictEqual(hooks.actionCardStatePrecision(parsedActionTextState), "text", "action card text state precision");
-
-const scriptActionIconStateCard = {
-  entity: "script.goodnight",
-  label: "Goodnight",
-  icon: "Flash",
-  icon_on: "Check Circle",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "state_entity=input_boolean.goodnight_ready,state_precision=icon",
-};
-assertButtonRoundTrip(hooks, "script action card with icon state display", scriptActionIconStateCard, false);
-const parsedActionIconState = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionIconStateCard));
-assert.strictEqual(hooks.actionCardStateDisplayMode(parsedActionIconState), "icon", "action card icon state mode");
-assert.strictEqual(hooks.actionCardStatePrecision(parsedActionIconState), "icon", "action card icon state precision");
-
-const scriptActionFieldsCard = {
-  entity: "script.goodnight",
-  label: "Goodnight",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "script_fields=room%3A kitchen\nmode=night",
-};
-assertButtonRoundTrip(hooks, "script action card with fields", scriptActionFieldsCard, false);
-const parsedScriptActionFields = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptActionFieldsCard));
-assert.strictEqual(
-  hooks.actionScriptFields(parsedScriptActionFields),
-  "room: kitchen\nmode=night",
-  "script action fields round-trip"
-);
-hooks.setActionScriptFields(parsedScriptActionFields, "level: 4");
-assert.strictEqual(hooks.actionScriptFields(parsedScriptActionFields), "level: 4", "script action fields update");
-parsedScriptActionFields.options = "script_fields=level: 4,confirm_on,confirm_message=Run level?";
-parsedScriptActionFields.sensor = "scene.turn_on";
-const parsedNonScriptActionFields = hooks.parseButtonConfig(hooks.serializeButtonConfig(parsedScriptActionFields));
-assert.strictEqual(parsedNonScriptActionFields.options || "", "", "script-only options are removed from non-script actions");
-
-assertButtonRoundTrip(hooks, "automation action card", {
-  entity: "automation.goodnight",
-  label: "Goodnight Automation",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "automation.trigger",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "button action card", {
-  entity: "button.restart_router",
-  label: "Restart Router",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "button.press",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "local action subtype card", {
-  entity: "zoom_mute",
-  label: "Zoom Mute",
-  icon: "Gesture Tap",
-  icon_on: "Auto",
-  sensor: "local",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-const parsedLocalActionSubtype = hooks.parseButtonConfig("zoom_mute;Zoom Mute;Gesture Tap;Auto;local;;action");
-assert.strictEqual(parsedLocalActionSubtype.type, "action", "local action subtype remains an action card");
-assert.strictEqual(hooks.actionCardIsLocal(parsedLocalActionSubtype), true, "local action subtype is detected");
-
-assertButtonMigration(hooks, "legacy local action card becomes action subtype", "zoom_mute;Zoom Mute;Auto;Auto;;;local;;state_entity=sensor.stale", {
-  entity: "zoom_mute",
-  label: "Zoom Mute",
-  icon: "Gesture Tap",
-  icon_on: "Auto",
-  sensor: "local",
-  unit: "",
-  type: "action",
-  precision: "",
-});
-
-assertButtonMigration(hooks, "legacy vacuum start action card", "vacuum.k11_vacuum_784c;Vacuum Bath;Robot Vacuum;Auto;vacuum.start;;action", {
-  entity: "vacuum.k11_vacuum_784c",
-  label: "Vacuum Bath",
-  icon: "Robot Vacuum",
-  icon_on: "Auto",
-  sensor: "start_stop",
-  unit: "",
-  type: "vacuum",
-  precision: "",
-});
-
-assertButtonMigration(hooks, "legacy vacuum return to base action card", "vacuum.k11_vacuum_784c;Dock Vacuum;Robot Vacuum;Auto;vacuum.return_to_base;;action", {
-  entity: "vacuum.k11_vacuum_784c",
-  label: "Dock Vacuum",
-  icon: "Robot Vacuum",
-  icon_on: "Auto",
-  sensor: "dock",
-  unit: "",
-  type: "vacuum",
-  precision: "",
-});
+for (const raw of [
+  "scene.movie_mode;Movie Mode;Flash;Auto;scene.turn_on;;action",
+  "script.goodnight;Goodnight;Flash;Auto;script.turn_on;;action;;confirm_on,state_entity=sensor.power",
+  "zoom_mute;Zoom Mute;Gesture Tap;Auto;local;;action",
+  "zoom_mute;Zoom Mute;Auto;Auto;;;local;;state_entity=sensor.stale",
+  "vacuum.robot;Vacuum;Robot Vacuum;Auto;vacuum.start;;action",
+]) {
+  const type = raw.split(";")[6];
+  assert.deepStrictEqual(buttonShape(hooks.parseButtonConfig(raw)), buttonShape({type}), "retired Action payload is discarded");
+}
 
 [
   ["status", ""],
@@ -2794,72 +2489,6 @@ assertButtonMigration(hooks, "invalid lawn mower mode normalizes to start mowing
   precision: "",
 });
 
-assertButtonRoundTrip(hooks, "input button action card", {
-  entity: "input_button.doorbell",
-  label: "Doorbell",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_button.press",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "input boolean toggle action card", {
-  entity: "input_boolean.guest_mode",
-  label: "Guest Mode",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_boolean.toggle",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "input number action card", {
-  entity: "input_number.target_level",
-  label: "Target Level",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_number.set_value",
-  unit: "50",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "native number action card", {
-  entity: "number.target_level",
-  label: "Target Level",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "number.set_value",
-  unit: "12.5",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonMigration(hooks, "native number action corrects helper service", "number.target_level;Target Level;Flash;Auto;input_number.set_value;12.5;action", {
-  entity: "number.target_level",
-  label: "Target Level",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "number.set_value",
-  unit: "12.5",
-  type: "action",
-  precision: "",
-});
-
-assertButtonMigration(hooks, "number helper action corrects native service", "input_number.target_level;Target Level;Flash;Auto;number.set_value;12.5;action", {
-  entity: "input_number.target_level",
-  label: "Target Level",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_number.set_value",
-  unit: "12.5",
-  type: "action",
-  precision: "",
-});
-
 assertButtonRoundTrip(hooks, "native number slider", {
   entity: "number.boiler_target",
   label: "Boiler",
@@ -2882,49 +2511,7 @@ assertButtonRoundTrip(hooks, "number helper slider", {
   precision: "",
 }, false);
 
-assertButtonRoundTrip(hooks, "invalid option select is not converted to number", {
-  entity: "number.target_level",
-  label: "Invalid Select",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_select.select_option",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "input select option action card", {
-  entity: "input_select.house_mode",
-  label: "House Mode",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_select.select_option",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "select option action card", {
-  entity: "select.wled_preset",
-  label: "WLED Preset",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_select.select_option",
-  unit: "",
-  type: "action",
-  precision: "",
-}, false);
-
-assertButtonMigration(hooks, "legacy option select becomes action subtype", "select.wled_preset;WLED Preset;Chevron Down;Lightbulb;sensor.stale;%;option_select;2;large_numbers", {
-  entity: "select.wled_preset",
-  label: "WLED Preset",
-  icon: "Flash",
-  icon_on: "Auto",
-  sensor: "input_select.select_option",
-  unit: "",
-  type: "action",
-  precision: "",
-});
+assert.deepStrictEqual(buttonShape(hooks.parseButtonConfig("select.wled_preset;WLED Preset;Chevron Down;Lightbulb;sensor.stale;%;option_select;2;large_numbers")), buttonShape({type:"option_select"}), "retired option select is discarded");
 
 assertButtonMigration(hooks, "legacy horizontal slider card", "light.strip;Strip;Lightbulb;Lightbulb On;h;;slider", {
   entity: "light.strip",
@@ -2948,7 +2535,7 @@ assertSubpageRoundTrip(hooks, "normal subpage", {
   order: ["1", "B", "2"],
   buttons: [
     buttonShape({ entity: "light.kitchen", label: "Kitchen", icon: "Auto", icon_on: "Lightbulb" }),
-    buttonShape({ type: "calendar" }),
+    buttonShape({ entity: "light.office", label: "Office" }),
   ],
 }, true);
 
@@ -2956,7 +2543,7 @@ assertSubpageRoundTrip(hooks, "numeric controls subpage", {
   order: ["1", "B", "2"],
   buttons: [
     buttonShape({ entity: "number.boiler_target", label: "Boiler", type: "slider" }),
-    buttonShape({ entity: "input_number.test_level", label: "Test", sensor: "input_number.set_value", unit: "2.5", type: "action" }),
+    buttonShape({ type: "action" }),
   ],
 }, true);
 
@@ -2978,15 +2565,6 @@ const backOnlyFromGrid = hooks.serializeSubpageConfig({
   buttons: [],
 });
 assert.strictEqual(backOnlyFromGrid, "B", "new back-only subpage serializes from its grid");
-
-assertSubpageRoundTrip(hooks, "date time large numbers subpage", {
-  order: ["1", "B", "2", "3"],
-  buttons: [
-    buttonShape({ type: "calendar", precision: "datetime", options: "large_numbers" }),
-    buttonShape({ type: "clock", options: "large_numbers" }),
-    buttonShape({ entity: "America/New_York (GMT-5)", type: "timezone", options: "large_numbers" }),
-  ],
-}, true);
 
 assertSubpageRoundTrip(hooks, "switch confirmation subpage", {
   order: ["1", "B"],
@@ -3051,15 +2629,15 @@ assertSubpageRoundTrip(hooks, "gate status subpage", {
 assertSubpageRoundTrip(hooks, "action subpage", {
   order: ["1", "B", "2"],
   buttons: [
-    buttonShape({ entity: "scene.movie_mode", label: "Movie Mode", icon: "Flash", sensor: "scene.turn_on", type: "action", options: "state_entity=light.living_room" }),
-    buttonShape({ entity: "input_select.house_mode", label: "House Mode", icon: "Flash", sensor: "input_select.select_option", type: "action" }),
+    buttonShape({ type: "action" }),
+    buttonShape({ type: "action" }),
   ],
 }, true);
 
 assertSubpageRoundTrip(hooks, "option select action subpage", {
   order: ["1", "B"],
   buttons: [
-    buttonShape({ entity: "input_select.house_mode", label: "House Mode", icon: "Flash", icon_on: "Auto", sensor: "input_select.select_option", type: "action" }),
+    buttonShape({ type: "action" }),
   ],
 }, true);
 
@@ -3255,7 +2833,7 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|CK")), {
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|T,America/New_York%20%28GMT-5%29")), {
   order: ["1", "B"],
   buttons: [
-    buttonShape({ entity: "America/New_York (GMT-5)", type: "timezone" }),
+    buttonShape({ type: "timezone" }),
   ],
 }, "compact timezone subpage parse");
 
@@ -3341,37 +2919,21 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|C,cover.offic
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|A,scene.movie_mode,Movie%20Mode,Flash,,scene.turn_on")), {
   order: ["1", "B"],
   buttons: [
-    buttonShape({ entity: "scene.movie_mode", label: "Movie Mode", icon: "Flash", icon_on: "Auto", sensor: "scene.turn_on", type: "action" }),
+    buttonShape({ type: "A" }),
   ],
 }, "compact action subpage parse");
 
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|A,scene.movie_mode,Movie%20Mode,Flash,,scene.turn_on,,,state_entity=light.living_room")), {
   order: ["1", "B"],
   buttons: [
-    buttonShape({ entity: "scene.movie_mode", label: "Movie Mode", icon: "Flash", icon_on: "Auto", sensor: "scene.turn_on", type: "action", options: "state_entity=light.living_room" }),
+    buttonShape({ type: "A" }),
   ],
 }, "compact action subpage state entity parse");
-
-assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|WH,https%3A//webhook-test.net/abc,Door%20Alert,,,POST,%7B%22value%22%3Atrue%7D,,webhook_headers=Content-Type%253A%20application/json")), {
-  order: ["1", "B"],
-  buttons: [
-    buttonShape({
-      entity: "https://webhook-test.net/abc",
-      label: "Door Alert",
-      icon: "Auto",
-      icon_on: "Auto",
-      sensor: "POST",
-      unit: "{\"value\":true}",
-      type: "webhook",
-      options: "webhook_headers=Content-Type%3A application/json",
-    }),
-  ],
-}, "compact webhook subpage parse");
 
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|U,input_select.house_mode,House%20Mode,Chevron%20Down")), {
   order: ["1", "B"],
   buttons: [
-    buttonShape({ entity: "input_select.house_mode", label: "House Mode", icon: "Flash", icon_on: "Auto", sensor: "input_select.select_option", type: "action" }),
+    buttonShape({ type: "U" }),
   ],
 }, "compact option select subpage migration");
 

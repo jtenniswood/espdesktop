@@ -3,36 +3,95 @@
   "appId": "ru.keepcoder.Telegram",
   "label": "Telegram",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "2", "3", "4", "11"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Quick search",
+      "label": "Quick Search",
       "shortcut": "command+k",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Search this chat",
+      "label": "Search Chat",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "2",
-      "label": "Search all chats",
+      "label": "Search All",
       "shortcut": "shift+command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Previous chat",
+      "label": "Previous Chat",
       "shortcut": "option+command+up",
       "icon": "Chevron Up"
     },
     {
       "id": "4",
-      "label": "Next chat",
+      "label": "Next Chat",
       "shortcut": "option+command+down",
       "icon": "Chevron Down"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "5", "label": "Telegram", "shortcut": "scoped.up", "icon": "Chat"},
+    {"id": "6", "label": "Telegram", "shortcut": "scoped.down", "icon": "Chat"},
+    {"id": "7", "label": "Telegram", "shortcut": "scoped.right", "icon": "Chat"},
+    {"id": "8", "label": "Telegram for macOS — Go back", "shortcut": "scoped.left", "icon": "Arrow Left"},
+    {"id": "9", "label": "Telegram", "shortcut": "scoped.command+f", "icon": "Search"},
+    {"id": "10", "label": "Telegram", "shortcut": "scoped.escape", "icon": "Close"},
+    {"id": "11", "label": "Saved Messages", "shortcut": "scoped.command+0", "icon": "Open File"},
+    {"id": "12", "label": "Telegram for macOS — Jump to folder 1", "shortcut": "scoped.command+1", "icon": "Folder Open Outline"},
+    {"id": "13", "label": "Telegram for macOS — Jump to folder 2", "shortcut": "scoped.command+2", "icon": "Folder Open Outline"},
+    {"id": "14", "label": "Telegram for macOS — Jump to folder 3", "shortcut": "scoped.command+3", "icon": "Folder Open Outline"},
+    {"id": "15", "label": "Telegram for macOS — Jump to folder 4", "shortcut": "scoped.command+4", "icon": "Folder Open Outline"},
+    {"id": "16", "label": "Telegram for macOS — Jump to folder 5", "shortcut": "scoped.command+5", "icon": "Folder Open Outline"},
+    {"id": "17", "label": "Telegram for macOS — Jump to folder 6", "shortcut": "scoped.command+6", "icon": "Folder Open Outline"},
+    {"id": "18", "label": "Telegram for macOS — Jump to folder 7", "shortcut": "scoped.command+7", "icon": "Folder Open Outline"},
+    {"id": "19", "label": "Telegram for macOS — Jump to folder 8", "shortcut": "scoped.command+8", "icon": "Folder Open Outline"},
+    {"id": "20", "label": "Telegram for macOS — Jump to folder 9", "shortcut": "scoped.command+9", "icon": "Folder Open Outline"},
+    {"id": "21", "label": "Telegram for macOS — Jump to chat list 1", "shortcut": "scoped.command+option+1", "icon": "Chat"},
+    {"id": "22", "label": "Telegram for macOS — Jump to chat list 2", "shortcut": "scoped.command+option+2", "icon": "Chat"},
+    {"id": "23", "label": "Telegram for macOS — Jump to chat list 3", "shortcut": "scoped.command+option+3", "icon": "Chat"},
+    {"id": "24", "label": "Telegram for macOS — Jump to chat list 4", "shortcut": "scoped.command+option+4", "icon": "Chat"},
+    {"id": "25", "label": "Telegram for macOS — Jump to chat list 5", "shortcut": "scoped.command+option+5", "icon": "Chat"},
+    {"id": "26", "label": "Telegram for macOS — Jump to chat list 6", "shortcut": "scoped.command+option+6", "icon": "Chat"},
+    {"id": "27", "label": "Telegram for macOS — Jump to chat list 7", "shortcut": "scoped.command+option+7", "icon": "Chat"},
+    {"id": "28", "label": "Telegram for macOS — Jump to chat list 8", "shortcut": "scoped.command+option+8", "icon": "Chat"},
+    {"id": "29", "label": "Telegram for macOS — Jump to chat list 9", "shortcut": "scoped.command+option+9", "icon": "Chat"},
+    {"id": "30", "label": "Telegram for macOS — Switch account 1", "shortcut": "scoped.command+control+1", "icon": "Shortcut Command"},
+    {"id": "31", "label": "Telegram for macOS — Switch account 2", "shortcut": "scoped.command+control+2", "icon": "Shortcut Command"},
+    {"id": "32", "label": "Telegram for macOS — Switch account 3", "shortcut": "scoped.command+control+3", "icon": "Shortcut Command"},
+    {"id": "33", "label": "Telegram for macOS — Lock Telegram", "shortcut": "scoped.command+l", "icon": "Shortcut Command"},
+    {"id": "34", "label": "Telegram", "shortcut": "scoped.command+e", "icon": "Video"},
+    {"id": "35", "label": "Telegram", "shortcut": "scoped.command+t", "icon": "Video"},
+    {"id": "36", "label": "Telegram for macOS — Minimize window", "shortcut": "scoped.command+m", "icon": "Window Minimise"},
+    {"id": "37", "label": "Telegram for macOS — Quit Telegram", "shortcut": "scoped.command+q", "icon": "Application Exit"},
+    {"id": "38", "label": "Telegram for macOS — Toggle full screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "39", "label": "Telegram Desktop — Navigate current chat Up", "shortcut": "scoped.up", "icon": "Chat"},
+    {"id": "40", "label": "Telegram Desktop — Navigate current chat Down", "shortcut": "scoped.down", "icon": "Chat"},
+    {"id": "41", "label": "Telegram Desktop — Navigate current chat", "shortcut": "scoped.pageup", "icon": "Chat"},
+    {"id": "42", "label": "Telegram Desktop — Navigate current chat", "shortcut": "scoped.pagedown", "icon": "Chat"},
+    {"id": "43", "label": "Telegram Desktop — Move to next chat", "shortcut": "scoped.command+pagedown", "icon": "Arrow Right"},
+    {"id": "44", "label": "Telegram Desktop — Move to next chat", "shortcut": "scoped.option+down", "icon": "Arrow Right"},
+    {"id": "45", "label": "Telegram Desktop — Move to previous chat", "shortcut": "scoped.command+pageup", "icon": "Arrow Left"},
+    {"id": "46", "label": "Telegram Desktop — Move to previous chat", "shortcut": "scoped.option+up", "icon": "Arrow Left"},
+    {"id": "47", "label": "Telegram Desktop — Cancel current action", "shortcut": "scoped.escape", "icon": "Close"},
+    {"id": "48", "label": "Telegram Desktop — Send file", "shortcut": "scoped.command+o", "icon": "Send"},
+    {"id": "49", "label": "Telegram Desktop — Search selected chat", "shortcut": "scoped.command+f", "icon": "Search"},
+    {"id": "50", "label": "Telegram Desktop — Search contacts", "shortcut": "scoped.command+j", "icon": "Search"},
+    {"id": "51", "label": "Telegram Desktop — Scroll chat list to top", "shortcut": "scoped.option+enter", "icon": "Chat"},
+    {"id": "52", "label": "Telegram Desktop — Open Saved Messages", "shortcut": "scoped.command+0", "icon": "Open File"},
+    {"id": "53", "label": "Telegram Desktop — Jump to pinned chat 1", "shortcut": "scoped.command+1", "icon": "Chat"},
+    {"id": "54", "label": "Telegram Desktop — Jump to pinned chat 2", "shortcut": "scoped.command+2", "icon": "Chat"},
+    {"id": "55", "label": "Telegram Desktop — Jump to pinned chat 3", "shortcut": "scoped.command+3", "icon": "Chat"},
+    {"id": "56", "label": "Telegram Desktop — Jump to pinned chat 4", "shortcut": "scoped.command+4", "icon": "Chat"},
+    {"id": "57", "label": "Telegram Desktop — Jump to pinned chat 5", "shortcut": "scoped.command+5", "icon": "Chat"},
+    {"id": "58", "label": "Telegram Desktop — Open Archived Chats", "shortcut": "scoped.command+9", "icon": "Open File"},
+    {"id": "59", "label": "Telegram Desktop — Minimize Telegram", "shortcut": "scoped.command+m", "icon": "Window Minimise"},
+    {"id": "60", "label": "Telegram Desktop — Quit Telegram", "shortcut": "scoped.command+q", "icon": "Application Exit"}
   ]
 }

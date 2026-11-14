@@ -252,6 +252,7 @@ class WindowBackend final : public StorageBackend {
   bool begin_operation() override { return inner_.begin_operation(); }
   void end_operation() override { inner_.end_operation(); }
   StoreStatus operation_failure() const override { return inner_.operation_failure(); }
+  bool prepare_slot(uint8_t slot, size_t size) override { return inner_.prepare_slot(slot, size); }
   bool read(uint8_t slot, size_t offset, uint8_t *out, size_t size) override {
     max_read = std::max(max_read, size);
     ++reads;
@@ -416,6 +417,73 @@ void bounded_partition_read_transactions() {
             << std::endl;
   assert(fixture::read_calls <= 256);
 }
+
+void partition_erases_only_sectors_used_by_replacement() {
+  fixture::reset();
+  constexpr size_t capacity = 40 * 1024, sector = 4096;
+  // Seed both slots with large layouts, including bytes beyond the shorter
+  // replacement. Older firmware wrote the entire slot on each save.
+  const std::vector<uint8_t> large(capacity - CONFIGURATION_ENVELOPE_HEADER_SIZE, 0x00);
+  const std::vector<uint8_t> small(7236, 0x5A);
+  {
+    EspIdfPanelConfigBlobStorage port;
+    assert(port.begin_card_images_partition(capacity));
+    BufferedBlobStorageBackend<capacity> backend(port);
+    std::vector<uint8_t> slots(2 * capacity);
+    assert(backend.begin(slots.data(), slots.size()));
+    ConfigurationStore store(backend);
+    assert(store.commit(large.data(), large.size()).ok());
+    assert(store.commit(large.data(), large.size()).ok());
+  }
+
+  EspIdfPanelConfigBlobStorage port;
+  assert(port.begin_card_images_partition(capacity));
+  TransientBlobStorageBackend<capacity> backend(port, allocate, release);
+  assert(backend.begin(capacity));
+  ConfigurationStore store(backend);
+  std::vector<uint8_t> output(capacity);
+  const auto seed_flash = fixture::flash;
+  for (unsigned percent : {0u, 50u, 100u}) {
+    fixture::mutation = 0;
+    fixture::cut_at = 1;
+    fixture::cut_percent = percent;
+    bool interrupted = false;
+    try {
+      store.commit_if_generation(2, small.data(), small.size());
+    } catch (const fixture::PowerCut &) {
+      interrupted = true;
+    }
+    fixture::cut_at = 0;
+    assert(interrupted);
+    const auto loaded = store.load(output.data(), output.size());
+    assert(loaded.ok() && loaded.generation == 2 && loaded.payload_size == large.size());
+    assert(std::equal(large.begin(), large.end(), output.begin()));
+    fixture::flash = seed_flash;
+  }
+  fixture::erased_bytes = 0;
+  assert(store.commit_if_generation(2, small.data(), small.size()).ok());
+  std::cout << "7 KiB replacement flash erase bytes: " << fixture::erased_bytes << std::endl;
+  assert(fixture::erased_bytes == 2 * sector);
+  // A whole-blob reader must accept the shorter layout even when the old
+  // tail has been left in flash.
+  BufferedBlobStorageBackend<capacity> old_backend(port);
+  std::vector<uint8_t> slots(2 * capacity);
+  assert(old_backend.begin(slots.data(), slots.size()));
+  ConfigurationStore old_store(old_backend);
+  const auto loaded = old_store.load(output.data(), output.size());
+  assert(loaded.ok() && loaded.generation == 3 && loaded.payload_size == small.size());
+  assert(std::equal(small.begin(), small.end(), output.begin()));
+
+  // Reuse the same shortened slot with a larger payload and prove the stale
+  // sectors are erased before writing data over them.
+  assert(store.commit(small.data(), small.size()).ok());
+  const std::vector<uint8_t> grown(3 * sector, 0xA5);
+  fixture::erased_bytes = 0;
+  assert(store.commit(grown.data(), grown.size()).ok());
+  assert(fixture::erased_bytes == 4 * sector);
+  assert(store.load(output.data(), output.size()).generation == 5);
+  assert(std::equal(grown.begin(), grown.end(), output.begin()));
+}
 } // namespace
 
 int main() {
@@ -428,6 +496,7 @@ int main() {
   nvs_capacity_rejection_keeps_the_previous_generation(false);
   nvs_capacity_rejection_keeps_the_previous_generation(true);
   bounded_partition_read_transactions();
+  partition_erases_only_sectors_used_by_replacement();
   assert(live_bytes == 0 && peak_bytes == CAPACITY);
   large_windows_and_power_cuts(false);
   large_windows_and_power_cuts(true);

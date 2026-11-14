@@ -1,10 +1,6 @@
 import { state } from "../state/app_instance";
+import { normalizeScreensaverMode } from "../model/settings";
+
 export function getActiveScreensaverMode() {
-        if (state.screensaverMode === "sensor")
-            return "sensor";
-        if (state.screensaverMode === "companion")
-            return "companion";
-        if (state.screensaverMode === "timer")
-            return "timer";
-        return "disabled";
+    return normalizeScreensaverMode(state.screensaverMode);
 }

@@ -11,9 +11,9 @@ export interface DeviceConfigFeatures {
   screenRotationDisplayOffset?: number;
   screenRotationOptions?: readonly string[];
   subpageConfigChunks?: number;
-  voiceServices?: boolean;
+
   battery?: boolean;
-  alarmDelayAudio?: boolean;
+
   companion?: boolean;
   cameraScreensaver?: boolean;
 }
@@ -32,7 +32,6 @@ export interface DeviceConfig {
   readonly dragAnimation: boolean;
   readonly imageSlotCapacity: number;
   readonly largeSensorUnitOffsetPercent?: number;
-  readonly coverArtSquareOverlay?: boolean;
   readonly disabledCardTypes?: readonly string[];
   readonly infoOnly?: boolean;
   readonly features?: DeviceConfigFeatures;
@@ -113,6 +112,7 @@ export interface SettingsDraft {
   isNew?: boolean;
   pos?: number;
   typeSelected?: boolean;
+  appShortcutPage?: number;
   autoSelectedButton?: CardConfig | null;
 }
 
@@ -125,32 +125,15 @@ export interface AppState {
   lastClickedSlot: number;
   clockBarSelectedItem: string;
   activeTab: string;
-  _indoorOn: boolean;
-  _outdoorOn: boolean;
-  _indoorVal: number | null;
-  _outdoorVal: number | null;
-  indoorEntity: string;
-  outdoorEntity: string;
-  clockBarTemperatureEntities: string[];
-  _clockBarTemperatureEntitiesReceived: boolean;
-  _clockBarTemperatureVisibilityReceived: boolean;
-  temperatureUnit: string;
   clockBarOn: boolean;
   _clockBarStateValues: Record<string, boolean>;
   clockBarTimeOn: boolean;
   clockBarNightModeOn: boolean;
   networkStatusOn: boolean;
   batteryStatusOn: boolean;
-  voiceServicesOn: boolean;
-  alarmDelayAudioOn: boolean;
-  alarmDelayTtsOn: boolean;
-  alarmDelayEntryAnnouncement: string;
-  alarmDelayExitAnnouncement: string;
-  alarmDelayBeepVolume: number;
-  alarmDelayFinalCountdown: number;
+
   networkTransport: string;
   wifiStrengthPercent: number;
-  temperatureDegreeSymbolOn: boolean;
   subpageChevronsOn: boolean;
   autoOpenAppSubpages: boolean;
   returnHomeOnAppSwitch: boolean;
@@ -166,22 +149,9 @@ export interface AppState {
   screensaverCameraImageMode: string;
   screensaverCameraDimming: number;
   screensaverCameraDimmingSupported: boolean;
-  mediaPlayerSleepPreventionOn: boolean;
-  mediaPlayerSleepPreventionEntity: string;
-  coverArtScreensaverOn: boolean;
-  coverArtSource: string;
   clockOverlayOn: boolean;
-  coverArtMediaPlayerEntity: string;
-  coverArtSecondaryMediaPlayerEntity: string;
-  coverArtAttributeConditions: string;
-  coverArtFilteringEnabled: boolean;
-  coverArtDelay: number;
-  coverArtPlaybackControlOn: boolean;
-  coverArtTrackOverlayDuration: number;
-  coverArtHideExternalInputOn: boolean;
   homeAssistantArtworkProtocol: string;
   homeAssistantArtworkHost: string;
-  coverArtHomeAssistantPort: number;
   homeAssistantArtworkEndpointMode: string;
   homeAssistantArtworkEndpointStatus: string;
   homeAssistantArtworkEndpointHealth: string;
@@ -200,7 +170,6 @@ export interface AppState {
   screensaverTimeoutMin: number;
   screensaverTimeoutMax: number;
   screensaverTimeoutLimitsLoaded: boolean;
-  homeScreenTimeout: number;
   brightnessDayVal: number;
   brightnessNightVal: number;
   brightnessMode: string;

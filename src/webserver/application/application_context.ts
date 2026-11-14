@@ -5,14 +5,12 @@ import type { CardEditorDraftController } from "../features/card_editor_draft_co
 import type { CardEditorSaveController } from "../features/card_editor_save_controller";
 import type { CardEditorValidationController } from "../features/card_editor_validation_controller";
 import type { PreviewPlacementController } from "../features/preview_placement_controller";
-import type { AlarmDelayAudioController } from "../features/alarm_delay_audio_controller";
+
 import type { ClockBarController } from "../features/clock_bar_controller";
-import type { CoverArtScreensaverController } from "../features/cover_art_screensaver_controller";
-import type { MediaPlaybackController } from "../features/media_playback_controller";
 import type { ScreenScheduleController } from "../features/screen_schedule_controller";
 import type { ScreensaverController } from "../features/screensaver_controller";
 import type { SettingsUiFeature } from "../features/settings";
-import type { VoiceServicesController } from "../features/voice_services_controller";
+
 import type { BackupFeature } from "../features/backup";
 import type { BackupExportController } from "../features/backup_export_controller";
 import type { BackupFileController } from "../features/backup_file_controller";
@@ -26,10 +24,8 @@ import type { ConfigSensorOptionsFeature } from "./config_sensor_options";
 import type { ConfigMediaOptionsFeature } from "./config_media_options";
 import type { ConfigImageOptionsFeature } from "./config_image_options";
 import type { ConfigWeatherOptionsFeature } from "./config_weather_options";
-import type { ConfigWebhookOptionsFeature } from "./config_webhook_options";
 import type { ConfigRobotCardOptionsFeature } from "./config_robot_card_options";
 import type { ConfigLockOptionsFeature } from "./config_lock_options";
-import type { ConfigDateTimeOptionsFeature } from "./config_date_time_options";
 import type { ConfigModalTabOptionsFeature } from "./config_modal_tab_options";
 import type { ConfigAccessClimateAlarmOptionsFeature } from "./config_access_climate_alarm_options";
 import type { ConfigConfirmationOptionsFeature } from "./config_confirmation_options";
@@ -57,7 +53,6 @@ import type { AppEventsFeature } from "./app_events";
 import type { AppStatusPreviewFeature } from "./app_status_preview";
 import type { GridFeature } from "./grid";
 import type { FirmwareUpdatePostApiFeature } from "./firmware_update_post_api";
-import type { ArtworkPostApiFeature } from "./artwork_post_api";
 import type { ScreenSchedulePostApiFeature } from "./screen_schedule_post_api";
 import type { ClockBarPostApiFeature } from "./clock_bar_post_api";
 import type { PublicFirmwareInstallFeature } from "./public_firmware_install";
@@ -112,10 +107,8 @@ export interface ApplicationContext {
     readonly mediaOptions: ConfigMediaOptionsFeature;
     readonly imageOptions: ConfigImageOptionsFeature;
     readonly weatherOptions: ConfigWeatherOptionsFeature;
-    readonly webhookOptions: ConfigWebhookOptionsFeature;
     readonly robotOptions: ConfigRobotCardOptionsFeature;
     readonly lockOptions: ConfigLockOptionsFeature;
-    readonly dateTimeOptions: ConfigDateTimeOptionsFeature;
     readonly modalTabs: ConfigModalTabOptionsFeature;
     readonly accessClimateAlarm: ConfigAccessClimateAlarmOptionsFeature;
     readonly confirmationOptions: ConfigConfirmationOptionsFeature;
@@ -134,7 +127,6 @@ export interface ApplicationContext {
     readonly firmwareVersion: FirmwareVersionFeature;
     readonly firmwareUpdate: FirmwareUpdateFeature;
     readonly firmwarePostApi: FirmwareUpdatePostApiFeature;
-    readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
     readonly clockBarPostApi: ClockBarPostApiFeature;
     readonly publicFirmwareInstall: PublicFirmwareInstallFeature;
@@ -150,13 +142,11 @@ export interface ApplicationContext {
     readonly appEvents: AppEventsFeature;
     readonly statusPreview: AppStatusPreviewFeature;
     readonly grid: GridFeature;
-    readonly alarmDelayAudio: AlarmDelayAudioController;
+
     readonly cardEditorDraft: CardEditorDraftController;
     readonly cardEditorSave: CardEditorSaveController;
     readonly cardEditorValidation: CardEditorValidationController;
     readonly clockBar: ClockBarController;
-    readonly coverArtScreensaver: CoverArtScreensaverController;
-    readonly mediaPlayback: MediaPlaybackController;
     readonly pageTitle: AppTitleFeature;
     readonly previewPlacement: PreviewPlacementController;
     readonly reconnect: ReconnectController<unknown>;
@@ -166,7 +156,7 @@ export interface ApplicationContext {
     readonly screensaver: ScreensaverController;
     readonly screensaverTimeout: ScreensaverTimeoutFeature;
     readonly settingsUi: SettingsUiFeature;
-    readonly voiceServices: VoiceServicesController;
+
     readonly environment: EnvironmentStateFeature;
     readonly iconPicker: ButtonSettingsIconPickerFeature;
     readonly renderQueue: ButtonSettingsRenderQueueFeature;
@@ -198,10 +188,8 @@ export interface ApplicationContextOptions {
   readonly mediaConfigurationOptions: ConfigMediaOptionsFeature;
   readonly imageConfigurationOptions: ConfigImageOptionsFeature;
   readonly weatherConfigurationOptions: ConfigWeatherOptionsFeature;
-  readonly webhookConfigurationOptions: ConfigWebhookOptionsFeature;
   readonly robotConfigurationOptions: ConfigRobotCardOptionsFeature;
   readonly lockConfigurationOptions: ConfigLockOptionsFeature;
-  readonly dateTimeConfigurationOptions: ConfigDateTimeOptionsFeature;
   readonly modalTabOptions: ConfigModalTabOptionsFeature;
   readonly accessClimateAlarmOptions: ConfigAccessClimateAlarmOptionsFeature;
   readonly confirmationOptions: ConfigConfirmationOptionsFeature;
@@ -216,7 +204,6 @@ export interface ApplicationContextOptions {
   readonly firmwareVersion: FirmwareVersionFeature;
   readonly firmwareUpdate: FirmwareUpdateFeature;
   readonly firmwarePostApi: FirmwareUpdatePostApiFeature;
-  readonly artworkPostApi: ArtworkPostApiFeature;
   readonly schedulePostApi: ScreenSchedulePostApiFeature;
   readonly clockBarPostApi: ClockBarPostApiFeature;
   readonly publicFirmwareInstall: PublicFirmwareInstallFeature;
@@ -232,13 +219,11 @@ export interface ApplicationContextOptions {
   readonly appEvents: AppEventsFeature;
   readonly statusPreview: AppStatusPreviewFeature;
   readonly grid: GridFeature;
-  readonly alarmDelayAudio: AlarmDelayAudioController;
+
   readonly cardEditorDraft: CardEditorDraftController;
   readonly cardEditorSave: CardEditorSaveController;
   readonly cardEditorValidation: CardEditorValidationController;
   readonly clockBar: ClockBarController;
-  readonly coverArtScreensaver: CoverArtScreensaverController;
-  readonly mediaPlayback: MediaPlaybackController;
   readonly pageTitle: AppTitleFeature;
   readonly previewPlacement: PreviewPlacementController;
   readonly reconnect: ReconnectController<unknown>;
@@ -248,7 +233,7 @@ export interface ApplicationContextOptions {
   readonly screensaver: ScreensaverController;
   readonly screensaverTimeout: ScreensaverTimeoutFeature;
   readonly settingsUi: SettingsUiFeature;
-  readonly voiceServices: VoiceServicesController;
+
   readonly environment: EnvironmentStateFeature;
   readonly iconPicker: ButtonSettingsIconPickerFeature;
   readonly renderQueue: ButtonSettingsRenderQueueFeature;
@@ -297,10 +282,8 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       mediaOptions: options.mediaConfigurationOptions,
       imageOptions: options.imageConfigurationOptions,
       weatherOptions: options.weatherConfigurationOptions,
-      webhookOptions: options.webhookConfigurationOptions,
       robotOptions: options.robotConfigurationOptions,
       lockOptions: options.lockConfigurationOptions,
-      dateTimeOptions: options.dateTimeConfigurationOptions,
       modalTabs: options.modalTabOptions,
       accessClimateAlarm: options.accessClimateAlarmOptions,
       confirmationOptions: options.confirmationOptions,
@@ -319,7 +302,6 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       firmwareVersion: options.firmwareVersion,
       firmwareUpdate: options.firmwareUpdate,
       firmwarePostApi: options.firmwarePostApi,
-      artworkPostApi: options.artworkPostApi,
       schedulePostApi: options.schedulePostApi,
       clockBarPostApi: options.clockBarPostApi,
       publicFirmwareInstall: options.publicFirmwareInstall,
@@ -335,13 +317,11 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       appEvents: options.appEvents,
       statusPreview: options.statusPreview,
       grid: options.grid,
-      alarmDelayAudio: options.alarmDelayAudio,
+
       cardEditorDraft: options.cardEditorDraft,
       cardEditorSave: options.cardEditorSave,
       cardEditorValidation: options.cardEditorValidation,
       clockBar: options.clockBar,
-      coverArtScreensaver: options.coverArtScreensaver,
-      mediaPlayback: options.mediaPlayback,
       pageTitle: options.pageTitle,
       previewPlacement: options.previewPlacement,
       reconnect: options.reconnect,
@@ -351,7 +331,7 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       screensaver: options.screensaver,
       screensaverTimeout: options.screensaverTimeout,
       settingsUi: options.settingsUi,
-      voiceServices: options.voiceServices,
+
       environment: options.environment,
       iconPicker: options.iconPicker,
       renderQueue: options.renderQueue,

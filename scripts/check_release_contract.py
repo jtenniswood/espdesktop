@@ -204,16 +204,34 @@ def verify(*, product_model_path: Path = PRODUCT_MODEL,
         "dual-write": "LegacyConfigurationMode::DUAL_WRITE",
         "read-import-only": "LegacyConfigurationMode::READ_IMPORT_ONLY",
     }[compatibility["phase"]]
-    assert expected_mode in compatibility_policy_path.read_text(encoding="utf-8"), (
+    assert re.search(
+        rf"\bPANEL_CONFIG_LEGACY_MODE\s*=\s*{re.escape(expected_mode)}\s*;",
+        compatibility_policy_path.read_text(encoding="utf-8"),
+    ), (
         "firmware PanelConfig compatibility policy disagrees with release contract"
     )
     return contract
 
 
 def self_test() -> None:
-    verify()
-    contract = read_json(CONTRACT)
-    future = json.loads(json.dumps(contract))
+    contract = verify()
+    if contract.get("panelConfigDowngradePolicy") == "current-release-only":
+        validate_release_history(contract, [])
+
+    # Simulate the earlier flat-layout rollout independently of today's policy.
+    historical = {
+        "panelConfigDocumentVersion": 1,
+        "panelConfigWriteVersion": 1,
+        "panelConfigReadVersions": [1, 2],
+        "panelConfigReadNavigationDepth": 1,
+        "panelConfigWriteNavigationDepth": 1,
+        "panelConfigCompatibility": {
+            "phase": "dual-write",
+            "dualWriteStableReleases": 2,
+            "readImportOnlyStableReleases": 1,
+        },
+    }
+    future = dict(historical)
     future["panelConfigDocumentVersion"] = future["panelConfigWriteVersion"] = 2
     for floor, history, expected in [
         (None, [], False),
@@ -229,8 +247,13 @@ def self_test() -> None:
             assert not expected, "qualified dual-reader floor was rejected"
         else:
             assert expected, "durable v2 accepted a missing or unreadable downgrade floor"
-    read_import_contract = json.loads(json.dumps(contract))
-    read_import_contract["panelConfigCompatibility"]["phase"] = "read-import-only"
+    read_import_contract = {
+        **historical,
+        "panelConfigCompatibility": {
+            **historical["panelConfigCompatibility"],
+            "phase": "read-import-only",
+        },
+    }
     try:
         validate_release_history(read_import_contract, [])
     except AssertionError as error:
@@ -315,11 +338,12 @@ def self_test() -> None:
         else:
             raise AssertionError("mismatched Product Model version was accepted")
         model_path.write_text(original, encoding="utf-8")
+        current_mode = "LegacyConfigurationMode::DUAL_WRITE"
+        other_mode = "LegacyConfigurationMode::READ_IMPORT_ONLY"
+        if contract["panelConfigCompatibility"]["phase"] == "read-import-only":
+            current_mode, other_mode = other_mode, current_mode
         policy_path.write_text(
-            original_policy.replace(
-                "LegacyConfigurationMode::DUAL_WRITE",
-                "LegacyConfigurationMode::READ_IMPORT_ONLY",
-            ),
+            original_policy.replace(current_mode, other_mode, 1),
             encoding="utf-8",
         )
         try:

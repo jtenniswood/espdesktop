@@ -22,9 +22,8 @@ static void activate_priority(DisplayModeController &controller, int priority) {
     case 4: controller.request(DisplayRequestSource::USER_WAKE, DisplayMode::ACTIVE); break;
     case 5: controller.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::CLOCK); break;
     case 6: controller.begin_takeover(DisplayTakeoverKind::INTERACTIVE); break;
-    case 7: controller.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART); break;
-    case 8: controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DIMMED); break;
-    case 9: controller.request(DisplayRequestSource::SETUP_TIMEOUT, DisplayMode::SETUP_DIMMED); break;
+    case 7: controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DIMMED); break;
+    case 8: controller.request(DisplayRequestSource::SETUP_TIMEOUT, DisplayMode::SETUP_DIMMED); break;
     default: break;
   }
 }
@@ -33,7 +32,7 @@ static DisplayMode expected_mode_for_priority(int priority) {
   const DisplayMode modes[] = {
       DisplayMode::ACTIVE, DisplayMode::ACTIVE, DisplayMode::ACTIVE,
       DisplayMode::DISPLAY_OFF, DisplayMode::ACTIVE, DisplayMode::CLOCK,
-      DisplayMode::ACTIVE, DisplayMode::COVER_ART, DisplayMode::DIMMED,
+      DisplayMode::ACTIVE, DisplayMode::DIMMED,
       DisplayMode::SETUP_DIMMED};
   return modes[priority];
 }
@@ -47,7 +46,7 @@ int main() {
   CHECK(!presence_can_wake_display(controller.resolve()));
 
   for (DisplayMode mode : {DisplayMode::DISPLAY_OFF, DisplayMode::DIMMED,
-                           DisplayMode::CLOCK, DisplayMode::CAMERA}) {
+                           DisplayMode::CLOCK}) {
     DisplayModeController presence_wake;
     CHECK(presence_wake.request(DisplayRequestSource::PRESENCE_SENSOR, mode));
     CHECK(presence_can_wake_display(presence_wake.resolve()));
@@ -55,21 +54,17 @@ int main() {
   DisplayModeController idle_wake;
   CHECK(idle_wake.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DIMMED));
   CHECK(presence_can_wake_display(idle_wake.resolve()));
-  DisplayModeController cover_art_presence;
-  CHECK(cover_art_presence.request(DisplayRequestSource::MEDIA_PLAYBACK,
-                                   DisplayMode::COVER_ART));
-  CHECK(!presence_can_wake_display(cover_art_presence.resolve()));
   DisplayModeController scheduled_presence;
   CHECK(scheduled_presence.request(DisplayRequestSource::SCREEN_SCHEDULE,
                                    DisplayMode::CLOCK));
   CHECK(!presence_can_wake_display(scheduled_presence.resolve()));
 
   // Every higher-priority policy beats every lower-priority policy.
-  for (int higher = 1; higher <= 9; ++higher) {
-    for (int lower = higher + 1; lower <= 10; ++lower) {
+  for (int higher = 1; higher <= 8; ++higher) {
+    for (int lower = higher + 1; lower <= 9; ++lower) {
       // Setup timeout is deliberately nested inside onboarding: it may dim
       // instructions but cannot expose any other lower-priority policy.
-      if (higher == 2 && lower == 9) continue;
+      if (higher == 2 && lower == 8) continue;
       DisplayModeController pair;
       activate_priority(pair, lower);
       activate_priority(pair, higher);
@@ -110,27 +105,18 @@ int main() {
   CHECK(controller.request(DisplayRequestSource::PRESENCE_SENSOR, DisplayMode::DIMMED));
   CHECK(decision_is(controller, DisplayMode::DIMMED,
                     DisplayRequestSource::PRESENCE_SENSOR));
-  CHECK(controller.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART));
-  CHECK(decision_is(controller, DisplayMode::COVER_ART,
-                    DisplayRequestSource::MEDIA_PLAYBACK));
 
-  // Camera is an automatic screensaver target: it wakes with presence, but
-  // cover art still has priority while enabled media is playing.
-  DisplayModeController camera;
-  CHECK(camera.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::CAMERA));
-  CHECK(decision_is(camera, DisplayMode::CAMERA, DisplayRequestSource::IDLE_TIMER));
-  CHECK(presence_can_wake_display(camera.resolve()));
-  CHECK(camera.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART));
-  CHECK(decision_is(camera, DisplayMode::COVER_ART,
-                    DisplayRequestSource::MEDIA_PLAYBACK));
-  CHECK(camera.clear(DisplayRequestSource::MEDIA_PLAYBACK));
-  CHECK(decision_is(camera, DisplayMode::CAMERA, DisplayRequestSource::IDLE_TIMER));
-  CHECK(camera.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::DISPLAY_OFF));
-  CHECK(decision_is(camera, DisplayMode::DISPLAY_OFF,
+  // A dimmed screensaver wakes with presence.
+  DisplayModeController dimmed;
+  CHECK(dimmed.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DIMMED));
+  CHECK(decision_is(dimmed, DisplayMode::DIMMED, DisplayRequestSource::IDLE_TIMER));
+  CHECK(presence_can_wake_display(dimmed.resolve()));
+  CHECK(dimmed.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::DISPLAY_OFF));
+  CHECK(decision_is(dimmed, DisplayMode::DISPLAY_OFF,
                     DisplayRequestSource::SCREEN_SCHEDULE));
-  CHECK(camera.clear(DisplayRequestSource::SCREEN_SCHEDULE));
-  CHECK(camera.request(DisplayRequestSource::USER_WAKE, DisplayMode::ACTIVE));
-  CHECK(decision_is(camera, DisplayMode::ACTIVE, DisplayRequestSource::USER_WAKE));
+  CHECK(dimmed.clear(DisplayRequestSource::SCREEN_SCHEDULE));
+  CHECK(dimmed.request(DisplayRequestSource::USER_WAKE, DisplayMode::ACTIVE));
+  CHECK(decision_is(dimmed, DisplayMode::ACTIVE, DisplayRequestSource::USER_WAKE));
 
   CHECK(controller.begin_takeover(DisplayTakeoverKind::INTERACTIVE));
   CHECK(decision_is(controller, DisplayMode::ACTIVE, std::nullopt,
@@ -157,8 +143,7 @@ int main() {
   CHECK(decision_is(controller, DisplayMode::ACTIVE, std::nullopt,
                     DisplayTakeoverKind::INTERACTIVE));
   CHECK(controller.end_takeover(DisplayTakeoverKind::INTERACTIVE));
-  CHECK(decision_is(controller, DisplayMode::COVER_ART,
-                    DisplayRequestSource::MEDIA_PLAYBACK));
+  CHECK(decision_is(controller, DisplayMode::DIMMED, DisplayRequestSource::PRESENCE_SENSOR));
 
   // Boot guard is the schedule-level fail-dark request and rejects invalid time.
   CHECK(controller.request(DisplayRequestSource::BOOT_GUARD, DisplayMode::DISPLAY_OFF));
@@ -203,10 +188,8 @@ int main() {
       {DisplayRequestSource::BOOT_GUARD, DisplayMode::DISPLAY_OFF},
       {DisplayRequestSource::IDLE_TIMER, DisplayMode::DIMMED},
       {DisplayRequestSource::PRESENCE_SENSOR, DisplayMode::CLOCK},
-      {DisplayRequestSource::IDLE_TIMER, DisplayMode::CAMERA},
       {DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::ACTIVE},
       {DisplayRequestSource::MANUAL_SLEEP, DisplayMode::DISPLAY_OFF},
-      {DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART},
       {DisplayRequestSource::SETUP_TIMEOUT, DisplayMode::SETUP_DIMMED},
       {DisplayRequestSource::USER_WAKE, DisplayMode::ACTIVE},
   };
@@ -218,58 +201,14 @@ int main() {
     CHECK(decision_is(isolated, DisplayMode::ACTIVE));
   }
 
-  // Cover art is a media request, not a saved presentation. Higher-priority
-  // requests temporarily hide it, and clearing media restores whatever is
-  // currently underneath rather than assuming the active UI.
-  DisplayModeController cover_art;
-  const uint32_t activation_generation = cover_art.generation();
-  CHECK(cover_art.generation_is_current(activation_generation));
-  CHECK(cover_art.request(DisplayRequestSource::MEDIA_PLAYBACK,
-                          DisplayMode::COVER_ART));
-  const auto first_art = cover_art.resolve();
-  CHECK(decision_is(cover_art, DisplayMode::COVER_ART,
-                    DisplayRequestSource::MEDIA_PLAYBACK));
-  CHECK(!cover_art.generation_is_current(activation_generation));
-  CHECK(cover_art.complete_transition(first_art));
-
-  CHECK(cover_art.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DIMMED));
-  const uint32_t artwork_generation = cover_art.generation();
-  const auto cover_over_idle = cover_art.resolve();
-  CHECK(decision_is(cover_art, DisplayMode::COVER_ART,
-                    DisplayRequestSource::MEDIA_PLAYBACK));
-  CHECK(!cover_art.transition_required(cover_over_idle));
-  CHECK(cover_art.request(DisplayRequestSource::SCREEN_SCHEDULE,
-                          DisplayMode::DISPLAY_OFF));
-  CHECK(!cover_art.generation_is_current(artwork_generation));
-  CHECK(decision_is(cover_art, DisplayMode::DISPLAY_OFF,
-                    DisplayRequestSource::SCREEN_SCHEDULE));
-  CHECK(cover_art.clear(DisplayRequestSource::SCREEN_SCHEDULE));
-  CHECK(decision_is(cover_art, DisplayMode::COVER_ART,
-                    DisplayRequestSource::MEDIA_PLAYBACK));
-
-  const uint32_t dismissed_generation = cover_art.generation();
-  CHECK(cover_art.clear(DisplayRequestSource::MEDIA_PLAYBACK));
-  CHECK(!cover_art.transition_is_current(dismissed_generation,
-                                         DisplayMode::COVER_ART));
-  CHECK(decision_is(cover_art, DisplayMode::DIMMED,
-                    DisplayRequestSource::IDLE_TIMER));
-  CHECK(cover_art.request(DisplayRequestSource::MEDIA_PLAYBACK,
-                          DisplayMode::COVER_ART));
-  const uint32_t replacement_generation = cover_art.generation();
-  CHECK(replacement_generation > dismissed_generation);
-  CHECK(!cover_art.transition_is_current(dismissed_generation,
-                                         DisplayMode::COVER_ART));
-  CHECK(cover_art.transition_is_current(replacement_generation,
-                                        DisplayMode::COVER_ART));
-
-  // Each effective change invalidates older delayed work, including cover-art work.
-  const DisplayTransition stale_cover_art = controller.resolve();
-  CHECK(controller.clear(DisplayRequestSource::MEDIA_PLAYBACK));
-  CHECK(!controller.complete_transition(stale_cover_art));
+  // Replacing a request invalidates older work.
+  const auto stale_transition = controller.resolve();
+  CHECK(controller.request(DisplayRequestSource::PRESENCE_SENSOR, DisplayMode::CLOCK));
+  CHECK(!controller.complete_transition(stale_transition));
+  CHECK(controller.request(DisplayRequestSource::PRESENCE_SENSOR, DisplayMode::DIMMED));
   const DisplayTransition idle_transition = controller.resolve();
   CHECK(controller.complete_transition(idle_transition));
   CHECK(controller.current_mode() == DisplayMode::DIMMED);
-  CHECK(!controller.clear(DisplayRequestSource::MEDIA_PLAYBACK));
   CHECK(!controller.request(DisplayRequestSource::PRESENCE_SENSOR, DisplayMode::DIMMED));
 
   // A presentation transition is distinct from the policy decision that
@@ -432,11 +371,10 @@ int main() {
 
   // Requests continue to change while an interactive image modal is open.
   // Automatic idle and media remain deferred, while schedule/manual sleep can
-  // still replace the modal; releasing the takeover resolves live state.
+  // Automatic idle remains deferred, while schedule and manual sleep can
   DisplayModeController takeover;
   CHECK(takeover.begin_takeover(DisplayTakeoverKind::INTERACTIVE));
   CHECK(takeover.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DIMMED));
-  CHECK(takeover.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART));
   CHECK(decision_is(takeover, DisplayMode::ACTIVE, std::nullopt,
                     DisplayTakeoverKind::INTERACTIVE));
   CHECK(takeover.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::CLOCK));
@@ -445,18 +383,15 @@ int main() {
   CHECK(takeover.clear(DisplayRequestSource::SCREEN_SCHEDULE));
   CHECK(decision_is(takeover, DisplayMode::ACTIVE, std::nullopt,
                     DisplayTakeoverKind::INTERACTIVE));
-  CHECK(takeover.clear(DisplayRequestSource::MEDIA_PLAYBACK));
   CHECK(takeover.end_takeover(DisplayTakeoverKind::INTERACTIVE));
   CHECK(decision_is(takeover, DisplayMode::DIMMED,
                     DisplayRequestSource::IDLE_TIMER));
 
-  // Critical alarm takeovers remain visible while schedule, presence, media,
+  // Critical alarm takeovers remain visible while schedule, presence,
   // and manual requests change, then release to the current winner.
   CHECK(takeover.begin_takeover(DisplayTakeoverKind::CRITICAL));
   CHECK(takeover.request(DisplayRequestSource::PRESENCE_SENSOR,
                          DisplayMode::DISPLAY_OFF));
-  CHECK(takeover.request(DisplayRequestSource::MEDIA_PLAYBACK,
-                         DisplayMode::COVER_ART));
   CHECK(takeover.request(DisplayRequestSource::SCREEN_SCHEDULE,
                          DisplayMode::CLOCK));
   CHECK(takeover.request(DisplayRequestSource::MANUAL_SLEEP,

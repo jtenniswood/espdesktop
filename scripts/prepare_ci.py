@@ -13,11 +13,10 @@ from check_tasks import run_command
 
 ROOT = Path(__file__).resolve().parents[1]
 PYTHON = sys.executable
-# Authored sources must agree before any derived files are rewritten. This does
-# not bless compatibility fixtures or choose between conflicting product edits.
+# Generate the aggregate catalogues before checking their downstream consumers.
 PREPARE = (
     ("npm", "ci", "--no-audit", "--no-fund"),
-    (PYTHON, "scripts/check_product_model_v2.py"),
+    (PYTHON, "scripts/check_product_model_v2.py", "--update"),
     (PYTHON, "scripts/generate_device_manifest.py"),
     (PYTHON, "scripts/generate_device_slots.py"),
     (PYTHON, "scripts/build.py"),

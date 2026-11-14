@@ -34,6 +34,12 @@ test("runtime literal icons remain discoverable after type erasure", () => {
   `), ["alert", "folder-plus", "home", "refresh"]);
 });
 
+test("native radio inputs do not request the radio glyph", () => {
+  const source = 'const input = document.createElement("input"); input.type = "radio";';
+  assert.deepEqual(runtimeIconNames([{ file: "fixture.ts", source }], ["radio"]), []);
+  assert.deepEqual(runtimeIconNames([{ file: "fixture.ts", source: source + ' icon("radio");' }], ["radio"]), ["radio"]);
+});
+
 test("unknown explicit MDI classes cannot evade missing-glyph validation", () => {
   assert.deepEqual(scan('const html = "<i class=mdi-missing-glyph></i>";'), ["missing-glyph"]);
 });

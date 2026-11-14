@@ -23,6 +23,7 @@ export function createPanelIdentityFeature(deps: PanelIdentityDependencies): Pan
   let info: PanelIdentityInfo | null = null;
   let loading: Promise<PanelIdentityInfo | null> | null = null;
   let saving = false;
+  let syncCard: ((savedName?: string) => void) | undefined;
   const document = deps.document;
   async function request(name?: string): Promise<PanelIdentityInfo | null> {
     const response = await deps.fetch("/api/v1/identity", {
@@ -72,7 +73,7 @@ export function createPanelIdentityFeature(deps: PanelIdentityDependencies): Pan
     title.textContent = "Panel name saved";
     dialog.append(title);
     const note = document.createElement("p");
-    note.textContent = "The panel is restarting. Reopen it at the new address. Home Assistant action names may need updating.";
+    note.textContent = "The panel is restarting. Reopen it at the new address.";
     dialog.append(note);
     const address = document.createElement("a");
     address.href = `http://${value.hostname}.local${location.port ? ":" + location.port : ""}/`;
@@ -98,11 +99,14 @@ export function createPanelIdentityFeature(deps: PanelIdentityDependencies): Pan
   async function saveAndRestart(value: string): Promise<void> {
     if (saving) throw new Error("A panel name change is already in progress.");
     const name = normalizePanelName(value);
+    let savedName: string | undefined;
     saving = true;
+    syncCard?.();
     try {
       await deps.beforeSave();
       const saved = await request(name);
       if (!saved) throw new Error("Panel naming is unavailable.");
+      savedName = saved.name;
       loading = Promise.resolve(saved);
       if (saved.restart_required) {
         const message = reconnectDialog(saved);
@@ -112,7 +116,10 @@ export function createPanelIdentityFeature(deps: PanelIdentityDependencies): Pan
           throw error;
         }
       }
-    } finally { saving = false; }
+    } finally {
+      saving = false;
+      syncCard?.(savedName);
+    }
   }
   function buildCard(): HTMLElement {
     const body = document.createElement("div");
@@ -137,6 +144,7 @@ export function createPanelIdentityFeature(deps: PanelIdentityDependencies): Pan
     formRow.className = "sp-panel-name-row";
     formRow.append(input, button);
     function sync() {
+      input.disabled = saving;
       try {
         const name = normalizePanelName(input.value);
         error.textContent = "";
@@ -152,13 +160,14 @@ export function createPanelIdentityFeature(deps: PanelIdentityDependencies): Pan
         button.disabled = saving || !info || (name === info.name && !info.restart_required);
       } catch (e) { error.textContent = (e as Error).message; button.disabled = true; }
     }
+    syncCard = savedName => {
+      if (savedName !== undefined) input.value = savedName;
+      sync();
+    };
     input.oninput = sync;
     button.onclick = async () => {
-      button.disabled = true;
-      input.disabled = true;
-      try { await saveAndRestart(input.value); sync(); }
-      catch (e) { sync(); error.textContent = (e as Error).message; }
-      finally { input.disabled = false; }
+      try { await saveAndRestart(input.value); }
+      catch (e) { error.textContent = (e as Error).message; }
     };
     body.append(label, formRow, error, preview);
     function loadCard() {

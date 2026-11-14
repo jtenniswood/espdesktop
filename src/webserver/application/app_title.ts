@@ -1,3 +1,5 @@
+import type { PanelIdentityInfo } from "../model/panel_identity";
+
 export interface AppTitleFeature {
     applyPageTitle(title?: unknown): void;
     handleWebServerPingEvent(event?: { data?: string }): void;
@@ -6,7 +8,7 @@ export interface AppTitleFeature {
 
 export interface AppTitleDependencies {
     readonly document: Document;
-    readonly panelName?: () => string | undefined;
+    readonly panelIdentity: () => Pick<PanelIdentityInfo, "name" | "mac_suffix"> | null;
     readonly eventStreamEnabled: () => boolean;
     readonly eventSourceAvailable: () => boolean;
     readonly createEventSource: () => EventSource;
@@ -15,8 +17,13 @@ export interface AppTitleDependencies {
 export function createAppTitleFeature(dependencies: AppTitleDependencies): AppTitleFeature {
     function applyPageTitle(title?: unknown) {
         const text = typeof title === "string" ? title.trim() : "";
-        const panelName = dependencies.panelName?.();
-        dependencies.document.title = panelName ? "EspDesktop - " + panelName : text || "EspDesktop";
+        const identity = dependencies.panelIdentity();
+        // Older ESPHome builds append six MAC characters to the friendly name or hostname.
+        const legacySuffix = /(?:^|[\s-])([a-f0-9]{6})$/i.exec(text)?.[1];
+        const label = identity
+            ? identity.name || identity.mac_suffix.slice(-4)
+            : legacySuffix?.slice(-4).toLowerCase() || text;
+        dependencies.document.title = label ? "EspDesktop - " + label : "EspDesktop";
     }
     function handleWebServerPingEvent(event?: { data?: string }) {
         let data: any = null;

@@ -1,28 +1,41 @@
 ---
-title: Open Finder Folders
-description: Approve Finder folders in the EspDesktop Mac app and open them from Companion cards on the touchscreen.
+title: Open Finder Folders from Your Touchscreen
+description: Add an approved Finder folder to EspDesktop and open it from a touchscreen tile. Group project folders together on a Finder subpage.
 ---
 
-# Open Finder Folders
+# Open Finder folders
 
 Folder cards open only the Finder folders you approve in the Mac app. Folder paths stay on the Mac; the display receives a friendly name and an anonymous identifier.
 
-## Approve a Folder
+## Approve a folder
 
-1. Open **Folders** in the EspDesktop Mac app.
-2. Choose **Add Folder…** and select a directory.
-3. In the display setup page, add a **Companion → Open folder** card and choose that folder.
+In the EspDesktop Mac app, open **Settings → Folders**, click **Add Folder…** and select a folder.
+
+<a href="/images/mac-app-folders.png"><picture><source type="image/avif" srcset="/images/mac-connector/mac_app4-480.avif 480w, /images/mac-connector/mac_app4-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/mac-app-folders.png" alt="Folders tab in EspDesktop Settings showing approved folders and the Add Folder button" width="1224" height="1488" loading="lazy"></picture></a>
+
+## Add a folder card
+
+1. In the display’s web editor, select an empty tile and choose **Folder**. If the card picker shows connector tabs, look under **Companion**.
+2. Select the folder you approved and choose **Save**.
+
+<a href="/images/web-editor-choose-card.webp"><picture><source type="image/avif" srcset="/images/web-editor-choose-card-480.avif 480w, /images/web-editor-choose-card-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-choose-card.webp" alt="Choose Card dialog in the display’s web editor showing the Folder and Applications options" width="1269" height="1022" loading="lazy"></picture></a>
+
+In the card’s **Advanced** section, set **Open folder in** to **A new window** or **The same window**.
 
 If a folder is moved or renamed, choose **Choose Again…** in the Mac app to restore its access. Removing a folder from the Mac app makes its card unavailable.
 
-## Finder Folder Subpage
+## Finder folder subpage
 
-You can show approved folders as tiles on a Finder app subpage:
+To access your approved folders from one Finder card, select an empty tile in the display’s web editor, choose **Applications** and pick **Finder**. If you limit which apps the display can launch, first enable Finder under **Apps** in the Mac app.
 
-1. Approve **Finder** in the Mac app's **Apps** page and add an **Applications** card for it.
-2. Turn on **Add app subpage** in the card settings.
-3. Use the folder list under **App Subpage** to choose which folders appear and drag them into order.
+In the Finder card’s settings, open **App Subpage**, turn on **Add app subpage** and choose **Save**. While your Mac is connected, the Finder subpage automatically shows the folders you added in the Mac app, filling the available spaces on the touchscreen and in the web editor preview.
 
-Newly approved folders can be added to enabled Finder subpages when space is available. Existing tiles are not removed automatically. Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
+Use **Pin Finder folders** to keep selected tiles in place and drag them into order. Pinned tiles stay visible when your Mac disconnects.
 
-For app launch behavior and other generated app pages, see [Launch Mac apps and open websites](/mac-controls/apps).
+Under **App Subpage**, use **Folder shortcuts open in** to set the default window behaviour. A folder tile can use that default or override it under **Advanced → Open folder in**.
+
+Each folder card lights up when its folder is active in Finder. Folder highlighting may ask macOS to let EspDesktop control Finder.
+
+<a href="/images/mac-companion-finder-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-finder-access-480.avif 480w, /images/mac-companion-finder-access-772.avif 772w" sizes="(min-width: 768px) 386px, 90vw"><img src="/images/mac-companion-finder-access.png" alt="macOS asking whether EspDesktop can control Finder" width="386" height="504" loading="lazy"></picture></a>
+
+For app launch behavior and other generated app pages, see [Launch Mac apps](/mac-controls/apps).

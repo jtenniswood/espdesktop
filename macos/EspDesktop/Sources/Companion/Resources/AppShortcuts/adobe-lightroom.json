@@ -3,66 +3,128 @@
   "appId": "com.adobe.LightroomCC",
   "label": "Adobe Lightroom",
   "catalog": false,
+  "defaultShortcutIds": ["41", "10", "17", "29", "60", "55", "14", "33"],
   "shortcuts": [
     {
       "id": "0",
       "label": "Cut",
       "shortcut": "command+x",
-      "icon": "Application"
+      "icon": "Cut"
     },
     {
       "id": "1",
       "label": "Copy",
       "shortcut": "command+c",
-      "icon": "Application"
+      "icon": "Copy"
     },
     {
       "id": "2",
       "label": "Paste",
       "shortcut": "command+v",
-      "icon": "Application"
+      "icon": "Paste"
     },
     {
       "id": "3",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "4",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     },
     {
       "id": "5",
-      "label": "Rotate Left (CCW)",
+      "label": "Rotate Left",
       "shortcut": "command+keybracketleft",
-      "icon": "Application"
+      "icon": "Rotate Left"
     },
     {
       "id": "6",
       "label": "Zoom In",
       "shortcut": "command+keyequal",
-      "icon": "Application"
+      "icon": "Zoom In"
     },
     {
       "id": "7",
       "label": "Zoom Out",
       "shortcut": "command+keyminus",
-      "icon": "Application"
+      "icon": "Zoom Out"
     },
     {
       "id": "8",
       "label": "Preferences",
       "shortcut": "command+keycomma",
-      "icon": "Application"
+      "icon": "Settings"
     },
     {
       "id": "9",
       "label": "Search",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Crop & Rotate", "shortcut": "scoped.c", "icon": "Rotate Left"},
+    {"id": "11", "label": "Detail", "shortcut": "scoped.d", "icon": "Shortcut Command"},
+    {"id": "12", "label": "Edit", "shortcut": "scoped.e", "icon": "Shortcut Command"},
+    {"id": "13", "label": "Full Screen", "shortcut": "scoped.f", "icon": "Full Screen"},
+    {"id": "14", "label": "Grid", "shortcut": "scoped.g", "icon": "Shortcut Command"},
+    {"id": "15", "label": "Info", "shortcut": "scoped.i", "icon": "Information"},
+    {"id": "16", "label": "Keywords", "shortcut": "scoped.k", "icon": "Shortcut Command"},
+    {"id": "17", "label": "Auto Tone", "shortcut": "scoped.shift+a", "icon": "Shortcut Command"},
+    {"id": "18", "label": "Edit in Photoshop", "shortcut": "scoped.command+shift+e", "icon": "Shortcut Command"},
+    {"id": "19", "label": "Rotate Right (CCW)", "shortcut": "scoped.command+keybracketright", "icon": "Rotate Left"},
+    {"id": "20", "label": "Select all", "shortcut": "scoped.command+a", "icon": "Select All"},
+    {"id": "21", "label": "Select None", "shortcut": "scoped.command+d", "icon": "Group Selection"},
+    {"id": "22", "label": "Visualize Spots", "shortcut": "scoped.a", "icon": "Brush"},
+    {"id": "23", "label": "Cycle Overlay", "shortcut": "scoped.o", "icon": "Shortcut Command"},
+    {"id": "24", "label": "Photos", "shortcut": "scoped.p", "icon": "Shortcut Command"},
+    {"id": "25", "label": "Linear Gradient", "shortcut": "scoped.l", "icon": "Shortcut Command"},
+    {"id": "26", "label": "Radial Gradient", "shortcut": "scoped.r", "icon": "Shortcut Command"},
+    {"id": "27", "label": "Toggle Clipping Indicators On/Off", "shortcut": "scoped.j", "icon": "Shortcut Command"},
+    {"id": "28", "label": "White Balance Sampler", "shortcut": "scoped.w", "icon": "Shortcut Command"},
+    {"id": "29", "label": "Show Original", "shortcut": "scoped.keybackslash", "icon": "Shortcut Command"},
+    {"id": "30", "label": "Toggle Zoom States", "shortcut": "scoped.space", "icon": "Fit to Screen"},
+    {"id": "31", "label": "Cycle Mask color", "shortcut": "scoped.shift+o", "icon": "Palette"},
+    {"id": "32", "label": "Export with) Previous Settings", "shortcut": "scoped.command+e", "icon": "Export"},
+    {"id": "33", "label": "Export Dialog (Custom...)", "shortcut": "scoped.shift+e", "icon": "Export"},
+    {"id": "34", "label": "Enter Full Screen", "shortcut": "scoped.command+shift+f", "icon": "Full Screen"},
+    {"id": "35", "label": "Group Into Stack", "shortcut": "scoped.command+g", "icon": "Group Selection"},
+    {"id": "36", "label": "Ungroup Stack", "shortcut": "scoped.command+shift+g", "icon": "Group Selection"},
+    {"id": "37", "label": "Guided Upright", "shortcut": "scoped.shift+g", "icon": "Shortcut Command"},
+    {"id": "38", "label": "Create Version", "shortcut": "scoped.shift+m", "icon": "Plus"},
+    {"id": "39", "label": "Close Window", "shortcut": "scoped.command+w", "icon": "Window Close"},
+    {"id": "40", "label": "Remove photo", "shortcut": "scoped.delete", "icon": "Delete"},
+    {"id": "41", "label": "Add Photos", "shortcut": "scoped.command+shift+i", "icon": "Plus"},
+    {"id": "42", "label": "Versions (Expand Panel)", "shortcut": "scoped.shift+v", "icon": "Application"},
+    {"id": "43", "label": "Expand/Retract Light Panel", "shortcut": "scoped.command+1", "icon": "Application"},
+    {"id": "44", "label": "Expand/Retract Color Panel", "shortcut": "scoped.command+2", "icon": "Palette"},
+    {"id": "45", "label": "Expand/Retract Effects Panel", "shortcut": "scoped.command+3", "icon": "Application"},
+    {"id": "46", "label": "Expand/Retract Details Panel", "shortcut": "scoped.command+4", "icon": "Application"},
+    {"id": "47", "label": "Expand/Retract Optics Panel", "shortcut": "scoped.command+5", "icon": "Application"},
+    {"id": "48", "label": "Expand/Retract Geometry Panel", "shortcut": "scoped.command+6", "icon": "Application"},
+    {"id": "49", "label": "Open Presets Panel", "shortcut": "scoped.shift+p", "icon": "Application"},
+    {"id": "50", "label": "Increase brush size", "shortcut": "scoped.keybracketleft", "icon": "Brush"},
+    {"id": "51", "label": "Decrease brush size", "shortcut": "scoped.keybracketright", "icon": "Brush"},
+    {"id": "52", "label": "Increase brush feather", "shortcut": "scoped.shift+keybracketleft", "icon": "Brush"},
+    {"id": "53", "label": "Decrease brush feather", "shortcut": "scoped.shift+keybracketright", "icon": "Brush"},
+    {"id": "54", "label": "Adjustment brush", "shortcut": "scoped.b", "icon": "Brush"},
+    {"id": "55", "label": "Healing brush", "shortcut": "scoped.h", "icon": "Brush"},
+    {"id": "56", "label": "Merge to HDR", "shortcut": "scoped.command+h", "icon": "Shortcut Command"},
+    {"id": "57", "label": "Merge to HRD (Headless)", "shortcut": "scoped.command+shift+h", "icon": "Shortcut Command"},
+    {"id": "58", "label": "Merge to Pano", "shortcut": "scoped.command+m", "icon": "Shortcut Command"},
+    {"id": "59", "label": "Merge to Pano (Headless)", "shortcut": "scoped.command+shift+m", "icon": "Shortcut Command"},
+    {"id": "60", "label": "Pick Flag", "shortcut": "scoped.z", "icon": "Shortcut Command"},
+    {"id": "61", "label": "Remove Pick Flag", "shortcut": "scoped.u", "icon": "Delete"},
+    {"id": "62", "label": "Flag as Rejected", "shortcut": "scoped.x", "icon": "Shortcut Command"},
+    {"id": "63", "label": "Set rating to 0", "shortcut": "scoped.0", "icon": "Shortcut Command"},
+    {"id": "64", "label": "Set rating to 1", "shortcut": "scoped.1", "icon": "Shortcut Command"},
+    {"id": "65", "label": "Set rating to 2", "shortcut": "scoped.2", "icon": "Shortcut Command"},
+    {"id": "66", "label": "Set rating to 3", "shortcut": "scoped.3", "icon": "Shortcut Command"},
+    {"id": "67", "label": "Set rating to 4", "shortcut": "scoped.4", "icon": "Shortcut Command"},
+    {"id": "68", "label": "Set rating to 5", "shortcut": "scoped.5", "icon": "Shortcut Command"}
   ]
 }

@@ -1,47 +1,45 @@
 # Display Lifecycle Transition Contract
 
-This document is the behaviour baseline for centralising display-mode decisions.
-It describes the behaviour that the staged display-lifecycle work must preserve;
-it does not introduce a new public API or change any Home Assistant entity.
+This document describes shared display-mode decisions and the effects that
+apply them. Home Assistant alarm controls and presence subscriptions have been
+retired. The native document stores the screensaver and Night Schedule settings.
+It also stores the normal brightness mode, day and night levels, fixed times,
+and the last automatic timing mode as one record. A switch to Manual saves the
+current level together with the mode. The clock switch reflects the saved screensaver action.
 
-The lifecycle controller will decide **what should be visible**. ESPHome scripts
+The lifecycle controller decides **what should be visible**. ESPHome scripts
 remain responsible for the physical effects: fades, LVGL page and widget changes,
 touch guards, image release, and backlight writes.
 
-Cover-art visibility is controller-owned through the `MEDIA_PLAYBACK` request.
-Artwork URLs, decoded-image/cache state, track metadata and progress remain in
-the cover-art runtime. Delayed activation and every asynchronous artwork effect
-carry the display generation that created them, so a dismissed or replaced
-cover-art view cannot be reopened or modified by an older callback. The S3
-display still releases its decoded image whenever the controller hides cover art.
+
 
 ## Scope and ownership
 
 The current behaviour is spread across:
 
-- `common/addon/backlight.yaml` for idle, presence, touch wake, manual sleep,
+- `common/addon/backlight.yaml` for idle, touch wake, manual sleep,
   dimmed and clock presentation, setup dimming, and takeover suspension;
 - `common/addon/backlight_schedule.yaml` for boot guard, scheduled modes,
   temporary off-hours wake, and brightness selection;
-- `common/device/screen_cover_art.yaml` for media eligibility, delayed cover-art
-  activation, dismissal, downloads, and S3 image release;
+- `common/device/display_backlight_on.yaml` for the board event that applies
+  the lifecycle service's backlight-on decision. Board files own PWM wiring.
+  The JC8012P4A1 family also includes the shared takeover-off handler;
 - `components/espdesktop/button_grid_image.h` for interactive image takeovers;
-- `components/espdesktop/button_grid_alarm.h` for alarm arming and triggered
-  takeovers; and
 - generated device slot wiring under `devices/*/device/sensors.yaml`.
 
-Normal control modals are not display modes. Only image-style modals and alarm
-arming or triggered overlays participate in lifecycle takeover rules.
+Normal control modals are not display modes. The shared controller retains
+interactive and critical takeover priorities, but retired HA alarm cards no
+longer create critical takeovers or block navigation and grid rebuilds.
 
 ## Controller vocabulary
 
-The shared controller introduced by later work uses these values:
+The shared controller uses these values:
 
 | Type | Values | Meaning |
 |---|---|---|
-| `DisplayMode` | `ACTIVE`, `SETUP_DIMMED`, `DIMMED`, `CLOCK`, `COVER_ART`, `DISPLAY_OFF` | The one presentation mode that should be visible. |
-| `DisplayRequestSource` | `ONBOARDING`, `BOOT_GUARD`, `IDLE_TIMER`, `PRESENCE_SENSOR`, `SCREEN_SCHEDULE`, `MANUAL_SLEEP`, `MEDIA_PLAYBACK`, `SETUP_TIMEOUT`, `USER_WAKE` | The event or policy currently requesting a mode. |
-| `DisplayTakeoverKind` | `INTERACTIVE`, `CRITICAL` | Image-style modal or alarm takeover. |
+| `DisplayMode` | `ACTIVE`, `SETUP_DIMMED`, `DIMMED`, `CLOCK`, `DISPLAY_OFF` | The one presentation mode that should be visible. |
+| `DisplayRequestSource` | `ONBOARDING`, `BOOT_GUARD`, `IDLE_TIMER`, `PRESENCE_SENSOR`, `SCREEN_SCHEDULE`, `MANUAL_SLEEP`, `SETUP_TIMEOUT`, `USER_WAKE`, `MAC_DISPLAY_SLEEP` | The event or policy currently requesting a mode. |
+| `DisplayTakeoverKind` | `INTERACTIVE`, `CRITICAL` | Interactive or critical display priority; no HA alarm producer remains. |
 | `DisplayTransition` | previous mode, target mode, winning source, generation | The complete decision handed to the effect adapter. |
 
 Brightness is deliberately not a mode. The winning request selects the existing
@@ -55,9 +53,8 @@ the presentation whose effects have completed. The winning request source
 distinguishes schedule-owned clock or off states from idle-owned equivalents.
 
 Supporting state remains outside the controller when it is not itself a display
-mode. This includes the temporary-wake timer, touch-guard windows, pending
-presence requests, persisted schedule and brightness settings, connectivity
-setup state, media eligibility, and artwork download/cache/metadata state.
+mode. This includes the temporary-wake timer, touch-guard windows, persisted schedule and brightness settings, connectivity
+setup state.
 
 There are no mirrored presentation booleans. A request change invalidates older
 effect generations, and the adapter converges the physical display directly to
@@ -70,14 +67,14 @@ first matching row wins.
 
 | Priority | Condition | Winning result | Existing behaviour to preserve |
 |---:|---|---|---|
-| 1 | Critical alarm takeover | `ACTIVE`, alarm overlay foreground | Alarm arming delay or triggered state prevents ordinary display transitions. |
-| 2 | First-time onboarding | `ACTIVE` / `ONBOARDING` | WiFi, Home Assistant, and tile-configuration instructions remain fully visible while the grid is empty. Saved sleep, schedule, and setup-timeout policy cannot hide or dim setup. |
+| 1 | Critical takeover | `ACTIVE` | Shared controller priority, retained for internal callers; no HA alarm producer remains. |
+| 2 | First-time onboarding | `ACTIVE` / `ONBOARDING` | WiFi and tile-configuration instructions remain fully visible while the grid is empty. Saved sleep, schedule, and setup-timeout policy cannot hide or dim setup. |
 | 3 | Manual sleep | `DISPLAY_OFF` / `MANUAL_SLEEP` | Closes ordinary and interactive modals; next deliberate user wake clears it. |
-| 4 | Temporary user wake | `ACTIVE` / `USER_WAKE` | Uses configured wake brightness until the existing 10–3600 second timeout expires. |
-| 5 | Night schedule | Off, `CLOCK`, or `ACTIVE` / `SCREEN_SCHEDULE` | Off and clock close image modals; Screen Dimmed keeps the active UI at `schedule_dimmed_brightness`. An enabled time-based schedule fails dark until local time is valid, whether or not a saved sleep marker exists. |
-| 6 | Interactive takeover | `ACTIVE`, image modal foreground | Automatic idle or presence sleep is deferred. Manual sleep and scheduled off or clock may close it. |
-| 7 | Eligible media playback | `COVER_ART` / `MEDIA_PLAYBACK` | Eligibility includes entity, attribute, external-input, schedule, and alarm checks. |
-| 8 | Idle timer or absence | Configured `DIMMED`, `CLOCK`, or `DISPLAY_OFF` | Presence detected defers sensor sleep. Media sleep prevention and alarm takeover defer idle sleep. |
+| 4 | Locked Mac displays asleep in App Connection with Display Off | `DISPLAY_OFF` / `MAC_DISPLAY_SLEEP` | The panel fades out even during scheduled dimming or a temporary wake. The request clears when the paired app reports display wake or unlock. |
+| 5 | Temporary user wake | `ACTIVE` / `USER_WAKE` | Uses configured wake brightness until the existing 10–3600 second timeout expires. |
+| 6 | Night schedule | Off, `CLOCK`, or `ACTIVE` / `SCREEN_SCHEDULE` | Off and clock close image modals. Screen Dimmed keeps the active UI at `schedule_dimmed_brightness`. An enabled time-based schedule fails dark until local time is valid, whether or not a saved sleep marker exists. |
+| 7 | Interactive takeover | `ACTIVE`, image modal foreground | Automatic idle sleep is deferred. Manual sleep and scheduled off or clock may close it. |
+| 8 | Idle timer | Configured `DIMMED`, `CLOCK`, or `DISPLAY_OFF` | Mac playback sleep prevention and shared takeover priorities defer idle sleep. |
 | 9 | Setup timeout outside onboarding | `SETUP_DIMMED` / `SETUP_TIMEOUT` | Static setup pages may still use the existing burn-in dim path. |
 | 10 | No request | `ACTIVE` / default | Normal UI at normal calculated brightness. |
 
@@ -90,39 +87,44 @@ presentation. Clearing a request always runs the same resolver.
 ### Interactive takeover
 
 Opening an image-style modal begins an `INTERACTIVE` takeover, cancels automatic
-idle effects in flight, hides clock, dimmed, and cover-art presentations, removes
+idle effects in flight, hides clock and dimmed presentations, removes
 the dim touch guard, and presents active UI brightness. While it is open:
 
-- idle and presence sleep requests remain recorded but are not applied;
+- automatic idle requests remain recorded but are not applied;
 - media may change eligibility without replacing the modal;
 - manual sleep and scheduled off or clock can close the modal and take effect;
 - ordinary modals remain outside the lifecycle controller.
 
 Closing the modal clears the takeover and resolves all current requests. It does
-not restore a snapshot. For example, absence during the modal can resolve to the
-configured idle mode, media that started can resolve to cover art, and a schedule
+not restore a snapshot. For example, an idle timeout during the modal can resolve to the
+configured idle mode, and a schedule
 change can resolve to off or clock.
 
 ### Critical takeover
 
-An alarm arming-delay or triggered state begins a `CRITICAL` takeover. It keeps
-the alarm overlay in the foreground and outranks manual sleep, schedule, media,
-idle, and setup requests. Those requests may change while the alarm is visible
-but cannot dismiss it. When the alarm leaves its takeover state, the controller
-clears the takeover and resolves the current requests again.
+The shared controller's `CRITICAL` priority outranks ordinary requests and
+resolves current requests when released. It has no HA alarm producer. Navigation
+and generated grid rebuilds no longer consult an alarm context or wait for an
+alarm state. Display takeover closes active shared controls through the same
+modal lifecycle used by ordinary navigation.
 
 ### Touch wake
 
+Grid cards send press, tap, and hold events to the navigation policy. The
+ESPHome binding applies its decision to wake the screen, consume a wake
+touch, or dispatch the card action. App page history is also decided before
+the LVGL layer changes screens.
+
 A deliberate user wake clears manual sleep and selects `ACTIVE`. During scheduled
 off-hours it also starts the existing temporary-wake timer and uses temporary-wake
-brightness. The first touch that wakes dimmed, clock, cover art, or display off is
+brightness. The first touch that wakes dimmed, clock, or display off is
 consumed by the applicable touch guard and must not activate an underlying card.
 
 ## Transition invariants
 
 These are true after every completed transition:
 
-1. Exactly one of `ACTIVE`, `SETUP_DIMMED`, `DIMMED`, `CLOCK`, `COVER_ART`, or
+1. Exactly one of `ACTIVE`, `SETUP_DIMMED`, `DIMMED`, `CLOCK`, or
    `DISPLAY_OFF` is the presentation mode.
 2. Only that mode's LVGL page or overlay is visible; ordinary modals are not
    counted as presentation modes.
@@ -130,14 +132,12 @@ These are true after every completed transition:
    their bounded touch-release or timeout window.
 4. `DISPLAY_OFF` means the logical backlight is off and physical PWM is off.
    Fade samples do not publish intermediate brightness. The final off action
-   checks both current and remote light state, so Home Assistant receives OFF
-   even when the last fade sample has already turned the physical light off.
+   checks both current and target light state, even when the last fade sample
+   has already turned the physical light off.
    Repeated off checks do not republish or save the same state.
    Every non-off mode has logical mode, PWM, and selected brightness aligned.
 5. The clock brightness source is scheduled-clock brightness for a schedule-owned
    clock and day/night clock brightness for an idle-owned clock.
-6. Cover-art download and cache state may outlive `COVER_ART`, but it cannot make
-   the presentation visible without a current winning media request.
 7. The controller is the sole owner of target and current presentation state;
    no compatibility presentation flags mirror its decision.
 8. Every accepted request, clear, or takeover change creates a newer transition
@@ -160,8 +160,8 @@ The shared reconciler owns schedule exit: it clears temporary wake and stale
 automatic sleep requests while preserving manual sleep. When the outgoing winner
 is the scheduled clock, it records the current normal screensaver action before
 resolving, avoiding an intermediate ACTIVE presentation and a fresh idle timeout.
-Disabled screensavers, detected presence in sensor mode, temporary user wake,
-and media sleep prevention retain normal wake behavior. Scheduled Off and Screen
+Disabled screensavers, temporary user wake,
+and Mac playback sleep prevention retain normal wake behavior. Scheduled Off and Screen
 Dimmed also retain their normal wake behavior. Both the one-second
 reconcile tick and the slower schedule check therefore reach the same completion
 path. Detecting that edge only in `screen_schedule_check` loses it when the
@@ -181,51 +181,47 @@ tests. `gN` denotes a transition generation.
 | Sequence | Events | Expected decisions and checks |
 |---|---|---|
 | Default boot | Boot, valid time, schedule normal | Resolve `ACTIVE`; after the main page settles, the shared active-display finalizer restores the clock bar and normal brightness and starts the idle timers. |
-| First-time onboarding | Boot without WiFi or configured tiles; schedule, sleep, or setup-timeout requests change | `ONBOARDING` keeps the current setup instructions fully visible without a dimming timeout; adding the first tile clears onboarding and resolves live policy. |
+| First-time onboarding | Boot without WiFi or configured tiles; schedule, sleep, or setup-timeout requests change | `ONBOARDING` keeps setup instructions fully visible and holds the first configured grid on screen for 15 seconds before restoring the current display policy. |
 | Fail-dark boot | Enabled time-based schedule; boot; time invalid; repeat before and after upgrading saved settings | `BOOT_GUARD` requests `DISPLAY_OFF` in both cases; PWM remains off. When time becomes valid, clear boot guard and resolve the live schedule. |
 | Idle dim | `ACTIVE`; idle timeout; configured action Dim | `IDLE_TIMER` requests `DIMMED` at `g1`; normal UI remains beneath the dim guard; dim brightness applies. |
 | Idle clock | `ACTIVE`; idle timeout; configured action Clock | `IDLE_TIMER` requests `CLOCK`; full-screen clock alone is visible at day/night clock brightness. |
 | Idle off | `ACTIVE`; idle timeout; configured action Off | `IDLE_TIMER` requests `DISPLAY_OFF`; fade completes, off page is selected, logical backlight and PWM are off. |
-| Presence wake/sleep | Sensor mode; absence; presence; absence | Absence requests configured idle mode; presence clears it and resolves `ACTIVE`; later absence requests it again. Schedule requests continue to outrank presence. |
-| Wake from each inactive mode | Begin in `DIMMED`, `CLOCK`, `COVER_ART`, then `DISPLAY_OFF`; touch each once | Each touch produces `USER_WAKE` and `ACTIVE`; presentation and stale guard are removed; the wake touch does not trigger the underlying UI. Cover art may re-request after its existing pause/delay. |
+| Wake from each inactive mode | Begin in `DIMMED`, `CLOCK`, then `DISPLAY_OFF`; touch each once | Each touch produces `USER_WAKE` and `ACTIVE`; presentation and stale guard are removed; the wake touch does not trigger the underlying UI. Cover art may re-request after its existing pause/delay. |
 | Manual sleep | Any non-critical mode; long press; touch | `MANUAL_SLEEP` wins `DISPLAY_OFF`, clears temporary wake and closes interactive modal. Touch clears manual sleep and resolves `ACTIVE` or an off-hours temporary wake. |
 | Scheduled off and automatic wake | `ACTIVE`; enter off-hours Off; enter normal hours | `SCREEN_SCHEDULE` selects `DISPLAY_OFF`; later clearing that request selects `ACTIVE`, waits for the main page to settle, restores its clock bar and configured brightness, and restarts idle handling through the shared active-display finalizer. |
 | Scheduled clock | `ACTIVE`; enter off-hours Clock; setting or time changes | Select `CLOCK` with scheduled clock brightness. Re-evaluate current schedule on every change; do not restore a previous transient mode. |
 | Temporary off-hours wake | Scheduled off or clock; touch; timeout | `USER_WAKE` selects `ACTIVE` at temporary-wake brightness. On existing timeout, clear it and re-resolve to the current scheduled off or clock mode. |
-| Scheduled Screen Dimmed | Enter off-hours Screen Dimmed | `SCREEN_SCHEDULE` selects `ACTIVE` at `schedule_dimmed_brightness` and suppresses idle sleep for that period. The internal `screen_schedule_always_on_mode` helper name does not change the user-facing mode or its brightness contract. |
-| Eligible playback | Active or idle request; eligible playback starts; delay completes | `MEDIA_PLAYBACK` selects `COVER_ART` unless a higher request blocks it. Artwork state stays outside the controller. |
-| Playback stops | `COVER_ART`; playback stops | Clear media request and resolve live schedule, presence, idle, or default state. Never assume the result is `ACTIVE`. |
-| Cover-art dismissal race | Start delayed activation `g1`; user wake or replacement creates `g2`; `g1` delay/download/retry/progress callback fires | Every `g1` callback is rejected. It cannot reopen cover art, modify its widgets, change brightness, or release resources belonging to `g2`. |
+| Scheduled Screen Dimmed | Enter off-hours Screen Dimmed | `SCREEN_SCHEDULE` selects `ACTIVE` at `schedule_dimmed_brightness` and suppresses idle sleep for that period. |
 | Interactive modal defers idle | `ACTIVE`; open image modal; idle timeout or absence; close modal | `INTERACTIVE` keeps `ACTIVE` while recording the automatic request. Closing resolves to the current configured idle mode. |
 | Schedule changes during interactive modal | Open image modal; enter scheduled off or clock | Schedule outranks interactive takeover, closes it, and applies off or clock. Entering normal hours before modal close is resolved from live schedule state. |
-| Media changes during interactive modal | Open image modal; eligible playback starts or stops; close modal | Modal remains visible. On close, current media eligibility decides whether `COVER_ART` wins. |
-| Critical alarm takeover | Any mode; alarm enters arming delay or triggered; other requests change; alarm clears | `CRITICAL` selects active UI with alarm overlay. No lower request changes presentation. On release, resolve all current requests. |
 | Rapid opposing requests | Idle requests off `g1`; touch requests active `g2`; schedule requests clock `g3`; old fade callback from `g1` fires | Final mode is `CLOCK` from `g3`; callbacks from `g1` and `g2` are rejected and cannot change widgets or PWM. |
 | Setup timeout | Static setup page on an already configured device; 120 seconds | `SETUP_TIMEOUT` selects `SETUP_DIMMED` at 50%. First-time onboarding suppresses this timeout so installation instructions remain fully visible. |
-| Home Assistant reconnect | Any stable mode; API disconnect/reconnect; entities and time refresh | Re-resolve updated schedule, presence, media, and alarm inputs without publishing new entities or losing saved settings. |
 
 ## Required test mapping for later stages
 
 Host-side tests must cover every priority pair, every request-clear path, all
 sequences above, and explicit stale-generation rejection. Behaviour-changing PRs
-must also run focused parser, modal, Home Assistant binding, and generator checks;
+must also run focused parser, shared modal, legacy-card retirement, and generator checks;
 the full fast repository check; and compilation for every supported display.
 
-Physical testing is required on the 10-inch P4 and 4-inch S3 for every
-behaviour-changing PR. It must exercise touch wake, rapid wake/sleep, clock,
-dimmed guard, scheduled and manual off, cover-art start/stop, image-modal
-interruption, alarm takeover, and Home Assistant reconnect. Compilation is not a
-substitute for those device tests. Compare memory with the preceding `main`, pay
-particular attention to unexplained S3 growth or boot instability, and confirm
-saved schedule, brightness, and screensaver settings survive upgrade.
+For the HA-removal branch, physical validation is scoped to the authorized
+4-inch S3 after an exclusive testing window is available. Test touch wake, rapid
+wake/sleep, clocks, dimming, scheduled and manual off,
+local WiFi modals, screen-lock rejection, and saved-setting migration. Verify
+Mac pairing, app icons, output volume, and microphone volume. Compilation is
+separate from physical testing; every supported profile must still build.
 
 ## Remote Modal and Subpage Actions
 
-Home Assistant can use `open_modal` with `entity_id` to show a configured card's existing controls without firing its normal command. `open_subpage` takes the configured subpage `label`; `close_modal` force-closes current controls and `close_subpage` returns home. The existing `navigate` action takes `target`.
+The current shared resolver offers local WiFi QR/credential modals. Retired HA
+cards have no modal target and cannot wake the panel through legacy fallbacks.
+It resolves fresh configuration before and after waking, rejects screen lock or
+an unready grid, and closes active shared controls before opening another one.
+Saved layouts and retired identifiers remain readable and unchanged.
 
-The resolver chooses the first modal-capable home match, then subpages in displayed order. It logs duplicate matches and rejects unavailable selected targets rather than trying a fallback. Requests are rejected during screen lock, alarm takeover or startup before grid phase two finishes. Requests waiting for wake revalidate their target; newer remote requests cancel older queued navigation/opens. Modal contexts are closed before grid runtime allocations are rebuilt. Remote API packages remain independently selectable through device capabilities, with shared action scripts included whenever either capability is enabled.
-
-On a test device, request a modal from home and a subpage, check its ordinary card action did not fire, close it immediately after opening, and repeat while asleep. Verify latest-request behavior, locked/alarm/startup rejection, duplicate precedence and configuration rebuild while a modal is open. Companion cards and pairing remain governed by their existing controls and capabilities.
+The native HA API and its action packages are still transitional dependencies
+at this checkpoint; they must be removed before the HA-removal work is complete.
+They are not a replacement for the supported Mac Companion connection.
 
 The ACTIVE finalizer does not arm idle timers while onboarding owns the display; first-time setup stays visible until configuration is complete.
 

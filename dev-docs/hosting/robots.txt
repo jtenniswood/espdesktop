@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://jtenniswood.github.io/espdesktop/sitemap.xml

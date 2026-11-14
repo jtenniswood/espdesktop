@@ -10,7 +10,13 @@ export interface AppShortcutApplication {
     readonly appId: string;
     readonly label: string;
     readonly catalog: boolean;
+    readonly defaultShortcutIds?: readonly string[];
     readonly shortcuts: readonly AppShortcutDefinition[];
+    readonly extendedShortcuts?: readonly AppShortcutDefinition[];
+    readonly additionalShortcuts?: readonly AppShortcutDefinition[];
+    readonly claudeShortcuts?: readonly AppShortcutDefinition[];
+    readonly safariShortcuts?: readonly AppShortcutDefinition[];
+    readonly moreShortcuts?: readonly AppShortcutDefinition[];
 }
 export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   {
@@ -18,48 +24,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.1password.1password",
     "label": "1Password",
     "catalog": false,
+    "defaultShortcutIds": [
+      "7",
+      "1",
+      "8",
+      "6",
+      "0",
+      "4",
+      "2",
+      "3"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Lock 1Password",
+        "label": "Lock",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Lock"
       },
       {
         "id": "1",
-        "label": "Search all items",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Copy username or primary field",
+        "label": "Copy Username",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Account"
       },
       {
         "id": "3",
-        "label": "Copy password",
+        "label": "Copy Password",
         "shortcut": "command+shift+c",
-        "icon": "Application"
+        "icon": "Key"
       },
       {
         "id": "4",
-        "label": "Copy one-time password",
+        "label": "Copy OTP",
         "shortcut": "command+option+c",
-        "icon": "Application"
+        "icon": "VPN"
       },
       {
         "id": "5",
-        "label": "Open login website and fill credentials",
+        "label": "Autofill",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Form Fill"
       },
       {
         "id": "6",
-        "label": "Create a new item",
+        "label": "New Item",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Plus"
       }
     ]
   },
@@ -68,24 +84,34 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.adobe.Reader",
     "label": "Adobe Acrobat Reader",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "58",
+      "60",
+      "68",
+      "69",
+      "2",
+      "54",
+      "56"
+    ],
     "shortcuts": [
       {
         "id": "1",
-        "label": "Find in document",
+        "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Move to the next search result and highlight…",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "3",
-        "label": "Pause reading out loud",
+        "label": "Pause Reading",
         "shortcut": "command+shift+c",
-        "icon": "Application"
+        "icon": "Pause"
       }
     ]
   },
@@ -94,60 +120,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.adobe.illustrator",
     "label": "Adobe Illustrator",
     "catalog": false,
+    "defaultShortcutIds": [
+      "31",
+      "32",
+      "35",
+      "55",
+      "0",
+      "90",
+      "30",
+      "27"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "1",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "2",
         "label": "Cut",
         "shortcut": "command+x",
-        "icon": "Application"
+        "icon": "Cut"
       },
       {
         "id": "3",
         "label": "Copy",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "4",
-        "label": "Create a document without opening the New Doc…",
+        "label": "Quick Document",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "5",
-        "label": "Save changes made to the document",
+        "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "6",
-        "label": "Open the Save As dialog box",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "7",
-        "label": "Save a copy of the document",
+        "label": "Save Copy",
         "shortcut": "command+option+s",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "8",
-        "label": "Open the Save For Web dialog box",
+        "label": "Web Export",
         "shortcut": "command+option+shift+s",
-        "icon": "Application"
+        "icon": "Export"
       }
     ]
   },
@@ -156,66 +192,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.adobe.LightroomCC",
     "label": "Adobe Lightroom",
     "catalog": false,
+    "defaultShortcutIds": [
+      "41",
+      "10",
+      "17",
+      "29",
+      "60",
+      "55",
+      "14",
+      "33"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "Cut",
         "shortcut": "command+x",
-        "icon": "Application"
+        "icon": "Cut"
       },
       {
         "id": "1",
         "label": "Copy",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "2",
         "label": "Paste",
         "shortcut": "command+v",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "3",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "4",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "5",
-        "label": "Rotate Left (CCW)",
+        "label": "Rotate Left",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Rotate Left"
       },
       {
         "id": "6",
         "label": "Zoom In",
         "shortcut": "command+keyequal",
-        "icon": "Application"
+        "icon": "Zoom In"
       },
       {
         "id": "7",
         "label": "Zoom Out",
         "shortcut": "command+keyminus",
-        "icon": "Application"
+        "icon": "Zoom Out"
       },
       {
         "id": "8",
         "label": "Preferences",
         "shortcut": "command+keycomma",
-        "icon": "Application"
+        "icon": "Settings"
       },
       {
         "id": "9",
         "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -224,42 +270,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.adobe.Photoshop",
     "label": "Adobe Photoshop",
     "catalog": false,
+    "defaultShortcutIds": [
+      "11",
+      "3",
+      "4",
+      "18",
+      "0",
+      "15",
+      "5",
+      "2"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "1",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "2",
         "label": "Deselect",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Deselect"
       },
       {
         "id": "3",
         "label": "Free Transform",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Vector"
       },
       {
         "id": "4",
-        "label": "New layer via copy",
+        "label": "Copy Layer",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "5",
-        "label": "Create or release clipping mask",
+        "label": "Clipping Mask",
         "shortcut": "command+option+g",
-        "icon": "Application"
+        "icon": "Clipping Mask"
       }
     ]
   },
@@ -268,66 +324,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.adobe.PremierePro",
     "label": "Adobe Premiere Pro",
     "catalog": false,
+    "defaultShortcutIds": [
+      "40",
+      "59",
+      "60",
+      "68",
+      "53",
+      "44",
+      "6",
+      "7"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "New Project …",
+        "label": "New Project",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "New Sequence…",
+        "label": "New Sequence",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Timeline"
       },
       {
         "id": "2",
-        "label": "Open Project...",
+        "label": "Open Project",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "3",
         "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "4",
-        "label": "Save As...",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "5",
-        "label": "Save a Copy...",
+        "label": "Save Copy",
         "shortcut": "command+option+s",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "6",
-        "label": "Import...",
+        "label": "Import",
         "shortcut": "command+i",
-        "icon": "Application"
+        "icon": "Import"
       },
       {
         "id": "7",
         "label": "Export Media",
         "shortcut": "command+m",
-        "icon": "Application"
+        "icon": "Export"
       },
       {
         "id": "8",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "9",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       }
     ]
   },
@@ -336,54 +402,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.seriflabs.affinitydesigner2",
     "label": "Affinity Designer",
     "catalog": false,
+    "defaultShortcutIds": [
+      "21",
+      "23",
+      "8",
+      "58",
+      "15",
+      "67",
+      "17",
+      "12"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "New from Clipboard",
+        "label": "From Clipboard",
         "shortcut": "command+option+shift+n",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "2",
-        "label": "Close Document/Close App (when no documents o…",
+        "label": "Close Document",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Window Close"
       },
       {
         "id": "3",
-        "label": "Close All Documents",
+        "label": "Close All",
         "shortcut": "command+option+w",
-        "icon": "Application"
+        "icon": "Close"
       },
       {
         "id": "4",
-        "label": "New Pixel Layer",
+        "label": "Pixel Layer",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "5",
-        "label": "Switch to Next View",
+        "label": "Next View",
         "shortcut": "command+keybackquote",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "6",
         "label": "Select Next",
         "shortcut": "command+option+keybracketright",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "7",
         "label": "Select Previous",
         "shortcut": "command+option+keybracketleft",
-        "icon": "Application"
+        "icon": "Chevron Left"
       }
     ]
   },
@@ -392,54 +468,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.seriflabs.affinityphoto2",
     "label": "Affinity Photo",
     "catalog": false,
+    "defaultShortcutIds": [
+      "6",
+      "80",
+      "83",
+      "85",
+      "15",
+      "68",
+      "55",
+      "13"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "New from Clipboard",
+        "label": "From Clipboard",
         "shortcut": "command+option+shift+n",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "2",
         "label": "Open Document",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "3",
-        "label": "Close Document/Close App (when no documents o…",
+        "label": "Close Document",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Window Close"
       },
       {
         "id": "4",
-        "label": "Close All Documents",
+        "label": "Close All",
         "shortcut": "command+option+w",
-        "icon": "Application"
+        "icon": "Close"
       },
       {
         "id": "5",
         "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "6",
         "label": "New Layer",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "7",
-        "label": "Switch to Next View",
+        "label": "Next View",
         "shortcut": "command+keybackquote",
-        "icon": "Application"
+        "icon": "Tab"
       }
     ]
   },
@@ -448,42 +534,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.seriflabs.affinitypublisher2",
     "label": "Affinity Publisher",
     "catalog": false,
+    "defaultShortcutIds": [
+      "10",
+      "75",
+      "3",
+      "19",
+      "59",
+      "33",
+      "69",
+      "11"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Close Document/Close App (when no documents o…",
+        "label": "Close Document",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Window Close"
       },
       {
         "id": "2",
-        "label": "Close All Documents",
+        "label": "Close All",
         "shortcut": "command+option+w",
-        "icon": "Application"
+        "icon": "Close"
       },
       {
         "id": "3",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Switch to Next View",
+        "label": "Next View",
         "shortcut": "command+keybackquote",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "5",
         "label": "Select Previous",
         "shortcut": "command+option+keybracketleft",
-        "icon": "Application"
+        "icon": "Chevron Left"
       }
     ]
   },
@@ -492,36 +588,44 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.runningwithcrayons.Alfred",
     "label": "Alfred",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "39",
+      "18",
+      "19",
+      "1",
+      "4"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "Show Alfred",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Action a numbered result",
+        "label": "Open Result",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Application Launch"
       },
       {
         "id": "2",
-        "label": "Open a selected file or app in its default app",
+        "label": "Open File",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "3",
-        "label": "Search the current query in Finder",
+        "label": "Search Finder",
         "shortcut": "option+enter",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "4",
-        "label": "Reveal a local file in Finder",
+        "label": "Reveal File",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Folder Open Outline"
       }
     ]
   },
@@ -530,66 +634,214 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "company.thebrowser.Browser",
     "label": "Arc",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "2",
+      "5",
+      "8",
+      "9",
+      "23",
+      "24",
+      "3"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open a new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "1",
-        "label": "Close the current tab or window",
+        "label": "Close Tab",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Close Tab"
       },
       {
         "id": "2",
-        "label": "Reopen the last closed tab",
+        "label": "Reopen Tab",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Tab Restore"
       },
       {
         "id": "3",
-        "label": "Pin or unpin the current tab",
+        "label": "Pin Tab",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Pin"
       },
       {
         "id": "4",
-        "label": "Change the current tab URL",
+        "label": "Edit URL",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "5",
-        "label": "Show or hide the sidebar",
+        "label": "Toggle Sidebar",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Dock Left"
       },
       {
         "id": "6",
-        "label": "Go directly to tab N",
+        "label": "Jump Tab",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "7",
-        "label": "Switch between the five most recent tabs",
+        "label": "Recent Tabs",
         "shortcut": "control+tab",
-        "icon": "Application"
+        "icon": "History"
       },
       {
         "id": "8",
-        "label": "Reload the webpage",
+        "label": "Reload",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Refresh"
       },
       {
         "id": "9",
-        "label": "Find text on the webpage",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "io.github.jtenniswood.athena",
+    "label": "Athena",
+    "catalog": false,
+    "defaultShortcutIds": [
+      "100",
+      "101",
+      "102",
+      "104",
+      "106",
+      "103",
+      "105",
+      "109"
+    ],
+    "shortcuts": [
+      {
+        "id": "100",
+        "label": "New Chat",
+        "shortcut": "control+command+n",
+        "icon": "Chat Plus"
+      },
+      {
+        "id": "101",
+        "label": "Search Chats",
+        "shortcut": "command+shift+f",
+        "icon": "Search"
+      },
+      {
+        "id": "102",
+        "label": "Command Menu",
+        "shortcut": "command+k",
+        "icon": "Shortcut Command"
+      },
+      {
+        "id": "103",
+        "label": "Sidebar",
+        "shortcut": "command+b",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "104",
+        "label": "Model Picker",
+        "shortcut": "command+shift+m",
+        "icon": "Robot"
+      },
+      {
+        "id": "105",
+        "label": "Files",
+        "shortcut": "command+shift+e",
+        "icon": "File Tree"
+      },
+      {
+        "id": "106",
+        "label": "Review",
+        "shortcut": "command+shift+g",
+        "icon": "File Compare"
+      },
+      {
+        "id": "107",
+        "label": "Athena Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "108",
+        "label": "Keyboard Shortcuts",
+        "shortcut": "command+keyslash",
+        "icon": "Keyboard Settings"
+      },
+      {
+        "id": "109",
+        "label": "Rename Chat",
+        "shortcut": "command+shift+r",
+        "icon": "Rename"
+      },
+      {
+        "id": "110",
+        "label": "Update Title",
+        "shortcut": "command+shift+x",
+        "icon": "Refresh"
+      },
+      {
+        "id": "111",
+        "label": "Toggle Pin",
+        "shortcut": "command+shift+p",
+        "icon": "Pin"
+      },
+      {
+        "id": "112",
+        "label": "Toggle Unread",
+        "shortcut": "command+shift+u",
+        "icon": "Message Alert"
+      },
+      {
+        "id": "113",
+        "label": "Archive Chat",
+        "shortcut": "command+shift+a",
+        "icon": "Archive"
+      },
+      {
+        "id": "114",
+        "label": "Archived Chats",
+        "shortcut": "command+option+a",
+        "icon": "Archive"
+      },
+      {
+        "id": "115",
+        "label": "Mark All Read",
+        "shortcut": "command+option+r",
+        "icon": "Check"
+      },
+      {
+        "id": "116",
+        "label": "Delete Chat",
+        "shortcut": "command+shift+delete",
+        "icon": "Delete"
+      },
+      {
+        "id": "117",
+        "label": "Scale Up",
+        "shortcut": "command+keyequal",
+        "icon": "Zoom In"
+      },
+      {
+        "id": "118",
+        "label": "Scale Down",
+        "shortcut": "command+keyminus",
+        "icon": "Zoom Out"
+      },
+      {
+        "id": "119",
+        "label": "Reset Scale",
+        "shortcut": "command+0",
+        "icon": "Refresh"
       }
     ]
   },
@@ -598,18 +850,28 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "org.audacityteam.audacity",
     "label": "Audacity",
     "catalog": false,
+    "defaultShortcutIds": [
+      "47",
+      "51",
+      "21",
+      "0",
+      "9",
+      "61",
+      "68",
+      "5"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Add Label at Playback Position",
+        "label": "Add Label",
         "shortcut": "command+m",
-        "icon": "Application"
+        "icon": "Tag Plus"
       },
       {
         "id": "1",
-        "label": "Move to Previous Label",
+        "label": "Previous Label",
         "shortcut": "option+left",
-        "icon": "Application"
+        "icon": "Chevron Left"
       }
     ]
   },
@@ -618,66 +880,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.bambulab.bambu-studio",
     "label": "BambuStudio",
     "catalog": false,
+    "defaultShortcutIds": [
+      "3",
+      "19",
+      "21",
+      "4",
+      "64",
+      "53",
+      "9",
+      "2"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "New Project",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
         "label": "Open Project",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "2",
         "label": "Save Project",
         "shortcut": "command+s",
-        "icon": "Download"
+        "icon": "Save"
       },
       {
         "id": "3",
-        "label": "Import geometry",
+        "label": "Import Model",
         "shortcut": "command+i",
-        "icon": "Application"
+        "icon": "Import"
       },
       {
         "id": "4",
-        "label": "Slice plate",
+        "label": "Slice Plate",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "5",
-        "label": "Print plate",
+        "label": "Print Plate",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Printer 3D"
       },
       {
         "id": "6",
-        "label": "Select all objects",
+        "label": "Select All",
         "shortcut": "command+a",
-        "icon": "Application"
+        "icon": "Select All"
       },
       {
         "id": "7",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Chevron Left"
+        "icon": "Undo"
       },
       {
         "id": "8",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Chevron Right"
+        "icon": "Redo"
       },
       {
         "id": "9",
-        "label": "Clone selected",
+        "label": "Clone",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Copy"
       }
     ]
   },
@@ -686,66 +958,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "net.shinyfrog.bear",
     "label": "Bear",
     "catalog": false,
+    "defaultShortcutIds": [
+      "8",
+      "9",
+      "4",
+      "5",
+      "7",
+      "0",
+      "19",
+      "53"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Heading levels 1–6",
+        "label": "Heading",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Heading"
       },
       {
         "id": "1",
         "label": "Bold",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Bold"
       },
       {
         "id": "2",
-        "label": "Insert link",
+        "label": "Insert Link",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "3",
-        "label": "Unordered list",
+        "label": "Bullet List",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Bullet List"
       },
       {
         "id": "4",
-        "label": "Create todo",
+        "label": "New To-do",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "5",
-        "label": "Toggle todo completion",
+        "label": "Toggle To-do",
         "shortcut": "command+keyperiod",
-        "icon": "Application"
+        "icon": "Check"
       },
       {
         "id": "6",
-        "label": "Search current note",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Search note list",
+        "label": "Search Notes",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Note Search"
       },
       {
         "id": "8",
-        "label": "New note",
+        "label": "New Note",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Note Plus"
       },
       {
         "id": "9",
         "label": "Quick Open",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Folder Search"
       }
     ]
   },
@@ -754,18 +1036,214 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.iBooksX",
     "label": "Books",
     "catalog": false,
+    "defaultShortcutIds": [
+      "29",
+      "30",
+      "2",
+      "3",
+      "1",
+      "13",
+      "14",
+      "9"
+    ],
     "shortcuts": [
       {
-        "id": "0",
-        "label": "Add a new collection to your library",
-        "shortcut": "command+n",
-        "icon": "Plus"
+        "id": "29",
+        "label": "Next Page",
+        "shortcut": "right",
+        "icon": "Page Next"
+      },
+      {
+        "id": "30",
+        "label": "Previous Page",
+        "shortcut": "left",
+        "icon": "Page Previous"
+      },
+      {
+        "id": "31",
+        "label": "Full Screen",
+        "shortcut": "function+f",
+        "icon": "Full Screen"
+      },
+      {
+        "id": "32",
+        "label": "Play/Pause",
+        "shortcut": "space",
+        "icon": "Play Pause"
+      },
+      {
+        "id": "2",
+        "label": "Bookmark Page",
+        "shortcut": "command+d",
+        "icon": "Bookmark Plus"
+      },
+      {
+        "id": "3",
+        "label": "Contents",
+        "shortcut": "command+t",
+        "icon": "View Headline"
+      },
+      {
+        "id": "4",
+        "label": "Bookmarks",
+        "shortcut": "command+shift+d",
+        "icon": "Bookmark Multiple"
       },
       {
         "id": "1",
-        "label": "Search books",
+        "label": "Search Books",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
+      },
+      {
+        "id": "5",
+        "label": "Next Chapter",
+        "shortcut": "option+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "6",
+        "label": "Previous Chapter",
+        "shortcut": "option+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "7",
+        "label": "Chapter Start",
+        "shortcut": "option+up",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "8",
+        "label": "Chapter End",
+        "shortcut": "option+down",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "9",
+        "label": "Notes",
+        "shortcut": "command+shift+n",
+        "icon": "Notes"
+      },
+      {
+        "id": "10",
+        "label": "Thumbnails",
+        "shortcut": "command+shift+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "11",
+        "label": "Study Cards",
+        "shortcut": "command+shift+s",
+        "icon": "Card Text"
+      },
+      {
+        "id": "12",
+        "label": "Glossary",
+        "shortcut": "command+shift+g",
+        "icon": "Book Alphabet"
+      },
+      {
+        "id": "13",
+        "label": "Larger Text",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Font Size Increase"
+      },
+      {
+        "id": "14",
+        "label": "Smaller Text",
+        "shortcut": "command+keyminus",
+        "icon": "Font Size Decrease"
+      },
+      {
+        "id": "15",
+        "label": "Reset Text",
+        "shortcut": "command+0",
+        "icon": "Format Size"
+      },
+      {
+        "id": "16",
+        "label": "Stop Audiobook",
+        "shortcut": "command+keyperiod",
+        "icon": "Stop"
+      },
+      {
+        "id": "17",
+        "label": "Skip Forward",
+        "shortcut": "command+right",
+        "icon": "Speed Up"
+      },
+      {
+        "id": "18",
+        "label": "Skip Back",
+        "shortcut": "command+left",
+        "icon": "Speed Down"
+      },
+      {
+        "id": "19",
+        "label": "Next Track",
+        "shortcut": "command+shift+right",
+        "icon": "Skip Next"
+      },
+      {
+        "id": "20",
+        "label": "Previous Track",
+        "shortcut": "command+shift+left",
+        "icon": "Skip Previous"
+      },
+      {
+        "id": "21",
+        "label": "Volume Up",
+        "shortcut": "command+up",
+        "icon": "Volume Up"
+      },
+      {
+        "id": "22",
+        "label": "Volume Down",
+        "shortcut": "command+down",
+        "icon": "Volume Down"
+      },
+      {
+        "id": "23",
+        "label": "Open Book",
+        "shortcut": "command+o",
+        "icon": "Book"
+      },
+      {
+        "id": "0",
+        "label": "New Collection",
+        "shortcut": "command+n",
+        "icon": "Folder Plus"
+      },
+      {
+        "id": "24",
+        "label": "Books Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "25",
+        "label": "Close Window",
+        "shortcut": "command+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "26",
+        "label": "Hide Books",
+        "shortcut": "command+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "27",
+        "label": "Hide Others",
+        "shortcut": "command+option+h",
+        "icon": "Window Minimise"
+      },
+      {
+        "id": "28",
+        "label": "Quit Books",
+        "shortcut": "command+q",
+        "icon": "Logout"
       }
     ]
   },
@@ -774,122 +1252,592 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.iCal",
     "label": "Calendar",
     "catalog": false,
+    "defaultShortcutIds": [
+      "6",
+      "0",
+      "9",
+      "8",
+      "7",
+      "1",
+      "3",
+      "10"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go to today’s date",
+        "label": "Today",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Calendar Today"
       },
       {
         "id": "1",
-        "label": "Go to a specific date",
+        "label": "Jump Date",
         "shortcut": "shift+command+t",
-        "icon": "Application"
+        "icon": "Calendar Search"
       },
       {
         "id": "2",
-        "label": "Switch to Day view",
+        "label": "Day View",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Calendar Today"
       },
       {
         "id": "3",
-        "label": "Switch to Week view",
+        "label": "Week View",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "Calendar Week"
       },
       {
         "id": "4",
-        "label": "Add a new calendar group",
+        "label": "Calendar Group",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Calendar Multiple"
       },
       {
         "id": "5",
-        "label": "Add a new subscribed calendar",
+        "label": "Subscribe",
         "shortcut": "option+command+s",
-        "icon": "Plus"
+        "icon": "Calendar Plus"
       },
       {
         "id": "6",
-        "label": "Add a new event",
+        "label": "New Event",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Calendar Plus"
       },
       {
         "id": "7",
-        "label": "Search for events",
+        "label": "Search Events",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Calendar Search"
       }
     ]
   },
   {
     "version": 1,
     "appId": "com.openai.chat",
-    "label": "ChatGPT",
+    "label": "ChatGPT Classic",
     "catalog": false,
+    "defaultShortcutIds": [
+      "2",
+      "0",
+      "4",
+      "7",
+      "1",
+      "3",
+      "5",
+      "6"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open command menu",
+        "label": "Command Menu",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Toggle sidebar",
+        "label": "Toggle Sidebar",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Dock Left"
       },
       {
         "id": "2",
-        "label": "New chat",
+        "label": "New Chat",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "3",
-        "label": "Quick chat",
+        "label": "Quick Chat",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "Chat"
       },
       {
         "id": "4",
-        "label": "Find in chat",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Previous chat or tab",
+        "label": "Previous Chat",
         "shortcut": "control+shift+tab",
-        "icon": "Application"
+        "icon": "Chevron Left"
       },
       {
         "id": "6",
-        "label": "Next chat or tab",
+        "label": "Next Chat",
         "shortcut": "control+tab",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "7",
-        "label": "Start voice chat",
+        "label": "Voice Chat",
         "shortcut": "control+shift+v",
-        "icon": "Application"
+        "icon": "Microphone"
       },
       {
         "id": "8",
-        "label": "Open Chat Bar (ChatGPT Classic)",
+        "label": "Chat Bar",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Chat"
       },
       {
         "id": "9",
-        "label": "Stop streaming response (ChatGPT Classic)",
+        "label": "Stop Reply",
         "shortcut": "command+keyperiod",
-        "icon": "Application"
+        "icon": "Stop"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.openai.codex",
+    "label": "ChatGPT Desktop",
+    "catalog": false,
+    "defaultShortcutIds": [
+      "7",
+      "0",
+      "8",
+      "9",
+      "6",
+      "11",
+      "14",
+      "2"
+    ],
+    "shortcuts": [
+      {
+        "id": "7",
+        "label": "New Chat",
+        "shortcut": "command+n",
+        "icon": "Chat Plus"
+      },
+      {
+        "id": "0",
+        "label": "Command Menu",
+        "shortcut": "command+k",
+        "icon": "Shortcut Command"
+      },
+      {
+        "id": "8",
+        "label": "Needs Attention",
+        "shortcut": "option+command+a",
+        "icon": "Message Alert"
+      },
+      {
+        "id": "9",
+        "label": "Review Changes",
+        "shortcut": "control+shift+g",
+        "icon": "File Compare"
+      },
+      {
+        "id": "6",
+        "label": "Terminal",
+        "shortcut": "control+keybackquote",
+        "icon": "Terminal"
+      },
+      {
+        "id": "10",
+        "label": "Find Text",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "11",
+        "label": "Find Files",
+        "shortcut": "command+p",
+        "icon": "File Search"
+      },
+      {
+        "id": "2",
+        "label": "Browser Tab",
+        "shortcut": "command+t",
+        "icon": "Web Plus"
+      },
+      {
+        "id": "3",
+        "label": "Sidebar",
+        "shortcut": "command+b",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "12",
+        "label": "File Tree",
+        "shortcut": "command+shift+e",
+        "icon": "File Tree"
+      },
+      {
+        "id": "13",
+        "label": "Project Picker",
+        "shortcut": "option+command+shift+o",
+        "icon": "Folder Search"
+      },
+      {
+        "id": "14",
+        "label": "Model / Effort",
+        "shortcut": "control+shift+m",
+        "icon": "Robot"
+      },
+      {
+        "id": "15",
+        "label": "Open Folder",
+        "shortcut": "command+o",
+        "icon": "Folder Open Outline"
+      },
+      {
+        "id": "5",
+        "label": "Bottom Panel",
+        "shortcut": "command+j",
+        "icon": "Dock Bottom"
+      },
+      {
+        "id": "4",
+        "label": "Chat / Tabs",
+        "shortcut": "option+command+b",
+        "icon": "Swap Horizontal"
+      },
+      {
+        "id": "16",
+        "label": "Copy Link",
+        "shortcut": "option+command+l",
+        "icon": "Link"
+      },
+      {
+        "id": "17",
+        "label": "Previous Chat",
+        "shortcut": "control+shift+tab",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "18",
+        "label": "Next Chat",
+        "shortcut": "control+tab",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "19",
+        "label": "Archive Chat",
+        "shortcut": "command+shift+a",
+        "icon": "Archive"
+      },
+      {
+        "id": "20",
+        "label": "Standalone Chat",
+        "shortcut": "command+option+o",
+        "icon": "New Window"
+      },
+      {
+        "id": "21",
+        "label": "Side Chat",
+        "shortcut": "command+option+s",
+        "icon": "Chat"
+      },
+      {
+        "id": "22",
+        "label": "Mark Unread",
+        "shortcut": "command+shift+u",
+        "icon": "Message Unread"
+      },
+      {
+        "id": "23",
+        "label": "Toggle Pin",
+        "shortcut": "command+option+p",
+        "icon": "Pin"
+      },
+      {
+        "id": "24",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Back"
+      },
+      {
+        "id": "25",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Forward"
+      },
+      {
+        "id": "26",
+        "label": "Next Sidebar",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "27",
+        "label": "Previous Sidebar",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "28",
+        "label": "Activity",
+        "shortcut": "command+option+u",
+        "icon": "Bell"
+      },
+      {
+        "id": "29",
+        "label": "Reopen Tab",
+        "shortcut": "command+shift+t",
+        "icon": "Tab Restore"
+      },
+      {
+        "id": "30",
+        "label": "Full View",
+        "shortcut": "command+shift+f",
+        "icon": "Full Screen"
+      },
+      {
+        "id": "31",
+        "label": "Cycle Layout",
+        "shortcut": "command+shift+b",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "32",
+        "label": "Show Mini",
+        "shortcut": "option+space",
+        "icon": "Picture in Picture"
+      },
+      {
+        "id": "33",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "34",
+        "label": "Close Others",
+        "shortcut": "command+option+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "35",
+        "label": "Close Tab",
+        "shortcut": "command+w",
+        "icon": "Close Tab"
+      },
+      {
+        "id": "36",
+        "label": "Recent Models",
+        "shortcut": "command+control+m",
+        "icon": "Robot"
+      },
+      {
+        "id": "37",
+        "label": "Voice Chat",
+        "shortcut": "control+shift+v",
+        "icon": "Microphone"
+      },
+      {
+        "id": "38",
+        "label": "Copy Chat Path",
+        "shortcut": "command+option+shift+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "39",
+        "label": "Copy Folder Path",
+        "shortcut": "command+shift+c",
+        "icon": "Folder Outline"
+      },
+      {
+        "id": "40",
+        "label": "Force Reload",
+        "shortcut": "command+shift+r",
+        "icon": "Restart"
+      },
+      {
+        "id": "41",
+        "label": "Mini Voice",
+        "shortcut": "option+v",
+        "icon": "Microphone"
+      },
+      {
+        "id": "42",
+        "label": "Reload Page",
+        "shortcut": "command+r",
+        "icon": "Refresh"
+      },
+      {
+        "id": "43",
+        "label": "Rename Chat",
+        "shortcut": "command+option+r",
+        "icon": "Rename"
+      },
+      {
+        "id": "44",
+        "label": "Screenshot Chat",
+        "shortcut": "control+shift+4",
+        "icon": "Screenshot"
+      },
+      {
+        "id": "45",
+        "label": "Screenshot New Chat",
+        "shortcut": "control+option+shift+4",
+        "icon": "Screenshot"
+      },
+      {
+        "id": "46",
+        "label": "Shortcut List",
+        "shortcut": "command+keyslash",
+        "icon": "Keyboard"
+      },
+      {
+        "id": "47",
+        "label": "Toggle Notch",
+        "shortcut": "option+c",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "48",
+        "label": "Tab 1",
+        "shortcut": "command+1",
+        "icon": "Tab"
+      },
+      {
+        "id": "49",
+        "label": "Tab 2",
+        "shortcut": "command+2",
+        "icon": "Tab"
+      },
+      {
+        "id": "50",
+        "label": "Tab 3",
+        "shortcut": "command+3",
+        "icon": "Tab"
+      },
+      {
+        "id": "51",
+        "label": "Tab 4",
+        "shortcut": "command+4",
+        "icon": "Tab"
+      },
+      {
+        "id": "52",
+        "label": "Tab 5",
+        "shortcut": "command+5",
+        "icon": "Tab"
+      },
+      {
+        "id": "53",
+        "label": "Tab 6",
+        "shortcut": "command+6",
+        "icon": "Tab"
+      },
+      {
+        "id": "54",
+        "label": "Tab 7",
+        "shortcut": "command+7",
+        "icon": "Tab"
+      },
+      {
+        "id": "55",
+        "label": "Tab 8",
+        "shortcut": "command+8",
+        "icon": "Tab"
+      },
+      {
+        "id": "56",
+        "label": "Tab 9",
+        "shortcut": "command+9",
+        "icon": "Tab"
+      },
+      {
+        "id": "57",
+        "label": "Recent 1",
+        "shortcut": "command+option+1",
+        "icon": "History"
+      },
+      {
+        "id": "58",
+        "label": "Recent 2",
+        "shortcut": "command+option+2",
+        "icon": "History"
+      },
+      {
+        "id": "59",
+        "label": "Recent 3",
+        "shortcut": "command+option+3",
+        "icon": "History"
+      },
+      {
+        "id": "60",
+        "label": "Recent 4",
+        "shortcut": "command+option+4",
+        "icon": "History"
+      },
+      {
+        "id": "61",
+        "label": "Recent 5",
+        "shortcut": "command+option+5",
+        "icon": "History"
+      },
+      {
+        "id": "62",
+        "label": "Recent 6",
+        "shortcut": "command+option+6",
+        "icon": "History"
+      },
+      {
+        "id": "63",
+        "label": "Clear Unreads",
+        "shortcut": "shift+escape",
+        "icon": "Check"
+      },
+      {
+        "id": "64",
+        "label": "Chat 1",
+        "shortcut": "control+1",
+        "icon": "Chat"
+      },
+      {
+        "id": "65",
+        "label": "Chat 2",
+        "shortcut": "control+2",
+        "icon": "Chat"
+      },
+      {
+        "id": "66",
+        "label": "Chat 3",
+        "shortcut": "control+3",
+        "icon": "Chat"
+      },
+      {
+        "id": "67",
+        "label": "Chat 4",
+        "shortcut": "control+4",
+        "icon": "Chat"
+      },
+      {
+        "id": "68",
+        "label": "Chat 5",
+        "shortcut": "control+5",
+        "icon": "Chat"
+      },
+      {
+        "id": "69",
+        "label": "Chat 6",
+        "shortcut": "control+6",
+        "icon": "Chat"
+      },
+      {
+        "id": "70",
+        "label": "Chat 7",
+        "shortcut": "control+7",
+        "icon": "Chat"
+      },
+      {
+        "id": "71",
+        "label": "Chat 8",
+        "shortcut": "control+8",
+        "icon": "Chat"
+      },
+      {
+        "id": "72",
+        "label": "Chat 9",
+        "shortcut": "control+9",
+        "icon": "Chat"
       }
     ]
   },
@@ -898,80 +1846,574 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.anthropic.claudefordesktop",
     "label": "Claude Desktop",
     "catalog": false,
+    "defaultShortcutIds": [
+      "2",
+      "4",
+      "6",
+      "54",
+      "33",
+      "46",
+      "45",
+      "80"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Quick Entry (alternative)",
+        "label": "Quick Entry",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Flash"
       },
       {
         "id": "1",
-        "label": "Show Code-tab shortcuts",
+        "label": "Code Shortcuts",
         "shortcut": "command+keyslash",
-        "icon": "Application"
+        "icon": "Keyboard"
       },
       {
         "id": "2",
-        "label": "New Code session",
+        "label": "New Session",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "3",
-        "label": "Next Code session",
+        "label": "Next Session",
         "shortcut": "control+tab",
-        "icon": "Application"
-      }
-    ]
-  },
-  {
-    "version": 1,
-    "appId": "com.openai.codex",
-    "label": "Codex",
-    "catalog": false,
-    "shortcuts": [
-      {
-        "id": "0",
-        "label": "Command",
-        "shortcut": "command+k",
-        "icon": "Application"
-      },
-      {
-        "id": "1",
-        "label": "Approve",
-        "shortcut": "command+enter",
-        "icon": "Check"
-      },
-      {
-        "id": "2",
-        "label": "Browser",
-        "shortcut": "command+t",
-        "icon": "Web"
-      },
-      {
-        "id": "3",
-        "label": "Sidebar",
-        "shortcut": "command+b",
-        "icon": "View Headline"
+        "icon": "Chevron Right"
       },
       {
         "id": "4",
-        "label": "Terminal (Bottom)",
-        "shortcut": "option+command+b",
-        "icon": "Dock Bottom"
+        "label": "Session Search",
+        "shortcut": "command+k",
+        "icon": "Find Tab"
       },
       {
         "id": "5",
-        "label": "Terminal (Side)",
-        "shortcut": "command+j",
-        "icon": "Dock Right"
+        "label": "Search",
+        "shortcut": "command+shift+k",
+        "icon": "Search"
       },
       {
         "id": "6",
-        "label": "Terminal (Side)",
-        "shortcut": "control+keybackquote",
+        "label": "Sidebar",
+        "shortcut": "command+b",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "7",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "8",
+        "label": "Reuse Settings",
+        "shortcut": "command+shift+n",
+        "icon": "Template"
+      },
+      {
+        "id": "9",
+        "label": "New Environment",
+        "shortcut": "command+option+0",
+        "icon": "Folder Plus"
+      },
+      {
+        "id": "10",
+        "label": "Close Session",
+        "shortcut": "command+w",
+        "icon": "Close Tab"
+      },
+      {
+        "id": "11",
+        "label": "Reopen Session",
+        "shortcut": "command+shift+t",
+        "icon": "Tab Restore"
+      },
+      {
+        "id": "12",
+        "label": "Previous Session",
+        "shortcut": "control+shift+tab",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "13",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Back"
+      },
+      {
+        "id": "14",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Forward"
+      },
+      {
+        "id": "15",
+        "label": "Next Sidebar",
+        "shortcut": "command+option+right",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "16",
+        "label": "Previous Sidebar",
+        "shortcut": "command+option+left",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "17",
+        "label": "Split Right",
+        "shortcut": "command+control+keybackslash",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "18",
+        "label": "Split Below",
+        "shortcut": "command+control+keyminus",
+        "icon": "Split Horizontal"
+      },
+      {
+        "id": "19",
+        "label": "Next Split",
+        "shortcut": "control+keybracketright",
         "icon": "Dock Right"
+      },
+      {
+        "id": "20",
+        "label": "Previous Split",
+        "shortcut": "control+keybracketleft",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "21",
+        "label": "Close Split",
+        "shortcut": "command+control+w",
+        "icon": "Window Close"
+      },
+      {
+        "id": "22",
+        "label": "Toggle Pin",
+        "shortcut": "command+option+p",
+        "icon": "Pin"
+      },
+      {
+        "id": "23",
+        "label": "Rename Session",
+        "shortcut": "command+option+r",
+        "icon": "Rename"
+      },
+      {
+        "id": "24",
+        "label": "Archive Session",
+        "shortcut": "command+option+a",
+        "icon": "Archive"
+      },
+      {
+        "id": "25",
+        "label": "Toggle Unread",
+        "shortcut": "command+option+u",
+        "icon": "Message Unread"
+      },
+      {
+        "id": "26",
+        "label": "Copy Link",
+        "shortcut": "command+l",
+        "icon": "Link"
+      },
+      {
+        "id": "27",
+        "label": "Open PR",
+        "shortcut": "command+option+g",
+        "icon": "Source Pull Request"
+      },
+      {
+        "id": "28",
+        "label": "Fork Session",
+        "shortcut": "command+option+o",
+        "icon": "Source Branch"
+      },
+      {
+        "id": "29",
+        "label": "Transcript",
+        "shortcut": "control+o",
+        "icon": "Notes"
+      },
+      {
+        "id": "30",
+        "label": "Find",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "31",
+        "label": "Find Next",
+        "shortcut": "command+g",
+        "icon": "Chevron Down"
+      },
+      {
+        "id": "32",
+        "label": "Find Previous",
+        "shortcut": "command+shift+g",
+        "icon": "Chevron Up"
+      },
+      {
+        "id": "33",
+        "label": "Changes",
+        "shortcut": "command+shift+d",
+        "icon": "Source Compare"
+      },
+      {
+        "id": "34",
+        "label": "File List",
+        "shortcut": "command+shift+y",
+        "icon": "File Tree"
+      },
+      {
+        "id": "35",
+        "label": "Next Change",
+        "shortcut": "option+f5",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "36",
+        "label": "Previous Change",
+        "shortcut": "option+shift+f5",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "37",
+        "label": "Next Comment",
+        "shortcut": "option+f9",
+        "icon": "Comment Plus"
+      },
+      {
+        "id": "38",
+        "label": "Previous Comment",
+        "shortcut": "option+shift+f9",
+        "icon": "Message Alert"
+      },
+      {
+        "id": "39",
+        "label": "Go to File",
+        "shortcut": "command+p",
+        "icon": "File Search"
+      },
+      {
+        "id": "40",
+        "label": "Preview",
+        "shortcut": "command+shift+p",
+        "icon": "Web"
+      },
+      {
+        "id": "41",
+        "label": "Select Element",
+        "shortcut": "command+shift+s",
+        "icon": "Target"
+      },
+      {
+        "id": "42",
+        "label": "Annotate Preview",
+        "shortcut": "command+shift+x",
+        "icon": "Draw"
+      },
+      {
+        "id": "43",
+        "label": "Reload Preview",
+        "shortcut": "command+r",
+        "icon": "Refresh"
+      },
+      {
+        "id": "44",
+        "label": "Files",
+        "shortcut": "command+shift+f",
+        "icon": "Folder Outline"
+      },
+      {
+        "id": "45",
+        "label": "Attach Context",
+        "shortcut": "command+shift+l",
+        "icon": "Paperclip"
+      },
+      {
+        "id": "46",
+        "label": "Terminal",
+        "shortcut": "command+j",
+        "icon": "Terminal"
+      },
+      {
+        "id": "47",
+        "label": "New Terminal",
+        "shortcut": "control+shift+keybackquote",
+        "icon": "New Window"
+      },
+      {
+        "id": "48",
+        "label": "Next Terminal",
+        "shortcut": "control+shift+keybracketright",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "49",
+        "label": "Previous Terminal",
+        "shortcut": "control+shift+keybracketleft",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "50",
+        "label": "Close Pane",
+        "shortcut": "command+keybackslash",
+        "icon": "Window Close"
+      },
+      {
+        "id": "51",
+        "label": "Toggle Pane",
+        "shortcut": "command+shift+keybackslash",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "52",
+        "label": "Side Chat",
+        "shortcut": "command+keysemicolon",
+        "icon": "Chat"
+      },
+      {
+        "id": "53",
+        "label": "Mode Menu",
+        "shortcut": "command+shift+m",
+        "icon": "Settings"
+      },
+      {
+        "id": "54",
+        "label": "Model Menu",
+        "shortcut": "command+shift+i",
+        "icon": "Robot"
+      },
+      {
+        "id": "55",
+        "label": "Effort Menu",
+        "shortcut": "command+shift+e",
+        "icon": "Gauge"
+      },
+      {
+        "id": "56",
+        "label": "Attach Files",
+        "shortcut": "command+u",
+        "icon": "Paperclip"
+      },
+      {
+        "id": "57",
+        "label": "Prompt Search",
+        "shortcut": "control+r",
+        "icon": "History"
+      },
+      {
+        "id": "58",
+        "label": "Queue / Send",
+        "shortcut": "command+enter",
+        "icon": "Send"
+      },
+      {
+        "id": "59",
+        "label": "Send to Fork",
+        "shortcut": "command+option+enter",
+        "icon": "Source Branch"
+      },
+      {
+        "id": "60",
+        "label": "Environment 1",
+        "shortcut": "command+option+1",
+        "icon": "Applications"
+      },
+      {
+        "id": "61",
+        "label": "Session 1",
+        "shortcut": "command+1",
+        "icon": "Chat"
+      },
+      {
+        "id": "62",
+        "label": "Environment 2",
+        "shortcut": "command+option+2",
+        "icon": "Applications"
+      },
+      {
+        "id": "63",
+        "label": "Session 2",
+        "shortcut": "command+2",
+        "icon": "Chat"
+      },
+      {
+        "id": "64",
+        "label": "Environment 3",
+        "shortcut": "command+option+3",
+        "icon": "Applications"
+      },
+      {
+        "id": "65",
+        "label": "Session 3",
+        "shortcut": "command+3",
+        "icon": "Chat"
+      },
+      {
+        "id": "66",
+        "label": "Environment 4",
+        "shortcut": "command+option+4",
+        "icon": "Applications"
+      },
+      {
+        "id": "67",
+        "label": "Session 4",
+        "shortcut": "command+4",
+        "icon": "Chat"
+      },
+      {
+        "id": "68",
+        "label": "Environment 5",
+        "shortcut": "command+option+5",
+        "icon": "Applications"
+      },
+      {
+        "id": "69",
+        "label": "Session 5",
+        "shortcut": "command+5",
+        "icon": "Chat"
+      },
+      {
+        "id": "70",
+        "label": "Environment 6",
+        "shortcut": "command+option+6",
+        "icon": "Applications"
+      },
+      {
+        "id": "71",
+        "label": "Session 6",
+        "shortcut": "command+6",
+        "icon": "Chat"
+      },
+      {
+        "id": "72",
+        "label": "Environment 7",
+        "shortcut": "command+option+7",
+        "icon": "Applications"
+      },
+      {
+        "id": "73",
+        "label": "Session 7",
+        "shortcut": "command+7",
+        "icon": "Chat"
+      },
+      {
+        "id": "74",
+        "label": "Environment 8",
+        "shortcut": "command+option+8",
+        "icon": "Applications"
+      },
+      {
+        "id": "75",
+        "label": "Session 8",
+        "shortcut": "command+8",
+        "icon": "Chat"
+      },
+      {
+        "id": "76",
+        "label": "Environment 9",
+        "shortcut": "command+option+9",
+        "icon": "Applications"
+      },
+      {
+        "id": "77",
+        "label": "Session 9",
+        "shortcut": "command+9",
+        "icon": "Chat"
+      },
+      {
+        "id": "78",
+        "label": "Next Area",
+        "shortcut": "f6",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "79",
+        "label": "Previous Area",
+        "shortcut": "shift+f6",
+        "icon": "Arrow Left"
+      },
+      {
+        "id": "80",
+        "label": "Stop Response",
+        "shortcut": "claude-escape",
+        "icon": "Stop"
+      },
+      {
+        "id": "81",
+        "label": "Rewind Session",
+        "shortcut": "escape-twice",
+        "icon": "History"
+      },
+      {
+        "id": "82",
+        "label": "Older Prompt",
+        "shortcut": "up",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "83",
+        "label": "Newer Prompt",
+        "shortcut": "down",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "84",
+        "label": "Menu Item 1",
+        "shortcut": "1",
+        "icon": "Menu"
+      },
+      {
+        "id": "85",
+        "label": "Menu Item 2",
+        "shortcut": "2",
+        "icon": "Menu"
+      },
+      {
+        "id": "86",
+        "label": "Menu Item 3",
+        "shortcut": "3",
+        "icon": "Menu"
+      },
+      {
+        "id": "87",
+        "label": "Menu Item 4",
+        "shortcut": "4",
+        "icon": "Menu"
+      },
+      {
+        "id": "88",
+        "label": "Menu Item 5",
+        "shortcut": "5",
+        "icon": "Menu"
+      },
+      {
+        "id": "89",
+        "label": "Menu Item 6",
+        "shortcut": "6",
+        "icon": "Menu"
+      },
+      {
+        "id": "90",
+        "label": "Menu Item 7",
+        "shortcut": "7",
+        "icon": "Menu"
+      },
+      {
+        "id": "91",
+        "label": "Menu Item 8",
+        "shortcut": "8",
+        "icon": "Menu"
+      },
+      {
+        "id": "92",
+        "label": "Menu Item 9",
+        "shortcut": "9",
+        "icon": "Menu"
       }
     ]
   },
@@ -980,42 +2422,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.todesktop.230313mzl4w4u92",
     "label": "Cursor",
     "catalog": false,
+    "defaultShortcutIds": [
+      "25",
+      "1",
+      "0",
+      "8",
+      "2",
+      "5",
+      "10",
+      "49"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle the Cursor side panel",
+        "label": "Toggle Sidebar",
         "shortcut": "command+i",
-        "icon": "Application"
+        "icon": "Dock Right"
       },
       {
         "id": "1",
-        "label": "Open Inline Edit",
+        "label": "Inline Edit",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Draw"
       },
       {
         "id": "2",
-        "label": "Open the Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "3",
-        "label": "Force-send a message",
+        "label": "Force Send",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Send"
       },
       {
         "id": "4",
-        "label": "Cancel generation",
+        "label": "Stop Reply",
         "shortcut": "command+shift+delete",
-        "icon": "Application"
+        "icon": "Stop"
       },
       {
         "id": "5",
-        "label": "Add selected code to chat",
+        "label": "Attach Code",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Code"
       }
     ]
   },
@@ -1024,24 +2476,34 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.blackmagic-design.DaVinciResolve",
     "label": "DaVinci Resolve",
     "catalog": false,
+    "defaultShortcutIds": [
+      "27",
+      "43",
+      "31",
+      "32",
+      "39",
+      "19",
+      "21",
+      "23"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Save project",
+        "label": "Save Project",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "1",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "2",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       }
     ]
   },
@@ -1050,48 +2512,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.hnc.Discord",
     "label": "Discord",
     "catalog": false,
+    "defaultShortcutIds": [
+      "3",
+      "1",
+      "2",
+      "4",
+      "5",
+      "32",
+      "31",
+      "10"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Keyboard Shortcuts menu",
+        "label": "Shortcuts",
         "shortcut": "command+keyslash",
-        "icon": "Application"
+        "icon": "Keyboard"
       },
       {
         "id": "1",
-        "label": "Search within the current channel",
+        "label": "Search Channel",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Search across channels",
+        "label": "Search All",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Open the Quick Switcher",
+        "label": "Quick Switch",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "4",
-        "label": "Mute or unmute microphone",
+        "label": "Toggle Mic",
         "shortcut": "command+shift+m",
-        "icon": "Application"
+        "icon": "Microphone Off"
       },
       {
         "id": "5",
-        "label": "Deafen or undeafen audio",
+        "label": "Toggle Deafen",
         "shortcut": "command+shift+d",
-        "icon": "Application"
+        "icon": "Headphones"
       },
       {
         "id": "6",
-        "label": "Upload a file",
+        "label": "Upload File",
         "shortcut": "command+shift+u",
-        "icon": "Application"
+        "icon": "Upload"
       }
     ]
   },
@@ -1100,48 +2572,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.evernote.Evernote",
     "label": "Evernote",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "0",
+      "4",
+      "30",
+      "31",
+      "2",
+      "44",
+      "45"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Search in Evernote",
+        "label": "Search Notes",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Note Search"
       },
       {
         "id": "1",
-        "label": "New note",
+        "label": "New Note",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Note Plus"
       },
       {
         "id": "2",
-        "label": "New notebook",
+        "label": "New Notebook",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Folder Plus"
       },
       {
         "id": "3",
-        "label": "New space",
+        "label": "New Space",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Plus"
       },
       {
         "id": "4",
-        "label": "New task",
+        "label": "New Task",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "5",
-        "label": "New event",
+        "label": "New Event",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Calendar Plus"
       },
       {
         "id": "6",
         "label": "Search",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -1150,18 +2632,23 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.FaceTime",
     "label": "FaceTime",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "2"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle full screen",
+        "label": "Full Screen",
         "shortcut": "control+command+f",
-        "icon": "Video"
+        "icon": "Full Screen"
       },
       {
         "id": "1",
-        "label": "Switch call orientation",
+        "label": "Rotate Video",
         "shortcut": "command+r",
-        "icon": "Video"
+        "icon": "Rotate Left"
       }
     ]
   },
@@ -1170,30 +2657,250 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.figma.Desktop",
     "label": "Figma",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "3",
+      "2",
+      "53",
+      "17",
+      "5",
+      "34"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Actions menu",
+        "label": "Actions",
         "shortcut": "command+k",
-        "icon": "Folder"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Frame selection",
+        "label": "Frame",
         "shortcut": "option+command+g",
-        "icon": "Application"
+        "icon": "Vector"
       },
       {
         "id": "2",
-        "label": "Duplicate selection",
+        "label": "Duplicate",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "3",
-        "label": "Create component",
+        "label": "New Component",
         "shortcut": "option+command+k",
-        "icon": "Plus"
+        "icon": "Component"
+      },
+      {
+        "id": "4",
+        "label": "Collapse Layers",
+        "shortcut": "option+l",
+        "icon": "Arrow Collapse"
+      },
+      {
+        "id": "5",
+        "label": "Copy PNG",
+        "shortcut": "command+shift+c",
+        "icon": "Image"
+      },
+      {
+        "id": "6",
+        "label": "Select Matching",
+        "shortcut": "command+option+a",
+        "icon": "Compare Selection"
+      },
+      {
+        "id": "7",
+        "label": "Suggest Layout",
+        "shortcut": "control+shift+a",
+        "icon": "View Grid"
+      },
+      {
+        "id": "8",
+        "label": "Toggle UI",
+        "shortcut": "command+keyperiod",
+        "icon": "Application"
+      },
+      {
+        "id": "9",
+        "label": "Toggle Outlines",
+        "shortcut": "command+shift+o",
+        "icon": "Vector"
+      },
+      {
+        "id": "10",
+        "label": "Layers",
+        "shortcut": "option+1",
+        "icon": "Layers"
+      },
+      {
+        "id": "11",
+        "label": "Assets",
+        "shortcut": "option+2",
+        "icon": "Applications"
+      },
+      {
+        "id": "12",
+        "label": "Libraries",
+        "shortcut": "option+3",
+        "icon": "Book"
+      },
+      {
+        "id": "13",
+        "label": "Select All",
+        "shortcut": "command+a",
+        "icon": "Select All"
+      },
+      {
+        "id": "14",
+        "label": "Invert Selection",
+        "shortcut": "command+shift+a",
+        "icon": "Swap Horizontal"
+      },
+      {
+        "id": "15",
+        "label": "Toggle Visibility",
+        "shortcut": "command+shift+h",
+        "icon": "Eye Off"
+      },
+      {
+        "id": "16",
+        "label": "Toggle Lock",
+        "shortcut": "command+shift+l",
+        "icon": "Lock Outline"
+      },
+      {
+        "id": "17",
+        "label": "Group",
+        "shortcut": "command+g",
+        "icon": "Group Selection"
+      },
+      {
+        "id": "18",
+        "label": "Ungroup",
+        "shortcut": "command+delete",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "19",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "20",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "21",
+        "label": "Copy Properties",
+        "shortcut": "command+option+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "22",
+        "label": "Paste Properties",
+        "shortcut": "command+option+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "23",
+        "label": "Paste Replace",
+        "shortcut": "command+shift+r",
+        "icon": "Find Replace"
+      },
+      {
+        "id": "24",
+        "label": "Bring Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Arrow Up"
+      },
+      {
+        "id": "25",
+        "label": "Send Backward",
+        "shortcut": "command+keybracketleft",
+        "icon": "Arrow Down"
+      },
+      {
+        "id": "26",
+        "label": "Bring Front",
+        "shortcut": "command+option+keybracketright",
+        "icon": "Arrow Up Bold Box Outline"
+      },
+      {
+        "id": "27",
+        "label": "Send Back",
+        "shortcut": "command+option+keybracketleft",
+        "icon": "Arrow Down Bold Box Outline"
+      },
+      {
+        "id": "28",
+        "label": "Align Left",
+        "shortcut": "option+a",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "29",
+        "label": "Align Right",
+        "shortcut": "option+d",
+        "icon": "Dock Right"
+      },
+      {
+        "id": "30",
+        "label": "Align Top",
+        "shortcut": "option+w",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "31",
+        "label": "Align Bottom",
+        "shortcut": "option+s",
+        "icon": "Dock Bottom"
+      },
+      {
+        "id": "32",
+        "label": "Center Horiz.",
+        "shortcut": "option+h",
+        "icon": "Split Vertical"
+      },
+      {
+        "id": "33",
+        "label": "Center Vert.",
+        "shortcut": "option+v",
+        "icon": "Split Horizontal"
+      },
+      {
+        "id": "34",
+        "label": "Tidy Up",
+        "shortcut": "control+option+t",
+        "icon": "View Grid"
+      },
+      {
+        "id": "35",
+        "label": "Space Horiz.",
+        "shortcut": "control+option+h",
+        "icon": "Arrow Left Right"
+      },
+      {
+        "id": "36",
+        "label": "Space Vert.",
+        "shortcut": "control+option+v",
+        "icon": "Arrow Expand"
+      },
+      {
+        "id": "37",
+        "label": "Detach Instance",
+        "shortcut": "command+option+b",
+        "icon": "Link Off"
+      },
+      {
+        "id": "38",
+        "label": "Remove Layout",
+        "shortcut": "option+shift+a",
+        "icon": "Window Restore"
       }
     ]
   },
@@ -1202,54 +2909,90 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.FinalCut",
     "label": "Final Cut Pro",
     "catalog": false,
+    "defaultShortcutIds": [
+      "279",
+      "18",
+      "177",
+      "330",
+      "170",
+      "14",
+      "24",
+      "6"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open an existing library or a new library",
+        "label": "Open Library",
         "shortcut": "command+o",
-        "icon": "Plus"
+        "icon": "Folder Play"
       },
       {
         "id": "1",
-        "label": "Create audition from timeline clip",
+        "label": "Clip Audition",
         "shortcut": "option+y",
-        "icon": "Plus"
+        "icon": "Filmstrip Stack"
       },
       {
         "id": "2",
-        "label": "Create audition from selection",
+        "label": "Audition Selection",
         "shortcut": "command+y",
-        "icon": "Plus"
+        "icon": "Compare Selection"
       },
       {
         "id": "3",
-        "label": "Create storyline from selection",
+        "label": "New Storyline",
         "shortcut": "command+g",
-        "icon": "Plus"
+        "icon": "Timeline Plus"
       },
       {
         "id": "4",
-        "label": "Create compound clip",
+        "label": "Compound Clip",
         "shortcut": "option+g",
-        "icon": "Plus"
+        "icon": "Group Selection"
       },
       {
         "id": "5",
-        "label": "Delete selection",
+        "label": "Delete Selection",
         "shortcut": "command+delete",
-        "icon": "Spotlight"
+        "icon": "Trash Can Outline"
       },
       {
         "id": "6",
-        "label": "Create a new project",
+        "label": "New Project",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Movie Plus"
       },
       {
         "id": "7",
-        "label": "Reveal the selected event clip’s source media",
+        "label": "Reveal Media",
         "shortcut": "shift+command+r",
-        "icon": "Spotlight"
+        "icon": "Folder Open Outline"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.finder",
+    "label": "Finder",
+    "catalog": false,
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Window",
+        "shortcut": "command+n",
+        "icon": "New Window"
+      },
+      {
+        "id": "1",
+        "label": "Go to Folder",
+        "shortcut": "command+shift+g",
+        "icon": "Folder Search"
+      },
+      {
+        "id": "2",
+        "label": "Find Files",
+        "shortcut": "command+f",
+        "icon": "Search"
       }
     ]
   },
@@ -1258,54 +3001,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "org.mozilla.firefox",
     "label": "Firefox",
     "catalog": false,
+    "defaultShortcutIds": [
+      "8",
+      "9",
+      "29",
+      "1",
+      "6",
+      "32",
+      "36",
+      "31"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open file",
+        "label": "Open File",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "1",
-        "label": "Reload page",
+        "label": "Reload",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Refresh"
       },
       {
         "id": "2",
-        "label": "Force reload page",
+        "label": "Force Reload",
         "shortcut": "command+shift+r",
-        "icon": "Application"
+        "icon": "Sync"
       },
       {
         "id": "3",
-        "label": "Print page",
+        "label": "Print",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Printer"
       },
       {
         "id": "4",
-        "label": "Save page as",
+        "label": "Save Page",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "5",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "6",
-        "label": "Find in page",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Focus search bar",
+        "label": "Search Bar",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -1314,42 +3067,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.freeform",
     "label": "Freeform",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "2",
+      "33",
+      "1",
+      "7",
+      "15",
+      "16",
+      "28"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new board",
+        "label": "New Board",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Create a copy of a board (duplicate)",
+        "label": "Duplicate Board",
         "shortcut": "shift+command+d",
-        "icon": "Plus"
+        "icon": "Copy"
       },
       {
         "id": "2",
-        "label": "Search boards",
+        "label": "Search Boards",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Apply Bold format to selected text",
+        "label": "Bold",
         "shortcut": "command+b",
-        "icon": "Palette"
+        "icon": "Bold"
       },
       {
         "id": "4",
-        "label": "Apply Italic format to selected text",
+        "label": "Italic",
         "shortcut": "command+i",
-        "icon": "Palette"
+        "icon": "Italic"
       },
       {
         "id": "5",
-        "label": "Apply Underline format to selected text",
+        "label": "Underline",
         "shortcut": "command+u",
-        "icon": "Palette"
+        "icon": "Underline"
       }
     ]
   },
@@ -1358,30 +3121,40 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.garageband10",
     "label": "GarageBand",
     "catalog": false,
+    "defaultShortcutIds": [
+      "26",
+      "29",
+      "3",
+      "48",
+      "49",
+      "10",
+      "44",
+      "42"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle Snap to Grid",
+        "label": "Snap Grid",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Magnet"
       },
       {
         "id": "1",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "2",
-        "label": "Join regions or notes",
+        "label": "Join Regions",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Merge"
       },
       {
         "id": "3",
-        "label": "Split at playhead",
+        "label": "Split Playhead",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Cut"
       }
     ]
   },
@@ -1390,66 +3163,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.github.GitHubClient",
     "label": "GitHub Desktop",
     "catalog": false,
+    "defaultShortcutIds": [
+      "4",
+      "5",
+      "25",
+      "3",
+      "7",
+      "9",
+      "21",
+      "26"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Clone a repository from GitHub",
+        "label": "Clone Repo",
         "shortcut": "command+shift+o",
-        "icon": "Application"
+        "icon": "Download"
       },
       {
         "id": "1",
-        "label": "Show a list of your repositories",
+        "label": "Repositories",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Folder"
       },
       {
         "id": "2",
-        "label": "Push the latest commits to GitHub",
+        "label": "Push",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Upload"
       },
       {
         "id": "3",
-        "label": "Pull down the latest changes from GitHub",
+        "label": "Pull",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Download"
       },
       {
         "id": "4",
-        "label": "Show all your changes before committing",
+        "label": "View Changes",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "File Compare"
       },
       {
         "id": "5",
-        "label": "Show your commit history",
+        "label": "Commit History",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "History"
       },
       {
         "id": "6",
-        "label": "Commit changes when summary or description fi…",
+        "label": "Commit",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Source Commit"
       },
       {
         "id": "7",
-        "label": "Create a new branch",
+        "label": "New Branch",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Source Branch"
       },
       {
         "id": "8",
-        "label": "Compare to an existing branch",
+        "label": "Compare Branch",
         "shortcut": "command+shift+b",
-        "icon": "Application"
+        "icon": "Source Compare"
       },
       {
         "id": "9",
-        "label": "Show the current pull request on GitHub",
+        "label": "Pull Request",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Source Pull Request"
       }
     ]
   },
@@ -1458,30 +3241,40 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.axosoft.gitkraken",
     "label": "GitKraken",
     "catalog": false,
+    "defaultShortcutIds": [
+      "30",
+      "1",
+      "0",
+      "5",
+      "2",
+      "3",
+      "32",
+      "12"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create branch",
+        "label": "New Branch",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Source Branch"
       },
       {
         "id": "1",
-        "label": "Search commits",
+        "label": "Search Commits",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Search file to view history and blame",
+        "label": "File History",
         "shortcut": "command+shift+h",
-        "icon": "Application"
+        "icon": "History"
       },
       {
         "id": "3",
         "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       }
     ]
   },
@@ -1490,66 +3283,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.google.Chrome",
     "label": "Google Chrome",
     "catalog": false,
+    "defaultShortcutIds": [
+      "22",
+      "24",
+      "2",
+      "47",
+      "3",
+      "10",
+      "7",
+      "1"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open a new window",
+        "label": "New Window",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New Window"
       },
       {
         "id": "1",
-        "label": "Open a new window in Incognito mode",
+        "label": "Incognito",
         "shortcut": "command+shift+n",
-        "icon": "Plus"
+        "icon": "Incognito"
       },
       {
         "id": "2",
-        "label": "Open a new tab, and jump to it",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Tab"
+        "icon": "New Tab"
       },
       {
         "id": "3",
-        "label": "Open the Find Bar to search the current page",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Jump to the next match to your Find Bar search",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Spotlight"
+        "icon": "Chevron Down"
       },
       {
         "id": "5",
-        "label": "Jump to the previous match to your Find Bar",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Spotlight"
+        "icon": "Chevron Up"
       },
       {
         "id": "6",
-        "label": "When Find Bar is open, search for selected text",
+        "label": "Find Selection",
         "shortcut": "command+e",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Save your current webpage as a bookmark",
+        "label": "Bookmark",
         "shortcut": "command+d",
-        "icon": "Download"
+        "icon": "Bookmark"
       },
       {
         "id": "8",
-        "label": "Save all open tabs as bookmarks in a new folder",
+        "label": "Bookmark Tabs",
         "shortcut": "command+shift+d",
-        "icon": "Tab"
+        "icon": "Folder Plus"
       },
       {
         "id": "9",
-        "label": "Search the web",
+        "label": "Web Search",
         "shortcut": "command+option+f",
-        "icon": "Spotlight"
+        "icon": "Web"
       }
     ]
   },
@@ -1558,66 +3361,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.nousresearch.hermes",
     "label": "Hermes",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "2",
+      "0",
+      "6",
+      "7",
+      "42",
+      "26",
+      "8"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+k",
-        "icon": "Folder"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Start a new session",
+        "label": "New Session",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Chat Plus"
       },
       {
         "id": "2",
-        "label": "Search sessions",
+        "label": "Search Sessions",
         "shortcut": "command+shift+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Open a new session tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Tab"
+        "icon": "New Tab"
       },
       {
         "id": "4",
-        "label": "Next session tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Tab"
+        "icon": "Chevron Right"
       },
       {
         "id": "5",
-        "label": "Jump to recent session by position",
+        "label": "Jump Session",
         "shortcut": "control+9",
-        "icon": "Application"
+        "icon": "Chat"
       },
       {
         "id": "6",
-        "label": "Toggle left sidebar",
+        "label": "Left Sidebar",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Dock Left"
       },
       {
         "id": "7",
-        "label": "Toggle right sidebar",
+        "label": "Right Sidebar",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Dock Right"
       },
       {
         "id": "8",
-        "label": "Find in chat transcript",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "9",
-        "label": "Open Quick Entry",
+        "label": "Quick Entry",
         "shortcut": "command+shift+space",
-        "icon": "Folder"
+        "icon": "Flash"
       }
     ]
   },
@@ -1626,36 +3439,46 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.colliderli.iina",
     "label": "IINA",
     "catalog": false,
+    "defaultShortcutIds": [
+      "8",
+      "11",
+      "10",
+      "26",
+      "59",
+      "28",
+      "29",
+      "16"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Halve playback speed",
+        "label": "Half Speed",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Speed Down"
       },
       {
         "id": "1",
-        "label": "Double playback speed",
+        "label": "Double Speed",
         "shortcut": "command+keybracketright",
-        "icon": "Application"
+        "icon": "Speed Up"
       },
       {
         "id": "2",
-        "label": "Decrease playback speed slightly",
+        "label": "Slower",
         "shortcut": "command+option+keybracketleft",
-        "icon": "Application"
+        "icon": "Speed Down"
       },
       {
         "id": "3",
-        "label": "Increase playback speed slightly",
+        "label": "Faster",
         "shortcut": "command+option+keybracketright",
-        "icon": "Application"
+        "icon": "Speed Up"
       },
       {
         "id": "4",
-        "label": "Reset playback speed",
+        "label": "Reset Speed",
         "shortcut": "command+keybackslash",
-        "icon": "Application"
+        "icon": "Gauge"
       }
     ]
   },
@@ -1664,18 +3487,28 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.iMovieApp",
     "label": "iMovie",
     "catalog": false,
+    "defaultShortcutIds": [
+      "4",
+      "27",
+      "19",
+      "3",
+      "48",
+      "22",
+      "46",
+      "44"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Play the selected item full screen",
+        "label": "Full Screen",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Full Screen"
       },
       {
         "id": "1",
-        "label": "Create a new movie project",
+        "label": "New Movie",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       }
     ]
   },
@@ -1684,30 +3517,40 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.googlecode.iterm2",
     "label": "iTerm2",
     "catalog": false,
+    "defaultShortcutIds": [
+      "32",
+      "0",
+      "1",
+      "2",
+      "3",
+      "33",
+      "4",
+      "6"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Split vertically",
+        "label": "Vertical Split",
         "shortcut": "command+d",
-        "icon": "Video"
+        "icon": "Split Vertical"
       },
       {
         "id": "1",
-        "label": "Split horizontally",
+        "label": "Horizontal Split",
         "shortcut": "command+shift+d",
-        "icon": "Application"
+        "icon": "Split Horizontal"
       },
       {
         "id": "2",
-        "label": "Maximize or restore the active pane",
+        "label": "Maximise Pane",
         "shortcut": "command+shift+enter",
-        "icon": "Application"
+        "icon": "Window Maximise"
       },
       {
         "id": "3",
-        "label": "Search the current session",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -1716,48 +3559,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.iWork.Keynote",
     "label": "Keynote",
     "catalog": false,
+    "defaultShortcutIds": [
+      "297",
+      "298",
+      "290",
+      "307",
+      "278",
+      "282",
+      "27",
+      "6"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Add a new slide layout (from Edit Slide Layou…",
+        "label": "New Layout",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "View Grid"
       },
       {
         "id": "1",
-        "label": "Find the selected item in the presentation",
+        "label": "Find Selection",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Insert a new line after the insertion point",
+        "label": "Line Break",
         "shortcut": "control+o",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "3",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Find next (while in the Find window)",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "5",
-        "label": "Find previous (while in the Find window)",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "6",
-        "label": "Open a new comment for the selected text, obj…",
+        "label": "New Comment",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Comment Plus"
       }
     ]
   },
@@ -1766,42 +3619,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.logic10",
     "label": "Logic Pro",
     "catalog": false,
+    "defaultShortcutIds": [
+      "13",
+      "6",
+      "69",
+      "76",
+      "1",
+      "9",
+      "163",
+      "158"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Record Into Cell",
+        "label": "Record Cell",
         "shortcut": "option+r",
-        "icon": "Application"
+        "icon": "Record"
       },
       {
         "id": "1",
-        "label": "Create Marker Without Rounding",
+        "label": "Add Marker",
         "shortcut": "control+option+keyquote",
-        "icon": "Application"
+        "icon": "Flag Plus"
       },
       {
         "id": "2",
-        "label": "Create Marker for Region/Marquee Selection",
+        "label": "Mark Selection",
         "shortcut": "option+shift+keyquote",
-        "icon": "Application"
+        "icon": "Flag Plus"
       },
       {
         "id": "3",
-        "label": "Create Group for Selected Channel Strips/Tracks",
+        "label": "Group Tracks",
         "shortcut": "command+control+g",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "4",
-        "label": "New Empty Project",
+        "label": "Empty Project",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "5",
-        "label": "New from Template",
+        "label": "From Template",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Template"
       }
     ]
   },
@@ -1810,60 +3673,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.mail",
     "label": "Mail",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "7",
+      "8",
+      "4",
+      "17",
+      "15",
+      "18",
+      "9"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Start a new email",
+        "label": "New Email",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Email Plus"
       },
       {
         "id": "1",
-        "label": "Open a new Mail viewer window",
+        "label": "New Window",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "New Window"
       },
       {
         "id": "2",
-        "label": "Open a new tab in the Mail viewer window",
+        "label": "New Tab",
         "shortcut": "option+shift+command+n",
-        "icon": "Tab"
+        "icon": "New Tab"
       },
       {
         "id": "3",
-        "label": "Show the Reply-To address field in your email",
+        "label": "Reply-To",
         "shortcut": "option+command+r",
-        "icon": "Message Video"
+        "icon": "Email"
       },
       {
         "id": "4",
-        "label": "Get new emails",
+        "label": "Check Mail",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Email Sync"
       },
       {
         "id": "5",
-        "label": "Send emails",
+        "label": "Send",
         "shortcut": "shift+command+d",
-        "icon": "Application"
+        "icon": "Send"
       },
       {
         "id": "6",
-        "label": "Unsend email",
+        "label": "Undo Send",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "7",
-        "label": "Reply to the selected email",
+        "label": "Reply",
         "shortcut": "command+r",
-        "icon": "Message Video"
+        "icon": "Reply"
       },
       {
         "id": "8",
-        "label": "Archive emails",
+        "label": "Archive",
         "shortcut": "control+command+a",
-        "icon": "Application"
+        "icon": "Archive"
       }
     ]
   },
@@ -1872,18 +3745,28 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.rockysandstudio.DeskApp-for-Gmail",
     "label": "Mail Plus for Gmail",
     "catalog": false,
+    "defaultShortcutIds": [
+      "3",
+      "4",
+      "7",
+      "10",
+      "12",
+      "20",
+      "14",
+      "1"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Send message",
+        "label": "Send",
         "shortcut": "command+enter",
-        "icon": "Message Video"
+        "icon": "Send"
       },
       {
         "id": "1",
-        "label": "Insert a link",
+        "label": "Insert Link",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Link"
       }
     ]
   },
@@ -1892,30 +3775,40 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.Maps",
     "label": "Maps",
     "catalog": false,
+    "defaultShortcutIds": [
+      "4",
+      "14",
+      "10",
+      "11",
+      "12",
+      "13",
+      "15",
+      "16"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Switch to explore view",
+        "label": "Explore",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Map"
       },
       {
         "id": "1",
-        "label": "Switch to driving view",
+        "label": "Driving",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "Car"
       },
       {
         "id": "2",
-        "label": "Switch to public transport view",
+        "label": "Transit",
         "shortcut": "command+3",
-        "icon": "Application"
+        "icon": "Train"
       },
       {
         "id": "3",
-        "label": "Switch to satellite view",
+        "label": "Satellite",
         "shortcut": "command+4",
-        "icon": "Application"
+        "icon": "Satellite"
       }
     ]
   },
@@ -1924,46 +3817,56 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.MobileSMS",
     "label": "Messages",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "3",
+      "12",
+      "35",
+      "44",
+      "30",
+      "43",
+      "42"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Start a new message",
+        "label": "New Message",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Chat Plus"
       },
       {
         "id": "1",
-        "label": "Show conversations from known senders",
+        "label": "Known Senders",
         "shortcut": "control+command+2",
-        "icon": "Application"
+        "icon": "Contacts"
       },
       {
         "id": "2",
-        "label": "Show conversations from unknown senders",
+        "label": "Unknown Senders",
         "shortcut": "control+command+3",
-        "icon": "Application"
+        "icon": "Account Question"
       },
       {
         "id": "3",
-        "label": "Search all conversations",
+        "label": "Search Chats",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Go to the first unpinned conversation",
+        "label": "First Unpinned",
         "shortcut": "option+command+1",
-        "icon": "Application"
+        "icon": "Pin Off"
       },
       {
         "id": "5",
-        "label": "Select the next conversation",
+        "label": "Next Chat",
         "shortcut": "control+tab",
         "icon": "Chevron Right"
       },
       {
         "id": "6",
-        "label": "Select the previous conversation",
+        "label": "Previous Chat",
         "shortcut": "control+shift+tab",
         "icon": "Chevron Left"
       }
@@ -1974,42 +3877,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.microsoft.Excel",
     "label": "Microsoft Excel",
     "catalog": false,
+    "defaultShortcutIds": [
+      "5",
+      "57",
+      "149",
+      "40",
+      "2",
+      "26",
+      "44",
+      "67"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open a new blank workbook.",
+        "label": "New Workbook",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Create a new workbook from template.",
+        "label": "From Template",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Template"
       },
       {
         "id": "2",
-        "label": "Display the Find dialog box.",
+        "label": "Find",
         "shortcut": "control+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Access search (when in a cell or when a cell…",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Start a new line in the same cell.",
+        "label": "Line Break",
         "shortcut": "option+enter",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "5",
-        "label": "Create a table.",
+        "label": "New Table",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Table Plus"
       }
     ]
   },
@@ -2018,54 +3931,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.microsoft.Outlook",
     "label": "Microsoft Outlook",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "2",
+      "39",
+      "60",
+      "22",
+      "21",
+      "58",
+      "41"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new folder in the folder pane.",
+        "label": "New Folder",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Folder Plus"
       },
       {
         "id": "1",
-        "label": "Create a new email (in Mail view).",
+        "label": "New Email",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Email Plus"
       },
       {
         "id": "2",
-        "label": "Search the current folder",
+        "label": "Search Folder",
         "shortcut": "command+option+f",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "3",
-        "label": "Do an advanced search in Outlook (add Item Co…",
+        "label": "Advanced Search",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Filter Plus"
       },
       {
         "id": "4",
-        "label": "Find text within an item.",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Find the next instance of the text you search…",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "6",
-        "label": "Find the previous instance of the text you se…",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "7",
-        "label": "Switch to the Search tab.",
+        "label": "Search Tab",
         "shortcut": "command+2",
-        "icon": "Application"
+        "icon": "Find Tab"
       }
     ]
   },
@@ -2074,60 +3997,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.microsoft.Powerpoint",
     "label": "Microsoft PowerPoint",
     "catalog": false,
+    "defaultShortcutIds": [
+      "6",
+      "7",
+      "5",
+      "8",
+      "24",
+      "26",
+      "30",
+      "38"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Save presentation",
+        "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "1",
-        "label": "Undo last action",
+        "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "2",
-        "label": "Copy selected content",
+        "label": "Copy",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "3",
-        "label": "Find in presentation",
+        "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Find and replace",
+        "label": "Find Replace",
         "shortcut": "command+shift+h",
-        "icon": "Application"
+        "icon": "Find Replace"
       },
       {
         "id": "5",
-        "label": "Add a new slide",
+        "label": "New Slide",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "6",
-        "label": "Start slideshow from beginning",
+        "label": "Play All",
         "shortcut": "command+shift+enter",
-        "icon": "Application"
+        "icon": "Slideshow"
       },
       {
         "id": "7",
-        "label": "Start slideshow from current slide",
+        "label": "Play Here",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Play"
       },
       {
         "id": "8",
-        "label": "Duplicate selected slide",
+        "label": "Duplicate Slide",
         "shortcut": "command+shift+d",
-        "icon": "Application"
+        "icon": "Copy"
       }
     ]
   },
@@ -2136,60 +4069,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.microsoft.teams2",
     "label": "Microsoft Teams",
     "catalog": false,
+    "defaultShortcutIds": [
+      "88",
+      "92",
+      "91",
+      "0",
+      "1",
+      "6",
+      "57",
+      "103"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go to Search .",
+        "label": "Search",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Start a new chat.",
+        "label": "New Chat",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "2",
-        "label": "Start a chat in a new window.",
+        "label": "Popout Chat",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Open External"
       },
       {
         "id": "3",
-        "label": "Go to a specific chat or channel.",
+        "label": "Jump Chat",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "4",
-        "label": "Go to compose box.",
+        "label": "Compose",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Draw"
       },
       {
         "id": "5",
-        "label": "Jump to last read or newest message.",
+        "label": "Latest Message",
         "shortcut": "command+j",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "6",
-        "label": "Search current chat or channel messages.",
+        "label": "Search Chat",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Send (expanded compose box).",
+        "label": "Send",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Send"
       },
       {
         "id": "8",
-        "label": "Attach file.",
+        "label": "Attach File",
         "shortcut": "command+option+o",
-        "icon": "Application"
+        "icon": "Paperclip"
       }
     ]
   },
@@ -2198,36 +4141,46 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.microsoft.Word",
     "label": "Microsoft Word",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "14",
+      "94",
+      "163",
+      "21",
+      "2",
+      "184"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Find text (move focus to the Search in Docume…",
+        "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Display the Find and Replace pane.",
+        "label": "Find Replace",
         "shortcut": "control+h",
-        "icon": "Application"
+        "icon": "Find Replace"
       },
       {
         "id": "2",
-        "label": "Create a hanging indent.",
+        "label": "Hanging Indent",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "Indent"
       },
       {
         "id": "3",
-        "label": "Find the next occurrence of text.",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "4",
-        "label": "Find the previous occurrence of text.",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       }
     ]
   },
@@ -2236,42 +4189,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.Music",
     "label": "Music",
     "catalog": false,
+    "defaultShortcutIds": [
+      "6",
+      "11",
+      "10",
+      "13",
+      "4",
+      "16",
+      "17",
+      "36"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Stop playing the selected song",
+        "label": "Stop",
         "shortcut": "command+keyperiod",
-        "icon": "Play"
+        "icon": "Stop"
       },
       {
         "id": "1",
-        "label": "Create a new playlist",
+        "label": "New Playlist",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "2",
-        "label": "Create a playlist from a selection of songs",
+        "label": "Playlist Selection",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "3",
-        "label": "Create a new Smart Playlist",
+        "label": "Smart Playlist",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Edit"
       },
       {
         "id": "4",
-        "label": "Select the search field",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Search the iTunes Store",
+        "label": "Search Store",
         "shortcut": "option+enter",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -2280,36 +4243,46 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.Notes",
     "label": "Notes",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "2",
+      "3",
+      "40",
+      "22",
+      "20",
+      "5",
+      "19"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new note",
+        "label": "New Note",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Note Plus"
       },
       {
         "id": "1",
-        "label": "Create a new folder",
+        "label": "New Folder",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Folder Plus"
       },
       {
         "id": "2",
-        "label": "Search all notes",
+        "label": "Search Notes",
         "shortcut": "option+command+f",
-        "icon": "Spotlight"
+        "icon": "Note Search"
       },
       {
         "id": "3",
-        "label": "Apply Checklist format",
+        "label": "Checklist",
         "shortcut": "shift+command+l",
-        "icon": "Palette"
+        "icon": "Task List"
       },
       {
         "id": "4",
-        "label": "Add a new paragraph in a cell",
+        "label": "Cell Paragraph",
         "shortcut": "option+enter",
-        "icon": "Plus"
+        "icon": "Shortcut Return"
       }
     ]
   },
@@ -2318,66 +4291,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "notion.id",
     "label": "Notion",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "6",
+      "26",
+      "23",
+      "0",
+      "13",
+      "2",
+      "49"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Search current page",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Open search / jump to page",
+        "label": "Jump Page",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "2",
-        "label": "Copy page URL",
+        "label": "Copy URL",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "3",
-        "label": "Go back",
+        "label": "Back",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Back"
       },
       {
         "id": "4",
-        "label": "Go forward",
+        "label": "Forward",
         "shortcut": "command+keybracketright",
-        "icon": "Application"
+        "icon": "Forward"
       },
       {
         "id": "5",
-        "label": "Toggle dark/light mode",
+        "label": "Toggle Theme",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Theme"
       },
       {
         "id": "6",
-        "label": "Create new page",
+        "label": "New Page",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "7",
-        "label": "Open new window",
+        "label": "New Window",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New Window"
       },
       {
         "id": "8",
-        "label": "Open new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "9",
-        "label": "Insert link",
+        "label": "Insert Link",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Link"
       }
     ]
   },
@@ -2386,48 +4369,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.iWork.Numbers",
     "label": "Numbers",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "237",
+      "242",
+      "18",
+      "19",
+      "3",
+      "6",
+      "12"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Add a new sheet",
+        "label": "New Sheet",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "Table Plus"
       },
       {
         "id": "1",
-        "label": "Find the selected item in the spreadsheet",
+        "label": "Find Selection",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Insert a new line after the insertion point",
+        "label": "Line Break",
         "shortcut": "control+o",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "3",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Find next (while in the Find window)",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "5",
-        "label": "Find previous (while in the Find window)",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "6",
-        "label": "Open a new comment for the selected text, obj…",
+        "label": "New Comment",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Comment Plus"
       }
     ]
   },
@@ -2436,42 +4429,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.obsproject.obs-studio",
     "label": "OBS Studio",
     "catalog": false,
+    "defaultShortcutIds": [
+      "4",
+      "12",
+      "14",
+      "0",
+      "1",
+      "2",
+      "3",
+      "5"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Undo edit",
+        "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "1",
-        "label": "Redo edit",
+        "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       },
       {
         "id": "2",
-        "label": "Copy source",
+        "label": "Copy Source",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "3",
-        "label": "Paste source",
+        "label": "Paste Source",
         "shortcut": "command+v",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "4",
-        "label": "Edit transform",
+        "label": "Edit Transform",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Vector"
       },
       {
         "id": "5",
-        "label": "Reset transform",
+        "label": "Reset Transform",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Undo"
       }
     ]
   },
@@ -2480,66 +4483,75 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "md.obsidian",
     "label": "Obsidian",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "0",
+      "3",
+      "4",
+      "5",
+      "12",
+      "9"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open the Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Open the Quick Switcher",
+        "label": "Quick Switch",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "2",
-        "label": "Open the selected Quick Switcher note in a ne…",
+        "label": "Open Note",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "3",
-        "label": "Search all files in the vault",
+        "label": "Search Vault",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "4",
-        "label": "Toggle Reading view and Editing view",
+        "label": "Toggle Reading",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Book"
       },
       {
         "id": "5",
-        "label": "Open a new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "6",
-        "label": "Switch to the next tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "7",
-        "label": "Switch to the previous tab",
+        "label": "Previous Tab",
         "shortcut": "control+shift+tab",
-        "icon": "Application"
+        "icon": "Chevron Left"
       },
       {
         "id": "8",
-        "label": "Switch directly to a tab by position",
+        "label": "Jump Tab",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Tab"
       },
       {
         "id": "9",
-        "label": "Reopen the recently closed tab",
+        "label": "Reopen Tab",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Tab Restore"
       }
     ]
   },
@@ -2548,60 +4560,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.orcaslicer.OrcaSlicer",
     "label": "OrcaSlicer",
     "catalog": false,
+    "defaultShortcutIds": [
+      "4",
+      "77",
+      "5",
+      "113",
+      "42",
+      "6",
+      "8",
+      "2"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "New Project",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
         "label": "Open Project",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "2",
         "label": "Save Project",
         "shortcut": "command+s",
-        "icon": "Download"
+        "icon": "Save"
       },
       {
         "id": "3",
-        "label": "Save Project as",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Download"
+        "icon": "Save As"
       },
       {
         "id": "4",
-        "label": "Import geometry data from STL/STEP/3MF/OBJ/AMF",
+        "label": "Import Model",
         "shortcut": "command+i",
-        "icon": "Folder"
+        "icon": "Import"
       },
       {
         "id": "5",
-        "label": "Slice plate",
+        "label": "Slice Plate",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Layers"
       },
       {
         "id": "6",
-        "label": "Export plate sliced file",
+        "label": "Export Slice",
         "shortcut": "command+g",
-        "icon": "Folder"
+        "icon": "Export"
       },
       {
         "id": "7",
-        "label": "Print plate",
+        "label": "Print Plate",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Printer 3D"
       },
       {
         "id": "8",
         "label": "Search",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       }
     ]
   },
@@ -2610,60 +4632,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.iWork.Pages",
     "label": "Pages",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "4",
+      "8",
+      "117",
+      "27",
+      "111",
+      "31",
+      "13"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new document (open the template choo…",
+        "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Open the next tab in the sidebar",
+        "label": "Next Sidebar",
         "shortcut": "control+keybackquote",
-        "icon": "Application"
+        "icon": "Chevron Right"
       },
       {
         "id": "2",
-        "label": "Open the previous tab in the sidebar",
+        "label": "Previous Sidebar",
         "shortcut": "control+shift+keybackquote",
-        "icon": "Application"
+        "icon": "Chevron Left"
       },
       {
         "id": "3",
-        "label": "Insert a new line after the insertion point",
+        "label": "Line Break",
         "shortcut": "control+o",
-        "icon": "Application"
+        "icon": "Shortcut Return"
       },
       {
         "id": "4",
         "label": "Find",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Find next (while in the Find window)",
+        "label": "Next Match",
         "shortcut": "command+g",
-        "icon": "Application"
+        "icon": "Chevron Down"
       },
       {
         "id": "6",
-        "label": "Find previous (while in the Find window)",
+        "label": "Previous Match",
         "shortcut": "command+shift+g",
-        "icon": "Application"
+        "icon": "Chevron Up"
       },
       {
         "id": "7",
-        "label": "Place the selected text in the Find & Replace…",
+        "label": "Find Selection",
         "shortcut": "command+e",
-        "icon": "Application"
+        "icon": "Find Replace"
       },
       {
         "id": "8",
-        "label": "Open a new comment for the selected text, obj…",
+        "label": "New Comment",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Comment Plus"
       }
     ]
   },
@@ -2672,36 +4704,46 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.Photos",
     "label": "Photos",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "11",
+      "19",
+      "15",
+      "20",
+      "2",
+      "17",
+      "38"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Start or stop playing a video",
+        "label": "Play/Pause",
         "shortcut": "option+space",
-        "icon": "Play"
+        "icon": "Play Pause"
       },
       {
         "id": "1",
-        "label": "Find photos",
+        "label": "Search Photos",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Create a new album",
+        "label": "New Album",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Photo Album"
       },
       {
         "id": "3",
-        "label": "Create a Smart Album",
+        "label": "Smart Album",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Image Search"
       },
       {
         "id": "4",
-        "label": "Create a folder",
+        "label": "New Folder",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Folder Plus"
       }
     ]
   },
@@ -2710,54 +4752,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.pixelmatorteam.pixelmator.x",
     "label": "Pixelmator Pro",
     "catalog": false,
+    "defaultShortcutIds": [
+      "7",
+      "23",
+      "6",
+      "40",
+      "4",
+      "27",
+      "3",
+      "12"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new image or template",
+        "label": "New Image",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "New File"
       },
       {
         "id": "1",
-        "label": "Open an image",
+        "label": "Open Image",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Image"
       },
       {
         "id": "2",
-        "label": "Save an image",
+        "label": "Save Image",
         "shortcut": "command+s",
-        "icon": "Download"
+        "icon": "Save"
       },
       {
         "id": "3",
-        "label": "Export an image",
+        "label": "Export Image",
         "shortcut": "command+e",
-        "icon": "Download"
+        "icon": "Export"
       },
       {
         "id": "4",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Chevron Left"
+        "icon": "Undo"
       },
       {
         "id": "5",
         "label": "Deselect",
         "shortcut": "command+d",
-        "icon": "Application"
+        "icon": "Deselect"
       },
       {
         "id": "6",
-        "label": "Fit image to window",
+        "label": "Fit Image",
         "shortcut": "command+0",
-        "icon": "Window Open"
+        "icon": "Fit to Screen"
       },
       {
         "id": "7",
-        "label": "Create an empty layer",
+        "label": "New Layer",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Layers"
       }
     ]
   },
@@ -2766,30 +4818,40 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.podcasts",
     "label": "Podcasts",
     "catalog": false,
+    "defaultShortcutIds": [
+      "7",
+      "9",
+      "8",
+      "2",
+      "12",
+      "13",
+      "10",
+      "11"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new station",
+        "label": "New Station",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "1",
-        "label": "Refresh RSS feed updates",
+        "label": "Refresh Feeds",
         "shortcut": "command+r",
-        "icon": "Repeat"
+        "icon": "Refresh"
       },
       {
         "id": "2",
-        "label": "Search your library or all podcasts",
+        "label": "Search Podcasts",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Go to the Show page for the current podcast",
+        "label": "Show Page",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Podcast"
       }
     ]
   },
@@ -2798,30 +4860,40 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.Preview",
     "label": "Preview",
     "catalog": false,
+    "defaultShortcutIds": [
+      "15",
+      "14",
+      "17",
+      "16",
+      "0",
+      "1",
+      "5",
+      "6"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go to next tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Tab"
-      },
-      {
-        "id": "1",
-        "label": "Go to previous tab",
-        "shortcut": "shift+control+tab",
-        "icon": "Tab"
-      },
-      {
-        "id": "2",
-        "label": "Move to next document in the window",
-        "shortcut": "option+pagedown",
         "icon": "Chevron Right"
       },
       {
-        "id": "3",
-        "label": "Move to previous document in the window",
-        "shortcut": "option+pageup",
+        "id": "1",
+        "label": "Previous Tab",
+        "shortcut": "shift+control+tab",
         "icon": "Chevron Left"
+      },
+      {
+        "id": "2",
+        "label": "Next Document",
+        "shortcut": "option+pagedown",
+        "icon": "Arrow Right"
+      },
+      {
+        "id": "3",
+        "label": "Previous Document",
+        "shortcut": "option+pageup",
+        "icon": "Arrow Left"
       }
     ]
   },
@@ -2830,42 +4902,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.QuickTimePlayerX",
     "label": "QuickTime Player",
     "catalog": false,
+    "defaultShortcutIds": [
+      "14",
+      "2",
+      "0",
+      "1",
+      "46",
+      "45",
+      "25",
+      "28"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "New movie recording",
+        "label": "Record Video",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Video"
       },
       {
         "id": "1",
-        "label": "New audio recording",
+        "label": "Record Audio",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Microphone"
       },
       {
         "id": "2",
-        "label": "New screen recording",
+        "label": "Record Screen",
         "shortcut": "control+command+n",
-        "icon": "Plus"
+        "icon": "Screen Record"
       },
       {
         "id": "3",
-        "label": "Play or pause all movies",
+        "label": "Play All",
         "shortcut": "command+enter",
-        "icon": "Play"
+        "icon": "Play Pause"
       },
       {
         "id": "4",
-        "label": "Display movie at actual size",
+        "label": "Actual Size",
         "shortcut": "command+1",
-        "icon": "Play"
+        "icon": "Fit to Screen"
       },
       {
         "id": "5",
-        "label": "Display the movie in panoramic mode",
+        "label": "Panorama",
         "shortcut": "command+5",
-        "icon": "Play"
+        "icon": "Panorama"
       }
     ]
   },
@@ -2874,48 +4956,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.raycast.macos",
     "label": "Raycast",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "2",
+      "1",
+      "31",
+      "37",
+      "5",
+      "44",
+      "49"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open or close Raycast (default global hotkey)",
+        "label": "Toggle Raycast",
         "shortcut": "option+space",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Return to root search",
+        "label": "Root Search",
         "shortcut": "command+escape",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Open action panel",
+        "label": "Actions",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "3",
-        "label": "Open settings",
+        "label": "Settings",
         "shortcut": "command+keycomma",
-        "icon": "Application"
+        "icon": "Settings"
       },
       {
         "id": "4",
-        "label": "Submit a form",
+        "label": "Submit",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Check"
       },
       {
         "id": "5",
-        "label": "Add selected result to favorites",
+        "label": "Favourite",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Star"
       },
       {
         "id": "6",
-        "label": "Open user guide",
+        "label": "User Guide",
         "shortcut": "command+shift+keyslash",
-        "icon": "Application"
+        "icon": "Help"
       }
     ]
   },
@@ -2924,10 +5016,20 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.reminders",
     "label": "Reminders",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "4",
+      "25",
+      "26",
+      "20",
+      "1",
+      "2",
+      "23"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "New reminder",
+        "label": "New Reminder",
         "shortcut": "command+n",
         "icon": "Plus"
       },
@@ -2935,37 +5037,37 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
         "id": "1",
         "label": "New List",
         "shortcut": "shift+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "2",
-        "label": "New section",
+        "label": "New Section",
         "shortcut": "option+command+n",
         "icon": "Plus"
       },
       {
         "id": "3",
-        "label": "New section with selection",
+        "label": "Group Selection",
         "shortcut": "control+command+n",
-        "icon": "Plus"
+        "icon": "Folder Plus"
       },
       {
         "id": "4",
-        "label": "Mark a reminder completed or incomplete",
+        "label": "Toggle Complete",
         "shortcut": "shift+command+c",
-        "icon": "Application"
+        "icon": "Check"
       },
       {
         "id": "5",
-        "label": "Set due date to this weekend",
+        "label": "This Weekend",
         "shortcut": "command+k",
-        "icon": "Chevron Right"
+        "icon": "Calendar Week"
       },
       {
         "id": "6",
-        "label": "Set reminder as due next week",
+        "label": "Next Week",
         "shortcut": "option+command+k",
-        "icon": "Chevron Right"
+        "icon": "Calendar Week"
       }
     ]
   },
@@ -2974,66 +5076,268 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.Safari",
     "label": "Safari",
     "catalog": true,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Go back to the previous webpage",
+        "label": "Back",
         "shortcut": "command+keybracketleft",
         "icon": "Chevron Left"
       },
       {
         "id": "1",
-        "label": "Go forward to the next webpage",
+        "label": "Forward",
         "shortcut": "command+keybracketright",
         "icon": "Chevron Right"
       },
       {
         "id": "2",
-        "label": "Reload the current webpage",
+        "label": "Reload",
         "shortcut": "command+r",
-        "icon": "Repeat"
+        "icon": "Refresh"
       },
       {
         "id": "3",
-        "label": "Open a new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Plus"
+        "icon": "New Tab"
       },
       {
         "id": "4",
-        "label": "Close the active tab",
+        "label": "Close Tab",
         "shortcut": "command+w",
-        "icon": "Close"
+        "icon": "Close Tab"
       },
       {
         "id": "5",
-        "label": "Search the current webpage",
+        "label": "Find Text",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "6",
-        "label": "Select the Smart Search field",
+        "label": "Search Bar",
         "shortcut": "command+l",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Show tab overview",
+        "label": "Tab Overview",
         "shortcut": "command+shift+keybackslash",
         "icon": "View Grid"
       },
       {
         "id": "8",
-        "label": "Go to the next tab",
+        "label": "Next Tab",
         "shortcut": "control+tab",
-        "icon": "Tab"
+        "icon": "Chevron Right"
       },
       {
         "id": "9",
-        "label": "Go to the previous tab",
+        "label": "Previous Tab",
         "shortcut": "control+shift+tab",
-        "icon": "Tab"
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "10",
+        "label": "Next Item",
+        "shortcut": "option+tab",
+        "icon": "Link"
+      },
+      {
+        "id": "11",
+        "label": "Print Page",
+        "shortcut": "command+p",
+        "icon": "Printer"
+      },
+      {
+        "id": "12",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "13",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "14",
+        "label": "Home Page",
+        "shortcut": "command+shift+h",
+        "icon": "Home Page"
+      },
+      {
+        "id": "15",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "16",
+        "label": "Zoom In",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Zoom In"
+      },
+      {
+        "id": "17",
+        "label": "Zoom Out",
+        "shortcut": "command+keyminus",
+        "icon": "Zoom Out"
+      },
+      {
+        "id": "18",
+        "label": "Next Window",
+        "shortcut": "command+keybackquote",
+        "icon": "Window Restore"
+      },
+      {
+        "id": "19",
+        "label": "Open Reader",
+        "shortcut": "command+shift+r",
+        "icon": "Book"
+      },
+      {
+        "id": "20",
+        "label": "Next Field",
+        "shortcut": "tab",
+        "icon": "Shortcut Tab"
+      },
+      {
+        "id": "21",
+        "label": "Escape",
+        "shortcut": "escape",
+        "icon": "Shortcut Escape"
+      }
+    ]
+  },
+  {
+    "version": 1,
+    "appId": "com.apple.Safari.WebApp",
+    "label": "Safari Web App",
+    "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "2",
+      "6",
+      "8",
+      "10",
+      "11",
+      "14"
+    ],
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "Back",
+        "shortcut": "command+keybracketleft",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "1",
+        "label": "Forward",
+        "shortcut": "command+keybracketright",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "2",
+        "label": "Find Text",
+        "shortcut": "command+f",
+        "icon": "Search"
+      },
+      {
+        "id": "3",
+        "label": "Next Item",
+        "shortcut": "option+tab",
+        "icon": "Link"
+      },
+      {
+        "id": "4",
+        "label": "Print Page",
+        "shortcut": "command+p",
+        "icon": "Printer"
+      },
+      {
+        "id": "5",
+        "label": "Copy",
+        "shortcut": "command+c",
+        "icon": "Copy"
+      },
+      {
+        "id": "6",
+        "label": "Copy Link",
+        "shortcut": "command+option+c",
+        "icon": "Link"
+      },
+      {
+        "id": "7",
+        "label": "Paste",
+        "shortcut": "command+v",
+        "icon": "Paste"
+      },
+      {
+        "id": "8",
+        "label": "Main Page",
+        "shortcut": "command+shift+h",
+        "icon": "Home Page"
+      },
+      {
+        "id": "9",
+        "label": "Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      },
+      {
+        "id": "10",
+        "label": "Zoom In",
+        "shortcut": "command+shift+keyequal",
+        "icon": "Zoom In"
+      },
+      {
+        "id": "11",
+        "label": "Zoom Out",
+        "shortcut": "command+keyminus",
+        "icon": "Zoom Out"
+      },
+      {
+        "id": "12",
+        "label": "Toggle Toolbar",
+        "shortcut": "command+option+t",
+        "icon": "Dock Top"
+      },
+      {
+        "id": "13",
+        "label": "Next Window",
+        "shortcut": "command+keybackquote",
+        "icon": "Window Restore"
+      },
+      {
+        "id": "14",
+        "label": "Open Reader",
+        "shortcut": "command+shift+r",
+        "icon": "Book"
+      },
+      {
+        "id": "15",
+        "label": "Next Field",
+        "shortcut": "tab",
+        "icon": "Shortcut Tab"
+      },
+      {
+        "id": "16",
+        "label": "Escape",
+        "shortcut": "escape",
+        "icon": "Shortcut Escape"
       }
     ]
   },
@@ -3042,48 +5346,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "org.whispersystems.signal-desktop",
     "label": "Signal",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "2",
+      "3",
+      "15",
+      "14",
+      "34",
+      "30",
+      "7"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Navigate by section",
+        "label": "Jump Section",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "View Headline"
       },
       {
         "id": "1",
-        "label": "Start new chat",
+        "label": "New Chat",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Chat Plus"
       },
       {
         "id": "2",
         "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Search in chat",
+        "label": "Search Chat",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "4",
-        "label": "Focus composer",
+        "label": "Focus Composer",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Draw"
       },
       {
         "id": "5",
-        "label": "Expand composer",
+        "label": "Expand Composer",
         "shortcut": "command+shift+k",
-        "icon": "Application"
+        "icon": "Arrow Expand"
       },
       {
         "id": "6",
-        "label": "Send (in expanded composer)",
+        "label": "Send",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Send"
       }
     ]
   },
@@ -3092,60 +5406,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.bohemiancoding.sketch3",
     "label": "Sketch",
     "catalog": false,
+    "defaultShortcutIds": [
+      "9",
+      "31",
+      "32",
+      "43",
+      "12",
+      "45",
+      "122",
+      "5"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Settings",
+        "label": "Settings",
         "shortcut": "command+keycomma",
-        "icon": "Application"
+        "icon": "Settings"
       },
       {
         "id": "1",
-        "label": "New document",
+        "label": "New Document",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "2",
-        "label": "Save new or local document",
+        "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "3",
         "label": "Save As",
         "shortcut": "command+option+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "4",
-        "label": "New page",
+        "label": "New Page",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "5",
-        "label": "Copy link to page or frame",
+        "label": "Copy Link",
         "shortcut": "command+shift+c",
-        "icon": "Application"
+        "icon": "Link"
       },
       {
         "id": "6",
-        "label": "Zoom out",
+        "label": "Zoom Out",
         "shortcut": "command+keyminus",
-        "icon": "Application"
+        "icon": "Zoom Out"
       },
       {
         "id": "7",
         "label": "Undo",
         "shortcut": "command+z",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "8",
         "label": "Redo",
         "shortcut": "command+shift+z",
-        "icon": "Application"
+        "icon": "Redo"
       }
     ]
   },
@@ -3154,36 +5478,46 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.tinyspeck.slackmacgap",
     "label": "Slack",
     "catalog": false,
+    "defaultShortcutIds": [
+      "9",
+      "1",
+      "0",
+      "4",
+      "23",
+      "36",
+      "5",
+      "2"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Compose a new message",
+        "label": "New Message",
         "shortcut": "command+n",
-        "icon": "Message Video"
+        "icon": "Chat Plus"
       },
       {
         "id": "1",
-        "label": "Start a search",
+        "label": "Search",
         "shortcut": "command+g",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "2",
         "label": "Browse DMs",
         "shortcut": "command+shift+k",
-        "icon": "Account"
+        "icon": "Chat"
       },
       {
         "id": "3",
-        "label": "Jump to most recent unread",
+        "label": "Jump Unread",
         "shortcut": "command+j",
         "icon": "Bell"
       },
       {
         "id": "4",
-        "label": "Open the All Unread view",
+        "label": "All Unread",
         "shortcut": "command+shift+a",
-        "icon": "View Headline"
+        "icon": "Message Unread"
       },
       {
         "id": "5",
@@ -3193,27 +5527,27 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
       },
       {
         "id": "6",
-        "label": "Show keyboard shortcuts",
+        "label": "Shortcuts",
         "shortcut": "command+keyslash",
-        "icon": "Shortcut Command"
+        "icon": "Keyboard"
       },
       {
         "id": "7",
-        "label": "Previous unread conversation",
+        "label": "Previous Unread",
         "shortcut": "option+shift+up",
         "icon": "Chevron Up"
       },
       {
         "id": "8",
-        "label": "Next unread conversation",
+        "label": "Next Unread",
         "shortcut": "option+shift+down",
         "icon": "Chevron Down"
       },
       {
         "id": "9",
-        "label": "Quick switch to channel or DM",
+        "label": "Quick Switch",
         "shortcut": "command+k",
-        "icon": "Account"
+        "icon": "Search"
       }
     ]
   },
@@ -3222,42 +5556,52 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.spotify.client",
     "label": "Spotify",
     "catalog": false,
+    "defaultShortcutIds": [
+      "10",
+      "25",
+      "26",
+      "22",
+      "0",
+      "24",
+      "7",
+      "28"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Search",
+        "label": "Search",
         "shortcut": "command+k",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "1",
         "label": "Select All",
         "shortcut": "command+a",
-        "icon": "Application"
+        "icon": "Select All"
       },
       {
         "id": "2",
-        "label": "Go to Playlists",
+        "label": "Playlists",
         "shortcut": "option+shift+1",
-        "icon": "Play"
+        "icon": "Playlist Music"
       },
       {
         "id": "3",
-        "label": "Go to Now Playing",
+        "label": "Now Playing",
         "shortcut": "option+shift+j",
         "icon": "Play"
       },
       {
         "id": "4",
-        "label": "Open Context Menu",
+        "label": "Context Menu",
         "shortcut": "option+j",
-        "icon": "Folder"
+        "icon": "Dots Horizontal"
       },
       {
         "id": "5",
-        "label": "Toggle Now Playing View Sidebar",
+        "label": "Playing Sidebar",
         "shortcut": "option+shift+r",
-        "icon": "Play"
+        "icon": "Dock Right"
       }
     ]
   },
@@ -3266,34 +5610,42 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "ru.keepcoder.Telegram",
     "label": "Telegram",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "11"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Quick search",
+        "label": "Quick Search",
         "shortcut": "command+k",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Search this chat",
+        "label": "Search Chat",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "2",
-        "label": "Search all chats",
+        "label": "Search All",
         "shortcut": "shift+command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "3",
-        "label": "Previous chat",
+        "label": "Previous Chat",
         "shortcut": "option+command+up",
         "icon": "Chevron Up"
       },
       {
         "id": "4",
-        "label": "Next chat",
+        "label": "Next Chat",
         "shortcut": "option+command+down",
         "icon": "Chevron Down"
       }
@@ -3304,54 +5656,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.culturedcode.ThingsMac",
     "label": "Things 3",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "3",
+      "18",
+      "35",
+      "6",
+      "34",
+      "43",
+      "10"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "New to-do",
+        "label": "New To-do",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "1",
-        "label": "New to-dos from clipboard",
+        "label": "Paste To-dos",
         "shortcut": "command+v",
-        "icon": "Application"
+        "icon": "Paste"
       },
       {
         "id": "2",
-        "label": "New project",
+        "label": "New Project",
         "shortcut": "command+option+n",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "3",
-        "label": "Open Quick Entry with Autofill",
+        "label": "Quick Entry",
         "shortcut": "control+option+space",
-        "icon": "Application"
+        "icon": "Flash"
       },
       {
         "id": "4",
-        "label": "Save and close item",
+        "label": "Save & Close",
         "shortcut": "command+enter",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "5",
-        "label": "Copy to-do or project",
+        "label": "Copy Item",
         "shortcut": "command+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "6",
-        "label": "Search the app",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Find in text",
+        "label": "Find Text",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -3360,48 +5722,58 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.todoist.mac.Todoist",
     "label": "Todoist",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "0",
+      "19",
+      "20",
+      "5",
+      "2",
+      "11",
+      "17"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Open Quick Find",
+        "label": "Quick Find",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Open Task Quick Add",
+        "label": "Add Task",
         "shortcut": "command+n",
-        "icon": "Application"
+        "icon": "Task List"
       },
       {
         "id": "2",
-        "label": "Create a new project",
+        "label": "New Project",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "New File"
       },
       {
         "id": "3",
-        "label": "Create a new label",
+        "label": "New Label",
         "shortcut": "command+shift+l",
-        "icon": "Application"
+        "icon": "Tag Plus"
       },
       {
         "id": "4",
-        "label": "Create a new filter",
+        "label": "New Filter",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Filter Plus"
       },
       {
         "id": "5",
-        "label": "Open the Inbox",
+        "label": "Inbox",
         "shortcut": "command+1",
-        "icon": "Application"
+        "icon": "Inbox"
       },
       {
         "id": "6",
-        "label": "Open Search",
+        "label": "Search",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Search"
       }
     ]
   },
@@ -3410,30 +5782,40 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.panic.Transmit",
     "label": "Transmit",
     "catalog": false,
+    "defaultShortcutIds": [
+      "54",
+      "0",
+      "1",
+      "11",
+      "2",
+      "3",
+      "19",
+      "10"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Show Transfers",
+        "label": "Transfers",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Swap Horizontal"
       },
       {
         "id": "1",
         "label": "Refresh",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Refresh"
       },
       {
         "id": "2",
         "label": "Back",
         "shortcut": "command+keybracketleft",
-        "icon": "Application"
+        "icon": "Back"
       },
       {
         "id": "3",
         "label": "Forward",
         "shortcut": "command+keybracketright",
-        "icon": "Application"
+        "icon": "Forward"
       }
     ]
   },
@@ -3442,36 +5824,44 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.TV",
     "label": "TV",
     "catalog": false,
+    "defaultShortcutIds": [
+      "5",
+      "13",
+      "6",
+      "7",
+      "17",
+      "10"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Create a new playlist",
+        "label": "New Playlist",
         "shortcut": "command+n",
-        "icon": "Plus"
+        "icon": "Playlist Plus"
       },
       {
         "id": "1",
-        "label": "Create a new Smart Playlist",
+        "label": "Smart Playlist",
         "shortcut": "option+command+n",
-        "icon": "Plus"
+        "icon": "Playlist Edit"
       },
       {
         "id": "2",
-        "label": "Refresh playlist",
+        "label": "Refresh Playlist",
         "shortcut": "command+r",
-        "icon": "Repeat"
+        "icon": "Refresh"
       },
       {
         "id": "3",
-        "label": "Import a video file",
+        "label": "Import Video",
         "shortcut": "command+o",
-        "icon": "Folder"
+        "icon": "Import"
       },
       {
         "id": "4",
-        "label": "Delete the selected playlist",
+        "label": "Delete Playlist",
         "shortcut": "option+delete",
-        "icon": "Play"
+        "icon": "Delete"
       }
     ]
   },
@@ -3480,66 +5870,76 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.microsoft.VSCode",
     "label": "Visual Studio Code",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "8",
+      "133",
+      "142",
+      "69",
+      "92",
+      "123"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Show Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+shift+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "1",
-        "label": "Quick Open, Go to File…",
+        "label": "Quick Open",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Folder Search"
       },
       {
         "id": "2",
-        "label": "New window/instance",
+        "label": "New Window",
         "shortcut": "command+shift+n",
-        "icon": "Application"
+        "icon": "New Window"
       },
       {
         "id": "3",
-        "label": "Undo last cursor operation",
+        "label": "Cursor Undo",
         "shortcut": "command+u",
-        "icon": "Application"
+        "icon": "Undo"
       },
       {
         "id": "4",
-        "label": "Open File...",
+        "label": "Open File",
         "shortcut": "command+o",
-        "icon": "Application"
+        "icon": "Open File"
       },
       {
         "id": "5",
         "label": "Save",
         "shortcut": "command+s",
-        "icon": "Application"
+        "icon": "Save"
       },
       {
         "id": "6",
-        "label": "Save As...",
+        "label": "Save As",
         "shortcut": "command+shift+s",
-        "icon": "Application"
+        "icon": "Save As"
       },
       {
         "id": "7",
         "label": "Save All",
         "shortcut": "command+option+s",
-        "icon": "Application"
+        "icon": "Save All"
       },
       {
         "id": "8",
-        "label": "Show Search",
+        "label": "Search",
         "shortcut": "command+shift+f",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "9",
-        "label": "Toggle Search details",
+        "label": "Search Details",
         "shortcut": "command+shift+j",
-        "icon": "Application"
+        "icon": "Filter Plus"
       }
     ]
   },
@@ -3548,12 +5948,22 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "org.videolan.vlc",
     "label": "VLC",
     "catalog": false,
+    "defaultShortcutIds": [
+      "2",
+      "11",
+      "12",
+      "0",
+      "38",
+      "24",
+      "25",
+      "36"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Toggle full screen",
+        "label": "Full Screen",
         "shortcut": "command+f",
-        "icon": "Application"
+        "icon": "Full Screen"
       }
     ]
   },
@@ -3562,54 +5972,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "dev.warp.Warp-Stable",
     "label": "Warp",
     "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "2",
+      "5",
+      "8",
+      "3",
+      "12",
+      "11",
+      "111"
+    ],
     "shortcuts": [
       {
         "id": "0",
         "label": "Command Search",
         "shortcut": "control+r",
-        "icon": "Application"
+        "icon": "Search"
       },
       {
         "id": "1",
-        "label": "Focus terminal input",
+        "label": "Focus Input",
         "shortcut": "command+l",
-        "icon": "Application"
+        "icon": "Terminal"
       },
       {
         "id": "2",
-        "label": "Open Command Palette",
+        "label": "Command Palette",
         "shortcut": "command+p",
-        "icon": "Application"
+        "icon": "Shortcut Command"
       },
       {
         "id": "3",
-        "label": "Copy selected command output",
+        "label": "Copy Output",
         "shortcut": "command+option+shift+c",
-        "icon": "Application"
+        "icon": "Copy"
       },
       {
         "id": "4",
-        "label": "Clear blocks",
+        "label": "Clear Blocks",
         "shortcut": "command+k",
-        "icon": "Application"
+        "icon": "Delete"
       },
       {
         "id": "5",
-        "label": "Open new tab",
+        "label": "New Tab",
         "shortcut": "command+t",
-        "icon": "Application"
+        "icon": "New Tab"
       },
       {
         "id": "6",
-        "label": "Reopen closed tab",
+        "label": "Reopen Tab",
         "shortcut": "command+shift+t",
-        "icon": "Application"
+        "icon": "Tab Restore"
       },
       {
         "id": "7",
-        "label": "Close current tab",
+        "label": "Close Tab",
         "shortcut": "command+w",
-        "icon": "Application"
+        "icon": "Close Tab"
       }
     ]
   },
@@ -3618,60 +6038,70 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "net.whatsapp.WhatsApp",
     "label": "WhatsApp",
     "catalog": false,
+    "defaultShortcutIds": [
+      "4",
+      "9",
+      "7",
+      "0",
+      "1",
+      "6",
+      "3",
+      "2"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Mark a chat unread",
+        "label": "Mark Unread",
         "shortcut": "command+control+shift+u",
-        "icon": "Message Video"
+        "icon": "Message Unread"
       },
       {
         "id": "1",
-        "label": "Mute a chat",
+        "label": "Mute Chat",
         "shortcut": "command+control+shift+m",
-        "icon": "Message Video"
+        "icon": "Do Not Disturb"
       },
       {
         "id": "2",
-        "label": "Archive a chat",
+        "label": "Archive Chat",
         "shortcut": "command+control+shift+e",
-        "icon": "Message Video"
+        "icon": "Archive"
       },
       {
         "id": "3",
-        "label": "Pin a chat",
+        "label": "Pin Chat",
         "shortcut": "command+control+shift+p",
-        "icon": "Message Video"
+        "icon": "Pin"
       },
       {
         "id": "4",
-        "label": "Start a new chat",
+        "label": "New Chat",
         "shortcut": "command+control+n",
-        "icon": "Plus"
+        "icon": "Chat Plus"
       },
       {
         "id": "5",
-        "label": "Start a new group",
+        "label": "New Group",
         "shortcut": "command+control+shift+n",
-        "icon": "Plus"
+        "icon": "Meeting"
       },
       {
         "id": "6",
-        "label": "Open the emoji panel",
+        "label": "Emoji",
         "shortcut": "command+control+e",
-        "icon": "Folder"
+        "icon": "Emoji"
       },
       {
         "id": "7",
-        "label": "Open Extended Search",
+        "label": "Extended Search",
         "shortcut": "command+k",
-        "icon": "Spotlight"
+        "icon": "Filter Plus"
       },
       {
         "id": "8",
-        "label": "Lock WhatsApp",
+        "label": "Lock",
         "shortcut": "command+control+l",
-        "icon": "Application"
+        "icon": "Lock"
       }
     ]
   },
@@ -3680,54 +6110,64 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "com.apple.dt.Xcode",
     "label": "Xcode",
     "catalog": false,
+    "defaultShortcutIds": [
+      "1",
+      "0",
+      "2",
+      "8",
+      "3",
+      "12",
+      "5",
+      "4"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Build the current scheme",
+        "label": "Build",
         "shortcut": "command+b",
-        "icon": "Application"
+        "icon": "Build"
       },
       {
         "id": "1",
-        "label": "Run the current scheme",
+        "label": "Run",
         "shortcut": "command+r",
-        "icon": "Application"
+        "icon": "Run"
       },
       {
         "id": "2",
-        "label": "Test the current scheme",
+        "label": "Test",
         "shortcut": "command+u",
-        "icon": "Application"
+        "icon": "Bug"
       },
       {
         "id": "3",
-        "label": "Open Quickly",
+        "label": "Quick Open",
         "shortcut": "command+shift+o",
-        "icon": "Folder"
+        "icon": "Folder Search"
       },
       {
         "id": "4",
-        "label": "Open Quick Actions",
+        "label": "Quick Actions",
         "shortcut": "command+shift+a",
-        "icon": "Folder"
+        "icon": "Shortcut Command"
       },
       {
         "id": "5",
-        "label": "Find in the workspace",
+        "label": "Find Workspace",
         "shortcut": "command+shift+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "6",
-        "label": "Reveal the current file in the Project navigator",
+        "label": "Reveal File",
         "shortcut": "command+shift+j",
-        "icon": "Folder"
+        "icon": "Folder Open Outline"
       },
       {
         "id": "7",
-        "label": "Open the Report navigator",
+        "label": "Build Reports",
         "shortcut": "command+9",
-        "icon": "Folder"
+        "icon": "File Report"
       }
     ]
   },
@@ -3736,55 +6176,150 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
     "appId": "us.zoom.xos",
     "label": "Zoom",
     "catalog": false,
+    "defaultShortcutIds": [
+      "84",
+      "1",
+      "14",
+      "24",
+      "21",
+      "20",
+      "0",
+      "17"
+    ],
     "shortcuts": [
       {
         "id": "0",
-        "label": "Join meeting",
+        "label": "Join Meeting",
         "shortcut": "command+j",
-        "icon": "Video"
+        "icon": "Video Call"
       },
       {
         "id": "1",
-        "label": "Start/stop video",
+        "label": "Toggle Video",
         "shortcut": "command+shift+v",
         "icon": "Video"
       },
       {
         "id": "2",
-        "label": "Pause or resume screen share",
+        "label": "Pause Share",
         "shortcut": "command+shift+t",
-        "icon": "Play"
+        "icon": "Screen Share"
       },
       {
         "id": "3",
-        "label": "Pause/resume recording",
+        "label": "Pause Recording",
         "shortcut": "command+shift+p",
-        "icon": "Play"
+        "icon": "Record"
       },
       {
         "id": "4",
-        "label": "Search in chat or channel",
+        "label": "Search Chat",
         "shortcut": "command+f",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "5",
-        "label": "Mute/unmute call",
+        "label": "Toggle Zoom Phone Mic",
         "shortcut": "control+shift+m",
-        "icon": "Microphone"
+        "icon": "Microphone Off"
       },
       {
         "id": "6",
-        "label": "Global search",
+        "label": "Global Search",
         "shortcut": "command+e",
-        "icon": "Spotlight"
+        "icon": "Search"
       },
       {
         "id": "7",
-        "label": "Reset chat display size",
+        "label": "Text Size",
         "shortcut": "command+0",
-        "icon": "Play"
+        "icon": "Format Size"
       }
     ]
   }
 ];
+export const EXPANDED_SHORTCUT_KEYS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "delete", "down", "e", "end", "enter", "escape", "f", "f1", "f10", "f11", "f12", "f2", "f3", "f4", "f5", "f6", "f7", "f8", "f9", "forwarddelete", "g", "h", "home", "i", "j", "k", "keybackquote", "keybackslash", "keybracketleft", "keybracketright", "keycomma", "keyequal", "keyminus", "keypad0", "keypad1", "keypad2", "keypad3", "keypad4", "keypad5", "keypad6", "keypad7", "keypad8", "keypad9", "keypaddecimal", "keypaddivide", "keypadenter", "keypadequal", "keypadminus", "keypadmultiply", "keypadplus", "keyperiod", "keyquote", "keysemicolon", "keyslash", "l", "left", "m", "n", "o", "p", "pagedown", "pageup", "q", "r", "right", "s", "space", "t", "tab", "u", "up", "v", "w", "x", "y", "z"];
+export const EXPANDED_SHORTCUT_ICONS = ["Align Center", "Align Left", "Align Right", "Application", "Application Exit", "Archive", "Arrow Down", "Arrow Left", "Arrow Right", "Arrow Up", "Audio Settings", "Back", "Bold", "Book", "Bookmark", "Bookmark Plus", "Brush", "Bug", "Bullet List", "Calculator", "Calendar", "Chat", "Chat Plus", "Check", "Clock", "Close", "Close Tab", "Cloud", "Code", "Copy", "Crop", "Cut", "Decrease Indent", "Delete", "Deselect", "Desktop", "Dock Bottom", "Dock Left", "Dock Top", "Download", "Draw", "Duplicate", "Eject", "Email", "Export", "Eye Off", "Filmstrip Stack", "Find Replace", "Fit to Screen", "Folder Home Outline", "Folder Open Outline", "Folder Plus", "Format Size", "Full Screen", "Full Screen Exit", "Group Selection", "Heading", "Help", "History", "Home", "Image", "Import", "Inbox", "Increase Indent", "Information", "Italic", "Justify", "Keyboard", "Layers", "Link", "Menu", "Message Unread", "Microphone", "Microphone Off", "Music", "Mute", "Network", "New Tab", "New Window", "Notes", "Numbered List", "Open External", "Open File", "Page Next", "Page Previous", "Paint Format", "Palette", "Paperclip", "Paste", "Pause", "Pin", "Pin Off", "Play", "Play Pause", "Plus", "Printer", "Record", "Redo", "Refresh", "Rename", "Repeat", "Reply", "Robot", "Rotate Left", "Run", "Save", "Save All", "Save As", "Screenshot", "Search", "Select All", "Send", "Settings", "Share", "Shortcut Backspace", "Shortcut Command", "Shortcut Escape", "Shortcut Return", "Shortcut Space", "Shortcut Tab", "Shuffle", "Skip Next", "Skip Previous", "Slideshow", "Source Branch", "Speaker", "Speed Down", "Speed Up", "Split Vertical", "Star", "Stop", "Strikethrough", "Subscript", "Subtitles", "Superscript", "Sync", "Tab", "Tab Restore", "Tag", "Terminal", "Timeline", "Trash Can", "Underline", "Undo", "Upload", "Vector", "Video", "Video Edit", "View Grid", "View Headline", "Volume Down", "Volume Medium", "Volume Up", "Window Close", "Window Maximise", "Window Minimise", "Window Restore", "Zoom In", "Zoom Out"];
+export const EXPANDED_SHORTCUTS: Readonly<Record<string, string>> = {
+  "com.1password.1password": "81P110FAutofill in current app or website\n11i150FToggle Quick Access\n11i191gToggle Quick Access\n1134113Show keyboard shortcut reference\n11M410IOpen Settings\n11J450kSearch within current list\n11J400jClear search or cancel editing\n11P4101All Accounts\n11P4102Switch account or collection 2\n11P4103Switch account or collection 3\n11P4104Switch account or collection 4\n11P4105Switch account or collection 5\n11P4106Switch account or collection 6\n11P4107Switch account or collection 7\n11P4108Switch account or collection 8\n11P4109Switch account or collection 9\n107410GGo back\n108410HGo forward\n12k400fFocus next row\n12k401kFocus previous row\n108401eFocus right section\n1074015Focus left section\n11R400iActivate focused element\n11S401gActivate focused element\n10t410cCopy username or primary field\n10t450cCopy one-time password\n11e4118Open item in new window\n11P410gEdit item\n11F411fSave item changes\n11P411dReveal or conceal secure fields\n105400eArchive selected items\n10x410eDelete selected items\n10B490dCollapse or expand sidebar\n12t490JZoom In\n12u410KZoom out\n11P4100Restore actual size\n12r4116Minimize app\n12p411mClose window\n11J400jClear Quick Access search\n11P4101Switch Quick Access account or collection 1\n11P4102Switch Quick Access account or collection 2\n11P4103Switch Quick Access account or collection 3\n11P4104Switch Quick Access account or collection 4\n11P4105Switch Quick Access account or collection 5\n11P4106Switch Quick Access account or collection 6\n11P4107Switch Quick Access account or collection 7\n11P4108Switch Quick Access account or collection 8\n11P4109Switch Quick Access account or collection 9\n103401eView available Quick Access actions\n10t410cCopy username or primary field from Quick\n10t490cCopy password from Quick Access\n10t450cCopy one-time password from Quick Access\n11e4118Open Quick Access item details in new window\n11m440iOpen login website and fill from Quick Access\n11m480iFill focused app from Quick Access\n11i4918Open item in 1Password",
+  "com.adobe.Reader": "50C401iMove focus to next tool in global toolbar\n10C481iMove focus to previous tool\n11S401gExpand tool in focus\n11R400iExpand tool in focus\n10C401gClose open tool when close button is\n10C400iClose open tool when close button is\n103401iMove focus to View more option\n108400fNavigate to next touchpoint\n107401kNavigate to previous touchpoint\n11i401gOpen touchpoint in focus in open tool\n11i400iOpen touchpoint in focus in open tool\n103401gExpand or collapse View more when in focus\n103400iExpand or collapse View more when in focus\n103401gExpand or collapse View less when in focus\n103400iExpand or collapse View less when in focus\n103400jClose All tools pane\n10T401gHand tool (temporary selection)\n10M481pCycle through zoom tools: Marquee Zoom, Dynamic\n10a4816Cycle through Multimedia tools: 3D object, SWF\n11P481oRedact\n10l400tMove focus to next item among Document pane\n10l480tMove focus to previous item among Document\n108441iMove focus to next panel in Task pane\n107491iMove focus to previous panel in Task pane\n108401iNavigate to next panel and panel control\n107481iNavigate to previous panel and panel control\n108400fNavigate to next command button within panel\n107401kNavigate to previous command button within\n128401gExpand or collapse panel\n128400iExpand or collapse panel\n103480rToggle Task pane\n11i401gOpen menu and move focus to first menu option\n11i400iOpen menu and move focus to first menu option\n107400jMove focus back to parent command button\n11E401gRun command in focus\n11E400iRun command in focus\n11u400DUse Add stamp tool\n11u400CUse Add stamp tool\n123481jCycle through Highlight, Underline,\n11P480dCycle through drawing markup tools\n10a480CCycle through Add stamp, Attach file, and Sound\n10l401iMove focus to next comment or form field\n10l481iMove focus to previous comment or form field\n10l480DAdd checkmark\n10U400iOpen pop-up note (or text field\n10U400jClose or exit pop-up (or text field\n107401bPrevious screen\n107480iPrevious screen\n108401aNext screen\n108400iNext screen\n10d400AFirst page\n10d491kFirst page\n10d400hLast page\n10d490fLast page\n11k4015Previous page\n11k411bPrevious page\n11j401eNext page\n11j411aNext page\n10d4917Page\n107410tPrevious open document\n108490tNext open document\n109401kScroll up\n106400fScroll down\n11S401gScroll\n12t410JZoom In\n12u410KZoom out\n12k401kMove focus to previous row when\n12k400fMove focus to next row when\n10O400eIf pressed\n107400iGo Back button\n107401gGo Back button\n12k400iIf pressed when focus is\n12k400AIf\n12k400hIf\n108401aIf\n108401bIf\n10y410aSelect or deselect all files\n10y490aSelect or deselect all files\n10T481kIf\n10T480fIf\n10T411gChange whether row\n10T411kMove focus up one row without changing\n10T410fMove focus down one row without changing\n10C480vMove focus to toolbar\n11i401eNavigate through other controls\n11i4015Navigate through other controls\n11i401iNavigate through other controls\n11i481iNavigate through other controls\n11i451mClose all open documents\n115401iMove focus to next comment, link, or form field\n103400sMove focus to document pane\n115481iMove focus to previous comment, link, or form\n10e401gActivate selected tool, item (such as movie\n10e400iActivate selected tool, item (such as movie\n11Q400jClose context menu\n10T400jReturn to Hand tool or Select tool\n11J4915Search previous document\n11J491eSearch next document\n10T4815Select text Left\n10T481eSelect text Right\n10T481kSelect text Up\n10T480fSelect text Down\n108461eIncrease value of slider Right\n1074015Increase value of slider Left\n103490sOpen and move focus to navigation pane\n10l400tMove focus among document, message bar,\n107480tMove focus to previous pane or panel\n103401iMove among elements\n107401kPrevious navigation panel and make it active\n107400fNext navigation panel and make it active\n10y401gSelect or deselect file\n10y401gSelect or deselect To Do card (open/close\n11i400iOpen file in file list\n11i400iOpen selected To Do card\n12k4015Move focus to previous file row\n12k401eMove focus to next file row\n12k401kMove focus to previous file row\n12k400fMove focus to next file row\n10T4815Extend selection\n10T481eExtend selection\n10T481kExtend selection\n10T480fExtend selection\n10T4115Move focus up one row without changing\n10T411eMove focus down one row without changing\n10e401eExpand current bookmark (focus\n10e480JExpand current bookmark (focus\n10e4015Collapse current bookmark (focus\n10e400KCollapse current bookmark (focus\n11P4808Expand all bookmarks\n10e4013Collapse selected bookmark\n108400fMove focus to next item\n107401kMove focus to previous item\n1074115Move back to previously opened topic\n108411eMove forward to next topic\n10d4905Change reading settings for document\n1034104Reflow tagged PDF, and return to normal view\n11P491oActivate and deactivate Read out loud\n10d491lRead only page out loud\n11i490bRead out loud whole document\n122490gStop reading out loud",
+  "com.adobe.illustrator": "a1o411lPaste\n11o410kPaste in front\n11o410bPaste at back\n11o491lPaste in place\n11o4d1lPaste on all artboards\n11P410BCheck spelling\n11m490DOpen Color Settings dialog box\n1134d0DOpen Keyboard Shortcuts dialog box\n11M410DOpen Preferences dialog box\n11u4117Create document\n11u4917Create document from template\n11i4118Open document\n11i4919Place file in document\n11i4d0BOpen File Information dialog box\n11i4519Open Document Setup dialog box\n11P4518Browse in Adobe Bridge\n103411mClose document window\n11F410oSave document as script files\n10I450gExport for Screens\n11i4d19Package document\n11v4119Print\n11P4818Artboard tool\n10T401lSelection tool\n10T400aDirect Selection tool\n11P401oMagic Wand tool\n11P401cLasso tool\n10E4019Pen tool\n11P480ECurvature tool\n10g480bBlob Brush tool\n12h480JAdd Anchor Point tool\n10x400KDelete Anchor Point tool\n12h480cAnchor Point tool\n11P401hType tool\n11P481hTouch Type tool\n10s400FLine Segment tool\n11P4016Rectangle tool\n11P4014Ellipse tool\n11P400bPaintbrush tool\n10E4017Pencil tool\n11P4817Shaper tool\n11D401dRotate tool\n11P4018Reflect tool\n11P401fScale tool\n11P481dWarp tool\n11P481mWidth Tool\n11P400gFree Transform tool\n12h4816Shape Builder Tool\n11P4819Perspective Grid Tool\n10T481lPerspective Selection Tool\n10s481fSymbol Sprayer tool\n12k400CColumn Graph tool\n11P401jMesh tool\n11P400yGradient tool\n11P400BEyedropper tool\n11P401mBlend tool\n10g400DLive Paint Bucket tool\n10T4814Live Paint Selection tool\n11P480DSlice tool\n11P480gEraser tool\n11P400cScissors tool\n11P400zHand tool\n10M401pZoom tool\n10R400kToggle between screen modes: Normal Screen\n10U401gHand tool\n10J490zShow/Hide artboards\n10J451dShow/Hide artboard rulers\n11P490dShow transparency grid\n1034500View all artboards in window\n11o491lPaste in place on active artboard\n108410tNavigate to next document\n107490tNavigate to previous document\n10T450tNavigate to next document group\n10T4d0tNavigate to previous document group\n11i411oToggle between Outline and GPU Preview\n11i410gToggle between GPU and CPU Preview of document\n1034d1oView document in Overprint Preview mode\n103451oView document in Pixel Preview mode\n12t410JZoom\n12u410KZoom out\n11P4512Lock guides\n11P4105Make guides\n10T410yGroup selected artwork\n10T490yUngroup selected artwork\n10T4102Lock selection\n10T4502Unlock selection\n11P4503Show all selections\n10T481eMove selection\n10T4015Move selection\n10T401kMove selection\n10T400fMove selection\n11P4d02Lock all deselected artwork\n10T410HBring selection forward\n10T490HMove selection to front\n10T410GSend selection backward\n10T490GMove selection to back\n10g400HIncrease size of Blob Brush\n10n4d0bFinish adding objects to blend\n11P4d1mDistort objects using warp-shaped envelope\n12h4516Distort objects\n12h450cDistort objects\n11m401nToggle between fill and stroke\n11m400dSet fill and stroke to default\n11m481nSwap fill and stroke\n10T4810Select gradient fill mode\n10T480ISelect color fill mode\n10T4013Select no stroke/fill mode\n11m4113Add new fill\n11m4513Add new stroke\n10g451nMake Live Paint\n10g400GDecrease Bristle brush size\n10g400HIncrease Bristle brush size\n12e491jUnderline\n108401eMove one character right\n1074015Move one character left\n106401kMove up one line\n106400fMove down one line\n108411eMove one word right\n1074015Move one word left\n109411kMove up one paragraph\n106400fMove down one paragraph\n10T491eSelect one word right\n10T4015Select one word left\n10T491kSelect one paragraph before or after Up\n10T400fSelect one paragraph before or after Down\n101400cAlign paragraph left, right, or center\n112490CJustify text left\n112490kJustify all lines\n11u480iInsert soft return\n11P450DHighlight kerning\n11P491nReset horizontal scale to 100%\n12u4910Increase font size\n12u400IIncrease font size\n12u4d10Increase font size by steps\n12u400IIncrease font size by steps\n109441kIncrease leading Up\n108441eIncrease leading Right\n10T450DSelect tracking value\n11P451cReset tracking/kerning to 0\n108441eIncrease kerning and tracking Right\n109441kIncrease kerning and tracking Up\n108451eIncrease kerning and tracking\n109451kIncrease kerning and tracking by five times Up\n1094c1kIncrease baseline shift Up\n1084c1eIncrease baseline shift Right\n11u4918Create outlines\n103411hOpen Character panel\n10U451hOpen Paragraph panel\n103491hOpen Tabs panel\n1034d1hOpen OpenType panel\n11u4408Insert bullets\n10s440yInsert copyright symbol\n11u4412Insert ellipsis\n10U4407Insert paragraph symbol\n109401kIncrease selected value\n106400fIncrease selected value\n109481kIncrease/decreases selected value\n106400fIncrease/decreases selected value\n109411kIncrease selected value by fraction Up\n106400fIncrease selected value by fraction Down\n10Q4d0kHighlight font name field\n11m480qOpen Color Guide\n10J450yShow/Hide gradient arrow\n10n480iApply value and keep focus in edit field\n10t440iApply value and copy object\n10n410iApply value and scale option proportionately\n12h490gApply last effect to object\n12h4d0gApply last effect to object\n10V400lInvoke Help\n10v400pCut\n10t400qCopy\n11o400rPaste\n10J400sShow/hide Brushes panel\n11m400tShow/hide Color panel\n114400uShow/hide Layers panel\n10s400vCreate new symbol\n10J410vShow/hide Info panel\n10J410wShow/hide Gradient panel\n11m410mShow/hide Stroke panel\n10J410nShow/hide Attributes panel\n11P400oRevert\n10J480sShow/hide Graphic Styles panel\n10J480tShow/hide Appearance panel\n10J480uShow/hide Align panel\n10J480vShow/hide Transform panel\n10J490wShow/hide Pathfinder panel\n10J490mShow/hide Transparency panel\n10J490nShow/hide Symbols panel",
+  "com.adobe.LightroomCC": "b1D400cCrop & Rotate\n11P400dDetail\n11P400gEdit\n10R400kFull Screen\n11P400yGrid\n110400BInfo\n11P400DKeywords\n11P480aAuto Tone\n11P490gEdit in Photoshop\n11D410HRotate Right (CCW)\n11K410aSelect all\n10T410dSelect None\n10g400aVisualize Spots\n11P4018Cycle Overlay\n11P4019Photos\n11P4014Linear Gradient\n11P401dRadial Gradient\n11P400CToggle Clipping Indicators On/Off\n11P401mWhite Balance Sampler\n11P400FShow Original\n10M401gToggle Zoom States\n11m4818Cycle Mask color\n10I410gExport with) Previous Settings\n10I480gExport Dialog (Custom...)\n10R490kEnter Full Screen\n10T410yGroup Into Stack\n10T490yUngroup Stack\n11P480yGuided Upright\n11u4816Create Version\n12p411mClose Window\n10x400eRemove photo\n11u490BAdd Photos\n103481lVersions (Expand Panel)\n1034101Expand/Retract Light Panel\n11m4102Expand/Retract Color Panel\n1034103Expand/Retract Effects Panel\n1034104Expand/Retract Details Panel\n1034105Expand/Retract Optics Panel\n1034106Expand/Retract Geometry Panel\n1034819Open Presets Panel\n10g400GIncrease brush size\n10g400HDecrease brush size\n10g480GIncrease brush feather\n10g480HDecrease brush feather\n10g400bAdjustment brush\n10g400zHealing brush\n11P410zMerge to HDR\n11P490zMerge to HRD (Headless)\n11P4116Merge to Pano\n11P4916Merge to Pano (Headless)\n11P401pPick Flag\n10x401jRemove Pick Flag\n11P401nFlag as Rejected\n11P4000Set rating to 0\n11P4001Set rating to 1\n11P4002Set rating to 2\n11P4003Set rating to 3\n11P4004Set rating to 4\n11P4005Set rating to 5",
+  "com.adobe.Photoshop": "71P490dReselect\n10T490BInvert selection\n11J410kFind in Photoshop\n11M410DPreferences / Settings\n1134d0DOpen Keyboard Shortcuts and Menus\n11P401lMove tool\n11P4016Rectangular / Elliptical Marquee tools\n10T4014Lasso tool group\n10T401mMagic Wand / Quick Selection tools\n10u400cCrop tool group\n10T400BEyedropper tool group\n10T400CHealing tool group\n10T400bBrush tool group\n10T401fClone Stamp tool group\n10T400gEraser tool group\n10T400yGradient / Paint Bucket tool group\n10T4019Pen tool group\n10T401hType tool group\n11P400zHand tool\n10M401pZoom tool\n10g400GDecrease brush size\n10g400HIncrease brush size\n10g480GDecrease brush hardness\n10g480HIncrease brush hardness\n11P400dDefault foreground/background colors\n11P401nSwitch foreground/background colors\n10v490CNew layer via cut\n1144917New layer with dialog\n10T410yGroup selected layers\n10T490yUngroup selected layers\n114410gMerge selected layers\n114490gMerge visible layers\n1144d0gMerge visible layers to new layer\n11K450aSelect all layers\n10T4410Select top / bottom layer\n10T440ISelect top / bottom layer\n10T440GSelect next layer up\n10T440HSelect next layer down\n11W410GMove layer backward / forward\n11W410HMove layer backward / forward\n114490GMove layer to back / front\n114490HMove layer to back / front\n1144113Lock / unlock layer\n11m480sFill dialog\n11m440eFill with foreground color\n11m410eFill with background color\n10T480tFeather selection\n10T480uInverse selection command\n11P411dToggle rulers\n11P410zToggle non-printing Extras\n11P411jToggle Smart Guides",
+  "com.adobe.PremierePro": "b1P411mClose\n11P491mClose Project\n10Z450BImport from Media Browser\n11L4c16Send to Media Encoder\n10T490zGet Media File Properties for Selection\n10v411nCut\n10t410cCopy\n11o411lPaste\n11o451lPaste Attributes\n10x4g0eClear\n10x4o0eRipple Delete\n10F4913Duplicate\n11K410aSelect All\n10y490aDeselect All\n11J410kFind\n11P410gEdit Original\n113450DKeyboard Shortcuts\n11P411jMake Subclip\n10a480yAudio Channels\n10a400yAudio Gain…\n11_411dSpeed/Duration\n11u400IInsert\n11P4010Overwrite\n11P490gEnable\n1154114Link\n10T410yGroup\n10T490yUngroup\n11R400iRender Effects In to Out\n11P400kMatch Frame\n11P481dReverse Match Frame\n11u410DAdd Edit\n11u490DAdd Edit to All Tracks\n12j411hTrim Edit\n12c400gExtend Selected Edit to Playhead\n12i410dApply Video Transition\n10a490dApply Audio Transition\n10T480dApply Default Transitions to Selection\n11P4012Lift\n11P4011Extract\n12t400JZoom\n12u400KZoom Out\n1084812Next in Sequence\n1074412Previous in Sequence\n12c401fSnap in Timeline\n11P411jMake Subsequence\n125450aAdd new caption track\n125450cAdd caption at playhead\n125450fNext caption segment\n125451kPrevious caption segment\n11P400BMark In\n11P4018Mark Out\n12j401nMark Clip\n10T4013Mark Selection\n11P480BIn\n11P4818Out\n10x440BClear\n10x4418Clear Out\n10x441nClear In and Out\n11u4016Add Marker\n1084816Next Marker\n1074916Previous Marker\n10x4416Clear Selected Marker\n10x4516Clear All Markers\n10U411hText\n11P451dRectangle\n11P450gEllipse\n11P490HBring to Front\n108410HBring Forward\n11W410GSend Backward\n11L490GSend to Back\n10T450HSelect Next Layer\n10T450GSelect Previous Layer\n11P4c01All Panels\n11P4c02Assembly\n10a4c03Audio\n1254c04Captions and Graphics\n11m4c05Color\n11P4c06Editing\n11P4c07Effects\n11P4c08Essential\n11P4c09Learning\n1034c00Reset to Saved Layout\n10a4809Audio Clip Mixer\n10a4806Audio Track Mixer\n11P4805Effect Controls\n11P4807Effects\n11P4808Media Browser\n11P4804Program Monitor\n11P4801Projects\n11P4802Source Monitor\n12c4803Timeline\n10J451hShow/Hide Tracks\n11A4114Loop\n11P4a0BMeter Input(s) Only\n10x400eRemove Selected Effect\n11A4114Loop During Audio-Only Playback\n11u4113New Custom Bin\n10x400eDelete Custom Item\n11W4015Step Backward\n108401eStep Forward\n10x400eDelete\n11i4818Open in Source Monitor\n10T4815Select Directory List\n10T481eSelect Media List\n11s401gPlay\n11P411dShow Rulers\n11P4112Show Guides\n11P4912Snap in Program Monitor\n11P4d1dLock Guides\n12h491kNudge Object up by five frames\n12h491eNudge Object right by five frames\n12h4915Nudge Object left by five frames\n12h490fNudge Object down by five frames\n12h411kNudge Object up by one frame\n12h411eNudge Object right by one frame\n12h4115Nudge Object left by one frame\n12h410fNudge Object down by one frame\n11u410bNew Bin\n11P411bList\n11P411aIcon\n11P480zHover Scrub\n10T4h0eDelete Selection with Options\n10T480fExtend Selection Down\n10T4815Extend Selection Left\n10T481eExtend Selection Right\n10T481kExtend Selection Up\n10T400fMove Selection Down\n10T400hMove Selection End\n10T400AMove Selection Home\n10T4015Move Selection Left\n10T401aMove Selection Page Down\n10T401bMove Selection Page Up\n10T401eMove Selection Right\n10T401kMove Selection Up\n12k401iNext Column Field\n12k400iNext Row Field\n12k481iPrevious Column Field\n12k480iPrevious Row Field\n10Y480HThumbnail Size Next\n10Y480GThumbnail Size Previous\n103480FToggle View\n10y400eClear Selection\n10a440KDecrease Audio Tracks Height\n12i410KDecrease Video Tracks Height\n10a440JIncrease Audio Tracks Height\n12i410JIncrease Video Tracks Height\n10T4915Nudge Clip Selection Left Five Frames\n10T4115Nudge Clip Selection Left One Frame\n10T491eNudge Clip Selection Right Five Frames\n10T411eNudge Clip Selection Right One Frame\n10x440eRipple Delete\n12h440GSet Work Area Bar In Point\n12h440HSet Work Area Bar Out Point\n108401aShow Next Screen\n107401bShow Previous Screen\n10T4c0ISlide Clip Selection Left Five Frames\n10T440ISlide Clip Selection Left One Frame\n10T4c10Slide Clip Selection Right Five Frames\n10T4410Slide Clip Selection Right One Frame\n10T4d15Slip Clip Selection Left Five Frames\n10T4515Slip Clip Selection Left One Frame\n10T4d1eSlip Clip Selection Right Five Frames\n10T451eSlip Clip Selection Right One Frame",
+  "com.seriflabs.affinitydesigner2": "91m481nSwap Stroke/Fill (or Foreground/Background)\n11i4118Open Document\n11F411fSave\n11H491fSave As\n10I4d1fExport\n11i4919Document Setup\n11v4119Print\n12f411pUndo\n11x491pRedo\n11l491lPaste Style\n11o431lPaste FX\n11o451lPaste Inside\n11o4d1lPaste without Format\n10T410yGroup\n10T490yUngroup\n10F410CDuplicate\n11P490HFront\n108410HMove Forward One\n107490GBack\n107410GMove Back One\n11P450yMove Inside\n11P4d0yMove Outside\n11P430zShow All\n11K490aSelect All on Layer\n11P4114Lock\n11P4914Unlock\n11P4314Unlock All\n11z491dRename Layer\n103411hShow Character panel\n10Q491hShow Typography panel\n11M4912Spelling Options\n10U4910Bigger text\n10U490ISmaller text\n10U4d10Precise bigger text\n10U4d0IPrecise smaller text\n10c410bBold\n111410BItalic\n12e411jUnderline\n124430KSubscript\n1014514Align Left\n100450cAlign Center\n102451dAlign Right\n1124d0FJustify Left\n11P490KSoft Hyphen\n11P450KNon-Breaking Hyphen\n11P440KEn Dash\n11P4c0KEm Dash\n11P421jToggle Unicode\n11D4b1dReset document view rotation\n12u410KZoom Out\n10M4100Zoom to Fit\n10M4500Zoom to Width\n10M4900Zoom to Selection\n10M4101Zoom to) 100%\n10M4102Zoom to) 200%\n10M4103Zoom to) 400%\n10M4104Zoom to) 800%\n10M4108Zoom to) Actual Size\n10M4109Zoom to) Pixel Size\n11P411dShow Rulers\n11P4112Show Guides\n11P4111Show Grid\n103451oPixel view mode\n1034d1oPixel (Retina) view mode\n11K410aSelect All\n10y410dDeselect\n10T490BInvert Pixel Selection\n10T4815Modified nudge selection 1 Left\n10T481eModified nudge selection 1 Right\n10T481kModified nudge selection 1 Up\n10T480fModified nudge selection 1 Down\n10J490zShow/Hide Studio\n10C451hShow/Hide Toolbar\n108480JNext Blend Mode\n107480KPrevious Blend Mode\n11P4c17Normal\n11P4c0DDarken\n11P4c16Multiply\n11m4c0bColor Burn\n11P4c0aLinear Burn\n11P4c0yLighten\n11P4c1fScreen\n11m4c0dColor Dodge\n11u4c1mAdd\n11P4c18Overlay\n11P4c0kSoft Light\n11P4c0zHard Light\n11P4c1lVivid Light\n11P4c0CLinear Light\n11q4c1pPin Light\n11P4c14Hard Mix\n11P4c0gDifference\n11P4c1nExclusion\n11P4c1jHue\n11P4c1hSaturation\n11m4c0cColor\n11P4c1oLuminosity\n11M410ISettings\n11P4116Curves (Adjustment)\n11P4d0bBlack and White (Adjustment)",
+  "com.seriflabs.affinityphoto2": "91i450BResize Document\n11P450cResize Canvas\n11m481nSwap Stroke/Fill (or Foreground/Background)\n10u4818Flip golden spiral overlay (Crop Tool enabled)\n11H491fSave As\n10I4d1fExport\n11v4119Print\n12f411pUndo\n11x491pRedo\n10t490cCopy Merged\n11l491lPaste Style\n11o431lPaste FX\n11o451lPaste Inside\n11o4d1lPaste without Format\n11m480sFill\n11K450aSelect All Layers\n10T410yGroup\n10T490yUngroup\n10F410CDuplicate\n11P490kFade (operation name)\n11P410BInvert\n11P490HFront\n108410HMove Forward One\n107490GBack\n107410GMove Back One\n11P430zShow All\n11P4114Lock\n11P4914Unlock\n11P4314Unlock All\n11z491dRename Layer\n11P410gMerge Down\n11P490gMerge Selected\n11P4d0gMerge Visible\n103411hShow Character panel\n10Q491hShow Typography panel\n11M4912Spelling Options\n10U4910Bigger text\n10U490ISmaller text\n10U4d10Precise bigger text\n10U4d0IPrecise smaller text\n124430KSubscript\n11P450KSoft Hyphen\n11P490KNon-Breaking Hyphen\n11P440KEn Dash\n11P4c0KEm Dash\n11D4b1dReset document view rotation\n12u410KZoom Out\n10M4100Zoom to Fit\n10M4300Zoom to Width\n10M4101Zoom to) 100%\n10M4102Zoom to) 200%\n10M4103Zoom to) 400%\n10M4104Zoom to) 800%\n10M4108Zoom to) Actual Size\n10M4109Zoom to) Pixel Size\n11P411dShow Rulers\n11P4112Show Guides\n11P4111Show Grid\n11K410aSelect All\n10y410dDeselect\n10T490BInvert Pixel Selection\n11P410bGrow/Shrink\n11P480tFeather\n11P451dRefine Edges\n10T4815Modified nudge selection 1 Left\n10T481eModified nudge selection 1 Right\n10T481kModified nudge selection 1 Up\n10T480fModified nudge selection 1 Down\n10T4918Selection from layer\n10J490zShow/Hide Studio (panels)\n10C451hShow/Hide Toolbar\n10J410zHide Workspace\n11P4114Levels (Adjustment)\n11P411jHSL (Adjustment)\n11P410BInvert (Adjustment)\n11P4116Curves (Adjustment)\n11P4d0bBlack and White (Adjustment)\n11J410kRepeat Filter\n11P410aMask All\n10x410dClear Mask\n11P410BInvert Mask\n108480JNext Blend Mode\n107480KPrevious Blend Mode\n11P4c17Normal\n11P4c0DDarken\n11P4c16Multiply\n11m4c0bColor Burn\n11P4c0aLinear Burn\n11P4c0yLighten\n11P4c1fScreen\n11m4c0dColor Dodge\n11u4c1mAdd\n11P4c18Overlay\n11P4c0kSoft Light\n11P4c0zHard Light\n11P4c1lVivid Light\n11P4c0CLinear Light\n11q4c1pPin Light\n11P4c14Hard Mix\n11P4c0gDifference\n11P4c1nExclusion\n11P4c1jHue\n11P4c1hSaturation\n11m4c0cColor\n11P4c1oLuminosity\n11M410ISettings",
+  "com.seriflabs.affinitypublisher2": "71m481nSwap Stroke/Fill color selectors\n11i4118Open Document\n11F411fSave\n11H491fSave As\n10Y4916Place image\n10I4d1fExport\n11i4919Document Setup\n11v4119Print\n12f411pUndo\n11x491pRedo\n11l491lPaste Style\n11o431lPaste FX\n11o4d1lPaste without Format\n10T410yGroup\n10T490yUngroup\n11P490HFront\n108410HMove Forward One\n107410GMove Back One\n107490GBack\n10F410CDuplicate\n11P430zShow All\n11K490aSelect All on Layer\n11P4114Lock\n11P4914Unlock\n11P4314Unlock All\n11z491dRename Layer\n11P490dEdit Detached\n103411hShow Character panel\n10Q491hShow Typography panel\n11M4912Spelling Options\n10U4910Bigger text\n10U490ISmaller text\n10U4d10Precise bigger text\n10U4d0IPrecise smaller text\n10c410bBold\n111410BItalic\n12e411jUnderline\n124430KSubscript\n11P4a0HIncrease Level\n11P4a0GDecrease Level\n1014514Align Left\n100450cAlign Center\n102451dAlign Right\n1124d0FJustify Left\n11P490KSoft Hyphen\n11P450KNon-Breaking Hyphen\n10_410FIndent to Here\n11P440KEn Dash\n11P4c0KEm Dash\n11P421jToggle Unicode\n11u4d0GInsert index mark\n11D4b1dReset document view rotation\n12u410KZoom Out\n10M4100Zoom to Fit\n10M4500Zoom to Width\n10M4900Zoom to Selection\n10M4d00Zoom to Document\n10M4101Zoom to) 100%\n10M4102Zoom to) 200%\n10M4103Zoom to) 400%\n10M4104Zoom to) 800%\n10M4108Zoom to) Print Size\n10M4109Zoom to) Pixel Size\n11P4112Show Guides\n11P4111Show Grid\n11P411dShow Rulers\n11K410aSelect All\n10y410dDeselect\n10T450HSelect Next\n11P421mPreview Mode\n10J490zShow/Hide Studio\n10C451hShow/Hide Toolbar\n108480JNext Blend Mode\n107480KPrevious Blend Mode\n11P4c17Normal\n11P4c0DDarken\n11P4c16Multiply\n11m4c0bColor Burn\n11P4c0aLinear Burn\n11P4c0yLighten\n11P4c1fScreen\n11m4c0dColor Dodge\n11u4c1mAdd\n11P4c18Overlay\n11P4c0kSoft Light\n11P4c0zHard Light\n11P4c1lVivid Light\n11P4c0CLinear Light\n11q4c1pPin Light\n11P4c14Hard Mix\n11P4c0gDifference\n11P4c1nExclusion\n11P4c1jHue\n11P4c1hSaturation\n11m4c0cColor\n11P4c1oLuminosity\n11M410ISettings\n11P4116Curves (Adjustment)\n11P4d0bBlack & White (Adjustment)",
+  "com.runningwithcrayons.Alfred": "60T400fSelect next result\n10T401kSelect previous result\n11R400iAction selected result\n11P4102Action 2 result 2\n11P4103Action 3 result 3\n11P4104Action 4 result 4\n11P4105Action 5 result 5\n11P4106Action 6 result 6\n11P4107Action 7 result 7\n11P4108Action 8 result 8\n11P4109Action 9 result 9\n11M410IOpen Alfred Preferences\n11J420iSearch current query on web\n11P450FShow available actions for result\n11P4813Preview result in Quick Look\n11P411oPreview result in Quick Look\n107400jHide Alfred or go back one level\n10J410jHide Alfred immediately\n11P4100Toggle maximum height\n12t490JZoom in in supported view\n12u410KZoom out in supported view\n10O480EHome folder\n11P4013Filesystem root\n12h4513Return to last browsed path\n11i401eShow file actions\n10O410fBrowse into selected folder\n10O400iEnter folder\n10O400eGo up one folder\n11T401iAutocomplete suggestion\n11P4010Show hidden files\n106440fAdd file to File Buffer and move down\n10x441kAdd or remove file from File Buffer\n10x4415Remove last file from File Buffer\n11i441eAction all files in File Buffer\n11i450cOpen Clipboard History\n10t410cCopy Clipboard History item\n11F411fSave clipboard item as snippet\n10x4g0eDelete Clipboard History entry\n11R430iShow Music Mini Player\n11t430fPlay or pause music\n11s431ePlay next track\n11s4315Play previous track\n11s431kPlay random album\n11P4300Rate current song 0\n11P4301Rate current song 1\n11P4302Rate current song 2\n11P4303Rate current song 3\n11P4304Rate current song 4\n11P4305Rate current song 5\n10O400eGo up folder in Music Mini Player\n10d411dReindex Music library",
+  "company.thebrowser.Browser": "b1e4117Open new window\n11e4917Open new Incognito window\n11i4517Open Little Arc\n128490cCopy tab URL\n1284d0cCopy tab URL as Markdown\n10x490DClear unpinned tabs\n1284102Go directly to tab N 2\n1284103Go directly to tab N 3\n11P4201Focus Space N 1\n11P4202Focus Space N 2\n11P4203Focus Space N 3\n10B451kSwitch through tabs in sidebar order Up\n10B450fSwitch through tabs in sidebar order Down\n1074515Switch between Spaces Left\n108451eSwitch between Spaces Right\n1284115Go back in tab history\n128410GGo back in tab history\n128411eGo forward in tab history\n128410HGo forward in tab history\n1034a0KClose Split View\n1034a01Focus Split View pane N 1\n1034a02Focus Split View pane N 2\n103411oView browsing history\n12t490JZoom in on webpage\n12u410KZoom out on webpage\n10M4100Reset webpage zoom\n11d4118Open Peek in new tab\n11M410IOpen Arc Settings\n11i400oOpen Developer Tools",
+  "io.github.jtenniswood.athena": "01U1Q400jDismiss Drawer\n11L400iSend Prompt\n11L410iAlternate Submit\n11R480iInsert Line Break\n12t490JScale Up\n12u490KScale Down",
+  "org.audacityteam.audacity": "31u4117New\n11i4118Open\n11P411mClose\n10I490gExport Audio\n11P411cExit\n11F411fSave Project\n10a490BAudio\n12f411pUndo\n11x411oRedo\n10v411nCut\n10x410DDelete\n10t410cCopy\n11o411lPaste\n10F410dDuplicate\n11M4119Preferences\n10v451nCut and leave gap\n10x450DDelete and leave gap\n10a4114Silence Audio\n10a411hTrim Audio\n11P410BSplit\n10T410bAdd Label at Selection\n12a4110Add Label at Playback Position\n10v4c1nCut and leave gap\n10x4c0DDelete and leave gap\n10t4c0cCopy\n11P4c0CDetach at Silences\n11P410aAll\n11P401pAt Zero Crossings\n11P490DIn All Tracks\n11P491oIn All Sync-Locked Tracks\n11P400GLeft at Playback Position\n11P400HRight at Playback Position\n11E480CTrack Start to Cursor\n11P480DCursor to Track End\n12j440IPrevious Clip\n12j4410Next Clip\n12t4101Zoom\n10M4102Zoom Normal\n12u4103Zoom Out\n10M410gZoom to Selection\n10M481pZoom Toggle\n11P410kFit to Width\n11P490kFit to Height\n11P490cCollapse All Tracks\n11P491nExpand Collapsed Tracks\n11s401gPlay/Stop\n11s401nPlay/Stop and Set Cursor\n11s481gPlay Once/Stop\n11p4019Pause\n11w401dRecord\n11w481dRecord New Track\n11w481hTimer Record\n11w480dPunch and Roll Record\n10T4015Selection Start\n10T401eSelection End\n11E400CTrack Start\n11P400DTrack End\n11E400AProject Start\n11P400hProject End\n11A4014Loop on/off\n10x4c14Clear Loop\n10T4814Set Loop to Selection\n11b411jMute All Tracks\n11b491jUnmute All Tracks\n11b451jMute Tracks\n11b4d1jUnmute Tracks\n11A411dRepeat Last Effect\n10R400nEnable Full Screen\n10T400bPlay to Selection\n10v400cPlay Cut Preview\n10T400lSelection Tool\n11P400pEnvelope Tool\n10E400qDraw Tool\n10M400rZoom Tool\n11P400tMulti Tool\n10x400eDelete Key\n10x400eDelete Key2\n108441eNext Label\n11W4015Short Seek Left During Playback\n11W401eShort Seek Right During Playback\n11W4815Long Seek Left During Playback\n11W481eLong Seek Right During Playback\n10T480ASelection to Start\n10T480hSelection to End\n10T4815Selection Extend Left\n10T481eSelection Extend Right\n10T491eSelection Contract Left\n10T4915Selection Contract Right\n11W490tMove Backward from Toolbars to Tracks\n108410tMove Forward from Toolbars to Tracks\n107401kMove Focus to Previous Track\n108400fMove Focus to Next Track\n10T481kMove Focus to Previous and Select\n10T480fMove Focus to Next and Select\n11R400iToggle Focused Track\n11P400XToggle Focused Track\n1074015Cursor Left\n108401eCursor Right\n107400ICursor Short Jump Left\n1084010Cursor Short Jump Right\n107480ICursor Long Jump Left\n1084810Cursor Long Jump Right\n11P480yChange Gain on Focused Track\n11i4816Open Menu on Focused Track\n11b481jMute/Unmute Focused Track\n11P481fSolo/Unsolo Focused Track\n12j481iPrevious Clip\n12j401iNext Clip",
+  "com.bambulab.bambu-studio": "b1F491fSave Project As\n10I410yExport plate sliced file\n10v411nCut\n10t410cCopy to clipboard\n11o411lPaste from clipboard\n11M410IPreferences\n11M4116Toggle 3Dconnexion settings\n10x400eDelete selected\n1134813Show keyboard shortcuts list\n11P400aArrange all objects\n11P480aArrange objects on selected plates\n11P481dAuto orient objects\n10B481iCollapse or expand sidebar\n1074115Move in camera space Left\n108411eMove in camera space Right\n109411kMove in camera space Up\n106410fMove in camera space Down\n10T401kMove selection 10 mm\n10T400fMove selection 10 mm\n10T4015Move selection 10 mm\n10T401eMove selection 10 mm\n1074815Change movement step to 1 mm Left\n108481eChange movement step to 1 mm Right\n109481kChange movement step to 1 mm Up\n106480fChange movement step to 1 mm Down\n10y400jDeselect all\n12h4001Set filament for object or part 1\n12h4002Set filament for object or part 2\n12h4003Set filament for object or part 3\n12h4004Set filament for object or part 4\n12h4005Set filament for object or part 5\n12h4006Set filament for object or part 6\n12h4007Set filament for object or part 7\n12h4008Set filament for object or part 8\n12h4009Set filament for object or part 9\n1034100Set default camera view\n1034101Set top camera view\n1034102Set bottom camera view\n1034103Set front camera view\n1034104Set behind camera view\n1034105Set left camera view\n1034106Set right camera view\n1034107Set isometric camera view\n10T401pFit camera to scene or selection\n103411mReset window layout\n114410gShow labels by layer\n12h480gShow labels by object\n11P4114Show overhang\n10x490dDelete all\n11x411oRedo\n11P4016Activate Move gizmo\n11P401fActivate Scale gizmo\n11D401dActivate Rotate gizmo\n10v400cActivate Cut gizmo\n11P400kPlace face on bed\n11P4014Activate SLA support points gizmo\n10g4019Activate FDM paint-on-seam gizmo\n10y400jDeselect all in gizmo\n11P4001Set extruder 1 for objects and parts 1\n11P4002Set extruder 2 for objects and parts 2\n11P4003Set extruder 3 for objects and parts 3\n11P4004Set extruder 4 for objects and parts 4\n11P4005Set extruder 5 for objects and parts 5\n11P4006Set extruder 6 for objects and parts 6\n11P4007Set extruder 7 for objects and parts 7\n11P4008Set extruder 8 for objects and parts 8\n11P4009Set extruder 9 for objects and parts 9\n10x400eDelete objects, parts, or modifiers\n10y400jDeselect all in Objects List\n11z401gRename object or part\n109401kMove active vertical slider thumb up\n106400fMove active vertical slider thumb down\n1074015Move active horizontal slider thumb left\n108401eMove active horizontal slider thumb right\n1144014Toggle one-layer slider mode\n11_4815Move preview slider five times faster Left\n11_481eMove preview slider five times faster Right\n11_481kMove preview slider five times faster Up\n11_480fMove preview slider five times faster Down\n11_4115Move preview slider five times faster Left\n11_411eMove preview slider five times faster Right\n11_411kMove preview slider five times faster Up\n11_410fMove preview slider five times faster Down",
+  "net.shinyfrog.bear": "b0U4102Heading levels 2\n10U4103Heading levels 3\n10U4104Heading levels 4\n10U4105Heading levels 5\n10U4106Heading levels 6\n10s451fInsert line separator\n111410BItalic\n12e411jUnderline\n123491jStrikethrough\n115410dInsert wiki link\n11g4914Ordered list\n11P491hQuote\n10s450cInline code\n10s430cCode block\n11P4916Highlight / marker\n11u490gInsert footnote\n11u491lInsert file\n12k451hCreate table\n12k430fAdd table row\n12k431eAdd table column\n10x430eDelete table row\n10x4b0eDelete table column\n10s451eShift line right\n10s4515Shift line left\n109451kMove line up\n106450fMove line down\n10w401iIndent / outdent list item\n10w481iIndent / outdent list item\n10k4907Insert long date and time\n10k4908Insert long-form date\n10k4909Insert short-form date\n11u4900Insert current time\n11K410aSelect all\n10n410iFinish editing\n11v4119Print note\n115490DOpen link\n11P4111Toggle folding\n10t4d14Copy link to note\n10t4d0BCopy note identifier\n12u490JZoom\n12u410KZoom out\n10M4100Reset zoom\n103490BToggle statistics panel\n12k490aToggle table of contents panel\n103490bToggle backlinks panel\n10L450kFind and replace in note\n11e4517New note in new window\n11f401kMove through notes or tags Up\n11f400fMove through notes or tags Down\n11i4015Move focus between areas / Toggle nested tags\n11i401eMove focus between areas / Toggle nested tags\n11f400iEdit note\n10x410eDelete note\n11f491dRestore note\n11r4919Pin / unpin note\n11K410aSelect all notes in list\n10x490eEmpty Trash\n10B4501Select sidebar section 1\n10B4502Select sidebar section 2\n10B4503Select sidebar section 3\n10B4504Select sidebar section 4\n10B4505Select sidebar section 5\n10B4506Select sidebar section 6\n10B4500Select sidebar section 0\n10B4509Select sidebar section 9\n11f410GNavigate back in note history\n11f410HNavigate forward in note history\n10I491fExport selected notes\n10Z4918Import notes\n1034201Change window layout 1\n1034202Change window layout 2\n1034203Change window layout 3\n11M410IShow Preferences\n10R430kEnter full screen\n103410FOpen main Bear window",
+  "com.apple.iBooksX": "y1j400fNext Page\n11j401aNext Page\n11k401kPrevious Page\n11k401bPrevious Page",
+  "com.apple.iCal": "908411eNext day, week, month, or year\n1074115Previous day, week, month, or year\n10k4103Month view\n1034104Year view\n10R430kFull-screen view\n10S400jExit full-screen view\n10U490JMake text bigger\n10U410KMake text smaller\n11y411dRefresh all calendars\n10y401gSelect or deselect checkbox next to selected\n11v4119Print day, week, month, or year calendar\n10k410gEdit selected event\n10k450BEdit selected event in inspector window\n10T401iSelect next event\n10T481iSelect previous event\n10T4015Select previous event\n10T401eSelect next event\n10T401kSelect previous event\n10T400fSelect next event\n10k461kMove selected event 15 minutes earlier\n10k460fMove selected event 15 minutes later\n10k461eMove selected event one day later\n10k4615Move selected event one day earlier\n10k410BShow information for calendar or event\n11v4119Print selected events or events in time range\n10J490aToggle Availability panel\n10k410IOpen Calendar settings",
+  "com.openai.chat": "b1N4901Share main desktop (ChatGPT Classic)\n1034902Share window (ChatGPT Classic)",
+  "com.openai.codex": "019134919Command Palette\n113410DCommand Palette\n12t490JIncrease text size\n12t410_Increase text size\n12u410KDecrease text size\n12u410ZDecrease text size\n10U4100Reset text size\n10U410LReset text size\n10x4214Clear terminal\n10x410DClear terminal\n12f411pUndo last app action\n11x491pRedo last app action\n10R430kToggle full screen\n104411cQuit ChatGPT\n10m4918New chat\n10l4517Quick chat\n10l4917New temporary chat\n11J410yFind next match\n11J490yFind previous match\n128490GPrevious chat or tab\n1284515Previous chat or tab\n128490HNext chat or tab\n128451eNext chat or tab\n1184a0dStart dictation\n107401kRestore previous composer prompt\n11E490dRun primary environment action\n10s4114Focus browser address bar or go to line\n1074115Browser back\n108411eBrowser forward\n10t490cCopy browser URL\n10l4110Toggle browser browse or comment mode\n10t450cCopy session ID\n10t490cCopy working directory",
+  "com.anthropic.claudefordesktop": "01t1L400iSend Quick Entry prompt\n10s490HNext Code session\n10s490GPrevious Code session\n103490bToggle Browser pane\n12b420EToggle terminal pane",
+  "com.todesktop.230313mzl4w4u92": "7034114Toggle Cursor side panel\n11i410DOpen Inline Edit\n11i4110Open mode menu\n11D481iRotate between Agent modes\n11P4113Cycle through AI models\n103410gToggle Agent layout\n118491gToggle voice mode\n11M490COpen Cursor settings\n11M410IOpen general settings\n113511d11fOpen Keyboard Shortcuts\n10l400iQueue message\n11L410iForce-send message\n10n410iAccept all suggested changes\n10p490eCancel generation\n11O490eReject all suggested changes\n10s411lAdd clipboard code or logs as context\n11o491lPaste clipboard content into chat input\n108401iNext chat message\n11P4513Toggle model\n11E4117Start new chat\n11E411dStart new chat\n128411hOpen new chat tab\n107410GPrevious chat\n108410HNext chat\n10l411mClose active chat\n10l400jUnfocus chat field\n11P490DToggle Inline Edit input focus\n11L400iSubmit Inline Edit request\n10p490eCancel Inline Edit\n11R440iAsk quick question\n10s490DAdd selected code to Inline Edit\n10s4114Add selected code to new chat\n11J410iSearch codebase in chat\n10s410cAdd copied reference code to chat\n10s411lAdd copied reference code to chat\n10U410cAdd copied code as chat text\n10U491lAdd copied code as chat text\n10n411eAccept next suggested word\n10n401iAccept inline suggestion\n12b410DOpen terminal prompt bar\n12b410iRun generated terminal command\n12b400jAccept terminal command\n10B410bToggle sidebar or Explorer\n12b420EToggle integrated terminal\n11P491lToggle Markdown preview",
+  "com.blackmagic-design.DaVinciResolve": "41M410IOpen Preferences\n11i450DOpen Keyboard Customization\n11u4917Create new bin\n12c4117Create new timeline\n11F491fSave project as\n10v411nCut\n10t410cCopy\n11o411lPaste\n11o441lPaste attributes\n11K410aSelect all\n10y490aDeselect all\n10x400eDelete selected\n10x480eRipple delete\n11i4801Open Project Manager\n10d4802Open Media page\n10v4803Open Cut page\n10d4804Open Edit page\n10d4805Open Fusion page\n11m4806Open Color page\n10d4807Open Fairlight page\n10d4808Open Deliver page\n11i410kOpen Cinema Viewer\n10R480kOpen Full Screen Viewer\n11i490kOpen Lightbox\n11t401gPlay or pause\n11s400CPlay in reverse\n122400DStop playback\n11s4014Play forward\n11P400BMark In\n11P4018Mark Out\n10x441nClear In and Out marks\n11W4015Step one frame backward or forward\n11W401eStep one frame backward or forward\n11s4013Play around frame\n11P4012First or last frame\n11P4011First or last frame\n11P4017Toggle snapping\n10T400aSelection mode\n12j401hTrim mode\n11P400bBlade tool\n12j410FSplit clip at playhead\n11u400wInsert edit\n11P400mOverwrite edit\n11P400nReplace edit\n12j400dEnable or disable clip\n12j411dRetime clip",
+  "com.hnc.Discord": "81M410IOpen User Settings\n11u4917Create or join server\n1074415Navigate back\n11i410gOpen emoji picker\n11i411fOpen sticker picker\n11i410yOpen GIF picker\n109411kBrowse channel history Up\n106410fBrowse channel history Down\n10l441kEdit your last message\n10l400jUse Escape\n109441kMove between channels Up\n106440fMove between channels Down\n109451kSwitch between servers Up\n106450fSwitch between servers Down\n108401iMove focus forward\n11W481iMove focus backward\n11R400iActivate focused item\n11S401gActivate focused item\n1074015Move within focused list or menu Left\n108401eMove within focused list or menu Right\n109401kMove within focused list or menu Up\n106400fMove within focused list or menu Down\n108400tJump to next app section\n107480tJump to previous app section\n11P4119Toggle Pins popout\n11P4d02Toggle Mentions popout\n11P411jToggle channel member list\n10V490zGet help\n10c410bFormat text as bold\n111410BFormat text as italic\n12e411jFormat text as underlined\n10l401cQuote keyboard-selected message\n10l480JAdd reaction to keyboard-selected message\n11B401dReply to keyboard-selected message\n10l400gEdit keyboard-selected message\n10x400eDelete keyboard-selected message\n11q4019Pin keyboard-selected message\n10t410cCopy keyboard-selected message\n10l400kForward keyboard-selected message\n11R410iAnswer incoming call\n1184d1lReturn to active voice call\n11i490bOpen Soundboard",
+  "com.evernote.Evernote": "81e4717New note window\n11o431lPaste to Evernote\n11J430gSearch in Evernote (alias)\n11i4317Open Evernote Helper\n11I430eCapture screen\n12a431hNew tag\n11f4517Convert Scratch Pad to Note\n10x410eDelete / Move to Trash\n11K410aSelect all (note list)\n12p411mClose window\n1134113Keyboard shortcuts\n11M410ISettings\n11P410CSwitch\n11i4101Open shortcut 1\n11i4102Open shortcut 2\n11i4103Open shortcut 3\n11i4104Open shortcut 4\n11i4105Open shortcut 5\n11i4106Open shortcut 6\n11i4107Open shortcut 7\n11i4108Open shortcut 8\n11i4109Open shortcut 9\n11i4501Open Home\n11f4502Open Notes\n11i4503Open Tasks\n11i4504Open Files\n10k4505Open Calendar\n11i4506Open Notebooks\n11i4507Open Tags\n11i4508Open Shared with Me\n11i4509Open Templates\n10s480sSnippet view\n103480tCard view\n103480vSide list view\n103480uTop list view\n11f400sSwitch note list view\n11J490COpen Tag filter\n107410GMove back\n108410HMove forward\n11f490FFocus on note list\n11P440mFocus on formatting bar\n109401kMove up note (note list)\n106400fMove down note (note list)\n11f4g15Top of note list\n11f4g1eBottom of note list\n10d481gPage up (note list)\n10d401gPage down (note list)\n11U4515Shuffle backward through note list view modes\n11U451eShuffle forward through note list view modes",
+  "com.apple.FaceTime": "31M410IOpen FaceTime settings\n10J410zHide FaceTime\n10J450zHide everything except FaceTime\n104411cQuit FaceTime\n103411mClose FaceTime window\n12r4116Minimise window",
+  "com.figma.Desktop": "E134a13Open keyboard shortcuts panel\n11i4113Open quick actions\n109401kPan canvas Up\n106400fPan canvas Down\n1074015Pan canvas Left\n108401ePan canvas Right\n11_4815Pan canvas faster Left\n11_481ePan canvas faster Right\n11_481kPan canvas faster Up\n11_480fPan canvas faster Down\n12t490JZoom in — keyboard guide\n12u410KZoom out — keyboard guide\n12t480JZoom in — zoom and view guide\n12u480KZoom out — zoom and view guide\n10M4801Zoom to fit\n10M4802Zoom to selection\n10T441gKeyboard box selection\n10T400FSelect parent in keyboard selection\n10T480iSelect parent in keyboard selection\n10T401iSelect child layer\n10T481iSelect previous child layer\n10T4115Resize keyboard selection box Left\n10T411eResize keyboard selection box Right\n10T411kResize keyboard selection box Up\n10T410fResize keyboard selection box Down\n10T400jClose keyboard box selection\n11P400kFrame tool\n11P400DScale tool\n11P401dRectangle tool\n11P4018Ellipse tool\n10E4819Pencil tool\n10U401hText tool\n12i490DPlace image or video\n11u480BQuick insert / Resources\n10J410FShow / hide UI\n10B490FShow / hide left sidebar\n11P4811Toggle pixel grid\n11P4111Toggle pixel grid\n11P4911Toggle snap to pixel grid\n103480yToggle layout guides\n103420yToggle layout guides\n11P450FToggle multiplayer cursors\n10T490yUngroup selection\n10T4c0kFlatten selection\n11P4c1jBoolean: union\n11P4c1fBoolean: subtract\n11P4c0BBoolean: intersect\n11P4c0gBoolean: exclude\n10T400FSelect parent\n10T480iSelect parent\n11o491lPaste in place\n11W410GSend backward / bring forward\n11W410HSend backward / bring forward\n11L400GSend to back / bring to front\n11L400HSend to back / bring to front\n10_410GAdjust list indentation\n10_410HAdjust list indentation\n10Q490IAdjust font size\n10Q4910Adjust font size\n10Q4d0IAdjust font weight\n10Q4d10Adjust font weight\n10x4413Remove fill / remove stroke\n10x4813Remove fill / remove stroke",
+  "com.apple.FinalCut": "90s450DOpen Command Editor\n11x491pRedo last command\n10v410IOpen Final Cut Pro Settings window\n12f411pUndo last command\n12n4614Adjust audio volume across all selected clips\n12n4214Adjust audio volume across all selected clips\n10T400gAdd selection to end of storyline\n12j4a1oAdd clip to audition\n10F491oDuplicate selected audition clip without\n10T481oCreate audition and replace timeline clip\n10v410bBlade at Playhead\n10v490bCut all clips\n11P490yBreak item into its component parts\n10T420dChange duration of selection\n10T490fCollapse selected group\n11P4a1hConnect default lower third to primary\n11P421hConnect default title to primary storyline\n10T401cConnect selection to primary storyline\n10T481cConnect selection to primary storyline\n10t410cCopy selection\n10v411nCut selection\n10v4001Cut and switch multicam clip to angle 1\n10v4002Cut and switch multicam clip to angle 2\n10v4003Cut and switch multicam clip to angle 3\n10v4004Cut and switch multicam clip to angle 4\n10v4005Cut and switch multicam clip to angle 5\n10v4006Cut and switch multicam clip to angle 6\n10v4007Cut and switch multicam clip to angle 7\n10v4008Cut and switch multicam clip to angle 8\n10v4009Cut and switch multicam clip to angle 9\n10T400eDelete timeline selection, reject browser\n10T450eDelete selection and attach connected clip\n10y490aDeselect all selected items\n10a4a1fMake audio component connected clip\n10T480gDetect edits or scene changes\n10F410dDuplicate browser selection\n10T440bAnalyze selection and display beat grid\n10T401lEnable or disable playback for selection\n10a421fView audio and video separately\n10T461fExpand or collapse audio components\n12c481nExtend selected edit point to skimmer\n10T480fShortcut\n10T431eIn timeline, add next item to selection\n10T481kShortcut\n11P4c1oDissolve audition and replace it with audition\n10T401mInsert selection\n12c440kInsert freeze frame\n12j441mInsert gap clip\n12c451mInsert default generator\n10T451kLift selection\n12n420KLower audio volume by 1 dB\n12c4219Move playhead by entering timecode value\n106440fMove selected connected clips down\n1074415Move selected clips to left\n108441eMove selected clips to right\n109441kMove selected connected clips up\n10a440INudge selected audio edit point left\n10a4c0INudge selected audio edit point left\n10a4410Nudge selected audio edit point right\n10a4c10Nudge selected audio edit point right\n10T440fNudge selection down one unit\n10T400INudge selection one unit to left\n10T480INudge selection 10 units to left\n10T4010Nudge selection one unit to right\n10T4810Nudge selection 10 units to right\n10T441kNudge selection up one unit\n11i401oOpen selected audition\n10T400ETemporarily override clip connections\n12c400dOverwrite at skimmer or playhead position\n12c480dOverwrite\n12j450fOverwrite\n11o441lPaste selection and connect it to primary\n12c411lInsert Clipboard contents\n1074a15Previous angle in multicam clip\n1074c15Previous audio angle in multicam clip\n10T4215Select previous clip\n1074915Previous video angle in multicam clip\n12n420JRaise audio volume by 1 dB\n11z431dRename clip in timeline\n10T481dReplace clip\n10T441dReplace clip\n12j480eReplace selected timeline clip with gap clip\n11K410aSelect all clips\n10T400cSelect clip under pointer in timeline\n10T411kSelect clip above current timeline selection\n10T410fSelect clip below current timeline selection\n11K430aSelect all clips connected to item\n10T480GShortcut\n10T400GSelect left edge of edit point\n10T480FShortcut\n10T400FSelect left and right edges of edit point\n10T420FShortcut\n10T420GShortcut\n1084a1eNext angle in multicam clip\n1084c1eNext audio angle in multicam clip\n10T411eMove playhead and selection to next topmost\n10T421eSelect next clip\n108491eNext video angle in multicam clip\n10T4115Move playhead and selection to previous topmost\n10T480HShortcut\n10T400HSelect right edge of edit point\n10T420HShortcut\n10T4918Set additional range selection end point\n10T490BSet additional range selection start point\n12h420gWhen edit point is selected, Toggle precision\n11P4017Turn snapping on or off\n12c441fSolo selected items in timeline\n10T4801Turn\n10T4803Turn\n10T4802Turn\n125470cReplace selected captions\n12j4401Switch multicam clip to angle 1 of current bank\n12j4402Switch multicam clip to angle 2 of current bank\n12j4403Switch multicam clip to angle 3 of current bank\n12j4404Switch multicam clip to angle 4 of current bank\n12j4405Switch multicam clip to angle 5 of current bank\n12j4406Switch multicam clip to angle 6 of current bank\n12j4407Switch multicam clip to angle 7 of current bank\n12j4408Switch multicam clip to angle 8 of current bank\n12j4409Switch multicam clip to angle 9 of current bank\n12c4c1fTurn\n12c400yTurn\n12j440HTrim end\n12j440GTrim clip start point to skimmer or playhead\n10T440FTrim clip start and end points to range\n12j440aAdd adjustment clip\n11P4a1hConnect basic lower-third title to primary\n11P421hConnect basic title to primary storyline\n11m4518Add Color Adjustments effect\n10T450gAdd default audio effect to selection\n10T411hAdd default transition to selection\n10T440gAdd default video effect to selection\n10T430DAdd Auto Mask to selection\n10T4316Add Magnetic Mask to selection\n11m4718Add Color Adjustments effect and turn\n11m440eReset controls in current Color Board pane\n11m430cColor pane in Color Board\n11m430gExposure pane in Color Board\n11m431fSaturation pane in Color Board\n10t450cCopy selected effects and their settings\n10t4c0cCopy selected keyframes and their settings\n10a441hApply crossfade to audio edit point between\n10v4c1nCut selected keyframes and their settings\n11m450bTurn Balance Color corrections on or off\n10a4916Match sound between clips\n11m4516Match color between clips\n10U441iNavigate to next text item\n11o491lPaste selected attributes and their settings\n11o451lPaste effects and their settings to selection\n11o4c1lPaste keyframes and their settings to selection\n10U4c1iNavigate to previous text item\n10T491nRemove selected attributes from selection\n10T451nRemove all effects from selection\n10T4817Set selection to play\n11u480zCreate 2-second hold segment\n10T451dReset selection to play forward\n12c4716Toggle Magnetic Mask editor in timeline\n12c411dToggle retime editor in timeline\n12i4a1lShow one effect\n11P4d0cCollect all Motion content\n11J410kToggle Filter window\n10k4503Make event viewer active\n10Z410BImport media\n10d430COpen Library Properties inspector\n11i410COpen Properties inspector\n11E4a1dStart all rendering tasks\n10T421dStart rendering tasks for selection\n125440cAdd caption to active language subrole\n125460cAdd caption to active language subrole\n12c4016Add marker\n11J420cChange browser filter settings to show all\n10U4416Add marker and edit marker's text\n10T4201Apply keyword 1 to selection\n10T4202Apply keyword 2 to selection\n10T4203Apply keyword 3 to selection\n10T4204Apply keyword 4 to selection\n10T4205Apply keyword 5 to selection\n10T4206Apply keyword 6 to selection\n10T4207Apply keyword 7 to selection\n10T4208Apply keyword 8 to selection\n10T4209Apply keyword 9 to selection\n10T441nClear range selection\n10x4418Clear range's end point\n10x440BClear range's start point\n10x4216Delete selected marker\n10T4a16Delete all of markers in selection\n1254a0cOpen selected caption in caption editor\n10T400kRate browser selection as favorite\n11J420kChange browser filter settings to show\n11J420zChange browser filter settings to hide rejected\n11u490DCreate new Keyword Collection\n11u4517Create new Smart Collection\n10T401dMake Range Selection tool active\n10T400eMark current selection\n11J420eChange browser filter settings to show rejected\n10T4200Remove all keywords from browser selection\n12j460dApply Dialogue subroles to clip's components\n12j460gApply Effects subroles to clip's components\n12j4616Apply Music subroles to clip's components\n12j461hApply Titles role to clip\n12j461lApply Video role to clip\n10T401nSet range selection to match boundaries\n12h4018Set end point for range\n12h4218Set end point\n12h400BSet start point for range\n12h420BSet start point\n125490cTranscribe all spoken words as closed captions\n125491fTranscribe all spoken words as subtitles\n10T401jRemove ratings from selection\n10J440zHide selected browser clips\n10k4417Create new event\n10O4917Create new folder\n12j480kReveal source of clip in browser\n11i4d0kReveal open project in browser\n10J4c0zToggle hidden clips in browser\n10k450ySync selected event clips\n10a481fTurn audio skimming on or off\n11s431oPlay pick in context in timeline\n12j451fTurn clip skimming on or off\n10a4c03Turn\n10a4c01Turn\n12i4c02Turn\n108400fNext item (in browser ) or next edit point\n108420fWhile editing text field, go to next item\n10F451eMove playhead to next timeline clip containing\n10F4515Move playhead to previous timeline clip\n12c4815Move playhead back 10 frames\n12c481eMove playhead forward 10 frames\n12j400AMove playhead to beginning\n12j4g15Move playhead to beginning\n12j400hMove playhead to end\n12j4g1eMove playhead to end\n12j4c11Display next bank\n12c4011Move playhead to next edit point in timeline\n12j441eMove playhead to next field\n12c4d1eMove playhead to next focus point\n12c401eMove playhead to next frame\n10a441eMove playhead to next audio subframe\n12j4c12Display previous bank\n12c4012Move playhead to previous edit point\n12j4415Move playhead to previous field\n12c4d15Move playhead to previous focus point\n12c4015Move playhead to previous frame\n10a4415Move playhead to previous audio subframe\n10T4818Move playhead to end of range selection\n10T480BMove playhead to beginning\n11P470HRoll 360° viewer clockwise\n11P470GRoll 360° viewer counterclockwise\n106470fTilt 360° viewer down\n1074715Pan 360° viewer to left\n108471ePan 360° viewer to right\n109471kPan 360° viewer up\n11P4114Turn looped playback on or off\n11P4709Mirror display\n10a480aTurn\n10T400KEnter negative timecode value to move playhead\n108431eNext item (in browser) or next edit point\n12c4211Move playhead to next marker\n12i4707Send 360° video to connected VR headset\n12c4d1lMove playhead to pasted timecode value\n11s4813Play around playhead position\n11s4014Play forward (press L multiple times\n11s441gPlay from playhead position\n10R490kPlay full screen\n11s4414Play at half speed\n11s440CPlay in reverse at half speed\n11s400CPlay\n11s420CPlay\n11s481gPlay in reverse\n10T4013Play selection\n10T4a18Play from playhead to end of selection\n11t401gPlay/Pause\n11p421gStart or pause playback while editing text\n10T400JEnter positive timecode value to move playhead\n1074315Previous item\n12c4212Move playhead to previous marker\n11P481lSet angle being skimmed as monitoring angle\n11P401fTurn skimming on or off\n1224c0aStart or stop recording audio\n122400DStop playback\n122420DStop playback while editing text field\n107410GGo back one level in timeline history\n108410HGo forward one level in timeline history\n107401kPrevious item\n107421kWhile editing text field, go to previous item\n12j410gShare selected project or clip\n10T400aMake Select tool active\n11P400bMake Blade tool active\n12j4a0kMake Cinematic tool active and display onscreen\n10u480cMake Crop tool active and display onscreen\n12j440dMake Distort tool active and display onscreen\n11P400zMake Hand tool active\n11P4019Make Position tool active\n12j481hMake Transform tool active and display onscreen\n12j401hMake Trim tool active\n10M401pMake Zoom tool active\n12c460kToggle Cinematic Editor\n12j4606Depending\n10a460fDecrease size\n12c4605Display timeline clips\n10a461kIncrease size\n10a4604Display timeline clips\n10a4602Display timeline clips\n10a4603Display timeline clips\n10a4601Display timeline clips\n12j490KDecrease browser clip height\n12j490JIncrease browser clip height\n11P471fExpand or collapse subroles\n11P490IShow fewer filmstrip frames in browser clips\n10Y4c19Show Image Playground window\n10J441jToggle two-up editing view when trimming clips\n10a420aToggle Audio Animation editor\n10a4d1fToggle audio lanes\n12j421oToggle clip information when skimming\n12c421lToggle Video Animation editor\n11P4910Show more filmstrip frames in browser clips\n11P4d0IShow one frame per filmstrip\n1034502Switch browser between filmstrip view and list\n10M4c1pZoom timeline contents to fit height\n12j4c17Toggle clip names in browser\n12t490JZoom in to browser, viewer , or timeline\n12u410KZoom out of browser, viewer, or timeline\n10M481pZoom to Fit\n10a421pTurn zooming in to audio samples on or off\n12i4703Anaglyph view ( stereoscopic video)\n12i4704Anaglyph Monochrome view (stereoscopic video)\n12i4705Anaglyph Outline view (stereoscopic video)\n10J4109Toggle Background Tasks window\n12i470EView left and right eyes side\n103470JNarrow field of view in 360° viewer\n12i4707View left and right eye differences\n10a4108Make Audio Enhancements inspector active\n11P4101Make browser active\n11m4106Make Color inspector active and add Color\n11P4504Make current inspector active\n12c4102Make timeline active\n11P4103Make viewer active\n103470KWiden field of view in 360° viewer\n12i4701View only left eye\n108421iNext pane in inspector or Color Board\n1074a1iPrevious pane in inspector or Color Board\n11w4508Toggle Record Voiceover window\n12h4700Reset point of view in 360° viewer\n103470eReset field of view in 360° viewer\n12i4702View only right eye\n11P490zShow horizon in viewer\n11P431lShow vectorscope in viewer\n11P431mShow waveform monitor in viewer\n10J4907Toggle angle viewer\n10a4908Toggle audio meters\n10J4301Toggle browser\n10J4306Toggle comparison viewer\n10J4105Toggle Effects browser\n10J4305Toggle Transitions browser\n10k4303Toggle event viewer\n10J4104Toggle inspector\n10s410DToggle keyword editor\n10B4101Toggle Libraries sidebar\n10B4901Toggle Photos, Videos, and Audio sidebar\n10B410EToggle sidebar\n10J4507Toggle 360° viewer\n12c4302Toggle timeline\n12c4902Toggle timeline index for open project\n10B4501Toggle Titles and Generators sidebar\n12i4107Toggle video scopes in viewer\n12i4706View left and right eyes superimposed\n1034304Switch between half-height view and full-height",
+  "com.apple.finder": "40O411kContaining folder\n11J451gSearch from Finder\n103490cOpen Computer window\n10z490dDesktop\n10W490kRecents\n10N490zHome Folder\n10r490BiCloud Drive\n103490DOpen Network window\n10D4514Downloads\n10P4917Create new folder\n11i4918Open Documents\n10J4919Toggle Preview pane\n11N491dAirDrop\n128491hToggle Finder tab bar\n11u4b1hAdd selected Finder item to Dock\n11i491jOpen Utilities\n10B431hAdd item to Finder sidebar\n10A4519Path Bar\n10B451fToggle Finder sidebar\n10J4113Toggle status bar\n11M410CShow View Options\n11c410DConnect to Server\n115430aMake Alias\n10O4517Open new Smart Folder\n128411hToggle tab bar when one tab is open\n128451hToggle toolbar when one tab is open\n11P451lMove copied files to current location\n10Y401gQuick Look\n11X451oOpen Quick Look slideshow\n12k4101Icon View\n12l4102List View\n1204103Column View\n10Y4104Gallery View\n107410GPrevious Folder\n108410HNext Folder\n11e431kOpen containing folder in new window\n11i410fOpen item\n10O401eExpand folder in List view\n10O4015Collapse folder in List view\n12d490eEmpty Trash\n12d4d0eEmpty Trash without confirmation\n10t410cCopy selected files\n11o411lPaste copied files\n10F410dDuplicate selected files\n110410BShow Get Info\n11P411dReveal alias's original item\n10G410gEject selected disk or volume\n11z400iRename item\n12d410eMove item to Trash\n12a4201Apply or remove favourite tag 1\n12a4202Apply or remove favourite tag 2\n12a4203Apply or remove favourite tag 3\n12a4204Apply or remove favourite tag 4\n12a4205Apply or remove favourite tag 5\n12a4206Apply or remove favourite tag 6\n12a4207Apply or remove favourite tag 7\n12a4200Remove all tags from item",
+  "org.mozilla.firefox": "9074115Go back\n108411eGo forward\n122400jStop loading\n1224110Stop loading\n12t490JZoom\n12u410KZoom out\n10M4100Reset zoom\n10t410cCopy\n10v411nCut\n11o411lPaste\n11o491lPaste as plain text\n11K410aSelect all\n11J410yFind next\n11J490yFind previous\n11P4114Focus address bar\n10q411mClose tab\n12p491mClose window\n1284515Previous tab\n1284a1iPrevious tab\n128451eNext tab\n128421iNext tab\n11d411hNew tab\n11e4117New window\n11e4919New private window\n129491hReopen closed tab\n1034917Reopen closed window\n10B490zHistory sidebar\n10x490eClear recent history\n10e410dBookmark page\n10B410bBookmarks sidebar\n10C490bBookmarks toolbar\n11P4918Show all bookmarks\n11P410CDownloads\n11u490aAdd-ons Manager\n12b450DWeb Console\n11P450cInspector\n11I491fTake screenshot\n10d411jView page source\n12b490CBrowser Console\n10d410BPage information\n10R490kToggle full screen\n103451dToggle Reader View\n11P400uToggle caret browsing\n11j4017PDF next page\n11j400CPDF next page\n11j401ePDF next page\n11k4019PDF previous page\n11k400DPDF previous page\n11k4015PDF previous page\n11D401dPDF rotate clockwise\n11X4519PDF presentation mode",
+  "com.apple.freeform": "70F490dCreate copy of board (duplicate)\n10B431fToggle sidebar\n11P4101Show boards as icons\n11P4102Show boards in list\n11T401iMove between items on board\n10F441eDuplicate object to right\n10F4415Duplicate object to left\n10F441kDuplicate object above or below\n10F440fDuplicate object above or below\n12t490JZoom\n12u410KZoom out\n11v4119Print board\n10x400eDelete board\n103411mClose Freeform window\n103490cShow Colors window\n12t4d0JIncrease font size of text\n12u450KDecrease font size of text\n101490GAlign text flush left\n100490FCenter text\n102490HAlign text flush right\n10_410HIncrease indent level\n10_410GDecrease indent level\n10u4916Mask (crop) photo\n11P4d0kMove item in front of one item\n11P490kMove item in front of all items\n11P4d0bMove item behind one item\n11P490bMove item behind all items\n10T450yGroup Selection\n10T4d0yUngroup selected group\n11P4114Lock items (after selecting them)\n10T4514Unlock selection\n11T401iNext Board Item",
+  "com.apple.garageband10": "51u4117New project\n11i4118Open project\n11F411fSave project\n11F491fSave project as\n11P411mClose project\n104411cQuit GarageBand\n11u4517New track\n10a450aNew audio track\n11u451fNew software instrument track\n10F410dDuplicate track\n10x410eDelete track\n10J4916Toggle Master Track\n10T401kSelect track above\n10T400fSelect track below\n11z480iRename track\n11M441hConfigure track header\n108400HNext patch, effect, or instrument setting\n107400GPrevious patch, effect, or instrument setting\n10Z490BImport audio file\n10Z4518Import movie\n11E400XStart playback (numeric keypad)\n122400LStop playback (numeric keypad)\n11s401gPlay or stop\n10T481gPlay from selection\n10a441gPreview selected audio\n122401dStart or stop recording\n12c400IMove playhead back one bar\n12c4010Move playhead forward one bar\n1084910Move cycle range or locators forward one cycle\n107490IMove cycle range or locators back one cycle\n12c4a0IMove playhead to left locator\n12c4a10Move playhead to right locator\n11R400iProject beginning\n11R440iEnd of last region\n10T4g15Beginning of selection\n10T420ABeginning of selection\n1084d10Move right locator one cycle forward\n1074d0IMove left locator half cycle forward\n11P401fSolo or unsolo track\n11P441fTurn off or recall soloed tracks\n11b4016Mute or unmute track\n11b4a16Unmute all tracks\n11P420BToggle input monitoring\n11w421dToggle record enable\n11P400cToggle cycle mode\n11P400DToggle metronome\n11P480DToggle count-in\n11P450yToggle alignment guides\n12c400EToggle Catch Playhead\n10d401oToggle Library\n10V4813Toggle Quick Help\n10V4113Show detailed Help\n10J400bToggle Smart Controls\n10s400gToggle Editor\n10s4019Toggle Piano Roll Editor\n10s4017Toggle Score Editor\n10J4519Toggle Notepad\n11A4018Toggle Loop Browser\n108401iFocus next area\n107481iFocus previous area\n11m440cOpen Colour palette\n11M410IOpen GarageBand settings\n10J410DToggle Musical Typing\n10R430kToggle full screen\n10J410zHide GarageBand\n12r4116Minimise GarageBand window\n1034316Switch GarageBand window size\n11x491pRedo\n10v411nCut\n10t410cCopy\n11o411lPaste\n10x400eDelete item\n11K410aSelect all\n10y480dDeselect all\n12u4115Zoom out horizontally\n12t411eZoom in horizontally\n1094g1kScroll up\n109401bScroll up\n1064g0fScroll down\n106401aScroll down\n1074g15Scroll left\n107400AScroll left\n1084g1eScroll right\n108400hScroll right\n10J400aToggle automation\n10x4b0eDelete track automation\n10T4015Select previous region or event\n10T401eSelect next region or event\n11A4014Loop selected regions\n11P401cQuantise selected events\n11o491lPaste and replace\n10v450eCut arrangement marker into sections\n10d4a18Add selected region to Apple Loops Library\n11z4817Rename selected regions\n11f441kTranspose notes up one semitone\n11f440fTranspose notes down one semitone\n11f4c1kTranspose notes up one octave\n11f4c0fTranspose notes down one octave\n11v4119Print MIDI region as notation\n11P410kToggle Flex\n10J490aToggle Arrangement track\n10J4918Toggle Movie track\n10J491hToggle Tempo track",
+  "com.github.GitHubClient": "b1M410IDisplay Settings window\n10M4100Reset zoom to default text size\n12t410JZoom in for larger text and graphics\n12u410KZoom out for smaller text and graphics\n1034108Decrease active pane width\n1034109Increase active pane width\n11P450BToggle Developer Tools\n11i480mOpen context menu of selected component\n11Y4117Add new repository\n11Y4118Add local repository\n10x410eRemove existing repository\n11Y490yView repository on GitHub\n11Y490kShow repository in Finder\n10s490aOpen repository\n11u410BCreate issue on GitHub\n11P410bShow all your branches\n11Y410yCommit summary field\n10y401gSelect or deselect all highlighted files\n11z491dRename current branch\n10x490dDelete current branch\n11Y491jUpdate from default branch\n11Y4916Merge into current branch\n11P491fStash current changes\n11P490cCompare branches on GitHub\n12b420EOpen repository\n10J420zToggle stashed changes",
+  "com.axosoft.gitkraken": "5134113Open keyboard shortcuts\n11P4114Fetch all\n11i401fStage file\n11P491fStage all files\n11i401jUnstage file\n11P491jUnstage all files\n11Y410iCommit staged files with current message\n11Y490iStage all files and commit\n11Y4916Focus commit message box\n10T400CSelect previous item\n10T400fSelect previous item\n10T400DSelect next item\n10T401kSelect next item\n10T4014Select item to right\n10T401eSelect item to right\n10T400zSelect item to left\n10T4015Select item to left\n10T480fSelect next item in branch\n10T480CSelect next item in branch\n10T481kSelect previous item in branch\n10T480DSelect previous item in branch\n10T411kSelect first commit in graph\n10T410fSelect last commit in graph\n12f411pUndo\n11x411oRedo\n11x491pRedo\n1134119Toggle Command Palette\n1134918Open repo via Command Palette\n11J450kFocus Left Panel filter bar\n12b441hOpen current repo in terminal\n11i4418Open current repo in File Manager\n11Y410dOpen diff or merge tool\n11P411mClose current repo\n11J410kSearch within file\n10R430kToggle Fullscreen Mode\n12t410JIncrease Zoom\n12u410KDecrease Zoom\n10M4100Reset zoom\n103410CToggle Left Panel\n11Y410DToggle Commit Detail panel\n11J410kFocus search bar\n103400jClose panel\n10q411mClose Tab\n1284101Swap to Tab #1\n1284102Swap to Tab #2\n1284103Swap to Tab #3\n1284104Swap to Tab #4\n1284105Swap to Tab #5\n1284106Swap to Tab #6\n1284107Swap to Tab #7\n1284108Swap to Tab #8\n1284109Swap to Tab #9\n128491iJump to previous open tab",
+  "com.google.Chrome": "b29491hReopen previously closed tabs\n128451eJump to next open tab\n1284515Jump to previous open tab\n1284101Jump to specific tab 1\n1284102Jump to specific tab 2\n1284103Jump to specific tab 3\n1284104Jump to specific tab 4\n1284105Jump to specific tab 5\n1284106Jump to specific tab 6\n1284107Jump to specific tab 7\n1284108Jump to specific tab 8\n1284109Jump to last tab\n11k410GOpen previous page\n11k4115Open previous page\n11j410HOpen next page\n11j411eOpen next page\n10q411mClose tab or pop-up\n12p491mClose window\n11P4a1bMove tabs left\n11P4a1aMove tabs right\n10R4g0kTurn on full-screen mode\n10R4g0kTurn off full-screen mode\n10J490bToggle Bookmarks Bar\n10e450bOpen Bookmark Manager\n11d410IOpen Settings page in new tab\n11d411oOpen History page in new tab\n11d490COpen Downloads page in new tab\n11i450BOpen Developer Tools\n10x490eOpen Delete Browsing Data options\n1104916Log\n11P420pJump to main menu bar\n109451kCycle focus to unfocused dialog (if showing)\n106450fCycle focus to unfocused dialog (if showing)\n11i4d0BOpen feedback form\n11P400uTurn on caret browsing\n11P4d0aFocus on inactive dialogs\n1284517Open split view in tab\n11P4114Jump to address bar\n128420iAdd \"www.\" and \".com\" to site name in tab\n11e4a0iAdd \"www.\" and \".com\" to site name in new\n128410iOpen website in new background tab\n10x500fo0eRemove predictions from your address bar\n11P420sMove cursor to address bar\n115490BCompose new email message with link to page\n11v4119Open options to print page\n11F411fOpen options to save page\n10d4519Open Page Setup dialog\n10d491dReload your page, ignoring cached content\n122400jStop page loading\n108401iBrowse clickable items moving forward\n11W481iBrowse clickable items moving backward\n11i4118Open file\n10s451jDisplay non-editable HTML source code for page\n12b450COpen JavaScript Console\n10d490JMake everything on page bigger\n10d410KMake everything on page smaller\n10d4100Return everything on page to default size\n106401gScroll down webpage, screen at time\n109481gScroll up webpage, screen at time\n10U4415Move your cursor to beginning\n10U441eMove your cursor to back\n10x440eDelete previous word in text field\n128490zOpen your home page in tab",
+  "com.nousresearch.hermes": "b134119Open Command Palette\n11M410IOpen Settings\n11i4110Open Command Center\n1134113Open Keyboard Shortcuts\n11P481nToggle light or dark mode\n10J491fToggle status bar\n1284a1iPrevious session tab\n11P4201Jump to recent session by position 1\n11P4202Jump to recent session by position 2\n11P4203Jump to recent session by position 3\n11P4204Jump to recent session by position 4\n11P4205Jump to recent session by position 5\n11P4206Jump to recent session by position 6\n11P4207Jump to recent session by position 7\n11P4208Jump to recent session by position 8\n10q411mClose focused session tab\n129491hReopen last closed tab\n11e4917Open new Hermes window\n11P4101Switch profiles 1\n11P4102Switch profiles 2\n11P4103Switch profiles 3\n11P4104Switch profiles 4\n11P4105Switch profiles 5\n11P4106Switch profiles 6\n11P4107Switch profiles 7\n11P4108Switch profiles 8\n11P4109Switch profiles 9\n104411cQuit Hermes\n10B410FSwap sidebar sides\n10s490FOpen layout editor\n11J410yFind next match or toggle Git review\n11u490bCreate Git worktree\n12b420EShow terminal\n12b4a0ECreate another terminal\n12b4a0fNext terminal\n12b4a1kPrevious terminal\n12b4a1mClose active terminal\n11J400iFind next match\n11J480iFind previous match\n11J490yFind previous match or snap HUD to pointer\n11J400jClose Find or pause queued work\n109401kRecall earlier composer prompt Up\n106400fRecall earlier composer prompt Down\n11P490zToggle HUD mode",
+  "com.colliderli.iina": "62i431lCycle video tracks\n125431fCycle subtitle tracks\n10a430aCycle audio tracks\n11t401gPlay or pause playback\n1224110Stop playback\n11W401eSeek forward 5 seconds\n11W4015Seek backward 5 seconds\n108441eAdvance one frame\n1074415Go back one frame\n1254815Previous subtitle\n125481eNext subtitle\n11I411fTake screenshot\n10x4114Set or clear A-B loop points\n11A4114Toggle infinite loop\n108411eNext playlist item\n1074115Previous playlist item\n10d4910Next chapter\n10d490IPrevious chapter\n1034100Set window size to 50%\n1034101Set window size to 100%\n1034102Set window size to 200%\n10R430kToggle full screen\n11P431hToggle always-on-top\n12o401kIncrease volume by 5\n12m400fDecrease volume by 5\n12o441kIncrease volume by 1\n12m440fDecrease volume by 1\n11b4113Toggle mute\n10a4809Increase audio delay by 0.5 seconds\n10a4800Decrease audio delay by 0.5 seconds\n10a4c09Increase audio delay by 0.1 seconds\n10a4c00Decrease audio delay by 0.1 seconds\n10a480KReset audio delay\n125401pMove subtitles earlier by 0.5 seconds\n125401nMove subtitles later by 0.5 seconds\n125441pMove subtitles earlier by 0.1 seconds\n125441nMove subtitles later by 0.1 seconds\n125400cReset subtitle delay\n10S400jExit full screen\n10R400iEnter full screen\n104401cQuit IINA\n11t4019Play or pause playback\n11P4010Advance one frame\n107400IGo back one frame\n11P4018Show playback progress\n11P4019Show playback progress\n11b4016Toggle mute\n11W481bSeek forward 600 seconds\n11W481aSeek backward 600 seconds\n125400yIncrease subtitle size\n125400kDecrease subtitle size\n125401dMove subtitles up\n125401dMove subtitles down\n125401hMove subtitles down\n125401lToggle subtitles\n125441lToggle secondary subtitles\n10R400kToggle full screen\n108400gNext edition",
+  "com.apple.iMovieApp": "30V4913Open iMovie Help menu\n10Z410BImport media\n11s401gPlay from Playhead\n10T4013Play selection\n11s400FPlay selected event, clip, or project\n12c401eMove playhead one frame forward\n11W4015Move playhead one frame backward\n108400fWhen playing clip\n107401kWhen playing clip\n10S400jExit full-screen view\n11A4114Loop playback\n12j421oToggle clip information when skimming\n10x410eTrash Moves clip, movie, trailer, or event\n11M410IOpen settings\n11K410aSelect all clips To select all clips\n10T401nSelect entire clip\n10y490aDeselect all clips\n10T400gAdd selection to movie\n10T401cConnect selection to clip\n10T401mInsert selection\n10a490gAutomatically improve video and audio quality\n10v411nCut selected frames\n10t410cCopy selected frames\n11o4113Paste selected frames\n12j4413Trim clip in timeline to selected range\n12j410bDivide clip at playhead position\n11_4c1dReset speed adjustments\n11o451lPaste all adjustments\n11o450cPaste color correction adjustments\n11o451dPaste crop adjustments\n11o450aPaste volume adjustments\n11o4514Paste video effect\n11o4518Paste audio effect\n11o451fPaste speed adjustments\n11o451jPaste video overlay settings Pastes\n11o4516Paste map style\n10T400kRate selection as favorite\n11P401jUnmark selected frames\n10T400eRate selection as rejected, or delete selection\n12j410FToggle clip trimmer when clip is selected\n10s4113Toggle precision editor\n10s450kShow Cinematic Editor\n11i401lOpen voiceover controls in viewer\n10a481fTurn\n11b4916Mute audio in clip\n10a450bDetach audio from clip\n12f411pUndo last action\n11x491pRedo last action\n10t410cCopy text\n10v411nCut text\n11o411lPaste copied text\n10d4001Library view\n1034002Projects view\n10J4901Toggle Libraries list\n11P4101Show my media in browser\n10a4102Show audio in browser\n11P4103Show titles in browser\n11P4104Show maps and backgrounds in browser\n10a4105Show sound effects in browser\n11P4106Show transitions in browser",
+  "com.googlecode.iterm2": "528411eSelect next tab\n128490HSelect next tab\n1284115Select previous tab\n128490GSelect previous tab\n1284101Select tab by 1\n1284102Select tab by 2\n1284103Select tab by 3\n1284104Select tab by 4\n1284105Select tab by 5\n1284106Select tab by 6\n1284107Select tab by 7\n1284108Select tab by 8\n1284109Select tab by 9\n10T4501Select window by 1\n10T4502Select window by 2\n10T4503Select window by 3\n10T4504Select window by 4\n10T4505Select window by 5\n10T4506Select window by 6\n10T4507Select window by 7\n10T4508Select window by 8\n10T4509Select window by 9\n1034515Focus pane by direction Left\n103451eFocus pane by direction Right\n103451kFocus pane by direction Up\n103450fFocus pane by direction Down\n108410HFocus next recently used pane\n108410GFocus previous recently used pane\n11i4918Open Quickly\n11i4912Open command history\n11P4112Autocomplete from command history\n10S410iToggle full screen",
+  "com.apple.iWork.Keynote": "8184g0dStart dictation\n11i4117Open theme chooser\n11i4517Open theme chooser and show Language pop-up\n11Q400jClose theme chooser\n11X4118Open existing presentation\n11F411fSave presentation\n11H4d1fSave as\n10F491fDuplicate presentation\n11v4119Print presentation\n11i4913Open Keynote User Guide\n103411mClose window\n11P451mClose all windows\n12r4116Minimise window\n12r4516Minimise all windows\n10R430kEnter full screen view\n12t4910Zoom\n12u490IZoom out\n11M410IShow Settings window\n10M4900Zoom to selection\n12t4d00Zoom to fit content (including objects\n11X4500Fit slide in window\n11P4100Return to actual size\n11X411dShow presentation rulers\n10T491lSelect file to insert\n103490cShow Colours window\n10C451hToggle toolbar\n10J450BToggle inspector sidebars\n12h4914Toggle object list\n11K410aSelect all object types\n10y490aDeselect all object types\n128420EOpen next tab in sidebar\n1284a0EOpen previous tab in sidebar\n11X490gToggle Edit Slide Layouts view\n11X4917Add new slide layout\n10J450zHide other windows\n12f411pUndo last action\n11x491pRedo last action\n1074015Move one character to left\n108401eMove one character to right\n11W420bMove one character backward (works\n10U420kMove one character forward (works\n10s401kLine above\n10s400fLine below\n1074415Beginning of current or previous word\n107460bBeginning of current or previous word\n108441eEnd of current or next word\n108460kEnd of current or next word\n10U411kBeginning of text area\n10U410fBottom of text area\n10s4115Beginning of line\n10s411eEnd of line\n10U441kBeginning of paragraph\n10U440fEnd of paragraph\n11J410gFind item in presentation\n10T410CJump to selection in presentation\n11X400AScroll to beginning of slide\n11X4g1kScroll to beginning of slide\n11X400hScroll to end of slide\n11X4g0fScroll to end of slide\n12h4214Centre insertion point in app window\n1084g0fNext slide\n108401aNext slide\n1074g1kPrevious slide\n107401bPrevious slide\n11X4g15First slide\n11X400AFirst slide\n11X4g1eLast slide\n11X400hLast slide\n11X430ySpecific slide\n11K410aSelect all objects and text\n10y490aDeselect all objects and text\n10T481eExtend selection one character to right\n10T4815Extend selection one character to left\n10T4c1eExtend selection to end of word\n10T4c15Extend selection to beginning of word\n10T491eExtend selection to end of line\n10T4915Extend selection to beginning of line\n10T481kExtend selection to line above\n10T480fExtend selection to line below\n10T4c1kExtend selection to beginning of paragraph\n10T4c0fExtend selection to end of paragraph\n10T491kExtend selection to beginning of text\n10T480AExtend selection to beginning of text\n10T490fExtend selection to end of text\n10T480hExtend selection to end of text\n103411hShow Fonts window\n10c410bApply bold to text\n111410BApply italic to text\n12e411jApply underline to text\n10T400eDelete previous character or selection\n10T4g0eDelete next character or selection\n10T400xDelete next character or selection\n10x440eDelete word before insertion point\n10x440xDelete word after insertion point\n10x420DDelete text between insertion point and next\n10Q490JMake font size bigger\n12u410KMake font size smaller\n11P450GDecrease space between selected characters\n11P450HIncrease space between selected characters\n1264b0JMake text superscript\n124430KMake text subscript\n101490GAlign text flush left\n10U490FCentre text\n102490HAlign text flush right\n1014d0FAlign text flush left and flush right (justify)\n10_410GDecrease indent level\n10_410HIncrease indent level\n10_481iDecrease indent level\n10_401iIncrease indent level\n12h410DTurn text or object into link\n10v411nCut selection\n10t410cCopy selection\n11l450cCopy paragraph style\n11o411lPaste selection\n11l451lPaste paragraph style\n11o4d1lPaste and match style of destination text\n11u441gInsert non-breaking space\n10s480iInsert line break (soft return)\n10U400iInsert paragraph break\n12h421hTranspose characters\n10L410gPlace text in Find and Replace text field\n10U400iReplace text\n12h410CScroll window to show text or object\n11J400jHide Find window\n12h430dLook up word at insertion point\n10n440jDisplay list of words to complete word\n11P4112Check spelling and grammar\n1034912Show \"Spelling and Grammar\" window\n11F410iSave comment\n10l450DShow next comment\n10l4d0DShow previous comment\n11X4a0kClean up slide\n11K410aSelect all objects\n10y490aDeselect all objects\n10T401iSelect next object on slide\n10T481iSelect previous object on slide\n12h4015Move object one point Left\n12h401eMove object one point Right\n12h401kMove object one point Up\n12h400fMove object one point Down\n12h4815Move object ten points Left\n12h481eMove object ten points Right\n12h481kMove object ten points Up\n12h480fMove object ten points Down\n12h4015Move object one screen pixel Left\n12h401eMove object one screen pixel Right\n12h401kMove object one screen pixel Up\n12h400fMove object one screen pixel Down\n12h4815Move object ten screen pixels Left\n12h481eMove object ten screen pixels Right\n12h481kMove object ten screen pixels Up\n12h480fMove object ten screen pixels Down\n10t450cCopy graphic style of text\n11o451lPaste graphic style of text\n12h490bSend object to back\n1144d0bSend object one layer back\n12h490kBring object to front\n1144d0kBring object one layer forward\n10T450yGroup selected objects\n10T4d0yUn-group selected objects\n11P4114Lock selected objects\n11P4514Unlock selected objects\n12h4916Mask or unmask object\n10T410iExit text editing and select object\n12h470BDefine object as media placeholder\n10U471hDefine text as text placeholder\n10E4d19Draw custom shape with Pen tool\n11u450gInsert equation\n12k441kAdd row above selected cells\n12k440fAdd row below selected cells\n12k441eAdd column to right of selected cells\n12k4415Add column to left of selected cells\n12k440iInsert row at bottom of table\n12k401iInsert column on right of table\n11K450iSelect all rows that intersect current\n11K430iSelect all columns that intersect current\n10T481kSelect additional rows Up\n10T480fSelect additional rows Down\n10T481eSelect additional columns Right\n10T4815Select additional columns Left\n10T401iMove cell selection to beginning of next row\n11K410aSelect all content in table\n10x400eDelete selected table or contents\n10t450cCopy cell style\n11o451lPaste cell style\n11o4d1lPaste and preserve style\n12k400iEdit cell\n12k401gOpen pop-up menu in cell\n12k451jAuto-align cell content\n10T410iStop editing cell and select cell\n10T510i10iStop editing cell and select table\n12h4015Move selected table one point Left\n12h401eMove selected table one point Right\n12h401kMove selected table one point Up\n12h400fMove selected table one point Down\n12k4815Move selected table ten points Left\n12k481eMove selected table ten points Right\n12k481kMove selected table ten points Up\n12k480fMove selected table ten points Down\n10T401iSelect next cell\n10T481iSelect previous cell\n10T400iSelect cell below\n10T480iSelect cell above\n10T4015Select cell to left, right, up\n10T401eSelect cell to left, right, down\n10T401kSelect cell to left, right, up\n10T400fSelect cell to left, right, down\n10T4815Extend cell selection by one cell Left\n10T481eExtend cell selection by one cell Right\n10T481kExtend cell selection by one cell Up\n10T480fExtend cell selection by one cell Down\n10T410iSelect parent of current selection\n128441iInsert tab when editing text or formula\n12k480iInsert line break (soft return) when editing\n12k400iInsert paragraph break (hard return) when\n10j400JOpen Formula Editor\n11F400iIn Formula Editor, save changes\n11F401iIn Formula Editor, save changes\n10x400jIn Formula Editor, discard changes\n10T4515Select first populated cell in row\n10T451eSelect last populated cell in row\n10T451kSelect first populated cell in column\n10T450fSelect last populated cell in column\n10x450eDelete selected rows\n10x430eDelete selected columns\n10T481iSelect table name\n11o491lPaste formula result\n10T400iSelect first cell in selected table\n10T4d15Expand current selection to include first\n10T4d1eExpand current selection to include last\n10T4d1kExpand current selection to include first\n10T4d0fExpand current selection to include last\n11P4316Merge selected cells\n11P4b16Unmerge selected cells\n10x471kAdd or remove top border\n10x470fAdd or remove bottom border\n10x471eAdd or remove right border\n10x4715Add or remove left border\n11m410FTurn on auto-fill mode\n11m430FAuto-fill from column before\n11m450FAuto-fill from row above\n10s490dToggle Graph Data Editor\n10T400iComplete cell entry and move selection down\n10T480iComplete cell entry and move selection up\n10T401iComplete cell entry and move selection to right\n10T481iComplete cell entry and move selection to left\n10U401kBeginning of text or to end of text\n10U400fBeginning of text or to end of text\n12h4015Move graph legend one point Left\n12h401eMove graph legend one point Right\n12h401kMove graph legend one point Up\n12h400fMove graph legend one point Down\n1074815Move graph legend ten points Left\n108481eMove graph legend ten points Right\n109481kMove graph legend ten points Up\n106480fMove graph legend ten points Down\n10T4415Navigate to and select single cell Left\n10T441eNavigate to and select single cell Right\n10T441kNavigate to and select single cell Up\n10T440fNavigate to and select single cell Down\n12k4c15Extend or shrink cell reference Left\n12k4c1eExtend or shrink cell reference Right\n12k4c1kExtend or shrink cell reference Up\n12k4c0fExtend or shrink cell reference Down\n12k4515Navigate to first or last non-header cell\n12k451eNavigate to first or last non-header cell\n12k451kNavigate to first or last non-header cell\n12k450fNavigate to first or last non-header cell\n10s440iInsert line break\n128441iInsert tab\n12k410DSpecify absolute and relative attributes\n11X400iCreate new slide\n11X4917Create new slide\n10_401iIndent selected slides to right\n10_481iMove indented slides to left\n10F410dDuplicate slide\n10x400eDelete selected slides\n108400fNext slide\n107401kPrevious slide\n10T401eExpand slide group\n10T4015Collapse slide group\n11V490zSkip slide so it doesn't show\n108401eNext slide\n1074015Previous slide\n10T481eExtend selection to next slide\n10T4815Extend selection to previous slide\n10T491kExtend selection to first slide\n10T490fExtend selection to last slide\n10T411kSelect first slide\n10T410fSelect last slide\n11s4519Play presentation\n11X401eAdvance to next slide or build\n11X400fAdvance to next slide or build\n11X481eAdvance to next build or slide without\n11X480fAdvance to next slide without builds\n11f4919Toggle presenter notes\n1074815Go back to previous build\n107481kGo back to previous build\n107401pGo back through previously viewed slides\n11p400kPause presentation\n11p400bPause presentation and show black screen\n11p401mPause presentation and show white screen\n10J400cToggle pointer\n11X401fDisplay slide number\n108480JNext slide in slide switcher\n107400KPrevious slide in slide switcher\n11X400iSlide and close slide switcher\n11X400jClose slide switcher\n11P401nSwitch primary and presenter displays\n11P401dReset timer\n109401jScroll presenter notes up\n106400dScroll presenter notes down\n12t490JIncrease note font size\n12u410KDecrease note font size\n104400jQuit presentation mode\n104401cQuit presentation mode\n11X400zHide presentation and switch to last app used\n1134813Toggle keyboard shortcuts\n1134013Toggle keyboard shortcuts\n11X4g1kFirst slide\n11X4g0fLast slide\n11P441nSwitch displays in rehearsal mode\n11s401gPlay video\n11p400DPause or resume playing video\n11W400CRewind video (by frame\n11V4014Fast forward video (by frame\n12i400BJump to beginning of video\n12i4018Jump to end of video",
+  "com.apple.logic10": "71w401dRecord\n11w400-Record/Record Toggle\n10x4110Discard Recording and Return to Last Play\n11P481dFlashback Capture as Recording\n11s400XPlay\n11p400VPause\n122400LStop\n11s401gPlay or Stop\n10T4c1gPreview Selection-Based Processing\n11W400IRewind\n1084010Forward\n11W480IFast Rewind\n11V4810Fast Forward\n1084210Forward by Transient\n11W420IRewind by Transient\n11s480iPlay from Left Window Edge\n1074a0ILeft Locator\n1084a10Right Locator\n11P4013Position\n12c470BSet Punch In Locator by Playhead\n12c4f0BSet Punch In Locator by Rounded Playhead\n12c4718Set Punch Out Locator by Playhead\n12c4f18Set Punch Out Locator Point\n11A411jSet Locators/Loop\n11A401jSet Rounded Locators/Loop\n10T481gPlay from Selection\n11V400YSkip Cycle\n11A4910Move Locators Forward\n11A490IMove Locators Backwards\n11A4d10Double Cycle/Loop Length\n11A4d0IHalve Cycle/Loop Length\n10T420ASelection Start\n10T420hSelection End\n11R440iEnd of Last Region\n11R400iBeginning\n11u4411Create Marker\n10x440eDelete Marker\n11P460cSet Locators by Marker and Enable Cycle\n107460ISet Locators\n1084610Set Locators\n107440IPrevious Marker and Set Locators\n1084410Next Marker and Set Locators\n11P4413Marker Number\n11z4811Rename Marker\n11P400MMarker Number 1\n11P400NMarker Number 2\n11P400OMarker Number 3\n11P400PMarker Number 4\n11P400QMarker Number 5\n11P400RMarker Number 6\n11P400SMarker Number 7\n11P400TMarker Number 8\n11P400UMarker Number 9\n11P420LMarker Number 10\n11P420MMarker Number 11\n11P420NMarker Number 12\n11P420OMarker Number 13\n11P420PMarker Number 14\n11P420QMarker Number 15\n11P420RMarker Number 16\n11P420SMarker Number 17\n11P420TMarker Number 18\n11P420UMarker Number 19\n11P400cToggle Cycle Mode\n11P4719Toggle Autopunch Mode\n11P400WToggle Replace\n11P421fEngage Solo Tracks (Channel Strips)\n10x441fClear/Recall Solo\n11b4a16Mute Off for All\n11P420cToggle Cycle Preview\n11P400DToggle Metronome Click\n11P480DToggle Count-in\n11P400MRecall Screenset 1\n11P400NRecall Screenset 2\n11P400ORecall Screenset 3\n11P400PRecall Screenset 4\n11P400QRecall Screenset 5\n11P400RRecall Screenset 6\n11P400SRecall Screenset 7\n11P400TRecall Screenset 8\n11P400URecall Screenset 9\n11P420MRecall Screenset 1x\n11P420NRecall Screenset 2x\n11P420ORecall Screenset 3x\n11P420PRecall Screenset 4x\n11P420QRecall Screenset 5x\n11P420RRecall Screenset 6x\n11P420SRecall Screenset 7x\n11P420TRecall Screenset 8x\n11P420URecall Screenset 9x\n11P4c1dRegion Inspector Float\n11M410IOpen Settings\n11M440aOpen Automation Settings\n10k4107Open Event List\n1034101Open Main Window\n11i4102Open Mixer\n10s4105Open Score Editor\n11i4103Open Step Sequencer\n11i4109Open Transform\n11i4104Open Piano Roll\n11i4100Open Environment\n10a4108Open Project Audio\n11A460iNote Repeat\n11O460eSpot Erase\n10a4106Open Audio File Editor\n10J410DShow/Hide Musical Typing\n10k440gShow/Hide Event Float\n10J401nShow/Hide Mixer\n10J400bShow/Hide Smart Controls\n10s4017Show/Hide Score Editor\n10Q4e1fShow/Hide Staff Style Window\n10J4e0BShow/Hide Score Sets Window\n10J4019Show/Hide Piano Roll\n10J450DShow/Hide Step Input Keyboard\n11A4018Show/Hide Loop Browser\n10d401oShow/Hide Library\n10a401mShow/Hide Audio File Editor\n10V4813Show/Hide Quick Help\n10V4113Show Detailed Help\n10s481mOpen in External Sample Editor\n11i4c1hOpen Tempo List\n11i440DOpen Key Command Assignments\n10J440cShow/Hide Colors\n10S430kEnter/Exit Full Screen\n11i4518Open Movie\n11P4318Toggle Selected Tracks or Channel Strips\n11P430aToggle Selected Tracks or Channel Strips\n11P4b18Set All Tracks to Automation Off\n11P4b1dSet All Tracks to Automation Read\n11P4b1hSet All Tracks to Automation Touch\n11P4b14Set All Tracks to Automation Latch\n10k430gTrack Automation Event List\n11P470aToggle Automation Quick Access\n11P480yEnable/Disable Groups\n10J4c0yShow/Hide Groups Window\n10T4a01Toggle Hide Group 1\n10T4a02Toggle Hide Group 2\n10T4a03Toggle Hide Group 3\n10T4a04Toggle Hide Group 4\n10T4a05Toggle Hide Group 5\n10T4a06Toggle Hide Group 6\n10T4a07Toggle Hide Group 7\n10T4a08Toggle Hide Group 8\n10T4a09Toggle Hide Group 9\n12p411mClose Window\n10T401kSelect Previous Track\n10T400fSelect Next Track\n10J450zHide Others\n104411cQuit\n11i4118Open\n11M4419Project Settings\n11P451mClose Project\n11F411fSave\n11F491fSave Project as\n11v4119Print\n10Z410BImport\n10T450gExport Selection as MIDI File\n10I410gExport Track as Audio File\n10I490gExport All Tracks as Audio Files\n12f431pPlug-in Undo\n11x4b1pPlug-in Redo\n103401iCycle Through Window Views\n103481iCycle Through Window Views (counterclockwise)\n10M4316Zoom Window\n108480HNext Channel Strip Setting of Focused Track\n107480GPrevious Channel Strip Setting of Focused Track\n10t450cCopy Channel Strip Setting\n11o451lPaste Channel Strip Setting\n108400HNext Patch, Plug\n107400GPrevious Patch, Plug\n11b4016Toggle Channel Strip Mute\n11P401fToggle Channel Strip Solo\n11P420BToggle Channel Strip Input Monitoring\n10Q4a1fToggle Channel Strip Format (mono/stereo)\n11P471dFree Tempo Recording\n11P4616Set Nudge Value to Bar\n11P460bSet Nudge Value to Beat\n11P460dSet Nudge Value to Division\n11P461hSet Nudge Value to Tick\n11P460kSet Nudge Value to SMPTE Frame\n11P460zSet Nudge Value to 0.5 SMPTE Frame\n11P461fSet Nudge Value to Sample\n11P4601Set Nudge Value to 1 ms\n11P4600Set Nudge Value to 10 ms\n11f400KSustain inserted notes\n122410iStop All Cells\n11P4e0aToggle Activation of All Tracks",
+  "com.apple.mail": "a1n490aAttach files to your email\n11o491lPaste text into your email as quotation\n10H450BAppend selected emails to your email\n10H450bShow Bcc address field in your email\n10H450CErase junk mail\n11B491dReply All to selected email\n10H490kForward selected email\n10H490gRedirect selected email\n11J4114Enable or disable message filter\n117491jMark emails as read or unread\n10-4316Move selected emails to predicted mailbox\n10-490CMove selected emails to Junk mailbox\n10H4314Apply active Mail rules\n10Q491hFormat current email as Plain Text or Rich\n10H4100Show Mail viewer window\n10H4300Show Mail Activity window\n10H451mClose all Mail windows",
+  "com.rockysandstudio.DeskApp-for-Gmail": "30V4813Show Gmail shortcut help\n10l400cCompose message\n11J4013Search mail\n10l400iOpen selected conversation\n10l4018Open selected conversation\n11B401dReply\n11B400aReply all\n108400kForward\n105400gArchive conversation\n10x4803Delete conversation\n117481jMark as unread\n11P480BMark as read\n10x401fAdd or remove star\n11i401lOpen Move to menu\n12a4014Open Label as menu\n12f401pUndo last action\n10l400jReturn focus to latest chat or compose\n11P401jReturn to thread list\n10-500y00BInbox\n11P500y01fStarred\n11P500y00bSnoozed\n11P500y01hSent\n11P500y00dDrafts\n10H500y00aAll Mail\n11P500y014Labels\n11j500y017Next page of messages\n11k500y019Previous page of messages\n10l400COlder conversation\n10l400DNewer conversation\n10l4019Previous message in open conversation\n10l4017Next message in open conversation\n11u490cAdd Cc recipients\n11u490bAdd Bcc recipients\n10c410bBold text\n111410BItalicize text\n12e411jUnderline text\n11g4907Create numbered list\n10i4908Create bulleted list\n10w410GDecrease indentation\n10_410HIncrease indentation\n10x410FRemove text formatting",
+  "com.apple.Maps": "51P4114Show your current location\n1064015Move up, left\n106401eMove down, right\n106401kMove up, left\n106400fMove down, right\n109491kReturn to north-facing orientation\n12t490JZoom In\n12u410KZoom out\n10J410dToggle 3D map\n10J410DToggle Look Around\n10J411dToggle directions\n11q490dDrop pin in middle of map\n10B431fToggle sidebar",
+  "com.apple.MobileSMS": "81M410IOpen Messages settings\n1034100Open Messages window\n103411mClose Messages window\n11v4119Print conversation\n11P4301Show all Messages conversations\n1174304Show conversations with unread messages\n11P4305Show recently deleted messages or conversations\n10l4101Pinned conversation 1\n10l4102Pinned conversation 2\n10l4103Pinned conversation 3\n10l4104Pinned conversation 4\n10l4105Pinned conversation 5\n10l4106Pinned conversation 6\n10l4107Pinned conversation 7\n10l4108Pinned conversation 8\n10l4109Pinned conversation 9\n12r4116Minimise window\n10R430kEnter full-screen view\n10U490JMake text bigger\n10U410KMake text smaller\n10U440iInsert line break or create new paragraph\n10U480iInsert line break or create new paragraph\n11L400iSend message\n10l410gEdit sent message\n10t410cCopy text\n11o411lPaste copied text\n1034912Open Spelling and Grammar window\n10l4112Check message field\n11B411dReply to last incoming (or selected) message\n10l511h001Add Tapback to last (or selected) message\n10l511h002Add Tapback to last (or selected) message\n10l511h003Add Tapback to last (or selected) message\n10l511h004Add Tapback to last (or selected) message\n10l511h005Add Tapback to last (or selected) message\n10l511h006Add Tapback to last (or selected) message\n10l450BOpen conversation Info view\n10l4516Hide or unhide alerts for conversation\n117491jMark conversation as unread or read\n10l450bOpen Contact card\n11L450gSend email to selected person in conversation\n12i490gShow video effects (while\n10Y401gShow image in Quick Look window\n10x400eDelete single message",
+  "com.microsoft.Excel": "71o411lPaste selection\n11o421lPaste selection\n10t410cCopy selection\n10t420cCopy selection\n10y400eClear selection\n11F411fSave workbook\n11F421fSave workbook\n12f411pUndo action\n12f421pUndo action\n11x411oRedo action\n11x421oRedo action\n11x491pRedo action\n10v411nCut selection\n10v421nCut selection\n10v480eCut selection\n10c410bApply bold formatting\n10c420bApply bold formatting\n11v4119Print workbook\n11v4219Print workbook\n11i440nOpen Visual Basic\n11m410dFill cells down\n11m420dFill cells down\n11m411dFill cells right\n11m421dFill cells right\n11u4a0JInsert cells\n10x410KDelete cells\n10x420KDelete cells\n10j410JCalculate all open workbooks\n10j400wCalculate all open workbooks\n12p411mClose window\n12p421mClose window\n104411cQuit Excel\n11P420yDisplay Go To dialog box\n11P400sDisplay Go To dialog box\n10Q4101Display Format Cells dialog box\n10Q4201Display Format Cells dialog box\n11P420zDisplay Replace dialog box\n11P490zDisplay Replace dialog box\n11o431lUse Paste Special\n11o461lUse Paste Special\n11o451lUse Paste Special\n12e411jApply underline formatting\n111410BApply italic formatting\n111420BApply italic formatting\n11u4217Open new blank workbook\n11H491fDisplay Save As dialog box\n11H400oDisplay Save As dialog box\n10V400lDisplay Help window\n10V4113Display Help window\n11K410aSelect all\n11K491gSelect all\n11J490kAdd or remove filter\n11J4a14Add or remove filter\n11i4118Display Open dialog box\n11i4218Display Open dialog box\n11P400uCheck spelling\n11i480uOpen thesaurus\n10j480qDisplay Formula Builder\n11i410qOpen Define Name dialog box\n11B410iInsert or reply to threaded comment\n11u490qOpen Create names dialog box\n12k480nInsert new sheet\n11v4119Print preview\n11v4219Print preview\n10R430kFull screen view\n103411mClose active workbook window\n11F4903Take screenshot and save it on your desktop\n12q420mMaximize or restore window\n12q410mMaximize or restore window\n10J410zHide Excel\n108401iNext box, option, control, or command\n107481iPrevious box, option, control, or command\n10p400jExit dialog box or cancel action\n10c400iPerform action assigned to default button\n10p400jCancel command and close dialog box or menu\n1064015Move one cell up, down, left, or right\n106401eMove one cell up, down, left, or right\n106401kMove one cell up, down, left, or right\n106400fMove one cell up, down, left, or right\n1074115Edge of current data region Left\n108411eEdge of current data region Right\n109411kEdge of current data region Up\n106410fEdge of current data region Down\n12k400ABeginning of row\n12k420ABeginning of sheet\n12k4i15Beginning of sheet\n12k420hLast cell in use on sheet\n12k4i1eLast cell in use on sheet\n106401aMove down one screen\n109401bMove up one screen\n11P441aMove one screen to right\n11P441bMove one screen to left\n108421aNext sheet in workbook\n108441eNext sheet in workbook\n107421aPrevious sheet in workbook\n1074415Previous sheet in workbook\n12k420eScroll to display cell\n11J480sDisplay Find dialog box\n12k401iMove between unlocked cells\n12k400pEdit cell\n10T400iComplete cell entry and move forward\n12k460iStart new line in same cell\n11m410iFill cell range with text that you type\n11m420iFill cell range with text that you type\n10T480iComplete cell entry and move up in selection\n10T401iComplete cell entry and move to right\n10T481iComplete cell entry and move to left\n12k400jCancel cell entry\n10T400eDelete character to left\n10T400eDelete character to right\n10x420eDelete text to end of line\n10x4i0eDelete text to end of line\n1064015Move one character up, down, left, or right\n106401eMove one character up, down, left, or right\n106401kMove one character up, down, left, or right\n106400fMove one character up, down, left, or right\n10s400ABeginning of line\n11f480pInsert note\n12k480pOpen and edit cell note\n10l490pInsert threaded comment\n11B490pOpen and reply to threaded comment\n11m420dFill down\n11m410dFill down\n11m421dFill to right\n11m411dFill to right\n11P4214Define name\n10j4619Toggle tooltips\n10j4a1jExpand or collapse formula bar\n10x400eEdit cell and then clear it or delete preceding\n12k400iComplete cell entry\n10j490iEnter formula as array formula\n10j4a0iEnter formula as array formula\n10j400jCancel entry in cell or formula bar\n10j420aDisplay Formula Builder after you type valid\n11u410DInsert hyperlink\n11u420DInsert hyperlink\n12h421jEdit cell and position insertion point at end\n10j480qOpen Formula Builder\n10j480wCalculate active sheet\n11P480mDisplay context menu\n10j400JStart formula\n10j411hToggle formula reference style between\n10j400rToggle formula reference style between\n10j491hInsert AutoSum formula\n10k4212Enter date\n11P4112Enter time\n10t4a11Copy value\n12k420EAlternate between displaying cell values\n10t4211Copy formula\n106440fDisplay AutoComplete list\n1034714Open Smart Lookup pane\n10j460wCalculate all worksheets\n10j4e0wCheck dependent formulas, and then calculate\n12k411hCreate table\n12k421hCreate table\n12k450iInsert line break in cell\n12k460iInsert line break in cell\n12t4910Increase font size\n12u490IDecrease font size\n100410gAlign center\n1014114Align left\n12k4914Display Modify Cell Style dialog box\n10Q4a0EApply general number format\n10Q4a04Apply currency format\n10Q4a05Apply percentage format\n10Q4a06Apply exponential number format\n10Q4a01Apply date format\n10Q4a02Apply date format\n10Q4a03Apply date format\n10Q4a04Apply date format\n10Q4a05Apply date format\n10Q4a06Apply date format\n10Q4a07Apply date format\n10Q4a08Apply date format\n10Q4a09Apply date format\n10Q4a02Apply time format\n10Q4a01Apply number format\n10n4500Apply outline border around selected cells\n10T451eAdd outline border to right of selection\n10T4515Add outline border to left of selection\n10T451kAdd outline border to top of selection\n10T450fAdd outline border to bottom of selection\n10x450KRemove outline borders\n10c410bApply or remove bold formatting\n111410BApply or remove italic formatting\n12e411jApply or remove underline formatting\n123491nApply or remove strikethrough formatting\n12k4900Hide column\n12k4a00Hide column\n12k4900Unhide column\n12k4a00Unhide column\n12k4909Hide row\n12k4a09Hide row\n12k4909Unhide row\n12k4a09Unhide row\n12k421jEdit cell\n11o411lPaste text into cell\n12k410iGive selected cells cell's entry\n12k420iGive selected cells cell's entry\n10T4815Extend selection by one cell Left\n10T481eExtend selection by one cell Right\n10T481kExtend selection by one cell Up\n10T480fExtend selection by one cell Down\n10T4915Extend selection to last nonblank cell\n10T491eExtend selection to last nonblank cell\n10T491kExtend selection to last nonblank cell\n10T490fExtend selection to last nonblank cell\n10T480AExtend selection to beginning of row\n10T4o15Extend selection to beginning of row\n10T4a0AExtend selection to beginning of sheet\n10T4q15Extend selection to beginning of sheet\n10T4a0hExtend selection to last cell used\n10T4q1eExtend selection to last cell used\n10T421gSelect entire column\n10T481gSelect entire row\n10T410aSelect current region or entire sheet\n10T4908Select only visible cells\n10T480eSelect only cell when multiple cells are\n10T481aExtend selection down one screen\n10T4o0fExtend selection down one screen\n10T481bExtend selection up one screen\n10T4o1kExtend selection up one screen\n11P4206Alternate between hiding objects, displaying\n10T400vTurn\n10T480vAdd another range of cells to selection\n10T4213Select current array\n10T420FSelect cells\n10T4a0GSelect only cells that are directly referred\n11K4a0GSelect all cells that are directly\n10T420HSelect only cells\n11K4a0HSelect all cells\n10t421lCopy selection\n10T420KDelete selection\n12f411pUndo last action\n10T400iMove\n10T480iMove\n10T401iMove\n10T481iMove\n10T4210Move clockwise to next corner of selection\n10T490DGroup selected cells\n10T490CUngroup selected cells\n11i491dOpen Sort dialog box\n11J440fDisplay Filter list or PivotTable page or field\n11L400iSend your prompt\n122400jStop or cancel Copilot in Excel request\n10n410iAccept changes made by Copilot in Excel\n10l4916Switch between edit, chat, and plan mode\n10l440cNavigate between chat responses\n10n410CConfirm use\n1184c0zStart dictation for Copilot in Excel\n103430BOpen Copilot in Excel task pane\n103480tMove focus between Excel grid and Copilot\n12k480pInsert note or open and edit cell note\n11B490pInsert threaded comment or open and reply\n11F440pOpen Save dialog box\n103410rClose window or dialog box\n11J420sSearch Sheet dialog box\n103400tSwitch focus between worksheet, ribbon, task\n103480tSwitch focus between worksheet, ribbon, task\n11i471dOpen thesaurus\n10T400vExtend selection\n10T480vAdd to selection\n11P440vDisplay Macro dialog box\n11P480mDisplay context menu, or \"right click\" menu\n11o4c0mDisplay pop-up menu\n12k400nInsert new chart sheet.*\n12k480nInsert new sheet.*\n12k410nInsert Excel 4.0 macro sheet\n11i410oDisplay Open dialog box\n10s440oOpen Power Query Editor\n11P431pToggle Drawing mode on and off\n10n4500Apply outline border\n10x450KRemove outline border\n12k4100Hide column(s)\n12k4209Hide row(s)\n12k4900Unhide column(s)\n12k4a00Unhide column(s)\n12k4a09Unhide row(s)\n12k401iCell on right\n12k4015Move within cell text Left\n12k401eMove within cell text Right\n12k401kMove within cell text Up\n12k400fMove within cell text Down\n10c410bApply bold formatting to text\n111410BApply italic formatting to text\n12e411jUnderline text\n10T4815Select range of cells Left\n10T481eSelect range of cells Right\n12k450iInsert line break within cell\n12k460iInsert line break within cell\n12k4115Move cursor to beginning\n12k411eMove cursor to end of line within cell\n12k411kMove cursor to beginning of cell\n12k410fMove cursor to end of cell\n109441kMove cursor up\n106440fMove cursor down\n108441eMove cursor right by one word\n1074415Move cursor left by one word\n10n420iAccept changes made by Copilot in Excel\n10l4a16Switch between edit, chat, and plan mode\n10n420CConfirm use\n103440cOpen Copilot in Excel task pane\n103400tMove focus between Excel grid and Copilot",
+  "com.microsoft.Outlook": "91F411fSave item\n11v4119Print item\n12f411pUndo last action\n11x411oRedo last action\n10O4917Create new folder in folder pane\n10H4117Create new email\n10d410FHide reading pane or show it on right\n10d490FHide reading pane or show it below\n10O4916Move item to different folder\n10t490cCopy item to different folder\n11K410aSelect all items in item list\n10J410zHide Outlook\n104411cQuit Outlook\n10H4101Mail view\n10k4102Calendar view\n1034103Contacts view\n1034104Open Favorites pane\n11M410IOpen Outlook Preferences dialog box\n108490ECycle forward through open windows\n11W490ECycle backward through open windows\n12p411mClose window\n11i4118Open item\n108401iMove forward through controls in window\n11W481iMove backward through controls in window\n10l4117Create new message\n11L410iSend open message\n11L430DSend all messages\n11L490DSend all messages in Outbox\n11F411fSave open message and store it in Drafts folder\n11n410gAdd attachment to open message\n11i4912Open Spelling and Grammar dialog box\n11B411dReply to sender of message\n11B491dReply to all\n10l410CForward message\n10l4118Open selected message in separate window\n10l490CMark selected message as junk email\n10l4d0CMark selected message as not junk email\n10l420GDisplay previous message\n10l420HDisplay next message\n10H4a0GNavigate to previous pane in Mail view\n10H4a0HNavigate to next pane in mail view\n10l4916Move selected message to folder\n10U410KDecrease display size\n10U490JIncrease display size\n106401gScroll down to next screen of text\n109481gScroll up to previous screen of text\n10x400eDelete selected message\n10x480ePermanently delete selected message\n10x410eDelete current message,\n11P411hMark selected messages as read\n117491hMark selected messages as unread\n10O451hMark all messages in folder as read\n105420gArchive selected message\n10k4102Open calendar view\n11u4117Create new appointment\n10k4118Open selected calendar event\n10x400eDelete calendar event\n103411hSwitch view to include today\n1074515In Day view, move to previous day\n108451eIn Day view, move to next day\n10k4a0GNavigate to previous pane in calendar view\n10k4a0HNavigate to next pane in calendar view\n11u4117Create new contact\n11i4118Open selected contact\n10x400eDelete contact\n107420GClose current open contact and open previous\n108420HClose current open contact and open next\n1074a0GNavigate to previous pane in People view\n1084a0HNavigate to next pane in People view\n10v411nCut text to clipboard\n10t410cCopy selection to clipboard\n11o411lPaste selection from clipboard\n11o4d1lPaste selection\n10c410bMake text bold\n111410BMake text italic\n12e411jUnderline text\n10U491nStrike through text\n11u410DInsert hyperlink\n1074015Move cursor left one character\n108401eMove cursor right one character\n109401kMove cursor up one line\n106400fMove cursor down one line\n10U441kMove cursor to beginning of paragraph\n10U440fMove cursor to end of paragraph\n1074415Move cursor to beginning of word\n108441eMove cursor to end of word\n10w490GDecrease indent\n10_490HIncrease indent\n10x400eDelete character to left\n10x400eDelete character to right side\n10x4g0eDelete character to right side\n128401iInsert tab stop\n10s4115Move cursor to beginning of line\n10s411eMove cursor to end of line\n10l411kMove cursor to top of message body\n10l410fMove cursor to bottom of message body\n10U410AMove cursor to beginning of text\n10U410hMove cursor to end of text\n109401bScroll view up\n106401aScroll view down\n1284101Mail tab\n1284103Calendar tab\n10l4117Open message composer to write message\n10l400jClose message composer\n11L410iSend message\n108401iNext field\n10k4917Open event composer to create new event\n10T401kSelect previous message in message list\n10T400fSelect next message in message list\n11B411cOpen Quick Reply\n11B411dOpen Reply dialog box to reply to message\n11B491dOpen Reply All dialog box to reply to all\n10l410COpen Forward dialog box to forward message\n10x400eDelete message\n10l411fSchedule message\n105410aArchive message\n117411jMark message as unread\n10l4114Flag message\n12f411pUndo action",
+  "com.microsoft.Powerpoint": "a1X4117Create new presentation\n11X4118Open presentation\n11v4119Print presentation\n11x411oRedo last action\n10v411nCut selected content\n11o411lPaste content\n11K410aSelect all\n104411cQuit PowerPoint\n10l4916Add comment\n11u410DInsert hyperlink\n108401aNext slide while editing\n107401bPrevious slide while editing\n10Y4a1iSwitch Outline and Thumbnail panes\n11X4g15Return to first slide in slideshow\n11X400iSpecific slide in slideshow\n11E440iStart Presenter View\n11X401gAdvance animation or slide\n11X401eAdvance animation or slide Right\n11X400fAdvance animation or slide Down\n11X401aAdvance animation or slide\n11X4017Advance animation or slide\n1074015Go back animation or slide\n107401kGo back animation or slide\n107401bGo back animation or slide\n1074019Go back animation or slide\n107400eGo back animation or slide\n11X400jEnd slideshow\n11X400KEnd slideshow\n11X4110End slideshow\n10J400bToggle black screen\n10J480bToggle black screen\n10J4010Toggle black screen\n10J401mToggle white screen\n10J481mToggle white screen\n10J400IToggle white screen\n10J410BHide pointer\n11P411jShow pointer when moving mouse\n10c410bApply bold formatting\n111410BApply italic formatting\n12e411jApply underline formatting\n10Q411hOpen Font dialog\n11l490cCopy formatting\n11l491lPaste formatting\n11o431lOpen Paste Special\n10U410GPromote bullet or paragraph level\n10U410HDemote bullet or paragraph level\n10u4916Crop selected picture\n12h4d0kBring object forward one position\n11W4d0bSend object backward one position\n12h490kBring object to front\n12h490bSend object to back\n10F420dDuplicate selected objects\n10t4d0cCopy animation\n11o4d1lPaste animation\n11X4902Format slide background",
+  "com.microsoft.teams2": "a134110Show keyboard shortcuts\n11J490kOpen filter\n11E4117Start new chat\n11M410IOpen Settings\n12t410JZoom\n12u410KZoom out\n11P4d1dReport problem\n103450iMove focus to pane divider\n103490iReturn pane to default width\n11q491hPin window on top\n11e4118Open existing conversation in new window\n11i4101Open 1st app on app bar\n11i4102Open 2nd app on app bar\n11i4103Open 3rd app on app bar\n11i4104Open 4th app on app bar\n11i4105Open 5th app on app bar\n11i4106Open 6th app on app bar\n11i4107Open 7th app on app bar\n11i4108Open 8th app on app bar\n11i4109Open 9th app on app bar\n11A4514Add Loop paragraph\n10l4114Move focus to Chat and Channel list\n10l4214Move focus to Chat options\n10l4119Move focus to message pane\n11P491hMove focus on top toast\n11i411oOpen history menu\n107490tPrevious section\n108410tNext section\n107410GGo back\n108410HGo forward\n11P4914Collapse all conversational folders\n11Q480jMark all as read\n10l410CJump to last read or newest message\n11P450CMark all messages as read\n11J410kSearch current chat or channel messages\n1284201Open 1st tab on chat header\n1284202Open 2nd tab on chat header\n1284203Open 3rd tab on chat header\n1284204Open 4th tab on chat header\n1284205Open 5th tab on chat header\n1284206Open 6th tab on chat header\n1284207Open 7th tab on chat header\n1284208Open 8th tab on chat header\n1284209Open 9th tab on chat header\n103410dToggle details pane\n11B491dReply to last message\n10l4c0gEdit last sent/selected message\n10l451dReact to last message\n117451jSee all unread items\n11P4516See all items you are mentioned\n10l450cSee all chat conversations\n11P450aSee all channel conversations\n11P450bSee all meeting chats\n10x451pClear all filters\n11P491nExpand compose box\n11L410iSend (expanded compose box)\n10Q4519Paragraph style\n10s480iStart new line\n10Q4501Apply heading 1 style\n10Q4502Apply heading 2 style\n10Q4503Apply heading 3 style\n10c410bApply bold style\n111410BApply italic style\n12e411jApply underline style\n123431nApply strikethrough style\n10l490BMark message as important\n11P430aRewrite with Copilot\n12i450gOpen video recorder\n115410DInsert link\n10s490cInsert inline code\n10s490bInsert code block\n10s4504Insert code\n12i491lAccept video call\n10a490aAccept audio call\n11P490dDecline call\n10a451fStart audio call\n12i491fStart video call\n10a490zEnd audio call\n12i490zEnd video call\n11b4916Toggle mute\n21P4914Announce raised hands (screen reader)\n11P490DRaise or lower your hand\n12i4918Toggle video\n125490aToggle live captions\n11N490gToggle share content tray\n10C491gSharing toolbar\n11N490dDecline screen share\n10n491lAccept screen share\n11P491oAdmit people from lobby notification\n11P4317Schedule meeting\n11F411fSave or send meeting request\n110430DJoin from meeting details\n11P451fSuggested time\n11E430cOpen meeting chat\n10M450JZoom into shared content\n12u450KZoom out from shared content\n10M4500Reset zoom for shared content\n109451kPan shared content up\n106450fPan shared content down\n1074515Pan shared content left\n108451ePan shared content right\n10k4102Open calendar view\n10k4117Create new appointment or calendar item\n11i4118Open item\n10x400eDelete item\n103411hSwitch view to include today\n1074515In Day view, move to previous day\n108451eIn Day view, move to next day\n10k4a0GNavigate to previous pane in calendar view\n10k4a0HNavigate to next pane in calendar view\n108401iNext event or area in current view\n10k481iPrevious event or area in current view\n108451eNext time period\n1074515Previous time period\n11P411hToday\n10k4301Day view\n10k4303Full Week view\n10k4304Month view\n10k4302Work week view\n10k4305Three-day view\n1034300List View\n11P4900Invite Attendees\n11P450CMark all activities as read\n117451jSee all unread activities\n11J450zFilter activities to missed calls\n11J450bFilter activities to @mentions\n10D4d01Download diagnostic logs\n11P441dCompose box\n11L410iSend message\n10U4119Start new paragraph\n10s4105Insert code\n117461jSee all unread chats\n117441jSee all unread activity\n1174416See unread activity mentions\n11J410kFind in current chat or channel\n11P4c0aSet Status to Available\n11P4c1mSet Status to Away\n10l410CAbility to jump(toggle) to latest or last-read\n11J450gSearch bar",
+  "com.microsoft.Word": "62f411pUndo previous action\n12f400lUndo previous action\n11x411oRedo previous action\n10v411nCut selected content to Clipboard\n10v400pCut selected content to Clipboard\n10t410cCopy selected content to Clipboard\n10t400qCopy selected content to Clipboard\n11o411lPaste contents of Clipboard\n11o400rPaste contents of Clipboard\n11o491lPaste text only\n12t490JZoom\n12u410KZoom out\n10M4100Return back to 100% zoom\n11P480mDisplay shortcut menu for item\n11P450yDisplay Go To dialog box\n11P400sDisplay Go To dialog box\n11P4514Display Spelling and Grammar dialog box\n11P400uDisplay Spelling and Grammar dialog box\n10T400vEnable extended selection mode\n108410ENext window\n107490EPrevious window\n11H491fDisplay Save As dialog box\n11J410kFind text (move focus to Search in Document\n10L420zDisplay Find and Replace pane\n11v4119Display Print dialog box\n11i410rClose document\n11J440uFind next spelling or grammatical error\n11i4c0uOpen Dictionary\n1074415Move cursor one word to left\n108441eMove cursor one word to right\n109411kMove cursor up by one paragraph\n106410fMove cursor down by one paragraph\n10s4115Move cursor to beginning of line\n10s400AMove cursor to beginning of line\n10s411eMove cursor to end of line\n10s400hMove cursor to end of line\n11k411bMove cursor to top of previous page\n11j411aMove cursor to top of next page\n11i410AMove cursor to beginning of document\n11i410hMove cursor to end of document\n12h480sMove cursor to previous insertion point\n109401bMove cursor\n106401aMove cursor\n10T4815Select text Left\n10T481eSelect text Right\n10T481kSelect text Up\n10T480fSelect text Down\n10T4c15Select word to left\n10T4c1eSelect word to right\n10T4915Select\n10T480ASelect\n10T491eSelect\n10T480hSelect\n10T491kSelect\n10T490fSelect\n10T481bSelect\n10T481aSelect\n10T490ASelect\n10T490hSelect\n10T4d1aSelect\n11K410aSelect all document content\n10T500v015Select nearest character to left\n10T500v01eSelect nearest character to right\n10T400vExpand selection\n10T480vReduce selection\n10T590v015Select vertical block of text Left\n10T590v01eSelect vertical block of text Right\n10T590v01kSelect vertical block of text Up\n10T590v00fSelect vertical block of text Down\n10T400jStop extending selection\n11o431lDisplay Paste Special dialog box\n10v410qCut selected content to Spike\n11o490qPaste contents of Spike\n10t450cCopy text formatting\n11o451lPaste text formatting\n11u440qCreate AutoText entry\n10U410gCenter paragraph\n112410CJustify paragraph\n1014114Align paragraph to left\n102411dAlign paragraph to right\n10_4a16Indent paragraph\n10_4916Remove paragraph indent\n10_411hCreate hanging indent\n10_491hRemove hanging indent\n10U4101Apply single-spacing to paragraph\n10U4102Apply double-spacing to paragraph\n10U4105Apply 1.5-line spacing to paragraph\n11P450DEnable AutoFormat\n10Q4917Apply Normal style\n10Q4501Apply Heading 1 style\n10Q4502Apply Heading 2 style\n10Q4503Apply Heading 3 style\n10Q4914Apply List style\n11u441gInsert nonbreaking space\n12t4910Increase font size\n12u490IDecrease font size\n12t410HIncrease font size by 1 point\n12u410GDecrease font size by 1 point\n10Q410dDisplay Font dialog box\n10U480qSwitch text between upper case, lower case,\n10U490aChange text to all upper case\n10c410bApply bold formatting\n10i4914Add bulleted list\n12e411jApply underline formatting\n12e491mApply underline formatting to words, but not\n12e490dApply double-underline formatting\n111410BApply italics formatting\n10n490DApply small caps formatting\n10n491nApply strike-through formatting\n124490KApply subscript formatting\n11u410wInsert empty field\n10s480iInsert line break\n10d410iInsert page break\n12k490iInsert column break\n11u450KInsert optional hyphen\n11u4c0KInsert nonbreaking hyphen\n10s680900c800Insert copyright symbol (©)\n10s441dInsert registered trademark symbol (®)\n10s4402Insert trademark symbol (™)\n10T401iNext cell and select its content\n10T481iPrevious cell and select its content\n108400fNext row\n107401kPrevious row\n12k420AFirst cell in row\n12k420hLast cell in row\n12k421bFirst cell in column\n12k421aLast cell in column\n12k401iAdd new row to bottom of table\n12k430BInsert row\n11P431pToggle drawing mode\n10k4a0dInsert DATE field\n11u4d14Insert LISTNUM field\n10d4a19Insert PAGE field\n11u4a1hInsert TIME field\n11P400wUpdate selected fields\n10s480wSwitch between field code and its result\n11P440wSwitch between all field codes and their\n11E4c0wRun GOTOBUTTON or MACROBUTTON\n11P410nLock field\n11P490nUnlock field\n10U4a15Promote paragraph\n10U4a1eDemote paragraph\n10U4917Demote paragraph to body text\n1094a1kMove selected paragraphs up\n1064a0fMove selected paragraphs down\n10U4a0JExpand text under heading\n10U4a0KCollapse text under heading\n10U4a0aExpand all body text and headings, or collapse\n10U4a14Switch between showing first line\n10U4a01Show all headings\n10U4a02Show all headings\n10U4a03Show all headings\n10U4a04Show all headings\n10U4a05Show all headings\n10U4a06Show all headings\n10U4a07Show all headings\n10U4a08Show all headings\n10U4a09Show all headings\n10l450aInsert comment\n11P490gTurn change tracking on or off\n10l400ABeginning of comment\n10l400hEnd of comment\n11P410ABeginning of list of comments\n11P410hEnd of list of comments\n11u450kInsert footnote\n11u450gInsert endnote\n1074315Switch writing direction to right-to-left\n108431eSwitch writing direction to left-to-right\n10M4100Return to 100% zoom\n11P400lF1\n11P400pF2\n11P480pF2\n11P400rF4\n11P480rF4\n11P490rF4\n11P400sF5\n11P480sF5\n11P490sF5\n11P480mF10\n11F411fSave document\n11v4119Print document\n11i411mClose document\n11J410kFind text\n10U401eTo accept text prediction\n11o411lPaste content from clipboard\n10c410bApply bold formatting to text\n111410BApply Italic formatting to text\n12e411jUnderline text\n12e491mUnderline selected words, but not spaces\n10Q4517Change text to use Normal style\n10U410DChange text into hyperlink\n10U490DChange text to small caps\n10U490aChange text to all caps\n10_4916Remove indent from paragraph\n10_411hApply hanging indent to paragraph\n10U491lApply formatting\n12h450aAdd comment to text or shape\n10L420zFind and replace text\n11i490gToggle revision marks",
+  "com.apple.Music": "71p401gStart playing or pause selected song\n11s400iPlay selected song from beginning\n108451eMove forward or backward within song\n1084515Move forward or backward within song\n11s401eWhen song is playing, play next song in list\n11s4015When song is playing, play previous song\n11P4114Show currently playing song in list\n11P451jShow queue\n11s441ePlay next album in list\n11s4415Play previous album in list\n12o411kIncrease volume\n12m410fDecrease volume\n11i450gOpen equalizer\n108491eNext or last chapter\n1084915Next or last chapter\n10a411jStream audio file at specific URL to Music\n11U441gStart Genius Shuffle\n11y411dRefresh Genius Playlist\n10x400eDelete selected song\n10x410eDelete selected song\n10x440eDelete selected song\n10Z4118Add file (import) to your library\n11i491dShow where song file is located\n12f411pUndo your last typing change while editing\n10v411nCut selected song's information or artwork\n10t410cCopy selected song's information or artwork\n11o411lPaste selected song's information or artwork\n11K410aSelect all songs in list\n12k410bToggle column browser\n10y490aDeselect all songs in list\n11i4516Toggle MiniPlayer\n11i4916Toggle MiniPlayer\n10S490kToggle Full Screen Player\n10J4113Toggle status bar\n103410BOpen Info window for selected song\n108410GShortcut\n108410HShortcut\n11M410COpen View Options window\n11P411hTurn visualizer on or off\n11y411dRefresh Apple Music or iTunes Store\n1034100Open Music window\n103411mClose Music window\n1034116Put Music window in Dock\n10J450zHide all other apps\n11j410HNext page in iTunes Store\n11k410GPrevious page in iTunes Store\n10d411dReload page\n11M410IOpen Music settings\n11P410gEject CD\n10V4913Open Music Help menu",
+  "com.apple.Notes": "61f4g1cCreate Quick Note\n10F410dDuplicate note\n10B431fToggle Sidebar\n11f4100Show main Notes window\n11f4101Show notes in list\n11f4102Show notes in gallery view\n11P4103Show attachments\n10B401iMove between sidebar, notes list, and search\n11f400iBegin typing\n11v4119Print note\n11f430BToggle highlights in shared note\n11f430DToggle activity list in shared note\n108450HGo forward to linked note\n11f450GReturn back to note containing linked note\n11n490aAttach file\n115410DAdd link\n10s4114Insert divider line\n12k451hInsert table\n10Q491hApply Title format\n10Q490zApply Heading format\n10Q490CApply Subheading format\n10Q490bApply Body format\n10Q4916Apply Monostyled format\n10i4907Apply Bulleted List format\n10Q4908Apply Dashed List format\n11g4909Apply Numbered List format\n10Q4111Apply Block Quote format\n12t490JIncrease font size\n12u410KDecrease font size\n11P410HIncrease list level\n11T401iIncrease list level\n11P410GDecrease list level\n11T481iDecrease list level\n10s480iAdd line break (soft return) to list item\n128441iInsert tab character in list item\n11P491jMark or unmark checklist item\n109431kMove list or checklist item up in list\n106430fMove list or checklist item down in list\n12t4910Zoom in on note's contents\n12u490IZoom out on note's contents\n11f4900Change size of note's contents to default\n106400iMove down one row or add new row\n109480iMove up one row, or above table when you're\n12k451kAdd new row above row\n12k450fAdd new row below row\n12k451eAdd new column to right of column\n12k4515Add new column to left of column\n108401iNext cell to right\n108481iNext cell to left\n128441iAdd tab character in cell\n10T4815Select range of cells in row Left\n10T481eSelect range of cells in row Right\n10T481kSelect range of cells in column Up\n10T480fSelect range of cells in column Down\n10T410aSelect content of cell\n10T410aSelect entire table",
+  "notion.id": "b1J410DOpen search / jump to page\n10d4a0DPrevious database page in peek\n10d4a0CNext database page in peek\n10l4916Add comment\n10c410bBold\n111410BItalic\n12e411jUnderline\n123491fStrikethrough\n11o411lPaste URL over text\n10s410gInline code\n10_401iIndent block\n10w481iOutdent block\n10U4500Turn block into text\n10U4501Turn block into heading 1\n10U4502Turn block into heading 2\n10U4503Turn block into heading 3\n11u4504Create to-do checkbox\n10i4505Create bulleted list\n11g4506Create numbered list\n11u4507Create toggle list\n10s4508Create code block\n10d4509Create new page\n12t490JZoom\n12u410KZoom out\n109491jMove up one hierarchy\n11m411dFill selected cells right\n11m410dFill selected cells down\n10T400jSelect or clear current block\n10T410aSelect current block\n10R401gToggle image full screen\n10T4015Select another block Left\n10T401eSelect another block Right\n10T401kSelect another block Up\n10T400fSelect another block Down\n10T481kExpand block selection Up\n10T480fExpand block selection Down\n10x400eRemove selected blocks\n10F410dDuplicate selected blocks\n11R400iEdit selected block\n11i4113Open block actions\n109491kMove selected block Up\n106490fMove selected block Down\n11i451hToggle all toggles\n11m490zApply last text or highlight color\n11R410iModify current block",
+  "com.apple.iWork.Numbers": "8184g0dStart dictation\n11i4117Open template chooser\n11i4517Open template chooser and show Language pop-up\n11i4118Open existing spreadsheet\n11Q400jClose template chooser\n11F411fSave spreadsheet\n11H4d1fSave as\n12k400iEnd editing spreadsheet or sheet name\n10F491fDuplicate spreadsheet\n12k400jEnd editing spreadsheet or sheet name\n11v4119Print spreadsheet\n107490GPrevious sheet\n108490HNext sheet\n12k4d0GFirst sheet\n12k4d0HLast sheet\n11v401bScroll one page up in print preview\n11v401aScroll one page down in print preview\n12k4519Preview sheet or spreadsheet\n11i4913Open Numbers User Guide\n103411mClose window\n11P451mClose all windows\n10R430kEnter full-screen view\n12t4910Zoom\n12u490IZoom out\n11M410IShow Settings window\n10M4900Zoom to selection\n11P4100Return to actual size\n11P411dShow spreadsheet rulers\n103490cShow Colors window\n10C451hToggle toolbar\n10B450BToggle sidebar\n128420EOpen next tab of sidebar\n1284a0EOpen previous tab of sidebar\n10J450zHide other windows\n12f411pUndo last action\n11x491pRedo last action\n10T4101Select one of first seven sheets 1\n10T4102Select one of first seven sheets 2\n10T4103Select one of first seven sheets 3\n10T4104Select one of first seven sheets 4\n10T4105Select one of first seven sheets 5\n10T4106Select one of first seven sheets 6\n10T4107Select one of first seven sheets 7\n1074015Move one character to left\n108401eMove one character to right\n11W420bMove one character backward (works\n10U420kMove one character forward (works\n10s401kLine above\n10s400fLine below\n1074415Beginning of current or previous word\n107460bBeginning of current or previous word\n108441eEnd of current or next word\n108460kEnd of current or next word\n10U411kBeginning of text area\n10U410fBottom of text area\n10s4115Beginning of line\n10s411eEnd of line\n10U441kBeginning of paragraph\n10U440fEnd of paragraph\n11J410gFind item in spreadsheet\n10T410CJump to selection in spreadsheet\n109401bScroll up sheet\n106401aScroll down sheet\n12k400AScroll to beginning of sheet\n12k4g1kScroll to beginning of sheet\n12k400hScroll to end of sheet\n12k4g0fScroll to end of sheet\n12h4214Center insertion point in app window\n106421lMove down page\n11K410aSelect all objects and text\n10y490aDeselect all objects and text\n10T481eExtend selection one character to right\n10T4815Extend selection one character to left\n10T4c1eExtend selection to end of word\n10T4c15Extend selection to beginning of word\n10T491eExtend selection to end of line\n10T4915Extend selection to beginning of line\n10T481kExtend selection to line above\n10T480fExtend selection to line below\n10T4c1kExtend selection to beginning of paragraph\n10T4c0fExtend selection to end of paragraph\n10T491kExtend selection to beginning of text\n10T480AExtend selection to beginning of text\n10T490fExtend selection to end of text\n10T480hExtend selection to end of text\n103411hShow Fonts window\n10U410bApply boldface to text\n111410BApply italic to text\n12e411jApply underline to text\n10T400eDelete previous character or selection\n10T420zDelete previous character or selection\n10T420dDelete next character or selection\n10T400xDelete next character or selection\n10x440eDelete word before insertion point\n10x440xDelete word after insertion point\n10x420DDelete text between insertion point and next\n10Q490JMake font size bigger\n12u410KMake font size smaller\n11P450GDecrease space between selected characters\n11P450HIncrease space between selected characters\n1264b0JMake text superscript\n124430KMake text subscript\n10_410GDecrease indent level\n10_410HIncrease indent level\n10_481iDecrease indent level\n10_401iIncrease indent level\n12h410DTurn text or object into link\n10v411nCut selection\n10t410cCopy selection\n11l450cCopy paragraph style\n11o411lPaste selection\n11l451lPaste paragraph style\n11o4d1lPaste and match style of destination text\n11u441gInsert nonbreaking space\n10s480iInsert line break (soft return)\n10U440iInsert paragraph break\n12h421hTranspose characters\n11u4b1hInsert current time\n10k4b0dInsert current date\n10T4g0eDelete next character or selection\n11J410gPlace text in Find & Replace text field\n10U400iReplace text\n12h410CScroll window to show text or object\n11J400jHide Find window\n12h430dLook up word at insertion point\n10n440jDisplay list of words to complete word\n11P4112Check spelling and grammar\n1034912Show Spelling and Grammar window\n11F410iSave comment\n10l450DShow next comment\n10l4d0DShow previous comment\n11K410aSelect all objects\n10y490aDeselect all objects\n10T401iSelect next object on sheet\n10T481iSelect previous object on sheet\n12h4015Move object one point Left\n12h401eMove object one point Right\n12h401kMove object one point Up\n12h400fMove object one point Down\n12h4815Move object ten points Left\n12h481eMove object ten points Right\n12h481kMove object ten points Up\n12h480fMove object ten points Down\n12h4015Move object one screen pixel Left\n12h401eMove object one screen pixel Right\n12h401kMove object one screen pixel Up\n12h400fMove object one screen pixel Down\n12h4815Move object ten screen pixels Left\n12h481eMove object ten screen pixels Right\n12h481kMove object ten screen pixels Up\n12h480fMove object ten screen pixels Down\n10t450cCopy graphic style\n11o451lPaste graphic style\n12h490bSend object to back\n1144d0bSend object one layer back\n12h490kBring object to front\n1144d0kBring object one layer forward\n10T450yGroup selected objects\n10T4d0yUngroup selected objects\n10T401iSelect next object in group\n10T481iSelect previous object in group\n10T410iEnd editing object and select group\n11P4114Lock selected objects\n11P4514Unlock selected objects\n12h4916Mask or unmask object\n10T410iExit text editing and select object\n12h470BDefine object as media placeholder\n10E4d19Draw custom shape with Pen tool\n11u450gInsert equation\n12k441kAdd row above selected cells\n12k440fAdd row below selected cells\n12k441eAdd column to right of selected cells\n12k4415Add column to left of selected cells\n10x450eDelete selected rows\n10x430eDelete selected columns\n12k400iInsert row at bottom of table\n12k401iInsert column on right of table\n11K450iSelect all rows that intersect current\n11K430iSelect all columns that intersect current\n10T481kSelect additional rows Up\n10T480fSelect additional rows Down\n10T481eSelect additional columns Right\n10T4815Select additional columns Left\n10T410iSelect table from cell selection\n10T440iSelect first cell in selected table\n11K410aSelect all content in table\n10x400eDelete selected table, or contents\n10t450cCopy cell style\n11o451lPaste cell style\n11o4d1lPaste and preserve style\n12k440iEdit cell\n12k401gOpen pop-up menu in cell\n10T400iSelect value in pop-up menu in cell\n10T401gSelect value in pop-up menu in cell\n12k4017Check or uncheck checkbox in cell\n12k4000Set 0\n12k4001Set 1\n12k4002Set 2\n12k4003Set 3\n12k4004Set 4\n12k4005Set 5\n12k451jAuto-align cell content\n10T410iStop editing cell and select cell\n10T510i10iStop editing cell and select table\n12h4015Move selected table one point Left\n12h401eMove selected table one point Right\n12h401kMove selected table one point Up\n12h400fMove selected table one point Down\n12k4815Move selected table ten points Left\n12k481eMove selected table ten points Right\n12k481kMove selected table ten points Up\n12k480fMove selected table ten points Down\n10T401iSelect next cell\n10T481iSelect previous cell\n10T400iSelect cell below\n10T480iSelect cell above\n10T4015Select cell to left, right, up, or down\n10T401eSelect cell to left, right, up, or down\n10T401kSelect cell to left, right, up, or down\n10T400fSelect cell to left, right, up, or down\n10T4815Extend cell selection by one cell Left\n10T481eExtend cell selection by one cell Right\n10T481kExtend cell selection by one cell Up\n10T480fExtend cell selection by one cell Down\n10T410iSelect parent of current selection\n128441iInsert tab when editing text or formula\n12k4c0iInsert line break (soft return) when editing\n12k440iInsert paragraph break (hard return) when\n10j420JOpen Formula Editor with contents of cell\n10j420JConvert formula\n10j400JOpen empty Formula Editor\n11o491lPaste formula results\n11F400iIn Formula Editor, save changes\n11F401iIn Formula Editor, save changes\n10x400jIn Formula Editor, discard changes\n11P450kTurn Filters on or off\n10n491dApply sorting rules\n11P4108Collapse selected category groups\n11P4109Expand selected category groups\n10T4515Select first populated cell in row\n10T451eSelect last populated cell in row\n10T451kSelect first populated cell in column\n10T450fSelect last populated cell in column\n10T481iSelect table name\n11o491lPaste formula result\n10T4d15Expand current selection to include first\n10T4d1eExpand current selection to include last\n10T4d1kExpand current selection to include first\n10T4d0fExpand current selection to include last\n11P4316Merge selected cells\n11P4b16Unmerge selected cells\n10x471kAdd or remove top border\n10x470fAdd or remove bottom border\n10x471eAdd or remove right border\n10x4715Add or remove left border\n11P410FTurn on autofill mode\n12k430FAutofill from column before\n12k450FAutofill from row above\n11P490dEdit chart data references\n12h4015Move chart legend one point Left\n12h401eMove chart legend one point Right\n12h401kMove chart legend one point Up\n12h400fMove chart legend one point Down\n1074815Move chart legend ten points Left\n108481eMove chart legend ten points Right\n109481kMove chart legend ten points Up\n106480fMove chart legend ten points Down\n10T4415Navigate to and select single cell Left\n10T441eNavigate to and select single cell Right\n10T441kNavigate to and select single cell Up\n10T440fNavigate to and select single cell Down\n12k4c15Extend or shrink cell reference Left\n12k4c1eExtend or shrink cell reference Right\n12k4c1kExtend or shrink cell reference Up\n12k4c0fExtend or shrink cell reference Down\n12k4515Navigate to first or last nonheader cell\n12k451eNavigate to first or last nonheader cell\n12k451kNavigate to first or last nonheader cell\n12k450fNavigate to first or last nonheader cell\n10s440iInsert line break\n128441iInsert tab\n12k410DSpecify absolute and relative attributes",
+  "com.obsproject.obs-studio": "704411cQuit OBS Studio\n10x400eRemove source\n109411kMove source up in Sources list\n106410fMove source down in Sources list\n1074h15Move source to top of Sources list\n1084h1eMove source to bottom of Sources list\n11P410kFit to screen\n11P411fStretch to screen\n11P410dCenter to screen\n109401kNudge source up\n106400fNudge source down\n1074015Nudge source left\n108401eNudge source right",
+  "md.obsidian": "b13401kAnd run Command Palette result\n113500f00iAnd run Command Palette result\n11f611800f00iSwitch between recent notes\n1284102Switch directly to tab by position 2\n1284103Switch directly to tab by position 3\n1284104Switch directly to tab by position 4\n1284105Switch directly to tab by position 5\n1284106Switch directly to tab by position 6\n1284107Switch directly to tab by position 7\n1284108Switch directly to tab by position 8\n1284109Switch directly to tab by position 9\n10t410cCopy paragraph\n10v411nCut paragraph\n10c410bFormat text as bold\n111410BFormat text as italic\n10x490DDelete line",
+  "com.orcaslicer.OrcaSlicer": "a1u4217New Project\n11i4218Open Project\n11F421fSave Project\n11F4a1fSave Project as\n10Z420BImport geometry data\n11P4a0gPublish 3MF\n11P421dSlice plate\n10I420yExport plate sliced file\n11v4a0yPrint plate\n11v420CPrint host upload queue\n1034200Camera view - Default\n1034201Camera view - Top\n1034202Camera view - Bottom\n1034203Camera view - Front\n1034204Camera view - Behind\n11P4205Camera Angle - Left side\n11P4206Camera Angle - Right side\n1034207Camera view - Current plate\n12h420gShow object labels in 3D scene\n11M410IPreferences\n11J420kSearch\n11_401gOpen Speed Dial\n10e4401Run speed dial favorite while dial is open 1\n10e4402Run speed dial favorite while dial is open 2\n10e4403Run speed dial favorite while dial is open 3\n10e4404Run speed dial favorite while dial is open 4\n10e4405Run speed dial favorite while dial is open 5\n10e4406Run speed dial favorite while dial is open 6\n10e4407Run speed dial favorite while dial is open 7\n10e4408Run speed dial favorite while dial is open 8\n10e4409Run speed dial favorite while dial is open 9\n10e4400Run speed dial favorite while dial is open 0\n128421iNext main tab\n103400AIsometric view, fitted to model\n10J4019Toggle origin planes\n10J400aToggle world axes\n103401nSection view on or off\n11P401bMove section plane\n11P401aMove section plane\n11P400kFlip section while it is on, otherwise lay\n10J4a0bToggle printer bed\n11Y4a19Commit to Plate\n10T480mOpen offer menu on current selection\n11z400pRename selected feature\n10T400jClear selection\n11K420aSelect all objects\n11K4a0aSelect all objects on all plates\n10y400jDeselect all\n12f421pUndo\n11x421oRedo\n10v421nCut\n10t420cCopy to clipboard\n11o421lPaste from clipboard\n10x400eDelete Selected\n10x420dDelete All\n11P420DClone Selected\n11u480JAdd instance\n10x400KRemove instance\n12h401lToggle printable for object/part\n12h4001Set filament for object/part 1\n12h4002Set filament for object/part 2\n12h4003Set filament for object/part 3\n12h4004Set filament for object/part 4\n12h4005Set filament for object/part 5\n12h4006Set filament for object/part 6\n12h4007Set filament for object/part 7\n12h4008Set filament for object/part 8\n12h4009Set filament for object/part 9\n11P400aArrange all objects\n11P480aArrange objects on selected plates\n11P401cAuto orient all/selected objects\n11P481cAuto orient all objects on current plate\n10T401kMove selection 10 mm\n10T400fMove selection 10 mm\n10T4015Move selection 10 mm\n10T401eMove selection 10 mm\n1074815Movement step set to 1 mm Left\n108481eMovement step set to 1 mm Right\n109481kMovement step set to 1 mm Up\n106480fMovement step set to 1 mm Down\n1074215Movement in camera space Left\n108421eMovement in camera space Right\n109421kMovement in camera space Up\n106420fMovement in camera space Down\n10T401bRotate selection 45 degrees counterclockwise\n10T401aRotate selection 45 degrees clockwise\n11P4016Gizmo move\n11D401dGizmo rotate\n11P401fGizmo scale\n11P400kGizmo place face on bed\n10v400cGizmo cut\n11P400bGizmo mesh boolean\n10g4014Gizmo FDM paint-on supports\n10g4019Gizmo FDM paint-on seam\n10g400zGizmo FDM paint-on fuzzy skin\n11P4017Gizmo multi-material painting\n10U401hGizmo text emboss/engrave\n11P401jGizmo measure\n11P401oGizmo assemble\n11P400gGizmo brim ears\n12t400BZoom\n12u4018Zoom out\n11M4916Show/Hide 3Dconnexion devices settings dialog\n10J4a0iShow/Hide wireframe\n11T401iSwitch between Prepare/Preview\n10B481iCollapse/Expand sidebar\n10d400sReload device page\n1134813Show keyboard shortcuts list\n11P400cCircle\n11P401fSphere\n11m400kFill\n11m400yGap Fill\n11P401hTriangle\n11P400zHeight Range\n11P400dAuto Drop\n11P4001Set extruder 1 for objects and parts 1\n11P4002Set extruder 2 for objects and parts 2\n11P4003Set extruder 3 for objects and parts 3\n11P4004Set extruder 4 for objects and parts 4\n11P4005Set extruder 5 for objects and parts 5\n11P4006Set extruder 6 for objects and parts 6\n11P4007Set extruder 7 for objects and parts 7\n11P4008Set extruder 8 for objects and parts 8\n11P4009Set extruder 9 for objects and parts 9\n10T401gSelect object/part and press space to change\n114480yJump to layer\n109401kVertical slider - Move active thumb Up\n106400fVertical slider - Move active thumb Down\n1074015Horizontal slider - Move active thumb Left\n108401eHorizontal slider - Move active thumb Right\n11E400AHorizontal slider - Move to start position\n11P400hHorizontal slider - Move to last position\n11_4815Move slider 5x faster Left\n11_481eMove slider 5x faster Right\n11_481kMove slider 5x faster Up\n11_480fMove slider 5x faster Down\n11_4215Move slider 5x faster Left\n11_421eMove slider 5x faster Right\n11_421kMove slider 5x faster Up\n11_420fMove slider 5x faster Down\n10s400cOn/Off G-code window\n1144014On/Off one layer mode of vertical slider\n10s4014Line — click start\n11P401dRectangle — click two opposite corners\n11P400cCircle — click center\n12h400aArc — click start, end\n11P401fSlot — two centerline ends\n12h400gEllipse — center, major end, minor point\n11P400bSpline — click control points\n12h4019Point — click to place\n11P400yPolygon — click center\n11P400dDimension — click 2 points or entity\n12j401hTrim — click segment to trim it\n10s401nExtend — click line or arc to extend it\n11P4018Offset — pick entity, drag distance\n11P4016Mirror — pick axis\n11P400kFillet — pick two lines, set radius\n11P400zChamfer — pick two lines, set distance\n10T401lValue — type defining number of selection\n10n400DConstrain — finish live tool and enter\n10T401cConstruction — draw next entity as\n11P4017Look normal to sketch plane\n10n400iFinish sketch\n11Q400jClose value field, drop entity being drawn,\n10x400eDelete selected sketch entities\n10x421pRemove last entity drawn\n11P481fSketch\n11P480gExtrude — extrude profile, or push and pull\n11P481dRevolve\n11P481mSweep\n11P4814Loft\n11P4817Pattern\n11P480ySurface Extrude\n11P480CSurface Revolve\n11P4818Surface Loft\n11m481cSurface Fill\n11P481jSurface Offset\n11P481lThicken Surface\n11P4819Plane\n11P480aAxis\n11P480cCoord Sys\n11P481oTransform\n11P481pMirror\n11P480bBoolean\n10v481nCut\n11P480kFillet / Chamfer\n10H480dDraft\n11P480DShell\n11P480zHole\n11P481hThread\n10Z480BImport STEP\n10Z4816Import mesh\n10x400eDelete selected feature\n11x4a1pRedo",
+  "com.apple.iWork.Pages": "a184g0dStart dictation\n11i4517Open template chooser and show Language pop-up\n11Q400jClose template chooser\n11i4118Open existing document (open document manager)\n11F411fSave document\n11H4d1fSave As\n10F491fDuplicate document\n11v4119Print document\n11i4913Open Pages User Guide\n103411mClose window\n11P451mClose all windows\n10R430kEnter full-screen view\n12t490JIncrease text size\n12u410KDecrease text size\n12t4910Zoom\n12u490IZoom out\n10M4900Zoom to selection\n11P4100Return to actual size\n10J411dToggle ruler\n10d4919Open Page Setup window\n10J4914Toggle layout boundaries\n11P490BShow formatting characters (invisibles)\n11u491lFile to insert\n103490cShow Colors window\n10C451hToggle toolbar\n10J450zHide windows of other applications\n12f411pUndo last action\n11x491pRedo last action\n11M410IOpen Pages settings\n1074015Move one character to left\n108401eMove one character to right\n11W420bMove one character backward (works\n10U420kMove one character forward (works\n10s401kLine above\n10s400fLine below\n107460bBeginning of current or previous word\n1074415Left edge\n108460kEnd of current or next word\n108441eRight edge\n12h411kMove insertion point to beginning\n12h410fMove insertion point to bottom\n10U420aBeginning of paragraph\n10U441kBeginning of paragraph\n10U420gEnd of paragraph\n10U440fEnd of paragraph\n1074115Left edge of line\n108411eRight edge of line\n1094g1kScroll up one page without moving insertion\n109401bScroll up one page without moving insertion\n1064g0fScroll down one page without moving insertion\n106401aScroll down one page without moving insertion\n109441bScroll up one page and move insertion point\n106421lScroll down one page and move insertion point\n106441aScroll down one page and move insertion point\n12h400ABeginning\n12h4g15Beginning\n12h400hEnd\n12h4g1eEnd\n12h4214Center insertion point\n10d430ySpecific page\n11K410aSelect all objects and text\n10y490aDeselect all objects and text\n10T481eExtend selection one character to right\n10T4815Extend selection one character to left\n10T4c1eExtend selection to end of word\n10T4c15Extend selection to beginning of word\n10T491eExtend selection to end of line\n10T4915Extend selection to beginning of line\n10T481kExtend selection to line above\n10T480fExtend selection to line below\n10T4c1kExtend selection to beginning of paragraph\n10T4c0fExtend selection to end of paragraph\n10T491kExtend selection to beginning of text\n10T480AExtend selection to beginning of text\n10T490fExtend selection to end of text\n10T480hExtend selection to end of text\n103411hShow Fonts window\n10U410bApply boldface to text\n111410BApply italic to text\n12e411jApply underline to text\n10T400eDelete previous character or selection\n10T420zDelete previous character or selection\n10T420dDelete next character or selection\n10T400xDelete next character or selection\n10x440eDelete word before insertion point\n10x440xDelete word after insertion point\n10x420DDelete text between insertion point and next\n10Q490JMake font size bigger\n12u410KMake font size smaller\n11P450GDecrease (tighten) space between selected\n11P450HIncrease (loosen) space between selected\n1264b0JMake text superscript\n124430KMake text subscript\n101490GAlign text flush left\n10U490FCenter text\n102490HAlign text flush right\n1014d0FAlign text flush left and flush right (justify)\n10_410GDecrease indent level\n10_410HIncrease indent level\n10_481iDecrease indent level of list item\n10_401iIncrease indent level of list item\n12h410DTurn text or object into link\n10e450bAdd bookmark\n10v411nCut selection\n10t410cCopy selection\n11l450cCopy paragraph style\n11o411lPaste selection\n11l451lPaste paragraph style\n11o4d1lPaste and match style of destination text\n10t450cCopy graphic style of text\n11o451lPaste graphic style of text\n11u441gInsert nonbreaking space\n10s480iInsert line break (soft return)\n10U400iInsert paragraph break\n10d410iInsert page break\n12h421hTranspose characters\n11u4d0gAdd EndNote bibliography\n10T4g0eDelete next character or selection\n10U400iReplace text\n12h410CScroll window to show text or object\n11J400jHide Find window\n12h430dLook up word at insertion point\n10n440jDisplay list of words to complete word\n11P4112Check spelling and grammar\n1034912Show \"Spelling and Grammar\" window\n10U490zHighlight text\n11F410iSave comment\n10l450DShow next comment\n10l4d0DShow previous comment\n10n450aAccept change\n11P451dReject change\n10J491mToggle word count\n10d490gToggle Edit Page Template view\n11K410aSelect all objects\n10y490aDeselect all objects\n10T481iSelect previous object on page\n12h4015Move object one point Left\n12h401eMove object one point Right\n12h401kMove object one point Up\n12h400fMove object one point Down\n12h4815Move object ten points Left\n12h481eMove object ten points Right\n12h481kMove object ten points Up\n12h480fMove object ten points Down\n12h4015Move object one screen pixel Left\n12h401eMove object one screen pixel Right\n12h401kMove object one screen pixel Up\n12h400fMove object one screen pixel Down\n12h4815Move object ten screen pixels Left\n12h481eMove object ten screen pixels Right\n12h481kMove object ten screen pixels Up\n12h480fMove object ten screen pixels Down\n10t450cCopy graphic style\n11o451lPaste graphic style\n12h490bSend object to back\n1144d0bSend object one layer back\n12h490kBring object to front\n1144d0kBring object one layer forward\n10T450yGroup selected objects\n10T4d0yUngroup selected objects\n10T401iSelect next object in group\n10T481iSelect previous object in group\n10T410iEnd editing object\n11P4114Lock selected objects\n11P4514Unlock selected objects\n10Y4916Mask or unmask image\n10T410iExit text editing and select object\n12h491lObject to insert\n10U471hDefine text as text placeholder\n10Y470BDefine image or movie as media placeholder\n10E4d19Draw custom shape with Pen tool\n12k441kAdd row above selected cells\n12k440fAdd row below selected cells\n12k441eAdd column to right of selected cells\n12k4415Add column to left of selected cells\n12k440iInsert row at bottom of table\n11K450iSelect all rows that intersect current\n11K430iSelect all columns that intersect current\n10T481kSelect additional rows Up\n10T480fSelect additional rows Down\n10T481eSelect additional columns Right\n10T4815Select additional columns Left\n10T401iMove cell selection to beginning of next row\n10T410iSelect table from cell selection\n11K410aSelect all content in table\n10x400eDelete selected table, or contents\n10t450cCopy cell style\n11o451lPaste cell style\n11o4d1lPaste and preserve style\n10U400iBegin text editing\n12k451jAuto-align cell content\n10T410iStop editing cell and select cell\n10T510i10iStop editing cell and select table\n12h4015Move selected table one point Left\n12h401eMove selected table one point Right\n12h401kMove selected table one point Up\n12h400fMove selected table one point Down\n12k4815Move selected table ten points Left\n12k481eMove selected table ten points Right\n12k481kMove selected table ten points Up\n12k480fMove selected table ten points Down\n10T4015Select next cell to left, right, up, or down\n10T401eSelect next cell to left, right, up, or down\n10T401kSelect next cell to left, right, up, or down\n10T400fSelect next cell to left, right, up, or down\n10T4815Extend cell selection by one cell Left\n10T481eExtend cell selection by one cell Right\n10T481kExtend cell selection by one cell Up\n10T480fExtend cell selection by one cell Down\n10T401iSelect next cell\n10T481iSelect previous cell\n128441iInsert tab when editing text or formula\n12k480iInsert line break (soft return) when editing\n12k400iInsert paragraph break (hard return) when\n10j400JOpen Formula Editor\n10j400iIn Formula Editor, commit changes\n10j401iIn Formula Editor, commit changes\n10x400jIn Formula Editor, discard changes\n10T4515Select first populated cell in row\n10T451eSelect last populated cell in row\n10T451kSelect first populated cell in column\n10T450fSelect last populated cell in column\n10x450eDelete selected rows\n10x430eDelete selected columns\n10T481iSelect table name\n10T400iSelect first cell in selected table\n10T4d15Expand current selection to include first\n10T4d1eExpand current selection to include last\n10T4d1kExpand current selection to include first\n10T4d0fExpand current selection to include last\n11P4316Merge selected cells\n11P4b16Unmerge selected cells\n10x471kAdd or remove top border\n10x470fAdd or remove bottom border\n10x471eAdd or remove right border\n10x4715Add or remove left border\n11P410FTurn on autofill mode\n12k430FAutofill from column before\n12k450FAutofill from row above\n11u450gInsert equation\n10s490dToggle Chart Data editor\n10T400iComplete cell entry and move selection down\n10T480iComplete cell entry and move selection up\n10T401iComplete cell entry and move selection to right\n10T481iComplete cell entry and move selection to left\n10U401kBeginning of text or to end of text\n10U400fBeginning of text or to end of text\n12h4015Move chart legend one point Left\n12h401eMove chart legend one point Right\n12h401kMove chart legend one point Up\n12h400fMove chart legend one point Down\n1074815Move chart legend ten points Left\n108481eMove chart legend ten points Right\n109481kMove chart legend ten points Up\n106480fMove chart legend ten points Down\n10T4415Navigate to and select single cell Left\n10T441eNavigate to and select single cell Right\n10T441kNavigate to and select single cell Up\n10T440fNavigate to and select single cell Down\n12k4c15Extend or shrink cell reference Left\n12k4c1eExtend or shrink cell reference Right\n12k4c1kExtend or shrink cell reference Up\n12k4c0fExtend or shrink cell reference Down\n10T4515Navigate to and select first or last cell\n10T451eNavigate to and select first or last cell\n10T451kNavigate to and select first or last cell\n10T450fNavigate to and select first or last cell\n12k440iChange cell reference back to text\n12k410DSpecify absolute and relative attributes",
+  "com.apple.Photos": "61P4101See photos\n11P4102See photos\n11P4103See photos\n122411kStop viewing photo, project, album, or shared\n122441gStart or stop playing video\n10Y441fToggle thumbnails below open photo\n10Y400iToggle selected photo in editing view\n10Y400aAdjust photo\n11J400kApply filter\n10Q401fApply style\n10u400cCrop photo\n10Y401dClean up photo\n11D451dRotate photo\n11D411dRotate photo\n10Y410gAutomatically enhance photo\n11D4216Show Original\n10x400eDelete selected photos\n10x410eDelete selected photos without confirming\n11t441gPlay or pause Live Photo or video\n10M401pZoom between current zoom level and 100 percent\n12u490JZoom\n12u410KZoom out\n10Y4114Hide selected photo\n12f411pUndo last action\n11x491pRedo last action\n11K410aSelect all photos\n10Y490DSet selected photo as key photo for album\n10Y490JChange size of photo thumbnails\n10Y410KChange size of photo thumbnails\n1074015Previous photo\n107401eNext photo\n10S430kEnter or leave full-screen view\n10J491hToggle titles\n10Y410BToggle photo information in Info window\n10F410dDuplicate photo\n10v411nCut photo\n10t410cCopy photo\n11o411lPaste photo\n10e4010Make photo favorite\n10J410DToggle Keyword Manager\n10x410eDelete photo or item from library\n10x400eRemove photo\n11p401gPause or resume playing slideshow\n11X401eMove through slides\n11X4015Move through slides\n10Z490BImport photos\n11v4119Print\n11M410IOpen settings\n104411mClose window and quit Photos\n1034015Scroll through photos in window Left\n103401eScroll through photos in window Right\n103401kScroll through photos in window Up\n103400fScroll through photos in window Down",
+  "com.pixelmatorteam.pixelmator.x": "90Y4417Create image from clipboard\n10Y4517Create image from Photos\n11d491fDuplicate document in new tab\n11F4d1fSave existing image as new image\n10I490gExport image for web\n10I400DExport image for web\n11v4119Print\n10q411mClose tab\n11M410IOpen Pixelmator Pro settings\n11x491pRedo\n10v411nCut\n10t410cCopy\n10t4d0cCopy merged\n11o411lPaste\n11o4d1lPaste and match style\n10F410CDuplicate layer or selected area\n10F490dDuplicate layer or selected area\n10v490CCut and paste selected area\n11K410aSelect all\n10T490BInvert selection\n10T4015Move selection outline one pixel Left\n10T401eMove selection outline one pixel Right\n10T401kMove selection outline one pixel Up\n10T400fMove selection outline one pixel Down\n10T4815Move selection outline ten pixels Left\n10T481eMove selection outline ten pixels Right\n10T481kMove selection outline ten pixels Up\n10T480fMove selection outline ten pixels Down\n12t490JZoom\n12u410KZoom out\n1034101View at actual size 1\n1034500View at actual size 0\n10Y450BResize image\n11P450cChange canvas size\n10J411dToggle rulers\n10J4512Toggle guides\n10J4511Toggle grid\n10J4113Toggle Info bar\n114491lInsert image or video from Finder as layer\n1144919Insert media from Photos as layer\n10x400eDelete selected layers or clear selections\n11K450aSelect all layers\n114450gMerge selected layers\n1144d0gMerge all layers\n10T410yGroup layers\n10T490yUngroup layers\n1144013Lock or unlock layers\n114450IToggle layer visibility\n10T401lSelect Arrange tool\n10T400cSelect Crop tool\n10M401pSelect Zoom tool\n10T400BSelect Color Picker\n10T400bSelect Paint tool\n10T400gSelect Erase tool\n10T400aSelect Color Adjustments tool\n10T400kSelect Effects tool\n10x480eRemove image background\n11P451jSuper Resolution\n114491dReplace layer\n11m490DChange color profile\n11m490cToggle Color browser\n11i4d0BShow document information\n114480JCycle layer blend modes\n114480KCycle layer blend modes",
+  "com.apple.podcasts": "51M410IOpen Podcasts settings\n103411mClose Podcasts window\n10S4g0kToggle full-screen view\n11p401gStart playing or pause selected episode\n11W491eSkip Forward\n11W4915Skip Back\n12o411kIncrease volume\n12m410fDecrease volume\n11_451kIncrease playback speed\n11_450fDecrease playback speed",
+  "com.apple.Preview": "51F411fSave file\n10R430kEnter full screen\n11v4119Print current PDF or image\n10t410cCopy text or area to Clipboard\n10v411nCut item and copy it to Clipboard\n11o411lPaste contents of Clipboard into image\n10B400fScroll down line\n10B401kScroll up line\n106401aScroll down one screen\n109401bScroll up one screen\n11j440fNext page\n11k441kPrevious page\n10M4500Zoom all images to actual size\n10M4509Zoom all images to fit\n12t4d0JZoom all images\n12u450KZoom all images out\n10x490DRemove background",
+  "com.apple.QuickTimePlayerX": "71i4118Open file\n11i4114Open location using URL\n10Y4918Open Image Sequence\n12p411mClose window\n11F411fSave file\n10F491fDuplicate\n11P410BShow Movie Inspector\n10I4519Show export progress\n11t401gPlay or pause\n1074015Stop playback and go back one frame\n108401eStop playback and go forward one frame\n1074415Beginning of movie\n108441eEnd of movie\n11W4115Cycle through rewind speeds\n108411eCycle through fast-forward speeds\n12o401kTurn volume up\n12m400fTurn volume down\n12o441kTurn volume up to maximum level\n12m440fTurn volume down to minimum level\n11A4514Loop movie\n12o401eVolume up\n12m4015Volume down\n10R410kEnter full-screen view\n10S410kExit full-screen view\n10S400jExit full-screen view\n11P4103Fit movie to screen\n11m4104Fill screen with movie\n11P490JIncrease movie size\n11P410KDecrease movie size\n12f411pUndo\n11x491pRedo\n10v411nCut\n10t410cCopy\n11o411lPaste\n11K410aSelect all\n11D4914Rotate left\n11D491dRotate right\n11P490zFlip horizontally\n11P491lFlip vertically\n12j411oSplit clip\n12j411hTrim",
+  "com.raycast.macos": "81J410jReturn to root search\n11M410IOpen settings\n109401kPrevious result\n106400fNext result\n10O481iParent directory\n11L410iSubmit form\n11M410IConfigure selected command\n121410kAdd selected result to favorites\n10b400jGo Back\n11J410jOpen Root Search\n106400fNext List Item\n109401kPrevious List Item\n11j401aPage Down\n11k401bPage Up\n11E400iPrimary Action\n11E410iSecondary Action\n11E440iTertiary Action\n109491kMove Favorite Up\n106490fMove Favorite Down\n11M490IConfigure Extension\n10J490dDisable Command\n11i4118Open Item\n10O4918Reveal in Finder\n11h4518Open With\n10Y411oQuick Look\n11z410gEdit Item\n110410BItem Details\n10F410dDuplicate Item\n11q4110Toggle Pin\n10J4910Show Hidden Items\n10t410cCopy Item\n10t490cCopy Secondary\n11o411lPaste Item\n11o491lPaste Secondary\n10x421nDelete Item\n10W491fChat History\n10W410bChat History\n11J490kSearch Chats\n11L410CSend to AI Chat\n11J410kFind in Chat\n106410yNext Match\n109490yPrevious Match\n11n490aAttach File\n11Y490bBranch Chat\n10l401kEdit Last Message\n1184216Start or Accept Dictation\n11C4916Change Model\n11M491oChange Creativity\n11M491jChange Reasoning Effort\n105450aArchive Chat\n10x4a1nDelete Unpinned Chats\n10P4317Create Project\n10O4316Project\n11T401iNext Form Field\n11T481iPrevious Form Field\n11K410aSelect All\n10v411nCut\n12f411pUndo\n11x491pRedo\n1064217Move Down (Emacs)\n1094219Move Up (Emacs)\n108420kMove Right (Emacs)\n107420bMove Left (Emacs)\n10h490bReport Bug\n10m450kRequest Feature\n10l4101Chat 1\n10l4102Chat 2\n10l4103Chat 3\n10l4104Chat 4\n10l4105Chat 5\n10l4106Chat 6\n10l4107Chat 7\n10l4108Chat 8\n10l4109Chat 9\n10l4100Chat 10",
+  "com.apple.reminders": "81P4101Pinned list 1\n11P4102Pinned list 2\n11P4103Pinned list 3\n11P4104Pinned list 4\n11P4105Pinned list 5\n11P4106Pinned list 6\n11P4107Pinned list 7\n11P4108Pinned list 8\n11P4109Pinned list 9\n10_410HIndent reminder\n10w410GOutdent reminder\n11P410gShow all subtasks\n10J490gHide all subtasks\n11P490kFlag or unflag reminder\n11v4119Print reminder list\n10B451fToggle sidebar\n10J490zToggle completed reminders\n10x400eDelete tag\n11P411hSet reminder as due today\n11P451hSet reminder as due tomorrow\n11P431hSet all overdue reminders as due today\n10S430kToggle full screen",
+  "com.apple.Safari": "n064015Scroll up, down, left, or right\n106401eScroll up, down, left, or right\n106401kScroll up, down, left, or right\n106400fScroll up, down, left, or right\n1074415Scroll in larger increments Left\n108441eScroll in larger increments Right\n109441kScroll in larger increments Up\n106440fScroll in larger increments Down\n106401aScroll down screen\n106401gScroll down screen\n109401bScroll up screen\n109481gScroll up screen\n109411kScroll to top-left or bottom-left corner\n106410fScroll to top-left or bottom-left corner\n11J400iNext find result\n11J400jWhile typing\n11e4117Open new window\n1034917Open private window\n128490HNext tab\n10T4101Select one of your first eight tabs 1\n10T4102Select one of your first eight tabs 2\n10T4103Select one of your first eight tabs 3\n10T4104Select one of your first eight tabs 4\n10T4105Select one of your first eight tabs 5\n10T4106Select one of your first eight tabs 6\n10T4107Select one of your first eight tabs 7\n10T4108Select one of your first eight tabs 8\n1284109Select your last tab\n129491hReopen last tab you closed\n103411oView browsing history\n10S400jExit full-screen view\n10M4100Restore default website zoom\n103491hReopen last window you closed\n10B4302Toggle Reading List sidebar\n11u490dAdd current webpage\n11Q400jClose Reader\n10B4301Toggle Bookmarks sidebar\n11i4514Open Downloads\n10T401kSelect next bookmark or folder\n10T400fSelect next bookmark or folder\n10e401gOpen selected bookmark\n10O401gOpen selected folder\n10O401eOpen selected folder\n10O401gClose selected folder\n10O4015Close selected folder\n10B400jCancel editing bookmark name in sidebar\n10e400iFinish editing bookmark name\n11z400iRename or edit selected bookmark",
+  "com.apple.Safari.WebApp": "i074015Scroll Left\n108401eScroll Right\n109401kScroll Up\n106400fScroll Down\n1074415Scroll Left Fast\n108441eScroll Right Fast\n109441kScroll Up Fast\n106440fScroll Down Fast\n11j401aPage Down\n11j401gPage Down\n11k401bPage Up\n11k481gPage Up\n109411kScroll to Top\n106410fScroll to Bottom\n10d400jClose Reader",
+  "org.whispersystems.signal-desktop": "80V4113View all shortcuts\n12t410JZoom\n12u410KZoom out\n10l441kPrevious chat\n10l4a1iPrevious chat\n10l440fNext chat\n10l421iNext chat\n1174c1kPrevious unread chat\n1174c0fNext unread chat\n10l4101Jump to chat 1\n10l4102Jump to chat 2\n10l4103Jump to chat 3\n10l4104Jump to chat 4\n10l4105Jump to chat 5\n10l4106Jump to chat 6\n10l4107Jump to chat 7\n10l4108Jump to chat 8\n10l4109Jump to chat 9\n117410CFocus oldest unread or last message\n11M410IPreferences\n10l4914Open chat menu\n1034916Open All Media view\n11F411fSave Media\n11i490COpen emoji chooser\n11i4918Open sticker chooser\n11i490yOpen GIF chooser\n118491oBegin recording voice message\n105490aArchive chat\n10l491jUnarchive chat\n10l411kScroll to top of chat\n10l410fScroll to bottom of chat\n10l490cClose current chat\n10l400iDefault action for selected message\n10l410dView selected message details\n11B491dToggle reply to selected message\n10l490gToggle emoji-reaction picker\n11F411fSave attachment from selected message\n108491fForward selected messages\n10l410oOpen context menu for selected message\n10x490dDelete selected message\n10l480iAdd newline to message\n11n411jAttach file\n10x4119Remove draft link preview\n10x4919Remove all draft attachments\n10l401kEdit previous message\n10c410bMark text as bold\n111410BMark text as italic\n123491nMark text as strikethrough\n10U410gMark text as monospace\n10U490bMark text as spoiler\n11b4816Toggle mute on and off\n12i481lToggle video on and off\n12i4a1lAnswer call with video (video calls only)\n12i4a0aAnswer call without video\n11P4a0dDecline call\n1184a0cStart voice call\n12i4a1oStart video call\n11P4a0gEnd call\n12q4819Maximize Preview",
+  "com.bohemiancoding.sketch3": "a1i401fOpen Command Bar\n11i410DOpen Command Bar\n11M490IOpen Document Settings\n1034119Open Prototype Preview window\n11E4a0DRun script\n11E4a1dRun last plugin\n1034118Open workspace document\n11i4918Open local document\n11i411mClose document\n128421iShow next tab\n1284a1iShow previous tab\n11u431fCreate version of workspace document\n10s440iLine break on description field\n10F491fDuplicate document\n11j4g1kPrevious page\n11j4g0fNext page\n1034201Canvas View\n1034202Components View\n11P4110Toggle interface\n10R430kToggle full screen\n12t490JZoom\n10M4100Zoom to 100%\n12t4101Zoom to Fit\n10M4102Zoom to fit selection\n10T4103Center selection in Canvas\n10M4104Zoom to fit top-level frame\n12u480ETemporarily zoom out to 100%\n10T401gHide selection highlights, handles, grids\n10J4216Show/hide minimap\n10J421dShow/hide rulers\n10M4219Show/hide pixels on zoom\n10J421nShow/hide pixel grid\n10J420yShow/hide grid\n11M430yGrid settings\n10J4214Show/hide layout grid\n11M4314Layout grid settings\n10l4017Insert comment\n11L410iSubmit comment\n10J4217Show/hide comments\n10J4a17Show/hide resolved comments\n10Y400kImage: insert.frame Frame\n10Y400yImage: insert.graphic Graphic\n12h401dImage: shape.rectangle Rectangle\n10Y4018Image: circle Oval\n10Y4014Image: line.up.right.down.left Line\n12h401lImage: insert.vector Vector\n10E4019Image: pencil Pencil\n10Y401hImage: insert.text Text\n10Y400gImage: knife Slice\n10Y400BImage: insert.hotspot Interaction\n10Y401oImage: menu.symbols Symbol\n10Y421hImage: img.textformat Text Style\n11R400iDive deeper into container\n10T400jSelect parent container\n10T480jSelect root symbol\n10y420jClear selection\n11K410aSelect all layers, except hidden/locked\n11K430aSelect all layers, including hidden and locked\n11K490aSelect all top-level frames and graphics\n11J450kFind layer\n10T490CReveal selection in Layer List\n10T481iSelect previous layer in container\n10T401iSelect next layer in container\n10T4g15Select previous top-level frame\n10T4g1eSelect next top-level frame\n10v411nCut\n10t410cCopy\n11o411lPaste\n11o491lPaste over selection\n11o491dPaste and replace selection\n10F410dDuplicate\n10F490dDuplicate behind\n11z411dRename layer(s)\n10x400eDelete layer\n10T410iEdit frame, group, graphic, symbol, text\n114451dReplace template, layer, symbol, or style\n114490zHide/show layer\n1144914Lock/unlock layer\n11D431dRotate\n11P480zFlip horizontally\n11P481lFlip vertically\n11P4316Use as mask\n11y4a0dRefresh Data\n10t450cCopy properties\n11l451lPaste style\n11l471lPaste style without corners\n10Q421fUpdate shared style\n10Q461fReset shared style\n11P480kToggle fills\n11P480bToggle borders\n11P481nSwap fills and borders\n11m420cPick color\n11P4000Change opacity 0\n11P4001Change opacity 1\n11P4002Change opacity 2\n11P4003Change opacity 3\n11P4004Change opacity 4\n11P4005Change opacity 5\n11P4006Change opacity 6\n11P4007Change opacity 7\n11P4008Change opacity 8\n11P4009Change opacity 9\n1224000Place gradient stop between 0% and 100% 0\n1224001Place gradient stop between 0% and 100% 1\n1224002Place gradient stop between 0% and 100% 2\n1224003Place gradient stop between 0% and 100% 3\n1224004Place gradient stop between 0% and 100% 4\n1224005Place gradient stop between 0% and 100% 5\n1224006Place gradient stop between 0% and 100% 6\n1224007Place gradient stop between 0% and 100% 7\n1224008Place gradient stop between 0% and 100% 8\n1224009Place gradient stop between 0% and 100% 9\n122400JPlace gradient stop halfway between adjacent\n10T410gMark as exportable / Export selection\n10I490gExport all assets\n1074015Move by 1px Left\n108401eMove by 1px Right\n109401kMove by 1px Up\n106400fMove by 1px Down\n1074815Move by 10px Left\n108481eMove by 10px Right\n109481kMove by 10px Up\n106480fMove by 10px Down\n1074115Resize by 1px Left\n108411eResize by 1px Right\n109411kResize by 1px Up\n106410fResize by 1px Down\n1074915Resize by 10px Left\n108491eResize by 10px Right\n109491kResize by 10px Up\n106490fResize by 10px Down\n10T490kResize selection to fit contents\n1074515Resize container\n108451eResize container\n109451kResize container\n106450fResize container\n1074d15Resize container\n1084d1eResize container\n1094d1kResize container\n1064d0fResize container\n114400DScale layer\n1144919Round layer to pixel\n114431nFit layers to pixel bounds\n10T410kGroup in frame\n10T410yGroup in group\n10T490yUngroup container\n108410HBring forward\n11P450HBring to front\n11W410GSend backward\n11L450GSend to back\n1094d1kMove up (out of parent container)\n1014315Align left, right, top, bottom, horizontally\n101431eAlign left, right, top, bottom, horizontally\n101431kAlign left, right, top, bottom, horizontally\n101430fAlign left, right, top, bottom, horizontally\n101430zAlign left, right, top, bottom, horizontally\n101431lAlign left, right, top, bottom, horizontally\n11q480aAuto-pin\n11q4c0aAuto-pin all children of container\n11u4114Add stack layout\n11u481fAdd stack layout\n10x4514Remove stack layout\n10x4c1fRemove stack layout\n1144015Reorder layer in stack Left\n114401eReorder layer in stack Right\n114401kReorder layer in stack Up\n114400fReorder layer in stack Down\n1144815Move layer to start/end of stack\n114481eMove layer to start/end of stack\n114481kMove layer to start/end of stack\n114480fMove layer to start/end of stack\n103490BIgnore stack layout\n12h431hTransform shape\n11u450aAdd shapes\n10Y451jImage: boolean.union Union shapes\n10Y451fImage: boolean.subtract Subtract shapes\n10Y450BImage: boolean.intersect Intersect shapes\n10Y451nImage: boolean.difference Difference shapes\n10T481iSelect previous point\n10T401iSelect next point\n12h4001Image: vector.point.straight Set point\n12h4002Image: vector.point.mirrored Set point\n12h4003Image: vector.point.disconnected Set point\n12h4004Image: vector.point.asymmetric Set point\n11P4401No pixel snapping\n11P4402Snap to full pixels\n11P4403Snap to half pixels\n11P4404Snap to quarter pixels\n11o4d1lPaste as rich text\n11P411hChange typeface\n10c410bBold\n111410BItalic\n12e411jUnderline\n12t4d0JIncrease font size\n12u450KDecrease font size\n11P4614Loosen character spacing\n11P461hTighten character spacing\n101490GAlign left\n100490FAlign center\n102490HAlign right\n11P4518Convert to outlines\n10s401oInsert Symbol\n10Q421hInsert Text Style\n10Q451dReplace symbol, style, or template\n11J450kFind component\n11P4101Symbols\n10U4102Text Styles\n1144103Layer Styles\n11m4104Color Variables\n11m4105Color Variables\n11P4106Graphic Templates\n10T4015Select component Left\n10T401eSelect component Right\n10T401kSelect component Up\n10T400fSelect component Down\n11R400iComponent\n11J410kOpen filter menu\n11J410fOpen filter menu at current location\n10T411kParent group\n10d451kCurrent library\n109471kAll components\n10s4119Preserve current Symbol dimensions\n10s411oCreate Symbol\n10s491oDetach from Symbol\n10s4d1oDetach all contents from Symbol\n10s410iSymbol Source\n11P400KSubtract\n11P4808Multiply\n11P4013Divide\n109401kIncrease Value by 1\n306400fDecrease Value by 1\n03L09481kIncrease Value by 10\n306480fDecrease Value by 10\n03M09441kIncrease Value by 0.1\n306440fDecrease Value by 0.1",
+  "com.tinyspeck.slackmacgap": "b0l411pUnsend message\n11P491oSet your status\n11M410IOpen your preferences**\n10B4015Resize left sidebar†\n10B401eResize left sidebar†\n10B4110Hide right sidebar\n11u4917Create new canvas\n12g4118Upload file**\n103490CView all downloaded files\n10s490iCreate new snippet\n11J410yStart search\n11J410kSearch in current conversation\n11E490zStart, join, leave or end huddle\n11b491gToggle mute on huddle\n10V400lOpen Help\n10R430kToggle full-screen view\n12p411mClose window\n103491mReopen last closed window\n103490gOpen People view\n10B441kJump to previous channel or DM in sidebar\n10B440fJump to next channel or DM in sidebar\n107410GGo back in history\n11P410HGo forwards in history\n1034201Open Home view\n1034916Open Activity view**\n1034200Open More view\n103491hOpen Threads\n11P4914Browse channels**\n10l490BOpen conversation details\n108400tMove focus to next section\n107480tMove focus to previous section\n109401kMove between messages Up\n106400fMove between messages Down\n10l400AOldest message\n10l400hMost recent message\n10T400jMark group of messages as read\n10T4015Open or collapse group of messages Left\n10T401eOpen or collapse group of messages Right\n103491fExpand or collapse workspace switcher\n1074a1iPrevious workspace\n108421iNext workspace\n10B4101Specific workspace (hover over workspace icon\n10B4102Specific workspace (hover over workspace icon\n10B4103Specific workspace (hover over workspace icon\n10B4104Specific workspace (hover over workspace icon\n10B4105Specific workspace (hover over workspace icon\n10B4106Specific workspace (hover over workspace icon\n10B4107Specific workspace (hover over workspace icon\n10B4108Specific workspace (hover over workspace icon\n10B4109Specific workspace (hover over workspace icon\n10T481kSelect text to beginning of line\n10T480fSelect text to end of line\n10s480iCreate new line\n10c410bBold text\n111410BItalicise text\n12e411jUnderline text\n123491nCross out text (strikethrough)\n10U491jHyperlink text\n10U4909Quote text\n10U490cCode text\n10U4d0cCodeblock text\n10i4908Format text as bulleted list\n11g4907Format text as numbered list\n10n490kApply markdown formatting\n12f411pUndo formatting\n10Q4500Format text as paragraph\n10Q4501Format text as big heading\n10Q4502Format text as medium heading\n10Q4503Format text as small heading\n10Q4900Format text as checklist\n10U420EToggle heading and list styles\n10l451hView comment thread\n103451dShow reader or edit view\n11i4913Open context menu\n11J410kFind text in canvas\n11J410yFind next\n11J490yFind previous\n10L490zFind and replace\n10t461cCopy anchor link to section\n12f411pUndo last action\n11x491pRedo last action\n109451kMove item in formatted list up\n106450fMove item in formatted list down\n10l4903Add emoji reaction to message\n10l400FAdd emoji reaction to message\n10l480KAdd emoji reaction to message\n128421bPrevious tab\n128421aNext tab\n1284201Specific tab 1\n1284202Specific tab 2\n1284203Specific tab 3\n1284204Specific tab 4\n1284205Specific tab 5\n1284206Specific tab 6\n1284207Specific tab 7\n1284208Specific tab 8\n1284209Specific tab 9\n10l400gEdit message you sent\n10x400eDelete message you sent\n11B401hOpen or reply to thread\n11B401eOpen or reply to thread\n10l400kForward message\n11r4019Pin or unpin message\n11F400aSave message or remove it from Later\n117401jMark messages above focused one as unread\n10l4016Create reminder about message\n10l401dAdd emoji reaction to focused message",
+  "com.spotify.client": "70V4113Open Help\n11P4c0bLike/Dislike Song\n11P4c0tLog Out\n11J410kFilter\n11t401gPlay/Pause\n10d4c00Library\n11P4c02Podcasts\n11P4c03Artists\n11P4c04Albums\n11P4c05Audiobooks\n10X4c0zHome\n11M410IPreferences\n11P4c1fLiked Songs\n11P4c16Made For You\n11u4c17New Releases\n11P4c0cCharts\n11P4c1cQueue\n10B4c14Toggle Your Library Sidebar\n11b4016Mute/Unmute\n107401kPrevious\n108400fNext\n10d4015Add to Library\n11u401eAdd to Queue",
+  "ru.keepcoder.Telegram": "60l401kTelegram\n10l400fTelegram\n10l401eTelegram\n1074015Telegram for macOS — Go back\n11J410kTelegram\n10p400jTelegram\n11i4100Saved Messages\n10O4101Telegram for macOS — Jump to folder 1\n10O4102Telegram for macOS — Jump to folder 2\n10O4103Telegram for macOS — Jump to folder 3\n10O4104Telegram for macOS — Jump to folder 4\n10O4105Telegram for macOS — Jump to folder 5\n10O4106Telegram for macOS — Jump to folder 6\n10O4107Telegram for macOS — Jump to folder 7\n10O4108Telegram for macOS — Jump to folder 8\n10O4109Telegram for macOS — Jump to folder 9\n10l4501Telegram for macOS — Jump to chat list 1\n10l4502Telegram for macOS — Jump to chat list 2\n10l4503Telegram for macOS — Jump to chat list 3\n10l4504Telegram for macOS — Jump to chat list 4\n10l4505Telegram for macOS — Jump to chat list 5\n10l4506Telegram for macOS — Jump to chat list 6\n10l4507Telegram for macOS — Jump to chat list 7\n10l4508Telegram for macOS — Jump to chat list 8\n10l4509Telegram for macOS — Jump to chat list 9\n11P4301Telegram for macOS — Switch account 1\n11P4302Telegram for macOS — Switch account 2\n11P4303Telegram for macOS — Switch account 3\n11P4114Telegram for macOS — Lock Telegram\n12i410gTelegram\n12i411hTelegram\n12r4116Telegram for macOS — Minimize window\n104411cTelegram for macOS — Quit Telegram\n10R430kTelegram for macOS — Toggle full screen\n10l401kTelegram Desktop — Navigate current chat Up\n10l400fTelegram Desktop — Navigate current chat Down\n10l401bTelegram Desktop — Navigate current chat\n10l401aTelegram Desktop — Navigate current chat\n108411aTelegram Desktop — Move to next chat\n108440fTelegram Desktop — Move to next chat\n107411bTelegram Desktop — Move to previous chat\n107441kTelegram Desktop — Move to previous chat\n10p400jTelegram Desktop — Cancel current action\n11L4118Telegram Desktop — Send file\n11J410kTelegram Desktop — Search selected chat\n11J410CTelegram Desktop — Search contacts\n10l440iTelegram Desktop — Scroll chat list to top\n11i4100Telegram Desktop — Open Saved Messages\n10l4101Telegram Desktop — Jump to pinned chat 1\n10l4102Telegram Desktop — Jump to pinned chat 2\n10l4103Telegram Desktop — Jump to pinned chat 3\n10l4104Telegram Desktop — Jump to pinned chat 4\n10l4105Telegram Desktop — Jump to pinned chat 5\n11i4109Telegram Desktop — Open Archived Chats\n12r4116Telegram Desktop — Minimize Telegram\n104411cTelegram Desktop — Quit Telegram",
+  "com.culturedcode.ThingsMac": "90T401gNew to-do below selection\n11u411lNew to-dos from clipboard\n11u490cNew checklist in open to-do\n10U4917New heading\n10T4d17New heading with selection\n11i421gOpen Quick Entry\n11i400iOpen item\n11F410iSave and close item\n10F410dDuplicate item\n11o411lPaste to-do or project\n10n410DComplete item\n10p450DCancel item\n11P491oMove completed to Logbook\n10T441kSelect first\n10T440fSelect last\n10T481kExtend selection upwards\n10T480fExtend selection downwards\n10T4c1kExtend selection to top\n10T4c0fExtend selection to bottom\n11K410aSelect all\n11P4916Move item to another list\n11P451lMove copied item to here\n109411kMove item up\n106410fMove item down\n109451kMove item to top of list\n106450fMove item to bottom of list\n11P411fShow When\n11E411hStart Today\n11E410gStart This Evening\n11E411dStart Anytime\n11E4118Start Someday\n11E420HStart date +1 day\n11E420GStart date -1 day\n11E4a0HStart date +1 week\n11E4a0GStart date -1 week\n11u490dAdd Deadline\n10k4210Deadline +1 day\n10k420IDeadline -1 day\n10k4a10Deadline +1 week\n10k4a0IDeadline -1 week\n11u491dAdd repetition schedule\n11e4317Open new window\n10B4113Show/hide sidebar\n10C451hShow/hide toolbar\n11e410iOpen list\n11e410iOpen project or area in new window\n11J4d0kFind & Replace in text\n11J410yFind next in text\n11J490yFind last in text\n11P4918Show navigation popover\n10-4101Inbox\n11P4102Today\n11P4103Upcoming\n11P4104Anytime\n11P4105Someday\n11P4106Logbook\n11P4114Show in parent list\n11R400iEnter selected project\n108411eEnter selected project\n1074115Go back\n1094g1kScroll upwards\n1064g0fScroll downwards\n1074g15Jump to top\n1084g1eJump to bottom\n10B471kNavigate up in sidebar\n10B470fNavigate down in sidebar\n12a431hOpen tag window\n11P491hEdit tags for item\n11Q420jEscape filtered state\n115450iOpen link\n10J490gShow/Hide later items\n10U4301Heading 1: `# ...`\n10U4302Heading 2: `## ...`\n111410BItalics: `*...*`\n10c410bBold: `**...**`\n10i4914Bulleted list: `- ...`\n11g4514Numbered list: `1\n11P4314Task List\n10n410DComplete Task\n10p450DCancel Task\n11P4111Quote: `> ...`\n11P491jHighlight: `::...::`\n115490DInsert Link\n123451jStrikethrough\n10s490CCode: ``...``\n10s4d0CCode block: ````...````\n10_410HIncrease indent (2 spaces)\n10w410GDecrease indent (2 spaces)",
+  "com.todoist.mac.Todoist": "81u401cQuick Add\n11J4013Search\n11J400kSearch\n10p400jDismiss/Cancel\n10B4016Open/close sidebar\n1134813Show keyboard shortcuts\n11v4119Print current view\n12t410JZoom in/Increase font size\n12u410KZoom out/Decrease font size\n10M4100Reset zoom level/font size\n1034500Collapse or expand all sections and tasks\n103400zHome view\n11i4102Open Today\n11i4103Open Upcoming\n11P4104Expand/collapse projects list\n11P4105Expand/collapse labels list\n11P4105Expand/collapse filters list\n11M410IOpen Settings\n11P411fManually sync\n11i480yOpen task in its project\n10T401iSelect and move focus to different elements\n11i5018019Open Productivity\n10V501800zOpen help\n11i5018017Open notifications\n10Y501801jOpen profile photo menu\n109400DMove focus up\n109401kMove focus up\n106400CMove focus down\n106400fMove focus down\n108401eMove focus to right\n1074015Move focus to left\n10X400zHome\n10X500y00zHome\n10-500y00BInbox\n11P500y01hToday\n11P500y01jUpcoming\n11P500y014Labels\n11P500y019Projects\n11P500y013Section\n11M501801fOpen settings\n11i501801hOpen theme\n11i500y00aOpen Reporting\n11i500y01lOpen Filters & Labels\n107410GGo back to previous view\n108410HGo forward to most recent view\n11u441gOpen Quick Add\n11u4c1dQuick Ramble (new app downloads)\n11S4c1gQuick Ramble (existing app downloads)\n10J431hShow/hide Todoist\n11P5019001Set priority level 1\n11P5019002Set priority level 2\n11P5019003Set priority level 3\n11P5019004Set priority level 4\n11P4803Pick project\n11P4013Pick section\n11u480JAdd assignee\n12a4805Add label\n11u4801Add reminder\n11u400aAdd new task to bottom of list\n11u480aAdd new task to top of list\n11F400iSave newly created task and create new one\n11F480iSave changes to existing task and create new\n11F420iSave new task or save changes to existing one\n11o411lShortcut\n10n400gComplete focused task\n103400iOpen task view\n11F410iSave edits\n103400jClose task view\n10k401hSet date\n10x481hRemove date\n11P4001Set priority level 1\n11P4002Set priority level 2\n11P4003Set priority level 3\n11P4004Set priority level 4\n11P401oChange priority level\n10l400cComment\n12a4014Add label\n11P481dAssign/reassign\n11P401l…\n11P4010More task actions\n10C400IMove focus to multi-select toolbar\n10x410eDelete selected task\n10t490cCopy link to task\n109411kTask above task currently being edited\n106410fTask below task currently being edited\n10x410eDelete selected task(s)\n10k400dSort by date\n11P4019Sort by priority\n11P4017Sort by name\n11P401dSort by assignee\n10k440dSort by date\n11P4419Sort by priority\n11P4417Sort by name\n11P441dSort by assignee\n10_420HIncrease indent of focused task\n10w420GDecrease indent of focused task\n10J480gSee or hide sub-tasks\n10k481lChange to list/board/calendar layout*\n11u401fAdd section\n11N481fShare project\n11P4017Sort alphabetically\n11i401mOpen more project actions\n11i400BOpen/close Insights\n109411kTop of Task List\n106410fBottom of Task List\n11P4c1oToday in Upcoming\n10k481eNext week in Upcoming\n10k4815Previous week in Upcoming\n107401hGo back to today\n1074c1oGo back to today\n108481eNext week\n1074815Previous week\n11e4917Open current view in new window\n11u4d17Open new Home view window\n103450kFloat window on top",
+  "com.panic.Transmit": "51M410ISettings\n10J410zHide Transmit\n10J450zHide Others\n104411cQuit Transmit\n104451cQuit and Close All Windows\n11e4117New Window\n11d411hNew Tab\n10O4917New Folder\n11u4517New File\n10q411mClose Tab\n12p491mClose Window\n11P451mClose All\n11P410gDisconnect\n11i4118Open\n11F411fSave\n11P410bPreview in Browser\n110410BGet Info\n11P450BShow Inspector\n10F410dDuplicate\n11P411oQuick Look\n11v4119Print\n12f411pUndo\n11x491pRedo\n10v411nCut\n10t410cCopy\n11o411lPaste\n11K410aSelect All\n10T410CJump to Selection\n11P4912Show Spelling and Grammar\n11P4112Check Spelling\n1034514Show Transfers Window\n1034101View as Thumbnails\n1034102View as List\n1034103View as Columns\n1034104View as Cover Flow\n11P490bShow Invisible Files\n10J491fHide Places Bar\n11M490CShow View Options\n10R430kEnter Full Screen\n1034515Focus Local Pane\n103451eFocus Remote Pane\n10O411kEnclosing Folder\n10O450yFolder\n12b451hOpen in Terminal\n1154914Link Folder Navigation\n11P410DConnect to Last Used Protocol\n11P491dTransfer Selected Items\n11P4d1dTransfer Selected Items Without Rules\n10p4110Cancel Transfer\n11u490aAdd New Server\n11P490kQuick Connect\n11P490BEdit Server\n12r4116Minimize\n12r4516Minimize All\n128421iSelect Next Tab\n1284a1iSelect Previous Tab\n11i431hOpen Transcript",
+  "com.apple.TV": "61t401gPlay or pause video\n12o411kIncrease volume\n12m410fDecrease volume\n11u4117Create new playlist\n11M410IOpen TV Settings\n10D4514View download activity\n1034100Open TV window\n103411mClose TV window\n10S430kToggle full screen\n103410BOpen Info window for item\n1084117Shortcut\n1084119Shortcut\n11J450kShow filter field",
+  "com.microsoft.VSCode": "b13400lShow Command Palette\n11i4119Quick Open, Go to File…\n12p411mClose window/instance\n11M410IUser Settings\n113510D11fKeyboard Shortcuts\n10v411nCut line (empty selection)\n10t410cCopy line (empty selection)\n106440fMove line down\n109441kMove line up\n10t4c0fCopy line down\n10t4c1kCopy line up\n10x490DDelete line\n10s410iInsert line below/above\n10s490iInsert line below/above\n11P490FJump to matching bracket\n10w410HIndent/outdent line\n10w410GIndent/outdent line\n10s400ABeginning of line\n10s400hEnd of line\n11i411kBeginning of file\n11i410fEnd of file\n106421bScroll line up\n106421aScroll line down\n106411bScroll page up\n106411aScroll page down\n11P450GFold/unfold region\n11P450HFold/unfold region\n11P510D10GFold/unfold all subregions\n11P510D10HFold/unfold all subregions\n11P510D100Fold/unfold all regions\n11P510D10CFold/unfold all regions\n10s510D10cAdd line comment\n10x510D11jRemove line comment\n10l4c0aToggle block comment\n11P441pToggle word wrap\n11u451kInsert cursor above\n11u450fInsert cursor below\n10s4c0BInsert cursor at end of each line selected\n10T4114Select line\n11K4914Select all occurrences\n11K410pSelect all occurrences of word\n10T4b1eExpand / shrink selection Right\n10T4b15Expand / shrink selection Left\n10T4d1kColumn (box) selection up\n10T4d0fColumn (box) selection down\n10T4d15Column (box) selection left\n10T4d1eColumn (box) selection right\n10T4d1bColumn (box) selection page up\n10T4d1aColumn (box) selection page down\n11J410kFind\n11P450kReplace\n11J410yFind next\n11J490yFind next\n11K440iSelect all occurrences of Find match\n10T410dAdd selection to next Find match\n10T510D10dMove last selection to next Find match\n11S421gTrigger suggestion\n11P410BTrigger suggestion\n11S491gTrigger parameter hints\n10Q4c0kFormat document\n10T510D10kFormat selection\n11P400oDefinition\n11P440oPeek Definition\n11i510D00oOpen Definition to side\n11P4110Quick Fix\n11P480oShow References\n11z400pRename Symbol\n12j510D11nTrim trailing whitespace\n11i510D016Change file language\n11P411hShow all Symbols\n10s420yLine\n11i4119File\n10s4918Symbol\n1034916Show Problems panel\n108400vNext error or warning\n108480vNext error or warning\n10T4a1iNavigate editor group history\n107420KGo forward\n1074a0KGo forward\n1284a16Toggle Tab moves focus\n10s411mClose editor\n10O510D00kClose folder\n10s410FSplit editor\n10T4101Focus into 1 editor group 1\n10T4102Focus into 2 editor group 2\n10T4103Focus into 3 editor group 3\n10T510D115Focus into previous editor group\n10T510D11eFocus into next editor group\n10s510D915Move editor left\n10s510D91eMove editor right\n10T510D015Move active editor group Left\n10T510D01eMove active editor group Right\n11u4117New File\n11P411mClose\n11P510D11mClose All\n10s491hReopen closed editor\n10s510D00iKeep preview mode editor open\n108421iOpen next\n1084a1iOpen previous\n10t510D019Copy path of file\n11i510D01dReveal file in Finder\n11e510D018Show file in new window/instance\n10R430kToggle full screen\n10s4500Toggle editor layout (horizontal/vertical)\n12u410JZoom\n12u490KZoom out\n10B410bToggle Sidebar visibility\n11P490gShow Explorer / Toggle focus\n11P4a0yShow Source Control\n10h490dShow Debug\n11P491nShow Extensions\n11P490zReplace in files\n103491jShow Output panel\n11i491lOpen Markdown preview\n11i510D01lOpen Markdown preview to side\n11P510D01pZen Mode (Esc Esc to exit)\n10h400wToggle breakpoint\n11E400sStart/Continue\n11P400nStep into/ out\n11P480nStep into/ out\n11P400mStep over\n122480sStop\n11P510D10BShow hover\n12b420EShow integrated terminal\n12b4a0ECreate new terminal\n10t410cCopy selection\n109411kScroll up\n106410fScroll down\n106401bScroll page up\n106401aScroll page down\n11P410AScroll to top/bottom\n11P400hScroll to top/bottom\n10s4113Toggle Line Comment",
+  "org.videolan.vlc": "20S400jExit Full Screen\n11t401gPlay Pause\n11_410JFaster Playback\n11-410KSlower Playback\n11V411eNext Item\n11W4115Previous Item\n1224110Stop Playback\n10o401hPlayback Position\n1074315Jump Back Small\n108431eJump Forward Small\n1074515Jump Back Short\n108451eJump Forward Short\n1074915Jump Back Medium\n108491eJump Forward Medium\n1074d15Jump Back Long\n1084d1eJump Forward Long\n10K400gNext Frame\n10n400iDVD Select\n109401kDVD Up\n106400fDVD Down\n1074015DVD Left\n108401eDVD Right\n104411cQuit VLC\n12o411kVolume Up\n12m410fVolume Down\n11b450fMute\n125400CSubtitle Delay Up\n125400zSubtitle Delay Down\n1254100Reset Subtitle Size\n10o480zMark Audio Time\n125480CMark Subtitle Time\n127480DSync Subtitles\n11y490DReset Subtitle Sync\n10a400yAudio Delay Up\n10a400kAudio Delay Down\n11a4014Next Audio Track\n125401fNext Subtitle Track\n125481fToggle Subtitles\n125441fPrevious Subtitle Track\n11V401nNext Program\n11W481nPrevious Program\n10M400aAspect Ratio\n10u400cCycle Crop\n10M4018Auto Scale\n12t4418Scale Up\n12u4c18Scale Down\n12i400dToggle Deinterlace\n12i480dDeinterlace Mode\n116400BFull Screen Controls\n1164216Disc Menu\n11W4219Previous Title\n11V4217Next Title\n11W421jPrevious Chapter\n11V420dNext Chapter\n11I451fVideo Snapshot\n12t401pCycle Zoom\n12u481pReverse Zoom\n11U411pShuffle\n11A4814Repeat\n10u440BCrop Top\n10u4c0BUncrop Top\n10u440CCrop Left\n10u4c0CUncrop Left\n10u440DCrop Bottom\n10u4c0DUncrop Bottom\n10u4414Crop Right\n10u4c14Uncrop Right\n12t401b360° Zoom\n12u401a360° Zoom Out\n12r4100Half Size\n12s4101Original Size\n12q4102Double Size\n11w491dRecord\n11Z480aNext Audio Device\n10f410lSet Bookmark 1\n10e400lPlay Bookmark 1\n10f410pSet Bookmark 2\n10e400pPlay Bookmark 2\n10f410qSet Bookmark 3\n10e400qPlay Bookmark 3\n10f410rSet Bookmark 4\n10e400rPlay Bookmark 4\n10f410sSet Bookmark 5\n10e400sPlay Bookmark 5\n10f410tSet Bookmark 6\n10e400tPlay Bookmark 6\n10f410uSet Bookmark 7\n10e400uPlay Bookmark 7\n10f410vSet Bookmark 8\n10e400vPlay Bookmark 8\n10v411nCut\n11o411lPaste\n11K410aSelect All\n11M410IPreferences\n10J410zHide Vlc\n10J450zHide Other\n11i4918Open File\n11i4118Open\n11i410dOpen Disk\n11i4117Open Network\n11i411dOpen Capture\n11F411fSave Playlist\n11A4114Playlist Repeat All\n11A411dPlaylist Repeat\n12i4103Video Fit To Screen\n12r4116Minimize Window\n12p411mClose Window\n11P491mStreaming Wizard\n11P490cShow Controller\n11P4919Show Playlist\n110410BShow Info\n11P410gShow Extended Controls\n11P490gShow Equaliser\n11P410bShow Bookmarks\n11P4916Show Messages\n11P4316Show Errors And Warnings\n10V4913Help\n11P4d13Readme / Faq",
+  "dev.warp.Warp-Stable": "903410dSplit pane right\n11E4314Launch Configuration palette\n11i431hOpen Theme Picker\n11i4a1dOpen Workflows\n11P420EGenerate command\n11P420BWarpify subshell\n11P410FToggle Warp Drive\n11J4118File search\n1134119Open Command Palette\n10T440fSelect closest bookmark below\n10T441kSelect closest bookmark above\n11K410aSelect all blocks\n10e410bBookmark selected block\n10T410fSelect next block\n11P410BReinput selected command\n10T411kSelect previous block\n11i4216Open selected block context menu\n10t490cCopy selected command\n11P490BReinput selected command as root\n11N491fShare selected block\n10T480fExpand block selection downward\n10T481kExpand block selection upward\n109401bScroll up one page\n106401aScroll down one page\n11P400AScroll to top\n11P400hScroll to bottom\n109491kScroll to top of selected block\n106490fScroll to bottom of selected block\n10x440eDelete word to left\n11P450kFold selected ranges\n11P450GFold input range\n11P450HUnfold input range\n10x440eDelete word to right\n11K410aSelect all input text\n10x410eDelete input text to left\n10x410eDelete input text to right\n106410fMove cursor to bottom of input\n11P410BInspect command\n10s4115Start of input line\n10s411eEnd of input line\n10s420aStart of input line\n11P420bMove cursor left\n10x420cClear command editor\n10x420dDelete character\n10s420gEnd of input line\n10n420kMove cursor right or accept suggestion\n10T420yAdd selection for next occurrence\n11P420zBackspace\n11u420CInsert newline in input\n10v420DCut input text to right\n10x4214Clear terminal screen\n1064217Move cursor down\n1094219Move cursor up\n10T4a0aSelect to start of input line\n10T4a0bSelect one character to left\n11u4a0fAdd cursor below\n10T4a0gSelect to end of input line\n12f411pUndo input edit\n11x491pRedo input edit\n10T4a0kSelect one character to right\n10T4a17Select down\n10T4a19Select up\n11u4a1kAdd cursor above\n10t421jCopy and clear selected lines\n10v421mCut word to left\n10v440dCut word to right\n11W4615Move backward one subword\n108461eMove forward one subword\n10x490DClear selected input lines\n103450fPane below\n1034515Pane on left\n103451ePane on right\n103451kPane above\n11P451lSet concise accessibility announcements\n11P451lSet verbose accessibility announcements\n11M410IOpen Settings\n11M410IOpen Settings to Account\n11J410yFind next occurrence\n1134119Toggle Command Palette\n107410GActivate previous pane\n108410HActivate next pane\n106430fMove pane divider down\n113430DOpen Keyboard Shortcuts settings\n1034315Move pane divider left\n103431eMove pane divider right\n109431kMove pane divider up\n11i4a13Open Resource Center\n103490dSplit pane down\n12q490iMaximize active pane\n11J490yFind previous occurrence\n12u410KDecrease font size\n10Q4100Reset font size\n1284101Tab 1\n1284102Tab 2\n1284103Tab 3\n1284104Tab 4\n1284105Tab 5\n1284106Tab 6\n1284107Tab 7\n1284108Tab 8\n1284109Last tab\n12t410JIncrease font size\n10t410cCopy terminal selection\n11J410kFind in terminal\n11o411lPaste into terminal\n1284a15Move tab left\n1284a1eMove tab right\n128490GActivate previous tab\n128490HActivate next tab\n11W4415Move one word backward or forward\n11W441eMove one word backward or forward\n10T4815Select one character left\n10T481eSelect one character right\n10T4c15Select one word left\n10T4c1eSelect one word right\n10T4915Select to start or end of input line\n10T491eSelect to start or end of input line\n10T481kSelect everything above or below cursor\n10T480fSelect everything above or below cursor\n11u480iInsert newline without running command\n11u420iInsert newline without running command\n11u440iInsert newline without running command\n11Q400jClose suggestions or command history\n10v411nCut selected input text\n10t410cCopy selected input text\n11o411lPaste into input editor",
+  "net.whatsapp.WhatsApp": "a1J4313Search Chat\n10l400jClose Chat\n11i4319Open Profile and About\n11M430IOpen Settings\n103430yOpen GIF panel\n103431fOpen sticker panel",
+  "com.apple.dt.Xcode": "9224110Stop current task\n11E431dRun without building\n10L4d0kFind and replace in workspace\n11J450CFilter in navigator\n10h491oToggle Debug area\n10h410FAdd breakpoint at line\n10O4d0DClean build folder\n11M410IOpen Xcode Settings\n11i4106Open Test navigator\n12h4415Move insertion point one word left\n12h441eMove insertion point one word right\n12h4115Move insertion point to start or end of line\n12h411eMove insertion point to start or end of line\n12h411kMove insertion point to start or end\n12h410fMove insertion point to start or end\n11P410BProfile current scheme\n11P490bAnalyze current scheme\n11P490IEdit active scheme\n11J410kFind in file\n11J410yFind next match\n11J490yFind next match\n10L450kFind and replace in file\n1074315Go back in navigation history\n108431eGo forward in navigation history\n11P490dJump to definition\n10T410CJump to current selection\n109451kSwitch between implementation and header Up\n106450fSwitch between implementation and header Down\n11i431kOpen related source or header file\n1084111Next issue\n1084911Next issue\n10T4113Comment or uncomment selection\n10l410FToggle comment\n10_410HIndent or unindent selected lines\n10_410GIndent or unindent selected lines\n106450HMove selected lines down\n106450GMove selected lines up\n11P430gEdit all occurrences in scope\n10l4513Add documentation comment\n10J4100Toggle Navigator area\n11i4101Open Project navigator\n11J4103Open Search navigator\n11i4104Open Issue navigator\n10h4105Open Debug navigator\n10s410iShow Standard editor\n10s450iShow Assistant editor\n11i4d13Open Developer Documentation\n11u4117Create new file\n11u4917Create new project\n11d411hOpen new tab\n11i4118Open file or project\n11F411fSave\n11G451fSave all\n10q491mClose tab\n12f411pUndo or redo\n12f491pUndo or redo\n10x410DClear debug console",
+  "us.zoom.xos": "91E431lStart meeting\n11P410dSchedule meeting\n11b4316Mute audio for everyone except host\n11b431jUnmute audio for everyone except host\n21P4917Switch camera\n122491fStart/stop screen share\n122491dStart/stop computer recording\n122490cStart/stop cloud recording\n103491mSwitch between speaker view, multi-speaker\n11k4219View previous page\n11j4217View next page\n10J411jShow/hide participants panel\n10l490zShow/hide in-meeting chat panel\n103410BOpen invite window\n10t490BCopy invite link\n11P441oRaise hand/lower hand\n11P4a1dBegin remote control\n11P4a0yRevoke/give up remote control permission\n10S490kToggle full screen\n1034916Minimal window\n11P4102Read active speaker name\n11M420FToggle Always Show meeting controls option\n103491oOpen meeting reactions panel\n11L4504Send meeting reaction (clapping hands)\n11L4505Send meeting reaction (thumbs up)\n11L4506Send meeting reaction (love/heart)\n11L4507Send meeting reaction (haha/joy)\n11L4508Send meeting reaction (wow/open mouth)\n11L4509Send meeting reaction (celebrate/tada)\n10l491jFocus last received parent message\n10l490gFocus chat input field\n10m4117Create new chat with meeting participants\n10l4918Open AI chat panel in meeting\n11I411hScreenshot\n10l410GBack in chat history\n10l410HForward in chat history\n10l4117New message\n11P4500Collapse all\n10T450BAdd member to current group chat or channel\n11P4914Focus keyboard to list\n10T4317Jump to start\n10T491jFocus\n11w490cRecord new clip\n10n4a0aAccept inbound call\n11P4a0dDecline inbound call\n11P4a0gEnd current call\n11P4a0zHold/unhold call\n11P4a1hTransfer call\n10l490JIncrease chat display size\n10l410KDecrease chat display size\n12p411mClose window\n10M4d0dStart Zoom Client Healthcheck\n128421iNext product tab\n1284a1iPrevious product tab\n1284109Last product tab\n1284101Specified product tab 1\n1284102Specified product tab 2\n1284103Specified product tab 3\n1284104Specified product tab 4\n1284105Specified product tab 5\n1284106Specified product tab 6\n1284107Specified product tab 7\n1284108Specified product tab 8\n11P4114Switch between Portrait and Landscape views\n11N4e1lShare Log\n10l4918Show/hide AI chat panel\n10k490CShow/hide Calendar side panel\n11N431fScreen share using Direct Share\n11P490dEnable/disable dual monitor mode\n10J470zShow/hide floating meeting controls\n11J4a0cCall highlighted phone number or search\n10c410bBold text\n111410BItalicize text\n123491nStrikethrough text\n10i4908Create bulleted list\n119490aToggle Meeting Mic"
+};

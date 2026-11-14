@@ -16,11 +16,7 @@ inline bool navigation_driver_owns_subpage(
   return navigation_driver_matches(context) || companion_app_shortcuts_enabled(config);
 }
 
-inline bool navigation_driver_parent_sensor_state_enabled(
-    const ParsedCfg &config, const Context &context) {
-  return navigation_driver_matches(context) &&
-         !config.sensor.empty() && config.sensor != "indicator";
-}
+inline bool navigation_driver_parent_sensor_state_enabled(const ParsedCfg &, const Context &) { return false; }
 
 inline bool navigation_driver_parent_companion_stat_state_enabled(
     const ParsedCfg &config, const Context &context) {
@@ -28,23 +24,11 @@ inline bool navigation_driver_parent_companion_stat_state_enabled(
          subpage_companion_stat_config(config);
 }
 
-inline bool navigation_driver_parent_text_state_enabled(
-    const ParsedCfg &config, const Context &context) {
-  return navigation_driver_parent_sensor_state_enabled(config, context) &&
-         config.precision == "text";
-}
+inline bool navigation_driver_parent_text_state_enabled(const ParsedCfg &, const Context &) { return false; }
 
-inline bool navigation_driver_parent_entity_state_enabled(
-    const ParsedCfg &config, const Context &context) {
-  return navigation_driver_matches(context) &&
-         config.sensor == "indicator" && !config.entity.empty();
-}
+inline bool navigation_driver_parent_entity_state_enabled(const ParsedCfg &, const Context &) { return false; }
 
-inline bool navigation_driver_aggregates_child_state(
-    const ParsedCfg &config, const Context &context) {
-  return navigation_driver_matches(context) &&
-         config.sensor == "indicator" && config.entity.empty();
-}
+inline bool navigation_driver_aggregates_child_state(const ParsedCfg &, const Context &) { return false; }
 
 inline bool navigation_driver_parent_has_alt_icon(
     const ParsedCfg &config, const Context &context) {
@@ -83,13 +67,11 @@ inline bool navigation_driver_setup_visual(
       slot.btn, slot.text_lbl, nullptr, config.entity, unit,
       parse_precision(config.precision), true,
       !cfg_option_token_present(config.options, "stat_labels_off"));
-  } else if (navigation_driver_parent_sensor_state_enabled(config, context)) {
-    setup_subpage_parent_state_card(
-      slot, config, display_sensor_font(display),
-      grid.subpage_chevrons_enabled, grid.subpage_chevron_x,
-      grid.subpage_chevron_y, grid.subpage_chevron_text_width_percent);
   } else {
-    setup_toggle_visual(slot, config);
+    ParsedCfg folder = config;
+    folder.entity.clear();
+    folder.sensor.clear();
+    setup_toggle_visual(slot, folder);
   }
   return true;
 }
@@ -126,7 +108,7 @@ struct NavigationDriverParentState {
 
 inline bool navigation_driver_bind_main(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
-    const NavigationDriverParentState &state) {
+    const NavigationDriverParentState &) {
   if (!navigation_driver_matches(context)) return false;
 
   if (navigation_driver_parent_companion_stat_state_enabled(config, context)) {
@@ -142,76 +124,14 @@ inline bool navigation_driver_bind_main(
     return true;
   }
 
-  if (navigation_driver_parent_sensor_state_enabled(config, context)) {
-    if (navigation_driver_parent_text_state_enabled(config, context)) {
-      subscribe_text_sensor_value(slot.text_lbl, config.sensor);
-    } else {
-      subscribe_sensor_value(
-        slot.sensor_lbl, config.sensor, parse_precision(config.precision),
-        slot.unit_lbl, config.unit);
-      if (config.label.empty()) {
-        subscribe_friendly_name(slot.text_lbl, config.sensor);
-      }
-    }
-    return true;
-  }
-
-  if (!navigation_driver_parent_entity_state_enabled(config, context)) {
-    return true;
-  }
-  if (!state.has_sensor || !state.sensor_text_mode || !state.has_icon_on ||
-      !state.icon_off || !state.icon_on) {
-    return true;
-  }
-
-  *state.has_sensor = false;
-  *state.sensor_text_mode = false;
-  *state.has_icon_on = !config.icon_on.empty() && config.icon_on != "Auto";
-  if (*state.has_icon_on) *state.icon_on = find_icon(config.icon_on.c_str());
-  *state.icon_off = (config.icon.empty() || config.icon == "Auto")
-    ? domain_default_icon(config.entity.substr(0, config.entity.find('.')))
-    : find_icon(config.icon.c_str());
-
-  if (config.label.empty()) {
-    subscribe_friendly_name(slot.text_lbl, config.entity);
-  }
-
-  const std::string kind = normalize_subpage_kind(
-    cfg_option_value(config.options, "subpage_kind"));
-  if (kind == "climate") {
-    subscribe_climate_subpage_parent_indicator(
-      config.entity, slot.btn, slot.icon_lbl, *state.has_icon_on,
-      *state.icon_off, *state.icon_on);
-  } else if (kind == "lawn_mower") {
-    subscribe_toggle_state(
-      slot.btn, slot.icon_lbl, slot.sensor_container, slot.text_lbl,
-      state.has_sensor, state.sensor_text_mode, state.has_icon_on,
-      state.icon_off, state.icon_on, nullptr, config.entity, false,
-      lawn_mower_state_active_ref);
-  } else {
-    subscribe_toggle_state(
-      slot.btn, slot.icon_lbl, slot.sensor_container, slot.text_lbl,
-      state.has_sensor, state.sensor_text_mode, state.has_icon_on,
-      state.icon_off, state.icon_on, nullptr, config.entity, false);
-  }
   return true;
 }
 
-// Nested owners need the same data subscriptions as home cards, with any
-// callback state retained for the lifetime of their dynamic button.
+// Nested folders keep the same local/Mac data binding as home folders.
 inline bool navigation_driver_bind_subpage(
     BtnSlot &slot, const ParsedCfg &config, const Context &context) {
   if (!navigation_driver_matches(context)) return false;
-  if (!navigation_driver_parent_entity_state_enabled(config, context))
-    return navigation_driver_bind_main(slot, config, context, {});
-  struct OwnedState {
-    bool has_sensor{false}, text_mode{false}, has_icon_on{false};
-    const char *icon_off{nullptr}, *icon_on{nullptr};
-  };
-  auto *owned = grid_delete_with_owner(slot.btn, new OwnedState());
-  return navigation_driver_bind_main(slot, config, context, {
-    &owned->has_sensor, &owned->text_mode, &owned->has_icon_on,
-    &owned->icon_off, &owned->icon_on});
+  return navigation_driver_bind_main(slot, config, context, {});
 }
 
 struct NavigationDriverChildIndicators {
@@ -228,38 +148,14 @@ inline void navigation_driver_reset_child_indicators(
 }
 
 inline void navigation_driver_add_child_indicator(
-    NavigationDriverChildIndicators &state,
-    BtnSlot &parent_slot, int parent_index,
-    const ParsedCfg &parent_config, const Context &parent_context,
-    const std::string &entity_id,
-    bool (*is_active_state)(esphome::StringRef) = is_entity_on_ref) {
-  if (!navigation_driver_aggregates_child_state(
-        parent_config, parent_context) || entity_id.empty()) {
-    return;
-  }
-  const int child_index = state.next_child++;
-  if (child_index >= MAX_SUBPAGE_ITEMS) {
-    ESP_LOGW("sensors", "Too many subpage state indicators; skipping %s",
-             entity_id.c_str());
-    return;
-  }
-
-  const bool has_alt_icon = navigation_driver_parent_has_alt_icon(
-    parent_config, parent_context);
-  const char *on_glyph = navigation_driver_parent_icon_on(
-    parent_config, parent_context);
-  const char *off_glyph = navigation_driver_parent_icon_off(
-    parent_config, parent_context);
-  subscribe_subpage_parent_indicator(
-    entity_id, parent_slot.btn, parent_slot.icon_lbl, parent_index,
-    &state.child_was_on[child_index], has_alt_icon,
-    off_glyph, on_glyph, state.parent_on_count, is_active_state);
-}
+    NavigationDriverChildIndicators &, BtnSlot &, int,
+    const ParsedCfg &, const Context &, const std::string &,
+    bool (*)(esphome::StringRef) = is_entity_on_ref) {}
 
 inline bool navigation_driver_own_subpage(
     BtnSlot &parent_slot, const ParsedCfg &config, const Context &context,
     int slot_number, int display_order, lv_obj_t *screen) {
-  if (!navigation_driver_owns_subpage(context, config) || !screen) return false;
+  if (!navigation_driver_owns_subpage(context, config)) return false;
   const std::string kind = companion_app_shortcuts_enabled(config)
     ? "app_shortcuts"
     : normalize_subpage_kind(cfg_option_value(config.options, "subpage_kind"));
@@ -267,16 +163,17 @@ inline bool navigation_driver_own_subpage(
     slot_number, display_order,
     kind,
     screen);
-  if (parent_slot.btn) lv_obj_set_user_data(parent_slot.btn, screen);
+  navigation_find_slot(slot_number)->owner_button = parent_slot.btn;
   return true;
 }
 
 inline bool navigation_driver_handle_main_click(
     const Context &context, const ParsedCfg &, lv_obj_t *button) {
   if (!navigation_driver_matches(context)) return false;
-  lv_obj_t *screen = button
-    ? static_cast<lv_obj_t *>(lv_obj_get_user_data(button)) : nullptr;
+  const auto started = esphome::millis();
+  lv_obj_t *screen = navigation_screen_for_button(button);
   if (screen) {
+    navigation_begin_page_open(screen, started);
     lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
     refresh_visible_image_cards();
   }
@@ -292,8 +189,12 @@ inline bool navigation_handle_button_press(const ParsedCfg &config, int slot_num
   const bool app_subpage = companion_app_shortcuts_enabled(config) &&
     (companion_auto_open_app_subpages() || companion_action_active(config.entity));
   if (!button || (!subpage && !app_subpage)) return false;
-  auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
-  if (!screen || !lv_obj_is_valid(screen)) return false;
+  // The selected driver opens the page after consuming the touch. Check the
+  // owner here without building it early, so first-draw timing includes the build.
+  const auto &entries = navigation_subpages();
+  if (std::none_of(entries.begin(), entries.end(), [&](const auto &entry) {
+        return entry.owner_button == button;
+      })) return false;
   navigation_consume_touch_press(button);
   if (subpage) {
     espdesktop::cards::navigation_driver_handle_main_click(context, config, button);

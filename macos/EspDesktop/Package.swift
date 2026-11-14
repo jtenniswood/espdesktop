@@ -8,19 +8,12 @@ let package = Package(
     products: [.executable(name: "EspDesktop", targets: ["Companion"])],
     dependencies: [.package(url: "https://github.com/sparkle-project/Sparkle", exact: "2.10.1")],
     targets: [
-        .target(
-            name: "MediaRemoteShim",
-            path: "Sources/MediaRemoteShim",
-            publicHeadersPath: "include",
-            linkerSettings: [.linkedFramework("Foundation")]
-        ),
         .executableTarget(
             name: "Companion",
-            dependencies: ["MediaRemoteShim", .product(name: "Sparkle", package: "Sparkle")],
+            dependencies: [.product(name: "Sparkle", package: "Sparkle")],
             path: "Sources/Companion",
             resources: [
                 .copy("Resources/AppShortcuts"),
-                .copy("Resources/WebApps"),
                 .copy("Resources/buy-me-a-coffee-button.png"),
             ],
             linkerSettings: [

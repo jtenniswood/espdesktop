@@ -2,54 +2,138 @@ import { mkdir, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { MarkdownRenderer } from 'vitepress'
 
-export const hostname = 'https://jtenniswood.github.io/espdesktop/'
+export const hostname = 'https://espdesktop.com/'
+export const llmsIndexUrl = new URL('llms.txt', hostname).href
+
+export function canonicalUrlFor(relativePath: string) {
+  const path = relativePath.replace(/(^|\/)index\.md$/, '$1').replace(/\.md$/, '')
+  return new URL(path, hostname).href
+}
+
 const espcontrol = 'https://jtenniswood.github.io/espcontrol/'
+const immichGuide = `${espcontrol}immich/`
+const displaySetup = `${hostname}screens/4848s040`
+const macControls = `${hostname}#what-you-can-control`
 
 // GitHub Pages cannot configure HTTP redirects. These HTML fallbacks preserve
 // published links while keeping retired pages out of search and the sitemap.
 export const redirects: Record<string, string> = {
+  'card-types/climate': `${espcontrol}card-types/climate`,
+  'getting-started/mac-app': `${displaySetup}#download`,
+  'getting-started/install': `${displaySetup}#install`,
+  'getting-started/c6-recovery': `${espcontrol}getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi`,
+  'immich/installation': `${immichGuide}#installation`,
+  'screens/p4-86': `${espcontrol}screens/p4-86`,
+  'screens/jc8012p4a1-v3': `${espcontrol}screens/jc8012p4a1-v3`,
+  'screens/jc8012p4a1-v2': `${espcontrol}screens/jc8012p4a1-v2`,
+  'screens/jc8012p4a1-v1': `${espcontrol}screens/jc8012p4a1-v1`,
+  'screens/jc8012p4a1': `${espcontrol}screens/jc8012p4a1`,
+  'screens/jc4880p443': `${espcontrol}screens/jc4880p443`,
+  'screens/jc1060p470-v2': `${espcontrol}screens/jc1060p470-v2`,
+  'screens/jc1060p470-v1': `${espcontrol}screens/jc1060p470-v1`,
+  'screens/jc1060p470': `${espcontrol}screens/jc1060p470`,
+  'features/setup': `${hostname}features/home`,
   'generated/companion-compatibility': `${hostname}reference/companion-compatibility`,
   'reference/request-device-support': `${hostname}screens/4848s040`,
+  'screens/index': `${hostname}screens/4848s040`,
+  'card-types/companion': macControls,
   'card-types/weather-forecast': espcontrol,
   'card-types/index': espcontrol,
-  'getting-started/home-assistant-actions': espcontrol,
-  'features/media-cover-art': `${hostname}card-types/companion`,
-  'mac-controls/volume': `${hostname}card-types/companion`,
+  'getting-started/home-assistant-actions': `${espcontrol}getting-started/home-assistant-actions`,
+  'features/settings': `${hostname}settings/system`,
+  'features/backup': `${hostname}settings/backup`,
+  'features/media-cover-art': `${hostname}settings/screen`,
+  'mac-controls/statistics': `${hostname}reference/mac-controls-by-release#mac-statistics-and-volume`,
+  'mac-controls/volume': `${hostname}reference/mac-controls-by-release#mac-statistics-and-volume`,
   'guides/index': espcontrol,
-  'immich/index': espcontrol,
-  'generated/cards/capabilities': `${hostname}card-types/companion`,
+  'immich/index': `${espcontrol}immich/`,
+  'generated/cards/capabilities': macControls,
   'generated/cards/runtime-coverage':
     'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
   'generated/screens/4848s040-grid': `${hostname}screens/4848s040`,
-  'generated/screens/4848s040-install': `${hostname}screens/4848s040#install`,
-  'generated/screens/jc1060p470-grid': espcontrol,
-  'generated/screens/jc1060p470-install': espcontrol,
-  'generated/screens/jc1060p470-v2-grid': espcontrol,
-  'generated/screens/jc1060p470-v2-install': espcontrol,
-  'generated/screens/jc4880p443-grid': espcontrol,
-  'generated/screens/jc4880p443-install': espcontrol,
+  'generated/screens/4848s040-install': `${displaySetup}#install`,
+  'generated/screens/jc1060p470-grid': `${espcontrol}screens/jc1060p470`,
+  'generated/screens/jc1060p470-install': `${espcontrol}screens/jc1060p470`,
+  'generated/screens/jc1060p470-v2-grid': `${espcontrol}screens/jc1060p470-v2`,
+  'generated/screens/jc1060p470-v2-install': `${espcontrol}screens/jc1060p470-v2`,
+  'generated/screens/jc4880p443-grid': `${espcontrol}screens/jc4880p443`,
+  'generated/screens/jc4880p443-install': `${espcontrol}screens/jc4880p443`,
   'generated/screens/jc4880p443-v3-grid': `${espcontrol}screens/jc4880p443-v3`,
   'generated/screens/jc4880p443-v3-install': `${espcontrol}screens/jc4880p443-v3`,
   'screens/jc4880p443-v3': `${espcontrol}screens/jc4880p443-v3`,
-  'generated/screens/jc8012p4a1-grid': espcontrol,
-  'generated/screens/jc8012p4a1-install': espcontrol,
-  'generated/screens/jc8012p4a1-v2-grid': espcontrol,
-  'generated/screens/jc8012p4a1-v2-install': espcontrol,
-  'generated/screens/jc8012p4a1-v3-grid': espcontrol,
-  'generated/screens/jc8012p4a1-v3-install': espcontrol,
-  'generated/screens/p4-86-grid': espcontrol,
-  'generated/screens/p4-86-install': espcontrol,
+  'generated/screens/jc8012p4a1-grid': `${espcontrol}screens/jc8012p4a1`,
+  'generated/screens/jc8012p4a1-install': `${espcontrol}screens/jc8012p4a1`,
+  'generated/screens/jc8012p4a1-v2-grid': `${espcontrol}screens/jc8012p4a1-v2`,
+  'generated/screens/jc8012p4a1-v2-install': `${espcontrol}screens/jc8012p4a1-v2`,
+  'generated/screens/jc8012p4a1-v3-grid': `${espcontrol}screens/jc8012p4a1-v3`,
+  'generated/screens/jc8012p4a1-v3-install': `${espcontrol}screens/jc8012p4a1-v3`,
+  'generated/screens/p4-86-grid': `${espcontrol}screens/p4-86`,
+  'generated/screens/p4-86-install': `${espcontrol}screens/p4-86`,
 }
+
+const formerSettingsSections = {
+  '#screen-and-system-settings': '/settings/screen',
+  '#appearance': '/settings/screen#appearance',
+  '#display': '/settings/screen#display',
+  '#sleep-schedule': '/settings/screen#sleep-schedule',
+  '#back-up-your-layout': '/settings/backup',
+  '#system-settings': '/settings/system#display-system-settings',
+  '#mac-companion-and-preferences': '/settings/system#mac-companion-and-preferences',
+  '#protect-the-touchscreen': '/settings/system#protect-the-touchscreen',
+  '#naming-your-panel': '/settings/system#naming-your-panel',
+  '#update-the-display-firmware': '/settings/system#update-the-display-firmware',
+  '#reset-the-display': '/settings/system#reset-the-display',
+  '#mac-app-settings': '/settings/mac-app',
+  '#check-for-mac-app-updates': '/settings/mac-app#check-for-mac-app-updates',
+}
+
+const formerCardSections = {
+  ...formerSettingsSections,
+  '#add-a-mac-control': '/features/home#add-a-card',
+  '#arrange-and-personalise-cards': '/features/home#organise-cards',
+  '#quick-card-colours': '/features/home#change-how-a-card-looks',
+  '#device-and-system-settings': '/settings/screen',
+}
+
+const formerImmichSections = Object.fromEntries([
+  'installation-status',
+  'hacs-installation',
+  'manual-installation',
+  'immich-connection-and-permissions',
+  'image-quality',
+  'troubleshooting',
+].map(section => [`#${section}`, `${immichGuide}#${section}`]))
+
+const formerMacAppSections = Object.fromEntries([
+  'install-a-release',
+  'pair-the-display',
+  'check-the-connection',
+  'check-for-mac-app-updates',
+].map(section => [`#${section}`, `${displaySetup}#${section}`]))
 
 export async function writeRedirects(outDir: string) {
   for (const [path, destination] of Object.entries(redirects)) {
     const file = join(outDir, `${path}.html`)
     await mkdir(join(file, '..'), { recursive: true })
+    const formerSections = path === 'features/setup' ? formerCardSections
+      : path === 'features/settings' ? formerSettingsSections
+      : path === 'getting-started/install'
+        ? { '#connect-the-display-to-wifi': `${displaySetup}#connect-the-display-to-wifi` }
+      : path === 'getting-started/mac-app' ? formerMacAppSections
+      : path === 'immich/installation' ? formerImmichSections
+      : undefined
+    const fragmentRedirect = formerSections
+      ? `<script>
+const target = ${jsonLd(formerSections)}[location.hash]
+if (target) location.replace(target)
+</script>`
+      : ''
     await writeFile(file, `<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <title>Page moved | EspDesktop</title>
 <meta name="robots" content="noindex,follow">
 <link rel="canonical" href="${destination.split('#')[0]}">
+${fragmentRedirect}
 <meta http-equiv="refresh" content="0; url=${destination}">
 </head><body><h1>Page moved</h1><p><a href="${destination}">Continue to the current guide</a>.</p></body></html>\n`)
   }

@@ -43,6 +43,17 @@ class CheckMatrixRow:
     broaden_when: str
 
 
+# These files are staged at build time. The web asset and device profile
+# checks verify their presence and contents after the generator runs.
+WEB_BUILD_OUTPUTS = (
+    "docs/public/webserver/www.js",
+    "docs/public/webserver/web-assets.json",
+    "docs/public/webserver/embedded/www.js",
+    "docs/public/webserver/bundles/*/www.js",
+    "docs/public/webserver/*/www.js",
+)
+
+
 SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     SourceTruthRow(
         "product/v2/companion_capabilities.json, product/v2/devices/*.json, product/release_contract.json, compatibility/fixtures/companion_protocol_v4.json",
@@ -54,14 +65,21 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
         "`npm run check:companion-contract`, host firmware tests, and native Swift tests",
     ),
     SourceTruthRow(
-        "product/v2/card_contract.json",
+        "product/model_v2.json, product/v2/card_contract_shared.json, product/v2/cards/*.json",
         (
+            "product/v2/card_contract.json",
             "src/webserver/generated/card_contract.ts",
             "components/espdesktop/button_grid_contract_generated.h",
             "docs/generated/cards/capabilities.md",
         ),
         "python3 scripts/build.py contract",
         "`npm run check:card-contract-outputs` and `npm run check:product`",
+    ),
+    SourceTruthRow(
+        "product/v2/panel_settings.json",
+        ("components/espdesktop/panel_settings_generated.h", "src/webserver/generated/panel_settings.ts"),
+        "python3 scripts/build.py settings",
+        "`python3 scripts/build.py settings --check` and `npm run check:generated`",
     ),
     SourceTruthRow(
         "common/config/card_runtime_inventory.json",
@@ -78,6 +96,12 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
         ("common/config/entity_names.yaml", "src/webserver/generated/entity_catalog.ts"),
         "python3 scripts/build.py entities",
         "`python3 scripts/build.py entities --check` and `npm run check:product`",
+    ),
+    SourceTruthRow(
+        "product/model_v2.json, product/v2/device_catalog_shared.json, product/v2/devices/*.json",
+        ("product/v2/device_catalog.json",),
+        "python3 scripts/build.py devices",
+        "`npm run check:product-model-v2` and `npm run check:generated`",
     ),
     SourceTruthRow(
         "product/v2/device_catalog.json",
@@ -133,13 +157,7 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
     ),
     SourceTruthRow(
         "src/webserver/",
-        (
-            "docs/public/webserver/www.js",
-            "docs/public/webserver/web-assets.json",
-            "docs/public/webserver/embedded/www.js",
-            "docs/public/webserver/bundles/*/www.js",
-            "docs/public/webserver/*/www.js",
-        ),
+        WEB_BUILD_OUTPUTS,
         "python3 scripts/build.py www",
         "`npm run check:web-smoke`, `npm run check:web-asset-manifest`, and `npm run check:product`",
     ),
@@ -160,12 +178,10 @@ SOURCE_TRUTH_ROWS: tuple[SourceTruthRow, ...] = (
 
 PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "": "docs/card-types/switches.md",
-    "action": "docs/card-types/actions.md",
     "alarm": "docs/card-types/alarms.md",
     "alarm_action": "docs/card-types/alarms.md",
-    "calendar": "docs/card-types/calendar.md",
-    "clock": "docs/card-types/calendar.md",
-    "companion": "docs/card-types/companion.md",
+    "companion": "docs/index.md",
+    "companion_mac_lock": "docs/index.md",
     "climate": "docs/card-types/climate.md",
     "climate_control": "docs/card-types/climate.md",
     "cover": "docs/card-types/covers.md",
@@ -185,13 +201,10 @@ PUBLIC_DOCS_BY_TYPE: dict[str, str] = {
     "light_temperature": "docs/card-types/lights.md",
     "lock": "docs/card-types/locks.md",
     "media": "docs/card-types/media.md",
-    "option_select": "docs/card-types/option-select.md",
     "push": "docs/card-types/buttons.md",
-    "webhook": "docs/card-types/webhooks.md",
     "slider": "docs/card-types/sliders.md",
     "subpage": "docs/features/subpages.md",
     "timer": "docs/card-types/timers.md",
-    "timezone": "docs/card-types/timezones.md",
     "vacuum": "docs/card-types/vacuum.md",
     "lawn_mower": "docs/card-types/lawn-mower.md",
     "weather": "docs/card-types/weather.md",
@@ -501,7 +514,7 @@ def firmware_header_map(card_types: list[str]) -> dict[str, list[str]]:
     out = {card_type: [] for card_type in card_types}
     runtime_boundary = "components/espdesktop/button_grid_card_runtime.h"
     extra_by_type = {
-        "weather": ["components/espdesktop/button_grid_weather_forecast.h"],
+        "weather": ["components/espdesktop/retired_home_assistant_cards.h"],
     }
     headers = [
         path for path in sorted((ROOT / "components/espdesktop").glob("button_grid*.h"))
@@ -573,7 +586,7 @@ def generated_card_map() -> str:
         firmware = ", ".join(f"`{path}`" for path in firmware_files.get(card_type, [])) or "No direct match"
         web = f"`{web_files[card_type]}`" if card_type in web_files else "No current web type"
         checks = ["Contract", "Codec", "Parser"]
-        if card.get("domains") or card_type in {"action", "push", "webhook", "weather", "image"}:
+        if card.get("domains") or card_type in {"action", "push", "weather", "image"}:
             checks.append("HA")
         if "modal" in " ".join(firmware_files.get(card_type, [])).lower() or card_type in {"alarm", "alarm_action", "climate", "climate_control", "media", "option_select", "image"}:
             checks.append("Modals")
@@ -593,8 +606,8 @@ def generated_card_map() -> str:
 
     return "\n\n".join((
         "## Generated Public Documentation Map\n\n"
-        "This table is generated by `python3 scripts/check_dev_docs.py --update` from "
-        "`product/v2/card_contract.json` and the public documentation mapping in that script.\n\n"
+        "The generated card contract and the public documentation mapping define this table. "
+        "Regenerate it with `python3 scripts/check_dev_docs.py --update`.\n\n"
         + markdown_table(("Public card page", "Covered saved type"), public_rows),
         "## Generated Matrix\n\n"
         "This table is generated from the card contract and typed `registry.register(...)` calls in "
@@ -747,6 +760,8 @@ def source_truth_path_targets(value: str) -> list[str]:
 
 def check_source_truth_path(value: str, label: str, errors: list[str]) -> None:
     for target in source_truth_path_targets(value):
+        if label == "output" and target in WEB_BUILD_OUTPUTS:
+            continue
         if any(marker in target for marker in ("<", ">", "...")):
             continue
         matches = sorted(ROOT.glob(target)) if "*" in target else []
@@ -995,6 +1010,8 @@ def check_referenced_paths(errors: list[str]) -> None:
                 if any(marker in token for marker in ("*", "<", ">", "...")):
                     continue
                 if "/example." in token or token.endswith("/example"):
+                    continue
+                if token in WEB_BUILD_OUTPUTS or token == "docs/public/webserver/embedded":
                     continue
                 full = ROOT / token
                 if not full.exists():

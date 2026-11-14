@@ -18,7 +18,7 @@ test("rainfall supports sensors and daily forecast data without making sensor ca
   assert.equal(options.normalizeWeatherOptions(forecast.options,forecast),disabledCardTypes.length?"":"rainfall_source=forecast");
   assert.equal(options.normalizeWeatherOptions(forecast.options,{precision:"today"}),"");
   let card;
-  registerWeatherCardTypes({register:(_,definition)=>card=definition},options,{},{},{});
+  registerWeatherCardTypes({register:(_,definition)=>card=definition},options,{},{});
   assert.equal(card.cardMetadata.mode.value(sensor),"rainfall");
   for(const button of [sensor,forecast]){
    const preview=card.renderPreview(button);
@@ -33,7 +33,7 @@ test("rainfall supports sensors and daily forecast data without making sensor ca
 test("changing existing weather modes to Rainfall clears incompatible entities", () => {
  const options = createConfigWeatherOptionsFeature({});
  let card;
- registerWeatherCardTypes({register: (_, definition) => card = definition}, options, {}, {}, {renderButtonSettings: () => {}});
+ registerWeatherCardTypes({register: (_, definition) => card = definition}, options, {}, {renderButtonSettings: () => {}});
  for (const precision of ["", "today", "tomorrow", "daily", "wind"]) {
   const config = {precision, entity: "weather.home", sensor: "", options: ""};
   const saved = {};

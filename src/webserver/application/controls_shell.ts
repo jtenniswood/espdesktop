@@ -39,6 +39,7 @@ export interface ControlsShellFeature {
     readonly buildApplyBar: () => HTMLElement;
     readonly switchTab: (tab?: any) => void;
     readonly syncTabChrome: () => void;
+    readonly isPreviewReadOnly: () => boolean;
     readonly isConfigLocked: () => boolean;
     readonly syncConfigLockUi: () => void;
     readonly setConfigLocked: (locked?: any, reason?: any) => void;
@@ -93,10 +94,10 @@ export function createControlsShellFeature(
     function showBanner(this: any, msg?: any, type?: any) {
         if (!els.banner)
             return;
+        dependencies.cancelSchedule(els._bannerTimer);
         els.banner.textContent = msg;
         els.banner.className = "sp-banner sp-" + type;
         if (type === "error" || type === "success" || type === "warning") {
-            dependencies.cancelSchedule(els._bannerTimer);
             els._bannerTimer = dependencies.schedule(function (this: any) {
                 els.banner.className = "sp-banner";
             }, 6000);
@@ -150,7 +151,7 @@ export function createControlsShellFeature(
         });
         var docsLink: any = document.createElement("a");
         docsLink.className = "sp-tab sp-tab-docs";
-        docsLink.href = "https://jtenniswood.github.io/espdesktop/";
+        docsLink.href = "https://espdesktop.com/";
         docsLink.target = "_blank";
         docsLink.rel = "noopener";
         docsLink.appendChild(document.createTextNode("Docs "));
@@ -194,15 +195,6 @@ export function createControlsShellFeature(
         hint.className = "sp-hint";
         hint.style.display = "none";
         els.previewHint = hint;
-        var specialPageEntry: any = document.createElement("button");
-        specialPageEntry.className = "sp-selection-btn sp-special-page-entry";
-        specialPageEntry.type = "button";
-        specialPageEntry.textContent = "Configure swipe-up page";
-        els.specialPageEntry = specialPageEntry;
-        var swipeWrap: any = document.createElement("div");
-        swipeWrap.className = "sp-swipe-wrap";
-        swipeWrap.appendChild(specialPageEntry);
-        page.appendChild(swipeWrap);
         page.appendChild(hint);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";
@@ -292,8 +284,11 @@ export function createControlsShellFeature(
         if (support)
             support.classList.remove("sp-support-hidden");
     }
+    function isPreviewReadOnly() {
+        return state.configLocked || state.nativeConfigReadOnly;
+    }
     function isConfigLocked(this: any) {
-        return !!state.configLocked || !!state.nativeConfigReadOnly || !!state.nativeConfigLoading || !!state.nativeTransferActive;
+        return isPreviewReadOnly() || state.nativeConfigLoading || state.nativeTransferActive;
     }
     function syncConfigLockUi(this: any) {
         const previewLocked = !!state.configLocked || !!state.nativeConfigLoading ||
@@ -351,6 +346,7 @@ export function createControlsShellFeature(
         buildApplyBar,
         switchTab,
         syncTabChrome,
+        isPreviewReadOnly,
         isConfigLocked,
         syncConfigLockUi,
         setConfigLocked,

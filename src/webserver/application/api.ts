@@ -1,7 +1,7 @@
 import type { NativePanelConfigController } from "../controllers/native_panel_config_controller";
 import type { DeviceApi } from "../api/device_api";
 import { requestFailureInfo } from "../api/request_failure";
-import { screensaverActionOption } from "../model/settings";
+import { normalizeScreensaverMode, screensaverActionOption } from "../model/settings";
 import type { ScreensaverTimeoutFeature } from "./screensaver_timeout";
 import type { EntityStateFeature } from "./entity_state";
 import type { ControlsShellFeature } from "./controls_shell";
@@ -40,7 +40,6 @@ export interface ApplicationApiFeature {
     postScreensaverDimmedBrightness(value?: any): void;
     postScreensaverDimmedBrightnessDay(value?: any): void;
     postScreensaverDimmedBrightnessNight(value?: any): void;
-    postHomeScreenTimeout(value?: any): void;
     postSwitchWithObjectId(name?: string, objectId?: string, on?: boolean, errorMessage?: string): void;
     postSwitchWithObjectIds(name?: string, objectIds?: string[], on?: boolean, errorMessage?: string): void;
     getJsonQuietly(path?: string, callback?: (data: any) => void, options?: { credentials?: RequestCredentials; strict?: boolean }): Promise<any>;
@@ -165,7 +164,7 @@ export function createApplicationApiFeature(
         return post(entityPostUrls("switch", name, [], on ? "turn_on" : "turn_off"));
     }
     function postScreensaverMode(this: any, value?: any) {
-        return postTextWithObjectIds(entityName("screensaver_mode"), entityObjectIds("screensaver_mode"), value);
+        return postTextWithObjectIds(entityName("screensaver_mode"), entityObjectIds("screensaver_mode"), normalizeScreensaverMode(value));
     }
     function postFirmwareAutoUpdate(this: any, on?: any) {
         return postSwitchWithObjectIds(entityName("firmware_auto_update"), entityObjectIds("firmware_auto_update"), on);
@@ -217,9 +216,6 @@ export function createApplicationApiFeature(
     }
     function postScreensaverDimmedBrightnessNight(this: any, value?: any) {
         postNumberWithObjectIds(entityName("screen_saver_nighttime_dimmed_brightness"), entityObjectIds("screen_saver_nighttime_dimmed_brightness"), value, SCREENSAVER_ACTION_UNAVAILABLE);
-    }
-    function postHomeScreenTimeout(this: any, value?: any) {
-        postNumberWithObjectIds(entityName("home_screen_timeout"), entityObjectIds("home_screen_timeout"), value);
     }
     function postSwitchWithObjectId(this: any, name?: any, objectId?: any, on?: any, errorMessage?: any) {
         postWithObjectId("switch", name, objectId, on ? "turn_on" : "turn_off", errorMessage);
@@ -299,7 +295,6 @@ export function createApplicationApiFeature(
         postScreensaverDimmedBrightness,
         postScreensaverDimmedBrightnessDay,
         postScreensaverDimmedBrightnessNight,
-        postHomeScreenTimeout,
         postSwitchWithObjectId,
         postSwitchWithObjectIds,
         getJsonQuietly,

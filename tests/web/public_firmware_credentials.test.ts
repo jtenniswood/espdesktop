@@ -20,7 +20,7 @@ export async function runPublicFirmwareCredentialsTest() {
       json: async () => ({}), blob: async () => new Blob(["firmware"]), text: async () => "test upload rejected" };
   });
   const noop = () => {};
-  const info = { latest_version: "1.0.0", ota_url: "https://jtenniswood.github.io/espdesktop/firmware/test.ota.bin" };
+  const info = { latest_version: "1.0.0", ota_url: "https://espdesktop.com/firmware/test.ota.bin" };
   const feature = createPublicFirmwareInstallFeature(api, "test", {
     selectedInfo: () => info, setPublicVersions: noop, infoForVersion: () => info,
     setPublicInfo: noop, clearWebOtaFallback: noop, renderStatus: noop,

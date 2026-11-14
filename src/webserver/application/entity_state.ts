@@ -15,12 +15,12 @@ const entityDefinitions = ENTITY_CATALOG.entities as unknown as Readonly<Record<
 export interface EntityStateDependencies {
     readonly actionCardStateEntity: ConfigConfirmationOptionsFeature["actionCardStateEntity"];
     readonly totalSlots: () => number;
-    readonly clockBarTemperatureEntities: () => any[];
+
     readonly textInput: (id: any, value: any, placeholder: any) => any;
 }
 
 export function createEntityStateFeature(dependencies: EntityStateDependencies) {
-    const { actionCardStateEntity, clockBarTemperatureEntities } = dependencies;
+    const { actionCardStateEntity,  } = dependencies;
     // ── Entity State Helpers ───────────────────────────────────────────────
     function uniquePush(this: any, list?: any, value?: any) {
         if (value && list.indexOf(value) === -1)
@@ -148,14 +148,8 @@ export function createEntityStateFeature(dependencies: EntityStateDependencies) 
             for (var bi: any = 0; bi < sp.buttons.length; bi++)
                 rememberConfiguredButtonEntities(sp.buttons[bi]);
         }
-        rememberEntityName(state.indoorEntity, "Indoor Temperature");
-        rememberEntityName(state.outdoorEntity, "Outdoor Temperature");
-        clockBarTemperatureEntities().forEach(function (this: any, entityId?: any, index?: any) {
-            rememberEntityName(entityId, "Clock Bar Temperature " + (index + 1));
-        });
+
         rememberEntityName(state.presenceEntity, "Presence Sensor");
-        rememberEntityName(state.coverArtMediaPlayerEntity, "Media Player");
-        rememberEntityName(state.coverArtSecondaryMediaPlayerEntity, "External Source Media Player");
     }
     function optionLabelForEntity(this: any, entityId?: any) {
         var names: any = state.entityNames[entityId] || [];

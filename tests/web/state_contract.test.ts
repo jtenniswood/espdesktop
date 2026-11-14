@@ -49,12 +49,14 @@ export function runStateContractTests(): void {
   equal(first.screenRotation, "180", "startup uses the device rotation default");
   equal(first.screenRotationInitialReady, false, "rotation-capable devices wait for the initial event");
   equal(first.timezoneOptions.length, 2, "startup copies embedded timezone options");
-  equal(first.alarmDelayAudioOn, false, "alarm delay audio defaults off");
-  equal(first.alarmDelayTtsOn, true, "alarm delay TTS defaults on");
-  equal(first.alarmDelayFinalCountdown, 10, "alarm delay final countdown defaults to ten seconds");
   equal(first.autoOpenAppSubpages, true, "app subpages open on focus by default");
+  equal(first.scheduleEnabled, false, "the night schedule starts disabled");
+  equal(first.scheduleTrigger, "disabled", "the editor shows Night Schedule as Disabled on startup");
+  equal(first.scheduleOnHour, 7, "daytime starts at 7 AM");
+  equal(first.scheduleOffHour, 19, "night time starts at 7 PM");
+  equal(first.scheduleMode, "screen_dimmed", "Screen Dimmed is preselected when enabling a schedule");
+  equal(first.scheduleDimmedBrightness, 15, "default overnight brightness is 15 percent");
   equal(first.returnHomeOnAppSwitch, true, "app switching returns home by default");
-  equal(first.coverArtSource, "Home Assistant", "cover art defaults to the Home Assistant source");
   const backupCurrent = {
     timezone: "UTC",
     language: "en",
@@ -64,10 +66,6 @@ export function runStateContractTests(): void {
     ntpServer1: "",
     ntpServer2: "",
     ntpServer3: "",
-    coverArtHomeAssistantHost: "",
-    coverArtHomeAssistantProtocol: "auto",
-    coverArtHomeAssistantPort: 8123,
-    coverArtHomeAssistantEndpointMode: "auto",
     autoUpdate: false,
     updateFrequency: "daily",
     updateFrequencyOptions: ["daily"],
@@ -88,8 +86,7 @@ export function runStateContractTests(): void {
   equal(normalizeBackupPanelSettings({}, backupCurrent).autoOpenAppSubpages, true, "older backups retain automatic app subpages");
   equal(restoredCompanionSettings.screensaverMode, "companion",
     "backup restore preserves Companion screensaver mode");
-  equal(restoredCompanionSettings.coverArtSource, "Mac Companion",
-    "backup restore preserves the Mac cover-art source");
+  assert(!Object.hasOwn(restoredCompanionSettings, "coverArtSource"), "retired cover art settings are ignored");
   first.grid[0] = 9;
   first.buttons[0]!.label = "Changed";
   equal(second.grid[0], 0, "state factories do not share grid arrays");
@@ -98,20 +95,6 @@ export function runStateContractTests(): void {
   equal(SSE_ALIAS_GROUPS.clockBar.join("|"), [
     "switch-screen__clock_bar", "switch-screen_clock_bar", "switch-clock_bar_enabled",
   ].join("|"), "clock-bar aliases retain their compatibility order");
-  equal(SSE_ALIAS_GROUPS.coverArtHideExternalInput.join("|"), [
-    "switch-screen_saver__hide_cover_art_on_external_input",
-    "switch-screen_saver_hide_cover_art_on_external_input",
-    "switch-hide_cover_art_on_external_input",
-    "switch-cover_art_hide_external_input",
-    "switch-screen_saver__hide_for_external_sources",
-  ].join("|"), "cover-art external-input aliases remain exact");
-  equal(SSE_ALIAS_GROUPS.trackOverlayDuration.join("|"), [
-    "number-screen_saver__track_overlay_duration",
-    "number-screen_saver_track_overlay_duration",
-    "number-track_overlay_duration",
-    "number-screen_saver__show_track_overlay",
-  ].join("|"), "track-overlay aliases remain exact");
-
   first.selectedSlots = [1, 2];
   first.lastClickedSlot = 2;
   first.editingSubpage = 3;
@@ -132,45 +115,19 @@ export function runStateContractTests(): void {
     clockBar: "switch-screen__clock_bar",
     clockBarTime: "switch-screen__clock_bar_time",
     clockBarNightMode: "switch-screen__clock_bar_night_mode_icon",
-    clockBarTemperatureEntities: "text-clock_bar_temperature_entities",
     networkStatus: "switch-screen__network_status_icon",
     batteryStatus: "switch-screen__battery_status",
-    voiceServices: "switch-voice_services",
-    alarmDelayAudio: "switch-alarm_delay__audio",
-    alarmDelayTts: "switch-alarm_delay__tts",
-    alarmDelayEntryAnnouncement: "text-alarm_delay__entry_announcement",
-    alarmDelayExitAnnouncement: "text-alarm_delay__exit_announcement",
-    alarmDelayBeepVolume: "number-alarm_delay__beep_volume",
-    alarmDelayFinalCountdown: "number-alarm_delay__final_countdown",
-    temperatureDegreeSymbol: "switch-screen__temperature_degree_symbol",
     subpageChevron: "switch-screen__subpage_chevron",
     autoOpenAppSubpages: "switch-companion__auto_open_app_subpages",
     returnHomeOnAppSwitch: "switch-companion__return_home_on_app_switch",
     subpageTitleBar: "switch-screen__subpage_title_bar",
     screensaverTimeout: "number-screensaver_timeout",
     clockScreensaver: "switch-screen_saver__clock",
-    mediaPlayerSleepPrevention: "switch-screen_saver__media_player_sleep_prevention",
-    coverArtPlaybackControl: "switch-screen_saver__cover_art_playback_control",
-    mediaPlayerSleepPreventionEntity: "text-media_player_sleep_prevention_entity",
-    coverArt: "switch-screen_saver__cover_art",
-    coverArtSource: "select-cover_art_source",
 
     cameraDimming: "number-screen_saver__camera_dimming",
     clockDate: "switch-screen_saver__show_date",
     clockOverlay: "switch-screen_saver__clock_overlay",
     metadataOverlay: "switch-screen_saver__metadata_overlay",
-    coverArtEntity: "text-screen_saver__cover_art_entity",
-    coverArtSecondaryEntity: "text-screen_saver__external_source_media_entity",
-    coverArtConditions: "text-screen_saver__cover_art_conditions",
-    coverArtDelay: "number-screen_saver__cover_art_delay",
-    trackOverlayDuration: "number-screen_saver__track_overlay_duration",
-    coverArtHideExternalInput: "switch-screen_saver__hide_cover_art_on_external_input",
-    homeAssistantArtworkProtocol: "select-home_assistant_artwork_protocol",
-    homeAssistantArtworkPort: "number-home_assistant_artwork_port",
-    homeAssistantArtworkHost: "text-home_assistant_artwork_host",
-    homeAssistantArtworkEndpointMode: "select-home_assistant_artwork_endpoint_mode",
-    homeAssistantArtworkEndpointStatus: "text_sensor-home_assistant_artwork_endpoint_status",
-    homeAssistantArtworkEndpointHealth: "text_sensor-home_assistant_artwork_endpoint_health",
     scheduleTrigger: "text-screen__schedule_trigger",
     scheduleSensorActivation: "select-screen__schedule_sensor_activation",
     scheduleWakeTimeout: "number-screen__schedule_wake_timeout",
@@ -202,9 +159,7 @@ export function runStateContractTests(): void {
   ] as const) {
     const event = { id, state };
     const key = entityStateKeys(event).find(key => handlers[key]);
-    assert(key, "artwork display names resolve to a handler");
-    handlers[key]!(state, event, key);
-    equal(calls.at(-1), group, "artwork events dispatch to the canonical handler");
+    assert(!key, "retired artwork endpoints have no live event handler");
   }
 
   const clockState = createInitialState(deviceConfig());
@@ -218,7 +173,6 @@ export function runStateContractTests(): void {
   assert(nameKeys.includes("text_sensor-screen__active_timezone"), "slash-form entity events include their object-id alias");
   assert(nameKeys.includes("text_sensor:Screen: Active Timezone"), "slash-form entity events retain their name alias");
   assert(isRemovedLegacyStateEvent("", { id: "text-cover_art_fallback_server" }), "removed fallback-server events remain ignored");
-  assert(!isRemovedLegacyStateEvent("", { id: "text-screen_saver__cover_art_entity" }), "current cover-art events remain active");
 
   equal(parseEntityEventData("not json"), null, "malformed event payloads are ignored");
   equal(parseEntityEventData("[]"), null, "array event payloads are ignored");

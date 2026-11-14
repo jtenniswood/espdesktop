@@ -1,6 +1,9 @@
 import { createColorSwatches } from "../components/color_swatches";
 import { cardIconSizeOverride, configOptionValue, setConfigOptionValue, setCardColor } from "../model/config_primitives";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
+import { previewSubpageOwner } from "../model/companion_shortcut_page";
+import { parentPageKey } from "../model/page_keys";
+import { editableAppShortcutPage } from "./companion_shortcut_folder";
 import { defaultCardBackgroundColor } from "../state/preview_theme";
 import type { ConfigPersistenceFeature } from "./config_post_api";
 import { state } from "../state/app_instance";
@@ -43,15 +46,16 @@ export interface PreviewContextMenuDependencies {
     readonly configPersistence: Pick<ConfigPersistenceFeature, "saveButtonConfig" | "buttonConfigByteLimit" | "subpageConfigFits">;
     readonly clockBar: Pick<ClockBarFeature, "setItemVisible">;
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "showBanner">;
-    readonly statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "isClockBarTemperatureItem" | "updateClockBarItemUi">;
+    readonly statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "updateClockBarItemUi">;
     readonly grid: Pick<GridFeature, "ctx" | "scheduleMainGridSave">;
-    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay" | "openClockBarTemperatureSettings">;
+    readonly selection: Pick<ButtonSettingsSelectionFeature, "hideSettingsOverlay">;
     readonly preview: Pick<PreviewRenderFeature, "registryValue">;
     readonly clipboard: Pick<PreviewClipboardFeature, "copyButtons" | "copySlot" | "cutButtons" | "cutSlot" | "pasteButton" | "pasteSubpageButton" | "showCopyCode" | "showPasteCode">;
     readonly renderPreview: () => void;
     readonly renderButtonSettings: () => void;
     readonly openCardSettings: (slot: number) => void;
-    readonly openVoiceServicesSettings: () => void;
+    readonly openAppShortcutSettings: () => void;
+
     readonly addSlot: (position: number) => void;
     readonly addSubpageSlot: (position: number) => void;
     readonly duplicateButton: (slot: number) => void;
@@ -75,12 +79,12 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     const window = dependencies.window;
     const { isConfigLocked, showBanner } = dependencies.shell;
     const { setItemVisible: setClockBarItemVisible } = dependencies.clockBar;
-    const { clockBarItemActive, clockBarItemLabel, clockBarItems, isClockBarTemperatureItem, updateClockBarItemUi } = dependencies.statusPreview;
+    const { clockBarItemActive, clockBarItemLabel, clockBarItems,  updateClockBarItemUi } = dependencies.statusPreview;
     const { ctx, scheduleMainGridSave } = dependencies.grid;
-    const { hideSettingsOverlay, openClockBarTemperatureSettings } = dependencies.selection;
+    const { hideSettingsOverlay,  } = dependencies.selection;
     const { registryValue: buttonTypeRegistryValue } = dependencies.preview;
     const { copyButtons, copySlot, cutButtons, cutSlot, pasteButton, pasteSubpageButton, showCopyCode: showCopyCardCode, showPasteCode: showPasteCardCode } = dependencies.clipboard;
-    const { renderPreview, renderButtonSettings, openCardSettings, openVoiceServicesSettings, addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
+    const { renderPreview, renderButtonSettings, openCardSettings,  addSlot, addSubpageSlot, duplicateButton, duplicateSubpageButton, deleteSlot, deleteButtons } = dependencies;
     const {
         cardSupportsExtraLargeSize,
         cardSupportsMaxSize,
@@ -397,7 +401,16 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         }
         addCtxSubmenu("arrow-expand", "App Icon Size", submenu);
     }
+    function addAppShortcutMenuItem() {
+        const page = state.editingSubpage;
+        if (!page || !dependencies.codec.canCreateSubpage(parentPageKey(page) || null)) return;
+        const owner = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
+        if (editableAppShortcutPage(owner)) {
+            addCtxItem("keyboard-settings-outline", "Shortcut List", dependencies.openAppShortcutSettings);
+        }
+    }
     function addBulkCardMenuItems(this: any, slots?: any) {
+        addAppShortcutMenuItem();
         addIconSizeMenuItem(slots);
         addColourMenuItem(slots);
         addCtxItem("clipboard-outline", "Copy " + slots.length + " Cards", function (this: any) { copyButtons(slots); });
@@ -440,6 +453,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         var c: any = ctx();
         var b: any = c.buttons[slot - 1];
         addCtxItem("pencil", "Edit Card", function (this: any) { openCardSettings(slot); });
+        addAppShortcutMenuItem();
         addIconSizeMenuItem([slot]);
         addColourMenuItem([slot]);
         var ctxTypeDef: any = dependencies.cards.definitions[(b && b.type) || ""];
@@ -462,14 +476,6 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         addCtxItem("delete", "Delete", function (this: any) { deleteSlot(slot); }, true);
     }
     function addClockBarMenuItems(this: any, item?: any) {
-        if (isClockBarTemperatureItem(item)) {
-            addCtxItem("pencil", "Edit Temperature", function (this: any) { openClockBarTemperatureSettings(); });
-            addCtxDivider();
-        }
-        else if (item === "voice") {
-            addCtxItem("pencil", "Edit Voice Services", function (this: any) { openVoiceServicesSettings(); });
-            addCtxDivider();
-        }
         var visible: any = clockBarItemActive(item);
         var label: any = clockBarItemLabel(item);
         addCtxItem(visible ? "eye-off-outline" : "eye-outline", (visible ? "Hide " : "Show ") + label, function (this: any) {
@@ -554,6 +560,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
     }
     function addBackButtonMenuItems(this: any) {
         addCtxItem("pencil", "Edit Label", function (this: any) { openCardSettings(-2); });
+        addAppShortcutMenuItem();
         addColourMenuItem([-2]);
         addCtxItem("keyboard-return", "Exit Subpage", function (this: any) { exitSubpage(); });
     }
@@ -565,6 +572,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         ctxMenu.className = "sp-ctx-menu";
         var c: any = ctx();
         addCtxItem("plus", "Create Card", function (this: any) { addSlot(pos); });
+        addAppShortcutMenuItem();
         if (!c.isSub) {
             addCtxItem("folder-plus", "Create Subpage", function (this: any) { addSubpageSlot(pos); });
         }

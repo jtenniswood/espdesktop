@@ -50,9 +50,11 @@ of one full secondary screen per home slot. Failed preparation does not replace
 the saved graph. `companion_nested_pages.json` covers Folder → App → Shortcuts,
 exact native bytes, subtree transfers and the current firmware requirement.
 
-Live grid application uses a separate native runtime adapter. The legacy
-adapter is limited to one-time import and release-controlled downgrade
-mirroring, so disabling legacy writes cannot disable live card updates.
+The grid reads home cards and nested pages directly from the active page
+store. Activating a saved layout schedules one grid rebuild. In the current
+release, the legacy adapter publishes only the grid order and accent colour
+for the screen automations that still use text bindings. Card and subpage
+text remain inputs for the one-time import.
 
 ## Required Migration Shape
 

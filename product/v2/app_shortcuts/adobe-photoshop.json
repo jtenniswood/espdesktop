@@ -3,42 +3,96 @@
   "appId": "com.adobe.Photoshop",
   "label": "Adobe Photoshop",
   "catalog": false,
+  "defaultShortcutIds": ["11", "3", "4", "18", "0", "15", "5", "2"],
   "shortcuts": [
     {
       "id": "0",
       "label": "Undo",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "1",
       "label": "Redo",
       "shortcut": "command+shift+z",
-      "icon": "Application"
+      "icon": "Redo"
     },
     {
       "id": "2",
       "label": "Deselect",
       "shortcut": "command+d",
-      "icon": "Application"
+      "icon": "Deselect"
     },
     {
       "id": "3",
       "label": "Free Transform",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Vector"
     },
     {
       "id": "4",
-      "label": "New layer via copy",
+      "label": "Copy Layer",
       "shortcut": "command+j",
-      "icon": "Application"
+      "icon": "Layers"
     },
     {
       "id": "5",
-      "label": "Create or release clipping mask",
+      "label": "Clipping Mask",
       "shortcut": "command+option+g",
-      "icon": "Application"
+      "icon": "Clipping Mask"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "6", "label": "Reselect", "shortcut": "scoped.command+shift+d", "icon": "Shortcut Command"},
+    {"id": "7", "label": "Invert selection", "shortcut": "scoped.command+shift+i", "icon": "Group Selection"},
+    {"id": "8", "label": "Find in Photoshop", "shortcut": "scoped.command+f", "icon": "Search"},
+    {"id": "9", "label": "Preferences / Settings", "shortcut": "scoped.command+k", "icon": "Settings"},
+    {"id": "10", "label": "Open Keyboard Shortcuts and Menus", "shortcut": "scoped.command+option+shift+k", "icon": "Keyboard"},
+    {"id": "11", "label": "Move tool", "shortcut": "scoped.v", "icon": "Shortcut Command"},
+    {"id": "12", "label": "Rectangular / Elliptical Marquee tools", "shortcut": "scoped.m", "icon": "Shortcut Command"},
+    {"id": "13", "label": "Lasso tool group", "shortcut": "scoped.l", "icon": "Group Selection"},
+    {"id": "14", "label": "Magic Wand / Quick Selection tools", "shortcut": "scoped.w", "icon": "Group Selection"},
+    {"id": "15", "label": "Crop tool group", "shortcut": "scoped.c", "icon": "Crop"},
+    {"id": "16", "label": "Eyedropper tool group", "shortcut": "scoped.i", "icon": "Group Selection"},
+    {"id": "17", "label": "Healing tool group", "shortcut": "scoped.j", "icon": "Group Selection"},
+    {"id": "18", "label": "Brush tool group", "shortcut": "scoped.b", "icon": "Group Selection"},
+    {"id": "19", "label": "Clone Stamp tool group", "shortcut": "scoped.s", "icon": "Group Selection"},
+    {"id": "20", "label": "Eraser tool group", "shortcut": "scoped.e", "icon": "Group Selection"},
+    {"id": "21", "label": "Gradient / Paint Bucket tool group", "shortcut": "scoped.g", "icon": "Group Selection"},
+    {"id": "22", "label": "Pen tool group", "shortcut": "scoped.p", "icon": "Group Selection"},
+    {"id": "23", "label": "Type tool group", "shortcut": "scoped.t", "icon": "Group Selection"},
+    {"id": "24", "label": "Hand tool", "shortcut": "scoped.h", "icon": "Shortcut Command"},
+    {"id": "25", "label": "Zoom tool", "shortcut": "scoped.z", "icon": "Fit to Screen"},
+    {"id": "26", "label": "Decrease brush size", "shortcut": "scoped.keybracketleft", "icon": "Brush"},
+    {"id": "27", "label": "Increase brush size", "shortcut": "scoped.keybracketright", "icon": "Brush"},
+    {"id": "28", "label": "Decrease brush hardness", "shortcut": "scoped.shift+keybracketleft", "icon": "Brush"},
+    {"id": "29", "label": "Increase brush hardness", "shortcut": "scoped.shift+keybracketright", "icon": "Brush"},
+    {"id": "30", "label": "Default foreground/background colors", "shortcut": "scoped.d", "icon": "Shortcut Command"},
+    {"id": "31", "label": "Switch foreground/background colors", "shortcut": "scoped.x", "icon": "Shortcut Command"},
+    {"id": "32", "label": "New layer via cut", "shortcut": "scoped.command+shift+j", "icon": "Cut"},
+    {"id": "33", "label": "New layer with dialog", "shortcut": "scoped.command+shift+n", "icon": "Layers"},
+    {"id": "34", "label": "Group selected layers", "shortcut": "scoped.command+g", "icon": "Group Selection"},
+    {"id": "35", "label": "Ungroup selected layers", "shortcut": "scoped.command+shift+g", "icon": "Group Selection"},
+    {"id": "36", "label": "Merge selected layers", "shortcut": "scoped.command+e", "icon": "Layers"},
+    {"id": "37", "label": "Merge visible layers", "shortcut": "scoped.command+shift+e", "icon": "Layers"},
+    {"id": "38", "label": "Merge visible layers to new layer", "shortcut": "scoped.command+option+shift+e", "icon": "Layers"},
+    {"id": "39", "label": "Select all layers", "shortcut": "scoped.command+option+a", "icon": "Select All"},
+    {"id": "40", "label": "Select top / bottom layer", "shortcut": "scoped.option+keyperiod", "icon": "Group Selection"},
+    {"id": "41", "label": "Select top / bottom layer", "shortcut": "scoped.option+keycomma", "icon": "Group Selection"},
+    {"id": "42", "label": "Select next layer up", "shortcut": "scoped.option+keybracketleft", "icon": "Group Selection"},
+    {"id": "43", "label": "Select next layer down", "shortcut": "scoped.option+keybracketright", "icon": "Group Selection"},
+    {"id": "44", "label": "Move layer backward / forward", "shortcut": "scoped.command+keybracketleft", "icon": "Skip Previous"},
+    {"id": "45", "label": "Move layer backward / forward", "shortcut": "scoped.command+keybracketright", "icon": "Skip Previous"},
+    {"id": "46", "label": "Move layer to back / front", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Layers"},
+    {"id": "47", "label": "Move layer to back / front", "shortcut": "scoped.command+shift+keybracketright", "icon": "Layers"},
+    {"id": "48", "label": "Lock / unlock layer", "shortcut": "scoped.command+keyslash", "icon": "Layers"},
+    {"id": "49", "label": "Fill dialog", "shortcut": "scoped.shift+f5", "icon": "Palette"},
+    {"id": "50", "label": "Fill with foreground color", "shortcut": "scoped.option+delete", "icon": "Palette"},
+    {"id": "51", "label": "Fill with background color", "shortcut": "scoped.command+delete", "icon": "Palette"},
+    {"id": "52", "label": "Feather selection", "shortcut": "scoped.shift+f6", "icon": "Group Selection"},
+    {"id": "53", "label": "Inverse selection command", "shortcut": "scoped.shift+f7", "icon": "Group Selection"},
+    {"id": "54", "label": "Toggle rulers", "shortcut": "scoped.command+r", "icon": "Shortcut Command"},
+    {"id": "55", "label": "Toggle non-printing Extras", "shortcut": "scoped.command+h", "icon": "Shortcut Command"},
+    {"id": "56", "label": "Toggle Smart Guides", "shortcut": "scoped.command+u", "icon": "Shortcut Command"}
   ]
 }

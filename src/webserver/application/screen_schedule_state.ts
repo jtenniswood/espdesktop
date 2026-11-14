@@ -119,8 +119,6 @@ export function createScreenScheduleStateFeature(
         if (els.setScheduleModeButtons) {
             els.setScheduleModeButtons.disabled.className = visibleState.trigger === "disabled" ? "active" : "";
             els.setScheduleModeButtons.time.className = visibleState.trigger === "time" ? "active" : "";
-            els.setScheduleModeButtons.sensor.className = (visibleState.trigger === "sensor" ? "active" : "") + (homeAssistantConnected ? "" : " sp-hidden");
-            els.setScheduleModeButtons.sensor.hidden = !homeAssistantConnected;
         }
         if (els.setScheduleOnHour)
             els.setScheduleOnHour.value = String(state.scheduleOnHour);

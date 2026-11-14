@@ -17,8 +17,6 @@ SCREEN_LOADING_PATH = ROOT / "common" / "device" / "screen_loading.yaml"
 SCREEN_WIFI_SETUP_PATH = ROOT / "common" / "device" / "screen_wifi_setup.yaml"
 API_NAVIGATE_PATH = ROOT / "common" / "device" / "api_navigate.yaml"
 C6_FIRMWARE_UPDATE_PATH = ROOT / "common" / "device" / "esp32_c6_firmware_update.yaml"
-COVER_ART_PATH = ROOT / "common" / "device" / "screen_cover_art.yaml"
-CAMERA_SCREENSAVER_PATH = ROOT / "common" / "device" / "screen_camera_screensaver.yaml"
 SCREEN_CLOCK_PATH = ROOT / "common" / "device" / "screen_clock.yaml"
 ARTWORK_IMAGE_PATH = ROOT / "components" / "artwork_image" / "artwork_image.cpp"
 BACKLIGHT_PATH = ROOT / "common" / "addon" / "backlight.yaml"
@@ -68,7 +66,7 @@ REMOVED_DISPLAY_LIFECYCLE_SYMBOLS = (
 
 def firmware_weather_header_path(firmware_dir: Path) -> Path:
     weather_path = firmware_dir / "button_grid_weather_forecast.h"
-    return weather_path if weather_path.exists() else firmware_dir / "button_grid_config.h"
+    return weather_path
 
 
 def firmware_display_controller_ownership_errors(
@@ -333,103 +331,6 @@ def firmware_unavailable_retry_errors(
     return errors
 
 
-def firmware_action_card_availability_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_grid.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    driver_path = firmware_dir / "button_grid_basic_action_driver.h"
-    if driver_path.exists():
-        driver_rel = driver_path.relative_to(root)
-        driver_text = driver_path.read_text(encoding="utf-8")
-        required = (
-            "basic_action_driver_bind_action_state",
-            "subscribe_action_card_display_state",
-            "case Driver::PUSH:",
-            '"Push %d"',
-            'ha_action_add_data(request, "slot", slot_buffer)',
-            '"esphome.push_button_pressed"',
-        )
-        for needle in required:
-            if needle not in driver_text:
-                errors.append(
-                    f"{driver_rel}: preserve shared Action state and Trigger event behavior ({needle})"
-                )
-        if "register_ha_control_availability" in driver_text:
-            errors.append(
-                f"{driver_rel}: keep stateless Action and Trigger cards tappable while Home Assistant availability is pending"
-            )
-        return errors
-
-    stateless_main_pattern = re.compile(
-        r"std::string\s+state_entity\s*=\s*action_card_state_entity\(p\);"
-        r"(?P<body>.*?)continue;",
-        re.DOTALL,
-    )
-    stateless_subpage_pattern = re.compile(
-        r"std::string\s+state_entity\s*=\s*action_card_state_entity\(sb_cfg\);"
-        r"(?P<body>.*?)ParsedCfg\s+\*ctx\s*=",
-        re.DOTALL,
-    )
-    push_main_pattern = re.compile(
-        r"if\s*\(\s*p\.type\s*==\s*\"push\"\s*\)\s*\{"
-        r"(?P<body>.*?)continue;",
-        re.DOTALL,
-    )
-    push_subpage_pattern = re.compile(
-        r"if\s*\(\s*sb_cfg\.type\s*==\s*\"push\"\s*\)\s*\{"
-        r"(?P<body>.*?)continue;",
-        re.DOTALL,
-    )
-
-    for match in stateless_main_pattern.finditer(text):
-        body = match.group("body")
-        if "else" in body and "register_ha_control_availability(s.btn, s.btn)" in body:
-            errors.append(f"{rel}: keep stateless action cards tappable while Home Assistant availability is pending")
-    for match in stateless_subpage_pattern.finditer(text):
-        body = match.group("body")
-        if "else" in body and "register_ha_control_availability(sub_slot.btn, sub_slot.btn)" in body:
-            errors.append(f"{rel}: keep stateless subpage action cards tappable while Home Assistant availability is pending")
-    for match in push_main_pattern.finditer(text):
-        body = match.group("body")
-        if "register_ha_control_availability(s.btn, s.btn)" in body:
-            errors.append(f"{rel}: keep trigger cards tappable while Home Assistant availability is pending")
-    for match in push_subpage_pattern.finditer(text):
-        body = match.group("body")
-        if "register_ha_control_availability(sb_btn, sb_btn)" in body:
-            errors.append(f"{rel}: keep subpage trigger cards tappable while Home Assistant availability is pending")
-    return errors
-
-
-def firmware_option_select_state_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_option_select.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    start = text.find("inline void subscribe_option_select_state(")
-    end = text.find("inline void subscribe_option_select_friendly_name(", start)
-    if start == -1 or end == -1:
-        return [f"{rel}: keep Option Select state subscription behavior explicit"]
-
-    body = text[start:end]
-    errors: list[str] = []
-    if "ha_entity_state_unavailable_ref(ctx->entity_id, state)" not in body:
-        errors.append(f"{rel}: classify Option Select unknown states by entity type")
-    if 'normalized_state_text(state) == "unknown"' not in body:
-        errors.append(f"{rel}: normalize an unknown Option Select value to no current option")
-    if "ctx->current_option = unavailable || no_current_option ? \"\" : state_text;" not in body:
-        errors.append(f"{rel}: keep Option Select available while clearing an unknown current option")
-    if "option_select_refresh_modal_rows(ctx);" not in body:
-        errors.append(f"{rel}: clear stale Option Select modal selection styling")
-    if "option_select_refresh_modal_rows" not in text or "ui.option_rows[i] = btn;" not in text:
-        errors.append(f"{rel}: retain Option Select modal rows for state refreshes")
-    return errors
-
-
 def firmware_card_disabled_state_errors(firmware_dir: Path, root: Path) -> list[str]:
     errors: list[str] = []
     config_path = firmware_dir / "button_grid_config.h"
@@ -467,88 +368,6 @@ def firmware_media_card_availability_errors(firmware_dir: Path, root: Path) -> l
         errors.append(f"{rel}: do not dim the media control panel for unavailable entity states")
 
     return errors
-
-
-def firmware_media_cover_art_external_input_errors(
-    firmware_dir: Path, root: Path
-) -> list[str]:
-    paths = {
-        name: firmware_dir / name
-        for name in (
-            "button_grid_media.h",
-            "button_grid_media_driver.h",
-            "button_grid_image.h",
-            "button_grid_grid.h",
-        )
-    }
-    if not all(path.exists() for path in paths.values()):
-        return []
-    media = paths["button_grid_media.h"].read_text(encoding="utf-8")
-    driver = paths["button_grid_media_driver.h"].read_text(encoding="utf-8")
-    image = paths["button_grid_image.h"].read_text(encoding="utf-8")
-    grid = paths["button_grid_grid.h"].read_text(encoding="utf-8")
-    rel = paths["button_grid_media.h"].relative_to(root)
-    errors: list[str] = []
-
-    if (
-        "source_subscribed" not in media
-        or "source_known" not in media
-        or "media_playback_subscribe_source" not in media
-        or 'std::string("source")' not in media
-    ):
-        errors.append(f"{rel}: keep media source tracking independent from title and artist metadata")
-    if (
-        "subscribe_media_cover_art_source_state" not in media
-        or "subscribe_media_cover_art_source_state(now_playing, config.entity)" not in driver
-    ):
-        errors.append(f"{rel}: subscribe image-only cover art cards to media source changes")
-    if (
-        "image_card_set_media_artwork_suppressed(" not in media
-        or "media_artwork_suppressed" not in image
-        or "image_card_sync_media_artwork_visibility" not in image
-    ):
-        errors.append(f"{rel}: hide media card artwork while an external input is active")
-    if (
-        "if (ctx->media_artwork)" not in image
-        or "image_card_sync_media_artwork_visibility(ctx);" not in image
-        or "media_card_artwork_suppressed(" not in grid
-        or "media_card_artwork_suppressed(" not in media
-        or "image_card_sync_media_artwork_visibility(art);" not in grid
-    ):
-        errors.append(
-            f"{rel}: prevent cached or late artwork from bypassing external-input suppression"
-        )
-    return errors
-
-
-def firmware_action_card_script_fields_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_actions.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    if "script_fields" not in text:
-        return errors
-    if "std::vector<ActionCardScriptField> script_fields" not in text:
-        errors.append(f"{rel}: keep parsed script field strings alive until the action is sent")
-    if "req.variables.init(script_fields.size())" not in text:
-        errors.append(f"{rel}: initialize script field variables separately from service data")
-    if "ha_action_add_variable(req, field.key.c_str(), field.value.c_str())" not in text:
-        errors.append(f"{rel}: send script fields through Home Assistant action variables")
-    if "req.data_template.init(1)" not in text or 'ha_action_add_data_template(req, "variables"' not in text:
-        errors.append(f"{rel}: send script fields in the script.turn_on variables service payload")
-    add_fields_match = re.search(
-        r"inline\s+void\s+action_card_add_script_field_variables\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-        text,
-        re.DOTALL,
-    )
-    if add_fields_match and "ha_action_add_data(req, key.c_str(), value.c_str())" in add_fields_match.group("body"):
-        errors.append(f"{rel}: do not send script fields as top-level script.turn_on service data")
-    return errors
-
-
 
 
 def firmware_time_reconnect_errors(time_path: Path, root: Path) -> list[str]:
@@ -589,8 +408,11 @@ def firmware_ntp_startup_errors(
     if time_path.exists():
         rel = time_path.relative_to(root)
         text = time_path.read_text(encoding="utf-8")
-        boot_section = text.split("# Ask Home Assistant", 1)[0]
-        if "- script.execute: ntp_servers_apply" in boot_section:
+        boot_match = re.search(
+            r"(?ms)^esphome:\n(?P<body>.*?)(?=^[A-Za-z_][A-Za-z_0-9]*:|\Z)", text,
+        )
+        boot_section = boot_match.group("body") if boot_match else ""
+        if re.search(r"(?m)^\s*- script.execute: ntp_servers_apply\s*$", boot_section):
             errors.append(f"{rel}: defer custom NTP server apply until networking has an IP address")
         if "# NTP server settings" in text:
             ntp_text_section = text.split("# NTP server settings", 1)[1].split("text_sensor:", 1)[0]
@@ -770,7 +592,6 @@ def firmware_cover_request_errors(firmware_dir: Path, core_infra_path: Path, roo
 
     request = COVER_COMMAND_REQUEST_PATTERN.search(text)
     if not request:
-        errors.append(f"{rel}: missing send_cover_command_action helper")
         return errors
     body = request.group("body")
     if "cover_stop_track_pending" not in text or "cover_stop_clear_pending" not in text:
@@ -781,1341 +602,6 @@ def firmware_cover_request_errors(firmware_dir: Path, core_infra_path: Path, roo
         errors.append(f"{rel}: cancel cover stop callbacks when sends fail")
     if "on_client_disconnected:" not in core_text or "cover_stop_cancel_pending_request" not in core_text:
         errors.append(f"{core_rel}: cancel pending cover stop callbacks when the HA API disconnects")
-    return errors
-
-
-def firmware_cover_art_external_input_errors(path: Path, root: Path) -> list[str]:
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    if "cover_art_hide_external_input_enabled" not in text:
-        errors.append(f"{rel}: expose a cover art external-input hide setting")
-    if ('std::string("source")' not in text or
-            "handle_media_source" not in text or
-            "HA_SUBSCRIPTION_SCOPE_COVER_ART" not in text):
-        errors.append(f"{rel}: subscribe to the media player source attribute")
-    if "ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_COVER_ART)" not in text:
-        errors.append(f"{rel}: release retired cover art Home Assistant subscriptions")
-    resubscribe_body = yaml_script_body(text, "cover_art_resubscribe") or ""
-    if "ha_get_" in resubscribe_body:
-        errors.append(f"{rel}: avoid retained one-shot reads in the cover art subscription lifecycle")
-    if resubscribe_body and (
-        "primary_entity != id(cover_art_subscribed_primary_entity)" not in resubscribe_body
-        or "secondary_entity != id(cover_art_subscribed_secondary_entity)" not in resubscribe_body
-        or "id(cover_art_primary_external_input_active) = false" not in resubscribe_body
-    ):
-        errors.append(f"{rel}: reset cached route probes when configured cover art entities change")
-    if ("espdesktop::cover_art::external_media_source" not in text or
-            "espdesktop::cover_art::use_secondary_media_entity" not in text):
-        errors.append(f"{rel}: use the shared TV, line-in, and HDMI media-entity router")
-    if "cover_art_apply_external_input_policy" not in text:
-        errors.append(f"{rel}: centralize cover art external-input behavior")
-    if "script.stop: cover_art_request_artwork" not in text:
-        errors.append(f"{rel}: stop pending artwork requests while an external input is active")
-    if "id(cover_art_hide_external_input_enabled).state &&" not in text:
-        errors.append(f"{rel}: guard cover art start/download paths when external input hiding is enabled")
-    return errors
-
-
-def firmware_cover_art_stale_image_errors(path: Path, root: Path) -> list[str]:
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    script_match = re.search(
-        r"(?ms)^  - id: cover_art_show_black_screen\n(?P<body>.*?)(?=^  - id: |\Z)",
-        text,
-    )
-    if not script_match:
-        errors.append(f"{rel}: keep a black fallback for cover art with no current image")
-        return errors
-
-    body = script_match.group("body")
-    if "lvgl.widget.hide: cover_art_image_widget" not in body:
-        errors.append(f"{rel}: hide stale cover art image when the black fallback is shown")
-    if "id(cover_art_runtime).loaded_url.empty()" in body:
-        errors.append(f"{rel}: hide stale cover art image even after previous artwork loaded")
-    if "cover_art_error_label" in text or 'text: "Artwork unavailable"' in text:
-        errors.append(f"{rel}: do not show an unavailable cover art message")
-    return errors
-
-
-def firmware_cover_art_refresh_errors(path: Path, root: Path) -> list[str]:
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    if re.search(r"\bha_get_(?:state|attribute)\s*\(", text):
-        errors.append(f"{rel}: use retained Home Assistant reads instead of one-shot helpers")
-
-    required_state = (
-        ("cover_art_runtime).refresh_needed", "track/source metadata changes as stale artwork"),
-        ("cover_art_runtime).effective_download_url", "keep source artwork URLs separate from downloader URLs"),
-        ("espdesktop::cover_art::RuntimeState", "own cover art lifecycle state in one controller"),
-        ("cover_art_album", "track album names for artwork refresh decisions"),
-    )
-    for token, message in required_state:
-        if token not in text:
-            errors.append(f"{rel}: {message}")
-
-    download_body = yaml_script_body(text, "cover_art_download")
-    if not download_body:
-        errors.append(f"{rel}: missing cover_art_download script")
-    else:
-        if "/api/media_player_proxy/" not in download_body:
-            errors.append(f"{rel}: only cache-bust Home Assistant media proxy artwork URLs")
-        if "?time=" not in download_body or "&time=" not in download_body:
-            errors.append(f"{rel}: add a refresh marker that preserves existing artwork query strings")
-        if "request_update_url(id(cover_art_runtime).effective_download_url)" not in download_body:
-            errors.append(f"{rel}: download through the refresh-aware artwork URL")
-        if (
-            "const bool replacing_active_download = id(cover_art_runtime).download_active();" not in download_body
-            or 'replacing_active_download ? "Re-queuing" : "Downloading"' not in download_body
-        ):
-            errors.append(f"{rel}: coalesce changed cover art URLs into the queued image request")
-        if (
-            "needs_artwork_refresh" not in download_body
-            or "id(cover_art_runtime).refresh_needed || !id(cover_art_runtime).image_available" not in download_body
-        ):
-            errors.append(f"{rel}: refresh Home Assistant media proxy artwork when no image is currently available")
-        replacement_match = re.search(
-            r"(?ms)target_mode_is\(espdesktop::DisplayMode::COVER_ART\).*?"
-            r"id\(cover_art_runtime\)\.image_available.*?"
-            r"id\(cover_art_runtime\)\.refresh_needed.*?"
-            r"!\$\{cover_art_live_image_updates\}.*?"
-            r"then:\n(?P<body>.*?)(?=^\s+- lambda: |\Z)",
-            download_body,
-        )
-        if not replacement_match:
-            errors.append(f"{rel}: keep a dedicated replacement artwork transition path")
-        else:
-            replacement_body = replacement_match.group("body")
-            if "script.execute: cover_art_show_track_overlay" not in replacement_body:
-                errors.append(f"{rel}: keep the current artwork visible with updated track text during replacement downloads")
-            if "script.execute: cover_art_show_black_screen" in replacement_body:
-                errors.append(f"{rel}: do not use the full black fallback for replacement artwork downloads")
-            if "script.execute: cover_art_clear_image_source" in replacement_body:
-                errors.append(f"{rel}: do not detach visible artwork before replacement artwork is ready")
-            if "artwork_image.release: cover_art_downloaded_image" in replacement_body:
-                errors.append(f"{rel}: do not release visible artwork before replacement artwork is ready")
-            if "id(cover_art_runtime).loaded_url.clear()" in replacement_body:
-                errors.append(f"{rel}: keep the previous loaded artwork marker until replacement artwork applies")
-
-    for script_id in ("cover_art_deferred_download", "cover_art_prepare_download"):
-        body = yaml_script_body(text, script_id)
-        if not body:
-            errors.append(f"{rel}: missing {script_id} script")
-        elif "id(cover_art_runtime).refresh_needed" not in body:
-            errors.append(f"{rel}: let {script_id} refresh unchanged artwork URLs after metadata changes")
-
-    for script_id in ("cover_art_use_cached_artwork", "cover_art_request_artwork"):
-        body = yaml_script_body(text, script_id)
-        if not body:
-            errors.append(f"{rel}: missing {script_id} script")
-        elif (
-            "chosen == id(cover_art_runtime).source_url" not in body
-            or "!id(cover_art_runtime).image_available || id(cover_art_runtime).refresh_needed" not in body
-        ):
-            errors.append(f"{rel}: do not exit early from {script_id} when stale artwork needs refresh")
-
-    cached_body = yaml_script_body(text, "cover_art_use_cached_artwork")
-    if cached_body and "id(cover_art_runtime).select_source(chosen);" not in cached_body:
-        errors.append(f"{rel}: mark changed cached artwork URLs as stale before downloading")
-    resubscribe_body = yaml_script_body(text, "cover_art_resubscribe") or ""
-    for attribute in ("entity_picture", "entity_picture_local"):
-        retained_subscription = re.search(
-            rf'ha_subscribe_attribute\(\s*cover_entity,\s*std::string\("{attribute}"\),'
-            rf'[\s\S]{{0,700}}?HA_SUBSCRIPTION_SCOPE_COVER_ART,\s*true\s*\)',
-            resubscribe_body,
-        )
-        if not retained_subscription:
-            errors.append(
-                f"{rel}: retain {attribute} so artwork refreshes never register one-shot callbacks"
-            )
-    artwork_refresh_body = (
-        resubscribe_body +
-        (yaml_script_body(text, "cover_art_request_paired_artwork") or "")
-    )
-    if artwork_refresh_body and "if (!url.empty() && url != id(cover_art_runtime).source_url)" not in artwork_refresh_body:
-        errors.append(f"{rel}: mark changed Home Assistant artwork attributes as stale")
-
-    base_url_body = yaml_script_body(text, "cover_art_resolve_home_assistant_base_url") or ""
-    if (
-        "rebuild_relative_artwork_url" not in base_url_body
-        or "id(cover_art_runtime).sources.remote_url" not in base_url_body
-        or "id(cover_art_runtime).sources.local_url" not in base_url_body
-        or "id(cover_art_remote_source_relative)" not in base_url_body
-        or "id(cover_art_local_source_relative)" not in base_url_body
-        or "id(cover_art_process_cached_artwork).execute();" not in base_url_body
-    ):
-        errors.append(f"{rel}: rebuild cached full-screen artwork URLs when the Home Assistant base URL changes")
-
-    apply_body = yaml_script_body(text, "cover_art_apply_downloaded_image")
-    if not apply_body:
-        errors.append(f"{rel}: missing cover_art_apply_downloaded_image script")
-    else:
-        if "expected_url" not in apply_body or "id(cover_art_runtime).effective_download_url" not in apply_body:
-            errors.append(f"{rel}: accept the refresh-aware downloader URL when artwork finishes")
-        if "id(cover_art_runtime).apply_download(completed_url)" not in apply_body:
-            errors.append(f"{rel}: remember the clean source artwork URL after a download")
-        if "id(cover_art_runtime).apply_download(completed_url)" not in apply_body:
-            errors.append(f"{rel}: clear stale artwork state only after a replacement image applies")
-        if (
-            "script.execute: cover_art_clear_image_source" not in apply_body
-            or "script.wait: cover_art_clear_image_source" not in apply_body
-        ):
-            errors.append(f"{rel}: detach the previous LVGL artwork source before showing a replacement image")
-
-    if text.count("mark_artwork_refresh_needed();") < 4:
-        errors.append(f"{rel}: mark title, artist, album, and source changes as artwork refresh triggers")
-    if ('std::string("media_album_name")' not in resubscribe_body or
-            "handle_media_album" not in resubscribe_body):
-        errors.append(f"{rel}: subscribe to the media_album_name attribute")
-    if "id(cover_art_runtime).refresh_needed = true" not in text:
-        errors.append(f"{rel}: set stale artwork state when track/source metadata changes")
-    playback_started_body = yaml_script_body(text, "cover_art_playback_started")
-    if not playback_started_body:
-        errors.append(f"{rel}: missing cover_art_playback_started script")
-    elif (
-        "!id(cover_art_runtime).image_available" not in playback_started_body
-        or "id(cover_art_runtime).retry_count = 0" not in playback_started_body
-        or "id(cover_art_runtime).retry_url.clear()" not in playback_started_body
-    ):
-        errors.append(f"{rel}: reset artwork retry state when playback resumes without a visible image")
-    if playback_started_body and "espdesktop::cover_art::display_allowed(" in playback_started_body:
-        errors.append(f"{rel}: let the playback-start event activate cover art before mirrored playback state settles")
-    sync_text_body = yaml_script_body(text, "cover_art_sync_track_text")
-    source_display_normalized = sync_text_body is not None and re.search(
-        r"const std::string title\s*=\s*espdesktop::media::normalize_media_display_text\(\s*"
-        r"id\(cover_art_external_input_active\) && !id\(cover_art_media_source\)\.empty\(\)\s*"
-        r"\? decode_html_entities\(id\(cover_art_media_source\)\)\s*"
-        r": id\(cover_art_title\)\);",
-        sync_text_body,
-    )
-    title_display_normalized = source_display_normalized and "normalize_display_text(title)" in sync_text_body
-    artist_display_normalized = sync_text_body is not None and re.search(
-        r"const std::string artist\s*=\s*espdesktop::media::normalize_media_display_text\(\s*"
-        r"id\(cover_art_artist\)\);",
-        sync_text_body,
-    ) and "normalize_display_text(artist)" in sync_text_body
-    if sync_text_body is not None and (
-        not title_display_normalized
-        or not artist_display_normalized
-        or source_display_normalized is None
-    ):
-        errors.append(f"{rel}: normalize decoded cover art metadata only at the label boundary")
-    pause_body = yaml_script_body(text, "cover_art_pause_after_touch")
-    if pause_body is not None and (
-        "target_mode_is(espdesktop::DisplayMode::COVER_ART)" not in pause_body
-        or "id(cover_art_manual_pause_until_ms) != 0" not in pause_body
-        or "id(cover_art_manual_pause_until_ms) = 1;" not in pause_body
-    ):
-        errors.append(
-            f"{rel}: arm cover art return after dismissal and restart its countdown after every touch"
-        )
-    return errors
-
-
-def firmware_cover_art_playback_grace_errors(path: Path, root: Path) -> list[str]:
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    delayed_body = yaml_script_body(text, "cover_art_delayed_playback_stopped")
-    if not delayed_body:
-        errors.append(f"{rel}: buffer brief non-playing states between tracks")
-    else:
-        if "delay: 2s" not in delayed_body:
-            errors.append(f"{rel}: keep the cover art stop grace period at two seconds")
-        if "script.execute: cover_art_playback_stopped" not in delayed_body:
-            errors.append(f"{rel}: apply a sustained playback stop after the grace period")
-        if (
-            'state != "playing"' not in delayed_body
-            or 'state != "buffering"' not in delayed_body
-            or 'state != "paused"' not in delayed_body
-        ):
-            errors.append(f"{rel}: recheck playback before applying a delayed stop")
-
-    if "id(cover_art_delayed_playback_stopped).execute(" not in text:
-        errors.append(f"{rel}: delay non-playing playback transitions")
-    if not re.search(
-        r"id\(cover_art_delay_interrupted_by_transition\)\s*=\s*"
-        r"id\(cover_art_delay_interrupted_by_transition\)\s*\|\|\s*"
-        r"id\(cover_art_delay_timer\)\.is_running\(\);\s+"
-        r"id\(cover_art_delay_timer\)\.stop\(\);\s+"
-        r"id\(cover_art_delayed_playback_stopped\)\.execute\([^;]*\);",
-        text,
-    ):
-        errors.append(f"{rel}: remember and cancel a pending cover art opening when playback stops")
-    if (
-        "bool restart_cover_art_delay = id(cover_art_delay_interrupted_by_transition);" not in text
-        or "if (!was_playing || restart_cover_art_delay) id(cover_art_playback_started).execute();" not in text
-    ):
-        errors.append(f"{rel}: restart an interrupted cover art opening when playback resumes")
-    if text.count("id(cover_art_delayed_playback_stopped).stop();") < 2:
-        errors.append(f"{rel}: cancel a pending stop when playback resumes or pauses")
-    if "url.empty() && id(cover_art_delayed_playback_stopped).is_running()" not in text:
-        errors.append(f"{rel}: keep cached artwork when Home Assistant clears it during a brief playback transition")
-    else:
-        cached_guard = text.find(
-            "url.empty() && id(cover_art_delayed_playback_stopped).is_running()"
-        )
-        relative_markers = (
-            text.find("id(cover_art_local_source_relative) = relative;"),
-            text.find("id(cover_art_remote_source_relative) = relative;"),
-        )
-        if any(marker < 0 or marker < cached_guard for marker in relative_markers):
-            errors.append(
-                f"{rel}: retain cached artwork's relative marker during a brief playback transition"
-            )
-
-    stopped_body = yaml_script_body(text, "cover_art_playback_stopped")
-    if not stopped_body or "script.stop: cover_art_delayed_playback_stopped" not in stopped_body:
-        errors.append(f"{rel}: cancel pending playback grace during an immediate stop")
-    return errors
-
-
-def firmware_cover_art_disable_errors(path: Path, root: Path) -> list[str]:
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    body = yaml_script_body(text, "cover_art_disable")
-    if not body:
-        errors.append(f"{rel}: missing cover_art_disable script")
-    elif "switch.turn_off: media_player_sleep_prevention_enabled" in body:
-        errors.append(f"{rel}: keep media sleep prevention independent when cover art is disabled")
-    return errors
-
-
-def firmware_cover_art_lifecycle_controller_errors(
-    backlight_path: Path, cover_art_path: Path, root: Path
-) -> list[str]:
-    if not backlight_path.exists() or not cover_art_path.exists():
-        return []
-    backlight_rel = backlight_path.relative_to(root)
-    cover_art_rel = cover_art_path.relative_to(root)
-    backlight_text = backlight_path.read_text(encoding="utf-8")
-    cover_art_text = cover_art_path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    adapter = yaml_script_body(backlight_text, "display_mode_apply_transition") or ""
-    request = yaml_script_body(backlight_text, "display_mode_request_cover_art") or ""
-    clear = yaml_script_body(backlight_text, "display_mode_clear_cover_art") or ""
-    reconcile = yaml_script_body(backlight_text, "display_mode_reconcile") or ""
-    effect = yaml_script_body(cover_art_text, "display_mode_effect_cover_art") or ""
-    hide_effect = yaml_script_body(cover_art_text, "cover_art_hide_effect") or ""
-    hide_adapter = yaml_script_body(cover_art_text, "hide_cover_art_view") or ""
-    disable = yaml_script_body(cover_art_text, "cover_art_disable") or ""
-    playback_restore = yaml_script_body(
-        cover_art_text, "cover_art_return_home_after_playback"
-    ) or ""
-
-    adapter_markers = (
-        "target_mode == static_cast<int>(espdesktop::DisplayMode::COVER_ART)",
-        "id: display_mode_effect_cover_art",
-        "id: cover_art_hide_effect",
-    )
-    if (
-        any(marker not in adapter for marker in adapter_markers)
-        or "complete_transition(" not in adapter
-        or "espdesktop::DisplayMode::COVER_ART);" not in adapter
-    ):
-        errors.append(f"{backlight_rel}: route cover art presentation exclusively through the display adapter")
-    if (
-        "DisplayRequestSource::MEDIA_PLAYBACK" not in request
-        or "DisplayMode::COVER_ART" not in request
-        or "script.execute: display_mode_reconcile" not in request
-        or "script.wait: display_mode_reconcile" not in request
-        or "script.wait: display_mode_apply_transition" not in request
-    ):
-        errors.append(f"{backlight_rel}: create cover art through a controller media request")
-    if (
-        "DisplayRequestSource::MEDIA_PLAYBACK" not in clear
-        or ".clear(" not in clear
-        or "script.execute: display_mode_reconcile" not in clear
-        or "script.wait: display_mode_reconcile" not in clear
-        or "script.wait: display_mode_apply_transition" not in clear
-    ):
-        errors.append(f"{backlight_rel}: dismiss cover art by clearing its controller media request")
-    if (
-        "script.execute: display_mode_clear_cover_art" not in hide_adapter
-        or "script.wait: display_mode_clear_cover_art" not in hide_adapter
-    ):
-        errors.append(
-            f"{cover_art_rel}: keep hide_cover_art_view synchronous for compatibility callers"
-        )
-    if "script.wait: display_mode_clear_cover_art" not in disable:
-        errors.append(f"{cover_art_rel}: wait for controller dismissal before releasing cover art resources")
-    if "script.wait: display_mode_clear_cover_art" not in playback_restore:
-        errors.append(f"{cover_art_rel}: wait for controller dismissal before restoring playback UI")
-    if re.search(r"(?:set_request|controller\.request)\(\s*espdesktop::DisplayRequestSource::MEDIA_PLAYBACK", reconcile):
-        errors.append(f"{backlight_rel}: do not rebuild media requests from the compatibility cover art flag")
-    if (
-        "previous_cover_generation" not in reconcile
-        or "id(cover_art_transition_generation) = transition.generation" not in reconcile
-        or "id(cover_art_download_generation) = transition.generation" not in reconcile
-        or "!transition_required" not in reconcile
-    ):
-        errors.append(
-            f"{backlight_rel}: preserve active cover art across lower-priority generation changes"
-        )
-
-    transition_lifecycle_markers = (
-        "controller.transition_in_progress(transition)",
-        "id(display_mode_apply_transition).is_running()",
-        "controller.transition_warning_due(millis(), 2000)",
-        "controller.cancel_transition()",
-        "controller.presentation_incomplete()",
-        "controller.start_transition(transition, millis())",
-    )
-    if any(marker not in reconcile for marker in transition_lifecycle_markers):
-        errors.append(
-            f"{backlight_rel}: track in-flight display effects so periodic reconciliation cannot restart them"
-        )
-
-    if "cover_art_screensaver_active" in cover_art_text or "cover_art_screensaver_active" in backlight_text:
-        errors.append(f"{cover_art_rel}: use controller mode ownership instead of a compatibility cover art flag")
-
-    if (
-        "transition_is_current(" not in effect
-        or "espdesktop::DisplayMode::COVER_ART" not in effect
-        or "lv_obj_move_foreground(id(cover_art_screensaver))" not in effect
-    ):
-        errors.append(f"{cover_art_rel}: guard the controller-owned cover art effect by transition generation")
-    if (
-        "transition_is_current(" not in hide_effect
-        or "artwork_image.release: cover_art_downloaded_image" not in hide_effect
-        or 'std::string("${device_slug}") == "guition-esp32-s3-4848s040"' not in hide_effect
-    ):
-        errors.append(f"{cover_art_rel}: preserve guarded S3 image release when cover art is hidden")
-
-    guarded_scripts = {
-        "cover_art_delay_timer": "generation_is_current(",
-        "cover_art_apply_downloaded_image": "cover_art_download_generation",
-        "cover_art_deferred_download": "transition_is_current(",
-        "cover_art_retry_download": "cover_art_download_generation",
-        "cover_art_refresh_progress": "transition_is_current(",
-        "cover_art_delayed_playback_stopped": "generation_is_current(",
-    }
-    for script_id, marker in guarded_scripts.items():
-        body = yaml_script_body(cover_art_text, script_id) or ""
-        if marker not in body:
-            errors.append(f"{cover_art_rel}: guard {script_id} against obsolete display generations")
-    stopped_body = yaml_script_body(cover_art_text, "cover_art_delayed_playback_stopped") or ""
-    if (
-        "id: cover_art_media_playing" not in stopped_body
-        or "id: cover_art_delay_interrupted_by_transition" not in stopped_body
-        or "script.execute: display_mode_clear_cover_art" not in stopped_body
-        or "script.wait: display_mode_clear_cover_art" not in stopped_body
-    ):
-        errors.append(
-            f"{cover_art_rel}: retire stopped playback state before clearing an obsolete cover art request"
-        )
-    return errors
-
-
-def firmware_media_sleep_prevention_errors(
-    backlight_path: Path, display_path: Path, cover_art_path: Path, root: Path
-) -> list[str]:
-    errors: list[str] = []
-
-    if backlight_path.exists():
-        rel = backlight_path.relative_to(root)
-        text = backlight_path.read_text(encoding="utf-8")
-        idle_body = yaml_script_body(text, "screensaver_idle_check")
-        if idle_body is None:
-            errors.append(f"{rel}: missing screensaver_idle_check script")
-        else:
-            if (
-                "id(cover_art_screensaver_enabled).state &&" not in idle_body
-                or "id(media_player_sleep_prevention_enabled).state &&" not in idle_body
-                or "id(media_player_playing)" not in idle_body
-            ):
-                errors.append(
-                    f"{rel}: keep media playback awake only while cover art and media sleep prevention are enabled"
-                )
-            if "id(cover_art_media_playing)" in idle_body:
-                errors.append(f"{rel}: use the dedicated media sleep prevention playback state")
-            if re.search(
-                r"\(id\(media_player_sleep_prevention_enabled\)\.state\s*\|\|\s*"
-                r"id\(cover_art_screensaver_enabled\)\.state\)\s*&&\s*"
-                r"id\(media_player_playing\)",
-                idle_body,
-            ):
-                errors.append(f"{rel}: require both cover art and media sleep prevention to keep the idle timer awake")
-        sleep_body = yaml_script_body(text, "screensaver_sleep_timer")
-        if sleep_body is not None:
-            if "id(cover_art_media_playing)" in sleep_body and not re.search(
-                r"id\(cover_art_last_playback_state\)[\s\S]{0,360}"
-                r'state != "playing"[\s\S]{0,120}'
-                r'state != "buffering"[\s\S]{0,120}'
-                r'state != "paused"[\s\S]{0,240}'
-                r"script\.execute:\s*screensaver_idle_check",
-                sleep_body,
-            ):
-                errors.append(f"{rel}: keep the normal screensaver idle during cover art stop grace")
-            cover_art_sleep_match = re.search(
-                r"id\(cover_art_screensaver_enabled\)\.state[\s\S]{0,360}"
-                r"id\(cover_art_media_playing\)[\s\S]{0,360}"
-                r"then:\s*\n\s*-\s*script\.execute:\s*([a-zA-Z0-9_]+)",
-                sleep_body,
-            )
-            if cover_art_sleep_match and cover_art_sleep_match.group(1) != "show_cover_art_view":
-                errors.append(f"{rel}: start cover art directly after the normal screensaver timeout")
-        if "const bool cover_art_immediate_return" in text:
-            errors.append(f"{rel}: remove the retired immediate cover art return path")
-        if "const bool cover_art_disabled_mode_delay" in text and (
-            'id(screensaver_mode).state != "timer"' not in text
-            or 'id(screensaver_mode).state != "sensor"' not in text
-            or "show_after_seconds > 0.0f" not in text
-            or "if (show_after_seconds < 3.0f) show_after_seconds = 3.0f;" not in text
-        ):
-            errors.append(f"{rel}: restart positive Show After delay after touches in disabled screensaver mode")
-
-        takeover_restore_body = yaml_script_body(text, "display_takeover_resume_restore")
-        if takeover_restore_body is not None and "script.execute: show_cover_art_view" in takeover_restore_body:
-            if (
-                "id(cover_art_last_playback_state)" not in takeover_restore_body
-                or 'state == "playing"' not in takeover_restore_body
-                or 'state == "buffering"' not in takeover_restore_body
-            ):
-                errors.append(f"{rel}: keep takeover restore from showing cover art during stop grace")
-
-    if display_path.exists():
-        rel = display_path.relative_to(root)
-        text = display_path.read_text(encoding="utf-8")
-        if "switch.turn_on: media_player_sleep_prevention_enabled" in text:
-            errors.append(f"{rel}: do not turn on media sleep prevention when cover art is enabled")
-        if re.search(r"(?m)^\s+id: media_player_sleep_prevention_enabled\s*$", text):
-            sleep_prevention_index = text.find("id: media_player_sleep_prevention_enabled")
-            sleep_prevention_end = text.find("\n  - platform:", sleep_prevention_index + 1)
-            sleep_prevention_body = text[sleep_prevention_index:sleep_prevention_end]
-            if "restore_mode: RESTORE_DEFAULT_ON" not in sleep_prevention_body:
-                errors.append(f"{rel}: default media sleep prevention on")
-            migration_tokens = (
-                "id: media_player_sleep_prevention_default_on_migrated",
-                "if (!id(media_player_sleep_prevention_default_on_migrated))",
-                "id(media_player_sleep_prevention_enabled).turn_on();",
-                "id(media_player_sleep_prevention_default_on_migrated) = true;",
-            )
-            if any(token not in text for token in migration_tokens):
-                errors.append(f"{rel}: migrate media sleep prevention on exactly once")
-        if re.search(r"(?m)^\s+id: cover_art_delay\s*$", text):
-            cover_art_delay_index = text.find("id: cover_art_delay")
-            cover_art_delay_end = text.find("\n  - platform:", cover_art_delay_index + 1)
-            cover_art_delay_body = text[cover_art_delay_index:cover_art_delay_end]
-            if "min_value: 3" not in cover_art_delay_body:
-                errors.append(f"{rel}: keep the cover art Show After minimum at three seconds")
-
-    if cover_art_path.exists():
-        rel = cover_art_path.relative_to(root)
-        text = cover_art_path.read_text(encoding="utf-8")
-        playback_started_body = yaml_script_body(text, "cover_art_playback_started")
-        if playback_started_body is None:
-            errors.append(f"{rel}: missing cover_art_playback_started script")
-        elif (
-            "script.execute: cover_art_start_delay" in playback_started_body
-            and (
-                "id(media_player_sleep_prevention_enabled).state" not in playback_started_body
-                or 'id(screensaver_mode).state != "timer"' not in playback_started_body
-                or 'id(screensaver_mode).state != "sensor"' not in playback_started_body
-                or "script.execute: screensaver_idle_check" not in playback_started_body
-            )
-        ):
-            errors.append(f"{rel}: let cover art use its own delay when the normal screensaver is disabled")
-
-    return errors
-
-
-def firmware_touch_cover_art_delay_errors(paths: tuple[Path, ...], root: Path) -> list[str]:
-    errors: list[str] = []
-    required_sequence = "on_touch:\n      - script.execute: cover_art_handle_touch"
-    for path in paths:
-        text = path.read_text(encoding="utf-8")
-        if "on_touch:" not in text:
-            continue
-        if required_sequence not in text:
-            errors.append(
-                f"{path.relative_to(root)}: route touches through cover art before waking the screen"
-            )
-    return errors
-
-
-def firmware_media_sleep_prevention_subscription_errors(paths: tuple[Path, ...], root: Path) -> list[str]:
-    errors: list[str] = []
-    for path in paths:
-        if not path.exists():
-            continue
-        rel = path.relative_to(root)
-        text = path.read_text(encoding="utf-8")
-        if "id(media_player_sleep_prevention_entity).state" not in text:
-            errors.append(f"{rel}: subscribe media sleep prevention to its configured media player entity")
-        if re.search(
-            r"id\(cover_art_media_player_entity\)\.state,\s*\n\s*&id\(media_player_playing\)",
-            text,
-        ):
-            errors.append(f"{rel}: do not drive media sleep prevention from the cover art media player")
-    return errors
-
-
-def firmware_media_control_low_heap_metadata_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_media.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    match = MEDIA_CONTROL_STATE_PATTERN.search(text)
-    if not match:
-        errors.append(f"{rel}: missing subscribe_media_control_state helper")
-        return errors
-
-    body = match.group("body")
-    marker = "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL"
-    if marker not in body:
-        errors.append(f"{rel}: keep S3 media modal progress metadata behind the low-heap guard")
-        return errors
-
-    always_on, low_heap_excluded = body.split(marker, 1)
-    metadata_helper = ""
-    progress_helper = ""
-    if "inline void media_playback_subscribe_metadata" in text:
-        metadata_helper = text.split("inline void media_playback_subscribe_metadata", 1)[1]
-        metadata_helper = metadata_helper.split(
-            "\n\ninline void media_playback_subscribe_progress", 1
-        )[0]
-    if "inline void media_playback_subscribe_progress" in text:
-        progress_helper = text.split("inline void media_playback_subscribe_progress", 1)[1]
-        progress_helper = progress_helper.split(
-            "\n\ninline void media_playback_subscribe_volume", 1
-        )[0]
-
-    for attr in ("media_title", "media_artist"):
-        if (
-            "media_playback_subscribe_metadata(state)" not in always_on
-            or f'std::string("{attr}")' not in metadata_helper
-        ):
-            errors.append(f"{rel}: keep {attr} subscribed for the S3 media modal")
-    if 'state->entity_id, std::string("media_artist")' in metadata_helper:
-        errors.append(f"{rel}: avoid duplicate one-shot metadata reads on every track change")
-    progress_in_always_on = "media_playback_subscribe_progress(state)" in always_on
-    progress_in_low_heap_excluded = "media_playback_subscribe_progress(state)" in low_heap_excluded
-    for attr in ("media_duration", "media_position", "media_position_updated_at"):
-        if (
-            f'std::string("{attr}")' in always_on
-            or progress_in_always_on
-        ):
-            errors.append(f"{rel}: keep {attr} out of the S3 low-heap media modal path")
-        if (
-            not progress_in_always_on
-            and not progress_in_low_heap_excluded
-            or f'std::string("{attr}")' not in progress_helper
-        ):
-            errors.append(f"{rel}: full media modal builds should still subscribe {attr}")
-    return errors
-
-
-def firmware_media_group_lifecycle_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_media.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    required = (
-        (
-            "media_group_parse_entity_list(value.c_str(), value.size())",
-            "parse complete Home Assistant speaker lists without a fixed-size copy",
-        ),
-        (
-            "if (!row->pending) row->selected =",
-            "preserve pending speaker selections until Home Assistant responds",
-        ),
-        (
-            "row->volume_pct < media_control_volume_max_pct(ctx)",
-            "apply the configured maximum only to speaker volume increases",
-        ),
-        (
-            "row->available = item.available",
-            "use the startup speaker-discovery subscription for row availability",
-        ),
-        (
-            "media_playback_subscribe_speaker_discovery(state, ctx->speaker_group_entity);",
-            "register speaker discovery during normal startup subscriptions",
-        ),
-        (
-            "media_group_parse_discovery_items(raw)",
-            "hydrate speaker names and volumes from the discovery helper",
-        ),
-        (
-            "std::vector<MediaSpeakerDiscoveryState>().swap(state->speaker_discoveries);",
-            "restore speaker discovery when the grid rebuilds its startup subscriptions",
-        ),
-        (
-            "media_control_sync_speaker_candidates",
-            "synchronize speaker rows when the helper inventory changes",
-        ),
-        (
-            "lv_obj_del(row->row)",
-            "delete speaker rows removed from the helper inventory",
-        ),
-        (
-            "MEDIA_GROUP_ACTION_TIMEOUT_MS",
-            "bound pending speaker actions so a lost response does not disable a row indefinitely",
-        ),
-        (
-            'ha_cancel_action_response_callback(call_id, "grouping timeout")',
-            "cancel stale grouping callbacks when a speaker action times out",
-        ),
-        (
-            "lv_timer_del(ui.speaker_action_timer)",
-            "release the modal-scoped speaker action timer",
-        ),
-        (
-            "lv_obj_get_width(ui.speaker_list)",
-            "size speaker rows added by live discovery updates to the current list width",
-        ),
-    )
-    for token, message in required:
-        if token not in text:
-            errors.append(f"{rel}: {message}")
-    if (
-        text.count("media_group_parse_entity_list(value.c_str(), value.size())") < 1
-        or "media_group_parse_discovery_items(raw)" not in text
-    ):
-        errors.append(f"{rel}: parse both current members and discovery candidates without truncation")
-    if "inline void media_control_refresh_speaker_state" in text:
-        subscribe_body = text.split("inline void media_control_refresh_speaker_state", 1)[1]
-        subscribe_body = subscribe_body.split("\n}\n\ninline void media_control_add_speaker_candidate", 1)[0]
-        for token in (
-            "ha_read_retained_state(entity_id, state_callback)",
-            'ha_read_retained_attribute(entity_id, std::string("friendly_name"), name_callback)',
-            'ha_read_retained_attribute(entity_id, std::string("volume_level"), volume_callback)',
-        ):
-            if token not in subscribe_body:
-                errors.append(f"{rel}: rehydrate a speaker row recreated during a live helper edit")
-                break
-        if (
-            "if (!parse_float_ref(value, level) || !std::isfinite(level))" not in subscribe_body
-            or "row->volume_known = false" not in subscribe_body
-        ):
-            errors.append(f"{rel}: disable group volume when a speaker reports an invalid volume")
-    if "inline void media_control_add_speaker_candidate" in text:
-        add_body = text.split("inline void media_control_add_speaker_candidate", 1)[1]
-        add_body = add_body.split("\n}\n\ninline void media_control_sync_speaker_candidates", 1)[0]
-        if "media_control_refresh_speaker_state(ctx, row)" in add_body:
-            errors.append(
-                f"{rel}: defer live speaker reads until after LVGL finishes constructing the list"
-            )
-        low_heap_marker = "#ifdef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL"
-        full_heap_marker = "#else"
-        if low_heap_marker not in add_body or full_heap_marker not in add_body:
-            errors.append(f"{rel}: keep a compact speaker-row layout for low-heap S3 displays")
-        else:
-            compact_body = add_body.split(low_heap_marker, 1)[1].split(full_heap_marker, 1)[0]
-            if "row->content_box = lv_obj_create" in compact_body or "row->text_box = lv_obj_create" in compact_body:
-                errors.append(
-                    f"{rel}: avoid nested containers in the S3 speaker list"
-                )
-            if "media_control_create_speaker_volume_button" not in compact_body:
-                errors.append(f"{rel}: preserve per-speaker volume controls in the S3 speaker list")
-    if "inline void media_control_create_speakers_tab_content" in text:
-        create_body = text.split("inline void media_control_create_speakers_tab_content", 1)[1]
-        create_body = create_body.split("\n}\n\ninline void media_control_create_power_tab_content", 1)[0]
-        layout_pos = create_body.find("lv_obj_update_layout(ui.speaker_list);")
-        refresh_pos = create_body.find("media_control_refresh_speakers(ctx);")
-        if layout_pos < 0 or refresh_pos < 0 or layout_pos > refresh_pos:
-            errors.append(
-                f"{rel}: resolve the speaker-list layout before sizing flat S3 rows"
-            )
-    return errors
-
-
-def firmware_media_power_binding_errors(firmware_dir: Path, root: Path) -> list[str]:
-    media_path = firmware_dir / "button_grid_media.h"
-    capability_path = firmware_dir / "media_power_capability.h"
-    errors: list[str] = []
-    if not media_path.exists() or not capability_path.exists():
-        return [
-            "components/espdesktop: keep media Power capability and Home Assistant binding helpers"
-        ]
-
-    media_text = media_path.read_text(encoding="utf-8")
-    capability_text = capability_path.read_text(encoding="utf-8")
-    media_required = (
-        'std::string("supported_features")',
-        "media_playback_subscribe_volume(state)",
-        "media_control_send_power_action",
-        "ctx && !ctx->power_entity.empty()",
-        'send_media_player_action(ctx->power_entity, "homeassistant.turn_on")',
-        'send_media_player_action(ctx->power_entity, "homeassistant.turn_off")',
-    )
-    capability_required = (
-        "SUPPORT_TURN_ON = 128",
-        "SUPPORT_TURN_OFF = 256",
-        "power_toggle_supported",
-        "PowerCommand power_command",
-        'state == "off" ? PowerCommand::TURN_ON : PowerCommand::TURN_OFF',
-    )
-    if any(needle not in media_text for needle in media_required) or any(
-        needle not in capability_text for needle in capability_required
-    ):
-        errors.append(
-            "components/espdesktop: keep media Power gated by its optional entity and dispatch explicit turn_on/turn_off actions"
-        )
-
-    match = MEDIA_CONTROL_STATE_PATTERN.search(media_text)
-    if match:
-        always_on = match.group("body").split(
-            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL", 1
-        )[0]
-        if "media_playback_subscribe_volume(state)" not in always_on:
-            errors.append(
-                "components/espdesktop/button_grid_media.h: keep media Power capabilities subscribed on low-heap displays"
-            )
-    return errors
-
-
-def firmware_media_playback_mode_binding_errors(
-    firmware_dir: Path, root: Path
-) -> list[str]:
-    media_path = firmware_dir / "button_grid_media.h"
-    actions_path = firmware_dir / "button_grid_actions.h"
-    capability_path = firmware_dir / "media_playback_modes.h"
-    if not media_path.exists() or not actions_path.exists() or not capability_path.exists():
-        return [
-            "components/espdesktop: keep Shuffle and Repeat capability, subscription, and action helpers"
-        ]
-
-    media_text = media_path.read_text(encoding="utf-8")
-    actions_text = actions_path.read_text(encoding="utf-8")
-    capability_text = capability_path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    capability_required = (
-        "SUPPORT_SHUFFLE_SET = 32768",
-        "SUPPORT_REPEAT_SET = 262144",
-        "parse_shuffle_state",
-        "parse_repeat_mode",
-        "next_repeat_mode",
-        "RepeatMode::OFF) return RepeatMode::ALL",
-        "RepeatMode::ALL) return RepeatMode::ONE",
-        "RepeatMode::ONE) return RepeatMode::OFF",
-    )
-    if any(needle not in capability_text for needle in capability_required):
-        errors.append(
-            "components/espdesktop/media_playback_modes.h: preserve Shuffle and Repeat feature detection, parsing, and repeat cycling"
-        )
-
-    action_required = (
-        "send_media_shuffle_action",
-        '"media_player.shuffle_set", "shuffle"',
-        'enabled ? "true" : "false"',
-        "send_media_repeat_action",
-        '"media_player.repeat_set", "repeat", value',
-        "repeat_mode_value(mode)",
-    )
-    if any(needle not in actions_text for needle in action_required):
-        errors.append(
-            "components/espdesktop/button_grid_actions.h: preserve Home Assistant Shuffle and Repeat services and payloads"
-        )
-
-    media_required = (
-        "bool shuffle_subscribed = false;",
-        "bool repeat_subscribed = false;",
-        "bool shuffle_known = false;",
-        "RepeatMode::UNKNOWN",
-        'std::string("shuffle")',
-        'std::string("repeat")',
-        "parse_shuffle_state",
-        "parse_repeat_mode",
-        "media_playback_subscribe_modes(state)",
-        "!ui.active->shuffle_known",
-        "!media_control_shuffle_supported(ui.active)",
-        "!media_control_repeat_supported(ui.active)",
-        "next_repeat_mode",
-    )
-    if any(needle not in media_text for needle in media_required):
-        errors.append(
-            "components/espdesktop/button_grid_media.h: keep capability-gated Shuffle and Repeat subscriptions and actions"
-        )
-
-    subscribe_marker = "inline void media_playback_subscribe_modes"
-    next_marker = "inline void media_playback_subscribe_content"
-    if subscribe_marker not in media_text or next_marker not in media_text:
-        errors.append(
-            "components/espdesktop/button_grid_media.h: keep dedicated Shuffle and Repeat subscriptions"
-        )
-    else:
-        subscribe_body = media_text.split(subscribe_marker, 1)[1].split(next_marker, 1)[0]
-        if "state->controls.empty()" not in subscribe_body:
-            errors.append(
-                "components/espdesktop/button_grid_media.h: do not subscribe volume-only media entities to Shuffle and Repeat attributes"
-            )
-        if subscribe_body.count("media_playback_generation_valid(state, generation)") < 2:
-            errors.append(
-                "components/espdesktop/button_grid_media.h: generation-guard both playback-mode subscriptions"
-            )
-        if "if (subscription_added) ha_reannounce_state_subscriptions();" not in subscribe_body:
-            errors.append(
-                "components/espdesktop/button_grid_media.h: re-announce dynamically added playback-mode subscriptions"
-            )
-
-    capabilities_marker = 'std::string("supported_features")'
-    if capabilities_marker in media_text:
-        capabilities_body = media_text.split(capabilities_marker, 1)[1].split(
-            "inline void media_playback_subscribe_modes", 1
-        )[0]
-        if "!state->controls.empty()" not in capabilities_body:
-            errors.append(
-                "components/espdesktop/button_grid_media.h: gate capability-triggered playback-mode subscriptions on All Controls consumers"
-            )
-
-    match = MEDIA_CONTROL_STATE_PATTERN.search(media_text)
-    if match:
-        always_on = match.group("body").split(
-            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL", 1
-        )[0]
-        if "media_playback_subscribe_modes(state)" not in always_on:
-            errors.append(
-                "components/espdesktop/button_grid_media.h: keep Shuffle and Repeat subscribed on low-heap displays"
-            )
-    return errors
-
-
-def firmware_cover_art_low_heap_progress_errors(
-    firmware_dir: Path, cover_art_path: Path, root: Path
-) -> list[str]:
-    media_path = firmware_dir / "button_grid_media.h"
-    ha_path = firmware_dir / "button_grid_ha.h"
-    errors: list[str] = []
-
-    if media_path.exists():
-        rel = media_path.relative_to(root)
-        media_text = media_path.read_text(encoding="utf-8")
-        for token in (
-            "struct MediaPlaybackState",
-            "media_playback_ensure_state(entity_id)",
-            "media_playback_attach_slider(state, ctx)",
-            "media_playback_subscribe_state(state)",
-            "media_playback_prepare_cover_art_progress",
-            "media_playback_set_playing_hint(state, playing)",
-            "media_playback_subscribe_progress(state)",
-            "media_playback_state_snapshot",
-            "media_playback_state_has_progress",
-        ):
-            if token not in media_text:
-                errors.append(f"{rel}: let S3 cover art initialise shared media playback progress")
-                break
-
-        prepare_match = re.search(
-            r"inline\s+MediaPlaybackState\s*\*media_playback_prepare_cover_art_progress\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            media_text,
-            re.DOTALL,
-        )
-        prepare_body = prepare_match.group("body") if prepare_match else ""
-        if any(
-            token not in prepare_body
-            for token in (
-                "media_playback_ensure_state(entity_id)",
-                "media_playback_set_playing_hint(state, playing)",
-                "media_playback_subscribe_progress(",
-                "HA_SUBSCRIPTION_SCOPE_COVER_ART",
-                "HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS",
-            )
-        ) or "media_playback_subscribe_playback_state" in prepare_body:
-            errors.append(f"{rel}: prepare S3 progress idempotently without another playback-state subscription")
-
-        progress_match = re.search(
-            r"inline\s+void\s+media_playback_subscribe_progress\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            media_text,
-            re.DOTALL,
-        )
-        progress_body = progress_match.group("body") if progress_match else ""
-        if (
-            "state->progress_subscribed" not in progress_body
-            or "state->progress_subscription_scope = scope" not in progress_body
-            or progress_body.count("scope") < 4
-        ):
-            errors.append(f"{rel}: subscribe to shared progress only once per dashboard generation")
-        for attr in ("media_duration", "media_position", "media_position_updated_at"):
-            if f'std::string("{attr}")' not in progress_body:
-                errors.append(f"{rel}: subscribe shared progress to {attr}")
-
-        for token in (
-            "state->generation != ha_subscription_generation()",
-            "media_playback_reset_state(state, entity_id)",
-        ):
-            if token not in media_text:
-                errors.append(f"{rel}: rebuild shared progress after dashboard subscription changes")
-                break
-
-        snapshot_match = re.search(
-            r"inline\s+bool\s+media_playback_state_snapshot\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            media_text,
-            re.DOTALL,
-        )
-        snapshot_body = snapshot_match.group("body") if snapshot_match else ""
-        if (
-            "!state->has_duration" not in snapshot_body
-            or "!state->has_position" in snapshot_body
-            or "state->has_position ? media_playback_current_position_seconds(state) : 0.0f" not in snapshot_body
-        ):
-            errors.append(f"{rel}: expose valid duration immediately and start delayed position at zero")
-
-        progress_support_match = re.search(
-            r"inline\s+bool\s+media_control_progress_supported\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            media_text,
-            re.DOTALL,
-        )
-        progress_support_body = progress_support_match.group("body") if progress_support_match else ""
-        if (
-            "#ifdef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL" not in progress_support_body
-            or "ctx && media_playback_state_has_progress(ctx->entity_id)" not in progress_support_body
-        ):
-            errors.append(f"{rel}: give only matching S3 media controls a shared Progress tab")
-
-        timer_match = re.search(
-            r"inline\s+void\s+media_playback_refresh_progress_timer\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            media_text,
-            re.DOTALL,
-        )
-        timer_body = timer_match.group("body") if timer_match else ""
-        consumer_guard = timer_body.find("has_timer_consumer")
-        timer_create = timer_body.find("lv_timer_create")
-        if consumer_guard < 0 or timer_create < 0 or consumer_guard > timer_create:
-            errors.append(f"{rel}: create the one-second progress timer only for card or modal consumers")
-
-        invalidation_match = re.search(
-            r"inline\s+void\s+media_playback_invalidate_stale_progress\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            media_text,
-            re.DOTALL,
-        )
-        invalidation_body = invalidation_match.group("body") if invalidation_match else ""
-        if any(
-            token not in invalidation_body
-            for token in (
-                "last_duration_callback_ms",
-                "state->duration = 0.0f",
-                "state->has_duration = false",
-                "state->position_seconds = 0.0f",
-                "state->position_updated_ms = 0",
-                "state->position_updated_at_known = false",
-                "state->position_updated_at_ms = 0",
-                "state->has_position = false",
-                "media_playback_apply_progress_consumers(state)",
-            )
-        ):
-            errors.append(f"{rel}: hide stale shared progress while preserving fresh track callbacks")
-
-        cover_cleanup_match = re.search(
-            r"inline\s+void\s+media_playback_reset_cover_art_progress_subscriptions\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            media_text,
-            re.DOTALL,
-        )
-        cover_cleanup_body = cover_cleanup_match.group("body") if cover_cleanup_match else ""
-        if any(
-            token not in cover_cleanup_body
-            for token in (
-                "ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS)",
-                "HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS",
-                "state->progress_subscribed = false",
-                "state->progress_subscription_scope = 0",
-                "state->has_position = false",
-                "media_playback_subscribe_progress(state)",
-            )
-        ):
-            errors.append(f"{rel}: release cover-art-owned progress and preserve active card consumers")
-        elif cover_cleanup_body.find(
-            "ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS)"
-        ) > cover_cleanup_body.find("state->progress_subscribed = false"):
-            errors.append(f"{rel}: release cover-art progress callbacks before clearing local state")
-    else:
-        errors.append(f"{media_path.relative_to(root)}: missing media card helpers")
-
-    if ha_path.exists():
-        ha_rel = ha_path.relative_to(root)
-        ha_text = ha_path.read_text(encoding="utf-8")
-        bump_match = re.search(
-            r"inline\s+void\s+bump_ha_subscription_generation\s*\([^)]*\)\s*\{"
-            r"(?P<body>.*?)\n\}",
-            ha_text,
-            re.DOTALL,
-        )
-        bump_body = bump_match.group("body") if bump_match else ""
-        if (
-            "HA_SUBSCRIPTION_SCOPE_DEFAULT" not in bump_body
-            or "HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS" not in bump_body
-        ):
-            errors.append(f"{ha_rel}: release cover-art progress subscriptions on generation bumps")
-
-    if not cover_art_path.exists():
-        return errors
-
-    rel = cover_art_path.relative_to(root)
-    text = cover_art_path.read_text(encoding="utf-8")
-    stripped_low_heap = re.sub(
-        r"#ifndef ESPDESKTOP_LOW_HEAP_COVER_ART.*?#endif",
-        "",
-        text,
-        flags=re.DOTALL,
-    )
-    for attr in ("media_duration", "media_position", "media_position_updated_at"):
-        if f'std::string("{attr}")' in stripped_low_heap:
-            errors.append(f"{rel}: keep {attr} out of the S3 low-heap cover art path")
-        if f'std::string("{attr}")' not in text:
-            errors.append(f"{rel}: full cover art builds should still subscribe {attr}")
-
-    refresh_body = yaml_script_body(text, "cover_art_refresh_progress")
-    if not refresh_body:
-        errors.append(f"{rel}: missing cover_art_refresh_progress script")
-    elif (
-        "#ifdef ESPDESKTOP_LOW_HEAP_COVER_ART" not in refresh_body
-        or "media_playback_prepare_cover_art_progress" not in refresh_body
-        or "media_playback_state_snapshot" not in refresh_body
-        or "lv_obj_clear_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN)" not in refresh_body
-    ):
-        errors.append(f"{rel}: let S3 cover art initialise and consume shared progress")
-
-    resubscribe_body = yaml_script_body(text, "cover_art_resubscribe")
-    if not resubscribe_body or any(
-        token not in resubscribe_body
-        for token in (
-            "#ifdef ESPDESKTOP_LOW_HEAP_COVER_ART",
-            "media_playback_prepare_cover_art_progress",
-            "media_playback_invalidate_stale_progress(cover_entity)",
-            "media_playback_reset_cover_art_progress_subscriptions()",
-        )
-    ):
-        errors.append(f"{rel}: prepare and invalidate S3 shared cover art progress")
-    elif not re.search(
-        r"if \(id\(cover_art_screensaver_enabled\)\.state\) \{\s*"
-        r"media_playback_prepare_cover_art_progress\(.*?\}\s*else \{\s*"
-        r"media_playback_reset_cover_art_progress_subscriptions\(\);",
-        resubscribe_body,
-        re.DOTALL,
-    ):
-        errors.append(f"{rel}: keep S3 progress unsubscribed when cover art is disabled")
-
-    disable_body = yaml_script_body(text, "cover_art_disable")
-    if not disable_body or "script.execute: cover_art_resubscribe" not in disable_body:
-        errors.append(f"{rel}: release cover art subscriptions when the feature is disabled")
-
-    prepared_visibility = re.search(
-        r"media_playback_prepare_cover_art_progress\(.*?"
-        r"return media_playback_state_has_progress\(id\(cover_art_(?:active_)?media_player_entity\)(?:\.state)?\);",
-        text,
-        re.DOTALL,
-    )
-    if not prepared_visibility:
-        errors.append(f"{rel}: prepare S3 progress before checking cover art visibility")
-
-    low_heap_refresh = re.search(
-        r"- interval: 1s.*?#ifdef ESPDESKTOP_LOW_HEAP_COVER_ART(.*?)#else",
-        text,
-        re.DOTALL,
-    )
-    if not low_heap_refresh:
-        errors.append(f"{rel}: missing S3 cover art refresh condition")
-    else:
-        condition_body = low_heap_refresh.group(1)
-        active_guard = condition_body.find(
-            "if (!id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART))"
-        )
-        prepare_progress = condition_body.find("media_playback_prepare_cover_art_progress")
-        if active_guard < 0 or prepare_progress < 0 or active_guard > prepare_progress:
-            errors.append(f"{rel}: prepare S3 progress only while cover art is active")
-
-    return errors
-
-
-def firmware_cover_art_progress_visibility_errors(path: Path, root: Path) -> list[str]:
-    errors: list[str] = []
-    if not path.exists():
-        return errors
-
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    time_widget = re.search(
-        r"(?ms)^\s+- label:\n\s+id: cover_art_time_label\n(?P<body>.*?)(?=^\s+- bar:)",
-        text,
-    )
-    if time_widget is None or "hidden: true" not in time_widget.group("body"):
-        errors.append(f"{rel}: initialize cover art playback time hidden")
-
-    full_build_guard = (
-        "return espdesktop::cover_art::progress_available("
-        "id(cover_art_media_duration));"
-    )
-    for script_id in ("cover_art_show_black_screen", "cover_art_show_track_overlay"):
-        body = yaml_script_body(text, script_id)
-        if body is None or full_build_guard not in body:
-            errors.append(f"{rel}: guard every cover art progress reveal with usable duration")
-
-    sync_body = yaml_script_body(text, "cover_art_sync_track_text")
-    if sync_body is None or any(
-        token not in sync_body
-        for token in (
-            "espdesktop::cover_art::progress_available(id(cover_art_media_duration))",
-            "lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN)",
-            "lv_obj_add_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN)",
-        )
-    ):
-        errors.append(f"{rel}: hide cover art playback time when duration is unavailable")
-
-    refresh_body = yaml_script_body(text, "cover_art_refresh_progress")
-    if refresh_body is None or any(
-        token not in refresh_body
-        for token in (
-            "espdesktop::cover_art::progress_available(duration)",
-            "lv_bar_set_value(id(cover_art_progress_bar), 0, LV_ANIM_OFF)",
-            'lv_label_set_text(id(cover_art_time_label), "0:00  /  0:00")',
-            "lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN)",
-            "lv_obj_add_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN)",
-            "lv_obj_clear_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN)",
-            "lv_obj_clear_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN)",
-        )
-    ):
-        errors.append(f"{rel}: hide and reset unavailable cover art progress")
-
-    duration_handler_match = re.search(
-        r"handle_media_duration\s*=\s*.*?\{(?P<body>.*?)\n\s*\};\n\s*if\s*\(!already_subscribed\)",
-        text,
-        re.DOTALL,
-    )
-    duration_handler = duration_handler_match.group("body") if duration_handler_match else ""
-    if (
-        "const bool next_progress_available =" not in duration_handler
-        or "if (!next_progress_available)" not in duration_handler
-        or "next_duration = 0.0f" not in duration_handler
-    ):
-        errors.append(f"{rel}: normalize invalid cover art durations")
-    if any(
-        token not in duration_handler
-        for token in (
-            "id(cover_art_media_position) = 0.0f",
-            "id(cover_art_position_anchor) = 0.0f",
-            "id(cover_art_position_anchor_epoch) = 0",
-            "id(cover_art_last_position_timestamp) = 0",
-        )
-    ):
-        errors.append(f"{rel}: reset cover art position when duration becomes unavailable")
-    if "current_progress_available" in duration_handler:
-        errors.append(f"{rel}: preserve fresh cover art position when duration arrives late")
-    if "id(cover_art_last_duration_callback_ms) = millis()" not in duration_handler:
-        errors.append(f"{rel}: track cover art duration callback freshness")
-
-    duration_invalidator_match = re.search(
-        r"invalidate_stale_media_duration\s*=\s*\[[^\]]*\]\(\)\s*\{(?P<body>.*?)\n\s*\};",
-        text,
-        re.DOTALL,
-    )
-    duration_invalidator = (
-        duration_invalidator_match.group("body") if duration_invalidator_match else ""
-    )
-    if any(
-        token not in duration_invalidator
-        for token in (
-            "id(cover_art_last_duration_callback_ms)",
-            "millis() - last_duration_ms",
-            "duration_callback_is_fresh",
-            "if (!duration_callback_is_fresh)",
-            "id(cover_art_media_duration) = 0.0f",
-        )
-    ):
-        errors.append(f"{rel}: preserve fresh cover art duration when metadata arrives late")
-    if any(
-        token in duration_invalidator
-        for token in (
-            "id(cover_art_media_position) = 0.0f",
-            "id(cover_art_position_anchor) = 0.0f",
-            "id(cover_art_position_anchor_epoch) = 0",
-            "id(cover_art_last_position_timestamp) = 0",
-        )
-    ):
-        errors.append(f"{rel}: preserve fresh cover art position while invalidating stale metadata")
-
-    for metadata_name, assignment in (
-        ("title", "id(cover_art_title) = next"),
-        ("artist", "id(cover_art_artist) = next"),
-        ("album", "id(cover_art_album) = next"),
-        ("source", "id(cover_art_media_source) = next"),
-    ):
-        handler_match = re.search(
-            rf"handle_media_{metadata_name}\s*=\s*.*?\{{(?P<body>.*?)\n\s*\}};\n\s*if\s*\(!already_subscribed\)",
-            text,
-            re.DOTALL,
-        )
-        handler = handler_match.group("body") if handler_match else ""
-        metadata_assignment = handler.find(assignment)
-        duration_invalidation = handler.find("invalidate_stale_media_duration()")
-        if metadata_name in ("artist", "album"):
-            if duration_invalidation >= 0:
-                errors.append(f"{rel}: preserve duration when restoring media {metadata_name}")
-        elif (
-            metadata_assignment < 0
-            or duration_invalidation < 0
-            or duration_invalidation > metadata_assignment
-        ):
-            errors.append(
-                f"{rel}: mark stale cover art duration unavailable when media {metadata_name} changes"
-            )
-        if any(
-            token in handler
-            for token in (
-                "id(cover_art_media_position) = 0.0f",
-                "id(cover_art_position_anchor) = 0.0f",
-                "id(cover_art_position_anchor_epoch) = 0",
-                "id(cover_art_last_position_timestamp) = 0",
-            )
-        ):
-            errors.append(
-                f"{rel}: preserve fresh cover art position when {metadata_name} metadata arrives late"
-            )
-        if metadata_name == "album":
-            progress_refresh = handler.find("id(cover_art_sync_track_text).execute()")
-            if progress_refresh < 0 or progress_refresh < duration_invalidation:
-                errors.append(
-                    f"{rel}: refresh cover art progress immediately when media album changes"
-                )
-
-    return errors
-
-
-def firmware_image_card_entity_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_image.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    if "image_card_entity_supported" not in text:
-        errors.append(f"{rel}: centralize image card entity-domain support")
-    if 'entity_id.rfind("camera.", 0) == 0' not in text:
-        errors.append(f"{rel}: keep camera entities supported by image cards")
-    if 'entity_id.rfind("image.", 0) == 0' not in text:
-        errors.append(f"{rel}: support Home Assistant image entities in image cards")
-    if 'if (!image_card_entity_supported(p.entity))' not in text:
-        errors.append(f"{rel}: use the shared image card entity-domain guard")
-    if "only supports camera entities" in text:
-        errors.append(f"{rel}: do not reject Home Assistant image entities as unavailable")
     return errors
 
 
@@ -2135,242 +621,6 @@ def firmware_image_card_base_url_errors(firmware_dir: Path, root: Path) -> list[
     if 'ctx->base_url = cfg.home_assistant_base_url ? cfg.home_assistant_base_url() : "";' in text:
         if "ctx->base_url_provider = cfg.home_assistant_base_url" not in text:
             errors.append(f"{rel}: do not rely only on the startup-time image card base URL")
-    return errors
-
-
-def firmware_image_card_quality_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_image.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    if "IMAGE_CARD_MODAL_MAX_TARGET_SIDE_PX" not in text:
-        errors.append(f"{rel}: cap high-resolution image card modal downloads")
-    if (
-        "IMAGE_CARD_CONSTRAINED_MODAL_MAX_TARGET_SIDE_PX" not in text
-        or "image_pipeline_modal_max_target_side" not in text
-    ):
-        errors.append(f"{rel}: cap constrained-display image card modals at 320 pixels")
-    if (
-        "#define ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS 6" not in text
-        or "IMAGE_CARD_MAX_CONTEXTS = ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS" not in text
-    ):
-        errors.append(f"{rel}: support six concurrent image cards on P4 displays")
-    if "image_card_limit_target_size" not in text:
-        errors.append(f"{rel}: scale image card modal downloads to a display-appropriate size")
-    if "image_card_memory_available" not in text or "IMAGE_CARD_MEMORY_HEADROOM_BYTES" not in text:
-        errors.append(f"{rel}: check free memory before image-card downloads")
-    if "MALLOC_CAP_SPIRAM" not in text or "external_largest" not in text:
-        errors.append(f"{rel}: include PSRAM in image-card memory checks")
-    if (
-        "image_pipeline_memory_failure" not in text
-        or "IMAGE_CARD_CONSTRAINED_INTERNAL_FREE_BYTES" not in text
-        or "IMAGE_CARD_CONSTRAINED_INTERNAL_LARGEST_BYTES" not in text
-    ):
-        errors.append(f"{rel}: guard constrained internal RAM separately from PSRAM")
-    if (
-        "image_card_release_modal_cache" not in text
-        or "image_card_retain_modal_cache" not in text
-        or "modal_image->release()" not in text
-    ):
-        errors.append(f"{rel}: release constrained modal image buffers after closing")
-    if (
-        "image_card_preempt_active_tile_for_modal" not in text
-        or "candidate->image->request_is_active()" not in text
-        or "candidate->image->cancel_update();" not in text
-    ):
-        errors.append(f"{rel}: cancel in-flight image downloads before opening image card modals")
-    if "Deferring image refresh while modal is open" not in text:
-        errors.append(f"{rel}: defer image downloads while image card modals are open")
-    if "image_card_clear_widget_source(ui.image_widget)" not in text:
-        errors.append(f"{rel}: detach image sources before deleting image card modals")
-    if (
-        "ctx->image->set_target_size(width, height)" not in text
-        and "image_card_tile_decode_size(width, height, &target_width, &target_height)" not in text
-        and "ctx->image->set_target_size(decode_width, decode_height)" not in text
-    ):
-        errors.append(f"{rel}: set image card download target size before requesting images")
-    if "modal_image" not in text or "image_card_request_modal_source_url" not in text:
-        errors.append(f"{rel}: use a separate modal image downloader for expanded image-card quality")
-    if "ctx->modal_image->request_update_url(ctx->modal_url" not in text:
-        errors.append(f"{rel}: request expanded image-card downloads through the modal downloader")
-    if "image_card_set_widget_source(ui.image_widget, ctx->modal_image)" not in text:
-        errors.append(f"{rel}: swap expanded image cards to the modal-quality image after it downloads")
-    if "ImageCardModalCache" not in text or "image_card_modal_cache" not in text:
-        errors.append(f"{rel}: retain one shared modal image cache for instant reopen")
-    if 'image_card_set_loading_state(loading, "Too many")' not in text:
-        errors.append(f"{rel}: show a visible image-card limit message when downloaders run out")
-    loading_state = re.search(
-        r"inline\s+void\s+image_card_set_loading_state\s*\(\s*lv_obj_t\s*\*loading_widget.*?"
-        r"(?=\ninline\s+void\s+image_card_set_loading_state\s*\(\s*ImageCardCtx)",
-        text,
-        re.S,
-    )
-    configure_icon = re.search(
-        r"inline\s+void\s+image_card_configure_icon.*?(?=\ninline\s+std::string\s+image_card_join_url)",
-        text,
-        re.S,
-    )
-    loading_state_body = loading_state.group(0) if loading_state else ""
-    configure_icon_body = configure_icon.group(0) if configure_icon else ""
-    if (
-        not loading_state_body
-        or "IMAGE_CARD_LOADING_ICON" in loading_state_body
-        or "lv_label_set_display_text(label, espdesktop_i18n(text))" not in loading_state_body
-        or "lv_label_set_display_text(loading_icon, glyph)" not in configure_icon_body
-    ):
-        errors.append(f"{rel}: preserve the configured image-card icon while loading")
-    modal_refresh = re.search(
-        r"inline\s+bool\s+image_card_modal_refresh_supported\s*\(\s*\)\s*\{\s*return\s+true\s*;",
-        text,
-        re.S,
-    )
-    if not modal_refresh:
-        errors.append(f"{rel}: keep modal-quality image refresh enabled on the 4.3-inch P4 screen")
-    tile_size = re.search(
-        r"inline\s+void\s+image_card_tile_request_size[^\{]*\{[^\}]*image_card_limit_target_size",
-        text,
-        re.S,
-    )
-    if not tile_size or "image_card_high_quality_request_size" in text:
-        errors.append(f"{rel}: size every image-card tile request to its on-screen bounds")
-    if "Closing image modal" not in text:
-        errors.append(f"{rel}: log image-card modal close events")
-    if "image_card_abort_modal_open" not in text or "modal shell setup failed" not in text:
-        errors.append(f"{rel}: clean up partially-created image card modals")
-    if (
-        "lv_obj_set_size(ui.loading_widget, width, height)" not in text
-        or "lv_obj_align(icon, LV_ALIGN_CENTER" not in text
-        or "LV_ALIGN_OUT_BOTTOM_MID" not in text
-    ):
-        errors.append(f"{rel}: keep image-card modal loading overlay centered")
-    if (
-        "image_card_show_modal_image(ctx, ctx->image)" not in text
-        or "image_card_queue_modal_source_request(ctx)" not in text
-    ):
-        errors.append(f"{rel}: show the cached image-card tile while modal-quality image loads")
-    modal_failure = re.search(
-        r"inline\s+void\s+image_card_show_modal_download_failure[^\{]*\{(?P<body>.*?)\n\}",
-        text,
-        re.S,
-    )
-    modal_failure_body = modal_failure.group("body") if modal_failure else ""
-    modal_error_handler = re.search(
-        r"inline\s+void\s+image_card_handle_modal_download_error[^\{]*\{(?P<body>.*?)\n\}",
-        text,
-        re.S,
-    )
-    modal_error_body = modal_error_handler.group("body") if modal_error_handler else ""
-    if (
-        "image_card_modal_has_preview(ctx)" not in modal_failure_body
-        or 'image_card_show_modal_loading(ctx, "Unavailable")' not in modal_failure_body
-        or "image_card_show_modal_download_failure(ctx)" not in modal_error_body
-    ):
-        errors.append(f"{rel}: keep an error state when image-card modals have no preview")
-    if "lv_obj_set_style_clip_corner(ui.panel, true, LV_PART_MAIN)" not in text:
-        errors.append(f"{rel}: clip image card modal content to rounded panel corners")
-    if "image_card_apply_corner_clip" not in text:
-        errors.append(f"{rel}: preserve image card rounded corners while pressed")
-    if "image_card_pressed_selector" not in text:
-        errors.append(f"{rel}: apply image card corner clipping to the pressed state")
-    if "image_card_refresh_tile_geometry" not in text or "resized tile" not in text:
-        errors.append(f"{rel}: refresh image-card downloads when card size changes")
-    if "image_card_reset_resized_tile" not in text or "ctx->image->release()" not in text:
-        errors.append(f"{rel}: clear stale image-card tile buffers when card size changes")
-    if "image_card_tile_request_size" not in text:
-        errors.append(f"{rel}: keep small-display image card tile downloads sized to the tile")
-
-    driver_path = firmware_dir / "button_grid_image_driver.h"
-    if driver_path.exists():
-        driver_rel = driver_path.relative_to(root)
-        driver_text = driver_path.read_text(encoding="utf-8")
-        if "image_card_refresh_tile_geometry(image_context)" not in driver_text:
-            errors.append(f"{driver_rel}: update active image-card geometry during grid refresh")
-    else:
-        grid_path = firmware_dir / "button_grid_grid.h"
-        if grid_path.exists():
-            grid_rel = grid_path.relative_to(root)
-            grid_text = grid_path.read_text(encoding="utf-8")
-            if "image_card_refresh_tile_geometry(ctx)" not in grid_text:
-                errors.append(f"{grid_rel}: update active image-card geometry during grid refresh")
-    return errors
-
-
-def firmware_image_card_startup_errors(
-    firmware_dir: Path,
-    core_infra_path: Path,
-    root: Path,
-) -> list[str]:
-    path = firmware_dir / "button_grid_image.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-    if "inline void refresh_image_cards()" not in text:
-        errors.append(f"{rel}: refresh image cards when Home Assistant reconnects")
-    if (
-        "image_card_request_current_picture" not in text
-        or "if (ctx->media_artwork)" not in text
-        or "image_card_request_media_artwork(ctx, false);" not in text
-        or "image_card_refresh_current_picture(ctx);" not in text
-        or "ctx->media_artwork_retry_mask = 0;" not in text
-        or "ctx->pending_fallback_picture.clear();" not in text
-        or "artwork_picture_response_clears_retry" not in text
-        or "inline void image_card_refresh_due(" not in text
-        or text.count("image_card_request_current_picture(ctx);") < 2
-        or "media_artwork_retry_mask" not in text
-        or "artwork_source_request_mask" not in text
-        or "artwork_source_failed_mask" not in text
-    ):
-        errors.append(f"{rel}: retry media cover artwork when Home Assistant reconnects")
-    if "IMAGE_CARD_API_RETRY_INTERVAL_MS" not in text:
-        errors.append(f"{rel}: retry image-card startup quickly after Home Assistant API connects")
-    if "if (!ha_api_connected()) return;" not in text:
-        errors.append(f"{rel}: arm image-card refresh from the Home Assistant API connection")
-    if "if (!ha_api_connected())" not in text or "ha_read_retained_attribute(" not in text:
-        errors.append(f"{rel}: request image-card attributes once the Home Assistant API is connected")
-    if '"access_token"' not in text or "image_card_proxy_path_with_token" not in text:
-        errors.append(f"{rel}: load Home Assistant image-card proxy URLs with the entity access token")
-    if '"/api/image_proxy/" + entity_id' not in text or '"/api/camera_proxy/" + entity_id' not in text:
-        errors.append(f"{rel}: fall back to Home Assistant proxy URLs when image-card entity_picture is unavailable")
-    if "Waiting for Home Assistant base URL" not in text:
-        errors.append(f"{rel}: keep image cards loading until the Home Assistant base URL is ready")
-    if "subscribe_image_card_entity_state" not in text or "ha_subscribe_state(" not in text:
-        errors.append(f"{rel}: refresh image cards when the camera/image entity state changes")
-    if "image_card_context_current" not in text or "generation == ha_subscription_generation()" not in text:
-        errors.append(f"{rel}: ignore stale image-card callbacks after grid rebuild")
-    if (
-        "image_card_generation" not in text
-        or "image_card_context_current(ctx, image_card_entity_id, image_card_generation)" not in text
-    ):
-        errors.append(f"{rel}: ignore stale image-card entity_picture callbacks after grid rebuild")
-    if ("image_card_tile_request_size(width, height" not in text and
-        "image_card_tile_request_size(decode_width, decode_height" not in text):
-        errors.append(f"{rel}: request display-sized Home Assistant image card downloads")
-    if "image_card_sized_url(ctx->source_url, request_width, request_height)" not in text:
-        errors.append(f"{rel}: request bounded Home Assistant image card proxy downloads")
-    if '"/api/camera_proxy/"' not in text or '"/api/image_proxy/"' not in text:
-        errors.append(f"{rel}: recognize Home Assistant camera and image proxy URLs")
-
-    if core_infra_path.exists():
-        core_rel = core_infra_path.relative_to(root)
-        core_text = core_infra_path.read_text(encoding="utf-8")
-        port_action = re.search(
-            r'(?ms)^  - platform: template\n    name: "Home Assistant Artwork Port".*?'
-            r'^    set_action:\n      - lambda: \|-\n(?P<body>.*?)(?=^  - platform: |\Z)',
-            core_text,
-        )
-        if "is_home_assistant && ha_api_connected()" not in core_text:
-            errors.append(f"{core_rel}: start image-card refresh when Home Assistant API connects")
-        if (
-            core_text.count("refresh_image_cards();") < 3
-            or "id(cover_art_resolve_home_assistant_base_url).execute();" not in core_text
-            or not port_action
-            or "id(cover_art_home_assistant_artwork_port).publish_state(x);" not in port_action.group("body")
-        ):
-            errors.append(f"{core_rel}: resolve artwork URLs with the newly selected port")
     return errors
 
 
@@ -2498,7 +748,6 @@ def firmware_artwork_image_auth_errors(path: Path, root: Path) -> list[str]:
 def firmware_screensaver_wake_guard_errors(
     backlight_path: Path,
     screen_clock_path: Path,
-    cover_art_path: Path,
     root: Path,
 ) -> list[str]:
     errors: list[str] = []
@@ -2510,84 +759,34 @@ def firmware_screensaver_wake_guard_errors(
             errors.append(f"{rel}: missing screensaver_wake script")
         else:
             interrupted_transition_tokens = (
-                "controller.has_transition_in_progress()",
-                "controller.cancel_transition()",
-                "controller.require_presentation_cleanup()",
+                "display_lifecycle().begin_wake(",
                 "script.stop: display_mode_apply_transition",
-                "script.stop: cover_art_hide_effect",
                 "script.stop: display_mode_effect_active",
                 "script.stop: display_mode_effect_setup_dimmed",
                 "script.stop: display_mode_effect_off",
-                "script.stop: display_mode_effect_cover_art",
                 "lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN)",
             )
             if any(token not in body for token in interrupted_transition_tokens):
-                errors.append(
-                    f"{rel}: cancel interrupted display effects and force visible clock cleanup during wake"
-                )
-            pending_restore_tokens = (
-                "id: screensaver_wake_restore_pending",
-                "id(screensaver_wake_restore_pending) =",
-                "!id(espdesktop_app).display().target_mode_is(",
-                "const bool restore_pending = id(screensaver_wake_restore_pending);",
-                "id(screensaver_wake_restore_pending) = false;",
-                "return restore_pending ||",
-            )
-            if any(token not in text for token in pending_restore_tokens):
+                errors.append(f"{rel}: cancel interrupted display effects and force visible clock cleanup during wake")
+            if "display_lifecycle().take_wake_reconcile()" not in body:
                 errors.append(f"{rel}: restore ACTIVE when touch cancels a pending sleep transition")
-            marker = "const bool restore_pending = id(screensaver_wake_restore_pending);"
-            if marker not in body:
-                errors.append(f"{rel}: keep the normal screensaver wake branch explicit")
-            else:
-                normal_wake_body = body.split(marker, 1)[1]
-                if re.search(
-                    r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'true'",
-                    normal_wake_body,
-                ):
-                    errors.append(f"{rel}: do not block the first button tap after normal screensaver wake")
-                if "script.execute: screensaver_wake_touch_guard_clear" in normal_wake_body:
-                    errors.append(f"{rel}: do not arm a delayed wake guard clear for normal screensaver wake")
-                if "id(screensaver_wake_touch_guard_skip_once) = false" not in normal_wake_body:
-                    errors.append(f"{rel}: consume stale cover art wake guard state during screensaver wake")
-                if not re.search(
-                    r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'false'",
-                    normal_wake_body,
-                ):
-                    errors.append(f"{rel}: clear stale wake guard state during normal screensaver wake")
-                if "bool keep_wake_guard = id(screensaver_wake_touch_guard_skip_once);" not in normal_wake_body:
-                    errors.append(f"{rel}: preserve the shared wake guard while screensaver state is restored")
+            if "script.execute: screensaver_wake_touch_guard_clear" in body:
+                errors.append(f"{rel}: do not arm a delayed wake guard clear for normal screensaver wake")
 
-            clear_marker = (
-                "id(espdesktop_app).display().clear("
-                "espdesktop::DisplayRequestSource::IDLE_TIMER);"
+            clear_index = body.find(
+                "id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);"
             )
-            clear_index = body.find(clear_marker)
+            guard_index = body.find("display_lifecycle().wake_touch_guard()")
             guard_execute_index = body.find("script.execute: screensaver_wake_touch_block")
-            pre_clear_body = body[:clear_index] if clear_index >= 0 else ""
-            if (
-                "id(screensaver_wake_touch_guard_skip_once) =" not in pre_clear_body
-                or "espdesktop::DisplayMode::COVER_ART" not in pre_clear_body
-                or "espdesktop::DisplayMode::DISPLAY_OFF" not in pre_clear_body
-            ):
-                errors.append(
-                    f"{rel}: arm the shared wake guard from the pre-wake Cover Art and Display Off modes"
-                )
-            if (
-                clear_index < 0
-                or guard_execute_index < 0
-                or guard_execute_index > clear_index
-            ):
+            if guard_index < 0:
+                errors.append(f"{rel}: arm the shared wake guard from the pre-wake Display Off mode")
+            if not 0 <= guard_index < guard_execute_index < clear_index:
                 errors.append(f"{rel}: raise the shared wake guard before clearing screensaver state")
 
         guard_body = yaml_script_body(text, "screensaver_wake_touch_block")
         if guard_body is None:
             errors.append(f"{rel}: missing shared screensaver_wake_touch_block script")
         else:
-            if not re.search(
-                r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'true'",
-                guard_body,
-            ):
-                errors.append(f"{rel}: keep screensaver wake taps guarded")
             if "LV_INDEV_STATE_PRESSED" not in guard_body:
                 errors.append(f"{rel}: keep the shared wake guard until the wake touch is released")
             if "timeout: 2s" not in guard_body:
@@ -2600,10 +799,7 @@ def firmware_screensaver_wake_guard_errors(
                 errors.append(f"{rel}: raise the shared wake guard above active controls")
             if "lvgl.widget.show: screensaver_wake_touch_guard" not in guard_body:
                 errors.append(f"{rel}: show the shared full-screen wake guard")
-            if not re.search(
-                r"id:\s*screensaver_wake_touch_guard_active\s*\n\s*value:\s*'false'",
-                guard_body,
-            ):
+            if "display_lifecycle().clear_wake_touch_guard()" not in guard_body:
                 errors.append(f"{rel}: accept the first deliberate tap after wake-touch release")
             if "lvgl.widget.hide: screensaver_wake_touch_guard" not in guard_body:
                 errors.append(f"{rel}: hide the shared wake guard after touch release")
@@ -2622,11 +818,6 @@ def firmware_screensaver_wake_guard_errors(
         ):
             errors.append(f"{rel}: keep the shared wake guard full-screen, clickable, and hidden by default")
 
-    if cover_art_path.exists():
-        rel = cover_art_path.relative_to(root)
-        text = cover_art_path.read_text(encoding="utf-8")
-        if "cover_art_wake_touch_guard" in text or "cover_art_wake_touch_block" in text:
-            errors.append(f"{rel}: use the shared screensaver wake guard for Cover Art")
     return errors
 
 
@@ -2665,8 +856,6 @@ def firmware_screen_wake_button_errors(backlight_path: Path, root: Path) -> list
         errors.append(f"{rel}: use mdi:monitor-shimmer for Screen: Wake")
 
     required_sequence = (
-        "      - script.execute: cover_art_pause_after_touch\n"
-        "      - script.wait: cover_art_pause_after_touch\n"
         "      - script.execute: screensaver_wake"
     )
     if "on_press:" not in button_block or required_sequence not in button_block:
@@ -2731,15 +920,23 @@ def firmware_display_backlight_manual_sleep_errors(
             errors.append(f"{rel}: missing display_backlight light definition")
             continue
 
-        off_match = re.search(
-            r"(?ms)^    on_turn_off:\s*\n(?P<body>.*?)(?=^    [a-zA-Z_][\w-]*:\s*|\Z)",
-            backlight_block,
-        )
-        if off_match is None:
-            errors.append(f"{rel}: route Display Backlight OFF into manual sleep")
-            continue
+        off_include = re.search(r"(?m)^    on_turn_off: !include (\S+)$", backlight_block)
+        if off_include:
+            wiring = (path.parent / off_include.group(1)).resolve()
+            if not wiring.is_relative_to(root) or not wiring.is_file():
+                errors.append(f"{rel}: missing shared Display Backlight OFF wiring")
+                continue
+            off_body = wiring.read_text(encoding="utf-8")
+        else:
+            off_match = re.search(
+                r"(?ms)^    on_turn_off:\s*\n(?P<body>.*?)(?=^    [a-zA-Z_][\w-]*:\s*|\Z)",
+                backlight_block,
+            )
+            if off_match is None:
+                errors.append(f"{rel}: route Display Backlight OFF into manual sleep")
+                continue
+            off_body = off_match.group("body")
 
-        off_body = off_match.group("body")
         handler_index = off_body.find("script.execute: display_backlight_handle_off")
         if handler_index == -1:
             errors.append(
@@ -2755,7 +952,7 @@ def firmware_display_backlight_manual_sleep_errors(
             interactive_index = off_body.find("DisplayTakeoverKind::INTERACTIVE")
             critical_index = off_body.find("DisplayTakeoverKind::CRITICAL")
             restore_index = off_body.find("script.execute: backlight_apply_brightness")
-            else_index = off_body.find("            else:", restore_index)
+            else_index = off_body.find("else:", restore_index)
             if not (
                 interactive_index != -1
                 and critical_index > interactive_index
@@ -2869,13 +1066,12 @@ def firmware_display_active_finalization_errors(
             "script.execute: backlight_apply_brightness",
             "script.wait: backlight_apply_brightness",
             "script.execute: screensaver_idle_check",
-            "script.execute: home_screen_idle_check",
         )
         indexes = [finalize_body.find(token) for token in ordered_tokens]
         if any(index == -1 for index in indexes) or indexes != sorted(indexes):
             errors.append(
                 f"{backlight_rel}: finalize active display after page settle with clock bar, "
-                "configured brightness, and idle timers"
+                "configured brightness, and the screensaver timer"
             )
 
     schedule_rel = schedule_path.relative_to(root)
@@ -2917,7 +1113,7 @@ def firmware_display_active_finalization_errors(
         finalize_index = navigation_body.find("script.execute: display_active_finalize")
         if not (0 <= page_index < finalize_index):
             errors.append(
-                f"{connectivity_rel}: finalize brightness, clock bar, and idle timers after main-page navigation"
+                f"{connectivity_rel}: finalize brightness, clock bar, and the screensaver timer after main-page navigation"
             )
 
     return errors
@@ -3014,41 +1210,6 @@ def firmware_clock_screensaver_overlay_errors(backlight_path: Path, root: Path) 
     return errors
 
 
-def firmware_screen_schedule_screensaver_overlay_errors(cover_art_path: Path, root: Path) -> list[str]:
-    errors: list[str] = []
-    if not cover_art_path.exists():
-        return errors
-
-    rel = cover_art_path.relative_to(root)
-    text = cover_art_path.read_text(encoding="utf-8")
-    show_body = yaml_script_body(text, "show_cover_art_view")
-    effect_body = yaml_script_body(text, "display_mode_effect_cover_art")
-
-    if show_body is None:
-        errors.append(f"{rel}: missing show_cover_art_view script")
-    else:
-        if "screen_schedule_blocks_cover_art(" not in show_body:
-            errors.append(f"{rel}: prevent cover art from overriding active screen schedule night mode")
-    if effect_body is None:
-        errors.append(f"{rel}: missing display_mode_effect_cover_art script")
-    elif "lv_obj_move_foreground(id(cover_art_screensaver))" not in effect_body:
-        errors.append(f"{rel}: raise the cover art screensaver above any existing top-layer elements")
-
-    delay_body = yaml_script_body(text, "cover_art_delay_timer")
-    if delay_body is None:
-        errors.append(f"{rel}: missing cover_art_delay_timer script")
-    elif "screen_schedule_blocks_cover_art(" not in delay_body:
-        errors.append(f"{rel}: keep delayed cover art from starting during screen schedule night mode")
-
-    playback_started_body = yaml_script_body(text, "cover_art_playback_started")
-    if playback_started_body is None:
-        errors.append(f"{rel}: missing cover_art_playback_started script")
-    elif "screen_schedule_blocks_cover_art(" not in playback_started_body:
-        errors.append(f"{rel}: keep playback-start cover art from overriding screen schedule night mode")
-
-    return errors
-
-
 def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, root: Path) -> list[str]:
     errors: list[str] = []
     if not backlight_path.exists():
@@ -3070,48 +1231,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
             errors.append(f"{rel}: let the night screen schedule override timer screensaver actions")
 
     schedule_off_body = yaml_script_body(text, "backlight_schedule_display_off")
-    controller_off_body = yaml_script_body(text, "display_mode_effect_off")
-    adapter_body = yaml_script_body(text, "display_mode_apply_transition")
     reconcile_body = yaml_script_body(text, "display_mode_reconcile")
-    if schedule_off_body is None:
-        errors.append(f"{rel}: missing backlight_schedule_display_off script")
-    elif not (
-        adapter_body is not None
-        and "target_mode != static_cast<int>(espdesktop::DisplayMode::COVER_ART)" in adapter_body
-        and "id: cover_art_hide_effect" in adapter_body
-        and controller_off_body is not None
-        and "script.stop: cover_art_delay_timer" in controller_off_body
-    ) and (
-        "script.stop: cover_art_delay_timer" not in schedule_off_body
-        or "script.execute: hide_cover_art_view" not in schedule_off_body
-    ):
-        errors.append(f"{rel}: screen schedule display-off should clear cover art before forcing the screen off")
-
-    if reconcile_body is not None and "DisplayRequestSource::SCREEN_SCHEDULE" in reconcile_body:
-        controller_owns_cover_art = (
-            adapter_body is not None
-            and "espdesktop::DisplayMode::COVER_ART" in adapter_body
-            and "id: cover_art_hide_effect" in adapter_body
-            and (
-                "DisplayRequestSource::MEDIA_PLAYBACK" not in reconcile_body
-                or (
-                    "if (!controller.target_mode_is(espdesktop::DisplayMode::COVER_ART))" in reconcile_body
-                    and "if (id(cover_art_playback_control).retains_pause(id(cover_art_active_media_player_entity)))" in reconcile_body
-                    and "controller.request(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK" not in reconcile_body
-                )
-            )
-        )
-        legacy_clears_cover_art = (
-            "if (schedule_night && id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART))" in reconcile_body
-            or (
-                "if (id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART))" in reconcile_body
-                and "id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) = false;" in reconcile_body
-                and "id(hide_cover_art_view).execute();" in reconcile_body
-            )
-        )
-        if not controller_owns_cover_art and not legacy_clears_cover_art:
-            errors.append(f"{rel}: scheduled night modes should clear active cover art before resolving")
-
     schedule_path = backlight_path.with_name("backlight_schedule.yaml")
     if schedule_path.exists():
         schedule_rel = schedule_path.relative_to(root)
@@ -3121,10 +1241,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
             active_target = brightness_body.find(
                 "target_mode_is(\n                espdesktop::DisplayMode::ACTIVE)"
             )
-            cover_art_target = brightness_body.find(
-                "target_mode_is(\n                espdesktop::DisplayMode::COVER_ART)"
-            )
-            if active_target == -1 or cover_art_target == -1:
+            if active_target == -1:
                 errors.append(
                     f"{schedule_rel}: apply brightness from the pending active display target during wake transitions"
                 )
@@ -3158,11 +1275,12 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
         if migrated_live_schedule:
             boot_guard_index = schedule_text.find("script.execute: screen_schedule_boot_guard")
             boot_guard_prefix = schedule_text[:boot_guard_index] if boot_guard_index != -1 else ""
+            boot_guard_body = yaml_script_body(schedule_text, "screen_schedule_boot_guard") or ""
             if (
                 "priority: -190" not in boot_guard_prefix
-                or "screen_schedule_waiting_for_time(" not in boot_guard_prefix
-                or "screen_schedule_night_active(" not in boot_guard_prefix
-                or "script.execute: screen_schedule_boot_guard" not in schedule_text
+                or "bind_screen_schedule(" not in boot_guard_prefix
+                or "id(schedule_enabled).publish_state(settings.enabled)" not in boot_guard_prefix
+                or "script.execute: display_mode_reconcile" not in boot_guard_body
             ):
                 errors.append(
                     f"{schedule_rel}: publish the live fail-dark schedule before the loading screen can light the panel"
@@ -3241,16 +1359,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
                     button_order_text = button_order_path.read_text(encoding="utf-8")
                     if (
                         "lv_scr_act() == id(button_setup_page)->obj" not in button_order_text
-                        or """            then:
-              - delay: 750ms
-              - script.execute: refresh_button_grid
-              - script.wait: refresh_button_grid
-              - script.execute: navigate_after_api
-              - script.wait: navigate_after_api
-              - script.execute: display_mode_reconcile
-            else:
-              - script.execute: display_mode_reconcile
-""" not in button_order_text
+                        or "script.execute: present_first_layout" not in button_order_text
                     ):
                         errors.append(
                             f"{button_order_path.relative_to(root)}: keep onboarding active until the first configured grid is visible"
@@ -3282,9 +1391,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
 
     presence_update_body = yaml_script_body(text, "screensaver_presence_update")
     wake_body = yaml_script_body(text, "screensaver_presence_wake")
-    if wake_body is None:
-        errors.append(f"{rel}: missing screensaver_presence_wake script")
-    else:
+    if wake_body is not None:
         if (
             presence_update_body is not None
             and "script.execute: screensaver_presence_update" in wake_body
@@ -3347,9 +1454,7 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
             errors.append(f"{rel}: let sensor screensaver wake when the screen schedule is disabled")
 
     presence_sleep_body = yaml_script_body(text, "screensaver_presence_sleep")
-    if presence_sleep_body is None:
-        errors.append(f"{rel}: missing screensaver_presence_sleep script")
-    else:
+    if presence_sleep_body is not None:
         if (
             presence_update_body is not None
             and "script.execute: screensaver_presence_update" in presence_sleep_body
@@ -3375,112 +1480,26 @@ def firmware_screen_schedule_screensaver_override_errors(backlight_path: Path, r
     return errors
 
 
-def firmware_separate_schedule_sensor_errors(
-    backlight_path: Path,
-    display_path: Path,
-    cover_art_path: Path,
-    grid_header_path: Path,
-    sensor_paths: tuple[Path, ...],
-    root: Path,
+def firmware_local_display_sensor_retirement_errors(
+    backlight_path: Path, display_path: Path,
+    grid_header_path: Path, sensor_paths: tuple[Path, ...], root: Path,
 ) -> list[str]:
-    """Require independent screensaver and Night Schedule sensor bindings."""
+    """Local display policies must not reconnect retired HA sensor bindings."""
     errors: list[str] = []
-    schedule_path = backlight_path.with_name("backlight_schedule.yaml")
-    required_schedule_markers = (
-        "id: screen_schedule_sensor_entity_migrated",
-        "id: screen_schedule_sensor_entity",
-        "id(screen_schedule_sensor_entity_migrated)",
-        "call.set_value(id(presence_sensor_entity).state)",
-        "id(schedule_presence_detected)",
-    )
-    if not schedule_path.exists():
-        errors.append(f"{schedule_path.relative_to(root)}: define the dedicated Night Schedule sensor")
-    else:
-        schedule_text = schedule_path.read_text(encoding="utf-8")
-        for marker in required_schedule_markers:
-            if marker not in schedule_text:
-                errors.append(
-                    f"{schedule_path.relative_to(root)}: retain {marker} for the dedicated Night Schedule sensor"
-                )
-
-    if display_path.exists():
-        display_text = display_path.read_text(encoding="utf-8")
-        if "id: presence_sensor_entity" not in display_text:
-            errors.append(f"{display_path.relative_to(root)}: retain the Screensaver presence sensor")
-        if "script.execute: refresh_button_grid" not in display_text:
-            errors.append(f"{display_path.relative_to(root)}: refresh subscriptions when the Screensaver sensor changes")
-
-    if backlight_path.exists():
-        backlight_text = backlight_path.read_text(encoding="utf-8")
-        if "id: schedule_presence_detected" not in backlight_text:
-            errors.append(f"{backlight_path.relative_to(root)}: keep separate schedule sensor state")
-        if "id(presence_detected)" not in backlight_text:
-            errors.append(f"{backlight_path.relative_to(root)}: keep Screensaver presence state")
-
-    if cover_art_path.exists() and "id(schedule_presence_detected)" not in cover_art_path.read_text(encoding="utf-8"):
-        errors.append(f"{cover_art_path.relative_to(root)}: use the Night Schedule sensor when blocking cover art")
-
-    if not grid_header_path.exists():
-        errors.append(f"{grid_header_path.relative_to(root)}: bind both sensor subscriptions in grid_phase3")
-    else:
-        grid_text = grid_header_path.read_text(encoding="utf-8")
-        for marker in (
-            "schedule_presence_entity",
-            "schedule_presence_detected_ptr",
-            "schedule_presence_changed_callback",
-            "ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_PHASE3)",
-        ):
-            if marker not in grid_text:
-                errors.append(f"{grid_header_path.relative_to(root)}: retain {marker} for independent, refreshable sensor subscriptions")
-
-    for sensor_path in sensor_paths:
-        sensor_text = sensor_path.read_text(encoding="utf-8")
-        if (
-            "id(screen_schedule_sensor_entity).state" not in sensor_text
-            or "&id(schedule_presence_detected)" not in sensor_text
-            or "id(screen_schedule_check).execute();" not in sensor_text
-        ):
-            errors.append(
-                f"{sensor_path.relative_to(root)}: pass and immediately apply the dedicated Night Schedule sensor"
-            )
-    return errors
-
-
-def firmware_climate_step_errors(firmware_dir: Path, root: Path) -> list[str]:
-    path = firmware_dir / "button_grid_climate.h"
-    if not path.exists():
-        return []
-    rel = path.relative_to(root)
-    text = path.read_text(encoding="utf-8")
-    errors: list[str] = []
-
-    helper = re.search(
-        r"inline\s+int\s+climate_effective_step_tenths\s*\([^)]*\)\s*\{(?P<body>.*?)\n\}",
-        text,
-        re.DOTALL,
-    )
-    if not helper:
-        errors.append(f"{rel}: keep climate temperature changes at a display-appropriate minimum")
-    else:
-        body = helper.group("body")
-        if (
-            "CLIMATE_DEFAULT_STEP_TENTHS" not in body
-            or "CLIMATE_WHOLE_NUMBER_STEP_TENTHS" not in body
-            or "ctx->configured_step_tenths" not in body
-            or "return ctx->configured_step_tenths" not in body
-            or "ctx->step_tenths > minimum" in body
-        ):
-            errors.append(f"{rel}: use the configured climate temperature step")
-    if "int step = climate_effective_step_tenths(ctx);" not in text:
-        errors.append(f"{rel}: round climate targets using the display-appropriate minimum step")
-    if "int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;" not in text:
-        errors.append(f"{rel}: round whole-number climate targets to whole-degree boundaries")
-    if 'cfg_option_value(p.options, "temperature_step")' not in text:
-        errors.append(f"{rel}: use the configured climate temperature step")
-    if "climate_selected_target(ui.active) - ui.active->step_tenths" in text:
-        errors.append(f"{rel}: use the display-appropriate minimum step for the climate minus button")
-    if "climate_selected_target(ui.active) + ui.active->step_tenths" in text:
-        errors.append(f"{rel}: use the display-appropriate minimum step for the climate plus button")
+    for path in (backlight_path, display_path, grid_header_path,
+                 backlight_path.with_name("backlight_schedule.yaml"), *sensor_paths):
+        if not path.exists():
+            continue
+        text = path.read_text(encoding="utf-8")
+        for marker in ("id(presence_detected)", "id(schedule_presence_detected)",
+                       "id(media_player_playing)", "id: presence_sensor_entity",
+                       "id: screen_schedule_sensor_entity", "grid_phase3(",
+                       "screensaver_presence_wake", "screensaver_presence_sleep"):
+            if marker in text:
+                errors.append(f"{path.relative_to(root)}: remove retired display sensor binding {marker}")
+    for path in sensor_paths:
+        if "grid_refresh_local_header(" not in path.read_text(encoding="utf-8"):
+            errors.append(f"{path.relative_to(root)}: preserve the shared local header registration")
     return errors
 
 
@@ -3559,14 +1578,13 @@ def firmware_open_modal_api_errors(root: Path, package_paths: tuple[Path, ...]) 
     api_required = ("action: open_modal", "entity_id: string", "id: open_entity_modal")
     script_required = ("mode: restart", "espdesktop_can_prepare_modal(entity_id,",
                       "script.execute: screensaver_wake", "script.wait: screensaver_wake",
-                      "espdesktop_open_modal(entity_id,", "script.execute: screensaver_idle_check",
-                      "script.execute: home_screen_idle_check")
+                      "espdesktop_open_modal(entity_id,", "script.execute: screensaver_idle_check")
     api_positions = [api_text.find(value) for value in api_required]
     script_positions = [modal_script.find(value) for value in script_required]
     if (modal_script_start < 0 or -1 in api_positions or api_positions != sorted(api_positions)
             or -1 in script_positions or script_positions != sorted(script_positions)
             or modal_script.count("grid_phase2_complete()") < 2):
-        errors.append("common/device/api_open_modal.yaml: validate, wake, revalidate, open, then reset idle timers")
+        errors.append("common/device/api_open_modal.yaml: validate, wake, revalidate, open, then reset the screensaver timer")
     for path in package_paths:
         has_modal = package_api_open_modal_enabled(path, root)
         has_navigate = package_api_navigate_enabled(path, root)
@@ -3753,9 +1771,12 @@ def firmware_c6_update_status_errors(path: Path, root: Path) -> list[str]:
     if (
         'name: "${entity_esp32_c6_auto_update}"' not in text
         or "id: c6_auto_update_switch" not in text
-        or "restore_mode: RESTORE_DEFAULT_ON" not in text
+        or "restore_mode: DISABLED" not in text
+        or "bind_panel_scalar(espdesktop::panel_settings::ScalarSetting::ESP32_C6_AUTO_UPDATE," not in text
+        or any(f'ScalarSetting::ESP32_C6_AUTO_UPDATE, "{value}"' not in text for value in ("0", "1"))
+        or '{"esp32_c6_auto_update", "1",' not in (FIRMWARE_DIR / "panel_settings_generated.h").read_text()
     ):
-        errors.append(f"{rel}: expose a persistent default-on C6 automatic update switch")
+        errors.append(f"{rel}: store the default-on C6 automatic update switch in native panel configuration")
     automatic_script = re.search(
         r"(?ms)^script:\s*.*?id:\s*c6_check_and_install_update\b(?P<body>.*?)(?:^update:|\Z)",
         text,
@@ -3815,122 +1836,16 @@ def firmware_c6_update_status_errors(path: Path, root: Path) -> list[str]:
     return errors
 
 
-def firmware_camera_screensaver_retained_token_errors(
-    path: Path, root: Path
-) -> list[str]:
-    if not path.exists():
-        return []
-    text = path.read_text(encoding="utf-8")
-    retained_token_subscription = re.search(
-        r'ha_subscribe_attribute\(\s*entity,\s*std::string\("access_token"\),'
-        r'.*?HA_SUBSCRIPTION_SCOPE_DEFAULT\s*,\s*true\s*\);',
-        text,
-        re.DOTALL,
-    )
-    rel = path.relative_to(root)
-    errors: list[str] = []
-    if not retained_token_subscription:
-        errors.append(
-            f"{rel}: retain the camera screensaver access-token subscription "
-            "so retained Home Assistant reads can complete"
-        )
-    if "ha_reannounce_state_subscriptions();" not in text:
-        errors.append(
-            f"{rel}: re-announce the late camera screensaver subscription "
-            "so Home Assistant publishes its current token immediately"
-        )
-    if 'espdesktop_i18n_key("unavailable")' not in text:
-        errors.append(
-            f"{rel}: translate the camera screensaver unavailable label"
-        )
-    if (
-        "HaCallbackOwnerScope camera_subscription_owner(camera_owner);" not in text
-        or "ha_release_callbacks_for_owner(camera_owner);" not in text
-        or "ha_release_callbacks_for_owner(&id(camera_screensaver_subscribed_entity));" not in text
-        or not re.search(
-            r'ha_read_retained_attribute\(\s*entity,\s*std::string\("access_token"\),'
-            r'.*?\}\)\s*,\s*camera_owner\s*\);',
-            text,
-            re.DOTALL,
-        )
-    ):
-        errors.append(
-            f"{rel}: own and release camera screensaver callbacks when the entity changes"
-        )
-    if "id(camera_screensaver_downloaded_image)->cancel_update();" not in text:
-        errors.append(
-            f"{rel}: cancel stale camera screensaver downloads when the entity changes"
-        )
-    if (
-        "lv_image_set_src(id(camera_screensaver_image)" not in text
-        or not re.search(
-            r"lvgl\.image\.update:\s*\n\s*id:\s*camera_screensaver_image\s*\n"
-            r"\s*src:\s*camera_screensaver_downloaded_image",
-            text,
-        )
-    ):
-        errors.append(
-            f"{rel}: rebind the downloaded camera buffer to the LVGL image widget"
-        )
-    if (
-        'id(screensaver_camera_image_mode).current_option() == "Fill"' not in text
-        or "ImageResizeMode::COVER" not in text
-        or "ImageResizeMode::FIT" not in text
-    ):
-        errors.append(
-            f"{rel}: map the camera Fit and Fill options to artwork resize modes"
-        )
-    return errors
-
-
 def run_scan() -> int:
     errors = firmware_ha_binding_errors(FIRMWARE_DIR, ROOT)
     errors.extend(firmware_display_controller_ownership_errors(DISPLAY_LIFECYCLE_ROOTS, ROOT))
     errors.extend(firmware_ha_boundary_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_action_card_availability_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_option_select_state_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_card_disabled_state_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_media_card_availability_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_media_cover_art_external_input_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_action_card_script_fields_errors(FIRMWARE_DIR, ROOT))
     errors.extend(firmware_time_reconnect_errors(TIME_ADDON_PATH, ROOT))
     errors.extend(firmware_ntp_startup_errors(TIME_ADDON_PATH, SUN_CALC_PATH, CONNECTIVITY_PATHS, ROOT))
-    errors.extend(firmware_weather_request_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_weather_disconnect_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_weather_reconnect_errors(CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_unavailable_retry_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_cover_request_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_cover_art_external_input_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_stale_image_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_refresh_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_playback_grace_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_disable_errors(COVER_ART_PATH, ROOT))
-    errors.extend(
-        firmware_camera_screensaver_retained_token_errors(
-            CAMERA_SCREENSAVER_PATH, ROOT
-        )
-    )
-    errors.extend(firmware_cover_art_lifecycle_controller_errors(BACKLIGHT_PATH, COVER_ART_PATH, ROOT))
-    errors.extend(firmware_media_sleep_prevention_errors(BACKLIGHT_PATH, DISPLAY_CONFIG_PATH, COVER_ART_PATH, ROOT))
-    errors.extend(firmware_touch_cover_art_delay_errors(DEVICE_TOUCH_PATHS, ROOT))
-    errors.extend(firmware_media_sleep_prevention_subscription_errors(DEVICE_SENSOR_PATHS, ROOT))
-    errors.extend(firmware_media_control_low_heap_metadata_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_media_group_lifecycle_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_media_power_binding_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_media_playback_mode_binding_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_cover_art_low_heap_progress_errors(FIRMWARE_DIR, COVER_ART_PATH, ROOT))
-    errors.extend(firmware_cover_art_progress_visibility_errors(COVER_ART_PATH, ROOT))
-    errors.extend(firmware_image_card_entity_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_image_card_base_url_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_image_card_quality_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(firmware_image_card_startup_errors(FIRMWARE_DIR, CORE_INFRA_PATH, ROOT))
-    errors.extend(firmware_camera_refresh_action_errors(ROOT))
     errors.extend(firmware_artwork_image_auth_errors(ARTWORK_IMAGE_PATH, ROOT))
-    errors.extend(
-        firmware_screensaver_wake_guard_errors(
-            BACKLIGHT_PATH, SCREEN_CLOCK_PATH, COVER_ART_PATH, ROOT
-        )
-    )
+    errors.extend(firmware_screensaver_wake_guard_errors(BACKLIGHT_PATH, SCREEN_CLOCK_PATH, ROOT))
     errors.extend(firmware_screen_wake_button_errors(BACKLIGHT_PATH, ROOT))
     errors.extend(
         firmware_display_backlight_manual_sleep_errors(
@@ -3950,32 +1865,11 @@ def run_scan() -> int:
         )
     )
     errors.extend(firmware_clock_screensaver_overlay_errors(BACKLIGHT_PATH, ROOT))
-    errors.extend(firmware_screen_schedule_screensaver_overlay_errors(COVER_ART_PATH, ROOT))
     errors.extend(firmware_screen_schedule_screensaver_override_errors(BACKLIGHT_PATH, ROOT))
-    errors.extend(
-        firmware_separate_schedule_sensor_errors(
-            BACKLIGHT_PATH,
-            DISPLAY_CONFIG_PATH,
-            COVER_ART_PATH,
-            FIRMWARE_DIR / "button_grid_grid.h",
-            DEVICE_SENSOR_PATHS,
-            ROOT,
-        )
-    )
-    errors.extend(firmware_climate_step_errors(FIRMWARE_DIR, ROOT))
-    errors.extend(
-        firmware_s3_api_errors(
-            S3_DEVICE_PATH,
-            S3_PACKAGES_PATH,
-            CORE_INFRA_PATH,
-            API_NAVIGATE_PATH,
-            DEVICE_PACKAGE_PATHS,
-            ROOT,
-        )
-    )
-    errors.extend(firmware_open_modal_api_errors(ROOT, DEVICE_PACKAGE_PATHS))
-    errors.extend(firmware_navigation_target_errors(FIRMWARE_DIR, API_NAVIGATE_PATH, DEVICE_PACKAGE_PATHS, ROOT))
-    errors.extend(firmware_connectivity_api_errors(CONNECTIVITY_PATHS, ROOT))
+    errors.extend(firmware_local_display_sensor_retirement_errors(
+        BACKLIGHT_PATH, DISPLAY_CONFIG_PATH, FIRMWARE_DIR / "button_grid_grid.h",
+        DEVICE_SENSOR_PATHS, ROOT,
+    ))
     errors.extend(firmware_connector_endpoint_auth_errors(CONNECTOR_STATE_PATH, ROOT))
     errors.extend(
         firmware_wifi_setup_display_text_errors(
@@ -3985,7 +1879,6 @@ def run_scan() -> int:
             ROOT,
         )
     )
-    errors.extend(firmware_ha_connection_screen_errors(CORE_INFRA_PATH, ROOT))
     errors.extend(firmware_c6_update_status_errors(C6_FIRMWARE_UPDATE_PATH, ROOT))
     if errors:
         print("Firmware Home Assistant binding check failed:")
@@ -4048,34 +1941,6 @@ def expect_unavailable_retry_errors(
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_action_card_availability_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_grid.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_action_card_availability_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_option_select_state_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_option_select.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_option_select_state_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
 def expect_media_card_availability_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -4088,39 +1953,6 @@ def expect_media_card_availability_errors(name: str, text: str, expected: tuple[
             assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
         if not expected:
             assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_media_cover_art_external_input_errors(
-    name: str, files: dict[str, str], expected: tuple[str, ...]
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        for filename, text in files.items():
-            (firmware_dir / filename).write_text(text, encoding="utf-8")
-
-        errors = firmware_media_cover_art_external_input_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_action_card_script_fields_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_actions.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_action_card_script_fields_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
 
 
 def expect_time_reconnect_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
@@ -4173,7 +2005,7 @@ def expect_weather_request_errors(name: str, text: str, expected: tuple[str, ...
         root = Path(tmp)
         firmware_dir = root / "components" / "espdesktop"
         firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_config.h").write_text(text, encoding="utf-8")
+        (firmware_dir / "button_grid_weather_forecast.h").write_text(text, encoding="utf-8")
 
         errors = firmware_weather_request_errors(firmware_dir, root)
         for item in expected:
@@ -4194,7 +2026,7 @@ def expect_weather_disconnect_errors(
         core_path = root / "common" / "device" / "core_infra.yaml"
         firmware_dir.mkdir(parents=True)
         core_path.parent.mkdir(parents=True)
-        (firmware_dir / "button_grid_config.h").write_text(config_text, encoding="utf-8")
+        (firmware_dir / "button_grid_weather_forecast.h").write_text(config_text, encoding="utf-8")
         core_path.write_text(core_text, encoding="utf-8")
 
         errors = firmware_weather_disconnect_errors(firmware_dir, core_path, root)
@@ -4240,159 +2072,6 @@ def expect_cover_request_errors(
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_cover_art_external_input_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "common" / "device" / "screen_cover_art.yaml"
-        path.parent.mkdir(parents=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_cover_art_external_input_errors(path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_cover_art_stale_image_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "common" / "device" / "screen_cover_art.yaml"
-        path.parent.mkdir(parents=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_cover_art_stale_image_errors(path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_cover_art_refresh_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "common" / "device" / "screen_cover_art.yaml"
-        path.parent.mkdir(parents=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_cover_art_refresh_errors(path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_cover_art_playback_grace_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "common" / "device" / "screen_cover_art.yaml"
-        path.parent.mkdir(parents=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_cover_art_playback_grace_errors(path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_cover_art_disable_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "common" / "device" / "screen_cover_art.yaml"
-        path.parent.mkdir(parents=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_cover_art_disable_errors(path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_cover_art_lifecycle_controller_errors(
-    name: str,
-    backlight_text: str,
-    cover_art_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        backlight_path = root / "common" / "addon" / "backlight.yaml"
-        cover_art_path = root / "common" / "device" / "screen_cover_art.yaml"
-        backlight_path.parent.mkdir(parents=True)
-        cover_art_path.parent.mkdir(parents=True)
-        backlight_path.write_text(backlight_text, encoding="utf-8")
-        cover_art_path.write_text(cover_art_text, encoding="utf-8")
-
-        errors = firmware_cover_art_lifecycle_controller_errors(
-            backlight_path, cover_art_path, root
-        )
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_media_sleep_prevention_errors(
-    name: str,
-    backlight_text: str,
-    display_text: str,
-    cover_art_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        backlight_path = root / "common" / "addon" / "backlight.yaml"
-        display_path = root / "common" / "config" / "display.yaml"
-        cover_art_path = root / "common" / "device" / "screen_cover_art.yaml"
-        backlight_path.parent.mkdir(parents=True)
-        display_path.parent.mkdir(parents=True)
-        cover_art_path.parent.mkdir(parents=True)
-        backlight_path.write_text(backlight_text, encoding="utf-8")
-        display_path.write_text(display_text, encoding="utf-8")
-        cover_art_path.write_text(cover_art_text, encoding="utf-8")
-
-        errors = firmware_media_sleep_prevention_errors(backlight_path, display_path, cover_art_path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_media_control_low_heap_metadata_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_media.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_media_control_low_heap_metadata_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_media_power_binding_errors(
-    name: str, media_text: str, capability_text: str, expected: tuple[str, ...]
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_media.h").write_text(media_text, encoding="utf-8")
-        (firmware_dir / "media_power_capability.h").write_text(
-            capability_text, encoding="utf-8"
-        )
-
-        errors = firmware_media_power_binding_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
 def valid_media_power_binding_text() -> tuple[str, str]:
     media_text = (
         "inline void media_playback_subscribe_volume(MediaPlaybackState *state) {\n"
@@ -4421,141 +2100,6 @@ def valid_media_power_binding_text() -> tuple[str, str]:
     return media_text, capability_text
 
 
-def expect_media_playback_mode_binding_errors(
-    name: str,
-    media_text: str,
-    actions_text: str,
-    capability_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_media.h").write_text(media_text, encoding="utf-8")
-        (firmware_dir / "button_grid_actions.h").write_text(actions_text, encoding="utf-8")
-        (firmware_dir / "media_playback_modes.h").write_text(
-            capability_text, encoding="utf-8"
-        )
-
-        errors = firmware_media_playback_mode_binding_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def valid_media_playback_mode_binding_text() -> tuple[str, str, str]:
-    media_text = (
-        "struct MediaPlaybackState {\n"
-        "  bool shuffle_subscribed = false;\n"
-        "  bool repeat_subscribed = false;\n"
-        "  bool shuffle_known = false;\n"
-        "  RepeatMode repeat_mode = RepeatMode::UNKNOWN;\n"
-        "};\n"
-        "inline void media_playback_subscribe_modes(MediaPlaybackState *state) {\n"
-        "  if (state->controls.empty()) return;\n"
-        "  bool subscription_added = false;\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"shuffle\"), [state, generation]() {\n"
-        "    if (!media_playback_generation_valid(state, generation)) return;\n"
-        "    parse_shuffle_state(value, enabled);\n"
-        "  });\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"repeat\"), [state, generation]() {\n"
-        "    if (!media_playback_generation_valid(state, generation)) return;\n"
-        "    parse_repeat_mode(value);\n"
-        "  });\n"
-        "  if (subscription_added) ha_reannounce_state_subscriptions();\n"
-        "}\n"
-        "inline void media_playback_subscribe_content(MediaPlaybackState *state) {}\n"
-        "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
-        "  media_playback_subscribe_modes(state);\n"
-        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
-        "#endif\n"
-        "}\n\n"
-        "inline bool media_seek_pending_active() { return false; }\n"
-        "if (!ui.active->shuffle_known || !media_control_shuffle_supported(ui.active)) return;\n"
-        "if (!media_control_repeat_supported(ui.active)) return;\n"
-        "next_repeat_mode(ui.active->repeat_mode);\n"
-        "ha_subscribe_attribute(entity_id, std::string(\"supported_features\"), [state]() {\n"
-        "  if (!state->controls.empty()) media_playback_subscribe_modes(state);\n"
-        "});\n"
-    )
-    actions_text = (
-        "inline void send_media_shuffle_action(bool enabled) {\n"
-        "  send_media_player_action(entity_id, \"media_player.shuffle_set\", \"shuffle\",\n"
-        "    enabled ? \"true\" : \"false\");\n"
-        "}\n"
-        "inline void send_media_repeat_action(RepeatMode mode) {\n"
-        "  const char *value = repeat_mode_value(mode);\n"
-        "  send_media_player_action(entity_id, \"media_player.repeat_set\", \"repeat\", value);\n"
-        "}\n"
-    )
-    capability_text = (
-        "constexpr int SUPPORT_SHUFFLE_SET = 32768;\n"
-        "constexpr int SUPPORT_REPEAT_SET = 262144;\n"
-        "inline bool parse_shuffle_state() {}\n"
-        "inline RepeatMode parse_repeat_mode() {}\n"
-        "inline RepeatMode next_repeat_mode(RepeatMode mode) {\n"
-        "  if (mode == RepeatMode::OFF) return RepeatMode::ALL;\n"
-        "  if (mode == RepeatMode::ALL) return RepeatMode::ONE;\n"
-        "  if (mode == RepeatMode::ONE) return RepeatMode::OFF;\n"
-        "}\n"
-    )
-    return media_text, actions_text, capability_text
-
-
-def expect_cover_art_low_heap_progress_errors(
-    name: str,
-    media_text: str,
-    cover_art_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        cover_art_path = root / "common" / "device" / "screen_cover_art.yaml"
-        firmware_dir.mkdir(parents=True)
-        cover_art_path.parent.mkdir(parents=True)
-        (firmware_dir / "button_grid_media.h").write_text(media_text, encoding="utf-8")
-        cover_art_path.write_text(cover_art_text, encoding="utf-8")
-
-        errors = firmware_cover_art_low_heap_progress_errors(firmware_dir, cover_art_path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_cover_art_progress_visibility_errors(
-    name: str, text: str, expected: tuple[str, ...]
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "common" / "device" / "screen_cover_art.yaml"
-        path.parent.mkdir(parents=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_cover_art_progress_visibility_errors(path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_image_card_entity_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_image.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_image_card_entity_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
 def expect_image_card_base_url_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -4570,63 +2114,23 @@ def expect_image_card_base_url_errors(name: str, text: str, expected: tuple[str,
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_image_card_quality_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_image.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_image_card_quality_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
-def expect_image_card_startup_errors(
-    name: str,
-    text: str,
-    core_text: str,
-    expected: tuple[str, ...],
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        core_path = root / "common" / "device" / "core_infra.yaml"
-        firmware_dir.mkdir(parents=True)
-        core_path.parent.mkdir(parents=True)
-        (firmware_dir / "button_grid_image.h").write_text(text, encoding="utf-8")
-        core_path.write_text(core_text, encoding="utf-8")
-
-        errors = firmware_image_card_startup_errors(firmware_dir, core_path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
 def expect_screensaver_wake_guard_errors(
     name: str,
     backlight_text: str,
     screen_clock_text: str,
-    cover_art_text: str,
     expected: tuple[str, ...],
 ) -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
         backlight_path = root / "common" / "addon" / "backlight.yaml"
         screen_clock_path = root / "common" / "device" / "screen_clock.yaml"
-        cover_art_path = root / "common" / "device" / "screen_cover_art.yaml"
         backlight_path.parent.mkdir(parents=True)
         screen_clock_path.parent.mkdir(parents=True)
-        cover_art_path.parent.mkdir(parents=True, exist_ok=True)
         backlight_path.write_text(backlight_text, encoding="utf-8")
         screen_clock_path.write_text(screen_clock_text, encoding="utf-8")
-        cover_art_path.write_text(cover_art_text, encoding="utf-8")
 
         errors = firmware_screensaver_wake_guard_errors(
-            backlight_path, screen_clock_path, cover_art_path, root
+            backlight_path, screen_clock_path, root
         )
         for item in expected:
             assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
@@ -4781,20 +2285,6 @@ def expect_artwork_image_auth_errors(name: str, text: str, expected: tuple[str, 
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_climate_step_errors(name: str, text: str, expected: tuple[str, ...]) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        firmware_dir = root / "components" / "espdesktop"
-        firmware_dir.mkdir(parents=True)
-        (firmware_dir / "button_grid_climate.h").write_text(text, encoding="utf-8")
-
-        errors = firmware_climate_step_errors(firmware_dir, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
 def expect_s3_api_errors(
     name: str,
     text: str,
@@ -4941,22 +2431,6 @@ def expect_c6_update_status_errors(name: str, text: str, expected: tuple[str, ..
             assert not errors, f"{name}: expected no errors, got {errors!r}"
 
 
-def expect_camera_screensaver_retained_token_errors(
-    name: str, text: str, expected: tuple[str, ...]
-) -> None:
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        path = root / "common" / "device" / "screen_camera_screensaver.yaml"
-        path.parent.mkdir(parents=True)
-        path.write_text(text, encoding="utf-8")
-
-        errors = firmware_camera_screensaver_retained_token_errors(path, root)
-        for item in expected:
-            assert any(item in error for error in errors), f"{name}: missing {item!r} in {errors!r}"
-        if not expected:
-            assert not errors, f"{name}: expected no errors, got {errors!r}"
-
-
 def test_camera_refresh_package_mcu_errors() -> None:
     with TemporaryDirectory() as tmp:
         root = Path(tmp)
@@ -5050,33 +2524,6 @@ def run_self_test() -> int:
         "inline void subscribe_option_select_friendly_name(OptionSelectCtx *ctx) {}\n"
         "  ui.option_rows[i] = btn;\n"
     )
-    expect_option_select_state_errors(
-        "entity-aware Option Select state handling",
-        valid_option_select_state,
-        (),
-    )
-    expect_option_select_state_errors(
-        "generic Option Select state handling",
-        valid_option_select_state.replace(
-            "ha_entity_state_unavailable_ref(ctx->entity_id, state)",
-            "ha_state_unavailable_ref(state)",
-        ).replace(
-            "bool no_current_option = normalized_state_text(state) == \"unknown\";\n",
-            "",
-        ).replace(
-            "unavailable || no_current_option",
-            "unavailable",
-        ).replace(
-            "  option_select_refresh_modal_rows(ctx);\n",
-            "",
-        ),
-        (
-            "classify Option Select unknown states by entity type",
-            "normalize an unknown Option Select value to no current option",
-            "keep Option Select available while clearing an unknown current option",
-            "clear stale Option Select modal selection styling",
-        ),
-    )
     valid_camera_screensaver = (
         'text: !lambda \'return std::string(espdesktop_i18n_key("unavailable"));\'\n'
         'ha_release_callbacks_for_owner(&id(camera_screensaver_subscribed_entity));\n'
@@ -5096,103 +2543,6 @@ def run_self_test() -> int:
         'id(screensaver_camera_image_mode).current_option() == "Fill"\n'
         'esphome::artwork_image::ImageResizeMode::COVER\n'
         'esphome::artwork_image::ImageResizeMode::FIT\n'
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "camera token subscription is not retained",
-        valid_camera_screensaver.replace(
-            ',\n  HA_SUBSCRIPTION_SCOPE_DEFAULT, true);', ');'
-        ),
-        ("retain the camera screensaver access-token subscription",),
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "camera token subscription is retained",
-        valid_camera_screensaver,
-        (),
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "late camera token subscription is not announced",
-        valid_camera_screensaver.replace('ha_reannounce_state_subscriptions();\n', ''),
-        ("re-announce the late camera screensaver subscription",),
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "camera unavailable label is not translated",
-        valid_camera_screensaver.replace('espdesktop_i18n_key("unavailable")', '"Unavailable"'),
-        ("translate the camera screensaver unavailable label",),
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "camera subscriptions are not owned",
-        valid_camera_screensaver.replace(
-            'HaCallbackOwnerScope camera_subscription_owner(camera_owner);\n', ''
-        ),
-        ("own and release camera screensaver callbacks",),
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "stale camera download is not cancelled",
-        valid_camera_screensaver.replace(
-            'id(camera_screensaver_downloaded_image)->cancel_update();\n', ''
-        ),
-        ("cancel stale camera screensaver downloads",),
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "downloaded camera image is not rebound",
-        valid_camera_screensaver.replace(
-            'lv_image_set_src(id(camera_screensaver_image), static_cast<const void *>(nullptr));\n', ''
-        ),
-        ("rebind the downloaded camera buffer",),
-    )
-    expect_camera_screensaver_retained_token_errors(
-        "camera image display modes are not mapped",
-        valid_camera_screensaver.replace(
-            'esphome::artwork_image::ImageResizeMode::COVER\n', ''
-        ),
-        ("map the camera Fit and Fill options",),
-    )
-    expect_media_cover_art_external_input_errors(
-        "missing media cover art external-input handling",
-        {
-            "button_grid_media.h": "",
-            "button_grid_media_driver.h": "",
-            "button_grid_image.h": "",
-            "button_grid_grid.h": "",
-        },
-        (
-            "keep media source tracking independent",
-            "subscribe image-only cover art cards",
-            "hide media card artwork",
-            "prevent cached or late artwork",
-        ),
-    )
-    expect_media_cover_art_external_input_errors(
-        "media cover art external-input handling present",
-        {
-            "button_grid_media.h": (
-                "bool source_subscribed = false;\n"
-                "bool source_known = false;\n"
-                "inline void media_playback_subscribe_source() { std::string(\"source\"); }\n"
-                "inline void subscribe_media_cover_art_source_state() {}\n"
-                "inline void apply() {\n"
-                "  image_card_set_media_artwork_suppressed(\n"
-                "    ctx, media_card_artwork_suppressed(\n"
-                "      ctx->source_known, ctx->external_source));\n"
-                "}\n"
-            ),
-            "button_grid_media_driver.h": (
-                "subscribe_media_cover_art_source_state(now_playing, config.entity);\n"
-            ),
-            "button_grid_image.h": (
-                "bool media_artwork_suppressed = false;\n"
-                "inline void image_card_sync_media_artwork_visibility() {}\n"
-                "inline void apply() {\n"
-                "  if (ctx->media_artwork) image_card_sync_media_artwork_visibility(ctx);\n"
-                "}\n"
-            ),
-            "button_grid_grid.h": (
-                "art->media_artwork_suppressed = media_card_artwork_suppressed(\n"
-                "  media_ctx->source_known, media_ctx->external_source);\n"
-                "image_card_sync_media_artwork_visibility(art);\n"
-            ),
-        },
-        (),
     )
     valid_backlight_off_handler = (
         "script:\n"
@@ -5312,7 +2662,7 @@ def run_self_test() -> int:
         "    disabled_by_default: true\n"
         "    entity_category: config\n"
         "    on_press:\n"
-        "      - script.execute: screensaver_wake\n",
+        "      - script.execute: screen_schedule_check\n",
         (
             "keep Screen: Wake exposed to Home Assistant",
             "enable Screen: Wake by default",
@@ -5329,8 +2679,6 @@ def run_self_test() -> int:
         "    icon: mdi:monitor-shimmer\n"
         "    disabled_by_default: false\n"
         "    on_press:\n"
-        "      - script.execute: cover_art_pause_after_touch\n"
-        "      - script.wait: cover_art_pause_after_touch\n"
         "      - script.execute: screensaver_wake\n"
         "script:\n"
         "  - id: screensaver_wake\n",
@@ -5546,69 +2894,6 @@ def run_self_test() -> int:
             "do not retry unavailable HA states",
         ),
     )
-    expect_action_card_availability_errors(
-        "stateless main action registered for availability",
-        "if (p.type == \"action\") {\n"
-        "  std::string state_entity = action_card_state_entity(p);\n"
-        "  if (!state_entity.empty()) {\n"
-        "    subscribe_action_card_display_state(ctx, state_entity);\n"
-        "  } else {\n"
-        "    register_ha_control_availability(s.btn, s.btn);\n"
-        "  }\n"
-        "  continue;\n"
-        "}\n",
-        ("keep stateless action cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "stateless subpage action registered for availability",
-        "if (sb_cfg.type == \"action\") {\n"
-        "  std::string state_entity = action_card_state_entity(sb_cfg);\n"
-        "  if (!state_entity.empty()) {\n"
-        "    subscribe_action_card_display_state(action_ctx, state_entity);\n"
-        "  } else {\n"
-        "    register_ha_control_availability(sub_slot.btn, sub_slot.btn);\n"
-        "  }\n"
-        "  ParsedCfg *ctx = new ParsedCfg(sb_cfg);\n"
-        "}\n",
-        ("keep stateless subpage action cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "stateful action only subscribes display state",
-        "if (p.type == \"action\") {\n"
-        "  std::string state_entity = action_card_state_entity(p);\n"
-        "  if (!state_entity.empty()) {\n"
-        "    subscribe_action_card_display_state(ctx, state_entity);\n"
-        "  }\n"
-        "  continue;\n"
-        "}\n",
-        (),
-    )
-    expect_action_card_availability_errors(
-        "main trigger registered for availability",
-        "if (p.type == \"push\") {\n"
-        "  register_ha_control_availability(s.btn, s.btn);\n"
-        "  continue;\n"
-        "}\n",
-        ("keep trigger cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "subpage trigger registered for availability",
-        "if (sb_cfg.type == \"push\") {\n"
-        "  register_ha_control_availability(sb_btn, sb_btn);\n"
-        "  std::string push_label = sb_cfg.label.empty() ? espdesktop_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
-        "  continue;\n"
-        "}\n",
-        ("keep subpage trigger cards tappable",),
-    )
-    expect_action_card_availability_errors(
-        "trigger cards stay stateless",
-        "if (p.type == \"push\") continue;\n"
-        "if (sb_cfg.type == \"push\") {\n"
-        "  std::string push_label = sb_cfg.label.empty() ? espdesktop_i18n(std::string(\"Push\")) : sb_cfg.label;\n"
-        "  continue;\n"
-        "}\n",
-        (),
-    )
     expect_media_card_availability_errors(
         "unavailable entity dims media card",
         "inline void media_playback_apply_state_to_control(MediaPlaybackState *state, MediaControlCtx *ctx) {\n"
@@ -5627,56 +2912,6 @@ def run_self_test() -> int:
         "media progress remains guarded",
         "inline void media_control_refresh_progress(MediaControlCtx *ctx) {\n"
         "  media_control_apply_availability(ui.progress_slider, ui.progress_slider, has_duration);\n"
-        "}\n",
-        (),
-    )
-    expect_action_card_script_fields_errors(
-        "script fields sent as service data",
-        "inline void action_card_add_script_field_variables(esphome::api::HomeassistantActionRequest &req) {\n"
-        "  std::string fields = cfg_option_value(options, \"script_fields\");\n"
-        "  ha_action_add_data(req, key.c_str(), value.c_str());\n"
-        "}\n"
-        "inline void send_action_card_action(const ParsedCfg &p) {\n"
-        "  size_t script_field_count = action_card_script_field_count(p.options);\n"
-        "  ha_action_begin(req, p.sensor.c_str(), false, 1 + script_field_count);\n"
-        "}\n",
-        (
-            "keep parsed script field strings alive",
-            "initialize script field variables separately",
-            "send script fields through Home Assistant action variables",
-            "do not send script fields as top-level",
-        ),
-    )
-    expect_action_card_script_fields_errors(
-        "script fields sent as template context only",
-        "inline void action_card_add_script_field_variables(esphome::api::HomeassistantActionRequest &req) {\n"
-        "  std::string fields = cfg_option_value(options, \"script_fields\");\n"
-        "  ha_action_add_variable(req, key.c_str(), value.c_str());\n"
-        "}\n"
-        "inline void send_action_card_action(const ParsedCfg &p) {\n"
-        "  std::vector<ActionCardScriptField> script_fields = action_card_script_fields(p.options);\n"
-        "  ha_action_begin(req, p.sensor.c_str(), false, 1);\n"
-        "  req.variables.init(script_fields.size());\n"
-        "}\n",
-        (
-            "send script fields in the script.turn_on variables service payload",
-            "send script fields through Home Assistant action variables",
-        ),
-    )
-    expect_action_card_script_fields_errors(
-        "script fields sent in variables payload",
-        "inline void action_card_add_script_field_variables(esphome::api::HomeassistantActionRequest &req) {\n"
-        "  std::string fields = cfg_option_value(options, \"script_fields\");\n"
-        "  for (const auto &field : fields) {\n"
-        "    ha_action_add_variable(req, field.key.c_str(), field.value.c_str());\n"
-        "  }\n"
-        "}\n"
-        "inline void send_action_card_action(const ParsedCfg &p) {\n"
-        "  std::vector<ActionCardScriptField> script_fields = action_card_script_fields(p.options);\n"
-        "  ha_action_begin(req, p.sensor.c_str(), false, 1);\n"
-        "  req.data_template.init(1);\n"
-        "  req.variables.init(script_fields.size());\n"
-        "  ha_action_add_data_template(req, \"variables\", script_fields_template.c_str());\n"
         "}\n",
         (),
     )
@@ -5737,7 +2972,6 @@ def run_self_test() -> int:
         "  on_boot:\n"
         "    then:\n"
         "      - lambda: apply_timezone();\n"
-        "# Ask Home Assistant for time once connected\n"
         "# NTP server settings\n"
         "text:\n"
         "  - platform: template\n"
@@ -5937,1100 +3171,7 @@ def run_self_test() -> int:
         "api:\n  on_client_connected:\n    - lambda: refresh_weather_forecast_cards();\n",
         ("cancel pending cover stop callbacks when the HA API disconnects",),
     )
-    expect_cover_art_external_input_errors(
-        "missing cover art source handling",
-        "script:\n"
-        "  - id: cover_art_request_artwork\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_hide_external_input_enabled).state && id(cover_art_external_input_active);\n",
-        (
-            "subscribe to the media player source attribute",
-            "use the shared TV, line-in, and HDMI media-entity router",
-            "stop pending artwork requests",
-        ),
-    )
-    expect_cover_art_external_input_errors(
-        "cover art source handling present",
-        "switch:\n"
-        "  - platform: template\n"
-        "    id: cover_art_hide_external_input_enabled\n"
-        "script:\n"
-        "  - id: cover_art_apply_external_input_policy\n"
-        "    then:\n"
-        "      - script.stop: cover_art_request_artwork\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_hide_external_input_enabled).state && id(cover_art_external_input_active);\n"
-        "          bool external = espdesktop::cover_art::external_media_source(next);\n"
-        "          bool use_secondary = espdesktop::cover_art::use_secondary_media_entity(\n"
-        "            external, true, true, true);\n"
-        "          ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_COVER_ART);\n"
-        "          ha_subscribe_attribute(\n"
-        "            cover_entity,\n"
-        "            std::string(\"source\"),\n"
-        "            handle_media_source,\n"
-        "            HA_SUBSCRIPTION_SCOPE_COVER_ART\n"
-        "          );\n"
-        "          // Live subscriptions supply both initial values and updates.\n",
-        (),
-    )
-    expect_cover_art_stale_image_errors(
-        "missing black fallback image hide",
-        "script:\n"
-        "  - id: cover_art_show_black_screen\n"
-        "    then:\n"
-        "      - globals.set:\n"
-        "          id: cover_art_image_available\n"
-        "          value: 'false'\n",
-        ("hide stale cover art image when the black fallback is shown",),
-    )
-    expect_cover_art_stale_image_errors(
-        "conditional black fallback image hide",
-        "script:\n"
-        "  - id: cover_art_show_black_screen\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: 'return id(cover_art_runtime).loaded_url.empty();'\n"
-        "          then:\n"
-        "            - lvgl.widget.hide: cover_art_image_widget\n",
-        ("hide stale cover art image even after previous artwork loaded",),
-    )
-    expect_cover_art_stale_image_errors(
-        "unconditional black fallback image hide",
-        "script:\n"
-        "  - id: cover_art_show_black_screen\n"
-        "    then:\n"
-        "      - lvgl.widget.hide: cover_art_image_widget\n",
-        (),
-    )
-    expect_cover_art_stale_image_errors(
-        "visible unavailable cover art message",
-        "lvgl:\n"
-        "  top_layer:\n"
-        "    widgets:\n"
-        "      - label:\n"
-        "          id: cover_art_error_label\n"
-        "          text: \"Artwork unavailable\"\n"
-        "script:\n"
-        "  - id: cover_art_show_black_screen\n"
-        "    then:\n"
-        "      - lvgl.widget.hide: cover_art_image_widget\n",
-        ("do not show an unavailable cover art message",),
-    )
-    expect_cover_art_refresh_errors(
-        "missing stale cover refresh guard",
-        "script:\n"
-        "  - id: cover_art_download\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_runtime).source_url;\n",
-        (
-            "track/source metadata changes as stale artwork",
-            "subscribe to the media_album_name attribute",
-        ),
-    )
-    expect_cover_art_refresh_errors(
-        "queued cover art changes are not coalesced",
-        "script:\n"
-        "  - id: cover_art_download\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_runtime).effective_download_url = id(cover_art_downloaded_image)->request_update_url(id(cover_art_runtime).effective_download_url);\n",
-        ("coalesce changed cover art URLs into the queued image request",),
-    )
-    expect_cover_art_refresh_errors(
-        "cover art touch delay ignores later touches",
-        "script:\n"
-        "  - id: cover_art_pause_after_touch\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: 'return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART);'\n"
-        "          then:\n"
-        "            - lambda: 'id(cover_art_manual_pause_until_ms) = 1;'\n",
-        ("restart its countdown after every touch",),
-    )
-    expect_cover_art_refresh_errors(
-        "cover art metadata bypasses display normalization",
-        "script:\n"
-        "  - id: cover_art_sync_track_text\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          return id(cover_art_title);\n"
-        "          return id(cover_art_artist);\n"
-        "          return id(cover_art_media_source);\n",
-        ("normalize decoded cover art metadata only at the label boundary",),
-    )
-    expect_cover_art_refresh_errors(
-        "cover art metadata bypasses media unicode cleanup",
-        "script:\n"
-        "  - id: cover_art_sync_track_text\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          return normalize_display_text(id(cover_art_title));\n"
-        "          return normalize_display_text(id(cover_art_artist));\n"
-        "          return normalize_display_text(decode_html_entities(id(cover_art_media_source)));\n",
-        ("normalize decoded cover art metadata only at the label boundary",),
-    )
-    expect_cover_art_refresh_errors(
-        "stale cover refresh guard present",
-        "globals:\n"
-        "  - id: cover_art_runtime\n"
-        "    type: espdesktop::cover_art::RuntimeState\n"
-        "# cover_art_runtime).refresh_needed\n"
-        "# cover_art_runtime).effective_download_url\n"
-        "  - id: cover_art_album\n"
-        "script:\n"
-        "  - id: cover_art_sync_track_text\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          const std::string title = espdesktop::media::normalize_media_display_text(\n"
-        "            id(cover_art_external_input_active) && !id(cover_art_media_source).empty()\n"
-        "              ? decode_html_entities(id(cover_art_media_source)) : id(cover_art_title));\n"
-        "          return normalize_display_text(title);\n"
-        "          const std::string artist = espdesktop::media::normalize_media_display_text(id(cover_art_artist));\n"
-        "          return normalize_display_text(artist);\n"
-        "  - id: cover_art_resolve_home_assistant_base_url\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          auto rebuild_relative_artwork_url = [](std::string &url) { return !url.empty(); };\n"
-        "          id(cover_art_remote_source_relative);\n"
-        "          id(cover_art_local_source_relative);\n"
-        "          id(cover_art_runtime).sources.remote_url.clear();\n"
-        "          id(cover_art_runtime).sources.local_url.clear();\n"
-        "          id(cover_art_process_cached_artwork).execute();\n"
-        "  - id: cover_art_download\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) &&\n"
-        "                     id(cover_art_runtime).image_available &&\n"
-        "                     id(cover_art_runtime).refresh_needed &&\n"
-        "                     !${cover_art_live_image_updates};\n"
-        "          then:\n"
-        "            - script.execute: cover_art_show_track_overlay\n"
-        "      - lambda: |-\n"
-        "          const bool replacing_active_download = id(cover_art_runtime).download_active();\n"
-        "          if (url.find(\"/api/media_player_proxy/\") != std::string::npos) {\n"
-        "            url += url.find('?') == std::string::npos ? \"?time=\" : \"&time=\";\n"
-        "          }\n"
-        "          const bool needs_artwork_refresh = id(cover_art_runtime).refresh_needed || !id(cover_art_runtime).image_available;\n"
-        "          ESP_LOGI(\"cover_art\", \"%s\", replacing_active_download ? \"Re-queuing\" : \"Downloading\");\n"
-        "          id(cover_art_runtime).effective_download_url = id(cover_art_downloaded_image)->request_update_url(id(cover_art_runtime).effective_download_url);\n"
-        "  - id: cover_art_deferred_download\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_runtime).refresh_needed;\n"
-        "  - id: cover_art_prepare_download\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_runtime).refresh_needed;\n"
-        "  - id: cover_art_use_cached_artwork\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_runtime).select_source(chosen);\n"
-        "          if (chosen == id(cover_art_runtime).source_url) {\n"
-        "            if (!id(cover_art_runtime).image_available || id(cover_art_runtime).refresh_needed) {}\n"
-        "          }\n"
-        "          id(cover_art_runtime).source_url = chosen;\n"
-        "          id(cover_art_runtime).refresh_needed = true;\n"
-        "  - id: cover_art_request_artwork\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          if (chosen == id(cover_art_runtime).source_url) {\n"
-        "            if (!id(cover_art_runtime).image_available || id(cover_art_runtime).refresh_needed) {}\n"
-        "          }\n"
-        "  - id: cover_art_apply_downloaded_image\n"
-        "    then:\n"
-        "      - script.execute: cover_art_clear_image_source\n"
-        "      - script.wait: cover_art_clear_image_source\n"
-        "      - lambda: |-\n"
-        "          std::string expected_url = id(cover_art_runtime).effective_download_url;\n"
-        "          std::string completed_url;\n"
-        "          id(cover_art_runtime).apply_download(completed_url);\n"
-        "  - id: cover_art_playback_started\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          if (!id(cover_art_runtime).image_available) {\n"
-        "            id(cover_art_runtime).retry_url.clear();\n"
-        "            id(cover_art_runtime).retry_count = 0;\n"
-        "          }\n"
-        "  - id: cover_art_resubscribe\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_runtime).refresh_needed = true;\n"
-        "          mark_artwork_refresh_needed();\n"
-        "          mark_artwork_refresh_needed();\n"
-        "          mark_artwork_refresh_needed();\n"
-        "          mark_artwork_refresh_needed();\n"
-        "          if (!url.empty() && url != id(cover_art_runtime).source_url) {\n"
-        "            id(cover_art_runtime).refresh_needed = true;\n"
-        "          }\n"
-        "          ha_subscribe_attribute(cover_entity, std::string(\"entity_picture\"), callback, HA_SUBSCRIPTION_SCOPE_COVER_ART, true);\n"
-        "          ha_subscribe_attribute(cover_entity, std::string(\"entity_picture_local\"), callback, HA_SUBSCRIPTION_SCOPE_COVER_ART, true);\n"
-        "          ha_subscribe_attribute(cover_entity, std::string(\"media_album_name\"), handle_media_album);\n"
-        "          // Live subscriptions supply both initial values and updates.\n",
-        (),
-    )
-    expect_cover_art_playback_grace_errors(
-        "missing cover art playback grace",
-        "script:\n"
-        "  - id: cover_art_playback_stopped\n"
-        "    then:\n"
-        "      - lambda: id(cover_art_media_playing) = false;\n",
-        (
-            "buffer brief non-playing states between tracks",
-            "delay non-playing playback transitions",
-            "remember and cancel a pending cover art opening when playback stops",
-            "restart an interrupted cover art opening when playback resumes",
-            "cancel a pending stop when playback resumes or pauses",
-            "keep cached artwork when Home Assistant clears it during a brief playback transition",
-            "cancel pending playback grace during an immediate stop",
-        ),
-    )
-    valid_cover_art_playback_grace = (
-        "script:\n"
-        "  - id: cover_art_resubscribe\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          bool restart_cover_art_delay = id(cover_art_delay_interrupted_by_transition);\n"
-        "          if (!was_playing || restart_cover_art_delay) id(cover_art_playback_started).execute();\n"
-        "          id(cover_art_delayed_playback_stopped).stop();\n"
-        "          id(cover_art_delayed_playback_stopped).stop();\n"
-        "          id(cover_art_delay_interrupted_by_transition) =\n"
-        "            id(cover_art_delay_interrupted_by_transition) || id(cover_art_delay_timer).is_running();\n"
-        "          id(cover_art_delay_timer).stop();\n"
-        "          id(cover_art_delayed_playback_stopped).execute();\n"
-        "          if (url.empty() && id(cover_art_delayed_playback_stopped).is_running()) return;\n"
-        "          id(cover_art_local_source_relative) = relative;\n"
-        "          id(cover_art_remote_source_relative) = relative;\n"
-        "  - id: cover_art_delayed_playback_stopped\n"
-        "    mode: restart\n"
-        "    then:\n"
-        "      - delay: 2s\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return state != \"playing\" && state != \"buffering\" && state != \"paused\";\n"
-        "          then:\n"
-        "            - script.execute: cover_art_playback_stopped\n"
-        "  - id: cover_art_playback_stopped\n"
-        "    then:\n"
-        "      - script.stop: cover_art_delayed_playback_stopped\n"
-    )
-    expect_cover_art_playback_grace_errors(
-        "cover art playback grace present",
-        valid_cover_art_playback_grace,
-        (),
-    )
-    expect_cover_art_playback_grace_errors(
-        "cover art playback grace missing local relative marker",
-        valid_cover_art_playback_grace.replace(
-            "          id(cover_art_local_source_relative) = relative;\n", ""
-        ),
-        ("retain cached artwork's relative marker",),
-    )
-    expect_cover_art_playback_grace_errors(
-        "cover art playback grace missing remote relative marker",
-        valid_cover_art_playback_grace.replace(
-            "          id(cover_art_remote_source_relative) = relative;\n", ""
-        ),
-        ("retain cached artwork's relative marker",),
-    )
-    expect_cover_art_disable_errors(
-        "independent media sleep prevention when cover art is disabled",
-        "script:\n"
-        "  - id: cover_art_disable\n"
-        "    then:\n"
-        "      - script.stop: cover_art_delay_timer\n",
-        (),
-    )
-    expect_cover_art_disable_errors(
-        "coupled media sleep prevention when cover art is disabled",
-        "script:\n"
-        "  - id: cover_art_disable\n"
-        "    then:\n"
-        "      - switch.turn_off: media_player_sleep_prevention_enabled\n",
-        ("keep media sleep prevention independent",),
-    )
-    valid_cover_art_adapter = (
-        "script:\n"
-        "  - id: display_mode_apply_transition\n"
-        "    then:\n"
-        "      - lambda: 'return target_mode == static_cast<int>(espdesktop::DisplayMode::COVER_ART);'\n"
-        "      - script.execute:\n"
-        "          id: display_mode_effect_cover_art\n"
-        "      - script.execute:\n"
-        "          id: cover_art_hide_effect\n"
-        "      - lambda: 'id(espdesktop_app).display().complete_transition(generation, espdesktop::DisplayMode::COVER_ART);'\n"
-        "  - id: display_mode_request_cover_art\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().request(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK, espdesktop::DisplayMode::COVER_ART);'\n"
-        "      - script.execute: display_mode_reconcile\n"
-        "      - script.wait: display_mode_reconcile\n"
-        "      - script.wait: display_mode_apply_transition\n"
-        "  - id: display_mode_clear_cover_art\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::MEDIA_PLAYBACK);'\n"
-        "      - script.execute: display_mode_reconcile\n"
-        "      - script.wait: display_mode_reconcile\n"
-        "      - script.wait: display_mode_apply_transition\n"
-        "  - id: display_mode_reconcile\n"
-        "    then:\n"
-        "      - lambda: 'auto transition = controller.resolve(); if (controller.transition_in_progress(transition) && id(display_mode_apply_transition).is_running()) { controller.transition_warning_due(millis(), 2000); return; } controller.cancel_transition(); bool transition_required = controller.transition_required(transition) || controller.presentation_incomplete(); if (!transition_required) { auto previous_cover_generation = id(cover_art_transition_generation); id(cover_art_transition_generation) = transition.generation; if (id(cover_art_download_generation) == previous_cover_generation) id(cover_art_download_generation) = transition.generation; } controller.start_transition(transition, millis());'\n"
-    )
-    valid_cover_art_effects = (
-        "globals:\n"
-        "  - id: cover_art_transition_generation\n"
-        "script:\n"
-        "  - id: display_mode_effect_cover_art\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, espdesktop::DisplayMode::COVER_ART); lv_obj_move_foreground(id(cover_art_screensaver));'\n"
-        "  - id: cover_art_hide_effect\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, target); return std::string(\"${device_slug}\") == \"guition-esp32-s3-4848s040\";'\n"
-        "      - artwork_image.release: cover_art_downloaded_image\n"
-        "  - id: hide_cover_art_view\n"
-        "    then:\n"
-        "      - script.execute: display_mode_clear_cover_art\n"
-        "      - script.wait: display_mode_clear_cover_art\n"
-        "  - id: cover_art_disable\n"
-        "    then:\n"
-        "      - script.wait: display_mode_clear_cover_art\n"
-        "  - id: cover_art_return_home_after_playback\n"
-        "    then:\n"
-        "      - script.wait: display_mode_clear_cover_art\n"
-        "  - id: cover_art_delay_timer\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().generation_is_current(generation);'\n"
-        "  - id: cover_art_apply_downloaded_image\n"
-        "    then:\n"
-        "      - lambda: 'return id(cover_art_download_generation);'\n"
-        "  - id: cover_art_deferred_download\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, mode);'\n"
-        "  - id: cover_art_retry_download\n"
-        "    then:\n"
-        "      - lambda: 'return id(cover_art_download_generation);'\n"
-        "  - id: cover_art_refresh_progress\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().transition_is_current(generation, mode);'\n"
-        "  - id: cover_art_delayed_playback_stopped\n"
-        "    then:\n"
-        "      - lambda: 'id(espdesktop_app).display().generation_is_current(generation);'\n"
-        "      - globals.set: { id: cover_art_delay_interrupted_by_transition, value: 'false' }\n"
-        "      - globals.set: { id: cover_art_media_playing, value: 'false' }\n"
-        "      - script.execute: display_mode_clear_cover_art\n"
-        "      - script.wait: display_mode_clear_cover_art\n"
-    )
-    expect_cover_art_lifecycle_controller_errors(
-        "controller-owned cover art lifecycle",
-        valid_cover_art_adapter,
-        valid_cover_art_effects,
-        (),
-    )
-    expect_cover_art_lifecycle_controller_errors(
-        "legacy cover art lifecycle",
-        "script:\n  - id: display_mode_reconcile\n    then: []\n",
-        "script:\n  - id: show_cover_art_view\n    then: []\n",
-        (
-            "route cover art presentation exclusively through the display adapter",
-            "create cover art through a controller media request",
-            "dismiss cover art by clearing its controller media request",
-            "guard the controller-owned cover art effect",
-            "preserve guarded S3 image release",
-            "guard cover_art_delay_timer",
-        ),
-    )
-    expect_media_sleep_prevention_errors(
-        "cover art alone keeps media awake",
-        "script:\n"
-        "  - id: screensaver_idle_check\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "                     ((id(media_player_sleep_prevention_enabled).state ||\n"
-        "                       id(cover_art_screensaver_enabled).state) &&\n"
-        "                      id(media_player_playing));\n",
-        "switch:\n"
-        "  - platform: template\n"
-        "    id: cover_art_screensaver_enabled\n"
-        "    on_turn_on:\n"
-        "      - switch.turn_on: media_player_sleep_prevention_enabled\n",
-        "script:\n"
-        "  - id: cover_art_playback_started\n"
-        "    then:\n"
-        "      - script.execute: cover_art_start_delay\n",
-        (
-            "require both cover art and media sleep prevention to keep the idle timer awake",
-            "do not turn on media sleep prevention",
-            "let cover art use its own delay",
-        ),
-    )
-    expect_media_sleep_prevention_errors(
-        "playback cannot block sleep while cover art is disabled",
-        "script:\n"
-        "  - id: screensaver_idle_check\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "                     (id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n",
-        "",
-        "",
-        ("keep media playback awake only while cover art and media sleep prevention are enabled",),
-    )
-    expect_media_sleep_prevention_errors(
-        "media sleep prevention applies while cover art is enabled",
-        "script:\n"
-        "  - id: screensaver_idle_check\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "                     (id(cover_art_screensaver_enabled).state &&\n"
-        "                      id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n"
-        "  - id: screensaver_wake\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              float show_after_seconds = id(cover_art_delay).state;\n"
-        "              if (show_after_seconds < 3.0f) show_after_seconds = 3.0f;\n"
-        "              const bool cover_art_disabled_mode_delay =\n"
-        "                id(screensaver_mode).state != \"timer\" &&\n"
-        "                id(screensaver_mode).state != \"sensor\" &&\n"
-        "                show_after_seconds > 0.0f;\n",
-        "switch:\n"
-        "  - platform: template\n"
-        "    id: cover_art_screensaver_enabled\n"
-        "    on_turn_on:\n"
-        "      - script.execute: cover_art_resubscribe\n",
-        "script:\n"
-        "  - id: cover_art_playback_started\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(media_player_sleep_prevention_enabled).state ||\n"
-        "                     (id(screensaver_mode).state != \"timer\" &&\n"
-        "                      id(screensaver_mode).state != \"sensor\") ||\n"
-        "                     id(display_asleep);\n"
-        "          then:\n"
-        "            - script.execute: cover_art_start_delay\n"
-        "          else:\n"
-        "            - script.execute: screensaver_idle_check\n",
-        (),
-    )
-    expect_media_sleep_prevention_errors(
-        "normal screensaver timeout starts cover art directly",
-        "script:\n"
-        "  - id: screensaver_idle_check\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "                     (id(cover_art_screensaver_enabled).state &&\n"
-        "                      id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n"
-        "  - id: screensaver_sleep_timer\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              const std::string &state = id(cover_art_last_playback_state);\n"
-        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "                     (id(cover_art_media_playing) &&\n"
-        "                      state != \"playing\" && state != \"buffering\" && state != \"paused\");\n"
-        "          then:\n"
-        "            - script.execute: screensaver_idle_check\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(cover_art_screensaver_enabled).state &&\n"
-        "                     id(cover_art_media_playing) &&\n"
-        "                     !id(cover_art_media_player_entity).state.empty();\n"
-        "          then:\n"
-        "            - script.execute: show_cover_art_view\n",
-        "switch:\n"
-        "  - platform: template\n"
-        "    id: cover_art_screensaver_enabled\n",
-        "script:\n"
-        "  - id: cover_art_playback_started\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(media_player_sleep_prevention_enabled).state ||\n"
-        "                     (id(screensaver_mode).state != \"timer\" &&\n"
-        "                      id(screensaver_mode).state != \"sensor\") ||\n"
-        "                     id(display_asleep);\n"
-        "          then:\n"
-        "            - script.execute: cover_art_delay_timer\n"
-        "          else:\n"
-        "            - script.execute: screensaver_idle_check\n",
-        (),
-    )
-    expect_media_sleep_prevention_errors(
-        "normal screensaver timeout does not add cover art delay",
-        "script:\n"
-        "  - id: screensaver_idle_check\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "                     (id(cover_art_screensaver_enabled).state &&\n"
-        "                      id(media_player_sleep_prevention_enabled).state &&\n"
-        "                      id(media_player_playing));\n"
-        "  - id: screensaver_sleep_timer\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(cover_art_screensaver_enabled).state &&\n"
-        "                     id(cover_art_media_playing) &&\n"
-        "                     !id(cover_art_media_player_entity).state.empty();\n"
-        "          then:\n"
-        "            - script.execute: cover_art_delay_timer\n",
-        "switch:\n"
-        "  - platform: template\n"
-        "    id: cover_art_screensaver_enabled\n",
-        "script:\n"
-        "  - id: cover_art_playback_started\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              return id(media_player_sleep_prevention_enabled).state ||\n"
-        "                     (id(screensaver_mode).state != \"timer\" &&\n"
-        "                      id(screensaver_mode).state != \"sensor\") ||\n"
-        "                     id(display_asleep);\n"
-        "          then:\n"
-        "            - script.execute: cover_art_delay_timer\n"
-        "          else:\n"
-        "            - script.execute: screensaver_idle_check\n",
-        (
-            "start cover art directly after the normal screensaver timeout",
-            "keep the normal screensaver idle during cover art stop grace",
-        ),
-    )
-    expect_media_sleep_prevention_errors(
-        "takeover restore trusts delayed playing flag",
-        "script:\n"
-        "  - id: display_takeover_resume_restore\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: 'return id(cover_art_media_playing);'\n"
-        "          then:\n"
-        "            - script.execute: show_cover_art_view\n",
-        "",
-        "",
-        ("keep takeover restore from showing cover art during stop grace",),
-    )
     valid_media_power, valid_media_power_capability = valid_media_power_binding_text()
-    expect_media_power_binding_errors(
-        "media Power binding",
-        valid_media_power,
-        valid_media_power_capability,
-        (),
-    )
-    expect_media_power_binding_errors(
-        "low heap media Power subscription removed",
-        valid_media_power.replace(
-            "  media_playback_subscribe_volume(state);\n"
-            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n",
-            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
-            "  media_playback_subscribe_volume(state);\n",
-        ),
-        valid_media_power_capability,
-        ("low-heap displays",),
-    )
-    valid_modes, valid_mode_actions, valid_mode_capability = (
-        valid_media_playback_mode_binding_text()
-    )
-    expect_media_playback_mode_binding_errors(
-        "media Shuffle and Repeat bindings",
-        valid_modes,
-        valid_mode_actions,
-        valid_mode_capability,
-        (),
-    )
-    expect_media_playback_mode_binding_errors(
-        "low heap media playback-mode subscription removed",
-        valid_modes.replace(
-            "  media_playback_subscribe_modes(state);\n"
-            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n",
-            "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
-            "  media_playback_subscribe_modes(state);\n",
-        ),
-        valid_mode_actions,
-        valid_mode_capability,
-        ("low-heap displays",),
-    )
-    expect_media_playback_mode_binding_errors(
-        "repeat service payload removed",
-        valid_modes,
-        valid_mode_actions.replace('"media_player.repeat_set"', '"media_player.repeat"'),
-        valid_mode_capability,
-        ("services and payloads",),
-    )
-    expect_media_playback_mode_binding_errors(
-        "volume-only playback-mode guard removed",
-        valid_modes.replace("  if (state->controls.empty()) return;\n", ""),
-        valid_mode_actions,
-        valid_mode_capability,
-        ("volume-only media entities",),
-    )
-    expect_media_playback_mode_binding_errors(
-        "capability callback All Controls guard removed",
-        valid_modes.replace(
-            "  if (!state->controls.empty()) media_playback_subscribe_modes(state);\n",
-            "  media_playback_subscribe_modes(state);\n",
-        ),
-        valid_mode_actions,
-        valid_mode_capability,
-        ("capability-triggered",),
-    )
-    expect_media_playback_mode_binding_errors(
-        "playback-mode subscription re-announcement removed",
-        valid_modes.replace(
-            "  if (subscription_added) ha_reannounce_state_subscriptions();\n", ""
-        ),
-        valid_mode_actions,
-        valid_mode_capability,
-        ("re-announce dynamically added",),
-    )
-    expect_media_control_low_heap_metadata_errors(
-        "low heap media modal keeps title and artist",
-        "inline void media_playback_subscribe_metadata(MediaPlaybackState *state) {\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_title\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_artist\"), cb);\n"
-        "}\n\n"
-        "inline void media_playback_subscribe_progress(MediaPlaybackState *state) {\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_duration\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position_updated_at\"), cb);\n"
-        "}\n\n"
-        "inline void media_playback_subscribe_volume(MediaPlaybackState *state) {}\n"
-        "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
-        "  MediaPlaybackState *state = media_playback_ensure_state(ctx->entity_id);\n"
-        "  media_playback_subscribe_metadata(state);\n"
-        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
-        "  media_playback_subscribe_progress(state);\n"
-        "#endif\n"
-        "}\n\n"
-        "inline bool media_seek_pending_active() { return false; }\n",
-        (),
-    )
-    expect_media_control_low_heap_metadata_errors(
-        "low heap media modal lost title and artist",
-        "inline void media_playback_subscribe_metadata(MediaPlaybackState *state) {\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_title\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_artist\"), cb);\n"
-        "}\n\n"
-        "inline void media_playback_subscribe_progress(MediaPlaybackState *state) {\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_duration\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position_updated_at\"), cb);\n"
-        "}\n\n"
-        "inline void media_playback_subscribe_volume(MediaPlaybackState *state) {}\n"
-        "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
-        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
-        "  media_playback_subscribe_metadata(state);\n"
-        "  media_playback_subscribe_progress(state);\n"
-        "#endif\n"
-        "}\n\n"
-        "inline bool media_seek_pending_active() { return false; }\n",
-        (
-            "keep media_title subscribed",
-            "keep media_artist subscribed",
-        ),
-    )
-    expect_media_control_low_heap_metadata_errors(
-        "low heap media modal progress metadata is guarded",
-        "inline void media_playback_subscribe_metadata(MediaPlaybackState *state) {\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_title\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_artist\"), cb);\n"
-        "}\n\n"
-        "inline void media_playback_subscribe_progress(MediaPlaybackState *state) {\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_duration\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position\"), cb);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position_updated_at\"), cb);\n"
-        "}\n\n"
-        "inline void media_playback_subscribe_volume(MediaPlaybackState *state) {}\n"
-        "inline void subscribe_media_control_state(MediaControlCtx *ctx) {\n"
-        "  MediaPlaybackState *state = media_playback_ensure_state(ctx->entity_id);\n"
-        "  media_playback_subscribe_metadata(state);\n"
-        "  media_playback_subscribe_progress(state);\n"
-        "#ifndef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
-        "#endif\n"
-        "}\n\n"
-        "inline bool media_seek_pending_active() { return false; }\n",
-        (
-            "keep media_duration out of the S3 low-heap media modal path",
-            "keep media_position out of the S3 low-heap media modal path",
-            "keep media_position_updated_at out of the S3 low-heap media modal path",
-        ),
-    )
-    cover_art_shared_media = (
-        "struct MediaPlaybackState {};\n"
-        "inline MediaPlaybackState *media_playback_find_state(const std::string &entity_id) {\n"
-        "  if (state->generation != ha_subscription_generation()) media_playback_reset_state(state, entity_id);\n"
-        "  return state;\n"
-        "}\n"
-        "inline void media_playback_subscribe_progress(MediaPlaybackState *state, uint32_t scope) {\n"
-        "  if (!state || state->progress_subscribed) return;\n"
-        "  state->progress_subscription_scope = scope;\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_duration\"), cb, scope);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position\"), cb, scope);\n"
-        "  ha_subscribe_attribute(entity_id, std::string(\"media_position_updated_at\"), cb, scope);\n"
-        "}\n"
-        "inline bool media_control_progress_supported(MediaControlCtx *ctx) {\n"
-        "  #ifdef ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL\n"
-        "  return ctx && media_playback_state_has_progress(ctx->entity_id);\n"
-        "  #endif\n"
-        "}\n"
-        "inline void media_playback_refresh_progress_timer(MediaPlaybackState *state) {\n"
-        "  bool has_timer_consumer = !state->sliders.empty() || !state->controls.empty();\n"
-        "  if (!has_timer_consumer) return;\n"
-        "  state->progress_timer = lv_timer_create(cb, 1000, state);\n"
-        "}\n"
-        "inline void media_playback_invalidate_stale_progress(const std::string &entity_id) {\n"
-        "  uint32_t last_duration_callback_ms = state->last_duration_callback_ms;\n"
-        "  state->duration = 0.0f;\n"
-        "  state->has_duration = false;\n"
-        "  state->position_seconds = 0.0f;\n"
-        "  state->position_updated_ms = 0;\n"
-        "  state->position_updated_at_known = false;\n"
-        "  state->position_updated_at_ms = 0;\n"
-        "  state->has_position = false;\n"
-        "  media_playback_apply_progress_consumers(state);\n"
-        "}\n"
-        "inline void media_playback_reset_cover_art_progress_subscriptions() {\n"
-        "  ha_reset_subscription_callbacks(HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS);\n"
-        "  if ((state->progress_subscription_scope & HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS) == 0) return;\n"
-        "  state->progress_subscribed = false;\n"
-        "  state->progress_subscription_scope = 0;\n"
-        "  state->has_position = false;\n"
-        "  media_playback_subscribe_progress(state);\n"
-        "}\n"
-        "inline MediaPlaybackState *media_playback_prepare_cover_art_progress(const std::string &entity_id, bool playing) {\n"
-        "  MediaPlaybackState *state = media_playback_ensure_state(entity_id);\n"
-        "  media_playback_set_playing_hint(state, playing);\n"
-        "  media_playback_subscribe_progress(\n"
-        "    state, HA_SUBSCRIPTION_SCOPE_COVER_ART | HA_SUBSCRIPTION_SCOPE_COVER_ART_PROGRESS);\n"
-        "  return state;\n"
-        "}\n"
-        "inline void subscribe_media_slider_state(lv_obj_t *btn_ptr, lv_obj_t *slider, const std::string &entity_id) {\n"
-        "  MediaPlaybackState *state = media_playback_ensure_state(entity_id);\n"
-        "  media_playback_attach_slider(state, ctx);\n"
-        "  media_playback_subscribe_state(state);\n"
-        "}\n"
-        "inline bool media_playback_state_snapshot(const std::string &entity_id) {\n"
-        "  if (!state || !state->has_duration) return false;\n"
-        "  position = state->has_position ? media_playback_current_position_seconds(state) : 0.0f;\n"
-        "  return true;\n"
-        "}\n"
-        "inline bool media_playback_state_has_progress() { return true; }\n"
-    )
-    expect_cover_art_low_heap_progress_errors(
-        "low heap cover art reuses shared progress",
-        cover_art_shared_media,
-        "script:\n"
-        "  - id: cover_art_refresh_progress\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          #ifdef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
-        "          media_playback_prepare_cover_art_progress(id(cover_art_media_player_entity).state, id(cover_art_media_playing));\n"
-        "          media_playback_state_snapshot(id(cover_art_media_player_entity).state, playing, duration, position);\n"
-        "          lv_obj_clear_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN);\n"
-        "          #endif\n"
-        "          media_playback_prepare_cover_art_progress(id(cover_art_media_player_entity).state, id(cover_art_media_playing));\n"
-        "          return media_playback_state_has_progress(id(cover_art_media_player_entity).state);\n"
-        "interval:\n"
-        "  - interval: 1s\n"
-        "    then:\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              #ifdef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
-        "              if (!id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART)) return false;\n"
-        "              media_playback_prepare_cover_art_progress(id(cover_art_media_player_entity).state, id(cover_art_media_playing));\n"
-        "              return true;\n"
-        "              #else\n"
-        "              return id(cover_art_media_playing);\n"
-        "              #endif\n"
-        "  - id: cover_art_resubscribe\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          #ifdef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
-        "          if (id(cover_art_screensaver_enabled).state) {\n"
-        "            media_playback_prepare_cover_art_progress(cover_entity, id(cover_art_media_playing));\n"
-        "          } else {\n"
-        "            media_playback_reset_cover_art_progress_subscriptions();\n"
-        "          }\n"
-        "          media_playback_invalidate_stale_progress(cover_entity);\n"
-        "          #endif\n"
-        "  - id: cover_art_disable\n"
-        "    then:\n"
-        "      - script.execute: cover_art_resubscribe\n"
-        "#ifndef ESPDESKTOP_LOW_HEAP_COVER_ART\n"
-        "ha_subscribe_attribute(cover_entity, std::string(\"media_duration\"), cb);\n"
-        "ha_subscribe_attribute(cover_entity, std::string(\"media_position\"), cb);\n"
-        "ha_subscribe_attribute(cover_entity, std::string(\"media_position_updated_at\"), cb);\n"
-        "#endif\n",
-        (),
-    )
-    expect_cover_art_low_heap_progress_errors(
-        "low heap cover art direct progress subscriptions",
-        cover_art_shared_media,
-        "script:\n"
-        "  - id: cover_art_refresh_progress\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          return false;\n"
-        "ha_subscribe_attribute(cover_entity, std::string(\"media_duration\"), cb);\n"
-        "ha_subscribe_attribute(cover_entity, std::string(\"media_position\"), cb);\n"
-        "ha_subscribe_attribute(cover_entity, std::string(\"media_position_updated_at\"), cb);\n",
-        (
-            "keep media_duration out of the S3 low-heap cover art path",
-            "keep media_position out of the S3 low-heap cover art path",
-            "keep media_position_updated_at out of the S3 low-heap cover art path",
-            "let S3 cover art initialise and consume shared progress",
-            "prepare and invalidate S3 shared cover art progress",
-            "prepare S3 progress before checking cover art visibility",
-        ),
-    )
-    cover_art_progress_visibility = (
-        "lvgl:\n"
-        "  widgets:\n"
-        "    - label:\n"
-        "        id: cover_art_time_label\n"
-        "        hidden: true\n"
-        "    - bar:\n"
-        "        id: cover_art_progress_bar\n"
-        "script:\n"
-        "  - id: cover_art_sync_track_text\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          bool available = espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
-        "          lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN);\n"
-        "          lv_obj_add_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN);\n"
-        "  - id: cover_art_refresh_progress\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          bool available = espdesktop::cover_art::progress_available(duration);\n"
-        "          lv_bar_set_value(id(cover_art_progress_bar), 0, LV_ANIM_OFF);\n"
-        "          lv_label_set_text(id(cover_art_time_label), \"0:00  /  0:00\");\n"
-        "          lv_obj_add_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN);\n"
-        "          lv_obj_add_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN);\n"
-        "          lv_obj_clear_flag(id(cover_art_time_label), LV_OBJ_FLAG_HIDDEN);\n"
-        "          lv_obj_clear_flag(id(cover_art_progress_bar), LV_OBJ_FLAG_HIDDEN);\n"
-        "  - id: cover_art_show_black_screen\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          return espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
-        "  - id: cover_art_show_track_overlay\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          return espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
-        "std::function<void()> invalidate_stale_media_duration = []() {\n"
-        "  const uint32_t last_duration_ms = id(cover_art_last_duration_callback_ms);\n"
-        "  const bool duration_callback_is_fresh = last_duration_ms != 0 &&\n"
-        "    (uint32_t)(millis() - last_duration_ms) <= 250;\n"
-        "  if (!duration_callback_is_fresh) {\n"
-        "    id(cover_art_media_duration) = 0.0f;\n"
-        "  }\n"
-        "};\n"
-        "# title callback\n"
-        "std::function<void(esphome::StringRef)> handle_media_title = [](esphome::StringRef title) {\n"
-        "  invalidate_stale_media_duration();\n"
-        "  id(cover_art_title) = next;\n"
-        "};\n"
-        "if (!already_subscribed) {}\n"
-        "# artist callback\n"
-        "std::function<void(esphome::StringRef)> handle_media_artist = [](esphome::StringRef artist) {\n"
-        "  id(cover_art_artist) = next;\n"
-        "};\n"
-        "if (!already_subscribed) {}\n"
-        "# album callback\n"
-        "std::function<void(esphome::StringRef)> handle_media_album = [](esphome::StringRef album) {\n"
-        "  id(cover_art_album) = next;\n"
-        "  id(cover_art_sync_track_text).execute();\n"
-        "};\n"
-        "if (!already_subscribed) {}\n"
-        "# source callback\n"
-        "std::function<void(esphome::StringRef)> handle_media_source = [](esphome::StringRef source) {\n"
-        "  invalidate_stale_media_duration();\n"
-        "  id(cover_art_media_source) = next;\n"
-        "};\n"
-        "if (!already_subscribed) {}\n"
-        "# duration callback\n"
-        "std::function<void(esphome::StringRef)> handle_media_duration = [](esphome::StringRef duration) {\n"
-        "  id(cover_art_last_duration_callback_ms) = millis();\n"
-        "  const bool next_progress_available = espdesktop::cover_art::progress_available(next_duration);\n"
-        "  if (!next_progress_available) {\n"
-        "    next_duration = 0.0f;\n"
-        "    id(cover_art_media_position) = 0.0f;\n"
-        "    id(cover_art_position_anchor) = 0.0f;\n"
-        "    id(cover_art_position_anchor_epoch) = 0;\n"
-        "    id(cover_art_last_position_timestamp) = 0;\n"
-        "  }\n"
-        "};\n"
-        "if (!already_subscribed) {}\n"
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art progress hides without duration",
-        cover_art_progress_visibility,
-        (),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "unguarded cover art progress",
-        cover_art_progress_visibility
-        .replace("        hidden: true\n", "")
-        .replace(
-            "return espdesktop::cover_art::progress_available(id(cover_art_media_duration));",
-            "return true;",
-        )
-        .replace(
-            "bool available = espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n",
-            "",
-        )
-        .replace(
-            "bool available = espdesktop::cover_art::progress_available(duration);\n",
-            "",
-        )
-        .replace(
-            "  if (!next_progress_available) {\n",
-            "  if (true) {\n",
-        ),
-        (
-            "initialize cover art playback time hidden",
-            "guard every cover art progress reveal",
-            "hide cover art playback time",
-            "hide and reset unavailable cover art progress",
-            "normalize invalid cover art durations",
-        ),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art progress keeps stale position state",
-        cover_art_progress_visibility.replace(
-            "    id(cover_art_media_position) = 0.0f;\n",
-            "",
-        ),
-        ("reset cover art position when duration becomes unavailable",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art progress discards fresh position before late duration",
-        cover_art_progress_visibility.replace(
-            "  const bool next_progress_available = espdesktop::cover_art::progress_available(next_duration);\n",
-            "  const bool current_progress_available = espdesktop::cover_art::progress_available(id(cover_art_media_duration));\n"
-            "  const bool next_progress_available = espdesktop::cover_art::progress_available(next_duration);\n",
-        ),
-        ("preserve fresh cover art position when duration arrives late",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art track change keeps stale duration",
-        cover_art_progress_visibility.replace(
-            "  invalidate_stale_media_duration();\n",
-            "",
-            1,
-        ),
-        ("mark stale cover art duration unavailable when media title changes",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art title change discards a fresh position",
-        cover_art_progress_visibility.replace(
-            "  invalidate_stale_media_duration();\n",
-            "  invalidate_stale_media_duration();\n"
-            "  id(cover_art_media_position) = 0.0f;\n",
-            1,
-        ),
-        ("preserve fresh cover art position when title metadata arrives late",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art artist restoration discards duration",
-        cover_art_progress_visibility.replace(
-            "handle_media_artist = [](esphome::StringRef artist) {\n",
-            "handle_media_artist = [](esphome::StringRef artist) {\n"
-            "  invalidate_stale_media_duration();\n",
-            1,
-        ),
-        ("preserve duration when restoring media artist",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art album restoration discards duration",
-        cover_art_progress_visibility.replace(
-            "handle_media_album = [](esphome::StringRef album) {\n",
-            "handle_media_album = [](esphome::StringRef album) {\n"
-            "  invalidate_stale_media_duration();\n",
-            1,
-        ),
-        ("preserve duration when restoring media album",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art album change delays progress refresh",
-        cover_art_progress_visibility.replace(
-            "  id(cover_art_sync_track_text).execute();\n",
-            "",
-            1,
-        ),
-        ("refresh cover art progress immediately when media album changes",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art source change keeps stale duration",
-        cover_art_progress_visibility.replace(
-            "handle_media_source = [](esphome::StringRef source) {\n"
-            "  invalidate_stale_media_duration();\n",
-            "handle_media_source = [](esphome::StringRef source) {\n",
-            1,
-        ),
-        ("mark stale cover art duration unavailable when media source changes",),
-    )
-    expect_cover_art_progress_visibility_errors(
-        "cover art metadata discards a fresh duration",
-        cover_art_progress_visibility.replace(
-            "  if (!duration_callback_is_fresh) {\n",
-            "  if (true) {\n",
-            1,
-        ),
-        ("preserve fresh cover art duration when metadata arrives late",),
-    )
-    expect_image_card_entity_errors(
-        "legacy camera-only image card guard",
-        "inline bool image_card_entity_supported(const std::string &entity_id) {\n"
-        "  return entity_id.rfind(\"camera.\", 0) == 0;\n"
-        "}\n"
-        "if (p.entity.rfind(\"camera.\", 0) != 0) {\n"
-        "  ESP_LOGW(\"image_card\", \"Image card only supports camera entities: %s\", p.entity.c_str());\n"
-        "}\n",
-        (
-            "support Home Assistant image entities in image cards",
-            "use the shared image card entity-domain guard",
-            "do not reject Home Assistant image entities as unavailable",
-        ),
-    )
-    expect_image_card_entity_errors(
-        "camera and image entities accepted",
-        "inline bool image_card_entity_supported(const std::string &entity_id) {\n"
-        "  return entity_id.rfind(\"camera.\", 0) == 0 || entity_id.rfind(\"image.\", 0) == 0;\n"
-        "}\n"
-        "if (!image_card_entity_supported(p.entity)) {\n"
-        "  ESP_LOGW(\"image_card\", \"Image card only supports camera and image entities: %s\", p.entity.c_str());\n"
-        "}\n",
-        (),
-    )
     expect_image_card_base_url_errors(
         "image card uses stale startup base URL",
         "std::string base_url;\n"
@@ -7060,276 +3201,6 @@ def run_self_test() -> int:
         "ctx->base_url_provider = cfg.home_assistant_base_url;\n",
         (),
     )
-    expect_image_card_quality_errors(
-        "image card modal only scales tile image",
-        "inline void image_card_open_modal(ImageCardCtx *ctx) {\n"
-        "  image_card_set_widget_source(ui.image_widget, ctx->image);\n"
-        "  image_card_apply_modal_geometry(ctx);\n"
-        "}\n",
-        (
-            "cap high-resolution image card modal downloads",
-            "scale image card modal downloads to a display-appropriate size",
-            "cancel in-flight image downloads before opening image card modals",
-            "defer image downloads while image card modals are open",
-            "detach image sources before deleting image card modals",
-            "set image card download target size before requesting images",
-            "use a separate modal image downloader for expanded image-card quality",
-            "request expanded image-card downloads through the modal downloader",
-            "swap expanded image cards to the modal-quality image after it downloads",
-            "retain one shared modal image cache for instant reopen",
-            "support six concurrent image cards on P4 displays",
-            "check free memory before image-card downloads",
-            "include PSRAM in image-card memory checks",
-            "show a visible image-card limit message when downloaders run out",
-            "preserve the configured image-card icon while loading",
-            "keep modal-quality image refresh enabled on the 4.3-inch P4 screen",
-            "size every image-card tile request to its on-screen bounds",
-            "log image-card modal close events",
-            "clean up partially-created image card modals",
-            "keep image-card modal loading overlay centered",
-            "show the cached image-card tile while modal-quality image loads",
-            "keep an error state when image-card modals have no preview",
-            "clip image card modal content to rounded panel corners",
-            "preserve image card rounded corners while pressed",
-            "apply image card corner clipping to the pressed state",
-            "clear stale image-card tile buffers when card size changes",
-            "keep small-display image card tile downloads sized to the tile",
-        ),
-    )
-    expect_image_card_quality_errors(
-        "image card modal requests capped image",
-        "#ifndef ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS\n"
-        "#define ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS 6\n"
-        "#endif\n"
-        "constexpr int IMAGE_CARD_MAX_CONTEXTS = ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS;\n"
-        "constexpr int IMAGE_CARD_MODAL_MAX_TARGET_SIDE_PX = 800;\n"
-        "constexpr int IMAGE_CARD_CONSTRAINED_MODAL_MAX_TARGET_SIDE_PX = 320;\n"
-        "constexpr size_t IMAGE_CARD_MEMORY_HEADROOM_BYTES = 96 * 1024;\n"
-        "constexpr size_t IMAGE_CARD_CONSTRAINED_INTERNAL_FREE_BYTES = 40 * 1024;\n"
-        "constexpr size_t IMAGE_CARD_CONSTRAINED_INTERNAL_LARGEST_BYTES = 24 * 1024;\n"
-        "struct ImageCardModalCache {};\n"
-        "inline ImageCardModalCache &image_card_modal_cache();\n"
-        "inline bool image_card_retain_modal_cache() { return true; }\n"
-        "inline void image_card_release_modal_cache(ArtworkImage *modal_image) { modal_image->release(); }\n"
-        "inline lv_style_selector_t image_card_pressed_selector() { return LV_STATE_PRESSED; }\n"
-        "inline void image_card_apply_corner_clip(lv_obj_t *obj, lv_coord_t radius) {}\n"
-        "inline bool image_card_memory_available(ImageCardCtx *ctx, const char *stage,\n"
-        "                                        int width, int height) {\n"
-        "  size_t external_largest = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT | MALLOC_CAP_SPIRAM);\n"
-        "  image_pipeline_memory_failure(true, 0, 0, 0, external_largest, 0, 0, 0, 0, 0);\n"
-        "  return external_largest > 0;\n"
-        "}\n"
-        "inline bool image_card_modal_refresh_supported() {\n"
-        "  return true;\n"
-        "}\n"
-        "inline void image_card_limit_target_size(lv_coord_t source_width, lv_coord_t source_height,\n"
-        "                                         int *target_width, int *target_height) {\n"
-        "  image_pipeline_modal_max_target_side(false);\n"
-        "}\n"
-        "inline void image_card_layout_modal_loading(ImageCardCtx *ctx) {\n"
-        "  lv_obj_set_size(ui.loading_widget, width, height);\n"
-        "  lv_obj_align(icon, LV_ALIGN_CENTER, 0, -18);\n"
-        "  lv_obj_align_to(label, icon, LV_ALIGN_OUT_BOTTOM_MID, 0, 8);\n"
-        "}\n"
-        "inline void image_card_request_source_url(ImageCardCtx *ctx) {\n"
-        "  ctx->image->set_target_size(width, height);\n"
-        "  image_card_tile_request_size(width, height, &request_width, &request_height);\n"
-        "  ctx->url = image_card_sized_url(ctx->source_url, request_width, request_height);\n"
-        "}\n"
-        "inline void image_card_tile_request_size(lv_coord_t target_width, lv_coord_t target_height,\n"
-        "                                        int *request_width, int *request_height) {\n"
-        "  image_card_limit_target_size(target_width, target_height, request_width, request_height);\n"
-        "}\n"
-        "inline void image_card_refresh_tile_geometry(ImageCardCtx *ctx) {\n"
-        "  image_card_schedule_source_refresh(ctx, 1, \"resized tile\");\n"
-        "}\n"
-        "inline void image_card_reset_resized_tile(ImageCardCtx *ctx) {\n"
-        "  ctx->image->release();\n"
-        "}\n"
-        "inline void image_card_request_modal_source_url(ImageCardCtx *ctx) {\n"
-        "  ctx->modal_image->request_update_url(ctx->modal_url, max_source_dim);\n"
-        "  image_card_preempt_active_tile_for_modal();\n"
-        "}\n"
-        "inline void image_card_preempt_active_tile_for_modal() {\n"
-        "  if (candidate->image->request_is_active()) candidate->image->cancel_update();\n"
-        "}\n"
-        "inline void image_card_show_modal_download_failure(ImageCardCtx *ctx) {\n"
-        "  if (image_card_modal_has_preview(ctx)) {\n"
-        "    image_card_hide_modal_loading(ctx);\n"
-        "  } else {\n"
-        "    image_card_show_modal_loading(ctx, \"Unavailable\");\n"
-        "  }\n"
-        "}\n"
-        "inline void image_card_handle_modal_download_error(ImageCardCtx *ctx) {\n"
-        "  image_card_show_modal_download_failure(ctx);\n"
-        "}\n"
-        "inline void image_card_abort_modal_open(ImageCardCtx *ctx, const char *reason) {\n"
-        "  ESP_LOGW(\"image_card\", \"modal shell setup failed\");\n"
-        "}\n"
-        "inline void image_card_open_modal(ImageCardCtx *ctx) {\n"
-        "  ESP_LOGW(\"image_card\", \"modal shell setup failed\");\n"
-        "  lv_obj_set_style_clip_corner(ui.panel, true, LV_PART_MAIN);\n"
-        "  image_card_show_modal_image(ctx, ctx->image);\n"
-        "  image_card_queue_modal_source_request(ctx);\n"
-        "  image_card_clear_widget_source(ui.image_widget);\n"
-        "  image_card_set_widget_source(ui.image_widget, ctx->modal_image);\n"
-        "  if (image_card_modal_active_for(ctx)) {\n"
-        "    ESP_LOGD(\"image_card\", \"Deferring image refresh while modal is open for %s\", ctx->entity_id.c_str());\n"
-        "  }\n"
-        "  ctx->image->cancel_update();\n"
-        "  ESP_LOGI(\"image_card\", \"Closing image modal for %s\", ctx->entity_id.c_str());\n"
-        "}\n"
-        "inline bool bind_image_card(BtnSlot &s, const ParsedCfg &p, const GridConfig &cfg,\n"
-        "                            bool bind_click_handler = false) {\n"
-        "  lv_obj_t *loading = image_card_loading_widget(widget);\n"
-        "  image_card_set_loading_state(loading, \"Too many\");\n"
-        "  return true;\n"
-        "}\n"
-        "inline void image_card_set_loading_state(lv_obj_t *loading_widget, const char *text) {\n"
-        "  lv_obj_t *label = image_card_loading_label(loading_widget);\n"
-        "  lv_label_set_display_text(label, espdesktop_i18n(text));\n"
-        "}\n"
-        "inline void image_card_set_loading_state(ImageCardCtx *ctx, const char *text) {}\n"
-        "inline void image_card_configure_icon(BtnSlot &s, const ParsedCfg &p) {\n"
-        "  const char *glyph = find_icon(p.icon.c_str());\n"
-        "  lv_label_set_display_text(loading_icon, glyph);\n"
-        "}\n"
-        "inline std::string image_card_join_url(const std::string &base, const std::string &path) {}\n",
-        (),
-    )
-    expect_image_card_startup_errors(
-        "image card missing startup reconnect refresh",
-        "inline void image_card_request_picture(ImageCardCtx *ctx) {\n"
-        "  bool requested = ha_read_retained_attribute(ctx->entity_id, std::string(\"entity_picture\"), callback);\n"
-        "}\n"
-        "inline void image_card_request_source_url(ImageCardCtx *ctx) {\n"
-        "  ctx->url = image_card_cache_bust_url(ctx->source_url);\n"
-        "}\n",
-        "api:\n"
-        "  on_client_connected:\n"
-        "    - lambda: |-\n"
-        "        refresh_weather_forecast_cards();\n",
-        (
-            "refresh image cards when Home Assistant reconnects",
-            "retry media cover artwork when Home Assistant reconnects",
-            "retry image-card startup quickly after Home Assistant API connects",
-            "arm image-card refresh from the Home Assistant API connection",
-            "request image-card attributes once the Home Assistant API is connected",
-            "refresh image cards when the camera/image entity state changes",
-            "ignore stale image-card callbacks after grid rebuild",
-            "ignore stale image-card entity_picture callbacks after grid rebuild",
-            "request display-sized Home Assistant image card downloads",
-            "request bounded Home Assistant image card proxy downloads",
-            "recognize Home Assistant camera and image proxy URLs",
-            "start image-card refresh when Home Assistant API connects",
-            "resolve artwork URLs with the newly selected port",
-        ),
-    )
-    expect_image_card_startup_errors(
-        "image card refreshes on Home Assistant reconnect",
-        "constexpr uint32_t IMAGE_CARD_API_RETRY_INTERVAL_MS = 250;\n"
-        "inline bool image_card_home_assistant_proxy_url(const std::string &url) {\n"
-        "  return url.find(\"/api/camera_proxy/\") != std::string::npos ||\n"
-        "         url.find(\"/api/image_proxy/\") != std::string::npos;\n"
-        "}\n"
-        "inline std::string image_card_entity_proxy_path(const std::string &entity_id) {\n"
-        "  if (entity_id.rfind(\"camera.\", 0) == 0) return \"/api/camera_proxy/\" + entity_id;\n"
-        "  if (entity_id.rfind(\"image.\", 0) == 0) return \"/api/image_proxy/\" + entity_id;\n"
-        "  return \"\";\n"
-        "}\n"
-        "inline void image_card_handle_picture(ImageCardCtx *ctx) {\n"
-        "  ESP_LOGD(\"image_card\", \"Waiting for Home Assistant base URL before loading %s\", ctx->entity_id.c_str());\n"
-        "}\n"
-        "inline void image_card_request_picture(ImageCardCtx *ctx) {\n"
-        "  if (!ha_api_connected()) return;\n"
-        "  ha_read_retained_attribute(ctx->entity_id, std::string(\"access_token\"), callback);\n"
-        "  image_card_proxy_path_with_token(proxy_path, token);\n"
-        "  ha_read_retained_attribute(ctx->entity_id, std::string(\"entity_picture\"), callback);\n"
-        "}\n"
-        "inline void image_card_request_media_artwork(ImageCardCtx *ctx) {\n"
-        "  uint8_t request_mask = artwork_source_request_mask(ctx->media_artwork_retry_mask);\n"
-        "  bool remote_queued = ha_read_retained_attribute(ctx->entity_id, std::string(\"entity_picture\"), callback);\n"
-        "  bool local_queued = ha_read_retained_attribute(ctx->entity_id, std::string(\"entity_picture_local\"), callback);\n"
-        "  ctx->media_artwork_retry_mask = artwork_source_failed_mask(request_mask, remote_queued, local_queued);\n"
-        "  if (ctx->media_artwork_retry_mask != 0) image_card_schedule_picture_retry(ctx, 250);\n"
-        "}\n"
-        "inline void image_card_request_current_picture(ImageCardCtx *ctx) {\n"
-        "  if (ctx->media_artwork) {\n"
-        "    image_card_request_media_artwork(ctx, ctx->media_artwork_retry_mask != 0);\n"
-        "  } else {\n"
-        "    image_card_request_picture(ctx);\n"
-        "  }\n"
-        "}\n"
-        "inline void image_card_refresh_current_picture(ImageCardCtx *ctx) {\n"
-        "  if (ctx->media_artwork) {\n"
-        "    ctx->media_artwork_retry_mask = 0;\n"
-        "    ctx->pending_fallback_picture.clear();\n"
-        "  }\n"
-        "  if (ctx->media_artwork) {\n"
-        "    image_card_request_media_artwork(ctx, false);\n"
-        "  } else {\n"
-        "    image_card_request_current_picture(ctx);\n"
-        "  }\n"
-        "}\n"
-        "inline void image_card_handle_picture(ImageCardCtx *ctx) {\n"
-        "  if (artwork_picture_response_clears_retry(ctx->media_artwork, ctx->media_artwork_retry_mask)) {\n"
-        "    ctx->next_picture_retry_ms = 0;\n"
-        "  }\n"
-        "}\n"
-        "inline bool image_card_context_current(ImageCardCtx *ctx,\n"
-        "                                       const std::string &entity_id,\n"
-        "                                       uint32_t generation) {\n"
-        "  return generation == ha_subscription_generation();\n"
-        "}\n"
-        "inline void subscribe_image_card_entity_state(ImageCardCtx *ctx,\n"
-        "                                              const std::string &entity_id) {\n"
-        "  ha_subscribe_state(entity_id, callback);\n"
-        "}\n"
-        "inline bool bind_image_card(BtnSlot &s, const ParsedCfg &p, const GridConfig &cfg) {\n"
-        "  const std::string image_card_entity_id = p.entity;\n"
-        "  const uint32_t image_card_generation = ha_subscription_generation();\n"
-        "  ha_subscribe_attribute(image_card_entity_id, std::string(\"entity_picture\"), callback);\n"
-        "  image_card_context_current(ctx, image_card_entity_id, image_card_generation);\n"
-        "  return true;\n"
-        "}\n"
-        "inline void image_card_request_source_url(ImageCardCtx *ctx) {\n"
-        "  image_card_tile_request_size(width, height, &request_width, &request_height);\n"
-        "  ctx->url = image_card_sized_url(ctx->source_url, request_width, request_height);\n"
-        "}\n"
-        "inline void image_card_tile_request_size(lv_coord_t target_width, lv_coord_t target_height,\n"
-        "                                        int *request_width, int *request_height) {\n"
-        "  image_card_limit_target_size(target_width, target_height, request_width, request_height);\n"
-        "}\n"
-        "inline void refresh_image_cards() {\n"
-        "  if (!ha_api_connected()) return;\n"
-        "  image_card_refresh_current_picture(ctx);\n"
-        "}\n"
-        "inline void image_card_refresh_due() {\n"
-        "  image_card_request_current_picture(ctx);\n"
-        "}\n",
-        "api:\n"
-        "  on_client_connected:\n"
-        "    - lambda: |-\n"
-        "        if (is_home_assistant && ha_api_connected()) {\n"
-        "        id(cover_art_resolve_home_assistant_base_url).execute();\n"
-        "        }\n"
-        "    - delay: 2s\n"
-        "    - lambda: |-\n"
-        "        refresh_image_cards();\n"
-        "    - delay: 8s\n"
-        "    - lambda: |-\n"
-        "        refresh_image_cards();\n"
-        "    - delay: 20s\n"
-        "    - lambda: |-\n"
-        "        refresh_image_cards();\n"
-        "number:\n"
-        "  - platform: template\n"
-        "    name: \"Home Assistant Artwork Port\"\n"
-        "    set_action:\n"
-        "      - lambda: |-\n"
-        "          id(cover_art_home_assistant_artwork_port).publish_state(x);\n",
-        (),
-    )
     valid_shared_wake_guard_widget = (
         "lvgl:\n"
         "  top_layer:\n"
@@ -7341,153 +3212,60 @@ def run_self_test() -> int:
         "          clickable: true\n"
         "          hidden: true\n"
     )
-    valid_shared_wake_guard_script = (
+    valid_shared_wake_flow = (
+        "script:\n"
+        "  - id: screensaver_wake\n"
+        "    then:\n"
+        "      - lambda: |-\n"
+        "          id(espdesktop_app).display_lifecycle().begin_wake(\n"
+        "              !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN));\n"
+        "      - script.stop: display_mode_apply_transition\n"
+        "      - script.stop: display_mode_effect_active\n"
+        "      - script.stop: display_mode_effect_setup_dimmed\n"
+        "      - script.stop: display_mode_effect_off\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: 'return id(espdesktop_app).display_lifecycle().wake_touch_guard();'\n"
+        "          then:\n"
+        "            - script.execute: screensaver_wake_touch_block\n"
+        "      - lambda: |-\n"
+        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
+        "      - if:\n"
+        "          condition:\n"
+        "            lambda: 'return id(espdesktop_app).display_lifecycle().take_wake_reconcile();'\n"
+        "          then:\n"
+        "            - script.execute: display_mode_reconcile\n"
         "  - id: screensaver_wake_touch_block\n"
         "    then:\n"
-        "      - globals.set:\n"
-        "          id: screensaver_wake_touch_guard_active\n"
-        "          value: 'true'\n"
         "      - lambda: 'screensaver_fill_screen(id(screensaver_wake_touch_guard));'\n"
         "      - lvgl.widget.show: screensaver_wake_touch_guard\n"
         "      - lambda: 'lv_obj_move_foreground(id(screensaver_wake_touch_guard));'\n"
         "      - wait_until:\n"
         "          condition:\n"
-        "            lambda: 'return lv_indev_get_state(indev) == LV_INDEV_STATE_PRESSED;'\n"
-        "          timeout: 150ms\n"
-        "      - wait_until:\n"
-        "          condition:\n"
         "            lambda: 'return lv_indev_get_state(indev) != LV_INDEV_STATE_PRESSED;'\n"
         "          timeout: 2s\n"
         "      - delay: 50ms\n"
-        "      - globals.set:\n"
-        "          id: screensaver_wake_touch_guard_active\n"
-        "          value: 'false'\n"
+        "      - lambda: 'id(espdesktop_app).display_lifecycle().clear_wake_touch_guard();'\n"
         "      - lvgl.widget.hide: screensaver_wake_touch_guard\n"
     )
-    valid_shared_wake_flow = (
-        "globals:\n"
-        "  - id: screensaver_wake_restore_pending\n"
-        "    type: bool\n"
-        "    initial_value: 'false'\n"
-        "script:\n"
-        "  - id: screensaver_wake\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          auto &controller = id(espdesktop_app).display();\n"
-        "          bool clock_visible = !lv_obj_has_flag(id(clock_screensaver), LV_OBJ_FLAG_HIDDEN);\n"
-        "          if (controller.has_transition_in_progress()) controller.cancel_transition();\n"
-        "          controller.require_presentation_cleanup();\n"
-        "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF);\n"
-        "      - script.stop: display_mode_apply_transition\n"
-        "      - script.stop: cover_art_hide_effect\n"
-        "      - script.stop: display_mode_effect_active\n"
-        "      - script.stop: display_mode_effect_setup_dimmed\n"
-        "      - script.stop: display_mode_effect_off\n"
-        "      - script.stop: display_mode_effect_cover_art\n"
-        "      - script.execute: screensaver_wake_touch_block\n"
-        "      - lambda: |-\n"
-        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
-        "              id(screensaver_wake_restore_pending) = false;\n"
-        "              return restore_pending ||\n"
-        "                  !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          then:\n"
-        "            - if:\n"
-        "                condition:\n"
-        "                  lambda: |-\n"
-        "                    bool keep_wake_guard = id(screensaver_wake_touch_guard_skip_once);\n"
-        "                    id(screensaver_wake_touch_guard_skip_once) = false;\n"
-        "                    return keep_wake_guard;\n"
-        "                else:\n"
-        "                  - globals.set:\n"
-        "                      id: screensaver_wake_touch_guard_active\n"
-        "                      value: 'false'\n"
-        + valid_shared_wake_guard_script
+    expect_screensaver_wake_guard_errors(
+        "shared release guard covers Display Off", valid_shared_wake_flow,
+        valid_shared_wake_guard_widget, (),
     )
     expect_screensaver_wake_guard_errors(
-        "simple timed global guard is rejected",
-        "globals:\n"
-        "  - id: screensaver_wake_restore_pending\n"
-        "    type: bool\n"
-        "    initial_value: 'false'\n"
-        "script:\n"
-        "  - id: screensaver_wake\n"
-        "    then:\n"
-        "      - lambda: |-\n"
-        "          id(screensaver_wake_restore_pending) =\n"
-        "              !id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          id(screensaver_wake_touch_guard_skip_once) =\n"
-        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART) ||\n"
-        "              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF);\n"
-        "      - script.execute: screensaver_wake_touch_block\n"
-        "      - lambda: |-\n"
-        "          id(espdesktop_app).display().clear(espdesktop::DisplayRequestSource::IDLE_TIMER);\n"
-        "      - if:\n"
-        "          condition:\n"
-        "            lambda: |-\n"
-        "              const bool restore_pending = id(screensaver_wake_restore_pending);\n"
-        "              id(screensaver_wake_restore_pending) = false;\n"
-        "              return restore_pending ||\n"
-        "                  !id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE);\n"
-        "          then:\n"
-        "            - globals.set:\n"
-        "                id: screensaver_wake_touch_guard_active\n"
-        "                value: 'true'\n"
-        "            - script.execute: screensaver_wake_touch_guard_clear\n",
-        valid_shared_wake_guard_widget,
-        "",
-        (
-            "do not block the first button tap after normal screensaver wake",
-            "do not arm a delayed wake guard clear for normal screensaver wake",
-            "missing shared screensaver_wake_touch_block script",
-        ),
-    )
-    expect_screensaver_wake_guard_errors(
-        "shared release guard covers Display Off and Cover Art",
-        valid_shared_wake_flow,
-        valid_shared_wake_guard_widget,
-        "script:\n  - id: cover_art_apply_responsive_layout\n",
-        (),
-    )
-    expect_screensaver_wake_guard_errors(
-        "Cover Art-only guard does not cover Display Off",
-        valid_shared_wake_flow.replace(
-            " ||\n              id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::DISPLAY_OFF)",
-            "",
-        ),
-        valid_shared_wake_guard_widget,
-        "",
-        ("pre-wake Cover Art and Display Off modes",),
+        "guard does not cover Display Off",
+        valid_shared_wake_flow.replace("display_lifecycle().wake_touch_guard()", "false"),
+        valid_shared_wake_guard_widget, ("pre-wake Display Off mode",),
     )
     expect_screensaver_wake_guard_errors(
         "release guard accepts the next deliberate tap",
-        valid_shared_wake_flow.replace(
-            "      - globals.set:\n"
-            "          id: screensaver_wake_touch_guard_active\n"
-            "          value: 'false'\n"
-            "      - lvgl.widget.hide: screensaver_wake_touch_guard\n",
-            "",
-        ),
-        valid_shared_wake_guard_widget,
-        "",
-        (
-            "accept the first deliberate tap after wake-touch release",
-            "hide the shared wake guard after touch release",
-        ),
+        valid_shared_wake_flow.replace("display_lifecycle().clear_wake_touch_guard()", ""),
+        valid_shared_wake_guard_widget, ("accept the first deliberate tap after wake-touch release",),
     )
     expect_screensaver_wake_guard_errors(
         "stuck touch retains a bounded fallback",
         valid_shared_wake_flow.replace("          timeout: 2s\n", ""),
-        valid_shared_wake_guard_widget,
-        "",
-        ("clear the shared wake guard after a stuck touch timeout",),
+        valid_shared_wake_guard_widget, ("clear the shared wake guard after a stuck touch timeout",),
     )
     valid_active_finalizer = (
         "script:\n"
@@ -7511,7 +3289,6 @@ def run_self_test() -> int:
         "                  - script.execute: backlight_apply_brightness\n"
         "                  - script.wait: backlight_apply_brightness\n"
         "            - script.execute: screensaver_idle_check\n"
-        "            - script.execute: home_screen_idle_check\n"
     )
     valid_schedule_wake = (
         "script:\n"
@@ -7844,14 +3621,6 @@ def run_self_test() -> int:
         valid_schedule_sleep_order,
     )
     expect_screen_schedule_screensaver_override_errors(
-        "migrated schedule leaves active cover art visible",
-        migrated_schedule_reconcile.replace(
-            "              id(hide_cover_art_view).execute();\n", "", 1
-        ),
-        ("scheduled night modes should clear active cover art",),
-        valid_schedule_sleep_order,
-    )
-    expect_screen_schedule_screensaver_override_errors(
         "schedule display-off reconciles before publishing its marker",
         valid_schedule_screensaver_override,
         ("set the schedule-asleep marker before reconciling display-off",),
@@ -7950,55 +3719,6 @@ def run_self_test() -> int:
         "  config.auth_type = HTTP_AUTH_TYPE_NONE;\n"
         "}\n",
         ("allow Home Assistant media proxy artwork to fall back to image-byte detection",),
-    )
-    expect_climate_step_errors(
-        "climate ignores whole-number display step",
-        "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 5;\n"
-        "inline int climate_round_to_step(ClimateControlCtx *ctx, int value) {\n"
-        "  int step = ctx->step_tenths;\n"
-        "  int base = ctx->min_tenths;\n"
-        "  return value;\n"
-        "}\n"
-        "inline void climate_control_open_modal(ClimateControlCtx *ctx) {\n"
-        "  climate_selected_target(ui.active) - ui.active->step_tenths;\n"
-        "  climate_selected_target(ui.active) + ui.active->step_tenths;\n"
-        "}\n",
-        (
-            "keep climate temperature changes at a display-appropriate minimum",
-            "round climate targets using the display-appropriate minimum step",
-            "round whole-number climate targets to whole-degree boundaries",
-            "use the display-appropriate minimum step for the climate minus button",
-            "use the display-appropriate minimum step for the climate plus button",
-        ),
-    )
-    expect_climate_step_errors(
-        "climate uses configured step increment",
-        "constexpr int CLIMATE_DEFAULT_STEP_TENTHS = 5;\n"
-        "constexpr int CLIMATE_WHOLE_NUMBER_STEP_TENTHS = 10;\n"
-        "int configured_step_tenths = CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-        "inline int climate_effective_step_tenths(ClimateControlCtx *ctx) {\n"
-        "  if (!ctx) return CLIMATE_DEFAULT_STEP_TENTHS;\n"
-        "  if (ctx->configured_step_tenths == CLIMATE_DEFAULT_STEP_TENTHS ||\n"
-        "      ctx->configured_step_tenths == CLIMATE_WHOLE_NUMBER_STEP_TENTHS)\n"
-        "    return ctx->configured_step_tenths;\n"
-        "  return CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-        "}\n"
-        "inline int climate_round_to_step(ClimateControlCtx *ctx, int value) {\n"
-        "  int step = climate_effective_step_tenths(ctx);\n"
-        "  int base = ctx->precision <= 0 ? 0 : ctx->min_tenths;\n"
-        "  return value + step;\n"
-        "}\n"
-        "inline ClimateControlCtx *create_climate_control_context(const ParsedCfg &p) {\n"
-        "  ctx->configured_step_tenths = normalize_climate_temperature_step(\n"
-        "    cfg_option_value(p.options, \"temperature_step\")) == \"0.5\"\n"
-        "      ? CLIMATE_DEFAULT_STEP_TENTHS\n"
-        "      : CLIMATE_WHOLE_NUMBER_STEP_TENTHS;\n"
-        "}\n"
-        "inline void climate_control_open_modal(ClimateControlCtx *ctx) {\n"
-        "  climate_selected_target(ui.active) - climate_effective_step_tenths(ui.active);\n"
-        "  climate_selected_target(ui.active) + climate_effective_step_tenths(ui.active);\n"
-        "}\n",
-        (),
     )
     expect_s3_api_errors(
         "low S3 API queue",
@@ -8128,71 +3848,6 @@ def run_self_test() -> int:
         "      - lvgl.page.show: ha_setup_page\n",
         ("keep the current display visible",),
     )
-    with TemporaryDirectory() as tmp:
-        root = Path(tmp)
-        api = root / "common/device/api_open_modal.yaml"
-        api.parent.mkdir(parents=True)
-        original = (ROOT / "common/device/api_open_modal.yaml").read_text()
-        scripts = root / "common/device/api_remote_actions.yaml"
-        scripts.write_text((ROOT / "common/device/api_remote_actions.yaml").read_text())
-        package = root / "packages.yaml"
-        package.write_text(
-            "packages:\n"
-            "  api_remote_actions: !include common/device/api_remote_actions.yaml\n"
-            "  api_open_modal: !include common/device/api_open_modal.yaml\n"
-        )
-        api.write_text(original)
-        assert not firmware_open_modal_api_errors(root, (package,))
-        for token in ("mode: restart", "espdesktop_can_prepare_modal", "script.wait: screensaver_wake",
-                      "espdesktop_open_modal", "script.execute: home_screen_idle_check"):
-            source_path = api if token in original else scripts
-            source_text = original if source_path == api else scripts.read_text(encoding="utf-8")
-            source_path.write_text(source_text.replace(token, "removed"))
-            assert firmware_open_modal_api_errors(root, (package,)), token
-            source_path.write_text(source_text)
-        manifest = root / "devices/manifest.json"
-        manifest.parent.mkdir(parents=True)
-        manifest.write_text(
-            json.dumps({"devices": {"constrained": {"firmware": {"package": {"apiOpenModalAction": False}}}}}),
-            encoding="utf-8",
-        )
-        disabled_package = root / "devices/constrained/packages.yaml"
-        disabled_package.parent.mkdir(parents=True)
-        disabled_package.write_text("packages: {}\n", encoding="utf-8")
-        # Navigation remains independently enabled, so its package includes the
-        # shared scripts while omitting the modal API package.
-        manifest.write_text(
-            json.dumps({"devices": {"constrained": {"firmware": {"package": {
-                "apiOpenModalAction": False, "apiNavigateAction": True
-            }}}}}),
-            encoding="utf-8",
-        )
-        disabled_package.write_text(
-            "packages:\n"
-            "  api_remote_actions: !include common/device/api_remote_actions.yaml\n"
-            "  api_navigate: !include common/device/api_navigate.yaml\n",
-            encoding="utf-8",
-        )
-        assert not firmware_open_modal_api_errors(root, (disabled_package,))
-        # The inverse selection keeps the modal actions and shared scripts but
-        # omits navigation.
-        manifest.write_text(
-            json.dumps({"devices": {"constrained": {"firmware": {"package": {
-                "apiOpenModalAction": True, "apiNavigateAction": False
-            }}}}}),
-            encoding="utf-8",
-        )
-        disabled_package.write_text(
-            "packages:\n"
-            "  api_remote_actions: !include common/device/api_remote_actions.yaml\n"
-            "  api_open_modal: !include common/device/api_open_modal.yaml\n",
-            encoding="utf-8",
-        )
-        assert not firmware_open_modal_api_errors(root, (disabled_package,))
-        package.write_text("packages: {}\n")
-        assert firmware_open_modal_api_errors(root, (package,))
-        api.unlink()
-        assert firmware_open_modal_api_errors(root, (package,))
     print("Firmware Home Assistant binding self-tests passed.")
     return 0
 

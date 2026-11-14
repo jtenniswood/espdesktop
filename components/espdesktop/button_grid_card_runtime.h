@@ -27,15 +27,11 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
   switch (type) {
     case Type::SWITCH:
     case Type::LIGHT_SWITCH: return Family::TOGGLE;
-    case Type::ACTION: return Family::ACTION;
     case Type::VACUUM: return Family::VACUUM;
     case Type::LAWN_MOWER: return Family::MOWER;
     case Type::ALARM: return Family::ALARM;
     case Type::ALARM_ACTION: return Family::ALARM_ACTION;
     case Type::TIMER: return Family::TIMER;
-    case Type::CALENDAR:
-    case Type::CLOCK:
-    case Type::TIMEZONE: return Family::DATE_TIME;
     case Type::CLIMATE:
     case Type::CLIMATE_CONTROL: return Family::CLIMATE;
     case Type::COVER: return Family::COVER;
@@ -54,15 +50,14 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::LIGHT_CONTROL: return Family::LIGHT_CONTROL;
     case Type::LIGHT_TEMPERATURE: return Family::LIGHT_TEMPERATURE;
     case Type::MEDIA: return Family::MEDIA;
-    case Type::OPTION_SELECT: return Family::OPTION_SELECT;
     case Type::PUSH: return Family::PUSH;
-    case Type::COMPANION: return Family::COMPANION;
+    case Type::COMPANION:
+    case Type::COMPANION_MAC_LOCK: return Family::COMPANION;
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;
     case Type::SUBPAGE: return Family::SUBPAGE;
     case Type::WEATHER:
     case Type::WEATHER_FORECAST: return Family::WEATHER;
-    case Type::WEBHOOK: return Family::WEBHOOK;
     default: return Family::UNKNOWN;
   }
 }
@@ -179,7 +174,6 @@ inline bool card_runtime_main_click_opens_modal(
     case Driver::MEDIA_GROUP:
     case Driver::MEDIA_VOLUME:
     case Driver::MEDIA_COVER_ART:
-    case Driver::OPTION_SELECT:
       return true;
     case Driver::FAN:
       return context.runtime.type == Type::FAN_PRESET;
@@ -610,6 +604,20 @@ inline const char *card_runtime_lawn_mower_default_icon_name(const std::string &
   return "Robot Mower";
 }
 
+// Identify old Mac audio cards without retiring the shared slider format.
+inline bool card_runtime_is_mac_audio(const std::string &type, const std::string &entity) {
+  return type == "slider" &&
+      (entity == "media.output_volume" || entity == "media.input_volume" ||
+       entity == "media.output_mute" || entity == "media.input_mute");
+}
+
 inline bool card_runtime_type_retired(const std::string &type) {
   return card_contract_type_retired(type);
+}
+
+inline std::string retired_saved_card_type(const std::string &type, const std::string &entity) {
+  if (type == "companion" && entity.rfind("window.", 0) == 0) return "companion_window";
+  if (type == "companion" && entity.rfind("webapp.", 0) == 0) return "companion_webapp";
+  if (card_runtime_is_mac_audio(type, entity)) return "companion_audio";
+  return card_runtime_type_retired(type) ? type : "";
 }

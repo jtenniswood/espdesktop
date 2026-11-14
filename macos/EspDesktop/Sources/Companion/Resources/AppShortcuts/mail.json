@@ -3,60 +3,80 @@
   "appId": "com.apple.mail",
   "label": "Mail",
   "catalog": false,
+  "defaultShortcutIds": ["0", "7", "8", "4", "17", "15", "18", "9"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Start a new email",
+      "label": "New Email",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Email Plus"
     },
     {
       "id": "1",
-      "label": "Open a new Mail viewer window",
+      "label": "New Window",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "New Window"
     },
     {
       "id": "2",
-      "label": "Open a new tab in the Mail viewer window",
+      "label": "New Tab",
       "shortcut": "option+shift+command+n",
-      "icon": "Tab"
+      "icon": "New Tab"
     },
     {
       "id": "3",
-      "label": "Show the Reply-To address field in your email",
+      "label": "Reply-To",
       "shortcut": "option+command+r",
-      "icon": "Message Video"
+      "icon": "Email"
     },
     {
       "id": "4",
-      "label": "Get new emails",
+      "label": "Check Mail",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Email Sync"
     },
     {
       "id": "5",
-      "label": "Send emails",
+      "label": "Send",
       "shortcut": "shift+command+d",
-      "icon": "Application"
+      "icon": "Send"
     },
     {
       "id": "6",
-      "label": "Unsend email",
+      "label": "Undo Send",
       "shortcut": "command+z",
-      "icon": "Application"
+      "icon": "Undo"
     },
     {
       "id": "7",
-      "label": "Reply to the selected email",
+      "label": "Reply",
       "shortcut": "command+r",
-      "icon": "Message Video"
+      "icon": "Reply"
     },
     {
       "id": "8",
-      "label": "Archive emails",
+      "label": "Archive",
       "shortcut": "control+command+a",
-      "icon": "Application"
+      "icon": "Archive"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "9", "label": "Attach files to your email", "shortcut": "scoped.command+shift+a", "icon": "Paperclip"},
+    {"id": "10", "label": "Paste text into your email as quotation", "shortcut": "scoped.command+shift+v", "icon": "Paste"},
+    {"id": "11", "label": "Append selected emails to your email", "shortcut": "scoped.command+option+i", "icon": "Email"},
+    {"id": "12", "label": "Show Bcc address field in your email", "shortcut": "scoped.command+option+b", "icon": "Email"},
+    {"id": "13", "label": "Erase junk mail", "shortcut": "scoped.command+option+j", "icon": "Email"},
+    {"id": "14", "label": "Reply All to selected email", "shortcut": "scoped.command+shift+r", "icon": "Reply"},
+    {"id": "15", "label": "Forward selected email", "shortcut": "scoped.command+shift+f", "icon": "Email"},
+    {"id": "16", "label": "Redirect selected email", "shortcut": "scoped.command+shift+e", "icon": "Email"},
+    {"id": "17", "label": "Enable or disable message filter", "shortcut": "scoped.command+l", "icon": "Search"},
+    {"id": "18", "label": "Mark emails as read or unread", "shortcut": "scoped.command+shift+u", "icon": "Message Unread"},
+    {"id": "19", "label": "Move selected emails to predicted mailbox", "shortcut": "scoped.command+control+m", "icon": "Inbox"},
+    {"id": "20", "label": "Move selected emails to Junk mailbox", "shortcut": "scoped.command+shift+j", "icon": "Inbox"},
+    {"id": "21", "label": "Apply active Mail rules", "shortcut": "scoped.command+control+l", "icon": "Email"},
+    {"id": "22", "label": "Format current email as Plain Text or Rich", "shortcut": "scoped.command+shift+t", "icon": "Format Size"},
+    {"id": "23", "label": "Show Mail viewer window", "shortcut": "scoped.command+0", "icon": "Email"},
+    {"id": "24", "label": "Show Mail Activity window", "shortcut": "scoped.command+control+0", "icon": "Email"},
+    {"id": "25", "label": "Close all Mail windows", "shortcut": "scoped.command+option+w", "icon": "Email"}
   ]
 }
