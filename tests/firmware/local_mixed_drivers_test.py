@@ -84,11 +84,12 @@ production += '\n}\n'
 checks = r'''
 int main() {
  using namespace espdesktop::cards;
- for (int percent : {0, 1, 33, 34, 66, 67, 100}) {
-  const char *expected = percent <= 33 ? "Volume Low" :
-      percent <= 66 ? "Volume Medium" : "Volume High";
-  assert(std::strcmp(slider_speaker_icon_name(percent), expected) == 0);
- }
+ assert(std::strcmp(slider_speaker_icon_name(0), "Volume Low") == 0);
+ assert(std::strcmp(slider_speaker_icon_name(24), "Volume Low") == 0);
+ assert(std::strcmp(slider_speaker_icon_name(25), "Volume Medium") == 0);
+ assert(std::strcmp(slider_speaker_icon_name(50), "Volume Medium") == 0);
+ assert(std::strcmp(slider_speaker_icon_name(51), "Volume High") == 0);
+ assert(std::strcmp(slider_speaker_icon_name(100), "Volume High") == 0);
  using Driver = card_runtime::CardDriverId;
  Context c{{Driver::COMPANION}};
  ParsedCfg config;
