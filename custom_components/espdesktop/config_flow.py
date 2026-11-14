@@ -72,10 +72,10 @@ class EspDesktopConfigFlow(config_entries.ConfigFlow, domain="espdesktop"):
                 port = user_input["port"]
                 if previous and previous.unique_id != fingerprint:
                     return self.async_abort(reason="wrong_display")
-                if self.unique_id and self.unique_id != fingerprint:
+                if step == "discovery_confirm" and self.unique_id != fingerprint:
                     return self.async_abort(reason="wrong_display")
-                await self.async_set_unique_id(fingerprint)
                 if previous is None:
+                    await self.async_set_unique_id(fingerprint)
                     self._abort_if_unique_id_configured()
                 panel = Panel(async_get_clientsession(self.hass), host, port, fingerprint)
                 token = await panel.pair(code, fingerprint)
