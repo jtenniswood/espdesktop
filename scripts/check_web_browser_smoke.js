@@ -4595,7 +4595,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const appCard = page.locator('.sp-main [data-slot="1"]');
     await appCard.click({ button: "right" });
     const menu = page.locator(".sp-ctx-menu");
-    assert.strictEqual(await menu.getByText("Edit App Shortcuts", { exact: true }).count(), 0,
+    assert.strictEqual(await menu.getByText("Shortcut List", { exact: true }).count(), 0,
       "the shortcut editor is available inside app subpages");
     await menu.getByText("Edit Card", { exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
@@ -4767,7 +4767,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const dialog = page.locator(".sp-settings-modal");
     const showShortcuts = async (target = shortcutCard) => {
       await target.click({ button: "right" });
-      await menu.getByText("Edit App Shortcuts", { exact: true }).click();
+      await menu.getByText("Shortcut List", { exact: true }).click();
       await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
     };
     await showShortcuts();
@@ -7264,7 +7264,7 @@ async function assertNestedCompanionPages(browser) {
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
     const folderAppCard = page.locator('.sp-main [data-slot="1"]');
     await folderAppCard.click({ button: "right" });
-    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Edit App Shortcuts", { exact: true }).count(), 0,
+    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).count(), 0,
       "ordinary folders do not have a shortcut editor");
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
@@ -7284,7 +7284,7 @@ async function assertNestedCompanionPages(browser) {
       "a nested app page uses the app that owns the inner page");
     await page.locator(".sp-settings-close").click();
     await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
-    await page.locator(".sp-ctx-menu").getByText("Edit App Shortcuts", { exact: true }).click();
+    await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).click();
     await page.locator(".sp-settings-modal").getByText("Edit App Shortcuts", { exact: true }).waitFor();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
     let rejectNext = true;
