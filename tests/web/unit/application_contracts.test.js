@@ -56,7 +56,6 @@ describe("browserless application contracts", () => {
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
     assert.match(companion, /Copy pairing code/);
-    assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
     assert.match(styles, /\.sp-delete-btn\.sp-destructive-btn\{background:var\(--danger\)/);
   });

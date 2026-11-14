@@ -50,9 +50,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-first-run .sp-toggle-row:has(input:disabled){opacity:.55}.sp-first-run .sp-toggle input:focus-visible+.sp-toggle-track{outline:2px solid var(--accent);outline-offset:2px}" +
         ".sp-first-run .sp-action-btn:disabled,.sp-first-run .sp-settings-close:disabled{opacity:.55;cursor:default}.sp-first-run .sp-setup-footer{flex-wrap:wrap;margin-top:0}.sp-setup-error{color:var(--danger)}" +
         ".sp-onboarding .sp-nav{display:none}" +
-        ".sp-connectors-config{display:flex;flex-direction:column;gap:16px}" +
         ".sp-connectors-unavailable{margin:0 2px;color:var(--text2);line-height:1.5}" +
-        ".sp-connectors-heading{margin:0 2px;font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em}" +
         ".sp-connector-status{display:flex;align-items:center;gap:8px;margin:0 0 16px;color:var(--text2);font-size:.86rem}" +
         ".sp-connector-status::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--text3);flex:0 0 auto}" +
         ".sp-connector-status-connected{color:var(--success)}" +
@@ -278,6 +276,7 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-settings-status-header{display:flex;align-items:baseline;justify-content:space-between;" +
         "gap:12px;margin:48px 2px 14px;color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}" +
         ".sp-config>.sp-settings-status-header:first-child,.sp-config>.sp-connectors-section:first-child{margin-top:10px}" +
+        ".sp-connectors-heading.sp-settings-status-header{margin-top:0}" +
         ".sp-settings-status-title{font-size:var(--text-xs);font-weight:700;text-transform:uppercase;letter-spacing:.06em}" +
         ".sp-settings-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);" +
         "z-index:180;align-items:center;justify-content:center;" +

@@ -82,7 +82,7 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   }
   const parent = element();
   feature.buildPage(parent as unknown as HTMLElement);
-  const content = parent.children[0]?.children[0];
+  const content = parent.children[0];
   if (content?.children.length !== 3 || content.children[1]?.id !== "companion-card" ||
       content.children[2]?.id !== "home-assistant-card" || companionStartsCollapsed !== false) {
     throw new Error("Connectors must show Home Assistant below the deep-linked Mac Companion card");

@@ -96,23 +96,20 @@ export function createConnectorsPageFeature(
         const page = document.createElement("div");
         page.id = "sp-connectors";
         page.className = "sp-connectors-section";
-        const config = document.createElement("div");
-        config.className = "sp-connectors-config";
         const heading = document.createElement("h1");
-        heading.className = "sp-connectors-heading sp-settings-status-title";
+        heading.className = "sp-connectors-heading sp-settings-status-header sp-settings-status-title";
         heading.textContent = "Connectors";
-        config.appendChild(heading);
+        page.appendChild(heading);
         if (companionSupported) {
             const open = requestedConnectorFromSearch(window.location.search) === "mac_companion";
-            config.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
-            config.appendChild(buildHomeAssistantCard());
+            page.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
+            page.appendChild(buildHomeAssistantCard());
         } else {
             const message = document.createElement("p");
             message.className = "sp-connectors-unavailable";
             message.textContent = "No external connectors are available on this display.";
-            config.appendChild(message);
+            page.appendChild(message);
         }
-        page.appendChild(config);
         parent.appendChild(page);
     }
     function start(): void {
