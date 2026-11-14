@@ -86,8 +86,10 @@ bool CardAssetService::stop() {
 }
 
 void CardAssetService::loop() {
-  StateLock lock(this);
-  if (!running_ || delete_running_) return;
+  // HTTP image deletion can be waiting for the application loop to process a
+  // configuration transaction. Recovery can wait until the next iteration.
+  StateLock lock(this, false);
+  if (!lock || !running_ || delete_running_) return;
   const uint32_t now = esphome::millis();
   if (!restore_session_.empty() && !restore_recovery_needed_ && !restore_committed_ &&
       now - restore_session_last_activity_ms_ >= RESTORE_SESSION_IDLE_TIMEOUT_MS) {

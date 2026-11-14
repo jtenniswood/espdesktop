@@ -143,24 +143,25 @@ class CardAssetService {
 #ifdef USE_ESP32
   class StateLock {
    public:
-    explicit StateLock(CardAssetService *service) : service_(service) {
+    explicit StateLock(CardAssetService *service, bool wait = true) : service_(service) {
       if (service_ != nullptr && service_->state_mutex_ != nullptr) {
-        xSemaphoreTakeRecursive(service_->state_mutex_, portMAX_DELAY);
+        acquired_ = xSemaphoreTakeRecursive(service_->state_mutex_, wait ? portMAX_DELAY : 0) != 0;
       }
     }
     ~StateLock() {
-      if (service_ != nullptr && service_->state_mutex_ != nullptr) {
-        xSemaphoreGiveRecursive(service_->state_mutex_);
-      }
+      if (acquired_) xSemaphoreGiveRecursive(service_->state_mutex_);
     }
+    explicit operator bool() const { return acquired_; }
 
    private:
     CardAssetService *service_{nullptr};
+    bool acquired_{false};
   };
 #else
   class StateLock {
    public:
-    explicit StateLock(CardAssetService *) {}
+    explicit StateLock(CardAssetService *, bool = true) {}
+    explicit operator bool() const { return true; }
   };
 #endif
 
