@@ -1,7 +1,6 @@
 #pragma once
 
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
-#include <map>
 #include "esphome/components/api/api_server.h"
 #include "esphome/components/button/button.h"
 
@@ -69,15 +68,11 @@ class NativeCardButtons {
             ? (card.config.type == "subpage" ? "Subpage" :
                companion_default_action_label(card.config.entity, card.config.sensor, &mac))
             : card.config.label;
-        // Home Assistant uses this name and the stable key to track the card.
-        // Only disambiguate names when multiple cards would otherwise match.
         if (name.empty() || name == card.config.entity) name = "Mac action";
+        // A replacement card gets a fresh identity even if its label is reused.
+        name += " · " + card.id.substr(0, 8);
         entries.push_back({card.id, std::move(name), key});
       }
-      std::map<std::string, size_t> labels;
-      for (const auto &entry : entries) ++labels[entry.name];
-      for (auto &entry : entries)
-        if (labels[entry.name] > 1) entry.name += " · " + entry.id.substr(0, 8);
       std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b) { return a.key < b.key; });
       for (size_t i = 0; i < entries.size();) {
         size_t end = i + 1;

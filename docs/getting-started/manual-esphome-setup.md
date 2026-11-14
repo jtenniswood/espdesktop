@@ -183,4 +183,4 @@ If ESPHome cannot access the USB port directly, choose **Manual download** inste
 
 Because the package uses `refresh: 1sec`, ESPHome checks GitHub for EspDesktop updates each time it compiles. To update manually, open ESPHome Device Builder and run **Install** again. If the display is online, use OTA so you do not need to reconnect USB.
 
-The firmware has no native Home Assistant API. ESPHome remains the build and OTA tool; the display is configured through its own web page.
+Configure the display through its web page. The 4-inch 4848S040 can expose selected cards through the [Home Assistant ESPHome integration](/getting-started/home-assistant-actions).
