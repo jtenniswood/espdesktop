@@ -24,15 +24,13 @@ inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
   const auto &reading = readings[tile.service];
   const int64_t remaining = static_cast<int64_t>(reading.resets_at) - now;
   const bool clock_ready = now > 1700000000;
-  const int64_t age = clock_ready ? now - reading.observed_at : 0;
-  const bool stale = !connected || (clock_ready && (remaining <= 0 || age > 15 * 60));
+  const int64_t age = now - reading.observed_at;
+  const bool reset_known = connected && clock_ready && remaining > 0 && age <= 15 * 60;
   std::string value = espdesktop_i18n("Unavailable");
   std::string detail;
   if (reading.observed_at) {
     value = std::to_string(reading.remaining_percent) + espdesktop_i18n("% left");
-    if (stale) {
-      detail = espdesktop_i18n("Out of date");
-    } else if (clock_ready) {
+    if (reset_known) {
       detail = espdesktop_i18n_key("token_usage_resets");
       const auto total_hours = remaining / seconds_per_hour;
       const auto days = total_hours / hours_per_day;
