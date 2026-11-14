@@ -12,11 +12,6 @@ struct WeeklyUsageReading: Codable, Equatable, Sendable {
             && Double(observedAt) <= Date().timeIntervalSince1970 + 60
     }
 
-    func isCurrent(at date: Date = .now) -> Bool {
-        let now = date.timeIntervalSince1970
-        return now < Double(resetsAt) && now - Double(observedAt) < 15 * 60
-    }
-
     func wireValue(service: String) -> [String: Any] {
         ["service": service, "remainingPercent": remainingPercent,
          "resetsAt": resetsAt, "observedAt": observedAt]

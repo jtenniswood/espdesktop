@@ -128,22 +128,19 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
-    @Published private(set) var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
-    @Published private(set) var openCodeGoUsage: TokenUsage.OpenCodeGoUsage?
+    private var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
+    private var openCodeGoUsage: TokenUsage.OpenCodeGoUsage?
     private var lastOpenCodeGoUsageAttempt = Date.distantPast
 
-    @Published private(set) var claudeAccount = TokenUsage.ClaudeAccount.checking
-    @Published private(set) var claudeUsage: WeeklyUsageReading?
-    @Published private(set) var codexUsage: WeeklyUsageReading?
-    @Published private(set) var didCheckCodexUsage = false
+    private var claudeAccount = TokenUsage.ClaudeAccount.checking
+    private var claudeUsage: WeeklyUsageReading?
+    private var codexUsage: WeeklyUsageReading?
     private var lastClaudeUsageAttempt = Date.distantPast
     private var lastCodexUsageAttempt = Date.distantPast
     private var tokenUsageTask: Task<Void, Never>?
     private var tokenUsageDisplays: [CompanionDisplay] {
         connectedDisplays.filter { $0.connection.supportsTokenUsage }
     }
-
-    var tokenUsageDisplayConnected: Bool { !tokenUsageDisplays.isEmpty }
 
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
 
@@ -832,7 +829,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private func updateTokenUsageTask() {
-        guard tokenUsageDisplayConnected else {
+        guard !tokenUsageDisplays.isEmpty else {
             tokenUsageTask?.cancel()
             tokenUsageTask = nil
             return
@@ -851,7 +848,6 @@ final class CompanionStore: NSObject, ObservableObject {
             let reading = await TokenUsage.readCodex()
             guard !Task.isCancelled else { return }
             lastCodexUsageAttempt = .now
-            didCheckCodexUsage = true
             if let reading {
                 codexUsage = reading
                 for display in tokenUsageDisplays { publishTokenUsage(to: display) }

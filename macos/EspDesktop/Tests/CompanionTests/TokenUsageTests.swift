@@ -40,15 +40,6 @@ final class TokenUsageTests: XCTestCase {
         ])
     }
 
-    func testWeeklyReadingExpiresAfterFifteenMinutesOrAtReset() {
-        let reading = WeeklyUsageReading(remainingPercent: 41, resetsAt: 2_000, observedAt: 1_000)
-        XCTAssertTrue(reading.isCurrent(at: Date(timeIntervalSince1970: 1_899)))
-        XCTAssertFalse(reading.isCurrent(at: Date(timeIntervalSince1970: 1_900)))
-
-        let resetting = WeeklyUsageReading(remainingPercent: 41, resetsAt: 1_100, observedAt: 1_000)
-        XCTAssertFalse(resetting.isCurrent(at: Date(timeIntervalSince1970: 1_100)))
-    }
-
     func testOpenCodeGoReadsWeeklyAndMonthlyPercentUsed() throws {
         let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2025-08-10T18:00:00Z"))
         let output = #"{"usage":{"rolling":{"percent":75},"weekly":{"percent":1,"resetsAt":"2025-08-13T07:59:23.880Z"},"monthly":{"percent":93,"resetsAt":"2025-09-01T00:00:00Z"}}}"#

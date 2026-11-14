@@ -427,60 +427,8 @@ struct CompanionSettings: View {
                     .padding(.vertical, 4)
                 }
                 accessibilityAndStartupSections
-                tokenUsageSettings
             }
             .formStyle(.grouped)
-        }
-    }
-
-    private var tokenUsageSettings: some View {
-        Section("Token Usage") {
-            if store.tokenUsageDisplayConnected {
-                TimelineView(.periodic(from: .now, by: 15)) { context in
-                    LabeledContent("ChatGPT", value: codexUsageStatus(at: context.date))
-                }
-                TimelineView(.periodic(from: .now, by: 15)) { context in
-                    LabeledContent("Claude", value: claudeUsageStatus(at: context.date))
-                }
-                TimelineView(.periodic(from: .now, by: 15)) { context in
-                    LabeledContent("OpenCode Go", value: openCodeGoUsageStatus(at: context.date))
-                }
-            } else {
-                Text("Connect a compatible display")
-                    .foregroundStyle(.secondary)
-            }
-        }
-    }
-
-    private func openCodeGoUsageStatus(at date: Date) -> String {
-        if let usage = store.openCodeGoUsage {
-            return usage.weekly?.isCurrent(at: date) == true || usage.monthly?.isCurrent(at: date) == true
-                ? "Ready" : "Stale"
-        }
-        switch store.openCodeGoStatus {
-        case .checking: return "Checking…"
-        case .missingLogin, .rejected: return "Connect in OpenCode"
-        case .noSubscription: return "No Go limits"
-        case .unavailable, .available: return "Unavailable"
-        }
-    }
-
-    private func codexUsageStatus(at date: Date) -> String {
-        if let reading = store.codexUsage {
-            return reading.isCurrent(at: date) ? "Ready" : "Stale"
-        }
-        return store.didCheckCodexUsage ? "Unavailable" : "Checking…"
-    }
-
-    private func claudeUsageStatus(at date: Date) -> String {
-        switch store.claudeAccount {
-        case .checking: return "Checking…"
-        case .missingCLI: return "Install Claude Code"
-        case .signedOut: return "Sign in"
-        case .apiKey, .otherProvider: return "Subscription required"
-        case .detected, .unknown:
-            guard let reading = store.claudeUsage else { return "Unavailable" }
-            return reading.isCurrent(at: date) ? "Ready" : "Stale"
         }
     }
 
