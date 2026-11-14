@@ -258,8 +258,7 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["none"], "modalOwner": "none" },
       "modes": [
         { "name": "codex", "config": {} },
-        { "name": "claude", "config": { "options": "services=claude" } },
-        { "name": "both", "config": { "options": "services=both" } }
+        { "name": "claude", "config": { "options": "services=claude" } }
       ]
     },
     "companion_mac_lock": {

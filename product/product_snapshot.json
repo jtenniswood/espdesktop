@@ -4571,12 +4571,11 @@
         "options": [
           {
             "name": "services",
-            "label": "Services",
+            "label": "Service",
             "kind": "choice",
             "values": [
               "codex",
-              "claude",
-              "both"
+              "claude"
             ],
             "defaultValue": "codex",
             "omitDefault": true
