@@ -133,6 +133,7 @@ enum TokenUsage {
         process.standardInput = input
         process.standardOutput = output
         process.standardError = FileHandle.nullDevice
+        guard fcntl(input.fileHandleForWriting.fileDescriptor, F_SETNOSIGPIPE, 1) == 0 else { return nil }
         do { try process.run() } catch { return nil }
 
         let deadline = DispatchSource.makeTimerSource(queue: .global(qos: .utility))
@@ -153,7 +154,9 @@ enum TokenUsage {
         do {
             try input.fileHandleForWriting.write(contentsOf: Data((initialize + "\n").utf8))
             var buffer = Data()
-            while let chunk = try output.fileHandleForReading.read(upToCount: 4096), !chunk.isEmpty {
+            while true {
+                let chunk = output.fileHandleForReading.availableData
+                if chunk.isEmpty { break }
                 buffer.append(chunk)
                 while let end = buffer.firstIndex(of: 10) {
                     let line = Data(buffer.prefix(upTo: end))
