@@ -1,0 +1,11 @@
+# The board supplies the PWM output. The application decides whether a light
+# ON event should wake the screen, or whether the night schedule keeps it off.
+then:
+  - lambda: |-
+      const auto response = id(espdesktop_app).display_lifecycle().backlight_on_response(
+          id(espdesktop_app).screen_schedule_preferences().enabled &&
+          !id(panel_time).now().is_valid());
+      if (response == espdesktop::BacklightOnResponse::KEEP_OFF)
+        id(backlight_force_display_off).execute();
+      else if (response == espdesktop::BacklightOnResponse::WAKE)
+        id(screensaver_wake).execute();

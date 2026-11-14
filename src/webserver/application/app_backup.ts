@@ -1,4 +1,4 @@
-import { removeRetiredPanelRecords } from "../features/retired_cards";
+import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
 import { normalizeCardIconSize } from "../model/config_primitives";
 import { syncDefaultIconSizeUi } from "./default_icon_size_ui";
@@ -7,9 +7,13 @@ import { resetAwareFetch } from "../api/reset_session";
 import type { PanelIdentityBackup } from "../model/panel_identity";
 import type { PanelIdentityFeature } from "./panel_identity";
 import { state } from "../state/app_instance";
+import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences,
+    screenSchedulePreferencesFromState } from "../model/screen_schedule_preferences";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
 import * as EspDesktopModel from "../model";
 import {
+    APP_SUBPAGE_PREFERENCE,
+    nativeAppSubpagePreference,
     normalizeBrightnessMode,
     normalizeHexColor,
     normalizeHour,
@@ -25,11 +29,11 @@ import {
     normalizeScreensaverCameraImageMode,
     normalizeScreensaverDimmedBrightness,
     normalizeTimeOfDay,
-    normalizeThemeMode,
-    normalizeThemeAutoMethod,
     parseThemeSunOffset,
 } from "../model/settings";
 import { syncThemeSettingsUi } from "./theme_settings_ui";
+import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences, displayThemePreferencesFromState,
+    legacyDisplayThemePatch } from "../model/display_theme_preferences";
 import { normalizeCardCurve } from "../model/settings";
 import { syncCardCurveUi } from "./card_curve_ui";
 import type { BackupImportController } from "../features/backup_import_controller";
@@ -44,7 +48,6 @@ import type { UiRuntimeState } from "./state";
 import type { CoreFeature } from "./core";
 import { syncLanguageSelect } from "./language_state";
 import { hasCustomNtpServers, syncNtpServerUi } from "./ntp_state";
-import { syncIdleUi } from "./idle_state";
 import { getActiveScreensaverMode } from "./screensaver_state";
 import type { ScreenScheduleStateFeature } from "./screen_schedule_state";
 import type { ScreensaverTimeoutFeature } from "./screensaver_timeout";
@@ -55,7 +58,6 @@ import type { ControlsShellFeature } from "./controls_shell";
 import type { ApplicationApiFeature } from "./api";
 import type { AppStatusPreviewFeature } from "./app_status_preview";
 import type { GridFeature } from "./grid";
-import type { ArtworkPostApiFeature } from "./artwork_post_api";
 import type { ScreenSchedulePostApiFeature } from "./screen_schedule_post_api";
 import type { ClockBarPostApiFeature } from "./clock_bar_post_api";
 import type { ConfigPersistenceFeature } from "./config_post_api";
@@ -65,8 +67,8 @@ import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../features/legacy_layout_restore";
 import { NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE, nativeBackupHasInactiveRecords } from "../features/native_panel_config";
-import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument } from "../model/native_config_backup";
-import { panelPageDocumentDepth } from "../model/panel_config_conversion";
+import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument, nativeConfigDocumentVersion } from "../model/native_config_backup";
+import { encodePanelPageDocument, panelPageDocumentDepth } from "../model/panel_config_conversion";
 
 export interface AppBackupControllers {
     readonly identity?: PanelIdentityFeature;
@@ -93,10 +95,9 @@ export interface AppBackupControllers {
     readonly requestApi: ApplicationApiFeature;
     readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
     readonly grid: Pick<GridFeature, "applyImportedButtonOrder" | "cancelMainGridSave" | "flushMainGridSave" | "serializeGrid">;
-    readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
     readonly clockBarPostApi: ClockBarPostApiFeature;
-    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls" | "syncCoverArtScreensaverUi" | "syncMediaPlayerSleepPreventionUi">;
+    readonly settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls">;
     readonly preview: Pick<PreviewRenderFeature, "render">;
     readonly buttonSettings: Pick<ButtonSettingsFeature, "render">;
 }
@@ -110,7 +111,7 @@ export interface AppBackupFeature {
 }
 
 export function createAppBackupFeature(controllers: AppBackupControllers): AppBackupFeature {
-    const { syncClockScreensaverControls, syncCoverArtScreensaverUi, syncMediaPlayerSleepPreventionUi } = controllers.settingsHelpers;
+    const { syncClockScreensaverControls } = controllers.settingsHelpers;
     const { render: renderPreview } = controllers.preview;
     const { render: renderButtonSettings } = controllers.buttonSettings;
     const { subpageEntityKeys, specialPageEntityKeys } = controllers.configPersistence;
@@ -121,26 +122,11 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
     const { syncInput,  } = controllers.statusPreview;
     const { applyImportedButtonOrder, cancelMainGridSave, serializeGrid } = controllers.grid;
     const {
-        postMediaPlayerSleepPrevention,
-        postCoverArtScreensaver,
-        postCoverArtSource,
-        postCoverArtDelay,
-        postCoverArtTrackOverlayDuration,
-    } = controllers.artworkPostApi;
-    const {
         postBrightnessMode,
         postDisplayBacklightBrightness,
         postBrightnessDawnTime,
         postBrightnessDuskTime,
-        postScreenScheduleEnabled,
-        postScreenScheduleTrigger,
-        postScreenScheduleOnHour,
-        postScreenScheduleOffHour,
-        postScreenScheduleMode,
-        postScreenScheduleWakeTimeout,
-        postScreenScheduleWakeBrightness,
-        postScreenScheduleDimmedBrightness,
-        postScreenScheduleClockBrightness,
+        postScreenSchedulePreferences,
     } = controllers.schedulePostApi;
     const {
         postClockBrightnessDay,
@@ -153,7 +139,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postNetworkStatusIcon,
 
         postSubpageChevron,
-        postAutoOpenAppSubpages,
         postReturnHomeOnAppSwitch,
         postSubpageTitleBar,
         postSwipeUpPage,
@@ -170,7 +155,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         postScreensaverDimmedBrightnessDay,
         postScreensaverDimmedBrightnessNight,
         postScreensaverTimeout,
-        postHomeScreenTimeout,
         postNumber,
     } = requestApi;
     const { syncPreviewOrientation } = controllers.core;
@@ -247,13 +231,25 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
         try {
             await controllers.waitForInitialState();
             nativeDocumentBytes = await controllers.nativePanelConfig?.readForBackup() ?? undefined;
-            if (nativeDocumentBytes) nativeDocument = decodeNativeConfigDocument(nativeDocumentBytes);
+            if (nativeDocumentBytes) {
+                nativeDocument = decodeNativeConfigDocument(nativeDocumentBytes);
+                if (removeRetiredPanelRecords(nativeDocument, controllers.codec, isRetiredLayoutCard)) {
+                    nativeDocumentBytes = nativeConfigDocumentVersion(nativeDocumentBytes) === 2
+                        ? encodePanelPageDocument(nativeDocument)
+                        : EspDesktopModel.encodePanelConfig(nativeDocument);
+                }
+            }
         } catch {
             controllers.shell.showBanner?.("Could not export the backup. Check that changes have saved and the panel is connected, then try again.", "error");
             return;
         }
+        const theme = decodeDisplayThemePreferences(nativeDocument?.settings[DISPLAY_THEME_PREFERENCES]) ??
+            displayThemePreferencesFromState(state);
         // Project the same saved layout into the portable part of the backup.
         // SSE state can still be arriving or can lag another browser's edits.
+        const savedSchedule = decodeScreenSchedulePreferences(nativeDocument?.settings[SCREEN_SCHEDULE_PREFERENCES]);
+        const schedule = savedSchedule ?? state;
+        const scheduleEnabled = savedSchedule ? savedSchedule.scheduleTrigger === "time" : state.scheduleEnabled;
         const nativeGrid = nativeDocument ? EspDesktopModel.parseGridOrder(
             nativeDocument.settings.button_order, controllers.layout.numSlots, controllers.layout.gridCols,
         ) : undefined;
@@ -279,7 +275,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 network_status_icon: state.networkStatusOn,
 
                 subpage_chevron: state.subpageChevronsOn,
-                auto_open_app_subpages: state.autoOpenAppSubpages,
+                auto_open_app_subpages: nativeAppSubpagePreference(nativeDocument?.settings) ??
+                    (controllers.nativePanelConfig?.client?.supportsAppSubpagePreference() ? state.autoOpenAppSubpages : undefined),
                 return_home_on_app_switch: state.returnHomeOnAppSwitch,
                 subpage_title_bar: state.subpageTitleBarOn,
                 swipe_up_page: state.swipeUpPageOn,
@@ -290,12 +287,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 ntp_server_2: state.ntpServer2,
                 ntp_server_3: state.ntpServer3,
                 screensaver_mode: getActiveScreensaverMode(),
-                media_player_sleep_prevention: state.mediaPlayerSleepPreventionOn,
-                cover_art_screensaver: state.coverArtScreensaverOn,
-                cover_art_source: state.coverArtSource,
                 clock_date: state.clockDateOn,
-                cover_art_delay: state.coverArtDelay,
-                cover_art_track_overlay_duration: state.coverArtTrackOverlayDuration,
                 firmware_auto_update: !!state.autoUpdate,
                 firmware_update_frequency: state.updateFrequency,
                 screensaver_action: normalizeScreensaverAction(state.screensaverAction),
@@ -307,34 +299,33 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 screensaver_dimmed_brightness_day: normalizeScreensaverDimmedBrightness(state.screensaverDimmedBrightnessDay),
                 screensaver_dimmed_brightness_night: normalizeScreensaverDimmedBrightness(state.screensaverDimmedBrightnessNight),
                 screensaver_timeout: state.screensaverTimeout,
-                home_screen_timeout: state.homeScreenTimeout,
                 screen_rotation: state.screenRotation,
             },
             screen: {
                 brightness_day: Math.round(state.brightnessDayVal),
                 brightness_night: Math.round(state.brightnessNightVal),
                 brightness_mode: normalizeBrightnessMode(state.brightnessMode),
-                theme_mode: normalizeThemeMode(state.themeMode),
+                theme_mode: theme.themeMode,
                 default_icon_size: state.defaultIconSizeSupported ? state.defaultIconSize : undefined,
                 card_curve: state.cardCurveSupported ? normalizeCardCurve(state.cardCurve) : undefined,
-                theme_auto_method: normalizeThemeAutoMethod(state.themeAutoMethod),
-                theme_light_start: normalizeTimeOfDay(state.themeLightStart, "07:00"),
-                theme_dark_start: normalizeTimeOfDay(state.themeDarkStart, "20:00"),
-                theme_sunrise_offset: state.themeSunriseOffset,
-                theme_sunset_offset: state.themeSunsetOffset,
+                theme_auto_method: theme.themeAutoMethod,
+                theme_light_start: theme.themeLightStart,
+                theme_dark_start: theme.themeDarkStart,
+                theme_sunrise_offset: theme.themeSunriseOffset,
+                theme_sunset_offset: theme.themeSunsetOffset,
                 manual_brightness: Math.round(state.manualBrightnessVal),
                 brightness_dawn_time: normalizeTimeOfDay(state.brightnessDawnTime, "06:00"),
                 brightness_dusk_time: normalizeTimeOfDay(state.brightnessDuskTime, "18:00"),
-                schedule_trigger: normalizeScheduleTrigger(state.scheduleTrigger, state.scheduleEnabled),
-                schedule_enabled: !!state.scheduleEnabled,
-                schedule_on_hour: normalizeHour(state.scheduleOnHour, 6),
-                schedule_off_hour: normalizeHour(state.scheduleOffHour, 23),
-                schedule_mode: normalizeScheduleMode(state.scheduleMode),
-                schedule_wake_timeout: normalizeScheduleWakeTimeout(state.scheduleWakeTimeout),
-                schedule_wake_brightness: normalizeScheduleWakeBrightness(state.scheduleWakeBrightness),
-                schedule_dimmed_brightness: normalizeScheduleDimmedBrightness(state.scheduleDimmedBrightness),
-                schedule_clock_brightness: normalizeScheduleClockBrightness(state.scheduleClockBrightness),
-                schedule_clock_text_color: normalizeHexColor(state.scheduleClockTextColor, "FFFFFF"),
+                schedule_trigger: normalizeScheduleTrigger(schedule.scheduleTrigger, scheduleEnabled),
+                schedule_enabled: !!scheduleEnabled,
+                schedule_on_hour: normalizeHour(schedule.scheduleOnHour, 6),
+                schedule_off_hour: normalizeHour(schedule.scheduleOffHour, 23),
+                schedule_mode: normalizeScheduleMode(schedule.scheduleMode),
+                schedule_wake_timeout: normalizeScheduleWakeTimeout(schedule.scheduleWakeTimeout),
+                schedule_wake_brightness: normalizeScheduleWakeBrightness(schedule.scheduleWakeBrightness),
+                schedule_dimmed_brightness: normalizeScheduleDimmedBrightness(schedule.scheduleDimmedBrightness),
+                schedule_clock_brightness: normalizeScheduleClockBrightness(schedule.scheduleClockBrightness),
+                schedule_clock_text_color: normalizeHexColor(schedule.scheduleClockTextColor, "FFFFFF"),
             },
         } as any);
         downloadBackupConfig(addNativeConfigToBackup(data, nativeDocumentBytes), identity);
@@ -379,9 +370,12 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 var backedUpNativeConfig: any = backupPlan.config.native_config;
                 const exactGraph = backedUpNativeConfig?.document_version === 2 &&
                     backedUpNativeConfig.device_profile === controllers.layout.deviceId;
+                let exactLayoutBytes: Uint8Array | undefined;
                 if (backedUpNativeConfig &&
                     backedUpNativeConfig.device_profile === controllers.layout.deviceId) {
-                    nativeDocument = decodeNativeConfigDocument(decodeNativeConfigBackupPayload(backedUpNativeConfig));
+                    const bytes = decodeNativeConfigBackupPayload(backedUpNativeConfig);
+                    nativeDocument = decodeNativeConfigDocument(bytes);
+                    if (exactGraph) exactLayoutBytes = bytes;
                 }
                 if (!exactGraph) {
                     nativeDocument.settings.special_page = String(nativeDocument.settings.special_page || backupPlan.config.settings?.special_page || "");
@@ -396,7 +390,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         parsedButtonOrder.grid,
                         parsedButtonOrder.sizes);
                 }
-                removeRetiredPanelRecords(nativeDocument, controllers.codec);
+                if (removeRetiredPanelRecords(nativeDocument, controllers.codec)) exactLayoutBytes = undefined;
 
                 function readLegacyText(name: string) {
                     return requestApi.getJsonFirst(requestApi.entityDetailPaths("text", [name], "state"));
@@ -474,14 +468,47 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                       .some(key => key !== "button_order" && key !== "button_on_color" && key !== "special_page"))) {
                     rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
                 }
+                const savedAppSubpagePreference = nativeAppSubpagePreference(nativeDocument.settings);
+                if (Object.hasOwn(nativeDocument.settings, APP_SUBPAGE_PREFERENCE) && savedAppSubpagePreference === undefined)
+                    rejectBackup("Invalid backup value for automatic app switching.");
+                const appSubpagePreference = savedAppSubpagePreference ??
+                    (typeof backupPlan.settings?.auto_open_app_subpages === "boolean"
+                        ? importedSettings.autoOpenAppSubpages : undefined);
+                const appSubpageUpdateRequired = "Update the panel firmware before restoring the automatic app switching setting from this backup.";
+                if (appSubpagePreference !== undefined) {
+                    if (nativeAvailability !== true || nativeController?.client?.supportsAppSubpagePreference?.() !== true)
+                        rejectBackup(appSubpageUpdateRequired);
+                    nativeDocument.settings[APP_SUBPAGE_PREFERENCE] = appSubpagePreference ? "1" : "0";
+                }
+                const nativeTheme = nativeAvailability === true &&
+                    nativeController?.client?.supportsDisplayThemePreferences?.() === true;
+                const legacyThemePatch = legacyDisplayThemePatch(backupPlan.screen);
+                if (Object.hasOwn(nativeDocument.settings, DISPLAY_THEME_PREFERENCES)) {
+                    if (!decodeDisplayThemePreferences(nativeDocument.settings[DISPLAY_THEME_PREFERENCES]))
+                        rejectBackup("Invalid display theme settings in this backup.");
+                    if (!nativeTheme)
+                        rejectBackup("Update the panel firmware before restoring the display theme settings in this backup.");
+                }
+                const scheduleRecord = nativeDocument.settings[SCREEN_SCHEDULE_PREFERENCES];
+                const nativeSchedule = decodeScreenSchedulePreferences(scheduleRecord);
+                if (scheduleRecord !== undefined) {
+                    if (!nativeSchedule) rejectBackup("Invalid night schedule in this backup.");
+                    if (nativeAvailability !== true || !nativeController.client?.supportsScreenSchedulePreferences())
+                        rejectBackup(NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE);
+                }
+                const themeRestore = nativeTheme
+                    ? { legacy: displayThemePreferencesFromState(state), patch: legacyThemePatch }
+                    : undefined;
                 var layoutRestoreResult: any;
                 if (nativeAvailability === "legacy-fallback") {
                     layoutRestoreResult = await queueLegacyLayoutRestore();
                 }
                 else {
-                    var nativeRestore: any = nativeController.writeDocument(nativeDocument);
+                    var nativeRestore: any = nativeController.writeDocument(nativeDocument, exactLayoutBytes, themeRestore);
                     layoutRestoreResult = nativeRestore ? await nativeRestore : "failed";
                     if (layoutRestoreResult === "legacy-fallback") {
+                        if (appSubpagePreference !== undefined) rejectBackup(appSubpageUpdateRequired);
+                        if (nativeTheme) rejectBackup("The panel disconnected while restoring the display theme settings.");
                         layoutRestoreResult = await queueLegacyLayoutRestore();
                     }
                     else if (layoutRestoreResult === "firmware-update-required") {
@@ -496,6 +523,23 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         rejectBackup("The layout could not be restored. No other backup settings were changed.");
                     }
                 }
+
+                const savedSchedule = nativeController?.client?.lastDocument?.()?.settings[SCREEN_SCHEDULE_PREFERENCES];
+                if (nativeAvailability === true && savedSchedule) {
+                    nativeDocument.settings[SCREEN_SCHEDULE_PREFERENCES] = savedSchedule;
+                }
+                if (nativeSchedule) {
+                    Object.assign(state, nativeSchedule);
+                    state.scheduleEnabled = nativeSchedule.scheduleTrigger === "time";
+                    syncScreenScheduleUi();
+                }
+                if (nativeTheme) {
+                    const savedTheme = nativeController.client?.lastDocument?.()?.settings[DISPLAY_THEME_PREFERENCES];
+                    if (savedTheme) nativeDocument.settings[DISPLAY_THEME_PREFERENCES] = savedTheme;
+                }
+                Object.assign(state,
+                    decodeDisplayThemePreferences(nativeDocument.settings[DISPLAY_THEME_PREFERENCES]) ?? legacyThemePatch);
+                syncThemeSettingsUi(state, controllers.runtime);
 
                 // Do not change the editor or unrelated device settings until
                 // the complete layout has been accepted by the target firmware.
@@ -527,6 +571,10 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 state.onColor = nativeDocument.settings.button_on_color || backupPlan.config.button_on_color || WEB_UI_COLORS.primary;
                 if (els.setOnColor && els.setOnColor._syncColor)
                     els.setOnColor._syncColor(state.onColor);
+                if (appSubpagePreference !== undefined) {
+                    state.autoOpenAppSubpages = appSubpagePreference;
+                    if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = appSubpagePreference;
+                }
                 if (backupPlan.settings) {
                     var s: any = backupPlan.settings;
 
@@ -536,7 +584,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postNetworkStatusIcon(importedSettings.networkStatusIcon);
 
                     postSubpageChevron(importedSettings.subpageChevron);
-                    postAutoOpenAppSubpages(importedSettings.autoOpenAppSubpages);
                     postReturnHomeOnAppSwitch(importedSettings.returnHomeOnAppSwitch);
                     postSubpageTitleBar(importedSettings.subpageTitleBar);
                     postSwipeUpPage(importedSettings.swipeUpPage);
@@ -567,13 +614,7 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     }
                     var importedScreensaverMode: any = importedSettings.screensaverMode;
                     postScreensaverMode(importedScreensaverMode);
-                    postMediaPlayerSleepPrevention(importedSettings.mediaPlayerSleepPrevention);
-                    postCoverArtScreensaver(importedSettings.coverArtScreensaver);
-                    if (controllers.layout.config.features?.companion)
-                        postCoverArtSource(importedSettings.coverArtSource);
                     if (state.clockDateSupported) controllers.clockBarPostApi.postClockDate(importedSettings.clockDate);
-                    postCoverArtDelay(importedSettings.coverArtDelay);
-                    postCoverArtTrackOverlayDuration(importedSettings.coverArtTrackOverlayDuration);
                     if (firmwareUpdateControlsVisible()) {
                         postFirmwareAutoUpdate(importedSettings.autoUpdate);
                         postFirmwareUpdateFrequency(importedSettings.updateFrequency);
@@ -595,7 +636,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     postScreensaverDimmedBrightnessDay(importedScreensaverDimmedBrightnessDay);
                     postScreensaverDimmedBrightnessNight(importedScreensaverDimmedBrightnessNight);
                     postScreensaverTimeout(importedSettings.screensaverTimeout);
-                    postHomeScreenTimeout(importedSettings.homeScreenTimeout);
                     var importedScreenRotation: any = importedSettings.screenRotation;
                     if (controllers.layout.config.features && controllers.layout.config.features.screenRotation)
                         postSelect(entityName("screen_rotation"), importedScreenRotation);
@@ -606,11 +646,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.networkStatusOn = importedSettings.networkStatusIcon;
 
                     state.subpageChevronsOn = importedSettings.subpageChevron;
-                    state.autoOpenAppSubpages = importedSettings.autoOpenAppSubpages;
                     state.returnHomeOnAppSwitch = importedSettings.returnHomeOnAppSwitch;
                     state.subpageTitleBarOn = importedSettings.subpageTitleBar;
                     state.swipeUpPageOn = importedSettings.swipeUpPage;
-                    if (els.setAutoOpenAppSubpages) els.setAutoOpenAppSubpages.checked = state.autoOpenAppSubpages;
                     if (els.setReturnHomeOnAppSwitch) els.setReturnHomeOnAppSwitch.checked = state.returnHomeOnAppSwitch;
                     state.timezone = importedTimezone;
                     state.language = importedLanguage;
@@ -626,22 +664,8 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverMetadataEntity = importedSettings.screensaverMetadataEntity;
                     state.metadataOverlayOn = importedSettings.metadataOverlay;
                     state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(importedSettings.screensaverCameraImageMode);
-                    state.mediaPlayerSleepPreventionOn = importedSettings.mediaPlayerSleepPrevention;
-                    state.mediaPlayerSleepPreventionEntity = importedSettings.mediaPlayerSleepPreventionEntity;
-                    state.coverArtScreensaverOn = importedSettings.coverArtScreensaver;
-                    state.coverArtSource = importedSettings.coverArtSource;
                     state.clockDateOn = importedSettings.clockDate;
                     state.clockOverlayOn = importedSettings.clockOverlay;
-                    state.coverArtMediaPlayerEntity = importedSettings.coverArtMediaPlayerEntity;
-                    state.coverArtSecondaryMediaPlayerEntity = importedSettings.coverArtSecondaryMediaPlayerEntity;
-                    state.coverArtAttributeConditions = importedSettings.coverArtAttributeConditions;
-                    state.coverArtDelay = importedSettings.coverArtDelay;
-                    state.coverArtTrackOverlayDuration = importedSettings.coverArtTrackOverlayDuration;
-                    state.coverArtHideExternalInputOn = importedSettings.coverArtHideExternalInput;
-                    state.homeAssistantArtworkProtocol = importedSettings.coverArtHomeAssistantProtocol;
-                    state.homeAssistantArtworkHost = importedSettings.coverArtHomeAssistantHost;
-                    state.coverArtHomeAssistantPort = importedSettings.coverArtHomeAssistantPort;
-                    state.homeAssistantArtworkEndpointMode = importedSettings.coverArtHomeAssistantEndpointMode;
                     state.autoUpdate = importedSettings.autoUpdate;
                     state.updateFrequency = importedSettings.updateFrequency;
                     state.screensaverAction = importedScreensaverAction;
@@ -653,7 +677,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.screensaverDimmedBrightnessDay = importedScreensaverDimmedBrightnessDay;
                     state.screensaverDimmedBrightnessNight = importedScreensaverDimmedBrightnessNight;
                     state.screensaverTimeout = importedSettings.screensaverTimeout;
-                    state.homeScreenTimeout = importedSettings.homeScreenTimeout;
                     state.screenRotation = importedScreenRotation;
 
                     syncClockBarUi();
@@ -662,11 +685,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
                     syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
                     syncInput(els.setSchedulePresence, state.scheduleSensorEntity);
-                    syncMediaPlayerSleepPreventionUi();
-                    syncInput(els.setCoverArtMediaPlayer, state.coverArtMediaPlayerEntity);
-                    syncInput(els.setCoverArtSecondaryMediaPlayer, state.coverArtSecondaryMediaPlayerEntity);
-                    syncInput(els.setCoverArtConditions, state.coverArtAttributeConditions);
-                    syncCoverArtScreensaverUi();
                     if (els.setAutoUpdate)
                         els.setAutoUpdate.checked = state.autoUpdate;
                     if (els.setUpdateFreq)
@@ -680,7 +698,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     syncNtpServerUi(controllers.runtime, syncInput);
                     syncClockScreensaverControls();
                     syncScreensaverTimeoutUi();
-                    syncIdleUi(controllers.runtime);
                     if (els.setScreenRotation)
                         els.setScreenRotation.value = state.screenRotation;
                     syncPreviewOrientation();
@@ -701,10 +718,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                     state.brightnessDayVal = importedScreenSettings.brightnessDayVal;
                     state.brightnessNightVal = importedScreenSettings.brightnessNightVal;
                     state.brightnessMode = importedScreenSettings.brightnessMode;
-                    // Optional fields keep older backups compatible and leave
-                    // an existing theme choice alone when those fields are absent.
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
-                        state.themeMode = normalizeThemeMode(screenSettings.theme_mode);
                     if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size")) {
                         state.defaultIconSize = normalizeCardIconSize(screenSettings.default_icon_size);
                         syncDefaultIconSizeUi(state, controllers.runtime);
@@ -714,48 +727,32 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         syncCardCurveUi(state, controllers.runtime);
                         syncPreviewOrientation(true);
                     }
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_auto_method") ||
-                        screenSettings.theme_mode === "Sun" || screenSettings.theme_mode === "Schedule")
-                        state.themeAutoMethod = normalizeThemeAutoMethod(screenSettings.theme_auto_method || screenSettings.theme_mode);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_light_start"))
-                        state.themeLightStart = normalizeTimeOfDay(screenSettings.theme_light_start, "07:00");
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_dark_start"))
-                        state.themeDarkStart = normalizeTimeOfDay(screenSettings.theme_dark_start, "20:00");
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunrise_offset"))
-                        state.themeSunriseOffset = parseThemeSunOffset(screenSettings.theme_sunrise_offset)!;
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunset_offset"))
-                        state.themeSunsetOffset = parseThemeSunOffset(screenSettings.theme_sunset_offset)!;
                     state.manualBrightnessVal = importedScreenSettings.manualBrightnessVal;
                     state.brightnessDawnTime = importedScreenSettings.brightnessDawnTime;
                     state.brightnessDuskTime = importedScreenSettings.brightnessDuskTime;
-                    state.scheduleTrigger = importedScreenSettings.scheduleTrigger;
-                    state.scheduleEnabled = importedScreenSettings.scheduleEnabled;
-                    state.scheduleSensorActivation = importedScreenSettings.scheduleSensorActivation;
-                    state.scheduleSensorEntity = importedScreenSettings.scheduleSensorEntity;
-                    state.scheduleOnHour = importedScreenSettings.scheduleOnHour;
-                    state.scheduleOffHour = importedScreenSettings.scheduleOffHour;
-                    state.scheduleMode = importedScreenSettings.scheduleMode;
-                    state.scheduleWakeTimeout = importedScreenSettings.scheduleWakeTimeout;
-                    state.scheduleWakeBrightness = importedScreenSettings.scheduleWakeBrightness;
-                    state.scheduleDimmedBrightness = importedScreenSettings.scheduleDimmedBrightness;
-                    state.scheduleClockBrightness = importedScreenSettings.scheduleClockBrightness;
-                    state.scheduleClockTextColor = importedScreenSettings.scheduleClockTextColor;
+                    if (!nativeSchedule) {
+                        Object.assign(state, screenSchedulePreferencesFromState(importedScreenSettings));
+                        state.scheduleEnabled = importedScreenSettings.scheduleEnabled;
+                        state.scheduleSensorActivation = importedScreenSettings.scheduleSensorActivation;
+                        state.scheduleSensorEntity = importedScreenSettings.scheduleSensorEntity;
+                    }
                     postNumber(entityName("screen_daytime_brightness"), state.brightnessDayVal);
                     postNumber(entityName("screen_nighttime_brightness"), state.brightnessNightVal);
                     postBrightnessMode(state.brightnessMode);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_light_start"))
-                        requestApi.postText(entityName("screen_theme_light_start"), state.themeLightStart);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_dark_start"))
-                        requestApi.postText(entityName("screen_theme_dark_start"), state.themeDarkStart);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunrise_offset"))
-                        requestApi.postNumber(entityName("screen_theme_sunrise_offset"), state.themeSunriseOffset);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_sunset_offset"))
-                        requestApi.postNumber(entityName("screen_theme_sunset_offset"), state.themeSunsetOffset);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_auto_method") ||
-                        screenSettings.theme_mode === "Sun" || screenSettings.theme_mode === "Schedule")
-                        requestApi.postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
-                    if (Object.prototype.hasOwnProperty.call(screenSettings, "theme_mode"))
-                        requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
+                    if (!nativeTheme) {
+                        if (legacyThemePatch.themeLightStart !== undefined)
+                            requestApi.postText(entityName("screen_theme_light_start"), state.themeLightStart);
+                        if (legacyThemePatch.themeDarkStart !== undefined)
+                            requestApi.postText(entityName("screen_theme_dark_start"), state.themeDarkStart);
+                        if (legacyThemePatch.themeSunriseOffset !== undefined)
+                            requestApi.postNumber(entityName("screen_theme_sunrise_offset"), state.themeSunriseOffset);
+                        if (legacyThemePatch.themeSunsetOffset !== undefined)
+                            requestApi.postNumber(entityName("screen_theme_sunset_offset"), state.themeSunsetOffset);
+                        if (legacyThemePatch.themeAutoMethod !== undefined)
+                            requestApi.postSelect(entityName("screen_theme_auto_method"), state.themeAutoMethod);
+                        if (legacyThemePatch.themeMode !== undefined)
+                            requestApi.postSelect(entityName("screen_theme_mode"), state.themeMode);
+                    }
                     if (state.defaultIconSizeSupported && Object.prototype.hasOwnProperty.call(screenSettings, "default_icon_size"))
                         requestApi.postSelect(entityName("screen_default_icon_size"), state.defaultIconSize.charAt(0).toUpperCase() + state.defaultIconSize.slice(1));
                     if (state.cardCurveSupported && Object.prototype.hasOwnProperty.call(screenSettings, "card_curve"))
@@ -764,16 +761,9 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                         postDisplayBacklightBrightness(state.manualBrightnessVal);
                     postBrightnessDawnTime(state.brightnessDawnTime);
                     postBrightnessDuskTime(state.brightnessDuskTime);
-                    postScreenScheduleTrigger(state.scheduleTrigger);
-                    postScreenScheduleOnHour(state.scheduleOnHour);
-                    postScreenScheduleOffHour(state.scheduleOffHour);
-                    postScreenScheduleMode(state.scheduleMode);
-                    postScreenScheduleWakeTimeout(state.scheduleWakeTimeout);
-                    postScreenScheduleWakeBrightness(state.scheduleWakeBrightness);
-                    postScreenScheduleDimmedBrightness(state.scheduleDimmedBrightness);
-                    postScreenScheduleClockBrightness(state.scheduleClockBrightness);
-                    postText(entityName("screen_schedule_clock_text_color"), state.scheduleClockTextColor);
-                    postScreenScheduleEnabled(state.scheduleEnabled);
+                    if (!nativeSchedule && !(await postScreenSchedulePreferences(screenSchedulePreferencesFromState(state)))) {
+                        requestApi.postQueueError = true;
+                    }
                     if (els.setDayBrightness) {
                         els.setDayBrightness.value = state.brightnessDayVal;
                         els.setDayBrightnessVal.textContent = Math.round(state.brightnessDayVal) + "%";
@@ -793,7 +783,6 @@ export function createAppBackupFeature(controllers: AppBackupControllers): AppBa
                 await requestApi.postQueue;
                 if (!requestApi.postQueueError) {
                     await clearScreensaverPinForRestore(resetAwareFetch);
-                    await els.syncScreensaverPinUi?.();
                 }
                 if (typeof restoredName === "string" && !requestApi.postQueueError) {
                     try { await controllers.identity?.saveAndRestart(restoredName); }

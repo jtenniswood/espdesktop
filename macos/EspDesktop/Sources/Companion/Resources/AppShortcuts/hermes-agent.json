@@ -3,66 +3,113 @@
   "appId": "com.nousresearch.hermes",
   "label": "Hermes",
   "catalog": false,
+  "defaultShortcutIds": ["1", "2", "0", "6", "7", "42", "26", "8"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+k",
-      "icon": "Folder"
+      "icon": "Shortcut Command"
     },
     {
       "id": "1",
-      "label": "Start a new session",
+      "label": "New Session",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Chat Plus"
     },
     {
       "id": "2",
-      "label": "Search sessions",
+      "label": "Search Sessions",
       "shortcut": "command+shift+f",
       "icon": "Search"
     },
     {
       "id": "3",
-      "label": "Open a new session tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Tab"
+      "icon": "New Tab"
     },
     {
       "id": "4",
-      "label": "Next session tab",
+      "label": "Next Tab",
       "shortcut": "control+tab",
-      "icon": "Tab"
+      "icon": "Chevron Right"
     },
     {
       "id": "5",
-      "label": "Jump to recent session by position",
+      "label": "Jump Session",
       "shortcut": "control+9",
-      "icon": "Application"
+      "icon": "Chat"
     },
     {
       "id": "6",
-      "label": "Toggle left sidebar",
+      "label": "Left Sidebar",
       "shortcut": "command+b",
-      "icon": "Application"
+      "icon": "Dock Left"
     },
     {
       "id": "7",
-      "label": "Toggle right sidebar",
+      "label": "Right Sidebar",
       "shortcut": "command+j",
-      "icon": "Application"
+      "icon": "Dock Right"
     },
     {
       "id": "8",
-      "label": "Find in chat transcript",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "9",
-      "label": "Open Quick Entry",
+      "label": "Quick Entry",
       "shortcut": "command+shift+space",
-      "icon": "Folder"
+      "icon": "Flash"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Open Command Palette", "shortcut": "scoped.command+p", "icon": "Keyboard"},
+    {"id": "11", "label": "Open Settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "12", "label": "Open Command Center", "shortcut": "scoped.command+keyperiod", "icon": "Open File"},
+    {"id": "13", "label": "Open Keyboard Shortcuts", "shortcut": "scoped.command+keyslash", "icon": "Keyboard"},
+    {"id": "14", "label": "Toggle light or dark mode", "shortcut": "scoped.shift+x", "icon": "Shortcut Command"},
+    {"id": "15", "label": "Toggle status bar", "shortcut": "scoped.command+shift+s", "icon": "Eye Off"},
+    {"id": "16", "label": "Previous session tab", "shortcut": "scoped.control+shift+tab", "icon": "Tab"},
+    {"id": "17", "label": "Jump to recent session by position 1", "shortcut": "scoped.control+1", "icon": "Shortcut Command"},
+    {"id": "18", "label": "Jump to recent session by position 2", "shortcut": "scoped.control+2", "icon": "Shortcut Command"},
+    {"id": "19", "label": "Jump to recent session by position 3", "shortcut": "scoped.control+3", "icon": "Shortcut Command"},
+    {"id": "20", "label": "Jump to recent session by position 4", "shortcut": "scoped.control+4", "icon": "Shortcut Command"},
+    {"id": "21", "label": "Jump to recent session by position 5", "shortcut": "scoped.control+5", "icon": "Shortcut Command"},
+    {"id": "22", "label": "Jump to recent session by position 6", "shortcut": "scoped.control+6", "icon": "Shortcut Command"},
+    {"id": "23", "label": "Jump to recent session by position 7", "shortcut": "scoped.control+7", "icon": "Shortcut Command"},
+    {"id": "24", "label": "Jump to recent session by position 8", "shortcut": "scoped.control+8", "icon": "Shortcut Command"},
+    {"id": "25", "label": "Close focused session tab", "shortcut": "scoped.command+w", "icon": "Close Tab"},
+    {"id": "26", "label": "Reopen last closed tab", "shortcut": "scoped.command+shift+t", "icon": "Tab Restore"},
+    {"id": "27", "label": "Open new Hermes window", "shortcut": "scoped.command+shift+n", "icon": "New Window"},
+    {"id": "28", "label": "Switch profiles 1", "shortcut": "scoped.command+1", "icon": "Shortcut Command"},
+    {"id": "29", "label": "Switch profiles 2", "shortcut": "scoped.command+2", "icon": "Shortcut Command"},
+    {"id": "30", "label": "Switch profiles 3", "shortcut": "scoped.command+3", "icon": "Shortcut Command"},
+    {"id": "31", "label": "Switch profiles 4", "shortcut": "scoped.command+4", "icon": "Shortcut Command"},
+    {"id": "32", "label": "Switch profiles 5", "shortcut": "scoped.command+5", "icon": "Shortcut Command"},
+    {"id": "33", "label": "Switch profiles 6", "shortcut": "scoped.command+6", "icon": "Shortcut Command"},
+    {"id": "34", "label": "Switch profiles 7", "shortcut": "scoped.command+7", "icon": "Shortcut Command"},
+    {"id": "35", "label": "Switch profiles 8", "shortcut": "scoped.command+8", "icon": "Shortcut Command"},
+    {"id": "36", "label": "Switch profiles 9", "shortcut": "scoped.command+9", "icon": "Shortcut Command"},
+    {"id": "37", "label": "Quit Hermes", "shortcut": "scoped.command+q", "icon": "Application Exit"},
+    {"id": "38", "label": "Swap sidebar sides", "shortcut": "scoped.command+keybackslash", "icon": "Dock Left"},
+    {"id": "39", "label": "Open layout editor", "shortcut": "scoped.command+shift+keybackslash", "icon": "Code"},
+    {"id": "40", "label": "Find next match or toggle Git review", "shortcut": "scoped.command+g", "icon": "Search"},
+    {"id": "41", "label": "Create Git worktree", "shortcut": "scoped.command+shift+b", "icon": "Plus"},
+    {"id": "42", "label": "Show terminal", "shortcut": "scoped.control+keybackquote", "icon": "Terminal"},
+    {"id": "43", "label": "Create another terminal", "shortcut": "scoped.control+shift+keybackquote", "icon": "Terminal"},
+    {"id": "44", "label": "Next terminal", "shortcut": "scoped.control+shift+down", "icon": "Terminal"},
+    {"id": "45", "label": "Previous terminal", "shortcut": "scoped.control+shift+up", "icon": "Terminal"},
+    {"id": "46", "label": "Close active terminal", "shortcut": "scoped.control+shift+w", "icon": "Terminal"},
+    {"id": "47", "label": "Find next match", "shortcut": "scoped.enter", "icon": "Search"},
+    {"id": "48", "label": "Find previous match", "shortcut": "scoped.shift+enter", "icon": "Search"},
+    {"id": "49", "label": "Find previous match or snap HUD to pointer", "shortcut": "scoped.command+shift+g", "icon": "Search"},
+    {"id": "50", "label": "Close Find or pause queued work", "shortcut": "scoped.escape", "icon": "Search"},
+    {"id": "51", "label": "Recall earlier composer prompt Up", "shortcut": "scoped.up", "icon": "Arrow Up"},
+    {"id": "52", "label": "Recall earlier composer prompt Down", "shortcut": "scoped.down", "icon": "Arrow Down"},
+    {"id": "53", "label": "Toggle HUD mode", "shortcut": "scoped.command+shift+h", "icon": "Shortcut Command"}
   ]
 }

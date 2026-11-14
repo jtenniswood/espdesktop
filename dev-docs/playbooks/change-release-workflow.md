@@ -5,7 +5,8 @@ public firmware URLs, release checks, or GitHub workflow behavior.
 
 ## Edit First
 
-- `.github/workflows/release.yml` for job orchestration.
+- `.github/workflows/release.yml` for candidate build orchestration.
+- `.github/workflows/publish-release.yml` for candidate confirmation and publication.
 - `.github/workflows/pages.yml` when public web assets or release-triggered
   documentation output changes.
 - `scripts/firmware_release.py` for firmware asset and manifest behavior.
@@ -23,6 +24,8 @@ migration.
 - Materialize release-specific web compatibility data inside the private
   workflow checkout; do not require a preparation commit or PR before tagging.
 - Keep generated source and build caches out of release assets.
+- Keep the tested candidate files tied to the successful build run. Require the
+  matching fingerprint and user confirmation of the installed Mac app before publishing.
 - Verify filenames, versions, checksums, sizes, and remote inventory before
   publication.
 - Leave the release as a draft after any build, upload, or verification failure.

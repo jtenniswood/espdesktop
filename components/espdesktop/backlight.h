@@ -220,16 +220,6 @@ inline bool screen_schedule_in_window(int now_h, int on_hour, int off_hour) {
   return true;
 }
 
-inline bool screen_schedule_always_on_mode(const std::string &mode) {
-  return mode == "Screen Dimmed" || mode == "screen_dimmed" ||
-         mode == "Dimmed" || mode == "dimmed" || mode == "dim" ||
-         mode == "Always On" || mode == "always_on" || mode == "always";
-}
-
-inline bool screen_schedule_clock_mode(const std::string &mode) {
-  return mode == "Clock" || mode == "clock";
-}
-
 inline bool screen_schedule_sensor_trigger(const std::string &trigger) {
   return trigger == "Sensor" || trigger == "sensor";
 }
@@ -282,21 +272,6 @@ inline bool screen_schedule_normal_active(const std::string &trigger,
   if (!enabled || screen_schedule_disabled_trigger(trigger)) return false;
   if (!time_valid) return false;
   return screen_schedule_in_window(now_h, on_hour, off_hour);
-}
-
-inline bool screen_schedule_blocks_cover_art(const std::string &trigger,
-                                             bool enabled,
-                                             bool presence_detected,
-                                             bool time_valid,
-                                             int now_h,
-                                             int on_hour,
-                                             int off_hour,
-                                             const std::string &sensor_activation =
-                                                 "Sensor Off") {
-  return screen_schedule_waiting_for_time(trigger, enabled, time_valid) ||
-         screen_schedule_night_active(trigger, enabled, presence_detected,
-                                      time_valid, now_h, on_hour, off_hour,
-                                      sensor_activation);
 }
 
 // ── Screensaver action helpers ────────────────────────────────────────

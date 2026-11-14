@@ -83,10 +83,6 @@
     "purpose": "Keeps LVGL processing active while the panel is electrically off so scheduled and touch wake paths remain available.",
     "remove_when": "ESPHome/LVGL can suspend and resume these panels without losing wake behavior."
   },
-  "ESPDESKTOP_LOW_HEAP_COVER_ART=1": {
-    "purpose": "Uses the reduced-memory cover-art path on the constrained S3 panel.",
-    "remove_when": "The full cover-art path fits with safe runtime heap headroom."
-  },
   "ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1": {
     "purpose": "Uses the reduced-memory media modal path on the constrained S3 panel.",
     "remove_when": "The full media path fits with safe runtime heap headroom."
@@ -98,6 +94,10 @@
   "ESPDESKTOP_MAX_GRID_SLOTS=9": {
     "purpose": "Caps runtime grid allocation to nine slots.",
     "remove_when": "Grid slot capacity is generated from device profile data."
+  },
+  "ESPDESKTOP_S3_DISPLAY_RESET_TEST": {
+    "purpose": "Enables the S3 development build’s display capture, resync, and LCD reset diagnostics.",
+    "remove_when": "The shifted-image investigation is complete and the diagnostic page is removed."
   },
   "LV_USE_BIDI=1": {
     "purpose": "Enables LVGL bidirectional text ordering for right-to-left scripts such as Hebrew and Arabic.",

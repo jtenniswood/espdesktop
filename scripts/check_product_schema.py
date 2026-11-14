@@ -64,15 +64,15 @@ def run_self_test() -> int:
     expect_error(validate_card_contract(invalid_version), "contractVersion: must be 1")
 
     missing_runtime_spec = copy.deepcopy(card_contract)
-    missing_runtime_spec["runtime"]["specs"].pop("clock")
-    expect_error(validate_card_contract(missing_runtime_spec), "missing card types: clock")
+    missing_runtime_spec["runtime"]["specs"].pop("timer")
+    expect_error(validate_card_contract(missing_runtime_spec), "missing card types: timer")
 
     invalid_runtime_driver = copy.deepcopy(card_contract)
-    invalid_runtime_driver["runtime"]["specs"]["clock"]["driver"] = "arbitrary_code"
+    invalid_runtime_driver["runtime"]["specs"]["timer"]["driver"] = "arbitrary_code"
     expect_error(validate_card_contract(invalid_runtime_driver), "must name a permitted runtime driver")
 
     incomplete_runtime_capabilities = copy.deepcopy(card_contract)
-    incomplete_runtime_capabilities["runtime"]["specs"]["clock"]["capabilities"].pop("subscriptions")
+    incomplete_runtime_capabilities["runtime"]["specs"]["timer"]["capabilities"].pop("subscriptions")
     expect_error(validate_card_contract(incomplete_runtime_capabilities), "must define every runtime capability exactly once")
 
     mismatched_subpage_capability = copy.deepcopy(card_contract)
@@ -142,6 +142,14 @@ def run_self_test() -> int:
     reused_retired_code = copy.deepcopy(card_contract)
     reused_retired_code["retiredSubpageTypeCodes"] = [next(iter(reused_retired_code["subpageTypeCodes"].values()))]
     expect_error(validate_card_contract(reused_retired_code), "reuses active codes")
+
+    preview_in_stable = copy.deepcopy(card_contract)
+    preview_in_stable["releaseAvailability"]["stable"].extend(preview_in_stable["releaseAvailability"]["preview"])
+    expect_error(validate_card_contract(preview_in_stable), "must list existing stable card definitions")
+
+    remove_stable = copy.deepcopy(card_contract)
+    remove_stable["releaseAvailability"]["removeOnEdit"].append("companion_mac_lock")
+    expect_error(validate_card_contract(remove_stable), "must reference retired card IDs")
 
     with TemporaryDirectory() as tmp:
         root = Path(tmp)

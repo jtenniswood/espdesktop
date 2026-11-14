@@ -3,13 +3,18 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
 #include <type_traits>
 
 #include "application_scene_runtime.h"
 #include "configuration_buffer.h"
+#include "display_brightness_preferences.h"
+#include "display_theme_preferences.h"
+#include "screen_schedule_preferences.h"
 #include "espdesktop_app_core.h"
 #include "esphome/components/text/text.h"
+#include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 
 #include "panel_identity.h"
@@ -42,23 +47,57 @@ class EspDesktopApp : public esphome::Component {
     return esphome::setup_priority::AFTER_WIFI;
   }
 
+  DisplayLifecycleService &display_lifecycle() { return core_.display_lifecycle(); }
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
   bool connector_onboarding_complete() const;
+  using ScalarSetting = panel_settings::ScalarSetting;
+  using ScalarPublisher = void (*)(std::string_view);
+  void bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish);
+  void edit_panel_scalar(ScalarSetting setting, std::string_view value);
+  void edit_panel_number(ScalarSetting setting, float value);
+  using BrightnessPublisher = void (*)(const DisplayBrightnessPreferences &);
+  void bind_display_brightness_preferences(BrightnessPublisher publish);
+  const DisplayBrightnessPreferences &display_brightness_preferences() const { return display_brightness_; }
+  void save_display_brightness_preferences(const DisplayBrightnessPreferences &settings);
+  void edit_manual_brightness(float fraction);
+  template<typename T>
+  void edit_display_brightness_preference(T DisplayBrightnessPreferences::*field, T value) {
+    auto next = display_brightness_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_brightness_preferences(next);
+  }
+  void bind_screen_schedule(unsigned default_clock_brightness,
+      std::function<void(const ScreenSchedulePreferences &)> apply);
+  const ScreenSchedulePreferences &screen_schedule_preferences() const {
+    return screen_schedule_ ? *screen_schedule_ : screen_schedule_defaults_;
+  }
+
+  template<typename T>
+  void edit_screen_schedule_preference(T ScreenSchedulePreferences::*field, T value) {
+    auto next = screen_schedule_preferences();
+    if (next.*field == value) return;
+    next.*field = value;
+    save_screen_schedule_preferences(next);
+  }
+  void edit_screen_schedule_number(unsigned ScreenSchedulePreferences::*field, float value);
+  void bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish);
+  const ThemeSettings &display_theme_preferences() const { return display_theme_preferences_; }
+
+  template<typename T>
+  void edit_display_theme_preference(T ThemeSettings::*field, T value) {
+    auto next = display_theme_preferences_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_theme_preferences(next);
+  }
 
   // The scene belongs to the firmware application's UI owner and outlives this
   // component. Installation cannot switch a running legacy grid underneath it.
   bool install_application_scene(ApplicationSceneRuntime& scene);
-  // Selected device startup calls this before reserving native UI resources.
-  // A failed allocation then refuses writes instead of silently using legacy
-  // UI.
-  bool require_application_scene();
-  // Existing text-entity automations debounce edits before requesting this.
-  // The application loop performs all model/storage work at a safe boundary.
-  void request_configuration_text_refresh() {
-    configuration_text_refresh_pending_ = true;
-  }
+  esphome::Trigger<> *get_layout_changed_trigger() { return &layout_changed_; }
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
   void set_panel_config_button_on_color(esphome::text::Text *button_on_color);
@@ -141,13 +180,16 @@ class EspDesktopApp : public esphome::Component {
  private:
   class NativeConfigurationRuntime;
 
-  configuration::ConfigurationRuntimeAdapter* selected_configuration_runtime();
   void register_panel_config_endpoints();
   void sync_finder_folders();
   void initialize_native_configuration();
   void defer_native_configuration_initialization();
   void apply_boot_configuration();
-  void apply_configuration_text_refresh();
+  void publish_display_theme_preferences(const std::optional<ThemeSettings> &settings);
+  void save_display_theme_preferences(const ThemeSettings &settings);
+  void save_screen_schedule_preferences(const ScreenSchedulePreferences &settings);
+  bool save_panel_setting(std::string_view key, std::string_view value);
+  std::string_view panel_scalar_value(ScalarSetting setting) const;
   void retry_configuration_compatibility();
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
@@ -155,6 +197,7 @@ class EspDesktopApp : public esphome::Component {
   using PanelConfigTextSources =
       configuration::PanelConfigTextSources<esphome::text::Text>;
 
+  esphome::Trigger<> layout_changed_;
   const char *panel_config_device_profile_{nullptr};
   esphome::text::Text *panel_config_button_order_{nullptr};
   esphome::text::Text *panel_config_button_on_color_{nullptr};
@@ -172,8 +215,14 @@ class EspDesktopApp : public esphome::Component {
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
   EspDesktopAppCore core_{};
   ApplicationSceneRuntime* application_scene_{nullptr};
-  bool application_scene_required_{false};
-  bool configuration_text_refresh_pending_{false};
+  std::array<ScalarPublisher, panel_settings::SCALAR_RULES.size()> scalar_publishers_{};
+  DisplayBrightnessPreferences display_brightness_;
+  BrightnessPublisher apply_display_brightness_{nullptr};
+  std::optional<ScreenSchedulePreferences> screen_schedule_;
+  ScreenSchedulePreferences screen_schedule_defaults_{};
+  std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;
+  ThemeSettings display_theme_preferences_{};
+  std::function<void(const ThemeSettings &)> display_theme_preferences_changed_;
   bool shutting_down_{false};
   bool native_configuration_initialized_{false};
   bool native_configuration_initialization_pending_{false};

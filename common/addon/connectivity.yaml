@@ -129,7 +129,11 @@ script:
                   lambda: |-
                     return id(espdesktop_app).display().target_mode_is(
                         espdesktop::DisplayMode::ACTIVE);
-            - lvgl.page.show: main_page
+            - if:
+                condition:
+                  lambda: 'return !navigation_present_focused_app_after_sleep();'
+                then:
+                  - lvgl.page.show: main_page
             - script.execute: display_active_finalize
           else:
             - lambda: |-
@@ -141,7 +145,5 @@ script:
                   lv_label_set_text(id(setup_ip_label), url.c_str());
                 }
             - lvgl.page.show: button_setup_page
-            # Keep the network control available here so a Companion-only
-            # first-run setup can start physical pairing.
             - script.execute: clock_bar_apply
             - script.execute: setup_screen_dim

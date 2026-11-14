@@ -18,6 +18,10 @@ test("native backup snapshots preserve records and serialize with saves", async 
   await loadTypescriptTest("tests/web/native_panel_config.test.ts").runNativePanelConfigBackupTests();
 });
 
+test("display theme preferences save and restore as one group", async () => {
+  await loadTypescriptTest("tests/web/native_panel_config.test.ts").runDisplayThemePreferenceTests();
+});
+
 test("native readiness errors cannot select legacy saves", async () => {
   await loadTypescriptTest("tests/web/native_panel_config.test.ts").runNativeReadinessTests();
 });

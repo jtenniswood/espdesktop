@@ -41,8 +41,6 @@ format_header = (root / 'components/espdesktop/clock_bar.h').read_text()
 formatter = format_header[format_header.index('inline void format_clock_time_without_suffix'):format_header.index('inline void format_fixed_decimal')]
 time_header = (root / 'components/espdesktop/sun_calc.h').read_text()
 fallback = time_header[time_header.index('template <typename TimeT>'):time_header.index('inline std::string trim_ntp_server')]
-date_header = (root / 'components/espdesktop/button_grid_datetime_cards.h').read_text()
-month_formatter = date_header[date_header.index('inline const char *calendar_month_name'):date_header.index('inline void apply_calendar_card_text(const CalendarCardRef &ref,\n                                     const CalendarDateState &state) {')]
 source = r'''
 #include "display_mode_controller.h"
 #include <cassert>
@@ -74,7 +72,7 @@ struct App {
   bool current_mode_is(DisplayMode expected) const { return mode == expected; }
 } espdesktop_app;
 #define id(x) x
-''' + formatter + month_formatter + fallback + '\nvoid render() {\n' + scripts['clock_screensaver_update_time']['then'][0]['lambda'] + '\n}\n' + r'''
+''' + formatter + fallback + '\nvoid render() {\n' + scripts['clock_screensaver_update_time']['then'][0]['lambda'] + '\n}\n' + r'''
 void time_update() {
   const bool visible = [] {
 ''' + refresh['condition']['lambda'] + r'''
@@ -114,7 +112,7 @@ int main() {
   assert(date.hidden);
   assert(label.writes == writes); // Invalid time does not replace the last valid clock.
   panel_time.value = {8, 2, true};
-  for (auto mode : {DisplayMode::ACTIVE, DisplayMode::COVER_ART,
+  for (auto mode : {DisplayMode::ACTIVE,
                     DisplayMode::DIMMED, DisplayMode::SETUP_DIMMED, DisplayMode::DISPLAY_OFF}) {
     espdesktop_app.mode = mode;
     time_update();

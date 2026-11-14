@@ -111,7 +111,10 @@ assert "lv_scr_act() == id(main_page)->obj" in time_guard
 assert "navigation_active_subpage_slot() == 0" in time_guard
 assert "clock_bar_subpage_title_bar_enabled() = id(subpage_title_bar_enabled).state;" in display
 preference = display.split("    id: subpage_title_bar_enabled\n", 1)[1].split("\n  - platform:", 1)[0]
-assert "restore_mode: RESTORE_DEFAULT_ON" in preference
+assert "restore_mode: DISABLED" in preference
+assert "bind_panel_scalar(Setting::SCREEN_SUBPAGE_TITLE_BAR" in display
+for value in ("0", "1"):
+    assert f'ScalarSetting::SCREEN_SUBPAGE_TITLE_BAR, "{value}"' in preference
 assert "clock_bar_subpage_title_bar_enabled() = x;" in preference
 with tempfile.TemporaryDirectory(prefix="subpage-clock-bar-") as directory:
     cpp = Path(directory) / "test.cpp"

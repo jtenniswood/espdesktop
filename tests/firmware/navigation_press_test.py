@@ -34,6 +34,10 @@ void *lv_obj_get_user_data(lv_obj_t *b) { return b->data; }
 bool lv_obj_is_valid(lv_obj_t *b) { return b && b->valid; }
 lv_obj_t *active = nullptr;
 void lv_scr_load_anim(lv_obj_t *s, int, int, int, bool) { active = s; order.push_back(3); }
+void navigation_show_companion_subpage(lv_obj_t *s, bool from_card) {
+  assert(from_card);
+  lv_scr_load_anim(s, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+}
 void refresh_visible_image_cards() {}
 void navigation_present_page_before_image_refresh() {}
 struct ParsedCfg { std::string type, entity = "app", sensor; bool shortcuts = false; };
@@ -51,7 +55,8 @@ int invocations = 0;
 bool invoke_companion_action(const std::string &, const char *, int) {
   ++invocations; order.push_back(4); return invoked;
 }
-bool invoke_companion_url(const std::string &, const std::string &, const char *) {
+bool companion_url_opens_new_window(const ParsedCfg &) { return false; }
+bool invoke_companion_url(const std::string &, const char *, bool) {
   ++invocations; order.push_back(4); return invoked;
 }
 void companion_cancel_action_result(const char *) {}
@@ -63,7 +68,7 @@ code += function("button_grid_navigation_driver.h", "inline bool navigation_driv
 # Compile the production companion dispatch arm without unrelated action drivers.
 basic = (HEADERS / "button_grid_basic_action_driver.h").read_text()
 start = basic.index("    case Driver::COMPANION: {", basic.index("inline bool basic_action_driver_handle_main_click("))
-end = basic.index("    case Driver::WEBHOOK:", start)
+end = basic.index("    default:", start)
 code += r'''
 bool basic_action_driver_handle_main_click(const Context &, const ParsedCfg &config,
                                          int slot_number, lv_obj_t *button) {
@@ -154,7 +159,7 @@ assert "LV_EVENT_PRESSED" in back and "LV_EVENT_CLICKED" not in back
 assert "navigation_return_from_special_page();" in back
 press = function("button_grid_actions.h", "inline void handle_button_press(")
 assert press.index("navigation_handle_button_press(p, slot_num, btn_obj)") < press.index("handle_button_click(cfg, slot_num, btn_obj)")
-assert press.index("screensaver_pin().locked()") < press.index("navigation_handle_button_press(p, slot_num, btn_obj)")
+assert press.index("screen_lock_enabled()") < press.index("navigation_handle_button_press(p, slot_num, btn_obj)")
 
 with tempfile.TemporaryDirectory(prefix="espdesktop-navigation-press-") as temp:
     source = Path(temp) / "test.cpp"

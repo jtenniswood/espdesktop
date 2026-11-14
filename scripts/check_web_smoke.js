@@ -144,7 +144,7 @@ const importedPortraitSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, 3));
 assert.strictEqual(importedPortraitSubpage.subpages["1"].order[0], "1", "a portrait backup import normalizes a subpage 4x3 card before saving");
 assert.strictEqual(importedPortraitSubpage.subpages["1"].sizes["1"], undefined, "a portrait backup import removes the invalid subpage 4x3 size");
@@ -159,42 +159,10 @@ const restoredLandscapeSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1l",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
   settings: { screen_rotation: "0" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, restoredLandscapeCols));
 assert.strictEqual(restoredLandscapeSubpage.subpages["1"].order[0], "1l", "restoring landscape preserves a valid subpage 4x3 card");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_cover_art_on_external_input"),
-  "cover art external-input post aliases include the full generated object id"
-);
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_for_external_sources"),
-  "cover art external-input post aliases include the legacy external-sources object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(30)), [
-  "/number/screen_saver__cover_art_delay/set?value=30",
-  "/number/screen_saver_cover_art_delay/set?value=30",
-  "/number/cover_art_delay/set?value=30",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=30",
-], "cover art delay posts include all firmware object id aliases");
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(0)), [
-  "/number/screen_saver__cover_art_delay/set?value=3",
-  "/number/screen_saver_cover_art_delay/set?value=3",
-  "/number/cover_art_delay/set?value=3",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=3",
-], "legacy immediate cover art delay posts as three seconds");
-assert.strictEqual(hooks.normalizeCoverArtDelay(0), 3, "cover art delay UI normalizes legacy immediate values");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_track_overlay_duration")).includes("screen_saver__show_track_overlay"),
-  "cover art track-overlay post aliases include the legacy show-track-overlay object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtTrackOverlayDurationPostUrls(15)), [
-  "/number/screen_saver__track_overlay_duration/set?value=15",
-  "/number/screen_saver_track_overlay_duration/set?value=15",
-  "/number/track_overlay_duration/set?value=15",
-  "/number/screen_saver__show_track_overlay/set?value=15",
-  "/number/Screen%20Saver%3A%20Show%20Track%20Overlay/set?value=15",
-], "cover art track-overlay posts include all firmware object id aliases");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "off"), true, "clock bar preview is visible when enabled");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "dim"), true, "clock bar preview stays visible for dimmed screen saver");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), true, "clock bar preview stays visible when clock screen saver is configured");
@@ -642,168 +610,6 @@ assert(!climateIconPreview.iconHtml.includes("\u00b0C"), "climate icon mode prev
 function previewSensorValue(preview) {
   return (preview.iconHtml.match(/sp-sensor-value[^>]*>([^<]*)/) || [])[1] || "";
 }
-
-const datePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-});
-assert(!datePreview.labelHtml.includes("sp-type-badge"), "date preview omits the card-type badge");
-assert(datePreview.iconHtml.includes("sp-sensor-preview"), "date preview uses the shared sensor preview");
-const frenchMonth = new Intl.DateTimeFormat("fr", { month: "long" }).format(hooks.webserverMockNow());
-const frenchDatePreview = hooks.buttonTypePreviewForMockNow("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-}, {
-  language: "fr",
-});
-assert(frenchDatePreview.labelHtml.includes(frenchMonth), "date preview follows selected language month names");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "calendar", precision: "" }), "Large Date");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "calendar", precision: "datetime" }), "Large Time");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "clock" }), "Large Clock");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "timezone" }), "Large World Clock");
-
-const largeDatePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-}, {
-  cardSize: 4,
-});
-assert(largeDatePreview.iconHtml.includes("sp-sensor-preview-large"), "date 2x2 preview defaults to large numbers");
-
-const dateTimePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(dateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time 2x2 preview defaults to large numbers");
-assert(previewSensorValue(dateTimePreview).includes(":"), "date/time preview renders a time value");
-
-const timezoneDateTimePreview = hooks.buttonTypePreviewForMockNow("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "",
-}, {
-  timezone: "Pacific/Honolulu",
-  language: "en",
-  clockFormat: "24h",
-});
-assert(previewSensorValue(timezoneDateTimePreview).startsWith("23:00"), "date/time preview formats its time in the panel timezone");
-assert(timezoneDateTimePreview.labelHtml.includes("31 December"), "date/time preview formats its date in the panel timezone");
-
-const wideDateTimePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(!wideDateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time wide preview does not support large numbers");
-assert.strictEqual(wideDateTimePreview.buttonClass, undefined, "date/time wide preview uses the standard wrapper");
-assert(wideDateTimePreview.labelHtml.includes("sp-btn-label"), "date/time wide preview keeps the date label");
-
-const clockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(previewSensorValue(clockPreview).includes(":"), "clock preview renders a time value");
-assert(clockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock 2x2 preview defaults to large numbers");
-assert.strictEqual(clockPreview.labelHtml, "", "clock preview does not render a date label");
-assert.strictEqual(clockPreview.buttonClass, "sp-clock-large", "clock 2x2 preview uses the large clock wrapper");
-
-const wideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(wideClockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock wide preview supports large numbers");
-assert.strictEqual(wideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "clock wide large preview is left aligned");
-assert.strictEqual(wideClockPreview.labelHtml, "", "clock wide preview does not render a date label");
-
-const resizedWideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers,center_clock",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert.strictEqual(resizedWideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "two-column clocks ignore retained center-clock options");
-
-const centeredExtraWideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers,center_clock",
-}, {
-  cardSize: 6,
-  clockFormat: "24h",
-});
-assert.strictEqual(centeredExtraWideClockPreview.buttonClass, "sp-clock-large sp-clock-centered", "clocks wider than two columns honor center-clock");
-
-const timezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "",
-}, {
-  clockFormat: "24h",
-});
-assert(timezonePreview.labelHtml.includes("New York"), "world clock preview uses the city label");
-assert(!timezonePreview.labelHtml.includes("sp-type-badge"), "world clock preview omits the card-type badge");
-
-const autoTimezonePreview = hooks.buttonTypePreviewForMockNow("timezone", {
-  entity: "Auto (Home Assistant)",
-  type: "timezone",
-  options: "",
-}, {
-  activeTimezone: "America/New_York",
-  clockFormat: "24h",
-});
-assert(autoTimezonePreview.labelHtml.includes("New York"), "Auto world clock preview uses the published active timezone city");
-assert.strictEqual(previewSensorValue(autoTimezonePreview), "04:00", "Auto world clock preview uses the published active timezone time");
-
-const wideTimezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(!wideTimezonePreview.iconHtml.includes("sp-sensor-preview-large"), "world clock wide preview does not support large numbers");
-assert.strictEqual(wideTimezonePreview.buttonClass, undefined, "world clock wide preview uses the standard wrapper");
-assert(wideTimezonePreview.labelHtml.includes("New York"), "world clock wide preview keeps the city label");
-
-const largeTimezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "large_numbers",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(largeTimezonePreview.iconHtml.includes("sp-sensor-preview-large"), "world clock 2x2 preview supports large numbers");
-
-const timezoneSamples = [
-  "UTC (GMT+0)",
-  "Pacific/Kiritimati (GMT+14)",
-  "America/New_York (GMT-5)",
-  "Pacific/Honolulu (GMT-10)",
-];
-assert(timezoneSamples.some((timezone) => {
-  const button = { entity: timezone, type: "timezone", options: "" };
-  const clock24 = previewSensorValue(hooks.buttonTypePreviewFor("timezone", button, { clockFormat: "24h" }));
-  const clock12 = previewSensorValue(hooks.buttonTypePreviewFor("timezone", button, { clockFormat: "12h" }));
-  return clock24 !== clock12;
-}), "world clock preview follows 12/24-hour formatting");
 
 const weatherCurrentPreview = hooks.buttonTypePreviewFor("weather", {
   entity: "weather.forecast_home",
@@ -1455,14 +1261,9 @@ assert.notStrictEqual(
   "2026-01-01T09:00:00.000Z",
   "production web UI clock uses the real current time"
 );
-assert(
-  hooks.buttonTypePreviewForMockNow("clock", { type: "clock" }, { clockFormat: "24h" }).iconHtml.includes("09:00"),
-  "mock webserver clock preview uses fixed 09:00 time"
-);
-assert(
-  hooks.buttonTypePreviewForMockNow("clock", { type: "clock" }, { clockFormat: "12h" }).iconHtml.includes("9:00"),
-  "mock webserver clock preview uses fixed 9:00 time in 12h mode"
-);
+for (const type of ["calendar", "clock", "timezone"]) {
+  assert.strictEqual(hooks.buttonTypePreviewFor(type, { type }), null, `${type} has no active preview`);
+}
 const backOnlySubpage = hooks.parseSubpageConfig(",,,,B");
 hooks.buildSubpageGrid(backOnlySubpage);
 assert.deepStrictEqual(plain(backOnlySubpage.buttons), []);
@@ -1497,7 +1298,7 @@ const publicManifest = {
 assert.deepStrictEqual(plain(hooks.firmwareInfoFromPublicManifest(publicManifest)), {
   latest_version: "v1.12.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 });
@@ -1529,13 +1330,13 @@ const publicVersionIndex = {
 assert.deepStrictEqual(plain(hooks.firmwareInfosFromPublicVersions(publicVersionIndex)), [{
   latest_version: "v1.12.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 }, {
   latest_version: "v1.11.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.11.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "abcdef0123456789abcdef0123456789",
 }]);
@@ -1557,7 +1358,7 @@ assert.deepStrictEqual(plain(hooks.firmwareStateAfterVersionIndex("v1.12.0", pub
 });
 assert.strictEqual(
   hooks.firmwareOtaUrlAfterVersionIndex("v1.12.0", publicVersionIndex, "v1.11.0"),
-  "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   "latest firmware OTA resolution must not follow the selected previous version"
 );
 assert.strictEqual(hooks.firmwareVersionLabelFor("", true), "Checking version...");

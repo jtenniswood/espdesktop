@@ -1,12 +1,13 @@
 # Devices and Builds
 
-Device support is authored in `product/v2/device_catalog.json` plus per-device ESPHome YAML
-under `devices/<slug>/`. `devices/manifest.json` is a generated, committed
-compatibility copy for existing tools.
+Device support is authored in `product/v2/devices/`, shared profiles in
+`product/v2/device_catalog_shared.json`, and per-device ESPHome YAML under
+`devices/<slug>/`. The generated catalogue and `devices/manifest.json` are
+committed for existing tools.
 
 ## Device Catalog and Compatibility Manifest
 
-`product/v2/device_catalog.json` defines:
+The generated `product/v2/device_catalog.json` combines:
 
 - public name and docs path
 - screen size, resolution, and orientation
@@ -116,17 +117,21 @@ builds/<slug>.factory.yaml
 Release checks validate that these outputs stay aligned with device profiles and
 public firmware expectations.
 
-Release preflight checks the complete generated task and checked-in web asset
-manifest before preparing version-specific web assets. The later release check graph uses validation
+Release preflight checks tracked generated source, builds the editor from the
+tagged revision and verifies its manifest before preparing version-specific
+web assets. The later release check graph uses validation
 tooling from the workflow revision with `--root` pointing at the tagged source,
 and records that earlier generated validation through
 `--preverified-task generated --preverified-task web-asset-manifest`. Other
 checks run against the prepared assets.
 
-The `pr` matrix selects one representative device per chip family, including
-a P4 recovery image where applicable. The `nightly` and `release` matrices
-continue to include every device. This selection is exposed by
-`python3 scripts/device_matrix.py pr`.
+The `pr` matrix compiles public release targets first. It then compiles one
+manual platform target for each remaining chip family, including the P4
+recovery image where applicable. The firmware check publishes factory and OTA
+images in the `pr-firmware-<slug>` artifact for the commit under test.
+Nightly builds cover every device profile. Release builds use the public
+list in `product/release_devices.json`, currently the 4848S040.
+`python3 scripts/device_matrix.py pr` prints the PR build order.
 
 ## Device Build Flags
 
@@ -165,10 +170,10 @@ or notes for a flag that no device uses.
 | `ESPDESKTOP_JC8012P4A1_USB_LOGGER_UART0_20260528=1` | `guition-esp32-p4-jc8012p4a1`<br>`guition-esp32-p4-jc8012p4a1-v2`<br>`guition-esp32-p4-jc8012p4a1-v3`<br>`guition-esp32-p4-jc8012p4a1-v3-test` | Cache-busting marker for the JC8012P4A1 USB logger and UART0 change. | A later required rebuild marker supersedes it. |
 | `ESPDESKTOP_JC8012P4A1_WDT_20260526=1` | `guition-esp32-p4-jc8012p4a1`<br>`guition-esp32-p4-jc8012p4a1-v2`<br>`guition-esp32-p4-jc8012p4a1-v3`<br>`guition-esp32-p4-jc8012p4a1-v3-test` | Cache-busting marker for the JC8012P4A1 watchdog increase. | A later required rebuild marker supersedes it. |
 | `ESPDESKTOP_KEEP_LVGL_ACTIVE_ON_DISPLAY_OFF=1` | `guition-esp32-p4-jc8012p4a1`<br>`guition-esp32-p4-jc8012p4a1-v2`<br>`guition-esp32-p4-jc8012p4a1-v3`<br>`guition-esp32-p4-jc8012p4a1-v3-test` | Keeps LVGL processing active while the panel is electrically off so scheduled and touch wake paths remain available. | ESPHome/LVGL can suspend and resume these panels without losing wake behavior. |
-| `ESPDESKTOP_LOW_HEAP_COVER_ART=1` | `guition-esp32-s3-4848s040` | Uses the reduced-memory cover-art path on the constrained S3 panel. | The full cover-art path fits with safe runtime heap headroom. |
 | `ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1` | `guition-esp32-s3-4848s040` | Uses the reduced-memory media modal path on the constrained S3 panel. | The full media path fits with safe runtime heap headroom. |
 | `ESPDESKTOP_MAX_GRID_SLOTS=6` | `guition-esp32-p4-jc4880p443`<br>`guition-esp32-p4-jc4880p443-v3` | Caps runtime grid allocation to six slots. | Grid slot capacity is generated from device profile data. |
 | `ESPDESKTOP_MAX_GRID_SLOTS=9` | `esp32-p4-86`<br>`guition-esp32-s3-4848s040` | Caps runtime grid allocation to nine slots. | Grid slot capacity is generated from device profile data. |
+| `ESPDESKTOP_S3_DISPLAY_RESET_TEST` | `guition-esp32-s3-4848s040` | Enables the S3 development build’s display capture, resync, and LCD reset diagnostics. | The shifted-image investigation is complete and the diagnostic page is removed. |
 | `LV_USE_BIDI=1` | `esp32-p4-86`<br>`guition-esp32-p4-jc1060p470`<br>`guition-esp32-p4-jc1060p470-v2`<br>`guition-esp32-p4-jc4880p443`<br>`guition-esp32-p4-jc4880p443-v3`<br>`guition-esp32-p4-jc8012p4a1`<br>`guition-esp32-p4-jc8012p4a1-v2`<br>`guition-esp32-p4-jc8012p4a1-v3`<br>`guition-esp32-p4-jc8012p4a1-v3-test`<br>`guition-esp32-s3-4848s040` | Enables LVGL bidirectional text ordering for right-to-left scripts such as Hebrew and Arabic. | ESPHome enables LVGL bidirectional text for every supported display without this compile definition. |
 <!-- END GENERATED DEVICE BUILD FLAGS -->
 
@@ -179,4 +184,4 @@ complete checklist, generator order, stop conditions, and checks.
 
 ## Offline C6 Recovery Size
 
-Recovery firmware also embeds the C6 image. Its recovery-only package limits logging to INFO (including per-tag overrides) and uses two-bit Cover Art title shading to fit the existing application partition. Recovery progress, warnings, errors, title glyphs, size and layout remain available. Normal factory and OTA builds retain their normal logging and font shading.
+Recovery firmware also embeds the C6 image. Its recovery-only package limits logging to INFO (including per-tag overrides) and uses two-bit media title shading to fit the existing application partition. Recovery progress, warnings, errors, title glyphs, size and layout remain available. Normal factory and OTA builds retain their normal logging and font shading.

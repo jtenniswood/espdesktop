@@ -3,36 +3,52 @@
   "appId": "com.apple.TV",
   "label": "TV",
   "catalog": false,
+  "defaultShortcutIds": ["5", "13", "6", "7", "17", "10"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Create a new playlist",
+      "label": "New Playlist",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Playlist Plus"
     },
     {
       "id": "1",
-      "label": "Create a new Smart Playlist",
+      "label": "Smart Playlist",
       "shortcut": "option+command+n",
-      "icon": "Plus"
+      "icon": "Playlist Edit"
     },
     {
       "id": "2",
-      "label": "Refresh playlist",
+      "label": "Refresh Playlist",
       "shortcut": "command+r",
-      "icon": "Repeat"
+      "icon": "Refresh"
     },
     {
       "id": "3",
-      "label": "Import a video file",
+      "label": "Import Video",
       "shortcut": "command+o",
-      "icon": "Folder"
+      "icon": "Import"
     },
     {
       "id": "4",
-      "label": "Delete the selected playlist",
+      "label": "Delete Playlist",
       "shortcut": "option+delete",
-      "icon": "Play"
+      "icon": "Delete"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "5", "label": "Play or pause video", "shortcut": "scoped.space", "icon": "Play Pause"},
+    {"id": "6", "label": "Increase volume", "shortcut": "scoped.command+up", "icon": "Volume Up"},
+    {"id": "7", "label": "Decrease volume", "shortcut": "scoped.command+down", "icon": "Volume Down"},
+    {"id": "8", "label": "Create new playlist", "shortcut": "scoped.command+n", "icon": "Plus"},
+    {"id": "9", "label": "Open TV Settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "10", "label": "View download activity", "shortcut": "scoped.command+option+l", "icon": "Download"},
+    {"id": "11", "label": "Open TV window", "shortcut": "scoped.command+0", "icon": "Application"},
+    {"id": "12", "label": "Close TV window", "shortcut": "scoped.command+w", "icon": "Application"},
+    {"id": "13", "label": "Toggle full screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen Exit"},
+    {"id": "14", "label": "Open Info window for item", "shortcut": "scoped.command+i", "icon": "Application"},
+    {"id": "15", "label": "Shortcut", "shortcut": "scoped.command+n", "icon": "Arrow Right"},
+    {"id": "16", "label": "Shortcut", "shortcut": "scoped.command+p", "icon": "Arrow Right"},
+    {"id": "17", "label": "Show filter field", "shortcut": "scoped.command+option+f", "icon": "Search"}
   ]
 }

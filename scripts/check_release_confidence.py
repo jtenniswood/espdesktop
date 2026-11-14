@@ -7,6 +7,9 @@ import json
 from pathlib import Path
 
 import check_public_firmware
+from check_card_contract_outputs import assert_docs_contract
+from release_devices import load_release_devices
+
 import device_matrix
 from device_profiles import ROOT, load_device_profiles, public_device_capabilities
 
@@ -74,7 +77,8 @@ def test_firmware_release_matrix(profile_slugs: list[str]) -> None:
         "nightly": device_matrix.nightly_matrix(profiles),
     }
     for label, matrix in matrices.items():
-        assert_same_slugs(profile_slugs, [entry["slug"] for entry in matrix["include"]], f"{label} firmware matrix")
+        expected = load_release_devices() if label == "release" else profile_slugs
+        assert_same_slugs(expected, [entry["slug"] for entry in matrix["include"]], f"{label} firmware matrix")
 
     pr_entries = device_matrix.pr_matrix(profiles)["include"]
     pr_chips = [profiles[entry["slug"]]["firmware"]["build"]["chip"] for entry in pr_entries]
@@ -85,7 +89,7 @@ def test_firmware_release_matrix(profile_slugs: list[str]) -> None:
 
 def test_public_firmware_manifest(profile_slugs: list[str]) -> None:
     public_slugs = check_public_firmware.load_slugs(ROOT / "devices" / "manifest.json")
-    assert sorted(profile_slugs) == public_slugs, "public firmware slug list differs from device profiles"
+    assert sorted(load_release_devices()) == public_slugs, "public firmware slug list differs from release devices"
 
 
 def test_generated_device_docs(devices: list[dict]) -> None:
@@ -108,15 +112,16 @@ def test_generated_device_docs(devices: list[dict]) -> None:
             str(capability["grid"]["cols"]),
         ):
             assert value in grid_text, f"{stem}: generated grid docs missing {value!r}"
-        assert capability["installSlug"] in install_text, f"{stem}: generated install docs missing install slug"
+        if capability["installSlug"] in load_release_devices():
+            assert capability["installSlug"] in install_text, f"{stem}: generated install docs missing install slug"
+        else:
+            assert "planned for a future release" in install_text
+            assert "<EspInstallButton" not in install_text
 
 
 def test_generated_card_docs() -> None:
-    cards = read_json(CARD_CONTRACT_JSON)["cards"]
-    text = CARD_CAPABILITIES_DOC.read_text(encoding="utf-8")
-    for card_type, card in cards.items():
-        type_name = card_type or "switch"
-        assert f"| {card['label']} | {type_name} |" in text, f"{type_name}: generated card docs row is missing"
+    contract = read_json(CARD_CONTRACT_JSON)
+    assert_docs_contract(contract, CARD_CAPABILITIES_DOC.read_text(encoding="utf-8"))
 
 
 def main() -> int:

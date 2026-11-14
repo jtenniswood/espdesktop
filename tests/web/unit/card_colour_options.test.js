@@ -152,7 +152,6 @@ test("only native app artwork retains saved icon sizes", () => {
     { type: "companion", entity: "shortcut.command+c" },
     { type: "companion", entity: "stat.cpu" },
     { type: "companion", entity: "folder.Documents" },
-    { type: "companion", entity: "webapp.example" },
     { type: "companion", entity: "window.close" },
     { type: "companion", entity: "com.apple.safari", sensor: "url.https%3A%2F%2Fexample.com" },
     { type: "companion", entity: "com.apple.finder", app: true },

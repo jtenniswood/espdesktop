@@ -31,6 +31,7 @@
   },
   "settings": {
     "panelInput": {
+      "home_screen_timeout": 120,
       "timezone": "Europe/London (GMT+0)",
       "temperature_unit": "fahrenheit",
       "language": "en",
@@ -61,19 +62,6 @@
       "ntpServer3": "time.google.com",
       "screensaverMode": "disabled",
       "presenceSensorEntity": "",
-      "mediaPlayerSleepPrevention": true,
-      "mediaPlayerSleepPreventionEntity": "",
-      "coverArtScreensaver": false,
-      "coverArtSource": "Mac Companion",
-      "coverArtMediaPlayerEntity": "",
-      "coverArtSecondaryMediaPlayerEntity": "",
-      "coverArtAttributeConditions": "",
-      "coverArtDelay": 10,
-      "coverArtTrackOverlayDuration": 5,
-      "coverArtHideExternalInput": true,
-      "coverArtHomeAssistantEndpointMode": "Manual",
-      "coverArtHomeAssistantProtocol": "https",
-      "coverArtHomeAssistantPort": 8123,
       "autoUpdate": true,
       "updateFrequency": "Weekly",
       "screensaverAction": "off",
@@ -84,7 +72,6 @@
       "screensaverDimmedBrightnessDay": 10,
       "screensaverDimmedBrightnessNight": 10,
       "screensaverTimeout": 300,
-      "homeScreenTimeout": 60,
       "screenRotation": "90",
       "screensaverCameraEntity": "",
       "screensaverMetadataEntity": "",
@@ -92,8 +79,6 @@
       "screensaverCameraImageMode": "Fit",
       "clockOverlay": false,
       "clockDate": false,
-      "coverArtPlaybackControl": true,
-      "coverArtHomeAssistantHost": "",
       "screensaverCameraDimming": 0
     },
     "screenInput": {
@@ -176,12 +161,6 @@
       "/switch/voice_services/turn_on",
       "/switch/voice_services_enabled/turn_on",
       "/switch/Voice%20Services/turn_on"
-    ],
-    "coverArtDelay30": [
-      "/number/screen_saver__cover_art_delay/set?value=30",
-      "/number/screen_saver_cover_art_delay/set?value=30",
-      "/number/cover_art_delay/set?value=30",
-      "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=30"
     ]
   },
   "bundleSize": {

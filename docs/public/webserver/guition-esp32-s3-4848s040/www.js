@@ -1,1 +1,0 @@
-(()=>{const c=document.currentScript,u=new URL("../www.js",c.src),s=document.createElement("script");u.search=c.src.includes("?")?c.src.slice(c.src.indexOf("?")):"";u.searchParams.set("device","guition-esp32-s3-4848s040");s.src=u.href;document.head.appendChild(s)})();

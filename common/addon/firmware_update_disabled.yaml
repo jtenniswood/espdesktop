@@ -53,7 +53,6 @@ script:
     mode: restart
     then:
       - script.stop: screensaver_idle_check
-      - script.stop: home_screen_idle_check
       - script.execute: setup_screen_dim_cancel
       - lambda: |-
           navigation_hide_modals();

@@ -87,10 +87,16 @@ inline const lv_font_t *&display_active_compact_volume_number_font() {
   return font;
 }
 
+inline const lv_font_t *&display_active_pairing_code_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+
 inline void display_activate_profile(const DisplayProfile &profile) {
   display_set_width_axis(profile);
   display_active_modal_profile() = profile.modal;
   display_active_compact_volume_number_font() = profile.fonts.volume_number_compact;
+  display_active_pairing_code_font() = profile.fonts.media_control_title;
 }
 
 inline bool display_modal_uses_family(const DisplayModalProfile &profile,

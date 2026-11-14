@@ -4,10 +4,8 @@ import {
 } from "../../src/webserver/application/application_context";
 import { createCardRegistry } from "../../src/webserver/application/card_registry";
 import { createConfigWeatherOptionsFeature } from "../../src/webserver/application/config_weather_options";
-import { createConfigWebhookOptionsFeature } from "../../src/webserver/application/config_webhook_options";
 import { createConfigRobotCardOptionsFeature } from "../../src/webserver/application/config_robot_card_options";
 import { createConfigLockOptionsFeature } from "../../src/webserver/application/config_lock_options";
-import { createConfigDateTimeOptionsFeature } from "../../src/webserver/application/config_date_time_options";
 import type { DeviceConfig } from "../../src/webserver/state/types";
 
 const profile: DeviceConfig = {
@@ -37,10 +35,8 @@ export function runApplicationContextTests(): void {
   const mediaConfigurationOptions = {} as any;
   const imageConfigurationOptions = {} as any;
   const weatherConfigurationOptions = {} as any;
-  const webhookConfigurationOptions = {} as any;
   const robotConfigurationOptions = {} as any;
   const lockConfigurationOptions = {} as any;
-  const dateTimeConfigurationOptions = {} as any;
   const modalTabOptions = {} as any;
   const accessClimateAlarmOptions = {} as any;
   const confirmationOptions = {} as any;
@@ -73,12 +69,9 @@ export function runApplicationContextTests(): void {
   const statusPreview = {} as any;
   const grid = {} as any;
   const firmwarePostApi = {} as any;
-  const artworkPostApi = {} as any;
   const schedulePostApi = {} as any;
   const clockBarPostApi = {} as any;
   const publicFirmwareInstall = {} as any;
-  const coverArtScreensaver = {} as any;
-  const mediaPlayback = {} as any;
   const pageTitle = {} as any;
   const screenSchedule = {} as any;
   const screenScheduleState = {} as any;
@@ -117,10 +110,8 @@ export function runApplicationContextTests(): void {
     mediaConfigurationOptions,
     imageConfigurationOptions,
     weatherConfigurationOptions,
-    webhookConfigurationOptions,
     robotConfigurationOptions,
     lockConfigurationOptions,
-    dateTimeConfigurationOptions,
     modalTabOptions,
     accessClimateAlarmOptions,
     confirmationOptions,
@@ -135,7 +126,6 @@ export function runApplicationContextTests(): void {
     firmwareVersion,
     firmwareUpdate,
     firmwarePostApi,
-    artworkPostApi,
     schedulePostApi,
     clockBarPostApi,
     publicFirmwareInstall,
@@ -156,8 +146,6 @@ export function runApplicationContextTests(): void {
     appEvents,
     statusPreview,
     grid,
-    coverArtScreensaver,
-    mediaPlayback,
     pageTitle,
     reconnect,
     screenSchedule,
@@ -188,7 +176,6 @@ export function runApplicationContextTests(): void {
   equal(context.controllers.firmwareVersion, firmwareVersion, "context owns firmware version behavior");
   equal(context.controllers.firmwareUpdate, firmwareUpdate, "context owns firmware update behavior");
   equal(context.controllers.firmwarePostApi, firmwarePostApi, "context owns firmware update posting behavior");
-  equal(context.controllers.artworkPostApi, artworkPostApi, "context owns artwork posting behavior");
   equal(context.controllers.schedulePostApi, schedulePostApi, "context owns screen schedule posting behavior");
   equal(context.controllers.clockBarPostApi, clockBarPostApi, "context owns Clock Bar posting behavior");
   equal(context.controllers.publicFirmwareInstall, publicFirmwareInstall, "context owns public firmware upload behavior");
@@ -218,10 +205,8 @@ export function runApplicationContextTests(): void {
   equal(context.configuration.mediaOptions, mediaConfigurationOptions, "context retains typed media options");
   equal(context.configuration.imageOptions, imageConfigurationOptions, "context retains typed image options");
   equal(context.configuration.weatherOptions, weatherConfigurationOptions, "context retains typed weather options");
-  equal(context.configuration.webhookOptions, webhookConfigurationOptions, "context retains typed webhook options");
   equal(context.configuration.robotOptions, robotConfigurationOptions, "context retains typed robot-card options");
   equal(context.configuration.lockOptions, lockConfigurationOptions, "context retains typed lock options");
-  equal(context.configuration.dateTimeOptions, dateTimeConfigurationOptions, "context retains typed date/time options");
   equal(context.configuration.modalTabs, modalTabOptions, "context retains typed modal-tab options");
   equal(context.configuration.accessClimateAlarm, accessClimateAlarmOptions, "context retains typed access/climate/alarm options");
   equal(context.configuration.confirmationOptions, confirmationOptions, "context retains typed confirmation options");
@@ -250,8 +235,6 @@ export function runApplicationContextTests(): void {
   equal(context.controllers.cardEditorValidation, cardEditorValidation, "context retains editor validation ownership");
   equal(context.controllers.previewPlacement, previewPlacement, "context retains preview placement ownership");
   equal(context.controllers.clockBar, clockBar, "context retains clock bar ownership");
-  equal(context.controllers.coverArtScreensaver, coverArtScreensaver, "context retains cover art settings ownership");
-  equal(context.controllers.mediaPlayback, mediaPlayback, "context retains media settings ownership");
   equal(context.controllers.pageTitle, pageTitle, "context retains page title ownership");
   equal(context.controllers.screenSchedule, screenSchedule, "context retains schedule settings ownership");
   equal(context.controllers.screensaver, screensaver, "context retains screensaver settings ownership");
@@ -267,17 +250,6 @@ export function runApplicationContextTests(): void {
   equal(currentOnlyWeather.normalizeWeatherCardMode("tomorrow"), "", "disabled forecast support normalizes to current conditions");
   equal(currentOnlyWeather.weatherCardIsForecastMode({ precision: "tomorrow" }), false, "disabled forecast support hides forecast controls");
 
-  const webhookOptions = createConfigWebhookOptionsFeature();
-  equal(webhookOptions.webhookMethod("post"), "POST", "webhook options normalize supported methods");
-  equal(webhookOptions.webhookMethod("unknown"), "GET", "webhook options fall back to GET");
-  const webhook = { sensor: "POST", unit: "{}", icon: "", icon_on: "Flash", precision: "1", options: "webhook_headers=Content-Type%3A%20application/json,unused=value" } as any;
-  webhookOptions.normalizeWebhookConfig(webhook);
-  equal(webhook.icon, "Auto", "webhook normalization restores the default icon");
-  equal(webhook.icon_on, "Auto", "webhook normalization removes the active icon");
-  equal(webhook.precision, "", "webhook normalization clears precision");
-  equal(webhookOptions.webhookHeaders(webhook), "Content-Type: application/json", "webhook normalization preserves encoded headers");
-
-
   const robotOptions = createConfigRobotCardOptionsFeature();
   equal(robotOptions.normalizeLawnMowerMode("dock"), "dock", "robot options preserve lawn-mower modes");
   equal(robotOptions.normalizeLawnMowerMode("invalid"), "start_mowing", "robot options normalize invalid lawn-mower modes");
@@ -289,22 +261,6 @@ export function runApplicationContextTests(): void {
   equal(lockOptions.normalizeLockMode("invalid"), "", "lock options normalize invalid modes to toggle");
   equal(lockOptions.lockModeDefaultIcon("unlock"), "Lock Open", "lock options provide command icons");
   equal(lockOptions.lockUsesDefaultIcon("Lock"), true, "lock options recognize historical default icons");
-
-  const dateTimeOptions = createConfigDateTimeOptionsFeature({
-    state: { timezone: "Europe/London (GMT+0)", timezoneOptions: ["Europe/London (GMT+0)"], clockFormat: "24h" } as any,
-    now: () => new Date("2026-01-01T09:05:00Z"),
-    renderButtonSettings() {},
-    effectiveTimezoneOption: (value) => value,
-    timezoneId: () => "Europe/London",
-    timezoneOptionsWithFallback: (options) => options,
-    appendTimezoneOption() {},
-    monthNameForIndex: () => "January",
-  });
-  equal(dateTimeOptions.metadata.mode.options.map((option: any) => option.label).join(","), "Clock,World Clock", "date/time picker only offers clock cards");
-  equal(dateTimeOptions.normalizeDateTimeCardMode("clock"), "clock", "date/time options preserve clock mode");
-  equal(dateTimeOptions.normalizeDateTimeCardMode("invalid"), "clock", "date/time options reject unknown modes");
-  equal(dateTimeOptions.dateTimeCardTimeParts().value, "09:05", "date/time options format the shared current time");
-  equal(dateTimeOptions.defaultTimezoneCardEntity(), "Europe/London (GMT+0)", "date/time options use the active timezone");
 
   const timer = cards.register("timer", { label: "Timer", allowInSubpage: true });
   equal(cards.typedDefinitionCount, 1, "registry counts typed card definitions");

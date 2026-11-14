@@ -1,10 +1,7 @@
 import { state } from "../state/app_instance";
 import { normalizeHexColor } from "../model/settings";
-import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
 import type { ScreenScheduleStateFeature } from "./screen_schedule_state";
-import type { EntityStateFeature } from "./entity_state";
-import type { ApplicationApiFeature } from "./api";
 import type { ScreenSchedulePostApiFeature } from "./screen_schedule_post_api";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import type { SettingsPageHelpersFeature } from "./settings_page_helpers";
@@ -13,14 +10,11 @@ export interface SettingsScheduleSectionFeature {
     buildScreenScheduleSettingsCard(...args: any[]): any;
 }
 
-export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, schedule: ScreenScheduleStateFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, requestApi: Pick<ApplicationApiFeature, "postText">, schedulePostApi: ScreenSchedulePostApiFeature, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField">, helpers: Pick<SettingsPageHelpersFeature, "createHourSelect" | "infoPanel" | "statusBadge">): SettingsScheduleSectionFeature {
+export function createSettingsScheduleSectionFeature(runtime: UiRuntimeState, schedule: ScreenScheduleStateFeature, schedulePostApi: ScreenSchedulePostApiFeature, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField">, helpers: Pick<SettingsPageHelpersFeature, "createHourSelect" | "infoPanel" | "statusBadge">): SettingsScheduleSectionFeature {
     const { createHourSelect, infoPanel, statusBadge } = helpers;
     const { colorField, condField, createRangeSlider, fieldLabel, makeCollapsibleCard, segmentControl, selectField } = fields;
-    const { entityName, entityInput } = entityState;
-    const { bindTextPost } = codec;
     const els = runtime.els;
     const {
-        postScreenScheduleEnabled,
         postScreenScheduleTrigger,
         postScreenScheduleOnHour,
         postScreenScheduleOffHour,
@@ -29,6 +23,7 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
         postScreenScheduleWakeBrightness,
         postScreenScheduleDimmedBrightness,
         postScreenScheduleClockBrightness,
+        postScreenScheduleClockTextColor,
     } = schedulePostApi;
     const {
         controller: _screenScheduleController,
@@ -39,7 +34,7 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
     // ── Settings Schedule Section ──────────────────────────────────────
     function buildScreenScheduleSettingsCard(this: any) {
         var scheduleBody: any = document.createElement("div");
-        scheduleBody.appendChild(infoPanel("sp-night-schedule-info", "Night Schedule overrides the screensaver and Mac Cover Art during its configured hours."));
+        scheduleBody.appendChild(infoPanel("sp-night-schedule-info", "Night Schedule overrides the screensaver during its configured hours."));
         scheduleBody.appendChild(fieldLabel("Mode"));
         var scheduleModeSegment: any = segmentControl([
             ["disabled", "Disabled"],
@@ -142,7 +137,7 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
         clockOptions.appendChild(fieldLabel("Clock Text Colour"));
         var clockTextColor: any = colorField("sp-set-schedule-clock-text-color", state.scheduleClockTextColor, function (this: any, hex?: any) {
             state.scheduleClockTextColor = normalizeHexColor(hex, "FFFFFF");
-            requestApi.postText(entityName("screen_schedule_clock_text_color"), state.scheduleClockTextColor);
+            postScreenScheduleClockTextColor(state.scheduleClockTextColor);
         });
         clockOptions.appendChild(clockTextColor);
         scheduleActions.appendChild(clockOptions);
@@ -156,7 +151,6 @@ export function createSettingsScheduleSectionFeature(codec: Pick<ConfigCodecFeat
             state._scheduleTriggerReceived = true;
             applyScreenScheduleControllerState(_screenScheduleController.setTrigger(screenScheduleControllerState(), trigger));
             postScreenScheduleTrigger(state.scheduleTrigger);
-            postScreenScheduleEnabled(state.scheduleEnabled);
             syncScreenScheduleUi();
         }
         var scheduleBadge: any = statusBadge("Schedule on");

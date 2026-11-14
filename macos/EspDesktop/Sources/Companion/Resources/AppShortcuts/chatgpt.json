@@ -1,68 +1,73 @@
 {
   "version": 1,
   "appId": "com.openai.chat",
-  "label": "ChatGPT",
+  "label": "ChatGPT Classic",
   "catalog": false,
+  "defaultShortcutIds": ["2", "0", "4", "7", "1", "3", "5", "6"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open command menu",
+      "label": "Command Menu",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "1",
-      "label": "Toggle sidebar",
+      "label": "Toggle Sidebar",
       "shortcut": "command+b",
-      "icon": "Application"
+      "icon": "Dock Left"
     },
     {
       "id": "2",
-      "label": "New chat",
+      "label": "New Chat",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Chat Plus"
     },
     {
       "id": "3",
-      "label": "Quick chat",
+      "label": "Quick Chat",
       "shortcut": "command+option+n",
-      "icon": "Application"
+      "icon": "Chat"
     },
     {
       "id": "4",
-      "label": "Find in chat",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "5",
-      "label": "Previous chat or tab",
+      "label": "Previous Chat",
       "shortcut": "control+shift+tab",
-      "icon": "Application"
+      "icon": "Chevron Left"
     },
     {
       "id": "6",
-      "label": "Next chat or tab",
+      "label": "Next Chat",
       "shortcut": "control+tab",
-      "icon": "Application"
+      "icon": "Chevron Right"
     },
     {
       "id": "7",
-      "label": "Start voice chat",
+      "label": "Voice Chat",
       "shortcut": "control+shift+v",
-      "icon": "Application"
+      "icon": "Microphone"
     },
     {
       "id": "8",
-      "label": "Open Chat Bar (ChatGPT Classic)",
+      "label": "Chat Bar",
       "shortcut": "option+space",
-      "icon": "Application"
+      "icon": "Chat"
     },
     {
       "id": "9",
-      "label": "Stop streaming response (ChatGPT Classic)",
+      "label": "Stop Reply",
       "shortcut": "command+keyperiod",
-      "icon": "Application"
+      "icon": "Stop"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Share main desktop (ChatGPT Classic)", "shortcut": "scoped.command+shift+1", "icon": "Share"},
+    {"id": "11", "label": "Share window (ChatGPT Classic)", "shortcut": "scoped.command+shift+2", "icon": "Application"}
   ]
 }

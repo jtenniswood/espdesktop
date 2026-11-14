@@ -25,8 +25,13 @@ function runtimeIconNames(sources, knownNames) {
       // typo or missing local codepoint must not silently remove the glyph.
       names.add(match[1]);
     }
+    // Native form input types can share names with icons, such as "radio".
+    const inputTypeOffsets = new Set(Array.from(
+      code.matchAll(/\binput\.type\s*=\s*(["'])([a-z][a-z0-9-]*)\1/g),
+      match => match.index + match[0].indexOf(match[1]),
+    ));
     for (const match of code.matchAll(/["']([a-z][a-z0-9-]*)["']/g)) {
-      if (known.has(match[1])) names.add(match[1]);
+      if (known.has(match[1]) && !inputTypeOffsets.has(match.index)) names.add(match[1]);
     }
   }
   return [...names].sort();

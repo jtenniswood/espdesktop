@@ -86,6 +86,8 @@ companion:
 espdesktop:
   id: espdesktop_app
   panel_config:
+    on_layout_changed:
+      - script.execute: refresh_subpage_grid
     device_profile: ${device_slug}
     storage: card_images
     button_order: button_order
@@ -127,7 +129,6 @@ esphome:
     - "-DESPDESKTOP_MAX_GRID_SLOTS=9"
     - "-DESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS=2"
     - "-DESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1"
-    - "-DESPDESKTOP_LOW_HEAP_COVER_ART=1"
     # Keep C++ literals close to their functions on the S3 firmware image;
     # the modal code is large enough to otherwise trip Xtensa l32r range limits.
     - "-mtext-section-literals"
@@ -154,67 +155,6 @@ esphome:
               esp_sleep_enable_timer_wakeup(100000);
               esp_deep_sleep_start();
             }
-    - priority: 190
-      then:
-        - lambda: |-
-            register_companion_now_playing_handlers(
-              [](const CompanionNowPlayingSnapshot &snapshot) {
-                if (!id(cover_art_companion_source_active) ||
-                    !id(cover_art_screensaver_enabled).state) return;
-                const uint32_t previous_generation =
-                  static_cast<uint32_t>(id(cover_art_content_fingerprint));
-                id(cover_art_content_fingerprint) = snapshot.generation;
-                id(cover_art_title) = snapshot.title;
-                id(cover_art_artist) = snapshot.artist;
-                id(cover_art_album) = snapshot.album;
-                id(cover_art_media_duration) = snapshot.duration;
-                id(cover_art_media_position) = snapshot.position;
-                id(cover_art_position_anchor) = snapshot.position;
-                id(cover_art_position_anchor_epoch) = 0;
-                const bool playing =
-                  snapshot.playback_state == CompanionPlaybackState::PLAYING;
-                id(cover_art_media_playing) = playing;
-                id(cover_art_last_playback_state) = playing ? "playing" :
-                  snapshot.playback_state == CompanionPlaybackState::PAUSED ? "paused" :
-                  snapshot.playback_state == CompanionPlaybackState::STOPPED ? "stopped" : "unavailable";
-                if (!snapshot.artwork_follows ||
-                    (previous_generation != 0 && previous_generation != snapshot.generation)) {
-                  id(cover_art_runtime).image_available = false;
-                  id(cover_art_runtime).loaded_url.clear();
-                  lv_obj_add_flag(id(cover_art_image_widget), LV_OBJ_FLAG_HIDDEN);
-                }
-                id(cover_art_sync_track_text).execute();
-                id(cover_art_playback_refresh).execute();
-              },
-              [](uint32_t generation, uint8_t *data, size_t size) -> bool {
-                const auto runtime = companion_runtime_snapshot();
-                if (!id(cover_art_companion_source_active) ||
-                    !id(cover_art_screensaver_enabled).state ||
-                    generation != runtime.now_playing.generation) return false;
-                id(cover_art_download_generation) = 0;
-                bool decoded = false;
-                const bool owned = id(cover_art_downloaded_image)->load_owned_buffer(data, size, &decoded);
-                if (!owned) return false;
-                id(cover_art_runtime).image_available = decoded;
-                if (decoded) {
-                  id(cover_art_runtime).loaded_url = "companion:" + std::to_string(generation);
-                } else {
-                  id(cover_art_runtime).loaded_url.clear();
-                  lv_obj_add_flag(id(cover_art_image_widget), LV_OBJ_FLAG_HIDDEN);
-                }
-                if (id(cover_art_runtime).image_available && id(cover_art_media_playing) &&
-                    id(espdesktop_app).display().target_mode_is(espdesktop::DisplayMode::COVER_ART)) {
-                  #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
-                  lv_image_set_src(id(cover_art_image_widget), id(cover_art_downloaded_image)->get_lv_image_dsc());
-                  #else
-                  lv_img_set_src(id(cover_art_image_widget), id(cover_art_downloaded_image)->get_lv_img_dsc());
-                  #endif
-                  lv_obj_clear_flag(id(cover_art_image_widget), LV_OBJ_FLAG_HIDDEN);
-                  id(cover_art_extract_accent_color).execute();
-                  id(cover_art_show_track_overlay).execute();
-                }
-                return true;
-              });
     - priority: -100
       then:
         - lambda: 'id(screen_rotation_ready) = true;'
@@ -309,30 +249,7 @@ light:
     restore_mode: RESTORE_DEFAULT_ON
     default_transition_length: 0s
     gamma_correct: 1.0
-    on_turn_on:
-      then:
-        - if:
-            condition:
-              lambda: |-
-                auto now = id(panel_time).now();
-                return (id(espdesktop_app).display().target_source_is(
-                            espdesktop::DisplayRequestSource::SCREEN_SCHEDULE) &&
-                        id(espdesktop_app).display().target_mode_is(
-                            espdesktop::DisplayMode::DISPLAY_OFF)) ||
-                       screen_schedule_waiting_for_time(
-                         id(screen_schedule_trigger).state,
-                         id(schedule_enabled).state,
-                         now.is_valid());
-            then:
-              - script.execute: backlight_force_display_off
-            else:
-              - if:
-                  condition:
-                    lambda: |-
-                      return id(espdesktop_app).display().current_mode_is(
-                          espdesktop::DisplayMode::DISPLAY_OFF);
-                  then:
-                    - script.execute: screensaver_wake
+    on_turn_on: !include ../../../common/device/display_backlight_on.yaml
     on_turn_off:
       then:
         - script.execute: display_backlight_handle_off
@@ -436,7 +353,7 @@ touchscreen:
       mirror_x: false
       mirror_y: false
     on_touch:
-      - script.execute: cover_art_handle_touch
+      - script.execute: screensaver_wake
 
 # ---------------------------------------------------------------------------
 # Display (4" 480x480 MIPI RGB panel)
@@ -556,62 +473,13 @@ script:
 
   - id: apply_screen_rotation
     then:
-      - if:
-          condition:
-            lambda: 'return id(screen_rotation_select).current_option() == "90";'
-          then:
-            - lvgl.display.set_rotation: 270
-          else:
-            - if:
-                condition:
-                  lambda: 'return id(screen_rotation_select).current_option() == "180";'
-                then:
-                  - lvgl.display.set_rotation: 0
-                else:
-                  - if:
-                      condition:
-                        lambda: 'return id(screen_rotation_select).current_option() == "270";'
-                      then:
-                        - lvgl.display.set_rotation: 90
-                      else:
-                        - lvgl.display.set_rotation: 180
+      - !include
+        file: ../../../common/device/display_rotation_action.yaml
+        vars:
+          hardware_rotation_offset: 180
 
 select:
-  - platform: template
-    name: "Cover Art Source"
-    internal: true
-    id: cover_art_source
-    entity_category: config
-    icon: "mdi:album"
-    optimistic: true
-    restore_value: true
-    initial_option: "Mac Companion"
-    options:
-      - "Mac Companion"
-    on_value:
-      then:
-        - script.execute: cover_art_refresh_source
-
-  - platform: template
-    name: "${entity_screen_rotation}"
-    internal: true
-    disabled_by_default: true
-    id: screen_rotation_select
-    entity_category: config
-    icon: "mdi:screen-rotation"
-    optimistic: true
-    restore_value: true
-    initial_option: "180"
-    options:
-      - "0"
-      - "90"
-      - "180"
-      - "270"
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(screen_rotation_ready);'
-            then:
-              - script.execute: apply_screen_rotation
-              - script.execute: clock_bar_apply
+  - !include
+    file: ../../../common/device/screen_rotation_select.yaml
+    vars:
+      rotation_refresh_script: clock_bar_apply

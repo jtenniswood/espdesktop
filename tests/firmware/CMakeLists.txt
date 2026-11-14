@@ -10,9 +10,6 @@ target_compile_features(media_display_text_test PRIVATE cxx_std_17)
 target_compile_options(media_display_text_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(media_display_text_test PRIVATE stubs ../../components/espdesktop)
 add_test(NAME media_display_text_test COMMAND media_display_text_test)
-add_test(NAME media_display_integration_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/media_display_integration_test.py ${CMAKE_CXX_COMPILER})
-
 add_executable(dpi_timing_test dpi_timing_test.cpp)
 target_compile_features(dpi_timing_test PRIVATE cxx_std_17)
 target_compile_options(dpi_timing_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
@@ -85,25 +82,28 @@ target_compile_options(digest_auth_policy_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(digest_auth_policy_test PRIVATE ../../components/web_server_idf)
 add_test(NAME digest_auth_policy_test COMMAND digest_auth_policy_test)
 
-add_executable(companion_shortcut_test companion_shortcut_test.cpp)
+set(finder_preview_fixture "${CMAKE_CURRENT_SOURCE_DIR}/../../compatibility/fixtures/finder_folder_preview.json")
+set(finder_preview_cases "${CMAKE_CURRENT_BINARY_DIR}/finder_folder_preview_cases.inc")
+add_custom_command(OUTPUT "${finder_preview_cases}"
+  COMMAND "${Python3_EXECUTABLE}" "${CMAKE_CURRENT_SOURCE_DIR}/generate_finder_preview_cases.py"
+    "${finder_preview_fixture}" "${finder_preview_cases}"
+  DEPENDS "${finder_preview_fixture}" generate_finder_preview_cases.py
+  VERBATIM)
+add_executable(companion_shortcut_test companion_shortcut_test.cpp "${finder_preview_cases}")
 target_compile_features(companion_shortcut_test PRIVATE cxx_std_17)
 target_compile_options(companion_shortcut_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(companion_shortcut_test PRIVATE
+  "${CMAKE_CURRENT_BINARY_DIR}"
   stubs
   ../../components/espdesktop
 )
 add_test(NAME companion_shortcut_test COMMAND companion_shortcut_test)
 add_test(NAME companion_subpage_preference_boot_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py ${CMAKE_CXX_COMPILER})
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_subpage_preference_boot_test.py)
 
 add_test(NAME companion_navigation_preference_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/companion_navigation_preference_test.py)
 
-add_executable(companion_now_playing_protocol_test companion_now_playing_protocol_test.cpp)
-target_compile_features(companion_now_playing_protocol_test PRIVATE cxx_std_17)
-target_compile_options(companion_now_playing_protocol_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(companion_now_playing_protocol_test PRIVATE ../../components/companion)
-add_test(NAME companion_now_playing_protocol_test COMMAND companion_now_playing_protocol_test)
 
 add_executable(app_icon_custom_color_test app_icon_custom_color_test.cpp)
 target_compile_features(app_icon_custom_color_test PRIVATE cxx_std_17)
@@ -204,9 +204,6 @@ target_compile_features(control_modal_service_test PRIVATE cxx_std_17)
 target_compile_options(control_modal_service_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(control_modal_service_test PRIVATE ../../components/espdesktop)
 add_test(NAME control_modal_service_test COMMAND control_modal_service_test)
-
-add_test(NAME webhook_log_secrets_test COMMAND ${Python3_EXECUTABLE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/webhook_log_secrets_test.py ${CMAKE_CXX_COMPILER})
 
 add_executable(icons_legacy_alias_test icons_legacy_alias_test.cpp)
 target_compile_features(icons_legacy_alias_test PRIVATE cxx_std_17)
@@ -412,9 +409,6 @@ add_test(NAME image_pipeline_policy_test COMMAND image_pipeline_policy_test)
 add_test(NAME display_schedule_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/display_schedule_test.py
   --compiler ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_activation_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_activation_test.py
-  --compiler ${CMAKE_CXX_COMPILER})
 add_executable(rgb565_scaler_test rgb565_scaler_test.cpp)
 target_compile_features(rgb565_scaler_test PRIVATE cxx_std_17)
 target_compile_options(rgb565_scaler_test PRIVATE -Wall -Wextra -Werror)
@@ -489,7 +483,7 @@ add_test(NAME subpage_runtime_cleanup_test
 add_executable(panel_identity_runtime_beta_test panel_identity_runtime_test.cpp ../../components/espdesktop/panel_identity.cpp)
 target_compile_features(panel_identity_runtime_beta_test PRIVATE cxx_std_17)
 target_compile_options(panel_identity_runtime_beta_test PRIVATE -Wall -Wextra -Werror)
-target_compile_definitions(panel_identity_runtime_beta_test PRIVATE TEST_ESPHOME_MINOR=10)
+target_compile_definitions(panel_identity_runtime_beta_test PRIVATE TEST_ESPHOME_MINOR=11)
 target_include_directories(panel_identity_runtime_beta_test PRIVATE panel_identity_stubs ../../components/espdesktop)
 add_test(NAME panel_identity_runtime_beta_test COMMAND panel_identity_runtime_beta_test)
 
@@ -555,27 +549,12 @@ target_compile_options(camera_refresh_policy_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(camera_refresh_policy_test PRIVATE ../../components/espdesktop)
 add_test(NAME camera_refresh_policy_test COMMAND camera_refresh_policy_test)
 
-add_test(NAME owned_artwork_transfer_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/owned_artwork_transfer_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_clock_transition_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_clock_transition_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME cover_art_active_landing_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/cover_art_active_landing_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME speaker_announcement_duck_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/speaker_announcement_duck_test.py)
 
-add_executable(screensaver_pin_test screensaver_pin_test.cpp
-  ../../components/espdesktop/screensaver_pin.cpp)
-target_compile_features(screensaver_pin_test PRIVATE cxx_std_17)
-target_compile_options(screensaver_pin_test PRIVATE -Wall -Wextra -Werror)
-target_include_directories(screensaver_pin_test PRIVATE screensaver_pin_stubs ../../components/espdesktop)
-target_link_libraries(screensaver_pin_test PRIVATE Threads::Threads)
-add_test(NAME screensaver_pin_test COMMAND screensaver_pin_test)
-add_test(NAME screensaver_pin_ui_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screensaver_pin_ui_test.py ${CMAKE_CXX_COMPILER})
-add_test(NAME screensaver_pin_cover_art_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screensaver_pin_cover_art_test.py ${CMAKE_CXX_COMPILER})
+add_test(NAME screen_lock_ui_test COMMAND
+  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/screen_lock_ui_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME app_icon_store_test COMMAND
   ${CMAKE_COMMAND} -E env "CXX=${CMAKE_CXX_COMPILER}"
@@ -629,16 +608,10 @@ target_compile_options(connector_state_test PRIVATE -Wall -Wextra -Werror)
 target_include_directories(connector_state_test PRIVATE stubs ../../components/espdesktop)
 add_test(NAME connector_state_test COMMAND connector_state_test)
 
-add_test(NAME companion_artwork_contract_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_companion_artwork.py)
-add_test(NAME companion_artwork_contract_self_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/../../scripts/check_companion_artwork.py --self-test)
 
 add_test(NAME subpage_clock_bar_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/subpage_clock_bar_test.py)
 
-add_test(NAME retired_camera_migration_test COMMAND
-  ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/retired_camera_migration_test.py ${CMAKE_CXX_COMPILER})
 
 add_test(NAME card_retirement_test COMMAND
   ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/card_retirement_test.py ${CMAKE_CXX_COMPILER})
@@ -692,8 +665,7 @@ add_test(NAME panel_config_document_v2_test COMMAND ${Python3_EXECUTABLE} ${CMAK
 add_executable(grid_page_runtime_test grid_page_runtime_test.cpp
   ${CMAKE_CURRENT_BINARY_DIR}/page_store_goldens.h
   ../../components/espdesktop/page_store.cpp
-  ../../components/espdesktop/page_store_runtime.cpp
-  ../../components/espdesktop/panel_config_text_bindings.cpp)
+  ../../components/espdesktop/page_store_runtime.cpp)
 target_compile_features(grid_page_runtime_test PRIVATE cxx_std_17)
 target_compile_options(grid_page_runtime_test PRIVATE -Wall -Wextra -Werror -UNDEBUG)
 target_include_directories(grid_page_runtime_test PRIVATE stubs ../../components/espdesktop ${CMAKE_CURRENT_BINARY_DIR})
@@ -748,3 +720,6 @@ add_test(NAME nested_folder_state_test COMMAND ${Python3_EXECUTABLE} ${CMAKE_CUR
 
 add_test(NAME application_shutdown_test COMMAND ${Python3_EXECUTABLE}
   ${CMAKE_CURRENT_SOURCE_DIR}/application_shutdown_test.py ${CMAKE_CXX_COMPILER})
+
+add_test(NAME companion_mute_cleanup_test COMMAND ${Python3_EXECUTABLE}
+  ${CMAKE_CURRENT_SOURCE_DIR}/companion_mute_cleanup_test.py ${CMAKE_CXX_COMPILER})

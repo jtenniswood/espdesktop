@@ -1,4 +1,4 @@
-import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardContractAvailability, cardContractTypeRetired } from "../generated/card_contract";
 import { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 export { cardTypeConnector, cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { configOptionValue } from "../model/config_primitives";
@@ -30,6 +30,7 @@ export interface CardTypeDefinition {
   readonly key?: string;
   readonly label?: string | (() => string);
   readonly pickerKey?: string | null | (() => string | null);
+  readonly pickerLabel?: string | (() => string);
   readonly allowInSubpage?: boolean | (() => boolean);
   readonly isAvailable?: ((context: { isSub: boolean }) => boolean) | null;
 }
@@ -50,12 +51,9 @@ interface PickerDetails {
 }
 
 const INFO_ONLY_CARD_TYPES = new Set([
-  "calendar",
-  "clock",
   "door_window",
   "image",
   "presence",
-  "timezone",
   "weather",
   "weather_forecast",
 ]);
@@ -63,16 +61,13 @@ const INFO_ONLY_CARD_TYPES = new Set([
 const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   "": { icon: "toggle-switch", description: "Toggle lights, switches, helpers, or fans." },
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
-  calendar: { icon: "calendar-clock", description: "Show date, time, or world clock values." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
   companion_app: { icon: "application-outline", description: "Launch an app on the Mac." },
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
+  companion_mac_lock: { icon: "lock", description: "Lock the paired Mac." },
   companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
-  companion_stats: { icon: "gauge", description: "Show a Mac system statistic." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },
   companion_url: { icon: "web", description: "Open a URL on the Mac." },
-  companion_webapp: { icon: "web", description: "Launch a configured Web App on the Mac." },
-  companion_window: { icon: "window-open", description: "Control the active Mac window." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
   presence: { icon: "account", description: "Show person or presence status." },
@@ -86,9 +81,7 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   media: { icon: "speaker", description: "Control media playback or volume." },
   media_control: { icon: "music", description: "Open all media controls and volume in a modal." },
   push: { icon: "gesture-tap-button", description: "Fire a momentary button event." },
-  slider: { icon: "tune-vertical", description: "Adjust a numeric or brightness value." },
-  subpage: { icon: "view-grid-plus", description: "Open a nested page of cards." },
-  webhook: { icon: "webhook", description: "Send a direct HTTP request." },
+  subpage: { icon: "view-grid-plus", description: "Create a subpage for additional cards" },
   vacuum: { icon: "robot-vacuum", description: "Show or control a vacuum cleaner." },
   weather: { icon: "weather-partly-cloudy", description: "Show weather or forecast data." },
 };
@@ -101,15 +94,12 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_app: "companion",
   companion_folder: "companion",
   companion_shortcut: "companion",
-  companion_stats: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",
-  companion_webapp: "companion",
-  companion_window: "companion",
 };
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
-  "companion", "push",
+  "companion", "push", "slider",
 ]);
 
 
@@ -126,10 +116,10 @@ export function cardPickerConnectors(
 }
 
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
-  if (connector !== "mac_companion" || cardContractTypeRetired(key)) return false;
-  if (connector === "mac_companion" && MAC_COMPANION_HIDDEN_CARD_TYPES.has(key)) return false;
-  const source = cardTypeConnector(key);
-  return connector === "mac_companion" ? source !== "home_assistant" : source !== "mac_companion";
+  return connector === "mac_companion" &&
+    !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
+    cardContractAvailability(defaultCardTypeForPicker(key)) === "stable" &&
+    cardTypeConnector(key) !== "home_assistant";
 }
 
 function cardRelativeLuminance(background: string): number {
@@ -281,13 +271,13 @@ export function cardTypePickerOptions(
     const rawDefinition = definition as Record<string, unknown>;
     const pickerKey = String(registryValue(rawDefinition, "pickerKey", ""));
     const allowInSubpage = !!registryValue(rawDefinition, "allowInSubpage", false);
-    const label = registryValue(rawDefinition, "label", definition.key || "Toggle");
+    const defaultLabel = registryValue(rawDefinition, "label", definition.key || "Toggle");
+    const label = registryValue(rawDefinition, "pickerLabel", defaultLabel);
     const source = cardTypeConnector(typeKey);
     const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
       source === "home_assistant_or_local");
-    const localDateTimePicker = !homeAssistantEnabled && typeKey === "calendar";
     const localFolderPicker = !homeAssistantEnabled && typeKey === "subpage";
-    if (requiresHomeAssistant && !localDateTimePicker && !localFolderPicker) {
+    if (requiresHomeAssistant && !localFolderPicker) {
       if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {
         selectedUnsupported = { key: selectedTypeKey, label };
       }
@@ -308,7 +298,7 @@ export function cardTypePickerOptions(
     )) continue;
     if (isSub && !isSpecialPage && !allowInSubpage) continue;
     if (definition.isAvailable && !definition.isAvailable({ isSub }) && selectedTypeKey !== typeKey) continue;
-    if (!cardTypeVisibleForConnector(typeKey, connector) && !localDateTimePicker && !localFolderPicker) continue;
+    if (!cardTypeVisibleForConnector(typeKey, connector) && !localFolderPicker) continue;
     options.push({
       key: typeKey,
       label,

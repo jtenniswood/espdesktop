@@ -3,54 +3,84 @@
   "appId": "com.apple.iCal",
   "label": "Calendar",
   "catalog": false,
+  "defaultShortcutIds": ["6", "0", "9", "8", "7", "1", "3", "10"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Go to today’s date",
+      "label": "Today",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Calendar Today"
     },
     {
       "id": "1",
-      "label": "Go to a specific date",
+      "label": "Jump Date",
       "shortcut": "shift+command+t",
-      "icon": "Application"
+      "icon": "Calendar Search"
     },
     {
       "id": "2",
-      "label": "Switch to Day view",
+      "label": "Day View",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Calendar Today"
     },
     {
       "id": "3",
-      "label": "Switch to Week view",
+      "label": "Week View",
       "shortcut": "command+2",
-      "icon": "Application"
+      "icon": "Calendar Week"
     },
     {
       "id": "4",
-      "label": "Add a new calendar group",
+      "label": "Calendar Group",
       "shortcut": "shift+command+n",
-      "icon": "Plus"
+      "icon": "Calendar Multiple"
     },
     {
       "id": "5",
-      "label": "Add a new subscribed calendar",
+      "label": "Subscribe",
       "shortcut": "option+command+s",
-      "icon": "Plus"
+      "icon": "Calendar Plus"
     },
     {
       "id": "6",
-      "label": "Add a new event",
+      "label": "New Event",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Calendar Plus"
     },
     {
       "id": "7",
-      "label": "Search for events",
+      "label": "Search Events",
       "shortcut": "command+f",
-      "icon": "Search"
+      "icon": "Calendar Search"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "8", "label": "Next day, week, month, or year", "shortcut": "scoped.command+right", "icon": "Arrow Right"},
+    {"id": "9", "label": "Previous day, week, month, or year", "shortcut": "scoped.command+left", "icon": "Arrow Left"},
+    {"id": "10", "label": "Month view", "shortcut": "scoped.command+3", "icon": "Calendar"},
+    {"id": "11", "label": "Year view", "shortcut": "scoped.command+4", "icon": "Application"},
+    {"id": "12", "label": "Full-screen view", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "13", "label": "Exit full-screen view", "shortcut": "scoped.escape", "icon": "Full Screen Exit"},
+    {"id": "14", "label": "Make text bigger", "shortcut": "scoped.command+shift+keyequal", "icon": "Heading"},
+    {"id": "15", "label": "Make text smaller", "shortcut": "scoped.command+keyminus", "icon": "Heading"},
+    {"id": "16", "label": "Refresh all calendars", "shortcut": "scoped.command+r", "icon": "Refresh"},
+    {"id": "17", "label": "Select or deselect checkbox next to selected", "shortcut": "scoped.space", "icon": "Deselect"},
+    {"id": "18", "label": "Print day, week, month, or year calendar", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "19", "label": "Edit selected event", "shortcut": "scoped.command+e", "icon": "Calendar"},
+    {"id": "20", "label": "Edit selected event in inspector window", "shortcut": "scoped.command+option+i", "icon": "Calendar"},
+    {"id": "21", "label": "Select next event", "shortcut": "scoped.tab", "icon": "Group Selection"},
+    {"id": "22", "label": "Select previous event", "shortcut": "scoped.shift+tab", "icon": "Group Selection"},
+    {"id": "23", "label": "Select previous event", "shortcut": "scoped.left", "icon": "Group Selection"},
+    {"id": "24", "label": "Select next event", "shortcut": "scoped.right", "icon": "Group Selection"},
+    {"id": "25", "label": "Select previous event", "shortcut": "scoped.up", "icon": "Group Selection"},
+    {"id": "26", "label": "Select next event", "shortcut": "scoped.down", "icon": "Group Selection"},
+    {"id": "27", "label": "Move selected event 15 minutes earlier", "shortcut": "scoped.control+option+up", "icon": "Calendar"},
+    {"id": "28", "label": "Move selected event 15 minutes later", "shortcut": "scoped.control+option+down", "icon": "Calendar"},
+    {"id": "29", "label": "Move selected event one day later", "shortcut": "scoped.control+option+right", "icon": "Calendar"},
+    {"id": "30", "label": "Move selected event one day earlier", "shortcut": "scoped.control+option+left", "icon": "Calendar"},
+    {"id": "31", "label": "Show information for calendar or event", "shortcut": "scoped.command+i", "icon": "Calendar"},
+    {"id": "32", "label": "Print selected events or events in time range", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "33", "label": "Toggle Availability panel", "shortcut": "scoped.command+shift+a", "icon": "Eye Off"},
+    {"id": "34", "label": "Open Calendar settings", "shortcut": "scoped.command+keycomma", "icon": "Calendar"}
   ]
 }

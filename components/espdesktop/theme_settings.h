@@ -23,16 +23,6 @@ struct ThemeSettings {
   int sunset_offset = 0;
 };
 
-// ESPHome template selects restore option indexes, not option strings. The
-// former Sun option occupied index 3, outside today's Dark/Light/Auto list.
-// Index 2 already restores as Auto with the default Time method (Schedule).
-inline bool migrate_legacy_theme_index(size_t index, ThemeSettings &settings) {
-  if (index != 3) return false;
-  settings.mode = ThemeMode::AUTO;
-  settings.auto_method = ThemeAutoMethod::SUNRISE_SUNSET;
-  return true;
-}
-
 struct ThemeConditions {
   bool time_valid = false;
   int local_minute = 0;

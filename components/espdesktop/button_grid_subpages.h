@@ -14,7 +14,7 @@ struct SubpageBtn {
   std::string icon_on;
   std::string sensor;     // sensor entity, cover/internal mode, or action name
   std::string unit;
-  std::string type;       // button type: "" (toggle), action, sensor, door_window, presence, calendar, timezone, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, push, webhook, internal, subpage
+  std::string type;       // button type: "" (toggle), action, door_window, presence, weather_forecast, slider, light_brightness, light_switch, fan_*, cover, garage, gate, lock, alarm, alarm_action, media, push, internal, subpage
   std::string precision;  // decimal places for sensor display; "text" = text sensor mode
   std::string options;    // comma-delimited card options
 };
@@ -53,6 +53,15 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  const std::string retired_type = retired_saved_card_type(b.type, b.entity);
+  if (retired_type == "companion_webapp" || retired_type == "companion_audio" ||
+      retired_type == "companion_window") {
+    b = SubpageBtn{};
+    b.type = retired_type;
+    b.icon = "Auto";
+    b.icon_on = "Auto";
+    return b;
+  }
   // Shared appearance options must survive the same cleanup as main cards.
   const std::string icon_size = cfg_option_value(b.options, "icon_size");
   std::string type_options;
@@ -172,14 +181,6 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
       b.icon = alarm_action_icon_name(b.sensor);
     }
   }
-  if (b.type == "webhook") {
-    b.sensor = normalize_webhook_method(b.sensor);
-    if (b.sensor == "GET" || b.sensor == "DELETE") b.unit.clear();
-    b.precision.clear();
-    b.icon_on.clear();
-    if (b.icon.empty()) b.icon = "Auto";
-    b.options = webhook_card_options_normalized(b.options);
-  }
   if (b.type == "image") {
     b.sensor.clear();
     b.unit.clear();
@@ -234,7 +235,6 @@ inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
   if (!b.type.empty() && b.type != "action" && b.type != "alarm" &&
       b.type != "alarm_action" &&
       !climate_card_type(b.type) && b.type != "cover" && b.type != "garage" && b.type != "gate" &&
-      b.type != "webhook" &&
       b.type != "sensor" && b.type != "door_window" && b.type != "presence" &&
       b.type != "subpage" && b.type != "light_control" && b.type != "media" &&
       b.type != "image" && b.type != "weather" &&

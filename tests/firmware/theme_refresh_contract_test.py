@@ -22,12 +22,6 @@ assert "register_theme_static_page" not in clock
 assert "bg_color: 0x000000" in clock
 assert not re.search(r"\$theme_\w+", clock)
 
-cover_art = (DEVICE / "screen_cover_art.yaml").read_text(encoding="utf-8")
-assert not re.search(r"register_theme_|apply_current_theme|current_theme\(\)", cover_art)
-assert "${cover_art_text_color}" in cover_art
-assert not re.search(r"\$theme_\w+", cover_art)
-assert "bg_color: 0x000000" in cover_art
-assert "text_color: ${cover_art_text_color}" in cover_art
 
 button_theme = (ROOT / "common" / "theme" / "button.yaml").read_text(encoding="utf-8")
 assert re.search(r"checked:\s+bg_color: \$button_on_color\s+(?:#.*\n\s+)?text_color: 0xFFFFFF", button_theme)

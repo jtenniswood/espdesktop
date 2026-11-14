@@ -268,17 +268,17 @@ assert.deepStrictEqual(
 assertButtonTypeSpecBacked("light_switch", "light switch card");
 assertButtonTypeSpecBacked("light_temperature", "light temperature card");
 assertButtonTypeSpecBacked("light_control", "full light control card");
-assertButtonTypeSpecBacked("calendar", "calendar card");
-assertButtonTypeSpecBacked("clock", "clock card");
-assertButtonTypeSpecBacked("timezone", "timezone card");
 assertButtonTypeSpecBacked("weather", "weather card");
 assertButtonTypeSpecBacked("push", "push card");
-assertButtonTypeSpecBacked("webhook", "webhook card");
 for (const type of ["wifi_qr", "wifi_qr_card"]) {
   const retired = hooks.parseButtonConfig(`;;;;;;${type};;ssid64=R3Vlc3Q,pass64=cGFzc3dvcmQ`);
   assert.strictEqual(retired.options, "", "removed card credentials are discarded when loading saved layouts");
   assert(!hooks.serializeButtonConfig(retired).includes("pass64"), "removed card credentials cannot be re-saved");
 }
+const oldAudioFolder = hooks.parseSubpageConfig("~B,1,2|L,media.input_mute,Mute|L,number.level,Level");
+assert.strictEqual(oldAudioFolder.buttons[0].type, "companion_audio", "compact Mac audio cards retire inside folders");
+assert.strictEqual(oldAudioFolder.buttons[1].type, "slider", "the same compact code still reads other slider records");
+assert.strictEqual(oldAudioFolder.buttons[1].entity, "number.level");
 assertButtonTypeSpecBacked("garage", "garage card");
 assertButtonTypeSpecBacked("gate", "gate card");
 assertButtonTypeSpecBacked("lock", "lock card");
@@ -286,14 +286,6 @@ assertButtonTypeSpecBacked("media", "media card");
 assertButtonTypeSpecBacked("alarm", "alarm card");
 assertButtonTypeSpecBacked("alarm_action", "alarm action card");
 assertButtonTypeSpecBacked("climate", "climate card");
-assert.deepStrictEqual(
-  Array.from(hooks.dateTimeModeOptionValues()),
-  ["clock", "timezone"],
-  "date/time mode options are spec-backed"
-);
-assert.strictEqual(hooks.normalizeDateTimeCardMode("clock"), "clock", "date/time clock mode is allowed by spec");
-assert.strictEqual(hooks.normalizeDateTimeCardMode("timezone"), "timezone", "date/time world clock mode is allowed by spec");
-assert.strictEqual(hooks.normalizeDateTimeCardMode("bad"), "clock", "date/time invalid mode falls back to clock mode");
 assert.deepStrictEqual(
   Array.from(hooks.weatherModeOptionValues()),
   ["", "today", "tomorrow", "daily", "wind", "rainfall"],
@@ -343,8 +335,6 @@ assert.strictEqual(hooks.normalizeLockMode("unlock"), "unlock", "lock unlock mod
 assert.strictEqual(hooks.normalizeLockMode("bad"), "", "lock invalid mode falls back to toggle");
 assert.strictEqual(hooks.pushDefaultIcon(), "Gesture Tap", "push default icon is spec-backed");
 assert.strictEqual(hooks.pushDefaultIconOn(), "Auto", "push on icon cleanup is spec-backed");
-assert.strictEqual(hooks.webhookMethod("post"), "POST", "webhook method normalizes to uppercase");
-assert.strictEqual(hooks.webhookMethod("bad"), "GET", "webhook invalid method falls back to GET");
 assert.deepStrictEqual(
   Array.from(hooks.mediaModeOptionValues()),
   ["control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"],
@@ -981,18 +971,6 @@ assertButtonMigration(
 );
 
 
-assertButtonRoundTrip(hooks, "webhook post json", {
-  entity: "https://maker.ifttt.com/trigger/door/json/with/key/test",
-  label: "Door Alert",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "POST",
-  unit: "{\"value1\":\"Front door\"}",
-  type: "webhook",
-  precision: "",
-  options: "webhook_headers=Content-Type%3A application/json%3B Authorization%3A Bearer token",
-}, false);
-
 assertButtonRoundTrip(hooks, "garage label button", {
   entity: "cover.garage",
   label: "Garage Door",
@@ -1457,86 +1435,6 @@ assertButtonRoundTrip(hooks, "cover set position command button", {
   unit: "50",
   type: "cover",
   precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar date card", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar date and time card", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "datetime",
-}, false);
-
-assertButtonRoundTrip(hooks, "calendar large numbers option", {
-  entity: "sensor.date",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "calendar",
-  precision: "datetime",
-  options: "large_numbers",
-}, false);
-
-assertButtonRoundTrip(hooks, "clock card", {
-  entity: "",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "clock",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "clock large numbers option", {
-  entity: "",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "clock",
-  precision: "",
-  options: "large_numbers",
-}, false);
-
-assertButtonRoundTrip(hooks, "timezone card", {
-  entity: "America/New_York (GMT-5)",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "timezone",
-  precision: "",
-}, false);
-
-assertButtonRoundTrip(hooks, "timezone large numbers option", {
-  entity: "America/New_York (GMT-5)",
-  label: "",
-  icon: "Auto",
-  icon_on: "Auto",
-  sensor: "",
-  unit: "",
-  type: "timezone",
-  precision: "",
-  options: "large_numbers",
 }, false);
 
 assertButtonRoundTrip(hooks, "weather current conditions card", {
@@ -2637,7 +2535,7 @@ assertSubpageRoundTrip(hooks, "normal subpage", {
   order: ["1", "B", "2"],
   buttons: [
     buttonShape({ entity: "light.kitchen", label: "Kitchen", icon: "Auto", icon_on: "Lightbulb" }),
-    buttonShape({ type: "calendar" }),
+    buttonShape({ entity: "light.office", label: "Office" }),
   ],
 }, true);
 
@@ -2667,15 +2565,6 @@ const backOnlyFromGrid = hooks.serializeSubpageConfig({
   buttons: [],
 });
 assert.strictEqual(backOnlyFromGrid, "B", "new back-only subpage serializes from its grid");
-
-assertSubpageRoundTrip(hooks, "date time large numbers subpage", {
-  order: ["1", "B", "2", "3"],
-  buttons: [
-    buttonShape({ type: "calendar", precision: "datetime", options: "large_numbers" }),
-    buttonShape({ type: "clock", options: "large_numbers" }),
-    buttonShape({ entity: "America/New_York (GMT-5)", type: "timezone", options: "large_numbers" }),
-  ],
-}, true);
 
 assertSubpageRoundTrip(hooks, "switch confirmation subpage", {
   order: ["1", "B"],
@@ -2944,7 +2833,7 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|CK")), {
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|T,America/New_York%20%28GMT-5%29")), {
   order: ["1", "B"],
   buttons: [
-    buttonShape({ entity: "America/New_York (GMT-5)", type: "timezone" }),
+    buttonShape({ type: "timezone" }),
   ],
 }, "compact timezone subpage parse");
 
@@ -3040,22 +2929,6 @@ assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|A,scene.movie
     buttonShape({ type: "A" }),
   ],
 }, "compact action subpage state entity parse");
-
-assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|WH,https%3A//webhook-test.net/abc,Door%20Alert,,,POST,%7B%22value%22%3Atrue%7D,,webhook_headers=Content-Type%253A%20application/json")), {
-  order: ["1", "B"],
-  buttons: [
-    buttonShape({
-      entity: "https://webhook-test.net/abc",
-      label: "Door Alert",
-      icon: "Auto",
-      icon_on: "Auto",
-      sensor: "POST",
-      unit: "{\"value\":true}",
-      type: "webhook",
-      options: "webhook_headers=Content-Type%3A application/json",
-    }),
-  ],
-}, "compact webhook subpage parse");
 
 assert.deepStrictEqual(subpageShape(hooks.parseSubpageConfig("~1,B|U,input_select.house_mode,House%20Mode,Chevron%20Down")), {
   order: ["1", "B"],

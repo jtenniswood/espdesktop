@@ -7,11 +7,12 @@ from production_source import definition
 
 ROOT = Path(__file__).resolve().parents[2]
 source = (ROOT / 'components/espdesktop/button_grid_navigation.h').read_text()
-functions = definition(source, 'navigation_register_subpage')[1]
+functions = definition(source, 'navigation_find_slot')[1] + '\n' + definition(source, 'navigation_register_subpage')[1]
 stubs = r'''
 #include <cassert>
 #include <string>
 #include <vector>
+constexpr int NAVIGATION_SPECIAL_PAGE_SLOT = -1;
 constexpr int LV_EVENT_SCREEN_LOADED=2, LV_EVENT_SCREEN_UNLOADED=3;
 struct lv_event_t {};
 struct lv_obj_t {};
@@ -31,7 +32,7 @@ checks = r'''
 int main() {
   lv_obj_t regular, special;
   navigation_register_subpage(1,0,"subpage",&regular);
-  navigation_register_subpage(2,0,"special",&special);
+  navigation_register_subpage(NAVIGATION_SPECIAL_PAGE_SLOT,0,"special",&special);
   assert(entries.size()==2 && clock_pages.size()==1 && clock_pages[0]==&regular);
 }
 '''

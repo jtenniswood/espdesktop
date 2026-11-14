@@ -8,17 +8,33 @@ globals:
 
 esphome:
   on_boot:
-    priority: -100
-    then:
-      - lambda: |-
-          id(clock_format_12h) = id(clock_format_select).current_option() == "12h";
-          std::string timezone_option = id(timezone_select).current_option();
-          std::string active_timezone = effective_timezone_option(timezone_option);
-          apply_timezone(active_timezone);
-          set_espdesktop_language(id(language_select).current_option());
-          id(screen_active_timezone_sensor).publish_state(active_timezone);
-      - script.execute: network_setup_text_refresh
-      - script.execute: button_setup_text_refresh
+    - priority: -95
+      then:
+        - lambda: |-
+            using Setting = espdesktop::panel_settings::ScalarSetting;
+            auto &app = *id(espdesktop_app);
+            app.bind_panel_scalar(Setting::SCREEN_TIMEZONE, [](std::string_view value) {
+              id(timezone_select).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CLOCK_FORMAT, [](std::string_view value) {
+              id(clock_format_select).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_LANGUAGE, [](std::string_view value) {
+              id(language_select).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_NTP_SERVER_1, [](std::string_view value) {
+              id(ntp_server_1).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_NTP_SERVER_2, [](std::string_view value) {
+              id(ntp_server_2).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_NTP_SERVER_3, [](std::string_view value) {
+              id(ntp_server_3).publish_state(std::string(value));
+            });
+    - priority: -100
+      then:
+        - script.execute: network_setup_text_refresh
+        - script.execute: button_setup_text_refresh
 select:
   - platform: template
     name: "${entity_screen_timezone}"
@@ -27,8 +43,8 @@ select:
     id: timezone_select
     entity_category: config
     icon: "mdi:map-clock"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "Auto (Mac Companion)"
     options:
       - "Pacific/Midway (GMT-11)"
@@ -164,6 +180,8 @@ select:
       - "Auto (Mac Companion)"
     web_server:
       sorting_group_id: sg_brightness
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_TIMEZONE, std::string_view(x.c_str(), x.size()));'
     on_value:
       then:
         - lambda: |-
@@ -187,14 +205,16 @@ select:
     id: clock_format_select
     entity_category: config
     icon: "mdi:clock-outline"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "24h"
     options:
       - "12h"
       - "24h"
     web_server:
       sorting_group_id: sg_brightness
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_FORMAT, std::string_view(x.c_str(), x.size()));'
     on_value:
       then:
         - lambda: 'id(clock_format_12h) = id(clock_format_select).current_option() == "12h";'
@@ -208,8 +228,8 @@ select:
     id: language_select
     entity_category: config
     icon: "mdi:translate"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "en"
     options:
       - "en"
@@ -236,11 +256,12 @@ select:
       - "uk"
     web_server:
       sorting_group_id: sg_brightness
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_LANGUAGE, std::string_view(x.c_str(), x.size()));'
     on_value:
       then:
         - lambda: |-
             set_espdesktop_language(id(language_select).current_option());
-            refresh_calendar_cards();
         - script.execute: time_update
         - script.execute: network_setup_text_refresh
         - script.execute: button_setup_text_refresh
@@ -248,15 +269,15 @@ select:
         - script.execute: network_status_refresh
 
 # ---------------------------------------------------------------------------
-# NTP server settings and date source for Date cards
+# NTP server settings
 # ---------------------------------------------------------------------------
 text:
   - platform: template
     name: "${entity_screen_ntp_server_1}"
     internal: true
     id: ntp_server_1
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "0.pool.ntp.org"
     min_length: 0
     max_length: 100
@@ -266,6 +287,8 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_NTP_SERVER_1, std::string_view(x.c_str(), x.size()));'
     on_value:
       then:
         - script.execute: ntp_servers_apply_after_network
@@ -274,8 +297,8 @@ text:
     name: "${entity_screen_ntp_server_2}"
     internal: true
     id: ntp_server_2
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "1.pool.ntp.org"
     min_length: 0
     max_length: 100
@@ -285,6 +308,8 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_NTP_SERVER_2, std::string_view(x.c_str(), x.size()));'
     on_value:
       then:
         - script.execute: ntp_servers_apply_after_network
@@ -293,8 +318,8 @@ text:
     name: "${entity_screen_ntp_server_3}"
     internal: true
     id: ntp_server_3
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "2.pool.ntp.org"
     min_length: 0
     max_length: 100
@@ -304,13 +329,14 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_brightness
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_NTP_SERVER_3, std::string_view(x.c_str(), x.size()));'
     on_value:
       then:
         - script.execute: ntp_servers_apply_after_network
 
 text_sensor:
-  # Diagnostic value published from the active time source. This makes
-  # the date visible as an ESPHome state and gives Date cards a clear source.
+  # Diagnostic date from the active time source.
   - platform: template
     name: "Screen: Date"
     id: screen_date_sensor
@@ -409,27 +435,14 @@ script:
                                              now.hour, now.minute, use_12h);
             return time_buf;
       - lambda: |-
-          const std::string timezone_option = id(timezone_select).current_option();
-          const std::string active_timezone = effective_timezone_option(timezone_option);
           auto now = id(panel_time).now();
-          bool use_12h = id(clock_format_12h);
           if (now.is_valid()) {
             static char date_buf[16];
             snprintf(date_buf, sizeof(date_buf), "%04d-%02d-%02d",
                      now.year, now.month, now.day_of_month);
             id(screen_date_sensor).publish_state(date_buf);
-            update_calendar_cards(true, now.day_of_month, now.month);
-            update_calendar_cards_time(
-                true, now.day_of_month, now.month, now.hour, now.minute, use_12h);
-            update_timezone_cards(true, now.timestamp, active_timezone, use_12h);
-          } else if (!calendar_date_valid()) {
-            id(screen_date_sensor).publish_state("");
-            update_calendar_cards(false, 0, 0);
-            update_calendar_cards_time(false, 0, 0, 0, 0, false);
-            update_timezone_cards(false, 0, active_timezone, use_12h);
           } else {
-            update_calendar_cards_time(false, 0, 0, 0, 0, false);
-            update_timezone_cards(false, 0, active_timezone, use_12h);
+            id(screen_date_sensor).publish_state("");
           }
       - script.execute: theme_settings_refresh
 

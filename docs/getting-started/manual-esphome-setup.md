@@ -7,7 +7,7 @@ description:
 
 # Install EspDesktop with ESPHome Device Builder
 
-The normal [browser install](/getting-started/install) is the easiest route. Use this page if you prefer to manage EspDesktop from ESPHome, want to compile the firmware yourself, or need to install from the ESPHome Device Builder dashboard.
+The normal [browser install](/screens/4848s040#set-up-espdesktop) is the easiest route. Use this page if you prefer to manage EspDesktop from ESPHome, want to compile the firmware yourself, or need to install from the ESPHome Device Builder dashboard.
 
 ## What You Need
 

@@ -300,36 +300,6 @@
     }
   },
   {
-    "name": "calendar: date",
-    "input": "~sensor.date,,Auto,Auto,,,calendar,,",
-    "expected": {
-      "entity": "sensor.date",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "calendar",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "clock: local_time",
-    "input": "~,,Auto,Auto,,,clock,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "clock",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "climate: status",
     "input": "~climate.example,Climate,Thermostat,Auto,,,climate,,",
     "expected": {
@@ -990,31 +960,16 @@
     }
   },
   {
-    "name": "webhook: get",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,GET,,webhook,,",
+    "name": "companion_mac_lock: lock",
+    "input": "~shortcut.command%2Bcontrol%2Bq,Mac%20Lock,Lock,Auto,,,companion_mac_lock,,",
     "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
+      "entity": "shortcut.command+control+q",
+      "label": "Mac Lock",
+      "icon": "Lock",
       "icon_on": "Auto",
-      "sensor": "GET",
+      "sensor": "",
       "unit": "",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "webhook: post",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,POST,%7B%7D,webhook,,",
-    "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "POST",
-      "unit": "{}",
-      "type": "webhook",
+      "type": "companion_mac_lock",
       "precision": "",
       "options": ""
     }
@@ -1045,21 +1000,6 @@
       "sensor": "",
       "unit": "",
       "type": "subpage",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "timezone: timezone",
-    "input": "~Europe%2FLondon,,Auto,Auto,,,timezone,,",
-    "expected": {
-      "entity": "Europe/London",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "timezone",
       "precision": "",
       "options": ""
     }

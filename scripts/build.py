@@ -5,10 +5,11 @@ Combines icon synchronization and www.js generation into a single tool.
 
 Usage:
     python scripts/build.py               # run all generators
-    python scripts/build.py --check       # exit 1 if any output is stale
+    python scripts/build.py --check       # exit 1 if tracked generated source is stale
     python scripts/build.py devices       # sync public device capabilities only
     python scripts/build.py icons         # sync icons only
     python scripts/build.py i18n          # sync firmware translations only
+    python scripts/build.py settings      # sync portable panel setting readers
     python scripts/build.py companion     # sync shared Companion capabilities
     python scripts/build.py www           # build www.js only
     python scripts/build.py portal        # build offline WiFi setup pages only
@@ -36,7 +37,8 @@ from product_schema import (
     assert_card_contract_valid,
     assert_entity_names_valid as assert_product_entity_names_valid,
 )
-from product_model_v2 import load_product_model_v2, source_directory, source_path
+from panel_settings_codegen import generate_panel_settings
+from product_model_v2 import load_product_model_v2, render_catalogue, source_directory, source_path
 
 ROOT = Path(__file__).resolve().parent.parent
 MDI_VERSION = "7.4.47"
@@ -138,8 +140,6 @@ SAVED_CONFIG_STATIC_TS = ROOT / "src" / "webserver" / "generated" / "saved_confi
 SAVED_CONFIG_STATIC_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_static_generated.h"
 SAVED_CONFIG_FAN_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_fan.ts"
 SAVED_CONFIG_FAN_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_fan_generated.h"
-SAVED_CONFIG_DATE_TIME_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_date_time.ts"
-SAVED_CONFIG_DATE_TIME_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_date_time_generated.h"
 SAVED_CONFIG_MOWER_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_mower.ts"
 SAVED_CONFIG_MOWER_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_mower_generated.h"
 SAVED_CONFIG_OCCUPANCY_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_occupancy.ts"
@@ -156,8 +156,6 @@ SAVED_CONFIG_CLIMATE_TS = ROOT / "src" / "webserver" / "generated" / "saved_conf
 SAVED_CONFIG_CLIMATE_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_climate_generated.h"
 SAVED_CONFIG_LIGHT_CONTROL_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_light_control.ts"
 SAVED_CONFIG_LIGHT_CONTROL_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_light_control_generated.h"
-SAVED_CONFIG_WEBHOOK_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_webhook.ts"
-SAVED_CONFIG_WEBHOOK_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_webhook_generated.h"
 SAVED_CONFIG_SUBPAGE_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_subpage.ts"
 SAVED_CONFIG_SUBPAGE_H = ROOT / "components" / "espdesktop" / "button_grid_saved_config_subpage_generated.h"
 SAVED_CONFIG_SWITCH_TS = ROOT / "src" / "webserver" / "generated" / "saved_config_switch.ts"
@@ -369,12 +367,10 @@ def load_card_contract_data():
 
 def load_companion_capabilities_data():
     data = load_json(COMPANION_CAPABILITIES_JSON)
-    required_lists = ("windowActions", "systemMetrics")
     if not isinstance(data.get("version"), int) or data["version"] < 1:
         raise BuildError("Companion capability version must be a positive integer")
-    for key in required_lists:
-        if not isinstance(data.get(key), list) or not data[key]:
-            raise BuildError(f"Companion capability registry requires a non-empty {key} list")
+    if not isinstance(data.get("systemMetrics"), list) or not data["systemMetrics"]:
+        raise BuildError("Companion capability registry requires a non-empty systemMetrics list")
 
     protocol = data.get("protocol")
     if not isinstance(protocol, dict) or not isinstance(protocol.get("version"), int) or protocol["version"] < 1:
@@ -404,8 +400,6 @@ def load_companion_capabilities_data():
     security = data.get("security")
     if not isinstance(security, dict) or security.get("pairingAuthorization") not in {"physical_presence", "device_web_access"}:
         raise BuildError("Unsupported Companion pairing authorization")
-    if not isinstance(security.get("pairingWindowSeconds"), int) or security["pairingWindowSeconds"] < 30:
-        raise BuildError("Companion pairing window must be at least 30 seconds")
 
     card_modes = data.get("cardModes")
     card_mode_ids = [item.get("id") for item in card_modes] if isinstance(card_modes, list) else []
@@ -416,29 +410,6 @@ def load_companion_capabilities_data():
             raise BuildError(f"Invalid Companion card mode: {mode.get('id')}")
 
     identifiers = []
-    for action in data["windowActions"]:
-        if not all(isinstance(action.get(key), str) and action[key] for key in ("id", "label", "group")):
-            raise BuildError("Each Companion window action requires id, label, and group")
-        if not action["id"].startswith("window."):
-            raise BuildError(f"Invalid Companion window action id: {action['id']}")
-        if not isinstance(action.get("minimumMacOS"), int):
-            raise BuildError(f"Companion window action {action['id']} requires minimumMacOS")
-        if "key" in action and (not isinstance(action["key"], str) or not action["key"]):
-            raise BuildError(f"Invalid Companion window action key: {action['id']}")
-        modifiers = action.get("modifiers")
-        allowed_modifiers = {"command", "control", "option", "shift", "function"}
-        if modifiers is not None and (not isinstance(modifiers, list) or not modifiers or any(item not in allowed_modifiers for item in modifiers)):
-            raise BuildError(f"Invalid Companion window action modifiers: {action['id']}")
-        if ("key" in action) != (modifiers is not None):
-            raise BuildError(f"Companion window action {action['id']} must define both key and modifiers, or neither")
-        menu_paths = action.get("menuPaths", [])
-        if not isinstance(menu_paths, list) or any(
-            not isinstance(path, list) or not path
-            or any(not isinstance(component, str) or not component for component in path)
-            for path in menu_paths
-        ):
-            raise BuildError(f"Invalid Companion window action menu paths: {action['id']}")
-        identifiers.append(action["id"])
     for metric in data["systemMetrics"]:
         if not all(isinstance(metric.get(key), str) and (metric[key] or key == "unit") for key in ("mode", "id", "label", "labelKey", "unit")):
             raise BuildError("Each Companion system metric requires mode, id, label, labelKey, and unit")
@@ -828,7 +799,6 @@ def gen_companion_capabilities_ts(data):
     return (
         "// GENERATED COMPANION CAPABILITIES - do not edit by hand\n"
         "// Generated by scripts/build.py from product/v2/companion_capabilities.json.\n\n"
-        "export interface CompanionWindowAction { readonly id: string; readonly label: string; readonly group: string; }\n"
         "export interface CompanionSystemMetric { readonly mode: string; readonly id: string; readonly label: string; readonly unit: string; readonly freeId?: string; }\n"
         "export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }\n"
         "export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }\n\n"
@@ -841,7 +811,6 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])} as const;\n"
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
-        f"export const COMPANION_WINDOW_ACTIONS: readonly CompanionWindowAction[] = {companion_ts_literal([{key: item[key] for key in ('id', 'label', 'group')} for item in data['windowActions']])};\n"
         f"export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = {companion_ts_literal([{key: item[key] for key in ('mode', 'id', 'freeId', 'label', 'unit') if key in item} for item in data['systemMetrics']])};\n"
     )
 
@@ -872,7 +841,7 @@ def gen_companion_capabilities_h(data):
         f"constexpr const char *COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])};\n",
         f"constexpr const char *COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])};\n",
         f"constexpr const char *COMPANION_APP_ICONS_HIGH_RESOLUTION_CAPABILITY = {json.dumps(protocol['appIconsHighResolutionCapability'])};\n",
-        f"constexpr uint32_t COMPANION_PAIRING_WINDOW_SECONDS = {data['security']['pairingWindowSeconds']};\n\n",
+        "\n",
         f"constexpr bool COMPANION_BROWSER_STARTS_PAIRING = {str(data['security']['pairingAuthorization'] == 'device_web_access').lower()};\n",
         f"constexpr bool COMPANION_BROWSER_EXPOSES_PAIRING_CODE = {str(data['security']['browserExposesPairingCode']).lower()};\n",
         "struct CompanionProtocolMessagePolicy { const char *id; const char *direction; const char *authorization; };\n",
@@ -887,22 +856,12 @@ def gen_companion_capabilities_h(data):
     lines.extend(f"  {{{json.dumps(item['id'])}, {json.dumps(item['label'])}, {json.dumps(item['capability'])}, {json.dumps(item['defaultIcon'])}}},\n" for item in data["cardModes"])
     lines.extend([
         "};\n\n",
-        "struct CompanionWindowCapability { const char *id; const char *label; };\n",
-        "inline constexpr CompanionWindowCapability COMPANION_WINDOW_CAPABILITIES[] = {\n",
-    ])
-    lines.extend(f"  {{{json.dumps(item['id'])}, {json.dumps(item['label'])}}},\n" for item in data["windowActions"])
-    lines.extend([
-        "};\n\n",
         "struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };\n",
         "inline constexpr CompanionMetricCapability COMPANION_METRIC_CAPABILITIES[] = {\n",
     ])
     lines.extend(f"  {{{json.dumps(item[0])}, {json.dumps(item[1])}, {json.dumps(item[2])}, {json.dumps(item[3])}}},\n" for item in metric_entries)
     lines.extend([
         "};\n\n",
-        "inline const CompanionWindowCapability *companion_window_capability(const std::string &id) {\n",
-        "  for (const auto &item : COMPANION_WINDOW_CAPABILITIES) if (id == item.id) return &item;\n",
-        "  return nullptr;\n",
-        "}\n\n",
         "inline const CompanionMetricCapability *companion_metric_capability(const std::string &id) {\n",
         '  for (const auto &item : COMPANION_METRIC_CAPABILITIES)\n',
         '    if (id == item.id || (std::string(item.id) == "stat.ip_address" && id.size() > std::string("stat.ip_address:").size() && id.rfind("stat.ip_address:", 0) == 0) || (std::string(item.id) == "stat.storage" && id.size() > std::string("stat.storage:").size() && id.rfind("stat.storage:", 0) == 0) || (std::string(item.id) == "stat.storage_free" && id.size() > std::string("stat.storage_free:").size() && id.rfind("stat.storage_free:", 0) == 0)) return &item;\n',
@@ -913,20 +872,9 @@ def gen_companion_capabilities_h(data):
 
 
 def gen_companion_capabilities_swift(data):
-    flag_names = {
-        "command": ".maskCommand", "control": ".maskControl", "option": ".maskAlternate",
-        "shift": ".maskShift", "function": ".maskSecondaryFn",
-    }
     lines = [
         "// GENERATED COMPANION CAPABILITIES - do not edit by hand\n",
         "// Generated by scripts/build.py from product/v2/companion_capabilities.json.\n\n",
-        "import CoreGraphics\n\n",
-        "struct CompanionWindowActionCapability {\n",
-        "    let key: String?\n",
-        "    let flags: CGEventFlags\n",
-        "    let minimumMacOS: Int\n",
-        "    let menuPaths: [[String]]\n",
-        "}\n\n",
         "enum CompanionCapabilities {\n",
         f"    static let version = {data['version']}\n",
         f"    static let protocolVersion = {data['protocol']['version']}\n",
@@ -941,7 +889,6 @@ def gen_companion_capabilities_swift(data):
         f"    static let appIconsCapability = {json.dumps(data['protocol']['appIconsCapability'])}\n",
         f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
         f"    static let appIconsHighResolutionCapability = {json.dumps(data['protocol']['appIconsHighResolutionCapability'])}\n",
-        f"    static let pairingWindowSeconds = {data['security']['pairingWindowSeconds']}\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]
     lines.extend(f"        {json.dumps(item['id'])},\n" for item in data["protocol"]["messages"])
@@ -952,15 +899,6 @@ def gen_companion_capabilities_swift(data):
     lines.extend(f"        {json.dumps(item['id'])}: {json.dumps(item['label'])},\n" for item in data["cardModes"])
     lines.extend([
         "    ]\n",
-        "    static let windowActions: [String: CompanionWindowActionCapability] = [\n",
-    ])
-    for item in data["windowActions"]:
-        key = json.dumps(item["key"]) if "key" in item else "nil"
-        flags = ", ".join(flag_names[modifier] for modifier in item.get("modifiers", []))
-        menu_paths = json.dumps(item.get("menuPaths", []), ensure_ascii=False)
-        lines.append(f"        {json.dumps(item['id'])}: .init(key: {key}, flags: [{flags}], minimumMacOS: {item['minimumMacOS']}, menuPaths: {menu_paths}),\n")
-    lines.extend([
-        "    ]\n",
         "}\n",
     ])
     return "".join(lines)
@@ -969,7 +907,6 @@ def gen_companion_capabilities_swift(data):
 def sync_companion_capabilities(check_only=False):
     from companion_protocol_codegen import outputs as protocol_outputs
     from app_shortcuts_codegen import outputs as shortcut_outputs
-    from web_apps_codegen import outputs as web_app_outputs
     from companion_release import compatibility
     data = load_companion_capabilities_data()
     outputs = [
@@ -979,11 +916,27 @@ def sync_companion_capabilities(check_only=False):
     ]
     outputs.extend(protocol_outputs(ROOT, data))
     outputs.extend(shortcut_outputs(ROOT))
-    outputs.extend(web_app_outputs(ROOT))
     release_compatibility = compatibility(ROOT)
     outputs.append((ROOT / "product/generated/companion_compatibility.json", json.dumps(release_compatibility, indent=2) + "\n"))
     outputs.append((ROOT / "docs/reference/companion-compatibility.md",
-        "---\ntitle: Companion Compatibility\ndescription: Matching EspDesktop Mac app and firmware protocol versions and release artifacts.\n---\n\n<!-- Generated by scripts/build.py companion. -->\n# Companion Compatibility\n\n"
+        "---\ntitle: EspDesktop Mac app and firmware compatibility\n"
+        "description: Check the supported Guition display, Apple silicon and macOS requirements, "
+        "and which EspDesktop Mac app and firmware versions to use together.\n"
+        "---\n\n<!-- Generated by scripts/build.py companion. -->\n"
+        "# EspDesktop Mac app and firmware compatibility\n\n"
+        "Use the Mac app and display firmware from the **same EspDesktop release**.\n\n"
+        "| Display | Mac | Mac app | Display firmware |\n"
+        "| --- | --- | --- | --- |\n"
+        "| 4-inch Guition ESP32-S3 4848S040 | Apple silicon, macOS 13 or newer | "
+        "<span v-if=\"$frontmatter.matchedReleaseTag\">{{ $frontmatter.matchedReleaseTag }}</span>"
+        "<span v-else>Choose a stable release</span> | "
+        "<a v-if=\"$frontmatter.matchedReleaseTag\" :href=\"$frontmatter.matchedReleaseUrl\">"
+        "{{ $frontmatter.matchedReleaseTag }} firmware and release assets</a>"
+        "<span v-else>Choose firmware from the same release</span> |\n\n"
+        "For an older version, find the matching Mac DMG and 4848S040 firmware in "
+        "[GitHub releases](https://github.com/jtenniswood/espdesktop/releases). "
+        "See [how to update or roll back](/settings/system#update-the-mac-app-and-display-together).\n\n"
+        "## Protocol and layout details\n\n"
         f"Companion and firmware currently use protocol {release_compatibility['protocolVersion']} "
         f"and capability version {release_compatibility['capabilityVersion']}.\n\n"
         "Supported display: " + ", ".join(release_compatibility['supportedDevices']) + ".\n\n"
@@ -1039,6 +992,10 @@ def option_constant_name(option_name):
     return "CARD_CONTRACT_OPTION_NAME_" + re.sub(r"[^A-Za-z0-9]+", "_", option_name).strip("_").upper()
 
 
+def card_types_removed_in_stable(data):
+    return [*data["releaseAvailability"]["preview"], *data["retiredCardTypes"], *data["retiredSubpageTypeCodes"]]
+
+
 def gen_card_contract_ts(data):
     groups = data["cardGroups"]
     fan = groups["fan"]
@@ -1055,6 +1012,7 @@ def gen_card_contract_ts(data):
         if normalization:
             normalization.pop("hookData", None)
     aliases = data.get("migrationAliases", {})
+    availability = data["releaseAvailability"]
     option_names = contract_option_names(data)
     return (
         "// =============================================================================\n"
@@ -1069,8 +1027,17 @@ def gen_card_contract_ts(data):
         "};\n"
         "\n"
         f"export const CARD_CONTRACT_VERSION = {int(data['contractVersion'])} as const;\n"
-        f"export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = {json.dumps(data.get('retiredCardTypes', []) + data.get('retiredSubpageTypeCodes', []))};\n"
+        f"const STABLE_CARD_TYPES: readonly string[] = {json.dumps(availability['stable'])};\n"
+        f"const PREVIEW_CARD_TYPES: readonly string[] = {json.dumps(list(availability['preview']))};\n"
+        f"const REMOVE_ON_EDIT: readonly string[] = {json.dumps([*availability['removeOnEdit'], *availability['preview']])};\n"
+        f"export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = {json.dumps(card_types_removed_in_stable(data))};\n"
         "export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || \"\"); }\n"
+        "export function cardContractRemoveOnEdit(type: string | null | undefined): boolean { return REMOVE_ON_EDIT.includes(type || \"\"); }\n"
+        "export function cardContractAvailability(type: string): \"stable\" | \"preview\" | \"retired\" | null {\n"
+        "  if (STABLE_CARD_TYPES.includes(type)) return \"stable\";\n"
+        "  if (PREVIEW_CARD_TYPES.includes(type)) return \"preview\";\n"
+        "  return Object.hasOwn(CARD_CONTRACT_CARDS, type) || cardContractTypeRetired(type) ? \"retired\" : null;\n"
+        "}\n"
         f"export const CARD_CONTRACT_NORMALIZATION_HOOKS = {js_string_list(data['normalizationHooks'])} as const;\n"
         f"export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {json.dumps(data['migrationActions'], indent=2)};\n"
         f"export const CARD_CONTRACT_RETIRED_SUBPAGE_TYPE_CODES = {js_string_list(data['retiredSubpageTypeCodes'])} as const;\n"
@@ -1626,99 +1593,6 @@ def gen_saved_config_fan_h(data):
                     lines.append("    config.options = normalize_options(config.options);\n")
                 else:
                     raise BuildError(f"unsupported Fan saved-config hook {rule.get('hook')!r}")
-            else:
-                lines.extend(saved_config_declarative_field_lines(field, rule, "cpp"))
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n")
-    return "".join(lines)
-
-
-SAVED_CONFIG_DATE_TIME_CARD_TYPES = ("calendar", "clock", "timezone")
-
-
-def saved_config_date_time_normalizations(data):
-    normalizations = []
-    for card_type in SAVED_CONFIG_DATE_TIME_CARD_TYPES:
-        normalization = data["cards"][card_type].get("normalization")
-        if not normalization:
-            raise BuildError(f"date/time saved-config card {card_type} requires authored normalization")
-        field_hooks = {
-            rule.get("hook") for field, rule in normalization["fields"].items()
-            if field != "options" and rule.get("policy") == "hook"
-        }
-        expected_hooks = set() if card_type == "clock" else {"normalize_date_time_fields"}
-        if field_hooks != expected_hooks:
-            raise BuildError(f"date/time saved-config card {card_type} has unexpected field hooks")
-        option_rule = normalization["fields"]["options"]
-        if option_rule.get("policy") != "hook" or option_rule.get("hook") != "normalize_date_time_options":
-            raise BuildError(f"date/time saved-config card {card_type} requires the authored option hook")
-        if normalization.get("optionHook") != "normalize_date_time_options":
-            raise BuildError(f"date/time saved-config card {card_type} has an unexpected optionHook")
-        normalizations.append((card_type, normalization))
-    return normalizations
-
-
-def gen_saved_config_date_time_ts(data):
-    lines = [
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG DATE/TIME HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n",
-        'import type { CardConfig } from "../contracts/types";\n\n',
-        "export type SavedConfigDateTimeFieldHook = (config: CardConfig) => void;\n",
-        "export type SavedConfigDateTimeOptionHook = (options: string, config: CardConfig) => string;\n\n",
-        "export function normalizeSavedConfigDateTime(\n",
-        "  config: CardConfig,\n",
-        "  normalizeFields: SavedConfigDateTimeFieldHook,\n",
-        "  normalizeOptions: SavedConfigDateTimeOptionHook,\n",
-        "): boolean {\n",
-    ]
-    for card_type, normalization in saved_config_date_time_normalizations(data):
-        lines.append(f"  if (config.type === {json.dumps(card_type)}) {{\n")
-        field_hook_called = False
-        for field in data["fields"]:
-            rule = normalization["fields"][field]
-            if rule.get("policy") == "hook":
-                if rule.get("hook") == "normalize_date_time_fields":
-                    if not field_hook_called:
-                        lines.append("    normalizeFields(config);\n")
-                        field_hook_called = True
-                elif rule.get("hook") == "normalize_date_time_options":
-                    lines.append("    config.options = normalizeOptions(config.options || \"\", config);\n")
-                else:
-                    raise BuildError(f"unsupported date/time saved-config hook {rule.get('hook')!r}")
-            else:
-                lines.extend(saved_config_declarative_field_lines(field, rule, "ts"))
-        lines.append("    return true;\n  }\n")
-    lines.append("  return false;\n}\n")
-    return "".join(lines)
-
-
-def gen_saved_config_date_time_h(data):
-    lines = [
-        "#pragma once\n\n",
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG DATE/TIME HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n\n",
-        "template<typename Config, typename FieldHook, typename OptionHook>\n",
-        "inline bool normalize_saved_config_date_time(Config &config, FieldHook normalize_fields,\n",
-        "                                            OptionHook normalize_options) {\n",
-    ]
-    for card_type, normalization in saved_config_date_time_normalizations(data):
-        lines.append(f"  if (config.type == {json.dumps(card_type)}) {{\n")
-        field_hook_called = False
-        for field in data["fields"]:
-            rule = normalization["fields"][field]
-            if rule.get("policy") == "hook":
-                if rule.get("hook") == "normalize_date_time_fields":
-                    if not field_hook_called:
-                        lines.append("    normalize_fields(config);\n")
-                        field_hook_called = True
-                elif rule.get("hook") == "normalize_date_time_options":
-                    lines.append("    config.options = normalize_options(config.options, config);\n")
-                else:
-                    raise BuildError(f"unsupported date/time saved-config hook {rule.get('hook')!r}")
             else:
                 lines.extend(saved_config_declarative_field_lines(field, rule, "cpp"))
         lines.append("    return true;\n  }\n")
@@ -2419,90 +2293,6 @@ def gen_saved_config_light_control_h(data):
     return "".join(lines)
 
 
-def saved_config_webhook_normalization(data):
-    normalization = data["cards"]["webhook"].get("normalization")
-    if not normalization:
-        raise BuildError("webhook saved-config card requires authored normalization")
-    field_hooks = {
-        rule.get("hook") for field, rule in normalization["fields"].items()
-        if field != "options" and rule.get("policy") == "hook"
-    }
-    if field_hooks != {"normalize_webhook_fields"}:
-        raise BuildError("webhook saved-config card requires the authored field hook")
-    option_rule = normalization["fields"]["options"]
-    if option_rule.get("policy") != "hook" or option_rule.get("hook") != "normalize_webhook_options":
-        raise BuildError("webhook saved-config card requires the authored option hook")
-    if normalization.get("optionHook") != "normalize_webhook_options":
-        raise BuildError("webhook saved-config card has an unexpected optionHook")
-    return normalization
-
-
-def gen_saved_config_webhook_ts(data):
-    normalization = saved_config_webhook_normalization(data)
-    lines = [
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG WEBHOOK HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n",
-        'import type { CardConfig } from "../contracts/types";\n\n',
-        "export type SavedConfigWebhookFieldHook = (config: CardConfig) => void;\n",
-        "export type SavedConfigWebhookOptionHook = (options: string, config: CardConfig) => string;\n\n",
-        "export function normalizeSavedConfigWebhook(\n",
-        "  config: CardConfig,\n",
-        "  normalizeFields: SavedConfigWebhookFieldHook,\n",
-        "  normalizeOptions: SavedConfigWebhookOptionHook,\n",
-        "): boolean {\n",
-        '  if (config.type !== "webhook") return false;\n',
-    ]
-    field_hook_called = False
-    for field in data["fields"]:
-        rule = normalization["fields"][field]
-        if rule.get("policy") == "hook":
-            if rule.get("hook") == "normalize_webhook_fields":
-                if not field_hook_called:
-                    lines.append("  normalizeFields(config);\n")
-                    field_hook_called = True
-            elif rule.get("hook") == "normalize_webhook_options":
-                lines.append('  config.options = normalizeOptions(config.options || "", config);\n')
-            else:
-                raise BuildError(f"unsupported webhook saved-config hook {rule.get('hook')!r}")
-        else:
-            lines.extend(saved_config_declarative_field_lines(field, rule, "ts"))
-    lines.append("  return true;\n}\n")
-    return "".join(lines)
-
-
-def gen_saved_config_webhook_h(data):
-    normalization = saved_config_webhook_normalization(data)
-    lines = [
-        "#pragma once\n\n",
-        "// =============================================================================\n",
-        "// GENERATED SAVED-CONFIG WEBHOOK HELPERS - do not edit by hand\n",
-        "// Generated by scripts/build.py from product/v2/card_contract.json.\n",
-        "// =============================================================================\n\n",
-        "template<typename Config, typename FieldHook, typename OptionHook>\n",
-        "inline bool normalize_saved_config_webhook(Config &config, FieldHook normalize_fields,\n",
-        "                                           OptionHook normalize_options) {\n",
-        '  if (config.type != "webhook") return false;\n',
-    ]
-    field_hook_called = False
-    for field in data["fields"]:
-        rule = normalization["fields"][field]
-        if rule.get("policy") == "hook":
-            if rule.get("hook") == "normalize_webhook_fields":
-                if not field_hook_called:
-                    lines.append("  normalize_fields(config);\n")
-                    field_hook_called = True
-            elif rule.get("hook") == "normalize_webhook_options":
-                lines.append("  config.options = normalize_options(config.options, config);\n")
-            else:
-                raise BuildError(f"unsupported webhook saved-config hook {rule.get('hook')!r}")
-        else:
-            lines.extend(saved_config_declarative_field_lines(field, rule, "cpp"))
-    lines.append("  return true;\n}\n")
-    return "".join(lines)
-
-
 def saved_config_subpage_normalization(data):
     normalization = data["cards"]["subpage"].get("normalization")
     if not normalization:
@@ -3091,7 +2881,8 @@ def gen_card_contract_h(data):
         "// =============================================================================\n",
         "\n",
         f"constexpr int CARD_CONTRACT_VERSION = {int(data['contractVersion'])};\n",
-        "inline bool card_contract_type_retired(const std::string &type) { return " + (" || ".join("type == " + json.dumps(t) for t in data.get("retiredCardTypes", []) + data.get("retiredSubpageTypeCodes", [])) or "false") + "; }\n",
+        "inline bool card_contract_type_stable(std::string_view type) { return " + " || ".join("type == " + json.dumps(t) for t in data["releaseAvailability"]["stable"]) + "; }\n",
+        "inline bool card_contract_type_retired(const std::string &type) { return " + (" || ".join("type == " + json.dumps(t) for t in card_types_removed_in_stable(data)) or "false") + "; }\n",
         gen_card_runtime_h(data),
         f'constexpr const char *CARD_CONTRACT_OPTION_SELECT_ACTION = {json.dumps(data["optionSelect"]["canonicalAction"])};\n',
         cpp_string_array("CARD_CONTRACT_OPTION_SELECT_ACTIONS", option_actions),
@@ -3385,10 +3176,9 @@ def gen_card_contract_h(data):
         "\n",
         "inline bool card_contract_large_numbers_supported(const std::string &type, const std::string &precision) {\n",
         "  (void) precision;\n",
-        "  return type == \"\" || type == \"action\" || type == \"calendar\" || type == \"clock\" ||\n",
+        "  return type == \"\" || type == \"action\" ||\n",
         "         type == \"companion\" ||\n",
-        "         type == \"climate\" || type == \"media\" || type == \"subpage\" ||\n",
-        "         type == \"timezone\";\n",
+        "         type == \"climate\" || type == \"media\" || type == \"subpage\";\n",
         "}\n",
         "\n",
         "inline std::string_view card_contract_subpage_code_view(std::string_view type) {\n",
@@ -3459,12 +3249,6 @@ def summarize_card_options(card):
     return "; ".join(options) if options else "None"
 
 
-def summarize_card_status(card):
-    if card.get("hidden"):
-        return "Hidden"
-    return "Visible"
-
-
 def summarize_picker_group(card_type, card, cards):
     picker_key = card.get("pickerKey")
     if not picker_key:
@@ -3475,10 +3259,11 @@ def summarize_picker_group(card_type, card, cards):
 
 def gen_card_capability_docs(data):
     cards = data["cards"]
+    availability = data["releaseAvailability"]
     lines = [
         generated_card_markdown_header("CARD CAPABILITIES"),
         "# Card Capability Reference\n\n",
-        "This generated reference lists stable setup facts from the shared card contract. "
+        "This generated reference lists release availability and setup facts from the shared card contract. "
         "Explanations, screenshots, and card-specific guidance stay in the hand-written card docs.\n\n",
         "| Card | Type | Entity domains | Subpages | Picker grouping | Main modes and options | Status |\n",
         "|---|---|---|---|---|---|---|\n",
@@ -3486,15 +3271,20 @@ def gen_card_capability_docs(data):
     for card_type, card in cards.items():
         domains = ", ".join(card.get("domains") or []) or "None"
         row = [
-            card["label"],
+            card.get("pickerLabel", card["label"]),
             card_doc_type_name(card_type),
             domains,
             "Yes" if card.get("allowInSubpage") else "No",
             summarize_picker_group(card_type, card, cards),
             summarize_card_options(card),
-            summarize_card_status(card),
+            "Stable" if card_type in availability["stable"] else "Retired",
         ]
         lines.append("| " + " | ".join(markdown_table_cell(value) for value in row) + " |\n")
+    if availability["preview"]:
+        lines.append("\n## Preview cards\n\n")
+        for key, card in availability["preview"].items():
+            lines.append(f"- {card['label']} (`{key}`) is developed separately from stable firmware. "
+                         f"[Development issue](https://github.com/jtenniswood/espdesktop/issues/{card['issue']})\n")
     return "".join(lines)
 
 
@@ -3502,6 +3292,7 @@ def sync_card_contract(check_only=False):
     data = load_card_contract_data()
     assert_card_contract_valid(data)
     outputs = [
+        (CARD_CONTRACT_JSON, render_catalogue(data)),
         (CARD_CONTRACT_TS, gen_card_contract_ts(data)),
         (CARD_CONTRACT_H, gen_card_contract_h(data)),
         (SAVED_CONFIG_SHADOW_TS, gen_saved_config_shadow_ts(data)),
@@ -3514,8 +3305,6 @@ def sync_card_contract(check_only=False):
         (SAVED_CONFIG_STATIC_H, gen_saved_config_static_h(data)),
         (SAVED_CONFIG_FAN_TS, gen_saved_config_fan_ts(data)),
         (SAVED_CONFIG_FAN_H, gen_saved_config_fan_h(data)),
-        (SAVED_CONFIG_DATE_TIME_TS, gen_saved_config_date_time_ts(data)),
-        (SAVED_CONFIG_DATE_TIME_H, gen_saved_config_date_time_h(data)),
         (SAVED_CONFIG_MOWER_TS, gen_saved_config_mower_ts(data)),
         (SAVED_CONFIG_MOWER_H, gen_saved_config_mower_h(data)),
         (SAVED_CONFIG_OCCUPANCY_TS, gen_saved_config_occupancy_ts(data)),
@@ -3532,8 +3321,6 @@ def sync_card_contract(check_only=False):
         (SAVED_CONFIG_CLIMATE_H, gen_saved_config_climate_h(data)),
         (SAVED_CONFIG_LIGHT_CONTROL_TS, gen_saved_config_light_control_ts(data)),
         (SAVED_CONFIG_LIGHT_CONTROL_H, gen_saved_config_light_control_h(data)),
-        (SAVED_CONFIG_WEBHOOK_TS, gen_saved_config_webhook_ts(data)),
-        (SAVED_CONFIG_WEBHOOK_H, gen_saved_config_webhook_h(data)),
         (SAVED_CONFIG_SUBPAGE_TS, gen_saved_config_subpage_ts(data)),
         (SAVED_CONFIG_SUBPAGE_H, gen_saved_config_subpage_h(data)),
         (SAVED_CONFIG_SWITCH_TS, gen_saved_config_switch_ts(data)),
@@ -3603,6 +3390,11 @@ def gen_device_grid_snippet(capability):
 
 
 def gen_device_install_snippet(capability):
+    from release_devices import load_release_devices
+    if capability["installSlug"] not in load_release_devices():
+        return (generated_markdown_header("SCREEN INSTALL BUTTON") +
+                "> This device is planned for a future release. The first release supports "
+                "only the [4-inch S3 4848S040](/screens/4848s040).\n")
     return (
         generated_markdown_header("SCREEN INSTALL BUTTON") +
         f'<EspInstallButton slug="{capability["installSlug"]}" />\n'
@@ -3620,7 +3412,9 @@ def device_docs_outputs(capabilities):
 
 def sync_device_capabilities(check_only=False):
     capabilities = public_device_capabilities()
+    model = load_product_model_v2()
     outputs = {
+        model.source_path("deviceCatalog"): render_catalogue(model.device_catalog_data()),
         DEVICE_CAPABILITIES_JSON: gen_device_capabilities_json(),
         **device_docs_outputs(capabilities),
     }
@@ -4240,6 +4034,23 @@ def sync_captive_portal(check_only=False):
     return dirty
 
 
+def sync_panel_settings(check_only=False):
+    try:
+        outputs = generate_panel_settings(ROOT)
+    except ValueError as exc:
+        raise BuildError(f"Invalid panel settings contract: {exc}") from exc
+    dirty = []
+    for path, content in outputs.items():
+        if path.is_file() and path.read_text(encoding="utf-8") == content:
+            continue
+        dirty.append(path.relative_to(ROOT))
+        if not check_only:
+            write_generated_text(path, content)
+    if check_only and dirty:
+        print("Run 'python scripts/build.py settings' to refresh: " + ", ".join(map(str, dirty)))
+    return dirty
+
+
 def main():
     global GENERATED_TRANSACTION
     args = sys.argv[1:]
@@ -4283,6 +4094,7 @@ def main():
     try:
         for cmd in commands:
             if cmd == "all":
+                settings_dirty = sync_panel_settings(check_only=check_only)
                 portal_dirty = sync_captive_portal(check_only=check_only)
                 entity_dirty = sync_entity_names(check_only=check_only)
                 i18n_dirty = sync_i18n(check_only=check_only)
@@ -4290,21 +4102,25 @@ def main():
                 companion_dirty = sync_companion_capabilities(check_only=check_only)
                 device_dirty = sync_device_capabilities(check_only=check_only)
                 icon_dirty = sync_icons(check_only=check_only)
-                www_dirty = build_www(
-                    check_only=check_only,
+                # Web bundles are build artifacts, so a fresh source checkout
+                # need not have them. Use `www --check` for staged artifacts.
+                www_dirty = [] if check_only else build_www(
                     retain_current_bundle=retain_current_bundle,
                     legacy_web_manifest=legacy_web_manifest,
                 )
-                if check_only and (portal_dirty or entity_dirty or i18n_dirty or contract_dirty or companion_dirty or device_dirty or icon_dirty or www_dirty):
+                if check_only and (settings_dirty or portal_dirty or entity_dirty or i18n_dirty or contract_dirty or companion_dirty or device_dirty or icon_dirty or www_dirty):
                     exit_code = 1
-                elif not portal_dirty and not entity_dirty and not i18n_dirty and not contract_dirty and not companion_dirty and not device_dirty and not icon_dirty and not www_dirty:
+                elif not settings_dirty and not portal_dirty and not entity_dirty and not i18n_dirty and not contract_dirty and not companion_dirty and not device_dirty and not icon_dirty and not www_dirty:
                     print("All outputs are up to date.")
                 else:
                     total = (
                         len(entity_dirty) + len(i18n_dirty) + len(contract_dirty) + len(companion_dirty) + len(device_dirty) +
-                        len(icon_dirty) + len(www_dirty) + len(portal_dirty)
+                        len(icon_dirty) + len(www_dirty) + len(portal_dirty) + len(settings_dirty)
                     )
                     print(f"Updated {total} target(s).")
+            elif cmd == "settings":
+                if sync_panel_settings(check_only=check_only) and check_only:
+                    exit_code = 1
             elif cmd == "portal":
                 dirty = sync_captive_portal(check_only=check_only)
                 if check_only and dirty:
@@ -4379,7 +4195,7 @@ def main():
                 print(f"Unknown command: {cmd}")
                 print(
                     "Usage: python scripts/build.py "
-                    "[all|entities|contract|devices|icons|i18n|portal|www] [--check] "
+                    "[all|entities|contract|devices|icons|i18n|settings|portal|www] [--check] "
                     "[--retain-current-bundle] [--legacy-web-manifest PATH]"
                 )
                 exit_code = 1
