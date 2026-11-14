@@ -313,7 +313,6 @@ inline bool slider_has_alt_icon(const std::string &type, const std::string &icon
 }
 
 inline const char *slider_speaker_icon_name(int percent) {
-  if (percent <= 0) return "Volume Off";
   if (percent <= 33) return "Volume Low";
   if (percent <= 66) return "Volume Medium";
   return "Volume High";

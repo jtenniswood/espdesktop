@@ -85,7 +85,7 @@ checks = r'''
 int main() {
  using namespace espdesktop::cards;
  for (int percent : {0, 1, 33, 34, 66, 67, 100}) {
-  const char *expected = percent == 0 ? "Volume Off" : percent <= 33 ? "Volume Low" :
+  const char *expected = percent <= 33 ? "Volume Low" :
       percent <= 66 ? "Volume Medium" : "Volume High";
   assert(std::strcmp(slider_speaker_icon_name(percent), expected) == 0);
  }
