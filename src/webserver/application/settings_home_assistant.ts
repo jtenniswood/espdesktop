@@ -1,4 +1,5 @@
 import { resetAwareFetch } from "../api/reset_session";
+import type { SettingsUiFeature } from "../features/settings";
 import type { ControlsFieldsFeature } from "./controls_fields";
 
 const PATH = "/api/v1/home-assistant";
@@ -6,13 +7,16 @@ const PATH = "/api/v1/home-assistant";
 export function buildHomeAssistantSettings(
     makeCard: ControlsFieldsFeature["makeCollapsibleCard"],
     toggleRow: ControlsFieldsFeature["toggleRow"],
+    infoPanel: SettingsUiFeature["infoPanel"],
 ): HTMLElement {
     const body = document.createElement("div");
     const control = toggleRow("Enable ESPHome API", "sp-enable-esphome-api", false);
-    const status = document.createElement("p");
-    status.className = "sp-setting-note";
+    const status = document.createElement("div");
     status.setAttribute("role", "status");
-    status.textContent = "Changing this setting restarts the display.";
+    const note = document.createElement("p");
+    note.className = "sp-setting-note";
+    note.textContent = "Changing this setting restarts the display.";
+    status.append(note);
     body.append(control.row, status);
     const card = makeCard("Home Assistant", body, true) as HTMLElement;
     card.hidden = true;
@@ -37,10 +41,14 @@ export function buildHomeAssistantSettings(
             });
             if (!response.ok || (await response.json()).enabled !== next) throw new Error("Save failed");
             enabled = next;
-            status.textContent = "Setting saved. The display is restarting.";
+            status.replaceChildren(infoPanel(
+                "sp-esphome-restarting",
+                "Setting saved. The display is restarting.",
+            ));
         } catch {
             control.input.checked = enabled;
-            status.textContent = "Could not save the setting. Try again.";
+            note.textContent = "Could not save the setting. Try again.";
+            status.replaceChildren(note);
         } finally {
             control.input.disabled = false;
         }
