@@ -37,6 +37,7 @@ inline bool numeric_selectable_driver_setup_visual(
   if (!numeric_selectable_driver_matches(context, config)) return false;
   if (config.type == "companion_cough" || companion_mute_control_valid(config.entity)) {
     setup_toggle_visual(slot, config);
+    remove_button_state_transitions(slot.btn);
   } else {
     setup_slider_visual(slot, config, card_slider_fill_color(palette));
     numeric_selectable_driver_track_slider_cleanup(slot);

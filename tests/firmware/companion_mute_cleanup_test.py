@@ -9,12 +9,13 @@ root = Path(__file__).resolve().parents[2]
 controls = (root / 'components/espdesktop/companion_controls.h').read_text()
 driver = (root / 'components/espdesktop/button_grid_numeric_selectable_driver.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
-    'companion_apply_mute_state', 'companion_erase_mute_ref', 'companion_mute_deleted',
+    'companion_render_mute', 'companion_apply_mute_state', 'companion_paint_mute_preview', 'companion_erase_mute_ref', 'companion_mute_deleted',
     'companion_forget_mute', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
 stubs = r'''
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <string>
 #include <vector>
 struct lv_obj_t { bool checked=false, disabled=false; std::string text; } first, second, input_icon, output_icon;
@@ -26,7 +27,12 @@ struct CompanionMuteRef {
 };
 struct CompanionValue { std::string id; int value; };
 struct CompanionRuntimeSnapshot { bool connected=true; std::vector<CompanionValue> values; };
+constexpr int LV_STATE_CHECKED = 2, LV_STATE_DISABLED = 4;
+bool lv_obj_has_state(lv_obj_t *obj, int state) {
+  return state == LV_STATE_CHECKED ? obj->checked : obj->disabled;
+}
 bool lv_obj_is_valid(lv_obj_t *) { return true; }
+const char *lv_label_get_text(lv_obj_t *obj) { return obj->text.c_str(); }
 void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->text=text; }
 struct Registry { std::vector<CompanionMuteRef> mutes; } registry;
 Registry &companion_view_registry() { return registry; }
@@ -63,6 +69,11 @@ int main() {
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
   assert(first.checked && !first.disabled && input_icon.text=="mic-off");
   assert(!second.checked && !second.disabled && output_icon.text=="speaker");
+  companion_paint_mute_preview("media.input_mute", 0);
+  assert(!first.checked && input_icon.text=="mic");
+  assert(!second.checked && output_icon.text=="speaker");
+  companion_paint_mute_preview("media.input_mute", 100);
+  assert(first.checked && input_icon.text=="mic-off");
   snapshot.values[0].value=0; snapshot.values[1].value=100;
   for (const auto &ref : registry.mutes) companion_apply_mute_state(ref, snapshot);
   assert(!first.checked && input_icon.text=="mic");

@@ -21,7 +21,10 @@ inline CoughTouch &cough_touch() {
 inline bool send_cough_button_value(int value, int preview = 100) {
   const auto request = "cough-" + std::to_string(companion_next_request_number());
   if (!invoke_companion_value(COMPANION_COUGH_ID, value, request)) return false;
-  if (value != 50) companion_runtime_service().preview_mute(COMPANION_COUGH_ID, preview, request);
+  if (value != 50) {
+    companion_runtime_service().preview_mute(COMPANION_COUGH_ID, preview, request);
+    companion_paint_mute_preview(COMPANION_COUGH_ID, preview);
+  }
   return true;
 }
 

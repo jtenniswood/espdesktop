@@ -41,6 +41,8 @@ int mute_setups = 0, mute_bindings = 0;
 void setup_slider_visual(BtnSlot &, const ParsedCfg &, uint32_t) { ++setups; }
 void refresh_slider_card_layout(BtnSlot &) { ++layouts; }
 void setup_toggle_visual(BtnSlot &, const ParsedCfg &) { ++mute_setups; }
+int transitions_removed = 0;
+void remove_button_state_transitions(lv_obj_t *) { ++transitions_removed; }
 
 bool companion_mute_control_valid(const std::string &key);
 bool companion_volume_control_valid(const std::string &key);
@@ -151,6 +153,7 @@ int main() {
   config.entity = "media.cough";
   assert(!numeric_selectable_driver_matches(c, config));
  }
+ assert(transitions_removed == mute_setups);
  for (auto *p : allocations) delete static_cast<std::string *>(p);
 }
 '''

@@ -9,6 +9,7 @@
 #include <cctype>
 #include <cmath>
 #include <cstdlib>
+#include <cstring>
 #include <functional>
 #include <mutex>
 #include <string>
@@ -856,17 +857,32 @@ inline void companion_track_slider(lv_obj_t *slider, const std::string &control_
   companion_request_card_refresh();
 }
 
+inline void companion_render_mute(const CompanionMuteRef &ref, bool muted) {
+  if (lv_obj_has_state(ref.button, LV_STATE_CHECKED) != muted)
+    set_card_checked_state(ref.button, muted);
+  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
+  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label) &&
+      std::strcmp(lv_label_get_text(ref.icon_label), icon) != 0)
+    lv_label_set_text(ref.icon_label, icon);
+}
+
 inline void companion_apply_mute_state(const CompanionMuteRef &ref,
                                        const CompanionRuntimeSnapshot &snapshot) {
   const auto value = std::find_if(snapshot.values.begin(), snapshot.values.end(),
     [&ref](const CompanionValue &candidate) { return candidate.id == ref.control_id; });
   const bool available = snapshot.connected && value != snapshot.values.end();
   const bool muted = available && companion_runtime_service().displayed_mute_value(ref.control_id, value->value) > 0;
-  set_card_disabled_state(ref.button, !available);
-  set_card_checked_state(ref.button, muted);
-  const char *icon = muted ? ref.icon_muted : ref.icon_unmuted;
-  if (icon && ref.icon_label && lv_obj_is_valid(ref.icon_label))
-    lv_label_set_text(ref.icon_label, icon);
+  if (lv_obj_has_state(ref.button, LV_STATE_DISABLED) == available)
+    set_card_disabled_state(ref.button, !available);
+  companion_render_mute(ref, muted);
+}
+
+inline void companion_paint_mute_preview(const std::string &control, int value) {
+  for (const auto &ref : companion_view_registry().mutes) {
+    if (ref.control_id == control && lv_obj_is_valid(ref.button) &&
+        !lv_obj_has_state(ref.button, LV_STATE_DISABLED))
+      companion_render_mute(ref, value > 0);
+  }
 }
 
 inline bool companion_erase_mute_ref(lv_obj_t *button) {
@@ -1101,6 +1117,7 @@ inline void companion_track_mute(void *, const std::string &, void * = nullptr,
 inline void companion_track_slider(void *, const std::string &, void *, bool,
                                    const char *, const char *) {}
 inline void companion_refresh_cards_if_requested() {}
+inline void companion_paint_mute_preview(const std::string &, int) {}
 inline void companion_require_card_focus(void *, const std::string &) {}
 #endif
 
@@ -1112,6 +1129,7 @@ inline bool companion_toggle_mute(const std::string &control_id) {
   const auto request = "mute-" + std::to_string(companion_next_request_number());
   if (!companion_value_sender()(control_id, next, request)) return false;
   companion_runtime_service().preview_mute(control_id, next, request);
+  companion_paint_mute_preview(control_id, next);
   return true;
 }
 
