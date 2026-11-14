@@ -49,15 +49,19 @@ final class TokenUsageTests: XCTestCase {
         XCTAssertFalse(resetting.isCurrent(at: Date(timeIntervalSince1970: 1_100)))
     }
 
-    func testOpenCodeGoReadsOnlyTheWeeklyPercentage() throws {
+    func testOpenCodeGoReadsWeeklyAndMonthlyPercentUsed() throws {
         let now = try XCTUnwrap(ISO8601DateFormatter().date(from: "2025-08-10T18:00:00Z"))
-        let output = #"{"usage":{"rolling":{"percent":75},"weekly":{"percent":1,"resetsAt":"2025-08-13T07:59:23.880Z"},"monthly":{"percent":93}}}"#
+        let output = #"{"usage":{"rolling":{"percent":75},"weekly":{"percent":1,"resetsAt":"2025-08-13T07:59:23.880Z"},"monthly":{"percent":93,"resetsAt":"2025-09-01T00:00:00Z"}}}"#
         let reading = try XCTUnwrap(TokenUsage.parseOpenCodeGo(Data(output.utf8), observedAt: now))
-        XCTAssertEqual(reading.remainingPercent, 99)
-        XCTAssertEqual(reading.resetsAt, 1_755_071_963)
+        XCTAssertEqual(reading.weekly?.remainingPercent, 99)
+        XCTAssertEqual(reading.weekly?.resetsAt, 1_755_071_963)
+        XCTAssertEqual(reading.monthly?.remainingPercent, 7)
+        XCTAssertNotEqual(reading.weekly?.resetsAt, reading.monthly?.resetsAt)
         XCTAssertNil(TokenUsage.parseOpenCodeGo(Data(#"{"usage":{"rolling":{"percent":75}}}"#.utf8), observedAt: now))
         let expired = output.replacingOccurrences(of: "2025-08-13", with: "2025-08-09")
-        XCTAssertNil(TokenUsage.parseOpenCodeGo(Data(expired.utf8), observedAt: now))
+        let monthlyOnly = try XCTUnwrap(TokenUsage.parseOpenCodeGo(Data(expired.utf8), observedAt: now))
+        XCTAssertNil(monthlyOnly.weekly)
+        XCTAssertEqual(monthlyOnly.monthly?.remainingPercent, 7)
     }
 
     func testOpenCodeGoUsesOnlyTheSavedGoProviderKey() {

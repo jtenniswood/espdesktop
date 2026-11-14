@@ -4581,6 +4581,17 @@
             ],
             "defaultValue": "codex",
             "omitDefault": true
+          },
+          {
+            "name": "limit",
+            "label": "Limit",
+            "kind": "choice",
+            "values": [
+              "weekly",
+              "monthly"
+            ],
+            "defaultValue": "weekly",
+            "omitDefault": true
           }
         ],
         "default": {

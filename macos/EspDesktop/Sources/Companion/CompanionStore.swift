@@ -161,7 +161,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private var lastEnterpriseSpendAttempt = Date.distantPast
 
     @Published private(set) var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
-    @Published private(set) var openCodeGoUsage: WeeklyUsageReading?
+    @Published private(set) var openCodeGoUsage: TokenUsage.OpenCodeGoUsage?
     private var lastOpenCodeGoUsageAttempt = Date.distantPast
 
     @Published private(set) var claudeAccount = TokenUsage.ClaudeAccount.checking
@@ -946,7 +946,7 @@ final class CompanionStore: NSObject, ObservableObject {
             if openCodeGoStatus != status { openCodeGoStatus = status }
             if let reading {
                 openCodeGoUsage = reading
-            } else if status == .missingLogin || status == .rejected {
+            } else if status == .missingLogin || status == .rejected || status == .noSubscription {
                 openCodeGoUsage = nil
             }
             for display in tokenUsageDisplays { publishTokenUsage(to: display) }

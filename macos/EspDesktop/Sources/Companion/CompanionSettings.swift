@@ -460,7 +460,7 @@ struct CompanionSettings: View {
             }
             .tint(.blue)
             Toggle(isOn: $store.sharesOpenCodeGoUsage) {
-                Text("Share OpenCode Go weekly usage")
+                Text("Share OpenCode Go usage")
                 if store.sharesOpenCodeGoUsage {
                     TimelineView(.periodic(from: .now, by: 15)) { context in
                         Text(openCodeGoUsageStatus(at: context.date))
@@ -508,10 +508,15 @@ struct CompanionSettings: View {
     }
 
     private func openCodeGoUsageStatus(at date: Date) -> String {
-        if let reading = store.openCodeGoUsage {
-            return reading.isCurrent(at: date)
-                ? "\(reading.remainingPercent)% left this week"
-                : "Last weekly reading is out of date."
+        if let usage = store.openCodeGoUsage {
+            var limits: [String] = []
+            if let weekly = usage.weekly, weekly.isCurrent(at: date) {
+                limits.append("Weekly \(weekly.remainingPercent)% left")
+            }
+            if let monthly = usage.monthly, monthly.isCurrent(at: date) {
+                limits.append("Monthly \(monthly.remainingPercent)% left")
+            }
+            return limits.isEmpty ? "Last usage reading is out of date." : limits.joined(separator: " · ")
         }
         switch store.openCodeGoStatus {
         case .checking:
@@ -519,9 +524,11 @@ struct CompanionSettings: View {
         case .missingLogin:
             return "Run /connect in OpenCode, choose OpenCode Go, and enter your Go API key."
         case .rejected:
-            return "Check that the key saved in OpenCode belongs to an active Go subscription."
+            return "OpenCode rejected the saved login. Check your Go subscription and reconnect in OpenCode."
+        case .noSubscription:
+            return "OpenCode didn’t return Go limits for the active login. Check the workspace or reconnect with its Go API key."
         case .unavailable, .available:
-            return "OpenCode Go weekly usage is unavailable."
+            return "OpenCode Go usage is unavailable."
         }
     }
 

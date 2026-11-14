@@ -2587,6 +2587,17 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         ],
         "defaultValue": "codex",
         "omitDefault": true
+      },
+      {
+        "name": "limit",
+        "label": "Limit",
+        "kind": "choice",
+        "values": [
+          "weekly",
+          "monthly"
+        ],
+        "defaultValue": "weekly",
+        "omitDefault": true
       }
     ],
     "default": {
@@ -3792,6 +3803,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "large_numbers": "large_numbers",
   "lawn_mower_mode": "lawn_mower_mode",
   "light_tabs": "light_tabs",
+  "limit": "limit",
   "lock_mode": "lock_mode",
   "media_cover_art": "media_cover_art",
   "media_display": "media_display",

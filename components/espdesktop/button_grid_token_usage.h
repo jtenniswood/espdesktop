@@ -98,7 +98,9 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   const auto *secondary_font = display_small_text_font(display, primary_font);
   const auto foreground = lv_obj_get_style_text_color(slot.text_lbl, LV_PART_MAIN);
 
-  tile->service = static_cast<size_t>(service);
+  const auto usage_window = service == TokenUsageService::OPENCODE_GO &&
+      cfg_option_value(config.options, "limit") == "monthly" ? TokenUsageService::OPENCODE_GO_MONTHLY : service;
+  tile->service = static_cast<size_t>(usage_window);
   auto *value = lv_label_create(container);
   auto *reset = lv_label_create(container);
   for (auto *label : {value, reset}) {

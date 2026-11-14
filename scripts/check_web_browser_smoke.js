@@ -4307,14 +4307,18 @@ async function assertTokenUsageCard(browser) {
     await edit();
     assert.strictEqual(await service.inputValue(), "claude");
     await service.selectOption("opencode-go");
+    const limit = page.getByLabel("Limit", { exact: true });
+    assert.equal(await limit.inputValue(), "weekly");
+    await limit.selectOption("monthly");
     await save();
-    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=opencode-go",
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=opencode-go,limit=monthly",
       "Token Usage saves OpenCode Go");
     await page.reload();
     await load();
     await tile().getByRole("img", { name: "OpenCode Go" }).waitFor();
     await edit();
     assert.strictEqual(await service.inputValue(), "opencode-go");
+    assert.strictEqual(await limit.inputValue(), "monthly");
     await service.selectOption("claude-enterprise");
     await save();
     await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=claude-enterprise",

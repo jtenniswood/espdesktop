@@ -55,12 +55,13 @@ struct CompanionNetworkInterface {
   std::string address;
 };
 
-enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, CLAUDE_ENTERPRISE, COUNT };
+enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, CLAUDE_ENTERPRISE, OPENCODE_GO_MONTHLY, COUNT };
 
 inline TokenUsageService token_usage_service(std::string_view service) {
   if (service == "claude") return TokenUsageService::CLAUDE;
   if (service == "opencode-go") return TokenUsageService::OPENCODE_GO;
   if (service == "claude-enterprise") return TokenUsageService::CLAUDE_ENTERPRISE;
+  if (service == "opencode-go-monthly") return TokenUsageService::OPENCODE_GO_MONTHLY;
   return TokenUsageService::CODEX;
 }
 

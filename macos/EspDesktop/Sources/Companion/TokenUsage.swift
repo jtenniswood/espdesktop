@@ -1,4 +1,5 @@
 import Foundation
+import SQLite3
 import Darwin
 
 struct WeeklyUsageReading: Codable, Equatable, Sendable {
@@ -137,7 +138,7 @@ enum TokenUsage {
     }
 
     enum OpenCodeGoStatus: Equatable, Sendable {
-        case checking, missingLogin, rejected, unavailable, available
+        case checking, missingLogin, rejected, noSubscription, unavailable, available
     }
 
     private struct OpenCodeGoAuthFile: Decodable {
@@ -157,7 +158,18 @@ enum TokenUsage {
                 let resetsAt: String
             }
 
-            let weekly: Window
+            // Decode each meter independently so a missing or malformed window
+            // cannot discard the other provider-reported limit.
+            let weekly: Window?
+            let monthly: Window?
+
+            private enum CodingKeys: String, CodingKey { case weekly, monthly }
+
+            init(from decoder: Decoder) throws {
+                let values = try decoder.container(keyedBy: CodingKeys.self)
+                weekly = try? values.decode(Window.self, forKey: .weekly)
+                monthly = try? values.decode(Window.self, forKey: .monthly)
+            }
         }
 
         let usage: Usage
@@ -179,16 +191,83 @@ enum TokenUsage {
         return key
     }
 
-    static func readOpenCodeGo() async -> (status: OpenCodeGoStatus, reading: WeeklyUsageReading?) {
+    struct OpenCodeGoUsage: Equatable, Sendable {
+        let weekly: WeeklyUsageReading?
+        let monthly: WeeklyUsageReading?
+    }
+
+    private struct OpenCodeLogin: Decodable {
+        struct Metadata: Decodable {
+            let orgID: String?
+        }
+
+        let type: String
+        let key: String?
+        let access: String?
+        let metadata: Metadata?
+
+        var token: String? {
+            let value: String?
+            switch type {
+            case "key": value = key
+            case "oauth": value = access
+            default: return nil
+            }
+            guard let value, !value.isEmpty, value.utf8.allSatisfy({ (33...126).contains($0) }) else { return nil }
+            return value
+        }
+    }
+
+    private static func activeOpenCodeLogins(database: URL) -> [OpenCodeLogin] {
+        var db: OpaquePointer?
+        defer { sqlite3_close(db) }
+        guard sqlite3_open_v2(database.path, &db, SQLITE_OPEN_READONLY, nil) == SQLITE_OK else { return [] }
+        let query = """
+            SELECT value FROM credential
+            WHERE active = 1 AND integration_id IN ('opencode-go', 'opencode')
+            ORDER BY CASE integration_id WHEN 'opencode-go' THEN 0 ELSE 1 END, time_updated DESC
+            """
+        var statement: OpaquePointer?
+        guard sqlite3_prepare_v2(db, query, -1, &statement, nil) == SQLITE_OK else { return [] }
+        defer { sqlite3_finalize(statement) }
+
+        var logins: [OpenCodeLogin] = []
+        while sqlite3_step(statement) == SQLITE_ROW {
+            guard let value = sqlite3_column_text(statement, 0) else { continue }
+            let data = Data(bytes: value, count: Int(sqlite3_column_bytes(statement, 0)))
+            if let login = try? JSONDecoder().decode(OpenCodeLogin.self, from: data), login.token != nil {
+                logins.append(login)
+            }
+        }
+        return logins
+    }
+
+    static func readOpenCodeGo() async -> (status: OpenCodeGoStatus, reading: OpenCodeGoUsage?) {
         let defaultData = FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".local/share")
-        let xdgData = ProcessInfo.processInfo.environment["XDG_DATA_HOME"]
-        let dataDirectory = xdgData.flatMap { $0.hasPrefix("/") ? URL(fileURLWithPath: $0) : nil } ?? defaultData
-        let authFile = dataDirectory.appendingPathComponent("opencode/auth.json")
+        let environment = ProcessInfo.processInfo.environment
+        let xdgData = environment["XDG_DATA_HOME"]
+        let dataDirectory = (xdgData.flatMap { $0.hasPrefix("/") ? URL(fileURLWithPath: $0) : nil } ?? defaultData)
+            .appendingPathComponent("opencode")
+        let customDatabase = environment["OPENCODE_DB"].flatMap { $0.hasPrefix("/") ? URL(fileURLWithPath: $0) : nil }
+        let database = customDatabase ?? dataDirectory.appendingPathComponent("opencode.db")
+        let logins = activeOpenCodeLogins(database: database)
+        // A Console login is scoped with the same workspace header OpenCode sends.
+        if let active = logins.first, let token = active.token {
+            return await fetchOpenCodeGo(token: token, workspace: active.metadata?.orgID)
+        }
+        let authFile = dataDirectory.appendingPathComponent("auth.json")
         guard let data = try? Data(contentsOf: authFile), let key = openCodeGoKey(from: data)
         else { return (.missingLogin, nil) }
+        return await fetchOpenCodeGo(token: key, workspace: nil)
+    }
 
+    private static func fetchOpenCodeGo(token: String, workspace: String?) async
+        -> (status: OpenCodeGoStatus, reading: OpenCodeGoUsage?) {
         var request = URLRequest(url: URL(string: "https://opencode.ai/zen/go/v1/usage")!, timeoutInterval: 12)
-        request.setValue("Bearer " + key, forHTTPHeaderField: "Authorization")
+        request.setValue("Bearer " + token, forHTTPHeaderField: "Authorization")
+        if let workspace, !workspace.isEmpty, workspace.utf8.allSatisfy({ (33...126).contains($0) }) {
+            request.setValue(workspace, forHTTPHeaderField: "x-opencode-org-id")
+        }
         request.setValue("application/json", forHTTPHeaderField: "Accept")
         let configuration = URLSessionConfiguration.ephemeral
         configuration.httpShouldSetCookies = false
@@ -197,15 +276,31 @@ enum TokenUsage {
         defer { session.finishTasksAndInvalidate() }
         guard let (payload, response) = try? await session.data(for: request, delegate: RejectUsageRedirects()),
               let response = response as? HTTPURLResponse else { return (.unavailable, nil) }
-        if response.statusCode == 401 || response.statusCode == 403 { return (.rejected, nil) }
+        if response.statusCode == 401 { return (.rejected, nil) }
+        if response.statusCode == 403 {
+            // A Cloudflare denial can have the same status as an unsubscribed workspace.
+            let body = try? JSONSerialization.jsonObject(with: payload) as? [String: Any]
+            let error = body?["error"] as? [String: Any]
+            if error?["message"] as? String == "OpenCode Go subscription required." {
+                return (.noSubscription, nil)
+            }
+            return (.unavailable, nil)
+        }
         guard response.statusCode == 200, let reading = parseOpenCodeGo(payload)
         else { return (.unavailable, nil) }
         return (.available, reading)
     }
 
-    static func parseOpenCodeGo(_ data: Data, observedAt: Date = .now) -> WeeklyUsageReading? {
-        guard let window = try? JSONDecoder().decode(OpenCodeGoReply.self, from: data).usage.weekly,
-              (0...100).contains(window.percent) else { return nil }
+    static func parseOpenCodeGo(_ data: Data, observedAt: Date = .now) -> OpenCodeGoUsage? {
+        guard let usage = try? JSONDecoder().decode(OpenCodeGoReply.self, from: data).usage else { return nil }
+        let weekly = usage.weekly.flatMap { openCodeReading($0, observedAt: observedAt) }
+        let monthly = usage.monthly.flatMap { openCodeReading($0, observedAt: observedAt) }
+        guard weekly != nil || monthly != nil else { return nil }
+        return OpenCodeGoUsage(weekly: weekly, monthly: monthly)
+    }
+
+    private static func openCodeReading(_ window: OpenCodeGoReply.Usage.Window, observedAt: Date) -> WeeklyUsageReading? {
+        guard (0...100).contains(window.percent) else { return nil }
         let formatter = ISO8601DateFormatter()
         formatter.formatOptions.insert(.withFractionalSeconds)
         var reset = formatter.date(from: window.resetsAt)

@@ -1399,7 +1399,9 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.sensor.clear();
     p.unit.clear();
     p.precision.clear();
+    const bool monthly = services == "opencode-go" && cfg_option_value(p.options, "limit") == "monthly";
     p.options = (services == "claude" || services == "opencode-go" || services == "claude-enterprise") ? "services=" + services : "";
+    if (monthly) p.options += ",limit=monthly";
   }
   if (p.type == "companion_mac_lock") {
     p.entity = "shortcut.command+control+q";

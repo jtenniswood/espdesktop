@@ -17,7 +17,12 @@ function selectedServices(options: string): typeof SERVICES[number][0] {
 
 export function normalizeTokenUsageOptions(options: string): string {
   const services = selectedServices(options);
-  return services === "codex" ? "" : "services=" + services;
+  if (services === "codex") return "";
+  return "services=" + services + (services === "opencode-go" && openCodeLimit(options) === "monthly" ? ",limit=monthly" : "");
+}
+
+function openCodeLimit(options: string): "weekly" | "monthly" {
+  return configOptionValue(options, "limit") === "monthly" ? "monthly" : "weekly";
 }
 
 export function registerTokenUsageCard(
@@ -40,12 +45,23 @@ export function registerTokenUsageCard(
       const field = fields.selectField("Service", helpers.idPrefix + "token-usage-services",
         SERVICES, selectedServices(card.options), () => {
           const value = field.select.value;
-          card.options = setConfigOptionValue(card.options, "services", value === "codex" ? "" : value);
+          card.options = normalizeTokenUsageOptions(setConfigOptionValue(card.options, "services", value));
+          limit.field.style.display = value === "opencode-go" ? "" : "none";
+          limit.select.value = openCodeLimit(card.options);
           helpers.saveField("options", card.options);
           cardUi.renderPreview();
         });
-      fields.markCardPrimaryField(field.field, "type");
-      panel.append(field.field);
+      const limit = fields.selectField("Limit", helpers.idPrefix + "token-usage-limit",
+        [["weekly", "Weekly"], ["monthly", "Monthly"]], openCodeLimit(card.options), () => {
+          card.options = normalizeTokenUsageOptions(setConfigOptionValue(card.options, "limit", limit.select.value));
+          helpers.saveField("options", card.options);
+          cardUi.renderPreview();
+        });
+      limit.field.style.display = selectedServices(card.options) === "opencode-go" ? "" : "none";
+      const usageFields = panel.ownerDocument.createElement("div");
+      usageFields.append(field.field, limit.field);
+      fields.markCardPrimaryField(usageFields, "type");
+      panel.append(usageFields);
     },
     renderPreview: (card, helpers) => {
       const selected = selectedServices(card.options);
@@ -60,7 +76,7 @@ export function registerTokenUsageCard(
         '<span class="sp-token-usage-reset">' + helpers.escHtml(text) + '</span>';
       return {
         iconHtml: icon,
-        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(enterprise ? "$12.34" : "41% left") + reset(enterprise ? "Last 7 days" : "Resets 2d 9h") + '</span>',
+        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(enterprise ? "$12.34" : "41% left") + reset(enterprise ? "Last 7 days" : selected === "opencode-go" && openCodeLimit(card.options) === "monthly" ? "Resets 19d 9h" : "Resets 2d 9h") + '</span>',
         labelEditable: false,
       };
     },

@@ -74,6 +74,7 @@ final class CompanionConnection: NSObject {
     private var supportsPairingReset = false
     private(set) var supportsTokenUsage = false
     private var supportsOpenCodeGoUsage = false
+    private var supportsOpenCodeGoMonthly = false
     private var supportsEnterpriseSpend = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
@@ -509,6 +510,7 @@ final class CompanionConnection: NSObject {
             expandedShortcutsSupported = payload.capabilityVersion >= 9
             supportsTokenUsage = payload.capabilityVersion >= 10
             supportsOpenCodeGoUsage = payload.capabilityVersion >= 11
+            supportsOpenCodeGoMonthly = payload.capabilityVersion >= 13
             supportsEnterpriseSpend = payload.capabilityVersion >= 12
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
@@ -760,12 +762,13 @@ final class CompanionConnection: NSObject {
     }
 
     func publishTokenUsage(codex: WeeklyUsageReading?, claude: WeeklyUsageReading?,
-                           openCodeGo: WeeklyUsageReading?, enterprise: TokenUsage.EnterpriseSpend?) {
+                           openCodeGo: TokenUsage.OpenCodeGoUsage?, enterprise: TokenUsage.EnterpriseSpend?) {
         guard sessionAuthenticated, supportsTokenUsage else { return }
         let readings = [
             codex?.wireValue(service: "codex"),
             claude?.wireValue(service: "claude"),
-            supportsOpenCodeGoUsage ? openCodeGo?.wireValue(service: "opencode-go") : nil,
+            supportsOpenCodeGoUsage ? openCodeGo?.weekly?.wireValue(service: "opencode-go") : nil,
+            supportsOpenCodeGoMonthly ? openCodeGo?.monthly?.wireValue(service: "opencode-go-monthly") : nil,
         ].compactMap { $0 }
         var message: [String: Any] = ["type": "token_usage", "readings": readings]
         if supportsEnterpriseSpend, let enterprise {
