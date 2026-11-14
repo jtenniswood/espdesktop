@@ -1,67 +1,49 @@
 import { resetAwareFetch } from "../api/reset_session";
 import type { ControlsFieldsFeature } from "./controls_fields";
-import type { ControlsShellFeature } from "./controls_shell";
+
+const PATH = "/api/v1/home-assistant";
 
 export function buildHomeAssistantSettings(
     makeCard: ControlsFieldsFeature["makeCollapsibleCard"],
-    makeButton: ControlsShellFeature["createActionButton"],
+    toggleRow: ControlsFieldsFeature["toggleRow"],
 ): HTMLElement {
     const body = document.createElement("div");
+    const control = toggleRow("Enable ESPHome API", "sp-enable-esphome-api", false);
     const status = document.createElement("p");
+    status.className = "sp-setting-note";
     status.setAttribute("role", "status");
-    const pair = makeButton("sp-action-btn", "Pair Home Assistant", "link");
-    const disconnect = makeButton("sp-action-btn", "Disconnect", "close");
+    status.textContent = "Changing this setting restarts the display.";
+    body.append(control.row, status);
     const card = makeCard("Home Assistant", body, true) as HTMLElement;
     card.hidden = true;
-    body.append(status, pair, disconnect);
-    let pending = false;
-    let timer: number | undefined;
-    async function update(action?: "pair" | "disconnect") {
-        if (pending) return;
-        pending = true;
-        pair.disabled = disconnect.disabled = true;
+    let enabled = false;
+
+    void resetAwareFetch(PATH, { cache: "no-store" }).then(async response => {
+        if (!response.ok) return;
+        const settings = await response.json();
+        if (typeof settings.enabled !== "boolean") return;
+        enabled = settings.enabled;
+        control.input.checked = enabled;
+        card.hidden = false;
+    }).catch(() => {});
+
+    control.input.addEventListener("change", async () => {
+        const next = control.input.checked;
+        control.input.disabled = true;
         try {
-            const response = await resetAwareFetch("/api/v1/home-assistant", {
-                method: action ? "POST" : "GET",
-                headers: action ? { "X-EspDesktop-Request": action } : {},
-                cache: "no-store",
+            const response = await resetAwareFetch(PATH, {
+                method: "POST",
+                headers: { "X-EspDesktop-Request": next ? "enable-esphome" : "disable-esphome" },
             });
-            if (!response.ok) throw new Error("Setup failed");
-            const { paired } = await response.json();
-            if (typeof paired !== "boolean") return;
-            card.hidden = false;
-            disconnect.hidden = !paired;
-            status.textContent = action === "pair" ?
-                "Enter the fingerprint and code shown on the unlocked display in Home Assistant." :
-                paired ? "Home Assistant is paired." : "Home Assistant is disconnected.";
-            if (action === "pair" && !paired) {
-                window.clearTimeout(timer);
-                const end = Date.now() + 120_000;
-                const poll = async () => {
-                    if (!card.isConnected || Date.now() >= end) return;
-                    try {
-                        const response = await fetch("/api/v1/home-assistant", { cache: "no-store" });
-                        if (response.ok && (await response.json()).paired) {
-                            await update();
-                            return;
-                        }
-                    } catch { /* Try again during the pairing window. */ }
-                    timer = window.setTimeout(poll, 3000);
-                };
-                timer = window.setTimeout(poll, 3000);
-            }
+            if (!response.ok || (await response.json()).enabled !== next) throw new Error("Save failed");
+            enabled = next;
+            status.textContent = "Setting saved. The display is restarting.";
         } catch {
-            if (action) status.textContent = "Home Assistant setup could not be changed. Try again.";
+            control.input.checked = enabled;
+            status.textContent = "Could not save the setting. Try again.";
         } finally {
-            pending = false;
-            pair.disabled = disconnect.disabled = false;
+            control.input.disabled = false;
         }
-    }
-    pair.addEventListener("click", () => void update("pair"));
-    disconnect.addEventListener("click", () => {
-        window.clearTimeout(timer);
-        void update("disconnect");
     });
-    void update();
     return card;
 }

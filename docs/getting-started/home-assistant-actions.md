@@ -16,13 +16,15 @@ For Home Assistant touchscreen controls, use the [EspControl documentation](http
 On 4-inch Guition 4848S040 firmware that supports card exposure, Home Assistant
 can press cards you choose to share.
 
-1. In Home Assistant, open **Settings → Devices & services** and add your
+1. In the display's web editor, open **System → Home Assistant** and switch
+   on **Enable ESPHome API**. It starts off. The display restarts when
+   you change this setting, and your shared card selections are retained.
+2. In Home Assistant, open **Settings → Devices & services** and add your
    display under **Discovered**. If discovery is unavailable, use **Add
    integration → ESPHome** and enter its local address.
-2. Finish standard ESPHome setup. Compatible Home Assistant versions
+3. Finish standard ESPHome setup. Compatible Home Assistant versions
    generate the native encryption key automatically.
-3. Open the display's web editor and choose **Layout**.
-4. In the display's Layout editor, edit an app, Finder folder, website, shortcut,
+4. In the display's **Layout** editor, edit an app, Finder folder, website, shortcut,
    Lock Machine, or Subpage card. Enable **Expose to Home Assistant** and save.
    Saved cards in nested pages work too.
 5. In Home Assistant, add the button to a dashboard or use **Button: Press**

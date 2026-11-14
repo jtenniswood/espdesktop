@@ -563,6 +563,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
         ]);
         appendSettingsSection(deviceConfig, "System", [
             systemSettingsCards.identityCard,
+            systemSettingsCards.homeAssistantCard,
             systemSettingsCards.backupCard,
             systemSettingsCards.firmwareCard,
             batteryStatusCard,

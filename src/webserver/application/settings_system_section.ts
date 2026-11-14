@@ -1,3 +1,4 @@
+import { buildHomeAssistantSettings } from "./settings_home_assistant";
 import { buildResetSettings } from "./settings_reset_section";
 import { state } from "../state/app_instance";
 import type { UiRuntimeState } from "./state";
@@ -338,6 +339,7 @@ export function createSettingsSystemSectionFeature(
         stateLoader.refreshFirmwareVersion();
         return {
             identityCard: actions.buildIdentityCard?.(),
+            homeAssistantCard: buildHomeAssistantSettings(makeCollapsibleCard, toggleRow),
             backupCard: backupCard,
             resetCard: buildResetSettings(actions.exportBackup, makeCollapsibleCard, infoPanel),
             firmwareCard: firmwareCard,
