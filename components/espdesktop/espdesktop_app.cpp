@@ -40,6 +40,9 @@
 #include "grid_page_runtime.h"
 #include "panel_config_page_append.h"
 #include "connector_state.h"
+#include "home_assistant_card_actions.h"
+#include "native_card_buttons.h"
+#include "home_assistant_setup_endpoint.h"
 #ifdef USE_COMPANION
 #include "../companion/companion.h"
 #endif
@@ -56,6 +59,17 @@ extern "C" bool espdesktop_native_configuration_generation(uint32_t *generation)
   return true;
 }
 
+#if defined(USE_WEBSERVER) && defined(USE_ESPDESKTOP_NATIVE_CARD_BUTTONS)
+extern "C" bool espdesktop_allow_web_card_press(httpd_req_t *raw) {
+  esphome::web_server_idf::AsyncWebServerRequest request(raw);
+  char buffer[esphome::web_server_idf::AsyncWebServerRequest::URL_BUF_SIZE];
+  const auto path = request.url_to(buffer);
+  if (!espdesktop::home_assistant::is_native_card_web_press({path.c_str(), path.length()})) return true;
+  httpd_resp_send_err(raw, HTTPD_404_NOT_FOUND, nullptr);
+  return false;
+}
+#endif
+
 extern "C" void espdesktop_register_web_server_handlers(
     esphome::web_server_idf::AsyncWebServer *server) {
 #ifdef USE_WEBSERVER
@@ -64,6 +78,9 @@ extern "C" void espdesktop_register_web_server_handlers(
   espdesktop::register_panel_identity_endpoint(*server);
   espdesktop::register_panel_diagnostics_endpoint(*server);
   register_companion_actions_endpoint(*server);
+#ifdef USE_COMPANION
+  espdesktop::home_assistant::register_setup_endpoint(*server);
+#endif
   register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
   espdesktop::configuration::register_panel_config_capabilities_endpoint(*server);
@@ -628,6 +645,13 @@ void EspDesktopApp::retry_configuration_compatibility() {
 }
 
 void EspDesktopApp::setup() {
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  home_assistant::native_buttons().setup();
+#endif
+#ifdef USE_COMPANION
+  home_assistant::hooks().list = home_assistant::list_cards;
+  home_assistant::hooks().press = home_assistant::press_card;
+#endif
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
@@ -797,6 +821,9 @@ void EspDesktopApp::loop() {
     retry_configuration_compatibility();
   }
   if (shutting_down_) return;
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  home_assistant::native_buttons().refresh();
+#endif
   trace_phase("configuration");
   core_.run_once();
   trace_phase("app core");

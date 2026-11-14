@@ -1332,7 +1332,15 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
   return out;
 }
 
+inline bool valid_home_assistant_card_id(std::string_view id) {
+  return id.size() == 96 && std::all_of(id.begin(), id.end(), [](char c) {
+    return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f');
+  });
+}
+
 inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
+  const auto automation_id = cfg_option_value(p.options, "ha_id");
+  const bool exposed = cfg_option_token_present(p.options, "ha_exposed");
   const std::string retired_type = retired_saved_card_type(p.type, p.entity);
   if (!retired_type.empty()) {
     p = ParsedCfg{};
@@ -1349,7 +1357,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     size_t end = p.options.find(',', start);
     if (end == std::string::npos) end = p.options.size();
     const std::string token = p.options.substr(start, end - start);
-    if (!token.empty() && token.compare(0, 10, "icon_size=") != 0) {
+    if (!token.empty() && token.compare(0, 10, "icon_size=") != 0 &&
+        token.compare(0, 6, "ha_id=") != 0 && token != "ha_exposed") {
       if (!type_options.empty()) type_options += ",";
       type_options += token;
     }
@@ -1437,6 +1446,12 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
       (icon_size == "small" || icon_size == "medium" || icon_size == "large")) {
     if (!p.options.empty()) p.options += ",";
     p.options += "icon_size=" + icon_size;
+  }
+  if (valid_home_assistant_card_id(automation_id) &&
+      (p.type == "companion" || p.type == "companion_mac_lock" || p.type == "subpage")) {
+    if (!p.options.empty()) p.options += ",";
+    p.options += "ha_id=" + automation_id;
+    if (exposed) p.options += ",ha_exposed";
   }
   return p;
 }

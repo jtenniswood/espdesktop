@@ -1,3 +1,4 @@
+import { sameCardAction, setCardExposure } from "../model/home_assistant_cards";
 import { childPageKey, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 import { previewSubpageOwner } from "../model/companion_shortcut_page";
 import { companionCardHasAppIcon, companionSavedCardMode } from "../model/companion_card_codec";
@@ -478,6 +479,10 @@ export function createButtonSettingsFeature(
             if (draft.button.type === "subpage" && !codec.canCreateSubpage(homeSlot)) {
                 showBanner("Subpages are not available at this level on this firmware.", "error");
                 return Promise.resolve(false);
+            }
+            const previous = c.buttons[bIdx];
+            if (!draft.isNew && previous && !sameCardAction(previous, draft.button)) {
+                draft.button.options = setCardExposure(draft.button.options, "", false);
             }
             const originalPages = structuredClone(state.subpages);
             const originalPending = { ...state.subpageSavePending };

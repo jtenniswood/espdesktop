@@ -16,6 +16,7 @@
 #include <utility>
 #include <vector>
 #include "app_icon_store.h"
+#include "home_assistant_api.h"
 
 namespace esphome::companion {
 
@@ -105,6 +106,7 @@ class CompanionService final : public Component {
   bool pairing_active_locked_() const;
   static PairingCode generate_pairing_code_();
 
+  HomeAssistantApi home_assistant_;
   ESPPreferenceObject preferences_;
   ESPPreferenceObject sequence_preferences_;
   ESPPreferenceObject pairing_code_preferences_;

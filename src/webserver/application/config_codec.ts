@@ -1,3 +1,4 @@
+import { canExposeCard, cardExposure, setCardExposure } from "../model/home_assistant_cards";
 import { isRetiredLayoutCard, removeRetiredCards, removeRetiredSubpageRecords } from "../features/retired_cards";
 import { retiredSavedCardType } from "../model/card";
 import { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
@@ -412,6 +413,7 @@ export function createConfigCodecFeature(
         if (retiredType) {
             return Object.assign(b, EspDesktopModel.emptyCardConfig(), { type: retiredType });
         }
+        const exposure = cardExposure(b?.options);
         let iconSizeOptions = b?.options;
         var cardColorOptions: any = b ? normalizedCardColorOptions(b.options) : "";
         if (b?.type === "companion" && ["media.play_pause", "media.previous", "media.next"].includes(b.entity)) {
@@ -452,6 +454,8 @@ export function createConfigCodecFeature(
         }
         if (b && cardColorOptions) b.options = [b.options || "", cardColorOptions].filter(Boolean).join(",");
         if (b) b.options = preserveCardIconSize(companionCardHasAppIcon(b) ? iconSizeOptions : "", b.options);
+        if (b && canExposeCard(b) && exposure.identity)
+            b.options = setCardExposure(b.options, exposure.identity, exposure.enabled);
         return b;
     }
     function isBrightnessSliderType(this: any, type?: any) {

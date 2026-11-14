@@ -59,6 +59,7 @@ import { createClockBarPostApiFeature } from "./application/clock_bar_post_api";
 import { createControlsShellFeature, renderPanelBrand } from "./application/controls_shell";
 import { createSettingsPageHelpersFeature, type SettingsPageHelpersFeature } from "./application/settings_page_helpers";
 import { createSettingsScheduleSectionFeature } from "./application/settings_schedule_section";
+import { buildHomeAssistantSettings } from "./application/settings_home_assistant";
 import { createSettingsSystemSectionFeature } from "./application/settings_system_section";
 import { createSettingsCompanionSectionFeature } from "./application/settings_companion_section";
 import { createConnectorsPageFeature, type ConnectorsPageFeature } from "./application/connectors_page";
@@ -919,6 +920,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
   const companionSection = createSettingsCompanionSectionFeature(dom, shell, fields);
   connectorsPage = createConnectorsPageFeature(
     dom, shell, companionSection, !!layout.config.features?.companion,
+    () => buildHomeAssistantSettings(fields.makeCollapsibleCard, fields.toggleRow),
   );
   let pickerHomeAssistantEnabled = connectorsPage.homeAssistantCardPickerEnabled();
   let pickerHomeAssistantConfigured = connectorsPage.homeAssistantConfigured();

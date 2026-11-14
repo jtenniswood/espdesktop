@@ -292,7 +292,12 @@ void AsyncWebServer::begin() {
 
 extern "C" bool espdesktop_allow_web_write(httpd_req_t *request) __attribute__((weak));
 
+extern "C" bool espdesktop_allow_web_card_press(httpd_req_t *request) __attribute__((weak));
+
 esp_err_t AsyncWebServer::request_post_handler(httpd_req_t *r) {
+  // ESPHome also dispatches registered button presses through HTTP. Block
+  // native card presses before handing the request to any web handler.
+  if (espdesktop_allow_web_card_press != nullptr && !espdesktop_allow_web_card_press(r)) return ESP_OK;
 #ifdef USE_WEBSERVER_OTA_DISABLED
   // Captive portal auto-loads the web OTA platform even with web_server.ota=false.
   // Enforce the explicit opt-out before any upload handler can write firmware.
