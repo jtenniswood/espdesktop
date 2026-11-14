@@ -170,7 +170,7 @@ export function createNativePageTransfersFeature(options: {
     const ok = await run(async layout => {
       options.validate(entries, target, false);
       await save(draft => {
-        resized = pasteNativePageCards(draft, target, position, entries, layout).resized;
+        resized = pasteNativePageCards(draft, target, position, entries, layout, undefined, !supplied && !!clipboard?.native?.cut).resized;
       });
       if (!supplied && state.clipboard === clipboard) state.clipboard = null;
     });

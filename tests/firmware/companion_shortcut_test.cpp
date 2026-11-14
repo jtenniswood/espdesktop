@@ -519,6 +519,30 @@ int main() {
   assert(!invoke_companion_action_for_app("shortcut.scoped.space", "unscoped", ""));
   assert(invoke_companion_action_for_app("shortcut.scoped.space", "app-preset", "", "new_window", "org.videolan.vlc:12"));
   assert(shortcut_target == "org.videolan.vlc");
+  assert(companion_app_scoped_shortcut("shortcut.command+w") == "shortcut.scoped.command+w");
+  assert(companion_app_scoped_shortcut("shortcut.escape-twice") == "shortcut.scoped.escape~escape");
+  assert(companion_app_scoped_shortcut("shortcut.scoped.command+k~command+s") ==
+         "shortcut.scoped.command+k~command+s");
+  assert(companion_app_scoped_shortcut("com.apple.Safari").empty());
+  const auto original_actions = companion_runtime_snapshot().actions;
+  companion_set_actions({{"com.apple.Safari", "Safari"}});
+  const int before_launch = guarded_invocations;
+  int shortcut_runs = 0;
+  assert(companion_activate_then("com.apple.Safari", "ha-launch", 1000, [&]() { ++shortcut_runs; }));
+  assert(guarded_invocations == before_launch + 1);
+  assert(shortcut_runs == 0);
+  companion_deliver_action_result("other-launch", "activated");
+  assert(shortcut_runs == 0);
+  companion_deliver_action_result("ha-launch", "activated");
+  companion_deliver_action_result("ha-launch", "activated");
+  assert(shortcut_runs == 1);
+  assert(companion_activate_then("com.apple.Safari", "ha-denied", 1000, [&]() { ++shortcut_runs; }));
+  companion_deliver_action_result("ha-denied", "not_allowed");
+  assert(shortcut_runs == 1);
+  assert(!companion_activate_then("com.example.Missing", "ha-missing", 1000, [&]() { ++shortcut_runs; }));
+  companion_deliver_action_result("ha-missing", "activated");
+  assert(shortcut_runs == 1);
+  companion_set_actions(original_actions);
   companion_set_value("media.output_volume", 72);
   bool volume_invoked = false;
   register_companion_value_sender([&volume_invoked](const std::string &control, int value,

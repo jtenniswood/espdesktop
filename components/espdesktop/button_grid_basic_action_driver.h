@@ -125,6 +125,15 @@ struct CompanionSubpageActionContext {
   std::string required_focus_id;
 };
 
+inline bool invoke_saved_companion_card(const ParsedCfg &card, const std::string &request_id,
+                                         const std::string &required_focus = {}) {
+  return companion_encoded_url(card.sensor).empty()
+    ? invoke_companion_action_for_app(card.entity, request_id, required_focus,
+                                     companion_folder_open_behavior(card),
+                                     cfg_option_value(card.options, "app_shortcut_preset"))
+    : invoke_companion_url(card.sensor, request_id, companion_url_opens_new_window(card));
+}
+
 inline bool basic_action_driver_bind_subpage(
     BtnSlot &slot, const ParsedCfg &config, const Context &context,
     const BasicActionSubpageEnvironment &environment) {
@@ -161,12 +170,7 @@ inline bool basic_action_driver_bind_subpage(
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
-        const bool invoked = companion_encoded_url(card->sensor).empty()
-          ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
-                                    companion_folder_open_behavior(*card),
-                                    cfg_option_value(card->options, "app_shortcut_preset"))
-          : invoke_companion_url(card->sensor, request_id,
-                                 companion_url_opens_new_window(*card));
+        const bool invoked = invoke_saved_companion_card(*card, request_id, context->required_focus_id);
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
@@ -212,12 +216,7 @@ inline bool basic_action_driver_handle_main_click(
           }
         }
       }
-      const bool invoked = companion_encoded_url(config.sensor).empty()
-        ? invoke_companion_action_for_app(config.entity, request_id, {},
-                                  companion_folder_open_behavior(config),
-                                  cfg_option_value(config.options, "app_shortcut_preset"))
-        : invoke_companion_url(config.sensor, request_id,
-                                 companion_url_opens_new_window(config));
+      const bool invoked = invoke_saved_companion_card(config, request_id);
       if (!invoked) {
         companion_cancel_action_result(request_id);
         ESP_LOGW("companion", "Action unavailable: %s", config.entity.c_str());

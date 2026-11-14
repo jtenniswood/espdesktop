@@ -25,6 +25,7 @@
   "Settings and permissions": [
     "settings/screen.md",
     "settings/system.md",
+    "getting-started/home-assistant-actions.md",
     "settings/mac-app.md",
     "settings/backup.md",
     "mac-controls/security.md"

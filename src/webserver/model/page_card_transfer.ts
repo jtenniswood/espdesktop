@@ -1,3 +1,4 @@
+import { setCardExposure } from "./home_assistant_cards";
 import { cardTransferOwnsSubpage } from "./card_transfer";
 import type { CardConfig } from "../contracts/types";
 import { CARD_CONFIG_FIELDS, cloneCardConfig, emptyCardConfig, parseRawButtonConfig } from "./card";
@@ -337,15 +338,21 @@ export function deleteNativePageCards(draft: NativeLayoutDraft, origin: PageTran
 }
 
 export function pasteNativePageCards(draft: NativeLayoutDraft, page: number, position: number,
-    entries: readonly PageTransferCard[], grid: PageTransferLayout, copyFrom?: PageTransferOrigin): { resized: number } {
+    entries: readonly PageTransferCard[], grid: PageTransferLayout, copyFrom?: PageTransferOrigin, preserveExposure = false): { resized: number } {
   const editor = nativeEditor(draft);
   if (copyFrom) verifyOrigin(editor, copyFrom);
+  const copy = (card: CardConfig): CardConfig => preserveExposure ? card :
+    { ...card, options: setCardExposure(card.options, "", false) };
+  const copyPage = (page: NativePageEdit | null) => page && { ...page, cards: page.cards.map(copy) };
   return pasteCards(editor, page, position, entries.map(entry => {
     const portable = entry.subtree;
     const subtree = entry.nativeTree !== undefined ? entry.nativeTree : portable ? {
       page: portable.configuration === null ? null : readLegacySubpage(portable.configuration),
       children: Object.fromEntries(Object.entries(portable.children).map(([key, raw]) => [key, readLegacySubpage(raw)])),
     } : null;
-    return { button: entry.button, size: entry.size, subtree };
+    return { button: copy(entry.button), size: entry.size, subtree: subtree && {
+      page: copyPage(subtree.page),
+      children: Object.fromEntries(Object.entries(subtree.children).map(([key, child]) => [key, copyPage(child)!])),
+    } };
   }), grid);
 }

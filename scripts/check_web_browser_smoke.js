@@ -5760,8 +5760,20 @@ async function assertHomeAssistantConnectorLayout(browser) {
       available: true, active: true, paired: false, connected: false,
       pairing_code: "ABCD",
     };
+    let requestedResync = false;
+    let esphomeEnabled = true;
     if (testCase.companionSupported) {
       await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
+      await context.route(/\/api\/v1\/home-assistant(?:\?.*)?$/, route => {
+        const request = route.request();
+        if (request.method() === "POST") {
+          const operation = request.headers()["x-espdesktop-request"];
+          if (operation === "resync-buttons") requestedResync = true;
+          else if (operation === "disable-esphome") esphomeEnabled = false;
+          else return route.fulfill({ status: 400 });
+        }
+        return route.fulfill({ json: { enabled: esphomeEnabled } });
+      });
     }
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -5786,13 +5798,24 @@ async function assertHomeAssistantConnectorLayout(browser) {
         assert(Math.abs(connectorsTopGap - screenTopGap) < 0.5,
           `${testCase.name}: Connectors and Screen have matching top spacing at ${width}px`);
         assert(await connectors.isVisible(), `${testCase.name}: connectors visible at ${width}px`);
+        if (testCase.companionSupported) {
+          await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).waitFor();
+          const gaps = await page.locator("#sp-device > .sp-config").evaluate(config => {
+            const gap = (first, second) => second.getBoundingClientRect().top - first.getBoundingClientRect().bottom;
+            const [companion, homeAssistant] = config.querySelectorAll("#sp-connectors > .card");
+            const [language, time] = Array.from(config.querySelectorAll(":scope > .card"));
+            return [gap(companion, homeAssistant), gap(language, time)];
+          });
+          assert(Math.abs(gaps[0] - gaps[1]) < 0.5,
+            `${testCase.name}: connector and preference cards have matching gaps at ${width}px`);
+        }
         assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1),
           `${testCase.name}: System fits at ${width}px`);
       }
       assert.strictEqual(
         await connectors.getByRole("heading", { name: "Home Assistant", exact: true }).count(),
-        0,
-        `${testCase.name}: connected Home Assistant does not expose setup or confirmation UI`,
+        testCase.companionSupported ? 1 : 0,
+        `${testCase.name}: the native ESPHome settings card is shown on supported displays`,
       );
       assert.strictEqual(
         await connectors.getByRole("button", { name: "I’ve enabled actions" }).count(),
@@ -5800,6 +5823,18 @@ async function assertHomeAssistantConnectorLayout(browser) {
         `${testCase.name}: Home Assistant action confirmation is unavailable`,
       );
       if (testCase.companionSupported) {
+        const homeAssistantHeading = connectors.getByRole("heading", { name: "Home Assistant", exact: true });
+        const badge = connectors.getByLabel("ESPHome API enabled", { exact: true });
+        await badge.waitFor({ state: "visible" });
+        assert.strictEqual(await badge.textContent(), "ON");
+        await homeAssistantHeading.click();
+        await connectors.getByRole("button", { name: "Resync buttons", exact: true }).click();
+        await connectors.getByText("Button refresh requested. Home Assistant will reconnect shortly.", { exact: true }).waitFor();
+        assert(requestedResync, `${testCase.name}: resync sends a request to the display`);
+        await connectors.locator("label[for='sp-enable-esphome-api']").click();
+        await connectors.getByText("Setting saved. The display is restarting.", { exact: true }).waitFor();
+        await homeAssistantHeading.click();
+        assert(!(await badge.isVisible()), `${testCase.name}: disabled ESPHome has no On badge`);
         assert(
           await connectors.getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
           `${testCase.name}: Mac Companion setup remains available`,

@@ -84,6 +84,17 @@ def _empty_template_preference_ids(text_configs):
 
 @coroutine_with_priority(CoroPriority.DIAGNOSTICS)
 async def to_code(config):
+    if "api" in CORE.config and "companion" in CORE.config:
+        cg.add_define("USE_ESPDESKTOP_NATIVE_CARD_BUTTONS")
+        cg.add_global(cg.RawStatement(
+            '#include "esphome/components/espdesktop/native_api_setting.h"'
+        ), prepend=True)
+        # Root plus two levels of subpages on the 4-inch S3. Firmware
+        # checks this against the generated UI profile at compile time.
+        capacity = 9 + 9 * 8 + 9 * 8 * 8
+        cg.add_define("ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY", capacity)
+        for _ in range(capacity):
+            CORE.register_platform_component("button", None)
     if "lvgl" in CORE.config:
         from esphome.components.lvgl.defines import add_lv_use
 

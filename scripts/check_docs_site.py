@@ -401,7 +401,6 @@ def check_build(dist):
         'card-types/companion': BASE + '#what-you-can-control',
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
-        'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/getting-started/home-assistant-actions',
         'features/settings': BASE + 'settings/system',
         'features/backup': BASE + 'settings/backup',
         'features/media-cover-art': BASE + 'settings/screen',

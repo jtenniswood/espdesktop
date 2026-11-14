@@ -3,6 +3,15 @@
 #include "button_grid_config_parser.h"
 #include "grid_native_pages.h"
 
+inline ParsedCfg grid_saved_card_config(const espdesktop::pages::PageStore &store,
+                                        const espdesktop::pages::CardDefinition &card) {
+  using espdesktop::pages::CardField;
+  auto field = [&](CardField key) { return std::string(store.field(card, key)); };
+  return {field(CardField::ENTITY), field(CardField::LABEL), field(CardField::ICON),
+          field(CardField::ICON_ON), field(CardField::SENSOR), field(CardField::UNIT),
+          field(CardField::TYPE), field(CardField::PRECISION), field(CardField::OPTIONS)};
+}
+
 inline ParsedCfg grid_layout_card_config(int slot, const std::string &legacy_config) {
   const auto *store = espdesktop::grid_native_page_store();
   if (!store) return parse_cfg(legacy_config);
@@ -13,13 +22,7 @@ inline ParsedCfg grid_layout_card_config(int slot, const std::string &legacy_con
   } else if (const auto *entry = espdesktop::grid_native_page(slot)) {
     if (const auto *page = store->page(entry->id)) card = store->card(page->owner);
   }
-  if (!card) return {};
-  using espdesktop::pages::CardField;
-  auto field = [&](CardField key) { return std::string(store->field(*card, key)); };
-  // PageStore applies the same card normalization when it loads a document.
-  return {field(CardField::ENTITY), field(CardField::LABEL), field(CardField::ICON),
-          field(CardField::ICON_ON), field(CardField::SENSOR), field(CardField::UNIT),
-          field(CardField::TYPE), field(CardField::PRECISION), field(CardField::OPTIONS)};
+  return card ? grid_saved_card_config(*store, *card) : ParsedCfg{};
 }
 
 inline std::string grid_layout_root_order(const std::string &legacy_order) {
