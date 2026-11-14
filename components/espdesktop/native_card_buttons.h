@@ -3,6 +3,7 @@
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
 #include "esphome/components/api/api_server.h"
 #include "esphome/components/button/button.h"
+#include "native_api_setting.h"
 
 namespace espdesktop::home_assistant {
 
@@ -18,7 +19,7 @@ class NativeCardButton final : public esphome::button::Button {
  protected:
   void press_action() override {
     auto *server = esphome::api::global_api_server;
-    if (server && server->get_noise_ctx().has_psk() && !id_.empty())
+    if (native_api_enabled.load() && server && server->get_noise_ctx().has_psk() && !id_.empty())
       press_card(id_);
   }
 
@@ -49,7 +50,7 @@ class NativeCardButtons {
     const auto *store = grid_native_page_store();
     auto *server = esphome::api::global_api_server;
     if (!store || !server || hooks().fingerprint.empty()) return;
-    const bool authorized = server->get_noise_ctx().has_psk();
+    const bool authorized = native_api_enabled.load() && server->get_noise_ctx().has_psk();
     if (refreshed_ && generation_ == store->generation() && authorized == authorized_) return;
     refreshed_ = true;
     generation_ = store->generation();

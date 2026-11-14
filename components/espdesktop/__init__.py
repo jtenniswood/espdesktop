@@ -86,6 +86,9 @@ def _empty_template_preference_ids(text_configs):
 async def to_code(config):
     if "api" in CORE.config and "companion" in CORE.config:
         cg.add_define("USE_ESPDESKTOP_NATIVE_CARD_BUTTONS")
+        cg.add_global(cg.RawStatement(
+            '#include "esphome/components/espdesktop/native_api_setting.h"'
+        ), prepend=True)
         # The S3 renderer allows 81 total home and subpage placements.
         cg.add_define("ESPDESKTOP_NATIVE_CARD_BUTTON_CAPACITY", 81)
         for _ in range(81):
