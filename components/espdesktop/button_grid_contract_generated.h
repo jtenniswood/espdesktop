@@ -569,11 +569,11 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "media") return "Media";
   if (type == "push") return "Trigger";
   if (type == "companion_app_volume") return "App Volume";
-  if (type == "companion_output_volume") return "Output Volume";
+  if (type == "companion_output_volume") return "Volume";
   if (type == "companion_input_device") return "Input per device level";
-  if (type == "companion_input_volume") return "Input Volume";
-  if (type == "companion_output_mute") return "Output Mute";
-  if (type == "companion_input_mute") return "Input Mute";
+  if (type == "companion_input_volume") return "Volume";
+  if (type == "companion_output_mute") return "Mute";
+  if (type == "companion_input_mute") return "Mute";
   if (type == "companion_cough") return "Cough";
   if (type == "companion_mac_lock") return "Mac Lock";
   if (type == "companion") return "Companion";

@@ -11,7 +11,8 @@ template<typename Config>
 inline bool normalize_saved_config_static(Config &config) {
   if (config.type == "companion_output_volume") {
     config.entity = "media.output_volume";
-    if (config.label.empty()) config.label = "Output Volume";
+    if (config.label == "") config.label = "Volume";
+    if (config.label == "Output Volume") config.label = "Volume";
     if (config.icon.empty()) config.icon = "Volume High";
     config.icon_on = "Auto";
     config.sensor.clear();
@@ -23,7 +24,9 @@ inline bool normalize_saved_config_static(Config &config) {
   }
   if (config.type == "companion_input_volume") {
     config.entity = "media.input_volume";
-    if (config.label.empty()) config.label = "Input Volume";
+    if (config.label == "") config.label = "Volume";
+    if (config.label == "Input Volume") config.label = "Volume";
+    if (config.label == "Input Level") config.label = "Volume";
     if (config.icon.empty()) config.icon = "Microphone";
     config.icon_on = "Auto";
     config.sensor.clear();
@@ -35,7 +38,8 @@ inline bool normalize_saved_config_static(Config &config) {
   }
   if (config.type == "companion_output_mute") {
     config.entity = "media.output_mute";
-    if (config.label.empty()) config.label = "Output Mute";
+    if (config.label == "") config.label = "Mute";
+    if (config.label == "Output Mute") config.label = "Mute";
     if (config.icon.empty()) config.icon = "Volume High";
     config.icon_on = "Auto";
     config.sensor.clear();
@@ -47,7 +51,8 @@ inline bool normalize_saved_config_static(Config &config) {
   }
   if (config.type == "companion_input_mute") {
     config.entity = "media.input_mute";
-    if (config.label.empty()) config.label = "Input Mute";
+    if (config.label == "") config.label = "Mute";
+    if (config.label == "Input Mute") config.label = "Mute";
     if (config.icon.empty()) config.icon = "Microphone";
     config.icon_on = "Auto";
     config.sensor.clear();

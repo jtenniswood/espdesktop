@@ -2569,7 +2569,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "companion_output_volume": {
-    "label": "Output Volume",
+    "label": "Volume",
     "pickerLabel": "Output",
     "allowInSubpage": true,
     "domains": [],
@@ -2580,8 +2580,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "value": "media.output_volume"
         },
         "label": {
-          "policy": "default_if_empty",
-          "value": "Output Volume"
+          "policy": "alias",
+          "aliases": {
+            "": "Volume",
+            "Output Volume": "Volume"
+          }
         },
         "icon": {
           "policy": "default_if_empty",
@@ -2613,7 +2616,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "media.output_volume",
-      "label": "Output Volume",
+      "label": "Volume",
       "icon": "Volume High",
       "icon_on": "Auto",
       "sensor": "",
@@ -2677,7 +2680,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "companion_input_volume": {
-    "label": "Input Volume",
+    "label": "Volume",
     "pickerLabel": "Input",
     "allowInSubpage": true,
     "domains": [],
@@ -2688,8 +2691,12 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "value": "media.input_volume"
         },
         "label": {
-          "policy": "default_if_empty",
-          "value": "Input Volume"
+          "policy": "alias",
+          "aliases": {
+            "": "Volume",
+            "Input Volume": "Volume",
+            "Input Level": "Volume"
+          }
         },
         "icon": {
           "policy": "default_if_empty",
@@ -2721,7 +2728,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "media.input_volume",
-      "label": "Input Volume",
+      "label": "Volume",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",
@@ -2732,7 +2739,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "companion_output_mute": {
-    "label": "Output Mute",
+    "label": "Mute",
     "pickerKey": "companion_output_volume",
     "allowInSubpage": true,
     "domains": [],
@@ -2743,8 +2750,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "value": "media.output_mute"
         },
         "label": {
-          "policy": "default_if_empty",
-          "value": "Output Mute"
+          "policy": "alias",
+          "aliases": {
+            "": "Mute",
+            "Output Mute": "Mute"
+          }
         },
         "icon": {
           "policy": "default_if_empty",
@@ -2776,7 +2786,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "media.output_mute",
-      "label": "Output Mute",
+      "label": "Mute",
       "icon": "Volume High",
       "icon_on": "Auto",
       "sensor": "",
@@ -2787,7 +2797,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "companion_input_mute": {
-    "label": "Input Mute",
+    "label": "Mute",
     "pickerKey": "companion_input_volume",
     "allowInSubpage": true,
     "domains": [],
@@ -2798,8 +2808,11 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
           "value": "media.input_mute"
         },
         "label": {
-          "policy": "default_if_empty",
-          "value": "Input Mute"
+          "policy": "alias",
+          "aliases": {
+            "": "Mute",
+            "Input Mute": "Mute"
+          }
         },
         "icon": {
           "policy": "default_if_empty",
@@ -2831,7 +2844,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     },
     "default": {
       "entity": "media.input_mute",
-      "label": "Input Mute",
+      "label": "Mute",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",

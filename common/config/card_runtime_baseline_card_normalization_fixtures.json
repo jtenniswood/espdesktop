@@ -991,10 +991,10 @@
   },
   {
     "name": "companion_output_volume: default_device",
-    "input": "~media.output_volume,Output%20Volume,Volume%20High,Auto,,,companion_output_volume,,",
+    "input": "~media.output_volume,Volume,Volume%20High,Auto,,,companion_output_volume,,",
     "expected": {
       "entity": "media.output_volume",
-      "label": "Output Volume",
+      "label": "Volume",
       "icon": "Volume High",
       "icon_on": "Auto",
       "sensor": "",
@@ -1021,10 +1021,10 @@
   },
   {
     "name": "companion_input_volume: default_device",
-    "input": "~media.input_volume,Input%20Volume,Microphone,Auto,,,companion_input_volume,,",
+    "input": "~media.input_volume,Volume,Microphone,Auto,,,companion_input_volume,,",
     "expected": {
       "entity": "media.input_volume",
-      "label": "Input Volume",
+      "label": "Volume",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",
@@ -1036,10 +1036,10 @@
   },
   {
     "name": "companion_output_mute: default_device",
-    "input": "~media.output_mute,Output%20Mute,Volume%20High,Auto,,,companion_output_mute,,",
+    "input": "~media.output_mute,Mute,Volume%20High,Auto,,,companion_output_mute,,",
     "expected": {
       "entity": "media.output_mute",
-      "label": "Output Mute",
+      "label": "Mute",
       "icon": "Volume High",
       "icon_on": "Auto",
       "sensor": "",
@@ -1051,10 +1051,10 @@
   },
   {
     "name": "companion_input_mute: default_device",
-    "input": "~media.input_mute,Input%20Mute,Microphone,Auto,,,companion_input_mute,,",
+    "input": "~media.input_mute,Mute,Microphone,Auto,,,companion_input_mute,,",
     "expected": {
       "entity": "media.input_mute",
-      "label": "Input Mute",
+      "label": "Mute",
       "icon": "Microphone",
       "icon_on": "Auto",
       "sensor": "",

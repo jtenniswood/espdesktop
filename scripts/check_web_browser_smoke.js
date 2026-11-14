@@ -4301,10 +4301,10 @@ async function assertAppVolumeCard(browser) {
     assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
     await page.keyboard.press("Escape");
     const deviceAudio = [
-      ["Output Volume", "output_volume", "Volume High", true],
-      ["Input Volume", "input_volume", "Microphone", true],
-      ["Output Mute", "output_mute", "Volume High", false],
-      ["Input Mute", "input_mute", "Microphone", false],
+      ["Volume", "output_volume", "Volume High", true],
+      ["Volume", "input_volume", "Microphone", true],
+      ["Mute", "output_mute", "Volume High", false],
+      ["Mute", "input_mute", "Microphone", false],
     ];
     for (const [label, control, icon, slider] of deviceAudio) {
       await page.locator(".sp-main .sp-empty-cell").first().click();
@@ -4315,7 +4315,9 @@ async function assertAppVolumeCard(browser) {
       const expected = `media.${control};${label};${icon};Auto;;;companion_${control}`;
       await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons).includes(expected),
         label + " saves its own control");
-      const preview = page.locator(".sp-main [data-slot]").filter({ hasText: label });
+      const slot = Object.keys(nativeState.document.buttons).find(key => nativeState.document.buttons[key] === expected);
+      const preview = page.locator(`.sp-main [data-slot="${slot}"]`);
+      assert.equal(await preview.locator(".sp-btn-label").textContent(), label);
       assert.equal(await preview.locator(".sp-slider-preview").count(), slider ? 1 : 0, label);
     }
     await page.locator(".sp-main .sp-empty-cell").first().click();

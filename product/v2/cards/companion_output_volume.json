@@ -1,12 +1,12 @@
 {
-  "label": "Output Volume",
+  "label": "Volume",
   "pickerLabel": "Output",
   "allowInSubpage": true,
   "domains": [],
   "normalization": {
     "fields": {
       "entity": { "policy": "default", "value": "media.output_volume" },
-      "label": { "policy": "default_if_empty", "value": "Output Volume" },
+      "label": { "policy": "alias", "aliases": { "": "Volume", "Output Volume": "Volume" } },
       "icon": { "policy": "default_if_empty", "value": "Volume High" },
       "icon_on": { "policy": "default", "value": "Auto" },
       "sensor": { "policy": "clear" },
@@ -19,7 +19,7 @@
     "canonicalOptionOrder": []
   },
   "default": {
-    "entity": "media.output_volume", "label": "Output Volume", "icon": "Volume High", "icon_on": "Auto",
+    "entity": "media.output_volume", "label": "Volume", "icon": "Volume High", "icon_on": "Auto",
     "sensor": "", "unit": "", "type": "companion_output_volume", "precision": "", "options": ""
   }
 }
