@@ -16,7 +16,7 @@ For Home Assistant touchscreen controls, use the [EspControl documentation](http
 On 4-inch Guition 4848S040 firmware that supports card exposure, Home Assistant
 can press cards you choose to share.
 
-1. In the display's web editor, open **System → Home Assistant** and switch
+1. In the display's web editor, open **Connectors → Home Assistant** and switch
    on **Enable ESPHome API**. It starts off. The display restarts when
    you change this setting, and your shared card selections are retained.
 2. In Home Assistant, open **Settings → Devices & services** and add your

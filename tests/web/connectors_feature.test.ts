@@ -72,6 +72,9 @@ export async function runConnectorsFeatureTests(): Promise<void> {
         const card = element(); card.id = "companion-card"; return card;
     } } as any,
     true,
+    () => {
+      const card = element(); card.id = "home-assistant-card"; return card as unknown as HTMLElement;
+    },
   );
   if (feature.homeAssistantConfigured() || feature.homeAssistantConnected() ||
       feature.homeAssistantSettingsAvailable() || feature.homeAssistantCardPickerEnabled()) {
@@ -80,8 +83,9 @@ export async function runConnectorsFeatureTests(): Promise<void> {
   const parent = element();
   feature.buildPage(parent as unknown as HTMLElement);
   const content = parent.children[0]?.children[0];
-  if (content?.children.length !== 2 || content.children[1]?.id !== "companion-card" || companionStartsCollapsed !== false) {
-    throw new Error("Connector setup must contain only its heading and the deep-linked Mac Companion card");
+  if (content?.children.length !== 3 || content.children[1]?.id !== "companion-card" ||
+      content.children[2]?.id !== "home-assistant-card" || companionStartsCollapsed !== false) {
+    throw new Error("Connectors must show Home Assistant below the deep-linked Mac Companion card");
   }
   const transitions: boolean[] = [];
   feature.onCompanionConnectionChange((connected) => transitions.push(connected));

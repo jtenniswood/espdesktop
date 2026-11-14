@@ -45,6 +45,7 @@ export function createConnectorsPageFeature(
     shell: Pick<ControlsShellFeature, "setOnboardingComplete">,
     companionSection: SettingsCompanionSectionFeature,
     companionSupported: boolean,
+    buildHomeAssistantCard: () => HTMLElement,
 ): ConnectorsPageFeature {
     const { document, window, fetch } = dom;
     let current: ConnectorsStatus | null = null;
@@ -104,6 +105,7 @@ export function createConnectorsPageFeature(
         if (companionSupported) {
             const open = requestedConnectorFromSearch(window.location.search) === "mac_companion";
             config.appendChild(companionSection.buildCompanionSettingsCard(applyCompanionStatus, !open, open));
+            config.appendChild(buildHomeAssistantCard());
         } else {
             const message = document.createElement("p");
             message.className = "sp-connectors-unavailable";
