@@ -4284,7 +4284,7 @@ async function assertMacLockCard(browser) {
     await modal.getByText("Mac Lock", { exact: true }).first().waitFor();
     assert.strictEqual(await modal.locator('[id$="shortcut-type"], [id$="shortcut-panel"], #sp-card-type-picker').count(), 0);
     await modal.getByRole("button", { name: "Card Settings", exact: true }).waitFor();
-    await modal.getByRole("button", { name: "Custom Colours", exact: true }).waitFor();
+    await modal.getByRole("button", { name: "Background", exact: true }).waitFor();
   };
   const editCard = async slot => {
     await page.locator('.sp-main [data-slot="' + slot + '"]').click();
@@ -4331,7 +4331,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
   await installFakeEventSource(page);
-  const toggles = ["Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
+  const toggles = ["Shortcut", "Card Settings", "Background"].map(name => page.getByRole("button", { name, exact: true }));
   const [shortcutToggle, settingsToggle, coloursToggle] = toggles;
   const panels = toggles.map(toggle => page.locator(".sp-disclosure").filter({ has: toggle }));
   const [shortcutPanel, settingsPanel, coloursPanel] = panels;
@@ -5910,7 +5910,7 @@ async function assertColourSwatches(browser) {
     await page.getByRole("tab", { name: "Layout" }).click();
     await page.locator('.sp-main [data-slot="1"]').click();
     await page.getByRole("button", { name: "Edit", exact: true }).click();
-    await page.getByRole("button", { name: "Custom Colours", exact: true }).click();
+    await page.getByRole("button", { name: "Background", exact: true }).click();
     const colours = page.locator('.sp-settings-modal').getByRole("group", { name: "Card colour presets", exact: true });
     await assertPalette(colours, "Card background");
     const defaultPreset = await colours.locator('[aria-pressed="true"]').getAttribute("data-color");
@@ -7730,7 +7730,8 @@ async function assertImageLibrarySettings(browser, testCase) {
       } else throw new Error(`Unexpected image request: ${method} ${url.pathname}`);
     });
     await context.route("**/card-images/*.jpg", route => route.fulfill({
-      contentType: "image/svg+xml", body: fs.readFileSync(path.join(ROOT, "common/assets/cover_art_placeholder.svg")),
+      contentType: "image/svg+xml",
+      body: '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><rect width="64" height="64" fill="navy"/></svg>',
     }));
     const page = await context.newPage();
     const errors = [];
