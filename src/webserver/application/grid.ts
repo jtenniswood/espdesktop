@@ -9,9 +9,11 @@ import type { ApplicationApiFeature } from "./api";
 import type { ButtonSettingsRenderQueueFeature } from "./button_settings_render_queue";
 
 export interface GridFeature {
-    ctx(): any;
+    ctx(page?: number | null): any;
     scheduleMainGridSave(): void;
     cancelMainGridSave(): void;
+    hasPendingMainGridSave(): boolean;
+    flushMainGridSave(): void;
     sizeClass(size?: any): string;
     applyButtonOrderValue(value?: any, skipRender?: any): void;
     serializeGrid(grid?: any): string;
@@ -19,12 +21,14 @@ export interface GridFeature {
     resolveIcon(button?: any): string;
 }
 
-export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeState, layout: ApplicationLayoutState, entityState: Pick<EntityStateFeature, "entityName">, requestApi: Pick<ApplicationApiFeature, "postText">, renderQueue: ButtonSettingsRenderQueueFeature): GridFeature {
+export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeState, layout: ApplicationLayoutState, entityState: Pick<EntityStateFeature, "entityName">, requestApi: Pick<ApplicationApiFeature, "postText">, renderQueue: ButtonSettingsRenderQueueFeature, markLocalEdit: () => void = () => {}): GridFeature {
     const { entityName } = entityState;
     const { getSubpage, saveSubpageConfig } = codec;
     // ── Context abstraction ────────────────────────────────────────────────
     var mainGridSaveTimer: any = null;
+    function hasPendingMainGridSave(): boolean { return mainGridSaveTimer !== null; }
     function scheduleMainGridSave(this: any) {
+        markLocalEdit();
         clearTimeout(mainGridSaveTimer);
         mainGridSaveTimer = setTimeout(function () {
             mainGridSaveTimer = null;
@@ -35,9 +39,14 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
         clearTimeout(mainGridSaveTimer);
         mainGridSaveTimer = null;
     }
-    function ctx(this: any) {
-        if (state.editingSubpage) {
-            var sp: any = getSubpage(state.editingSubpage);
+    function flushMainGridSave(): void {
+        if (!hasPendingMainGridSave()) return;
+        cancelMainGridSave();
+        requestApi.postText(entityName("button_order"), serializeGrid(state.grid));
+    }
+    function ctx(this: any, page = state.editingSubpage) {
+        if (page) {
+            var sp: any = getSubpage(page);
             return {
                 grid: sp.grid, sizes: sp.sizes, buttons: sp.buttons,
                 maxSlots: layout.previewSlots, maxSlotId: sp.buttons.length, selected: state.subpageSelectedSlots,
@@ -45,7 +54,7 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
                 setSelected: function (this: any, s?: any) { state.subpageSelectedSlots = s; },
                 setLastClicked: function (this: any, s?: any) { state.subpageLastClicked = s; },
                 getLastClicked: function (this: any) { return state.subpageLastClicked; },
-                save: function (this: any) { saveSubpageConfig(state.editingSubpage); },
+                save: function (this: any) { saveSubpageConfig(page); },
             };
         }
         return {
@@ -104,6 +113,8 @@ export function createGridFeature(codec: ConfigCodecFeature, runtime: UiRuntimeS
         ctx,
         scheduleMainGridSave,
         cancelMainGridSave,
+        hasPendingMainGridSave,
+        flushMainGridSave,
         sizeClass,
         applyButtonOrderValue,
         serializeGrid,

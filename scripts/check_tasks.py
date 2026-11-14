@@ -1201,6 +1201,8 @@ def write_summary(summary: dict[str, object], path: Path | None) -> None:
 
 
 def self_test() -> None:
+    from unittest.mock import Mock, patch
+
     validate_registry()
     expected = json.loads(FIXTURE.read_text())
     actual = {profile: sorted(item.id for item in plan(profile)) for profile in PROFILES}
@@ -1315,8 +1317,6 @@ def self_test() -> None:
         raise AssertionError("dev-docs cache keys omit runtime validation inputs")
     if not {"c++", "g++", "clang++"} <= set(registry["firmware-parser"].cache_tools):
         raise AssertionError("firmware parser cache keys omit compiler tool versions")
-    if "components/artwork_image/artwork_image.cpp" not in registry["cover-art-contract"].inputs:
-        raise AssertionError("cover-art cache keys omit the downloader source")
     if "common/config/*_card_normalization_fixtures.json" not in registry["firmware-parser"].inputs:
         raise AssertionError("firmware parser cache keys omit normalization fixtures")
     if "common/config/card_normalization_fixtures.json" not in registry["saved-config-parity"].inputs:
@@ -1420,6 +1420,20 @@ def self_test() -> None:
         if "| `blocked` | blocked |" not in markdown:
             raise AssertionError("Markdown summary omits blocked tasks")
 
+        # Simulate a native crash: sending SIGSEGV to a real child produces a
+        # macOS crash report/dialog even when RLIMIT_CORE disables core files.
+        # Keep real SIGKILL/SIGTERM coverage below for both schedulers.
+        for capture in (False, True):
+            crashed_process = Mock(returncode=-signal.SIGSEGV)
+            crashed_process.communicate.return_value = ("", None)
+            controller = ProcessController()
+            with patch.object(subprocess, "Popen", return_value=crashed_process):
+                code, output = run_process(("simulated-native-crash",), root, controller, capture=capture)
+            if code != 128 + signal.SIGSEGV or output:
+                raise AssertionError("native crashes must produce a normalized failure exit code")
+            if controller._processes:
+                raise AssertionError("crashed processes must be removed from the controller")
+
         # Multiple roots can fail without preventing unrelated work or allowing
         # descendants of either failure to run. Exercise both schedulers.
         for workers in (1, 2):
@@ -1450,7 +1464,7 @@ def self_test() -> None:
             if forbidden_marker.exists() or not independent_marker.exists():
                 raise AssertionError("CI ran a blocked task or skipped independent work")
 
-            for signum in (signal.SIGKILL, signal.SIGSEGV, signal.SIGTERM):
+            for signum in (signal.SIGKILL, signal.SIGTERM):
                 after_crash = root / f"after-crash-{workers}-{signum}"
                 crash = (sys.executable, "-c",
                     "import os, resource; resource.setrlimit(resource.RLIMIT_CORE, (0, 0)); "

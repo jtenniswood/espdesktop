@@ -3,6 +3,7 @@
 // =============================================================================
 #pragma once
 
+#include "device_pairing_ui.h"
 #include "display_text.h"
 #include "settings_backlight.h"
 #include "network_status_layout.h"
@@ -32,18 +33,11 @@ struct NetworkStatusModalUi {
   lv_obj_t *icons[NETWORK_STATUS_CARD_COUNT]{};
   lv_obj_t *labels[NETWORK_STATUS_CARD_COUNT]{};
   int card_count = 0;
-  lv_obj_t *pairing_overlay = nullptr;
-  lv_obj_t *pairing_code = nullptr;
-  lv_obj_t *pairing_ip = nullptr;
   lv_obj_t *pairing_button = nullptr;
   lv_obj_t *pairing_label = nullptr;
-  lv_obj_t *lock_button = nullptr;
-  int grid_columns = 1;
-  int configured_rows = 1;
   lv_obj_t *wifi_label = nullptr;
   float (*wifi_quality)() = nullptr;
   const lv_font_t *text_font = nullptr;
-  const lv_font_t *modal_icon_font = nullptr;
   const lv_font_t *title_font = nullptr;
   lv_obj_t *ip_lbl = nullptr;
   lv_obj_t *connector_lbl = nullptr;
@@ -70,6 +64,11 @@ inline void network_status_apply_theme(void *context, const ThemePalette &theme)
 }
 
 inline const lv_font_t *&network_status_card_icon_font() {
+  static const lv_font_t *font = nullptr;
+  return font;
+}
+
+inline const lv_font_t *&network_status_notice_title_font() {
   static const lv_font_t *font = nullptr;
   return font;
 }
@@ -173,7 +172,7 @@ inline void navigation_subpage_screen_changed(lv_event_t *);
 
 inline void network_status_hide_modal() {
   NetworkStatusModalUi &ui = network_status_modal_ui();
-  if (ui.pairing_overlay) control_modal_close_nested_menu();
+  if (ui.overlay && device_pairing_ui().overlay) control_modal_close_nested_menu();
   if (ui.refresh_timer) lv_timer_del(ui.refresh_timer);
   lv_obj_t *overlay = ui.overlay;
   if (overlay) unregister_theme_refresh(overlay);
@@ -183,107 +182,67 @@ inline void network_status_hide_modal() {
     // App subpages repaint when their screen unloads. Settings is an overlay,
     // so update the title before revealing home and repaint the clock bar too.
     navigation_subpage_screen_changed(nullptr);
-    screen_lock_unregister_tree(overlay);
     lv_obj_del(overlay);
     lv_obj_invalidate(lv_layer_top());
   }
 }
 
-inline void network_status_close_pairing() {
-  auto &ui = network_status_modal_ui();
-  control_modal_delete_nested_overlay(ui.pairing_overlay);
-  ui.pairing_code = nullptr;
-  ui.pairing_ip = nullptr;
-}
+// Show once per compatibility failure. Settings retains the status after the
+// notice is dismissed, and a successful connection clears both.
+inline void network_status_sync_mac_update_notice() {
+  static lv_obj_t *notice = nullptr;
+  static bool shown = false;
+  if (!companion_runtime_service().mac_update_required()) {
+    if (notice) lv_obj_del(notice);
+    shown = false;
+    return;
+  }
+  const auto &metrics = control_modal_grid_metrics();
+  if (shown || !metrics.page || control_modal_active().overlay || !lv_layer_top()) return;
 
-inline lv_obj_t *network_status_pairing_label(lv_obj_t *parent, const char *text) {
-  auto *label = lv_label_create(parent);
-  lv_obj_set_width(label, lv_pct(100));
+  notice = lv_obj_create(lv_layer_top());
+  if (!notice) return;
+  shown = true;
+  const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
+  control_modal_style_overlay(notice);
+  lv_obj_set_style_radius(notice, 0, LV_PART_MAIN);
+  lv_obj_set_style_bg_color(notice, lv_color_black(), LV_PART_MAIN);
+  lv_obj_set_style_bg_opa(notice, LV_OPA_COVER, LV_PART_MAIN);
+  lv_obj_set_style_pad_row(notice, control_modal_scaled_px(20, layout.short_side), LV_PART_MAIN);
+  lv_obj_set_flex_flow(notice, LV_FLEX_FLOW_COLUMN);
+  lv_obj_set_flex_align(notice, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
+  lv_obj_add_flag(notice, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_add_event_cb(notice, [](lv_event_t *) { notice = nullptr; }, LV_EVENT_DELETE, nullptr);
+
+  const auto *icon_font = network_status_card_icon_font();
+  if (icon_font) {
+    auto *icon = lv_label_create(notice);
+    lv_obj_set_style_text_font(icon, icon_font, LV_PART_MAIN);
+    lv_obj_set_style_text_color(icon, lv_color_white(), LV_PART_MAIN);
+    lv_label_set_text(icon, find_icon("Sync"));
+  }
+  lv_obj_t *label = lv_label_create(notice);
+  lv_obj_set_width(label, lv_pct(80));
   lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
   lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN);
-  lv_obj_set_style_text_font(label, network_status_modal_ui().text_font, LV_PART_MAIN);
-  lv_obj_set_style_text_color(label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-  lv_label_set_display_text(label, text);
+  lv_obj_set_style_text_color(label, lv_color_white(), LV_PART_MAIN);
+  if (const auto *font = network_status_notice_title_font())
+    lv_obj_set_style_text_font(label, font, LV_PART_MAIN);
+  lv_label_set_display_text(label, espdesktop_i18n_key("mac_update_reconnect"));
   apply_text_width_compensation(label);
-  return label;
-}
 
-inline void network_status_refresh_page();
-
-inline void network_status_open_pairing() {
-  auto &ui = network_status_modal_ui();
-  auto &begin = companion_runtime_service().begin_pairing;
-  if (!ui.overlay || screen_lock_enabled() || !begin ||
-      !companion_pairing_provider() || !companion_pairing_provider()().available) return;
-  begin();
-  const auto layout = control_modal_calc_layout(icon_width_compensation_percent());
-  const auto shell = control_modal_open_nested_menu(
-      layout.panel_w, control_modal_card_radius(nullptr), network_status_close_pairing);
-  ui.pairing_overlay = shell.overlay;
-  control_modal_style_overlay(shell.overlay);
-  control_modal_style_panel(shell.panel, control_modal_card_radius(nullptr));
-  // The nested menu starts centered with flex layout; the full-card shell does not.
-  lv_obj_set_layout(shell.panel, LV_LAYOUT_NONE);
-  lv_obj_set_align(shell.panel, LV_ALIGN_TOP_LEFT);
-  control_modal_apply_panel_layout(shell.overlay, shell.panel, layout, control_modal_card_radius(nullptr));
-  auto *close = control_modal_create_round_button(shell.panel, 32, "\U000F0156",
-      ui.modal_icon_font, theme_display_color(current_theme().border), theme_display_color(current_theme().control_neutral), icon_width_compensation_percent());
-  control_modal_style_chrome_button(close, layout, true);
-  bind_immediate_button_action(close, [](lv_event_t *) { control_modal_close_nested_menu(); }, nullptr);
-  auto *close_label = lv_obj_get_child(close, 0);
-  if (close_label) lv_obj_set_style_text_color(close_label, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-
-  // Match the original Wi-Fi details modal: centered content independent of chrome.
-  auto *content = lv_obj_create(shell.panel);
-  lv_obj_set_style_bg_opa(content, LV_OPA_TRANSP, LV_PART_MAIN);
-  lv_obj_set_style_border_width(content, 0, LV_PART_MAIN);
-  lv_obj_set_style_shadow_width(content, 0, LV_PART_MAIN);
-  lv_obj_set_style_pad_all(content, 0, LV_PART_MAIN);
-  lv_obj_clear_flag(content, LV_OBJ_FLAG_SCROLLABLE);
-  lv_obj_set_size(content, layout.panel_w - layout.inset * 2, LV_SIZE_CONTENT);
-  lv_obj_set_style_pad_row(content, control_modal_scaled_px(12, layout.short_side), LV_PART_MAIN);
-  lv_obj_set_layout(content, LV_LAYOUT_FLEX);
-  lv_obj_set_flex_flow(content, LV_FLEX_FLOW_COLUMN);
-  lv_obj_set_flex_align(content, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
-  auto *title = network_status_pairing_label(content, espdesktop_i18n("Pairing"));
-  if (ui.title_font) lv_obj_set_style_text_font(title, ui.title_font, LV_PART_MAIN);
-  auto *instruction = network_status_pairing_label(content, espdesktop_i18n("Enter this code into the desktop app"));
-  lv_obj_set_style_text_color(instruction, lv_color_hex(current_theme().text_muted), LV_PART_MAIN);
-  ui.pairing_ip = network_status_pairing_label(content, "");
-  lv_obj_set_style_text_color(ui.pairing_ip, lv_color_hex(current_theme().text_primary), LV_PART_MAIN);
-  ui.pairing_code = network_status_pairing_label(content, "");
-  lv_obj_update_layout(content);
-  lv_obj_align(content, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_move_foreground(close);
-  lv_obj_move_foreground(shell.overlay);
-  network_status_refresh_page();
-}
-
-inline void network_status_refresh_lock_button() {
-  auto &ui = network_status_modal_ui();
-  if (!ui.overlay || !ui.lock_button) return;
-  const bool has_pin = espdesktop::screensaver_pin().has_pin();
-  const bool hidden = lv_obj_has_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
-  if (hidden == !has_pin) return;
-  if (has_pin) lv_obj_clear_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
-  else lv_obj_add_flag(ui.lock_button, LV_OBJ_FLAG_HIDDEN);
-
-  // The optional lock button is last, so hiding it leaves no gap between cards.
-  const int visible_cards = ui.card_count - (has_pin ? 0 : 1);
-  const int rows = network_status_grid_rows(ui.grid_columns, ui.configured_rows, visible_cards);
-  for (int i = 0; i < rows; ++i) ui.rows[i] = LV_GRID_FR(1);
-  ui.rows[rows] = LV_GRID_TEMPLATE_LAST;
-  lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
-}
-
-inline void network_status_lock_cb(lv_event_t *) {
-  screen_lock_activate();
+  if (auto *close = control_modal_create_round_button(notice, layout.back_size, "\U000F0156",
+          icon_font, 0, 0, icon_width_compensation_percent())) {
+    lv_obj_add_flag(close, LV_OBJ_FLAG_IGNORE_LAYOUT);
+    control_modal_style_chrome_button(close, layout, true);
+    lv_obj_set_style_text_color(lv_obj_get_child(close, 0), lv_color_white(), LV_PART_MAIN);
+    lv_obj_add_event_cb(close, [](lv_event_t *) { lv_obj_del(notice); }, LV_EVENT_CLICKED, nullptr);
+  }
 }
 
 inline void network_status_refresh_page() {
   auto &ui = network_status_modal_ui();
   if (!ui.overlay) return;
-  network_status_refresh_lock_button();
   if (ui.wifi_label && ui.wifi_quality) {
     const float quality = ui.wifi_quality();
     const std::string label = std::isfinite(quality)
@@ -302,7 +261,8 @@ inline void network_status_refresh_page() {
       state = espdesktop_i18n("Connected");
       icon = "\U000F031A";
     } else if (snapshot.paired) {
-      state = espdesktop_i18n("Disconnected");
+      state = companion_runtime_service().mac_update_required()
+          ? espdesktop_i18n_key("mac_update_required") : espdesktop_i18n("Disconnected");
     } else {
       state = espdesktop_i18n("Not paired");
       icon = "\U000F0D33";
@@ -310,19 +270,16 @@ inline void network_status_refresh_page() {
   }
   lv_label_set_display_text(ui.connector_lbl, state);
   lv_label_set_display_text(ui.connector_icon, icon);
-  const bool can_pair = snapshot.available && companion_runtime_service().begin_pairing;
+  const auto &runtime = companion_runtime_service();
+  const bool can_pair = snapshot.available &&
+      (snapshot.paired ? static_cast<bool>(runtime.reset_and_begin_pairing)
+                       : static_cast<bool>(runtime.begin_pairing));
   if (can_pair && !screen_lock_enabled()) {
     lv_obj_clear_state(ui.pairing_button, LV_STATE_DISABLED);
     lv_obj_add_flag(ui.pairing_button, LV_OBJ_FLAG_CLICKABLE);
   } else {
     lv_obj_add_state(ui.pairing_button, LV_STATE_DISABLED);
     lv_obj_clear_flag(ui.pairing_button, LV_OBJ_FLAG_CLICKABLE);
-  }
-  if (ui.pairing_code) {
-    const char *code = snapshot.active ? snapshot.pairing_code.c_str()
-        : (snapshot.connected ? espdesktop_i18n("Connected") : espdesktop_i18n("Expired"));
-    lv_label_set_display_text(ui.pairing_code, code);
-    lv_label_set_display_text(ui.pairing_ip, network_status_ip_address().c_str());
   }
 }
 
@@ -344,7 +301,6 @@ inline void network_status_open_modal(const std::string &device_name,
   if (!label_font) label_font = text_font;
   ui.wifi_quality = wifi_quality;
   ui.text_font = label_font;
-  ui.modal_icon_font = icon_font;
   ui.title_font = text_font;
   const lv_color_t text_color = lv_color_hex(current_theme().text_primary);
   const lv_coord_t radius = control_modal_card_radius(reference);
@@ -370,8 +326,6 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_style_pad_column(ui.overlay, lv_obj_get_style_pad_column(page, LV_PART_MAIN), LV_PART_MAIN);
 
   const int cols = std::max(1, std::min(metrics.cols, MAX_GRID_SLOTS));
-  ui.grid_columns = cols;
-  ui.configured_rows = std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS));
   const int card_count = NETWORK_STATUS_CARD_COUNT - (wifi_quality ? 0 : 1);
   const int rows = network_status_grid_rows(cols,
       std::max(1, std::min(metrics.rows, MAX_GRID_SLOTS)), card_count);
@@ -382,8 +336,8 @@ inline void network_status_open_modal(const std::string &device_name,
   lv_obj_set_layout(ui.overlay, LV_LAYOUT_GRID);
   lv_obj_set_grid_dsc_array(ui.overlay, ui.columns, ui.rows);
 
-  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", "", device_name.c_str(), espdesktop_i18n("Screen Lock")};
-  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B", "\U000F0200", find_icon("Lock")};
+  const char *labels[] = {espdesktop_i18n("Back"), "", "", "", "", "", device_name.c_str()};
+  const char *icons[] = {"\U000F0141", "\U000F0200", "\U000F0D33", "\U000F031A", "\U000F05A9", "\U000F035B", "\U000F0200"};
   const lv_font_t *card_icon_font = network_status_card_icon_font();
   if (!card_icon_font) card_icon_font = icon_font;
   int visible_index = 0;
@@ -413,12 +367,10 @@ inline void network_status_open_modal(const std::string &device_name,
     if (i == NETWORK_STATUS_PAIRING_CARD_INDEX) {
       ui.pairing_button = button;
       ui.pairing_label = slot.text_lbl;
-      bind_immediate_button_action(button, [](lv_event_t *) { network_status_open_pairing(); }, nullptr);
-      continue;
-    }
-    if (i == NETWORK_STATUS_LOCK_CARD_INDEX) {
-      ui.lock_button = button;
-      bind_immediate_button_action(button, network_status_lock_cb, nullptr);
+      bind_immediate_button_action(button, [](lv_event_t *) {
+        const auto &ui = network_status_modal_ui();
+        device_pairing_open(ui.text_font, ui.title_font);
+      }, nullptr);
       continue;
     }
     lv_obj_clear_flag(button, LV_OBJ_FLAG_CLICKABLE);

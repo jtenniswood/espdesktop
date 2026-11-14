@@ -5,13 +5,15 @@
 #include "esphome/core/helpers.h"
 #include "esphome/core/string_ref.h"
 #include "esphome/core/version.h"
+#include "request_body_context.h"
 #include <esp_http_server.h>
 
-#include <atomic>
 #include <array>
+#include <atomic>
 #include <functional>
 #include <list>
 #include <map>
+#include <memory>
 #include <span>
 #include <string>
 #include <utility>
@@ -114,6 +116,11 @@ class AsyncWebServerRequest {
  public:
   ~AsyncWebServerRequest();
 
+  RequestBodyContext *body_context() const { return body_context_.get(); }
+  void set_body_context(std::unique_ptr<RequestBodyContext> context) {
+    body_context_ = std::move(context);
+  }
+
   http_method method() const { return static_cast<http_method>(this->req_->method); }
   static constexpr size_t URL_BUF_SIZE = CONFIG_HTTPD_MAX_URI_LEN + 1;  ///< Buffer size for url_to()
   /// Write URL (without query string) to buffer, returns StringRef pointing to buffer.
@@ -187,21 +194,33 @@ class AsyncWebServerRequest {
   std::string arg(const char *name);
   std::string arg(const std::string &name) { return this->arg(name.c_str()); }
 
+#ifdef USE_WEBSERVER_OTA
+  // Called when the request ends, including interrupted uploads.
+  void onDisconnect(std::function<void()> fn) { this->on_disconnect_ = std::move(fn); }
+#endif
+
   operator httpd_req_t *() const { return this->req_; }
   optional<std::string> get_header(const char *name) const;
+  // Returns the header length, 0 when absent, or SIZE_MAX if it cannot be copied.
+  size_t get_header_to(const char *name, std::span<char> buffer) const;
   // NOLINTNEXTLINE(readability-identifier-naming)
   bool hasHeader(const char *name) const;
 
  protected:
-  httpd_req_t *req_;
-  AsyncWebServerResponse *rsp_{};
-  // Use vector instead of map/unordered_map: most requests have 0-3 params, so linear search
-  // is faster than tree/hash overhead. AsyncWebParameter stores both name and value to avoid
-  // duplicate storage. Only successful lookups are cached to prevent cache pollution when
-  // handlers check for optional parameters that don't exist.
-  optional<std::string> find_query_value_(const char *name) const;
-  std::vector<AsyncWebParameter *> params_;
-  std::string post_query_;
+   std::unique_ptr<RequestBodyContext> body_context_;
+   httpd_req_t *req_;
+   AsyncWebServerResponse *rsp_{};
+   // Use vector instead of map/unordered_map: most requests have 0-3 params, so
+   // linear search is faster than tree/hash overhead. AsyncWebParameter stores
+   // both name and value to avoid duplicate storage. Only successful lookups
+   // are cached to prevent cache pollution when handlers check for optional
+   // parameters that don't exist.
+   optional<std::string> find_query_value_(const char *name) const;
+   std::vector<AsyncWebParameter *> params_;
+   std::string post_query_;
+#ifdef USE_WEBSERVER_OTA
+   std::function<void()> on_disconnect_;
+#endif
 #ifdef USE_WEBSERVER_AUTH_DIGEST
   mutable bool digest_nonce_stale_{false};
   // A raw-body handler may authenticate once before receiving the body and
@@ -325,7 +344,7 @@ class AsyncEventSourceResponse {
  public:
   bool try_send_nodefer(const char *message, size_t message_len, const char *event = nullptr, uint32_t id = 0,
                         uint32_t reconnect = 0);
-  void deferrable_send_state(void *source, const char *event_type, message_generator_t *message_generator);
+  void deferrable_send_state(void *source, bool detail_all, message_generator_t *message_generator);
   void loop();
 
  protected:
@@ -349,6 +368,8 @@ class AsyncEventSourceResponse {
   std::string event_buffer_{""};
   size_t event_bytes_sent_{0};
   uint16_t consecutive_send_failures_{0};
+  uint32_t configuration_generation_{0};
+  bool configuration_generation_sent_{false};
   bool close_requested_{false};
   bool close_queued_{false};
   std::atomic<bool> close_work_pending_{false};
@@ -379,6 +400,8 @@ class AsyncEventSource : public AsyncWebHandler {
 
   void try_send_nodefer(const char *message, size_t message_len, const char *event = nullptr, uint32_t id = 0,
                         uint32_t reconnect = 0);
+  void deferrable_send_state(void *source, bool detail_all, message_generator_t *message_generator);
+  // Older ESPHome web-server code passes the event name.
   void deferrable_send_state(void *source, const char *event_type, message_generator_t *message_generator);
   /// Returns true if there are sessions remaining (including pending cleanup).
   bool loop();

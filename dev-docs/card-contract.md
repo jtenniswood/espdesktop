@@ -1,6 +1,8 @@
 # Card Contract
 
-`product/v2/card_contract.json` is the source of truth for card type metadata.
+Card type metadata is authored in `product/v2/cards/`. Shared rules live in
+`product/v2/card_contract_shared.json`, and the build composes the generated
+`product/v2/card_contract.json`.
 It keeps the web setup page and firmware aligned.
 
 `contractVersion` versions the authored contract language. It is deliberately
@@ -58,23 +60,17 @@ Generated consumers include:
 
 - `src/webserver/generated/card_contract.ts`
 - `src/webserver/generated/saved_config_vacuum.ts`
-- `src/webserver/generated/saved_config_sensor.ts`
-- `src/webserver/generated/saved_config_action.ts`
 - `src/webserver/generated/saved_config_media.ts`
 - `src/webserver/generated/saved_config_static.ts`
 - `src/webserver/generated/saved_config_fan.ts`
-- `src/webserver/generated/saved_config_date_time.ts`
 - `src/webserver/generated/saved_config_mower.ts`
 - `src/webserver/generated/saved_config_occupancy.ts`
 - `src/webserver/generated/saved_config_access.ts`
 - `components/espdesktop/button_grid_contract_generated.h`
 - `components/espdesktop/button_grid_saved_config_vacuum_generated.h`
-- `components/espdesktop/button_grid_saved_config_sensor_generated.h`
-- `components/espdesktop/button_grid_saved_config_action_generated.h`
 - `components/espdesktop/button_grid_saved_config_media_generated.h`
 - `components/espdesktop/button_grid_saved_config_static_generated.h`
 - `components/espdesktop/button_grid_saved_config_fan_generated.h`
-- `components/espdesktop/button_grid_saved_config_date_time_generated.h`
 - `components/espdesktop/button_grid_saved_config_mower_generated.h`
 - `components/espdesktop/button_grid_saved_config_occupancy_generated.h`
 - `components/espdesktop/button_grid_saved_config_access_generated.h`
@@ -92,18 +88,11 @@ card-registry definitions as `runtimeSpec`. Firmware receives matching
 in `button_grid_contract_generated.h`. Door/Window and Presence cards now use
 the shared handwritten `STATUS_ENTITY` lifecycle driver for main-grid and
 subpage visual setup, data binding, passive interaction, layout refresh, and
-cleanup. Calendar, Clock, and Timezone use the shared handwritten `DATE_TIME`
-lifecycle driver for the same stages; Calendar keeps its Home Assistant date
-subscription, while Clock and Timezone share one local-time update registry.
-Sensor and its `local_sensor`/`text_sensor` compatibility forms use the shared
-`SENSOR` driver, including numeric, text, icon, duration, and local ESPHome data
-binding. Weather and forecast compatibility use the shared `WEATHER` driver
+cleanup.
+Weather and forecast compatibility use the shared `WEATHER` driver
 while retaining the specialised forecast request registry. All of these paths
-are shared by the main grid and subpages. Switch, Light Switch, Fan Switch,
-Push, Internal, Webhook, Screen Lock, Action, local-action compatibility, and
-Alarm Action use the shared `BASIC_ACTION` lifecycle boundary while retaining
-their existing confirmation, service, local relay, HTTP, PIN, and state-display
-implementations. Slider, Light Brightness, Light Temperature, Fan Speed, Fan
+are shared by the main grid and subpages. Mac Companion uses the shared
+`BASIC_ACTION` lifecycle boundary. Slider, Light Brightness, Light Temperature, Fan Speed, Fan
 Oscillate, Fan Direction, Fan Preset, canonical Option Select, and Action
 option-select compatibility use the shared `NUMERIC_SELECTABLE` lifecycle
 boundary while retaining their existing slider, fan-action, and selection-modal
@@ -164,16 +153,7 @@ Vacuum's routine saved-field policies and legacy migration actions are
 generated for both browser and firmware. Its mode-specific unit and icon
 decisions remain in the reviewed `normalize_vacuum_fields` hook.
 
-Sensor's legacy `local_sensor` and `text_sensor` type migrations and routine
-orchestration are generated for browser and firmware. The generated routine
-invokes the named `normalize_sensor_fields` hook before
-`normalize_sensor_options`, keeping Sensor-specific decisions explicit and
-reviewed in those hooks.
-
-Action's legacy `local` and `option_select` type migrations and routine
-orchestration are generated for browser and firmware. The generated routine
-invokes the reviewed `normalize_action_fields` hook before
-`normalize_action_options`.
+Action, Local Action and Option Select are retired before normalization; they have no editor, runtime handler or local-action endpoint.
 
 Media routine orchestration is generated for browser and firmware. The
 generated routine invokes the reviewed `normalize_media_fields` hook before
@@ -266,7 +246,12 @@ Baseline migration decision: leading and trailing whitespace in saved Media play
 
 Malformed UTF-8 percent runs are preserved as literal saved text, matching the browser's safe decoder. Valid percent-encoded UTF-8 and delimiters continue to decode normally.
 
-When a partly migrated Sensor translation contains both a current state output and a legacy high/low label, the current output wins; the legacy value supplies only the missing input/output parts.
+`releaseAvailability` in the shared contract lists stable card IDs and
+preview cards developed separately. Other card definitions are retained for
+reading older layouts. `removeOnEdit` lists retired IDs whose slots are freed
+when a layout is edited. Stable firmware also frees preview slots. Fully
+removed IDs remain reserved in `retiredCardTypes` and
+`retiredSubpageTypeCodes` so their old values keep their meaning.
 
 Action state, script-field, and confirmation text values also ignore leading and trailing whitespace during normalization. Padded confirmation defaults are omitted so a second normalization pass is identical to the first.
 
@@ -274,7 +259,7 @@ Action state, script-field, and confirmation text values also ignore leading and
 
 | Concern | Typical path |
 |---|---|
-| Type metadata and defaults | `product/v2/card_contract.json` |
+| Type metadata and defaults | `product/v2/cards/` |
 | Web settings and preview | `src/webserver/cards/<type>.ts` |
 | Web parsing/serialization | `src/webserver/application/config_codec.ts` |
 | Firmware parsing | `components/espdesktop/button_grid_config.h` |
@@ -291,12 +276,11 @@ It includes the complete static-card example.
 
 ## Saved-configuration shadow rollout
 
-Saved-configuration normalization moves to generated helpers one card family at a time. The generated shadow catalogue currently covers Action, Sensor, Media, and Vacuum policies. All four pilot families now have complete comparisons: tests feed the same raw saved values to the existing browser normalizer, the generated browser helper, and compiled generated C++ code, then require identical complete configurations.
+Saved-configuration normalization moves to generated helpers one card family at a time. The generated shadow catalogue currently covers Media and Vacuum policies. Both pilot families now have complete comparisons: tests feed the same raw saved values to the existing browser normalizer, the generated browser helper, and compiled generated C++ code, then require identical complete configurations.
 
 Shadow helpers are deliberately not included by production firmware yet, so this stage adds 0 bytes of device flash and 0 bytes of RAM. The shadow check fails if the generated C++ header is included from another firmware header; this preserves the 8 KiB flash guard until a later PR deliberately switches a production family.
 
-Production rollout proceeds in focused card-family groups. Vacuum, Sensor,
-Action, and Media now use generated production routing, with reviewed hooks
+Production rollout proceeds in focused card-family groups. Vacuum and Media now use generated production routing, with reviewed hooks
 retained for their genuinely card-specific decisions. Trigger, Internal,
 Screen Lock, basic Light Switch, Slider, Light Brightness, and Light Temperature
 form the fully declarative static group; the remaining card families stay on
@@ -322,8 +306,6 @@ their named icon/precision and climate-option hooks kept by hand; the legacy
 `climate` saved type remains compatible and normalizes to `climate_control`.
 Light Control also uses generated production routing, with only its named
 visible-tab option hook kept by hand.
-Webhook also uses generated production routing, with only its named HTTP-method,
-request-body, empty-icon, and Headers option hooks kept by hand.
 Subpage also uses generated production routing, with only its named preset-field
 and supported state-display option hooks kept by hand.
 Basic Switch also uses generated production routing, with only its named

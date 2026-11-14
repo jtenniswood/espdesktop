@@ -1,72 +1,49 @@
-import { clearScreensaverPinForRestore, loadScreensaverPinSettings, screensaverPinRequest } from "../../src/webserver/application/screensaver_pin";
+import { clearScreensaverPinForRestore } from "../../src/webserver/application/screensaver_pin";
 
 function assert(value: unknown, message: string): asserts value { if (!value) throw new Error(message); }
-export async function runScreensaverPinTests(): Promise<void> {
-  const calls: RequestInit[] = [];
-  let enabled = false, pin = "", fail = false, supported = true;
-  let randomize = false;
-  const request = (async (url: any, options: RequestInit) => {
-    assert(url === "/api/v1/screensaver-pin" || url === "/api/v1/capabilities", "use device-local settings API");
-    assert(options.credentials === "include" && options.cache === "no-store", "authenticated uncached requests");
-    calls.push(options);
-    if (url === "/api/v1/capabilities") return Response.json({ screensaver_pin: supported ? { version: 1 } : undefined });
-    if (!supported) return new Response("Not found", { status: 404 });
-    if (fail) return new Response("Failed", { status: 500 });
-    if (options.method === "POST") {
-      const settings = JSON.parse(String(options.body));
-      enabled = settings.enabled;
-      if (typeof settings.pin === "string") pin = settings.pin;
-      if (typeof settings.randomize_keypad === "boolean") randomize = settings.randomize_keypad;
-    }
-    return Response.json({ enabled, has_pin: !!pin, pin_length: pin.length, randomize_keypad: randomize });
-  }) as typeof fetch;
-  assert((await screensaverPinRequest(request))?.has_pin === false, "empty PIN status");
-  const saved = await screensaverPinRequest(request, { enabled: true, pin: "0042" });
-  assert(saved?.enabled && saved.has_pin && saved.pin_length === 4, "save and enable reports digit count");
-  assert(!JSON.stringify(saved).includes("0042"), "response holds no secret");
-  const layout = await screensaverPinRequest(request, { enabled: true, randomize_keypad: false });
-  assert(layout?.randomize_keypad === false && pin === "0042", "layout updates preserve the saved PIN");
-  await screensaverPinRequest(request, { enabled: false });
-  assert(pin === "0042", "disabling keeps PIN");
-  await screensaverPinRequest(request, { enabled: true });
-  await screensaverPinRequest(request, { enabled: true, pin: "9876" });
-  assert(String(pin) === "9876", "change PIN");
-  await clearScreensaverPinForRestore(request);
-  assert(String(pin) === "" && !enabled, "import clears destination PIN and protection");
-  assert(JSON.parse(String(calls.at(-1)?.body)).pin === "", "restore explicitly clears, never imports a secret");
-  assert((await screensaverPinRequest(request))?.pin_length === 0, "cleared PIN reports zero digits");
-  fail = true;
-  let rejected = false;
-  try { await screensaverPinRequest(request, { enabled: true }); } catch { rejected = true; }
-  assert(rejected, "save failure is reported");
-  fail = false;
-  supported = false;
-  assert(await screensaverPinRequest(request) === null, "older firmware hides controls");
-  const before = calls.length;
-  await clearScreensaverPinForRestore(request);
-  assert(calls.length === before + 1, "legacy restore does not post unsupported settings");
 
+export async function runScreensaverPinTests(): Promise<void> {
   const originalTimeout = globalThis.setTimeout;
   globalThis.setTimeout = ((callback: () => void) => { queueMicrotask(callback); return 0; }) as typeof setTimeout;
   try {
-    for (const statuses of [[404, 503, 200], [404, 404, 404, 404], [503, 503, 503, 503]]) {
-      let attempts = 0, pinReads = 0;
-      const bootRequest = (async (url: string) => {
-        if (url === "/api/v1/screensaver-pin") {
-          pinReads++;
+    const cases = [
+      { statuses: [200], supported: false, reads: 0, writes: 0 },
+      { statuses: [404, 503, 200], supported: true, reads: 1, writes: 1 },
+      { statuses: [200], supported: true, readStatus: 404, reads: 1, writes: 0 },
+      { statuses: [200], supported: true, writeStatus: 500, reads: 1, writes: 1, fails: true },
+      { statuses: [404, 404, 404, 404], reads: 0, writes: 0 },
+      { statuses: [503, 503, 503, 503], reads: 0, writes: 0, fails: true },
+    ];
+    for (const testCase of cases) {
+      let attempts = 0, reads = 0, writes = 0;
+      const request = (async (url: string, options: RequestInit) => {
+        assert(options.credentials === "include" && options.cache === "no-store", "authenticated uncached requests");
+        if (url === "/api/v1/capabilities") {
+          const status = testCase.statuses[attempts++];
+          assert(status !== undefined, "capability discovery stays within its retry limit");
+          return status === 200 ? Response.json({ screensaver_pin: testCase.supported ? { version: 1 } : undefined })
+            : new Response("Not ready", { status });
+        }
+        assert(url === "/api/v1/screensaver-pin", "use the legacy device-local PIN API");
+        if (options.method === "POST") {
+          writes++;
+          const settings = JSON.parse(String(options.body));
+          assert(settings.enabled === false && settings.pin === "", "restore clears the old PIN and disables protection");
+          if (testCase.writeStatus) return new Response("Failed", { status: testCase.writeStatus });
           return Response.json({ enabled: false, has_pin: false });
         }
-        const status = statuses[attempts++];
-        assert(status !== undefined, "capability discovery stays within its retry limit");
-        return status === 200 ? Response.json({ screensaver_pin: { version: 1 } })
-          : new Response("Not ready", { status });
+        reads++;
+        if (testCase.readStatus) return new Response("Not found", { status: testCase.readStatus });
+        return Response.json({ enabled: true, has_pin: true });
       }) as typeof fetch;
-      let failed = false, info = null;
-      try { info = await loadScreensaverPinSettings(bootRequest); } catch { failed = true; }
-      assert(attempts === statuses.length, "startup errors use bounded retries");
-      if (statuses.at(-1) === 200) assert(info && pinReads === 1 && !failed, "startup 404/503 recovers PIN controls");
-      else if (statuses[0] === 404) assert(info === null && pinReads === 0 && !failed, "legacy 404 hides controls after retries");
-      else assert(failed && pinReads === 0, "persistent service failure remains an error");
+      let failed = false;
+      try { await clearScreensaverPinForRestore(request); } catch (error) {
+        if (!(error instanceof Error) || !/^Could not (read PIN support|save or read PIN settings)/.test(error.message)) throw error;
+        failed = true;
+      }
+      assert(attempts === testCase.statuses.length, "startup errors use bounded retries");
+      assert(reads === testCase.reads && writes === testCase.writes, "restore uses the PIN API only on supporting firmware");
+      assert(failed === !!testCase.fails, "persistent read or write failures remain visible");
     }
   } finally { globalThis.setTimeout = originalTimeout; }
 }

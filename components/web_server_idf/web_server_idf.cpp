@@ -53,6 +53,7 @@ static const char *const TAG = "web_server_idf";
 
 extern "C" void espdesktop_register_web_server_handlers(
     AsyncWebServer *server) __attribute__((weak));
+extern "C" bool espdesktop_native_configuration_generation(uint32_t *generation) __attribute__((weak));
 
 // Global instance to avoid guard variable (saves 8 bytes)
 // This is initialized at program startup before any threads
@@ -444,6 +445,10 @@ esp_err_t AsyncWebServer::request_handler_(AsyncWebServerRequest *request) const
 
 
 AsyncWebServerRequest::~AsyncWebServerRequest() {
+#ifdef USE_WEBSERVER_OTA
+  if (this->on_disconnect_)
+    this->on_disconnect_();
+#endif
   delete this->rsp_;
   for (auto *param : this->params_) {
     delete param;  // NOLINT(cppcoreguidelines-owning-memory)
@@ -454,6 +459,15 @@ bool AsyncWebServerRequest::hasHeader(const char *name) const { return request_h
 
 optional<std::string> AsyncWebServerRequest::get_header(const char *name) const {
   return request_get_header(*this, name);
+}
+
+size_t AsyncWebServerRequest::get_header_to(const char *name, std::span<char> buffer) const {
+  const size_t length = httpd_req_get_hdr_value_len(*this, name);
+  if (length == 0)
+    return 0;
+  if (length >= buffer.size() || httpd_req_get_hdr_value_str(*this, name, buffer.data(), buffer.size()) != ESP_OK)
+    return SIZE_MAX;
+  return length;
 }
 
 StringRef AsyncWebServerRequest::url_to(std::span<char, URL_BUF_SIZE> buffer) const {
@@ -481,6 +495,9 @@ void AsyncWebServerRequest::init_response_(AsyncWebServerResponse *rsp, int code
   switch (code) {
     case 200:
       status = HTTPD_200;
+      break;
+    case 403:
+      status = "403 Forbidden";
       break;
     case 404:
       status = HTTPD_404;
@@ -1066,12 +1083,21 @@ void AsyncEventSource::try_send_nodefer(const char *message, size_t message_len,
 
 void AsyncEventSource::deferrable_send_state(void *source, const char *event_type,
                                              message_generator_t *message_generator) {
+  if (event_type == nullptr)
+    return;
+  const bool detail_all = strcmp(event_type, "state_detail_all") == 0;
+  if (!detail_all && strcmp(event_type, "state") != 0)
+    ESP_LOGE(TAG, "Can't defer non-state event");
+  this->deferrable_send_state(source, detail_all, message_generator);
+}
+
+void AsyncEventSource::deferrable_send_state(void *source, bool detail_all, message_generator_t *message_generator) {
   // Skip if no connected clients to avoid unnecessary processing
   if (this->empty())
     return;
   for (auto *ses : this->sessions_) {
     if (ses->fd_.load() != 0) {  // Skip dead sessions
-      ses->deferrable_send_state(source, event_type, message_generator);
+      ses->deferrable_send_state(source, detail_all, message_generator);
     }
   }
 }
@@ -1271,6 +1297,20 @@ void AsyncEventSourceResponse::loop() {
     return;
   }
   process_deferred_queue_();
+  // Native-only edits may leave every compatibility text entity unchanged.
+  // Retry under backpressure and coalesce to the newest durable generation.
+  uint32_t generation = 0;
+  if (this->fd_.load() != 0 && !this->close_requested_ && this->entities_iterator_.completed() &&
+      espdesktop_native_configuration_generation &&
+      espdesktop_native_configuration_generation(&generation) &&
+      (!configuration_generation_sent_ || configuration_generation_ != generation)) {
+    char message[40];
+    const int length = std::snprintf(message, sizeof(message), "{\"generation\":%" PRIu32 "}", generation);
+    if (this->try_send_nodefer(message, length, "panel-config")) {
+      configuration_generation_ = generation;
+      configuration_generation_sent_ = true;
+    }
+  }
   if (this->fd_.load() != 0 && !this->close_requested_ && !this->entities_iterator_.completed())
     this->entities_iterator_.try_advance(1);
 }
@@ -1412,26 +1452,19 @@ bool AsyncEventSourceResponse::try_send_nodefer(const char *message, size_t mess
   return this->fd_.load() != 0 && !this->close_requested_;
 }
 
-void AsyncEventSourceResponse::deferrable_send_state(void *source, const char *event_type,
+void AsyncEventSourceResponse::deferrable_send_state(void *source, bool detail_all,
                                                      message_generator_t *message_generator) {
   if (this->fd_.load() == 0 || this->close_requested_) {
     return;
   }
-  // allow all json "details_all" to go through before publishing bare state events, this avoids unnamed entries showing
-  // up in the web GUI and reduces event load during initial connect
-  if (!this->entities_iterator_.completed() && 0 != strcmp(event_type, "state_detail_all"))
+  // Let the entity listing finish before publishing bare state events.
+  if (!detail_all && !this->entities_iterator_.completed())
     return;
 
   if (source == nullptr)
     return;
-  if (event_type == nullptr)
-    return;
   if (message_generator == nullptr)
     return;
-
-  if (0 != strcmp(event_type, "state_detail_all") && 0 != strcmp(event_type, "state")) {
-    ESP_LOGE(TAG, "Can't defer non-state event");
-  }
 
   process_buffer_();
   process_deferred_queue_();

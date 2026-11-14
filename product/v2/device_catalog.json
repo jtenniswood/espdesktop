@@ -10,9 +10,7 @@
             "chip": "ESP32-P4",
             "flashBytes": 16777216
           },
-          "package": {
-            "apiOpenModalAction": true
-          }
+          "package": {}
         }
       },
       "esp32-s3": {
@@ -21,9 +19,7 @@
             "chip": "ESP32-S3",
             "flashBytes": 16777216
           },
-          "package": {
-            "apiOpenModalAction": true
-          }
+          "package": {}
         }
       },
       "esp32-p4-32mb": {
@@ -32,9 +28,7 @@
             "chip": "ESP32-P4",
             "flashBytes": 33554432
           },
-          "package": {
-            "apiOpenModalAction": true
-          }
+          "package": {}
         }
       }
     },
@@ -63,6 +57,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180,
           "rotateWidthCompensation": true
         },
@@ -197,6 +192,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180
         },
         "web": {
@@ -459,88 +455,6 @@
         }
       }
     },
-    "artwork": {
-      "landscape-1024x600": {
-        "firmware": {
-          "display": {
-            "coverArt": {
-              "cover_art_size": "600",
-              "cover_art_decode_size": "600",
-              "cover_art_x": "0",
-              "cover_art_y": "0",
-              "cover_art_accent_x": "585",
-              "cover_art_accent_y": "0",
-              "cover_art_accent_width": "439",
-              "cover_art_accent_height": "600",
-              "cover_art_accent_bg_opa": "100%",
-              "cover_art_accent_opa": "100%",
-              "cover_art_panel_x": "615",
-              "cover_art_panel_y": "34",
-              "cover_art_panel_width": "377",
-              "cover_art_panel_height": "430",
-              "cover_art_panel_pad_top": "0",
-              "cover_art_panel_pad_bottom": "0",
-              "cover_art_panel_pad_left": "0",
-              "cover_art_panel_pad_right": "0",
-              "cover_art_panel_pad_row": "0",
-              "cover_art_title_font": "font_cover_art_title",
-              "cover_art_title_max_height": "260",
-              "cover_art_title_line_space": "-8",
-              "cover_art_artist_font": "font_cover_art_artist",
-              "cover_art_artist_pad_top": "10",
-              "cover_art_artist_long_mode": "dot",
-              "cover_art_time_font": "font_cover_art_time",
-              "cover_art_time_pad_top": "14",
-              "cover_art_progress_width": "1024",
-              "cover_art_progress_height": "4",
-              "cover_art_text_color": "0xFFFFFF",
-              "cover_art_square_overlay": "false",
-              "cover_art_live_image_updates": "false"
-            }
-          }
-        }
-      },
-      "landscape-1280x800": {
-        "firmware": {
-          "display": {
-            "coverArt": {
-              "cover_art_size": "800",
-              "cover_art_decode_size": "800",
-              "cover_art_x": "0",
-              "cover_art_y": "0",
-              "cover_art_accent_x": "800",
-              "cover_art_accent_y": "0",
-              "cover_art_accent_width": "480",
-              "cover_art_accent_height": "800",
-              "cover_art_accent_bg_opa": "100%",
-              "cover_art_accent_opa": "100%",
-              "cover_art_panel_x": "840",
-              "cover_art_panel_y": "40",
-              "cover_art_panel_width": "400",
-              "cover_art_panel_height": "720",
-              "cover_art_panel_pad_top": "0",
-              "cover_art_panel_pad_bottom": "0",
-              "cover_art_panel_pad_left": "0",
-              "cover_art_panel_pad_right": "0",
-              "cover_art_panel_pad_row": "0",
-              "cover_art_title_font": "font_cover_art_title",
-              "cover_art_title_max_height": "506",
-              "cover_art_title_line_space": "0",
-              "cover_art_artist_font": "font_cover_art_artist",
-              "cover_art_artist_pad_top": "4",
-              "cover_art_artist_long_mode": "wrap",
-              "cover_art_time_font": "font_cover_art_time",
-              "cover_art_time_pad_top": "12",
-              "cover_art_progress_width": "1280",
-              "cover_art_progress_height": "4",
-              "cover_art_text_color": "0xFFF5E0",
-              "cover_art_square_overlay": "false",
-              "cover_art_live_image_updates": "false"
-            }
-          }
-        }
-      }
-    },
     "input": {
       "touchscreen": {
         "firmware": {
@@ -601,8 +515,7 @@
           "c6-firmware-update",
           "network-coprocessor",
           "ethernet-selection"
-        ],
-        "artwork": "landscape-1024x600"
+        ]
       },
       "config": {
         "public": {
@@ -653,8 +566,7 @@
           "c6-firmware-update",
           "network-coprocessor",
           "ethernet-selection"
-        ],
-        "artwork": "landscape-1024x600"
+        ]
       },
       "config": {
         "public": {
@@ -725,6 +637,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180
         },
         "web": {
@@ -788,41 +701,7 @@
             "refreshRebuildsSubpages": true,
             "subpageChevronX": 3,
             "subpageChevronY": -2,
-            "subpageChevronTextWidthPercent": 96,
-            "coverArt": {
-              "cover_art_size": "480",
-              "cover_art_decode_size": "480",
-              "cover_art_x": "0",
-              "cover_art_y": "0",
-              "cover_art_accent_x": "0",
-              "cover_art_accent_y": "480",
-              "cover_art_accent_width": "480",
-              "cover_art_accent_height": "320",
-              "cover_art_accent_bg_opa": "100%",
-              "cover_art_accent_opa": "100%",
-              "cover_art_panel_x": "24",
-              "cover_art_panel_y": "514",
-              "cover_art_panel_width": "432",
-              "cover_art_panel_height": "262",
-              "cover_art_panel_pad_top": "0",
-              "cover_art_panel_pad_bottom": "0",
-              "cover_art_panel_pad_left": "0",
-              "cover_art_panel_pad_right": "0",
-              "cover_art_panel_pad_row": "0",
-              "cover_art_title_font": "font_cover_art_title",
-              "cover_art_title_max_height": "130",
-              "cover_art_title_line_space": "0",
-              "cover_art_artist_font": "font_cover_art_artist",
-              "cover_art_artist_pad_top": "10",
-              "cover_art_artist_long_mode": "dot",
-              "cover_art_time_font": "font_cover_art_time",
-              "cover_art_time_pad_top": "14",
-              "cover_art_progress_width": "480",
-              "cover_art_progress_height": "4",
-              "cover_art_text_color": "0xFFFFFF",
-              "cover_art_square_overlay": "false",
-              "cover_art_live_image_updates": "false"
-            }
+            "subpageChevronTextWidthPercent": 96
           },
           "package": {
             "firmwareVersion": "dev",
@@ -901,6 +780,7 @@
             "180",
             "270"
           ],
+          "default": "180",
           "displayOffset": 180
         },
         "web": {
@@ -964,41 +844,7 @@
             "refreshRebuildsSubpages": true,
             "subpageChevronX": 3,
             "subpageChevronY": -2,
-            "subpageChevronTextWidthPercent": 96,
-            "coverArt": {
-              "cover_art_size": "480",
-              "cover_art_decode_size": "480",
-              "cover_art_x": "0",
-              "cover_art_y": "0",
-              "cover_art_accent_x": "0",
-              "cover_art_accent_y": "480",
-              "cover_art_accent_width": "480",
-              "cover_art_accent_height": "320",
-              "cover_art_accent_bg_opa": "100%",
-              "cover_art_accent_opa": "100%",
-              "cover_art_panel_x": "24",
-              "cover_art_panel_y": "514",
-              "cover_art_panel_width": "432",
-              "cover_art_panel_height": "262",
-              "cover_art_panel_pad_top": "0",
-              "cover_art_panel_pad_bottom": "0",
-              "cover_art_panel_pad_left": "0",
-              "cover_art_panel_pad_right": "0",
-              "cover_art_panel_pad_row": "0",
-              "cover_art_title_font": "font_cover_art_title",
-              "cover_art_title_max_height": "130",
-              "cover_art_title_line_space": "0",
-              "cover_art_artist_font": "font_cover_art_artist",
-              "cover_art_artist_pad_top": "10",
-              "cover_art_artist_long_mode": "dot",
-              "cover_art_time_font": "font_cover_art_time",
-              "cover_art_time_pad_top": "14",
-              "cover_art_progress_width": "480",
-              "cover_art_progress_height": "4",
-              "cover_art_text_color": "0xFFFFFF",
-              "cover_art_square_overlay": "false",
-              "cover_art_live_image_updates": "false"
-            }
+            "subpageChevronTextWidthPercent": 96
           },
           "package": {
             "firmwareVersion": "dev",
@@ -1050,8 +896,7 @@
         "assets": "card-backgrounds-20",
         "modal": "large-landscape",
         "fonts": "large-panel-p4",
-        "network": "c6-firmware-update",
-        "artwork": "landscape-1280x800"
+        "network": "c6-firmware-update"
       },
       "config": {
         "public": {
@@ -1097,8 +942,7 @@
         "assets": "card-backgrounds-20",
         "modal": "large-landscape",
         "fonts": "large-panel-p4",
-        "network": "c6-firmware-update",
-        "artwork": "landscape-1280x800"
+        "network": "c6-firmware-update"
       },
       "config": {
         "public": {
@@ -1141,7 +985,6 @@
         "modal": "large-landscape",
         "fonts": "large-panel-p4",
         "network": "c6-firmware-update",
-        "artwork": "landscape-1280x800",
         "assets": "card-backgrounds-20"
       },
       "config": {
@@ -1243,7 +1086,6 @@
           }
         ],
         "web": {
-          "coverArtSquareOverlay": true,
           "dragMode": "displace",
           "dragAnimation": true,
           "screen": {
@@ -1293,41 +1135,7 @@
         "firmware": {
           "display": {
             "wrapTallLabels": false,
-            "refreshRebuildsSubpages": true,
-            "coverArt": {
-              "cover_art_size": "720",
-              "cover_art_decode_size": "720",
-              "cover_art_x": "0",
-              "cover_art_y": "0",
-              "cover_art_accent_x": "0",
-              "cover_art_accent_y": "0",
-              "cover_art_accent_width": "720",
-              "cover_art_accent_height": "720",
-              "cover_art_accent_bg_opa": "80%",
-              "cover_art_accent_opa": "80%",
-              "cover_art_panel_x": "0",
-              "cover_art_panel_y": "0",
-              "cover_art_panel_width": "720",
-              "cover_art_panel_height": "720",
-              "cover_art_panel_pad_top": "36",
-              "cover_art_panel_pad_bottom": "24",
-              "cover_art_panel_pad_left": "36",
-              "cover_art_panel_pad_right": "36",
-              "cover_art_panel_pad_row": "0",
-              "cover_art_title_font": "font_cover_art_title",
-              "cover_art_title_max_height": "495",
-              "cover_art_title_line_space": "0",
-              "cover_art_artist_font": "font_cover_art_artist",
-              "cover_art_artist_pad_top": "9",
-              "cover_art_artist_long_mode": "dot",
-              "cover_art_time_font": "font_cover_art_time",
-              "cover_art_time_pad_top": "18",
-              "cover_art_progress_width": "720",
-              "cover_art_progress_height": "4",
-              "cover_art_text_color": "0xFFFFFF",
-              "cover_art_square_overlay": "true",
-              "cover_art_live_image_updates": "false"
-            }
+            "refreshRebuildsSubpages": true
           },
           "package": {
             "firmwareVersion": "dev",
@@ -1363,11 +1171,6 @@
               "screen_saver_clock_default_brightness": "\"35\"",
               "screen_schedule_clock_min_brightness": "\"1\"",
               "screen_schedule_clock_default_brightness": "\"10\"",
-              "voice_wake_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_wake_chime.flac\"",
-              "voice_timer_alert_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_timer_alert.flac\"",
-              "voice_stt_failure_chime_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/main/devices/esp32-p4-86/device/voice_stt_failure_chime.flac\"",
-              "alarm_delay_entry_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_entry_beep.flac\"",
-              "alarm_delay_exit_beep_file": "\"https://raw.githubusercontent.com/jtenniswood/espdesktop/30ea813b1e2d4008b019c30862dce478d238a697/devices/esp32-p4-86/device/alarm_delay_exit_beep.flac\"",
               "button_radius": "12px",
               "speaker_amplifier_pin": "\"GPIO53\""
             },
@@ -1439,7 +1242,6 @@
           }
         ],
         "web": {
-          "coverArtSquareOverlay": true,
           "dragMode": "displace",
           "dragAnimation": true,
           "screen": {
@@ -1493,41 +1295,7 @@
             "refreshRebuildsSubpages": true,
             "subpageChevronX": 3,
             "subpageChevronY": -2,
-            "subpageChevronTextWidthPercent": 96,
-            "coverArt": {
-              "cover_art_size": "480",
-              "cover_art_decode_size": "320",
-              "cover_art_x": "0",
-              "cover_art_y": "0",
-              "cover_art_accent_x": "0",
-              "cover_art_accent_y": "0",
-              "cover_art_accent_width": "480",
-              "cover_art_accent_height": "480",
-              "cover_art_accent_bg_opa": "80%",
-              "cover_art_accent_opa": "80%",
-              "cover_art_panel_x": "0",
-              "cover_art_panel_y": "0",
-              "cover_art_panel_width": "480",
-              "cover_art_panel_height": "480",
-              "cover_art_panel_pad_top": "24",
-              "cover_art_panel_pad_bottom": "16",
-              "cover_art_panel_pad_left": "24",
-              "cover_art_panel_pad_right": "24",
-              "cover_art_panel_pad_row": "0",
-              "cover_art_title_font": "font_cover_art_title",
-              "cover_art_title_max_height": "330",
-              "cover_art_title_line_space": "0",
-              "cover_art_artist_font": "font_cover_art_artist",
-              "cover_art_artist_pad_top": "6",
-              "cover_art_artist_long_mode": "dot",
-              "cover_art_time_font": "font_cover_art_time",
-              "cover_art_time_pad_top": "12",
-              "cover_art_progress_width": "480",
-              "cover_art_progress_height": "4",
-              "cover_art_text_color": "0xFFFFFF",
-              "cover_art_square_overlay": "true",
-              "cover_art_live_image_updates": "false"
-            }
+            "subpageChevronTextWidthPercent": 96
           },
           "package": {
             "firmwareVersion": "dev",
@@ -1567,8 +1335,7 @@
               "card_curve_small_radius": "16px",
               "card_curve_medium_radius": "21px",
               "button_radius": "8px"
-            },
-            "apiNavigateAction": true
+            }
           }
         }
       }

@@ -37,6 +37,9 @@ inline bool card_background_configured_for_card(const ParsedCfg &config) {
 inline void card_background_move_content_foreground(const BtnSlot &slot) {
   return espdesktop::card_background::move_content_foreground(slot);
 }
+inline void card_background_activate_current_page() {
+  card_background_activate_page(image_card_pool_grid_config(), lv_scr_act());
+}
 inline void card_background_refresh_due() {
   return espdesktop::card_background::refresh_due();
 }

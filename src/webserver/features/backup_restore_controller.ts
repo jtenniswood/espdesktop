@@ -98,7 +98,9 @@ export function createBackupRestoreController<Plan, Target>(
         }
         configurationPersisted = true;
         await commitAssets();
-        options.showBanner("Configuration imported successfully", "success");
+        const completedWarnings = options.warnings(plan);
+        options.showBanner(["Configuration imported successfully", ...completedWarnings].join(" "),
+          completedWarnings.length ? "warning" : "success");
         return true;
       } catch (error) {
         if (assets && assetsStarted && !configurationPersisted && !layoutWriteStarted) {

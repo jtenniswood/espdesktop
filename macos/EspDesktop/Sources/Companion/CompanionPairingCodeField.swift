@@ -3,44 +3,62 @@ import SwiftUI
 
 /// Keeps empty positions when editing a code, so deleting a letter never shifts its neighbours.
 struct PairingCodeEntry {
-    var letters = Array(repeating: "", count: 8)
+    private(set) var letters: [String]
+    let expectedLength: Int?
+
+    init(letterCount: Int? = CompanionPairingInput.legacyLength) {
+        expectedLength = letterCount
+        letters = Array(repeating: "", count: letterCount ?? CompanionPairingInput.legacyLength)
+    }
 
     mutating func replace(at index: Int, with input: String) -> Int {
         if input.isEmpty {
             letters[index] = ""
             return index
         }
-        if let code = CompanionPairingInput.normalizedCode(input) {
-            letters = code.filter { $0 != "-" }.map(String.init)
-            return 7
+        if let code = CompanionPairingInput.normalizedCode(input, letterCount: expectedLength) {
+            let pasted = code.filter { $0 != "-" }.map(String.init)
+            letters = pasted + Array(repeating: "", count: letters.count - pasted.count)
+            return pasted.count - 1
         }
         let scalars = Array(input.unicodeScalars)
         guard scalars.allSatisfy({ (65...90).contains($0.value) || (97...122).contains($0.value) }),
-              scalars.count <= 8 - index else { return index }
+              scalars.count <= letters.count - index else { return index }
         for (offset, letter) in input.uppercased().enumerated() {
             letters[index + offset] = String(letter)
         }
-        return min(index + scalars.count, 7)
+        return min(index + scalars.count, letters.count - 1)
     }
 
-    var code: String { letters.joined() }
+    var code: String {
+        guard let lastLetter = letters.lastIndex(where: { !$0.isEmpty }),
+              !letters[...lastLetter].contains("") else { return "" }
+        return letters[...lastLetter].joined()
+    }
 }
 
 struct CompanionPairingCodeField: View {
     @Binding var code: String
     let onSubmit: () -> Void
-    @State private var entry = PairingCodeEntry()
+    @State private var entry: PairingCodeEntry
     @State private var focusedIndex = 0
+
+    init(code: Binding<String>, letterCount: Int?, onSubmit: @escaping () -> Void) {
+        _code = code
+        _entry = State(initialValue: PairingCodeEntry(letterCount: letterCount))
+        self.onSubmit = onSubmit
+    }
 
     var body: some View {
         HStack(spacing: 6) {
-            ForEach(0..<8, id: \.self) { index in
-                if index == 4 {
+            ForEach(entry.letters.indices, id: \.self) { index in
+                if entry.expectedLength == CompanionPairingInput.legacyLength && index == 4 {
                     Text("–").foregroundStyle(.secondary).accessibilityHidden(true)
                 }
                 PairingLetterField(
                     letter: entry.letters[index],
                     index: index,
+                    letterCount: entry.letters.count,
                     focused: focusedIndex == index,
                     onFocus: { focusedIndex = index },
                     onEdit: { text in
@@ -48,10 +66,10 @@ struct CompanionPairingCodeField: View {
                         code = entry.code
                         return (entry.letters[index], focusedIndex)
                     },
-                    onMove: { direction in focusedIndex = min(max(index + direction, 0), 7) },
+                    onMove: { direction in focusedIndex = min(max(index + direction, 0), entry.letters.count - 1) },
                     onSubmit: onSubmit
                 )
-                .frame(maxWidth: .infinity)
+                .frame(maxWidth: 42)
                 .frame(height: 30)
                 .frame(height: 52)
                 .background(Color(nsColor: .controlBackgroundColor), in: RoundedRectangle(cornerRadius: 9))
@@ -70,6 +88,7 @@ struct CompanionPairingCodeField: View {
 private struct PairingLetterField: NSViewRepresentable {
     let letter: String
     let index: Int
+    let letterCount: Int
     let focused: Bool
     let onFocus: () -> Void
     let onEdit: (String) -> (letter: String, next: Int)
@@ -87,8 +106,8 @@ private struct PairingLetterField: NSViewRepresentable {
         field.alignment = .center
         field.font = .monospacedSystemFont(ofSize: 24, weight: .medium)
         field.delegate = context.coordinator
-        field.setAccessibilityLabel("Pairing code, letter \(index + 1) of 8")
-        field.setAccessibilityHelp("Type a letter or paste the entire eight-letter pairing code.")
+        field.setAccessibilityLabel("Pairing code, letter \(index + 1) of \(letterCount)")
+        field.setAccessibilityHelp("Type a letter or paste the entire pairing code.")
         return field
     }
 
@@ -141,7 +160,7 @@ private struct PairingLetterField: NSViewRepresentable {
                 moveFocus(from: control, to: max(parent.index - 1, 0))
             case #selector(NSResponder.moveRight(_:)):
                 parent.onMove(1)
-                moveFocus(from: control, to: min(parent.index + 1, 7))
+                moveFocus(from: control, to: min(parent.index + 1, parent.letterCount - 1))
             case #selector(NSResponder.insertNewline(_:)): parent.onSubmit()
             default: return false
             }

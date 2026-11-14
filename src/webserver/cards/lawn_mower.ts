@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -68,51 +69,8 @@ export function registerLawnMowerCardTypes(
         defaultConfig: function (this: any) { return cardContractDefaultConfig("lawn_mower"); },
         cardMetadata: LAWN_MOWER_CARD_METADATA,
         normalizeConfig: normalizeLawnMowerConfig,
-        onSelect: function (this: any, b?: any) {
-            var defaults: any = cardContractDefaultConfig("lawn_mower");
-            Object.keys(defaults).forEach(function (this: any, key?: any) {
-                if (key !== "entity")
-                    b[key] = defaults[key];
-            });
-        },
-        renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
-            var mode: any = normalizeLawnMowerMode(b.sensor);
-            if (b.sensor !== mode) {
-                b.sensor = mode;
-                helpers.saveField("sensor", mode);
-            }
-            b.unit = "";
-            b.precision = "";
-            b.options = preserveCardColorOptions(b.options, "");
-            b.icon_on = "Auto";
-            if (!b.icon || b.icon === "Auto") {
-                b.icon = lawnMowerModeDefaultIcon(mode);
-                helpers.saveField("icon", b.icon);
-            }
-            helpers.renderCardModeSelector(panel, b, helpers, Object.assign({}, LAWN_MOWER_CARD_METADATA, {
-                mode: Object.assign({}, LAWN_MOWER_CARD_METADATA.mode, {
-                    value: function (this: any) { return mode; },
-                    onChange: function (this: any) {
-                        var oldMode: any = mode;
-                        mode = normalizeLawnMowerMode(this.value);
-                        applyEntityModeCardModeChange(b, helpers, oldMode, mode, {
-                            defaultIcon: lawnMowerModeDefaultIcon,
-                            usesDefaultIcon: lawnMowerUsesDefaultIcon,
-                        });
-                        renderButtonSettings();
-                    },
-                }),
-            }));
-            helpers.renderCardEntityField(panel, b, helpers, LAWN_MOWER_CARD_METADATA);
-            helpers.renderCardTextField(panel, b, helpers, LAWN_MOWER_CARD_METADATA.labelField);
-            helpers.renderCardIconPicker(panel, b, helpers, {
-                pickerIdSuffix: "lawn-mower-icon-picker",
-                idSuffix: "lawn-mower-icon",
-                field: "icon",
-                fallback: function (this: any) { return lawnMowerModeDefaultIcon(mode); },
-                label: "Icon",
-            });
-        },
+        onSelect: null,
+        renderSettings: renderRetiredCardSettings,
         renderPreview: function (this: any, b?: any, helpers?: any) {
             var mode: any = normalizeLawnMowerMode(b.sensor);
             var label: any = b.label || b.entity || "Lawn Mower";

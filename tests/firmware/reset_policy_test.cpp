@@ -161,7 +161,18 @@ void installations_and_resets_are_exclusive() {
   assert(resetting.get() == Result::ACCEPTED && !installing.get());
 }
 int main() {
-  for (const char *name : {"companion_identity", "companion_auth_sequence"}) {
+  {
+    MemoryStorage storage; Journal journal; OperationInterlock gate;
+    assert(gate.begin_configuration_write());
+    assert(!gate.begin_configuration_write());
+    assert(!gate.begin_installation(false) && !gate.begin_installation(true));
+    assert(gate.record(storage, journal, Mode::FACTORY) == Result::CONFLICT);
+    gate.finish_configuration_write();
+    assert(gate.record(storage, journal, Mode::FACTORY) == Result::ACCEPTED);
+    assert(!gate.begin_configuration_write());
+  }
+
+  for (const char *name : {"companion_identity", "companion_auth_sequence", "companion_pairing_code", "companion_pairing_code_v2"}) {
     const auto key = std::to_string(companion_preference_key(name));
     assert(preserve_key(Mode::CUSTOMIZATION, "esphome", key, 88491487));
     assert(!preserve_key(Mode::FACTORY, "esphome", key, 88491487));

@@ -32,6 +32,7 @@ export function createAppConfigEventsFeature(
         return state.subpageRaw[slot];
     }
     function applyButtonConfigStateEvent(this: any, slot?: any, val?: any) {
+        if (state.nativePageSnapshotLoaded || state.nativeHasNestedPages) return;
         var b: any = state.buttons[slot - 1];
         var migrateConfig: any = buttonConfigNeedsMigration(val || "");
         var parsed: any = parseButtonConfig(val || "");
@@ -44,13 +45,17 @@ export function createAppConfigEventsFeature(
         b.type = parsed.type;
         b.precision = parsed.precision;
         b.options = parsed.options;
+        if (migrateConfig && !state.nativeConfigLoading && !state.nativeTransferActive)
         EspDesktopModel.setCardBackgroundAssetId(
             b, EspDesktopModel.cardBackgroundAssetId(parsed));
-        if (migrateConfig)
             configPersistence.saveButtonConfig(slot);
         renderQueue.schedule();
     }
     function applySubpageConfigStateEvent(this: any, slot?: any, key?: any, val?: any) {
+        // Native snapshots are complete transactions. Late legacy chunks can
+        // belong to the initial read or an older generation and must not be
+        // combined with a newly accepted snapshot.
+        if (state.nativePageSnapshotLoaded || state.nativeHasNestedPages) return;
         ensureSubpageRaw(slot)[key] = val || "";
         applySubpageRaw(slot);
     }
@@ -138,15 +143,6 @@ export function createAppConfigEventsFeature(
                 },
             },
         ];
-        var fields: any = ["main", "ext", "ext2", "ext3", "ext4", "ext5", "ext6", "ext7"];
-        configPersistence.specialPageEntityKeys().forEach(function (this: any, key?: any, index?: any) {
-            patterns.push({
-                re: new RegExp("^text-" + key + "$"),
-                fn: function (this: any, _match?: any, val?: any) {
-                    applySubpageConfigStateEvent(-1, fields[index], val);
-                },
-            });
-        });
         return patterns;
     }
     return {

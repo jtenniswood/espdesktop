@@ -1,50 +1,47 @@
 ---
-title: Subpages
-description: Create extra pages on your EspDesktop display to organise cards into simple groups.
+title: Create Subpages for Mac Controls
+description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, create nested subpages, and choose how app subpages open.
 ---
 
-# Subpages
+# Create subpages for Mac controls {#subpages}
 
-![A subpage with a Back card and grouped controls](/images/screen-subpage.png)
+Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
-A subpage is an extra screen opened from a **Subpage** card. Use it to group related cards without crowding the home screen. Each subpage has its own layout and includes a **Back** card, leaving one fewer space for other cards. On app subpages, the Back card shows the app’s large icon and returns to the home screen when touched. Its saved name remains editable in card settings, while the icon fills the card on the display. Regular subpages keep their Back arrow and label.
+<a href="/images/espdesktop-slack-subpage.jpg"><picture><source type="image/avif" srcset="/images/espdesktop-slack-subpage-480.avif 480w, /images/espdesktop-slack-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing the Slack subpage with shortcuts for new messages, search, and direct messages" width="1320" height="1208" loading="eager"></picture></a>
 
-Cards on the home screen and subpages act as soon as you touch them. Fixed control buttons, tabs, PIN keys and panel close buttons also respond on touch-down. Confirmation prompts still require an explicit choice. Sliders and scrollable choices keep their drag and release behavior so scrolling does not accidentally select an item.
+All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 
-All subpages, including app subpages and the Special Page, hide their top title and clock bar so cards use the full screen. Clock Bar settings apply to the home screen only. App subpages show their app artwork on the return-home card.
+## App page behavior
 
-Under **Device settings → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app subpage open when you switch apps on your Mac. With it on, the display leaves that page: it opens the new app’s subpage when **Open app subpages on focus** is enabled and a matching page exists, or returns home otherwise. The setting is saved on the display and included in backups.
+Under **Screen → Appearance → App Subpages**, **Return home when switching apps** is on by default. Turn it off to keep the current app page open when you switch apps on the Mac. With it on, the display opens a matching new app page when automatic opening is enabled, or returns to the immediate parent page. The setting is saved on the display and included in backups.
 
-## Create a Subpage
+<a href="/images/web-editor-app-subpages-settings.png"><picture><source type="image/avif" srcset="/images/web-editor-app-subpages-settings-480.avif 480w, /images/web-editor-app-subpages-settings-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-app-subpages-settings.png" alt="App Subpages settings with Open app subpages on focus turned off and Return home when switching apps turned on" width="1562" height="1338" loading="lazy"></picture></a>
+
+## Create a subpage
 
 1. Open the display's setup page in a browser and choose the **Layout** tab.
 2. Select an empty home-screen space and choose **Subpage** as the card type.
 3. Give the card a label and icon if you want them.
 4. Choose **Edit Subpage** in the card settings.
 5. Add and arrange cards on the subpage as you would on the home screen.
-6. Choose its **Back** card to return to the home screen.
+6. Choose its **Back** card to return to the parent page.
+
+<a href="/images/web-editor-subpage-home.png"><picture><source type="image/avif" srcset="/images/web-editor-home-480.avif 480w, /images/web-editor-home-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/web-editor-subpage-home.png" alt="Home layout with chevrons marking app cards that have subpages and a dashed empty tile for adding a card" width="1694" height="2266" loading="lazy"></picture></a>
 
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 
-Home Assistant type presets are available after a Home Assistant connection is configured. Until then, Subpage cards stay as regular **Folder** pages.
+Two levels are supported: **Home → Folder → Subpage**, including **Home → Folder → App shortcuts**. Open a folder and repeat the steps above to add the second level. Back returns to the immediate parent page. A second-level page cannot contain another subpage.
 
-## Organise Cards
+For an app inside a folder, edit its app card, enable **Add app subpage**, and save. Choose **Edit Subpage** to arrange its shortcuts. The normal app focus and automatic switching settings also apply inside folders.
 
-Drag cards to change their order. To move or copy a card between the home screen and a subpage, right-click it and choose **Cut** or **Copy**, then right-click an empty space on the destination page and choose **Paste**.
+Pages share the display's existing total card and saved-layout limits. A layout that exceeds them is rejected without replacing the saved layout.
 
-Choose **Apply Configuration** to save your changes to the display.
+Nested layouts use the new saved-layout format and require firmware with two-level support. Keep a backup before upgrading. After saving with this release, downgrading to older firmware is unsupported. The new firmware still imports older flat layouts and backups.
 
-To customise a Back card, edit its name and colours in the editor. Its default and active colours are saved with the subpage and included in backups. Subpage, Back and Close buttons change page as soon as you touch them, without waiting for a highlight or release. App subpages with automatic opening enabled also open immediately, without waiting for the Mac to confirm focus. In manual mode, the first press still focuses the app and a later press opens its subpage.
+<span id="organise-cards"></span>
 
-## Swipe-up page
+See how to [move or copy cards between Home and a subpage](/features/home#organise-cards).
 
-Swipe up from the bottom edge of the home screen or a card subpage to open a
-separate page. A short upward swipe from the bottom edge opens it; a long drag
-is not needed. Configure it with **Special Page** in the web layout editor.
-Use the page-name button above the device preview to rename it, then choose **Save**. Use the
-reset icon and save to restore the default. The custom name is saved with the
-page for use in the editor and backups.
-It starts empty, supports ordinary cards, and cannot contain nested subpages.
-Its **Close** button, marked with a cross icon, returns to the screen you came
-from. Screen Lock blocks the swipe, and the gesture is unavailable on setup screens, screensavers and modals.
-The page is saved on the display and included in backups.
+## Swipe back
+
+Swipe right from the left edge of a subpage to use its **Back** action. This also works on app subpages while the touchscreen is unlocked and showing its cards.

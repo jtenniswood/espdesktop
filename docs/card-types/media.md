@@ -1,63 +1,10 @@
 ---
-title: "Control Home Assistant Media Players from Your Touchscreen"
-description:
-  How to use media cards on your EspDesktop panel to control Home Assistant media players.
+title: "Retired Home Assistant media cards"
+description: "How saved Home Assistant media cards behave after removal."
 ---
 
-# Control Home Assistant Media Players
+# Home Assistant media cards
 
-A Media card controls a Home Assistant `media_player`. Choose a small one-job card, or use **All Controls** for the main playback screen.
+Home Assistant media cards are retired. Existing cards remain in saved layouts and backups, but no longer control playback, group speakers, download artwork, or open media controls. The editor keeps their saved configuration and explains how to replace them.
 
-Add your Sonos, Spotify, Apple TV, Plex, Music Assistant, or other player integration in Home Assistant first. EspDesktop uses the entities and capabilities that integration exposes; it does not connect a speaker or streaming account for you.
-
-![Wide media card showing now-playing title and artist](/images/card-media.png)
-
-## Set Up a Media Card
-
-1. Select a card and change its type to **Media**. New Media cards start as **Cover Art**.
-2. Choose a **Type** and enter the player entity, such as `media_player.living_room`.
-3. For **Cover Art** and **All Controls**, enter a **Name** below Entity. This appears in the clock bar while the media popup is open. All Controls also uses it on the card when Label is selected. Other types offer a label or icon where supported.
-
-| Type | Best for |
-|---|---|
-| **All Controls** | Playback, volume, progress, and any supported power or speaker controls in one popup. |
-| **Cover Art** | Showing current artwork; tapping it opens All Controls. |
-| **Track, Album or Playlist** | Playing a saved playlist, source, URL, or other media content. |
-| **Speaker Group** | Opening the speaker-group screen directly. |
-| **Play/Pause**, **Previous**, **Next** | A simple playback shortcut. |
-| **Volume** | Opening a volume control. **Maximum Volume** can cap the level. |
-| **Track Position** | Seeing and, where supported, seeking through the current item. |
-| **Now Playing** | Showing title and artist, with optional progress or play/pause. |
-
-## What to Expect
-
-- Playback buttons send the matching Home Assistant media action.
-- Shuffle and Repeat appear in **All Controls** only when the player advertises support for them. A supported control stays disabled until Home Assistant reports its current state, then continues to follow changes made elsewhere.
-- Repeat cycles through **Off**, **All**, and **One**. Its icon changes to Repeat Once in **One** mode, while active Shuffle and Repeat modes use the accent colour.
-- Volume and track position follow changes made elsewhere in Home Assistant. Some players show progress but do not support seeking; some only support volume up and down rather than an exact level.
-- All Controls hides tabs that the selected player does not support. Its speaker tab appears only when compatible speakers are available.
-- For **Track, Album or Playlist**, choose the speaker, then provide the content ID or URI. You can also set the player source or input when the integration uses one.
-
-## Modal Settings
-
-For **All Controls** and **Cover Art**, open **Modal Settings** to reorder the popup tabs by dragging or using the up/down arrows, and switch off tabs you do not want. The popup opens the first available tab in your order. Unsupported tabs stay hidden; if none of your selected tabs is available, Controls remains available as a fallback.
-
-### Separate Power Device
-
-Inside **Modal Settings**, open **Optional Power** and enter a **Power Entity** to control another device from the Power tab. For example, use `media_player.living_room_sonos` as the main entity for playback and volume, and `media_player.living_room_tv` as the Power Entity for the TV. You can also select a `switch`, `input_boolean`, `light`, or `fan` entity.
-
-The Power tab follows that device's on/off state and stays disabled while its state is unknown or unavailable. Power stays off and unavailable until a Power Entity is entered. Adding an entity enables the tab automatically; you can still switch it off in the tab list. Clear Power Entity to disable the Power tab again. To control the main player's power, enter its entity here. Both **All Controls** and **Cover Art** use these settings.
-
-If the main player becomes unavailable, you can still open the popup to use the enabled Power tab while the separate power device has a known, available state. The other tabs return when the player becomes available again.
-
-## Cover Art
-
-Cover Art is available in square **1×1**, **2×2**, and **3×3** card sizes. It uses one of the panel's shared image slots. ESP32-P4 screens have six slots shared between Camera and Cover Art cards across all pages. If the card shows **Too many**, remove one of those image cards.
-
-## Speaker Groups
-
-Use **Speaker Group** to open the speaker controls directly, or access them from **All Controls**. Follow the [Speaker Groups setup guide](/features/speaker-groups) for the Home Assistant discovery sensor templates, Music Assistant options, card setup, group volume, and troubleshooting.
-
-::: info Requires Home Assistant actions
-Media cards send Home Assistant actions. If a control does not respond, check [Enable Actions](/getting-started/home-assistant-actions).
-:::
+Use [Mac Companion cards](./companion) for Mac controls. The fullscreen Mac artwork screensaver remains available.

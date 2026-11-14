@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from device_profiles import load_device_profiles
+from release_devices import load_release_devices
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -146,8 +147,9 @@ def analyze(paths: list[str]) -> Guidance:
     ) and not firmware_related
     test_only = bool(paths) and all(test_only_path(path) for path in paths) and not firmware_related
 
+    public_devices = set(load_release_devices())
     return Guidance(
-        devices=sorted(devices),
+        devices=sorted(devices, key=lambda slug: (slug not in public_devices, slug)),
         firmware_related=firmware_related,
         process_related=process_related,
         process_only=process_only,
@@ -171,15 +173,19 @@ def render_markdown(guidance: Guidance) -> str:
     ]
 
     if guidance.firmware_related:
-        lines.extend(
-            [
-                "Device testing is expected before merge because this change may affect firmware or the on-device experience.",
-                "",
-                "Suggested devices to test:",
-            ]
+        lines.append(
+            "Device testing is expected before merge because this change may affect firmware or the on-device experience."
         )
-        for slug in guidance.devices:
-            lines.append(f"- {public_device_name(slug)}")
+        public_devices = set(load_release_devices())
+        public = [slug for slug in guidance.devices if slug in public_devices]
+        manual = [slug for slug in guidance.devices if slug not in public_devices]
+        if public:
+            lines.extend(["", "Start with the public release target:"])
+            lines.extend(f"- {public_device_name(slug)}" for slug in public)
+        if manual:
+            heading = "Manual platform targets, if checking shared board behaviour:" if public else "Affected manual platform targets:"
+            lines.extend(["", heading])
+            lines.extend(f"- {public_device_name(slug)}" for slug in manual)
         lines.extend(
             [
                 "",
@@ -267,6 +273,9 @@ def run_self_test() -> None:
     wide = analyze(["common/device/screen_clock.yaml"])
     assert wide.firmware_related
     assert len(wide.devices) >= 5
+    assert wide.devices[0] == "guition-esp32-s3-4848s040"
+    assert "public release target" in render_markdown(wide)
+    assert "Manual platform targets" in render_markdown(wide)
 
     generated_web = analyze(["docs/public/webserver/www.js"])
     assert generated_web.firmware_related

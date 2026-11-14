@@ -66,8 +66,8 @@ const currentPanel = {
   clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
   ntpDefaults: ["pool.ntp.org", "time.nist.gov", "time.google.com"],
   ntpServer1: "pool.ntp.org", ntpServer2: "time.nist.gov", ntpServer3: "time.google.com",
-  screensaverMode: "off", screensaverAction: "main", coverArtHomeAssistantHost: "", coverArtHomeAssistantProtocol: "http",
-  coverArtHomeAssistantPort: 80, updateFrequency: "Daily", screenRotation: "0",
+  screensaverMode: "off", screensaverAction: "main",
+  updateFrequency: "Daily", screenRotation: "0",
   autoUpdate: true, updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"],
   screenRotationOptions: ["0", "90", "180", "270"],
 };
@@ -86,16 +86,12 @@ const backup = plain(hooks.createBackupConfig({
 }));
 assert.deepStrictEqual(backup, fixture.backup, "backup export structure changed");
 
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(30)), fixture.postUrls.coverArtDelay30,
-  "cover-art fallback request ordering changed");
-
 const freshOutput = freshWebOutputDir({ testHooks: false });
 const bytes = fs.readFileSync(path.join(freshOutput, "embedded", "www.js"));
 const source = bytes.toString("utf8");
 assert(/^\s*(?:["']use strict["'];)?\(\(\)=>\{/.test(source),
   "shared bundle must remain a normal browser IIFE");
-assert.doesNotThrow(() => new vm.Script(source),
-  "shared bundle must parse as a classic script; import/export words in UI text are allowed");
+assert.doesNotThrow(() => new vm.Script(source), "shared bundle must be a classic browser script");
 for (const slug of fixture.deviceProfiles) {
   assert(source.includes(slug), `${slug}: shared bundle is missing its device profile`);
 }

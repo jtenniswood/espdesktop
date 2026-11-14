@@ -3,48 +3,94 @@
   "appId": "com.apple.MobileSMS",
   "label": "Messages",
   "catalog": false,
+  "defaultShortcutIds": ["0", "3", "12", "35", "44", "30", "43", "42"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Start a new message",
+      "label": "New Message",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "Chat Plus"
     },
     {
       "id": "1",
-      "label": "Show conversations from known senders",
+      "label": "Known Senders",
       "shortcut": "control+command+2",
-      "icon": "Application"
+      "icon": "Contacts"
     },
     {
       "id": "2",
-      "label": "Show conversations from unknown senders",
+      "label": "Unknown Senders",
       "shortcut": "control+command+3",
-      "icon": "Application"
+      "icon": "Account Question"
     },
     {
       "id": "3",
-      "label": "Search all conversations",
+      "label": "Search Chats",
       "shortcut": "command+f",
-      "icon": "Spotlight"
+      "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Go to the first unpinned conversation",
+      "label": "First Unpinned",
       "shortcut": "option+command+1",
-      "icon": "Application"
+      "icon": "Pin Off"
     },
     {
       "id": "5",
-      "label": "Select the next conversation",
+      "label": "Next Chat",
       "shortcut": "control+tab",
       "icon": "Chevron Right"
     },
     {
       "id": "6",
-      "label": "Select the previous conversation",
+      "label": "Previous Chat",
       "shortcut": "control+shift+tab",
       "icon": "Chevron Left"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "7", "label": "Open Messages settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "8", "label": "Open Messages window", "shortcut": "scoped.command+0", "icon": "Application"},
+    {"id": "9", "label": "Close Messages window", "shortcut": "scoped.command+w", "icon": "Application"},
+    {"id": "10", "label": "Print conversation", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "11", "label": "Show all Messages conversations", "shortcut": "scoped.command+control+1", "icon": "Shortcut Command"},
+    {"id": "12", "label": "Show conversations with unread messages", "shortcut": "scoped.command+control+4", "icon": "Message Unread"},
+    {"id": "13", "label": "Show recently deleted messages or conversations", "shortcut": "scoped.command+control+5", "icon": "Shortcut Command"},
+    {"id": "14", "label": "Pinned conversation 1", "shortcut": "scoped.command+1", "icon": "Chat"},
+    {"id": "15", "label": "Pinned conversation 2", "shortcut": "scoped.command+2", "icon": "Chat"},
+    {"id": "16", "label": "Pinned conversation 3", "shortcut": "scoped.command+3", "icon": "Chat"},
+    {"id": "17", "label": "Pinned conversation 4", "shortcut": "scoped.command+4", "icon": "Chat"},
+    {"id": "18", "label": "Pinned conversation 5", "shortcut": "scoped.command+5", "icon": "Chat"},
+    {"id": "19", "label": "Pinned conversation 6", "shortcut": "scoped.command+6", "icon": "Chat"},
+    {"id": "20", "label": "Pinned conversation 7", "shortcut": "scoped.command+7", "icon": "Chat"},
+    {"id": "21", "label": "Pinned conversation 8", "shortcut": "scoped.command+8", "icon": "Chat"},
+    {"id": "22", "label": "Pinned conversation 9", "shortcut": "scoped.command+9", "icon": "Chat"},
+    {"id": "23", "label": "Minimise window", "shortcut": "scoped.command+m", "icon": "Window Minimise"},
+    {"id": "24", "label": "Enter full-screen view", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "25", "label": "Make text bigger", "shortcut": "scoped.command+shift+keyequal", "icon": "Heading"},
+    {"id": "26", "label": "Make text smaller", "shortcut": "scoped.command+keyminus", "icon": "Heading"},
+    {"id": "27", "label": "Insert line break or create new paragraph", "shortcut": "scoped.option+enter", "icon": "Heading"},
+    {"id": "28", "label": "Insert line break or create new paragraph", "shortcut": "scoped.shift+enter", "icon": "Heading"},
+    {"id": "29", "label": "Send message", "shortcut": "scoped.enter", "icon": "Send"},
+    {"id": "30", "label": "Edit sent message", "shortcut": "scoped.command+e", "icon": "Chat"},
+    {"id": "31", "label": "Copy text", "shortcut": "scoped.command+c", "icon": "Copy"},
+    {"id": "32", "label": "Paste copied text", "shortcut": "scoped.command+v", "icon": "Paste"},
+    {"id": "33", "label": "Open Spelling and Grammar window", "shortcut": "scoped.command+shift+keysemicolon", "icon": "Application"},
+    {"id": "34", "label": "Check message field", "shortcut": "scoped.command+keysemicolon", "icon": "Chat"},
+    {"id": "35", "label": "Reply to last incoming (or selected) message", "shortcut": "scoped.command+r", "icon": "Reply"},
+    {"id": "36", "label": "Add Tapback to last (or selected) message", "shortcut": "scoped.command+t~1", "icon": "Chat"},
+    {"id": "37", "label": "Add Tapback to last (or selected) message", "shortcut": "scoped.command+t~2", "icon": "Chat"},
+    {"id": "38", "label": "Add Tapback to last (or selected) message", "shortcut": "scoped.command+t~3", "icon": "Chat"},
+    {"id": "39", "label": "Add Tapback to last (or selected) message", "shortcut": "scoped.command+t~4", "icon": "Chat"},
+    {"id": "40", "label": "Add Tapback to last (or selected) message", "shortcut": "scoped.command+t~5", "icon": "Chat"},
+    {"id": "41", "label": "Add Tapback to last (or selected) message", "shortcut": "scoped.command+t~6", "icon": "Chat"},
+    {"id": "42", "label": "Open conversation Info view", "shortcut": "scoped.command+option+i", "icon": "Chat"},
+    {"id": "43", "label": "Hide or unhide alerts for conversation", "shortcut": "scoped.command+option+m", "icon": "Chat"},
+    {"id": "44", "label": "Mark conversation as unread or read", "shortcut": "scoped.command+shift+u", "icon": "Message Unread"},
+    {"id": "45", "label": "Open Contact card", "shortcut": "scoped.command+option+b", "icon": "Chat"},
+    {"id": "46", "label": "Send email to selected person in conversation", "shortcut": "scoped.command+option+e", "icon": "Send"},
+    {"id": "47", "label": "Show video effects (while", "shortcut": "scoped.command+shift+e", "icon": "Video"},
+    {"id": "48", "label": "Show image in Quick Look window", "shortcut": "scoped.space", "icon": "Image"},
+    {"id": "49", "label": "Delete single message", "shortcut": "scoped.delete", "icon": "Delete"}
   ]
 }

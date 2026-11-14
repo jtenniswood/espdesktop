@@ -348,6 +348,8 @@ def validate_card_contract(data: dict[str, Any]) -> list[str]:
                 errors.append(path_error(f"{card_path}.domains", "must be a list of strings"))
             if "pickerKey" in card and not isinstance(card.get("pickerKey"), str):
                 errors.append(path_error(f"{card_path}.pickerKey", "must be a string"))
+            if "pickerLabel" in card and (not isinstance(card["pickerLabel"], str) or not card["pickerLabel"].strip()):
+                errors.append(path_error(f"{card_path}.pickerLabel", "must be a non-empty string"))
             if "experimental" in card:
                 errors.append(path_error(f"{card_path}.experimental", "is no longer supported; use a draft PR for testing"))
             if "hidden" in card and not isinstance(card.get("hidden"), bool):
@@ -551,6 +553,7 @@ def validate_card_contract(data: dict[str, Any]) -> list[str]:
     validate_migration_actions(data.get("migrationActions"), hook_names, global_option_names, errors)
 
     validate_subpage_type_codes(data, cards, errors)
+    validate_release_availability(data, cards, errors)
     validate_option_select(data, errors)
     validate_card_groups(data, errors)
 
@@ -763,12 +766,61 @@ def validate_card_behavior(card_path: str, behavior: dict[str, Any], errors: lis
                 errors.append(path_error(f"{card_path}.behavior.lightTemperature.legacySensorValues", "must be a list of strings"))
 
 
+def validate_release_availability(data: dict[str, Any], cards: Any, errors: list[str]) -> None:
+    path = "releaseAvailability"
+    availability = data.get(path)
+    if not isinstance(availability, dict) or set(availability) != {"stable", "preview", "removeOnEdit"}:
+        errors.append(path_error(path, "must define stable, preview and removeOnEdit"))
+        return
+
+    def names(field: str) -> set[str]:
+        values = availability[field]
+        if not isinstance(values, list) or not all(isinstance(value, str) and value for value in values):
+            errors.append(path_error(f"{path}.{field}", "must be a list of card IDs"))
+            return set()
+        if len(values) != len(set(values)):
+            errors.append(path_error(f"{path}.{field}", "must not contain duplicate card IDs"))
+        return set(values)
+
+    defined = set(cards) if isinstance(cards, dict) else set()
+    retired = data.get("retiredCardTypes")
+    retired = {key for key in retired if isinstance(key, str)} if isinstance(retired, list) else set()
+    stable = names("stable")
+    if not stable or stable - defined:
+        errors.append(path_error(f"{path}.stable", "must list existing stable card definitions"))
+    if names("removeOnEdit") - retired:
+        errors.append(path_error(f"{path}.removeOnEdit", "must reference retired card IDs"))
+
+    preview = availability["preview"]
+    if not isinstance(preview, dict):
+        errors.append(path_error(f"{path}.preview", "must be an object keyed by card ID"))
+        return
+    for key, entry in preview.items():
+        preview_path = f"{path}.preview.{key}"
+        if not key or key in defined or key in retired:
+            errors.append(path_error(preview_path, "must be reserved for a preview card"))
+        if (not isinstance(entry, dict) or set(entry) != {"label", "issue"}
+                or not isinstance(entry["label"], str) or not entry["label"].strip()
+                or type(entry["issue"]) is not int or entry["issue"] < 1):
+            errors.append(path_error(preview_path, "must include a label and a positive GitHub issue number"))
+
+
 def validate_subpage_type_codes(data: dict[str, Any], cards: Any, errors: list[str]) -> None:
     codes = data.get("subpageTypeCodes")
     if not isinstance(codes, dict) or not codes:
         errors.append(path_error("subpageTypeCodes", "must be a non-empty object"))
         return
 
+    retired_types = data.get("retiredCardTypes", [])
+    if not isinstance(retired_types, list) or not all(isinstance(value, str) and value for value in retired_types):
+        errors.append(path_error("retiredCardTypes", "must be a list of non-empty strings"))
+        retired_types = []
+    elif len(retired_types) != len(set(retired_types)) or (isinstance(cards, dict) and set(retired_types).intersection(cards)):
+        errors.append(path_error("retiredCardTypes", "must be unique and cannot include active card types"))
+
+    availability = data.get("releaseAvailability")
+    preview = availability.get("preview") if isinstance(availability, dict) else None
+    preview_types = set(preview) if isinstance(preview, dict) else set()
     seen: dict[str, str] = {}
     for card_type, code in codes.items():
         code_path = f"subpageTypeCodes.{card_type}"
@@ -778,8 +830,8 @@ def validate_subpage_type_codes(data: dict[str, Any], cards: Any, errors: list[s
         if code in seen:
             errors.append(path_error(code_path, f"duplicates code {code!r} used by {seen[code]!r}"))
         seen[code] = card_type
-        if isinstance(cards, dict) and card_type not in cards:
-            errors.append(path_error(code_path, "must also be defined in cards"))
+        if isinstance(cards, dict) and card_type not in cards and card_type not in retired_types and card_type not in preview_types:
+            errors.append(path_error(code_path, "must reference a defined, retired or preview card type"))
 
     retired = data.get("retiredSubpageTypeCodes")
     if not isinstance(retired, list) or not all(isinstance(code, str) and code for code in retired):

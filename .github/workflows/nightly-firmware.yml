@@ -44,6 +44,8 @@ jobs:
             product/v2/translations/strings.*.txt
             product/v2/product_compatibility.json
             product/v2/**
+            product/release_devices.json
+            scripts/release_devices.py
             scripts/device_matrix.py
             scripts/device_profiles.py
             scripts/product_model_v2.py
@@ -75,9 +77,13 @@ jobs:
       - name: Run browser smoke validation
         run: npm run check:web-browser-smoke
 
+  editor:
+    name: Prepare editor
+    uses: ./.github/workflows/firmware-editor.yml
+
   compile:
     name: Compile Firmware
-    needs: device-matrix
+    needs: [device-matrix, editor]
     runs-on: self-hosted
     outputs:
       failed_targets: ${{ steps.firmware.outputs.failed_targets }}
@@ -96,6 +102,12 @@ jobs:
         run: |
           git sparse-checkout disable || true
           git reset --hard HEAD
+
+      - name: Install editor for this build
+        uses: actions/download-artifact@v8
+        with:
+          name: firmware-editor
+          path: espdesktop-nightly/docs/public/webserver/embedded
 
       - name: Prepare compile plan
         working-directory: espdesktop-nightly
@@ -295,8 +307,8 @@ jobs:
 
   report-failure:
     name: Report Nightly Failure
-    needs: [device-matrix, compile]
-    if: ${{ always() && (needs.device-matrix.result == 'failure' || needs.compile.result == 'failure') }}
+    needs: [device-matrix, editor, compile]
+    if: ${{ always() && (needs.device-matrix.result == 'failure' || needs.editor.result == 'failure' || needs.compile.result == 'failure') }}
     runs-on: ubuntu-latest
     permissions:
       issues: write
@@ -311,6 +323,7 @@ jobs:
           BUILD_SHA: ${{ github.sha }}
           BUILD_REF: ${{ github.ref_name }}
           MATRIX_RESULT: ${{ needs.device-matrix.result }}
+          EDITOR_RESULT: ${{ needs.editor.result }}
           COMPILE_RESULT: ${{ needs.compile.result }}
           FAILED_TARGETS: ${{ needs.compile.outputs.failed_targets }}
         run: |
@@ -323,6 +336,7 @@ jobs:
           print(f"- Branch: `{os.environ['BUILD_REF']}`")
           print(f"- Commit: `{os.environ['BUILD_SHA']}`")
           print(f"- Device matrix: {os.environ['MATRIX_RESULT']}")
+          print(f"- Editor build: {os.environ['EDITOR_RESULT']}")
           print(f"- Firmware compilation: {os.environ['COMPILE_RESULT']}")
           print("\n### Failed firmware targets\n")
           targets = os.environ.get("FAILED_TARGETS", "").split()

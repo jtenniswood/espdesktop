@@ -31,20 +31,30 @@ explicit migration path, compatibility fixture, release note, and rollback plan.
 
 ### PanelConfig release lifecycle
 
-`product/release_contract.json` declares the PanelConfig compatibility phase,
-and `configuration_release_policy.h` is the checked firmware projection of that
-choice. Keep `dual-write` for two stable releases. The release preflight reads
-the immutable `release-manifest.json` assets from published stable releases and
-rejects a move to `read-import-only` until two consecutive releases with the
-same PanelConfig document version prove that window. For the following stable
-release, change both declarations to `read-import-only`: new native saves stop
-mirroring legacy text entities, while an older panel's text configuration can
-still be imported once. Retire legacy reads only after that read/import-only
-release has shipped and its upgrade coverage has been confirmed.
+`product/release_contract.json` and `configuration_release_policy.h` enable
+native v2 writes and two navigation levels. This release explicitly selects
+`panelConfigDowngradePolicy: current-release-only`: saving with it does not
+maintain a mirror for older firmware. Older v1 documents and backups remain
+readable/importable; downgrading requires a pre-upgrade backup and compatible
+firmware. The release check validates this policy without inventing published
+reader releases. Policies that promise an older reader floor still require the
+published reader and consecutive dual-write release evidence.
 
-Live grid application uses a separate native runtime adapter. The legacy
-adapter is limited to one-time import and release-controlled downgrade
-mirroring, so disabling legacy writes cannot disable live card updates.
+The port from EspControl #2440 retains EspDesktop's card renderer and Companion
+transport. A prepared PageStore feeds its existing live text bindings and the
+additional page definitions together, while the complete v2 document remains
+the durable source. Runtime text records are separate from saved wire records, so escaping text does not consume the saved-record byte budget. Legacy text values are a live rendering projection, not a
+saved downgrade copy. The existing total card budget is retained; secondary
+card placements and Back widgets also cannot exceed the old renderer's maximum
+of one full secondary screen per home slot. Failed preparation does not replace
+the saved graph. `companion_nested_pages.json` covers Folder → App → Shortcuts,
+exact native bytes, subtree transfers and the current firmware requirement.
+
+The grid reads home cards and nested pages directly from the active page
+store. Activating a saved layout schedules one grid rebuild. In the current
+release, the legacy adapter publishes only the grid order and accent colour
+for the screen automations that still use text bindings. Card and subpage
+text remain inputs for the one-time import.
 
 ## Required Migration Shape
 

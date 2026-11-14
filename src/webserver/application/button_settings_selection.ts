@@ -18,7 +18,7 @@ export interface ButtonSettingsSelectionFeature {
     handleDocumentSelectionMouseDown(event?: any): void;
     openSelectedCardSettings(): void;
     selectClockBarItem(item?: any): void;
-    openClockBarTemperatureSettings(): void;
+
 }
 
 export interface ButtonSettingsSelectionDependencies {
@@ -28,19 +28,18 @@ export interface ButtonSettingsSelectionDependencies {
     readonly renderButtonSettings: (force?: boolean) => void;
     readonly showSelectionMenu: (event?: any) => void;
     readonly contextMenuContains: (target?: any) => boolean;
-    readonly openVoiceServicesSettings: () => void;
+
 }
 
-export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityInput">, shell: Pick<ControlsShellFeature, "isConfigLocked" | "createActionButton">, statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "isClockBarTemperatureItem" | "updateClockBarItemUi">, grid: Pick<GridFeature, "ctx">, renderQueue: ButtonSettingsRenderQueueFeature, dependencies: ButtonSettingsSelectionDependencies): ButtonSettingsSelectionFeature {
-    const { document, fields: { fieldLabel, toggleRow }, renderPreview, renderButtonSettings, showSelectionMenu, openVoiceServicesSettings } = dependencies;
+export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityInput">, shell: Pick<ControlsShellFeature, "isConfigLocked" | "createActionButton">, statusPreview: Pick<AppStatusPreviewFeature, "clockBarItemActive" | "clockBarItemLabel" | "clockBarItems" | "updateClockBarItemUi">, grid: Pick<GridFeature, "ctx">, renderQueue: ButtonSettingsRenderQueueFeature, dependencies: ButtonSettingsSelectionDependencies): ButtonSettingsSelectionFeature {
+    const { document, fields: { fieldLabel, toggleRow }, renderPreview, renderButtonSettings, showSelectionMenu,  } = dependencies;
     const { entityInput } = entityState;
     const { isConfigLocked, createActionButton } = shell;
     const els = runtime.els;
-    const { clockBarItemActive, clockBarItemLabel, clockBarItems, isClockBarTemperatureItem, updateClockBarItemUi } = statusPreview;
+    const { clockBarItemActive, clockBarItemLabel, clockBarItems,  updateClockBarItemUi } = statusPreview;
     const { ctx } = grid;
     const {
-        primaryTemperatureEntity: primaryClockBarTemperatureEntity,
-        saveTemperatureSettings: saveClockBarTemperatureSettings,
+
         setItemVisible: setClockBarItemVisible,
     } = clockBar;
     // ── Button Settings Selection ─────────────────────────────────────
@@ -49,17 +48,18 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             els.settingsOverlay.classList.remove("sp-visible");
     }
     function updatePreviewHint(this: any, c?: any) {
-        if (els.specialPageRename) {
-            els.specialPageRename.hidden = state.editingSubpage !== -1;
-            els.specialPageRename.textContent = state.subpages[-1]?.title || "Special Page";
-            els.specialPageRename.disabled = isConfigLocked();
-        }
         if (!els.previewHint)
             return;
         c = c || ctx();
         els.previewHint.style.display = "";
-        if (isConfigLocked()) {
+        if (state.configLocked) {
             els.previewHint.textContent = "Editing is paused while the device reconnects";
+        }
+        else if (state.nativeTransferActive) {
+            els.previewHint.textContent = "Updating cards\u2026";
+        }
+        else if (isConfigLocked()) {
+            els.previewHint.textContent = state.nativeConfigReadOnly ? "Read-only configuration" : "Loading pages\u2026";
         }
         else if (state.clockBarSelectedItem) {
             els.previewHint.textContent = clockBarItemLabel(state.clockBarSelectedItem) + " selected";
@@ -68,36 +68,20 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
             els.previewHint.textContent = c.selected.length + " buttons selected \u2022 right click to copy, cut, or delete";
         }
         else {
-            els.previewHint.textContent = "tap to select \u2022 shift/ctrl+tap to multi-select \u2022 right click to manage";
+            els.previewHint.textContent = "";
+            els.previewHint.style.display = "none";
         }
     }
     function renderClockBarSelectionBar(this: any) {
         if (!els.selectionBar || !state.clockBarSelectedItem)
             return false;
         els.selectionBar.className = "sp-selection-bar sp-visible";
-        var canEditClockBarItem: any = isClockBarTemperatureItem(state.clockBarSelectedItem) ||
-            state.clockBarSelectedItem === "voice";
         var label: any = document.createElement("span");
         label.className = "sp-selection-label";
         label.textContent = clockBarItemLabel(state.clockBarSelectedItem) + " selected";
         els.selectionBar.appendChild(label);
         var actions: any = document.createElement("div");
         actions.className = "sp-selection-actions";
-        var editBtn: any = createActionButton("sp-selection-btn sp-selection-btn-primary", "Edit", "pencil");
-        editBtn.disabled = !canEditClockBarItem;
-        editBtn.addEventListener("click", function (this: any, e?: any) {
-            e.preventDefault();
-            e.stopPropagation();
-            if (editBtn.disabled)
-                return;
-            if (isClockBarTemperatureItem(state.clockBarSelectedItem)) {
-                openClockBarTemperatureSettings();
-            }
-            else if (state.clockBarSelectedItem === "voice") {
-                openVoiceServicesSettings();
-            }
-        });
-        actions.appendChild(editBtn);
         var visible: any = clockBarItemActive(state.clockBarSelectedItem);
         var hideBtn: any = createActionButton("sp-selection-btn", visible ? "Hide" : "Show", visible ? "eye-off-outline" : "eye-outline");
         hideBtn.addEventListener("click", function (this: any, e?: any) {
@@ -191,10 +175,7 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
         if (isConfigLocked())
             return;
         if (state.clockBarSelectedItem) {
-            if (isClockBarTemperatureItem(state.clockBarSelectedItem))
-                openClockBarTemperatureSettings();
-            if (state.clockBarSelectedItem === "voice")
-                openVoiceServicesSettings();
+
             return;
         }
         var c: any = ctx();
@@ -214,49 +195,7 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
         renderPreview();
         renderButtonSettings();
     }
-    function openClockBarTemperatureSettings(this: any) {
-        if (isConfigLocked())
-            return;
-        var container: any = els.buttonSettings;
-        if (!container)
-            return;
-        state.clockBarSelectedItem = "temperature";
-        container.innerHTML = "";
-        if (els.settingsOverlay)
-            els.settingsOverlay.classList.add("sp-visible");
-        var title: any = document.createElement("div");
-        title.className = "sp-section-title";
-        title.textContent = "Temperature";
-        container.appendChild(title);
-        var panel: any = document.createElement("div");
-        panel.className = "sp-panel";
-        var entityField: any = document.createElement("div");
-        entityField.className = "sp-field";
-        entityField.appendChild(fieldLabel("Entity", "sp-clockbar-temperature-entity"));
-        var entityInp: any = entityInput("sp-clockbar-temperature-entity", primaryClockBarTemperatureEntity(), "sensor.outdoor_temperature", ["sensor"]);
-        entityField.appendChild(entityInp);
-        panel.appendChild(entityField);
-        var degreeToggle: any = toggleRow("Show Degree Symbol", "sp-clockbar-temperature-degree-symbol", state.temperatureDegreeSymbolOn);
-        panel.appendChild(degreeToggle.row);
-        var saveRow: any = document.createElement("div");
-        saveRow.className = "sp-btn-row sp-btn-row--save sp-has-secondary";
-        var visible: any = clockBarItemActive("temperature");
-        var hideBtn: any = createActionButton("sp-action-btn sp-hide-btn", visible ? "Hide" : "Show", visible ? "eye-off-outline" : "eye-outline");
-        hideBtn.addEventListener("click", function (this: any) {
-            setClockBarItemVisible("temperature", !visible);
-            closeSettings();
-        });
-        saveRow.appendChild(hideBtn);
-        var saveBtn: any = createActionButton("sp-action-btn sp-save-btn", "Save");
-        saveBtn.addEventListener("click", function (this: any) {
-            saveClockBarTemperatureSettings(entityInp.value, degreeToggle.input.checked);
-            closeSettings();
-        });
-        saveRow.appendChild(saveBtn);
-        panel.appendChild(saveRow);
-        container.appendChild(panel);
-        entityInp.focus();
-    }
+
     return {
         hideSettingsOverlay,
         updatePreviewHint,
@@ -267,6 +206,6 @@ export function createButtonSettingsSelectionFeature(runtime: UiRuntimeState, cl
         handleDocumentSelectionMouseDown,
         openSelectedCardSettings,
         selectClockBarItem,
-        openClockBarTemperatureSettings,
+
     };
 }

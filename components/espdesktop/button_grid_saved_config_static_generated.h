@@ -9,11 +9,6 @@
 
 template<typename Config>
 inline bool normalize_saved_config_static(Config &config) {
-  if (config.type == "internal") {
-    config.type = "internal";
-    config.options.clear();
-    return true;
-  }
   if (config.type == "light_brightness") {
     config.sensor.clear();
     config.type = "light_brightness";
@@ -35,35 +30,6 @@ inline bool normalize_saved_config_static(Config &config) {
   }
   if (config.type == "push") {
     config.type = "push";
-    config.options.clear();
-    return true;
-  }
-  if (config.type == "screen_lock") {
-    config.entity.clear();
-    config.label.clear();
-    config.icon = "Lock";
-    config.icon_on = "Lock Open";
-    config.sensor.clear();
-    config.unit.clear();
-    config.type = "screen_lock";
-    config.precision.clear();
-    std::string normalized_options;
-    if (("," + config.options + ",").find(",screensaver_on_lock,") != std::string::npos) {
-      if (!normalized_options.empty()) normalized_options += ",";
-      normalized_options += "screensaver_on_lock";
-    }
-    config.options = normalized_options;
-    return true;
-  }
-  if (config.type == "screensaver") {
-    config.entity.clear();
-    config.label.clear();
-    config.icon = "Monitor";
-    config.icon_on = "Auto";
-    config.sensor.clear();
-    config.unit.clear();
-    config.type = "screensaver";
-    config.precision.clear();
     config.options.clear();
     return true;
   }

@@ -6,9 +6,9 @@ description:
 
 # Language Support
 
-Most of the text shown by EspDesktop comes directly from Home Assistant. Entity names, states, media titles, weather values, service names, and other Home Assistant content are shown using the text Home Assistant provides. If Home Assistant has translated that content for your language, EspDesktop will normally show that translated text too.
+Card labels come from your saved configuration. Mac app names and statistics come from your paired Mac and retain the text it supplies.
 
-EspDesktop only keeps its own translations for text that is built into the screen firmware, such as fixed button labels, status messages, weather labels, month names, and confirmation prompts.
+EspDesktop only keeps its own translations for text that is built into the screen firmware, such as fixed button labels, status messages, month names, and confirmation prompts.
 
 The source list for that built-in screen text is the [English strings file](https://github.com/jtenniswood/espdesktop/blob/main/product/v2/translations/strings.en.txt). Each supported language has a matching file in the same folder.
 

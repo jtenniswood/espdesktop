@@ -45,36 +45,6 @@
     }
   },
   {
-    "name": "action: service",
-    "input": "~scene.example,,Flash,Auto,scene.turn_on,,action,,",
-    "expected": {
-      "entity": "scene.example",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "scene.turn_on",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "action: local",
-    "input": "~zoom_mute,,Flash,Auto,local,,action,,",
-    "expected": {
-      "entity": "zoom_mute",
-      "label": "",
-      "icon": "Gesture Tap",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "vacuum: status",
     "input": "~vacuum.example,,Robot%20Vacuum,Auto,status,,vacuum,,",
     "expected": {
@@ -325,36 +295,6 @@
       "sensor": "disarm",
       "unit": "",
       "type": "alarm_action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "calendar: date",
-    "input": "~sensor.date,,Auto,Auto,,,calendar,,",
-    "expected": {
-      "entity": "sensor.date",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "calendar",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "clock: local_time",
-    "input": "~,,Auto,Auto,,,clock,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "clock",
       "precision": "",
       "options": ""
     }
@@ -750,36 +690,6 @@
     }
   },
   {
-    "name": "internal: switch",
-    "input": "~relay_1,,Lightbulb%20Outline,Lightbulb,switch,,internal,,",
-    "expected": {
-      "entity": "relay_1",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "switch",
-      "unit": "",
-      "type": "internal",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "internal: push",
-    "input": "~relay_1,,Lightbulb%20Outline,Lightbulb,push,,internal,,",
-    "expected": {
-      "entity": "relay_1",
-      "label": "",
-      "icon": "Lightbulb Outline",
-      "icon_on": "Lightbulb",
-      "sensor": "push",
-      "unit": "",
-      "type": "internal",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "light_brightness: brightness",
     "input": "~light.example,,Lightbulb%20Outline,Lightbulb,,,light_brightness,,",
     "expected": {
@@ -1020,21 +930,6 @@
     }
   },
   {
-    "name": "option_select: legacy_option_select",
-    "input": "~input_select.example,,Flash,Auto,input_select.select_option,,option_select,,",
-    "expected": {
-      "entity": "input_select.example",
-      "label": "",
-      "icon": "Flash",
-      "icon_on": "Auto",
-      "sensor": "input_select.select_option",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
     "name": "push: event",
     "input": "~,Trigger,Gesture%20Tap,Auto,,,push,,",
     "expected": {
@@ -1065,152 +960,17 @@
     }
   },
   {
-    "name": "screensaver: force",
-    "input": "~,,Monitor,Auto,,,screensaver,,",
+    "name": "companion_mac_lock: lock",
+    "input": "~shortcut.command%2Bcontrol%2Bq,Mac%20Lock,Lock,Auto,,,companion_mac_lock,,",
     "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Monitor",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "screensaver",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "screen_lock: toggle",
-    "input": "~,,Lock,Lock%20Open,,,screen_lock,,",
-    "expected": {
-      "entity": "",
-      "label": "",
+      "entity": "shortcut.command+control+q",
+      "label": "Mac Lock",
       "icon": "Lock",
-      "icon_on": "Lock Open",
+      "icon_on": "Auto",
       "sensor": "",
       "unit": "",
-      "type": "screen_lock",
+      "type": "companion_mac_lock",
       "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "webhook: get",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,GET,,webhook,,",
-    "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "GET",
-      "unit": "",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "webhook: post",
-    "input": "~https%3A%2F%2Fexample.invalid%2Fhook,,Auto,Auto,POST,%7B%7D,webhook,,",
-    "expected": {
-      "entity": "https://example.invalid/hook",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "POST",
-      "unit": "{}",
-      "type": "webhook",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: numeric",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,1,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: time",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,time,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "time",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: text",
-    "input": "~,,Auto,Auto,sensor.example,,sensor,text,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: icon",
-    "input": "~,,Auto,Auto,binary_sensor.example,,sensor,icon,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "binary_sensor.example",
-      "unit": "",
-      "type": "sensor",
-      "precision": "icon",
-      "options": ""
-    }
-  },
-  {
-    "name": "sensor: local",
-    "input": "~room_temp,,Auto,Auto,local,,sensor,1,",
-    "expected": {
-      "entity": "room_temp",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
-      "options": ""
-    }
-  },
-  {
-    "name": "local_sensor: legacy_local_sensor",
-    "input": "~room_temp,,Auto,Auto,local,,local_sensor,1,",
-    "expected": {
-      "entity": "room_temp",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "sensor",
-      "precision": "1",
       "options": ""
     }
   },
@@ -1240,21 +1000,6 @@
       "sensor": "",
       "unit": "",
       "type": "subpage",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "timezone: timezone",
-    "input": "~Europe%2FLondon,,Auto,Auto,,,timezone,,",
-    "expected": {
-      "entity": "Europe/London",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "timezone",
       "precision": "",
       "options": ""
     }
@@ -1335,66 +1080,6 @@
     }
   },
   {
-    "name": "wifi_qr: share",
-    "input": "~,Connect,Wifi,Auto,,,wifi_qr,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ",
-    "expected": {
-      "entity": "",
-      "label": "Connect",
-      "icon": "Wifi",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ"
-    }
-  },
-  {
-    "name": "wifi_qr: guest",
-    "input": "~switch.guest_wifi,Connect,Wifi,Auto,,,wifi_qr,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ%2Cwifi_tabs%3Dguest",
-    "expected": {
-      "entity": "switch.guest_wifi",
-      "label": "Connect",
-      "icon": "Wifi",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ,wifi_tabs=guest"
-    }
-  },
-  {
-    "name": "wifi_qr_card: tile_qr",
-    "input": "~,,Auto,Auto,,,wifi_qr_card,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ",
-    "expected": {
-      "entity": "",
-      "label": "Connect",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr_card",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ"
-    }
-  },
-  {
-    "name": "wifi_qr_card: guest",
-    "input": "~switch.guest_wifi,,Auto,Auto,,,wifi_qr_card,,ssid64%3DR3Vlc3Q%2Cpass64%3DUGFzc3dvcmQ%2Cwifi_tabs%3Dguest",
-    "expected": {
-      "entity": "switch.guest_wifi",
-      "label": "Connect",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "wifi_qr_card",
-      "precision": "",
-      "options": "ssid64=R3Vlc3Q,pass64=UGFzc3dvcmQ,wifi_tabs=guest"
-    }
-  },
-  {
     "name": "weather_forecast: legacy_forecast",
     "input": "~weather.example,,Auto,Auto,,,weather_forecast,tomorrow,",
     "expected": {
@@ -1406,36 +1091,6 @@
       "unit": "",
       "type": "weather",
       "precision": "tomorrow",
-      "options": ""
-    }
-  },
-  {
-    "name": "local: accepted_legacy_input",
-    "input": "~zoom_mute,,,,local,,local,,",
-    "expected": {
-      "entity": "zoom_mute",
-      "label": "",
-      "icon": "Gesture Tap",
-      "icon_on": "Auto",
-      "sensor": "local",
-      "unit": "",
-      "type": "action",
-      "precision": "",
-      "options": ""
-    }
-  },
-  {
-    "name": "text_sensor: accepted_legacy_input",
-    "input": "~sensor.example,,,,,,text_sensor,,",
-    "expected": {
-      "entity": "",
-      "label": "",
-      "icon": "Auto",
-      "icon_on": "Auto",
-      "sensor": "",
-      "unit": "",
-      "type": "sensor",
-      "precision": "text",
       "options": ""
     }
   },

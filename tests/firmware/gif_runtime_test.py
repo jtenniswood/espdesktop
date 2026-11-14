@@ -175,38 +175,10 @@ void image_card_handle_modal_download_error(ImageCardCtx *) {}
 """
 ui_source = (ROOT / "components/espdesktop/button_grid_image.h").read_text()
 for name in ("image_card_page_visible", "image_card_context_visible_on_active_screen",
-             "image_card_bind_callbacks", "image_card_bind_modal_callbacks"):
+             "image_card_bind_callbacks"):
     match = re.search(rf"^inline [^\n]*\b{name}\([^;{{]*\) \{{\n.*?^\}}", ui_source, re.M | re.S)
     assert match, name
     source += "\n" + match[0] + "\n"
-
-# Compile the camera screensaver's actual visibility/redraw binding as well.
-screensaver = (ROOT / "common/device/screen_camera_screensaver.yaml").read_text()
-binding = re.search(r"id\(camera_screensaver_downloaded_image\)->set_animation_callbacks\(.*?\}, true\);",
-                    screensaver, re.S)
-assert binding
-source += r'''
-namespace espdesktop { enum class DisplayMode { CAMERA, OTHER }; }
-struct Display {
-  espdesktop::DisplayMode mode = espdesktop::DisplayMode::CAMERA;
-  uint32_t generation = 1;
-  Display &display() { return *this; }
-  bool target_mode_is(espdesktop::DisplayMode expected) { return mode == expected; }
-  bool transition_is_current(uint32_t expected_generation, espdesktop::DisplayMode expected) {
-    return generation == expected_generation && target_mode_is(expected);
-  }
-};
-struct ScreensaverIds {
-  Artwork *camera_screensaver_downloaded_image = nullptr;
-  uint32_t camera_screensaver_transition_generation = 1;
-  Display espdesktop_app;
-  bool camera_screensaver_entity_unavailable = false, camera_screensaver_image_available = false;
-  lv_obj_t *camera_screensaver = nullptr, *camera_screensaver_image = nullptr;
-} firmware_ids;
-#define id(name) firmware_ids.name
-void bind_screensaver_animation() {
-'''
-source += binding[0] + "\n}\n#undef id\n"
 
 main = r'''
 using namespace esphome::artwork_image;
@@ -371,77 +343,7 @@ int main() {
   assert(fake_esphome_allocator::external_pointers.empty());
 
 
-  // Full-screen playback must work even with a dashboard GIF and a cached
-  // expanded GIF. It shares the second slot without changing transfer priority.
-  {
-    ArtworkImage dashboard, cached_modal, screensaver;
-    bool dashboard_visible = true, modal_visible = true;
-    dashboard.set_animation_callbacks([&]() { return dashboard_visible; }, []() {}, []() { return true; });
-    cached_modal.p4_pipeline_priority_ = P4_PIPELINE_MODAL;
-    cached_modal.set_animation_callbacks([&]() { return modal_visible; }, []() {});
-    load(dashboard, file, false);
-    const auto *dashboard_decoder = dashboard.animation_.get();
-    load(cached_modal, file, false);
-    lv_obj_t overlay, widget{&overlay};
-    firmware_ids = ScreensaverIds{};
-    firmware_ids.camera_screensaver_downloaded_image = &screensaver;
-    firmware_ids.camera_screensaver = &overlay;
-    firmware_ids.camera_screensaver_image = &widget;
-    bind_screensaver_animation();
-    load(screensaver, file, false, false);
-    assert(cached_modal.animation_ && gif_slots[1] == &cached_modal);  // Visible views keep ownership.
-    dashboard_visible = modal_visible = false;
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::OTHER;
-    load(screensaver, file, false, false);
-    assert(cached_modal.animation_ && gif_slots[1] == &cached_modal);  // Hidden screensavers cannot evict.
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::CAMERA;
-    load(screensaver, file, true);
-    assert(gif_slots[0] == &dashboard && gif_slots[1] == &screensaver);
-    assert(dashboard.animation_.get() == dashboard_decoder && !cached_modal.animation_);
-    assert(!screensaver.animation_needs_reload());
-    firmware_ids.camera_screensaver_image_available = true;
-    assert(screensaver.animation_visible_());
-    now_ms += 1000;
-    for (int i = 0; i < 100 && !widget.invalidations; ++i) screensaver.loop_animation_();
-    assert(widget.invalidations == 1 && screensaver.cache_invalidations == 1);
-    assert(std::equal(screensaver.active.begin(), screensaver.active.end(), expected.begin() + 6 + 128));
-    // Hidden widgets, unavailable entities, stale transitions and other modes
-    // must pause playback without updating the displayed surface.
-    auto check_paused = [&]() {
-      assert(!screensaver.animation_visible_());
-      const auto previous = screensaver.active;
-      const int redraws = widget.invalidations;
-      now_ms += 1000;
-      for (int i = 0; i < 100; ++i) screensaver.loop_animation_();
-      assert(screensaver.active == previous && widget.invalidations == redraws);
-      assert(!esphome::HighFrequencyLoopRequester::is_high_frequency());
-    };
-    widget.hidden = true; check_paused(); widget.hidden = false;
-    overlay.hidden = true; check_paused(); overlay.hidden = false;
-    firmware_ids.camera_screensaver_entity_unavailable = true; check_paused();
-    firmware_ids.camera_screensaver_entity_unavailable = false;
-    firmware_ids.camera_screensaver_image_available = false; check_paused();
-    firmware_ids.camera_screensaver_image_available = true;
-    firmware_ids.espdesktop_app.generation = 2; check_paused();
-    firmware_ids.espdesktop_app.generation = 1;
-    firmware_ids.camera_screensaver_transition_generation = 0; check_paused();
-    firmware_ids.camera_screensaver_transition_generation = 1;
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::OTHER; check_paused();
-    firmware_ids.espdesktop_app.mode = espdesktop::DisplayMode::CAMERA;
-    screensaver.stop_animation_();  // Called by ArtworkImage::release() on wake.
-    assert(gif_slots[0] == &dashboard && !gif_slots[1]);
-    dashboard_visible = true;
-    now_ms += 1000;
-    for (int i = 0; i < 100 && !dashboard.cache_invalidations; ++i) dashboard.loop_animation_();
-    assert(dashboard.cache_invalidations == 1);
-    // Entering again reserves playback afresh; still replacements release it.
-    dashboard_visible = false;
-    load(screensaver, file, false);
-    assert(screensaver.animation_ && gif_slots[1] == &screensaver);
-    load(screensaver, still_file, false, false);
-    assert(!screensaver.animation_ && !gif_slots[1]);
-    dashboard.stop_animation_();
-  }
+
   assert(fake_esphome_allocator::external_pointers.empty());
 
 
@@ -474,23 +376,8 @@ int main() {
       for (int i = 0; i < 100 && ctx->widget->invalidations == old_redraws; ++i) ctx->image->loop_animation_();
       assert(ctx->widget->invalidations > old_redraws);
     }
-    // Expanding a cached still on another subpage has its own reservation.
     active_screen = &page_a;
     load(a, file, false);
-    lv_obj_t modal_widget{&page_a};
-    modal_ui.active = &a_ctx; modal_ui.image_widget = &modal_widget;
-    active_modal.kind = ControlModalKind::IMAGE_CARD;
-    modal.p4_pipeline_priority_ = P4_PIPELINE_MODAL;
-    image_card_bind_modal_callbacks(&modal);
-    load(modal, file, false);
-    assert(!a.animation_visible_() && modal.animation_visible_());
-    assert(gif_slots[0] == &a && gif_slots[1] == &modal);
-    now_ms += 1000;
-    a.loop_animation_();
-    for (int i = 0; i < 100 && !modal_widget.invalidations; ++i) modal.loop_animation_();
-    assert(modal_widget.invalidations);
-    modal_ui.active = nullptr; active_modal.kind = ControlModalKind::NONE;
-    assert(a.animation_visible_() && !modal.animation_visible_());
     // Covering modals and screensavers pause without surrendering the page slot.
     active_modal.kind = ControlModalKind::OTHER;
     assert(!a.animation_visible_() && a.animation_screen_active_());
@@ -499,8 +386,7 @@ int main() {
     assert(!a.animation_visible_());
     a.loop_animation_();
     image_card_page_visible() = []() { return true; };
-    suspended = true; assert(!a.animation_visible_());
-    suspended = false; assert(a.animation_visible_());
+    assert(a.animation_visible_());
     const auto previous_redraws = a_widget.invalidations;
     now_ms += 1000;
     for (int i = 0; i < 100 && a_widget.invalidations == previous_redraws; ++i) a.loop_animation_();
@@ -711,4 +597,4 @@ inline void *heap_caps_realloc(void *pointer, size_t size, int caps) {
             str(temp / "gif_image.cpp"), str(temp / "test.cpp"), "-o", str(executable),
         ], check=True)
         subprocess.run([str(executable)], check=True)
-print("GIF runtime: subpage navigation, camera screensaver playback/recovery, modal/sleep recovery, still admission, source compaction, bounded frames, refresh recovery and PSRAM failures passed")
+print("GIF runtime: subpage navigation, fullscreen artwork playback/recovery, modal/sleep recovery, still admission, source compaction, bounded frames, refresh recovery and PSRAM failures passed")

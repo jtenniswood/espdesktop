@@ -110,6 +110,7 @@ export interface CardTypeSpec {
   default: CardConfig;
   domains: readonly string[];
   pickerKey?: string;
+  pickerLabel?: string;
   hidden?: boolean;
   options?: readonly CardOptionSpec[];
   normalization?: CardNormalizationSpec;
@@ -124,10 +125,6 @@ export interface CardTypeSpec {
     };
     pushAction?: {
       defaultIcon: string;
-      defaultIconOn: string;
-    };
-    internalRelay?: {
-      defaultIcons: Readonly<Record<string, string>>;
       defaultIconOn: string;
     };
     media?: {
@@ -190,7 +187,7 @@ export interface PanelSettings {
   clock_bar_night_mode?: boolean;
   network_status_icon: boolean;
   battery_status?: boolean;
-  voice_services?: boolean;
+
   timezone: string;
   language: string;
   clock_format: string;
@@ -220,10 +217,6 @@ export interface DeviceProfile {
     displayOffset?: number;
     rotateWidthCompensation?: boolean;
   };
-  internalRelays?: readonly {
-    key: string;
-    label: string;
-  }[];
   web: {
     dragMode: "swap" | "displace";
     dragAnimation: boolean;

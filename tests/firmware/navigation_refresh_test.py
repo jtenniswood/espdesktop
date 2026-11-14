@@ -16,9 +16,20 @@ code = r'''
 #include <algorithm>
 #include <array>
 #include <cassert>
+#define ESP_LOGD(...) ((void)0)
 #include <cstddef>
 #include <cstdint>
 #include <functional>
+#include "grid_navigation_diagnostics.h"
+#include "display_lifecycle_service.h"
+namespace espdesktop {
+struct TestApp {
+  DisplayLifecycleService display;
+  const DisplayLifecycleService &display_lifecycle() const { return display; }
+};
+TestApp app_core;
+const TestApp *active_espdesktop_app_core() { return &app_core; }
+}
 #include <map>
 #include <string>
 #include <vector>
@@ -38,6 +49,7 @@ struct CompanionAppIconImageData {
   void release_source_pixels() { pixels = nullptr; }
 };
 namespace espdesktop::cover_art { using AccentPalette = decltype(CompanionAppIconImageData::accent_palette); }
+namespace esphome { uint32_t millis() { return 12; } }
 namespace esphome::companion {
 constexpr size_t APP_ICON_PIXEL_BYTES = 172800;
 constexpr size_t APP_ICON_MEMORY_HEADROOM_BYTES = 1024 * 1024;
@@ -60,10 +72,31 @@ std::vector<lv_obj_t *> screens{&home, &subpage};
 auto &navigation_grid_screens() { return screens; }
 lv_obj_t *active = &home;
 lv_obj_t *lv_scr_act() { return active; }
+unsigned modal_closures = 0;
+void navigation_close_modals_for_display_takeover() { ++modal_closures; }
 lv_obj_t *lv_obj_get_screen(lv_obj_t *o) { return o->screen; }
 size_t lv_obj_get_child_cnt(lv_obj_t *o) { return o->children.size(); }
 lv_obj_t *lv_obj_get_child(lv_obj_t *o, int32_t i) { return o->children[i]; }
 void *lv_obj_get_user_data(lv_obj_t *o) { return o->data; }
+// Model a costly image refresh: it must see the destination frame presented.
+lv_obj_t *last_presented = nullptr;
+unsigned frames_presented = 0, image_refreshes = 0;
+struct lv_display_t {} display;
+constexpr int LV_EVENT_REFR_READY = 100;
+void (*frame_callback)(lv_event_t *) = nullptr;
+unsigned frame_callback_registrations = 0;
+void lv_display_add_event_cb(lv_display_t *d, void (*cb)(lv_event_t *), int event, void *) {
+  assert(d == &display && event == LV_EVENT_REFR_READY);
+  frame_callback = cb; ++frame_callback_registrations;
+}
+lv_display_t *lv_obj_get_display(lv_obj_t *) { return &display; }
+void lv_refr_now(lv_display_t *d) {
+  assert(d == &display); last_presented = active; ++frames_presented;
+}
+void refresh_visible_image_cards() {
+  assert(last_presented == active && frames_presented == image_refreshes + 1);
+  ++image_refreshes;
+}
 unsigned applies = 0, title_refreshes = 0;
 constexpr int LV_STATE_CHECKED = 1;
 bool lv_obj_has_state(lv_obj_t *obj, int) { return obj->checked; }
@@ -84,20 +117,54 @@ void navigation_refresh_subpage_label() {
 }
 '''
 # Forward declaration needed by the title callback double.
-code = code.replace("void navigation_refresh_subpage_label()", "void companion_refresh_app_icon_visibility();\nvoid navigation_refresh_subpage_label()")
+code = code.replace("void navigation_refresh_subpage_label()", "void companion_refresh_app_icon_visibility(bool release_hidden = false);\nvoid navigation_refresh_subpage_label()")
 code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *grid_find_companion_app_icon_image_for_data(")
 code += function("components/espdesktop/button_grid_grid.h", "inline lv_obj_t *grid_find_companion_app_icon_image(lv_obj_t *owner) {")
-code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility() {")
+for signature in ("inline bool &companion_app_icon_work_pending() {",
+                  "inline bool &companion_app_icon_waiting_for_frame() {",
+                  "inline void companion_app_icon_frame_presented(lv_event_t *) {",
+                  "inline void companion_app_icon_wait_for_frame(lv_obj_t *image) {"):
+    code += function("components/espdesktop/button_grid_grid.h", signature)
+code += function("components/espdesktop/button_grid_grid.h", "inline bool companion_app_icon_sleep_page_active() {")
+code += function("components/espdesktop/button_grid_grid.h", "inline void companion_refresh_app_icon_visibility(bool release_hidden) {")
+code += function("components/espdesktop/button_grid_grid.h", "inline void grid_release_runtime_allocations(")
 code += function("components/espdesktop/button_grid_navigation.h", "inline std::function<void()> &navigation_subpage_clock_bar_refresh() {")
 code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_subpage_screen_changed(lv_event_t *) {")
-for signature in ("inline bool &companion_app_icon_work_pending() {",
-                  "inline bool companion_app_icon_pixels_current(",
+code += function("components/espdesktop/button_grid_navigation.h", "inline void navigation_present_page_before_image_refresh(uint32_t started) {")
+for signature in ("inline bool companion_app_icon_pixels_current(",
                   "inline void companion_refresh_cached_app_icon(",
                   "inline void companion_refresh_app_icon_connection_state(",
                   "inline void companion_process_pending_app_icon_refresh() {"):
     code += function("components/espdesktop/button_grid_grid.h", signature)
 code += r'''
+void present_icon_frame() { if (frame_callback) frame_callback(nullptr); }
+void settle_icon_work() {
+  unsigned turns = 0;
+  while (companion_app_icon_work_pending()) {
+    assert(++turns < 32);
+    present_icon_frame();
+    companion_process_pending_app_icon_refresh();
+  }
+}
 int main() {
+  // Cache eviction frees only the hidden page's contexts without closing the
+  // visible modal. Releasing its own context still closes it.
+  int home_context = 0, subpage_context = 0;
+  allocations = {{&home_image, &home_context, nullptr}, {&subpage_image, &subpage_context, nullptr}};
+  grid_release_runtime_allocations(&subpage_image);
+  assert(allocations.size() == 1 && modal_closures == 0);
+  grid_release_runtime_allocations(&home_image);
+  assert(allocations.empty() && modal_closures == 1);
+  // Both return destinations are drawn before camera/artwork recovery runs.
+  for (auto *destination : {&home, &subpage}) {
+    active = destination;
+    navigation_present_page_before_image_refresh(3);
+    assert(last_presented == destination && grid_navigation_diagnostics().back_frame_ms == 9);
+  }
+  active = nullptr;
+  navigation_present_page_before_image_refresh(3);
+  assert(frames_presented == 2 && image_refreshes == 2);
+  active = &home;
   CompanionAppIconImageData main_icon, child_icon;
   lv_obj_t home_owner{&home, {&home_image}}, subpage_owner{&subpage, {&subpage_image}};
   home_image.data = &main_icon;
@@ -106,41 +173,56 @@ int main() {
                  {&subpage_owner, &child_icon, grid_delete_runtime_ptr<CompanionAppIconImageData>}};
   navigation_subpage_clock_bar_refresh() = [] { navigation_refresh_subpage_label(); };
   navigation_subpage_screen_changed(nullptr);
+  assert(applies == 0 && main_icon.refresh_pending);
+  companion_process_pending_app_icon_refresh();
+  assert(applies == 0); // No icon decode before the destination's first frame.
+  settle_icon_work();
+  assert(frame_callback_registrations == 1);
   assert(title_refreshes == 1 && applies == 1 && main_icon.image_loaded);
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(title_refreshes == 2 && applies == 2 && child_icon.image_loaded && main_icon.image_loaded);
   // Duplicate events and returning home reuse both decoded and scaled pixels.
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   active = &home;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(title_refreshes == 4 && applies == 2);
   navigation_subpage_clock_bar_refresh() = nullptr;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(title_refreshes == 5 && applies == 2);
   // Existing icon update/connection callbacks release stale hidden pixels.
   companion_apply_cached_app_icon(child_icon, &subpage_image);
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(child_icon.image_loaded && applies == 4);
   // Failed loads must release their leftover allocation when hidden.
   child_icon.image_loaded = false;
   active = &home;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(child_icon.pixels == nullptr && applies == 5);
   // Scaled pixels count toward the hidden budget as well as source pixels.
   main_icon.display_bytes = 2 * 1024 * 1024;
   active = &subpage;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(!main_icon.pixels && child_icon.image_loaded && applies == 7);
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(applies == 7);
-  // Camera, sleep, and other non-grid screens reclaim the complete cache.
+  // Camera and other non-grid screens reclaim the complete cache.
   lv_obj_t camera{};
   active = &camera;
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(!main_icon.pixels && !child_icon.pixels && applies == 8);
   navigation_subpage_screen_changed(nullptr);
+  settle_icon_work();
   assert(applies == 8);
   // Several individually small entries must share the same total budget.
   CompanionAppIconImageData icons[13];
@@ -227,6 +309,9 @@ int main() {
   assert(applies == before + 1 && cached[0].refresh_pending && !cached[1].refresh_pending);
   assert(cached[1].loaded_hash[0] == 5);
   companion_process_pending_app_icon_refresh();
+  assert(applies == before + 1); // At most one icon between presented frames.
+  present_icon_frame();
+  companion_process_pending_app_icon_refresh();
   assert(applies == before + 2 && !companion_app_icon_work_pending());
   companion_refresh_cached_app_icon("");
   assert(!companion_app_icon_work_pending());
@@ -262,12 +347,53 @@ int main() {
   test_free_psram = 512 * 1024;
   companion_refresh_app_icon_visibility();
   assert(!ready_icons[0].pixels && !ready_icons[0].display_pixels && !ready_icons[0].image_loaded);
+
+  // Keep the scaled icon through sleep so the first wake frame can use it.
+  lv_obj_t sleep{};
+  auto &presentation = espdesktop::app_core.display;
+  auto &sleeping_icon = ready_icons[0];
+  sleeping_icon.application_id = "wake.app";
+  sleeping_icon.display_pixels = reinterpret_cast<uint8_t *>(1);
+  sleeping_icon.display_bytes = 160 * 160 * 3;
+  sleeping_icon.image_loaded = sleeping_icon.loaded_hash_valid = true;
+  esphome::companion::app_icon_store().hashes["wake.app"] = sleeping_icon.loaded_hash;
+  test_free_psram = 8 * 1024 * 1024;
+  active = &sleep;
+  presentation.set_blank_page_active(true);
+  before = applies;
+  companion_refresh_app_icon_visibility();
+  assert(sleeping_icon.display_pixels && sleeping_icon.image_loaded);
+  active = &home;
+  presentation.set_blank_page_active(false);
+  companion_refresh_app_icon_visibility();
+  settle_icon_work();
+  assert(applies == before);
+
+  // A real catalogue update waits for wake and can then replace the icon.
+  active = &sleep;
+  presentation.set_blank_page_active(true);
+  esphome::companion::app_icon_store().hashes["wake.app"].fill(7);
+  companion_refresh_cached_app_icon("wake.app");
+  companion_process_pending_app_icon_refresh();
+  assert(sleeping_icon.refresh_pending && sleeping_icon.image_loaded && applies == before);
+  active = &home;
+  presentation.set_blank_page_active(false);
+  companion_refresh_app_icon_visibility();
+  settle_icon_work();
+  assert(applies == before + 1 && sleeping_icon.image_loaded);
+
+  // Memory pressure can still reclaim the cache while the display sleeps.
+  active = &sleep;
+  presentation.set_blank_page_active(true);
+  companion_refresh_app_icon_visibility(/*release_hidden=*/true);
+  assert(!sleeping_icon.pixels && !sleeping_icon.display_pixels && !sleeping_icon.image_loaded);
+
 }
 '''
 with tempfile.TemporaryDirectory(prefix="navigation-refresh-") as directory:
     temp = Path(directory)
     (temp / "test.cpp").write_text(code)
     subprocess.run([os.environ.get("CXX", "c++"), "-std=c++17", "-Wall", "-Wextra", "-Werror",
-                    str(temp / "test.cpp"), "-o", str(temp / "test")], check=True)
+                    "-I", str(ROOT / "components/espdesktop"), str(temp / "test.cpp"), "-o", str(temp / "test")], check=True)
     subprocess.run([str(temp / "test")], check=True)
 print("Page transitions and catalogue refreshes reuse icons; changed pixels rebuild one per turn with live-owner safety.")

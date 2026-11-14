@@ -3,17 +3,25 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <memory>
+#include <type_traits>
 
+#include "application_scene_runtime.h"
+#include "configuration_buffer.h"
+#include "display_brightness_preferences.h"
+#include "display_theme_preferences.h"
+#include "screen_schedule_preferences.h"
+#include "espdesktop_app_core.h"
 #include "esphome/components/text/text.h"
+#include "esphome/core/automation.h"
 #include "esphome/core/component.h"
 
-#include "card_asset_service.h"
-#include "card_asset_http_api.h"
-#include "espdesktop_app_core.h"
 #include "panel_identity.h"
-#include "panel_flash_layout.h"
-#include "home_assistant_endpoint_resolver.h"
+#include "panel_config_text_storage.h"
+namespace esphome::template_ {
+class TemplateText;
+}
 namespace espdesktop {
 
 // The main ESPHome component boundary for EspDesktop runtime services.
@@ -30,7 +38,6 @@ class EspDesktopApp : public esphome::Component {
 
   void setup() override;
   void loop() override;
-  void on_safe_shutdown() override;
   void on_shutdown() override;
   float get_setup_priority() const override {
     // The native configuration wiring binds restored ESPHome text entities.
@@ -40,26 +47,66 @@ class EspDesktopApp : public esphome::Component {
     return esphome::setup_priority::AFTER_WIFI;
   }
 
+  DisplayLifecycleService &display_lifecycle() { return core_.display_lifecycle(); }
   DisplayModeController &display() { return core_.display(); }
   const DisplayModeController &display() const { return core_.display(); }
   CardAssetService &card_assets() { return card_assets_; }
   const CardAssetService &card_assets() const { return card_assets_; }
   AppLifecycleState lifecycle_state() const { return core_.lifecycle_state(); }
-  HomeAssistantEndpointResolver &home_assistant_endpoint() {
-    return home_assistant_endpoint_;
-  }
   bool connector_onboarding_complete() const;
+  using ScalarSetting = panel_settings::ScalarSetting;
+  using ScalarPublisher = void (*)(std::string_view);
+  void bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish);
+  void edit_panel_scalar(ScalarSetting setting, std::string_view value);
+  void edit_panel_number(ScalarSetting setting, float value);
+  using BrightnessPublisher = void (*)(const DisplayBrightnessPreferences &);
+  void bind_display_brightness_preferences(BrightnessPublisher publish);
+  const DisplayBrightnessPreferences &display_brightness_preferences() const { return display_brightness_; }
+  void save_display_brightness_preferences(const DisplayBrightnessPreferences &settings);
+  void edit_manual_brightness(float fraction);
+  template<typename T>
+  void edit_display_brightness_preference(T DisplayBrightnessPreferences::*field, T value) {
+    auto next = display_brightness_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_brightness_preferences(next);
+  }
+  void bind_screen_schedule(unsigned default_clock_brightness,
+      std::function<void(const ScreenSchedulePreferences &)> apply);
+  const ScreenSchedulePreferences &screen_schedule_preferences() const {
+    return screen_schedule_ ? *screen_schedule_ : screen_schedule_defaults_;
+  }
 
+  template<typename T>
+  void edit_screen_schedule_preference(T ScreenSchedulePreferences::*field, T value) {
+    auto next = screen_schedule_preferences();
+    if (next.*field == value) return;
+    next.*field = value;
+    save_screen_schedule_preferences(next);
+  }
+  void edit_screen_schedule_number(unsigned ScreenSchedulePreferences::*field, float value);
+  void bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish);
+  const ThemeSettings &display_theme_preferences() const { return display_theme_preferences_; }
+
+  template<typename T>
+  void edit_display_theme_preference(T ThemeSettings::*field, T value) {
+    auto next = display_theme_preferences_;
+    if (next.*field == value) return;
+    next.*field = value;
+    save_display_theme_preferences(next);
+  }
+
+  // The scene belongs to the firmware application's UI owner and outlives this
+  // component. Installation cannot switch a running legacy grid underneath it.
+  bool install_application_scene(ApplicationSceneRuntime& scene);
+  esphome::Trigger<> *get_layout_changed_trigger() { return &layout_changed_; }
   void set_panel_config_device_profile(const char *device_profile);
   void set_panel_config_button_order(esphome::text::Text *button_order);
   void set_panel_config_button_on_color(esphome::text::Text *button_on_color);
-  void set_panel_config_special_page(
-      esphome::text::Text *chunk_0, esphome::text::Text *chunk_1,
-      esphome::text::Text *chunk_2, esphome::text::Text *chunk_3,
-      esphome::text::Text *chunk_4 = nullptr,
-      esphome::text::Text *chunk_5 = nullptr,
-      esphome::text::Text *chunk_6 = nullptr,
-      esphome::text::Text *chunk_7 = nullptr);
+  // Code generation marks only restore-enabled TemplateText fields whose
+  // configured initial value is empty. Missing preferences are equivalent to
+  // empty values for those fields, including after a firmware downgrade.
+  void set_panel_config_text_empty_default(esphome::text::Text *text);
   void set_panel_config_button(
       uint8_t slot, esphome::text::Text *button,
       esphome::text::Text *subpage_0, esphome::text::Text *subpage_1,
@@ -68,6 +115,55 @@ class EspDesktopApp : public esphome::Component {
       esphome::text::Text *subpage_5 = nullptr,
       esphome::text::Text *subpage_6 = nullptr,
       esphome::text::Text *subpage_7 = nullptr);
+  // Preserve the concrete type supplied by ESPHome code generation. Only
+  // TemplateText uses the SDK preference format; custom Text platforms retain
+  // their normal control path.
+  template <typename Text> void set_panel_config_button_order(Text *value) {
+    set_panel_config_button_order(static_cast<esphome::text::Text *>(value));
+    panel_config_order_template_ =
+        std::is_same_v<Text, esphome::template_::TemplateText>;
+  }
+  template <typename Text> void set_panel_config_button_on_color(Text *value) {
+    set_panel_config_button_on_color(static_cast<esphome::text::Text *>(value));
+    panel_config_color_template_ =
+        std::is_same_v<Text, esphome::template_::TemplateText>;
+  }
+  template <typename Text, typename... Subpages>
+  void set_panel_config_button(uint8_t slot, Text *button,
+                               Subpages... subpages) {
+    static_assert(sizeof...(Subpages) >= 4 &&
+                  sizeof...(Subpages) <=
+                      configuration::PANEL_CONFIG_TEXT_CHUNK_COUNT);
+    set_panel_config_button(slot, static_cast<esphome::text::Text *>(button),
+                            static_cast<esphome::text::Text *>(subpages)...);
+    if (slot == 0 || slot > panel_config_button_texts_.size())
+      return;
+    auto &sources = panel_config_button_texts_[slot - 1];
+    sources.template_button =
+        std::is_same_v<Text, esphome::template_::TemplateText>;
+    sources.template_subpages = {
+        std::is_same_v<std::remove_pointer_t<Subpages>,
+                       esphome::template_::TemplateText>...};
+  }
+  size_t template_text_preference_count() const {
+    size_t count =
+        (panel_config_button_order_ && panel_config_order_template_) +
+        (panel_config_button_on_color_ && panel_config_color_template_);
+    for (const auto &sources : panel_config_button_texts_) {
+      count += sources.button && sources.template_button;
+      for (size_t i = 0; i < sources.subpages.size(); ++i)
+        count += sources.subpages[i] && sources.template_subpages[i];
+    }
+    return count;
+  }
+  size_t empty_default_preference_count() const {
+    size_t count = (panel_config_chrome_empty_defaults_ & 1u) != 0;
+    count += (panel_config_chrome_empty_defaults_ & 2u) != 0;
+    for (const auto &sources : panel_config_button_texts_)
+      for (unsigned bit = 0; bit < 9; ++bit)
+        count += (sources.empty_defaults & (1u << bit)) != 0;
+    return count;
+  }
   void set_panel_config_card_images_storage(bool enabled) {
     panel_config_card_images_storage_ = enabled;
   }
@@ -83,33 +179,52 @@ class EspDesktopApp : public esphome::Component {
   void register_panel_config_endpoints();
   void sync_finder_folders();
   void initialize_native_configuration();
-  void retry_native_configuration_initialization();
+  void defer_native_configuration_initialization();
   void apply_boot_configuration();
+  void publish_display_theme_preferences(const std::optional<ThemeSettings> &settings);
+  void save_display_theme_preferences(const ThemeSettings &settings);
+  void save_screen_schedule_preferences(const ScreenSchedulePreferences &settings);
+  bool save_panel_setting(std::string_view key, std::string_view value);
+  std::string_view panel_scalar_value(ScalarSetting setting) const;
+  void retry_configuration_compatibility();
   static bool clear_card_asset_references(void *context, const std::string &id);
   static CardAssetReferenceState check_recovery_references(void *context, const std::string &id);
   bool native_configuration_requested() const;
   bool create_native_configuration_runtime();
 
-  struct PanelConfigTextSources {
-    esphome::text::Text *button{nullptr};
-    std::array<esphome::text::Text *, 8> subpages{};
-  };
+  using PanelConfigTextSources =
+      configuration::PanelConfigTextSources<esphome::text::Text>;
 
+  esphome::Trigger<> layout_changed_;
   const char *panel_config_device_profile_{nullptr};
   esphome::text::Text *panel_config_button_order_{nullptr};
   esphome::text::Text *panel_config_button_on_color_{nullptr};
-  std::array<esphome::text::Text *, 8> panel_config_special_page_chunks_{};
-  std::array<PanelConfigTextSources, 32> panel_config_button_texts_{};
+  bool panel_config_order_template_{false};
+  bool panel_config_color_template_{false};
+  uint8_t panel_config_chrome_empty_defaults_{0};
+  std::array<PanelConfigTextSources,
+             configuration::PANEL_CONFIG_TEXT_SLOT_COUNT>
+      panel_config_button_texts_{};
   bool panel_config_card_images_storage_{false};
   // This owns every non-trivial configuration object. Keeping it separate
   // leaves the ESPHome-created application object safe to construct before
   // the framework's allocators and component setup are ready.
   std::unique_ptr<NativeConfigurationRuntime> native_configuration_runtime_;
   EspDesktopAppCore core_{};
-  CardAssetService card_assets_{};
-  HomeAssistantEndpointResolver home_assistant_endpoint_{};
+  ApplicationSceneRuntime* application_scene_{nullptr};
+  std::array<ScalarPublisher, panel_settings::SCALAR_RULES.size()> scalar_publishers_{};
+  DisplayBrightnessPreferences display_brightness_;
+  BrightnessPublisher apply_display_brightness_{nullptr};
+  std::optional<ScreenSchedulePreferences> screen_schedule_;
+  ScreenSchedulePreferences screen_schedule_defaults_{};
+  std::function<void(const ScreenSchedulePreferences &)> apply_screen_schedule_;
+  ThemeSettings display_theme_preferences_{};
+  std::function<void(const ThemeSettings &)> display_theme_preferences_changed_;
+  bool shutting_down_{false};
   bool native_configuration_initialized_{false};
-  bool native_configuration_applied_{false};
+  bool native_configuration_initialization_pending_{false};
+  configuration::ConfigurationBufferRetry configuration_buffer_retry_{};
+  CardAssetService card_assets_{};
   bool panel_config_http_context_bound_{false};
   const char *web_auth_username_{nullptr};
   const char *web_auth_password_{nullptr};

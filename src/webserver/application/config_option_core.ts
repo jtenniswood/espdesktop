@@ -16,17 +16,9 @@ import {
     setCardBackgroundAssetId,
 } from "../model/card";
     // ── Config Option Core ─────────────────────────────────────────────
-    var SENSOR_STATE_LABELS_OPTION: any = cardContractOptionName("state_labels");
-    var SENSOR_STATE_INPUT_OPTION: any = cardContractOptionName("state_input");
-    var SENSOR_STATE_OUTPUT_OPTION: any = cardContractOptionName("state_output");
-    var SENSOR_STATE_INPUT_2_OPTION: any = cardContractOptionName("state_input_2");
-    var SENSOR_STATE_OUTPUT_2_OPTION: any = cardContractOptionName("state_output_2");
-    var SENSOR_STATE_LOW_LABEL_OPTION: any = cardContractOptionName("state_low_label");
-    var SENSOR_STATE_HIGH_LABEL_OPTION: any = cardContractOptionName("state_high_label");
     var CARD_ON_PATTERN_OPTION: any = cardContractOptionName("on_pattern");
     var SENSOR_LARGE_NUMBERS_OPTION: any = cardContractOptionName("large_numbers");
     var SENSOR_LARGE_NUMBERS_OFF_VALUE: any = "off";
-    var SENSOR_TIME_UNIT_OPTION: any = cardContractOptionName("time_unit");
     var SENSOR_ACTIVE_COLOR_OPTION: any = cardContractOptionName("active_color");
     var SWITCH_CONFIRM_OFF_OPTION: any = cardContractOptionName("confirm_off");
     var SWITCH_CONFIRM_ON_OPTION: any = cardContractOptionName("confirm_on");
@@ -72,7 +64,6 @@ import {
     var CLIMATE_CONTROL_TABS_OPTION: any = cardContractOptionName("climate_tabs");
     var FAN_LIGHT_ENTITY_OPTION: any = cardContractOptionName("fan_light_entity");
     var FAN_CONTROL_TABS_OPTION: any = cardContractOptionName("fan_tabs");
-    var WIFI_QR_TABS_OPTION: any = cardContractOptionName("wifi_tabs");
     function largeNumbersExplicitlyDisabled(this: any, options?: any) {
         return configOptionValue(options, SENSOR_LARGE_NUMBERS_OPTION) === SENSOR_LARGE_NUMBERS_OFF_VALUE;
     }
@@ -141,17 +132,9 @@ import {
         return spec && typeof spec.defaultValue === "string" ? spec.defaultValue : fallback;
     }
 export {
-    SENSOR_STATE_LABELS_OPTION,
-    SENSOR_STATE_INPUT_OPTION,
-    SENSOR_STATE_OUTPUT_OPTION,
-    SENSOR_STATE_INPUT_2_OPTION,
-    SENSOR_STATE_OUTPUT_2_OPTION,
-    SENSOR_STATE_LOW_LABEL_OPTION,
-    SENSOR_STATE_HIGH_LABEL_OPTION,
     CARD_ON_PATTERN_OPTION,
     SENSOR_LARGE_NUMBERS_OPTION,
     SENSOR_LARGE_NUMBERS_OFF_VALUE,
-    SENSOR_TIME_UNIT_OPTION,
     SENSOR_ACTIVE_COLOR_OPTION,
     SWITCH_CONFIRM_OFF_OPTION,
     SWITCH_CONFIRM_ON_OPTION,
@@ -198,7 +181,6 @@ export {
     CLIMATE_CONTROL_TABS_OPTION,
     FAN_LIGHT_ENTITY_OPTION,
     FAN_CONTROL_TABS_OPTION,
-    WIFI_QR_TABS_OPTION,
     largeNumbersExplicitlyDisabled,
     copyLargeNumbersOption,
     cardBackgroundSupported,

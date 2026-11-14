@@ -6,7 +6,6 @@ import {
     FAN_CONTROL_TABS_OPTION,
     FAN_LIGHT_ENTITY_OPTION,
     LIGHT_CONTROL_TABS_OPTION,
-    WIFI_QR_TABS_OPTION,
     cardContractOptionDefaultValue,
     cardContractOptionSpec,
 } from "./config_option_core";
@@ -257,40 +256,6 @@ export function createConfigModalTabOptionsFeature(
         b.options = normalizeFanControlOptions(b.options);
         return b.options;
     }
-    function wifiQrTabDefinitions(this: any) {
-        return [
-            { value: "qr", label: "QR Code" },
-            { value: "credentials", label: "Connection Details" },
-            { value: "guest", label: "Guest Wi-Fi" },
-        ];
-    }
-    function wifiQrDefaultTabs(this: any) {
-        return cardContractOptionDefaultValue("wifi_qr", WIFI_QR_TABS_OPTION, "qr|credentials").split("|");
-    }
-    function normalizeWifiQrTabs(this: any, value?: any) {
-        return normalizeTabList(value, wifiQrTabDefinitions(), wifiQrDefaultTabs(), "qr");
-    }
-    function wifiQrTabs(this: any, b?: any) {
-        return normalizeWifiQrTabs(configOptionValue(b && b.options, WIFI_QR_TABS_OPTION));
-    }
-    function wifiQrTabsAreDefault(this: any, tabs?: any) {
-        return tabListIsDefault(normalizeWifiQrTabs((tabs || []).join("|")), wifiQrDefaultTabs());
-    }
-    function normalizeWifiQrTabOptions(this: any, options?: any) {
-        var tabs: any = normalizeWifiQrTabs(configOptionValue(options, WIFI_QR_TABS_OPTION));
-        return preserveCardColorOptions(options, wifiQrTabsAreDefault(tabs)
-            ? setConfigOptionValue(options, WIFI_QR_TABS_OPTION, "")
-            : setConfigOptionValue(options, WIFI_QR_TABS_OPTION, tabs.join("|")));
-    }
-    function setWifiQrTabs(this: any, b?: any, tabs?: any) {
-        if (!b)
-            return "";
-        tabs = normalizeWifiQrTabs((tabs || []).join("|"));
-        b.options = wifiQrTabsAreDefault(tabs)
-            ? setConfigOptionValue(b.options, WIFI_QR_TABS_OPTION, "")
-            : setConfigOptionValue(b.options, WIFI_QR_TABS_OPTION, tabs.join("|"));
-        return b.options;
-    }
     function renderModalTabSettings(this: any, panel?: any, b?: any, helpers?: any, config?: any) {
         var section: any = dependencies.document.createElement("div");
         panel.appendChild(section);
@@ -315,6 +280,16 @@ export function createConfigModalTabOptionsFeature(
             heading.className = "sp-field";
             heading.appendChild(helpers.fieldLabel("Modal Tabs"));
             section.appendChild(heading);
+        }
+        const search = config.searchPlaceholder && orderedDefinitions.length > 20
+            ? dependencies.document.createElement("input") : null;
+        if (search) {
+            search.type = "search";
+            search.className = "sp-input";
+            search.placeholder = config.searchPlaceholder;
+            search.setAttribute("aria-label", config.searchPlaceholder);
+            search.value = b._modalTabsSearch ?? "";
+            section.appendChild(search);
         }
         var list: any = dependencies.document.createElement("div");
         list.className = "sp-light-tab-list";
@@ -372,20 +347,41 @@ export function createConfigModalTabOptionsFeature(
             drag.type = "button";
             drag.className = "sp-light-tab-drag mdi mdi-drag";
             drag.setAttribute("aria-label", "Drag " + definition.label);
-            drag.tabIndex = -1;
-            var moveUp: any = dependencies.document.createElement("button");
-            moveUp.type = "button";
-            moveUp.className = "sp-light-tab-move mdi mdi-chevron-up";
-            moveUp.setAttribute("aria-label", "Move " + definition.label + " up");
-            var moveDown: any = dependencies.document.createElement("button");
-            moveDown.type = "button";
-            moveDown.className = "sp-light-tab-move mdi mdi-chevron-down";
-            moveDown.setAttribute("aria-label", "Move " + definition.label + " down");
-            moveUp.disabled = !available;
-            moveDown.disabled = !available;
+            drag.tabIndex = config.dragOnly && available && visible ? 0 : -1;
+            if (drag.tabIndex === 0) {
+                drag.title = "Use the Up and Down arrow keys to reorder";
+                drag.setAttribute("aria-keyshortcuts", "ArrowUp ArrowDown");
+                drag.addEventListener("keydown", (event: KeyboardEvent) => {
+                    if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+                    event.preventDefault();
+                    const rows: HTMLElement[] = listRows().filter((item: HTMLElement) =>
+                        !item.hidden && item.querySelector<HTMLInputElement>("input[type=checkbox]")?.checked);
+                    const previous = event.key === "ArrowUp";
+                    const target = rows[rows.indexOf(row) + (previous ? -1 : 1)];
+                    if (!target) return;
+                    list.insertBefore(row, previous ? target : target.nextElementSibling);
+                    saveTabsFromRows();
+                    dependencies.document.getElementById(input.id)?.closest(".sp-light-tab-row")
+                        ?.querySelector<HTMLButtonElement>(".sp-light-tab-drag")?.focus();
+                });
+            }
             controls.appendChild(drag);
-            controls.appendChild(moveUp);
-            controls.appendChild(moveDown);
+            if (!config.dragOnly) {
+                var moveUp: any = dependencies.document.createElement("button");
+                moveUp.type = "button";
+                moveUp.className = "sp-light-tab-move mdi mdi-chevron-up";
+                moveUp.setAttribute("aria-label", "Move " + definition.label + " up");
+                var moveDown: any = dependencies.document.createElement("button");
+                moveDown.type = "button";
+                moveDown.className = "sp-light-tab-move mdi mdi-chevron-down";
+                moveDown.setAttribute("aria-label", "Move " + definition.label + " down");
+                moveUp.disabled = !available;
+                moveDown.disabled = !available;
+                controls.appendChild(moveUp);
+                controls.appendChild(moveDown);
+                moveUp.addEventListener("click", function (this: any) { moveRow(row, -1); });
+                moveDown.addEventListener("click", function (this: any) { moveRow(row, 1); });
+            }
             row.appendChild(controls);
             var label: any = dependencies.document.createElement("label");
             label.className = "sp-light-tab-label";
@@ -419,8 +415,6 @@ export function createConfigModalTabOptionsFeature(
                 }
                 saveTabsFromRows();
             });
-            moveUp.addEventListener("click", function (this: any) { moveRow(row, -1); });
-            moveDown.addEventListener("click", function (this: any) { moveRow(row, 1); });
             row.addEventListener("dragstart", function (this: any, event?: any) {
                 if (!available)
                     return;
@@ -446,6 +440,44 @@ export function createConfigModalTabOptionsFeature(
             });
             list.appendChild(row);
         });
+        if (search) {
+            const actions = config.showAll ? null : dependencies.document.createElement("div");
+            const more = actions ? dependencies.document.createElement("button") : null;
+            if (actions && more) {
+                actions.className = "sp-app-subpage-shortcut-actions";
+                more.type = "button";
+                more.className = "sp-secondary-btn";
+                list.id = helpers.idPrefix + config.idPrefix + "list";
+                more.setAttribute("aria-controls", list.id);
+                actions.appendChild(more);
+                section.appendChild(actions);
+            }
+
+            function updateRows() {
+                const query = b._modalTabsSearch?.trim().toLowerCase();
+                const expanded = config.showAll || b._modalTabsExpanded === true;
+                listRows().forEach((row: HTMLElement, index: number) => {
+                    row.hidden = query
+                        ? !row.querySelector(".sp-light-tab-label")!.textContent!.toLowerCase().includes(query)
+                        : !expanded && index >= 20;
+                });
+                if (actions && more) {
+                    actions.hidden = !!query;
+                    more.textContent = expanded ? "Show fewer shortcuts" : "Show all shortcuts";
+                    more.setAttribute("aria-expanded", String(expanded));
+                }
+            }
+            search.addEventListener("input", () => {
+                b._modalTabsSearch = search.value;
+                updateRows();
+            });
+            more?.addEventListener("click", () => {
+                b._modalTabsExpanded = !b._modalTabsExpanded;
+                updateRows();
+                if (!b._modalTabsExpanded) more.scrollIntoView({ block: "nearest" });
+            });
+            updateRows();
+        }
         return section;
     }
     return {
@@ -482,13 +514,6 @@ export function createConfigModalTabOptionsFeature(
         normalizeFanControlOptions,
         setFanControlTabs,
         setFanLightEntity,
-        wifiQrTabDefinitions,
-        wifiQrDefaultTabs,
-        normalizeWifiQrTabs,
-        wifiQrTabs,
-        wifiQrTabsAreDefault,
-        normalizeWifiQrTabOptions,
-        setWifiQrTabs,
         renderModalTabSettings,
     };
 }

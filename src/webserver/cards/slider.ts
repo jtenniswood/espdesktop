@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -23,22 +24,42 @@ import type { SettingsUiFeature } from "../features/settings";
 
 export const COMPANION_OUTPUT_VOLUME_ID = "media.output_volume";
 export const COMPANION_INPUT_VOLUME_ID = "media.input_volume";
+export const COMPANION_OUTPUT_MUTE_ID = "media.output_mute";
+export const COMPANION_INPUT_MUTE_ID = "media.input_mute";
 
 export function companionSliderMode(card: any): string {
     if (card?.entity === COMPANION_OUTPUT_VOLUME_ID) return "mac_output";
     if (card?.entity === COMPANION_INPUT_VOLUME_ID) return "mac_input";
+    if (card?.entity === COMPANION_OUTPUT_MUTE_ID) return "mac_output_mute";
+    if (card?.entity === COMPANION_INPUT_MUTE_ID) return "mac_input_mute";
     return "home_assistant";
+}
+
+function companionSliderDefaultLabel(mode: string): string {
+    if (mode === "mac_output") return "Volume";
+    if (mode === "mac_input") return "Mic";
+    if (mode === "mac_output_mute" || mode === "mac_input_mute") return "Mute";
+    return "";
 }
 
 function companionSliderDefaultIcon(mode: string): string {
     if (mode === "mac_output") return "Volume High";
     if (mode === "mac_input") return "Microphone";
+    if (mode === "mac_output_mute") return "Volume High";
+    if (mode === "mac_input_mute") return "Microphone";
     return "Auto";
+}
+
+function companionSliderNormalIcon(icon: string, mode: string): string {
+    const oldMuteDefault = mode === "mac_output_mute" ? "Volume Off"
+        : mode === "mac_input_mute" ? "Microphone Off" : "";
+    return !icon || icon === "Auto" || icon === oldMuteDefault
+        ? companionSliderDefaultIcon(mode) : icon;
 }
 
 export function companionSliderIcon(icon: string, previousMode: string, nextMode: string): string {
     const previousDefault = companionSliderDefaultIcon(previousMode);
-    if (!icon || icon === "Auto" || icon === previousDefault) {
+    if (companionSliderNormalIcon(icon, previousMode) === previousDefault) {
         return companionSliderDefaultIcon(nextMode);
     }
     return icon;
@@ -124,9 +145,10 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
-                        ["home_assistant", "Home Assistant light or fan"],
                         ["mac_output", "Mac output volume"],
-                        ["mac_input", "Mac input volume"],
+                        ["mac_input", "Mic"],
+                        ["mac_output_mute", "Output mute"],
+                        ["mac_input_mute", "Microphone mute"],
                     ],
                     value: companionSliderMode,
                 },
@@ -143,17 +165,20 @@ export function registerSliderCardTypes(
             allowInSubpage: function (this: any) { return cardContractAllowInSubpage(opts.type); },
             pickerKey: function (this: any) { return cardContractPickerKey(opts.type); },
             hidden: function (this: any) { return cardContractHidden(opts.type); },
+            isAvailable: opts.companionVolumeModes ? () => companionSupported : null,
             hideLabel: !!opts.hideLabel,
             labelPlaceholder: opts.placeholder,
             defaultConfig: function (this: any) { return cardContractDefaultConfig(opts.type); },
             cardMetadata: metadata,
             onSelect: function (this: any, b?: any) {
+                if (opts.companionVolumeModes) { b.entity = COMPANION_OUTPUT_VOLUME_ID; if (!b.label) b.label = "Volume"; }
                 b.sensor = opts.type === "cover" ? "modal" : "";
                 b.unit = "";
                 b.icon = opts.defaultIcon;
                 b.icon_on = opts.defaultIconOn;
             },
             renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
+                if (opts.type !== "slider" || companionSliderMode(b) === "home_assistant") return renderRetiredCardSettings(panel);
                 var cardSettingsPanel: any = null;
                 var modalSettingsPanel: any = null;
                 var modalSettingsDisclosure: any = null;
@@ -168,22 +193,22 @@ export function registerSliderCardTypes(
                         mode: Object.assign({}, metadata.companionVolume.mode, {
                             value: function (this: any) { return sliderMode; },
                             onChange: function (this: HTMLSelectElement) {
-                                sliderMode = this.value;
-                                var previousMode: any = companionSliderMode(b);
-                                b.icon = companionSliderIcon(b.icon, previousMode, sliderMode);
-                                b.icon_on = companionSliderIcon(b.icon_on, previousMode, sliderMode);
-                                if (sliderMode === "mac_output") {
-                                    b.entity = COMPANION_OUTPUT_VOLUME_ID;
-                                    if (!b.label || b.label === "Input Volume") b.label = "Output Volume";
-                                }
-                                else if (sliderMode === "mac_input") {
-                                    b.entity = COMPANION_INPUT_VOLUME_ID;
-                                    if (!b.label || b.label === "Output Volume") b.label = "Input Volume";
-                                }
-                                else if (previousMode !== "home_assistant") {
-                                    b.entity = "";
-                                    if (b.label === "Output Volume" || b.label === "Input Volume") b.label = "";
-                                }
+                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Mute", "Output Mute", "Microphone Mute"];
+                                const identifiers: Record<string, string> = {
+                                    mac_output: COMPANION_OUTPUT_VOLUME_ID,
+                                    mac_input: COMPANION_INPUT_VOLUME_ID,
+                                    mac_output_mute: COMPANION_OUTPUT_MUTE_ID,
+                                    mac_input_mute: COMPANION_INPUT_MUTE_ID,
+                                };
+                                const nextMode = this.value;
+                                if (!Object.hasOwn(identifiers, nextMode)) return;
+                                const previousMode = sliderMode;
+                                sliderMode = nextMode;
+                                b.entity = identifiers[nextMode];
+                                b.icon = companionSliderIcon(b.icon, previousMode, nextMode);
+                                b.icon_on = "Auto";
+                                if (!b.label || defaultLabels.includes(b.label))
+                                    b.label = companionSliderDefaultLabel(sliderMode);
                                 helpers.saveField("entity", b.entity);
                                 helpers.saveField("label", b.label);
                                 helpers.saveField("icon", b.icon);
@@ -370,7 +395,19 @@ export function registerSliderCardTypes(
                         iconPicker._setIcon(currentVal);
                     return picker;
                 }
-                if (opts.alwaysShowIconPair) {
+                if (opts.companionVolumeModes && sliderMode !== "home_assistant") {
+                    const defaultIcon = companionSliderDefaultIcon(sliderMode);
+                    helpers.renderCardIconPicker(panel, b, helpers, {
+                        pickerIdSuffix: "icon-picker",
+                        idSuffix: "icon",
+                        field: "icon",
+                        value: companionSliderNormalIcon(b.icon, sliderMode),
+                        fallback: defaultIcon,
+                        label: "Icon",
+                        onChange: function () { renderButtonSettings(); },
+                    });
+                }
+                else if (opts.alwaysShowIconPair) {
                     var offIconVal: any = b.icon && b.icon !== "Auto" ? b.icon : opts.defaultIcon;
                     var onIconDefault: any = opts.onIconInheritsOff ? offIconVal : opts.defaultIconOn;
                     var onIconVal: any = b.icon_on && b.icon_on !== "Auto" ? b.icon_on : onIconDefault;
@@ -440,13 +477,19 @@ export function registerSliderCardTypes(
             },
             renderPreview: function (this: any, b?: any, helpers?: any) {
                 var sliderMode: any = companionSliderMode(b);
-                var defaultLabel: any = sliderMode === "mac_output" ? "Output Volume"
-                    : sliderMode === "mac_input" ? "Input Volume" : b.entity || opts.fallbackLabel;
-                var defaultIcon: any = sliderMode === "mac_output" ? "volume-high"
-                    : sliderMode === "mac_input" ? "microphone" : opts.fallbackIcon;
-                var label: any = b.label || defaultLabel;
-                var iconName: any = b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;
-                if (opts.interactionMode && (b.sensor === "toggle" || coverCommandMode(b.sensor))) {
+                var defaultLabel: any = companionSliderDefaultLabel(sliderMode) || b.entity || opts.fallbackLabel;
+                var defaultIcon: any = sliderMode !== "home_assistant"
+                    ? iconSlug(companionSliderDefaultIcon(sliderMode)) : opts.fallbackIcon;
+                var oldDefaultLabel = (sliderMode === "mac_output" && b.label === "Output Volume") ||
+                    (sliderMode === "mac_input" && (b.label === "Input Volume" || b.label === "Input volume")) ||
+                    (sliderMode === "mac_output_mute" && b.label === "Output Mute") ||
+                    (sliderMode === "mac_input_mute" && b.label === "Microphone Mute");
+                var label: any = oldDefaultLabel ? defaultLabel : b.label || defaultLabel;
+                var iconName: any = sliderMode !== "home_assistant"
+                    ? iconSlug(companionSliderNormalIcon(b.icon, sliderMode))
+                    : b.icon && b.icon !== "Auto" ? iconSlug(b.icon) : defaultIcon;
+                if (sliderMode === "mac_output_mute" || sliderMode === "mac_input_mute" ||
+                    (opts.interactionMode && (b.sensor === "toggle" || coverCommandMode(b.sensor)))) {
                     return {
                         iconHtml: '<span class="sp-btn-icon mdi mdi-' + iconName + '"></span>',
                         labelHtml: cardBadgeLabelHtml(helpers, label, metadata.preview.badge),
@@ -487,8 +530,8 @@ export function registerSliderCardTypes(
         entityPlaceholder: "e.g. light.living_room",
         defaultIcon: "Auto",
         defaultIconOn: "Auto",
-        fallbackLabel: "Slider",
-        fallbackIcon: "lightbulb",
+        fallbackLabel: "Volume",
+        fallbackIcon: "volume-high",
         badgeIcon: "tune-vertical-variant",
         alwaysShowIconPair: true,
         onIconInheritsOff: true,

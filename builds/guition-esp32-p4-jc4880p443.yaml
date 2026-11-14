@@ -7,7 +7,6 @@
 # =============================================================================
 
 substitutions:
-  cover_art_placeholder_file: "../common/assets/cover_art_placeholder.svg"
   name: "espdesktop-jc4880p443"
   friendly_name: "EspDesktop 4inch"
   espdesktop_component_url: "file:///config"

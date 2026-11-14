@@ -2,8 +2,11 @@
 #include "device_reset.h"
 #include "esphome/components/artwork_image/transfer_observer.h"
 
+#include <algorithm>
 #include <array>
 #include <cinttypes>
+#include <cmath>
+#include <limits>
 #include <new>
 
 #ifdef USE_ESP32
@@ -12,31 +15,50 @@
 
 #include "esphome/core/log.h"
 
-#include "panel_config_capabilities_endpoint.h"
+#include "button_grid.h"
+#include "grid_page_runtime.h"
+#include "panel_config_page_append.h"
 #include "panel_config_asset_references.h"
+#include "freertos/task.h"
+#include "configuration_main_loop.h"
 #include "configuration_release_policy.h"
 #include "configuration_service.h"
 #include "configuration_store.h"
-#include "panel_config_read_endpoint.h"
-#include "panel_config_espidf_storage.h"
-#include "panel_config_esphome_text.h"
-#include "panel_config_legacy_adapter.h"
-#include "panel_config_runtime_adapter.h"
-#include "panel_config_service_validator.h"
-#include "panel_config_storage_backend.h"
+#include "panel_config_capabilities_endpoint.h"
 #include "panel_config_endpoint_policy.h"
-#include "panel_config_storage_selection.h"
-#include "panel_config_write_endpoint.h"
+#include "panel_config_esphome_text.h"
+#include "panel_config_espidf_storage.h"
 #include "panel_config_http_context.h"
+#include "panel_config_legacy_adapter.h"
+#include "panel_config_read_endpoint.h"
+#include "panel_config_service_validator.h"
+#include "panel_config_storage_selection.h"
+#include "panel_config_transient_storage.h"
+#include "panel_config_write_endpoint.h"
 #include "panel_identity_endpoint.h"
+#include "panel_diagnostics_endpoint.h"
 #include "companion_app_icon_endpoint.h"
-#include "screensaver_pin_endpoint.h"
 #include "button_grid.h"
-#include "finder_folder_sync.h"
+#include "grid_page_runtime.h"
+#include "panel_config_page_append.h"
+#include "panel_config_asset_references.h"
+#include "freertos/task.h"
 #include "connector_state.h"
 #ifdef USE_COMPANION
 #include "../companion/companion.h"
 #endif
+
+// Optional bridge for the IDF event stream. Both callers run on the firmware
+// loop; no HTTP-task request or full configuration read is needed.
+extern "C" bool espdesktop_native_configuration_generation(uint32_t *generation) {
+  const auto &context = espdesktop::configuration::panel_config_http_context();
+  if (!generation || !context.ready.load(std::memory_order_acquire) || !context.service)
+    return false;
+  const auto state = context.service->compatibility_state();
+  if (!state.known) return false;
+  *generation = state.generation;
+  return true;
+}
 
 extern "C" void espdesktop_register_web_server_handlers(
     esphome::web_server_idf::AsyncWebServer *server) {
@@ -45,9 +67,7 @@ extern "C" void espdesktop_register_web_server_handlers(
   espdesktop::reset::register_handlers(*server);
   espdesktop::card_asset_http::register_endpoints(*server);
   espdesktop::register_panel_identity_endpoint(*server);
-  espdesktop::register_screensaver_pin_endpoint(*server);
-  register_local_sensor_endpoint(*server);
-  register_local_action_endpoint(*server);
+  espdesktop::register_panel_diagnostics_endpoint(*server);
   register_companion_actions_endpoint(*server);
   register_companion_app_icon_preview_endpoint(*server);
   espdesktop::connectors::register_connector_status_endpoint(*server);
@@ -67,11 +87,12 @@ static const char *const TAG = "espdesktop.config";
 // to fail safely after the display and restored text entities have settled.
 constexpr uint32_t NATIVE_CONFIGURATION_INITIALIZATION_DELAY_MS = 5000;
 
+static uint8_t *allocate_configuration_slot(size_t size);
+static void release_configuration_slot(uint8_t *buffer);
+
 static void sync_app_icons_from_panel_config(const uint8_t *document,
                                              size_t document_size) {
 #ifdef USE_COMPANION
-  configuration::PanelConfigReader reader(document, document_size);
-  if (reader.begin() != configuration::PanelConfigStatus::OK) return;
   std::vector<std::string> application_ids;
   auto collect_card = [&application_ids](const ParsedCfg &card) {
     if (!companion_app_icon_enabled(card)) return;
@@ -81,6 +102,27 @@ static void sync_app_icons_from_panel_config(const uint8_t *document,
   auto collect_config = [&collect_card](const std::string &config) {
     collect_card(parse_cfg(config));
   };
+  if (document_size > 5 && document[4] == 2) {
+    configuration::PanelConfigV2Reader graph(document, document_size);
+    size_t bytes = 0;
+    if (graph.workspace_bytes(&bytes) != configuration::PanelConfigStatus::OK) return;
+    configuration::ConfigurationBuffer scratch(allocate_configuration_slot, release_configuration_slot);
+    auto *index = scratch.allocate(bytes);
+    if (!index || graph.validate(index, bytes) != configuration::PanelConfigStatus::OK) return;
+    configuration::PanelConfigV2Record row;
+    for (size_t i = 0; i < graph.record_count(); ++i) {
+      graph.record(i, &row);
+      if (row.kind != configuration::PanelConfigV2Kind::CARD) continue;
+      ParsedCfg card;
+      card.entity = std::string(graph.entity(row.fields[0])); card.sensor = std::string(graph.entity(row.fields[4]));
+      card.type = std::string(graph.string(row.fields[6])); card.options = std::string(graph.string(row.fields[8]));
+      collect_card(card);
+    }
+    esphome::companion::sync_app_icon_references(application_ids);
+    return;
+  }
+  configuration::PanelConfigReader reader(document, document_size);
+  if (reader.begin() != configuration::PanelConfigStatus::OK) return;
   configuration::PanelConfigRecord record;
   configuration::PanelConfigStatus status;
   while ((status = reader.next(&record)) == configuration::PanelConfigStatus::OK) {
@@ -111,42 +153,84 @@ static void sync_app_icons_from_panel_config(const uint8_t *document,
 #endif
 }
 
+static uint8_t *allocate_configuration_slot(size_t size) {
+#ifdef USE_ESP32
+  // Native v1/v2 conversion scratch requires eight-byte alignment. Ordinary
+  // ESP32 PSRAM allocations only guarantee four bytes, so heap reuse can make
+  // an otherwise valid configuration fail representation conversion.
+  return static_cast<uint8_t *>(
+      heap_caps_aligned_alloc(8, size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+#else
+  (void)size;
+  return nullptr;
+#endif
+}
+
+static void release_configuration_slot(uint8_t *buffer) {
+#ifdef USE_ESP32
+  heap_caps_free(buffer);
+#else
+  (void)buffer;
+#endif
+}
+
 class EspDesktopApp::NativeConfigurationRuntime {
  public:
-  struct LegacyButtonTextSources {
-    configuration::EspHomePanelConfigTextValue button;
-    std::array<configuration::EspHomePanelConfigTextValue,
-               configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS>
-        subpages{};
-  };
+   using LegacyButtonTextSources = configuration::PanelConfigTextValues<
+       configuration::EspHomePanelConfigTextValue>;
 
-  NativeConfigurationRuntime()
-      : legacy_config(text_bindings), runtime_config(text_bindings),
-        backend(blobs), store(backend) {}
+   // The profile-sized owner is below the ordinary malloc internal-preference
+   // threshold on several devices. Keep its metadata explicitly in PSRAM and
+   // preserve the existing fallible initialization contract.
+   static void *operator new(size_t size, const std::nothrow_t &) noexcept {
+#ifdef USE_ESP32
+     return allocate_configuration_slot(size);
+#else
+     return ::operator new(size, std::nothrow);
+#endif
+   }
+   static void operator delete(void *storage) noexcept {
+#ifdef USE_ESP32
+     release_configuration_slot(static_cast<uint8_t *>(storage));
+#else
+     ::operator delete(storage);
+#endif
+   }
+   static void operator delete(void *storage, const std::nothrow_t &) noexcept {
+     operator delete(storage);
+   }
 
-  configuration::PanelConfigTextBindings text_bindings{};
-  configuration::PanelConfigLegacyAdapter legacy_config;
-  configuration::PanelConfigRuntimeAdapter runtime_config;
-  configuration::PanelConfigDocumentValidator validator{};
-  configuration::EspIdfPanelConfigBlobStorage blobs{};
-  configuration::BufferedBlobStorageBackend<PANEL_CONFIG_STORAGE_SLOT_CAPACITY>
-      backend;
-  configuration::ConfigurationStore store;
-  uint8_t *memory{nullptr};
-  uint8_t *document_buffer{nullptr};
-  uint8_t *boot_buffer{nullptr};
-  size_t slot_capacity{0};
-  bool boot_configuration_pending{false};
-  uint32_t finder_poll_ms{0};
-  std::string finder_catalogue;
-  bool buffers_initialized{false};
-  configuration::EspHomePanelConfigTextValue button_order{};
-  configuration::EspHomePanelConfigTextValue button_on_color{};
-  std::array<configuration::EspHomePanelConfigTextValue,
-             configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS>
-      special_page{};
-  std::array<LegacyButtonTextSources, configuration::PANEL_CONFIG_MAX_SLOT_COUNT>
-      buttons{};
+   NativeConfigurationRuntime()
+       : legacy_config(text_bindings, allocate_configuration_slot,
+                       release_configuration_slot, configuration::PANEL_CONFIG_LEGACY_MODE),
+         validator(allocate_configuration_slot, release_configuration_slot),
+         backend(blobs, allocate_configuration_slot,
+                 release_configuration_slot),
+         store(backend) {}
+
+   configuration::PanelConfigTextBindings text_bindings{};
+   configuration::PanelConfigLegacyAdapter legacy_config;
+   std::unique_ptr<GridPageRuntime> grid_runtime;
+   configuration::PanelConfigDocumentValidator validator{};
+   configuration::EspIdfPanelConfigBlobStorage blobs{};
+   configuration::TransientBlobStorageBackend<
+       PANEL_CONFIG_STORAGE_SLOT_CAPACITY>
+       backend;
+   configuration::ConfigurationStore store;
+   configuration::ConfigurationMainLoop transactions;
+   configuration::ConfigurationCompatibilityRetry compatibility_retry;
+   uint32_t finder_poll_ms{0};
+   bool document_available{false};
+   bool service_configured{false};
+   bool storage_ready{false};
+   size_t slot_capacity{0};
+   bool boot_configuration_pending{false};
+   bool boot_configuration_due{false};
+   configuration::EspHomePanelConfigTextValue button_order{};
+   configuration::EspHomePanelConfigTextValue button_on_color{};
+   std::array<LegacyButtonTextSources,
+              configuration::PANEL_CONFIG_TEXT_SLOT_COUNT>
+       buttons{};
 };
 
 EspDesktopApp::EspDesktopApp() = default;
@@ -157,6 +241,14 @@ bool EspDesktopApp::connector_onboarding_complete() const {
   return connectors::onboarding_complete();
 }
 
+bool EspDesktopApp::install_application_scene(ApplicationSceneRuntime& scene) {
+  if (shutting_down_ || !scene.ready()) return false;
+  if (application_scene_) return application_scene_ == &scene;
+  if (native_configuration_initialized_ || core_.configuration_service()) return false;
+  application_scene_ = &scene;
+  return true;
+}
+
 void EspDesktopApp::set_panel_config_device_profile(const char *device_profile) {
   panel_config_device_profile_ = device_profile;
 }
@@ -164,21 +256,15 @@ void EspDesktopApp::set_panel_config_device_profile(const char *device_profile) 
 void EspDesktopApp::set_panel_config_button_order(
     esphome::text::Text *button_order) {
   panel_config_button_order_ = button_order;
+  panel_config_order_template_ = false;
+  panel_config_chrome_empty_defaults_ &= ~uint8_t{1};
 }
 
 void EspDesktopApp::set_panel_config_button_on_color(
     esphome::text::Text *button_on_color) {
   panel_config_button_on_color_ = button_on_color;
-}
-
-void EspDesktopApp::set_panel_config_special_page(
-    esphome::text::Text *chunk_0, esphome::text::Text *chunk_1,
-    esphome::text::Text *chunk_2, esphome::text::Text *chunk_3,
-    esphome::text::Text *chunk_4, esphome::text::Text *chunk_5,
-    esphome::text::Text *chunk_6, esphome::text::Text *chunk_7) {
-  panel_config_special_page_chunks_ = {
-      chunk_0, chunk_1, chunk_2, chunk_3,
-      chunk_4, chunk_5, chunk_6, chunk_7};
+  panel_config_color_template_ = false;
+  panel_config_chrome_empty_defaults_ &= ~uint8_t{2};
 }
 
 void EspDesktopApp::set_panel_config_button(
@@ -188,9 +274,31 @@ void EspDesktopApp::set_panel_config_button(
       esphome::text::Text *subpage_4, esphome::text::Text *subpage_5,
       esphome::text::Text *subpage_6, esphome::text::Text *subpage_7) {
   if (slot == 0 || slot > panel_config_button_texts_.size()) return;
-  panel_config_button_texts_[slot - 1] = {
-      button, {subpage_0, subpage_1, subpage_2, subpage_3, subpage_4,
-               subpage_5, subpage_6, subpage_7}};
+  auto &sources = panel_config_button_texts_[slot - 1];
+  sources = {};
+  sources.button = button;
+  const std::array<esphome::text::Text *, 8> chunks = {
+      subpage_0, subpage_1, subpage_2, subpage_3,
+      subpage_4, subpage_5, subpage_6, subpage_7};
+  std::copy_n(chunks.begin(), sources.subpages.size(),
+              sources.subpages.begin());
+}
+
+void EspDesktopApp::set_panel_config_text_empty_default(
+    esphome::text::Text *text) {
+  if (!text)
+    return;
+  if (text == panel_config_button_order_ && panel_config_order_template_)
+    panel_config_chrome_empty_defaults_ |= 1u;
+  if (text == panel_config_button_on_color_ && panel_config_color_template_)
+    panel_config_chrome_empty_defaults_ |= 2u;
+  for (auto &sources : panel_config_button_texts_) {
+    if (text == sources.button && sources.template_button)
+      sources.empty_defaults |= 1u;
+    for (size_t i = 0; i < sources.subpages.size(); ++i)
+      if (text == sources.subpages[i] && sources.template_subpages[i])
+        sources.empty_defaults |= uint16_t{1} << (i + 1);
+  }
 }
 
 bool EspDesktopApp::native_configuration_requested() const {
@@ -199,7 +307,9 @@ bool EspDesktopApp::native_configuration_requested() const {
 }
 
 bool EspDesktopApp::create_native_configuration_runtime() {
-  if (native_configuration_runtime_ != nullptr) return true;
+  if (native_configuration_runtime_ != nullptr)
+    return native_configuration_runtime_->grid_runtime &&
+        application_scene_ == native_configuration_runtime_->grid_runtime.get();
   NativeConfigurationRuntime *runtime =
       new (std::nothrow) NativeConfigurationRuntime();
   if (runtime == nullptr) {
@@ -208,19 +318,14 @@ bool EspDesktopApp::create_native_configuration_runtime() {
   }
   native_configuration_runtime_.reset(runtime);
   runtime->text_bindings.set_device_profile(panel_config_device_profile_);
-  runtime->button_order.bind(panel_config_button_order_);
+  runtime->button_order.bind(panel_config_button_order_,
+                             panel_config_order_template_,
+                             (panel_config_chrome_empty_defaults_ & 1u) != 0);
   runtime->text_bindings.set_button_order(&runtime->button_order);
-  runtime->button_on_color.bind(panel_config_button_on_color_);
+  runtime->button_on_color.bind(
+      panel_config_button_on_color_, panel_config_color_template_,
+      (panel_config_chrome_empty_defaults_ & 2u) != 0);
   runtime->text_bindings.set_button_on_color(&runtime->button_on_color);
-  std::array<configuration::PanelConfigTextValue *,
-             configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS>
-      special_page_chunks{};
-  for (size_t index = 0; index < panel_config_special_page_chunks_.size(); ++index) {
-    if (panel_config_special_page_chunks_[index] == nullptr) continue;
-    runtime->special_page[index].bind(panel_config_special_page_chunks_[index]);
-    special_page_chunks[index] = &runtime->special_page[index];
-  }
-  runtime->text_bindings.set_special_page_chunks(special_page_chunks);
   for (size_t index = 0; index < panel_config_button_texts_.size(); ++index) {
     const PanelConfigTextSources &sources = panel_config_button_texts_[index];
     // Device profiles only provide text entities for their real panel slots.
@@ -230,17 +335,48 @@ bool EspDesktopApp::create_native_configuration_runtime() {
     if (sources.button == nullptr) continue;
     NativeConfigurationRuntime::LegacyButtonTextSources &legacy_sources =
         runtime->buttons[index];
-    legacy_sources.button.bind(sources.button);
+    legacy_sources.button.bind(sources.button, sources.template_button,
+                               (sources.empty_defaults & 1u) != 0);
     std::array<configuration::PanelConfigTextValue *,
                configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS>
         legacy_subpages{};
     for (size_t subpage = 0; subpage < sources.subpages.size(); ++subpage) {
       if (sources.subpages[subpage] == nullptr) continue;
-      legacy_sources.subpages[subpage].bind(sources.subpages[subpage]);
+      legacy_sources.subpages[subpage].bind(
+          sources.subpages[subpage], sources.template_subpages[subpage],
+          (sources.empty_defaults & (1u << (subpage + 1))) != 0);
       legacy_subpages[subpage] = &legacy_sources.subpages[subpage];
     }
-    runtime->text_bindings.set_button(static_cast<uint8_t>(index + 1),
-                                      &legacy_sources.button, legacy_subpages);
+    if (!runtime->text_bindings.set_button(static_cast<uint8_t>(index + 1),
+                                           &legacy_sources.button,
+                                           legacy_subpages)) {
+      ESP_LOGE(TAG, "Configured text sources exceed their compiled capacity");
+      native_configuration_runtime_.reset();
+      return false;
+    }
+  }
+  const DeviceUiLimits *limits = nullptr;
+  for (const auto &profile : DEVICE_UI_PROFILES)
+    if (std::strcmp(profile.device_profile, panel_config_device_profile_) == 0) limits = &profile;
+  if (!limits) { native_configuration_runtime_.reset(); return false; }
+  runtime->grid_runtime.reset(new (std::nothrow) GridPageRuntime(*limits,
+      allocate_configuration_slot, release_configuration_slot,
+      [this]() { layout_changed_.trigger(); },
+      [this](const auto &settings) { publish_display_theme_preferences(settings); },
+      [this](const std::optional<ScreenSchedulePreferences> &settings) {
+        if (!settings && !screen_schedule_) return;
+        screen_schedule_ = settings;
+        if (apply_screen_schedule_) apply_screen_schedule_(screen_schedule_preferences());
+      },
+      [this](ScalarSetting setting, std::string_view value) {
+        if (const auto publish = scalar_publishers_[size_t(setting)]) publish(value);
+      },
+      [this](const DisplayBrightnessPreferences &settings) {
+        display_brightness_ = settings;
+        if (apply_display_brightness_) apply_display_brightness_(display_brightness_);
+      }));
+  if (!runtime->grid_runtime || !install_application_scene(*runtime->grid_runtime)) {
+    native_configuration_runtime_.reset(); return false;
   }
   return true;
 }
@@ -253,16 +389,17 @@ void EspDesktopApp::register_panel_config_endpoints() {
   configuration::ConfigurationService *const panel_config_service =
       core_.configuration_service();
   NativeConfigurationRuntime *const runtime = native_configuration_runtime_.get();
-  const bool can_bind_document_endpoints = panel_config_service != nullptr &&
-      runtime != nullptr && runtime->document_buffer != nullptr &&
-      runtime->slot_capacity > 0;
+  const bool can_bind_document_endpoints =
+      panel_config_service != nullptr && runtime != nullptr &&
+      runtime->document_available && runtime->slot_capacity > 0;
   if (!can_bind_document_endpoints) {
     ESP_LOGE(TAG,
-             "Native configuration endpoints unavailable: service=%s runtime=%s document_buffer=%s",
+             "Native configuration endpoints unavailable: service=%s "
+             "runtime=%s document=%s",
              panel_config_service != nullptr ? "ready" : "missing",
              runtime != nullptr ? "ready" : "missing",
-             runtime != nullptr && runtime->document_buffer != nullptr ? "ready"
-                                                                    : "missing");
+             runtime != nullptr && runtime->document_available ? "ready"
+                                                               : "missing");
     configuration::set_panel_config_read_supported(false);
     configuration::set_panel_config_write_supported(false);
     panel_config_http_context_bound_ = true;
@@ -270,8 +407,8 @@ void EspDesktopApp::register_panel_config_endpoints() {
     return;
   }
   configuration::bind_panel_config_http_context(
-      *panel_config_service, runtime->document_buffer,
-      runtime->slot_capacity,
+      *panel_config_service, runtime->transactions, runtime->slot_capacity,
+      allocate_configuration_slot, release_configuration_slot,
       web_auth_username_ == nullptr ? "" : web_auth_username_,
       web_auth_password_ == nullptr ? "" : web_auth_password_
 #ifdef USE_COMPANION
@@ -291,121 +428,277 @@ void EspDesktopApp::register_panel_config_endpoints() {
 }
 
 void EspDesktopApp::apply_boot_configuration() {
+  if (shutting_down_) return;
   NativeConfigurationRuntime *const runtime = native_configuration_runtime_.get();
   if (runtime == nullptr || !runtime->boot_configuration_pending ||
-      runtime->boot_buffer == nullptr)
+      runtime->slot_capacity == 0)
     return;
 
+  // The timeout establishes the startup delay. A busy scene keeps this work
+  // pending for a later safe application loop, without scheduling more timers.
+  runtime->boot_configuration_due = true;
+  if (application_scene_ && !application_scene_->maintenance_ready()) return;
+  if (!configuration_buffer_retry_.ready(esphome::millis()))
+    return;
   configuration::ConfigurationService *const panel_config_service =
       core_.configuration_service();
-  if (panel_config_service == nullptr) {
-    this->set_timeout("native-configuration-apply", 5000,
-                      [this]() { this->apply_boot_configuration(); });
+  if (panel_config_service == nullptr) return;
+  configuration::ConfigurationBuffer buffer(allocate_configuration_slot,
+                                            release_configuration_slot);
+  auto *document = buffer.allocate(runtime->slot_capacity);
+  if (!document) {
+    configuration_buffer_retry_.failed(esphome::millis());
     return;
   }
-  // Do not retain the document captured during setup: a browser save can
-  // complete before this timeout runs, and the newest durable document must
-  // always win over startup restoration. The boot buffer is intentionally
-  // separate from the HTTP request buffer. ConfigurationService serializes
-  // this reload and live apply with HTTP saves so neither its scratch buffer
-  // nor the running grid can be reverted by an older startup document.
+  // Reload the newest durable generation now, never a setup-time snapshot.
+  // This scoped output stays alive through preparation, activation and
+  // publication.
   const configuration::ServiceLoadResult loaded =
-      panel_config_service->load_and_apply_runtime(
-          runtime->boot_buffer, runtime->slot_capacity);
+      panel_config_service->load_and_apply_runtime(document,
+                                                   runtime->slot_capacity);
+  if (loaded.status == configuration::ServiceStatus::ALLOCATION_FAILED) {
+    configuration_buffer_retry_.failed(esphome::millis());
+    return;
+  }
+  runtime->boot_configuration_pending = false;
+  runtime->boot_configuration_due = false;
+  configuration_buffer_retry_.clear();
+  if (loaded.status == configuration::ServiceStatus::LEGACY_MIRROR_FAILED) {
+    ESP_LOGW(TAG, "Native configuration restored; compatibility text "
+                  "publication is incomplete");
+    return;
+  }
   if (!loaded.ok()) {
     ESP_LOGE(TAG, "Native configuration could not reload for the live grid (%u)",
              static_cast<unsigned>(loaded.status));
-    this->set_timeout("native-configuration-apply", 5000,
-                      [this]() { this->apply_boot_configuration(); });
     return;
   }
-  sync_app_icons_from_panel_config(runtime->boot_buffer, loaded.document_size);
-  runtime->boot_configuration_pending = false;
-  native_configuration_applied_ = true;
+  sync_app_icons_from_panel_config(document, loaded.document_size);
 }
 
-CardAssetReferenceState EspDesktopApp::check_recovery_references(
-    void *context, const std::string &id) {
+void EspDesktopApp::bind_display_theme_preferences(std::function<void(const ThemeSettings &)> publish) {
+  display_theme_preferences_changed_ = std::move(publish);
+  if (display_theme_preferences_changed_) display_theme_preferences_changed_(display_theme_preferences_);
+}
+
+void EspDesktopApp::publish_display_theme_preferences(const std::optional<ThemeSettings> &settings) {
+  const auto next = settings.value_or(ThemeSettings{});
+  if (same_display_theme_preferences(next, display_theme_preferences_)) return;
+  display_theme_preferences_ = next;
+  if (display_theme_preferences_changed_) display_theme_preferences_changed_(display_theme_preferences_);
+}
+
+void EspDesktopApp::save_display_theme_preferences(const ThemeSettings &settings) {
+  if (!save_panel_setting(DISPLAY_THEME_PREFERENCES_KEY, encode_display_theme_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save a theme preference edit");
+}
+
+void EspDesktopApp::bind_screen_schedule(unsigned default_clock_brightness,
+    std::function<void(const ScreenSchedulePreferences &)> apply) {
+  screen_schedule_defaults_.clock_brightness = default_clock_brightness;
+  apply_screen_schedule_ = std::move(apply);
+  if (apply_screen_schedule_) apply_screen_schedule_(screen_schedule_preferences());
+}
+
+void EspDesktopApp::edit_screen_schedule_number(unsigned ScreenSchedulePreferences::*field, float value) {
+  if (!std::isfinite(value) || value < 0 || value > UINT16_MAX || std::floor(value) != value) return;
+  edit_screen_schedule_preference(field, static_cast<unsigned>(value));
+}
+
+void EspDesktopApp::save_screen_schedule_preferences(const ScreenSchedulePreferences &settings) {
+  if (!save_panel_setting(SCREEN_SCHEDULE_PREFERENCES_KEY, encode_screen_schedule_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save a night schedule edit");
+}
+
+std::string_view EspDesktopApp::panel_scalar_value(ScalarSetting setting) const {
+  const auto *runtime = native_configuration_runtime_.get();
+  return runtime && runtime->grid_runtime ? runtime->grid_runtime->scalar_setting_value(setting)
+      : panel_settings::scalar_setting_default(setting, panel_config_device_profile_ ? panel_config_device_profile_ : "");
+}
+
+void EspDesktopApp::bind_panel_scalar(ScalarSetting setting, ScalarPublisher publish) {
+  scalar_publishers_[size_t(setting)] = publish;
+  if (publish) publish(panel_scalar_value(setting));
+}
+
+void EspDesktopApp::edit_panel_scalar(ScalarSetting setting, std::string_view value) {
+  const auto &rule = panel_settings::SCALAR_RULES[size_t(setting)];
+  if (rule.valid(value) && value != panel_scalar_value(setting) && !save_panel_setting(rule.key, value))
+    ESP_LOGW(TAG, "Could not save panel setting %.*s", int(rule.key.size()), rule.key.data());
+}
+
+void EspDesktopApp::edit_panel_number(ScalarSetting setting, float value) {
+  if (!std::isfinite(value) || std::floor(value) != value ||
+      double(value) < std::numeric_limits<int32_t>::min() ||
+      double(value) > std::numeric_limits<int32_t>::max()) return;
+  edit_panel_scalar(setting, std::to_string(static_cast<int32_t>(value)));
+}
+
+void EspDesktopApp::bind_display_brightness_preferences(BrightnessPublisher publish) {
+  apply_display_brightness_ = publish;
+  if (publish) publish(display_brightness_);
+}
+
+void EspDesktopApp::save_display_brightness_preferences(const DisplayBrightnessPreferences &settings) {
+  if (!save_panel_setting(DISPLAY_BRIGHTNESS_PREFERENCES_KEY, encode_display_brightness_preferences(settings)))
+    ESP_LOGW(TAG, "Could not save display brightness preferences");
+}
+
+void EspDesktopApp::edit_manual_brightness(float fraction) {
+  if (!std::isfinite(fraction) || fraction <= 0.0f) return;
+  const unsigned level = std::max(1L, std::lround(std::min(fraction, 1.0f) * 10000.0f));
+  auto next = display_brightness_;
+  if (next.manual && next.manual_level == level) return;
+  next.manual = true;
+  next.manual_level = level;
+  save_display_brightness_preferences(next);
+}
+
+bool EspDesktopApp::save_panel_setting(std::string_view key, std::string_view value) {
+  using namespace configuration;
+  auto *service = core_.configuration_service();
+  if (!service || !native_configuration_runtime_ ||
+      native_configuration_runtime_->boot_configuration_pending || !panel_config_http_context_bound_) return false;
+  reset::ConfigurationWriteLease lease;
+  if (!lease.ready()) return false;
+  const size_t capacity = service->maximum_document_size();
+  ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
+  auto *input = buffer.allocate(capacity * 2);
+  if (!input) return false;
+  auto *output = input + capacity;
+  const auto loaded = service->load(input, capacity);
+  size_t output_size = 0;
+  if (loaded.status == ServiceStatus::EMPTY) {
+    PanelConfigWriter writer(output, capacity);
+    return writer.begin() == PanelConfigStatus::OK &&
+        writer.append_device_profile(reinterpret_cast<const uint8_t *>(panel_config_device_profile_),
+            std::strlen(panel_config_device_profile_)) == PanelConfigStatus::OK &&
+        writer.append_setting(reinterpret_cast<const uint8_t *>(key.data()), key.size(),
+            reinterpret_cast<const uint8_t *>(value.data()), value.size()) == PanelConfigStatus::OK &&
+        writer.finish(&output_size) == PanelConfigStatus::OK &&
+        service->save_if_generation(0, PANEL_CONFIG_DOCUMENT_VERSION, output, output_size).durable();
+  }
+  if (!loaded.ok()) return false;
+  if (loaded.document_version == PANEL_CONFIG_DOCUMENT_VERSION) {
+    return panel_config_set_setting_v1(input, loaded.document_size, key, value, output, capacity, &output_size) &&
+        service->save_if_generation(loaded.generation, loaded.document_version, output, output_size).durable();
+  }
+  if (loaded.document_version != PANEL_CONFIG_DOCUMENT_VERSION_2) return false;
+  PanelConfigV2Reader reader(input, loaded.document_size);
+  size_t index_size = 0;
+  if (reader.workspace_bytes(&index_size) != PanelConfigStatus::OK) return false;
+  ConfigurationBuffer scratch(allocate_configuration_slot, release_configuration_slot);
+  auto *index = scratch.allocate(index_size);
+  if (!index || reader.validate(index, index_size) != PanelConfigStatus::OK) return false;
+  PanelConfigPageAppend edit(reader);
+  return edit.set_setting(key, value) &&
+      edit.finish(output, capacity, &output_size, allocate_configuration_slot, release_configuration_slot) &&
+      service->save_if_generation(loaded.generation, loaded.document_version, output, output_size).durable();
+}
+
+void EspDesktopApp::retry_configuration_compatibility() {
+  if (shutting_down_ || !reset::ready() || reset::pending()) return;
+  auto *runtime = native_configuration_runtime_.get();
+  auto *service = core_.configuration_service();
+  if (!runtime || !service || !runtime->slot_capacity || runtime->boot_configuration_pending ||
+      (application_scene_ && !application_scene_->maintenance_ready())) return;
+  const auto state = service->compatibility_state();
+  if (!state.retry_pending()) {
+    runtime->compatibility_retry.clear();
+    return;
+  }
+  if (!runtime->compatibility_retry.ready(esphome::millis(), state.generation)) return;
+  reset::ConfigurationWriteLease lease;
+  if (!lease.ready()) {
+    runtime->compatibility_retry.failed(esphome::millis());
+    return;
+  }
+  configuration::ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
+  auto *document = buffer.allocate(runtime->slot_capacity);
+  if (!document) {
+    runtime->compatibility_retry.failed(esphome::millis());
+    return;
+  }
+  const auto repaired = service->retry_compatibility(document, runtime->slot_capacity);
+  if (service->compatibility_state().retry_pending()) {
+    runtime->compatibility_retry.failed(esphome::millis());
+    ESP_LOGW(TAG, "Compatibility copy remains incomplete; retry deferred (%u)",
+             static_cast<unsigned>(repaired.status));
+  } else {
+    runtime->compatibility_retry.clear();
+    if (!repaired.ok())
+      ESP_LOGW(TAG, "Compatibility copy cannot represent this native configuration (%u)",
+               static_cast<unsigned>(repaired.status));
+  }
+}
+
+static TaskHandle_t card_asset_application_task = nullptr;
+
+CardAssetReferenceState EspDesktopApp::check_recovery_references(void *context, const std::string &id) {
   auto *app = static_cast<EspDesktopApp *>(context);
-  if (app == nullptr) return CardAssetReferenceState::UNAVAILABLE;
   if (!app->native_configuration_requested()) return CardAssetReferenceState::USE_LEGACY;
   auto *runtime = app->native_configuration_runtime_.get();
   auto *service = app->core_.configuration_service();
-  if (!app->native_configuration_initialized_ || !app->native_configuration_applied_ ||
-      runtime == nullptr || runtime->boot_buffer == nullptr || service == nullptr) {
+  if (!runtime || !service || !app->native_configuration_initialized_ || runtime->boot_configuration_pending)
     return CardAssetReferenceState::UNAVAILABLE;
-  }
-  // Recovery runs on the application loop. Reuse its boot buffer, never the
-  // HTTP scratch buffer or the possibly stale legacy preference mirror.
-  const auto loaded = service->load(runtime->boot_buffer, runtime->slot_capacity);
+  const auto capacity = service->maximum_document_size();
+  configuration::ConfigurationBuffer buffer(allocate_configuration_slot, release_configuration_slot);
+  auto *document = buffer.allocate(capacity);
+  if (!document) return CardAssetReferenceState::UNAVAILABLE;
+  const auto loaded = service->load(document, capacity);
   if (loaded.status == configuration::ServiceStatus::EMPTY) return CardAssetReferenceState::UNREFERENCED;
   bool referenced = false;
-  if (!loaded.ok() || !panel_config_references_asset(
-          runtime->boot_buffer, loaded.document_size, id, referenced)) {
-    return CardAssetReferenceState::UNAVAILABLE;
-  }
+  if (!loaded.ok() || !panel_config_asset_reference(
+      loaded.document_version, document, loaded.document_size, id, referenced,
+      allocate_configuration_slot, release_configuration_slot)) return CardAssetReferenceState::UNAVAILABLE;
   return referenced ? CardAssetReferenceState::REFERENCED : CardAssetReferenceState::UNREFERENCED;
 }
 
 bool EspDesktopApp::clear_card_asset_references(void *context, const std::string &id) {
-  auto *app = static_cast<EspDesktopApp *>(context);
-  if (app == nullptr || !app->native_configuration_initialized_) return false;
-  auto *service = app->core_.configuration_service();
-  if (service == nullptr) return false;
-  // This buffer belongs to this transaction, not the HTTP handler or startup
-  // recovery. Keep the large document off the small device task stack/heap.
-  const size_t capacity = service->maximum_document_size();
-  std::unique_ptr<uint8_t, decltype(&free)> buffer(
-      static_cast<uint8_t *>(heap_caps_malloc(capacity, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT)), &free);
-  if (!buffer) return false;
-  struct Context { const std::string &id; } transform_context{id};
-  const auto result = service->transform_current(buffer.get(), capacity,
-      [](void *context, uint8_t *document, size_t &size) {
-        return clear_panel_config_asset_references(document, size,
-            static_cast<Context *>(context)->id);
-      }, &transform_context);
-  if (result.status != configuration::ServiceStatus::OK) {
-    ESP_LOGE(TAG, "Card image reference transaction failed (%u)", static_cast<unsigned>(result.status));
-    return false;
+  (void) context;
+  auto &http = configuration::panel_config_http_context();
+  if (!http.ready.load(std::memory_order_acquire) || !http.service || !http.transactions) return false;
+  auto &service = *http.service;
+  const bool main_task = xTaskGetCurrentTaskHandle() == card_asset_application_task;
+  const auto capacity = http.document_capacity;
+  configuration::ConfigurationBuffer input(allocate_configuration_slot, release_configuration_slot);
+  auto *document = input.allocate(capacity);
+  if (!document) return false;
+  for (int attempt = 0; attempt < 3; ++attempt) {
+    const auto loaded = main_task ? service.load(document, capacity)
+        : http.transactions->load(document, capacity).result;
+    if (!loaded.ok()) return false;
+    bool referenced = false;
+    if (!panel_config_asset_reference(loaded.document_version, document, loaded.document_size,
+        id, referenced, allocate_configuration_slot, release_configuration_slot)) return false;
+    if (!referenced) return true;
+    if (loaded.document_version != configuration::PANEL_CONFIG_DOCUMENT_VERSION_2) return false;
+    configuration::ConfigurationBuffer output(allocate_configuration_slot, release_configuration_slot);
+    auto *updated = output.allocate(capacity);
+    size_t size = 0;
+    if (!updated || !clear_panel_config_v2_asset_references(document, loaded.document_size,
+        updated, capacity, &size, id, allocate_configuration_slot, release_configuration_slot)) return false;
+    const auto saved = main_task
+        ? service.save_if_generation(loaded.generation, loaded.document_version, updated, size)
+        : http.transactions->save_if_generation(loaded.generation, loaded.document_version, updated, size).result;
+    if (saved.ok()) return true;
   }
-  return true;
+  return false;
 }
 
 void EspDesktopApp::setup() {
-  screensaver_pin().setup();
-  home_assistant_endpoint_.setup();
-  esphome::artwork_image::TransferObserver::instance().set(
-      [this](const std::string &origin) -> uint32_t {
-        return home_assistant_endpoint::parse_origin(origin) == home_assistant_endpoint_.origin()
-            ? home_assistant_endpoint_.generation() : 0;
-      },
-      [this](const esphome::artwork_image::TransferNotice &notice) {
-        using Failure = esphome::artwork_image::TransferFailure;
-        home_assistant_endpoint_.report_download(
-            home_assistant_endpoint::parse_origin(notice.request.origin),
-            notice.request.endpoint_generation, notice.status,
-            notice.failure == Failure::NONE, notice.failure == Failure::TRANSPORT);
-      });
-
+  card_asset_application_task = xTaskGetCurrentTaskHandle();
+  card_assets_.set_recovery_reference_callback(&EspDesktopApp::check_recovery_references, this);
+  if (native_configuration_requested())
+    card_assets_.set_reference_transaction_callback(&EspDesktopApp::clear_card_asset_references, this);
+  if (!card_assets_.start()) ESP_LOGE(TAG, "Card image storage failed to start");
   if (core_.start()) {
     cards::set_card_runtime_registry_service(&core_.card_runtime_registry());
   } else {
     ESP_LOGE(TAG, "Application core failed to start");
   }
   connectors::connector_state_service().setup(
-      panel_config_button_order_ != nullptr &&
-          !panel_config_button_order_->state.empty(),
       web_auth_username_, web_auth_password_);
-  clock_bar_home_assistant_configured_provider() = []() {
-    return connectors::connector_state_service().status().home_assistant_configured;
-  };
-  card_assets_.set_recovery_reference_callback(&EspDesktopApp::check_recovery_references, this);
-  if (native_configuration_requested())
-    card_assets_.set_reference_transaction_callback(
-        &EspDesktopApp::clear_card_asset_references, this);
-  if (!card_assets_.start()) {
-    ESP_LOGE(TAG, "Card asset service failed to start");
-  }
 
   // NVS work and the legacy snapshot can be expensive on a populated panel.
   // Give the display and restored text entities time to come up before
@@ -417,13 +710,16 @@ void EspDesktopApp::setup() {
                     [this]() { this->initialize_native_configuration(); });
 }
 
-void EspDesktopApp::retry_native_configuration_initialization() {
-  this->set_timeout("native-configuration-initialize", 5000,
-                    [this]() { this->initialize_native_configuration(); });
+void EspDesktopApp::defer_native_configuration_initialization() {
+  native_configuration_initialization_pending_ = true;
+  configuration_buffer_retry_.failed(esphome::millis());
+  ESP_LOGW(TAG, "Native configuration is waiting for temporary memory");
 }
 
 void EspDesktopApp::initialize_native_configuration() {
-  if (native_configuration_initialized_) return;
+  if (shutting_down_ || native_configuration_initialized_)
+    return;
+  native_configuration_initialization_pending_ = false;
   ESP_LOGI(TAG, "Starting native configuration initialization");
   if (!native_configuration_requested()) {
     ESP_LOGD(TAG, "Native configuration is not requested for this device");
@@ -432,82 +728,78 @@ void EspDesktopApp::initialize_native_configuration() {
     return;
   }
   if (!create_native_configuration_runtime()) {
-    retry_native_configuration_initialization();
+    defer_native_configuration_initialization();
     return;
   }
   NativeConfigurationRuntime &runtime = *native_configuration_runtime_;
-  if (core_.configuration_service() == nullptr && !core_.configure_configuration_service(
-          runtime.store, runtime.legacy_config, &runtime.validator,
-          configuration::PANEL_CONFIG_LEGACY_MODE)) {
-    ESP_LOGE(TAG, "Native configuration service is already configured");
-    retry_native_configuration_initialization();
-    return;
+  if (!runtime.service_configured) {
+    if (!core_.configure_configuration_service(
+            runtime.store, runtime.legacy_config, &runtime.validator,
+            configuration::PANEL_CONFIG_LEGACY_MODE)) {
+      ESP_LOGE(TAG, "Native configuration service is already configured");
+      native_configuration_initialized_ = true;
+      register_panel_config_endpoints();
+      return;
+    }
+    runtime.service_configured = true;
   }
   configuration::ConfigurationService *const panel_config_service =
       core_.configuration_service();
   if (panel_config_service == nullptr) {
     ESP_LOGE(TAG, "Native configuration service is unavailable");
-    retry_native_configuration_initialization();
+    native_configuration_initialized_ = true;
+    register_panel_config_endpoints();
     return;
   }
-  panel_config_service->set_runtime_adapter(&runtime.runtime_config);
+  // HTTP writes and boot restore activate the same durable layout. Text
+  // bindings still publish screen settings and can import an old layout.
+  panel_config_service->set_runtime_adapter(runtime.grid_runtime.get());
   if (!runtime.legacy_config.configured()) {
     ESP_LOGW(TAG, "Native configuration sources are not configured");
-    retry_native_configuration_initialization();
-    return;
   } else {
-    if (runtime.slot_capacity == 0) {
+    if (!runtime.storage_ready) {
       const configuration::PanelConfigStorageSelection storage =
           configuration::begin_panel_config_storage(
               runtime.blobs, panel_config_card_images_storage_,
               PANEL_CONFIG_STORAGE_SLOT_CAPACITY,
               PANEL_CONFIG_NVS_SLOT_CAPACITY);
-      if (!storage.ready) {
+      if (!storage.ready || !runtime.backend.begin(storage.slot_capacity)) {
         ESP_LOGE(TAG, "Native configuration storage is unavailable");
-        retry_native_configuration_initialization();
+        native_configuration_initialized_ = true;
+        register_panel_config_endpoints();
         return;
       }
       runtime.slot_capacity = storage.slot_capacity;
+      runtime.storage_ready = true;
       if (storage.used_nvs_fallback) {
         ESP_LOGW(TAG,
-                 "Card-images partition is unavailable; using NVS with %u-byte slots",
+                 "Card-images partition is unavailable; using NVS with %u-byte "
+                 "slots",
                  static_cast<unsigned>(runtime.slot_capacity));
       }
     }
-    ESP_LOGI(TAG, "Allocating native configuration buffers");
-#ifdef USE_ESP32
-    // Retain successful allocation/storage setup across a transient load failure.
-    if (runtime.memory == nullptr) {
-      runtime.memory = static_cast<uint8_t *>(heap_caps_malloc(
-          runtime.slot_capacity * 5, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
-    }
-#endif
-    if (!runtime.buffers_initialized) {
-      if (runtime.memory == nullptr ||
-          !runtime.backend.begin(runtime.memory, runtime.slot_capacity * 2,
-                                 runtime.slot_capacity)) {
-        ESP_LOGE(TAG, "Native configuration memory is unavailable");
-        retry_native_configuration_initialization();
-        return;
-      }
-      runtime.buffers_initialized = true;
+    panel_config_service->set_buffer_allocator(allocate_configuration_slot,
+                                               release_configuration_slot);
+    configuration::ConfigurationBuffer buffer(allocate_configuration_slot,
+                                              release_configuration_slot);
+    auto *document = buffer.allocate(runtime.slot_capacity);
+    if (!document) {
+      defer_native_configuration_initialization();
+      return;
     }
     ESP_LOGI(TAG, "Loading native configuration document");
-    panel_config_service->set_scratch_buffer(
-        runtime.memory + runtime.slot_capacity * 2,
-        runtime.slot_capacity);
-    runtime.document_buffer =
-        runtime.memory + runtime.slot_capacity * 3;
-    runtime.boot_buffer = runtime.memory + runtime.slot_capacity * 4;
-    const configuration::ServiceLoadResult loaded = panel_config_service->load(
-        runtime.document_buffer, runtime.slot_capacity);
-    if (!configuration::panel_config_load_allows_native_endpoints(loaded.status)) {
+    const configuration::ServiceLoadResult loaded =
+        panel_config_service->load(document, runtime.slot_capacity);
+    if (loaded.status == configuration::ServiceStatus::ALLOCATION_FAILED) {
+      defer_native_configuration_initialization();
+      return;
+    }
+    runtime.document_available =
+        configuration::panel_config_load_allows_native_endpoints(loaded.status);
+    if (!runtime.document_available) {
       ESP_LOGW(TAG,
                "Native configuration initial load failed (%u); keeping legacy configuration endpoints active",
                static_cast<unsigned>(loaded.status));
-      runtime.document_buffer = nullptr;
-      retry_native_configuration_initialization();
-      return;
     }
     if (loaded.status == configuration::ServiceStatus::IMPORTED_LEGACY) {
       ESP_LOGI(TAG, "Imported legacy panel configuration into generation %" PRIu32,
@@ -524,123 +816,28 @@ void EspDesktopApp::initialize_native_configuration() {
     // storage is empty, so no second boot-time shadow refresh is required.
     const configuration::ServiceLoadResult live_document = loaded;
     if (live_document.ok()) {
-      // Publishing the restored values triggers the existing grid-refresh
-      // automations. Run that only after every ESPHome component has completed
+      // Activating the restored layout schedules a grid refresh. Run it
+      // only after every ESPHome component has completed
       // setup: on P4 panels the grid and LVGL objects are not safe to refresh
       // while this component's WiFi-priority setup callback is still running.
       // Browser PUT requests still apply immediately through the runtime
       // adapter; this deferral is strictly for startup restoration.
       runtime.boot_configuration_pending = true;
-      this->set_timeout("native-configuration-apply", 1000,
-                        [this]() { this->apply_boot_configuration(); });
-    } else if (live_document.status == configuration::ServiceStatus::EMPTY) {
-      native_configuration_applied_ = true;
+      this->set_timeout(1000, [this]() { this->apply_boot_configuration(); });
     }
   }
   native_configuration_initialized_ = true;
+  configuration_buffer_retry_.clear();
   register_panel_config_endpoints();
 }
 
 void EspDesktopApp::sync_finder_folders() {
-  using namespace configuration;
-  auto *service = core_.configuration_service();
-  if (!native_configuration_initialized_ || !native_configuration_runtime_ || !service) return;
+  if (!native_configuration_initialized_ || !native_configuration_runtime_) return;
   auto &runtime = *native_configuration_runtime_;
-  if (runtime.boot_configuration_pending || esphome::millis() - runtime.finder_poll_ms < 1000) return;
-  runtime.finder_poll_ms = esphome::millis();
-  const auto snapshot = companion_runtime_snapshot();
-  if (!snapshot.connected) return;
-  std::vector<CompanionAction> folders;
-  std::string catalogue;
-  for (const auto &action : snapshot.actions) {
-    if (action.id.rfind("folder.", 0) != 0) continue;
-    folders.push_back(action);
-    catalogue += action.id + "\n";
-  }
-  const auto &navigation = grid_navigation_service();
-  const int slots = navigation.layout_slots;
-  const int columns = navigation.layout_columns;
-  if (slots <= 0 || columns <= 0 || catalogue == runtime.finder_catalogue) return;
-  // Private buffers avoid racing the HTTP editor's shared buffer. Generation
-  // matching prevents a simultaneous browser save from being overwritten.
-  const size_t capacity = service->maximum_document_size();
-#ifdef USE_ESP32
-  auto *memory = static_cast<uint8_t *>(heap_caps_malloc(capacity * 2, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
-#else
-  auto *memory = static_cast<uint8_t *>(std::malloc(capacity * 2));
-#endif
-  if (!memory) return;
-  std::unique_ptr<uint8_t, decltype(&std::free)> owned(memory, &std::free);
-  uint8_t *input = memory;
-  uint8_t *output = memory + capacity;
-  const auto loaded = service->load(input, capacity);
-  if (!loaded.ok()) return;
-  PanelConfigReader reader(input, loaded.document_size);
-  if (reader.begin() != PanelConfigStatus::OK) return;
-  std::vector<PanelConfigRecord> records;
-  PanelConfigRecord record;
-  while (reader.next(&record) == PanelConfigStatus::OK) records.push_back(record);
-  std::array<bool, PANEL_CONFIG_MAX_SLOT_COUNT + 1> finder_slots{};
-  std::array<std::string, PANEL_CONFIG_MAX_SLOT_COUNT + 1> finder_open_behaviors{};
-  for (const auto &item : records) {
-    if (item.type != PanelConfigRecordType::BUTTON) continue;
-    const auto card = parse_cfg(std::string(reinterpret_cast<const char *>(item.value), item.value_size));
-    finder_slots[item.slot] = card.entity == "com.apple.finder" && companion_app_shortcuts_enabled(card);
-    finder_open_behaviors[item.slot] = companion_folder_open_behavior(card);
-  }
-  PanelConfigWriter writer(output, capacity);
-  if (writer.begin() != PanelConfigStatus::OK) return;
-  bool changed = false;
-  for (const auto &item : records) {
-    PanelConfigStatus status = PanelConfigStatus::INVALID_DOCUMENT;
-    if (item.type == PanelConfigRecordType::SUBPAGE && finder_slots[item.slot]) {
-      std::string config(reinterpret_cast<const char *>(item.value), item.value_size);
-      const auto buttons = parse_subpage_config(config);
-      SubpageOrder order;
-      parse_subpage_order(get_subpage_order(config), slots, buttons.size(), order);
-      // Older pages without an explicit Back token remain untouched until the
-      // editor normalizes them; guessing their positions could overwrite a tile.
-      if (order.has_back_token) {
-        normalize_subpage_order_spans(order, slots, columns);
-        std::vector<bool> occupied(slots, false);
-        auto occupy = [&](int position, int rows, int cols) {
-          for (int row = 0; row < rows; ++row)
-            for (int col = 0; col < cols; ++col) {
-              const int cell = position + row * columns + col;
-              if (cell >= 0 && cell < slots) occupied[cell] = true;
-            }
-        };
-        occupy(order.back_pos, order.back_row_span, order.back_col_span);
-        for (int position = 0; position < slots; ++position) {
-          const int index = order.positions[position];
-          if (index > 0 && index <= static_cast<int>(buttons.size()))
-            occupy(position, order.row_span[index - 1], order.col_span[index - 1]);
-        }
-        size_t capacity = 0;
-        for (auto *chunk : panel_config_button_texts_[item.slot - 1].subpages)
-          if (chunk) capacity += 255;
-        const auto updated = finder_append_folder_tiles(
-            config, occupied, folders, capacity, finder_open_behaviors[item.slot]);
-        changed |= updated != config;
-        config = updated;
-      }
-      status = writer.append_subpage(item.slot, reinterpret_cast<const uint8_t *>(config.data()), config.size());
-    } else if (item.type == PanelConfigRecordType::SUBPAGE) {
-      status = writer.append_subpage(item.slot, item.value, item.value_size);
-    } else if (item.type == PanelConfigRecordType::BUTTON) {
-      status = writer.append_button(item.slot, item.value, item.value_size);
-    } else if (item.type == PanelConfigRecordType::SETTING) {
-      status = writer.append_setting(item.key, item.key_size, item.value, item.value_size);
-    } else if (item.type == PanelConfigRecordType::DEVICE_PROFILE) {
-      status = writer.append_device_profile(item.value, item.value_size);
-    }
-    if (status != PanelConfigStatus::OK) return;
-  }
-  size_t size = 0;
-  if (writer.finish(&size) != PanelConfigStatus::OK) return;
-  if (changed && !service->save_if_generation(loaded.generation, loaded.document_version,
-                                             output, size).ok()) return;
-  runtime.finder_catalogue = catalogue;
+  const auto now = esphome::millis();
+  if (runtime.boot_configuration_pending || now - runtime.finder_poll_ms < 1000) return;
+  runtime.finder_poll_ms = now;
+  if (grid_update_finder_folders(companion_runtime_snapshot())) layout_changed_.trigger();
 }
 
 void EspDesktopApp::loop() {
@@ -652,8 +849,19 @@ void EspDesktopApp::loop() {
                unsigned(now - phase_started), unsigned(now));
     phase_started = now;
   };
-  home_assistant_endpoint_.loop();
-  trace_phase("HA endpoint");
+  if (shutting_down_) return;
+  if (native_configuration_initialization_pending_ &&
+      !native_configuration_initialized_ &&
+      configuration_buffer_retry_.ready(esphome::millis()))
+    initialize_native_configuration();
+  const bool scene_ready = !application_scene_ || application_scene_->maintenance_ready();
+  if (scene_ready && native_configuration_runtime_ != nullptr && core_.configuration_service() != nullptr) {
+    native_configuration_runtime_->transactions.process(*core_.configuration_service());
+    if (native_configuration_runtime_->boot_configuration_due) apply_boot_configuration();
+    retry_configuration_compatibility();
+  }
+  if (shutting_down_) return;
+  trace_phase("configuration");
   core_.run_once();
   trace_phase("app core");
   // Transport callbacks only request a refresh; apply it on the UI loop.
@@ -662,6 +870,9 @@ void EspDesktopApp::loop() {
   const bool focus_pending = companion_runtime_service().focus_refresh_pending();
 #endif
   companion_refresh_cards_if_requested();
+#ifdef USE_COMPANION
+  if (scene_ready) network_status_sync_mac_update_notice();
+#endif
   trace_phase("card refresh");
 #ifdef USE_COMPANION
   // Let the next LVGL pass paint a focus change before starting background
@@ -669,26 +880,26 @@ void EspDesktopApp::loop() {
   if (!focus_pending) companion_process_pending_app_icon_refresh();
   trace_phase("icon refresh");
 #endif
+  grid_reclaim_hidden_render_memory();
   sync_finder_folders();
   trace_phase("Finder sync");
-  card_assets_.loop();
-  // The app core starts before WiFi so Home Assistant boot automations are
-  // safe. The IDF web server starts later, so retry idempotent registrations.
+  // The IDF web server starts later, so retry idempotent registrations.
+  if (shutting_down_) return;
   register_panel_config_endpoints();
   trace_phase("HTTP registration");
-}
-
-void EspDesktopApp::on_safe_shutdown() {
-  // ESPHome runs all safe-shutdown hooks before any on_shutdown hook. mDNS
-  // shuts down before this AFTER_WIFI component, freeing outstanding query
-  // handles, so release our discovery query while the service is still alive.
-  home_assistant_endpoint_.shutdown();
+  if (application_scene_ && application_scene_->maintenance_ready()) application_scene_->loop();
+  if (scene_ready) card_assets_.loop();
 }
 
 void EspDesktopApp::on_shutdown() {
+  if (shutting_down_) return;
+  shutting_down_ = true;
+  if (native_configuration_runtime_ != nullptr)
+    native_configuration_runtime_->transactions.stop();
+  if (application_scene_) application_scene_->stop();
+  card_assets_.stop();
   esphome::artwork_image::TransferObserver::instance().set({}, {});
   cards::set_card_runtime_registry_service(nullptr);
-  card_assets_.stop();
   core_.stop();
 }
 

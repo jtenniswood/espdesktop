@@ -27,10 +27,11 @@
   },
   "subpage": {
     "input": "~1,B=Return%20Home,2d|A,scene.movie,Movie,Flash,Auto,scene.turn_on,,,state_entity=light.living|M,media_player.living,Living,Speaker,Auto,play_pause,,,",
-    "serialized": "~1,B=Return Home,2d|A,scene.movie,Movie,Flash,,scene.turn_on,,,state_entity=light.living|M,media_player.living,Living,Speaker,,play_pause"
+    "serialized": "~1,B=Return Home,2d|A|M,media_player.living,Living,Speaker,,play_pause"
   },
   "settings": {
     "panelInput": {
+      "home_screen_timeout": 120,
       "timezone": "Europe/London (GMT+0)",
       "temperature_unit": "fahrenheit",
       "language": "en",
@@ -41,29 +42,15 @@
       "firmware_update_frequency": "Weekly"
     },
     "panelNormalized": {
-      "indoorTempEnable": false,
-      "outdoorTempEnable": false,
-      "indoorTempEntity": "",
-      "outdoorTempEntity": "",
-      "clockBarTemperatureEntities": [],
       "clockBar": false,
       "clockBarTime": true,
       "clockBarNightMode": false,
       "networkStatusIcon": true,
-      "voiceServices": false,
-      "alarmDelayAudio": false,
-      "alarmDelayTts": true,
-      "alarmDelayEntryAnnouncement": "Please disarm the alarm",
-      "alarmDelayExitAnnouncement": "Alarm arming, please leave the house",
-      "alarmDelayBeepVolume": 0.45,
-      "alarmDelayFinalCountdown": 10,
-      "temperatureDegreeSymbol": true,
       "subpageChevron": true,
       "autoOpenAppSubpages": true,
       "returnHomeOnAppSwitch": true,
       "subpageTitleBar": true,
       "timezone": "Europe/London (GMT+0)",
-      "temperatureUnit": "\u00b0F",
       "language": "en",
       "clockFormat": "12h",
       "hasNtpServer1": false,
@@ -74,19 +61,6 @@
       "ntpServer3": "time.google.com",
       "screensaverMode": "disabled",
       "presenceSensorEntity": "",
-      "mediaPlayerSleepPrevention": true,
-      "mediaPlayerSleepPreventionEntity": "",
-      "coverArtScreensaver": false,
-      "coverArtSource": "Home Assistant",
-      "coverArtMediaPlayerEntity": "",
-      "coverArtSecondaryMediaPlayerEntity": "",
-      "coverArtAttributeConditions": "",
-      "coverArtDelay": 10,
-      "coverArtTrackOverlayDuration": 5,
-      "coverArtHideExternalInput": true,
-      "coverArtHomeAssistantEndpointMode": "Manual",
-      "coverArtHomeAssistantProtocol": "https",
-      "coverArtHomeAssistantPort": 8123,
       "autoUpdate": true,
       "updateFrequency": "Weekly",
       "screensaverAction": "off",
@@ -97,7 +71,6 @@
       "screensaverDimmedBrightnessDay": 10,
       "screensaverDimmedBrightnessNight": 10,
       "screensaverTimeout": 300,
-      "homeScreenTimeout": 60,
       "screenRotation": "90",
       "screensaverCameraEntity": "",
       "screensaverMetadataEntity": "",
@@ -105,8 +78,6 @@
       "screensaverCameraImageMode": "Fit",
       "clockOverlay": false,
       "clockDate": false,
-      "coverArtPlaybackControl": true,
-      "coverArtHomeAssistantHost": "",
       "screensaverCameraDimming": 0
     },
     "screenInput": {
@@ -189,12 +160,6 @@
       "/switch/voice_services/turn_on",
       "/switch/voice_services_enabled/turn_on",
       "/switch/Voice%20Services/turn_on"
-    ],
-    "coverArtDelay30": [
-      "/number/screen_saver__cover_art_delay/set?value=30",
-      "/number/screen_saver_cover_art_delay/set?value=30",
-      "/number/cover_art_delay/set?value=30",
-      "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=30"
     ]
   },
   "bundleSize": {
@@ -203,7 +168,7 @@
     "gzipTolerance": 9216
   },
   "bundleBudget": {
-    "minified": 2850000,
+    "minified": 2900000,
     "gzip": 1150000
   }
 }

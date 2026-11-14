@@ -25,3 +25,8 @@ static_assert(CARD_BACKGROUND_RESIDENT_FRAMES > 0 &&
                   CARD_BACKGROUND_RESIDENT_FRAMES <= CARD_BACKGROUND_MAX_ACTIVE,
               "Card background resident frame pool must fit the active limit");
 constexpr int MAX_SUBPAGE_ITEMS = MAX_GRID_SLOTS * MAX_GRID_SLOTS;
+
+inline int bounded_grid_slots(int num_slots) {
+  if (num_slots < 0) return 0;
+  return num_slots > MAX_GRID_SLOTS ? MAX_GRID_SLOTS : num_slots;
+}

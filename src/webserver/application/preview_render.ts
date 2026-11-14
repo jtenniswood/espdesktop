@@ -1,3 +1,6 @@
+import { removeRetiredCards } from "../features/retired_cards";
+import { cardContractTypeRetired } from "../generated/card_contract";
+import { cardRequiresHomeAssistant } from "../model/legacy_home_assistant";
 import { state } from "../state/app_instance";
 import { cardContractCard } from "../generated/card_contract";
 import { WEB_UI_COLORS } from "../state/ui_tokens";
@@ -5,8 +8,12 @@ import { COMPANION_APP_ICON_SIDE } from "../generated/companion_capabilities";
 import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
-import { escHtml } from "./ui_primitives";
-import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
+import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
+import { escHtml, iconSlug } from "./ui_primitives";
+import { companionCardDefaultIcon } from "../model/companion_card";
+import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
+import { finderFolderPreview } from "../model/finder_folder_preview";
+import type { CompanionAction } from "../api/companion_catalogue";
 import { createWeatherDailyPreviewLayout } from "./weather_daily_preview";
 import {
     buttonConfigDisabledForDevice as isButtonConfigDisabledForDevice,
@@ -34,6 +41,7 @@ import type { GridFeature } from "./grid";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
 import { cardBackgroundImage, cardBackgroundSupported, cardImageUrl } from "./config_option_core";
 export interface PreviewRenderDependencies {
+    readonly displayDemo?: boolean;
     readonly updateClockBarItemUi: () => void;
     readonly document: Document;
     readonly layout: ApplicationLayoutState;
@@ -42,10 +50,11 @@ export interface PreviewRenderDependencies {
     readonly codec: ConfigCodecFeature;
     readonly runtime: UiRuntimeState;
     readonly screenRotation: ScreenRotationFeature;
-    readonly shell: Pick<ControlsShellFeature, "isConfigLocked">;
+    readonly shell: Pick<ControlsShellFeature, "isPreviewReadOnly">;
     readonly grid: Pick<GridFeature, "ctx" | "resolveIcon" | "sizeClass">;
     readonly selection: Pick<ButtonSettingsSelectionFeature, "renderSelectionBar" | "updatePreviewHint">;
     readonly homeAssistantSupported: () => boolean;
+    readonly liveFinderFolders: () => readonly CompanionAction[];
 }
 export interface PreviewRenderFeature {
     render(): void;
@@ -240,9 +249,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
     const document = dependencies.document;
     const els = dependencies.runtime.els;
     const { cardOnPattern } = dependencies.confirmationOptions;
-    const { getSubpage } = dependencies.codec;
+    const { getSubpage, serializeSubpageGrid } = dependencies.codec;
     const { gridPreviewBlocked: gridPreviewBlockedByRotationStartup } = dependencies.screenRotation;
-    const { isConfigLocked } = dependencies.shell;
+    // Loading and saving block interactions, but the preview can render before those locks clear.
+    const isPreviewReadOnly = () => dependencies.displayDemo || dependencies.shell.isPreviewReadOnly();
     const { ctx, resolveIcon, sizeClass } = dependencies.grid;
     const { renderSelectionBar, updatePreviewHint } = dependencies.selection;
     const appIconArtwork = new WeakMap<HTMLImageElement, CompanionAppIconPreview>();
@@ -307,18 +317,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 btn.classList.add("sp-companion-app-icon-card");
             }
         };
-        if (applicationId.startsWith("webapp.")) {
-            const url = COMPANION_WEB_APPS.find(app => "webapp." + app.id === applicationId)?.icon;
-            if (!url) return;
-            const source = document.createElement("img");
-            source.onload = () => applyIcon({
-                dataUrl: url, defaultColor: "", activeColor: "", online: true,
-                insetLeftPercent: 0, insetTopPercent: 0,
-                artworkWidthFraction: 1, artworkHeightFraction: 1,
-            });
-            source.src = url;
-            return;
-        }
         const loadAppIcon = function (attempt: number): void {
             if (!btn.isConnected) return;
             const cached = cachedAppIcon(JSON.stringify([applicationId, backgroundColor]));
@@ -377,7 +375,6 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             selectedTypeKey,
             connector,
             dependencies.homeAssistantSupported(),
-            state.editingSubpage === -1,
         );
     }
     function buttonTypePickerKeys(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
@@ -389,7 +386,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         return buttonTypePickerKeys(!!isSub, null).indexOf(key) >= 0;
     }
     function appendResizeHandle(card: HTMLElement) {
-        if (isConfigLocked()) return;
+        if (isPreviewReadOnly()) return;
         const handle = document.createElement("button");
         handle.type = "button";
         handle.className = "sp-resize-handle";
@@ -399,7 +396,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         card.appendChild(handle);
     }
     function makeTitleEditable(card: HTMLElement, image = false) {
-        if (isConfigLocked()) return;
+        if (isPreviewReadOnly()) return;
         const title = card.querySelector<HTMLElement>(image ? ".sp-image-label-stack" : ".sp-btn-label:not(.sp-media-now-artist)");
         if (!title) return;
         title.classList.add("sp-editable-title");
@@ -413,6 +410,11 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
         var main: any = els.previewMain;
+        if (dependencies.displayDemo) {
+            main.setAttribute("role", "group");
+            main.setAttribute("aria-label", "Touchscreen cards");
+            if (els.topbar) (els.topbar as HTMLElement).inert = true;
+        }
         weatherLayout.disconnect();
         // Keep the active editor and its selection through device state refreshes.
         const editor = main.querySelector(".sp-card-name-input") as HTMLInputElement | null;
@@ -429,47 +431,63 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         }
         main.removeAttribute("aria-busy");
         var c: any = ctx();
+        const removed = removeRetiredCards(c.grid, c.sizes, c.buttons, dependencies.layout.gridCols);
+        if (c.isSub && removed.length) {
+            const subpage = getSubpage(state.editingSubpage);
+            subpage.order = serializeSubpageGrid(subpage);
+        }
+        for (const slot of removed) {
+            const index = c.selected.indexOf(slot);
+            if (index !== -1) c.selected.splice(index, 1);
+        }
         updatePreviewHint(c);
+        const pageKey = state.editingSubpage;
+        const subpage = pageKey ? getSubpage(pageKey) : null;
+        const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
+        const shortcutOwner = appShortcutPageOwner(owner);
+        const liveFolders = subpage && shortcutOwner === "com.apple.finder"
+            ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
+                dependencies.liveFinderFolders())
+            : undefined;
         for (var pos: any = 0; pos < c.maxSlots; pos++) {
             var slot: any = c.grid[pos];
             if (slot === -1)
                 continue;
             if (slot === -2) {
-                var backBtn: any = document.createElement("div");
+                var backBtn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
+                if (dependencies.displayDemo) backBtn.type = "button";
                 var bkSz: any = c.sizes[-2];
-                var subpage = c.isSub ? getSubpage(state.editingSubpage) : null;
-                var isSpecialPage = state.editingSubpage === -1;
-                const parent = !isSpecialPage && state.editingSubpage != null
-                    ? state.buttons[state.editingSubpage - 1] : null;
-                const appBack = companionAppShortcutFolderEnabled(parent);
-                var backLabel = subpage?.backLabel || (isSpecialPage ? "Close" : "Back");
+                var backLabel = subpage?.backLabel || "Back";
+                if (dependencies.displayDemo) backBtn.setAttribute("aria-label", backLabel);
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (isSpecialPage ? 'close' : appBack ? resolveIcon({ icon: parent?.icon === 'Auto' ? 'Monitor' : parent?.icon || 'Monitor' }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (shortcutOwner ? resolveIcon({ icon: appShortcutPageBackIcon(owner?.icon) }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                        (shortcutOwner ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;
                 backBtn.style.setProperty("--card-text-color", subpage?.backColor
                     ? cardPreviewTextColor(backColor) : "#" + previewColors.textPrimary);
                 backBtn.style.cursor = "pointer";
                 backBtn.setAttribute("data-pos", pos);
-                backBtn.draggable = !isConfigLocked();
+                backBtn.draggable = !isPreviewReadOnly();
                 backBtn.setAttribute("data-slot", "-2");
                 makeTitleEditable(backBtn);
                 appendResizeHandle(backBtn);
                 main.appendChild(backBtn);
-                if (appBack) {
+                if (shortcutOwner) {
                     backBtn.setAttribute("data-icon-size", "large");
                     backBtn.setAttribute("aria-label", backLabel + " — Home");
                     resizeCardIcon(backBtn);
                     appIconResizeObserver?.observe(backBtn);
-                    loadCardAppIcon(backBtn, parent!.entity, subpage?.backColor || "",
+                    loadCardAppIcon(backBtn, shortcutOwner, subpage?.backColor || "",
                         backBtn.querySelector(".sp-app-back-icon"), true);
                 }
             }
             else if (slot > 0) {
-                if (slot > (c.isSub ? c.buttons.length : c.maxSlots)) {
+                if (slot > PANEL_CONFIG_MAX_SLOT_COUNT || slot > c.buttons.length ||
+                    (!c.isSub && slot > dependencies.layout.numSlots)) {
                     var unavailable: any = document.createElement("div");
                     unavailable.className = "sp-empty-cell";
                     unavailable.setAttribute("data-pos", pos);
@@ -486,7 +504,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     (!c.isSub || state.settingsDraft.homeSlot === state.editingSubpage)) {
                     b = state.settingsDraft.button;
                 }
-                if (!buttonTypeInfoOnlyVisible(b.type || "")) {
+                if (cardContractTypeRetired(b.type) || !buttonTypeInfoOnlyVisible(b.type || "")) {
                     var hidden: any = document.createElement("div");
                     hidden.className = "sp-empty-cell sp-info-only-hidden";
                     hidden.setAttribute("data-pos", pos);
@@ -512,7 +530,8 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                         cardTextColor: cardOffColor ? cardPreviewTextColor(cardOffColor) : "#" + previewColors.textPrimary,
                     })
                     : null;
-                const btn: any = document.createElement("div");
+                const btn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
+                if (dependencies.displayDemo) btn.type = "button";
                 btn.className = "sp-btn" +
                     (typePreview && typePreview.buttonClass ? " " + typePreview.buttonClass : "") +
                     sizeClass(slotSz) +
@@ -525,7 +544,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var sliderFillColor: any = cardSliderFillColor(cardOffColor, explicitActive ? cardOnColor : "") || cardOnColor;
                 if (sliderFillColor) btn.style.setProperty("--card-slider-fill-color", "#" + sliderFillColor);
                 var contrastBackground: any = cardOffColor || color;
-                btn.draggable = !isConfigLocked();
+                btn.draggable = !isPreviewReadOnly();
                 btn.setAttribute("data-pos", pos);
                 btn.setAttribute("data-slot", slot);
                 var hasWhenOn: any = !typePreview && (b.sensor || (b.icon_on && b.icon_on !== "Auto"));
@@ -558,10 +577,23 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     sensorBadge +
                         iconHtml +
                         labelHtml;
+                if (!dependencies.homeAssistantSupported() && cardRequiresHomeAssistant(b.type || "", b)) {
+                    const warning = "Home Assistant unavailable. Saved configuration kept; replace or remove this card.";
+                    btn.title = warning;
+                    const badge = document.createElement("span");
+                    badge.className = "sp-sensor-badge mdi mdi-alert";
+                    badge.setAttribute("role", "img");
+                    badge.setAttribute("aria-label", warning);
+                    btn.appendChild(badge);
+                }
                 // Offer renaming only when the preview displays a name that can be saved.
                 if (cardContractCard(b.type)?.normalization?.fields.label.policy !== "clear" &&
                     previewHtmlValue(typePreview, "labelEditable", true)) {
                     makeTitleEditable(btn, b.type === "image");
+                }
+                if (dependencies.displayDemo) {
+                    const visibleLabel = btn.querySelector(".sp-btn-label")?.textContent?.trim();
+                    btn.setAttribute("aria-label", visibleLabel || label);
                 }
                 appendResizeHandle(btn);
                 main.appendChild(btn);
@@ -572,6 +604,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                     typePreview.appIconId.length > 0) {
                     const fallbackIcon = btn.querySelector(".sp-companion-app-icon-fallback") as HTMLElement | null;
                     const applicationId = typePreview.appIconId;
+                    if (dependencies.displayDemo) btn.dataset.demoAppId = applicationId;
                     const backgroundColor = cardOffColor || (typeof typePreview.appIconBackgroundColor === "string"
                         ? typePreview.appIconBackgroundColor : "");
                     loadCardAppIcon(btn, applicationId, backgroundColor, fallbackIcon);
@@ -586,6 +619,21 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 empty.className = "sp-empty-cell";
                 empty.setAttribute("data-pos", pos);
                 empty.innerHTML = '<span class="sp-add-pill"><span class="sp-add-icon mdi mdi-plus"></span></span>';
+                const folder = liveFolders?.get(pos);
+                if (folder) {
+                    const tile = document.createElement("div");
+                    tile.className = "sp-live-folder-preview";
+                    tile.title = "Live Finder folder. Click the cell to add a saved tile.";
+                    const icon = document.createElement("span");
+                    icon.className = "sp-btn-icon mdi mdi-" + iconSlug(companionCardDefaultIcon("folder"));
+                    icon.setAttribute("aria-hidden", "true");
+                    const label = document.createElement("span");
+                    label.className = "sp-btn-label";
+                    label.textContent = folder.label;
+                    tile.append(icon, label);
+                    empty.style.backgroundColor = "#" + defaultCardBackgroundColor("companion", state);
+                    empty.appendChild(tile);
+                }
                 main.appendChild(empty);
             }
         }

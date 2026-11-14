@@ -69,7 +69,6 @@ def run_self_test() -> int:
             "modal": {},
             "fonts": {},
             "network": {},
-            "artwork": {},
             "audio": {},
             "input": {},
         },

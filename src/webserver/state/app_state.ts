@@ -2,7 +2,7 @@ import type { CardConfig } from "../contracts/types";
 import { WEB_UI_COLORS } from "./ui_tokens";
 import type { AppState, DeviceConfig } from "./types";
 
-export const AUTO_TIMEZONE_OPTION = "Auto (Home Assistant)";
+export const AUTO_TIMEZONE_OPTION = "Auto (Mac Companion)";
 export const FALLBACK_TIMEZONE_OPTION = "UTC (GMT+0)";
 export const NTP_SERVER_DEFAULTS = ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"] as const;
 export const LANGUAGE_LABELS: Readonly<Record<string, string>> = {
@@ -28,40 +28,34 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
   const grid = Array.from({ length: deviceConfig.slots }, () => 0);
   const buttons = Array.from({ length: deviceConfig.slots }, emptyCardConfig);
   return {
-    grid, sizes: {}, buttons, onColor: WEB_UI_COLORS.primary, cardCurve: "Medium", cardCurveSupported: false, defaultIconSize: "small", defaultIconSizeSupported: false,
+    grid, sizes: {}, buttons, onColor: WEB_UI_COLORS.primary, cardCurve: "Large", cardCurveSupported: false,
+    // Firmware without the app icon size setting uses Small.
+    defaultIconSize: "small", defaultIconSizeSupported: false,
     selectedSlots: [], lastClickedSlot: -1, clockBarSelectedItem: "", activeTab: "screen",
-    _indoorOn: false, _outdoorOn: false, _indoorVal: null, _outdoorVal: null,
-    indoorEntity: "", outdoorEntity: "", clockBarTemperatureEntities: [],
-    _clockBarTemperatureEntitiesReceived: false, _clockBarTemperatureVisibilityReceived: false,
-    temperatureUnit: "Auto", clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
+    clockBarOn: false, _clockBarStateValues: {}, clockBarTimeOn: true,
     clockBarNightModeOn: false,
-    networkStatusOn: true, batteryStatusOn: false, voiceServicesOn: false,
-    alarmDelayAudioOn: false, alarmDelayTtsOn: true,
-    alarmDelayEntryAnnouncement: "Please disarm the alarm",
-    alarmDelayExitAnnouncement: "Alarm arming, please leave the house",
-    alarmDelayBeepVolume: 0.45, alarmDelayFinalCountdown: 10,
+    networkStatusOn: true, batteryStatusOn: false,
+
     networkTransport: "wifi", wifiStrengthPercent: 100,
-    temperatureDegreeSymbolOn: true, subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",
+    subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",
     screensaverCameraEntity: "", screensaverCameraImageMode: "Fit", screensaverCameraDimming: 0, screensaverCameraDimmingSupported: false, screensaverCameraSupported: false,
     clockDateSupported: false, clockDateOn: false,
     clockOverlaySupported: false,
     screensaverMetadataEntity: "",
     metadataOverlayOn: false,
-    mediaPlayerSleepPreventionOn: true, mediaPlayerSleepPreventionEntity: "",
-    coverArtScreensaverOn: false, clockOverlayOn: false, coverArtSource: "Home Assistant", coverArtMediaPlayerEntity: "", coverArtSecondaryMediaPlayerEntity: "", coverArtAttributeConditions: "",
-    coverArtPlaybackControlOn: true, coverArtFilteringEnabled: false, coverArtDelay: 10, coverArtTrackOverlayDuration: 5,
+    clockOverlayOn: false,
     homeAssistantArtworkEndpointMode: "Automatic", homeAssistantArtworkEndpointStatus: "Discovering", homeAssistantArtworkEndpointHealth: "",
-    coverArtHideExternalInputOn: true, homeAssistantArtworkProtocol: "http", homeAssistantArtworkHost: "", coverArtHomeAssistantPort: 8123,
+    homeAssistantArtworkProtocol: "http", homeAssistantArtworkHost: "",
     screensaverMode: "disabled", _screensaverModeReceived: false, screensaverAction: "off",
     _screensaverActionReceived: false, clockScreensaverOn: false, clockBrightnessDay: 35,
     clockBrightnessNight: 35, clockBrightnessSplitReceived: false, screensaverDimmedBrightness: 10,
     screensaverDimmedBrightnessDay: 10, screensaverDimmedBrightnessNight: 10,
     screensaverTimeout: 300, screensaverTimeoutMin: 60, screensaverTimeoutMax: 3600,
-    screensaverTimeoutLimitsLoaded: false, homeScreenTimeout: 60, brightnessDayVal: 100,
+    screensaverTimeoutLimitsLoaded: false, brightnessDayVal: 100,
     brightnessNightVal: 75, brightnessMode: "sunrise_sunset", themeMode: "Dark", themeAutoMethod: "Time", themeActive: "Dark", themeLightStart: "07:00", themeDarkStart: "20:00", themeSunriseOffset: 0, themeSunsetOffset: 0, manualBrightnessVal: 100, brightnessDawnTime: "06:00",
     brightnessDuskTime: "18:00", scheduleTrigger: "disabled", _scheduleTriggerReceived: false,
-    scheduleEnabled: false, scheduleSensorActivation: "off", scheduleSensorEntity: "", scheduleOnHour: 6, scheduleOffHour: 23, scheduleMode: "screen_off",
-    scheduleWakeTimeout: 60, scheduleWakeBrightness: 10, scheduleDimmedBrightness: 10,
+    scheduleEnabled: false, scheduleSensorActivation: "off", scheduleSensorEntity: "", scheduleOnHour: 7, scheduleOffHour: 19, scheduleMode: "screen_dimmed",
+    scheduleWakeTimeout: 60, scheduleWakeBrightness: 10, scheduleDimmedBrightness: 15,
     scheduleClockBrightness: 10, scheduleClockTextColor: "FFFFFF", timezone: AUTO_TIMEZONE_OPTION,
     activeTimezone: FALLBACK_TIMEZONE_OPTION, timezoneOptions: defaultTimezoneOptionsForDevice(deviceConfig),
     language: "en", languageOptions: LANGUAGE_OPTIONS.slice(), clockFormat: "24h",
@@ -84,7 +78,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     c6FirmwareChecking: false, c6FirmwareInstalling: false, autoUpdate: true, updateFrequency: "Daily",
     updateFreqOptions: ["Hourly", "Daily", "Weekly", "Monthly"], configLocked: false, configLockReason: "",
     clockBarDragItem: "", clockBarTempRestoreIndoor: false, clockBarTempRestoreOutdoor: true,
-    clockBarTempRestoreEntities: [], subpages: {}, subpageRaw: {}, subpageSavePending: {}, editingSubpage: null,
+    clockBarTempRestoreEntities: [], nativePanelDocument: null, nativePageSnapshotLoaded: false, nativeHasNestedPages: false, nativeConfigReadOnly: false, nativeConfigLoading: false, nativeTransferActive: false, subpages: {}, subpageRaw: {}, subpageSavePending: {}, editingSubpage: null,
     subpageSelectedSlots: [], subpageLastClicked: -1, clipboard: null, settingsDraft: null,
     entityPostPaths: {}, entityNames: {},
   };

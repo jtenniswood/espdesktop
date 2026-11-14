@@ -6,6 +6,14 @@
 # enabled by default and can be disabled from the setup page or Home Assistant.
 # =============================================================================
 
+esphome:
+  on_boot:
+    - priority: -95
+      then:
+        - lambda: |-
+            id(espdesktop_app).bind_panel_scalar(espdesktop::panel_settings::ScalarSetting::ESP32_C6_AUTO_UPDATE,
+              [](std::string_view value) { id(c6_auto_update_switch).publish_state(value == "1"); });
+
 script:
   # ESPHome's esp32_hosted updater publishes UPDATE_STATE_AVAILABLE but does not
   # fire its on_update_available trigger. Own the check/install sequence here so
@@ -45,10 +53,18 @@ switch:
     id: c6_auto_update_switch
     entity_category: CONFIG
     icon: mdi:update
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::ESP32_C6_AUTO_UPDATE, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::ESP32_C6_AUTO_UPDATE, "0");'
     on_turn_on:
-      - script.execute: c6_check_and_install_update
+      - if:
+          condition:
+            lambda: 'return App.is_setup_complete();'
+          then:
+            - script.execute: c6_check_and_install_update
 
 interval:
   - interval: 24h

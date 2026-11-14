@@ -105,11 +105,12 @@ possible, not the `builds/*.yaml` wrappers because those are thin entry points.
 ### 5. Web UI Asset Note
 
 The factory YAML bundles `www.js` via `js_include`. If the referenced JavaScript
-file is missing, compile will fail. Run this first when web UI assets may be out
-of date:
+file is missing, compile will fail. Build it from the active worktree before
+starting the firmware compiles:
 
 ```bash
-python3 scripts/build.py
+npm ci
+npm run webserver:build
 ```
 
 ### 6. Report

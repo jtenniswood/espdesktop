@@ -14,8 +14,8 @@
       Checking the latest firmware...
     </div>
     <div v-else-if="!manifestAvailable" class="installer-status warning">
-      WebInstall firmware for this panel has not been published yet. Use the manual ESPHome
-      setup below or check again after the next EspDesktop release.
+      Browser-installable firmware for this display has not been published yet.
+      Check the <a href="https://github.com/jtenniswood/espdesktop/releases">EspDesktop releases</a> for updates.
     </div>
     <div v-else-if="!ready" class="installer-status">
       Loading installer...

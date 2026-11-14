@@ -24,7 +24,7 @@ export interface CoreFeature {
     syncPreviewGridTop(layout?: any, scale?: any): void;
     clockBarVisibleInPreview(): boolean;
     syncPreviewStyleVars(layout?: any, scale?: any): void;
-    normalizeGridSpansForLayout(grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxSlotId?: any): any;
+    normalizeGridSpansForLayout(grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxCardId?: number): any;
     syncPreviewOrientation(preservePendingGrid?: any): void;
     subpageStateDisplayMode(button?: any): string;
     mockNowIso: any;
@@ -149,10 +149,10 @@ export function createCoreFeature(
         r.setProperty("--subpage-right", scaledCqw(subpageBadge.right, scale));
         r.setProperty("--subpage-fs", scaledCqw(subpageBadge.fontSize, scale));
     }
-    function normalizeGridSpansForLayout(this: any, grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxSlotId?: any) {
+    function normalizeGridSpansForLayout(this: any, grid?: any, sizes?: any, maxSlots?: any, gridCols?: any, onChanged?: any, maxCardId: number = maxSlots) {
         var previousOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
         EspDesktopModel.clearSpans(grid, maxSlots);
-        EspDesktopModel.applySpans(grid, sizes || {}, maxSlots, gridCols, maxSlotId);
+        EspDesktopModel.applySpans(grid, sizes || {}, maxSlots, gridCols, maxCardId);
         var normalizedOrder: any = EspDesktopModel.serializeGridOrder(grid, sizes || {});
         if (normalizedOrder !== previousOrder && typeof onChanged === "function")
             onChanged(normalizedOrder);
@@ -186,7 +186,7 @@ export function createCoreFeature(
                 if (!sp || !sp.grid || !sp.grid.length)
                     continue;
                 var previousSubpageOrder: any = JSON.stringify(serializeSubpageGrid(sp));
-                normalizeGridSpansForLayout(sp.grid, sp.sizes, applicationLayout.previewSlots, applicationLayout.gridCols, undefined, sp.buttons.length);
+                normalizeGridSpansForLayout(sp.grid, sp.sizes, applicationLayout.previewSlots, applicationLayout.gridCols, undefined, EspDesktopModel.PANEL_CONFIG_MAX_SLOT_COUNT);
                 sp.order = serializeSubpageGrid(sp);
                 if (JSON.stringify(sp.order) !== previousSubpageOrder) {
                     saveSubpage(homeSlot);

@@ -1,0 +1,757 @@
+{
+  "contractVersion": 1,
+  "normalizationHooks": [
+    "normalize_action_fields",
+    "action_large_numbers_supported",
+    "normalize_action_options",
+    "normalize_media_fields",
+    "normalize_media_options",
+    "normalize_fan_fields",
+    "normalize_fan_options",
+    "normalize_date_time_options",
+    "normalize_mower_fields",
+    "normalize_occupancy_fields",
+    "normalize_occupancy_options",
+    "normalize_access_fields",
+    "normalize_access_options",
+    "normalize_security_fields",
+    "normalize_security_options",
+    "normalize_weather_fields",
+    "normalize_weather_options",
+    "normalize_image_fields",
+    "normalize_image_options",
+    "normalize_climate_fields",
+    "normalize_climate_options",
+    "normalize_light_control_options",
+    "normalize_subpage_fields",
+    "normalize_subpage_options",
+    "normalize_switch_options",
+    "normalize_vacuum_fields"
+  ],
+  "fields": [
+    "entity",
+    "label",
+    "icon",
+    "icon_on",
+    "sensor",
+    "unit",
+    "type",
+    "precision",
+    "options"
+  ],
+  "runtime": {
+    "drivers": [
+      "toggle",
+      "vacuum",
+      "lawn_mower",
+      "alarm",
+      "alarm_action",
+      "climate",
+      "cover",
+      "cover_modal",
+      "cover_position",
+      "cover_tilt",
+      "cover_toggle",
+      "cover_command",
+      "status_entity",
+      "fan",
+      "fan_control",
+      "access",
+      "numeric",
+      "light_temperature",
+      "light_control",
+      "media",
+      "media_control",
+      "media_group",
+      "media_play_pause",
+      "media_transport",
+      "media_volume",
+      "media_position",
+      "media_now_playing",
+      "media_cover_art",
+      "media_playlist",
+      "push",
+      "companion",
+      "subpage",
+      "weather",
+      "image",
+      "timer"
+    ],
+    "capabilities": [
+      "informationOnly",
+      "subscriptions",
+      "actions",
+      "numericControl",
+      "modal",
+      "runtimeAllocation",
+      "subpage"
+    ],
+    "specs": {
+      "timer": {
+        "driver": "timer",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "": {
+        "driver": "toggle",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "vacuum": {
+        "driver": "vacuum",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "lawn_mower": {
+        "driver": "lawn_mower",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "alarm": {
+        "driver": "alarm",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "alarm_action": {
+        "driver": "alarm_action",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "climate": {
+        "driver": "climate",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "climate_control": {
+        "driver": "climate",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "cover": {
+        "driver": "cover",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        },
+        "modeField": "sensor",
+        "defaultDriver": "cover_modal",
+        "modes": {
+          "modal": "cover_modal",
+          "": "cover_position",
+          "tilt": "cover_tilt",
+          "toggle": "cover_toggle",
+          "open": "cover_command",
+          "close": "cover_command",
+          "stop": "cover_command",
+          "set_position": "cover_command"
+        }
+      },
+      "door_window": {
+        "driver": "status_entity",
+        "capabilities": {
+          "informationOnly": true,
+          "subscriptions": true,
+          "actions": false,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "presence": {
+        "driver": "status_entity",
+        "capabilities": {
+          "informationOnly": true,
+          "subscriptions": true,
+          "actions": false,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "fan_direction": {
+        "driver": "fan",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "fan_oscillate": {
+        "driver": "fan",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "fan_preset": {
+        "driver": "fan",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "fan_speed": {
+        "driver": "fan",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "fan_control": {
+        "driver": "fan_control",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "fan_switch": {
+        "driver": "fan",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "garage": {
+        "driver": "access",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "gate": {
+        "driver": "access",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "light_brightness": {
+        "driver": "numeric",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "light_switch": {
+        "driver": "toggle",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "light_temperature": {
+        "driver": "light_temperature",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "light_control": {
+        "driver": "light_control",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "lock": {
+        "driver": "access",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "media": {
+        "driver": "media",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        },
+        "modeField": "sensor",
+        "defaultDriver": "media_play_pause",
+        "modes": {
+          "control_modal": "media_control",
+          "speaker_group": "media_group",
+          "play_pause": "media_play_pause",
+          "previous": "media_transport",
+          "next": "media_transport",
+          "volume": "media_volume",
+          "position": "media_position",
+          "now_playing": "media_now_playing",
+          "cover_art": "media_cover_art",
+          "playlist": "media_playlist"
+        }
+      },
+      "push": {
+        "driver": "push",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": false,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "companion": {
+        "driver": "companion",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": false,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "companion_mac_lock": {
+        "driver": "companion",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": false,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
+      "slider": {
+        "driver": "numeric",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": true,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "subpage": {
+        "driver": "subpage",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": false,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "weather": {
+        "driver": "weather",
+        "capabilities": {
+          "informationOnly": true,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "image": {
+        "driver": "image",
+        "capabilities": {
+          "informationOnly": true,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      },
+      "weather_forecast": {
+        "driver": "weather",
+        "capabilities": {
+          "informationOnly": true,
+          "subscriptions": true,
+          "actions": true,
+          "numericControl": false,
+          "modal": true,
+          "runtimeAllocation": true,
+          "subpage": true
+        }
+      }
+    }
+  },
+  "optionNames": [
+    "state_low_label",
+    "state_high_label",
+    "media_cover_art",
+    "bg_image"
+  ],
+  "cards": null,
+  "migrationActions": {
+    "legacy_weather_forecast": {
+      "when": [
+        {
+          "source": "field",
+          "name": "type",
+          "operator": "equals",
+          "value": "weather_forecast"
+        }
+      ],
+      "set": {
+        "type": "weather",
+        "precision": "tomorrow"
+      }
+    },
+    "legacy_vacuum_start": {
+      "when": [
+        {
+          "source": "field",
+          "name": "type",
+          "operator": "equals",
+          "value": "action"
+        },
+        {
+          "source": "field",
+          "name": "sensor",
+          "operator": "equals",
+          "value": "vacuum.start"
+        }
+      ],
+      "set": {
+        "type": "vacuum",
+        "sensor": "start_stop",
+        "unit": "",
+        "precision": "",
+        "options": "",
+        "icon_on": "Auto"
+      },
+      "hook": "normalize_vacuum_fields"
+    },
+    "legacy_vacuum_dock": {
+      "when": [
+        {
+          "source": "field",
+          "name": "type",
+          "operator": "equals",
+          "value": "action"
+        },
+        {
+          "source": "field",
+          "name": "sensor",
+          "operator": "equals",
+          "value": "vacuum.return_to_base"
+        }
+      ],
+      "set": {
+        "type": "vacuum",
+        "sensor": "dock",
+        "unit": "",
+        "precision": "",
+        "options": "",
+        "icon_on": "Auto"
+      },
+      "hook": "normalize_vacuum_fields"
+    }
+  },
+  "migrationAliases": {
+    "weather_forecast": {
+      "type": "weather",
+      "precision": "tomorrow"
+    }
+  },
+  "optionSelect": {
+    "canonicalAction": "input_select.select_option",
+    "actions": [
+      "input_select.select_option",
+      "select.select_option"
+    ]
+  },
+  "cardGroups": {
+    "brightnessSlider": [
+      "slider",
+      "light_brightness",
+      "fan_speed"
+    ],
+    "fan": {
+      "fan_switch": {
+        "defaultIcon": "Fan Off",
+        "defaultIconOn": "Fan"
+      },
+      "fan_speed": {
+        "defaultIcon": "Fan Speed 2"
+      },
+      "fan_control": {
+        "defaultIcon": "Fan"
+      },
+      "fan_oscillate": {
+        "defaultIcon": "Fan"
+      },
+      "fan_direction": {
+        "defaultIcon": "Swap Horizontal"
+      },
+      "fan_preset": {
+        "defaultIcon": "Fan Auto"
+      }
+    }
+  },
+  "largeNumbers": {
+    "": true,
+    "climate": true,
+    "climate_control": true,
+    "media": true,
+    "subpage": true
+  },
+  "retiredSubpageTypeCodes": [
+    "S",
+    "LS",
+    "I",
+    "SL",
+    "SS",
+    "A",
+    "U",
+    "WH"
+  ],
+  "subpageTypeCodes": {
+    "timer": "TM",
+    "calendar": "D",
+    "clock": "CK",
+    "timezone": "T",
+    "door_window": "X",
+    "presence": "PR",
+    "weather": "W",
+    "weather_forecast": "F",
+    "fan_switch": "B",
+    "fan_speed": "J",
+    "fan_control": "FC",
+    "fan_oscillate": "O",
+    "fan_direction": "E",
+    "fan_preset": "Z",
+    "light_brightness": "V",
+    "light_switch": "Q",
+    "light_control": "LC",
+    "alarm": "Y",
+    "alarm_action": "AA",
+    "slider": "L",
+    "cover": "C",
+    "vacuum": "VC",
+    "lawn_mower": "LM",
+    "light_temperature": "N",
+    "garage": "R",
+    "gate": "GT",
+    "lock": "K",
+    "media": "M",
+    "climate": "H",
+    "climate_control": "HC",
+    "push": "P",
+    "companion": "CP",
+    "companion_mac_lock": "ML",
+    "subpage": "G"
+  },
+  "releaseAvailability": {
+    "stable": [
+      "companion",
+      "companion_mac_lock",
+      "subpage"
+    ],
+    "preview": {
+      "companion_window": {
+        "label": "Window Control",
+        "issue": 309
+      }
+    },
+    "removeOnEdit": [
+      "companion_webapp",
+      "companion_audio",
+      "wifi_qr",
+      "wifi_qr_card"
+    ]
+  },
+  "retiredCardTypes": [
+    "sensor",
+    "local_sensor",
+    "text_sensor",
+    "internal",
+    "wifi_qr",
+    "wifi_qr_card",
+    "screen_lock",
+    "screensaver",
+    "action",
+    "local",
+    "option_select",
+    "calendar",
+    "clock",
+    "timezone",
+    "webhook",
+    "companion_webapp",
+    "companion_audio"
+  ],
+  "appearance": {
+    "backgroundImage": {
+      "option": "bg_image",
+      "supportedCardTypes": [
+        "",
+        "vacuum",
+        "lawn_mower",
+        "alarm",
+        "alarm_action",
+        "climate",
+        "climate_control",
+        "cover",
+        "door_window",
+        "presence",
+        "fan_direction",
+        "fan_oscillate",
+        "fan_preset",
+        "fan_speed",
+        "fan_control",
+        "fan_switch",
+        "garage",
+        "gate",
+        "light_brightness",
+        "light_switch",
+        "light_temperature",
+        "light_control",
+        "lock",
+        "media",
+        "push",
+        "companion",
+        "slider",
+        "subpage",
+        "weather",
+        "weather_forecast",
+        "companion_mac_lock"
+      ]
+    }
+  }
+}

@@ -8,12 +8,15 @@ from datetime import datetime, timezone
 from html.parser import HTMLParser
 import json
 from pathlib import Path
+import plistlib
+import re
 from urllib.parse import unquote, urljoin, urlsplit
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 import xml.etree.ElementTree as ET
 
 ROOT = Path(__file__).resolve().parents[1]
-BASE = 'https://jtenniswood.github.io/espdesktop/'
+BASE = 'https://espdesktop.com/'
+PREVIOUS_BASE = 'https://jtenniswood.github.io/espdesktop/'
 
 
 def normalized(value):
@@ -26,9 +29,12 @@ class Page(HTMLParser):
         self.title = ''
         self.meta = {}
         self.canonicals = []
+        self.described_by = []
+        self.markdown_alternates = []
         self.h1 = []
         self.ids = set()
         self.links = []
+        self.images = []
         self.schemas = []
         self.faq = []
         self.in_main = False
@@ -51,10 +57,17 @@ class Page(HTMLParser):
             self.ids.add(attrs['id'])
         if tag == 'a' and attrs.get('href'):
             self.links.append(attrs['href'])
+        if tag == 'img':
+            self.images.append(attrs)
         if tag == 'meta':
             self.meta[attrs.get('name', attrs.get('property', attrs.get('http-equiv', '')))] = attrs.get('content', '')
-        if tag == 'link' and attrs.get('rel') == 'canonical':
-            self.canonicals.append(attrs.get('href'))
+        if tag == 'link':
+            if attrs.get('rel') == 'canonical':
+                self.canonicals.append(attrs.get('href'))
+            if attrs.get('rel') == 'describedby':
+                self.described_by.append(attrs.get('href'))
+            if attrs.get('rel') == 'alternate' and attrs.get('type') == 'text/markdown':
+                self.markdown_alternates.append(attrs.get('href'))
         if tag == 'main':
             self.in_main = True
         if self.in_main and tag in ('p', 'li', 'br'):
@@ -81,7 +94,8 @@ class Page(HTMLParser):
             self.finish_answer()
             self.in_main = False
         if tag == 'script' and self.schema is not None:
-            self.schemas.append(json.loads(self.schema))
+            schema = json.loads(self.schema)
+            self.schemas.extend(schema.get('@graph', [schema]))
             self.schema = None
 
     def handle_data(self, data):
@@ -131,13 +145,17 @@ def snapshot(pages):
         'duplicate_descriptions': {description: count for description, count in descriptions.items() if count > 1},
         'missing_h1': [url for url, page in pages.items() if not page.h1],
         'missing_metadata': [url for url, page in pages.items() if not page.title or not page.meta.get('description') or not page.canonicals],
+        'missing_share_image_alt': [url for url, page in pages.items() if not page.meta.get('og:image:alt')],
+        'missing_breadcrumbs': [url for url, page in pages.items() if url != BASE and
+                                not any(schema.get('@type') == 'BreadcrumbList' for schema in page.schemas)],
         'search_console_data': 'Not available in this crawl; export from the verified owner account.',
     }
 
 
 def live_snapshot(base):
     def get(url):
-        with urlopen(url, timeout=30) as response:
+        request = Request(url, headers={'User-Agent': 'EspDesktop-Docs-Verification/1.0 (+https://github.com/jtenniswood/espdesktop)'})
+        with urlopen(request, timeout=30) as response:
             return response.read().decode()
 
     urls = sitemap_urls(get(urljoin(base, 'sitemap.xml')))
@@ -145,10 +163,84 @@ def live_snapshot(base):
         return snapshot(dict(zip(urls, executor.map(lambda url: Page(get(url)), urls))))
 
 
+def check_markdown_guides(dist, pages):
+    errors = []
+    index_file = dist / 'llms.txt'
+    if not index_file.is_file():
+        return ['Missing plain-text docs index (llms.txt)']
+    index = index_file.read_text()
+    if not index.startswith('# EspDesktop\n'):
+        errors.append('The plain-text docs index must start with the project name')
+
+    expected = set()
+    for url, page in pages.items():
+        markdown_url = url + ('index.md' if url.endswith('/') else '.md')
+        expected.add(markdown_url)
+        if page.described_by != [BASE + 'llms.txt'] or page.markdown_alternates != [markdown_url]:
+            errors.append(f'Missing plain-text discovery links: {url}')
+        file = dist / markdown_url.removeprefix(BASE)
+        if not file.is_file():
+            errors.append(f'Missing Markdown edition: {url}')
+            continue
+        guide = file.read_text()
+        if not guide.startswith('# ') or f'[Original EspDesktop guide]({url})' not in guide:
+            errors.append(f'Markdown edition needs a heading and original page link: {url}')
+        elif len(page.h1) == 1 and normalized(guide.splitlines()[0][2:]) != normalized(page.h1[0]):
+            errors.append(f'Markdown heading differs from the guide: {url}')
+        for link in page.links:
+            if link.startswith('https://github.com/jtenniswood/espdesktop/releases/download/') and link not in guide:
+                errors.append(f'Markdown edition omitted a release download: {url}')
+
+    links = [url for url in re.findall(r'^- \[[^\]]+\]\((https://[^)\s]+)\)', index, re.MULTILINE)
+             if url.startswith(BASE)]
+    if len(links) != len(set(links)) or set(links) != expected:
+        errors.append('The plain-text docs index must list each public Markdown edition once')
+    markdown_files = {BASE + file.relative_to(dist).as_posix() for file in dist.rglob('*.md')}
+    if markdown_files != expected:
+        errors.append(f'Markdown editions must match public guides: {sorted(markdown_files ^ expected)}')
+    return errors
+
+
+def check_product_facts(dist, pages):
+    facts = json.loads((ROOT / 'docs/.vitepress/product-facts.json').read_text())
+    devices = json.loads((ROOT / 'devices/manifest.json').read_text())['devices']
+    release = json.loads((ROOT / 'product/generated/companion_compatibility.json').read_text())
+    info = plistlib.loads((ROOT / 'macos/EspDesktop/Packaging/Info.plist').read_bytes())
+    errors = []
+
+    if release['supportedDevices'] != [facts['displaySlug']]:
+        errors.append('Discovery facts must match the Companion-supported displays')
+    device = devices[facts['displaySlug']]
+    manufacturer, model = device['public']['name'].split(' ', 1)
+    size = device['public']['screenSize'].split(' ', 1)[0]
+    chip = device['firmware']['build']['chip']
+    if facts['displayLabel'] != f'{size}-inch {manufacturer} {chip} {model}':
+        errors.append('Discovery display label must match the device manifest')
+    if facts['minimumMacOS'] != info['LSMinimumSystemVersion'].removesuffix('.0'):
+        errors.append('Discovery macOS minimum must match the packaged app')
+
+    required = [
+        facts['displayLabel'], facts['macProcessor'], f"macOS {facts['minimumMacOS']} or newer",
+        facts['displayWiFiBand'], facts['matchedRelease'],
+    ]
+    for label, copy in [
+        ('README', (ROOT / 'README.md').read_text()),
+        ('HTML FAQ', ' '.join(answer for _question, answer in pages[BASE + 'reference/faq'].faq)),
+        ('Markdown FAQ', (dist / 'reference/faq.md').read_text()),
+        ('AI reading index', (dist / 'llms.txt').read_text()),
+    ]:
+        for term in required:
+            if term not in copy:
+                errors.append(f'{label} omitted the supported product fact: {term}')
+    return errors
+
+
 def check_build(dist):
     errors = []
     pages = {}
     urls = sitemap_urls((dist / 'sitemap.xml').read_text())
+    if len(urls) != len(set(urls)):
+        errors.append('Duplicate URL in sitemap')
     for url in urls:
         if not url.startswith(BASE):
             errors.append(f'Sitemap URL outside the docs site: {url}')
@@ -167,55 +259,117 @@ def check_build(dist):
             errors.append(f'Expected one main heading: {url}')
         if 'noindex' in page.meta.get('robots', ''):
             errors.append(f'Noindex page in sitemap: {url}')
+        if 'max-image-preview:large' not in page.meta.get('robots', '').split(','):
+            errors.append(f'Large image previews not enabled: {url}')
         if 'Espcontrol' in page.title:
             errors.append(f'Inconsistent brand spelling: {url}')
+        if page.meta.get('og:url') != url:
+            errors.append(f'Share URL does not match the canonical URL: {url}')
+        for field in ('title', 'description', 'image', 'image:alt'):
+            value = page.meta.get(f'og:{field}', '')
+            if not value.strip() or page.meta.get(f'twitter:{field}') != value:
+                errors.append(f'Missing or inconsistent share {field}: {url}')
+        share_image = page.meta.get('og:image', '')
+        if not share_image.startswith(BASE) or not (dist / share_image.removeprefix(BASE)).is_file():
+            errors.append(f'Missing bundled share image: {url}: {share_image}')
+        if not all(page.meta.get(f'og:image:{size}', '').isdigit() and int(page.meta[f'og:image:{size}']) > 0
+                   for size in ('width', 'height')):
+            errors.append(f'Missing share image dimensions: {url}')
+
+        site_schema = [entry for entry in page.schemas if entry.get('@type') == 'WebSite']
+        if [entry.get('url') for entry in site_schema] != ([BASE] if url == BASE else []):
+            errors.append(f'Website structured data should identify the homepage: {url}')
+        breadcrumb_schema = [entry for entry in page.schemas if entry.get('@type') == 'BreadcrumbList']
+        trails = [[(item.get('position'), item.get('item')) for item in entry.get('itemListElement', [])]
+                  for entry in breadcrumb_schema]
+        if url == BASE:
+            if trails:
+                errors.append('Homepage must have no breadcrumb trail')
+        elif len(trails) != 1 or len(trails[0]) not in (2, 3):
+            errors.append(f'Incorrect breadcrumb length: {url}')
+        else:
+            trail = trails[0]
+            expected_positions = list(range(1, len(trail) + 1))
+            if (trail[0] != (1, BASE) or trail[-1] != (len(trail), url)
+                    or [pos for pos, _item in trail] != expected_positions
+                    or any(item not in urls for _pos, item in trail)):
+                errors.append(f'Incorrect breadcrumb trail: {url}')
+
+    homepage_schemas = pages[BASE].schemas
+    software = [entry for entry in homepage_schemas if entry.get('@type') == 'SoftwareApplication']
+    sites = [entry for entry in homepage_schemas if entry.get('@type') == 'WebSite']
+    if (len(software) != 1 or len(sites) != 1 or not software[0].get('@id')
+            or sites[0].get('about') != {'@id': software[0]['@id']}):
+        errors.append('The homepage website data must identify one EspDesktop software application')
+    else:
+        help_page = software[0].get('softwareHelp')
+        if not isinstance(help_page, dict) or help_page.get('@type') != 'WebPage':
+            errors.append('Software help structured data must describe a web page')
+            help_page = {}
+        for label, link in [('installUrl', software[0].get('installUrl')), ('softwareHelp', help_page.get('url'))]:
+            target = urlsplit(link if isinstance(link, str) else '')
+            target_page = pages.get(target._replace(fragment='').geturl())
+            if target_page is None or (target.fragment and unquote(target.fragment) not in target_page.ids):
+                errors.append(f'Software {label} must point to a published page or section: {link}')
 
     report = snapshot(pages)
+    groups = json.loads((ROOT / 'docs/.vitepress/public-guides.json').read_text())
     mac_docs = {
-        BASE,
-        BASE + 'screens/4848s040',
-        BASE + 'getting-started/install',
-        BASE + 'getting-started/mac-app',
-        BASE + 'getting-started/troubleshooting',
-        BASE + 'card-types/companion',
-        BASE + 'mac-controls/apps',
-        BASE + 'mac-controls/folders',
-        BASE + 'mac-controls/shortcuts',
-        BASE + 'mac-controls/windows',
-        BASE + 'mac-controls/statistics',
-        BASE + 'mac-controls/security',
-        BASE + 'features/setup',
-        BASE + 'features/image-storage',
-        BASE + 'features/subpages',
-        BASE + 'reference/faq',
-        BASE + 'reference/companion-compatibility',
-        BASE + 'reference/privacy',
+        BASE + (path.removesuffix('index.md') if path == 'index.md' or path.endswith('/index.md')
+                else path.removesuffix('.md'))
+        for paths in groups.values() for path in paths
     }
-    unexpected_pages = set(pages) - mac_docs
-    if unexpected_pages:
-        errors.append(f'Non-Mac guide is still published: {sorted(unexpected_pages)}')
-    if not any(link == 'https://jtenniswood.github.io/espcontrol/' for link in pages[BASE].links):
-        errors.append('Homepage is missing the EspControl Home Assistant documentation link')
+    if unexpected_pages := set(pages) - mac_docs:
+        errors.append(f'Unexpected sitemap pages: {sorted(unexpected_pages)}')
+    if missing_pages := mac_docs - set(pages):
+        errors.append(f'Missing sitemap pages: {sorted(missing_pages)}')
+    errors.extend(check_markdown_guides(dist, pages))
+    errors.extend(check_product_facts(dist, pages))
     for field in ('duplicate_titles', 'duplicate_descriptions'):
         if report[field]:
             errors.append(f'{field}: {report[field]}')
 
+    paths = {url: set() for url in pages}
     for url, page in pages.items():
+        for image in page.images:
+            source = urljoin(url, image.get('src', ''))
+            decorative = image.get('aria-hidden') == 'true' or image.get('role') in ('none', 'presentation')
+            if 'alt' not in image:
+                errors.append(f'Missing image alt attribute: {url}: {source}')
+            elif not (image['alt'] or '').strip() and not decorative:
+                errors.append(f'Blank alt text on an image not marked decorative: {url}: {source}')
+            if source.startswith(BASE) and not (dist / unquote(urlsplit(source).path.removeprefix('/'))).is_file():
+                errors.append(f'Missing page image: {url}: {source}')
         for href in page.links:
             target = urlsplit(urljoin(url, href))
-            if target.netloc != urlsplit(BASE).netloc or not target.path.startswith('/espdesktop/'):
+            if target.netloc != urlsplit(BASE).netloc:
                 continue
             target_url = target._replace(query='', fragment='').geturl()
             if target_url.endswith('.html'):
                 target_url = target_url[:-5]
             destination = pages.get(target_url)
             if destination:
+                paths[url].add(target_url)
                 if target.fragment and unquote(target.fragment) not in destination.ids:
                     errors.append(f'Broken anchor from {url}: {href}')
             else:
-                relative = unquote(target.path.removeprefix('/espdesktop/'))
+                relative = unquote(target.path.removeprefix('/'))
                 if not (dist / relative).is_file():
                     errors.append(f'Broken or retired link from {url}: {href}')
+
+    reachable = set()
+    pending = [BASE]
+    while pending:
+        url = pending.pop()
+        if url not in reachable:
+            reachable.add(url)
+            pending.extend(paths.get(url, set()) - reachable)
+    if set(pages) - reachable:
+        errors.append(f'Sitemap pages have no link path from the homepage: {sorted(set(pages) - reachable)}')
+
+    missing = Page((dist / '404.html').read_text())
+    if 'noindex' not in missing.meta.get('robots', '') or missing.canonicals:
+        errors.append('The 404 page must stay out of search and have no canonical URL')
 
     faq = pages[BASE + 'reference/faq']
     schemas = [schema for schema in faq.schemas if schema.get('@type') == 'FAQPage']
@@ -227,35 +381,56 @@ def check_build(dist):
             errors.append('FAQ structured answers differ from the rendered questions or answers')
 
     redirects = {
+        'card-types/climate': 'https://jtenniswood.github.io/espcontrol/card-types/climate',
+        'getting-started/mac-app': BASE + 'screens/4848s040#download',
+        'getting-started/install': BASE + 'screens/4848s040#install',
+        'getting-started/c6-recovery': 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting#a-p4-panel-has-unreliable-wifi',
+        'immich/installation': 'https://jtenniswood.github.io/espcontrol/immich/#installation',
+        'screens/p4-86': 'https://jtenniswood.github.io/espcontrol/screens/p4-86',
+        'screens/jc8012p4a1-v3': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3',
+        'screens/jc8012p4a1-v2': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2',
+        'screens/jc8012p4a1-v1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v1',
+        'screens/jc8012p4a1': 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1',
+        'screens/jc4880p443': 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443',
+        'screens/jc1060p470-v2': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2',
+        'screens/jc1060p470-v1': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v1',
+        'screens/jc1060p470': 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470',
+        'features/setup': BASE + 'features/home',
         'reference/request-device-support': BASE + 'screens/4848s040',
+        'screens/index': BASE + 'screens/4848s040',
+        'card-types/companion': BASE + '#what-you-can-control',
         'card-types/weather-forecast': 'https://jtenniswood.github.io/espcontrol/',
         'card-types/index': 'https://jtenniswood.github.io/espcontrol/',
-        'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/',
-        'features/media-cover-art': BASE + 'card-types/companion',
+        'getting-started/home-assistant-actions': 'https://jtenniswood.github.io/espcontrol/getting-started/home-assistant-actions',
+        'features/settings': BASE + 'settings/system',
+        'features/backup': BASE + 'settings/backup',
+        'features/media-cover-art': BASE + 'settings/screen',
+        'mac-controls/statistics': BASE + 'reference/mac-controls-by-release#mac-statistics-and-volume',
+        'mac-controls/volume': BASE + 'reference/mac-controls-by-release#mac-statistics-and-volume',
         'guides/index': 'https://jtenniswood.github.io/espcontrol/',
-        'immich/index': 'https://jtenniswood.github.io/espcontrol/',
+        'immich/index': 'https://jtenniswood.github.io/espcontrol/immich/',
         'generated/companion-compatibility': BASE + 'reference/companion-compatibility',
-        'generated/cards/capabilities': BASE + 'card-types/companion',
+        'generated/cards/capabilities': BASE + '#what-you-can-control',
         'generated/cards/runtime-coverage': 'https://github.com/jtenniswood/espdesktop/blob/main/dev-docs/generated/card-runtime-coverage.md',
     }
     redirects['screens/jc4880p443-v3'] = 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'
     screen_guides = {
         '4848s040': (BASE + 'screens/4848s040', BASE + 'screens/4848s040#install'),
-        'jc1060p470': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc4880p443': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc1060p470': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470'),
+        'jc1060p470-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc1060p470-v2'),
+        'jc4880p443': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443'),
         'jc4880p443-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc4880p443-v3'),
-        'jc8012p4a1': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc8012p4a1-v2': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'jc8012p4a1-v3': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
-        'p4-86': ('https://jtenniswood.github.io/espcontrol/', 'https://jtenniswood.github.io/espcontrol/'),
+        'jc8012p4a1': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1'),
+        'jc8012p4a1-v2': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v2'),
+        'jc8012p4a1-v3': ('https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3', 'https://jtenniswood.github.io/espcontrol/screens/jc8012p4a1-v3'),
+        'p4-86': ('https://jtenniswood.github.io/espcontrol/screens/p4-86', 'https://jtenniswood.github.io/espcontrol/screens/p4-86'),
     }
     for model, (grid, install) in screen_guides.items():
         redirects[f'generated/screens/{model}-grid'] = grid
         redirects[f'generated/screens/{model}-install'] = install
     baseline = json.loads((ROOT / 'dev-docs/hosting/seo-baseline-2026-09-22.json').read_text())
     for url in baseline['generated_urls']:
-        if url.removeprefix(BASE) not in redirects:
+        if url.removeprefix(PREVIOUS_BASE) not in redirects:
             errors.append(f'Previously published generated page has no redirect: {url}')
     for path, destination in redirects.items():
         file = dist / (path + '.html')
@@ -273,13 +448,15 @@ def check_build(dist):
     for file in (dist / 'generated').rglob('*.html'):
         if file.relative_to(dist).with_suffix('').as_posix() not in redirects:
             errors.append(f'Generated fragment is still published: {file.relative_to(dist)}')
-    if (dist / 'robots.txt').exists():
-        errors.append('Project-path robots.txt cannot control crawling; publish the host-root template instead')
+    robots = dist / 'robots.txt'
+    if not robots.is_file() or f'Sitemap: {BASE}sitemap.xml' not in robots.read_text().splitlines():
+        errors.append('Host-root robots.txt must announce the public sitemap')
 
     if errors:
         raise SystemExit('\n'.join(sorted(set(errors))))
     report['faq_answers_verified'] = len(faq.faq)
-    print(f'Docs site checks passed: {len(pages)} canonical pages, {len(faq.faq)} matching FAQ answers, {len(redirects)} redirects; internal links and anchors checked.')
+    print(f'Docs site checks passed: {len(pages)} reachable canonical pages with share metadata and Markdown editions, '
+          f'{len(faq.faq)} matching FAQ answers, {len(redirects)} redirects; links, images and breadcrumbs checked.')
     return report
 
 

@@ -12,30 +12,6 @@
 enum class CardContractShadowPolicyKind { KEEP, CLEAR, DEFAULT_VALUE, ALLOWED, ALIAS, HOOK };
 struct CardContractShadowFieldPolicy { const char *field; CardContractShadowPolicyKind policy; const char *detail; };
 
-inline const CardContractShadowFieldPolicy SAVED_CONFIG_SHADOW_ACTION_FIELDS[] = {
-  {"entity", CardContractShadowPolicyKind::KEEP, ""},
-  {"label", CardContractShadowPolicyKind::KEEP, ""},
-  {"icon", CardContractShadowPolicyKind::HOOK, "normalize_action_fields"},
-  {"icon_on", CardContractShadowPolicyKind::HOOK, "normalize_action_fields"},
-  {"sensor", CardContractShadowPolicyKind::HOOK, "normalize_action_fields"},
-  {"unit", CardContractShadowPolicyKind::HOOK, "normalize_action_fields"},
-  {"type", CardContractShadowPolicyKind::HOOK, "normalize_action_fields"},
-  {"precision", CardContractShadowPolicyKind::HOOK, "normalize_action_fields"},
-  {"options", CardContractShadowPolicyKind::HOOK, "normalize_action_options"},
-};
-
-inline const CardContractShadowFieldPolicy SAVED_CONFIG_SHADOW_SENSOR_FIELDS[] = {
-  {"entity", CardContractShadowPolicyKind::KEEP, ""},
-  {"label", CardContractShadowPolicyKind::KEEP, ""},
-  {"icon", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"icon_on", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"sensor", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"unit", CardContractShadowPolicyKind::KEEP, ""},
-  {"type", CardContractShadowPolicyKind::DEFAULT_VALUE, "sensor"},
-  {"precision", CardContractShadowPolicyKind::HOOK, "normalize_sensor_fields"},
-  {"options", CardContractShadowPolicyKind::HOOK, "normalize_sensor_options"},
-};
-
 inline const CardContractShadowFieldPolicy SAVED_CONFIG_SHADOW_MEDIA_FIELDS[] = {
   {"entity", CardContractShadowPolicyKind::KEEP, ""},
   {"label", CardContractShadowPolicyKind::HOOK, "normalize_media_fields"},
@@ -62,7 +38,6 @@ inline const CardContractShadowFieldPolicy SAVED_CONFIG_SHADOW_VACUUM_FIELDS[] =
 
 inline const char *const SAVED_CONFIG_SHADOW_VACUUM_MODES[] = {"status", "start_stop", "start_dock", "dock", "pause_resume", "clean_spot", "locate", "clean_area"};
 inline const char *const SAVED_CONFIG_SHADOW_VACUUM_UNIT_MODES[] = {"clean_area"};
-inline const char *const SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS[] = {"input_select.select_option", "select.select_option"};
 inline const char *const SAVED_CONFIG_SHADOW_MEDIA_MODES[] = {"control_modal", "speaker_group", "play_pause", "previous", "next", "volume", "position", "now_playing", "cover_art", "playlist"};
 inline const char *const SAVED_CONFIG_SHADOW_MEDIA_STATE_DISPLAY_MODES[] = {"play_pause", "position"};
 inline const char *const SAVED_CONFIG_SHADOW_MEDIA_NOW_PLAYING_CONTROLS[] = {"", "progress", "play_pause"};
@@ -107,81 +82,6 @@ inline std::string saved_config_shadow_trim(const std::string &value) {
   size_t begin = 0; while (begin < value.size() && (value[begin] == ' ' || value[begin] == '\t' || value[begin] == '\r' || value[begin] == '\n')) ++begin;
   size_t end = value.size(); while (end > begin && (value[end - 1] == ' ' || value[end - 1] == '\t' || value[end - 1] == '\r' || value[end - 1] == '\n')) --end;
   return value.substr(begin, end - begin);
-}
-
-template<typename Config>
-inline bool normalize_saved_config_sensor_shadow(Config &config) {
-  if (config.type == "text_sensor") { config.type = "sensor"; config.precision = "text"; config.entity.clear(); config.label.clear(); config.unit.clear(); config.icon_on = "Auto"; if (config.icon.empty()) config.icon = "Auto"; }
-  if (config.type == "local_sensor") { config.type = "sensor"; config.sensor = "local"; config.icon_on = "Auto"; config.options.clear(); }
-  if (config.type != "sensor") return false;
-  if (config.icon.empty()) config.icon = "Auto";
-  if (config.icon_on.empty()) config.icon_on = "Auto";
-  if (config.sensor != "local" && config.precision == "time") { config.unit.clear(); config.icon = "Auto"; config.icon_on = "Auto"; }
-  if (config.sensor == "local") { config.icon_on = "Auto"; config.options.clear(); if (config.precision != "text" && config.precision != "1" && config.precision != "2") config.precision.clear(); if (config.precision != "text" && (config.icon.empty() || config.icon == "Auto")) config.icon = "Auto"; return true; }
-  const std::string source = config.options; std::string out;
-  if (config.precision != "icon" && config.precision != "text" && config.precision != "time") append_large_numbers_option(out, source);
-  if (config.precision != "time" && cfg_option_token_present(source, "active_color")) saved_config_shadow_append_option(out, "active_color");
-  if (config.precision == "text" && cfg_option_token_present(source, "state_labels")) {
-    saved_config_shadow_append_option(out, "state_labels"); std::string input = cfg_option_value(source, "state_input"); std::string output = cfg_option_value(source, "state_output");
-    if (input.empty() && !cfg_option_value(source, "state_high_label").empty()) { input = "high"; if (output.empty()) output = cfg_option_value(source, "state_high_label"); }
-    else if (input.empty() && !cfg_option_value(source, "state_low_label").empty()) { input = "low"; if (output.empty()) output = cfg_option_value(source, "state_low_label"); }
-    input = saved_config_shadow_trim(input); output = saved_config_shadow_trim(output);
-    if (!input.empty()) saved_config_shadow_append_option(out, "state_input", input);
-    if (!output.empty()) saved_config_shadow_append_option(out, "state_output", output);
-    const std::string input_2 = cfg_option_value(source, "state_input_2"); const std::string output_2 = cfg_option_value(source, "state_output_2");
-    const std::string input_2_trimmed = saved_config_shadow_trim(input_2); const std::string output_2_trimmed = saved_config_shadow_trim(output_2);
-    if (!input_2_trimmed.empty()) saved_config_shadow_append_option(out, "state_input_2", input_2_trimmed);
-    if (!output_2_trimmed.empty()) saved_config_shadow_append_option(out, "state_output_2", output_2_trimmed);
-  }
-  if (config.precision == "time") { const std::string time_unit = cfg_option_value(source, "time_unit"); if (time_unit == "seconds" || time_unit == "minutes" || time_unit == "hours" || time_unit == "days") saved_config_shadow_append_option(out, "time_unit", time_unit); }
-  config.options = out; return true;
-}
-
-template<typename Config>
-inline bool normalize_saved_config_action_shadow(Config &config) {
-  if (config.type == "local") { config.type = "action"; config.sensor = "local"; }
-  if (config.type == "option_select") { config.type = "action"; config.sensor = "input_select.select_option"; }
-  if (config.type != "action") return false;
-  const bool number_entity = config.entity.size() > 7 && config.entity.compare(0, 7, "number.") == 0;
-  const bool input_number_entity = config.entity.size() > 13 && config.entity.compare(0, 13, "input_number.") == 0;
-  if ((config.sensor == "number.set_value" || config.sensor == "input_number.set_value") && (number_entity || input_number_entity)) config.sensor = number_entity ? "number.set_value" : "input_number.set_value";
-  if (config.icon.empty()) config.icon = "Auto";
-  if (config.icon_on.empty()) config.icon_on = "Auto";
-  if (saved_config_shadow_string_in(config.sensor, SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS, sizeof(SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS) / sizeof(SAVED_CONFIG_SHADOW_ACTION_OPTION_SELECT_ACTIONS[0]))) {
-    config.sensor = "input_select.select_option"; config.unit.clear(); config.precision.clear(); config.options.clear(); config.icon_on = "Auto";
-    if (config.icon.empty() || config.icon == "Auto" || config.icon == "Chevron Down") config.icon = "Flash";
-    return true;
-  }
-  if (config.sensor == "local") {
-    config.unit.clear(); config.precision.clear(); config.options.clear(); config.icon_on = "Auto";
-    if (config.icon.empty() || config.icon == "Auto" || config.icon == "Flash") config.icon = "Gesture Tap";
-    return true;
-  }
-  config.precision.clear(); const std::string source = config.options; std::string out; const std::string state_entity = saved_config_shadow_trim(cfg_option_value(source, "state_entity"));
-  if (!state_entity.empty()) { saved_config_shadow_append_option(out, "state_entity", state_entity); const std::string raw_precision = cfg_option_value(source, "state_precision");
-    if (raw_precision == "icon" || raw_precision == "text") saved_config_shadow_append_option(out, "state_precision", raw_precision);
-    else {
-      const std::string state_unit = saved_config_shadow_trim(cfg_option_value(source, "state_unit"));
-      const bool numeric_precision = raw_precision == "0" || raw_precision == "1" || raw_precision == "2";
-      if (!state_unit.empty()) saved_config_shadow_append_option(out, "state_unit", state_unit);
-      if (numeric_precision) saved_config_shadow_append_option(out, "state_precision", raw_precision);
-      append_large_numbers_option(out, source);
-    }
-  }
-  if (config.sensor == "script.turn_on") {
-    const std::string fields = saved_config_shadow_trim(cfg_option_value(source, "script_fields"));
-    if (!fields.empty()) saved_config_shadow_append_option(out, "script_fields", fields);
-    if (cfg_option_token_present(source, "confirm_on")) {
-      saved_config_shadow_append_option(out, "confirm_on");
-      const std::string message = saved_config_shadow_trim(cfg_option_value(source, "confirm_message"));
-      const std::string yes = saved_config_shadow_trim(cfg_option_value(source, "confirm_yes"));
-      const std::string no = saved_config_shadow_trim(cfg_option_value(source, "confirm_no"));
-      if (!message.empty() && message != "Run this script?") saved_config_shadow_append_option(out, "confirm_message", message);
-      if (!yes.empty() && yes != "Yes") saved_config_shadow_append_option(out, "confirm_yes", yes);
-      if (!no.empty() && no != "No") saved_config_shadow_append_option(out, "confirm_no", no);
-    }
-  }
-  config.options = out; return true;
 }
 
 inline std::string saved_config_shadow_media_mode(const std::string &mode) {
@@ -256,7 +156,5 @@ inline bool normalize_saved_config_media_shadow(Config &config) {
 template<typename Config>
 inline bool normalize_saved_config_shadow(Config &config) {
   if (normalize_saved_config_vacuum_shadow(config)) return true;
-  if (normalize_saved_config_sensor_shadow(config)) return true;
-  if (normalize_saved_config_action_shadow(config)) return true;
   return normalize_saved_config_media_shadow(config);
 }

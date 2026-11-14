@@ -26,8 +26,15 @@ class EspIdfPanelConfigBlobStorage final : public BlobStorage {
                            size_t capacity) override;
   bool save_blob(uint8_t slot, const uint8_t *data, size_t size) override;
   bool sync() override;
+  StoreStatus sync_failure() const override { return sync_failure_; }
+  bool supports_range_io() const override;
+  bool prepare_range_slot(uint8_t slot, size_t size) override;
+  bool read_range(uint8_t slot, size_t offset, uint8_t *output,
+                  size_t size) override;
+  bool write_range(uint8_t slot, size_t offset, const uint8_t *data,
+                   size_t size) override;
 
- private:
+private:
   static const char *slot_key(uint8_t slot);
 
 #ifdef USE_ESP32
@@ -40,7 +47,7 @@ class EspIdfPanelConfigBlobStorage final : public BlobStorage {
   size_t partition_slot_offset(uint8_t slot) const;
   bool load_partition_blob(uint8_t slot, uint8_t *output, size_t capacity);
   bool save_partition_blob(uint8_t slot, const uint8_t *data, size_t size);
-  bool erase_partition_slot(uint8_t slot);
+  bool erase_partition_slot(uint8_t slot, size_t size);
 
   nvs_handle_t handle_{0};
   const esp_partition_t *partition_{nullptr};
@@ -48,6 +55,7 @@ class EspIdfPanelConfigBlobStorage final : public BlobStorage {
   bool partition_backed_{false};
 #endif
   bool ready_{false};
+  StoreStatus sync_failure_{StoreStatus::SYNC_FAILED};
 };
 
 }  // namespace espdesktop::configuration
