@@ -1577,6 +1577,7 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Folder", "folder"],
+        ["companion_stats", "Stats", "stats"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

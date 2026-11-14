@@ -107,6 +107,7 @@ export function runPreviewFeatureTests(): void {
       ...definitions,
       companion: { label: "Companion", allowInSubpage: true },
       companion_app: { label: "Applications", allowInSubpage: true },
+      companion_stats: { label: "Stats", allowInSubpage: true },
       companion_shortcut: { label: "Key Shortcut", allowInSubpage: true },
       companion_url: { label: "Website", allowInSubpage: true },
       companion_folder: { label: "Folder", allowInSubpage: true },
@@ -116,7 +117,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_folder", "companion_shortcut", "subpage", "companion_url"],
+    ["companion_app", "companion_folder", "companion_shortcut", "companion_stats", "subpage", "companion_url"],
     "Companion picker excludes retired controls and Home Assistant-only controls",
   );
   equal(
