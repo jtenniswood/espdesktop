@@ -406,7 +406,7 @@ export function createPreviewContextMenuFeature(dependencies: PreviewContextMenu
         if (!page || !dependencies.codec.canCreateSubpage(parentPageKey(page) || null)) return;
         const owner = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
         if (editableAppShortcutPage(owner)) {
-            addCtxItem("keyboard-settings-outline", "Edit App Shortcuts", dependencies.openAppShortcutSettings);
+            addCtxItem("keyboard-settings-outline", "Shortcut List", dependencies.openAppShortcutSettings);
         }
     }
     function addBulkCardMenuItems(this: any, slots?: any) {

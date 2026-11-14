@@ -534,7 +534,7 @@ export function registerCompanionCardTypes(
     }
 
     function renderAppShortcutSettings(panel: HTMLElement, card: any, page: number,
-        helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }): void {
+        helpers: { idPrefix: string; saveField: (field: string, value: unknown) => void }, showAll = false): void {
         const savedShortcutSubpage = state.subpages[page];
         const savedParent = previewSubpageOwner(page, state.buttons, key => state.subpages[key]);
         if (savedShortcutSubpage &&
@@ -548,6 +548,7 @@ export function registerCompanionCardTypes(
         modalTabs.renderModalTabSettings(panel, card, helpers, {
             definitions: function () { return companionShortcutTabDefinitions(card.entity); },
             searchPlaceholder: "Find a shortcut…",
+            showAll,
             dragOnly: true,
             tabs: (button: any) => companionShortcutTabsForCapacity(
                 companionShortcutTabs(button), maxSlots,

@@ -441,33 +441,37 @@ export function createConfigModalTabOptionsFeature(
             list.appendChild(row);
         });
         if (search) {
-            const actions = dependencies.document.createElement("div");
-            actions.className = "sp-app-subpage-shortcut-actions";
-            const more = dependencies.document.createElement("button");
-            more.type = "button";
-            more.className = "sp-secondary-btn";
-            list.id = helpers.idPrefix + config.idPrefix + "list";
-            more.setAttribute("aria-controls", list.id);
-            actions.appendChild(more);
-            section.appendChild(actions);
+            const actions = config.showAll ? null : dependencies.document.createElement("div");
+            const more = actions ? dependencies.document.createElement("button") : null;
+            if (actions && more) {
+                actions.className = "sp-app-subpage-shortcut-actions";
+                more.type = "button";
+                more.className = "sp-secondary-btn";
+                list.id = helpers.idPrefix + config.idPrefix + "list";
+                more.setAttribute("aria-controls", list.id);
+                actions.appendChild(more);
+                section.appendChild(actions);
+            }
 
             function updateRows() {
                 const query = b._modalTabsSearch?.trim().toLowerCase();
-                const expanded = b._modalTabsExpanded === true;
+                const expanded = config.showAll || b._modalTabsExpanded === true;
                 listRows().forEach((row: HTMLElement, index: number) => {
                     row.hidden = query
                         ? !row.querySelector(".sp-light-tab-label")!.textContent!.toLowerCase().includes(query)
                         : !expanded && index >= 20;
                 });
-                actions.hidden = !!query;
-                more.textContent = expanded ? "Show fewer shortcuts" : "Show all shortcuts";
-                more.setAttribute("aria-expanded", String(expanded));
+                if (actions && more) {
+                    actions.hidden = !!query;
+                    more.textContent = expanded ? "Show fewer shortcuts" : "Show all shortcuts";
+                    more.setAttribute("aria-expanded", String(expanded));
+                }
             }
             search.addEventListener("input", () => {
                 b._modalTabsSearch = search.value;
                 updateRows();
             });
-            more.addEventListener("click", () => {
+            more?.addEventListener("click", () => {
                 b._modalTabsExpanded = !b._modalTabsExpanded;
                 updateRows();
                 if (!b._modalTabsExpanded) more.scrollIntoView({ block: "nearest" });
