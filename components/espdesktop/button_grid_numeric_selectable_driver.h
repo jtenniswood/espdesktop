@@ -89,7 +89,7 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
   lv_obj_t *slider = slot.sensor_container
     ? static_cast<lv_obj_t *>(lv_obj_get_user_data(slot.sensor_container))
     : nullptr;
-  // The slider updates its default speaker icon with its displayed level.
+  // Mac volume has one icon at every level, including zero.
   const bool has_icon_on = false;
   const char *icon_off = slider_icon_off(
     config.type, config.entity, config.icon);

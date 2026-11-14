@@ -62,7 +62,7 @@ In the display editor, select an empty tile on Home or in a folder. Choose **Sou
 | **Input per device level** | Choose a connected audio input with adjustable gain. The card follows that device even when you change the default microphone. It becomes unavailable while that device is disconnected. |
 | **Output per application** | Choose an enabled app and adjust its sound independently. |
 
-The level cards display **Volume** and the mute cards display **Mute** by default. The speaker and microphone icons identify which device each card controls. On output sliders, the default speaker icon has no waves below 25%, one wave from 25% to 50%, and full waves above 50%. Mute cards show a crossed-out icon when the Mac reports mute. [Cough](/mac-controls/cough) mutes the microphone while you hold the card. If a card is unavailable, check the Mac connection and whether the selected audio device exposes that control in macOS. Raising a level above zero also unmutes that device.
+The level cards display **Volume** and the mute cards display **Mute** by default. The speaker and microphone icons identify which device each card controls. Mute cards show a crossed-out icon when the Mac reports mute. [Cough](/mac-controls/cough) mutes the microphone while you hold the card. If a card is unavailable, check the Mac connection and whether the selected audio device exposes that control in macOS. Raising a level above zero also unmutes that device.
 
 ## Ready-Made app subpages
 
