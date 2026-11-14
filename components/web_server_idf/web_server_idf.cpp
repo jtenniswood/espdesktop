@@ -292,17 +292,25 @@ void AsyncWebServer::begin() {
 
 extern "C" bool espdesktop_allow_web_write(httpd_req_t *request) __attribute__((weak));
 
-extern "C" bool espdesktop_allow_web_card_press(httpd_req_t *request) __attribute__((weak));
+extern "C" bool espdesktop_is_native_card_web_press(const char *path, size_t size) __attribute__((weak));
+
+static bool block_native_card_web_press(AsyncWebServerRequest &request) {
+  if (espdesktop_is_native_card_web_press == nullptr) return false;
+  char buffer[AsyncWebServerRequest::URL_BUF_SIZE];
+  const auto path = request.url_to(buffer);
+  if (!espdesktop_is_native_card_web_press(path.c_str(), path.length())) return false;
+  httpd_resp_send_err(request, HTTPD_404_NOT_FOUND, nullptr);
+  return true;
+}
 
 esp_err_t AsyncWebServer::request_post_handler(httpd_req_t *r) {
-  // ESPHome also dispatches registered button presses through HTTP. Block
-  // native card presses before handing the request to any web handler.
-  if (espdesktop_allow_web_card_press != nullptr && !espdesktop_allow_web_card_press(r)) return ESP_OK;
+  // ESPHome also dispatches registered button presses through HTTP.
+  AsyncWebServerRequest request(r);
+  if (block_native_card_web_press(request)) return ESP_OK;
 #ifdef USE_WEBSERVER_OTA_DISABLED
   // Captive portal auto-loads the web OTA platform even with web_server.ota=false.
   // Enforce the explicit opt-out before any upload handler can write firmware.
   {
-    AsyncWebServerRequest request(r);
     char url_buf[AsyncWebServerRequest::URL_BUF_SIZE];
     // Match the decoded path used by canHandle(), including encoded /update URLs.
     if (request.url_to(url_buf) == "/update") {
@@ -407,6 +415,7 @@ esp_err_t AsyncWebServer::handle_raw_body_(httpd_req_t *r, const char *content_t
 esp_err_t AsyncWebServer::request_handler(httpd_req_t *r) {
   ESP_LOGVV(TAG, "Enter AsyncWebServer::request_handler. method=%u, uri=%s", r->method, r->uri);
   AsyncWebServerRequest req(r);
+  if (block_native_card_web_press(req)) return ESP_OK;
   return static_cast<AsyncWebServer *>(r->user_ctx)->request_handler_(&req);
 }
 
