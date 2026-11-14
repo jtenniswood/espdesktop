@@ -16,6 +16,7 @@ prelude = r'''
 #include <cassert>
 #include <cstdint>
 #include <cstdio>
+#include <cstring>
 #include <functional>
 #include <string>
 #include <string_view>
@@ -76,12 +77,18 @@ production = '\n'.join(definition(controls, name)[1] for name in (
     'companion_input_device_control_valid', 'companion_volume_control_valid',
 )) + '\n'
 production += definition(actions, 'send_slider_action')[1] + numeric
+production += definition((firmware/'button_grid_sliders.h').read_text(), 'slider_speaker_icon_name')[1]
 production += '\nnamespace espdesktop::cards {\n'
 production += definition(basic, 'basic_action_driver_matches')[1]
 production += '\n}\n'
 checks = r'''
 int main() {
  using namespace espdesktop::cards;
+ for (int percent : {0, 1, 33, 34, 66, 67, 100}) {
+  const char *expected = percent == 0 ? "Volume Off" : percent <= 33 ? "Volume Low" :
+      percent <= 66 ? "Volume Medium" : "Volume High";
+  assert(std::strcmp(slider_speaker_icon_name(percent), expected) == 0);
+ }
  using Driver = card_runtime::CardDriverId;
  Context c{{Driver::COMPANION}};
  ParsedCfg config;

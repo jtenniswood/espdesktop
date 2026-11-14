@@ -1,4 +1,6 @@
 #pragma once
+
+#include <cstring>
 #include "button_grid_slider_geometry.h"
 #include "button_grid_slider_contrast.h"
 #include "clock_bar.h"
@@ -51,6 +53,7 @@ struct SliderCtx {
   lv_coord_t content_pad_bottom = 0;
   bool available = true;
   bool interactive = true;
+  bool speaker_level_icon = false;
   bool numeric = false;
   bool numeric_dragging = false;
   bool numeric_metadata_ready = false;
@@ -309,6 +312,13 @@ inline bool slider_has_alt_icon(const std::string &type, const std::string &icon
   return brightness_slider_type(type) || type == "cover" || (!icon_on.empty() && icon_on != "Auto");
 }
 
+inline const char *slider_speaker_icon_name(int percent) {
+  if (percent <= 0) return "Volume Off";
+  if (percent <= 33) return "Volume Low";
+  if (percent <= 66) return "Volume Medium";
+  return "Volume High";
+}
+
 inline const char *slider_icon_off(const std::string &type, const std::string &entity_id,
                                    const std::string &icon) {
   if ((icon.empty() || icon == "Auto") &&
@@ -379,6 +389,9 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
   ctx->label_pad_top = padding.top;
   ctx->label_pad_bottom = padding.bottom;
   ctx->interactive = interactive;
+  ctx->speaker_level_icon =
+      (p.entity == "media.output_volume" || companion_app_volume_control_valid(p.entity)) &&
+      (p.icon.empty() || p.icon == "Auto" || p.icon == "Volume High");
   ctx->icon_lbl = s.icon_lbl;
   ctx->sensor_container = s.sensor_container;
   ctx->sensor_lbl = s.sensor_lbl;
@@ -397,6 +410,11 @@ inline void setup_slider_visual(BtnSlot &s, const ParsedCfg &p, uint32_t on_colo
     int pct = slider_position_percent(c, val);
     int fill_val = c->inverted ? 100 - pct : pct;
     slider_update_ctx_fill(c, lv_obj_get_parent(sl), fill_val);
+    if (c->speaker_level_icon && c->icon_lbl) {
+      const char *icon = find_icon(slider_speaker_icon_name(fill_val));
+      if (std::strcmp(lv_label_get_text(c->icon_lbl), icon) != 0)
+        lv_label_set_text(c->icon_lbl, icon);
+    }
   }, LV_EVENT_VALUE_CHANGED, nullptr);
 
   if (interactive) {
