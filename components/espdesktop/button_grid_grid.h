@@ -376,6 +376,8 @@ inline bool info_only_hidden_card_type(const espdesktop::cards::Context &context
   return !card_runtime_information_only(context);
 }
 
+#include "button_grid_token_usage.h"
+
 inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
                               const espdesktop::cards::Context &context,
                               const GridConfig &cfg,
@@ -431,6 +433,11 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     lv_label_set_display_text(s.text_lbl, label.c_str());
     set_card_disabled_state(s.btn, true);
     lv_obj_clear_flag(s.btn, LV_OBJ_FLAG_CLICKABLE);
+    return;
+  }
+
+  if (context.runtime.driver == espdesktop::card_runtime::CardDriverId::TOKEN_USAGE) {
+    setup_token_usage_card(s, p, display, palette);
     return;
   }
 

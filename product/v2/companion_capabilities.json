@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -460,6 +460,49 @@
             "maxLength": 64,
             "pattern": "hex64",
             "optional": true
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "token_usage",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {
+          "readings": {
+            "type": "array",
+            "maxItems": 2,
+            "items": {
+              "type": "object",
+              "fields": {
+                "service": {
+                  "type": "string",
+                  "minLength": 5,
+                  "maxLength": 6,
+                  "enum": [
+                    "codex",
+                    "claude"
+                  ]
+                },
+                "remainingPercent": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 100
+                },
+                "resetsAt": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295
+                },
+                "observedAt": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 4294967295
+                }
+              }
+            }
           }
         },
         "states": [

@@ -128,6 +128,27 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published private(set) var foldersNeedingAccess: Set<UUID> = []
     @Published private(set) var launchAtLoginEnabled = false
     @Published private(set) var launchAtLoginMessage = ""
+    @Published var sharesCodexUsage = false {
+        didSet {
+            defaults.set(sharesCodexUsage, forKey: "tokenUsage.codex")
+            codexUsage = nil
+            lastCodexUsageAttempt = .distantPast
+            restartTokenUsage()
+        }
+    }
+    @Published var sharesClaudeUsage = false {
+        didSet {
+            defaults.set(sharesClaudeUsage, forKey: "tokenUsage.claude")
+            restartTokenUsage()
+        }
+    }
+    private var codexUsage: WeeklyUsageReading?
+    private var lastCodexUsageAttempt = Date.distantPast
+    private var tokenUsageTask: Task<Void, Never>?
+    private var tokenUsageDisplays: [CompanionDisplay] {
+        connectedDisplays.filter { $0.connection.supportsTokenUsage }
+    }
+
     @Published private(set) var systemMetricsStatus = "Waiting for a display connection"
 
     private enum Keys {
@@ -176,6 +197,8 @@ final class CompanionStore: NSObject, ObservableObject {
             ? UserDefaults.standard
             : (UserDefaults(suiteName: Self.preferencesSuite) ?? .standard))
         self.defaults = stableDefaults
+        sharesCodexUsage = stableDefaults.bool(forKey: "tokenUsage.codex")
+        sharesClaudeUsage = stableDefaults.bool(forKey: "tokenUsage.claude")
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -782,6 +805,10 @@ final class CompanionStore: NSObject, ObservableObject {
         connectedDisplayCount = connectedDisplays.count
         updateSystemMetricsProvider()
         if state == .connected {
+            publishTokenUsage(to: display)
+        }
+        updateTokenUsageTask()
+        if state == .connected {
             if previousCount == 0 { startMediaControlPublishing() }
             Task { [weak display] in
                 await remoteCatalogueStore.refresh()
@@ -800,6 +827,46 @@ final class CompanionStore: NSObject, ObservableObject {
 
     func updateStatus(_ message: String) {
         print("[EspDesktop] \(message)")
+    }
+
+    private func publishTokenUsage(to display: CompanionDisplay) {
+        display.connection.publishTokenUsage(
+            codex: sharesCodexUsage ? codexUsage : nil,
+            claude: sharesClaudeUsage ? TokenUsage.readClaude() : nil
+        )
+    }
+
+    private func restartTokenUsage() {
+        for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+        updateTokenUsageTask()
+    }
+
+    private func updateTokenUsageTask() {
+        guard !tokenUsageDisplays.isEmpty, sharesCodexUsage || sharesClaudeUsage else {
+            tokenUsageTask?.cancel()
+            tokenUsageTask = nil
+            return
+        }
+        guard tokenUsageTask == nil else { return }
+        tokenUsageTask = Task { [weak self] in
+            while !Task.isCancelled {
+                await self?.refreshTokenUsage()
+                try? await Task.sleep(for: .seconds(15))
+            }
+        }
+    }
+
+    private func refreshTokenUsage() async {
+        if sharesCodexUsage, Date().timeIntervalSince(lastCodexUsageAttempt) >= 300 {
+            let attempt = Date()
+            lastCodexUsageAttempt = attempt
+            let reading = await TokenUsage.readCodex()
+            guard !Task.isCancelled else { return }
+            if sharesCodexUsage, lastCodexUsageAttempt == attempt, let reading {
+                codexUsage = reading
+            }
+        }
+        for display in tokenUsageDisplays { publishTokenUsage(to: display) }
     }
 
     private func updateSystemMetricsProvider() {

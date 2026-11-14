@@ -1,5 +1,32 @@
 [
   {
+    "name": "weekly token usage",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage",
+      "readings": [
+        { "service": "codex", "remainingPercent": 41, "resetsAt": 1700172800, "observedAt": 1700000000 },
+        { "service": "claude", "remainingPercent": 72, "resetsAt": 1700345600, "observedAt": 1700000000 }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "weekly token usage rejects an invalid percentage",
+    "message": {
+      "protocol": 4,
+      "type": "token_usage",
+      "readings": [
+        { "service": "claude", "remainingPercent": 101, "resetsAt": 1700345600, "observedAt": 1700000000 }
+      ]
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "hello",
     "message": {
       "protocol": 4,

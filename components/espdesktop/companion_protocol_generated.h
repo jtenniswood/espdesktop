@@ -109,6 +109,15 @@ struct NowPlaying {
   bool hasArtwork{};
   std::optional<std::string> artworkSHA256{};
 };
+struct TokenUsageReadingsItem {
+  std::string service{};
+  uint32_t remainingPercent{};
+  uint32_t resetsAt{};
+  uint32_t observedAt{};
+};
+struct TokenUsage {
+  std::vector<TokenUsageReadingsItem> readings{};
+};
 struct SystemMetricsStorageDevicesItem {
   std::string id{};
   std::string label{};
@@ -326,6 +335,18 @@ inline void encode(JsonObject root, const NowPlaying &message) {
   root["hasArtwork"] = message.hasArtwork;
   if (message.artworkSHA256) root["artworkSHA256"] = *message.artworkSHA256;
 }
+inline void encode(JsonObject root, const TokenUsage &message) {
+  root["type"] = "token_usage";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  auto values_readings = root["readings"].to<JsonArray>();
+  for (const auto &item : message.readings) {
+    auto entry = values_readings.add<JsonObject>();
+    entry["service"] = item.service;
+    entry["remainingPercent"] = item.remainingPercent;
+    entry["resetsAt"] = item.resetsAt;
+    entry["observedAt"] = item.observedAt;
+  }
+}
 inline void encode(JsonObject root, const SystemMetrics &message) {
   root["type"] = "system_metrics";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -474,7 +495,7 @@ inline void encode(JsonObject root, const PairReset &message) {
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   (void) message;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, TokenUsage, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -773,6 +794,33 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     result.playbackRate = root["playbackRate"].as<double>();
     result.hasArtwork = root["hasArtwork"].as<bool>();
     if (!root["artworkSHA256"].isUnbound()) result.artworkSHA256 = root["artworkSHA256"].as<std::string>();
+    return result;
+  }
+  if (type == "token_usage") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+    {
+      if (!(root["readings"].is<JsonArrayConst>() && root["readings"].size() <= 2)) return std::nullopt;
+      for (JsonVariantConst item : root["readings"].as<JsonArrayConst>()) {
+        if (!(item.is<JsonObjectConst>())) return std::nullopt;
+        {
+          if (!(string_valid(item.as<JsonObjectConst>()["service"], 5, 6) && (item.as<JsonObjectConst>()["service"].as<std::string>() == "codex" || item.as<JsonObjectConst>()["service"].as<std::string>() == "claude"))) return std::nullopt;
+        }
+        {
+          if (!(number_valid(item.as<JsonObjectConst>()["remainingPercent"], 0, 100, true))) return std::nullopt;
+        }
+        {
+          if (!(number_valid(item.as<JsonObjectConst>()["resetsAt"], 1, 4294967295, true))) return std::nullopt;
+        }
+        {
+          if (!(number_valid(item.as<JsonObjectConst>()["observedAt"], 1, 4294967295, true))) return std::nullopt;
+        }
+      }
+    }
+    TokenUsage result;
+    for (JsonVariantConst item : root["readings"].as<JsonArrayConst>()) {
+      result.readings.push_back({item["service"].as<std::string>(), item["remainingPercent"].as<uint32_t>(), item["resetsAt"].as<uint32_t>(), item["observedAt"].as<uint32_t>()});
+    }
     return result;
   }
   if (type == "system_metrics") {
