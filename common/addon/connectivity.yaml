@@ -25,7 +25,6 @@ wifi:
   on_connect:
     - script.execute: network_status_refresh
     - script.execute: ntp_servers_apply_after_network
-    - lambda: 'id(espdesktop_app).home_assistant_endpoint().request_discovery();'
     - script.stop: wifi_reconnect_flow
     - globals.set:
         id: connectivity_setup_display_active
@@ -39,9 +38,6 @@ wifi:
     - script.execute: navigate_after_api
   on_disconnect:
     - script.execute: network_status_refresh
-    - lambda: |-
-        id(cover_art_home_assistant_client_address).clear();
-        id(cover_art_resolve_home_assistant_base_url).execute();
     - if:
         condition:
           lambda: |-
@@ -54,15 +50,6 @@ wifi:
           - script.execute: wifi_reconnect_flow
 
 script:
-  - id: ha_restore_after_api
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'
-          then:
-            - script.execute: navigate_after_api
-
   - id: wifi_show_reconnecting
     mode: restart
     then:
@@ -142,7 +129,11 @@ script:
                   lambda: |-
                     return id(espdesktop_app).display().target_mode_is(
                         espdesktop::DisplayMode::ACTIVE);
-            - lvgl.page.show: main_page
+            - if:
+                condition:
+                  lambda: 'return !navigation_present_focused_app_after_sleep();'
+                then:
+                  - lvgl.page.show: main_page
             - script.execute: display_active_finalize
           else:
             - lambda: |-
@@ -154,7 +145,5 @@ script:
                   lv_label_set_text(id(setup_ip_label), url.c_str());
                 }
             - lvgl.page.show: button_setup_page
-            # Keep the network control available here so a Companion-only
-            # first-run setup can start physical pairing.
             - script.execute: clock_bar_apply
             - script.execute: setup_screen_dim

@@ -3,8 +3,10 @@ from esphome.components.esp32 import (
     include_builtin_idf_component,
 )
 import esphome.config_validation as cv
+from esphome.const import __version__
 
 CODEOWNERS = ["@dentra"]
+USE_LEGACY_WEB_OTA = cv.Version.parse(__version__) < cv.Version(2026, 11, 0)
 
 CONFIG_SCHEMA = cv.All(
     cv.Schema({}),
@@ -12,6 +14,11 @@ CONFIG_SCHEMA = cv.All(
 )
 
 AUTO_LOAD = ["web_server"]
+
+
+def FILTER_SOURCE_FILES():
+    # ESPHome 2026.11 handles interrupted uploads through onDisconnect().
+    return [] if USE_LEGACY_WEB_OTA else ["ota_web_server.cpp"]
 
 
 def _web_ota_source_filter(previous):
@@ -24,11 +31,12 @@ def _web_ota_source_filter(previous):
 
 
 async def to_code(config):
-    from esphome.components.web_server import ota as web_server_ota
+    if USE_LEGACY_WEB_OTA:
+        from esphome.components.web_server import ota as web_server_ota
 
-    web_server_ota.FILTER_SOURCE_FILES = _web_ota_source_filter(
-        getattr(web_server_ota, "FILTER_SOURCE_FILES", None)
-    )
+        web_server_ota.FILTER_SOURCE_FILES = _web_ota_source_filter(
+            getattr(web_server_ota, "FILTER_SOURCE_FILES", None)
+        )
     # ESPHome excludes these IDF components from native builds unless a
     # component explicitly requests them. This component includes their
     # headers directly and links against their implementations.

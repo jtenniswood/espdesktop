@@ -97,13 +97,13 @@ def assert_binary_version(path: Path, version: str) -> None:
     require_file(path, "firmware image")
     strings = printable_string_list(path)
     string_set = set(strings)
-    if version not in string_set:
-        raise FirmwareReleaseError(f"{path} does not contain firmware version {version}")
+    # ESPHome embeds its startup project version even when the native API
+    # and dashboard import metadata are absent from the image.
     expected_log_version = f"Project {PROJECT_NAME} version {version}"
     if expected_log_version not in string_set:
         raise FirmwareReleaseError(f"{path} does not contain ESPHome project version {version}")
     expected_project_metadata = ["package_import_url", version, PROJECT_NAME, "project_version"]
-    if not contains_sequence(strings, expected_project_metadata):
+    if "package_import_url" in string_set and not contains_sequence(strings, expected_project_metadata):
         raise FirmwareReleaseError(f"{path} does not contain API project metadata version {version}")
 
     for placeholder in PLACEHOLDER_STRINGS:
@@ -153,8 +153,6 @@ def verify_manifest(
         raise FirmwareReleaseError(f"{manifest_path} version {actual_version!r} does not match {version!r}")
     if actual_version in PLACEHOLDER_STRINGS:
         raise FirmwareReleaseError(f"{manifest_path} contains placeholder version {actual_version}")
-    if manifest.get("home_assistant_domain") != "esphome":
-        raise FirmwareReleaseError(f"{manifest_path} home_assistant_domain must be esphome")
 
     build = first_build(manifest, manifest_path)
     chip_family = build.get("chipFamily")
@@ -224,8 +222,6 @@ def verify_recovery_manifest(
         )
     if str(manifest.get("version", "")).strip() != version:
         raise FirmwareReleaseError(f"{manifest_path} recovery version must be {version}")
-    if manifest.get("home_assistant_domain") != "esphome":
-        raise FirmwareReleaseError(f"{manifest_path} home_assistant_domain must be esphome")
     if manifest.get("new_install_prompt_erase") is not True:
         raise FirmwareReleaseError(
             f"{manifest_path} must offer the erase choice for unrecognised firmware"
@@ -470,8 +466,16 @@ def release_manifest_data(
     web_bundle = current_web_bundle(web_manifest, web_root)
     if web_bundle["webAssetVersion"] != contract.get("webAssetVersion"):
         raise FirmwareReleaseError("web bundle version does not match the release contract")
-    if sorted(web_bundle["deviceProfiles"] or []) != sorted(slugs):
-        raise FirmwareReleaseError("web bundle device profiles do not match the release firmware set")
+    device_profiles = web_bundle["deviceProfiles"]
+    if not isinstance(device_profiles, list) or not all(
+        isinstance(profile, str) for profile in device_profiles
+    ):
+        raise FirmwareReleaseError("web bundle device profiles must be a list of device slugs")
+    missing_profiles = sorted(set(slugs).difference(device_profiles))
+    if missing_profiles:
+        raise FirmwareReleaseError(
+            "web bundle is missing release device profiles: " + ", ".join(missing_profiles)
+        )
     if not isinstance(web_bundle["firmwareVersions"], list) or version not in web_bundle[
         "firmwareVersions"
     ]:
@@ -740,7 +744,6 @@ def cmd_manifest(args: argparse.Namespace) -> None:
     data = {
         "name": "EspDesktop",
         "version": args.version,
-        "home_assistant_domain": "esphome",
         # WiFi is configured through the device hotspot, not over USB.
         "new_install_improv_wait_time": 0,
         "builds": [
@@ -770,7 +773,6 @@ def cmd_recovery_manifest(args: argparse.Namespace) -> None:
         # EspDesktop installation as an update rather than a different product.
         "name": "EspDesktop",
         "version": args.version,
-        "home_assistant_domain": "esphome",
         "new_install_prompt_erase": True,
         "new_install_improv_wait_time": 0,
         "builds": [

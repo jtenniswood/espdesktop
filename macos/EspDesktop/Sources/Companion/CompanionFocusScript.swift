@@ -21,15 +21,14 @@ struct CompanionApplicationFocusPublisher {
     mutating func reset() { previous = nil; previousDetails = nil }
 }
 
-/// Focus discovery must not hold up incoming keyboard shortcuts on the main actor.
-/// Run the read-only script in a child process so an unresponsive browser or
-/// Automation prompt can be stopped without blocking the app or its connection.
-enum CompanionFocusScript {
-    static func read(_ source: String, timeout: TimeInterval = 2) async -> String? {
+/// Keep browser and Finder Apple Events off the main actor. Bound the wait
+/// for an unresponsive app or a pending Automation prompt.
+enum CompanionAppleScript {
+    static func run(_ source: String, arguments: [String] = [], timeout: TimeInterval = 2) async -> String? {
         await Task.detached(priority: .userInitiated) {
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
-            process.arguments = ["-e", source]
+            process.arguments = ["-e", source] + arguments
             let output = Pipe()
             process.standardOutput = output
             process.standardError = FileHandle.nullDevice

@@ -1,0 +1,24 @@
+platform: template
+name: "${entity_screen_rotation}"
+internal: true
+disabled_by_default: true
+id: screen_rotation_select
+entity_category: config
+icon: "mdi:screen-rotation"
+optimistic: false
+restore_value: false
+options:
+  - "0"
+  - "90"
+  - "180"
+  - "270"
+set_action:
+  - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_ROTATION, std::string_view(x.c_str(), x.size()));'
+on_value:
+  then:
+    - if:
+        condition:
+          lambda: 'return id(screen_rotation_ready);'
+        then:
+          - script.execute: apply_screen_rotation
+          - script.execute: ${rotation_refresh_script}

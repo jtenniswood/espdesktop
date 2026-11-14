@@ -3,60 +3,69 @@
   "appId": "net.whatsapp.WhatsApp",
   "label": "WhatsApp",
   "catalog": false,
+  "defaultShortcutIds": ["4", "9", "7", "0", "1", "6", "3", "2"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Mark a chat unread",
+      "label": "Mark Unread",
       "shortcut": "command+control+shift+u",
-      "icon": "Message Video"
+      "icon": "Message Unread"
     },
     {
       "id": "1",
-      "label": "Mute a chat",
+      "label": "Mute Chat",
       "shortcut": "command+control+shift+m",
-      "icon": "Message Video"
+      "icon": "Do Not Disturb"
     },
     {
       "id": "2",
-      "label": "Archive a chat",
+      "label": "Archive Chat",
       "shortcut": "command+control+shift+e",
-      "icon": "Message Video"
+      "icon": "Archive"
     },
     {
       "id": "3",
-      "label": "Pin a chat",
+      "label": "Pin Chat",
       "shortcut": "command+control+shift+p",
-      "icon": "Message Video"
+      "icon": "Pin"
     },
     {
       "id": "4",
-      "label": "Start a new chat",
+      "label": "New Chat",
       "shortcut": "command+control+n",
-      "icon": "Plus"
+      "icon": "Chat Plus"
     },
     {
       "id": "5",
-      "label": "Start a new group",
+      "label": "New Group",
       "shortcut": "command+control+shift+n",
-      "icon": "Plus"
+      "icon": "Meeting"
     },
     {
       "id": "6",
-      "label": "Open the emoji panel",
+      "label": "Emoji",
       "shortcut": "command+control+e",
-      "icon": "Folder"
+      "icon": "Emoji"
     },
     {
       "id": "7",
-      "label": "Open Extended Search",
+      "label": "Extended Search",
       "shortcut": "command+k",
-      "icon": "Spotlight"
+      "icon": "Filter Plus"
     },
     {
       "id": "8",
-      "label": "Lock WhatsApp",
+      "label": "Lock",
       "shortcut": "command+control+l",
-      "icon": "Application"
+      "icon": "Lock"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "9", "label": "Search Chat", "shortcut": "scoped.command+control+keyslash", "icon": "Search"},
+    {"id": "10", "label": "Close Chat", "shortcut": "scoped.escape", "icon": "Chat"},
+    {"id": "11", "label": "Open Profile and About", "shortcut": "scoped.command+control+p", "icon": "Open File"},
+    {"id": "12", "label": "Open Settings", "shortcut": "scoped.command+control+keycomma", "icon": "Settings"},
+    {"id": "13", "label": "Open GIF panel", "shortcut": "scoped.command+control+g", "icon": "Application"},
+    {"id": "14", "label": "Open sticker panel", "shortcut": "scoped.command+control+s", "icon": "Application"}
   ]
 }

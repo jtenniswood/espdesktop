@@ -3,13 +3,14 @@ from pathlib import Path
 import subprocess
 import sys
 import tempfile
-from generate_media_lifecycle_integration import definition
+from production_source import definition
 
 root = Path(__file__).resolve().parents[2]
 controls = (root / 'components/espdesktop/companion_controls.h').read_text()
 driver = (root / 'components/espdesktop/button_grid_numeric_selectable_driver.h').read_text()
 production = '\n'.join(definition(controls, name)[1] for name in (
-    'companion_apply_mute_state', 'companion_forget_mute', 'companion_track_mute'))
+    'companion_apply_mute_state', 'companion_erase_mute_ref', 'companion_mute_deleted',
+    'companion_forget_mute', 'companion_track_mute'))
 production += definition(driver, 'numeric_selectable_driver_cleanup')[1]
 stubs = r'''
 #include <algorithm>
@@ -33,8 +34,11 @@ bool companion_mute_control_valid(const std::string &id) {
   return id == "media.input_mute" || id == "media.output_mute";
 }
 using Callback = void (*)(lv_event_t *);
-std::vector<Callback> callbacks;
-void lv_obj_add_event_cb(lv_obj_t *, Callback callback, int, void *) { callbacks.push_back(callback); }
+std::vector<std::pair<lv_obj_t *, Callback>> callbacks;
+void lv_obj_add_event_cb(lv_obj_t *obj, Callback callback, int, void *) { callbacks.emplace_back(obj, callback); }
+void lv_obj_remove_event_cb(lv_obj_t *obj, Callback callback) {
+  callbacks.erase(std::remove(callbacks.begin(), callbacks.end(), std::make_pair(obj, callback)), callbacks.end());
+}
 void *lv_event_get_target(lv_event_t *event) { return event->target; }
 void companion_request_card_refresh() {}
 void set_card_checked_state(lv_obj_t *obj, bool state) { obj->checked=state; }
@@ -69,6 +73,7 @@ int main() {
   assert(!numeric_selectable_driver_cleanup(slot, {}, Context{false}));
   assert(registry.mutes.size()==1 && registry.mutes.front().button==&second);
   assert(!first.checked && !first.disabled);
+  assert(callbacks.size() == 1 && callbacks.front().first == &second);
   // Subsequent mute refreshes cannot alter the replacement card.
   for (const auto &ref : registry.mutes) ref.button->disabled=true;
   assert(!first.disabled && second.disabled);
@@ -80,7 +85,8 @@ int main() {
   assert(registry.mutes.size()==2);
   assert(registry.mutes.back().control_id=="media.output_mute");
   lv_event_t event{&first};
-  for (auto callback : callbacks) callback(&event);
+  assert(callbacks.size() == 2 && callbacks.back().first == &first);
+  callbacks.back().second(&event);
   assert(registry.mutes.size()==1 && registry.mutes.front().button==&second);
   assert(!companion_forget_mute(&first));
 }

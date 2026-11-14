@@ -1,5 +1,6 @@
 {
-  "label": "Volume",
+  "label": "Legacy Slider",
+  "hidden": true,
   "allowInSubpage": true,
   "domains": ["light", "fan", "number", "input_number"],
   "normalization": {

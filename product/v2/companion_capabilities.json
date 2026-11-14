@@ -1,5 +1,5 @@
 {
-  "version": 7,
+  "version": 9,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -203,6 +203,16 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 96,
+            "optional": true
+          },
+          "urlOpenBehavior": {
+            "type": "string",
+            "enum": [
+              "new_tab",
+              "new_window"
+            ],
+            "minLength": 7,
+            "maxLength": 10,
             "optional": true
           },
           "encodedUrl": {
@@ -930,6 +940,32 @@
         "states": [
           "connected"
         ]
+      },
+      {
+        "id": "session.lock",
+        "direction": "mac_to_panel",
+        "authorization": "paired",
+        "fields": {
+          "locked": {
+            "type": "boolean"
+          },
+          "displayAwake": {
+            "type": "boolean",
+            "optional": true
+          }
+        },
+        "states": [
+          "connected"
+        ]
+      },
+      {
+        "id": "pair.reset",
+        "direction": "mac_to_panel",
+        "authorization": "session",
+        "fields": {},
+        "states": [
+          "connected"
+        ]
       }
     ],
     "appIconLegacySide": 144,
@@ -938,7 +974,6 @@
   "security": {
     "pairingAuthorization": "device_web_access",
     "browserExposesPairingCode": true,
-    "pairingWindowSeconds": 900,
     "credentialStorage": "keychain",
     "certificatePolicy": "trust_on_first_pair_then_pin",
     "transport": "tls_websocket",
@@ -974,316 +1009,6 @@
       "label": "Stats",
       "capability": "system_metrics",
       "defaultIcon": "Gauge"
-    },
-    {
-      "id": "window",
-      "label": "Window control",
-      "capability": "window_actions",
-      "defaultIcon": "Monitor"
-    },
-    {
-      "id": "webapp",
-      "label": "Web App",
-      "capability": "applications",
-      "defaultIcon": "Web"
-    }
-  ],
-  "windowActions": [
-    {
-      "id": "window.close",
-      "label": "Close",
-      "group": "Window",
-      "key": "w",
-      "modifiers": [
-        "command"
-      ],
-      "minimumMacOS": 13
-    },
-    {
-      "id": "window.minimize",
-      "label": "Minimise",
-      "group": "Window",
-      "key": "m",
-      "modifiers": [
-        "command"
-      ],
-      "minimumMacOS": 13
-    },
-    {
-      "id": "window.hide",
-      "label": "Hide App",
-      "group": "Window",
-      "key": "h",
-      "modifiers": [
-        "command"
-      ],
-      "minimumMacOS": 13
-    },
-    {
-      "id": "window.fullscreen",
-      "label": "Toggle Full Screen",
-      "group": "Full Screen",
-      "key": "f",
-      "modifiers": [
-        "control",
-        "command"
-      ],
-      "minimumMacOS": 13
-    },
-    {
-      "id": "window.fill",
-      "label": "Fill Desktop",
-      "group": "Move & Resize",
-      "key": "f",
-      "modifiers": [
-        "function",
-        "control"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.center",
-      "label": "Centre",
-      "group": "Move & Resize",
-      "key": "c",
-      "modifiers": [
-        "function",
-        "control"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.left",
-      "label": "Left",
-      "group": "Move & Resize",
-      "key": "left",
-      "modifiers": [
-        "function",
-        "control"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.right",
-      "label": "Right",
-      "group": "Move & Resize",
-      "key": "right",
-      "modifiers": [
-        "function",
-        "control"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.top",
-      "label": "Top",
-      "group": "Move & Resize",
-      "key": "up",
-      "modifiers": [
-        "function",
-        "control"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.bottom",
-      "label": "Bottom",
-      "group": "Move & Resize",
-      "key": "down",
-      "modifiers": [
-        "function",
-        "control"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.top-left",
-      "label": "Top Left",
-      "group": "Move & Resize",
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.top-right",
-      "label": "Top Right",
-      "group": "Move & Resize",
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.bottom-left",
-      "label": "Bottom Left",
-      "group": "Move & Resize",
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.bottom-right",
-      "label": "Bottom Right",
-      "group": "Move & Resize",
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.restore",
-      "label": "Return to Previous Size",
-      "group": "Move & Resize",
-      "key": "r",
-      "modifiers": [
-        "function",
-        "control"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.left-right",
-      "label": "Left & Right",
-      "group": "Arrange Windows",
-      "key": "left",
-      "modifiers": [
-        "function",
-        "control",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.right-left",
-      "label": "Right & Left",
-      "group": "Arrange Windows",
-      "key": "right",
-      "modifiers": [
-        "function",
-        "control",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.top-bottom",
-      "label": "Top & Bottom",
-      "group": "Arrange Windows",
-      "key": "up",
-      "modifiers": [
-        "function",
-        "control",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.bottom-top",
-      "label": "Bottom & Top",
-      "group": "Arrange Windows",
-      "key": "down",
-      "modifiers": [
-        "function",
-        "control",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.left-quarters",
-      "label": "Left & Quarters",
-      "group": "Arrange Windows",
-      "key": "left",
-      "modifiers": [
-        "function",
-        "control",
-        "option",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.right-quarters",
-      "label": "Right & Quarters",
-      "group": "Arrange Windows",
-      "key": "right",
-      "modifiers": [
-        "function",
-        "control",
-        "option",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.top-quarters",
-      "label": "Top & Quarters",
-      "group": "Arrange Windows",
-      "key": "up",
-      "modifiers": [
-        "function",
-        "control",
-        "option",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.bottom-quarters",
-      "label": "Bottom & Quarters",
-      "group": "Arrange Windows",
-      "key": "down",
-      "modifiers": [
-        "function",
-        "control",
-        "option",
-        "shift"
-      ],
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.arrange.quarters",
-      "label": "Quarters",
-      "group": "Arrange Windows",
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.fullscreen.enter",
-      "label": "Enter Full Screen",
-      "group": "Full Screen",
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.fullscreen.exit",
-      "label": "Exit Full Screen",
-      "group": "Full Screen",
-      "minimumMacOS": 15
-    },
-    {
-      "id": "window.split.left",
-      "label": "Left of Screen",
-      "group": "Full Screen",
-      "minimumMacOS": 15,
-      "menuPaths": [
-        [
-          "Window",
-          "Full Screen Tile",
-          "Left of Screen"
-        ],
-        [
-          "Window",
-          "Full-Screen Tile",
-          "Left of Screen"
-        ]
-      ]
-    },
-    {
-      "id": "window.split.right",
-      "label": "Right of Screen",
-      "group": "Full Screen",
-      "minimumMacOS": 15,
-      "menuPaths": [
-        [
-          "Window",
-          "Full Screen Tile",
-          "Right of Screen"
-        ],
-        [
-          "Window",
-          "Full-Screen Tile",
-          "Right of Screen"
-        ]
-      ]
     }
   ],
   "systemMetrics": [

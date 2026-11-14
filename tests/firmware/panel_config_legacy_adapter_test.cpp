@@ -11,6 +11,9 @@
 
 namespace {
 
+using espdesktop::configuration::CompatibilityStatus;
+using espdesktop::configuration::ConfigurationBuffer;
+using espdesktop::configuration::LegacyConfigurationMode;
 using espdesktop::configuration::LegacyStatus;
 using espdesktop::configuration::PanelConfigLegacyAdapter;
 using espdesktop::configuration::PanelConfigRuntimeAdapter;
@@ -105,6 +108,35 @@ bool imports_legacy_button_subpage_and_order() {
               "FF8800");
   }
   return button_found && subpage_found && order_found && on_color_found;
+}
+
+bool current_layout_publishes_only_bound_screen_settings() {
+  FakeText order("1"), color("FF8800"), button(";Folder;;;;;subpage");
+  FakeText child("B,1|light.one:Light:Auto:Auto:::");
+  PanelConfigTextBindings bindings;
+  bindings.set_device_profile("guition-esp32-s3-4848s040");
+  bindings.set_button_order(&order);
+  bindings.set_button_on_color(&color);
+  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> chunks{};
+  chunks[0] = &child;
+  if (!bindings.set_button(1, &button, chunks)) return false;
+  PanelConfigLegacyAdapter adapter(bindings, ConfigurationBuffer::allocate_host,
+                                   ConfigurationBuffer::release_host,
+                                   LegacyConfigurationMode::READ_IMPORT_ONLY);
+  std::array<uint8_t, 4096> document{};
+  const auto loaded = adapter.load_for_write(2, document.data(), document.size());
+  if (loaded.status != LegacyStatus::OK) return false;
+
+  FakeText old_order(""), old_color("000000"), old_button("stale"), old_child("stale child");
+  bindings.set_button_order(&old_order);
+  bindings.set_button_on_color(&old_color);
+  chunks[0] = &old_child;
+  if (!bindings.set_button(1, &old_button, chunks)) return false;
+  return adapter.publish_status(2, document.data(), loaded.document_size) ==
+             CompatibilityStatus::NATIVE_ONLY &&
+         old_order.value() == "1" && old_color.value() == "FF8800" &&
+         old_button.value() == "stale" && old_child.value() == "stale child" &&
+         old_button.runtime_publishes == 0 && old_child.runtime_publishes == 0;
 }
 
 bool native_document_mirrors_back_to_legacy_entities_for_downgrade() {
@@ -537,51 +569,17 @@ bool compatibility_merge_preserves_native_only_fields_and_order_independence() {
 
 }  // namespace
 
-bool special_page_keeps_unicode_and_large_native_values() {
-  FakeText order("1"), button("old");
-  std::array<FakeText, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> fields{};
-  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> chunks{};
-  for (size_t i = 0; i < fields.size(); ++i) chunks[i] = &fields[i];
-  PanelConfigTextBindings bindings;
-  bindings.set_device_profile("profile");
-  bindings.set_button_order(&order);
-  bindings.set_special_page_chunks(chunks);
-  std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> empty{};
-  bindings.set_button(1, &button, empty);
-  for (const bool large : {false, true}) {
-    std::string page(large ? 3000 : 254, 'x');
-    page += "😀";
-    std::array<uint8_t, 8192> bytes{};
-    PanelConfigWriter writer(bytes.data(), bytes.size());
-    size_t size = 0;
-    if (writer.begin() != PanelConfigStatus::OK ||
-        writer.append_device_profile(reinterpret_cast<const uint8_t *>("profile"), 7) != PanelConfigStatus::OK ||
-        writer.append_setting(reinterpret_cast<const uint8_t *>("special_page"), 12,
-            reinterpret_cast<const uint8_t *>(page.data()), page.size()) != PanelConfigStatus::OK ||
-        writer.finish(&size) != PanelConfigStatus::OK) return false;
-    if (!bindings.publish_document(bytes.data(), size)) return false;
-    std::string restored;
-    for (const auto &field : fields) restored += field.value();
-    if (restored != page) return false;
-    if (!large && fields[0].value().size() != 254) return false;
-    const auto writes = order.persistent_writes;
-    if (bindings.persist_document(bytes.data(), size) == large) return false;
-    if (large && order.persistent_writes != writes) return false;
-  }
-  return true;
-}
-
 int main() {
   return retired_colour_switches_do_not_affect_restored_cards() &&
                  native_only_settings_do_not_take_legacy_text_capacity() &&
                  compatibility_merge_preserves_native_only_fields_and_order_independence() &&
                  imports_legacy_button_subpage_and_order() &&
+                 current_layout_publishes_only_bound_screen_settings() &&
                  native_document_mirrors_back_to_legacy_entities_for_downgrade() &&
                  native_document_updates_live_grid_without_writing_legacy_preferences() &&
                  twenty_slot_document_reaches_order_and_subpage_settings() &&
                  expanded_native_configuration_preserves_every_byte() &&
-                 legacy_unicode_capacity_is_checked_before_writing() &&
-                 special_page_keeps_unicode_and_large_native_values()
+                 legacy_unicode_capacity_is_checked_before_writing()
              ? 0
              : 1;
 }

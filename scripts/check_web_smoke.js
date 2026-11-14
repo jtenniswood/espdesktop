@@ -83,10 +83,10 @@ const scheduleSettingsSource = fs.readFileSync(path.join(ROOT, "src", "webserver
 const screensaverSettingsSource = fs.readFileSync(path.join(ROOT, "src", "webserver", "application", "settings_page.ts"), "utf8");
 assert(previewStylesSource.includes("max-height:var(--btn-label-max-height)"), "button labels wrap within the device-matched label area");
 assert(!previewStylesSource.includes("-webkit-line-clamp:var(--btn-lines);"), "button labels do not show browser ellipses when clipped");
-assert(scheduleSettingsSource.includes('entityName("screen_schedule_sensor_entity")'), "Night Schedule posts its dedicated sensor entity");
-assert(scheduleSettingsSource.includes("state.scheduleSensorEntity"), "Night Schedule input receives its dedicated sensor value");
-assert(screensaverSettingsSource.includes('entityName("presence_sensor_entity")'), "Screensaver keeps posting its existing presence entity");
-assert(!scheduleSettingsSource.includes("state.presenceEntity"), "Night Schedule input does not mirror the Screensaver sensor value");
+assert(!scheduleSettingsSource.includes('entityName("screen_schedule_sensor_entity")'), "Night Schedule does not post retired sensor settings");
+assert(!scheduleSettingsSource.includes('["sensor", "Home Assistant"]'), "Night Schedule only offers local modes");
+assert(!screensaverSettingsSource.includes('entityName("presence_sensor_entity")'), "Screensaver does not post retired presence settings");
+assert(!screensaverSettingsSource.includes('["sensor", "Home Assistant"]'), "Screensaver only offers local modes");
 assert.strictEqual(
   hooks.backupExportFileName(new Date(2026, 5, 9)),
   "espdesktop-7-inch-2026-06-09.json",
@@ -144,7 +144,7 @@ const importedPortraitSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, 3));
 assert.strictEqual(importedPortraitSubpage.subpages["1"].order[0], "1", "a portrait backup import normalizes a subpage 4x3 card before saving");
 assert.strictEqual(importedPortraitSubpage.subpages["1"].sizes["1"], undefined, "a portrait backup import removes the invalid subpage 4x3 size");
@@ -159,54 +159,10 @@ const restoredLandscapeSubpage = plain(hooks.planBackupImportForGridCols({
   slots: 15,
   button_order: "1l",
   buttons: Array.from({ length: 15 }, (_, index) => index === 0 ? { type: "subpage", label: "Camera" } : {}),
-  subpages: { "1": "~1l,,,,B|I,camera.front_door,Front Door,,,,image" },
+  subpages: { "1": "~1l,,,,B|image,camera.front_door,Front Door" },
   settings: { screen_rotation: "0" },
 }, { device: "guition-esp32-p4-jc1060p470", slots: 15 }, restoredLandscapeCols));
 assert.strictEqual(restoredLandscapeSubpage.subpages["1"].order[0], "1l", "restoring landscape preserves a valid subpage 4x3 card");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_cover_art_on_external_input"),
-  "cover art external-input post aliases include the full generated object id"
-);
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_hide_cover_art_external_input")).includes("screen_saver__hide_for_external_sources"),
-  "cover art external-input post aliases include the legacy external-sources object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtHideExternalInputPostUrls(false)), [
-  "/switch/screen_saver__hide_cover_art_on_external_input/turn_off",
-  "/switch/screen_saver_hide_cover_art_on_external_input/turn_off",
-  "/switch/hide_cover_art_on_external_input/turn_off",
-  "/switch/cover_art_hide_external_input/turn_off",
-  "/switch/screen_saver__hide_for_external_sources/turn_off",
-  "/switch/Screen%20Saver%3A%20Hide%20for%20external%20sources/turn_off",
-], "cover art external-input posts include all firmware object id aliases");
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(30)), [
-  "/number/screen_saver__cover_art_delay/set?value=30",
-  "/number/screen_saver_cover_art_delay/set?value=30",
-  "/number/cover_art_delay/set?value=30",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=30",
-], "cover art delay posts include all firmware object id aliases");
-assert.deepStrictEqual(Array.from(hooks.coverArtDelayPostUrls(0)), [
-  "/number/screen_saver__cover_art_delay/set?value=3",
-  "/number/screen_saver_cover_art_delay/set?value=3",
-  "/number/cover_art_delay/set?value=3",
-  "/number/Screen%20Saver%3A%20Cover%20Art%20Delay/set?value=3",
-], "legacy immediate cover art delay posts as three seconds");
-assert.strictEqual(hooks.normalizeCoverArtDelay(0), 3, "cover art delay UI normalizes legacy immediate values");
-assert(
-  Array.from(hooks.entityLookupNames("screen_saver_track_overlay_duration")).includes("screen_saver__show_track_overlay"),
-  "cover art track-overlay post aliases include the legacy show-track-overlay object id"
-);
-assert.deepStrictEqual(Array.from(hooks.coverArtTrackOverlayDurationPostUrls(15)), [
-  "/number/screen_saver__track_overlay_duration/set?value=15",
-  "/number/screen_saver_track_overlay_duration/set?value=15",
-  "/number/track_overlay_duration/set?value=15",
-  "/number/screen_saver__show_track_overlay/set?value=15",
-  "/number/Screen%20Saver%3A%20Show%20Track%20Overlay/set?value=15",
-], "cover art track-overlay posts include all firmware object id aliases");
-assert.deepStrictEqual(Array.from(hooks.homeAssistantArtworkPortPostUrls(80)), [
-  "/number/home_assistant_artwork_port/set?value=80",
-  "/number/Home%20Assistant%20Artwork%20Port/set?value=80",
-], "Home Assistant artwork port posts include object id and entity name fallbacks");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "off"), true, "clock bar preview is visible when enabled");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "dim"), true, "clock bar preview stays visible for dimmed screen saver");
 assert.strictEqual(hooks.clockBarVisibleInPreviewFor(true, "clock"), true, "clock bar preview stays visible when clock screen saver is configured");
@@ -299,7 +255,7 @@ for (const [slug, device] of Object.entries(manifest.devices || {})) {
   );
   assert.strictEqual(
     generatedTimezones[generatedTimezones.length - 1],
-    "Auto (Home Assistant)",
+    "Auto (Mac Companion)",
     `${slug}: Auto timezone remains available as the new-install default option`
   );
   assert(
@@ -454,47 +410,12 @@ const confirmationOnRoundTrip = hooks.parseButtonConfig(hooks.serializeButtonCon
 }));
 assert.strictEqual(hooks.switchConfirmationMode(confirmationOnRoundTrip), "on");
 assert.strictEqual(hooks.switchConfirmationMessage(confirmationOnRoundTrip), "Turn on this device?");
-const scriptConfirmationButton = {
-  entity: "script.goodnight",
-  label: "Goodnight",
-  icon: "Script Text Play",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "confirm_on,confirm_message=Run bedtime?,confirm_yes=Run,confirm_no=Cancel",
-};
-const scriptConfirmationRoundTrip = hooks.parseButtonConfig(hooks.serializeButtonConfig(scriptConfirmationButton));
-assert.deepStrictEqual(plain(scriptConfirmationRoundTrip), scriptConfirmationButton);
-assert.strictEqual(hooks.actionScriptConfirmationEnabled(scriptConfirmationRoundTrip), true);
-assert.strictEqual(hooks.actionScriptConfirmationMessage(scriptConfirmationRoundTrip), "Run bedtime?");
-assert.strictEqual(hooks.actionScriptConfirmationYesText(scriptConfirmationRoundTrip), "Run");
-assert.strictEqual(hooks.actionScriptConfirmationNoText(scriptConfirmationRoundTrip), "Cancel");
-const scriptConfirmationDefaultRoundTrip = hooks.parseButtonConfig(hooks.serializeButtonConfig({
-  entity: "script.goodnight",
-  label: "Goodnight",
-  icon: "Script Text Play",
-  icon_on: "Auto",
-  sensor: "script.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "confirm_on",
-}));
-assert.strictEqual(hooks.actionScriptConfirmationMessage(scriptConfirmationDefaultRoundTrip), "Run this script?");
-const sceneWithStaleConfirmation = hooks.parseButtonConfig(hooks.serializeButtonConfig({
-  entity: "scene.goodnight",
-  label: "Goodnight",
-  icon: "Movie Open",
-  icon_on: "Auto",
-  sensor: "scene.turn_on",
-  unit: "",
-  type: "action",
-  precision: "",
-  options: "confirm_on,confirm_message=Run bedtime?",
-}));
-assert.strictEqual(sceneWithStaleConfirmation.options, "", "non-script action cards drop script confirmation options");
+for (const type of ["action", "local", "option_select", "A", "U"]) {
+  const raw = { entity: "script.goodnight", label: "Old action", icon: "Flash", icon_on: "Auto", sensor: "local", unit: "", type, precision: "", options: "secret=old" };
+  const retired = hooks.parseButtonConfig(hooks.serializeButtonConfig(raw));
+  assert.deepStrictEqual(plain(retired), { entity: "", label: "", icon: "Auto", icon_on: "Auto", sensor: "", unit: "", type, precision: "", options: "" });
+}
+assert(!hooks.buttonTypeDefaultConfig("action"), "Action has no editor definition");
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", false), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm", true), false);
 assert.strictEqual(hooks.buttonTypeVisibleInPickerFor("alarm_action", false), false);
@@ -541,8 +462,8 @@ assert(
   "image card icons use the same top-left placement",
 );
 assert(
-  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Security", type: "alarm" }).iconHtml.includes("mdi-shield-off"),
-  "alarm preview defaults to the status icon"
+  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Security", type: "alarm" }).iconHtml.includes("mdi-cog"),
+  "removed alarm status icon uses the fallback"
 );
 assert(
   !pickerOptions.some((option) => option.key === "media_control"),
@@ -612,8 +533,8 @@ assert(
   "media control status label preview uses player state text"
 );
 assert(
-  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Alarm", type: "alarm", options: "icon_display=static" }).iconHtml.includes("mdi-bell-ring"),
-  "alarm preview uses the selected Alarm icon"
+  hooks.buttonTypePreviewFor("alarm", { label: "Alarm", icon: "Alarm", type: "alarm", options: "icon_display=static" }).iconHtml.includes("mdi-cog"),
+  "removed Alarm icon uses the fallback"
 );
 
 assert.deepStrictEqual(Array.from(hooks.alarmCardTypeOptionValues(false)), ["control_panel", "away", "home", "night", "vacation", "disarm"]);
@@ -640,8 +561,6 @@ assert(
   "fan cards are available"
 );
 
-assert.strictEqual(hooks.normalizeTemperatureUnit("fahrenheit"), "\u00b0F");
-assert.strictEqual(hooks.normalizeTemperatureUnit("centigrade"), "\u00b0C");
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort("80"), 80);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(""), 8123);
 assert.strictEqual(hooks.normalizeHomeAssistantArtworkPort(0), 1);
@@ -670,34 +589,20 @@ const climateLargePreview = hooks.buttonTypePreviewFor("climate", {
   temperatureUnit: "\u00b0C",
 });
 assert(climateLargePreview.iconHtml.includes("sp-sensor-preview-large"), "climate temperature preview supports large numbers");
-const climatePreviewF = hooks.buttonTypePreviewFor("climate", climatePreviewButton, {
-  temperatureUnit: "\u00b0F",
-});
-assert(climatePreviewF.iconHtml.includes("\u00b0F"), "climate preview uses Fahrenheit unit");
-const climatePreviewAuto = hooks.buttonTypePreviewFor("climate", climatePreviewButton, {
-  temperatureUnit: "Auto",
-  timezone: "America/New_York (GMT-5)",
-});
-assert(climatePreviewAuto.iconHtml.includes("\u00b0F"), "climate preview follows Auto timezone unit");
-assert.strictEqual(
-  hooks.temperatureUnitSymbolFor("Auto (Home Assistant)", "Auto", "America/New_York"),
-  "\u00b0F",
-  "Auto temperature unit follows the published active timezone"
-);
 const climateLabelPreview = hooks.buttonTypePreviewFor("climate", {
   ...climatePreviewButton,
   options: "label_display=actual",
 }, {
   temperatureUnit: "\u00b0F",
 });
-assert(climateLabelPreview.labelHtml.includes("21\u00b0F"), "climate actual label includes the configured unit");
+assert(climateLabelPreview.labelHtml.includes("21\u00b0C"), "read-only legacy preview ignores the retired temperature setting");
 const climateIconPreview = hooks.buttonTypePreviewFor("climate", {
   ...climatePreviewButton,
   options: "number_display=icon",
 }, {
   temperatureUnit: "\u00b0C",
 });
-assert(climateIconPreview.iconHtml.includes("mdi-thermostat"), "climate icon mode preview uses the selected icon");
+assert(climateIconPreview.iconHtml.includes("mdi-cog"), "removed thermostat icon uses the fallback");
 assert.strictEqual(climateIconPreview.buttonClass, undefined, "climate icon mode uses a standard card wrapper");
 assert(!climateIconPreview.iconHtml.includes("sp-climate-card-icon"), "climate icon mode uses standard card icon layout");
 assert(!climateIconPreview.iconHtml.includes("\u00b0C"), "climate icon mode preview does not show a large temperature");
@@ -705,168 +610,6 @@ assert(!climateIconPreview.iconHtml.includes("\u00b0C"), "climate icon mode prev
 function previewSensorValue(preview) {
   return (preview.iconHtml.match(/sp-sensor-value[^>]*>([^<]*)/) || [])[1] || "";
 }
-
-const datePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-});
-assert(!datePreview.labelHtml.includes("sp-type-badge"), "date preview omits the card-type badge");
-assert(datePreview.iconHtml.includes("sp-sensor-preview"), "date preview uses the shared sensor preview");
-const frenchMonth = new Intl.DateTimeFormat("fr", { month: "long" }).format(hooks.webserverMockNow());
-const frenchDatePreview = hooks.buttonTypePreviewForMockNow("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-}, {
-  language: "fr",
-});
-assert(frenchDatePreview.labelHtml.includes(frenchMonth), "date preview follows selected language month names");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "calendar", precision: "" }), "Large Date");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "calendar", precision: "datetime" }), "Large Time");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "clock" }), "Large Clock");
-assert.strictEqual(hooks.dateTimeLargeNumbersLabel({ type: "timezone" }), "Large World Clock");
-
-const largeDatePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "",
-  options: "",
-}, {
-  cardSize: 4,
-});
-assert(largeDatePreview.iconHtml.includes("sp-sensor-preview-large"), "date 2x2 preview defaults to large numbers");
-
-const dateTimePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(dateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time 2x2 preview defaults to large numbers");
-assert(previewSensorValue(dateTimePreview).includes(":"), "date/time preview renders a time value");
-
-const timezoneDateTimePreview = hooks.buttonTypePreviewForMockNow("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "",
-}, {
-  timezone: "Pacific/Honolulu",
-  language: "en",
-  clockFormat: "24h",
-});
-assert(previewSensorValue(timezoneDateTimePreview).startsWith("23:00"), "date/time preview formats its time in the panel timezone");
-assert(timezoneDateTimePreview.labelHtml.includes("31 December"), "date/time preview formats its date in the panel timezone");
-
-const wideDateTimePreview = hooks.buttonTypePreviewFor("calendar", {
-  type: "calendar",
-  precision: "datetime",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(!wideDateTimePreview.iconHtml.includes("sp-sensor-preview-large"), "date/time wide preview does not support large numbers");
-assert.strictEqual(wideDateTimePreview.buttonClass, undefined, "date/time wide preview uses the standard wrapper");
-assert(wideDateTimePreview.labelHtml.includes("sp-btn-label"), "date/time wide preview keeps the date label");
-
-const clockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(previewSensorValue(clockPreview).includes(":"), "clock preview renders a time value");
-assert(clockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock 2x2 preview defaults to large numbers");
-assert.strictEqual(clockPreview.labelHtml, "", "clock preview does not render a date label");
-assert.strictEqual(clockPreview.buttonClass, "sp-clock-large", "clock 2x2 preview uses the large clock wrapper");
-
-const wideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(wideClockPreview.iconHtml.includes("sp-sensor-preview-large"), "clock wide preview supports large numbers");
-assert.strictEqual(wideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "clock wide large preview is left aligned");
-assert.strictEqual(wideClockPreview.labelHtml, "", "clock wide preview does not render a date label");
-
-const resizedWideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers,center_clock",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert.strictEqual(resizedWideClockPreview.buttonClass, "sp-clock-large sp-clock-left-mid", "two-column clocks ignore retained center-clock options");
-
-const centeredExtraWideClockPreview = hooks.buttonTypePreviewFor("clock", {
-  type: "clock",
-  options: "large_numbers,center_clock",
-}, {
-  cardSize: 6,
-  clockFormat: "24h",
-});
-assert.strictEqual(centeredExtraWideClockPreview.buttonClass, "sp-clock-large sp-clock-centered", "clocks wider than two columns honor center-clock");
-
-const timezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "",
-}, {
-  clockFormat: "24h",
-});
-assert(timezonePreview.labelHtml.includes("New York"), "world clock preview uses the city label");
-assert(!timezonePreview.labelHtml.includes("sp-type-badge"), "world clock preview omits the card-type badge");
-
-const autoTimezonePreview = hooks.buttonTypePreviewForMockNow("timezone", {
-  entity: "Auto (Home Assistant)",
-  type: "timezone",
-  options: "",
-}, {
-  activeTimezone: "America/New_York",
-  clockFormat: "24h",
-});
-assert(autoTimezonePreview.labelHtml.includes("New York"), "Auto world clock preview uses the published active timezone city");
-assert.strictEqual(previewSensorValue(autoTimezonePreview), "04:00", "Auto world clock preview uses the published active timezone time");
-
-const wideTimezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "large_numbers",
-}, {
-  cardSize: 3,
-  clockFormat: "24h",
-});
-assert(!wideTimezonePreview.iconHtml.includes("sp-sensor-preview-large"), "world clock wide preview does not support large numbers");
-assert.strictEqual(wideTimezonePreview.buttonClass, undefined, "world clock wide preview uses the standard wrapper");
-assert(wideTimezonePreview.labelHtml.includes("New York"), "world clock wide preview keeps the city label");
-
-const largeTimezonePreview = hooks.buttonTypePreviewFor("timezone", {
-  entity: "America/New_York (GMT-5)",
-  type: "timezone",
-  options: "large_numbers",
-}, {
-  cardSize: 4,
-  clockFormat: "24h",
-});
-assert(largeTimezonePreview.iconHtml.includes("sp-sensor-preview-large"), "world clock 2x2 preview supports large numbers");
-
-const timezoneSamples = [
-  "UTC (GMT+0)",
-  "Pacific/Kiritimati (GMT+14)",
-  "America/New_York (GMT-5)",
-  "Pacific/Honolulu (GMT-10)",
-];
-assert(timezoneSamples.some((timezone) => {
-  const button = { entity: timezone, type: "timezone", options: "" };
-  const clock24 = previewSensorValue(hooks.buttonTypePreviewFor("timezone", button, { clockFormat: "24h" }));
-  const clock12 = previewSensorValue(hooks.buttonTypePreviewFor("timezone", button, { clockFormat: "12h" }));
-  return clock24 !== clock12;
-}), "world clock preview follows 12/24-hour formatting");
 
 const weatherCurrentPreview = hooks.buttonTypePreviewFor("weather", {
   entity: "weather.forecast_home",
@@ -945,7 +688,7 @@ const doorPreview = hooks.buttonTypePreviewFor("door_window", {
   type: "door_window",
   precision: "door",
 });
-assert(doorPreview.iconHtml.includes("mdi-door"), "door/window door preview uses the closed door icon");
+assert(doorPreview.iconHtml.includes("mdi-cog"), "removed door icon uses the fallback");
 assert(!doorPreview.labelHtml.includes("sp-type-badge"), "door/window door preview omits the card-type badge");
 
 const windowPreview = hooks.buttonTypePreviewFor("door_window", {
@@ -965,8 +708,7 @@ const actionPreview = hooks.buttonTypePreviewFor("action", {
   sensor: "scene.turn_on",
   type: "action",
 });
-assert(actionPreview.iconHtml.includes("mdi-flash"), "action preview uses the selected action icon");
-assert(!actionPreview.labelHtml.includes("sp-type-badge"), "action preview omits the card-type badge");
+assert.strictEqual(actionPreview, null, "Action cards have no live preview renderer");
 const actionLargePreview = hooks.buttonTypePreviewFor("action", {
   entity: "script.kitchen_lights",
   label: "Kitchen Lights",
@@ -975,7 +717,7 @@ const actionLargePreview = hooks.buttonTypePreviewFor("action", {
   type: "action",
   options: "state_entity=sensor.kitchen_power,state_unit=W,state_precision=1",
 }, { cardSize: 4 });
-assert(actionLargePreview.iconHtml.includes("sp-sensor-preview-large"), "action numeric state 2x2 preview defaults to large numbers");
+assert.strictEqual(actionLargePreview, null, "Action cards have no live preview renderer");
 
 const actionIconStatePreview = hooks.buttonTypePreviewFor("action", {
   entity: "script.goodnight",
@@ -986,7 +728,7 @@ const actionIconStatePreview = hooks.buttonTypePreviewFor("action", {
   type: "action",
   options: "state_entity=input_boolean.goodnight_ready,state_precision=icon",
 });
-assert(actionIconStatePreview.iconHtml.includes("mdi-toggle-switch"), "action icon state preview uses the icon-state badge");
+assert.strictEqual(actionIconStatePreview, null, "Action cards have no live preview renderer");
 
 const actionOptionPreview = hooks.buttonTypePreviewFor("action", {
   entity: "select.wled_preset",
@@ -994,8 +736,7 @@ const actionOptionPreview = hooks.buttonTypePreviewFor("action", {
   sensor: "input_select.select_option",
   type: "action",
 });
-assert(actionOptionPreview.iconHtml.includes("Option"), "action option-select preview uses option text");
-assert(!actionOptionPreview.labelHtml.includes("sp-type-badge"), "action option-select preview omits the card-type badge");
+assert.strictEqual(actionOptionPreview, null, "Action cards have no live preview renderer");
 
 const localActionPreview = hooks.buttonTypePreviewFor("action", {
   entity: "zoom_mute",
@@ -1004,8 +745,7 @@ const localActionPreview = hooks.buttonTypePreviewFor("action", {
   sensor: "local",
   type: "action",
 });
-assert(localActionPreview.iconHtml.includes("mdi-gesture-tap"), "local action subtype preview uses the local action icon");
-assert(!localActionPreview.labelHtml.includes("sp-type-badge"), "local action subtype preview omits the card-type badge");
+assert.strictEqual(localActionPreview, null, "Action cards have no live preview renderer");
 
 const alarmActionPreview = hooks.buttonTypePreviewFor("alarm_action", {
   entity: "alarm_control_panel.house",
@@ -1014,7 +754,7 @@ const alarmActionPreview = hooks.buttonTypePreviewFor("alarm_action", {
   sensor: "away",
   type: "alarm_action",
 });
-assert(alarmActionPreview.iconHtml.includes("mdi-shield-lock"), "alarm action preview uses its action icon");
+assert(alarmActionPreview.iconHtml.includes("mdi-cog"), "removed alarm action icon uses the fallback");
 
 const fanSpeedPreview = hooks.buttonTypePreviewFor("fan_speed", {
   entity: "fan.bedroom",
@@ -1133,7 +873,7 @@ const coverModalPreview = hooks.buttonTypePreviewFor("cover", {
   type: "cover",
 });
 assert(coverModalPreview.iconHtml.includes("sp-slider-preview"), "cover modal preview shows read-only position track");
-assert(coverModalPreview.iconHtml.includes("mdi-blinds"), "cover modal preview uses the cover icon");
+assert(coverModalPreview.iconHtml.includes("mdi-cog"), "removed blinds icon uses the fallback");
 assert(!coverModalPreview.labelHtml.includes("sp-type-badge"), "cover modal preview omits the card-type badge");
 
 const coverCommandPreview = hooks.buttonTypePreviewFor("cover", {
@@ -1145,7 +885,7 @@ const coverCommandPreview = hooks.buttonTypePreviewFor("cover", {
   type: "cover",
 });
 assert(!coverCommandPreview.iconHtml.includes("sp-slider-preview"), "cover command preview uses icon-only layout");
-assert(coverCommandPreview.iconHtml.includes("mdi-blinds-open"), "cover command preview uses the command icon");
+assert(coverCommandPreview.iconHtml.includes("mdi-cog"), "removed blinds command icon uses the fallback");
 assert(!coverCommandPreview.labelHtml.includes("sp-type-badge"), "cover command preview omits the card-type badge");
 
 const coverSetPositionPreview = hooks.buttonTypePreviewFor("cover", {
@@ -1199,7 +939,7 @@ const garageStatusPreview = hooks.buttonTypePreviewFor("garage", {
   type: "garage",
   options: "label_display=status",
 });
-assert(garageStatusPreview.iconHtml.includes("mdi-garage"), "garage status preview uses the garage icon");
+assert(garageStatusPreview.iconHtml.includes("mdi-cog"), "removed garage icon uses the fallback");
 assert(garageStatusPreview.labelHtml.includes("Closed"), "garage status preview uses the status label");
 assert(!garageStatusPreview.labelHtml.includes("sp-type-badge"), "garage status preview omits the card-type badge");
 
@@ -1211,7 +951,7 @@ const garageOpenPreview = hooks.buttonTypePreviewFor("garage", {
   sensor: "open",
   type: "garage",
 });
-assert(garageOpenPreview.iconHtml.includes("mdi-garage-open"), "garage open command preview uses the open icon");
+assert(garageOpenPreview.iconHtml.includes("mdi-cog"), "removed open garage icon uses the fallback");
 assert(!garageOpenPreview.labelHtml.includes("sp-type-badge"), "garage open preview omits the card-type badge");
 
 const garageClosePreview = hooks.buttonTypePreviewFor("garage", {
@@ -1222,7 +962,7 @@ const garageClosePreview = hooks.buttonTypePreviewFor("garage", {
   sensor: "close",
   type: "garage",
 });
-assert(garageClosePreview.iconHtml.includes("mdi-garage"), "garage close command preview uses the closed icon");
+assert(garageClosePreview.iconHtml.includes("mdi-cog"), "removed closed garage icon uses the fallback");
 
 const pushPreview = hooks.buttonTypePreviewFor("push", {
   label: "Doorbell",
@@ -1248,7 +988,7 @@ const subpageIconPreview = hooks.buttonTypePreviewFor("subpage", {
   sensor: "indicator",
   type: "subpage",
 });
-assert(subpageIconPreview.iconHtml.includes("mdi-blinds"), "subpage icon-state preview uses the configured icon");
+assert(subpageIconPreview.iconHtml.includes("mdi-cog"), "removed subpage icon uses the fallback");
 assert(subpageIconPreview.labelHtml.includes("mdi-chevron-right"), "subpage icon-state preview shows the chevron badge");
 
 const subpageLightsPreview = hooks.buttonTypePreviewFor("subpage", {
@@ -1257,7 +997,7 @@ const subpageLightsPreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "subpage_kind=lights",
 });
-assert(subpageLightsPreview.iconHtml.includes("mdi-lightbulb"), "lights subpage preset preview uses the lightbulb icon");
+assert(subpageLightsPreview.iconHtml.includes("mdi-cog"), "removed lights subpage icon uses the fallback");
 assert(subpageLightsPreview.labelHtml.includes("Lighting"), "lights subpage preset preview uses the Lighting label");
 assert(subpageLightsPreview.labelHtml.includes("mdi-chevron-right"), "lights subpage preset preview shows the chevron badge");
 
@@ -1277,7 +1017,7 @@ const subpageClimatePreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "subpage_kind=climate",
 });
-assert(subpageClimatePreview.iconHtml.includes("mdi-thermostat"), "climate subpage preset preview uses the thermostat icon");
+assert(subpageClimatePreview.iconHtml.includes("mdi-cog"), "removed climate subpage icon uses the fallback");
 assert(subpageClimatePreview.labelHtml.includes("Climate"), "climate subpage preset preview uses the Climate label");
 assert(subpageClimatePreview.labelHtml.includes("mdi-chevron-right"), "climate subpage preset preview shows the chevron badge");
 
@@ -1304,10 +1044,10 @@ assert(subpageCompanionStatPreview.labelHtml.includes("% free"), "Companion Stat
 assert(subpageCompanionStatPreview.labelHtml.includes("mdi-chevron-right"), "Companion Stat subpage preview shows the chevron badge");
 
 [
-  ["alarm", "alarm_control_panel.home", "mdi-shield-home", "Alarm"],
-  ["vacuum", "vacuum.downstairs", "mdi-robot-vacuum", "Vacuum"],
-  ["lawn_mower", "lawn_mower.backyard", "mdi-robot-mower", "Lawn Mower"],
-  ["weather", "weather.home", "mdi-weather-partly-cloudy", "Weather"],
+  ["alarm", "alarm_control_panel.home", "mdi-cog", "Alarm"],
+  ["vacuum", "vacuum.downstairs", "mdi-cog", "Vacuum"],
+  ["lawn_mower", "lawn_mower.backyard", "mdi-cog", "Lawn Mower"],
+  ["weather", "weather.home", "mdi-cog", "Weather"],
 ].forEach(([kind, entity, iconClass, label]) => {
   const preview = hooks.buttonTypePreviewFor("subpage", {
     entity,
@@ -1349,7 +1089,7 @@ const lawnMowerPreview = hooks.buttonTypePreviewFor("lawn_mower", {
   precision: "2",
   options: "ignored",
 });
-assert(lawnMowerPreview.iconHtml.includes("mdi-robot-mower"), "lawn mower preview uses the robot mower icon");
+assert(lawnMowerPreview.iconHtml.includes("mdi-cog"), "removed robot mower icon uses the fallback");
 assert(!lawnMowerPreview.labelHtml.includes("sp-type-badge"), "lawn mower preview omits the card-type badge");
 
 const subpageCustomPresetPreview = hooks.buttonTypePreviewFor("subpage", {
@@ -1370,7 +1110,7 @@ const subpageNumericPreview = hooks.buttonTypePreviewFor("subpage", {
   unit: "%",
   type: "subpage",
 });
-assert(subpageNumericPreview.iconHtml.includes("sp-sensor-preview"), "subpage numeric preview uses the shared number preview");
+assert(!subpageNumericPreview.iconHtml.includes("sp-sensor-preview"), "retired folder sensor bindings no longer preview remote readings");
 assert(subpageNumericPreview.labelHtml.includes("mdi-chevron-right"), "subpage numeric preview shows the chevron badge");
 const subpageLargePreview = hooks.buttonTypePreviewFor("subpage", {
   label: "Open Windows",
@@ -1380,7 +1120,7 @@ const subpageLargePreview = hooks.buttonTypePreviewFor("subpage", {
   type: "subpage",
   options: "",
 }, { cardSize: 4 });
-assert(subpageLargePreview.iconHtml.includes("sp-sensor-preview-large"), "subpage numeric 2x2 preview defaults to large numbers");
+assert(!subpageLargePreview.iconHtml.includes("sp-sensor-preview-large"), "retired folder state does not show a fabricated large reading");
 
 const subpageTextPreview = hooks.buttonTypePreviewFor("subpage", {
   label: "Washer",
@@ -1390,7 +1130,7 @@ const subpageTextPreview = hooks.buttonTypePreviewFor("subpage", {
   precision: "text",
 });
 assert(subpageTextPreview.iconHtml.includes("mdi-thermometer"), "subpage text preview uses the configured icon");
-assert(subpageTextPreview.labelHtml.includes("State"), "subpage text preview keeps the State label");
+assert(!subpageTextPreview.labelHtml.includes(">State<"), "retired folder state does not replace its navigation label");
 assert(subpageTextPreview.labelHtml.includes("mdi-chevron-right"), "subpage text preview shows the chevron badge");
 
 const mediaVolumePreview = hooks.buttonTypePreviewFor("media", {
@@ -1521,14 +1261,9 @@ assert.notStrictEqual(
   "2026-01-01T09:00:00.000Z",
   "production web UI clock uses the real current time"
 );
-assert(
-  hooks.buttonTypePreviewForMockNow("clock", { type: "clock" }, { clockFormat: "24h" }).iconHtml.includes("09:00"),
-  "mock webserver clock preview uses fixed 09:00 time"
-);
-assert(
-  hooks.buttonTypePreviewForMockNow("clock", { type: "clock" }, { clockFormat: "12h" }).iconHtml.includes("9:00"),
-  "mock webserver clock preview uses fixed 9:00 time in 12h mode"
-);
+for (const type of ["calendar", "clock", "timezone"]) {
+  assert.strictEqual(hooks.buttonTypePreviewFor(type, { type }), null, `${type} has no active preview`);
+}
 const backOnlySubpage = hooks.parseSubpageConfig(",,,,B");
 hooks.buildSubpageGrid(backOnlySubpage);
 assert.deepStrictEqual(plain(backOnlySubpage.buttons), []);
@@ -1563,7 +1298,7 @@ const publicManifest = {
 assert.deepStrictEqual(plain(hooks.firmwareInfoFromPublicManifest(publicManifest)), {
   latest_version: "v1.12.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 });
@@ -1595,13 +1330,13 @@ const publicVersionIndex = {
 assert.deepStrictEqual(plain(hooks.firmwareInfosFromPublicVersions(publicVersionIndex)), [{
   latest_version: "v1.12.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.12.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "0123456789abcdef0123456789abcdef",
 }, {
   latest_version: "v1.11.0",
   release_url: "https://github.com/jtenniswood/espdesktop/releases/tag/v1.11.0",
-  ota_url: "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
+  ota_url: "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/versions/v1.11.0/guition-esp32-p4-jc1060p470.ota.bin",
   ota_filename: "guition-esp32-p4-jc1060p470.ota.bin",
   ota_md5: "abcdef0123456789abcdef0123456789",
 }]);
@@ -1623,7 +1358,7 @@ assert.deepStrictEqual(plain(hooks.firmwareStateAfterVersionIndex("v1.12.0", pub
 });
 assert.strictEqual(
   hooks.firmwareOtaUrlAfterVersionIndex("v1.12.0", publicVersionIndex, "v1.11.0"),
-  "https://jtenniswood.github.io/espdesktop/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
+  "https://espdesktop.com/firmware/guition-esp32-p4-jc1060p470/guition-esp32-p4-jc1060p470.ota.bin",
   "latest firmware OTA resolution must not follow the selected previous version"
 );
 assert.strictEqual(hooks.firmwareVersionLabelFor("", true), "Checking version...");

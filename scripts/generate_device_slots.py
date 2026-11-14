@@ -34,16 +34,11 @@ def package_data(device: dict) -> dict:
 def package_substitution_lines(device: dict) -> list[str]:
     package = package_data(device)
     lines = [
-        '  cover_art_placeholder_file: "https://raw.githubusercontent.com/jtenniswood/espdesktop/main/common/assets/cover_art_placeholder.svg"',
         f'  device_slug: "{device["slug"]}"',
         f'  firmware_manifest_slug: "{device["slug"]}"',
     ]
     if package.get("firmwareVersion"):
         lines.append(f'  firmware_version: "{package["firmwareVersion"]}"')
-    camera_screensaver_supported = bool(device.get("camera_screensaver_supported"))
-    lines.append(
-        f'  screensaver_camera_supported: "{str(camera_screensaver_supported).lower()}"'
-    )
     for key, value in package["substitutions"].items():
         lines.append(f"  {key}: {value}")
     if package.get("ethernetSelectable"):
@@ -58,7 +53,6 @@ def package_substitution_lines(device: dict) -> list[str]:
                 f'  backlight_pwm_frequency: ${{ "{frequency["ethernet"]}" if network_transport == "ethernet" else "{frequency["wifi"]}" }}',
             ]
         )
-    lines.extend(cover_art_substitution_lines(device))
     lines.extend(battery_substitution_lines(device))
     return lines
 
@@ -98,11 +92,6 @@ def battery_substitution_lines(device: dict) -> list[str]:
         "  battery_status_hide_code: |-",
         "    lv_obj_add_flag(id(battery_status_button), LV_OBJ_FLAG_HIDDEN);",
     ]
-
-
-def cover_art_substitution_lines(device: dict) -> list[str]:
-    layout = device.get("cover_art") or {}
-    return [f'  {key}: "{value}"' for key, value in layout.items()]
 
 
 def include_line(key: str, include: str) -> str:
@@ -192,7 +181,6 @@ def package_file_text(device: dict) -> str:
             "  # ---------------------------------------------------------------------------",
             include_line("colors", "!include ../../common/config/colors.yaml"),
             include_line("button_order", "!include ../../common/config/button_order.yaml"),
-            include_line("special_page", "!include ../../common/config/special_page.yaml"),
             include_line("display_config", "!include ../../common/config/display.yaml"),
             button_package_block(device).rstrip(),
             "  # ---------------------------------------------------------------------------",
@@ -204,12 +192,6 @@ def package_file_text(device: dict) -> str:
             ),
         ]
     )
-    if package.get("apiOpenModalAction", True) or package.get("apiNavigateAction", True):
-        lines.append(include_line("api_remote_actions", "!include ../../common/device/api_remote_actions.yaml"))
-    if package.get("apiOpenModalAction", True):
-        lines.append(include_line("api_open_modal", "!include ../../common/device/api_open_modal.yaml"))
-    if package.get("apiNavigateAction", True):
-        lines.append(include_line("api_navigate", "!include ../../common/device/api_navigate.yaml"))
     lines.extend(
         [
             include_line("time_sync", "!include ../../common/addon/time.yaml"),
@@ -234,17 +216,8 @@ def package_file_text(device: dict) -> str:
                 f"!include ../../common/device/screen_loading{network_suffix}.yaml",
             ),
             include_line(network_screen_key, f"!include {network_screen_path}"),
-            include_line("screen_ha", "!include ../../common/device/screen_ha_setup.yaml"),
-            include_line("screen_ha_act", "!include ../../common/device/screen_ha_actions.yaml"),
             include_line("screen_setup", "!include ../../common/device/screen_button_setup.yaml"),
             include_line("screen_clock", "!include ../../common/device/screen_clock.yaml"),
-            include_line("screen_art", "!include ../../common/device/screen_cover_art.yaml"),
-            include_line(
-                "screen_camera",
-                "!include ../../common/device/screen_camera_screensaver.yaml"
-                if device.get("camera_screensaver_supported")
-                else "!include ../../common/device/screen_camera_screensaver_disabled.yaml",
-            ),
             *(
                 [
                     include_line(
@@ -364,13 +337,6 @@ def cfg_lines(device: dict) -> list[str]:
     else:
         lines.append(f"            cfg.cols = {device['cols']};")
     lines.append("            cfg.subpage_chevrons_enabled = id(subpage_chevrons_enabled).state;")
-    lines.append(
-        "            cfg.special_page_config = id(special_page_config).state + "
-        "id(special_page_config_ext).state + id(special_page_config_ext_2).state + "
-        "id(special_page_config_ext_3).state + id(special_page_config_ext_4).state + "
-        "id(special_page_config_ext_5).state + id(special_page_config_ext_6).state + "
-        "id(special_page_config_ext_7).state;"
-    )
     base_radius = int(device["package"]["substitutions"]["radius"].removesuffix("px"))
     substitutions = device["package"]["substitutions"]
     radius_overrides = ""
@@ -486,7 +452,6 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append(
             f"            cfg.climate_option_value_font = id({device['climate_option_value_font']})->get_lv_font();"
         )
-    lines.append("            cfg.temperature_unit = id(temperature_unit_select).current_option();")
     lines.append("            cfg.timezone = id(timezone_select).current_option();")
     lines.append("            cfg.begin_display_takeover = [](espdesktop::DisplayTakeoverKind kind) {")
     lines.append("              id(display_takeover_begin).execute(static_cast<int>(kind));")
@@ -504,79 +469,12 @@ def cfg_lines(device: dict) -> list[str]:
         lines.append(f"            cfg.image_card_image_count = {image_card_count};")
     if device.get("image_card_diagnostics"):
         lines.append("            cfg.image_card_diagnostics = true;")
-    lines.append("            cfg.home_assistant_base_url = []() {")
-    lines.append("              std::string base = id(cover_art_home_assistant_base_url);")
-    lines.append("              while (!base.empty() && base.back() == '/') base.pop_back();")
-    lines.append("              return base;")
-    lines.append("            };")
-    lines.append("            register_webhook_sender([](const std::string &url, const std::string &method, const std::string &body, const std::vector<esphome::http_request::Header> &headers) {")
-    lines.append("              auto response = id(http_req).start(url, method, body, headers);")
-    lines.append("              if (response == nullptr) {")
-    lines.append("                ESP_LOGW(\"webhook\", \"Webhook %s request failed to start\", method.c_str());")
-    lines.append("                return false;")
-    lines.append("              }")
-    lines.append("              int status = response->status_code;")
-    lines.append("              response->end();")
-    lines.append("              if (!esphome::http_request::is_success(status)) {")
-    lines.append("                ESP_LOGW(\"webhook\", \"Webhook %s returned HTTP %d\", method.c_str(), status);")
-    lines.append("                return false;")
-    lines.append("              }")
-    lines.append("              ESP_LOGI(\"webhook\", \"Webhook %s returned HTTP %d\", method.c_str(), status);")
-    lines.append("              return true;")
-    lines.append("            });")
     lines.append("            set_width_compensation_vertical_axis(cfg.width_compensation_vertical);")
     lines.append("            set_text_width_compensation_percent(cfg.text_width_compensation_percent);")
     lines.append("            apply_text_width_compensation(id(display_time));")
     lines.append("            apply_text_width_compensation(id(temperatures));")
     lines.append("            apply_text_width_compensation(id(clock_label));")
     return lines
-
-
-def phase1_block(device: dict) -> str:
-    lines = [
-        "            // BEGIN GENERATED PHASE 1 GRID WIRING",
-        "            // Generated by scripts/generate_device_slots.py from devices/manifest.json.",
-        f"            {button_slot_macro()}",
-        "            BtnSlot slots[] = {",
-    ]
-    for num in range(1, device["slots"] + 1):
-        lines.append(f"              BTN_SLOT({num}),")
-    lines.extend(
-        [
-            "            };",
-            "            #undef BTN_SLOT",
-            *cfg_lines(device),
-            "            // END GENERATED PHASE 1 GRID WIRING",
-        ]
-    )
-    return "\n".join(lines)
-
-
-def refresh_block(device: dict, marker: str = "REFRESH GRID") -> str:
-    lines = [
-        f"          // BEGIN GENERATED {marker} WIRING",
-        "          // Generated by scripts/generate_device_slots.py from devices/manifest.json.",
-        "          // Setup pages own the display until connectivity is configured.",
-        "          // There is no visible grid to refresh during that flow.",
-        "          if (id(connectivity_setup_display_active)) {",
-        f'            ESP_LOGI("sensors", "Skipping {marker.lower()} during connectivity onboarding");',
-        "            return;",
-        "          }",
-        f"          {button_slot_macro()}",
-        "          BtnSlot slots[] = {",
-    ]
-    for num in range(1, device["slots"] + 1):
-        lines.append(f"            BTN_SLOT({num}),")
-    lines.extend(
-        [
-            "          };",
-            "          #undef BTN_SLOT",
-            "          if (!id(screen_rotation_ready)) return;",
-            *["          " + line[12:] if line.startswith("            ") else line for line in cfg_lines(device)],
-            f"          // END GENERATED {marker} WIRING",
-        ]
-    )
-    return "\n".join(lines)
 
 
 def refresh_subpage_arrays(device: dict) -> list[str]:
@@ -627,197 +525,93 @@ def refresh_subpage_arrays(device: dict) -> list[str]:
     return lines
 
 
-def phase2_block(device: dict) -> str:
-    package = device.get("package") or {}
-    subpage_chunks = int(package.get("subpageConfigChunks") or 8)
-    lines = [
-        "            // BEGIN GENERATED PHASE 2 GRID WIRING",
-        "            // Generated by scripts/generate_device_slots.py from devices/manifest.json.",
-        f"            {button_slot_macro()}",
-        "            #define SP_CFG(n) subpage_##n##_config",
-        "            #define SP_EXT(n) subpage_##n##_config_ext",
-        "            #define SP_EXT2(n) subpage_##n##_config_ext_2",
-        "            #define SP_EXT3(n) subpage_##n##_config_ext_3",
+def phase1_block(device: dict) -> str:
+    chunks = int(device["package"].get("subpageConfigChunks") or 8)
+    arrays = "sp_cfgs, sp_ext, sp_ext2, sp_ext3"
+    arrays += ", sp_ext4, sp_ext5, sp_ext6, sp_ext7" if chunks >= 8 else ", nullptr, nullptr, nullptr, nullptr"
+    wiring = [
+        f"          {button_slot_macro()}",
+        "          BtnSlot slots[] = {",
+        *(f"            BTN_SLOT({num})," for num in range(1, device["slots"] + 1)),
+        "          };",
+        "          #undef BTN_SLOT",
+        *refresh_subpage_arrays(device),
     ]
-    if subpage_chunks >= 8:
-        lines.extend(
-            [
-                "            #define SP_EXT4(n) subpage_##n##_config_ext_4",
-                "            #define SP_EXT5(n) subpage_##n##_config_ext_5",
-                "            #define SP_EXT6(n) subpage_##n##_config_ext_6",
-                "            #define SP_EXT7(n) subpage_##n##_config_ext_7",
-            ]
-        )
-    lines.append("            BtnSlot slots[] = {")
-    for num in range(1, device["slots"] + 1):
-        lines.append(f"              BTN_SLOT({num}),")
-    lines.append("            };")
-    lines.extend(macro_array("sp_cfgs", "SP_CFG", device["slots"]))
-    lines.extend(macro_array("sp_ext", "SP_EXT", device["slots"]))
-    lines.extend(macro_array("sp_ext2", "SP_EXT2", device["slots"]))
-    lines.extend(macro_array("sp_ext3", "SP_EXT3", device["slots"]))
-    if subpage_chunks >= 8:
-        lines.extend(macro_array("sp_ext4", "SP_EXT4", device["slots"]))
-        lines.extend(macro_array("sp_ext5", "SP_EXT5", device["slots"]))
-        lines.extend(macro_array("sp_ext6", "SP_EXT6", device["slots"]))
-        lines.extend(macro_array("sp_ext7", "SP_EXT7", device["slots"]))
-    lines.extend(
-        [
-            "            #undef BTN_SLOT",
-            "            #undef SP_CFG",
-            "            #undef SP_EXT",
-            "            #undef SP_EXT2",
-            "            #undef SP_EXT3",
-            *cfg_lines(device),
-            "            // END GENERATED PHASE 2 GRID WIRING",
-        ]
-    )
-    if subpage_chunks >= 8:
-        insert_at = lines.index("            #undef SP_EXT3") + 1
-        lines[insert_at:insert_at] = [
-            "            #undef SP_EXT4",
-            "            #undef SP_EXT5",
-            "            #undef SP_EXT6",
-            "            #undef SP_EXT7",
-        ]
+    lines = [
+        "            // BEGIN GENERATED PHASE 1 GRID WIRING",
+        "            // Generated by scripts/generate_device_slots.py from devices/manifest.json.",
+        "            grid_board_executor() = [](GridBoardOperation operation) {",
+        "              if (!grid_board_operation_is_initial(operation) &&",
+        "                  (id(connectivity_setup_display_active) || !id(screen_rotation_ready))) return;",
+        *("              " + line[10:] for line in wiring),
+        *("  " + line for line in cfg_lines(device)),
+        "              grid_execute_board_operation(operation, slots, cfg,",
+        f"                  {{{arrays}}}, id(button_order).state,",
+        "                  id(button_on_color).state, id(main_page)->obj);",
+        "            };",
+        "            grid_run_board(GridBoardOperation::INITIAL_LAYOUT);",
+        "            // END GENERATED PHASE 1 GRID WIRING",
+    ]
     return "\n".join(lines)
 
 
+def phase2_block() -> str:
+    return "\n".join([
+        "            // BEGIN GENERATED PHASE 2 GRID WIRING",
+        "            grid_run_board(GridBoardOperation::INITIAL_SUBPAGES);",
+        "            // END GENERATED PHASE 2 GRID WIRING",
+    ])
+
+
 def display_sensor_subscription_script() -> str:
-    """Use the current sensor settings at boot and after live configuration changes."""
+    """Refresh the shared local header without external sensor subscriptions."""
     return """  - id: refresh_display_sensor_subscriptions
     mode: single
     then:
       - lambda: |-
-          lv_obj_t *temperature_labels[] = {
-            id(temperatures),
-          };
-          grid_phase3(
-            id(indoor_temp_enable).state,
-            id(outdoor_temp_enable).state,
-            id(indoor_temp_entity).state,
-            id(outdoor_temp_entity).state,
-            id(clock_bar_temperature_entities).state,
-            &id(indoor_temp), &id(outdoor_temp),
-            temperature_labels,
-            1,
-            id(main_page)->obj,
-            id(presence_sensor_entity).state,
-            &id(presence_detected),
-            id(screen_schedule_sensor_entity).state,
-            &id(schedule_presence_detected),
-            id(media_player_sleep_prevention_entity).state,
-            &id(media_player_playing),
-            []() {
-              return clock_bar_should_show(
+          lv_obj_t *header_labels[] = {id(temperatures)};
+          grid_refresh_local_header(
+              header_labels, 1, id(main_page)->obj,
+              clock_bar_should_show(
                   id(clock_bar_enabled).state,
                   id(main_page)->obj,
                   id(espdesktop_app).display().current_mode(),
-                  id(espdesktop_app).display().target_schedule_inactive());
-            },
-            []() {
-              id(screensaver_presence_wake).execute();
-            },
-            []() {
-              id(screensaver_presence_sleep).execute();
-            },
-            []() {
-              id(screen_schedule_check).execute();
-            },
-            []() {
-              return id(outdoor_temp_enable).state;
-            });
-          ha_reannounce_state_subscriptions();
+                  id(espdesktop_app).display().target_schedule_inactive()));
 """
 
 
 def script_block(device: dict) -> str:
-    after_refresh = [
+    operation = "REBUILD" if device.get("refresh_rebuilds_subpages") else "REFRESH_LAYOUT"
+    return "\n".join([
+        "script:",
+        "  - id: refresh_button_grid",
+        "    mode: restart",
+        "    then:",
+        "      - delay: 3s",
+        "      - script.execute: apply_button_grid",
+        "  - id: apply_button_grid",
+        "    mode: single",
+        "    then:",
+        f"      - lambda: 'grid_run_board(GridBoardOperation::{operation});'",
         "      - script.execute: clock_bar_apply",
-    ]
-    package = device.get("package") or {}
-    subpage_chunks = int(package.get("subpageConfigChunks") or 8)
-    subpage_rebuild_call = [
-        "          grid_rebuild_all(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3, sp_ext4, sp_ext5, sp_ext6, sp_ext7,"
-        if subpage_chunks >= 8
-        else "          grid_rebuild_all(slots, cfg, sp_cfgs, sp_ext, sp_ext2, sp_ext3, nullptr, nullptr, nullptr, nullptr,",
-        "            id(button_order).state,",
-        "            id(button_on_color).state,",
-        "            id(main_page)->obj);",
-    ]
-    subpage_refresh = [
         "  - id: refresh_subpage_grid",
         "    mode: restart",
         "    then:",
         "      - delay: 3s",
-        "      - wait_until:",
-        "          lambda: 'return !alarm_display_takeover_active();'",
-        "      - lambda: |-",
-        refresh_block(device, "SUBPAGE REFRESH"),
-        *refresh_subpage_arrays(device),
-        *subpage_rebuild_call,
+        "      - lambda: 'grid_run_board(GridBoardOperation::REBUILD);'",
         "",
-    ]
-    if device.get("refresh_rebuilds_subpages"):
-        return "\n".join(
-            [
-                "script:",
-                "  - id: refresh_button_grid",
-                "    mode: restart",
-                "    then:",
-                "      - delay: 3s",
-                "      - script.execute: apply_button_grid",
-                "  - id: apply_button_grid",
-                "    mode: single",
-                "    then:",
-                "      - wait_until:",
-                "          lambda: 'return !alarm_display_takeover_active();'",
-                "      - lambda: |-",
-                refresh_block(device),
-                *refresh_subpage_arrays(device),
-                *subpage_rebuild_call,
-                *after_refresh,
-                *subpage_refresh,
-                display_sensor_subscription_script(),
-                "",
-            ]
-        )
-    return "\n".join(
-        [
-            "script:",
-            "  - id: refresh_button_grid",
-            "    mode: restart",
-            "    then:",
-            "      - delay: 3s",
-            "      - script.execute: apply_button_grid",
-            "  - id: apply_button_grid",
-            "    mode: single",
-            "    then:",
-            "      - lambda: |-",
-            refresh_block(device),
-            "          grid_refresh_layout(slots, cfg,",
-            "            id(button_order).state,",
-            "            id(main_page)->obj);",
-            *after_refresh,
-            *subpage_refresh,
-            display_sensor_subscription_script(),
-            "",
-        ]
-    )
+        display_sensor_subscription_script(),
+        "",
+    ])
 
 
-def replace_phase(text: str, phase: int, block: str, call: str, slug: str) -> str:
+def replace_phase(text: str, phase: int, block: str, slug: str) -> str:
     marker = re.compile(
         rf"(?ms)^            // BEGIN GENERATED PHASE {phase} GRID WIRING\n"
         rf".*?^            // END GENERATED PHASE {phase} GRID WIRING"
+        rf"(?:\n            grid_phase{phase}\(.*?id\(main_page\)->obj\);)?"
     )
-    if marker.search(text):
-        return marker.sub(block, text, count=1)
-
-    legacy = re.compile(
-        rf"(?ms)(        # Phase {phase}:.*?\n        - lambda: \|-\n)(.*?)(            {call}\()"
-    )
-    next_text, count = legacy.subn(lambda m: m.group(1) + block + "\n" + m.group(3), text, count=1)
+    next_text, count = marker.subn(block, text, count=1)
     if count != 1:
         raise ValueError(f"Could not find phase {phase} wiring block for {slug}")
     return next_text
@@ -843,8 +637,8 @@ def replace_sensor_blocks(text: str, device: dict) -> str:
         "        - script.execute: refresh_display_sensor_subscriptions\n",
         text,
     )
-    text = replace_phase(text, 1, phase1_block(device), "grid_phase1", device["slug"])
-    text = replace_phase(text, 2, phase2_block(device), "grid_phase2", device["slug"])
+    text = replace_phase(text, 1, phase1_block(device), device["slug"])
+    text = replace_phase(text, 2, phase2_block(), device["slug"])
     text = re.sub(
         r"(?m)^              id\(button_on_color\)\.state,\n"
         r"              id\(button_off_color\)\.state,\n"

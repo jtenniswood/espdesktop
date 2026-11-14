@@ -49,28 +49,122 @@ final class CompanionAccessibilityAuthorizer {
 
 struct CompanionKeyboardShortcut {
     static let actionPrefix = "shortcut."
-    static let windowActionPrefix = "window."
+    static let installedWebAppActionPrefix = "shortcut.@"
+    static let scopedPrefix = "scoped."
+
+    static func scopedStrokes(_ keys: String) -> [Self]? {
+        guard keys.hasPrefix(scopedPrefix), keys.utf8.count <= 87 else { return nil }
+        let parts = keys.dropFirst(scopedPrefix.count).split(separator: "~", omittingEmptySubsequences: false)
+        guard (1...3).contains(parts.count) else { return nil }
+        let strokes = parts.compactMap { Self(keys: String($0), scoped: true) }
+        return strokes.count == parts.count ? strokes : nil
+    }
+
+    static func scopedTargetMatches(_ expected: String, frontmost: String,
+                                    approved: Set<String>) -> Bool {
+        guard approved.contains(frontmost) else { return false }
+        if expected == frontmost { return true }
+        if expected == safariWebAppTemplate { return frontmost != safariBundleIdentifier && isSafariApplication(frontmost) }
+        let premiere = "com.adobe.PremierePro"
+        return expected == premiere && frontmost.range(of: #"^com\.adobe\.PremierePro\.[0-9]+$"#,
+                                                      options: .regularExpression) != nil
+    }
+    static let claudeDesktopBundleIdentifier = "com.anthropic.claudefordesktop"
+    private static let claudeEscapeShortcut = "claude-escape"
+    static let claudeRewindShortcut = "escape-twice"
+
+    static func isClaudeScopedShortcut(_ keys: String) -> Bool {
+        switch keys {
+        case "f6", "shift+f6", claudeEscapeShortcut, claudeRewindShortcut, "up", "down": return true
+        default: return keys.utf8.count == 1 && ("1"..."9").contains(keys)
+        }
+    }
+
+    private static let safariBundleIdentifier = "com.apple.Safari"
+    private static let safariWebAppTemplate = "com.apple.Safari.WebApp"
+
+    static func isSafariUnmodifiedShortcut(_ shortcut: String) -> Bool {
+        shortcut == "tab" || shortcut == "escape"
+    }
+
+    static func isSafariTemplate(_ appId: String) -> Bool {
+        appId == safariBundleIdentifier || appId == safariWebAppTemplate
+    }
+
+    static func isSafariApplication(_ appId: String?) -> Bool {
+        guard let appId else { return false }
+        if appId == safariBundleIdentifier { return true }
+        let prefix = safariWebAppTemplate + "."
+        return appId.hasPrefix(prefix) && UUID(uuidString: String(appId.dropFirst(prefix.count))) != nil
+    }
+
+    static func installedWebAppShortcut(
+        _ actionIdentifier: String, frontmostBundleIdentifier: String?,
+        approvedBundleIdentifiers: Set<String>
+    ) -> Self? {
+        guard actionIdentifier.hasPrefix(installedWebAppActionPrefix) else { return nil }
+        let parts = actionIdentifier.dropFirst(installedWebAppActionPrefix.count)
+            .split(separator: ":", maxSplits: 1, omittingEmptySubsequences: false)
+        guard parts.count == 2, let bundleIdentifier = frontmostBundleIdentifier,
+              parts[0] == bundleIdentifier, !isSafariTemplate(bundleIdentifier),
+              isSafariApplication(bundleIdentifier), approvedBundleIdentifiers.contains(bundleIdentifier) else { return nil }
+        return Self(actionIdentifier: actionPrefix + parts[1])
+    }
+
+    static let booksBundleIdentifier = "com.apple.iBooksX"
+    static let chatGPTDesktopBundleIdentifier = "com.openai.codex"
+    static let chatGPTClearUnreads = "shift+escape"
+
+    static func isBooksExtendedShortcut(_ shortcut: String) -> Bool {
+        booksExtendedKeys[shortcut] != nil
+    }
+
+    private static let booksExtendedKeys: [String: (key: String, flags: CGEventFlags)] = [
+        "left": ("left", []),
+        "right": ("right", []),
+        "space": ("space", []),
+        "function+f": ("f", [.maskSecondaryFn]),
+    ]
 
     let keyCode: CGKeyCode
     let flags: CGEventFlags
-    let requiresMacOS15: Bool
+
+    private init(keyCode: CGKeyCode, flags: CGEventFlags) {
+        self.keyCode = keyCode
+        self.flags = flags
+    }
 
     init?(actionIdentifier: String) {
-        if let action = CompanionCapabilities.windowActions[actionIdentifier],
-           let key = action.key,
-           let keyCode = Self.keyCodes[key] {
-            self.keyCode = keyCode
-            self.flags = action.flags
-            self.requiresMacOS15 = action.minimumMacOS >= 15
+        guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
+        let keys = String(actionIdentifier.dropFirst(Self.actionPrefix.count))
+        if let extended = Self.booksExtendedKeys[keys], let keyCode = Self.keyCodes[extended.key] {
+            self.init(keyCode: keyCode, flags: extended.flags)
             return
         }
-        guard actionIdentifier.hasPrefix(Self.actionPrefix) else { return nil }
-        var parts = actionIdentifier.dropFirst(Self.actionPrefix.count).split(separator: "+").map(String.init)
-        guard parts.count >= 2, parts.count <= 5, let key = parts.popLast(),
-              let keyCode = Self.keyCodes[key] else { return nil }
+        if Self.isClaudeScopedShortcut(keys) {
+            let key = if keys == Self.claudeEscapeShortcut || keys == Self.claudeRewindShortcut {
+                "escape"
+            } else {
+                keys.replacingOccurrences(of: "shift+", with: "")
+            }
+            guard let keyCode = Self.keyCodes[key] else { return nil }
+            self.init(keyCode: keyCode, flags: keys == "shift+f6" ? .maskShift : [])
+            return
+        }
+        if keys == Self.chatGPTClearUnreads, let keyCode = Self.keyCodes["escape"] {
+            self.init(keyCode: keyCode, flags: .maskShift)
+            return
+        }
+        self.init(keys: keys, scoped: false)
+    }
+
+    private init?(keys: String, scoped: Bool) {
+        var parts = keys.split(separator: "+", omittingEmptySubsequences: false)
+        guard parts.count <= (scoped ? 6 : 5), let key = parts.popLast().map(String.init),
+              let keyCode = Self.keyCodes[key], scoped || !key.hasPrefix("keypad") else { return nil }
 
         var flags: CGEventFlags = []
-        var seen = Set<String>()
+        var seen = Set<Substring>()
         for modifier in parts {
             guard seen.insert(modifier).inserted else { return nil }
             switch modifier {
@@ -78,24 +172,20 @@ struct CompanionKeyboardShortcut {
             case "control": flags.insert(.maskControl)
             case "option": flags.insert(.maskAlternate)
             case "shift": flags.insert(.maskShift)
+            case "function" where scoped: flags.insert(.maskSecondaryFn)
             default: return nil
             }
         }
-        guard flags.contains(.maskCommand) || flags.contains(.maskControl) || flags.contains(.maskAlternate) else {
+        guard scoped || (parts.isEmpty && Self.isSafariUnmodifiedShortcut(key)) ||
+              flags.contains(.maskCommand) || flags.contains(.maskControl) || flags.contains(.maskAlternate) else {
             return nil
         }
         self.keyCode = keyCode
-        self.flags = flags
-        self.requiresMacOS15 = false
-    }
-
-    func isSupported(on version: OperatingSystemVersion) -> Bool {
-        !requiresMacOS15 || version.majorVersion >= 15
+        self.flags = key.hasPrefix("keypad") ? flags.union(.maskNumericPad) : flags
     }
 
     @MainActor
-    func replay() -> Bool {
-        guard isSupported(on: ProcessInfo.processInfo.operatingSystemVersion) else { return false }
+    func replay(to processID: pid_t? = nil) -> Bool {
         guard CompanionAccessibilityAuthorizer.shared.isTrusted() else { return false }
         guard let source = CGEventSource(stateID: .hidSystemState),
               let keyDown = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true),
@@ -104,8 +194,13 @@ struct CompanionKeyboardShortcut {
         }
         keyDown.flags = flags
         keyUp.flags = flags
-        keyDown.post(tap: .cghidEventTap)
-        keyUp.post(tap: .cghidEventTap)
+        if let processID {
+            keyDown.postToPid(processID)
+            keyUp.postToPid(processID)
+        } else {
+            keyDown.post(tap: .cghidEventTap)
+            keyUp.post(tap: .cghidEventTap)
+        }
         return true
     }
 
@@ -125,5 +220,9 @@ struct CompanionKeyboardShortcut {
         "f6": 97, "f7": 98, "f8": 100, "f9": 101, "f10": 109,
         "f11": 103, "f12": 111, "f13": 105, "f14": 107, "f15": 113,
         "f16": 106, "f17": 64, "f18": 79, "f19": 80, "f20": 90,
+        "keypad0": 82, "keypad1": 83, "keypad2": 84, "keypad3": 85, "keypad4": 86,
+        "keypad5": 87, "keypad6": 88, "keypad7": 89, "keypad8": 91, "keypad9": 92,
+        "keypadplus": 69, "keypadminus": 78, "keypadmultiply": 67, "keypaddivide": 75,
+        "keypaddecimal": 65, "keypadequal": 81, "keypadenter": 76, "keypadclear": 71,
     ]
 }

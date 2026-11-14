@@ -18,6 +18,16 @@
       "omitDefault": true
     },
     {
+      "name": "url_open_behavior",
+      "label": "Open URL in",
+      "kind": "choice",
+      "values": ["new_tab", "new_window"],
+      "defaultValue": "new_tab",
+      "omitDefault": true,
+      "hidden": true,
+      "docsHidden": true
+    },
+    {
       "name": "finder_open_behavior",
       "label": "Finder Folder Open Behavior",
       "kind": "choice",
@@ -81,12 +91,6 @@
       "omitDefault": true,
       "hidden": true,
       "docsHidden": true
-    },
-    {
-      "name": "webapp_icon_title",
-      "label": "Large icon with title",
-      "kind": "flag",
-      "omitDefault": true
     }
   ],
   "normalization": {
@@ -134,13 +138,13 @@
     "canonicalOptionOrder": [
       "custom_icon",
       "app_shortcuts",
+      "url_open_behavior",
       "finder_open_behavior",
       "finder_open_override",
       "app_shortcuts_tabs",
       "app_shortcut_preset",
       "large_numbers",
       "stat_labels_off",
-      "webapp_icon_title",
       "app_bg_color",
       "app_hide_label"
     ],

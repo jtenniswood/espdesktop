@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "appId": "com.apple.Safari.WebApp",
+  "label": "Safari Web App",
+  "catalog": false,
+  "defaultShortcutIds": ["0", "1", "2", "6", "8", "10", "11", "14"],
+  "shortcuts": [
+    {
+      "id": "0",
+      "label": "Back",
+      "shortcut": "command+keybracketleft",
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "1",
+      "label": "Forward",
+      "shortcut": "command+keybracketright",
+      "icon": "Chevron Right"
+    },
+    {
+      "id": "2",
+      "label": "Find Text",
+      "shortcut": "command+f",
+      "icon": "Search"
+    },
+    {
+      "id": "3",
+      "label": "Next Item",
+      "shortcut": "option+tab",
+      "icon": "Link"
+    },
+    {
+      "id": "4",
+      "label": "Print Page",
+      "shortcut": "command+p",
+      "icon": "Printer"
+    },
+    {
+      "id": "5",
+      "label": "Copy",
+      "shortcut": "command+c",
+      "icon": "Copy"
+    },
+    {
+      "id": "6",
+      "label": "Copy Link",
+      "shortcut": "command+option+c",
+      "icon": "Link"
+    },
+    {
+      "id": "7",
+      "label": "Paste",
+      "shortcut": "command+v",
+      "icon": "Paste"
+    },
+    {
+      "id": "8",
+      "label": "Main Page",
+      "shortcut": "command+shift+h",
+      "icon": "Home Page"
+    },
+    {
+      "id": "9",
+      "label": "Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "10",
+      "label": "Zoom In",
+      "shortcut": "command+shift+keyequal",
+      "icon": "Zoom In"
+    },
+    {
+      "id": "11",
+      "label": "Zoom Out",
+      "shortcut": "command+keyminus",
+      "icon": "Zoom Out"
+    },
+    {
+      "id": "12",
+      "label": "Toggle Toolbar",
+      "shortcut": "command+option+t",
+      "icon": "Dock Top"
+    },
+    {
+      "id": "13",
+      "label": "Next Window",
+      "shortcut": "command+keybackquote",
+      "icon": "Window Restore"
+    },
+    {
+      "id": "14",
+      "label": "Open Reader",
+      "shortcut": "command+shift+r",
+      "icon": "Book"
+    }
+  ],
+  "safariShortcuts": [
+    {
+      "id": "15",
+      "label": "Next Field",
+      "shortcut": "tab",
+      "icon": "Shortcut Tab"
+    },
+    {
+      "id": "16",
+      "label": "Escape",
+      "shortcut": "escape",
+      "icon": "Shortcut Escape"
+    }
+  ],
+  "moreShortcuts": [
+    {"id": "17", "label": "Scroll Left", "shortcut": "scoped.left", "icon": "Arrow Left"},
+    {"id": "18", "label": "Scroll Right", "shortcut": "scoped.right", "icon": "Arrow Right"},
+    {"id": "19", "label": "Scroll Up", "shortcut": "scoped.up", "icon": "Arrow Up"},
+    {"id": "20", "label": "Scroll Down", "shortcut": "scoped.down", "icon": "Arrow Down"},
+    {"id": "21", "label": "Scroll Left Fast", "shortcut": "scoped.option+left", "icon": "Arrow Left"},
+    {"id": "22", "label": "Scroll Right Fast", "shortcut": "scoped.option+right", "icon": "Arrow Right"},
+    {"id": "23", "label": "Scroll Up Fast", "shortcut": "scoped.option+up", "icon": "Arrow Up"},
+    {"id": "24", "label": "Scroll Down Fast", "shortcut": "scoped.option+down", "icon": "Arrow Down"},
+    {"id": "25", "label": "Page Down", "shortcut": "scoped.pagedown", "icon": "Page Next"},
+    {"id": "26", "label": "Page Down", "shortcut": "scoped.space", "icon": "Page Next"},
+    {"id": "27", "label": "Page Up", "shortcut": "scoped.pageup", "icon": "Page Previous"},
+    {"id": "28", "label": "Page Up", "shortcut": "scoped.shift+space", "icon": "Page Previous"},
+    {"id": "29", "label": "Scroll to Top", "shortcut": "scoped.command+up", "icon": "Arrow Up"},
+    {"id": "30", "label": "Scroll to Bottom", "shortcut": "scoped.command+down", "icon": "Arrow Down"},
+    {"id": "31", "label": "Close Reader", "shortcut": "scoped.escape", "icon": "Book"}
+  ]
+}

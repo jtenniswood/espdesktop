@@ -17,7 +17,6 @@ ethernet:
   phy_addr: 1
   on_connect:
     - script.execute: ntp_servers_apply_after_network
-    - lambda: 'id(espdesktop_app).home_assistant_endpoint().request_discovery();'
     - script.execute: setup_screen_dim_cancel
     - lambda: |-
         ESP_LOGI("connectivity", "Ethernet connected (%lu ms)", millis());
@@ -25,9 +24,6 @@ ethernet:
     - delay: 200ms
     - script.execute: navigate_after_api
   on_disconnect:
-    - lambda: |-
-        id(cover_art_home_assistant_client_address).clear();
-        id(cover_art_resolve_home_assistant_base_url).execute();
     - if:
         condition:
           lambda: 'return !id(boot_grace_period);'
@@ -37,15 +33,6 @@ ethernet:
           - script.execute: setup_screen_dim
 
 script:
-  - id: ha_restore_after_api
-    mode: restart
-    then:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).connector_onboarding_complete();'
-          then:
-            - script.execute: navigate_after_api
-
   - id: navigate_after_api
     mode: restart
     then:
@@ -59,7 +46,11 @@ script:
                   lambda: |-
                     return id(espdesktop_app).display().target_mode_is(
                         espdesktop::DisplayMode::ACTIVE);
-            - lvgl.page.show: main_page
+            - if:
+                condition:
+                  lambda: 'return !navigation_present_focused_app_after_sleep();'
+                then:
+                  - lvgl.page.show: main_page
             - script.execute: display_active_finalize
           else:
             - lambda: |-

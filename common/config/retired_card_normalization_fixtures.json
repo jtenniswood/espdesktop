@@ -193,5 +193,215 @@
       "precision": "",
       "options": ""
     }
+  },
+  {
+    "name": "retired A action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;A;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "A",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired U action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;U;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "U",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired action action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;action;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "action",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired local action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;local;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "local",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired option_select action bindings are discarded",
+    "input": "old.entity;Old;Flash;Lightbulb;local;;option_select;;state_entity=sensor.old,secret=value",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "option_select",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Date card settings are discarded",
+    "input": "sensor.date;;;;;;calendar",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "calendar",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Time & Date card settings are discarded",
+    "input": "sensor.date;;;;;;calendar;datetime;large_numbers",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "calendar",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Clock card settings are discarded",
+    "input": ";;;;;;clock;;large_numbers,center_clock",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "clock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired World Clock card settings are discarded",
+    "input": "Europe/London;;;;;;timezone;;large_numbers",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "timezone",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired webhook drops its URL, body, and headers",
+    "input": "https://example.invalid/hook;Door Alert;Flash;Auto;POST;{};webhook;;webhook_headers=Authorization%3A%20example",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "webhook",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Mac output_volume card",
+    "input": "media.output_volume;Volume;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Mac input_volume card",
+    "input": "media.input_volume;Mic;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Mac output_mute card",
+    "input": "media.output_mute;Output mute;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "retired Mac input_mute card",
+    "input": "media.input_mute;Microphone mute;Auto;Auto;;;slider;;",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_audio",
+      "precision": "",
+      "options": ""
+    }
   }
 ]

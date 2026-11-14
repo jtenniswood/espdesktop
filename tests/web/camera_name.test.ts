@@ -11,46 +11,20 @@ export function runCameraNameTests(): void {
     showBanner: () => {},
   } as any);
   let definition: any;
-  registerImageCardTypes({ register: (_type: string, value: any) => { definition = value; } } as any,
-    options, {} as any, { renderPreview: () => {} } as any);
-  const camera = { type: "image", entity: "camera.front", label: "Front Door", options: "image_label" };
-  options.setImageLabelEnabled(camera, false);
-  check(camera.label === "Front Door", "Hiding the label must retain the modal name");
-  const fields: string[] = [];
-  let primaryName = false;
-  const node = () => ({ classList: { add() {}, toggle() {} }, appendChild() {} });
-  const helpers: any = {
-    idPrefix: "test-",
-    renderCardEntityField: () => {
-      fields.push("entity");
-      return { input: { addEventListener() {} } };
-    },
-    entityField: () => ({ field: node(), input: { value: "", addEventListener() {} } }),
-    requireField: () => {},
-    renderCardTextField: (_panel: any, _card: any, _helpers: any, metadata: any) => {
-      fields.push(metadata.text.label);
-      check(metadata.text.bindName === "label", "Name must reuse saved labels");
-      return { field: { setAttribute: (key: string, value: string) => {
-        primaryName = key === "data-sp-card-primary" && value === "name";
-      } } };
-    },
-    toggleRow: () => ({ row: node(), input: { addEventListener() {} } }),
-    renderCardIconPicker: node,
-    disclosureSection: () => ({ section: node(), panel: node() }),
-    selectField: () => ({ field: node(), select: { addEventListener() {} } }),
-    escHtml: (value: string) => value,
-  };
+  registerImageCardTypes({ register: (_type: string, value: any) => { definition = value; } } as any, options);
   const previousDocument = globalThis.document;
   try {
-    globalThis.document = { createElement: node } as any;
-    definition.renderSettings(node(), camera, 1, helpers);
-  } finally {
-    globalThis.document = previousDocument;
-  }
-  check(fields.join(",") === "entity,Name", "Name must follow Entity without a separate Label field");
-  check(primaryName, "Name must stay outside Card Settings");
-  check(camera.label === "Front Door", "Opening settings must retain a hidden label's name");
-  check(definition.renderPreview(camera, helpers).labelHtml === "", "Hidden labels must stay hidden");
-  options.setImageLabelEnabled(camera, true);
-  check(definition.renderPreview(camera, helpers).labelHtml.includes("Front Door"), "Enabled labels must use Name");
+    globalThis.document = { createElement: () => ({}) } as any;
+    for (const entity of ["camera.front", "image.driveway"]) {
+      const camera = { type: "image", entity, label: "Front Door", icon: "Custom", sensor: "legacy", options: "image_label,image_modal_refresh_mode=activity,image_modal_refresh_trigger=event.doorbell,unknown=keep" };
+      const before = JSON.stringify(camera);
+      const children: any[] = [];
+      definition.renderSettings({ appendChild: (child: any) => children.push(child) }, camera, 1, {});
+      check(JSON.stringify(camera) === before, "Opening retired cards must retain every saved field");
+      check(children.length === 1 && /configuration has been kept/.test(children[0].textContent), "Retired camera cards explain preservation and replacement");
+      check(definition.renderPreview(camera, { escHtml: (v: any) => v }).labelHtml.includes("Front Door"), "Saved labels remain visible in previews");
+    }
+    check(definition.hidden(), "Retired camera cards must not be offered in the picker");
+    check(!definition.onSelect && !definition.cardMetadata.entity, "Retired cards must not offer entity editing or selection hooks");
+  } finally { globalThis.document = previousDocument; }
 }

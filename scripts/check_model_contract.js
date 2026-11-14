@@ -559,11 +559,7 @@ assert.deepStrictEqual(plain(layoutPlan.importedSizes), { 1: 3 }, "backup layout
 assert.strictEqual(layoutPlan.buttons[0].entity, "weather.home", "backup layout follows saved order first");
 assert.strictEqual(layoutPlan.buttons[1].entity, "light.kitchen", "backup layout fills target slots in order");
 
-assert.strictEqual(model.normalizeTemperatureUnit("fahrenheit"), "\u00B0F", "temperature unit normalization");
 assert.strictEqual(model.normalizeScheduleWakeTimeout(1), 10, "wake timeout minimum");
-assert.strictEqual(model.normalizeCoverArtDelay(0), 3, "legacy immediate cover art delay migrates to three seconds");
-assert.strictEqual(model.normalizeCoverArtDelay(60), 60, "valid cover art delay remains unchanged");
-assert.strictEqual(model.normalizeCoverArtDelay(900), 300, "cover art delay clamps to the supported maximum");
 assert.strictEqual(model.normalizeScheduleClockBrightness(0), 10, "schedule clock brightness fallback");
 assert.strictEqual(model.normalizeScheduleSensorActivation("Sensor On"), "on", "schedule sensor activation accepts on");
 assert.strictEqual(model.normalizeScheduleSensorActivation("unexpected"), "off", "schedule sensor activation defaults off");
@@ -679,27 +675,17 @@ const panelSettings = model.normalizeBackupPanelSettings({
   ntpServer1: "0.pool.ntp.org",
   ntpServer2: "1.pool.ntp.org",
   ntpServer3: "2.pool.ntp.org",
-  coverArtHomeAssistantProtocol: "http",
-  coverArtHomeAssistantHost: "",
-  coverArtHomeAssistantPort: 8123,
   autoUpdate: true,
   updateFrequency: "Daily",
   updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"],
   screenRotationOptions: ["0", "90", "180", "270"],
 });
-assert.strictEqual(panelSettings.temperatureUnit, "\u00B0C", "panel temperature unit normalizes");
-assert.strictEqual(panelSettings.outdoorTempEnable, false, "panel clock bar temperature visibility imports");
-assert.deepStrictEqual(plain(panelSettings.clockBarTemperatureEntities), ["sensor.porch_temperature"], "panel clock bar temperature entity imports");
+for (const retired of ["temperatureUnit", "outdoorTempEnable", "indoorTempEnable", "clockBarTemperatureEntities", "temperatureDegreeSymbol", "coverArtScreensaver", "coverArtHideExternalInput", "coverArtHomeAssistantEndpointMode"]) {
+  assert(!Object.prototype.hasOwnProperty.call(panelSettings, retired), `retired setting ${retired} is ignored`);
+}
 assert.strictEqual(panelSettings.clockBarTime, false, "panel clock bar time imports");
 assert.strictEqual(panelSettings.clockBarNightMode, true, "panel clock bar night mode icon imports");
 assert.strictEqual(panelSettings.networkStatusIcon, false, "panel clock bar network status imports");
-assert.strictEqual(panelSettings.voiceServices, true, "panel voice services imports");
-assert.strictEqual(panelSettings.alarmDelayAudio, true, "panel alarm delay audio imports");
-assert.strictEqual(panelSettings.alarmDelayTts, false, "panel alarm delay TTS imports");
-assert.strictEqual(panelSettings.alarmDelayEntryAnnouncement, "Entry warning", "panel entry announcement normalizes");
-assert.strictEqual(panelSettings.alarmDelayExitAnnouncement, "Exit warning", "panel exit announcement imports");
-assert.strictEqual(panelSettings.alarmDelayBeepVolume, 0.7, "panel alarm beep volume imports");
-assert.strictEqual(panelSettings.alarmDelayFinalCountdown, 12, "panel final countdown imports");
 assert.strictEqual(panelSettings.language, "it", "panel language imports");
 assert.strictEqual(panelSettings.clockFormat, "24h", "panel clock format validates against options");
 assert.strictEqual(panelSettings.ntpServer1, "pool.ntp.org", "panel NTP server imports");
@@ -719,11 +705,6 @@ assert.strictEqual(model.normalizeBackupPanelSettings({
 assert.strictEqual(model.normalizeBackupPanelSettings({}, metadataSettingsCurrent).clockDate, false, "older backups default date off");
 assert.strictEqual(model.normalizeBackupPanelSettings({}, metadataSettingsCurrent).metadataOverlay, false, "metadata defaults off without a saved entity");
 assert.strictEqual(model.normalizeScreensaverCameraImageMode("unexpected"), "Fit", "invalid camera image mode defaults to Fit");
-assert.strictEqual(panelSettings.coverArtHideExternalInput, true, "panel cover art external-input setting imports");
-assert.strictEqual(panelSettings.coverArtHomeAssistantEndpointMode, "Manual", "panel Home Assistant artwork endpoint mode imports");
-assert.strictEqual(panelSettings.coverArtHomeAssistantProtocol, "https", "panel Home Assistant artwork protocol imports");
-assert.strictEqual(panelSettings.coverArtHomeAssistantHost, "ha.example.test", "panel Home Assistant artwork host imports");
-assert.strictEqual(panelSettings.coverArtHomeAssistantPort, 80, "panel Home Assistant artwork port imports");
 assert.strictEqual(
   model.normalizeHomeAssistantArtworkEndpointMode(undefined, "http", 8123),
   "Automatic",
@@ -741,77 +722,6 @@ assert.strictEqual(
 );
 assert.strictEqual(panelSettings.autoUpdate, false, "panel firmware auto-update imports");
 assert.strictEqual(panelSettings.updateFrequency, "Weekly", "panel firmware update frequency imports");
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({}, {
-    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
-    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
-    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
-  }).mediaPlayerSleepPrevention,
-  true,
-  "missing media sleep prevention setting defaults on",
-);
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({ media_player_sleep_prevention: false, cover_art_delay: 0 }, {
-    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
-    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
-    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
-  }).mediaPlayerSleepPrevention,
-  false,
-  "explicit media sleep prevention setting remains off",
-);
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({ cover_art_delay: 0 }, {
-    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
-    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
-    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
-  }).coverArtDelay,
-  3,
-  "legacy backup cover art delay migrates to three seconds",
-);
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({
-    media_player_sleep_prevention_entity: "media_player.living",
-  }, {
-    timezone: "UTC (GMT+0)",
-    language: "en",
-    clockFormat: "12h",
-    clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"],
-    ntpServer1: "0.pool.ntp.org",
-    ntpServer2: "1.pool.ntp.org",
-    ntpServer3: "2.pool.ntp.org",
-    coverArtHomeAssistantProtocol: "http",
-    coverArtHomeAssistantPort: 8123,
-    autoUpdate: true,
-    updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"],
-    screenRotationOptions: ["0", "90", "180", "270"],
-  }).coverArtMediaPlayerEntity,
-  "media_player.living",
-  "legacy sleep prevention media player imports into cover art media player"
-);
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({
-    cover_art_secondary_media_player_entity: "media_player.apple_tv",
-  }, {
-    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h",
-    clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"],
-    ntpServer1: "0.pool.ntp.org", ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org",
-    coverArtHomeAssistantProtocol: "http", coverArtHomeAssistantPort: 8123,
-    autoUpdate: true, updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"],
-    screenRotationOptions: ["0", "90", "180", "270"],
-  }).coverArtSecondaryMediaPlayerEntity,
-  "media_player.apple_tv",
-  "secondary cover art media player survives backup import"
-);
 assert.strictEqual(panelSettings.clockBrightnessDay, 44, "panel day clock brightness imports");
 assert.strictEqual(panelSettings.clockBrightnessNight, 22, "panel night clock brightness imports");
 assert.strictEqual(panelSettings.screensaverDimmedBrightnessDay, 30, "panel day dimmed brightness imports");
@@ -821,7 +731,6 @@ assert.strictEqual(
     timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h",
     clockFormatOptions: ["12h", "24h"], ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"],
     ntpServer1: "0.pool.ntp.org", ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org",
-    coverArtHomeAssistantProtocol: "http", coverArtHomeAssistantPort: 8123,
     autoUpdate: true, updateFrequency: "Daily",
     updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
   }).screensaverDimmedBrightnessNight,
@@ -844,8 +753,6 @@ const invalidPanelOptionSettings = model.normalizeBackupPanelSettings({
   ntpServer1: "0.pool.ntp.org",
   ntpServer2: "1.pool.ntp.org",
   ntpServer3: "2.pool.ntp.org",
-  coverArtHomeAssistantProtocol: "http",
-  coverArtHomeAssistantPort: 8123,
   autoUpdate: true,
   updateFrequency: "Daily",
   updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"],
@@ -864,8 +771,6 @@ const legacyPanelSettings = model.normalizeBackupPanelSettings({}, {
   ntpServer1: "0.pool.ntp.org",
   ntpServer2: "1.pool.ntp.org",
   ntpServer3: "2.pool.ntp.org",
-  coverArtHomeAssistantProtocol: "https",
-  coverArtHomeAssistantPort: 80,
   autoUpdate: false,
   updateFrequency: "Monthly",
   updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"],
@@ -873,59 +778,19 @@ const legacyPanelSettings = model.normalizeBackupPanelSettings({}, {
 });
 assert.strictEqual(legacyPanelSettings.clockBarTime, true, "legacy panel settings default clock bar time on");
 assert.strictEqual(legacyPanelSettings.clockBarNightMode, false, "legacy panel settings default clock bar night mode icon off");
-assert.strictEqual(legacyPanelSettings.voiceServices, false, "legacy panel settings default voice services off");
-assert.strictEqual(legacyPanelSettings.alarmDelayAudio, false, "legacy panel settings default alarm audio off");
-assert.strictEqual(legacyPanelSettings.alarmDelayTts, true, "legacy panel settings default alarm TTS on");
-assert.strictEqual(legacyPanelSettings.alarmDelayEntryAnnouncement, "Please disarm the alarm", "legacy panel settings default entry announcement");
-assert.strictEqual(legacyPanelSettings.alarmDelayExitAnnouncement, "Alarm arming, please leave the house", "legacy panel settings default exit announcement");
-assert.strictEqual(legacyPanelSettings.alarmDelayBeepVolume, 0.45, "legacy panel settings default moderate beep volume");
-assert.strictEqual(legacyPanelSettings.alarmDelayFinalCountdown, 10, "legacy panel settings default final countdown");
-assert.strictEqual(model.normalizeAlarmDelayBeepVolume(5), 1, "alarm beep volume clamps high values");
-assert.strictEqual(model.normalizeAlarmDelayFinalCountdown(-4), 0, "alarm final countdown clamps low values");
-assert.strictEqual(legacyPanelSettings.coverArtHideExternalInput, true, "legacy panel settings default cover art external-input setting on");
-assert.strictEqual(legacyPanelSettings.coverArtSource, "Home Assistant", "legacy panel settings default cover art source to Home Assistant");
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({ cover_art_source: "Mac Companion" }, {
-    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
-    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
-    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
-  }).coverArtSource,
-  "Mac Companion",
-  "backup restore preserves the Mac Companion cover art source",
-);
-assert.strictEqual(legacyPanelSettings.coverArtHomeAssistantProtocol, "https", "legacy panel settings keep current Home Assistant artwork protocol");
-assert.strictEqual(legacyPanelSettings.coverArtHomeAssistantPort, 80, "legacy panel settings keep current Home Assistant artwork port");
 assert.strictEqual(legacyPanelSettings.autoUpdate, false, "legacy panel settings keep current firmware auto-update setting");
 assert.strictEqual(legacyPanelSettings.updateFrequency, "Monthly", "legacy panel settings keep current firmware update frequency");
 
 console.log("Model contract tests passed.");
 
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({ cover_art_playback_control: false }, {
-    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
-    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
-    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
-  }).coverArtPlaybackControl,
-  false,
-  "explicit playback control setting remains off",
-);
-assert.strictEqual(
-  model.normalizeBackupPanelSettings({}, {
-    timezone: "UTC (GMT+0)", language: "en", clockFormat: "12h", clockFormatOptions: ["12h", "24h"],
-    ntpDefaults: ["0.pool.ntp.org", "1.pool.ntp.org", "2.pool.ntp.org"], ntpServer1: "0.pool.ntp.org",
-    ntpServer2: "1.pool.ntp.org", ntpServer3: "2.pool.ntp.org", coverArtHomeAssistantProtocol: "http",
-    coverArtHomeAssistantPort: 8123, autoUpdate: true, updateFrequency: "Daily",
-    updateFrequencyOptions: ["Hourly", "Daily", "Weekly", "Monthly"], screenRotationOptions: ["0", "90", "180", "270"],
-  }).coverArtPlaybackControl,
-  true,
-  "missing playback control setting defaults on",
-);
 
 assert.strictEqual(panelSettings.screensaverCameraDimming, 50, "camera dimming imports into saved settings");
 for (const [value, expected] of [[0, 0], [100, 100], ["25 %", 25], [-5, 0], [120, 100], ["invalid", 0], [undefined, 0]]) {
   assert.strictEqual(model.normalizeScreensaverCameraDimming(value), expected, "camera dimming normalizes " + value);
 }
+
+for (const field of ["alarmDelayAudio", "alarmDelayTts", "alarmDelayEntryAnnouncement", "alarmDelayExitAnnouncement", "alarmDelayBeepVolume", "alarmDelayFinalCountdown"]) {
+  assert.strictEqual(Object.hasOwn(panelSettings, field), false, `retired ${field} must not enter imported settings`);
+}
+
+assert.strictEqual(Object.hasOwn(panelSettings, "voiceServices"), false, "retired voice services do not enter imported settings");

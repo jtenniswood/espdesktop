@@ -48,38 +48,6 @@ export const ENTITY_CATALOG = {
       "domain": "text",
       "template": "Subpage {slot} Config Ext 7"
     },
-    "special_page_config": {
-      "domain": "text",
-      "name": "Special Page Config"
-    },
-    "special_page_config_ext": {
-      "domain": "text",
-      "name": "Special Page Config Ext"
-    },
-    "special_page_config_ext_2": {
-      "domain": "text",
-      "name": "Special Page Config Ext 2"
-    },
-    "special_page_config_ext_3": {
-      "domain": "text",
-      "name": "Special Page Config Ext 3"
-    },
-    "special_page_config_ext_4": {
-      "domain": "text",
-      "name": "Special Page Config Ext 4"
-    },
-    "special_page_config_ext_5": {
-      "domain": "text",
-      "name": "Special Page Config Ext 5"
-    },
-    "special_page_config_ext_6": {
-      "domain": "text",
-      "name": "Special Page Config Ext 6"
-    },
-    "special_page_config_ext_7": {
-      "domain": "text",
-      "name": "Special Page Config Ext 7"
-    },
     "display_restart": {
       "domain": "button",
       "name": "Restart"
@@ -91,14 +59,6 @@ export const ENTITY_CATALOG = {
         "screen__wake",
         "screen_wake"
       ]
-    },
-    "indoor_temp_enable": {
-      "domain": "switch",
-      "name": "Indoor Temp Enable"
-    },
-    "outdoor_temp_enable": {
-      "domain": "switch",
-      "name": "Outdoor Temp Enable"
     },
     "screen_clock_bar": {
       "domain": "switch",
@@ -116,13 +76,6 @@ export const ENTITY_CATALOG = {
         "screen__clock_bar_time",
         "screen_clock_bar_time",
         "clock_bar_time_enabled"
-      ]
-    },
-    "clock_bar_temperature_entities": {
-      "domain": "text",
-      "name": "Clock Bar: Temperature Entities",
-      "objectIds": [
-        "clock_bar__temperature_entities"
       ]
     },
     "screen_network_status_icon": {
@@ -155,15 +108,6 @@ export const ENTITY_CATALOG = {
     "battery_percent": {
       "domain": "sensor",
       "name": "Battery"
-    },
-    "screen_temperature_degree_symbol": {
-      "domain": "switch",
-      "name": "Screen: Temperature Degree Symbol",
-      "objectIds": [
-        "screen__temperature_degree_symbol",
-        "screen_temperature_degree_symbol",
-        "temperature_degree_symbol_enabled"
-      ]
     },
     "companion_auto_open_app_subpages": {
       "domain": "switch",
@@ -200,18 +144,6 @@ export const ENTITY_CATALOG = {
         "screen_subpage_chevron",
         "subpage_chevrons_enabled"
       ]
-    },
-    "screen_temperature_unit": {
-      "domain": "select",
-      "name": "Screen: Temperature Unit"
-    },
-    "indoor_temp_entity": {
-      "domain": "text",
-      "name": "Indoor Temp Entity"
-    },
-    "outdoor_temp_entity": {
-      "domain": "text",
-      "name": "Outdoor Temp Entity"
     },
     "screensaver_mode": {
       "domain": "text",
@@ -288,147 +220,6 @@ export const ENTITY_CATALOG = {
         "screen_schedule_sensor_entity"
       ]
     },
-    "screen_saver_cover_art_playback_control": {
-      "domain": "switch",
-      "name": "Screen Saver: Cover Art Playback Control",
-      "objectIds": [
-        "screen_saver__cover_art_playback_control",
-        "screen_saver_cover_art_playback_control",
-        "cover_art_playback_control_enabled"
-      ]
-    },
-    "screen_saver_media_player_sleep_prevention": {
-      "domain": "switch",
-      "name": "Screen Saver: Media Player Sleep Prevention",
-      "objectIds": [
-        "screen_saver__media_player_sleep_prevention",
-        "screen_saver_media_player_sleep_prevention",
-        "media_player_sleep_prevention_enabled"
-      ]
-    },
-    "media_player_sleep_prevention_entity": {
-      "domain": "text",
-      "name": "Media Player Sleep Prevention Entity",
-      "objectIds": [
-        "media_player_sleep_prevention_entity"
-      ]
-    },
-    "screen_saver_cover_art": {
-      "domain": "switch",
-      "name": "Screen Saver: Cover Art",
-      "objectIds": [
-        "screen_saver__cover_art",
-        "screen_saver_cover_art",
-        "screensaver_cover_art"
-      ]
-    },
-    "cover_art_source": {
-      "domain": "select",
-      "name": "Cover Art Source",
-      "objectIds": [
-        "cover_art_source"
-      ]
-    },
-    "screen_saver_cover_art_entity": {
-      "domain": "text",
-      "name": "Screen Saver: Cover Art Entity",
-      "objectIds": [
-        "screen_saver__cover_art_entity",
-        "screen_saver_cover_art_entity",
-        "cover_art_media_player_entity"
-      ]
-    },
-    "screen_saver_cover_art_secondary_entity": {
-      "domain": "text",
-      "name": "Screen Saver: External Source Media Entity",
-      "objectIds": [
-        "screen_saver__external_source_media_entity",
-        "screen_saver_cover_art_secondary_entity",
-        "cover_art_secondary_media_player_entity"
-      ]
-    },
-    "screen_saver_cover_art_conditions": {
-      "domain": "text",
-      "name": "Screen Saver: Cover Art Conditions",
-      "objectIds": [
-        "screen_saver__cover_art_conditions",
-        "screen_saver_cover_art_conditions",
-        "cover_art_attribute_conditions"
-      ]
-    },
-    "screen_saver_cover_art_delay": {
-      "domain": "number",
-      "name": "Screen Saver: Cover Art Delay",
-      "objectIds": [
-        "screen_saver__cover_art_delay",
-        "screen_saver_cover_art_delay",
-        "cover_art_delay"
-      ]
-    },
-    "screen_saver_track_overlay_duration": {
-      "domain": "number",
-      "name": "Screen Saver: Show Track Overlay",
-      "objectIds": [
-        "screen_saver__track_overlay_duration",
-        "screen_saver_track_overlay_duration",
-        "track_overlay_duration",
-        "screen_saver__show_track_overlay"
-      ]
-    },
-    "screen_saver_hide_cover_art_external_input": {
-      "domain": "switch",
-      "name": "Screen Saver: Hide for external sources",
-      "objectIds": [
-        "screen_saver__hide_cover_art_on_external_input",
-        "screen_saver_hide_cover_art_on_external_input",
-        "hide_cover_art_on_external_input",
-        "cover_art_hide_external_input",
-        "screen_saver__hide_for_external_sources"
-      ]
-    },
-    "home_assistant_artwork_endpoint_mode": {
-      "domain": "select",
-      "name": "Home Assistant Artwork Connection",
-      "objectIds": [
-        "home_assistant_artwork_endpoint_mode"
-      ]
-    },
-    "home_assistant_artwork_endpoint_status": {
-      "domain": "text_sensor",
-      "name": "Home Assistant Artwork Endpoint",
-      "objectIds": [
-        "home_assistant_artwork_endpoint_status"
-      ]
-    },
-    "home_assistant_artwork_endpoint_health": {
-      "domain": "text_sensor",
-      "name": "Home Assistant Artwork Connection Health",
-      "objectIds": [
-        "home_assistant_artwork_endpoint_health"
-      ]
-    },
-    "home_assistant_artwork_protocol": {
-      "domain": "select",
-      "name": "Home Assistant Artwork Protocol",
-      "objectIds": [
-        "home_assistant_artwork_protocol",
-        "cover_art_home_assistant_artwork_protocol"
-      ]
-    },
-    "home_assistant_artwork_port": {
-      "domain": "number",
-      "name": "Home Assistant Artwork Port",
-      "objectIds": [
-        "home_assistant_artwork_port"
-      ]
-    },
-    "home_assistant_artwork_host": {
-      "domain": "text",
-      "name": "Home Assistant Artwork Host",
-      "objectIds": [
-        "home_assistant_artwork_host"
-      ]
-    },
     "screen_saver_daytime_clock_brightness": {
       "domain": "number",
       "name": "Screen Saver: Daytime Clock Brightness",
@@ -477,13 +268,6 @@ export const ENTITY_CATALOG = {
       "name": "Screensaver Timeout",
       "objectIds": [
         "screensaver_timeout"
-      ]
-    },
-    "home_screen_timeout": {
-      "domain": "number",
-      "name": "Home Screen Timeout",
-      "objectIds": [
-        "home_screen_timeout"
       ]
     },
     "screen_saver_clock": {
@@ -866,32 +650,15 @@ export const ENTITY_CATALOG = {
       "subpage_config_ext_6",
       "subpage_config_ext_7"
     ],
-    "special_page": [
-      "special_page_config",
-      "special_page_config_ext",
-      "special_page_config_ext_2",
-      "special_page_config_ext_3",
-      "special_page_config_ext_4",
-      "special_page_config_ext_5",
-      "special_page_config_ext_6",
-      "special_page_config_ext_7"
-    ],
     "settings": [
-      "indoor_temp_enable",
-      "outdoor_temp_enable",
       "screen_clock_bar",
       "screen_clock_bar_time",
-      "clock_bar_temperature_entities",
       "screen_network_status_icon",
       "screen_clock_bar_night_mode",
-      "screen_temperature_degree_symbol",
       "companion_auto_open_app_subpages",
       "companion_return_home_on_app_switch",
       "screen_subpage_title_bar",
       "screen_subpage_chevron",
-      "screen_temperature_unit",
-      "indoor_temp_entity",
-      "outdoor_temp_entity",
       "screensaver_mode",
       "screen_saver_action",
       "screen_saver_camera_entity",
@@ -901,23 +668,6 @@ export const ENTITY_CATALOG = {
       "screen_saver_camera_dimming",
       "presence_sensor_entity",
       "screen_schedule_sensor_entity",
-      "screen_saver_cover_art_playback_control",
-      "screen_saver_media_player_sleep_prevention",
-      "media_player_sleep_prevention_entity",
-      "screen_saver_cover_art",
-      "cover_art_source",
-      "screen_saver_cover_art_entity",
-      "screen_saver_cover_art_secondary_entity",
-      "screen_saver_cover_art_conditions",
-      "screen_saver_cover_art_delay",
-      "screen_saver_track_overlay_duration",
-      "screen_saver_hide_cover_art_external_input",
-      "home_assistant_artwork_endpoint_mode",
-      "home_assistant_artwork_endpoint_status",
-      "home_assistant_artwork_endpoint_health",
-      "home_assistant_artwork_protocol",
-      "home_assistant_artwork_port",
-      "home_assistant_artwork_host",
       "screen_saver_daytime_clock_brightness",
       "screen_saver_nighttime_clock_brightness",
       "screen_saver_clock_brightness",
@@ -925,7 +675,6 @@ export const ENTITY_CATALOG = {
       "screen_saver_nighttime_dimmed_brightness",
       "screen_saver_dimmed_brightness",
       "screensaver_timeout",
-      "home_screen_timeout",
       "screen_saver_clock",
       "screen_saver_show_date",
       "screen_saver_clock_overlay",

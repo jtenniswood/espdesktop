@@ -3,66 +3,95 @@
   "appId": "com.github.GitHubClient",
   "label": "GitHub Desktop",
   "catalog": false,
+  "defaultShortcutIds": ["4", "5", "25", "3", "7", "9", "21", "26"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Clone a repository from GitHub",
+      "label": "Clone Repo",
       "shortcut": "command+shift+o",
-      "icon": "Application"
+      "icon": "Download"
     },
     {
       "id": "1",
-      "label": "Show a list of your repositories",
+      "label": "Repositories",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Folder"
     },
     {
       "id": "2",
-      "label": "Push the latest commits to GitHub",
+      "label": "Push",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Upload"
     },
     {
       "id": "3",
-      "label": "Pull down the latest changes from GitHub",
+      "label": "Pull",
       "shortcut": "command+shift+p",
-      "icon": "Application"
+      "icon": "Download"
     },
     {
       "id": "4",
-      "label": "Show all your changes before committing",
+      "label": "View Changes",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "File Compare"
     },
     {
       "id": "5",
-      "label": "Show your commit history",
+      "label": "Commit History",
       "shortcut": "command+2",
-      "icon": "Application"
+      "icon": "History"
     },
     {
       "id": "6",
-      "label": "Commit changes when summary or description fi…",
+      "label": "Commit",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Source Commit"
     },
     {
       "id": "7",
-      "label": "Create a new branch",
+      "label": "New Branch",
       "shortcut": "command+shift+n",
-      "icon": "Application"
+      "icon": "Source Branch"
     },
     {
       "id": "8",
-      "label": "Compare to an existing branch",
+      "label": "Compare Branch",
       "shortcut": "command+shift+b",
-      "icon": "Application"
+      "icon": "Source Compare"
     },
     {
       "id": "9",
-      "label": "Show the current pull request on GitHub",
+      "label": "Pull Request",
       "shortcut": "command+r",
-      "icon": "Application"
+      "icon": "Source Pull Request"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Display Settings window", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "11", "label": "Reset zoom to default text size", "shortcut": "scoped.command+0", "icon": "Fit to Screen"},
+    {"id": "12", "label": "Zoom in for larger text and graphics", "shortcut": "scoped.command+keyequal", "icon": "Zoom In"},
+    {"id": "13", "label": "Zoom out for smaller text and graphics", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "14", "label": "Decrease active pane width", "shortcut": "scoped.command+8", "icon": "Application"},
+    {"id": "15", "label": "Increase active pane width", "shortcut": "scoped.command+9", "icon": "Application"},
+    {"id": "16", "label": "Toggle Developer Tools", "shortcut": "scoped.command+option+i", "icon": "Shortcut Command"},
+    {"id": "17", "label": "Open context menu of selected component", "shortcut": "scoped.shift+f10", "icon": "Open File"},
+    {"id": "18", "label": "Add new repository", "shortcut": "scoped.command+n", "icon": "Source Branch"},
+    {"id": "19", "label": "Add local repository", "shortcut": "scoped.command+o", "icon": "Source Branch"},
+    {"id": "20", "label": "Remove existing repository", "shortcut": "scoped.command+delete", "icon": "Delete"},
+    {"id": "21", "label": "View repository on GitHub", "shortcut": "scoped.command+shift+g", "icon": "Source Branch"},
+    {"id": "22", "label": "Show repository in Finder", "shortcut": "scoped.command+shift+f", "icon": "Source Branch"},
+    {"id": "23", "label": "Open repository", "shortcut": "scoped.command+shift+a", "icon": "Code"},
+    {"id": "24", "label": "Create issue on GitHub", "shortcut": "scoped.command+i", "icon": "Plus"},
+    {"id": "25", "label": "Show all your branches", "shortcut": "scoped.command+b", "icon": "Shortcut Command"},
+    {"id": "26", "label": "Commit summary field", "shortcut": "scoped.command+g", "icon": "Source Branch"},
+    {"id": "27", "label": "Select or deselect all highlighted files", "shortcut": "scoped.space", "icon": "Deselect"},
+    {"id": "28", "label": "Rename current branch", "shortcut": "scoped.command+shift+r", "icon": "Rename"},
+    {"id": "29", "label": "Delete current branch", "shortcut": "scoped.command+shift+d", "icon": "Delete"},
+    {"id": "30", "label": "Update from default branch", "shortcut": "scoped.command+shift+u", "icon": "Source Branch"},
+    {"id": "31", "label": "Merge into current branch", "shortcut": "scoped.command+shift+m", "icon": "Source Branch"},
+    {"id": "32", "label": "Stash current changes", "shortcut": "scoped.command+shift+s", "icon": "Shortcut Command"},
+    {"id": "33", "label": "Compare branches on GitHub", "shortcut": "scoped.command+shift+c", "icon": "Shortcut Command"},
+    {"id": "34", "label": "Open repository", "shortcut": "scoped.control+keybackquote", "icon": "Terminal"},
+    {"id": "35", "label": "Toggle stashed changes", "shortcut": "scoped.control+h", "icon": "Eye Off"}
   ]
 }

@@ -154,6 +154,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka ztlumena";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(text, "Locked") == 0) return "Zamčeno";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Chcete-li používat tuto obrazovku, odemkněte svůj Mac";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(text, "Skip Next") == 0) return "Přeskočit další";
   if (std::strcmp(text, "Skip Previous") == 0) return "Přeskočit předchozí";
@@ -224,6 +226,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otevřete 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otevřete prohlížeč a\nnastavte displej";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Stáhněte si do počítače aplikaci EspDesktop a postupujte podle pokynů k párování.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Příprava obrazovky\nNevypínejte napájení";
   if (std::strcmp(text, "Restarting display") == 0) return "Restartování displeje";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Viz instalační příručka";
@@ -255,6 +258,11 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nespárováno";
   if (std::strcmp(text, "Pairing") == 0) return "Párování";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadejte tento kód do desktopové aplikace";
+  if (std::strcmp(text, "Cancel") == 0) return "Zrušit";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Zrušit párování";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Zrušit párování?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Spárovaný Mac se odpojí. Budete ho muset znovu spárovat.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Párování se nepodařilo zrušit. Zkuste to znovu.";
   if (std::strcmp(text, "Expired") == 0) return "Platnost vypršela";
   if (std::strcmp(text, "Pair") == 0) return "Spárovat";
   if (std::strcmp(text, "Settings") == 0) return "Nastavení";
@@ -275,24 +283,6 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulátor";
   if (std::strcmp(text, "Delete") == 0) return "Smazat";
   if (std::strcmp(text, "End") == 0) return "Konec";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimalizovat";
-  if (std::strcmp(text, "Hide App") == 0) return "Skrýt aplikaci";
-  if (std::strcmp(text, "Full Screen") == 0) return "Celá obrazovka";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Vyplnit plochu";
-  if (std::strcmp(text, "Centre") == 0) return "Na střed";
-  if (std::strcmp(text, "Left") == 0) return "Vlevo";
-  if (std::strcmp(text, "Right") == 0) return "Vpravo";
-  if (std::strcmp(text, "Top") == 0) return "Nahoře";
-  if (std::strcmp(text, "Bottom") == 0) return "Dole";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Obnovit předchozí velikost";
-  if (std::strcmp(text, "Left & Right") == 0) return "Vlevo a vpravo";
-  if (std::strcmp(text, "Right & Left") == 0) return "Vpravo a vlevo";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Nahoře a dole";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Dole a nahoře";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Vlevo a čtvrtiny";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Vpravo a čtvrtiny";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Nahoře a čtvrtiny";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Dole a čtvrtiny";
   if (std::strcmp(text, "Paired") == 0) return "Spárováno";
   if (std::strcmp(text, "Unpaired") == 0) return "Nespárováno";
   if (std::strcmp(text, "used") == 0) return "využito";
@@ -317,6 +307,8 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Ztlumit mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Ztlumit";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizovat aplikaci pro Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
   return text;
 }
 
@@ -456,6 +448,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skærm neddæmpet";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skærmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skærm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås din Mac op for at bruge denne skærm";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(text, "Skip Next") == 0) return "Spring til næste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Spring til forrige";
@@ -523,6 +517,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åbn 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Åbn din browser og\nkonfigurer din skærm";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Download EspDesktop-appen på din computer, og følg vejledningen til parring.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Forbereder skærmen\nSluk ikke for strømmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Genstarter skærm";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installationsvejledningen for hjælp";
@@ -552,6 +547,11 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ikke parret";
   if (std::strcmp(text, "Pairing") == 0) return "Parring";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Indtast denne kode i desktopappen";
+  if (std::strcmp(text, "Cancel") == 0) return "Annuller";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Nulstil parring";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Nulstil parring?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Den parrede Mac bliver afbrudt. Du skal parre den igen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Parringen kunne ikke nulstilles. Prøv igen.";
   if (std::strcmp(text, "Expired") == 0) return "Udløbet";
   if (std::strcmp(text, "Pair") == 0) return "Par";
   if (std::strcmp(text, "Settings") == 0) return "Indstillinger";
@@ -572,24 +572,6 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulator";
   if (std::strcmp(text, "Delete") == 0) return "Slet";
   if (std::strcmp(text, "End") == 0) return "Slut";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimer";
-  if (std::strcmp(text, "Hide App") == 0) return "Skjul app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Fuld skærm";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Udfyld skrivebord";
-  if (std::strcmp(text, "Centre") == 0) return "Centrer";
-  if (std::strcmp(text, "Left") == 0) return "Venstre";
-  if (std::strcmp(text, "Right") == 0) return "Højre";
-  if (std::strcmp(text, "Top") == 0) return "Øverst";
-  if (std::strcmp(text, "Bottom") == 0) return "Nederst";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Tilbage til forrige størrelse";
-  if (std::strcmp(text, "Left & Right") == 0) return "Venstre og højre";
-  if (std::strcmp(text, "Right & Left") == 0) return "Højre og venstre";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Øverst og nederst";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Nederst og øverst";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Venstre og kvarte";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Højre og kvarte";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Øverst og kvarte";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Nederst og kvarte";
   if (std::strcmp(text, "Paired") == 0) return "Parret";
   if (std::strcmp(text, "Unpaired") == 0) return "Ikke parret";
   if (std::strcmp(text, "used") == 0) return "brugt";
@@ -613,6 +595,8 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Slå mikrofon fra";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Slå lyd fra";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Opdater Mac-appen";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
   return text;
 }
 
@@ -751,6 +735,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Bildschirm gedimmt";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(text, "Screen Locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(text, "Locked") == 0) return "Gesperrt";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Entsperre deinen Mac, um diesen Bildschirm zu verwenden";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(text, "Skip Next") == 0) return "Weiter springen";
   if (std::strcmp(text, "Skip Previous") == 0) return "Zurück springen";
@@ -818,6 +804,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 öffnen";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Öffnen Sie Ihren Browser und\nkonfigurieren Sie Ihr Display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Laden Sie die EspDesktop-App auf Ihren Computer und folgen Sie den Schritten zur Kopplung.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Bildschirm wird vorbereitet\nNicht ausschalten";
   if (std::strcmp(text, "Restarting display") == 0) return "Display wird neu gestartet";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Installationsanleitung für Hilfe ansehen";
@@ -847,6 +834,11 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(text, "Pairing") == 0) return "Kopplung";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Gib diesen Code in der Desktop-App ein";
+  if (std::strcmp(text, "Cancel") == 0) return "Abbrechen";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Kopplung zurücksetzen";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Kopplung zurücksetzen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Die Verbindung zum gekoppelten Mac wird getrennt. Du musst ihn erneut koppeln.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Die Kopplung konnte nicht zurückgesetzt werden. Versuche es erneut.";
   if (std::strcmp(text, "Expired") == 0) return "Abgelaufen";
   if (std::strcmp(text, "Pair") == 0) return "Koppeln";
   if (std::strcmp(text, "Settings") == 0) return "Einstellungen";
@@ -867,24 +859,6 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulator";
   if (std::strcmp(text, "Delete") == 0) return "Löschen";
   if (std::strcmp(text, "End") == 0) return "Ende";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimieren";
-  if (std::strcmp(text, "Hide App") == 0) return "App ausblenden";
-  if (std::strcmp(text, "Full Screen") == 0) return "Vollbild";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Schreibtisch ausfüllen";
-  if (std::strcmp(text, "Centre") == 0) return "Zentrieren";
-  if (std::strcmp(text, "Left") == 0) return "Links";
-  if (std::strcmp(text, "Right") == 0) return "Rechts";
-  if (std::strcmp(text, "Top") == 0) return "Oben";
-  if (std::strcmp(text, "Bottom") == 0) return "Unten";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Vorherige Größe wiederherstellen";
-  if (std::strcmp(text, "Left & Right") == 0) return "Links und rechts";
-  if (std::strcmp(text, "Right & Left") == 0) return "Rechts und links";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Oben und unten";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Unten und oben";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Links und Viertel";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Rechts und Viertel";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Oben und Viertel";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Unten und Viertel";
   if (std::strcmp(text, "Paired") == 0) return "Gekoppelt";
   if (std::strcmp(text, "Unpaired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(text, "used") == 0) return "belegt";
@@ -913,6 +887,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon stummschalten";
   if (std::strcmp(text, "Mic") == 0) return "Mikro";
   if (std::strcmp(text, "Mute") == 0) return "Stumm";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Mac-App aktualisieren";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
   return text;
 }
 
@@ -1056,6 +1032,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Pantalla atenuada";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(text, "Screen Locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueada";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloquea tu Mac para usar esta pantalla";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar siguiente";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
@@ -1125,6 +1103,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abre 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abre tu navegador y\nconfigura la pantalla";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Descarga la app EspDesktop en tu ordenador y sigue los pasos para emparejar la pantalla.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparando la pantalla\nNo apagues el dispositivo";
   if (std::strcmp(text, "Restarting display") == 0) return "Reiniciando pantalla";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulta la guía de instalación para obtener ayuda";
@@ -1156,6 +1135,11 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Sin emparejar";
   if (std::strcmp(text, "Pairing") == 0) return "Emparejamiento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduce este código en la aplicación de escritorio";
+  if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Restablecer enlace";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "¿Restablecer el enlace?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "El Mac enlazado se desconectará. Tendrás que enlazarlo de nuevo.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "No se pudo restablecer el enlace. Inténtalo de nuevo.";
   if (std::strcmp(text, "Expired") == 0) return "Caducado";
   if (std::strcmp(text, "Pair") == 0) return "Emparejar";
   if (std::strcmp(text, "Settings") == 0) return "Ajustes";
@@ -1176,24 +1160,6 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulador";
   if (std::strcmp(text, "Delete") == 0) return "Borrar";
   if (std::strcmp(text, "End") == 0) return "Fin";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimizar";
-  if (std::strcmp(text, "Hide App") == 0) return "Ocultar app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Pantalla completa";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Llenar escritorio";
-  if (std::strcmp(text, "Centre") == 0) return "Centrar";
-  if (std::strcmp(text, "Left") == 0) return "Izquierda";
-  if (std::strcmp(text, "Right") == 0) return "Derecha";
-  if (std::strcmp(text, "Top") == 0) return "Arriba";
-  if (std::strcmp(text, "Bottom") == 0) return "Abajo";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Volver al tamaño anterior";
-  if (std::strcmp(text, "Left & Right") == 0) return "Izquierda y derecha";
-  if (std::strcmp(text, "Right & Left") == 0) return "Derecha e izquierda";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Arriba y abajo";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Abajo y arriba";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Izquierda y cuartos";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Derecha y cuartos";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Arriba y cuartos";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Abajo y cuartos";
   if (std::strcmp(text, "Paired") == 0) return "Emparejado";
   if (std::strcmp(text, "Unpaired") == 0) return "Sin emparejar";
   if (std::strcmp(text, "used") == 0) return "usado";
@@ -1224,6 +1190,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar micrófono";
   if (std::strcmp(text, "Mic") == 0) return "Micrófono";
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Actualizar la app de Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
   return text;
 }
 
@@ -1374,6 +1342,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Näyttö himmennetty";
   if (std::strcmp(text, "Screen Lock") == 0) return "Näytön lukitus";
   if (std::strcmp(text, "Screen Locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(text, "Locked") == 0) return "Lukittu";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Avaa Macin lukitus, niin voit käyttää tätä näyttöä";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(text, "Skip Next") == 0) return "Seuraava kappale";
   if (std::strcmp(text, "Skip Previous") == 0) return "Edellinen kappale";
@@ -1445,6 +1415,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Avaa 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Avaa selain ja\nmääritä näyttö";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Lataa EspDesktop-sovellus tietokoneellesi ja noudata pariliitoksen ohjeita.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Valmistellaan näyttöä\nÄlä katkaise virtaa";
   if (std::strcmp(text, "Restarting display") == 0) return "Käynnistetään näyttö uudelleen";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Katso asennusoppaasta ohjeita";
@@ -1476,6 +1447,11 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ei paritettu";
   if (std::strcmp(text, "Pairing") == 0) return "Paritus";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
+  if (std::strcmp(text, "Cancel") == 0) return "Peruuta";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Nollaa pariliitos";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Nollataanko pariliitos?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Pariliitetyn Macin yhteys katkeaa. Muodosta pariliitos uudelleen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Pariliitosta ei voitu nollata. Yritä uudelleen.";
   if (std::strcmp(text, "Expired") == 0) return "Vanhentunut";
   if (std::strcmp(text, "Pair") == 0) return "Parita";
   if (std::strcmp(text, "Settings") == 0) return "Asetukset";
@@ -1496,24 +1472,6 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Sarkain";
   if (std::strcmp(text, "Delete") == 0) return "Poista";
   if (std::strcmp(text, "End") == 0) return "Loppu";
-  if (std::strcmp(text, "Minimise") == 0) return "Pienennä";
-  if (std::strcmp(text, "Hide App") == 0) return "Kätke sovellus";
-  if (std::strcmp(text, "Full Screen") == 0) return "Koko näyttö";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Täytä työpöytä";
-  if (std::strcmp(text, "Centre") == 0) return "Keskitä";
-  if (std::strcmp(text, "Left") == 0) return "Vasen";
-  if (std::strcmp(text, "Right") == 0) return "Oikea";
-  if (std::strcmp(text, "Top") == 0) return "Yläosa";
-  if (std::strcmp(text, "Bottom") == 0) return "Alaosa";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Palauta edellinen koko";
-  if (std::strcmp(text, "Left & Right") == 0) return "Vasen ja oikea";
-  if (std::strcmp(text, "Right & Left") == 0) return "Oikea ja vasen";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Ylä- ja alaosa";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Ala- ja yläosa";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Vasen ja neljännekset";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Oikea ja neljännekset";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Yläosa ja neljännekset";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Alaosa ja neljännekset";
   if (std::strcmp(text, "Paired") == 0) return "Paritettu";
   if (std::strcmp(text, "Unpaired") == 0) return "Ei paritettu";
   if (std::strcmp(text, "used") == 0) return "käytössä";
@@ -1538,6 +1496,8 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mykistä mikrofoni";
   if (std::strcmp(text, "Mic") == 0) return "Mikki";
   if (std::strcmp(text, "Mute") == 0) return "Mykistä";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Päivitä Mac-sovellus";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
   return text;
 }
 
@@ -1674,6 +1634,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Écran tamisé";
   if (std::strcmp(text, "Screen Lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(text, "Locked") == 0) return "Verrouillé";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Déverrouillez votre Mac pour utiliser cet écran";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(text, "Skip Next") == 0) return "Passer au suivant";
   if (std::strcmp(text, "Skip Previous") == 0) return "Passer au précédent";
@@ -1743,6 +1705,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Ouvrez 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Ouvrez votre navigateur et\nconfigurez votre écran";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Téléchargez l’application EspDesktop sur votre ordinateur et suivez les étapes de jumelage.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Préparation de l’écran\nNe coupez pas l’alimentation";
   if (std::strcmp(text, "Restarting display") == 0) return "Redémarrage de l’écran";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consultez le guide d’installation pour obtenir de l’aide";
@@ -1774,6 +1737,11 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Non jumelé";
   if (std::strcmp(text, "Pairing") == 0) return "Jumelage";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Saisissez ce code dans l’application de bureau";
+  if (std::strcmp(text, "Cancel") == 0) return "Annuler";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Réinitialiser le jumelage";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Réinitialiser le jumelage ?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Le Mac jumelé sera déconnecté. Vous devrez le jumeler à nouveau.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Impossible de réinitialiser le jumelage. Réessayez.";
   if (std::strcmp(text, "Expired") == 0) return "Expiré";
   if (std::strcmp(text, "Pair") == 0) return "Associer";
   if (std::strcmp(text, "Settings") == 0) return "Paramètres";
@@ -1795,24 +1763,6 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulation";
   if (std::strcmp(text, "Delete") == 0) return "Supprimer";
   if (std::strcmp(text, "End") == 0) return "Fin";
-  if (std::strcmp(text, "Minimise") == 0) return "Réduire";
-  if (std::strcmp(text, "Hide App") == 0) return "Masquer l’app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Plein écran";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Remplir le bureau";
-  if (std::strcmp(text, "Centre") == 0) return "Centrer";
-  if (std::strcmp(text, "Left") == 0) return "Gauche";
-  if (std::strcmp(text, "Right") == 0) return "Droite";
-  if (std::strcmp(text, "Top") == 0) return "Haut";
-  if (std::strcmp(text, "Bottom") == 0) return "Bas";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Rétablir la taille précédente";
-  if (std::strcmp(text, "Left & Right") == 0) return "Gauche et droite";
-  if (std::strcmp(text, "Right & Left") == 0) return "Droite et gauche";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Haut et bas";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Bas et haut";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Gauche et quarts";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Droite et quarts";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Haut et quarts";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Bas et quarts";
   if (std::strcmp(text, "Paired") == 0) return "Jumelé";
   if (std::strcmp(text, "Unpaired") == 0) return "Non jumelé";
   if (std::strcmp(text, "used") == 0) return "utilisé";
@@ -1843,6 +1793,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Couper le microphone";
   if (std::strcmp(text, "Mic") == 0) return "Micro";
   if (std::strcmp(text, "Mute") == 0) return "Muet";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Mettre à jour l’app Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
   return text;
 }
 
@@ -1998,6 +1950,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(text, "Screen Lock") == 0) return "נעילת מסך";
   if (std::strcmp(text, "Screen Locked") == 0) return "המסך נעול";
+  if (std::strcmp(text, "Locked") == 0) return "נעול";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "יש לבטל את נעילת ה-Mac כדי להשתמש במסך הזה";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "נעילת המסך בוטלה";
   if (std::strcmp(text, "Skip Next") == 0) return "הרצועה הבאה";
   if (std::strcmp(text, "Skip Previous") == 0) return "הרצועה הקודמת";
@@ -2073,6 +2027,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "פתחו 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "פתחו את הדפדפן\nוהגדירו את המסך";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "הורידו את אפליקציית EspDesktop למחשב ופעלו לפי הוראות הצימוד.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "מכין את המסך\nאין לנתק מהחשמל";
   if (std::strcmp(text, "Restarting display") == 0) return "מפעיל מחדש את המסך";
   if (std::strcmp(text, "See the install guide for help") == 0) return "לעזרה עיינו במדריך ההתקנה";
@@ -2104,6 +2059,11 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "לא מותאם";
   if (std::strcmp(text, "Pairing") == 0) return "התאמה";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "הזן קוד זה באפליקציה למחשב";
+  if (std::strcmp(text, "Cancel") == 0) return "ביטול";
+  if (std::strcmp(text, "Reset pairing") == 0) return "איפוס הצימוד";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "לאפס את הצימוד?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "מחשב ה-Mac המצומד ינותק. יהיה צורך לצמד אותו מחדש.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "לא ניתן לאפס את הצימוד. כדאי לנסות שוב.";
   if (std::strcmp(text, "Expired") == 0) return "פג תוקף";
   if (std::strcmp(text, "Pair") == 0) return "צימוד";
   if (std::strcmp(text, "Settings") == 0) return "הגדרות";
@@ -2122,24 +2082,6 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Space") == 0) return "רווח";
   if (std::strcmp(text, "Delete") == 0) return "מחיקה";
   if (std::strcmp(text, "End") == 0) return "סוף";
-  if (std::strcmp(text, "Minimise") == 0) return "מזעור";
-  if (std::strcmp(text, "Hide App") == 0) return "הסתרת היישום";
-  if (std::strcmp(text, "Full Screen") == 0) return "מסך מלא";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "מילוי שולחן העבודה";
-  if (std::strcmp(text, "Centre") == 0) return "מרכוז";
-  if (std::strcmp(text, "Left") == 0) return "שמאל";
-  if (std::strcmp(text, "Right") == 0) return "ימין";
-  if (std::strcmp(text, "Top") == 0) return "למעלה";
-  if (std::strcmp(text, "Bottom") == 0) return "למטה";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "חזרה לגודל הקודם";
-  if (std::strcmp(text, "Left & Right") == 0) return "שמאל וימין";
-  if (std::strcmp(text, "Right & Left") == 0) return "ימין ושמאל";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "למעלה ולמטה";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "למטה ולמעלה";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "שמאל ורבעים";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "ימין ורבעים";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "למעלה ורבעים";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "למטה ורבעים";
   if (std::strcmp(text, "Paired") == 0) return "מותאם";
   if (std::strcmp(text, "Unpaired") == 0) return "לא מותאם";
   if (std::strcmp(text, "used") == 0) return "בשימוש";
@@ -2164,6 +2106,8 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "השתקת מיקרופון";
   if (std::strcmp(text, "Mic") == 0) return "מיקרופון";
   if (std::strcmp(text, "Mute") == 0) return "השתקה";
+  if (std::strcmp(text, "Update Mac app") == 0) return "עדכון האפליקציה ב-Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
   return text;
 }
 
@@ -2313,6 +2257,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Képernyő halványítva";
   if (std::strcmp(text, "Screen Lock") == 0) return "Képernyőzár";
   if (std::strcmp(text, "Screen Locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(text, "Locked") == 0) return "Zárolva";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Oldja fel a Mac zárolását a képernyő használatához";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(text, "Skip Next") == 0) return "Ugrás a következőre";
   if (std::strcmp(text, "Skip Previous") == 0) return "Ugrás az előzőre";
@@ -2385,6 +2331,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Nyissa meg: 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Nyissa meg a böngészőt, és\nállítsa be a kijelzőt";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Töltse le az EspDesktop alkalmazást a számítógépére, és kövesse a párosítási lépéseket.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Képernyő előkészítése\nNe kapcsolja ki";
   if (std::strcmp(text, "Restarting display") == 0) return "Kijelző újraindítása";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Segítségért nézze meg a telepítési útmutatót";
@@ -2415,6 +2362,11 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nincs párosítva";
   if (std::strcmp(text, "Pairing") == 0) return "Párosítás";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
+  if (std::strcmp(text, "Cancel") == 0) return "Mégse";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Párosítás visszaállítása";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Visszaállítod a párosítást?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "A párosított Mac kapcsolata megszakad. Újra kell párosítanod.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Nem sikerült visszaállítani a párosítást. Próbáld újra.";
   if (std::strcmp(text, "Expired") == 0) return "Lejárt";
   if (std::strcmp(text, "Pair") == 0) return "Párosítás";
   if (std::strcmp(text, "Settings") == 0) return "Beállítások";
@@ -2435,24 +2387,6 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulátor";
   if (std::strcmp(text, "Delete") == 0) return "Törlés";
   if (std::strcmp(text, "End") == 0) return "Vége";
-  if (std::strcmp(text, "Minimise") == 0) return "Kis méret";
-  if (std::strcmp(text, "Hide App") == 0) return "App elrejtése";
-  if (std::strcmp(text, "Full Screen") == 0) return "Teljes képernyő";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Asztal kitöltése";
-  if (std::strcmp(text, "Centre") == 0) return "Középre";
-  if (std::strcmp(text, "Left") == 0) return "Bal";
-  if (std::strcmp(text, "Right") == 0) return "Jobb";
-  if (std::strcmp(text, "Top") == 0) return "Fent";
-  if (std::strcmp(text, "Bottom") == 0) return "Lent";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Előző méret visszaállítása";
-  if (std::strcmp(text, "Left & Right") == 0) return "Bal és jobb";
-  if (std::strcmp(text, "Right & Left") == 0) return "Jobb és bal";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Fent és lent";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Lent és fent";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Bal és negyedek";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Jobb és negyedek";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Fent és negyedek";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Lent és negyedek";
   if (std::strcmp(text, "Paired") == 0) return "Párosítva";
   if (std::strcmp(text, "Unpaired") == 0) return "Nincs párosítva";
   if (std::strcmp(text, "used") == 0) return "használt";
@@ -2477,6 +2411,8 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofon némítása";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Némítás";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Frissítse a Mac-alkalmazást";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
   return text;
 }
 
@@ -2622,6 +2558,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Schermo attenuato";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blocco schermo";
   if (std::strcmp(text, "Screen Locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(text, "Locked") == 0) return "Bloccato";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Sblocca il Mac per usare questo schermo";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(text, "Skip Next") == 0) return "Salta avanti";
   if (std::strcmp(text, "Skip Previous") == 0) return "Salta indietro";
@@ -2690,6 +2628,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Apri 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Apri il browser e\nconfigura il display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Scarica l’app EspDesktop sul computer e segui i passaggi per l’abbinamento.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparazione dello schermo\nNon spegnere";
   if (std::strcmp(text, "Restarting display") == 0) return "Riavvio display";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulta la guida di installazione per assistenza";
@@ -2720,6 +2659,11 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Non abbinato";
   if (std::strcmp(text, "Pairing") == 0) return "Abbinamento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Inserisci questo codice nell’app desktop";
+  if (std::strcmp(text, "Cancel") == 0) return "Annulla";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Reimposta abbinamento";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Reimpostare l’abbinamento?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Il Mac abbinato verrà disconnesso. Dovrai abbinarlo di nuovo.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Impossibile reimpostare l’abbinamento. Riprova.";
   if (std::strcmp(text, "Expired") == 0) return "Scaduto";
   if (std::strcmp(text, "Pair") == 0) return "Associa";
   if (std::strcmp(text, "Settings") == 0) return "Impostazioni";
@@ -2740,24 +2684,6 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulazione";
   if (std::strcmp(text, "Delete") == 0) return "Elimina";
   if (std::strcmp(text, "End") == 0) return "Fine";
-  if (std::strcmp(text, "Minimise") == 0) return "Riduci a icona";
-  if (std::strcmp(text, "Hide App") == 0) return "Nascondi app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Schermo intero";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Riempi scrivania";
-  if (std::strcmp(text, "Centre") == 0) return "Centra";
-  if (std::strcmp(text, "Left") == 0) return "Sinistra";
-  if (std::strcmp(text, "Right") == 0) return "Destra";
-  if (std::strcmp(text, "Top") == 0) return "Alto";
-  if (std::strcmp(text, "Bottom") == 0) return "Basso";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Ripristina dimensioni precedenti";
-  if (std::strcmp(text, "Left & Right") == 0) return "Sinistra e destra";
-  if (std::strcmp(text, "Right & Left") == 0) return "Destra e sinistra";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Alto e basso";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Basso e alto";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Sinistra e quarti";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Destra e quarti";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Alto e quarti";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Basso e quarti";
   if (std::strcmp(text, "Paired") == 0) return "Abbinato";
   if (std::strcmp(text, "Unpaired") == 0) return "Non abbinato";
   if (std::strcmp(text, "used") == 0) return "usato";
@@ -2787,6 +2713,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Disattiva microfono";
   if (std::strcmp(text, "Mic") == 0) return "Microfono";
   if (std::strcmp(text, "Mute") == 0) return "Muto";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Aggiorna l’app per Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
   return text;
 }
 
@@ -2928,6 +2856,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skjerm neddimmet";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skjermlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skjerm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås opp Macen for å bruke denne skjermen";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(text, "Skip Next") == 0) return "Hopp til neste";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hopp til forrige";
@@ -2996,6 +2926,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åpne 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Åpne nettleseren og\nkonfigurer skjermen";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Last ned EspDesktop-appen på datamaskinen og følg trinnene for sammenkobling.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Forbereder skjermen\nIkke slå av strømmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Starter skjermen på nytt";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installasjonsveiledningen for hjelp";
@@ -3027,6 +2958,11 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ikke paret";
   if (std::strcmp(text, "Pairing") == 0) return "Paring";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Skriv inn denne koden i skrivebordsappen";
+  if (std::strcmp(text, "Cancel") == 0) return "Avbryt";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Nullstill sammenkobling";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Nullstille sammenkoblingen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Den sammenkoblede Macen kobles fra. Du må koble den sammen på nytt.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Kunne ikke nullstille sammenkoblingen. Prøv igjen.";
   if (std::strcmp(text, "Expired") == 0) return "Utløpt";
   if (std::strcmp(text, "Pair") == 0) return "Koble sammen";
   if (std::strcmp(text, "Settings") == 0) return "Innstillinger";
@@ -3047,24 +2983,6 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulator";
   if (std::strcmp(text, "Delete") == 0) return "Slett";
   if (std::strcmp(text, "End") == 0) return "Slutt";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimer";
-  if (std::strcmp(text, "Hide App") == 0) return "Skjul app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Fullskjerm";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Fyll skrivebordet";
-  if (std::strcmp(text, "Centre") == 0) return "Sentrer";
-  if (std::strcmp(text, "Left") == 0) return "Venstre";
-  if (std::strcmp(text, "Right") == 0) return "Høyre";
-  if (std::strcmp(text, "Top") == 0) return "Øverst";
-  if (std::strcmp(text, "Bottom") == 0) return "Nederst";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Tilbake til forrige størrelse";
-  if (std::strcmp(text, "Left & Right") == 0) return "Venstre og høyre";
-  if (std::strcmp(text, "Right & Left") == 0) return "Høyre og venstre";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Øverst og nederst";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Nederst og øverst";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Venstre og fjerdedeler";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Høyre og fjerdedeler";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Øverst og fjerdedeler";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Nederst og fjerdedeler";
   if (std::strcmp(text, "Paired") == 0) return "Paret";
   if (std::strcmp(text, "Unpaired") == 0) return "Ikke paret";
   if (std::strcmp(text, "used") == 0) return "brukt";
@@ -3089,6 +3007,8 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Demp mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Demp";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Oppdater Mac-appen";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
   return text;
 }
 
@@ -3234,6 +3154,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Scherm gedimd";
   if (std::strcmp(text, "Screen Lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(text, "Screen Locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(text, "Locked") == 0) return "Vergrendeld";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Ontgrendel je Mac om dit scherm te gebruiken";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(text, "Skip Next") == 0) return "Volgende overslaan";
   if (std::strcmp(text, "Skip Previous") == 0) return "Vorige overslaan";
@@ -3300,6 +3222,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Install") == 0) return "Firmware bijwerken";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Open uw browser en\nconfigureer uw display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Download de EspDesktop-app op je computer en volg de stappen om het scherm te koppelen.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Scherm voorbereiden\nSchakel de stroom niet uit";
   if (std::strcmp(text, "Restarting display") == 0) return "Display opnieuw starten";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Bekijk de installatiehandleiding voor hulp";
@@ -3328,6 +3251,11 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Niet gekoppeld";
   if (std::strcmp(text, "Pairing") == 0) return "Koppelen";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Voer deze code in de desktopapp in";
+  if (std::strcmp(text, "Cancel") == 0) return "Annuleren";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Koppeling wissen";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Koppeling wissen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "De gekoppelde Mac wordt losgekoppeld. Je moet hem opnieuw koppelen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "De koppeling kon niet worden gewist. Probeer het opnieuw.";
   if (std::strcmp(text, "Expired") == 0) return "Verlopen";
   if (std::strcmp(text, "Pair") == 0) return "Koppelen";
   if (std::strcmp(text, "Settings") == 0) return "Instellingen";
@@ -3345,24 +3273,6 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Space") == 0) return "Spatie";
   if (std::strcmp(text, "Delete") == 0) return "Wis";
   if (std::strcmp(text, "End") == 0) return "Einde";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimaliseer";
-  if (std::strcmp(text, "Hide App") == 0) return "Verberg app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Volledig scherm";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Vul bureaublad";
-  if (std::strcmp(text, "Centre") == 0) return "Centreer";
-  if (std::strcmp(text, "Left") == 0) return "Links";
-  if (std::strcmp(text, "Right") == 0) return "Rechts";
-  if (std::strcmp(text, "Top") == 0) return "Boven";
-  if (std::strcmp(text, "Bottom") == 0) return "Onder";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Herstel vorige grootte";
-  if (std::strcmp(text, "Left & Right") == 0) return "Links en rechts";
-  if (std::strcmp(text, "Right & Left") == 0) return "Rechts en links";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Boven en onder";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Onder en boven";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Links en kwarten";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Rechts en kwarten";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Boven en kwarten";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Onder en kwarten";
   if (std::strcmp(text, "Paired") == 0) return "Gekoppeld";
   if (std::strcmp(text, "Unpaired") == 0) return "Niet gekoppeld";
   if (std::strcmp(text, "used") == 0) return "gebruikt";
@@ -3391,6 +3301,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Microfoon dempen";
   if (std::strcmp(text, "Mic") == 0) return "Microfoon";
   if (std::strcmp(text, "Mute") == 0) return "Dempen";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Update de Mac-app";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
   return text;
 }
 
@@ -3532,6 +3444,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran przyciemniony";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blokada ekranu";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(text, "Locked") == 0) return "Zablokowany";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Odblokuj Maca, aby użyć tego ekranu";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(text, "Skip Next") == 0) return "Pomiń następny";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pomiń poprzedni";
@@ -3600,6 +3514,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otwórz 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otwórz przeglądarkę i\nskonfiguruj wyświetlacz";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Pobierz aplikację EspDesktop na komputer i postępuj zgodnie z instrukcjami parowania.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Przygotowywanie ekranu\nNie wyłączaj zasilania";
   if (std::strcmp(text, "Restarting display") == 0) return "Ponowne uruchamianie wyświetlacza";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Zobacz instrukcję instalacji, aby uzyskać pomoc";
@@ -3631,6 +3546,11 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Niesparowano";
   if (std::strcmp(text, "Pairing") == 0) return "Parowanie";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Wpisz ten kod w aplikacji komputerowej";
+  if (std::strcmp(text, "Cancel") == 0) return "Anuluj";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Zresetuj parowanie";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Zresetować parowanie?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Sparowany Mac zostanie rozłączony. Trzeba będzie sparować go ponownie.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Nie udało się zresetować parowania. Spróbuj ponownie.";
   if (std::strcmp(text, "Expired") == 0) return "Wygasł";
   if (std::strcmp(text, "Pair") == 0) return "Sparuj";
   if (std::strcmp(text, "Settings") == 0) return "Ustawienia";
@@ -3651,24 +3571,6 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulator";
   if (std::strcmp(text, "Delete") == 0) return "Usuń";
   if (std::strcmp(text, "End") == 0) return "Koniec";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimalizuj";
-  if (std::strcmp(text, "Hide App") == 0) return "Ukryj aplikację";
-  if (std::strcmp(text, "Full Screen") == 0) return "Pełny ekran";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Wypełnij biurko";
-  if (std::strcmp(text, "Centre") == 0) return "Wyśrodkuj";
-  if (std::strcmp(text, "Left") == 0) return "Lewo";
-  if (std::strcmp(text, "Right") == 0) return "Prawo";
-  if (std::strcmp(text, "Top") == 0) return "Góra";
-  if (std::strcmp(text, "Bottom") == 0) return "Dół";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Przywróć poprzedni rozmiar";
-  if (std::strcmp(text, "Left & Right") == 0) return "Lewo i prawo";
-  if (std::strcmp(text, "Right & Left") == 0) return "Prawo i lewo";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Góra i dół";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Dół i góra";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Lewo i ćwiartki";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Prawo i ćwiartki";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Góra i ćwiartki";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Dół i ćwiartki";
   if (std::strcmp(text, "Paired") == 0) return "Sparowano";
   if (std::strcmp(text, "Unpaired") == 0) return "Niesparowano";
   if (std::strcmp(text, "used") == 0) return "użyte";
@@ -3693,6 +3595,8 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Wycisz mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Wycisz";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Zaktualizuj aplikację na Macu";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
   return text;
 }
 
@@ -3837,6 +3741,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Tela escurecida";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(text, "Screen Locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueada";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloqueie o Mac para usar esta tela";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(text, "Skip Next") == 0) return "Pular próximo";
   if (std::strcmp(text, "Skip Previous") == 0) return "Pular anterior";
@@ -3905,6 +3811,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abra o navegador e\nconfigure a tela";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Baixe o aplicativo EspDesktop no computador e siga as etapas de pareamento.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparando a tela\nNão desligue";
   if (std::strcmp(text, "Restarting display") == 0) return "Reiniciando tela";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Veja o guia de instalação para obter ajuda";
@@ -3936,6 +3843,11 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Não pareado";
   if (std::strcmp(text, "Pairing") == 0) return "Pareamento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Digite este código no aplicativo para computador";
+  if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Redefinir pareamento";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Redefinir o pareamento?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "O Mac pareado será desconectado. Você precisará pareá-lo novamente.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Não foi possível redefinir o pareamento. Tente novamente.";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Parear";
   if (std::strcmp(text, "Settings") == 0) return "Configurações";
@@ -3954,24 +3866,6 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Space") == 0) return "Espaço";
   if (std::strcmp(text, "Delete") == 0) return "Apagar";
   if (std::strcmp(text, "End") == 0) return "Fim";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimizar";
-  if (std::strcmp(text, "Hide App") == 0) return "Ocultar app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Tela cheia";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Preencher mesa";
-  if (std::strcmp(text, "Centre") == 0) return "Centralizar";
-  if (std::strcmp(text, "Left") == 0) return "Esquerda";
-  if (std::strcmp(text, "Right") == 0) return "Direita";
-  if (std::strcmp(text, "Top") == 0) return "Superior";
-  if (std::strcmp(text, "Bottom") == 0) return "Inferior";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Voltar ao tamanho anterior";
-  if (std::strcmp(text, "Left & Right") == 0) return "Esquerda e direita";
-  if (std::strcmp(text, "Right & Left") == 0) return "Direita e esquerda";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Superior e inferior";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Inferior e superior";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Esquerda e quartos";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Direita e quartos";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Superior e quartos";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(text, "Paired") == 0) return "Pareado";
   if (std::strcmp(text, "Unpaired") == 0) return "Não pareado";
   if (std::strcmp(text, "used") == 0) return "usado";
@@ -3996,6 +3890,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar o app do Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
   return text;
 }
 
@@ -4141,6 +4037,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecrã escurecido";
   if (std::strcmp(text, "Screen Lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(text, "Locked") == 0) return "Bloqueado";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Desbloqueie o Mac para usar este ecrã";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(text, "Skip Next") == 0) return "Saltar seguinte";
   if (std::strcmp(text, "Skip Previous") == 0) return "Saltar anterior";
@@ -4209,6 +4107,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abra o navegador e\nconfigure o ecrã";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Transfira a aplicação EspDesktop para o computador e siga os passos para emparelhar o ecrã.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "A preparar o ecrã\nNão desligue";
   if (std::strcmp(text, "Restarting display") == 0) return "A reiniciar o ecrã";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulte o guia de instalação para obter ajuda";
@@ -4240,6 +4139,11 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Não emparelhado";
   if (std::strcmp(text, "Pairing") == 0) return "Emparelhamento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduza este código na aplicação para computador";
+  if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Repor emparelhamento";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Repor o emparelhamento?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "O Mac emparelhado será desligado. Terás de o emparelhar novamente.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Não foi possível repor o emparelhamento. Tenta novamente.";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Emparelhar";
   if (std::strcmp(text, "Settings") == 0) return "Definições";
@@ -4258,24 +4162,6 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Space") == 0) return "Espaço";
   if (std::strcmp(text, "Delete") == 0) return "Apagar";
   if (std::strcmp(text, "End") == 0) return "Fim";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimizar";
-  if (std::strcmp(text, "Hide App") == 0) return "Ocultar aplicação";
-  if (std::strcmp(text, "Full Screen") == 0) return "Ecrã completo";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Preencher secretária";
-  if (std::strcmp(text, "Centre") == 0) return "Centrar";
-  if (std::strcmp(text, "Left") == 0) return "Esquerda";
-  if (std::strcmp(text, "Right") == 0) return "Direita";
-  if (std::strcmp(text, "Top") == 0) return "Superior";
-  if (std::strcmp(text, "Bottom") == 0) return "Inferior";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Voltar ao tamanho anterior";
-  if (std::strcmp(text, "Left & Right") == 0) return "Esquerda e direita";
-  if (std::strcmp(text, "Right & Left") == 0) return "Direita e esquerda";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Superior e inferior";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Inferior e superior";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Esquerda e quartos";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Direita e quartos";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Superior e quartos";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(text, "Paired") == 0) return "Emparelhado";
   if (std::strcmp(text, "Unpaired") == 0) return "Não emparelhado";
   if (std::strcmp(text, "used") == 0) return "usado";
@@ -4306,6 +4192,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Silenciar microfone";
   if (std::strcmp(text, "Mic") == 0) return "Microfone";
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar a app para Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
   return text;
 }
 
@@ -4455,6 +4343,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ecran estompat";
   if (std::strcmp(text, "Screen Lock") == 0) return "Blocare ecran";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ecran blocat";
+  if (std::strcmp(text, "Locked") == 0) return "Blocat";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Deblochează Mac-ul pentru a folosi acest ecran";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(text, "Skip Next") == 0) return "Următorul";
   if (std::strcmp(text, "Skip Previous") == 0) return "Anteriorul";
@@ -4527,6 +4417,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Deschideți 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Deschideți browserul și\nconfigurați afișajul";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Descarcă aplicația EspDesktop pe computer și urmează pașii de asociere.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Se pregătește ecranul\nNu opriți alimentarea";
   if (std::strcmp(text, "Restarting display") == 0) return "Se repornește afișajul";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consultați ghidul de instalare pentru ajutor";
@@ -4558,6 +4449,11 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Neasociat";
   if (std::strcmp(text, "Pairing") == 0) return "Asociere";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introdu acest cod în aplicația desktop";
+  if (std::strcmp(text, "Cancel") == 0) return "Anulează";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Resetează asocierea";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Resetezi asocierea?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Mac-ul asociat va fi deconectat. Va trebui să îl asociezi din nou.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Asocierea nu a putut fi resetată. Încearcă din nou.";
   if (std::strcmp(text, "Expired") == 0) return "Expirat";
   if (std::strcmp(text, "Pair") == 0) return "Asociază";
   if (std::strcmp(text, "Settings") == 0) return "Setări";
@@ -4577,24 +4473,6 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Space") == 0) return "Spațiu";
   if (std::strcmp(text, "Delete") == 0) return "Ștergere";
   if (std::strcmp(text, "End") == 0) return "Sfârșit";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimizează";
-  if (std::strcmp(text, "Hide App") == 0) return "Ascunde aplicația";
-  if (std::strcmp(text, "Full Screen") == 0) return "Ecran complet";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Umple desktopul";
-  if (std::strcmp(text, "Centre") == 0) return "Centrează";
-  if (std::strcmp(text, "Left") == 0) return "Stânga";
-  if (std::strcmp(text, "Right") == 0) return "Dreapta";
-  if (std::strcmp(text, "Top") == 0) return "Sus";
-  if (std::strcmp(text, "Bottom") == 0) return "Jos";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Revino la dimensiunea anterioară";
-  if (std::strcmp(text, "Left & Right") == 0) return "Stânga și dreapta";
-  if (std::strcmp(text, "Right & Left") == 0) return "Dreapta și stânga";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Sus și jos";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Jos și sus";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Stânga și sferturi";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Dreapta și sferturi";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Sus și sferturi";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Jos și sferturi";
   if (std::strcmp(text, "Paired") == 0) return "Asociat";
   if (std::strcmp(text, "Unpaired") == 0) return "Neasociat";
   if (std::strcmp(text, "used") == 0) return "utilizat";
@@ -4619,6 +4497,8 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Dezactivează microfonul";
   if (std::strcmp(text, "Mic") == 0) return "Microfon";
   if (std::strcmp(text, "Mute") == 0) return "Mut";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Actualizează aplicația pentru Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
   return text;
 }
 
@@ -4773,6 +4653,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Экран приглушён";
   if (std::strcmp(text, "Screen Lock") == 0) return "Блокировка экрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Экран заблокирован";
+  if (std::strcmp(text, "Locked") == 0) return "Заблокировано";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Разблокируйте Mac, чтобы использовать этот экран";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(text, "Skip Next") == 0) return "Следующий трек";
   if (std::strcmp(text, "Skip Previous") == 0) return "Предыдущий трек";
@@ -4847,6 +4729,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Нет сохранённого подключения WiFi\nПереустановите через USB для настройки";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Откройте 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Откройте браузер и\nнастройте дисплей";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Загрузите приложение EspDesktop на компьютер и следуйте инструкциям по сопряжению.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Подготовка экрана\nНе выключайте питание";
   if (std::strcmp(text, "Restarting display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Смотрите руководство по установке";
@@ -4878,6 +4761,11 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Не сопряжено";
   if (std::strcmp(text, "Pairing") == 0) return "Сопряжение";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введите этот код в приложении для компьютера";
+  if (std::strcmp(text, "Cancel") == 0) return "Отмена";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Сбросить сопряжение";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Сбросить сопряжение?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Связь с сопряжённым Mac будет разорвана. Его нужно будет сопрячь снова.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Не удалось сбросить сопряжение. Попробуйте ещё раз.";
   if (std::strcmp(text, "Expired") == 0) return "Срок действия истёк";
   if (std::strcmp(text, "Pair") == 0) return "Сопряжение";
   if (std::strcmp(text, "Settings") == 0) return "Настройки";
@@ -4897,24 +4785,6 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Space") == 0) return "Пробел";
   if (std::strcmp(text, "Delete") == 0) return "Удалить";
   if (std::strcmp(text, "End") == 0) return "Конец";
-  if (std::strcmp(text, "Minimise") == 0) return "Свернуть";
-  if (std::strcmp(text, "Hide App") == 0) return "Скрыть приложение";
-  if (std::strcmp(text, "Full Screen") == 0) return "Полный экран";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Заполнить рабочий стол";
-  if (std::strcmp(text, "Centre") == 0) return "По центру";
-  if (std::strcmp(text, "Left") == 0) return "Слева";
-  if (std::strcmp(text, "Right") == 0) return "Справа";
-  if (std::strcmp(text, "Top") == 0) return "Сверху";
-  if (std::strcmp(text, "Bottom") == 0) return "Снизу";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Вернуть прежний размер";
-  if (std::strcmp(text, "Left & Right") == 0) return "Слева и справа";
-  if (std::strcmp(text, "Right & Left") == 0) return "Справа и слева";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Сверху и снизу";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Снизу и сверху";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Слева и четверти";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Справа и четверти";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Сверху и четверти";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Снизу и четверти";
   if (std::strcmp(text, "Paired") == 0) return "Сопряжено";
   if (std::strcmp(text, "Unpaired") == 0) return "Не сопряжено";
   if (std::strcmp(text, "used") == 0) return "использовано";
@@ -4939,6 +4809,8 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Выключить микрофон";
   if (std::strcmp(text, "Mic") == 0) return "Микрофон";
   if (std::strcmp(text, "Mute") == 0) return "Без звука";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Обновите приложение для Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
   return text;
 }
 
@@ -5082,6 +4954,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Obrazovka stlmená";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(text, "Screen Locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(text, "Locked") == 0) return "Uzamknuté";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Ak chcete používať túto obrazovku, odomknite svoj Mac";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskočiť predchádzajúce";
@@ -5152,6 +5026,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otvorte 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otvorte prehliadač a\nnakonfigurujte displej";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Stiahnite si aplikáciu EspDesktop do počítača a postupujte podľa pokynov na párovanie.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Príprava obrazovky\nNevypínajte napájanie";
   if (std::strcmp(text, "Restarting display") == 0) return "Reštartovanie displeja";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Pomoc nájdete v inštalačnej príručke";
@@ -5183,6 +5058,11 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nespárované";
   if (std::strcmp(text, "Pairing") == 0) return "Párovanie";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadajte tento kód do počítačovej aplikácie";
+  if (std::strcmp(text, "Cancel") == 0) return "Zrušiť";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Zrušiť párovanie";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Zrušiť párovanie?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Spárovaný Mac sa odpojí. Budete ho musieť znova spárovať.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Párovanie sa nepodarilo zrušiť. Skúste to znova.";
   if (std::strcmp(text, "Expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(text, "Pair") == 0) return "Spárovať";
   if (std::strcmp(text, "Settings") == 0) return "Nastavenia";
@@ -5203,24 +5083,6 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulátor";
   if (std::strcmp(text, "Delete") == 0) return "Vymazať";
   if (std::strcmp(text, "End") == 0) return "Koniec";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimalizovať";
-  if (std::strcmp(text, "Hide App") == 0) return "Skryť aplikáciu";
-  if (std::strcmp(text, "Full Screen") == 0) return "Celá obrazovka";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Vyplniť plochu";
-  if (std::strcmp(text, "Centre") == 0) return "Na stred";
-  if (std::strcmp(text, "Left") == 0) return "Vľavo";
-  if (std::strcmp(text, "Right") == 0) return "Vpravo";
-  if (std::strcmp(text, "Top") == 0) return "Hore";
-  if (std::strcmp(text, "Bottom") == 0) return "Dole";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Obnoviť predchádzajúcu veľkosť";
-  if (std::strcmp(text, "Left & Right") == 0) return "Vľavo a vpravo";
-  if (std::strcmp(text, "Right & Left") == 0) return "Vpravo a vľavo";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Hore a dole";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Dole a hore";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Vľavo a štvrtiny";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Vpravo a štvrtiny";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Hore a štvrtiny";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Dole a štvrtiny";
   if (std::strcmp(text, "Paired") == 0) return "Spárované";
   if (std::strcmp(text, "Unpaired") == 0) return "Nespárované";
   if (std::strcmp(text, "used") == 0) return "využité";
@@ -5245,6 +5107,8 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Stlmiť mikrofón";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofón";
   if (std::strcmp(text, "Mute") == 0) return "Stlmiť";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizujte aplikáciu pre Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
   return text;
 }
 
@@ -5391,6 +5255,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Zaslon zatemnjen";
   if (std::strcmp(text, "Screen Lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(text, "Screen Locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(text, "Locked") == 0) return "Zaklenjeno";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Odklenite svoj Mac za uporabo tega zaslona";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(text, "Skip Next") == 0) return "Preskoči naprej";
   if (std::strcmp(text, "Skip Previous") == 0) return "Preskoči nazaj";
@@ -5462,6 +5328,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Odprite 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Odprite brskalnik in\nkonfigurirajte zaslon";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Prenesite aplikacijo EspDesktop v računalnik in sledite korakom za seznanjanje.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Priprava zaslona\nNe izklapljajte napajanja";
   if (std::strcmp(text, "Restarting display") == 0) return "Ponovni zagon zaslona";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Za pomoč glejte navodila za namestitev";
@@ -5493,6 +5360,11 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ni seznanjeno";
   if (std::strcmp(text, "Pairing") == 0) return "Seznanjanje";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Vnesite to kodo v namizno aplikacijo";
+  if (std::strcmp(text, "Cancel") == 0) return "Prekliči";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Ponastavi seznanjanje";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Ponastavim seznanjanje?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Seznanjeni Mac bo prekinil povezavo. Znova ga bo treba seznaniti.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Seznanjanja ni bilo mogoče ponastaviti. Poskusite znova.";
   if (std::strcmp(text, "Expired") == 0) return "Poteklo";
   if (std::strcmp(text, "Pair") == 0) return "Seznani";
   if (std::strcmp(text, "Settings") == 0) return "Nastavitve";
@@ -5513,24 +5385,6 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabulator";
   if (std::strcmp(text, "Delete") == 0) return "Izbriši";
   if (std::strcmp(text, "End") == 0) return "Konec";
-  if (std::strcmp(text, "Minimise") == 0) return "Pomanjšaj";
-  if (std::strcmp(text, "Hide App") == 0) return "Skrij aplikacijo";
-  if (std::strcmp(text, "Full Screen") == 0) return "Celoten zaslon";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Zapolni namizje";
-  if (std::strcmp(text, "Centre") == 0) return "Na sredino";
-  if (std::strcmp(text, "Left") == 0) return "Levo";
-  if (std::strcmp(text, "Right") == 0) return "Desno";
-  if (std::strcmp(text, "Top") == 0) return "Zgoraj";
-  if (std::strcmp(text, "Bottom") == 0) return "Spodaj";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Povrni prejšnjo velikost";
-  if (std::strcmp(text, "Left & Right") == 0) return "Levo in desno";
-  if (std::strcmp(text, "Right & Left") == 0) return "Desno in levo";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Zgoraj in spodaj";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Spodaj in zgoraj";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Levo in četrtine";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Desno in četrtine";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Zgoraj in četrtine";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Spodaj in četrtine";
   if (std::strcmp(text, "Paired") == 0) return "Seznanjeno";
   if (std::strcmp(text, "Unpaired") == 0) return "Ni seznanjeno";
   if (std::strcmp(text, "used") == 0) return "porabljeno";
@@ -5555,6 +5409,8 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Utišaj mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Utišaj";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Posodobite aplikacijo za Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
   return text;
 }
 
@@ -5696,6 +5552,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Skärm nedtonad";
   if (std::strcmp(text, "Screen Lock") == 0) return "Skärmlås";
   if (std::strcmp(text, "Screen Locked") == 0) return "Skärm låst";
+  if (std::strcmp(text, "Locked") == 0) return "Låst";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Lås upp din Mac för att använda den här skärmen";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(text, "Skip Next") == 0) return "Hoppa till nästa";
   if (std::strcmp(text, "Skip Previous") == 0) return "Hoppa till föregående";
@@ -5764,6 +5622,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Öppna 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Öppna webbläsaren och\nkonfigurera skärmen";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Ladda ner EspDesktop-appen på datorn och följ stegen för parkoppling.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Förbereder skärmen\nStäng inte av strömmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Startar om skärmen";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installationsguiden för hjälp";
@@ -5794,6 +5653,11 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Inte parkopplad";
   if (std::strcmp(text, "Pairing") == 0) return "Parkoppling";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Ange den här koden i skrivbordsappen";
+  if (std::strcmp(text, "Cancel") == 0) return "Avbryt";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Återställ parkoppling";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Återställa parkopplingen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Den parkopplade Macen kopplas från. Du behöver parkoppla den igen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Det gick inte att återställa parkopplingen. Försök igen.";
   if (std::strcmp(text, "Expired") == 0) return "Utgången";
   if (std::strcmp(text, "Pair") == 0) return "Parkoppla";
   if (std::strcmp(text, "Settings") == 0) return "Inställningar";
@@ -5814,24 +5678,6 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Tabb";
   if (std::strcmp(text, "Delete") == 0) return "Radera";
   if (std::strcmp(text, "End") == 0) return "Slut";
-  if (std::strcmp(text, "Minimise") == 0) return "Minimera";
-  if (std::strcmp(text, "Hide App") == 0) return "Göm app";
-  if (std::strcmp(text, "Full Screen") == 0) return "Helskärm";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Fyll skrivbordet";
-  if (std::strcmp(text, "Centre") == 0) return "Centrera";
-  if (std::strcmp(text, "Left") == 0) return "Vänster";
-  if (std::strcmp(text, "Right") == 0) return "Höger";
-  if (std::strcmp(text, "Top") == 0) return "Överst";
-  if (std::strcmp(text, "Bottom") == 0) return "Nederst";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Återgå till föregående storlek";
-  if (std::strcmp(text, "Left & Right") == 0) return "Vänster och höger";
-  if (std::strcmp(text, "Right & Left") == 0) return "Höger och vänster";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Överst och nederst";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Nederst och överst";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Vänster och fjärdedelar";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Höger och fjärdedelar";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Överst och fjärdedelar";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Nederst och fjärdedelar";
   if (std::strcmp(text, "Paired") == 0) return "Parkopplad";
   if (std::strcmp(text, "Unpaired") == 0) return "Inte parkopplad";
   if (std::strcmp(text, "used") == 0) return "använt";
@@ -5855,6 +5701,8 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Stäng av mikrofon";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Tysta";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Uppdatera Mac-appen";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
   return text;
 }
 
@@ -6004,6 +5852,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Ekran kısılmış";
   if (std::strcmp(text, "Screen Lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(text, "Screen Locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(text, "Locked") == 0) return "Kilitli";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Bu ekranı kullanmak için Mac'inizin kilidini açın";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(text, "Skip Next") == 0) return "Sonrakine geç";
   if (std::strcmp(text, "Skip Previous") == 0) return "Öncekine geç";
@@ -6076,6 +5926,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 adresini açın";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Tarayıcınızı açın ve\nekranınızı yapılandırın";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "EspDesktop uygulamasını bilgisayarınıza indirin ve eşleştirme adımlarını izleyin.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Ekran hazırlanıyor\nGücü kapatmayın";
   if (std::strcmp(text, "Restarting display") == 0) return "Ekran yeniden başlatılıyor";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Yardım için kurulum kılavuzuna bakın";
@@ -6107,6 +5958,11 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(text, "Pairing") == 0) return "Eşleştirme";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Bu kodu masaüstü uygulamasına girin";
+  if (std::strcmp(text, "Cancel") == 0) return "İptal";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Eşlemeyi sıfırla";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Eşleme sıfırlansın mı?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Eşlenen Mac’in bağlantısı kesilecek. Yeniden eşlemeniz gerekecek.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Eşleme sıfırlanamadı. Tekrar deneyin.";
   if (std::strcmp(text, "Expired") == 0) return "Süresi doldu";
   if (std::strcmp(text, "Pair") == 0) return "Eşleştir";
   if (std::strcmp(text, "Settings") == 0) return "Ayarlar";
@@ -6127,24 +5983,6 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Tab") == 0) return "Sekme";
   if (std::strcmp(text, "Delete") == 0) return "Sil";
   if (std::strcmp(text, "End") == 0) return "Son";
-  if (std::strcmp(text, "Minimise") == 0) return "Simge durumuna küçült";
-  if (std::strcmp(text, "Hide App") == 0) return "Uygulamayı gizle";
-  if (std::strcmp(text, "Full Screen") == 0) return "Tam ekran";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Masaüstünü doldur";
-  if (std::strcmp(text, "Centre") == 0) return "Ortala";
-  if (std::strcmp(text, "Left") == 0) return "Sol";
-  if (std::strcmp(text, "Right") == 0) return "Sağ";
-  if (std::strcmp(text, "Top") == 0) return "Üst";
-  if (std::strcmp(text, "Bottom") == 0) return "Alt";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Önceki boyuta dön";
-  if (std::strcmp(text, "Left & Right") == 0) return "Sol ve sağ";
-  if (std::strcmp(text, "Right & Left") == 0) return "Sağ ve sol";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Üst ve alt";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Alt ve üst";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Sol ve çeyrekler";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Sağ ve çeyrekler";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Üst ve çeyrekler";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Alt ve çeyrekler";
   if (std::strcmp(text, "Paired") == 0) return "Eşleştirildi";
   if (std::strcmp(text, "Unpaired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(text, "used") == 0) return "kullanılan";
@@ -6169,6 +6007,8 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Mikrofonu sessize al";
   if (std::strcmp(text, "Mic") == 0) return "Mikrofon";
   if (std::strcmp(text, "Mute") == 0) return "Sessiz";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Mac uygulamasını güncelleyin";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
   return text;
 }
 
@@ -6320,6 +6160,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Screen Dimmed") == 0) return "Екран приглушено";
   if (std::strcmp(text, "Screen Lock") == 0) return "Блокування екрана";
   if (std::strcmp(text, "Screen Locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(text, "Locked") == 0) return "Заблоковано";
+  if (std::strcmp(text, "Unlock your Mac to use this screen") == 0) return "Розблокуйте Mac, щоб користуватися цим екраном";
   if (std::strcmp(text, "Screen Unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(text, "Skip Next") == 0) return "Наступний";
   if (std::strcmp(text, "Skip Previous") == 0) return "Попередній";
@@ -6392,6 +6234,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Відкрийте 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Відкрийте браузер і\nналаштуйте дисплей";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Завантажте застосунок EspDesktop на комп’ютер і виконайте кроки сполучення.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Підготовка екрана\nНе вимикайте живлення";
   if (std::strcmp(text, "Restarting display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Дивіться посібник зі встановлення для допомоги";
@@ -6423,6 +6266,11 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Не сполучено";
   if (std::strcmp(text, "Pairing") == 0) return "Сполучення";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введіть цей код у програмі для комп’ютера";
+  if (std::strcmp(text, "Cancel") == 0) return "Скасувати";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Скинути сполучення";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Скинути сполучення?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "З’єднання зі сполученим Mac буде розірвано. Його потрібно буде сполучити знову.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Не вдалося скинути сполучення. Спробуйте ще раз.";
   if (std::strcmp(text, "Expired") == 0) return "Термін дії минув";
   if (std::strcmp(text, "Pair") == 0) return "Сполучити";
   if (std::strcmp(text, "Settings") == 0) return "Налаштування";
@@ -6442,24 +6290,6 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Space") == 0) return "Пробіл";
   if (std::strcmp(text, "Delete") == 0) return "Видалити";
   if (std::strcmp(text, "End") == 0) return "Кінець";
-  if (std::strcmp(text, "Minimise") == 0) return "Згорнути";
-  if (std::strcmp(text, "Hide App") == 0) return "Сховати програму";
-  if (std::strcmp(text, "Full Screen") == 0) return "Повний екран";
-  if (std::strcmp(text, "Fill Desktop") == 0) return "Заповнити робочий стіл";
-  if (std::strcmp(text, "Centre") == 0) return "По центру";
-  if (std::strcmp(text, "Left") == 0) return "Ліворуч";
-  if (std::strcmp(text, "Right") == 0) return "Праворуч";
-  if (std::strcmp(text, "Top") == 0) return "Угорі";
-  if (std::strcmp(text, "Bottom") == 0) return "Унизу";
-  if (std::strcmp(text, "Return to Previous Size") == 0) return "Повернути попередній розмір";
-  if (std::strcmp(text, "Left & Right") == 0) return "Ліворуч і праворуч";
-  if (std::strcmp(text, "Right & Left") == 0) return "Праворуч і ліворуч";
-  if (std::strcmp(text, "Top & Bottom") == 0) return "Угорі й унизу";
-  if (std::strcmp(text, "Bottom & Top") == 0) return "Унизу й угорі";
-  if (std::strcmp(text, "Left & Quarters") == 0) return "Ліворуч і чверті";
-  if (std::strcmp(text, "Right & Quarters") == 0) return "Праворуч і чверті";
-  if (std::strcmp(text, "Top & Quarters") == 0) return "Угорі й чверті";
-  if (std::strcmp(text, "Bottom & Quarters") == 0) return "Унизу й чверті";
   if (std::strcmp(text, "Paired") == 0) return "Сполучено";
   if (std::strcmp(text, "Unpaired") == 0) return "Не сполучено";
   if (std::strcmp(text, "used") == 0) return "використано";
@@ -6484,6 +6314,8 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Microphone Mute") == 0) return "Вимкнути мікрофон";
   if (std::strcmp(text, "Mic") == 0) return "Мікрофон";
   if (std::strcmp(text, "Mute") == 0) return "Без звуку";
+  if (std::strcmp(text, "Update Mac app") == 0) return "Оновіть застосунок для Mac";
+  if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
   return text;
 }
 
@@ -6641,6 +6473,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Screen Dimmed";
   if (std::strcmp(key, "screen_lock") == 0) return "Screen Lock";
   if (std::strcmp(key, "screen_locked") == 0) return "Screen Locked";
+  if (std::strcmp(key, "locked") == 0) return "Locked";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Unlock your Mac to use this screen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Screen Unlocked";
   if (std::strcmp(key, "skip_next") == 0) return "Skip Next";
   if (std::strcmp(key, "skip_previous") == 0) return "Skip Previous";
@@ -6717,6 +6551,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No saved WiFi connection\nReinstall by USB to reconfigure";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Open 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Open your browser and\nconfigure your display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download the EspDesktop app on your computer and follow the pairing steps.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparing the screen\nDo not power off";
   if (std::strcmp(key, "restarting_display") == 0) return "Restarting display";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "See the install guide for help";
@@ -6749,6 +6584,11 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Not paired";
   if (std::strcmp(key, "pairing") == 0) return "Pairing";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code into the desktop app";
+  if (std::strcmp(key, "cancel") == 0) return "Cancel";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Reset pairing";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Reset pairing?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "This will disconnect the paired Mac. You’ll need to pair it again.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Could not reset pairing. Try again.";
   if (std::strcmp(key, "expired") == 0) return "Expired";
   if (std::strcmp(key, "pair") == 0) return "Pair";
   if (std::strcmp(key, "settings") == 0) return "Settings";
@@ -6772,24 +6612,6 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Delete";
   if (std::strcmp(key, "keyboard_home") == 0) return "Home";
   if (std::strcmp(key, "keyboard_end") == 0) return "End";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimise";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Hide App";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Full Screen";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Fill Desktop";
-  if (std::strcmp(key, "window_centre") == 0) return "Centre";
-  if (std::strcmp(key, "window_left") == 0) return "Left";
-  if (std::strcmp(key, "window_right") == 0) return "Right";
-  if (std::strcmp(key, "window_top") == 0) return "Top";
-  if (std::strcmp(key, "window_bottom") == 0) return "Bottom";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Return to Previous Size";
-  if (std::strcmp(key, "window_left_right") == 0) return "Left & Right";
-  if (std::strcmp(key, "window_right_left") == 0) return "Right & Left";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Top & Bottom";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Bottom & Top";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Left & Quarters";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Right & Quarters";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Top & Quarters";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Bottom & Quarters";
   if (std::strcmp(key, "paired") == 0) return "Paired";
   if (std::strcmp(key, "unpaired") == 0) return "Unpaired";
   if (std::strcmp(key, "stat_used") == 0) return "used";
@@ -6834,6 +6656,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Microphone Mute";
   if (std::strcmp(key, "mic") == 0) return "Mic";
   if (std::strcmp(key, "mute") == 0) return "Mute";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Update Mac app";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Update EspDesktop on your Mac to reconnect.";
   return key;
 }
 
@@ -6977,6 +6801,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka ztlumena";
   if (std::strcmp(key, "screen_lock") == 0) return "Zámek obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamčena";
+  if (std::strcmp(key, "locked") == 0) return "Zamčeno";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Chcete-li používat tuto obrazovku, odemkněte svůj Mac";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odemčena";
   if (std::strcmp(key, "skip_next") == 0) return "Přeskočit další";
   if (std::strcmp(key, "skip_previous") == 0) return "Přeskočit předchozí";
@@ -7046,6 +6872,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otevřete 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otevřete prohlížeč a\nnastavte displej";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Stáhněte si do počítače aplikaci EspDesktop a postupujte podle pokynů k párování.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Příprava obrazovky\nNevypínejte napájení";
   if (std::strcmp(key, "restarting_display") == 0) return "Restartování displeje";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Viz instalační příručka";
@@ -7079,6 +6906,11 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nespárováno";
   if (std::strcmp(key, "pairing") == 0) return "Párování";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód do desktopové aplikace";
+  if (std::strcmp(key, "cancel") == 0) return "Zrušit";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Zrušit párování";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Zrušit párování?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Spárovaný Mac se odpojí. Budete ho muset znovu spárovat.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Párování se nepodařilo zrušit. Zkuste to znovu.";
   if (std::strcmp(key, "expired") == 0) return "Platnost vypršela";
   if (std::strcmp(key, "pair") == 0) return "Spárovat";
   if (std::strcmp(key, "settings") == 0) return "Nastavení";
@@ -7101,24 +6933,6 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Smazat";
   if (std::strcmp(key, "keyboard_home") == 0) return "Začátek";
   if (std::strcmp(key, "keyboard_end") == 0) return "Konec";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimalizovat";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Skrýt aplikaci";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Celá obrazovka";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Vyplnit plochu";
-  if (std::strcmp(key, "window_centre") == 0) return "Na střed";
-  if (std::strcmp(key, "window_left") == 0) return "Vlevo";
-  if (std::strcmp(key, "window_right") == 0) return "Vpravo";
-  if (std::strcmp(key, "window_top") == 0) return "Nahoře";
-  if (std::strcmp(key, "window_bottom") == 0) return "Dole";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Obnovit předchozí velikost";
-  if (std::strcmp(key, "window_left_right") == 0) return "Vlevo a vpravo";
-  if (std::strcmp(key, "window_right_left") == 0) return "Vpravo a vlevo";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Nahoře a dole";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Dole a nahoře";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Vlevo a čtvrtiny";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Vpravo a čtvrtiny";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Nahoře a čtvrtiny";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Dole a čtvrtiny";
   if (std::strcmp(key, "paired") == 0) return "Spárováno";
   if (std::strcmp(key, "unpaired") == 0) return "Nespárováno";
   if (std::strcmp(key, "stat_used") == 0) return "využito";
@@ -7149,6 +6963,8 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Ztlumit mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Ztlumit";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizovat aplikaci pro Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7289,6 +7105,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skærm neddæmpet";
   if (std::strcmp(key, "screen_lock") == 0) return "Skærmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skærm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås din Mac op for at bruge denne skærm";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skærm låst op";
   if (std::strcmp(key, "skip_next") == 0) return "Spring til næste";
   if (std::strcmp(key, "skip_previous") == 0) return "Spring til forrige";
@@ -7355,6 +7173,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åbn 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Åbn din browser og\nkonfigurer din skærm";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download EspDesktop-appen på din computer, og følg vejledningen til parring.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Forbereder skærmen\nSluk ikke for strømmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Genstarter skærm";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installationsvejledningen for hjælp";
@@ -7386,6 +7205,11 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ikke parret";
   if (std::strcmp(key, "pairing") == 0) return "Parring";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i desktopappen";
+  if (std::strcmp(key, "cancel") == 0) return "Annuller";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Nulstil parring";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Nulstil parring?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Den parrede Mac bliver afbrudt. Du skal parre den igen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Parringen kunne ikke nulstilles. Prøv igen.";
   if (std::strcmp(key, "expired") == 0) return "Udløbet";
   if (std::strcmp(key, "pair") == 0) return "Par";
   if (std::strcmp(key, "settings") == 0) return "Indstillinger";
@@ -7408,24 +7232,6 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Slet";
   if (std::strcmp(key, "keyboard_home") == 0) return "Start";
   if (std::strcmp(key, "keyboard_end") == 0) return "Slut";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimer";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Skjul app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Fuld skærm";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Udfyld skrivebord";
-  if (std::strcmp(key, "window_centre") == 0) return "Centrer";
-  if (std::strcmp(key, "window_left") == 0) return "Venstre";
-  if (std::strcmp(key, "window_right") == 0) return "Højre";
-  if (std::strcmp(key, "window_top") == 0) return "Øverst";
-  if (std::strcmp(key, "window_bottom") == 0) return "Nederst";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Tilbage til forrige størrelse";
-  if (std::strcmp(key, "window_left_right") == 0) return "Venstre og højre";
-  if (std::strcmp(key, "window_right_left") == 0) return "Højre og venstre";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Øverst og nederst";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Nederst og øverst";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Venstre og kvarte";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Højre og kvarte";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Øverst og kvarte";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Nederst og kvarte";
   if (std::strcmp(key, "paired") == 0) return "Parret";
   if (std::strcmp(key, "unpaired") == 0) return "Ikke parret";
   if (std::strcmp(key, "stat_used") == 0) return "brugt";
@@ -7453,6 +7259,8 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Slå mikrofon fra";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Slå lyd fra";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Opdater Mac-appen";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7592,6 +7400,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Bildschirm gedimmt";
   if (std::strcmp(key, "screen_lock") == 0) return "Bildschirmsperre";
   if (std::strcmp(key, "screen_locked") == 0) return "Bildschirm gesperrt";
+  if (std::strcmp(key, "locked") == 0) return "Gesperrt";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Entsperre deinen Mac, um diesen Bildschirm zu verwenden";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Bildschirm entsperrt";
   if (std::strcmp(key, "skip_next") == 0) return "Weiter springen";
   if (std::strcmp(key, "skip_previous") == 0) return "Zurück springen";
@@ -7658,6 +7468,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 öffnen";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Öffnen Sie Ihren Browser und\nkonfigurieren Sie Ihr Display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Laden Sie die EspDesktop-App auf Ihren Computer und folgen Sie den Schritten zur Kopplung.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Bildschirm wird vorbereitet\nNicht ausschalten";
   if (std::strcmp(key, "restarting_display") == 0) return "Display wird neu gestartet";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Installationsanleitung für Hilfe ansehen";
@@ -7689,6 +7500,11 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(key, "pairing") == 0) return "Kopplung";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Gib diesen Code in der Desktop-App ein";
+  if (std::strcmp(key, "cancel") == 0) return "Abbrechen";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Kopplung zurücksetzen";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Kopplung zurücksetzen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Die Verbindung zum gekoppelten Mac wird getrennt. Du musst ihn erneut koppeln.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Die Kopplung konnte nicht zurückgesetzt werden. Versuche es erneut.";
   if (std::strcmp(key, "expired") == 0) return "Abgelaufen";
   if (std::strcmp(key, "pair") == 0) return "Koppeln";
   if (std::strcmp(key, "settings") == 0) return "Einstellungen";
@@ -7711,24 +7527,6 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Löschen";
   if (std::strcmp(key, "keyboard_home") == 0) return "Pos1";
   if (std::strcmp(key, "keyboard_end") == 0) return "Ende";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimieren";
-  if (std::strcmp(key, "window_hide_app") == 0) return "App ausblenden";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Vollbild";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Schreibtisch ausfüllen";
-  if (std::strcmp(key, "window_centre") == 0) return "Zentrieren";
-  if (std::strcmp(key, "window_left") == 0) return "Links";
-  if (std::strcmp(key, "window_right") == 0) return "Rechts";
-  if (std::strcmp(key, "window_top") == 0) return "Oben";
-  if (std::strcmp(key, "window_bottom") == 0) return "Unten";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Vorherige Größe wiederherstellen";
-  if (std::strcmp(key, "window_left_right") == 0) return "Links und rechts";
-  if (std::strcmp(key, "window_right_left") == 0) return "Rechts und links";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Oben und unten";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Unten und oben";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Links und Viertel";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Rechts und Viertel";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Oben und Viertel";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Unten und Viertel";
   if (std::strcmp(key, "paired") == 0) return "Gekoppelt";
   if (std::strcmp(key, "unpaired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(key, "stat_used") == 0) return "belegt";
@@ -7761,6 +7559,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon stummschalten";
   if (std::strcmp(key, "mic") == 0) return "Mikro";
   if (std::strcmp(key, "mute") == 0) return "Stumm";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Mac-App aktualisieren";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7905,6 +7705,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Pantalla atenuada";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueo de pantalla";
   if (std::strcmp(key, "screen_locked") == 0) return "Pantalla bloqueada";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueada";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloquea tu Mac para usar esta pantalla";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Pantalla desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar siguiente";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
@@ -7973,6 +7775,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abre 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abre tu navegador y\nconfigura la pantalla";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Descarga la app EspDesktop en tu ordenador y sigue los pasos para emparejar la pantalla.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparando la pantalla\nNo apagues el dispositivo";
   if (std::strcmp(key, "restarting_display") == 0) return "Reiniciando pantalla";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulta la guía de instalación para obtener ayuda";
@@ -8006,6 +7809,11 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Sin emparejar";
   if (std::strcmp(key, "pairing") == 0) return "Emparejamiento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la aplicación de escritorio";
+  if (std::strcmp(key, "cancel") == 0) return "Cancelar";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Restablecer enlace";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "¿Restablecer el enlace?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "El Mac enlazado se desconectará. Tendrás que enlazarlo de nuevo.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "No se pudo restablecer el enlace. Inténtalo de nuevo.";
   if (std::strcmp(key, "expired") == 0) return "Caducado";
   if (std::strcmp(key, "pair") == 0) return "Emparejar";
   if (std::strcmp(key, "settings") == 0) return "Ajustes";
@@ -8028,24 +7836,6 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Borrar";
   if (std::strcmp(key, "keyboard_home") == 0) return "Inicio";
   if (std::strcmp(key, "keyboard_end") == 0) return "Fin";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimizar";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Ocultar app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Pantalla completa";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Llenar escritorio";
-  if (std::strcmp(key, "window_centre") == 0) return "Centrar";
-  if (std::strcmp(key, "window_left") == 0) return "Izquierda";
-  if (std::strcmp(key, "window_right") == 0) return "Derecha";
-  if (std::strcmp(key, "window_top") == 0) return "Arriba";
-  if (std::strcmp(key, "window_bottom") == 0) return "Abajo";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Volver al tamaño anterior";
-  if (std::strcmp(key, "window_left_right") == 0) return "Izquierda y derecha";
-  if (std::strcmp(key, "window_right_left") == 0) return "Derecha e izquierda";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Arriba y abajo";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Abajo y arriba";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Izquierda y cuartos";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Derecha y cuartos";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Arriba y cuartos";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Abajo y cuartos";
   if (std::strcmp(key, "paired") == 0) return "Emparejado";
   if (std::strcmp(key, "unpaired") == 0) return "Sin emparejar";
   if (std::strcmp(key, "stat_used") == 0) return "usado";
@@ -8081,6 +7871,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar micrófono";
   if (std::strcmp(key, "mic") == 0) return "Micrófono";
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Actualizar la app de Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8232,6 +8024,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Näyttö himmennetty";
   if (std::strcmp(key, "screen_lock") == 0) return "Näytön lukitus";
   if (std::strcmp(key, "screen_locked") == 0) return "Näyttö lukittu";
+  if (std::strcmp(key, "locked") == 0) return "Lukittu";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Avaa Macin lukitus, niin voit käyttää tätä näyttöä";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Näyttö avattu";
   if (std::strcmp(key, "skip_next") == 0) return "Seuraava kappale";
   if (std::strcmp(key, "skip_previous") == 0) return "Edellinen kappale";
@@ -8302,6 +8096,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Avaa 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Avaa selain ja\nmääritä näyttö";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Lataa EspDesktop-sovellus tietokoneellesi ja noudata pariliitoksen ohjeita.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Valmistellaan näyttöä\nÄlä katkaise virtaa";
   if (std::strcmp(key, "restarting_display") == 0) return "Käynnistetään näyttö uudelleen";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Katso asennusoppaasta ohjeita";
@@ -8335,6 +8130,11 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ei paritettu";
   if (std::strcmp(key, "pairing") == 0) return "Paritus";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
+  if (std::strcmp(key, "cancel") == 0) return "Peruuta";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Nollaa pariliitos";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Nollataanko pariliitos?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Pariliitetyn Macin yhteys katkeaa. Muodosta pariliitos uudelleen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Pariliitosta ei voitu nollata. Yritä uudelleen.";
   if (std::strcmp(key, "expired") == 0) return "Vanhentunut";
   if (std::strcmp(key, "pair") == 0) return "Parita";
   if (std::strcmp(key, "settings") == 0) return "Asetukset";
@@ -8357,24 +8157,6 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Poista";
   if (std::strcmp(key, "keyboard_home") == 0) return "Alku";
   if (std::strcmp(key, "keyboard_end") == 0) return "Loppu";
-  if (std::strcmp(key, "window_minimise") == 0) return "Pienennä";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Kätke sovellus";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Koko näyttö";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Täytä työpöytä";
-  if (std::strcmp(key, "window_centre") == 0) return "Keskitä";
-  if (std::strcmp(key, "window_left") == 0) return "Vasen";
-  if (std::strcmp(key, "window_right") == 0) return "Oikea";
-  if (std::strcmp(key, "window_top") == 0) return "Yläosa";
-  if (std::strcmp(key, "window_bottom") == 0) return "Alaosa";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Palauta edellinen koko";
-  if (std::strcmp(key, "window_left_right") == 0) return "Vasen ja oikea";
-  if (std::strcmp(key, "window_right_left") == 0) return "Oikea ja vasen";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Ylä- ja alaosa";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Ala- ja yläosa";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Vasen ja neljännekset";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Oikea ja neljännekset";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Yläosa ja neljännekset";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Alaosa ja neljännekset";
   if (std::strcmp(key, "paired") == 0) return "Paritettu";
   if (std::strcmp(key, "unpaired") == 0) return "Ei paritettu";
   if (std::strcmp(key, "stat_used") == 0) return "käytössä";
@@ -8405,6 +8187,8 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Mykistä mikrofoni";
   if (std::strcmp(key, "mic") == 0) return "Mikki";
   if (std::strcmp(key, "mute") == 0) return "Mykistä";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Päivitä Mac-sovellus";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8542,6 +8326,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Écran tamisé";
   if (std::strcmp(key, "screen_lock") == 0) return "Verrouillage de l’écran";
   if (std::strcmp(key, "screen_locked") == 0) return "Écran verrouillé";
+  if (std::strcmp(key, "locked") == 0) return "Verrouillé";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Déverrouillez votre Mac pour utiliser cet écran";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Écran déverrouillé";
   if (std::strcmp(key, "skip_next") == 0) return "Passer au suivant";
   if (std::strcmp(key, "skip_previous") == 0) return "Passer au précédent";
@@ -8610,6 +8396,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Ouvrez 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Ouvrez votre navigateur et\nconfigurez votre écran";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Téléchargez l’application EspDesktop sur votre ordinateur et suivez les étapes de jumelage.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Préparation de l’écran\nNe coupez pas l’alimentation";
   if (std::strcmp(key, "restarting_display") == 0) return "Redémarrage de l’écran";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consultez le guide d’installation pour obtenir de l’aide";
@@ -8643,6 +8430,11 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Non jumelé";
   if (std::strcmp(key, "pairing") == 0) return "Jumelage";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application de bureau";
+  if (std::strcmp(key, "cancel") == 0) return "Annuler";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Réinitialiser le jumelage";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Réinitialiser le jumelage ?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Le Mac jumelé sera déconnecté. Vous devrez le jumeler à nouveau.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Impossible de réinitialiser le jumelage. Réessayez.";
   if (std::strcmp(key, "expired") == 0) return "Expiré";
   if (std::strcmp(key, "pair") == 0) return "Associer";
   if (std::strcmp(key, "settings") == 0) return "Paramètres";
@@ -8666,24 +8458,6 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Supprimer";
   if (std::strcmp(key, "keyboard_home") == 0) return "Début";
   if (std::strcmp(key, "keyboard_end") == 0) return "Fin";
-  if (std::strcmp(key, "window_minimise") == 0) return "Réduire";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Masquer l’app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Plein écran";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Remplir le bureau";
-  if (std::strcmp(key, "window_centre") == 0) return "Centrer";
-  if (std::strcmp(key, "window_left") == 0) return "Gauche";
-  if (std::strcmp(key, "window_right") == 0) return "Droite";
-  if (std::strcmp(key, "window_top") == 0) return "Haut";
-  if (std::strcmp(key, "window_bottom") == 0) return "Bas";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Rétablir la taille précédente";
-  if (std::strcmp(key, "window_left_right") == 0) return "Gauche et droite";
-  if (std::strcmp(key, "window_right_left") == 0) return "Droite et gauche";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Haut et bas";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Bas et haut";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Gauche et quarts";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Droite et quarts";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Haut et quarts";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Bas et quarts";
   if (std::strcmp(key, "paired") == 0) return "Jumelé";
   if (std::strcmp(key, "unpaired") == 0) return "Non jumelé";
   if (std::strcmp(key, "stat_used") == 0) return "utilisé";
@@ -8719,6 +8493,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Couper le microphone";
   if (std::strcmp(key, "mic") == 0) return "Micro";
   if (std::strcmp(key, "mute") == 0) return "Muet";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Mettre à jour l’app Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8875,6 +8651,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "המסך מעומעם";
   if (std::strcmp(key, "screen_lock") == 0) return "נעילת מסך";
   if (std::strcmp(key, "screen_locked") == 0) return "המסך נעול";
+  if (std::strcmp(key, "locked") == 0) return "נעול";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "יש לבטל את נעילת ה-Mac כדי להשתמש במסך הזה";
   if (std::strcmp(key, "screen_unlocked") == 0) return "נעילת המסך בוטלה";
   if (std::strcmp(key, "skip_next") == 0) return "הרצועה הבאה";
   if (std::strcmp(key, "skip_previous") == 0) return "הרצועה הקודמת";
@@ -8949,6 +8727,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "פתחו 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "פתחו את הדפדפן\nוהגדירו את המסך";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "הורידו את אפליקציית EspDesktop למחשב ופעלו לפי הוראות הצימוד.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "מכין את המסך\nאין לנתק מהחשמל";
   if (std::strcmp(key, "restarting_display") == 0) return "מפעיל מחדש את המסך";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "לעזרה עיינו במדריך ההתקנה";
@@ -8982,6 +8761,11 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "לא מותאם";
   if (std::strcmp(key, "pairing") == 0) return "התאמה";
   if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציה למחשב";
+  if (std::strcmp(key, "cancel") == 0) return "ביטול";
+  if (std::strcmp(key, "reset_pairing") == 0) return "איפוס הצימוד";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "לאפס את הצימוד?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "מחשב ה-Mac המצומד ינותק. יהיה צורך לצמד אותו מחדש.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "לא ניתן לאפס את הצימוד. כדאי לנסות שוב.";
   if (std::strcmp(key, "expired") == 0) return "פג תוקף";
   if (std::strcmp(key, "pair") == 0) return "צימוד";
   if (std::strcmp(key, "settings") == 0) return "הגדרות";
@@ -9002,24 +8786,6 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "מחיקה";
   if (std::strcmp(key, "keyboard_home") == 0) return "התחלה";
   if (std::strcmp(key, "keyboard_end") == 0) return "סוף";
-  if (std::strcmp(key, "window_minimise") == 0) return "מזעור";
-  if (std::strcmp(key, "window_hide_app") == 0) return "הסתרת היישום";
-  if (std::strcmp(key, "window_full_screen") == 0) return "מסך מלא";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "מילוי שולחן העבודה";
-  if (std::strcmp(key, "window_centre") == 0) return "מרכוז";
-  if (std::strcmp(key, "window_left") == 0) return "שמאל";
-  if (std::strcmp(key, "window_right") == 0) return "ימין";
-  if (std::strcmp(key, "window_top") == 0) return "למעלה";
-  if (std::strcmp(key, "window_bottom") == 0) return "למטה";
-  if (std::strcmp(key, "window_previous_size") == 0) return "חזרה לגודל הקודם";
-  if (std::strcmp(key, "window_left_right") == 0) return "שמאל וימין";
-  if (std::strcmp(key, "window_right_left") == 0) return "ימין ושמאל";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "למעלה ולמטה";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "למטה ולמעלה";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "שמאל ורבעים";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "ימין ורבעים";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "למעלה ורבעים";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "למטה ורבעים";
   if (std::strcmp(key, "paired") == 0) return "מותאם";
   if (std::strcmp(key, "unpaired") == 0) return "לא מותאם";
   if (std::strcmp(key, "stat_used") == 0) return "בשימוש";
@@ -9050,6 +8816,8 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "השתקת מיקרופון";
   if (std::strcmp(key, "mic") == 0) return "מיקרופון";
   if (std::strcmp(key, "mute") == 0) return "השתקה";
+  if (std::strcmp(key, "mac_update_required") == 0) return "עדכון האפליקציה ב-Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9200,6 +8968,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Képernyő halványítva";
   if (std::strcmp(key, "screen_lock") == 0) return "Képernyőzár";
   if (std::strcmp(key, "screen_locked") == 0) return "Képernyő lezárva";
+  if (std::strcmp(key, "locked") == 0) return "Zárolva";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Oldja fel a Mac zárolását a képernyő használatához";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Képernyő feloldva";
   if (std::strcmp(key, "skip_next") == 0) return "Ugrás a következőre";
   if (std::strcmp(key, "skip_previous") == 0) return "Ugrás az előzőre";
@@ -9271,6 +9041,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Nyissa meg: 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Nyissa meg a böngészőt, és\nállítsa be a kijelzőt";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Töltse le az EspDesktop alkalmazást a számítógépére, és kövesse a párosítási lépéseket.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Képernyő előkészítése\nNe kapcsolja ki";
   if (std::strcmp(key, "restarting_display") == 0) return "Kijelző újraindítása";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Segítségért nézze meg a telepítési útmutatót";
@@ -9303,6 +9074,11 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nincs párosítva";
   if (std::strcmp(key, "pairing") == 0) return "Párosítás";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
+  if (std::strcmp(key, "cancel") == 0) return "Mégse";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Párosítás visszaállítása";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Visszaállítod a párosítást?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "A párosított Mac kapcsolata megszakad. Újra kell párosítanod.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Nem sikerült visszaállítani a párosítást. Próbáld újra.";
   if (std::strcmp(key, "expired") == 0) return "Lejárt";
   if (std::strcmp(key, "pair") == 0) return "Párosítás";
   if (std::strcmp(key, "settings") == 0) return "Beállítások";
@@ -9325,24 +9101,6 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Törlés";
   if (std::strcmp(key, "keyboard_home") == 0) return "Eleje";
   if (std::strcmp(key, "keyboard_end") == 0) return "Vége";
-  if (std::strcmp(key, "window_minimise") == 0) return "Kis méret";
-  if (std::strcmp(key, "window_hide_app") == 0) return "App elrejtése";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Teljes képernyő";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Asztal kitöltése";
-  if (std::strcmp(key, "window_centre") == 0) return "Középre";
-  if (std::strcmp(key, "window_left") == 0) return "Bal";
-  if (std::strcmp(key, "window_right") == 0) return "Jobb";
-  if (std::strcmp(key, "window_top") == 0) return "Fent";
-  if (std::strcmp(key, "window_bottom") == 0) return "Lent";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Előző méret visszaállítása";
-  if (std::strcmp(key, "window_left_right") == 0) return "Bal és jobb";
-  if (std::strcmp(key, "window_right_left") == 0) return "Jobb és bal";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Fent és lent";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Lent és fent";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Bal és negyedek";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Jobb és negyedek";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Fent és negyedek";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Lent és negyedek";
   if (std::strcmp(key, "paired") == 0) return "Párosítva";
   if (std::strcmp(key, "unpaired") == 0) return "Nincs párosítva";
   if (std::strcmp(key, "stat_used") == 0) return "használt";
@@ -9373,6 +9131,8 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofon némítása";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Némítás";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Frissítse a Mac-alkalmazást";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9519,6 +9279,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Schermo attenuato";
   if (std::strcmp(key, "screen_lock") == 0) return "Blocco schermo";
   if (std::strcmp(key, "screen_locked") == 0) return "Schermo bloccato";
+  if (std::strcmp(key, "locked") == 0) return "Bloccato";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Sblocca il Mac per usare questo schermo";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Schermo sbloccato";
   if (std::strcmp(key, "skip_next") == 0) return "Salta avanti";
   if (std::strcmp(key, "skip_previous") == 0) return "Salta indietro";
@@ -9586,6 +9348,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Apri 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Apri il browser e\nconfigura il display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Scarica l’app EspDesktop sul computer e segui i passaggi per l’abbinamento.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparazione dello schermo\nNon spegnere";
   if (std::strcmp(key, "restarting_display") == 0) return "Riavvio display";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulta la guida di installazione per assistenza";
@@ -9618,6 +9381,11 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Non abbinato";
   if (std::strcmp(key, "pairing") == 0) return "Abbinamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app desktop";
+  if (std::strcmp(key, "cancel") == 0) return "Annulla";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Reimposta abbinamento";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Reimpostare l’abbinamento?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Il Mac abbinato verrà disconnesso. Dovrai abbinarlo di nuovo.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Impossibile reimpostare l’abbinamento. Riprova.";
   if (std::strcmp(key, "expired") == 0) return "Scaduto";
   if (std::strcmp(key, "pair") == 0) return "Associa";
   if (std::strcmp(key, "settings") == 0) return "Impostazioni";
@@ -9640,24 +9408,6 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Elimina";
   if (std::strcmp(key, "keyboard_home") == 0) return "Inizio";
   if (std::strcmp(key, "keyboard_end") == 0) return "Fine";
-  if (std::strcmp(key, "window_minimise") == 0) return "Riduci a icona";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Nascondi app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Schermo intero";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Riempi scrivania";
-  if (std::strcmp(key, "window_centre") == 0) return "Centra";
-  if (std::strcmp(key, "window_left") == 0) return "Sinistra";
-  if (std::strcmp(key, "window_right") == 0) return "Destra";
-  if (std::strcmp(key, "window_top") == 0) return "Alto";
-  if (std::strcmp(key, "window_bottom") == 0) return "Basso";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Ripristina dimensioni precedenti";
-  if (std::strcmp(key, "window_left_right") == 0) return "Sinistra e destra";
-  if (std::strcmp(key, "window_right_left") == 0) return "Destra e sinistra";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Alto e basso";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Basso e alto";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Sinistra e quarti";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Destra e quarti";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Alto e quarti";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Basso e quarti";
   if (std::strcmp(key, "paired") == 0) return "Abbinato";
   if (std::strcmp(key, "unpaired") == 0) return "Non abbinato";
   if (std::strcmp(key, "stat_used") == 0) return "usato";
@@ -9692,6 +9442,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Disattiva microfono";
   if (std::strcmp(key, "mic") == 0) return "Microfono";
   if (std::strcmp(key, "mute") == 0) return "Muto";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Aggiorna l’app per Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9834,6 +9586,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skjerm neddimmet";
   if (std::strcmp(key, "screen_lock") == 0) return "Skjermlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skjerm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås opp Macen for å bruke denne skjermen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skjerm låst opp";
   if (std::strcmp(key, "skip_next") == 0) return "Hopp til neste";
   if (std::strcmp(key, "skip_previous") == 0) return "Hopp til forrige";
@@ -9901,6 +9655,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åpne 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Åpne nettleseren og\nkonfigurer skjermen";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Last ned EspDesktop-appen på datamaskinen og følg trinnene for sammenkobling.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Forbereder skjermen\nIkke slå av strømmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Starter skjermen på nytt";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installasjonsveiledningen for hjelp";
@@ -9934,6 +9689,11 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ikke paret";
   if (std::strcmp(key, "pairing") == 0) return "Paring";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i skrivebordsappen";
+  if (std::strcmp(key, "cancel") == 0) return "Avbryt";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Nullstill sammenkobling";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Nullstille sammenkoblingen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Den sammenkoblede Macen kobles fra. Du må koble den sammen på nytt.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Kunne ikke nullstille sammenkoblingen. Prøv igjen.";
   if (std::strcmp(key, "expired") == 0) return "Utløpt";
   if (std::strcmp(key, "pair") == 0) return "Koble sammen";
   if (std::strcmp(key, "settings") == 0) return "Innstillinger";
@@ -9956,24 +9716,6 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Slett";
   if (std::strcmp(key, "keyboard_home") == 0) return "Start";
   if (std::strcmp(key, "keyboard_end") == 0) return "Slutt";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimer";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Skjul app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Fullskjerm";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Fyll skrivebordet";
-  if (std::strcmp(key, "window_centre") == 0) return "Sentrer";
-  if (std::strcmp(key, "window_left") == 0) return "Venstre";
-  if (std::strcmp(key, "window_right") == 0) return "Høyre";
-  if (std::strcmp(key, "window_top") == 0) return "Øverst";
-  if (std::strcmp(key, "window_bottom") == 0) return "Nederst";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Tilbake til forrige størrelse";
-  if (std::strcmp(key, "window_left_right") == 0) return "Venstre og høyre";
-  if (std::strcmp(key, "window_right_left") == 0) return "Høyre og venstre";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Øverst og nederst";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Nederst og øverst";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Venstre og fjerdedeler";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Høyre og fjerdedeler";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Øverst og fjerdedeler";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Nederst og fjerdedeler";
   if (std::strcmp(key, "paired") == 0) return "Paret";
   if (std::strcmp(key, "unpaired") == 0) return "Ikke paret";
   if (std::strcmp(key, "stat_used") == 0) return "brukt";
@@ -10003,6 +9745,8 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Demp mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Demp";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Oppdater Mac-appen";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10148,6 +9892,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Scherm gedimd";
   if (std::strcmp(key, "screen_lock") == 0) return "Schermvergrendeling";
   if (std::strcmp(key, "screen_locked") == 0) return "Scherm vergrendeld";
+  if (std::strcmp(key, "locked") == 0) return "Vergrendeld";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Ontgrendel je Mac om dit scherm te gebruiken";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Scherm ontgrendeld";
   if (std::strcmp(key, "skip_next") == 0) return "Volgende overslaan";
   if (std::strcmp(key, "skip_previous") == 0) return "Vorige overslaan";
@@ -10213,6 +9959,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "update_firmware") == 0) return "Firmware bijwerken";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Open uw browser en\nconfigureer uw display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download de EspDesktop-app op je computer en volg de stappen om het scherm te koppelen.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Scherm voorbereiden\nSchakel de stroom niet uit";
   if (std::strcmp(key, "restarting_display") == 0) return "Display opnieuw starten";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Bekijk de installatiehandleiding voor hulp";
@@ -10243,6 +9990,11 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Niet gekoppeld";
   if (std::strcmp(key, "pairing") == 0) return "Koppelen";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de desktopapp in";
+  if (std::strcmp(key, "cancel") == 0) return "Annuleren";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Koppeling wissen";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Koppeling wissen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "De gekoppelde Mac wordt losgekoppeld. Je moet hem opnieuw koppelen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "De koppeling kon niet worden gewist. Probeer het opnieuw.";
   if (std::strcmp(key, "expired") == 0) return "Verlopen";
   if (std::strcmp(key, "pair") == 0) return "Koppelen";
   if (std::strcmp(key, "settings") == 0) return "Instellingen";
@@ -10262,24 +10014,6 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Wis";
   if (std::strcmp(key, "keyboard_home") == 0) return "Begin";
   if (std::strcmp(key, "keyboard_end") == 0) return "Einde";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimaliseer";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Verberg app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Volledig scherm";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Vul bureaublad";
-  if (std::strcmp(key, "window_centre") == 0) return "Centreer";
-  if (std::strcmp(key, "window_left") == 0) return "Links";
-  if (std::strcmp(key, "window_right") == 0) return "Rechts";
-  if (std::strcmp(key, "window_top") == 0) return "Boven";
-  if (std::strcmp(key, "window_bottom") == 0) return "Onder";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Herstel vorige grootte";
-  if (std::strcmp(key, "window_left_right") == 0) return "Links en rechts";
-  if (std::strcmp(key, "window_right_left") == 0) return "Rechts en links";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Boven en onder";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Onder en boven";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Links en kwarten";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Rechts en kwarten";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Boven en kwarten";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Onder en kwarten";
   if (std::strcmp(key, "paired") == 0) return "Gekoppeld";
   if (std::strcmp(key, "unpaired") == 0) return "Niet gekoppeld";
   if (std::strcmp(key, "stat_used") == 0) return "gebruikt";
@@ -10311,6 +10045,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Microfoon dempen";
   if (std::strcmp(key, "mic") == 0) return "Microfoon";
   if (std::strcmp(key, "mute") == 0) return "Dempen";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Update de Mac-app";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10453,6 +10189,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran przyciemniony";
   if (std::strcmp(key, "screen_lock") == 0) return "Blokada ekranu";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran zablokowany";
+  if (std::strcmp(key, "locked") == 0) return "Zablokowany";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Odblokuj Maca, aby użyć tego ekranu";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran odblokowany";
   if (std::strcmp(key, "skip_next") == 0) return "Pomiń następny";
   if (std::strcmp(key, "skip_previous") == 0) return "Pomiń poprzedni";
@@ -10520,6 +10258,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otwórz 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otwórz przeglądarkę i\nskonfiguruj wyświetlacz";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Pobierz aplikację EspDesktop na komputer i postępuj zgodnie z instrukcjami parowania.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Przygotowywanie ekranu\nNie wyłączaj zasilania";
   if (std::strcmp(key, "restarting_display") == 0) return "Ponowne uruchamianie wyświetlacza";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Zobacz instrukcję instalacji, aby uzyskać pomoc";
@@ -10553,6 +10292,11 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Niesparowano";
   if (std::strcmp(key, "pairing") == 0) return "Parowanie";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji komputerowej";
+  if (std::strcmp(key, "cancel") == 0) return "Anuluj";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Zresetuj parowanie";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Zresetować parowanie?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Sparowany Mac zostanie rozłączony. Trzeba będzie sparować go ponownie.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Nie udało się zresetować parowania. Spróbuj ponownie.";
   if (std::strcmp(key, "expired") == 0) return "Wygasł";
   if (std::strcmp(key, "pair") == 0) return "Sparuj";
   if (std::strcmp(key, "settings") == 0) return "Ustawienia";
@@ -10575,24 +10319,6 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Usuń";
   if (std::strcmp(key, "keyboard_home") == 0) return "Początek";
   if (std::strcmp(key, "keyboard_end") == 0) return "Koniec";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimalizuj";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Ukryj aplikację";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Pełny ekran";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Wypełnij biurko";
-  if (std::strcmp(key, "window_centre") == 0) return "Wyśrodkuj";
-  if (std::strcmp(key, "window_left") == 0) return "Lewo";
-  if (std::strcmp(key, "window_right") == 0) return "Prawo";
-  if (std::strcmp(key, "window_top") == 0) return "Góra";
-  if (std::strcmp(key, "window_bottom") == 0) return "Dół";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Przywróć poprzedni rozmiar";
-  if (std::strcmp(key, "window_left_right") == 0) return "Lewo i prawo";
-  if (std::strcmp(key, "window_right_left") == 0) return "Prawo i lewo";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Góra i dół";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Dół i góra";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Lewo i ćwiartki";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Prawo i ćwiartki";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Góra i ćwiartki";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Dół i ćwiartki";
   if (std::strcmp(key, "paired") == 0) return "Sparowano";
   if (std::strcmp(key, "unpaired") == 0) return "Niesparowano";
   if (std::strcmp(key, "stat_used") == 0) return "użyte";
@@ -10623,6 +10349,8 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Wycisz mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Wycisz";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Zaktualizuj aplikację na Macu";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10768,6 +10496,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Tela escurecida";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de tela";
   if (std::strcmp(key, "screen_locked") == 0) return "Tela bloqueada";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueada";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloqueie o Mac para usar esta tela";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Tela desbloqueada";
   if (std::strcmp(key, "skip_next") == 0) return "Pular próximo";
   if (std::strcmp(key, "skip_previous") == 0) return "Pular anterior";
@@ -10835,6 +10565,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abra o navegador e\nconfigure a tela";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Baixe o aplicativo EspDesktop no computador e siga as etapas de pareamento.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparando a tela\nNão desligue";
   if (std::strcmp(key, "restarting_display") == 0) return "Reiniciando tela";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Veja o guia de instalação para obter ajuda";
@@ -10868,6 +10599,11 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Não pareado";
   if (std::strcmp(key, "pairing") == 0) return "Pareamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para computador";
+  if (std::strcmp(key, "cancel") == 0) return "Cancelar";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Redefinir pareamento";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Redefinir o pareamento?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "O Mac pareado será desconectado. Você precisará pareá-lo novamente.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Não foi possível redefinir o pareamento. Tente novamente.";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Parear";
   if (std::strcmp(key, "settings") == 0) return "Configurações";
@@ -10888,24 +10624,6 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Apagar";
   if (std::strcmp(key, "keyboard_home") == 0) return "Início";
   if (std::strcmp(key, "keyboard_end") == 0) return "Fim";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimizar";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Ocultar app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Tela cheia";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Preencher mesa";
-  if (std::strcmp(key, "window_centre") == 0) return "Centralizar";
-  if (std::strcmp(key, "window_left") == 0) return "Esquerda";
-  if (std::strcmp(key, "window_right") == 0) return "Direita";
-  if (std::strcmp(key, "window_top") == 0) return "Superior";
-  if (std::strcmp(key, "window_bottom") == 0) return "Inferior";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Voltar ao tamanho anterior";
-  if (std::strcmp(key, "window_left_right") == 0) return "Esquerda e direita";
-  if (std::strcmp(key, "window_right_left") == 0) return "Direita e esquerda";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Superior e inferior";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Inferior e superior";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Esquerda e quartos";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Direita e quartos";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Superior e quartos";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(key, "paired") == 0) return "Pareado";
   if (std::strcmp(key, "unpaired") == 0) return "Não pareado";
   if (std::strcmp(key, "stat_used") == 0) return "usado";
@@ -10935,6 +10653,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
   if (std::strcmp(key, "mic") == 0) return "Microfone";
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar o app do Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11081,6 +10801,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecrã escurecido";
   if (std::strcmp(key, "screen_lock") == 0) return "Bloqueio de ecrã";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecrã bloqueado";
+  if (std::strcmp(key, "locked") == 0) return "Bloqueado";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Desbloqueie o Mac para usar este ecrã";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecrã desbloqueado";
   if (std::strcmp(key, "skip_next") == 0) return "Saltar seguinte";
   if (std::strcmp(key, "skip_previous") == 0) return "Saltar anterior";
@@ -11148,6 +10870,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abra o navegador e\nconfigure o ecrã";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Transfira a aplicação EspDesktop para o computador e siga os passos para emparelhar o ecrã.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "A preparar o ecrã\nNão desligue";
   if (std::strcmp(key, "restarting_display") == 0) return "A reiniciar o ecrã";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulte o guia de instalação para obter ajuda";
@@ -11181,6 +10904,11 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Não emparelhado";
   if (std::strcmp(key, "pairing") == 0) return "Emparelhamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para computador";
+  if (std::strcmp(key, "cancel") == 0) return "Cancelar";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Repor emparelhamento";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Repor o emparelhamento?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "O Mac emparelhado será desligado. Terás de o emparelhar novamente.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Não foi possível repor o emparelhamento. Tenta novamente.";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Emparelhar";
   if (std::strcmp(key, "settings") == 0) return "Definições";
@@ -11201,24 +10929,6 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Apagar";
   if (std::strcmp(key, "keyboard_home") == 0) return "Início";
   if (std::strcmp(key, "keyboard_end") == 0) return "Fim";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimizar";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Ocultar aplicação";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Ecrã completo";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Preencher secretária";
-  if (std::strcmp(key, "window_centre") == 0) return "Centrar";
-  if (std::strcmp(key, "window_left") == 0) return "Esquerda";
-  if (std::strcmp(key, "window_right") == 0) return "Direita";
-  if (std::strcmp(key, "window_top") == 0) return "Superior";
-  if (std::strcmp(key, "window_bottom") == 0) return "Inferior";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Voltar ao tamanho anterior";
-  if (std::strcmp(key, "window_left_right") == 0) return "Esquerda e direita";
-  if (std::strcmp(key, "window_right_left") == 0) return "Direita e esquerda";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Superior e inferior";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Inferior e superior";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Esquerda e quartos";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Direita e quartos";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Superior e quartos";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Inferior e quartos";
   if (std::strcmp(key, "paired") == 0) return "Emparelhado";
   if (std::strcmp(key, "unpaired") == 0) return "Não emparelhado";
   if (std::strcmp(key, "stat_used") == 0) return "usado";
@@ -11254,6 +10964,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Silenciar microfone";
   if (std::strcmp(key, "mic") == 0) return "Microfone";
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar a app para Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11404,6 +11116,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ecran estompat";
   if (std::strcmp(key, "screen_lock") == 0) return "Blocare ecran";
   if (std::strcmp(key, "screen_locked") == 0) return "Ecran blocat";
+  if (std::strcmp(key, "locked") == 0) return "Blocat";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Deblochează Mac-ul pentru a folosi acest ecran";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ecran deblocat";
   if (std::strcmp(key, "skip_next") == 0) return "Următorul";
   if (std::strcmp(key, "skip_previous") == 0) return "Anteriorul";
@@ -11475,6 +11189,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Deschideți 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Deschideți browserul și\nconfigurați afișajul";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Descarcă aplicația EspDesktop pe computer și urmează pașii de asociere.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Se pregătește ecranul\nNu opriți alimentarea";
   if (std::strcmp(key, "restarting_display") == 0) return "Se repornește afișajul";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consultați ghidul de instalare pentru ajutor";
@@ -11508,6 +11223,11 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Neasociat";
   if (std::strcmp(key, "pairing") == 0) return "Asociere";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introdu acest cod în aplicația desktop";
+  if (std::strcmp(key, "cancel") == 0) return "Anulează";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Resetează asocierea";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Resetezi asocierea?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Mac-ul asociat va fi deconectat. Va trebui să îl asociezi din nou.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Asocierea nu a putut fi resetată. Încearcă din nou.";
   if (std::strcmp(key, "expired") == 0) return "Expirat";
   if (std::strcmp(key, "pair") == 0) return "Asociază";
   if (std::strcmp(key, "settings") == 0) return "Setări";
@@ -11529,24 +11249,6 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Ștergere";
   if (std::strcmp(key, "keyboard_home") == 0) return "Început";
   if (std::strcmp(key, "keyboard_end") == 0) return "Sfârșit";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimizează";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Ascunde aplicația";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Ecran complet";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Umple desktopul";
-  if (std::strcmp(key, "window_centre") == 0) return "Centrează";
-  if (std::strcmp(key, "window_left") == 0) return "Stânga";
-  if (std::strcmp(key, "window_right") == 0) return "Dreapta";
-  if (std::strcmp(key, "window_top") == 0) return "Sus";
-  if (std::strcmp(key, "window_bottom") == 0) return "Jos";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Revino la dimensiunea anterioară";
-  if (std::strcmp(key, "window_left_right") == 0) return "Stânga și dreapta";
-  if (std::strcmp(key, "window_right_left") == 0) return "Dreapta și stânga";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Sus și jos";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Jos și sus";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Stânga și sferturi";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Dreapta și sferturi";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Sus și sferturi";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Jos și sferturi";
   if (std::strcmp(key, "paired") == 0) return "Asociat";
   if (std::strcmp(key, "unpaired") == 0) return "Neasociat";
   if (std::strcmp(key, "stat_used") == 0) return "utilizat";
@@ -11577,6 +11279,8 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Dezactivează microfonul";
   if (std::strcmp(key, "mic") == 0) return "Microfon";
   if (std::strcmp(key, "mute") == 0) return "Mut";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Actualizează aplicația pentru Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11732,6 +11436,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Экран приглушён";
   if (std::strcmp(key, "screen_lock") == 0) return "Блокировка экрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Экран заблокирован";
+  if (std::strcmp(key, "locked") == 0) return "Заблокировано";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Разблокируйте Mac, чтобы использовать этот экран";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Экран разблокирован";
   if (std::strcmp(key, "skip_next") == 0) return "Следующий трек";
   if (std::strcmp(key, "skip_previous") == 0) return "Предыдущий трек";
@@ -11805,6 +11511,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Нет сохранённого подключения WiFi\nПереустановите через USB для настройки";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Откройте 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Откройте браузер и\nнастройте дисплей";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Загрузите приложение EspDesktop на компьютер и следуйте инструкциям по сопряжению.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Подготовка экрана\nНе выключайте питание";
   if (std::strcmp(key, "restarting_display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Смотрите руководство по установке";
@@ -11838,6 +11545,11 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Не сопряжено";
   if (std::strcmp(key, "pairing") == 0) return "Сопряжение";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для компьютера";
+  if (std::strcmp(key, "cancel") == 0) return "Отмена";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Сбросить сопряжение";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Сбросить сопряжение?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Связь с сопряжённым Mac будет разорвана. Его нужно будет сопрячь снова.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Не удалось сбросить сопряжение. Попробуйте ещё раз.";
   if (std::strcmp(key, "expired") == 0) return "Срок действия истёк";
   if (std::strcmp(key, "pair") == 0) return "Сопряжение";
   if (std::strcmp(key, "settings") == 0) return "Настройки";
@@ -11859,24 +11571,6 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Удалить";
   if (std::strcmp(key, "keyboard_home") == 0) return "Начало";
   if (std::strcmp(key, "keyboard_end") == 0) return "Конец";
-  if (std::strcmp(key, "window_minimise") == 0) return "Свернуть";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Скрыть приложение";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Полный экран";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Заполнить рабочий стол";
-  if (std::strcmp(key, "window_centre") == 0) return "По центру";
-  if (std::strcmp(key, "window_left") == 0) return "Слева";
-  if (std::strcmp(key, "window_right") == 0) return "Справа";
-  if (std::strcmp(key, "window_top") == 0) return "Сверху";
-  if (std::strcmp(key, "window_bottom") == 0) return "Снизу";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Вернуть прежний размер";
-  if (std::strcmp(key, "window_left_right") == 0) return "Слева и справа";
-  if (std::strcmp(key, "window_right_left") == 0) return "Справа и слева";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Сверху и снизу";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Снизу и сверху";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Слева и четверти";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Справа и четверти";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Сверху и четверти";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Снизу и четверти";
   if (std::strcmp(key, "paired") == 0) return "Сопряжено";
   if (std::strcmp(key, "unpaired") == 0) return "Не сопряжено";
   if (std::strcmp(key, "stat_used") == 0) return "использовано";
@@ -11907,6 +11601,8 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Выключить микрофон";
   if (std::strcmp(key, "mic") == 0) return "Микрофон";
   if (std::strcmp(key, "mute") == 0) return "Без звука";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Обновите приложение для Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12051,6 +11747,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Obrazovka stlmená";
   if (std::strcmp(key, "screen_lock") == 0) return "Zámok obrazovky";
   if (std::strcmp(key, "screen_locked") == 0) return "Obrazovka uzamknutá";
+  if (std::strcmp(key, "locked") == 0) return "Uzamknuté";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Ak chcete používať túto obrazovku, odomknite svoj Mac";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Obrazovka odomknutá";
   if (std::strcmp(key, "skip_next") == 0) return "Preskočiť ďalšie";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskočiť predchádzajúce";
@@ -12120,6 +11818,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otvorte 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otvorte prehliadač a\nnakonfigurujte displej";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Stiahnite si aplikáciu EspDesktop do počítača a postupujte podľa pokynov na párovanie.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Príprava obrazovky\nNevypínajte napájanie";
   if (std::strcmp(key, "restarting_display") == 0) return "Reštartovanie displeja";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Pomoc nájdete v inštalačnej príručke";
@@ -12153,6 +11852,11 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nespárované";
   if (std::strcmp(key, "pairing") == 0) return "Párovanie";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód do počítačovej aplikácie";
+  if (std::strcmp(key, "cancel") == 0) return "Zrušiť";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Zrušiť párovanie";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Zrušiť párovanie?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Spárovaný Mac sa odpojí. Budete ho musieť znova spárovať.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Párovanie sa nepodarilo zrušiť. Skúste to znova.";
   if (std::strcmp(key, "expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(key, "pair") == 0) return "Spárovať";
   if (std::strcmp(key, "settings") == 0) return "Nastavenia";
@@ -12175,24 +11879,6 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Vymazať";
   if (std::strcmp(key, "keyboard_home") == 0) return "Začiatok";
   if (std::strcmp(key, "keyboard_end") == 0) return "Koniec";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimalizovať";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Skryť aplikáciu";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Celá obrazovka";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Vyplniť plochu";
-  if (std::strcmp(key, "window_centre") == 0) return "Na stred";
-  if (std::strcmp(key, "window_left") == 0) return "Vľavo";
-  if (std::strcmp(key, "window_right") == 0) return "Vpravo";
-  if (std::strcmp(key, "window_top") == 0) return "Hore";
-  if (std::strcmp(key, "window_bottom") == 0) return "Dole";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Obnoviť predchádzajúcu veľkosť";
-  if (std::strcmp(key, "window_left_right") == 0) return "Vľavo a vpravo";
-  if (std::strcmp(key, "window_right_left") == 0) return "Vpravo a vľavo";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Hore a dole";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Dole a hore";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Vľavo a štvrtiny";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Vpravo a štvrtiny";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Hore a štvrtiny";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Dole a štvrtiny";
   if (std::strcmp(key, "paired") == 0) return "Spárované";
   if (std::strcmp(key, "unpaired") == 0) return "Nespárované";
   if (std::strcmp(key, "stat_used") == 0) return "využité";
@@ -12223,6 +11909,8 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Stlmiť mikrofón";
   if (std::strcmp(key, "mic") == 0) return "Mikrofón";
   if (std::strcmp(key, "mute") == 0) return "Stlmiť";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizujte aplikáciu pre Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12370,6 +12058,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Zaslon zatemnjen";
   if (std::strcmp(key, "screen_lock") == 0) return "Zaklep zaslona";
   if (std::strcmp(key, "screen_locked") == 0) return "Zaslon zaklenjen";
+  if (std::strcmp(key, "locked") == 0) return "Zaklenjeno";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Odklenite svoj Mac za uporabo tega zaslona";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Zaslon odklenjen";
   if (std::strcmp(key, "skip_next") == 0) return "Preskoči naprej";
   if (std::strcmp(key, "skip_previous") == 0) return "Preskoči nazaj";
@@ -12440,6 +12130,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Odprite 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Odprite brskalnik in\nkonfigurirajte zaslon";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Prenesite aplikacijo EspDesktop v računalnik in sledite korakom za seznanjanje.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Priprava zaslona\nNe izklapljajte napajanja";
   if (std::strcmp(key, "restarting_display") == 0) return "Ponovni zagon zaslona";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Za pomoč glejte navodila za namestitev";
@@ -12473,6 +12164,11 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ni seznanjeno";
   if (std::strcmp(key, "pairing") == 0) return "Seznanjanje";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v namizno aplikacijo";
+  if (std::strcmp(key, "cancel") == 0) return "Prekliči";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Ponastavi seznanjanje";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Ponastavim seznanjanje?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Seznanjeni Mac bo prekinil povezavo. Znova ga bo treba seznaniti.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Seznanjanja ni bilo mogoče ponastaviti. Poskusite znova.";
   if (std::strcmp(key, "expired") == 0) return "Poteklo";
   if (std::strcmp(key, "pair") == 0) return "Seznani";
   if (std::strcmp(key, "settings") == 0) return "Nastavitve";
@@ -12495,24 +12191,6 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Izbriši";
   if (std::strcmp(key, "keyboard_home") == 0) return "Začetek";
   if (std::strcmp(key, "keyboard_end") == 0) return "Konec";
-  if (std::strcmp(key, "window_minimise") == 0) return "Pomanjšaj";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Skrij aplikacijo";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Celoten zaslon";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Zapolni namizje";
-  if (std::strcmp(key, "window_centre") == 0) return "Na sredino";
-  if (std::strcmp(key, "window_left") == 0) return "Levo";
-  if (std::strcmp(key, "window_right") == 0) return "Desno";
-  if (std::strcmp(key, "window_top") == 0) return "Zgoraj";
-  if (std::strcmp(key, "window_bottom") == 0) return "Spodaj";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Povrni prejšnjo velikost";
-  if (std::strcmp(key, "window_left_right") == 0) return "Levo in desno";
-  if (std::strcmp(key, "window_right_left") == 0) return "Desno in levo";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Zgoraj in spodaj";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Spodaj in zgoraj";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Levo in četrtine";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Desno in četrtine";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Zgoraj in četrtine";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Spodaj in četrtine";
   if (std::strcmp(key, "paired") == 0) return "Seznanjeno";
   if (std::strcmp(key, "unpaired") == 0) return "Ni seznanjeno";
   if (std::strcmp(key, "stat_used") == 0) return "porabljeno";
@@ -12543,6 +12221,8 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Utišaj mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Utišaj";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Posodobite aplikacijo za Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12685,6 +12365,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Skärm nedtonad";
   if (std::strcmp(key, "screen_lock") == 0) return "Skärmlås";
   if (std::strcmp(key, "screen_locked") == 0) return "Skärm låst";
+  if (std::strcmp(key, "locked") == 0) return "Låst";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Lås upp din Mac för att använda den här skärmen";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Skärm upplåst";
   if (std::strcmp(key, "skip_next") == 0) return "Hoppa till nästa";
   if (std::strcmp(key, "skip_previous") == 0) return "Hoppa till föregående";
@@ -12752,6 +12434,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Öppna 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Öppna webbläsaren och\nkonfigurera skärmen";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Ladda ner EspDesktop-appen på datorn och följ stegen för parkoppling.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Förbereder skärmen\nStäng inte av strömmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Startar om skärmen";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installationsguiden för hjälp";
@@ -12784,6 +12467,11 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Inte parkopplad";
   if (std::strcmp(key, "pairing") == 0) return "Parkoppling";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i skrivbordsappen";
+  if (std::strcmp(key, "cancel") == 0) return "Avbryt";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Återställ parkoppling";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Återställa parkopplingen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Den parkopplade Macen kopplas från. Du behöver parkoppla den igen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Det gick inte att återställa parkopplingen. Försök igen.";
   if (std::strcmp(key, "expired") == 0) return "Utgången";
   if (std::strcmp(key, "pair") == 0) return "Parkoppla";
   if (std::strcmp(key, "settings") == 0) return "Inställningar";
@@ -12806,24 +12494,6 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Radera";
   if (std::strcmp(key, "keyboard_home") == 0) return "Början";
   if (std::strcmp(key, "keyboard_end") == 0) return "Slut";
-  if (std::strcmp(key, "window_minimise") == 0) return "Minimera";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Göm app";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Helskärm";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Fyll skrivbordet";
-  if (std::strcmp(key, "window_centre") == 0) return "Centrera";
-  if (std::strcmp(key, "window_left") == 0) return "Vänster";
-  if (std::strcmp(key, "window_right") == 0) return "Höger";
-  if (std::strcmp(key, "window_top") == 0) return "Överst";
-  if (std::strcmp(key, "window_bottom") == 0) return "Nederst";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Återgå till föregående storlek";
-  if (std::strcmp(key, "window_left_right") == 0) return "Vänster och höger";
-  if (std::strcmp(key, "window_right_left") == 0) return "Höger och vänster";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Överst och nederst";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Nederst och överst";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Vänster och fjärdedelar";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Höger och fjärdedelar";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Överst och fjärdedelar";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Nederst och fjärdedelar";
   if (std::strcmp(key, "paired") == 0) return "Parkopplad";
   if (std::strcmp(key, "unpaired") == 0) return "Inte parkopplad";
   if (std::strcmp(key, "stat_used") == 0) return "använt";
@@ -12851,6 +12521,8 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Stäng av mikrofon";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Tysta";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Uppdatera Mac-appen";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13001,6 +12673,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Ekran kısılmış";
   if (std::strcmp(key, "screen_lock") == 0) return "Ekran Kilidi";
   if (std::strcmp(key, "screen_locked") == 0) return "Ekran kilitli";
+  if (std::strcmp(key, "locked") == 0) return "Kilitli";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Bu ekranı kullanmak için Mac'inizin kilidini açın";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Ekran kilidi açık";
   if (std::strcmp(key, "skip_next") == 0) return "Sonrakine geç";
   if (std::strcmp(key, "skip_previous") == 0) return "Öncekine geç";
@@ -13072,6 +12746,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 adresini açın";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Tarayıcınızı açın ve\nekranınızı yapılandırın";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "EspDesktop uygulamasını bilgisayarınıza indirin ve eşleştirme adımlarını izleyin.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Ekran hazırlanıyor\nGücü kapatmayın";
   if (std::strcmp(key, "restarting_display") == 0) return "Ekran yeniden başlatılıyor";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Yardım için kurulum kılavuzuna bakın";
@@ -13105,6 +12780,11 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(key, "pairing") == 0) return "Eşleştirme";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu masaüstü uygulamasına girin";
+  if (std::strcmp(key, "cancel") == 0) return "İptal";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Eşlemeyi sıfırla";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Eşleme sıfırlansın mı?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Eşlenen Mac’in bağlantısı kesilecek. Yeniden eşlemeniz gerekecek.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Eşleme sıfırlanamadı. Tekrar deneyin.";
   if (std::strcmp(key, "expired") == 0) return "Süresi doldu";
   if (std::strcmp(key, "pair") == 0) return "Eşleştir";
   if (std::strcmp(key, "settings") == 0) return "Ayarlar";
@@ -13127,24 +12807,6 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Sil";
   if (std::strcmp(key, "keyboard_home") == 0) return "Başlangıç";
   if (std::strcmp(key, "keyboard_end") == 0) return "Son";
-  if (std::strcmp(key, "window_minimise") == 0) return "Simge durumuna küçült";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Uygulamayı gizle";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Tam ekran";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Masaüstünü doldur";
-  if (std::strcmp(key, "window_centre") == 0) return "Ortala";
-  if (std::strcmp(key, "window_left") == 0) return "Sol";
-  if (std::strcmp(key, "window_right") == 0) return "Sağ";
-  if (std::strcmp(key, "window_top") == 0) return "Üst";
-  if (std::strcmp(key, "window_bottom") == 0) return "Alt";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Önceki boyuta dön";
-  if (std::strcmp(key, "window_left_right") == 0) return "Sol ve sağ";
-  if (std::strcmp(key, "window_right_left") == 0) return "Sağ ve sol";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Üst ve alt";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Alt ve üst";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Sol ve çeyrekler";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Sağ ve çeyrekler";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Üst ve çeyrekler";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Alt ve çeyrekler";
   if (std::strcmp(key, "paired") == 0) return "Eşleştirildi";
   if (std::strcmp(key, "unpaired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(key, "stat_used") == 0) return "kullanılan";
@@ -13175,6 +12837,8 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Mikrofonu sessize al";
   if (std::strcmp(key, "mic") == 0) return "Mikrofon";
   if (std::strcmp(key, "mute") == 0) return "Sessiz";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Mac uygulamasını güncelleyin";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13327,6 +12991,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "screen_dimmed") == 0) return "Екран приглушено";
   if (std::strcmp(key, "screen_lock") == 0) return "Блокування екрана";
   if (std::strcmp(key, "screen_locked") == 0) return "Екран заблоковано";
+  if (std::strcmp(key, "locked") == 0) return "Заблоковано";
+  if (std::strcmp(key, "unlock_mac_to_use_screen") == 0) return "Розблокуйте Mac, щоб користуватися цим екраном";
   if (std::strcmp(key, "screen_unlocked") == 0) return "Екран розблоковано";
   if (std::strcmp(key, "skip_next") == 0) return "Наступний";
   if (std::strcmp(key, "skip_previous") == 0) return "Попередній";
@@ -13398,6 +13064,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Відкрийте 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Відкрийте браузер і\nналаштуйте дисплей";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Завантажте застосунок EspDesktop на комп’ютер і виконайте кроки сполучення.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Підготовка екрана\nНе вимикайте живлення";
   if (std::strcmp(key, "restarting_display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Дивіться посібник зі встановлення для допомоги";
@@ -13431,6 +13098,11 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Не сполучено";
   if (std::strcmp(key, "pairing") == 0) return "Сполучення";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для комп’ютера";
+  if (std::strcmp(key, "cancel") == 0) return "Скасувати";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Скинути сполучення";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Скинути сполучення?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "З’єднання зі сполученим Mac буде розірвано. Його потрібно буде сполучити знову.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Не вдалося скинути сполучення. Спробуйте ще раз.";
   if (std::strcmp(key, "expired") == 0) return "Термін дії минув";
   if (std::strcmp(key, "pair") == 0) return "Сполучити";
   if (std::strcmp(key, "settings") == 0) return "Налаштування";
@@ -13452,24 +13124,6 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "keyboard_delete") == 0) return "Видалити";
   if (std::strcmp(key, "keyboard_home") == 0) return "Початок";
   if (std::strcmp(key, "keyboard_end") == 0) return "Кінець";
-  if (std::strcmp(key, "window_minimise") == 0) return "Згорнути";
-  if (std::strcmp(key, "window_hide_app") == 0) return "Сховати програму";
-  if (std::strcmp(key, "window_full_screen") == 0) return "Повний екран";
-  if (std::strcmp(key, "window_fill_desktop") == 0) return "Заповнити робочий стіл";
-  if (std::strcmp(key, "window_centre") == 0) return "По центру";
-  if (std::strcmp(key, "window_left") == 0) return "Ліворуч";
-  if (std::strcmp(key, "window_right") == 0) return "Праворуч";
-  if (std::strcmp(key, "window_top") == 0) return "Угорі";
-  if (std::strcmp(key, "window_bottom") == 0) return "Унизу";
-  if (std::strcmp(key, "window_previous_size") == 0) return "Повернути попередній розмір";
-  if (std::strcmp(key, "window_left_right") == 0) return "Ліворуч і праворуч";
-  if (std::strcmp(key, "window_right_left") == 0) return "Праворуч і ліворуч";
-  if (std::strcmp(key, "window_top_bottom") == 0) return "Угорі й унизу";
-  if (std::strcmp(key, "window_bottom_top") == 0) return "Унизу й угорі";
-  if (std::strcmp(key, "window_left_quarters") == 0) return "Ліворуч і чверті";
-  if (std::strcmp(key, "window_right_quarters") == 0) return "Праворуч і чверті";
-  if (std::strcmp(key, "window_top_quarters") == 0) return "Угорі й чверті";
-  if (std::strcmp(key, "window_bottom_quarters") == 0) return "Унизу й чверті";
   if (std::strcmp(key, "paired") == 0) return "Сполучено";
   if (std::strcmp(key, "unpaired") == 0) return "Не сполучено";
   if (std::strcmp(key, "stat_used") == 0) return "використано";
@@ -13500,6 +13154,8 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "microphone_mute") == 0) return "Вимкнути мікрофон";
   if (std::strcmp(key, "mic") == 0) return "Мікрофон";
   if (std::strcmp(key, "mute") == 0) return "Без звуку";
+  if (std::strcmp(key, "mac_update_required") == 0) return "Оновіть застосунок для Mac";
+  if (std::strcmp(key, "mac_update_reconnect") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
   return espdesktop_i18n_key_en(key);
 }
 

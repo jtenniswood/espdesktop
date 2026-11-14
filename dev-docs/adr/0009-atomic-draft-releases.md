@@ -40,7 +40,8 @@ input rather than a release artifact.
 - Failed builds and partial uploads leave a recoverable draft.
 - Reruns may replace expected draft assets, but unexpected stale assets block
   publication.
-- Release creation now requires an explicit workflow dispatch after the tag
-  and draft exist.
-- GitHub Pages deployment still starts from the successful `Build Release`
-  workflow and therefore sees only published, verified assets.
+- Build Release prepares a private candidate after the tag and draft exist.
+  The candidate manifest binds the firmware and Mac app to one fingerprint.
+- Publish Release requires a recorded test on the 4848S040 and verifies the
+  candidate fingerprint before uploading the same files.
+- GitHub Pages deployment starts after Publish Release succeeds.

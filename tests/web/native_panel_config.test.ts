@@ -1,3 +1,6 @@
+import { SCREEN_SCHEDULE_PREFERENCES, decodeScreenSchedulePreferences } from "../../src/webserver/model/screen_schedule_preferences";
+import { DISPLAY_THEME_PREFERENCES, decodeDisplayThemePreferences,
+  legacyDisplayThemePatch } from "../../src/webserver/model/display_theme_preferences";
 import {
   createNativePanelConfigClient,
   updateNativePanelConfigDocument,
@@ -43,6 +46,82 @@ const document = encodePanelConfig({
   subpages: {},
   settings: { button_order: "1" },
 });
+
+export async function runDisplayThemePreferenceTests(): Promise<void> {
+  let current = decodePanelConfig(document);
+  let puts = 0;
+  let editFromAnotherTab = false;
+  const target = new NativePanelConfigController({
+    fetch: async (path, request) => {
+      if (path.endsWith("capabilities")) return {
+        ...response(200), json: async () => ({ configuration: {
+          read: true, write: true, document_versions: [1], display_theme_preferences: true, screen_schedule_preferences: true,
+        } }),
+      };
+      if (request?.method === "PUT") {
+        ++puts;
+        if (editFromAnotherTab) {
+          editFromAnotherTab = false;
+          current = {
+            ...current, settings: { ...current.settings,
+              [SCREEN_SCHEDULE_PREFERENCES]: "1,1,9,22,clock,60,10,15,10,FFFFFF" },
+          };
+          return response(409);
+        }
+        current = decodePanelConfig(request.body!);
+        return response(204);
+      }
+      return response(200, encodePanelConfig(current), '"' + puts + '"');
+    },
+    deviceProfile: () => "panel-a", slotCount: () => 9,
+    entityName: name => name, entityNameForSlot: (name, slot) => `${name}_${slot}`,
+    normalizeHexColor: value => value, showBanner: () => {}, delay: callback => callback(),
+  });
+  await target.waitForDiscovery();
+  equal(target.client?.supportsDisplayThemePreferences(), true, "theme support is explicitly advertised");
+  const legacy = { themeMode: "Auto", themeAutoMethod: "Sunrise / Sunset",
+    themeLightStart: "06:55", themeDarkStart: "20:35", themeSunriseOffset: -35, themeSunsetOffset: 45 };
+  equal(await target.writeDisplayThemePreference({ themeDarkStart: "21:00" }, legacy), "saved", "save group");
+  equal(puts, 1, "one change writes the whole group once");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,sun,415,1260,-35,45", "legacy values are imported");
+  equal(await target.writeDisplayThemePreference({ themeMode: "Light" }, legacy), "saved", "edit another field");
+  equal(puts, 2, "the second group uses one write");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,light,sun,415,1260,-35,45", "latest group replaces stale legacy");
+  equal(decodeDisplayThemePreferences("1,light,sun,1440,1260,-35,45"), undefined, "invalid time is rejected");
+
+  const backup = decodePanelConfig(document);
+  const patch = legacyDisplayThemePatch({ theme_mode: "Schedule", theme_light_start: "07:05" });
+  equal(await target.writeDocument(backup, undefined, { legacy, patch }), "saved", "restore a legacy backup");
+  equal(puts, 3, "layout and legacy theme import share a write");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,time,425,1260,-35,45", "partial backup preserves missing fields");
+  equal(await target.writeDocument(backup, undefined, { legacy, patch: {} }), "saved", "restore a layout-only backup");
+  equal(current.settings[DISPLAY_THEME_PREFERENCES], "1,auto,time,425,1260,-35,45", "layout-only restore preserves theme");
+  equal(target.client?.supportsScreenSchedulePreferences(), true, "schedule capability discovered");
+  const previousPuts = puts;
+  const schedule = { scheduleTrigger: "time", scheduleOnHour: 7, scheduleOffHour: 19,
+    scheduleMode: "clock", scheduleWakeTimeout: 60, scheduleWakeBrightness: 10,
+    scheduleDimmedBrightness: 15, scheduleClockBrightness: 10, scheduleClockTextColor: "FFFFFF" };
+  equal(await target.writeScreenSchedulePreference({ scheduleOnHour: 8, scheduleOffHour: 22 }, schedule),
+    "saved", "save both schedule hours together");
+  equal(puts, previousPuts + 1, "the schedule uses one write");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,8,22,clock,60,10,15,10,FFFFFF", "complete typed group");
+  editFromAnotherTab = true;
+  equal(await target.writeScreenSchedulePreference({ scheduleOffHour: 23 }, schedule),
+    "saved", "retry a schedule change after another browser tab saves");
+  equal(puts, previousPuts + 3, "a stale generation is retried with one complete group");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,9,23,clock,60,10,15,10,FFFFFF",
+    "the retry preserves the other tab's change");
+  equal(await target.writeDocument(backup), "saved", "restore a layout-only backup after schedule settings");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], "1,1,9,23,clock,60,10,15,10,FFFFFF",
+    "layout-only restores retain the current schedule");
+  const savedSchedule = "1,0,7,19,dim,60,10,15,10,FFFFFF";
+  equal(await target.writeDocument({ ...backup, settings: {
+    ...backup.settings, [SCREEN_SCHEDULE_PREFERENCES]: savedSchedule,
+  } }), "saved", "restore a backup with its own schedule");
+  equal(current.settings[SCREEN_SCHEDULE_PREFERENCES], savedSchedule, "restore the backup's explicit schedule");
+  equal(decodeScreenSchedulePreferences("1,1,24,22,clock,60,10,15,10,FFFFFF"), undefined, "invalid hour rejected");
+
+}
 
 export async function runNativePanelConfigBackupTests(): Promise<void> {
   for (const slots of [6, 9, 15, 20]) for (const support of [undefined, false, "true", true]) {
@@ -214,6 +293,9 @@ export async function runNativePanelConfigTests(migrationFixture?: MigrationFixt
   const put = requests.find((entry) => entry.request?.method === "PUT");
   equal(put?.path, "/api/v1/config", "native save uses the versioned configuration endpoint");
   equal(put?.request?.headers?.["If-Match"], '"7"', "native save checks the exact configuration generation");
+  requests.length = 0;
+  equal(await client.save(current => current, true), "saved", "a migration can skip a layout already cleaned by another editor");
+  equal(requests.some(entry => entry.request?.method === "PUT"), false, "the unchanged migration does not write to the device");
 
   let retries = 0;
   const retryClient = createNativePanelConfigClient(async (path, request) => {

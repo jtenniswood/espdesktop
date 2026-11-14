@@ -1,23 +1,15 @@
 import { state } from "../state/app_instance";
 import {
-    DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT,
-    DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT,
+
     normalizeBrightnessMode,
-    normalizeHomeAssistantArtworkPort,
-    normalizeHomeAssistantArtworkProtocol,
     normalizeHour,
-    normalizeScreensaverCameraImageMode,
     normalizeTimeOfDay,
 } from "../model/settings";
-import { setSelectValue } from "./ui_primitives";
-import { timedSettingLabel, type SettingsUiFeature } from "../features/settings";
-import type { AlarmDelayAudioController } from "../features/alarm_delay_audio_controller";
+import type { SettingsUiFeature } from "../features/settings";
+
 import type { ScreensaverController } from "../features/screensaver_controller";
-import type { CoverArtScreensaverController } from "../features/cover_art_screensaver_controller";
-import type { MediaPlaybackController } from "../features/media_playback_controller";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { UiRuntimeState } from "./state";
-import type { ApplicationLayoutState } from "./application_context";
 import type { ScreenScheduleStateFeature } from "./screen_schedule_state";
 import type { ClockBarFeature } from "./clock_bar_state";
 import type { EntityStateFeature } from "./entity_state";
@@ -26,46 +18,32 @@ import type { ApplicationApiFeature } from "./api";
 import type { AppStatusPreviewFeature } from "./app_status_preview";
 import type { ClockBarPostApiFeature } from "./clock_bar_post_api";
 import type { ControlsFieldsFeature } from "./controls_fields";
-import type { ArtworkPostApiFeature } from "./artwork_post_api";
 
 export interface SettingsPageHelpersControllers {
     readonly settingsUiFeature: SettingsUiFeature;
-    readonly alarmDelayAudio: AlarmDelayAudioController;
+
     readonly screensaver: ScreensaverController;
-    readonly coverArtScreensaver: CoverArtScreensaverController;
-    readonly mediaPlayback: MediaPlaybackController;
     readonly codec: Pick<ConfigCodecFeature, "bindTextPost">;
     readonly runtime: UiRuntimeState;
-    readonly layout: ApplicationLayoutState;
     readonly screenScheduleState: ScreenScheduleStateFeature;
     readonly clockBar: Pick<ClockBarFeature, "syncUi">;
     readonly entityState: Pick<EntityStateFeature, "entityInput" | "entityName">;
     readonly shell: Pick<ControlsShellFeature, "isConfigLocked" | "switchTab">;
     readonly requestApi: Pick<ApplicationApiFeature, "postScreensaverAction" | "postScreensaverDimmedBrightness" | "postScreensaverDimmedBrightnessDay" | "postScreensaverDimmedBrightnessNight" | "postSwitch">;
     readonly statusPreview: Pick<AppStatusPreviewFeature, "syncInput">;
-    readonly clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBrightnessDay" | "postClockBrightnessNight" | "postClockScreensaver" | "postClockDate" | "postAlarmDelayAudio" | "postAlarmDelayTts" | "postAlarmDelayEntryAnnouncement" | "postAlarmDelayExitAnnouncement" | "postAlarmDelayBeepVolume" | "postAlarmDelayFinalCountdown">;
+    readonly clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBrightnessDay" | "postClockBrightnessNight" | "postClockScreensaver" | "postClockDate">;
     readonly fields: Pick<ControlsFieldsFeature, "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "toggleRow">;
-    readonly artworkPostApi: Pick<ArtworkPostApiFeature, "postScreensaverCameraEntity" | "postScreensaverCameraImageMode" | "postScreensaverCameraDimming">;
 }
 
 export interface SettingsPageHelpersFeature {
-    coverArtScreensaverState(...args: any[]): any;
-    applyCoverArtScreensaverState(...args: any[]): any;
-    mediaPlaybackState(...args: any[]): any;
-    applyMediaPlaybackState(...args: any[]): any;
     settingsStatusHeader(...args: any[]): any;
     appendSettingsSection(...args: any[]): any;
-    openVoiceServicesSettings(...args: any[]): any;
-    syncAlarmDelayAudioUi(...args: any[]): any;
-    buildAlarmDelayAudioSettingsCard(...args: any[]): any;
-    coverArtTrackOverlayDurationSupported(...args: any[]): any;
+
     infoPanel(...args: any[]): any;
     statusBadge(...args: any[]): any;
     disclosureBadge(...args: any[]): any;
     inlineDisclosure(...args: any[]): any;
     syncClockScreensaverControls(...args: any[]): any;
-    syncMediaPlayerSleepPreventionUi(...args: any[]): any;
-    syncCoverArtScreensaverUi(...args: any[]): any;
     syncOptionalClockBrightness(...args: any[]): any;
     createScreensaverThenControls(...args: any[]): any;
     createHourSelect(...args: any[]): any;
@@ -91,12 +69,7 @@ export function createSettingsPageHelpersFeature(
         postClockBrightnessNight,
         postClockScreensaver,
         postClockDate,
-        postAlarmDelayAudio,
-        postAlarmDelayTts,
-        postAlarmDelayEntryAnnouncement,
-        postAlarmDelayExitAnnouncement,
-        postAlarmDelayBeepVolume,
-        postAlarmDelayFinalCountdown,
+
     } = controllers.clockBarPostApi;
     const {
         postScreensaverAction,
@@ -106,34 +79,14 @@ export function createSettingsPageHelpersFeature(
         postSwitch,
     } = controllers.requestApi;
     const els = controllers.runtime.els;
-    const { formatDuration, formatHour } = controllers.screenScheduleState;
+    const { formatHour } = controllers.screenScheduleState;
     const { syncUi: syncClockBarUi } = controllers.clockBar;
-    const { postScreensaverCameraEntity, postScreensaverCameraImageMode } = controllers.artworkPostApi;
     // ── Settings Page Helpers ──────────────────────────────────────────
     // ── Settings UI helpers ─────────────────────────────────────────────
     const _settingsUiFeature: SettingsUiFeature = controllers.settingsUiFeature;
-    const _alarmDelayAudioController: AlarmDelayAudioController = controllers.alarmDelayAudio;
+
     const _screensaverController: ScreensaverController = controllers.screensaver;
-    const _coverArtScreensaverController: CoverArtScreensaverController = controllers.coverArtScreensaver;
-    const _mediaPlaybackController: MediaPlaybackController = controllers.mediaPlayback;
-    function alarmDelayAudioState(this: any) {
-        return {
-            audioEnabled: !!state.alarmDelayAudioOn,
-            ttsEnabled: !!state.alarmDelayTtsOn,
-            entryAnnouncement: state.alarmDelayEntryAnnouncement,
-            exitAnnouncement: state.alarmDelayExitAnnouncement,
-            beepVolume: state.alarmDelayBeepVolume,
-            finalCountdown: state.alarmDelayFinalCountdown,
-        };
-    }
-    function applyAlarmDelayAudioState(this: any, next?: any) {
-        state.alarmDelayAudioOn = next.audioEnabled;
-        state.alarmDelayTtsOn = next.ttsEnabled;
-        state.alarmDelayEntryAnnouncement = next.entryAnnouncement;
-        state.alarmDelayExitAnnouncement = next.exitAnnouncement;
-        state.alarmDelayBeepVolume = next.beepVolume;
-        state.alarmDelayFinalCountdown = next.finalCountdown;
-    }
+
     function screensaverState(this: any) {
         return {
             action: state.screensaverAction,
@@ -153,192 +106,13 @@ export function createSettingsPageHelpersFeature(
         state.screensaverDimmedBrightnessNight = next.dimBrightnessNight;
         state.clockScreensaverOn = next.action === "clock";
     }
-    function coverArtScreensaverState(this: any) {
-        return {
-            enabled: !!state.coverArtScreensaverOn,
-            delay: state.coverArtDelay,
-            trackOverlayDuration: state.coverArtTrackOverlayDuration,
-            hideExternalInput: !!state.coverArtHideExternalInputOn,
-            filteringEnabled: !!state.coverArtFilteringEnabled,
-            attributeConditions: state.coverArtAttributeConditions || "",
-        };
-    }
-    function applyCoverArtScreensaverState(this: any, next?: any) {
-        state.coverArtScreensaverOn = next.enabled;
-        state.coverArtDelay = next.delay;
-        state.coverArtTrackOverlayDuration = next.trackOverlayDuration;
-        state.coverArtHideExternalInputOn = next.hideExternalInput;
-        state.coverArtFilteringEnabled = next.filteringEnabled;
-        state.coverArtAttributeConditions = next.attributeConditions;
-    }
-    function mediaPlaybackState(this: any) {
-        return {
-            sleepPreventionEnabled: !!state.mediaPlayerSleepPreventionOn,
-            sleepPreventionEntity: state.mediaPlayerSleepPreventionEntity || "",
-            coverArtEntity: state.coverArtMediaPlayerEntity || "",
-        };
-    }
-    function applyMediaPlaybackState(this: any, next?: any) {
-        state.mediaPlayerSleepPreventionOn = next.sleepPreventionEnabled;
-        state.mediaPlayerSleepPreventionEntity = next.sleepPreventionEntity;
-        state.coverArtMediaPlayerEntity = next.coverArtEntity;
-    }
     function settingsStatusHeader(this: any, title?: any) {
         return _settingsUiFeature.settingsStatusHeader(title);
     }
     function appendSettingsSection(this: any, parent?: any, title?: any, cards?: any) {
         _settingsUiFeature.appendSettingsSection(parent, title, cards);
     }
-    function openVoiceServicesSettings(this: any) {
-        if (isConfigLocked() || !els.voiceServicesCard)
-            return;
-        switchTab("settings");
-        els.voiceServicesCard.classList.remove("collapsed");
-        els.voiceServicesCard.scrollIntoView({ block: "center", behavior: "smooth" });
-        if (els.setVoiceServicesToggle) {
-            window.setTimeout(function (this: any) { els.setVoiceServicesToggle.focus(); }, 150);
-        }
-    }
-    function syncAlarmDelayAudioUi(this: any) {
-        var audioState: any = alarmDelayAudioState();
-        var uiState: any = _alarmDelayAudioController.uiState(audioState);
-        if (els.setAlarmDelayAudioToggle)
-            els.setAlarmDelayAudioToggle.checked = !!state.alarmDelayAudioOn;
-        if (els.setAlarmDelayAudioBadge)
-            els.setAlarmDelayAudioBadge.className = "sp-card-badge" + (state.alarmDelayAudioOn ? "" : " sp-hidden");
-        if (els.setAlarmDelayTtsToggle)
-            els.setAlarmDelayTtsToggle.checked = !!state.alarmDelayTtsOn;
-        if (els.alarmDelayAudioOptions)
-            els.alarmDelayAudioOptions.style.display = uiState.audioOptionsVisible ? "" : "none";
-        if (els.alarmDelayTtsOptions)
-            els.alarmDelayTtsOptions.style.display = uiState.ttsOptionsVisible ? "" : "none";
-        syncInput(els.setAlarmDelayEntryAnnouncement, state.alarmDelayEntryAnnouncement);
-        syncInput(els.setAlarmDelayExitAnnouncement, state.alarmDelayExitAnnouncement);
-        if (els.setAlarmDelayBeepVolume)
-            els.setAlarmDelayBeepVolume.value = String(uiState.beepVolumePercent);
-        if (els.setAlarmDelayBeepVolumeVal)
-            els.setAlarmDelayBeepVolumeVal.textContent = uiState.beepVolumePercent + "%";
-        if (els.setAlarmDelayFinalCountdown)
-            els.setAlarmDelayFinalCountdown.value = String(uiState.finalCountdown);
-    }
-    function buildAlarmDelayAudioSettingsCard(this: any) {
-        if (!(controllers.layout.config.features && controllers.layout.config.features.alarmDelayAudio))
-            return null;
-        var body: any = document.createElement("div");
-        var master: any = toggleRow("Alarm Delay Audio", "sp-set-alarm-delay-audio", state.alarmDelayAudioOn);
-        body.appendChild(master.row);
-        els.setAlarmDelayAudioToggle = master.input;
-        master.input.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setAudioEnabled(alarmDelayAudioState(), this.checked));
-            postAlarmDelayAudio(state.alarmDelayAudioOn);
-            syncAlarmDelayAudioUi();
-        });
 
-        var options: any = condField();
-        els.alarmDelayAudioOptions = options;
-        var tts: any = toggleRow("TTS Announcements", "sp-set-alarm-delay-tts", state.alarmDelayTtsOn);
-        options.appendChild(tts.row);
-        els.setAlarmDelayTtsToggle = tts.input;
-        tts.input.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setTtsEnabled(alarmDelayAudioState(), this.checked));
-            postAlarmDelayTts(state.alarmDelayTtsOn);
-            syncAlarmDelayAudioUi();
-        });
-
-        var ttsOptions: any = condField();
-        els.alarmDelayTtsOptions = ttsOptions;
-        function announcementInput(
-            label: any,
-            id: any,
-            value: any,
-            fallback: any,
-            stateKey: "alarmDelayEntryAnnouncement" | "alarmDelayExitAnnouncement",
-            controllerField: "entryAnnouncement" | "exitAnnouncement",
-            postValue: any,
-        ) {
-            var field: any = document.createElement("div");
-            field.className = "sp-field";
-            field.appendChild(fieldLabel(label, id));
-            var input: any = document.createElement("input");
-            input.type = "text";
-            input.className = "sp-input";
-            input.id = id;
-            input.maxLength = 120;
-            input.value = value;
-            input.addEventListener("change", function (this: any) {
-                var normalized: any = _alarmDelayAudioController.setAnnouncement(
-                    alarmDelayAudioState(), controllerField, this.value, fallback,
-                )[controllerField];
-                this.value = normalized;
-                state[stateKey] = normalized;
-                postValue(normalized);
-            });
-            field.appendChild(input);
-            ttsOptions.appendChild(field);
-            return input;
-        }
-        els.setAlarmDelayEntryAnnouncement = announcementInput(
-            "Entry Announcement", "sp-set-alarm-delay-entry-announcement",
-            state.alarmDelayEntryAnnouncement, DEFAULT_ALARM_DELAY_ENTRY_ANNOUNCEMENT,
-            "alarmDelayEntryAnnouncement",
-            "entryAnnouncement",
-            postAlarmDelayEntryAnnouncement);
-        els.setAlarmDelayExitAnnouncement = announcementInput(
-            "Exit Announcement", "sp-set-alarm-delay-exit-announcement",
-            state.alarmDelayExitAnnouncement, DEFAULT_ALARM_DELAY_EXIT_ANNOUNCEMENT,
-            "alarmDelayExitAnnouncement",
-            "exitAnnouncement",
-            postAlarmDelayExitAnnouncement);
-        options.appendChild(ttsOptions);
-
-        var volume: any = createRangeSlider("Beep Volume", state.alarmDelayBeepVolume * 100, null);
-        volume.range.id = "sp-set-alarm-delay-beep-volume";
-        volume.range.min = "5";
-        volume.range.max = "100";
-        volume.range.step = "5";
-        volume.range.addEventListener("input", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setBeepVolume(alarmDelayAudioState(), parseFloat(this.value) / 100));
-            volume.val.textContent = Math.round(state.alarmDelayBeepVolume * 100) + "%";
-        });
-        volume.range.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setBeepVolume(alarmDelayAudioState(), parseFloat(this.value) / 100));
-            postAlarmDelayBeepVolume(state.alarmDelayBeepVolume);
-        });
-        options.appendChild(volume.wrap);
-        els.setAlarmDelayBeepVolume = volume.range;
-        els.setAlarmDelayBeepVolumeVal = volume.val;
-
-        var countdownField: any = document.createElement("div");
-        countdownField.className = "sp-field";
-        countdownField.appendChild(fieldLabel("Faster Beeps During Final Seconds", "sp-set-alarm-delay-final-countdown"));
-        var countdown: any = document.createElement("input");
-        countdown.type = "number";
-        countdown.className = "sp-input";
-        countdown.id = "sp-set-alarm-delay-final-countdown";
-        countdown.min = "0";
-        countdown.max = "60";
-        countdown.step = "1";
-        countdown.value = String(state.alarmDelayFinalCountdown);
-        countdown.addEventListener("change", function (this: any) {
-            applyAlarmDelayAudioState(_alarmDelayAudioController.setFinalCountdown(alarmDelayAudioState(), this.value));
-            this.value = String(state.alarmDelayFinalCountdown);
-            postAlarmDelayFinalCountdown(state.alarmDelayFinalCountdown);
-        });
-        countdownField.appendChild(countdown);
-        options.appendChild(countdownField);
-        els.setAlarmDelayFinalCountdown = countdown;
-        body.appendChild(options);
-        body.appendChild(infoPanel(
-            "sp-alarm-delay-audio-info",
-            "Entry and exit beeps use the panel speaker. TTS is sent as a Home Assistant announcement event only while Voice Services are enabled."));
-        var badge: any = statusBadge("Alarm audio on");
-        els.setAlarmDelayAudioBadge = badge;
-        syncAlarmDelayAudioUi();
-        return makeCollapsibleCard("Alarm Audio", body, true, badge);
-    }
-    function coverArtTrackOverlayDurationSupported(this: any) {
-        return !!controllers.layout.config.coverArtSquareOverlay;
-    }
     function infoPanel(this: any, id?: any, text?: any) {
         return _settingsUiFeature.infoPanel(id, text);
     }
@@ -357,23 +131,6 @@ export function createSettingsPageHelpersFeature(
         var mode: any = controlState.mode;
         var clockDisplay: any = controlState.clockVisible ? "" : "none";
         var dimDisplay: any = controlState.dimVisible ? "" : "none";
-        var cameraSupported = !!controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported;
-        var cameraDisplay: any = cameraSupported && controlState.cameraVisible ? "" : "none";
-        for (const select of [els.setClockSelect, els.setSensorClockSelect, els.setCompanionClockSelect]) {
-            if (!select) continue;
-            const option = select.querySelector('option[value="camera"]');
-            if (cameraSupported && !option) select.add(new Option("Camera", "camera"));
-            if (!cameraSupported && option) option.remove();
-        }
-        if (els.setScreensaverCameraPanel)
-            els.setScreensaverCameraPanel.style.display = cameraDisplay;
-        for (const slider of [els.setScreensaverCameraDimming, els.setSensorScreensaverCameraDimming]) {
-            if (!slider) continue;
-            slider.value = String(state.screensaverCameraDimming);
-            const wrap = slider.closest(".sp-field");
-            wrap.style.display = cameraSupported && controlState.cameraVisible && state.screensaverCameraDimmingSupported ? "" : "none";
-            wrap.querySelector(".sp-range-val").textContent = state.screensaverCameraDimming + "%";
-        }
         var automaticBrightness: any = normalizeBrightnessMode(state.brightnessMode) !== "manual";
         state.clockScreensaverOn = mode === "clock";
         syncClockBarUi();
@@ -394,29 +151,6 @@ export function createSettingsPageHelpersFeature(
         syncOptionalClockBrightness(els.setDimBrightnessField, els.setClockField, dimDisplay);
         syncOptionalClockBrightness(els.setSensorDimBrightnessField, els.setSensorClockField, dimDisplay);
         syncOptionalClockBrightness(els.setCompanionDimBrightnessField, els.setCompanionClockField, dimDisplay);
-        if (els.setScreensaverCameraField)
-            els.setScreensaverCameraField.style.display = cameraDisplay;
-        if (els.setSensorScreensaverCameraField)
-            els.setSensorScreensaverCameraField.style.display = cameraDisplay;
-        if (els.setScreensaverCameraImageModeField)
-            els.setScreensaverCameraImageModeField.style.display = cameraDisplay;
-        if (els.setSensorScreensaverCameraImageModeField)
-            els.setSensorScreensaverCameraImageModeField.style.display = cameraDisplay;
-        if (els.setClockOverlayRow)
-            els.setClockOverlayRow.style.display = state.clockOverlaySupported ? cameraDisplay : "none";
-        if (els.setScreensaverMetadataField)
-            els.setScreensaverMetadataField.style.display = controlState.cameraVisible && state.metadataOverlayOn ? "" : "none";
-        if (els.setMetadataOverlayRow)
-            els.setMetadataOverlayRow.style.display = cameraDisplay;
-        if (els.setMetadataOverlayToggle)
-            els.setMetadataOverlayToggle.checked = state.metadataOverlayOn;
-        syncInput(els.setScreensaverMetadata, state.screensaverMetadataEntity);
-        syncInput(els.setScreensaverCamera, state.screensaverCameraEntity);
-        syncInput(els.setSensorScreensaverCamera, state.screensaverCameraEntity);
-        if (els.setScreensaverCameraImageMode)
-            els.setScreensaverCameraImageMode.value = normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode);
-        if (els.setSensorScreensaverCameraImageMode)
-            els.setSensorScreensaverCameraImageMode.value = normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode);
         if (els.setManualDimBrightnessField)
             els.setManualDimBrightnessField.style.display = automaticBrightness ? "none" : "";
         if (els.setAutomaticDimBrightnessField)
@@ -490,96 +224,6 @@ export function createSettingsPageHelpersFeature(
             els.setCompanionClockBrightnessNightVal.textContent = controlState.nightBrightnessLabel;
         }
     }
-    function syncMediaPlayerSleepPreventionUi(this: any) {
-        var uiState: any = _mediaPlaybackController.uiState(mediaPlaybackState());
-        if (els.setMediaPlayerSleepPreventionToggle) {
-            els.setMediaPlayerSleepPreventionToggle.checked = uiState.sleepPreventionEnabled;
-        }
-        if (els.setSensorMediaPlayerSleepPreventionToggle) {
-            els.setSensorMediaPlayerSleepPreventionToggle.checked = uiState.sleepPreventionEnabled;
-        }
-    }
-    function syncCoverArtScreensaverUi(this: any) {
-        applyCoverArtScreensaverState(_coverArtScreensaverController.normalize(coverArtScreensaverState()));
-        var uiState: any = _coverArtScreensaverController.uiState(coverArtScreensaverState());
-        if (els.setCoverArtPlaybackControlToggle) {
-            els.setCoverArtPlaybackControlToggle.checked = state.coverArtPlaybackControlOn;
-        }
-        if (els.setCoverArtToggle) {
-            els.setCoverArtToggle.checked = !!state.coverArtScreensaverOn;
-        }
-        if (els.setClockOverlayToggle) {
-            els.setClockOverlayToggle.checked = !!state.clockOverlayOn;
-        }
-        if (els.setCoverArtOptions) {
-            els.setCoverArtOptions.classList.toggle("sp-visible", uiState.contentVisible);
-        }
-        if (els.setCoverArtOnlyOptions) {
-            els.setCoverArtOnlyOptions.classList.toggle("sp-visible", uiState.contentVisible);
-        }
-        if (els.setCoverArtBadge) {
-            els.setCoverArtBadge.className = "sp-card-badge" + (uiState.badgeVisible ? "" : " sp-hidden");
-        }
-        if (els.setCoverArtDelay) {
-            setSelectValue(els.setCoverArtDelay, state.coverArtDelay, formatDuration(state.coverArtDelay));
-        }
-        if (els.setCoverArtTrackOverlayDuration) {
-            var value: any = state.coverArtTrackOverlayDuration;
-            setSelectValue(els.setCoverArtTrackOverlayDuration, value, timedSettingLabel(value, formatDuration));
-        }
-        if (els.setCoverArtHideExternalInputToggle) {
-            els.setCoverArtHideExternalInputToggle.checked = !state.coverArtHideExternalInputOn;
-        }
-        if (els.setCoverArtSecondaryMediaPlayerOptions) {
-            els.setCoverArtSecondaryMediaPlayerOptions.classList.toggle(
-                "sp-visible", uiState.externalSourcesVisible);
-        }
-        if (els.setHomeAssistantArtworkProtocol) {
-            els.setHomeAssistantArtworkProtocol.value =
-                normalizeHomeAssistantArtworkProtocol(state.homeAssistantArtworkProtocol);
-        }
-        if (els.setHomeAssistantArtworkHost) {
-            els.setHomeAssistantArtworkHost.value = String(state.homeAssistantArtworkHost || "");
-        }
-        if (els.setCoverArtHomeAssistantPort) {
-            els.setCoverArtHomeAssistantPort.value = String(normalizeHomeAssistantArtworkPort(state.coverArtHomeAssistantPort));
-        }
-        if (els.setHomeAssistantArtworkEndpointMode) {
-            els.setHomeAssistantArtworkEndpointMode.value = state.homeAssistantArtworkEndpointMode;
-        }
-        var manualEndpoint: any = state.homeAssistantArtworkEndpointMode === "Manual";
-        if (els.setHomeAssistantArtworkProtocolField) {
-            els.setHomeAssistantArtworkProtocolField.classList.toggle("sp-hidden", !manualEndpoint);
-        }
-        if (els.setCoverArtHomeAssistantPortField) {
-            els.setCoverArtHomeAssistantPortField.classList.toggle("sp-hidden", !manualEndpoint);
-        }
-        if (els.setHomeAssistantArtworkHostField) {
-            els.setHomeAssistantArtworkHostField.classList.toggle("sp-hidden", !manualEndpoint);
-        }
-        if (els.setHomeAssistantArtworkProtocol) els.setHomeAssistantArtworkProtocol.disabled = !manualEndpoint;
-        if (els.setCoverArtHomeAssistantPort) els.setCoverArtHomeAssistantPort.disabled = !manualEndpoint;
-        if (els.setHomeAssistantArtworkHost) els.setHomeAssistantArtworkHost.disabled = !manualEndpoint;
-        if (els.homeAssistantArtworkEndpointStatus) {
-            var endpointStatus: any = formatHomeAssistantArtworkEndpointStatus(state.homeAssistantArtworkEndpointStatus);
-            if (els.homeAssistantArtworkEndpointStatusOutput) {
-                els.homeAssistantArtworkEndpointStatusOutput.textContent = endpointStatus;
-            } else {
-                els.homeAssistantArtworkEndpointStatus.textContent = endpointStatus;
-            }
-        }
-        if (els.homeAssistantArtworkEndpointHealth) {
-            els.homeAssistantArtworkEndpointHealth.textContent = state.homeAssistantArtworkEndpointHealth;
-            els.homeAssistantArtworkEndpointHealth.hidden = !state.homeAssistantArtworkEndpointHealth;
-        }
-        if (els.setCoverArtFilterToggle) {
-            els.setCoverArtFilterToggle.checked = !!state.coverArtFilteringEnabled;
-        }
-        if (els.setCoverArtFilterOptions) {
-            els.setCoverArtFilterOptions.classList.toggle("sp-visible", uiState.filterOptionsVisible);
-        }
-        syncInput(els.setCoverArtConditions, state.coverArtAttributeConditions || "");
-    }
     function syncOptionalClockBrightness(this: any, field?: any, previousField?: any, display?: any) {
         if (field)
             field.style.display = display;
@@ -602,7 +246,6 @@ export function createSettingsPageHelpersFeature(
             { value: "off", label: "Display Off" },
             { value: "dim", label: "Screen Dimmed" },
             { value: "clock", label: "Clock" },
-            ...(controllers.layout.config.features?.cameraScreensaver && state.screensaverCameraSupported ? [{ value: "camera", label: "Camera" }] : []),
         ].forEach(function (this: any, opt?: any) {
             var o: any = document.createElement("option");
             o.value = opt.value;
@@ -617,61 +260,6 @@ export function createSettingsPageHelpersFeature(
             postClockScreensaver(state.clockScreensaverOn);
         });
         clockField.appendChild(clockSelect);
-        var cameraField: any = document.createElement("div");
-        cameraField.className = "sp-field";
-        cameraField.style.display = _screensaverController.uiState(screensaverState()).cameraVisible ? "" : "none";
-        var cameraId: any = selectId === "sp-set-sensor-clock-mode"
-            ? "sp-set-sensor-screensaver-camera"
-            : "sp-set-screensaver-camera";
-        cameraField.appendChild(fieldLabel("Camera Entity", cameraId));
-        var cameraInput: any = entityInput(cameraId, state.screensaverCameraEntity,
-            "Camera or image entity", ["camera", "image"]);
-        cameraField.appendChild(cameraInput);
-        bindTextPost(cameraInput, entityName("screen_saver_camera_entity"), {
-            post: postScreensaverCameraEntity,
-            onBlur: function (value: any) {
-                state.screensaverCameraEntity = value;
-                syncClockScreensaverControls();
-            },
-        });
-        var cameraImageModeField: any = document.createElement("div");
-        cameraImageModeField.className = "sp-field";
-        cameraImageModeField.style.display = _screensaverController.uiState(screensaverState()).cameraVisible ? "" : "none";
-        var cameraImageModeId: any = selectId === "sp-set-sensor-clock-mode"
-            ? "sp-set-sensor-screensaver-camera-image-mode"
-            : "sp-set-screensaver-camera-image-mode";
-        cameraImageModeField.appendChild(fieldLabel("Expanded Image", cameraImageModeId));
-        var cameraImageModeSelect: any = document.createElement("select");
-        cameraImageModeSelect.className = "sp-select";
-        cameraImageModeSelect.id = cameraImageModeId;
-        [
-            { value: "Fill", label: "Crop to fit" },
-            { value: "Fit", label: "Show full image" },
-        ].forEach(function (this: any, option?: any) {
-            var item: any = document.createElement("option");
-            item.value = option.value;
-            item.textContent = option.label;
-            cameraImageModeSelect.appendChild(item);
-        });
-        cameraImageModeSelect.value = normalizeScreensaverCameraImageMode(state.screensaverCameraImageMode);
-        cameraImageModeSelect.addEventListener("change", function (this: any) {
-            state.screensaverCameraImageMode = normalizeScreensaverCameraImageMode(this.value);
-            postScreensaverCameraImageMode(state.screensaverCameraImageMode);
-            syncClockScreensaverControls();
-        });
-        cameraImageModeField.appendChild(cameraImageModeSelect);
-        var cameraDimming = createRangeSlider("Background Dimming", state.screensaverCameraDimming, controllers.artworkPostApi.postScreensaverCameraDimming);
-        cameraDimming.range.id = selectId === "sp-set-sensor-clock-mode"
-            ? "sp-set-sensor-screensaver-camera-dimming" : "sp-set-screensaver-camera-dimming";
-        cameraDimming.range.min = "0";
-        cameraDimming.range.step = "1";
-        cameraDimming.range.value = String(state.screensaverCameraDimming);
-        cameraDimming.wrap.querySelector("label").htmlFor = cameraDimming.range.id;
-        cameraDimming.wrap.style.display = state.screensaverCameraDimmingSupported && _screensaverController.uiState(screensaverState()).cameraVisible ? "" : "none";
-        cameraDimming.range.addEventListener("input", function (this: any) {
-            state.screensaverCameraDimming = Math.max(0, Math.min(100, Math.round(Number(this.value))));
-            syncClockScreensaverControls();
-        });
         var dimBrightnessField: any = document.createElement("div");
         dimBrightnessField.style.display = _screensaverController.uiState(screensaverState()).dimVisible ? "" : "none";
         var manualDimBrightnessField: any = document.createElement("div");
@@ -738,12 +326,6 @@ export function createSettingsPageHelpersFeature(
             dateToggle: dateToggle.input,
             clockField: clockField,
             clockSelect: clockSelect,
-            cameraField: cameraField,
-            cameraInput: cameraInput,
-            cameraDimmingField: cameraDimming.wrap,
-            cameraDimming: cameraDimming.range,
-            cameraImageModeField: cameraImageModeField,
-            cameraImageModeSelect: cameraImageModeSelect,
             dimBrightnessField: dimBrightnessField,
             manualDimBrightnessField: manualDimBrightnessField,
             automaticDimBrightnessField: automaticDimBrightnessField,
@@ -808,13 +390,9 @@ export function createSettingsPageHelpersFeature(
         return { toggle: toggle, field: field, input: inp };
     }
     return {
-        coverArtScreensaverState, applyCoverArtScreensaverState,
-        mediaPlaybackState, applyMediaPlaybackState, settingsStatusHeader,
-        appendSettingsSection, openVoiceServicesSettings, syncAlarmDelayAudioUi,
-        buildAlarmDelayAudioSettingsCard, coverArtTrackOverlayDurationSupported,
+        settingsStatusHeader, appendSettingsSection,
         infoPanel, statusBadge, disclosureBadge, inlineDisclosure,
-        syncClockScreensaverControls, syncMediaPlayerSleepPreventionUi,
-        syncCoverArtScreensaverUi, syncOptionalClockBrightness,
+        syncClockScreensaverControls, syncOptionalClockBrightness,
         createScreensaverThenControls, createHourSelect, createTimeInput,
         createEntityToggleSection,
     };

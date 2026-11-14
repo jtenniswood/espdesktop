@@ -3,36 +3,90 @@
   "appId": "com.runningwithcrayons.Alfred",
   "label": "Alfred",
   "catalog": false,
+  "defaultShortcutIds": ["0", "39", "18", "19", "1", "4"],
   "shortcuts": [
     {
       "id": "0",
       "label": "Show Alfred",
       "shortcut": "option+space",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "1",
-      "label": "Action a numbered result",
+      "label": "Open Result",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Application Launch"
     },
     {
       "id": "2",
-      "label": "Open a selected file or app in its default app",
+      "label": "Open File",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Open File"
     },
     {
       "id": "3",
-      "label": "Search the current query in Finder",
+      "label": "Search Finder",
       "shortcut": "option+enter",
-      "icon": "Application"
+      "icon": "Folder Search"
     },
     {
       "id": "4",
-      "label": "Reveal a local file in Finder",
+      "label": "Reveal File",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "Folder Open Outline"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "5", "label": "Select next result", "shortcut": "scoped.down", "icon": "Group Selection"},
+    {"id": "6", "label": "Select previous result", "shortcut": "scoped.up", "icon": "Group Selection"},
+    {"id": "7", "label": "Action selected result", "shortcut": "scoped.enter", "icon": "Shortcut Return"},
+    {"id": "8", "label": "Action 2 result 2", "shortcut": "scoped.command+2", "icon": "Shortcut Command"},
+    {"id": "9", "label": "Action 3 result 3", "shortcut": "scoped.command+3", "icon": "Shortcut Command"},
+    {"id": "10", "label": "Action 4 result 4", "shortcut": "scoped.command+4", "icon": "Shortcut Command"},
+    {"id": "11", "label": "Action 5 result 5", "shortcut": "scoped.command+5", "icon": "Shortcut Command"},
+    {"id": "12", "label": "Action 6 result 6", "shortcut": "scoped.command+6", "icon": "Shortcut Command"},
+    {"id": "13", "label": "Action 7 result 7", "shortcut": "scoped.command+7", "icon": "Shortcut Command"},
+    {"id": "14", "label": "Action 8 result 8", "shortcut": "scoped.command+8", "icon": "Shortcut Command"},
+    {"id": "15", "label": "Action 9 result 9", "shortcut": "scoped.command+9", "icon": "Shortcut Command"},
+    {"id": "16", "label": "Open Alfred Preferences", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "17", "label": "Search current query on web", "shortcut": "scoped.control+enter", "icon": "Search"},
+    {"id": "18", "label": "Show available actions for result", "shortcut": "scoped.command+option+keybackslash", "icon": "Shortcut Command"},
+    {"id": "19", "label": "Preview result in Quick Look", "shortcut": "scoped.shift+keyslash", "icon": "Shortcut Command"},
+    {"id": "20", "label": "Preview result in Quick Look", "shortcut": "scoped.command+y", "icon": "Shortcut Command"},
+    {"id": "21", "label": "Hide Alfred or go back one level", "shortcut": "scoped.escape", "icon": "Arrow Left"},
+    {"id": "22", "label": "Hide Alfred immediately", "shortcut": "scoped.command+escape", "icon": "Eye Off"},
+    {"id": "23", "label": "Toggle maximum height", "shortcut": "scoped.command+0", "icon": "Shortcut Command"},
+    {"id": "24", "label": "Zoom in in supported view", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "25", "label": "Zoom out in supported view", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "26", "label": "Home folder", "shortcut": "scoped.shift+keybackquote", "icon": "Folder Open Outline"},
+    {"id": "27", "label": "Filesystem root", "shortcut": "scoped.keyslash", "icon": "Shortcut Command"},
+    {"id": "28", "label": "Return to last browsed path", "shortcut": "scoped.command+option+keyslash", "icon": "Vector"},
+    {"id": "29", "label": "Show file actions", "shortcut": "scoped.right", "icon": "Open File"},
+    {"id": "30", "label": "Browse into selected folder", "shortcut": "scoped.command+down", "icon": "Folder Open Outline"},
+    {"id": "31", "label": "Enter folder", "shortcut": "scoped.enter", "icon": "Folder Open Outline"},
+    {"id": "32", "label": "Go up one folder", "shortcut": "scoped.delete", "icon": "Folder Open Outline"},
+    {"id": "33", "label": "Autocomplete suggestion", "shortcut": "scoped.tab", "icon": "Shortcut Tab"},
+    {"id": "34", "label": "Show hidden files", "shortcut": "scoped.keyperiod", "icon": "Shortcut Command"},
+    {"id": "35", "label": "Add file to File Buffer and move down", "shortcut": "scoped.option+down", "icon": "Arrow Down"},
+    {"id": "36", "label": "Add or remove file from File Buffer", "shortcut": "scoped.option+up", "icon": "Delete"},
+    {"id": "37", "label": "Remove last file from File Buffer", "shortcut": "scoped.option+left", "icon": "Delete"},
+    {"id": "38", "label": "Action all files in File Buffer", "shortcut": "scoped.option+right", "icon": "Open File"},
+    {"id": "39", "label": "Open Clipboard History", "shortcut": "scoped.command+option+c", "icon": "Open File"},
+    {"id": "40", "label": "Copy Clipboard History item", "shortcut": "scoped.command+c", "icon": "Copy"},
+    {"id": "41", "label": "Save clipboard item as snippet", "shortcut": "scoped.command+s", "icon": "Save"},
+    {"id": "42", "label": "Delete Clipboard History entry", "shortcut": "scoped.function+delete", "icon": "Delete"},
+    {"id": "43", "label": "Show Music Mini Player", "shortcut": "scoped.command+control+enter", "icon": "Shortcut Return"},
+    {"id": "44", "label": "Play or pause music", "shortcut": "scoped.command+control+down", "icon": "Play Pause"},
+    {"id": "45", "label": "Play next track", "shortcut": "scoped.command+control+right", "icon": "Play"},
+    {"id": "46", "label": "Play previous track", "shortcut": "scoped.command+control+left", "icon": "Play"},
+    {"id": "47", "label": "Play random album", "shortcut": "scoped.command+control+up", "icon": "Play"},
+    {"id": "48", "label": "Rate current song 0", "shortcut": "scoped.command+control+0", "icon": "Shortcut Command"},
+    {"id": "49", "label": "Rate current song 1", "shortcut": "scoped.command+control+1", "icon": "Shortcut Command"},
+    {"id": "50", "label": "Rate current song 2", "shortcut": "scoped.command+control+2", "icon": "Shortcut Command"},
+    {"id": "51", "label": "Rate current song 3", "shortcut": "scoped.command+control+3", "icon": "Shortcut Command"},
+    {"id": "52", "label": "Rate current song 4", "shortcut": "scoped.command+control+4", "icon": "Shortcut Command"},
+    {"id": "53", "label": "Rate current song 5", "shortcut": "scoped.command+control+5", "icon": "Shortcut Command"},
+    {"id": "54", "label": "Go up folder in Music Mini Player", "shortcut": "scoped.delete", "icon": "Folder Open Outline"},
+    {"id": "55", "label": "Reindex Music library", "shortcut": "scoped.command+r", "icon": "Book"}
   ]
 }

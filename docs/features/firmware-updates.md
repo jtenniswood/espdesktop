@@ -6,13 +6,11 @@ description:
 
 # Firmware Updates
 
-Your panel can update its firmware over the air — no USB cable or computer needed after the initial install. When a new version is available, the panel downloads and installs it automatically (if enabled) or waits for you to trigger the update manually.
+Your panel can update its firmware over the air without a USB cable or computer after the initial install. When a new version is available, the panel downloads and installs it automatically (if enabled) or waits for you to trigger the update manually.
 
 ## Stable Releases, Development Builds, and Custom Firmware
 
 Use the [published release list](https://github.com/jtenniswood/espdesktop/releases) to confirm whether a version is stable or marked **Pre-release**. Documentation follows the project's current source; a recently documented control may require newer firmware than your panel has installed. Compare **Current version** with the release notes before relying on a new option.
-
-**Release status checked September 22, 2026:** `v2.10.0` is the latest published stable release. This dated check is not a promise that a later version is available on every hardware revision; use the matching installer and release assets for your panel.
 
 Built-in updates install released binaries. They do not rebuild custom YAML, pins, or components. If you manage a custom ESPHome build, turn off **Auto Update** and use [manual ESPHome updates](/getting-started/manual-esphome-setup). For a release-specific custom build, use matching tagged sources and dependencies.
 
@@ -20,12 +18,12 @@ The JC8012P4A1 V3 rejects browser OTA firmware uploads; use native ESPHome OTA a
 
 ## Update Settings
 
-These are configured from the **System** tab in the [Setup](/features/setup) under **System > Firmware**. They also appear as controls in Home Assistant.
+These are configured from the **System** tab in the [System settings](/settings/system#update-the-display-firmware) under **System > Firmware**.
 
-- **Current version** and **Available version** — compare the firmware running on your panel with the latest stable release.
-- **Auto updates** — open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
-- **Previous firmware** — open this panel to choose and install one of the available previous stable versions.
-- **Check for Update** — press this button to check for a new version right now, regardless of the automatic schedule.
+- **Current version** and **Available version**: compare the firmware running on your panel with the latest stable release.
+- **Auto updates**: open this panel to turn **Auto Update** on or off and choose the **Update Frequency**: **Hourly**, **Daily**, **Weekly**, or **Monthly**.
+- **Previous firmware**: open this panel to choose and install one of the available previous stable versions.
+- **Check for Update**: press this button to check for a new version right now, regardless of the automatic schedule.
 
 When either a panel firmware update or WiFi co-processor update is available, the collapsed **Firmware** section shows an **Update available** badge so you do not need to open each update panel to check.
 
@@ -42,7 +40,7 @@ The update usually takes a minute or two. The display may show an update or load
 
 ## Installing an Older Version
 
-When older stable firmware is available, open **Previous firmware**, choose a **Version**, and press **Install**. This is intended for rolling back to one of the four most recent previous stable versions if you need to test or recover from a problem. Keep the setup page open while it downloads the selected firmware and uploads it to your panel. Installation is confirmed only when the panel reports the selected version after restarting. If confirmation times out or the upload fails, the error remains visible so you can check the current version before retrying.
+When older stable firmware is available for your display, open **System → Firmware → Previous firmware**, choose a **Version**, and press **Install**. The list offers up to four previous stable releases. Turn off **Auto Update** first if you want the display to stay on the older version. Keep the setup page open while it downloads the selected firmware and uploads it to your panel. Installation is confirmed only when the panel reports the selected version after restarting. If confirmation times out or the upload fails, the error remains visible so you can check the current version before retrying.
 
 ## Compatibility Notes
 
@@ -54,17 +52,11 @@ Backup imports remain compatible across firmware updates. If you move a backup b
 
 Some features, especially new card types, need both the web setup page and the panel firmware. If the setup page shows a new card type but the panel does not display it correctly after you apply the configuration, check for a firmware update and install the latest version.
 
-## Checking Updates from Home Assistant
-
-You can also manage updates from Home Assistant. The **Auto Update** toggle, **Update Frequency** selector, and **Check for Update** button all appear as entities that you can control from the Home Assistant dashboard or use in automations.
-
-The standard Home Assistant **Update** entity may also appear, depending on your Home Assistant version.
-
 Displays built with `disable_updates: "true"` do not expose EspDesktop's built-in GitHub update controls. They can still be updated manually through ESPHome.
 
 ## ESP32-C6 WiFi Co-processor Updates
 
-Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspDesktop exposes separate Home Assistant entities for that co-processor firmware on the supported P4 WiFi builds:
+Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspDesktop provides separate web settings for that co-processor firmware on the supported P4 WiFi builds:
 
 - **7-inch JC1060P470**
 - **7-inch JC1060P470 new panel**
@@ -73,13 +65,13 @@ Some ESP32-P4 displays use a separate ESP32-C6 chip for WiFi. EspDesktop exposes
 - **4.3-inch JC4880P443**
 - **4-inch ESP32-P4-86**
 
-These entities are separate from the main EspDesktop display firmware controls. The normal **Firmware: Check for Update** and **Firmware: Install Update** controls update the panel firmware. The ESP32-C6 controls check and install compatible WiFi co-processor firmware from ESPHome's hosted firmware manifest.
+These settings are separate from the main EspDesktop display firmware controls. The normal **Firmware: Check for Update** and **Firmware: Install Update** controls update the panel firmware. The ESP32-C6 controls check and install compatible WiFi co-processor firmware from ESPHome's hosted firmware manifest.
 
 Supported displays check for compatible WiFi firmware once a day and install new versions automatically. Automatic WiFi firmware updates are on by default, helping displays receive connectivity fixes without requiring a separate manual update. The setting is remembered after restarts.
 
 On the panel's setup page, open the **WiFi firmware** panel under **Firmware** to turn **Auto Update** off or back on. You can still use **Check for Update** and **Update WiFi Firmware** manually while automatic updates are off.
 
-In Home Assistant, the **WiFi Firmware: Auto Update** switch provides the same opt-out. ESP32-C6 diagnostic entities show the current version, latest version, and whether an update is available. Continue using the regular EspDesktop firmware controls for normal panel updates.
+The local ESP32-C6 diagnostics show the current version, latest version and update availability.
 
 Advanced Ethernet-only builds keep the ESP32-C6 WiFi co-processor off, so they do not expose these ESP32-C6 update controls.
 

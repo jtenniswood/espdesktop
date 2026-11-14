@@ -118,11 +118,53 @@ export async function runNativeEditorTransferLockTests(): Promise<void> {
     shell, closeSettings() {}, render() {}, canApply: () => true });
   const background = editor.refresh();
   check(!state.nativeConfigLoading, "a loaded editor does not take the initial snapshot lock");
-  check(state.nativeTransferActive && shell.isConfigLocked() && apply.disabled && classes["sp-config-locked"],
+  check(state.nativeTransferActive && shell.isConfigLocked() && apply.disabled && classes["sp-config-busy"] && !classes["sp-config-locked"],
     "starting background discovery cannot release the transfer's edit or navigation lock");
   discover(false); await background;
   check(state.nativeTransferActive && shell.isConfigLocked() && apply.disabled,
     "finishing background discovery cannot release another operation's lock");
   state.nativeTransferActive = false; shell.syncConfigLockUi();
-  check(!shell.isConfigLocked() && !apply.disabled && !classes["sp-config-locked"], "the transfer owner releases its own lock");
+  check(!shell.isConfigLocked() && !apply.disabled && !classes["sp-config-busy"] && !classes["sp-config-locked"], "the transfer owner releases its own lock");
+}
+
+export async function runNativeEditorWindowCleanupTests(): Promise<void> {
+  initialize();
+  state.configLocked = false;
+  const layout = { numSlots: 9, totalSlots: 9, previewSlots: 9, gridCols: 3 } as any;
+  const runtime = { dragSrcPos: -1, pendingSliderSubpageMigrations: {}, els: {} } as any;
+  const codec = {
+    parseButtonConfig: parseRawButtonConfig,
+    parseSubpageConfig: (value: string) => parseRawSubpageConfig(value, code => code),
+    buildSubpageGrid: (page: any) => Object.assign(page, buildSubpageGrid(page, 9, 3)),
+  } as any;
+  const original = { deviceProfile: "test", buttons: { 1: "window.minimize;Old;;;;;companion",
+    2: "shortcut.command+a;Keep;;;;;companion" }, subpages: {}, settings: { button_order: "1,2" } };
+  let writes = 0;
+  let update: ((current: typeof original) => typeof original) | undefined;
+  let resolve!: (result: "saved") => void;
+  const pending = new Promise<"saved">(callback => { resolve = callback; });
+  const editor = createNativePageEditorFeature({
+    native: {
+      client: { acceptSnapshot() {} }, writableNavigationDepth: () => 2,
+      waitForDiscovery: async () => false, changeRevision: () => 0,
+      schedule(callback: typeof update, skipUnchanged: boolean) {
+        check(skipUnchanged, "a second browser must be able to skip an already-completed cleanup");
+        ++writes; update = callback;
+        return pending;
+      },
+    } as any,
+    codec, layout, runtime, document: { activeElement: null } as any,
+    shell: { showBanner() {}, syncConfigLockUi() {} }, closeSettings() {}, render() {}, canApply: () => true,
+  });
+  editor.replace(original);
+  editor.replace(original);
+  check(writes === 1 && state.grid[0] === 0 && state.grid[1] === 2, "the editor frees the slot and queues only one save");
+  const current = { ...original, buttons: { ...original.buttons, 2: "shortcut.command+b;Newer;;;;;companion" } };
+  const saved = update!(current);
+  check(!saved.buttons[1] && saved.buttons[2] === current.buttons[2] && saved.settings.button_order === ",2",
+    "the saved removal preserves changes made after the editor read");
+  resolve("saved");
+  await pending;
+  editor.replace(saved);
+  check(writes === 1, "an already-clean layout never schedules a save");
 }

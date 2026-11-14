@@ -13,3 +13,6 @@ derived outputs, and run the CI checks, docs build and browser editor checks.
 CI reports independent failures together; release preflight still stops at the
 first failure. Web bundles use explicit size budgets while retaining behavior
 assertions. PR description validation remains part of CI Gate.
+
+For a standalone local site build, run `npm run webserver:build` before
+`npm run docs:build` to stage the hosted editor.

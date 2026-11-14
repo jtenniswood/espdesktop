@@ -126,6 +126,21 @@
     "valid": true
   },
   {
+    "name": "open url in new window",
+    "message": {
+      "protocol": 4,
+      "type": "action.invoke",
+      "kind": "url",
+      "requestId": "r3",
+      "appId": "system.default_browser",
+      "urlOpenBehavior": "new_window",
+      "encodedUrl": "https%3A%2F%2Fexample.com"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
     "name": "action result",
     "message": {
       "protocol": 4,
@@ -1198,6 +1213,108 @@
     "valid": false
   },
   {
+    "name": "Mac session locked",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Mac session locked with sleeping display",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true,
+      "displayAwake": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Mac session locked with awake display",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true,
+      "displayAwake": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Mac session invalid display power",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true,
+      "displayAwake": null
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "Mac session unlocked",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": false
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Mac session unauthenticated",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true
+    },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": false
+  },
+  {
+    "name": "Mac session wrong direction",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": true
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "Mac session string lock",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": "true"
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
+    "name": "Mac session null lock",
+    "message": {
+      "protocol": 4,
+      "type": "session.lock",
+      "locked": null
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": false
+  },
+  {
     "name": "media.input_mute value.set 0",
     "message": {
       "protocol": 4,
@@ -1287,6 +1404,20 @@
     "direction": "panel_to_mac",
     "state": "connected",
     "valid": true
+  },
+  {
+    "name": "authenticated Mac can reset pairing",
+    "message": { "protocol": 4, "type": "pair.reset" },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "unauthenticated Mac cannot reset pairing",
+    "message": { "protocol": 4, "type": "pair.reset" },
+    "direction": "mac_to_panel",
+    "state": "authenticating",
+    "valid": false
   },
   {
     "name": "media.output_mute value.state 100",

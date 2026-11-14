@@ -87,7 +87,7 @@ const v2 = hooks.createBackupConfig({
   settings: {
     timezone: "Europe/London (GMT+0)",
     clock_bar: true,
-    cover_art_hide_external_input: true,
+    clock_date: true,
     home_assistant_artwork_endpoint_mode: "Manual",
     home_assistant_artwork_host: "ha.example.test",
     home_assistant_artwork_protocol: "https",
@@ -108,11 +108,11 @@ assert.deepStrictEqual(plain(v2.subpage_objects["1"]), {
   order: ["1", "B"],
   back_label: "Back",
   buttons: [{
-    entity: "scene.movie",
-    label: "Movie",
-    icon: "Flash",
+    entity: "",
+    label: "",
+    icon: "Auto",
     icon_on: "Auto",
-    sensor: "scene.turn_on",
+    sensor: "",
     unit: "",
     type: "action",
     precision: "",
@@ -121,7 +121,7 @@ assert.deepStrictEqual(plain(v2.subpage_objects["1"]), {
 }, "exports readable structured subpage objects");
 assert.strictEqual(v2.buttons[1].type, "weather", "exports canonical card types");
 assert.strictEqual(v2.buttons[1].precision, "tomorrow", "exports migrated card details");
-assert.strictEqual(v2.settings.cover_art_hide_external_input, true, "exports cover art external-input setting");
+assert.strictEqual(v2.settings.clock_date, true, "exports the clock date setting");
 assert.strictEqual(v2.settings.home_assistant_artwork_endpoint_mode, "Manual", "exports Home Assistant artwork endpoint mode");
 assert.strictEqual(v2.settings.home_assistant_artwork_protocol, "https", "exports Home Assistant artwork protocol setting");
 assert.strictEqual(v2.settings.home_assistant_artwork_port, 80, "exports Home Assistant artwork port setting");
@@ -243,18 +243,18 @@ const structuredOverride = hooks.normalizeBackupConfig({
   button_order: "1",
   buttons: [{ entity: "light.kitchen", label: "Kitchen" }],
   subpages: {
-    1: "1,B|scene.old:Old:Flash::scene.turn_on::action",
+    1: "1,B|com.example.old:Old:Monitor:Auto:::companion",
   },
   subpage_objects: {
     1: {
       order: ["1", "B"],
       back_label: "Back",
-      buttons: [{ entity: "scene.new", label: "New", icon: "Flash", sensor: "scene.turn_on", type: "action" }],
+      buttons: [{ entity: "com.example.new", label: "New", icon: "Monitor", type: "companion" }],
     },
   },
 });
-assert(structuredOverride.subpages["1"].includes("scene.new"), "structured subpage object overrides stale string subpage");
-assert(!structuredOverride.subpages["1"].includes("scene.old"), "stale string subpage is ignored when structured object exists");
+assert(structuredOverride.subpages["1"].includes("com.example.new"), "structured subpage object overrides stale string subpage");
+assert(!structuredOverride.subpages["1"].includes("com.example.old"), "stale string subpage is ignored when structured object exists");
 
 const sameDevicePlan = hooks.planBackupImport(v2, { device: "panel-a", slots: 3 });
 assert.deepStrictEqual(plain(sameDevicePlan.warnings), [], "same-device import has no warnings");
@@ -297,7 +297,7 @@ const structuredCrossDevicePlan = hooks.planBackupImport({
     2: {
       order: ["1", "B"],
       back_label: "Back",
-      buttons: [{ entity: "scene.relax", label: "Relax", icon: "Flash", sensor: "scene.turn_on", type: "action" }],
+      buttons: [{ entity: "com.example.relax", label: "Relax", icon: "Monitor", type: "companion" }],
     },
   },
 }, { device: "small-panel", slots: 2 });

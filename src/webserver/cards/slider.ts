@@ -1,3 +1,4 @@
+import { renderRetiredCardSettings } from "../application/card_registry";
 import { preserveCardColorOptions } from "../model/config_primitives";
 import {
     cardContractAllowInSubpage,
@@ -144,7 +145,6 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
-                        ["home_assistant", "Home Assistant light or fan"],
                         ["mac_output", "Mac output volume"],
                         ["mac_input", "Mic"],
                         ["mac_output_mute", "Output mute"],
@@ -165,17 +165,20 @@ export function registerSliderCardTypes(
             allowInSubpage: function (this: any) { return cardContractAllowInSubpage(opts.type); },
             pickerKey: function (this: any) { return cardContractPickerKey(opts.type); },
             hidden: function (this: any) { return cardContractHidden(opts.type); },
+            isAvailable: opts.companionVolumeModes ? () => companionSupported : null,
             hideLabel: !!opts.hideLabel,
             labelPlaceholder: opts.placeholder,
             defaultConfig: function (this: any) { return cardContractDefaultConfig(opts.type); },
             cardMetadata: metadata,
             onSelect: function (this: any, b?: any) {
+                if (opts.companionVolumeModes) { b.entity = COMPANION_OUTPUT_VOLUME_ID; if (!b.label) b.label = "Volume"; }
                 b.sensor = opts.type === "cover" ? "modal" : "";
                 b.unit = "";
                 b.icon = opts.defaultIcon;
                 b.icon_on = opts.defaultIconOn;
             },
             renderSettings: function (this: any, panel?: any, b?: any, slot?: any, helpers?: any) {
+                if (opts.type !== "slider" || companionSliderMode(b) === "home_assistant") return renderRetiredCardSettings(panel);
                 var cardSettingsPanel: any = null;
                 var modalSettingsPanel: any = null;
                 var modalSettingsDisclosure: any = null;
@@ -190,10 +193,6 @@ export function registerSliderCardTypes(
                         mode: Object.assign({}, metadata.companionVolume.mode, {
                             value: function (this: any) { return sliderMode; },
                             onChange: function (this: HTMLSelectElement) {
-                                sliderMode = this.value;
-                                var previousMode: any = companionSliderMode(b);
-                                b.icon = companionSliderIcon(b.icon, previousMode, sliderMode);
-                                b.icon_on = companionSliderIcon(b.icon_on, previousMode, sliderMode);
                                 const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Mute", "Output Mute", "Microphone Mute"];
                                 const identifiers: Record<string, string> = {
                                     mac_output: COMPANION_OUTPUT_VOLUME_ID,
@@ -201,7 +200,13 @@ export function registerSliderCardTypes(
                                     mac_output_mute: COMPANION_OUTPUT_MUTE_ID,
                                     mac_input_mute: COMPANION_INPUT_MUTE_ID,
                                 };
-                                b.entity = identifiers[sliderMode] || "";
+                                const nextMode = this.value;
+                                if (!Object.hasOwn(identifiers, nextMode)) return;
+                                const previousMode = sliderMode;
+                                sliderMode = nextMode;
+                                b.entity = identifiers[nextMode];
+                                b.icon = companionSliderIcon(b.icon, previousMode, nextMode);
+                                b.icon_on = "Auto";
                                 if (!b.label || defaultLabels.includes(b.label))
                                     b.label = companionSliderDefaultLabel(sliderMode);
                                 helpers.saveField("entity", b.entity);
@@ -526,7 +531,7 @@ export function registerSliderCardTypes(
         defaultIcon: "Auto",
         defaultIconOn: "Auto",
         fallbackLabel: "Volume",
-        fallbackIcon: "lightbulb",
+        fallbackIcon: "volume-high",
         badgeIcon: "tune-vertical-variant",
         alwaysShowIconPair: true,
         onIconInheritsOff: true,

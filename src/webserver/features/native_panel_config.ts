@@ -5,8 +5,11 @@ import {
   encodePanelConfig,
   type PanelConfigDocument,
 } from "../model";
-import { convertNativeV1ToV2, convertNativeV2ToV1, decodePanelPageDocument, encodePanelPageDocument, panelPageDocumentDepth } from "../model/panel_config_conversion";
+import { convertNativeV1ToV2, convertNativeV2ToV1, decodePanelPageDocument, decodePanelPageSnapshot, encodePanelPageDocument, panelPageDocumentDepth,
+  type NativePageLayout, type NativePanelConfigGraph } from "../model/panel_config_conversion";
 import { PageTransferConflict } from "../model/page_card_transfer";
+import { updateNativePanelSettings } from "../model/panel_config_settings";
+import { NativeLayoutDraft } from "../model/native_layout_draft";
 import { decodeNativeConfigDocument, nativeConfigDocumentVersion } from "../model/native_config_backup";
 import { pageDepth, pageOwnerSlot, parentPageKey } from "../model/page_keys";
 
@@ -25,6 +28,7 @@ export interface NativePanelConfigSnapshot {
   readonly document: PanelConfigDocument;
   readonly etag: string;
   readonly version: number;
+  readonly layout?: NativePageLayout;
 }
 
 export interface NativePanelConfigRequest {
@@ -41,6 +45,11 @@ export type NativePanelConfigFetch = (
   request?: NativePanelConfigRequest,
 ) => Promise<NativePanelConfigResponse>;
 
+export type NativePanelConfigUpdate = ((document: PanelConfigDocument) => PanelConfigDocument) & {
+  editNative?: (draft: NativeLayoutDraft, current: NativePanelConfigGraph) => void;
+  checkAcceptedLayout?: boolean;
+};
+
 export type NativePanelConfigSaveResult = "saved" | "unsupported" | "conflict" | "mirror-failed" | "authentication-required" | "too-large" | "firmware-update-required" | "nested-pages-unavailable" | "failed";
 export const NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE = "This backup needs newer panel firmware to restore all saved cards and settings. Update the panel before importing it. No backup settings were changed.";
 export class NativePanelConfigCompatibilityError extends Error {}
@@ -51,6 +60,11 @@ export function nativeBackupHasInactiveRecords(document: PanelConfigDocument, sl
   });
 }
 export type NativePanelConfigCollection = "buttons" | "subpages" | "settings";
+
+function sameRecords(left: Readonly<Record<string, string>>, right: Readonly<Record<string, string>>): boolean {
+  const keys = Object.keys(left);
+  return keys.length === Object.keys(right).length && keys.every(key => Object.hasOwn(right, key) && left[key] === right[key]);
+}
 
 interface Capabilities {
   home_assistant_support?: unknown;
@@ -65,6 +79,9 @@ interface Capabilities {
     writable_navigation_depth?: unknown;
     durable_document_version?: unknown;
     preserves_inactive_records?: unknown;
+    companion_auto_open_app_subpages?: unknown;
+    display_theme_preferences?: unknown;
+    screen_schedule_preferences?: unknown;
   };
 }
 
@@ -115,17 +132,29 @@ export class NativePanelConfigClient {
   private maxV2DocumentBytes_ = MAX_V2_DOCUMENT_BYTES;
   private maxDurableDocumentBytes_: number | null = null;
   private preservesInactiveRecords_ = false;
+  private appSubpagePreference_ = false;
+  private displayThemePreferences_ = false;
+  private screenSchedulePreferences_ = false;
   private readDepth_ = 1;
   private writeDepth_ = 1;
   private durableVersion_ = 1;
   private lastDocument_: PanelConfigDocument | null = null;
+  private lastLayout_: NativePageLayout | undefined;
+  private readonly layoutVersions_ = new WeakMap<NativePageLayout, { input: Uint8Array; etag: string | null }>();
 
   constructor(private readonly fetch_: NativePanelConfigFetch) {}
 
   supported(): boolean { return this.supported_; }
   lastDocument(): PanelConfigDocument | null { return this.lastDocument_; }
-  acceptSnapshot(document: PanelConfigDocument): void { this.lastDocument_ = document; }
+  lastLayout(): NativePageLayout | undefined { return this.lastLayout_; }
+  acceptSnapshot(document: PanelConfigDocument, layout?: NativePageLayout): void {
+    this.lastDocument_ = document;
+    this.lastLayout_ = layout;
+  }
   preservesInactiveRecords(): boolean { return this.supported_ && this.preservesInactiveRecords_; }
+  supportsScreenSchedulePreferences(): boolean { return this.supported_ && this.screenSchedulePreferences_; }
+  supportsDisplayThemePreferences(): boolean { return this.supported_ && this.displayThemePreferences_; }
+  supportsAppSubpagePreference(): boolean { return this.supported_ && this.appSubpagePreference_; }
   readNavigationDepth(): number {
     return this.supported_ && this.documentVersion_ === V2_DOCUMENT_VERSION ? this.readDepth_ : 1;
   }
@@ -173,6 +202,9 @@ export class NativePanelConfigClient {
           ? Math.min(Number(limit), PANEL_CONFIG_MAX_RECORD_BODY_BYTES) : null;
         const configuration = (value as Capabilities | null)?.configuration;
         this.preservesInactiveRecords_ = supported === true && configuration?.preserves_inactive_records === true;
+        this.appSubpagePreference_ = supported === true && configuration?.companion_auto_open_app_subpages === true;
+        this.displayThemePreferences_ = supported === true && configuration?.display_theme_preferences === true;
+        this.screenSchedulePreferences_ = supported === true && configuration?.screen_schedule_preferences === true;
         // A readable/readonly/newer native contract must not be mistaken for
         // firmware that only stores legacy text entities.
         const versions = Array.isArray(configuration?.document_versions) ? configuration.document_versions : [];
@@ -252,9 +284,11 @@ export class NativePanelConfigClient {
       if (version === V2_DOCUMENT_VERSION && input.length > this.maxV2DocumentBytes_)
         throw new Error("Configuration exceeds the advertised byte limit.");
       if (signal?.aborted) throw new Error("Configuration load was cancelled.");
-      const document = this.decodeDocument(input, version);
-      if (document.deviceProfile !== deviceProfile) throw new Error("The device configuration profile changed.");
-      return { document, etag, version };
+      const snapshot = version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
+        ? decodePanelPageSnapshot(input) : { document: this.decodeDocument(input, version) };
+      if (snapshot.document.deviceProfile !== deviceProfile) throw new Error("The device configuration profile changed.");
+      if ("layout" in snapshot) this.layoutVersions_.set(snapshot.layout, { input, etag });
+      return { ...snapshot, etag, version };
     }
     throw new Error("A compatible configuration representation is unavailable.");
   }
@@ -297,9 +331,15 @@ export class NativePanelConfigClient {
     throw new Error("A compatible backup representation is unavailable.");
   }
 
-  async save(update: (document: PanelConfigDocument) => PanelConfigDocument): Promise<NativePanelConfigSaveResult> {
+  async save(update: NativePanelConfigUpdate, skipUnchanged = false,
+      nativeBackup?: Uint8Array): Promise<NativePanelConfigSaveResult> {
     if (!await this.discover()) return "unsupported";
     let conflicts = 0;
+    // The most recently displayed snapshot can predate the first GET of
+    // this save. Queued writes also advance it after their own successful PUT.
+    const accepted = update.checkAcceptedLayout && this.lastLayout_
+      ? this.layoutVersions_.get(this.lastLayout_) : undefined;
+    let priorScope: readonly string[] | undefined;
     while (conflicts < 2) {
       try {
         const version = this.documentVersion_;
@@ -323,10 +363,38 @@ export class NativePanelConfigClient {
             (responseVersion !== null && responseVersion !== String(version))) return "failed";
         const input = new Uint8Array(await current.arrayBuffer());
         if (version === V2_DOCUMENT_VERSION && input.length > this.maxV2DocumentBytes_) return "too-large";
-        const currentDocument = this.decodeDocument(input, version);
+        const currentGraph = version === V2_DOCUMENT_VERSION && this.readNavigationDepth() === 2
+          ? decodePanelPageSnapshot(input) : undefined;
+        const currentDocument = currentGraph?.document ?? this.decodeDocument(input, version);
         const currentDepth = panelPageDocumentDepth(currentDocument);
         if (currentDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
-        const updated = update(currentDocument);
+        let directBody: Uint8Array | undefined;
+        if (!nativeBackup && currentGraph && this.writableNavigationDepth() === 2 && update.editNative) {
+          if (!priorScope && accepted && generation !== accepted.etag) {
+            const baseline = new NativeLayoutDraft(accepted.input);
+            update.editNative(baseline, decodePanelPageSnapshot(accepted.input));
+            priorScope = baseline.editScope;
+          }
+          const draft = new NativeLayoutDraft(input);
+          update.editNative(draft, currentGraph);
+          const previous = priorScope;
+          if (previous && (previous.length !== draft.editScope.length ||
+              draft.editScope.some((value, index) => value !== previous[index]))) return "conflict";
+          priorScope = draft.editScope;
+          directBody = draft.finish();
+        }
+        const directSnapshot = directBody ? decodePanelPageSnapshot(directBody) : undefined;
+        const updated = directSnapshot?.document ?? update({
+          ...currentDocument, buttons: { ...currentDocument.buttons }, subpages: { ...currentDocument.subpages },
+          settings: { ...currentDocument.settings },
+        });
+        const layoutUnchanged = sameRecords(currentDocument.buttons, updated.buttons) &&
+          sameRecords(currentDocument.subpages, updated.subpages);
+        if (skipUnchanged && layoutUnchanged && sameRecords(currentDocument.settings, updated.settings)) {
+          if (currentGraph) this.layoutVersions_.set(currentGraph.layout, { input, etag: generation });
+          this.acceptSnapshot(currentDocument, currentGraph?.layout);
+          return "saved";
+        }
         const updatedDepth = panelPageDocumentDepth(updated);
         if (updatedDepth > this.writableNavigationDepth()) return "nested-pages-unavailable";
         const limit = this.maxRecordBodyBytes_ ?? 2048;
@@ -336,9 +404,34 @@ export class NativePanelConfigClient {
             Object.entries(updated.settings).some(([key, value]) => byteLength(key) + byteLength(value) + 1 > limit)) {
           return "too-large";
         }
-        const body = version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2
-          ? encodePanelPageDocument(updated)
-          : version === V2_DOCUMENT_VERSION ? convertNativeV1ToV2(encodePanelConfig(updated)) : encodePanelConfig(updated);
+        let body: Uint8Array;
+        if (directBody) {
+          body = directBody;
+        } else if (nativeBackup) {
+          const exactRestore = version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2;
+          if (exactRestore && nativeBackup.length > this.maxV2DocumentBytes_) return "too-large";
+          const backedUp = decodePanelPageDocument(nativeBackup);
+          if (backedUp.deviceProfile !== updated.deviceProfile ||
+              !sameRecords(backedUp.buttons, updated.buttons) || !sameRecords(backedUp.subpages, updated.subpages))
+            return "failed";
+          const graph = sameRecords(backedUp.settings, updated.settings) ? nativeBackup
+            : updateNativePanelSettings(nativeBackup, backedUp.settings, updated.settings);
+          if (exactRestore) {
+            body = graph;
+          } else {
+            let flat: Uint8Array;
+            try { flat = convertNativeV2ToV1(graph); }
+            catch { return "firmware-update-required"; }
+            body = version === V2_DOCUMENT_VERSION ? convertNativeV1ToV2(flat) : flat;
+          }
+        } else if (version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2) {
+          body = layoutUnchanged
+            ? updateNativePanelSettings(input, currentDocument.settings, updated.settings)
+            : encodePanelPageDocument(updated);
+        } else {
+          const flat = encodePanelConfig(updated);
+          body = version === V2_DOCUMENT_VERSION ? convertNativeV1ToV2(flat) : flat;
+        }
         if (version === V2_DOCUMENT_VERSION && body.length > this.maxV2DocumentBytes_) return "too-large";
         // Firmware can keep a losslessly representable flat document in v1
         // when v2 expands beyond the backend limit. This is only an early
@@ -350,6 +443,8 @@ export class NativePanelConfigClient {
             if (convertNativeV2ToV1(body).length > this.maxDurableDocumentBytes_) return "too-large";
           } catch { return "too-large"; }
         }
+        const savedLayout = version === V2_DOCUMENT_VERSION && this.writableNavigationDepth() === 2
+          ? directSnapshot?.layout ?? decodePanelPageSnapshot(body).layout : undefined;
         const next = await this.fetch_("/api/v1/config", {
           method: "PUT",
           cache: "no-store",
@@ -370,7 +465,8 @@ export class NativePanelConfigClient {
         // save so callers do not claim that an older firmware can restore it.
         if (next.status === 413) return "too-large";
         if (next.ok) {
-          this.lastDocument_ = updated;
+          if (savedLayout) this.layoutVersions_.set(savedLayout, { input: body, etag: next.headers.get("ETag") });
+          this.acceptSnapshot(updated, savedLayout);
           return next.status === 202 ? "mirror-failed" : "saved";
         }
         if (next.status === 401 || next.status === 403) return "authentication-required";

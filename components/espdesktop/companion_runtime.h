@@ -22,6 +22,12 @@ inline std::string companion_focus_application_id(const std::string &action_id) 
   return action_id.rfind("folder.", 0) == 0 ? "com.apple.finder" : action_id;
 }
 
+inline bool companion_reported_focus_matches(const std::string &requested,
+    const std::string &focused, const std::vector<std::string> &identifiers) {
+  return std::find(identifiers.begin(), identifiers.end(), requested) != identifiers.end() ||
+      (requested == "com.apple.finder" && companion_focus_application_id(focused) == requested);
+}
+
 struct CompanionAction {
   std::string id;
   std::string label;
@@ -30,28 +36,6 @@ struct CompanionAction {
 struct CompanionValue {
   std::string id;
   int value{0};
-};
-
-enum class CompanionPlaybackState : uint8_t {
-  UNAVAILABLE = 0,
-  STOPPED,
-  PAUSED,
-  PLAYING,
-};
-
-struct CompanionNowPlayingSnapshot {
-  uint32_t generation{0};
-  CompanionPlaybackState playback_state{CompanionPlaybackState::UNAVAILABLE};
-  std::string source_application_id;
-  std::string source_application_name;
-  std::string content_id;
-  std::string title;
-  std::string artist;
-  std::string album;
-  float duration{0.0f};
-  float position{0.0f};
-  float playback_rate{0.0f};
-  bool artwork_follows{false};
 };
 
 struct CompanionStorageDevice {
@@ -80,7 +64,6 @@ struct CompanionSystemMetricsSnapshot {
 struct CompanionRemoteDefinition {
   std::string kind;
   std::string id;
-  std::string icon_url;
   std::string json;
 };
 
@@ -94,7 +77,7 @@ struct CompanionFocusTargetsState {
   uint32_t generation{0};
 };
 
-inline constexpr size_t COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE = 128;
+inline constexpr size_t COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE = 256;
 
 inline bool companion_json_payload_valid(const std::string &value, size_t limit) {
   if (value.size() < 2 || value.size() > limit) return false;
@@ -104,13 +87,8 @@ inline bool companion_json_payload_valid(const std::string &value, size_t limit)
 }
 
 inline bool companion_remote_definition_capacity_available(const std::string &kind,
-                                                           size_t application_count,
-                                                           size_t web_app_count) {
-  if (application_count + web_app_count >= COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2)
-    return false;
-  if (kind == "application") return application_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
-  if (kind == "webapp") return web_app_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
-  return false;
+                                                           size_t application_count) {
+  return kind == "application" && application_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
 }
 
 struct CompanionRuntimeSnapshot {
@@ -119,12 +97,9 @@ struct CompanionRuntimeSnapshot {
   std::string focused_action_id;
   std::vector<std::string> focused_action_ids;
   bool keyboard_actions_supported{false};
-  std::vector<std::string> window_actions;
   bool connected{false};
-  CompanionNowPlayingSnapshot now_playing;
   CompanionSystemMetricsSnapshot system_metrics;
   std::vector<CompanionURLFocusTarget> url_focus_targets;
-  std::vector<std::string> web_app_focus_ids;
   uint32_t url_focus_targets_generation{0};
   bool application_highlight_known{false};
   std::string application_highlight_id;
@@ -141,8 +116,9 @@ inline std::string companion_network_address(const CompanionRuntimeSnapshot &sna
   return "--";
 }
 
-using CompanionActionSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
-using CompanionUrlSender = std::function<bool(const std::string &, const std::string &, const std::string &)>;
+using CompanionActionSender = std::function<bool(const std::string &, const std::string &, const std::string &, const std::string &)>;
+using CompanionUrlSender = std::function<bool(const std::string &encoded_url, const std::string &request_id,
+                                              bool new_window)>;
 using CompanionValueSender = std::function<bool(const std::string &, int, const std::string &)>;
 using CompanionActionResultHandler = std::function<void()>;
 using CompanionConnectionChangedHandler = std::function<void(bool)>;
@@ -160,12 +136,13 @@ struct CompanionPendingActions {
   std::array<CompanionPendingAction, MAX_PENDING> entries{};
 };
 
+inline constexpr size_t COMPANION_PAIRING_CODE_LENGTH = 4;
+
 struct CompanionPairingSnapshot {
   bool available{false};
   bool active{false};
   bool paired{false};
   bool connected{false};
-  uint32_t expires_in_seconds{0};
   uint16_t port{8443};
   uint32_t system_metrics_generation{0};
   std::string pairing_code;
@@ -174,9 +151,6 @@ struct CompanionPairingSnapshot {
 
 using CompanionPairingProvider = std::function<CompanionPairingSnapshot()>;
 
-using CompanionNowPlayingHandler = std::function<void(const CompanionNowPlayingSnapshot &)>;
-// Ownership of data transfers to the handler only when it returns true.
-using CompanionArtworkHandler = std::function<bool(uint32_t generation, uint8_t *data, size_t size)>;
 
 class CompanionRuntimeService {
  public:
@@ -187,11 +161,12 @@ class CompanionRuntimeService {
   CompanionValueSender value_sender;
   CompanionPairingProvider pairing_provider;
   std::function<void()> begin_pairing;
-  std::function<void()> revoke_pairing;
+  std::function<bool()> reset_and_begin_pairing;
+  std::function<void()> request_pairing_display;
   std::function<bool()> clear_app_icon_cache;
-  CompanionNowPlayingHandler now_playing_handler;
+  void (*show_pairing_code_handler)() = nullptr;
+  void (*pairing_changed_handler)() = nullptr;
   CompanionConnectionChangedHandler connection_changed_handler;
-  CompanionArtworkHandler artwork_handler;
   std::function<void()> focus_registrations_changed_handler;
   std::atomic<bool> subpage_return_requested{false};
   std::atomic<uint32_t> request_number{0};
@@ -204,6 +179,11 @@ class CompanionRuntimeService {
   std::vector<CompanionAction> actions() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return actions_;
+  }
+
+  uint32_t system_metrics_generation() const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return system_metrics_.generation;
   }
 
   CompanionSystemMetricsSnapshot system_metrics() const {
@@ -226,20 +206,6 @@ class CompanionRuntimeService {
     return {remote_definitions_.begin() + begin, remote_definitions_.begin() + end};
   }
 
-  std::string remote_definition_icon_url(const std::string &kind, const std::string &id) const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    const auto definition = std::find_if(remote_definitions_.begin(), remote_definitions_.end(),
-      [&kind, &id](const CompanionRemoteDefinition &candidate) {
-        return candidate.kind == kind && candidate.id == id;
-      });
-    return definition == remote_definitions_.end() ? std::string() : definition->icon_url;
-  }
-
-  CompanionNowPlayingSnapshot now_playing() const {
-    std::lock_guard<std::mutex> lock(mutex_);
-    return now_playing_;
-  }
-
   bool value(const std::string &id, int &result) const {
     std::lock_guard<std::mutex> lock(mutex_);
     const auto item = std::find_if(values_.begin(), values_.end(),
@@ -251,8 +217,8 @@ class CompanionRuntimeService {
 
   CompanionRuntimeSnapshot snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);
-    return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_, window_actions_,
-            connected_, now_playing_, system_metrics_, url_focus_targets_, web_app_focus_ids_,
+    return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_,
+            connected_, system_metrics_, url_focus_targets_,
             url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
   }
 
@@ -266,16 +232,14 @@ class CompanionRuntimeService {
     return {connected_, url_focus_targets_generation_};
   }
 
-  void set_focus_registrations(std::vector<CompanionURLFocusTarget> targets, std::vector<std::string> web_app_ids) {
+  void set_focus_registrations(std::vector<CompanionURLFocusTarget> targets) {
     std::function<void()> changed_handler;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (targets.size() > 64) targets.resize(64);
-      if (web_app_ids.size() > 64) web_app_ids.resize(64);
-      if (targets.size() == url_focus_targets_.size() && web_app_ids == web_app_focus_ids_ && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
+      if (targets.size() == url_focus_targets_.size() && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
           [](const auto &a, const auto &b) { return a.id == b.id && a.url == b.url; })) return;
       url_focus_targets_ = std::move(targets);
-      web_app_focus_ids_ = std::move(web_app_ids);
       ++url_focus_targets_generation_;
       if (url_focus_targets_generation_ == 0) url_focus_targets_generation_ = 1;
       changed_handler = focus_registrations_changed_handler;
@@ -285,8 +249,8 @@ class CompanionRuntimeService {
 
   void set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (definitions.size() > COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2)
-      definitions.resize(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2);
+    if (definitions.size() > COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE)
+      definitions.resize(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE);
     remote_definitions_ = std::move(definitions);
     request_refresh_();
   }
@@ -297,16 +261,16 @@ class CompanionRuntimeService {
     request_refresh_();
   }
 
-  void set_window_actions(std::vector<std::string> actions) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    window_actions_ = std::move(actions);
-    request_refresh_();
-  }
-
   void set_keyboard_actions_supported(bool supported) {
     std::lock_guard<std::mutex> lock(mutex_);
     keyboard_actions_supported_ = supported;
     request_refresh_();
+  }
+
+  bool shortcut_page_ready(const std::string &owner) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return connected_ && keyboard_actions_supported_ &&
+        companion_reported_focus_matches(owner, focused_action_id_, focused_action_ids_);
   }
 
   void set_value(const std::string &control_id, int value) {
@@ -323,12 +287,6 @@ class CompanionRuntimeService {
     values_.erase(std::remove_if(values_.begin(), values_.end(),
       [&control_id](const CompanionValue &candidate) { return candidate.id == control_id; }),
       values_.end());
-    request_refresh_();
-  }
-
-  void set_now_playing(CompanionNowPlayingSnapshot snapshot) {
-    std::lock_guard<std::mutex> lock(mutex_);
-    now_playing_ = std::move(snapshot);
     request_refresh_();
   }
 
@@ -385,7 +343,7 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<std::string> accepted;
     for (auto &identifier : identifiers) {
-      if (identifier.empty() || identifier.size() > 96 ||
+      if (identifier.empty() || identifier.size() > 96 || identifier.rfind("webapp.", 0) == 0 ||
           std::find(accepted.begin(), accepted.end(), identifier) != accepted.end()) continue;
       accepted.push_back(std::move(identifier));
     }
@@ -397,13 +355,17 @@ class CompanionRuntimeService {
       return std::string();
     };
     const std::string application_id = parent_id(accepted);
-    const std::string auto_subpage_id = [&accepted, &application_id]() {
-      for (const auto &value : accepted)
-        if (value.rfind("webapp.", 0) == 0) return value;
-      return application_id;
-    }();
+    const std::string &auto_subpage_id = application_id;
     const std::string previous_auto_subpage_id = focused_auto_subpage_id_;
     if (focused_action_ids_ == accepted && previous_auto_subpage_id == auto_subpage_id) return false;
+    // The Mac still has this app in front, but its detailed focus report no
+    // longer finds a visible window. This also applies to manually opened pages.
+    if (connected_ && auto_subpage_id.empty() && !previous_auto_subpage_id.empty() &&
+        application_highlight_known_ && application_highlight_id_ == previous_auto_subpage_id) {
+      closed_app_subpage_action_id_ = previous_auto_subpage_id;
+    } else if (auto_subpage_id == closed_app_subpage_action_id_) {
+      closed_app_subpage_action_id_.clear();
+    }
     const bool should_return = auto_open_app_subpages_ && connected_ && !previous_auto_subpage_id.empty() &&
       auto_subpage_id != previous_auto_subpage_id;
     if (!auto_open_app_subpages_ || accepted.empty() || !connected_) pending_auto_subpage_action_id_.clear();
@@ -415,9 +377,22 @@ class CompanionRuntimeService {
     return should_return;
   }
 
+  std::string consume_closed_app_subpage_action() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    return std::exchange(closed_app_subpage_action_id_, {});
+  }
+
   std::string pending_auto_subpage_action() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return pending_auto_subpage_action_id_;
+  }
+
+  std::string take_wake_subpage_action() {
+    std::lock_guard<std::mutex> lock(mutex_);
+    pending_auto_subpage_action_id_.clear();
+    closed_app_subpage_action_id_.clear();
+    subpage_return_requested.store(false);
+    return connected_ && auto_open_app_subpages_ ? focused_auto_subpage_id_ : std::string{};
   }
 
   bool consume_auto_subpage_action(const std::string &action_id) {
@@ -428,10 +403,16 @@ class CompanionRuntimeService {
     return true;
   }
 
+  bool mac_update_required() const { return mac_update_required_.load(); }
+  void set_mac_update_required(bool required) { mac_update_required_.store(required); }
+
   void set_connected(bool connected) {
     std::lock_guard<std::mutex> lock(mutex_);
     connected_ = connected;
-    if (connected_) keyboard_actions_supported_ = true;
+    if (connected_) {
+      keyboard_actions_supported_ = true;
+      set_mac_update_required(false);
+    }
     if (!connected_) {
       values_.clear();
       focused_action_id_.clear();
@@ -440,9 +421,8 @@ class CompanionRuntimeService {
       application_highlight_id_.clear();
       focused_auto_subpage_id_.clear();
       pending_auto_subpage_action_id_.clear();
+      closed_app_subpage_action_id_.clear();
       keyboard_actions_supported_ = false;
-      window_actions_.clear();
-      now_playing_ = {};
       system_metrics_ = {};
     }
     request_refresh_();
@@ -463,7 +443,6 @@ class CompanionRuntimeService {
   std::string application_highlight_id_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
-  std::vector<std::string> web_app_focus_ids_;
   uint32_t url_focus_targets_generation_{0};
   std::vector<CompanionValue> values_;
   std::string focused_action_id_;
@@ -472,11 +451,11 @@ class CompanionRuntimeService {
   bool return_home_on_app_switch_ = true;
   std::string focused_auto_subpage_id_;
   std::string pending_auto_subpage_action_id_;
+  std::string closed_app_subpage_action_id_;
   bool keyboard_actions_supported_{false};
-  std::vector<std::string> window_actions_;
   bool connected_{false};
-  CompanionNowPlayingSnapshot now_playing_;
   CompanionSystemMetricsSnapshot system_metrics_;
+  std::atomic<bool> mac_update_required_{false};
   std::atomic<bool> refresh_requested_{false};
   std::atomic<bool> focus_refresh_requested_{false};
 };

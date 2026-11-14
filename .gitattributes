@@ -9,3 +9,6 @@ product/generated/companion_manifest.json linguist-generated=true
 components/espdesktop/companion_protocol_generated.h linguist-generated=true
 macos/EspDesktop/Sources/Companion/CompanionProtocol.generated.swift linguist-generated=true
 product/generated/companion_compatibility.json linguist-generated=true
+src/webserver/generated/app_shortcuts.ts linguist-generated=true
+components/espdesktop/app_shortcuts_generated.h linguist-generated=true
+macos/EspDesktop/Sources/Companion/Resources/AppShortcuts/*.json linguist-generated=true

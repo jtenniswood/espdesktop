@@ -25,6 +25,8 @@ import urllib.error
 import urllib.request
 from urllib.parse import urljoin
 
+from release_devices import load_release_devices
+
 
 ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_MANIFEST = ROOT / "devices" / "manifest.json"
@@ -145,8 +147,8 @@ def verify_public_slug(base_url: str, slug: str, beta: bool = False) -> str:
     version = str(manifest.get("version", "")).strip()
     if not version or version in {"dev", "0.0.0"}:
         raise PublicFirmwareError(f"{url} has invalid firmware version {version!r}")
-    if manifest.get("home_assistant_domain") != "esphome":
-        raise PublicFirmwareError(f"{url} home_assistant_domain must be esphome")
+    if "home_assistant_domain" in manifest:
+        raise PublicFirmwareError(f"{url} includes retired installer integration metadata")
 
     build = require_build(manifest, url)
     ota = build.get("ota")
@@ -182,8 +184,8 @@ def verify_recovery_slug(base_url: str, slug: str, expected_version: str) -> Non
         raise PublicFirmwareError(f"{url} must retain the normal firmware identity")
     if str(manifest.get("version", "")).strip() != expected_version:
         raise PublicFirmwareError(f"{url} must match stable version {expected_version}")
-    if manifest.get("home_assistant_domain") != "esphome":
-        raise PublicFirmwareError(f"{url} home_assistant_domain must be esphome")
+    if "home_assistant_domain" in manifest:
+        raise PublicFirmwareError(f"{url} includes retired installer integration metadata")
     if manifest.get("new_install_prompt_erase") is not True:
         raise PublicFirmwareError(f"{url} must offer the erase choice")
     build = require_build(manifest, url)
@@ -207,7 +209,11 @@ def load_slugs(path: Path) -> list[str]:
     devices = data.get("devices")
     if not isinstance(devices, dict) or not devices:
         raise PublicFirmwareError(f"{path} must contain a non-empty devices object")
-    return sorted(devices)
+    released = load_release_devices()
+    unknown = set(released) - devices.keys()
+    if unknown:
+        raise PublicFirmwareError(f"Unknown release device(s): {sorted(unknown)}")
+    return sorted(released)
 
 
 def load_recovery_slugs(path: Path) -> set[str]:
@@ -271,7 +277,6 @@ def write_manifest(directory: Path, slug: str, include_factory: bool = True) -> 
     (directory / "manifest.json").write_text(json.dumps({
         "name": "EspDesktop",
         "version": "v1.2.3",
-        "home_assistant_domain": "esphome",
         "builds": [{
             "chipFamily": "ESP32-S3",
             "parts": parts,
@@ -318,7 +323,6 @@ def write_recovery_manifest(directory: Path, slug: str) -> None:
     (directory / "manifest.json").write_text(json.dumps({
         "name": "EspDesktop",
         "version": "v1.2.3",
-        "home_assistant_domain": "esphome",
         "new_install_prompt_erase": True,
         "builds": [{
             "chipFamily": "ESP32-P4",
@@ -328,6 +332,7 @@ def write_recovery_manifest(directory: Path, slug: str) -> None:
 
 
 def self_test() -> None:
+    assert load_slugs(DEFAULT_MANIFEST) == load_release_devices()
     with TemporaryDirectory() as tmp:
         base = Path(tmp)
         write_manifest(base / "firmware" / "required-panel", "required-panel")
