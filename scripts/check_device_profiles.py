@@ -431,7 +431,7 @@ def test_jc4880p443_v3_configuration() -> None:
         assert (ROOT / "builds" / f"{slug}{suffix}").is_file()
 
 
-def test_native_home_assistant_api_is_absent(profile_slugs: list[str]) -> None:
+def test_native_home_assistant_api_scope(profile_slugs: list[str]) -> None:
     from esphome.components.packages import resolve_packages
     from esphome.core import CORE
     from esphome.yaml_util import load_yaml
@@ -442,7 +442,10 @@ def test_native_home_assistant_api_is_absent(profile_slugs: list[str]) -> None:
         CORE.config_path = str(path)
         try:
             config = resolve_packages(load_yaml(path))
-            assert "api" not in config, f"{path.name}: native Home Assistant API must be absent"
+            native = path.name == "guition-esp32-s3-4848s040.factory.yaml"
+            assert ("api" in config) == native, f"{path.name}: unexpected native ESPHome API scope"
+            if native:
+                assert "encryption" in config["api"], f"{path.name}: native API must support encryption"
             assert "dashboard_import" not in config, f"{path.name}: dashboard adoption requires the removed native API"
             for domain in ("sensor", "text_sensor", "binary_sensor", "time"):
                 assert all(item.get("platform") != "homeassistant" for item in config.get(domain, [])), (
@@ -860,7 +863,7 @@ def main() -> int:
     test_generated_yaml(profiles)
     test_v3_release_configuration()
     test_jc4880p443_v3_configuration()
-    test_native_home_assistant_api_is_absent(profile_slugs)
+    test_native_home_assistant_api_scope(profile_slugs)
     test_ota_preserves_deployed_partition_layouts()
     test_upgrades_do_not_reset_saved_panel_config()
     test_p4_crash_restart_preserves_safe_mode_counter()

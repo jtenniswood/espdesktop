@@ -41,6 +41,7 @@
 #include "panel_config_page_append.h"
 #include "connector_state.h"
 #include "home_assistant_card_actions.h"
+#include "native_card_buttons.h"
 #include "home_assistant_setup_endpoint.h"
 #ifdef USE_COMPANION
 #include "../companion/companion.h"
@@ -633,6 +634,9 @@ void EspDesktopApp::retry_configuration_compatibility() {
 }
 
 void EspDesktopApp::setup() {
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  home_assistant::native_buttons().setup();
+#endif
 #ifdef USE_COMPANION
   home_assistant::hooks().list = home_assistant::list_cards;
   home_assistant::hooks().press = home_assistant::press_card;
@@ -806,6 +810,9 @@ void EspDesktopApp::loop() {
     retry_configuration_compatibility();
   }
   if (shutting_down_) return;
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  home_assistant::native_buttons().refresh();
+#endif
   trace_phase("configuration");
   core_.run_once();
   trace_phase("app core");

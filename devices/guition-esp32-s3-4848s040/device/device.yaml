@@ -83,6 +83,12 @@ companion:
   id: mac_companion
   port: 8443
 
+api:
+  encryption: {}
+  reboot_timeout: 0s
+  max_connections: 3
+  max_send_queue: 12
+
 espdesktop:
   id: espdesktop_app
   panel_config:
