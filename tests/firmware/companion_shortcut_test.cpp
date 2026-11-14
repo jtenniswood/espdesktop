@@ -486,6 +486,21 @@ int main() {
   assert(output_volume == 72);
   companion_remove_value("media.output_volume");
   assert(!companion_value("media.output_volume", output_volume));
+
+  const char *system_controls[] = {"media.output_volume", "media.input_volume",
+                                  "media.output_mute", "media.input_mute", "media.cough"};
+  for (const auto *control : system_controls) companion_set_value(control, 100);
+  for (int index = 0; index < 256; ++index) {
+    const std::string id = "app.volume.com.example.Player" + std::to_string(index);
+    companion_set_value(id, 35);
+    int level = 0;
+    assert(companion_value(id, level) && level == 35);
+  }
+  companion_set_value("app.volume.com.example.Overflow", 35);
+  assert(!companion_value("app.volume.com.example.Overflow", output_volume));
+  for (int index = 0; index < 256; ++index)
+    companion_remove_value("app.volume.com.example.Player" + std::to_string(index));
+  for (const auto *control : system_controls) companion_remove_value(control);
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
   companion_runtime_service().set_application_highlight("com.apple.finder");
   assert(companion_action_active("com.apple.finder", true));

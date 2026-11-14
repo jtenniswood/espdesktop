@@ -338,9 +338,9 @@ inline void companion_set_value(const std::string &control_id, int value) {
   if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
   if (companion_app_volume_control_valid(control_id)) {
-    // A regular Mac catalogue is bounded. Apply the same bound to the audio
-    // values arriving over the paired connection.
-    companion_runtime_service().set_value(control_id, value, 260);
+    // The shared store needs room for the full Mac catalogue and five system controls.
+    constexpr size_t max_audio_values = 256 + 5;
+    companion_runtime_service().set_value(control_id, value, max_audio_values);
   } else {
     companion_runtime_service().set_value(control_id, value);
   }
