@@ -291,6 +291,20 @@ async function checkBrowser() {
     assert.deepEqual(await checkLauncher(page), touchscreenIcons);
     console.log('The separate editor saves and resets its own layout without changing the touchscreen demo.');
 
+    const backToWebsite = page.getByRole('link', { name: 'Back to website', exact: true });
+    for (const width of [1440, 320]) {
+      await page.setViewportSize({ width, height: 900 });
+      await page.goto(editorUrl);
+      await page.getByRole('tab', { name: 'Layout', exact: true }).waitFor();
+      const exit = await backToWebsite.boundingBox();
+      assert(exit && exit.x >= 0 && exit.x + exit.width <= width && exit.y + exit.height <= 900,
+        `The editor exit must fit a ${width}px viewport`);
+      await backToWebsite.press('Enter');
+      await page.waitForURL(`${home}#a-look-at-the-web-editor`);
+      assert(await page.getByRole('heading', { name: 'EspDesktop in action' }).isVisible());
+    }
+
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(home);
     await setup.press('Enter');
     await page.waitForURL(`${home}screens/4848s040`);

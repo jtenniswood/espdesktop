@@ -1,6 +1,7 @@
 #editor-demo {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.75rem max(1rem, calc((100% - 1080px) / 2));
@@ -18,8 +19,19 @@
   color: #d5d6e0;
 }
 
-#reset-demo {
-  flex: none;
+#editor-demo > :first-child {
+  flex: 1 1 19rem;
+}
+
+.demo-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.demo-actions a,
+.demo-actions button {
   padding: 0.4rem 0.75rem;
   border: 1px solid #9598ab;
   border-radius: 0.5rem;
@@ -27,4 +39,18 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+}
+
+.demo-actions a {
+  text-decoration: none;
+}
+
+.demo-actions a:hover,
+.demo-actions button:hover {
+  background: #363949;
+}
+
+.demo-actions :focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
 }
