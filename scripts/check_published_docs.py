@@ -43,6 +43,7 @@ CLOUDFLARE_BEACON = re.compile(
     rb'<script[^>]*src="https://static\.cloudflareinsights\.com/beacon\.min\.js[^"]*"[^>]*>\s*</script>\r?\n'
 )
 BODY_END = re.compile(rb'[ \t\r\n]*</body>')
+HTML_DOCUMENT = re.compile(rb'</body\s*>', re.IGNORECASE)
 
 
 def published_body(route, body):
@@ -56,10 +57,15 @@ def published_body(route, body):
     never performs that rewrite, so artifact and live HTML can never be
     byte-identical without removing those two known artefacts.
 
+    HTML is detected from the payload itself, not from the route suffix:
+    redirect pages are published as `<route>/index.html` and served at a
+    suffix-less route such as `/screens/4848s040`, and they carry the same
+    Cloudflare rewrite.
+
     Nothing else is exempted: the body is otherwise compared byte for byte,
     and every non-HTML type is compared completely raw.
     """
-    if not route.endswith('.html'):
+    if not (route.endswith('.html') or HTML_DOCUMENT.search(body)):
         return body
     return BODY_END.sub(b'</body>', CLOUDFLARE_BEACON.sub(b'', body))
 
