@@ -72,7 +72,10 @@ class AppShortcutTests(unittest.TestCase):
     def test_chatgpt_extra_presets_preserve_the_regular_list(self):
         app = json.loads((ROOT / 'product/v2/app_shortcuts/codex.json').read_text())
         validate_app(app, self.icons)
-        validate_app({key: value for key, value in app.items() if key != 'additionalShortcuts'}, self.icons)
+        app['additionalShortcuts'] = [
+            {'id': '63', 'label': 'Clear Unreads', 'shortcut': 'shift+escape', 'icon': 'Check'},
+        ]
+        validate_app(app, self.icons)
         with self.assertRaisesRegex(ValueError, 'only on the ChatGPT Desktop'):
             validate_app(dict(app, appId='org.example.Editor'), self.icons)
         app['additionalShortcuts'][0]['shortcut'] = 'escape'

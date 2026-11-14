@@ -42,11 +42,15 @@ Nested layouts use the new saved-layout format and require firmware with two-lev
 
 See how to [move or copy cards between Home and a subpage](/features/home#organise-cards).
 
-## Switch chats in ChatGPT Desktop
+## ChatGPT Desktop shortcuts
 
-Use **Next Sidebar Item** and **Previous Sidebar Item** on your ChatGPT Desktop subpage to move through chats in sidebar order. The **Next Tab** and **Previous Tab** presets cycle through open tabs.
+Press **Command + /** in ChatGPT Desktop to see or customize its keyboard shortcuts. To search past chats from the display, assign **Switch chat…** (chat search) a shortcut in ChatGPT Desktop, then create a [custom Key Shortcut card](/mac-controls/shortcuts#create-a-shortcut-card) with the same keys.
 
-If you already have **Next Chat** and **Previous Chat** cards that send **Control + Tab** and **Control + Shift + Tab**, those keys now switch tabs by default. You can replace the saved cards with the sidebar presets in the EspDesktop editor. To keep cycling through recently viewed chats with your existing cards, open **Settings → Keyboard Shortcuts** in ChatGPT Desktop. Assign **Control + Tab** to **Next recently viewed chat** and **Control + Shift + Tab** to **Previous recently viewed chat**.
+**Chat Bar / Mini** sends **Option + Space**. ChatGPT Desktop may call this action **Toggle Mini** in its Keyboard Shortcuts settings.
+
+The **Next Tab** and **Previous Tab** tiles use **Control + Tab** and **Control + Shift + Tab**. To use those keys to cycle through recently viewed chats instead, assign them to **Next recently viewed chat** and **Previous recently viewed chat** under **Settings → Keyboard Shortcuts** in ChatGPT Desktop. Saved tiles keep their names and keys when the preset list changes.
+
+If you already have **Tab 1** through **Tab 9** tiles, they send **Command + 1** through **Command + 9**. In ChatGPT Desktop, set **Settings → Keyboard Shortcuts → Number shortcuts** to **⌘1–9 for Tabs**. Open two tabs in the current chat and try **Command + 2** on your Mac before testing the **Tab 2** tile. Each tile needs an open tab at that position.
 
 ## Dictate in ChatGPT Desktop
 
