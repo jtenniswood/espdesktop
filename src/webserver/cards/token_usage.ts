@@ -7,11 +7,11 @@ const SERVICES = [
   ["codex", "ChatGPT (Codex)"],
   ["claude", "Claude"],
   ["opencode-go", "OpenCode Go"],
-  ["claude-enterprise", "Claude Enterprise"],
 ] as const;
 
-function selectedServices(options: string): typeof SERVICES[number][0] {
+function selectedServices(options: string): typeof SERVICES[number][0] | "claude-enterprise" {
   const value = configOptionValue(options, "services");
+  if (value === "claude-enterprise") return value;
   return SERVICES.find(([id]) => id === value)?.[0] ?? "codex";
 }
 
@@ -65,10 +65,10 @@ export function registerTokenUsageCard(
     },
     renderPreview: (card, helpers) => {
       const selected = selectedServices(card.options);
-      const enterprise = selected === "claude-enterprise";
+      const unavailable = selected === "claude-enterprise";
       const glyph = selected === "codex" ? "\uE900" : selected === "opencode-go" ? "\uE902" : "\uE901";
       const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
-        (selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +
+        (unavailable ? "Claude" : selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +
         '">' + glyph + '</span>';
       const value = (left: string) =>
         '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) + '</span>';
@@ -76,7 +76,7 @@ export function registerTokenUsageCard(
         '<span class="sp-token-usage-reset">' + helpers.escHtml(text) + '</span>';
       return {
         iconHtml: icon,
-        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(enterprise ? "$12.34" : "41% left") + reset(enterprise ? "Last 7 days" : selected === "opencode-go" && openCodeLimit(card.options) === "monthly" ? "Resets 19d 9h" : "Resets 2d 9h") + '</span>',
+        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(unavailable ? "Unavailable" : "41% left") + (unavailable ? "" : reset(selected === "opencode-go" && openCodeLimit(card.options) === "monthly" ? "Resets 19d 9h" : "Resets 2d 9h")) + '</span>',
         labelEditable: false,
       };
     },

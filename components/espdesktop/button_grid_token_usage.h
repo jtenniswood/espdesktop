@@ -27,15 +27,7 @@ inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
   const bool reset_known = connected && clock_ready && remaining > 0 && age <= 15 * 60;
   std::string value = espdesktop_i18n("Unavailable");
   std::string detail;
-  if (tile.service == static_cast<size_t>(TokenUsageService::CLAUDE_ENTERPRISE)) {
-    if (reading.spend_cents && connected && clock_ready && age <= 60 * 60) {
-      const auto cents = *reading.spend_cents;
-      const auto fractional = cents % 100;
-      value = "$" + std::to_string(cents / 100) + (fractional < 10 ? ".0" : ".") +
-              std::to_string(fractional);
-      detail = espdesktop_i18n_key("token_usage_last_seven_days");
-    }
-  } else if (reading.observed_at) {
+  if (reading.observed_at) {
     value = std::to_string(reading.remaining_percent) + espdesktop_i18n("% left");
     if (reset_known) {
       detail = espdesktop_i18n_key("token_usage_resets");

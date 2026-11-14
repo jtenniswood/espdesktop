@@ -75,7 +75,6 @@ final class CompanionConnection: NSObject {
     private(set) var supportsTokenUsage = false
     private var supportsOpenCodeGoUsage = false
     private var supportsOpenCodeGoMonthly = false
-    private var supportsEnterpriseSpend = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -511,7 +510,6 @@ final class CompanionConnection: NSObject {
             supportsTokenUsage = payload.capabilityVersion >= 10
             supportsOpenCodeGoUsage = payload.capabilityVersion >= 11
             supportsOpenCodeGoMonthly = payload.capabilityVersion >= 13
-            supportsEnterpriseSpend = payload.capabilityVersion >= 12
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -762,7 +760,7 @@ final class CompanionConnection: NSObject {
     }
 
     func publishTokenUsage(codex: WeeklyUsageReading?, claude: WeeklyUsageReading?,
-                           openCodeGo: TokenUsage.OpenCodeGoUsage?, enterprise: TokenUsage.EnterpriseSpend?) {
+                           openCodeGo: TokenUsage.OpenCodeGoUsage?) {
         guard sessionAuthenticated, supportsTokenUsage else { return }
         let readings = [
             codex?.wireValue(service: "codex"),
@@ -770,12 +768,7 @@ final class CompanionConnection: NSObject {
             supportsOpenCodeGoUsage ? openCodeGo?.weekly?.wireValue(service: "opencode-go") : nil,
             supportsOpenCodeGoMonthly ? openCodeGo?.monthly?.wireValue(service: "opencode-go-monthly") : nil,
         ].compactMap { $0 }
-        var message: [String: Any] = ["type": "token_usage", "readings": readings]
-        if supportsEnterpriseSpend, let enterprise {
-            message["claudeEnterpriseSpendCents"] = enterprise.cents
-            message["claudeEnterpriseObservedAt"] = enterprise.observedAt
-        }
-        sendJSON(message)
+        sendJSON(["type": "token_usage", "readings": readings])
     }
 
     func publishSessionLock(_ locked: Bool, displayAwake: Bool?) {

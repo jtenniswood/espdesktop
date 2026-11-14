@@ -4283,7 +4283,7 @@ async function assertTokenUsageCard(browser) {
     await load();
     await page.locator(".sp-main .sp-empty-cell").first().click();
     await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
-    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go", "claude-enterprise"]);
+    assert.deepStrictEqual(await service.locator("option").evaluateAll(options => options.map(option => option.value)), ["codex", "claude", "opencode-go"]);
     await service.selectOption("claude");
     await save();
     await waitForNativeState(nativeState, () => {
@@ -4319,17 +4319,14 @@ async function assertTokenUsageCard(browser) {
     await edit();
     assert.strictEqual(await service.inputValue(), "opencode-go");
     assert.strictEqual(await limit.inputValue(), "monthly");
-    await service.selectOption("claude-enterprise");
-    await save();
-    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "services=claude-enterprise",
-      "Token Usage saves Claude Enterprise");
+    await page.keyboard.press("Escape");
+    nativeState.document.buttons[slot] = nativeState.document.buttons[slot].replace("opencode-go,limit=monthly", "claude-enterprise");
     await page.reload();
     await load();
-    await tile().getByRole("img", { name: "Claude Enterprise" }).waitFor();
-    assert.deepStrictEqual(await tile().locator(".sp-token-usage-value").allTextContents(), ["$12.34"]);
-    assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(), ["Last 7 days"]);
+    await tile().getByText("Unavailable", { exact: true }).waitFor();
+    assert.strictEqual(await tile().locator(".sp-token-usage-reset").count(), 0);
     await edit();
-    assert.strictEqual(await service.inputValue(), "claude-enterprise");
+    assert.strictEqual(await service.inputValue(), "");
     await service.selectOption("codex");
     await save();
     await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options === "",

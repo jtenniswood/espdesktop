@@ -155,11 +155,6 @@ final class CompanionStore: NSObject, ObservableObject {
             restartTokenUsage()
         }
     }
-    @Published private(set) var enterpriseUserID = ""
-    @Published private(set) var enterpriseSpend: TokenUsage.EnterpriseSpend?
-    @Published private(set) var enterpriseSpendChecked = false
-    private var lastEnterpriseSpendAttempt = Date.distantPast
-
     @Published private(set) var openCodeGoStatus = TokenUsage.OpenCodeGoStatus.checking
     @Published private(set) var openCodeGoUsage: TokenUsage.OpenCodeGoUsage?
     private var lastOpenCodeGoUsageAttempt = Date.distantPast
@@ -226,7 +221,6 @@ final class CompanionStore: NSObject, ObservableObject {
         sharesCodexUsage = stableDefaults.bool(forKey: "tokenUsage.codex")
         sharesClaudeUsage = stableDefaults.bool(forKey: "tokenUsage.claude")
         sharesOpenCodeGoUsage = stableDefaults.bool(forKey: "tokenUsage.opencode-go")
-        enterpriseUserID = stableDefaults.string(forKey: "tokenUsage.enterpriseUserID") ?? ""
         let savedDisplays = CompanionSavedDisplays(defaults: stableDefaults)
         self.savedDisplays = savedDisplays
         approvedApplicationIdentifiers = Set(
@@ -858,37 +852,11 @@ final class CompanionStore: NSObject, ObservableObject {
         print("[EspDesktop] \(message)")
     }
 
-    func connectEnterpriseSpend(userID: String, key: String) -> Bool {
-        guard TokenUsage.validEnterpriseUserID(userID), TokenUsage.validEnterpriseKey(key),
-              KeychainStore.save(Data(key.utf8), service: TokenUsage.enterpriseKeychainService, account: userID)
-        else { return false }
-        if !enterpriseUserID.isEmpty, enterpriseUserID != userID {
-            KeychainStore.remove(service: TokenUsage.enterpriseKeychainService, account: enterpriseUserID)
-        }
-        updateEnterpriseUser(userID)
-        return true
-    }
-
-    func disconnectEnterpriseSpend() {
-        KeychainStore.remove(service: TokenUsage.enterpriseKeychainService, account: enterpriseUserID)
-        updateEnterpriseUser("")
-    }
-
-    private func updateEnterpriseUser(_ userID: String) {
-        enterpriseUserID = userID
-        defaults.set(userID, forKey: "tokenUsage.enterpriseUserID")
-        enterpriseSpend = nil
-        enterpriseSpendChecked = false
-        lastEnterpriseSpendAttempt = .distantPast
-        restartTokenUsage()
-    }
-
     private func publishTokenUsage(to display: CompanionDisplay) {
         display.connection.publishTokenUsage(
             codex: sharesCodexUsage ? codexUsage : nil,
             claude: sharesClaudeUsage ? claudeUsage : nil,
-            openCodeGo: sharesOpenCodeGoUsage ? openCodeGoUsage : nil,
-            enterprise: enterpriseSpend
+            openCodeGo: sharesOpenCodeGoUsage ? openCodeGoUsage : nil
         )
     }
 
@@ -900,7 +868,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     private func updateTokenUsageTask() {
-        guard sharesCodexUsage || sharesClaudeUsage || sharesOpenCodeGoUsage || !enterpriseUserID.isEmpty else {
+        guard sharesCodexUsage || sharesClaudeUsage || sharesOpenCodeGoUsage else {
             tokenUsageTask?.cancel()
             tokenUsageTask = nil
             return
@@ -949,20 +917,6 @@ final class CompanionStore: NSObject, ObservableObject {
             } else if status == .missingLogin || status == .rejected || status == .noSubscription {
                 openCodeGoUsage = nil
             }
-            for display in tokenUsageDisplays { publishTokenUsage(to: display) }
-        }
-        if !enterpriseUserID.isEmpty, Date().timeIntervalSince(lastEnterpriseSpendAttempt) >= 900 {
-            let userID = enterpriseUserID
-            let data = KeychainStore.load(service: TokenUsage.enterpriseKeychainService, account: userID)
-            let key = data.flatMap { String(data: $0, encoding: .utf8) }
-            var reading: TokenUsage.EnterpriseSpend?
-            if let key {
-                reading = await TokenUsage.readEnterpriseSpend(userID: userID, key: key)
-            }
-            guard !Task.isCancelled else { return }
-            lastEnterpriseSpendAttempt = .now
-            enterpriseSpend = reading
-            enterpriseSpendChecked = true
             for display in tokenUsageDisplays { publishTokenUsage(to: display) }
         }
     }

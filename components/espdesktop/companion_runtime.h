@@ -55,12 +55,12 @@ struct CompanionNetworkInterface {
   std::string address;
 };
 
-enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, CLAUDE_ENTERPRISE, OPENCODE_GO_MONTHLY, COUNT };
+enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, LEGACY_CLAUDE_ENTERPRISE, OPENCODE_GO_MONTHLY, COUNT };
 
 inline TokenUsageService token_usage_service(std::string_view service) {
   if (service == "claude") return TokenUsageService::CLAUDE;
   if (service == "opencode-go") return TokenUsageService::OPENCODE_GO;
-  if (service == "claude-enterprise") return TokenUsageService::CLAUDE_ENTERPRISE;
+  if (service == "claude-enterprise") return TokenUsageService::LEGACY_CLAUDE_ENTERPRISE;
   if (service == "opencode-go-monthly") return TokenUsageService::OPENCODE_GO_MONTHLY;
   return TokenUsageService::CODEX;
 }
@@ -69,7 +69,6 @@ struct CompanionTokenUsageReading {
   uint8_t remaining_percent{0};
   uint32_t resets_at{0};
   uint32_t observed_at{0};
-  std::optional<uint32_t> spend_cents;
 };
 
 using CompanionTokenUsage = std::array<CompanionTokenUsageReading, static_cast<size_t>(TokenUsageService::COUNT)>;
