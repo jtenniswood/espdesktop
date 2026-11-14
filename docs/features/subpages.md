@@ -7,7 +7,7 @@ description: Group apps and keyboard shortcuts on your EspDesktop touchscreen, c
 
 Use a **Subpage** card to open a folder of related controls. Each subpage reserves one tile for **Back**, which takes you to its parent page. App subpages use the app’s large icon as their Back tile. Other subpages use an arrow and label.
 
-<a href="/images/espdesktop-slack-subpage.jpg"><picture><source type="image/avif" srcset="/images/espdesktop-slack-subpage-480.avif 480w, /images/espdesktop-slack-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing the Slack subpage with shortcuts for new messages, search, and direct messages" width="1320" height="1208" loading="eager"></picture></a>
+<a href="/images/espdesktop-slack-subpage.jpg"><picture><source type="image/avif" srcset="/images/espdesktop-slack-subpage-480.avif 480w, /images/espdesktop-slack-subpage-960.avif 960w" sizes="(min-width: 768px) 688px, 90vw"><img src="/images/espdesktop-slack-subpage.jpg" alt="EspDesktop touchscreen showing the Slack subpage with keyboard shortcuts for new messages, search, and direct messages" width="1320" height="1208" loading="eager"></picture></a>
 
 All subpages hide the top title and clock bar so the cards use the full screen. Clock Bar settings apply to the home screen only.
 
@@ -30,9 +30,9 @@ Under **Screen → Appearance → App Subpages**, **Return home when switching a
 
 You can also right-click an empty space in the editor and choose **Create Subpage**.
 
-Two levels are supported: **Home → Folder → Subpage**, including **Home → Folder → App shortcuts**. Open a folder and repeat the steps above to add the second level. Back returns to the immediate parent page. A second-level page cannot contain another subpage.
+Two levels are supported: **Home → Folder → Subpage**, including **Home → Folder → App keyboard shortcuts**. Open a folder and repeat the steps above to add the second level. Back returns to the immediate parent page. A second-level page cannot contain another subpage.
 
-For an app inside a folder, edit its app card, enable **Add app subpage**, and save. Choose **Edit Subpage** to arrange its shortcuts. The normal app focus and automatic switching settings also apply inside folders.
+For an app inside a folder, edit its app card, enable **Add app subpage**, and save. Choose **Edit Subpage** to arrange its keyboard shortcuts. The normal app focus and automatic switching settings also apply inside folders.
 
 Pages share the display's existing total card and saved-layout limits. A layout that exceeds them is rejected without replacing the saved layout.
 

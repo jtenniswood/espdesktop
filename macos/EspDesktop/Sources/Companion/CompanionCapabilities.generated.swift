@@ -52,7 +52,7 @@ enum CompanionCapabilities {
     ]
     static let cardModes: [String: String] = [
         "app": "Applications",
-        "shortcut": "Keyboard shortcut",
+        "shortcut": "Keyboard Shortcut",
         "url": "Open URL",
         "folder": "Open folder",
         "apple_shortcut": "Run Apple Shortcut",

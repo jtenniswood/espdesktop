@@ -557,7 +557,7 @@ export function registerCompanionCardTypes(
         }
         modalTabs.renderModalTabSettings(panel, card, helpers, {
             definitions: function () { return companionShortcutTabDefinitions(card.entity); },
-            searchPlaceholder: "Find a shortcut…",
+            searchPlaceholder: "Find a keyboard shortcut…",
             showAll,
             dragOnly: true,
             tabs: (button: any) => companionShortcutTabsForCapacity(
@@ -586,7 +586,7 @@ export function registerCompanionCardTypes(
         if (card._appShortcutCapacityRejected === true) {
             const capacityNote = document.createElement("div");
             capacityNote.className = "sp-field-info-text sp-visible";
-            capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another shortcut.";
+            capacityNote.textContent = "No free subpage space. Remove a custom card before enabling another keyboard shortcut.";
             panel.appendChild(capacityNote);
         }
     }
@@ -884,7 +884,7 @@ export function registerCompanionCardTypes(
             });
             typeTabs.segment.id = typeId;
             typeTabs.segment.setAttribute("role", "tablist");
-            typeTabs.segment.setAttribute("aria-label", "Shortcut type");
+            typeTabs.segment.setAttribute("aria-label", "Keyboard shortcut type");
             const customField = document.createElement("div");
             const catalogField = document.createElement("div");
             for (const [type, field] of [["custom", customField], ["catalog", catalogField]] as const) {
@@ -907,7 +907,7 @@ export function registerCompanionCardTypes(
             });
             shortcutField.appendChild(typeTabs.segment);
             const shortcutPanel = helpers.disclosureSection(
-                "Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
+                "Keyboard Shortcut", helpers.idPrefix + "shortcut-panel", card._shortcutPanelOpen !== false,
             );
             shortcutPanel.button.addEventListener("click", function () {
                 card._shortcutPanelOpen = shortcutPanel.panel.classList.contains("sp-open");
@@ -919,7 +919,7 @@ export function registerCompanionCardTypes(
             customField.appendChild(modifierLabel);
             const modifierButtons = document.createElement("fieldset");
             modifierButtons.className = "sp-segment";
-            modifierButtons.setAttribute("aria-label", "Shortcut modifiers");
+            modifierButtons.setAttribute("aria-label", "Keyboard shortcut modifiers");
             const shortcutParts: string[] = currentEntity.slice(COMPANION_SHORTCUT_PREFIX.length).split("+");
             let selectedKey = shortcutParts.pop() || "";
             const modifiers: [string, string][] = [
@@ -959,7 +959,7 @@ export function registerCompanionCardTypes(
                 ["Punctuation", Object.values(COMPANION_SHORTCUT_KEYS).filter((key) => key.startsWith("key"))],
                 ["Function keys", Array.from({ length: 20 }, (_, index) => "f" + (index + 1))],
             ];
-            if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App shortcut", ["claude-escape"]]);
+            if (currentEntity === "shortcut.claude-escape") keyGroups.push(["App keyboard shortcut", ["claude-escape"]]);
             if (currentEntity === "shortcut.escape-twice") keyGroups.push(["Sequence", ["escape-twice"]]);
             for (const [label, keys] of keyGroups) {
                 const group = document.createElement("optgroup");
@@ -1015,7 +1015,7 @@ export function registerCompanionCardTypes(
             catalogField.appendChild(catalogAppField);
             const catalogShortcutField = document.createElement("div");
             catalogShortcutField.className = "sp-field";
-            catalogShortcutField.appendChild(fieldLabel("Shortcut", helpers.idPrefix + "shortcut-catalog-action"));
+            catalogShortcutField.appendChild(fieldLabel("Keyboard Shortcut", helpers.idPrefix + "shortcut-catalog-action"));
             const catalogShortcut = document.createElement("select");
             catalogShortcut.className = "sp-select";
             catalogShortcut.id = helpers.idPrefix + "shortcut-catalog-action";
@@ -1046,7 +1046,7 @@ export function registerCompanionCardTypes(
                 const query = search.value.trim().toLowerCase();
                 const keys = shortcutSearchKeys(query);
                 const selected = savedCatalogShortcut?.options ?? "";
-                const options = [new Option("Choose a shortcut…", "")];
+                const options = [new Option("Choose a keyboard shortcut…", "")];
                 let found = false;
                 for (const choice of choices) {
                     const matches = !query || choice.label.includes(query) ||
@@ -1056,7 +1056,7 @@ export function registerCompanionCardTypes(
                 }
                 catalogShortcut.replaceChildren(...options);
                 catalogShortcut.value = selected;
-                noMatches.textContent = query && !found ? "No matching shortcuts" : "";
+                noMatches.textContent = query && !found ? "No matching keyboard shortcuts" : "";
                 noMatches.classList.toggle("sp-visible", !!noMatches.textContent);
             }
             search.addEventListener("input", () => {
@@ -1066,7 +1066,7 @@ export function registerCompanionCardTypes(
             filterShortcuts();
             catalogField.appendChild(catalogShortcutField);
             shortcutPanel.section.appendChild(catalogField);
-            helpers.requireField(catalogShortcut, "Choose an app and shortcut before saving.", function () {
+            helpers.requireField(catalogShortcut, "Choose an app and keyboard shortcut before saving.", function () {
                 return initialMode === "shortcut" && shortcutType === "catalog";
             }, function () {
                 return !!catalogApp.value && companionShortcutCatalogSelection(card)?.appId === catalogApp.value;
@@ -1647,7 +1647,7 @@ export function registerCompanionCardTypes(
 
     const companionPickerDefinitions: readonly [string, string, string][] = [
         ["companion_app", "Applications", "app"],
-        ["companion_shortcut", "Key Shortcut", "shortcut"],
+        ["companion_shortcut", "Keyboard Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Folder", "folder"],
         ["companion_apple_shortcut", "Run Apple Shortcut", "apple_shortcut"],

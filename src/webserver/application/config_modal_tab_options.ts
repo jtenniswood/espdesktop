@@ -463,7 +463,7 @@ export function createConfigModalTabOptionsFeature(
                 });
                 if (actions && more) {
                     actions.hidden = !!query;
-                    more.textContent = expanded ? "Show fewer shortcuts" : "Show all shortcuts";
+                    more.textContent = expanded ? "Show fewer keyboard shortcuts" : "Show all keyboard shortcuts";
                     more.setAttribute("aria-expanded", String(expanded));
                 }
             }

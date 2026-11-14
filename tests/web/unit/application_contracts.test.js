@@ -580,7 +580,7 @@ describe("browserless application contracts", () => {
     assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderAppShortcutSettings\(appSubpageDisclosure\.section/);
     assert.doesNotMatch(card, /autoSwitchField|Auto switch to subpage/);
     assert.match(styles, /\.sp-app-subpage-options-divider\{/);
-    assert.match(card, /No free subpage space\. Remove a custom card before enabling another shortcut\./);
+    assert.match(card, /No free subpage space\. Remove a custom card before enabling another keyboard shortcut\./);
     assert.match(card, /changedFromSavedApp = card\.entity !== savedParent\?\.entity/);
     assert.match(card, /delete card\._appShortcutAppChanged;[\s\S]*if \(!companionAppShortcutFolderEnabled\(card\)\)/);
     assert.doesNotMatch(entry, /registerCompatibility\(registerCompanionCardTypes/);

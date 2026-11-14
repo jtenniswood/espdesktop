@@ -21,7 +21,7 @@ export const COMPANION_CARD_MODES = [
   },
   {
     id: "shortcut",
-    label: "Keyboard shortcut",
+    label: "Keyboard Shortcut",
     capability: "keyboard_shortcuts",
     defaultIcon: "Shortcut Command"
   },

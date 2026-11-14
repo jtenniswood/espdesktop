@@ -116,7 +116,7 @@ private struct CompanionPermissionRow: View {
 private struct CompanionAccessibilityRow: View {
     var body: some View {
         HStack {
-            Text("Enable Shortcuts")
+            Text("Enable Keyboard Shortcuts")
                 .help("Accessibility access is required to let your display send keyboard shortcuts to this Mac.")
             Spacer()
             Button {
@@ -822,7 +822,7 @@ struct CompanionSettings: View {
                     Text("Apps")
                     CompanionInfoButton(
                         title: "Apps",
-                        information: "All available apps includes every installed app. Switch it off to start with no apps selected, then switch on the apps you want to make available for app shortcuts on your display."
+                        information: "All available apps includes every installed app. Switch it off to start with no apps selected, then switch on the apps you want to make available for app cards on your display."
                     )
                 }
             }

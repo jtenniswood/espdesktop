@@ -984,7 +984,7 @@ final class CompanionStore: NSObject, ObservableObject {
                     actionIdentifier, frontmostBundleIdentifier: application.bundleIdentifier,
                     approvedBundleIdentifiers: approvedApplicationIdentifiers
                   ) else {
-                updateStatus("Bring the approved Safari web app for this shortcut to the front")
+                updateStatus("Bring the approved Safari web app for this keyboard shortcut to the front")
                 return false
             }
             guard shortcut.replay(to: application.processIdentifier) else {
@@ -1000,7 +1000,7 @@ final class CompanionStore: NSObject, ObservableObject {
                   CompanionKeyboardShortcut.scopedTargetMatches(shortcutAppID, frontmost: bundleID,
                                                                approved: approvedApplicationIdentifiers),
                   let strokes = CompanionKeyboardShortcut.scopedStrokes(keys) else {
-                updateStatus("Bring the approved app for this shortcut to the front")
+                updateStatus("Bring the approved app for this keyboard shortcut to the front")
                 return false
             }
             for (index, stroke) in strokes.enumerated() {
@@ -1020,12 +1020,12 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(keys),
            !CompanionKeyboardShortcut.isSafariApplication(NSWorkspace.shared.frontmostApplication?.bundleIdentifier) {
-            updateStatus("Bring Safari or the installed Safari web app to the front to use this shortcut")
+            updateStatus("Bring Safari or the installed Safari web app to the front to use this keyboard shortcut")
             return false
         }
         if CompanionKeyboardShortcut.isBooksExtendedShortcut(keys),
            NSWorkspace.shared.frontmostApplication?.bundleIdentifier != CompanionKeyboardShortcut.booksBundleIdentifier {
-            updateStatus("Bring Books to the front to use this shortcut")
+            updateStatus("Bring Books to the front to use this keyboard shortcut")
             return false
         }
         var targetPID: pid_t?
@@ -1033,7 +1033,7 @@ final class CompanionStore: NSObject, ObservableObject {
            CompanionKeyboardShortcut.isClaudeScopedShortcut(keys) {
             guard let application = NSWorkspace.shared.frontmostApplication,
                   application.bundleIdentifier == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier else {
-                updateStatus("Bring Claude Desktop to the front to use this shortcut")
+                updateStatus("Bring Claude Desktop to the front to use this keyboard shortcut")
                 return false
             }
             targetPID = application.processIdentifier

@@ -4303,7 +4303,7 @@ async function assertMacLockCard(browser) {
     await assertLockEditor();
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await editCard(2);
-    await modal.getByRole("tablist", { name: "Shortcut type" }).waitFor();
+    await modal.getByRole("tablist", { name: "Keyboard shortcut type" }).waitFor();
     console.log("Mac Lock creation, legacy editing, reload and independent keyboard shortcuts passed.");
   } finally {
     await context.close();
@@ -4320,7 +4320,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
   await installFakeEventSource(page);
-  const toggles = ["Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
+  const toggles = ["Keyboard Shortcut", "Card Settings", "Custom Colours"].map(name => page.getByRole("button", { name, exact: true }));
   const [shortcutToggle, settingsToggle, coloursToggle] = toggles;
   const panels = toggles.map(toggle => page.locator(".sp-disclosure").filter({ has: toggle }));
   const [shortcutPanel, settingsPanel, coloursPanel] = panels;
@@ -4357,7 +4357,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       return icons.length === 1 && getComputedStyle(icons[0], "::before").content.includes(expectedGlyph);
     }, String.fromCodePoint(0xF0633));
     await openCard();
-    const type = page.getByRole("tablist", { name: "Shortcut type" });
+    const type = page.getByRole("tablist", { name: "Keyboard shortcut type" });
     const custom = type.getByRole("tab", { name: "Custom", exact: true });
     const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
@@ -4408,7 +4408,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await search.fill("tab");
     assert((await action.locator("option").allTextContents()).includes("Next Field (Tab)"));
     await search.fill("zzzz");
-    await page.getByRole("status").filter({ hasText: "No matching shortcuts" }).waitFor();
+    await page.getByRole("status").filter({ hasText: "No matching keyboard shortcuts" }).waitFor();
     assert.strictEqual(await action.locator("option").count(), 1);
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
@@ -4437,7 +4437,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert((await action.locator("option").count()) > 350, "Final Cut Pro has a large catalog");
     await search.fill("blade at playhead");
     assert.deepStrictEqual(await action.locator("option").allTextContents(),
-      ["Choose a shortcut…", "Blade at Playhead (⌘B)"]);
+      ["Choose a keyboard shortcut…", "Blade at Playhead (⌘B)"]);
     await search.fill("Cmd+B");
     assert((await action.locator("option").allTextContents()).includes("Blade at Playhead (⌘B)"));
     await search.fill("reload");
@@ -4463,12 +4463,12 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "Custom tab selection survives save");
     assert.strictEqual(await page.locator('[id$="shortcut-key"]').inputValue(), "a");
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').count(), 1, "key is inside Shortcut panel");
-    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
+    assert.strictEqual(await shortcutPanel.getByRole("group", { name: "Keyboard shortcut modifiers" }).count(), 1, "modifiers are inside Shortcut panel");
     await shortcutToggle.click();
     assert.strictEqual(await shortcutPanel.locator('[id$="shortcut-key"]').isVisible(), false);
     await assertPanelSpacing();
     await shortcutToggle.click();
-    const modifiers = page.getByRole("group", { name: "Shortcut modifiers" });
+    const modifiers = page.getByRole("group", { name: "Keyboard shortcut modifiers" });
     const command = modifiers.getByRole("button", { name: "⌘ Command", exact: true });
     const shift = modifiers.getByRole("button", { name: "⇧ Shift", exact: true });
     const control = modifiers.getByRole("button", { name: "⌃ Control", exact: true });
@@ -4525,7 +4525,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.getByRole("tab", { name: "Layout", exact: true }).click();
     const addShortcut = async () => {
       await page.locator(".sp-main .sp-empty-cell").first().click();
-      await chooseCardType(page, "Key Shortcut");
+      await chooseCardType(page, "Keyboard Shortcut");
     };
     await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
     await addShortcut();
@@ -4595,7 +4595,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const appCard = page.locator('.sp-main [data-slot="1"]');
     await appCard.click({ button: "right" });
     const menu = page.locator(".sp-ctx-menu");
-    assert.strictEqual(await menu.getByText("Shortcut List", { exact: true }).count(), 0,
+    assert.strictEqual(await menu.getByText("Keyboard Shortcut List", { exact: true }).count(), 0,
       "the shortcut editor is available inside app subpages");
     await menu.getByText("Edit Card", { exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
@@ -4627,7 +4627,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? []), ...(safariTemplate.moreShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
-    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) shortcuts/ });
+    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) keyboard shortcuts/ });
     const toggleActions = appSubpage.locator(".sp-app-subpage-shortcut-actions");
     const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await visibleRows.count(), 20);
@@ -4644,7 +4644,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       assert(actions.y + actions.height > toggle.y + toggle.height, "the button has space below it");
     };
     await assertToggleBelowRows();
-    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
+    const filter = appSubpage.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
     const lastShortcut = safariShortcuts.at(-1);
     await filter.fill(lastShortcut.label);
     assert(!(await toggleActions.isVisible()), "search hides the button and its divider");
@@ -4767,14 +4767,14 @@ async function assertCompanionShortcutSettings(browser, testCase) {
     const dialog = page.locator(".sp-settings-modal");
     const showShortcuts = async (target = shortcutCard) => {
       await target.click({ button: "right" });
-      await menu.getByText("Shortcut List", { exact: true }).click();
-      await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
+      await menu.getByText("Keyboard Shortcut List", { exact: true }).click();
+      await dialog.getByText("Edit Keyboard Shortcuts", { exact: true }).waitFor();
     };
     await showShortcuts();
     const dialogRows = dialog.locator(".sp-light-tab-row:visible");
     assert.strictEqual(await dialogRows.count(), safariShortcuts.length, "the standalone editor shows every shortcut");
-    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) shortcuts/ }).count(), 0);
-    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a shortcut…" });
+    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) keyboard shortcuts/ }).count(), 0);
+    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a keyboard shortcut…" });
     await dialogSearch.fill(safariShortcutLabel(0));
     assert(await dialogRows.count() < safariShortcuts.length, "search still filters the standalone list");
     await dialogSearch.clear();
@@ -7318,7 +7318,7 @@ async function assertNestedCompanionPages(browser) {
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
     const folderAppCard = page.locator('.sp-main [data-slot="1"]');
     await folderAppCard.click({ button: "right" });
-    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).count(), 0,
+    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Keyboard Shortcut List", { exact: true }).count(), 0,
       "ordinary folders do not have a shortcut editor");
     await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
@@ -7332,14 +7332,14 @@ async function assertNestedCompanionPages(browser) {
     fixture.document = existing; fixture.generation++; fixture.puts = [];
     await open();
     await page.locator(".sp-main .sp-empty-cell").first().click();
-    await chooseCardType(page, "Key Shortcut");
+    await chooseCardType(page, "Keyboard Shortcut");
     assert.strictEqual(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
     assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
       "a nested app page uses the app that owns the inner page");
     await page.locator(".sp-settings-close").click();
     await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
-    await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).click();
-    await page.locator(".sp-settings-modal").getByText("Edit App Shortcuts", { exact: true }).waitFor();
+    await page.locator(".sp-ctx-menu").getByText("Keyboard Shortcut List", { exact: true }).click();
+    await page.locator(".sp-settings-modal").getByText("Edit Keyboard Shortcuts", { exact: true }).waitFor();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
     let rejectNext = true;
     await page.route("**/api/v1/config", async route => {
@@ -7488,7 +7488,7 @@ async function assertFirstRunSetup(browser) {
     };
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     catalogueReady = true;
-    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
+    const addPages = dialog.getByRole("radio", { name: "Add keyboard shortcut pages", exact: true });
     const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     await setChecked(dialog.getByLabel("App 0", { exact: true }), true);
     await dialog.getByRole("button", { name: "Next", exact: true }).click();

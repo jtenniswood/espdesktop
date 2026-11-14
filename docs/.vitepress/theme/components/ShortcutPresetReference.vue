@@ -31,10 +31,10 @@ function anchor(appId: string) {
   <details v-for="app in apps" :id="anchor(app.appId)" :key="app.appId">
     <summary>
       <span class="preset-name">{{ app.label }}</span>
-      <span class="preset-count">{{ app.shortcuts.length }} {{ app.shortcuts.length === 1 ? 'shortcut' : 'shortcuts' }}</span>
+      <span class="preset-count">{{ app.shortcuts.length }} {{ app.shortcuts.length === 1 ? 'keyboard shortcut' : 'keyboard shortcuts' }}</span>
       <span class="preset-chevron" aria-hidden="true"></span>
     </summary>
-    <table :aria-label="`${app.label} shortcuts`">
+    <table :aria-label="`${app.label} keyboard shortcuts`">
       <thead>
         <tr><th scope="col">Action</th><th scope="col">Keys</th></tr>
       </thead>
