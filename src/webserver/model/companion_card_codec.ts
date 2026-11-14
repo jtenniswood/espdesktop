@@ -4,6 +4,7 @@ import type { CompanionCardModel, CompanionCardModeId } from "./companion_card";
 import { retiredSavedCardType } from "./card";
 
 export const COMPANION_FOLDER_PREFIX = "folder.";
+export const APPLE_SHORTCUT_PREFIX = "appleshortcut.";
 
 export function companionMetricForEntity(entity: unknown) {
   const baseEntity = typeof entity === "string" ? entity.split(":", 1)[0] : entity;
@@ -14,6 +15,7 @@ export function companionSavedCardMode(config: Partial<CardConfig>): CompanionCa
   const entity = config.entity || "";
   if (entity.startsWith("shortcut.")) return "shortcut";
   if (entity.startsWith(COMPANION_FOLDER_PREFIX)) return "folder";
+  if (entity.startsWith(APPLE_SHORTCUT_PREFIX)) return "apple_shortcut";
   if (entity === "stats" || companionMetricForEntity(entity)) return "stats";
   if (config.sensor?.startsWith("url.")) return "url";
   return "app";
@@ -31,6 +33,7 @@ export function decodeCompanionCard(config: Partial<CardConfig>, mode = companio
     case "app": return { mode, applicationId: entity };
     case "shortcut": return { mode, shortcutId: entity };
     case "folder": return { mode, folderId: entity };
+    case "apple_shortcut": return { mode, actionId: entity };
     case "url": return { mode, applicationId: entity, encodedUrl: config.sensor || "" };
     case "stats": return { mode, metricId: entity, precision: config.precision || "", unit: config.unit || "" };
   }
@@ -44,6 +47,7 @@ export function encodeCompanionCard(model: CompanionCardModel, original: CardCon
     case "app": config.entity = model.applicationId; break;
     case "shortcut": config.entity = model.shortcutId; break;
     case "folder": config.entity = model.folderId; break;
+    case "apple_shortcut": config.entity = model.actionId; break;
     case "url": config.entity = model.applicationId; config.sensor = model.encodedUrl; break;
     case "stats":
       config.entity = model.metricId; config.precision = model.precision; config.unit = model.unit;

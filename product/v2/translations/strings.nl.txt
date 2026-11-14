@@ -343,3 +343,5 @@ mic=Microfoon
 mute=Dempen
 mac_update_required=Update de Mac-app
 mac_update_reconnect=Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.
+apple_shortcut_running=Opdracht wordt uitgevoerd. Kijk op je Mac.
+apple_shortcut_failed=Opdracht mislukt. Kijk op je Mac.

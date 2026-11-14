@@ -661,6 +661,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         // by the panel configuration rather than the Mac's installed app count.
         if ((retain_action || app_icon_store().is_referenced(id)) &&
             id.rfind("folder.", 0) != 0 && id.rfind("shortcut.", 0) != 0 &&
+            !companion_apple_shortcut_action(id) &&
             id.rfind("window.", 0) != 0 && id.rfind("metrics.", 0) != 0 &&
             id.rfind("urlcard.", 0) != 0 &&
             std::find(this->catalogue_enabled_icons_.begin(), this->catalogue_enabled_icons_.end(), id) ==

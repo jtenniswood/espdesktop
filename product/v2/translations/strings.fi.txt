@@ -343,3 +343,5 @@ mic=Mikki
 mute=Mykistä
 mac_update_required=Päivitä Mac-sovellus
 mac_update_reconnect=Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.
+apple_shortcut_running=Shortcut running. Check your Mac.
+apple_shortcut_failed=Shortcut failed. Check your Mac.

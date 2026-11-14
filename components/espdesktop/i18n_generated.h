@@ -889,6 +889,8 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Mute") == 0) return "Stumm";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
+  if (std::strcmp(text, "Shortcut running. Check your Mac.") == 0) return "Kurzbefehl läuft. Prüfe deinen Mac.";
+  if (std::strcmp(text, "Shortcut failed. Check your Mac.") == 0) return "Kurzbefehl fehlgeschlagen. Prüfe deinen Mac.";
   return text;
 }
 
@@ -1192,6 +1194,8 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   if (std::strcmp(text, "Update Mac app") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
+  if (std::strcmp(text, "Shortcut running. Check your Mac.") == 0) return "Ejecutando el atajo. Revisa tu Mac.";
+  if (std::strcmp(text, "Shortcut failed. Check your Mac.") == 0) return "El atajo ha fallado. Revisa tu Mac.";
   return text;
 }
 
@@ -1795,6 +1799,8 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Mute") == 0) return "Muet";
   if (std::strcmp(text, "Update Mac app") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
+  if (std::strcmp(text, "Shortcut running. Check your Mac.") == 0) return "Raccourci en cours. Vérifiez votre Mac.";
+  if (std::strcmp(text, "Shortcut failed. Check your Mac.") == 0) return "Le raccourci a échoué. Vérifiez votre Mac.";
   return text;
 }
 
@@ -2715,6 +2721,8 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Mute") == 0) return "Muto";
   if (std::strcmp(text, "Update Mac app") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
+  if (std::strcmp(text, "Shortcut running. Check your Mac.") == 0) return "Comando in corso. Controlla il Mac.";
+  if (std::strcmp(text, "Shortcut failed. Check your Mac.") == 0) return "Comando non riuscito. Controlla il Mac.";
   return text;
 }
 
@@ -3303,6 +3311,8 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Mute") == 0) return "Dempen";
   if (std::strcmp(text, "Update Mac app") == 0) return "Update de Mac-app";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
+  if (std::strcmp(text, "Shortcut running. Check your Mac.") == 0) return "Opdracht wordt uitgevoerd. Kijk op je Mac.";
+  if (std::strcmp(text, "Shortcut failed. Check your Mac.") == 0) return "Opdracht mislukt. Kijk op je Mac.";
   return text;
 }
 
@@ -3892,6 +3902,8 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
+  if (std::strcmp(text, "Shortcut running. Check your Mac.") == 0) return "Atalho em execução. Verifique o Mac.";
+  if (std::strcmp(text, "Shortcut failed. Check your Mac.") == 0) return "Falha no atalho. Verifique o Mac.";
   return text;
 }
 
@@ -4194,6 +4206,8 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Mute") == 0) return "Silenciar";
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
+  if (std::strcmp(text, "Shortcut running. Check your Mac.") == 0) return "Atalho em execução. Verifique o Mac.";
+  if (std::strcmp(text, "Shortcut failed. Check your Mac.") == 0) return "Falha no atalho. Verifique o Mac.";
   return text;
 }
 
@@ -6658,6 +6672,8 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Mute";
   if (std::strcmp(key, "mac_update_required") == 0) return "Update Mac app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Update EspDesktop on your Mac to reconnect.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Shortcut running. Check your Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "Shortcut failed. Check your Mac.";
   return key;
 }
 
@@ -7561,6 +7577,8 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Stumm";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Kurzbefehl läuft. Prüfe deinen Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "Kurzbefehl fehlgeschlagen. Prüfe deinen Mac.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7873,6 +7891,8 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
   if (std::strcmp(key, "mac_update_required") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Ejecutando el atajo. Revisa tu Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "El atajo ha fallado. Revisa tu Mac.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8495,6 +8515,8 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Muet";
   if (std::strcmp(key, "mac_update_required") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Raccourci en cours. Vérifiez votre Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "Le raccourci a échoué. Vérifiez votre Mac.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9444,6 +9466,8 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Muto";
   if (std::strcmp(key, "mac_update_required") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Comando in corso. Controlla il Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "Comando non riuscito. Controlla il Mac.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10047,6 +10071,8 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Dempen";
   if (std::strcmp(key, "mac_update_required") == 0) return "Update de Mac-app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Opdracht wordt uitgevoerd. Kijk op je Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "Opdracht mislukt. Kijk op je Mac.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10655,6 +10681,8 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Atalho em execução. Verifique o Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "Falha no atalho. Verifique o Mac.";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10966,6 +10994,8 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "mute") == 0) return "Silenciar";
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
+  if (std::strcmp(key, "apple_shortcut_running") == 0) return "Atalho em execução. Verifique o Mac.";
+  if (std::strcmp(key, "apple_shortcut_failed") == 0) return "Falha no atalho. Verifique o Mac.";
   return espdesktop_i18n_key_en(key);
 }
 

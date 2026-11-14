@@ -120,6 +120,38 @@ struct BasicActionSubpageEnvironment {
   int *parent_on_count = nullptr;
 };
 
+inline void apple_shortcut_feedback(const char *message_key) {
+  static lv_obj_t *toast = nullptr;
+  if (toast) lv_obj_del(toast);
+  const lv_coord_t width = std::min<lv_coord_t>(300, lv_display_get_horizontal_resolution(lv_display_get_default()) - 24);
+  const auto shell = control_modal_open_toast(width, 12, theme_display_color(current_theme().surface_secondary));
+  toast = shell.box;
+  lv_obj_add_event_cb(toast, [](lv_event_t *) { toast = nullptr; }, LV_EVENT_DELETE, nullptr);
+  lv_obj_clear_flag(toast, LV_OBJ_FLAG_CLICKABLE);
+  lv_obj_set_height(toast, LV_SIZE_CONTENT);
+  lv_obj_align(toast, LV_ALIGN_BOTTOM_MID, 0, -12);
+  auto *label = control_modal_create_title(toast, espdesktop_i18n_key(message_key), width - 24, nullptr, 100);
+  lv_label_set_long_mode(label, LV_LABEL_LONG_WRAP);
+  lv_obj_delete_delayed(toast, 3500);
+}
+
+inline void run_apple_shortcut_card(const std::string &action_id, const std::string &request_id) {
+  if (!companion_expect_shortcut_result(request_id, esphome::millis() + 300000,
+      [](const std::string &status) {
+        apple_shortcut_feedback(status == "performed" ? "done" :
+          status == "not_found" || status == "not_allowed" ? "unavailable" : "apple_shortcut_failed");
+      })) {
+    apple_shortcut_feedback("unavailable");
+    return;
+  }
+  if (!invoke_companion_action(action_id, request_id)) {
+    companion_cancel_action_result(request_id);
+    apple_shortcut_feedback("unavailable");
+    return;
+  }
+  apple_shortcut_feedback("apple_shortcut_running");
+}
+
 struct CompanionSubpageActionContext {
   ParsedCfg card;
   std::string required_focus_id;
@@ -161,6 +193,10 @@ inline bool basic_action_driver_bind_subpage(
         char request_id[24];
         snprintf(request_id, sizeof(request_id), "sub-%08lx",
                  static_cast<unsigned long>(companion_next_request_number()));
+        if (companion_apple_shortcut_action(card->entity)) {
+          run_apple_shortcut_card(card->entity, request_id);
+          return;
+        }
         const bool invoked = companion_encoded_url(card->sensor).empty()
           ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
                                     companion_folder_open_behavior(*card),
@@ -190,6 +226,10 @@ inline bool basic_action_driver_handle_main_click(
       char request_id[24];
       snprintf(request_id, sizeof(request_id), "%08lx-%d",
                static_cast<unsigned long>(companion_next_request_number()), slot_number);
+      if (companion_apple_shortcut_action(config.entity)) {
+        run_apple_shortcut_card(config.entity, request_id);
+        break;
+      }
       lv_obj_t *screen = nullptr;
       if (companion_app_shortcuts_enabled(config) && button) {
         const auto started = esphome::millis();

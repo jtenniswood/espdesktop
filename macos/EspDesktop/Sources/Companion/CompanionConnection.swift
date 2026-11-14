@@ -76,6 +76,7 @@ final class CompanionConnection: NSObject {
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
     private var expandedShortcutsSupported = false
+    private var appleShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -218,6 +219,7 @@ final class CompanionConnection: NSObject {
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        appleShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -399,6 +401,7 @@ final class CompanionConnection: NSObject {
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        appleShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -504,6 +507,7 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            appleShortcutsSupported = payload.capabilityVersion >= 10
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -553,6 +557,10 @@ final class CompanionConnection: NSObject {
                 let requestingTask = task
                 Task { [weak self, weak requestingTask] in
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
+                    if actionIdentifier.hasPrefix(AppleShortcut.actionPrefix), !self.appleShortcutsSupported {
+                        self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": "not_allowed"])
+                        return
+                    }
                     let status = await self.resources.performResultStatus(
                         actionIdentifier: actionIdentifier,
                         folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
@@ -787,7 +795,12 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "capabilities", "values": capabilities])
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+        let appleShortcuts: [[String: String]] = appleShortcutsSupported
+            ? resources.appleShortcutActions().map {
+                ["id": $0.actionIdentifier, "label": Self.catalogueLabel($0.name, fallback: "Apple Shortcut")]
+            }
+            : []
+        let entries: [[String: String]] = appleShortcuts + resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in

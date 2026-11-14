@@ -1,6 +1,6 @@
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
-import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
+import { APPLE_SHORTCUT_PREFIX, COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
 import { configOptionEnabled, configOptionValue, setConfigOption, setConfigOptionValue, normalizedCardColorOptions, preserveCardColorOptions, withoutCardColorOptions } from "../model/config_primitives";
 import { createCompanionCatalogue, createCompanionCatalogueMonitor } from "../api/companion_catalogue";
 import type { CompanionAction } from "../api/companion_catalogue";
@@ -330,13 +330,14 @@ export function companionEntityForMode(mode: string): string {
     if (mode === "url") return COMPANION_DEFAULT_BROWSER;
     if (mode === "shortcut") return COMPANION_SHORTCUT_PREFIX;
     if (mode === "folder") return COMPANION_FOLDER_PREFIX;
+    if (mode === "apple_shortcut") return APPLE_SHORTCUT_PREFIX;
     if (mode === "stats") return COMPANION_SYSTEM_METRICS[0]?.id || "";
     return COMPANION_SYSTEM_METRICS.find((metric) => metric.mode === mode)?.id || "";
 }
 
 export function companionApplicationActions(actions: readonly CompanionAction[]): readonly CompanionAction[] {
     return sortCompanionLabels(actions.filter((action) =>
-        !action.id.startsWith(COMPANION_FOLDER_PREFIX) &&
+        !action.id.startsWith(COMPANION_FOLDER_PREFIX) && !action.id.startsWith(APPLE_SHORTCUT_PREFIX) &&
         !["media.play_pause", "media.previous", "media.next"].includes(action.id)));
 }
 
@@ -413,6 +414,15 @@ function normalizeCompanionCardFields(card: any): void {
         if (!card.icon || card.icon === "Auto" || card.icon === "Monitor") {
             card.icon = companionSubtypeDefaultIcon(metric.mode);
         }
+        return;
+    }
+    if (companionCardMode(card) === "apple_shortcut") {
+        card.sensor = "";
+        card.unit = "";
+        card.precision = "";
+        card.options = normalizedCardColorOptions(card.options);
+        card.icon_on = "Auto";
+        if (!card.icon || ["Auto", "Monitor"].includes(card.icon)) card.icon = companionSubtypeDefaultIcon("apple_shortcut");
         return;
     }
     const urlConfig = typeof card.sensor === "string" && card.sensor.startsWith(COMPANION_URL_PREFIX)
@@ -730,6 +740,68 @@ export function registerCompanionCardTypes(
                         helpers.saveField("precision", card.precision);
                     });
                 panel?.appendChild(precision.field);
+                return;
+            }
+
+            if (initialMode === "apple_shortcut") {
+                const field = document.createElement("div");
+                field.className = "sp-field";
+                const picker = document.createElement("select");
+                picker.className = "sp-select";
+                picker.id = helpers.idPrefix + "apple-shortcut";
+                field.append(fieldLabel("Apple Shortcut", picker.id), picker);
+                const note = document.createElement("div");
+                note.className = "sp-field-info-text";
+                note.textContent = "Approve workflows under Apple Shortcuts in the EspDesktop Mac app.";
+                field.appendChild(note);
+                panel?.appendChild(field);
+                helpers.markCardPrimaryField(field, "entity");
+
+                const savedID = currentEntity === APPLE_SHORTCUT_PREFIX ? "" : currentEntity;
+                let workflows: readonly CompanionAction[] = [];
+                function showWorkflows(emptyMessage: string): void {
+                    picker.replaceChildren();
+                    const placeholder = document.createElement("option");
+                    placeholder.value = "";
+                    placeholder.textContent = workflows.length ? "Choose an Apple Shortcut…" : emptyMessage;
+                    placeholder.disabled = true;
+                    picker.appendChild(placeholder);
+                    for (const action of workflows) {
+                        const option = document.createElement("option");
+                        option.value = action.id;
+                        option.textContent = action.label;
+                        picker.appendChild(option);
+                    }
+                    const selectedID = card.entity === APPLE_SHORTCUT_PREFIX ? "" : card.entity;
+                    if (selectedID && !workflows.some(action => action.id === selectedID)) {
+                        const unavailable = document.createElement("option");
+                        unavailable.value = selectedID;
+                        unavailable.textContent = card.label ? card.label + " (unavailable)" : "Workflow unavailable";
+                        picker.appendChild(unavailable);
+                    }
+                    picker.value = selectedID;
+                    picker.disabled = workflows.length === 0;
+                }
+                showWorkflows("Loading Apple Shortcuts…");
+                void loadCompanionActions(true).then(actions => {
+                    workflows = sortCompanionLabels(actions.filter(action => action.id.startsWith(APPLE_SHORTCUT_PREFIX)));
+                    showWorkflows("No approved Apple Shortcuts");
+                }).catch(() => showWorkflows("Apple Shortcuts unavailable"));
+                helpers.requireField(picker, "Choose an Apple Shortcut before saving.", () => true,
+                    (value: string) => !!value && (value === savedID || workflows.some(action => action.id === value)));
+                picker.addEventListener("change", () => {
+                    const selected = workflows.find(action => action.id === picker.value);
+                    if (!selected) return;
+                    const previous = workflows.find(action => action.id === card.entity);
+                    const label = companionAppLabel(card.label || "", previous?.label || "", selected.label);
+                    card.entity = selected.id;
+                    card.label = label;
+                    helpers.saveField("entity", card.entity);
+                    helpers.saveField("label", label);
+                    const input = document.getElementById(helpers.idPrefix + "label") as HTMLInputElement | null;
+                    if (input) input.value = label;
+                });
+                helpers.renderBasicCardFields(panel, card, helpers, COMPANION_CARD_METADATA, { entity: false });
                 return;
             }
 
@@ -1452,7 +1524,8 @@ export function registerCompanionCardTypes(
             let urlLabel = "";
             try { urlLabel = new URL(companionUrlValue(card.sensor || "")).hostname; } catch { /* incomplete URL */ }
             const preview = cardBadgePreview(card, helpers, {
-                label: card.label || shortcutLabel || urlLabel || appLabel || card.entity ||
+                label: card.label || (mode === "apple_shortcut" ? "Apple Shortcut" : "") ||
+                    shortcutLabel || urlLabel || appLabel || card.entity ||
                     (mode === "folder" ? "Folder" : "Mac App"),
                 iconFallback: companionSubtypeDefaultIcon(mode),
                 badge: COMPANION_CARD_METADATA.preview.badge,
@@ -1576,6 +1649,7 @@ export function registerCompanionCardTypes(
         ["companion_shortcut", "Key Shortcut", "shortcut"],
         ["companion_url", "Website", "url"],
         ["companion_folder", "Folder", "folder"],
+        ["companion_apple_shortcut", "Run Apple Shortcut", "apple_shortcut"],
     ];
     companionPickerDefinitions.forEach(function (definition) {
         const key = definition[0];

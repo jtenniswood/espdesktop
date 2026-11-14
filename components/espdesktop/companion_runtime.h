@@ -128,6 +128,7 @@ struct CompanionPendingAction {
   std::string expected_application_id;
   uint32_t expires_at{0};
   CompanionActionResultHandler success;
+  std::function<void(const std::string &)> completion;
 };
 
 struct CompanionPendingActions {

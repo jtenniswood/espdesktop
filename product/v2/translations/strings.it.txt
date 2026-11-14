@@ -343,3 +343,5 @@ mic=Microfono
 mute=Muto
 mac_update_required=Aggiorna l’app per Mac
 mac_update_reconnect=Aggiorna EspDesktop sul Mac per riconnetterti.
+apple_shortcut_running=Comando in corso. Controlla il Mac.
+apple_shortcut_failed=Comando non riuscito. Controlla il Mac.

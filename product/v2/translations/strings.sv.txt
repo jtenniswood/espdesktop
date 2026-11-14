@@ -343,3 +343,5 @@ mic=Mikrofon
 mute=Tysta
 mac_update_required=Uppdatera Mac-appen
 mac_update_reconnect=Uppdatera EspDesktop på din Mac för att ansluta igen.
+apple_shortcut_running=Shortcut running. Check your Mac.
+apple_shortcut_failed=Shortcut failed. Check your Mac.

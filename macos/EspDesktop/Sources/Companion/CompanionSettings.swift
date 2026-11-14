@@ -7,7 +7,7 @@ private enum CompanionSettingsField: Hashable {
 
 private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
     // Retain the saved selection identifiers from earlier versions.
-    case connection, applications, folders, updates, help
+    case connection, applications, folders, appleShortcuts, updates, help
 
     var id: String { rawValue }
     var title: String {
@@ -15,6 +15,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "Displays"
         case .applications: return "Apps"
         case .folders: return "Folders"
+        case .appleShortcuts: return "Apple Shortcuts"
         case .updates: return "Updates"
         case .help: return "Support"
         }
@@ -24,6 +25,7 @@ private enum CompanionSettingsPage: String, CaseIterable, Identifiable {
         case .connection: return "display"
         case .applications: return "square.grid.2x2"
         case .folders: return "folder"
+        case .appleShortcuts: return "bolt"
         case .updates: return "arrow.triangle.2.circlepath"
         case .help: return "questionmark.circle"
         }
@@ -379,6 +381,7 @@ struct CompanionSettings: View {
         case .connection: connectionPage
         case .applications: applicationsPage
         case .folders: foldersPage
+        case .appleShortcuts: appleShortcutsPage
         case .updates: CompanionUpdateSettings(updater: store.updater)
         case .help: helpPage
         }
@@ -850,6 +853,32 @@ struct CompanionSettings: View {
             }
         }
         .formStyle(.grouped)
+    }
+
+    private var appleShortcutsPage: some View {
+        Form {
+            Section {
+                Button("Refresh Apple Shortcuts") { store.refreshAppleShortcuts() }
+                    .disabled(store.refreshingAppleShortcuts)
+                if store.refreshingAppleShortcuts {
+                    ProgressView("Loading Apple Shortcuts…")
+                } else if let message = store.appleShortcutMessage {
+                    Text(message)
+                } else if store.appleShortcuts.isEmpty {
+                    Text("Create a workflow in the Shortcuts app, then refresh this list.")
+                }
+                ForEach(store.appleShortcuts) { shortcut in
+                    Toggle(shortcut.name, isOn: Binding(
+                        get: { store.approvedAppleShortcutIDs.contains(shortcut.id) },
+                        set: { store.setAppleShortcut(shortcut, approved: $0) }
+                    ))
+                }
+            } footer: {
+                Text("Enable the workflows paired displays can run while this Mac is unlocked.")
+            }
+        }
+        .formStyle(.grouped)
+        .onAppear { store.refreshAppleShortcuts() }
     }
 
     private var foldersPage: some View {

@@ -343,3 +343,5 @@ mic=Mikrofon
 mute=Némítás
 mac_update_required=Frissítse a Mac-alkalmazást
 mac_update_reconnect=A csatlakozáshoz frissítse az EspDesktopot a Macen.
+apple_shortcut_running=Shortcut running. Check your Mac.
+apple_shortcut_failed=Shortcut failed. Check your Mac.

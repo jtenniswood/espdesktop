@@ -1,4 +1,5 @@
 import { createCompanionCatalogue, type CompanionAction } from "../api/companion_catalogue";
+import { APPLE_SHORTCUT_PREFIX } from "../model/companion_card_codec";
 import type { NativeLayoutDraft } from "../model/native_layout_draft";
 import type { NativePanelConfigGraph } from "../model/panel_config_conversion";
 import type { NativePanelConfigSnapshot } from "../features/native_panel_config";
@@ -32,7 +33,7 @@ function hasNativeLayout(snapshot: NativePanelConfigSnapshot | null): snapshot i
 export function firstRunApplications(actions: readonly CompanionAction[]): CompanionAction[] {
     const unique = new Map<string, CompanionAction>();
     for (const action of actions) {
-        if (!action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
+        if (!action.id.startsWith(APPLE_SHORTCUT_PREFIX) && !action.id.startsWith("folder.") && !action.id.startsWith("shortcut.") &&
             !action.id.startsWith("media.") && !action.id.startsWith("system.") &&
             !action.id.startsWith("window.") && !action.id.startsWith("webapp.")) unique.set(action.id, action);
     }

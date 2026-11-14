@@ -26,6 +26,7 @@ extension CompanionSessionPreferences {
 protocol CompanionSessionResources: AnyObject {
     var applicationCatalogueReady: Bool { get }
     func folderActions() -> [ApprovedFolder]
+    func appleShortcutActions() -> [AppleShortcut]
     func launchableApps() -> [LaunchableApp]
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
@@ -63,6 +64,7 @@ enum CompanionSessionEvent {
 extension CompanionSessionResources {
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
+    func appleShortcutActions() -> [AppleShortcut] { [] }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
     func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()

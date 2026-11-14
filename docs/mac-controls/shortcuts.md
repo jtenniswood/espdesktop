@@ -7,6 +7,17 @@ description: Turn custom Mac keyboard shortcuts into tappable EspDesktop tiles o
 
 Tap a **Key Shortcut** card to send a key combination to the active Mac app.
 
+## Run an Apple Shortcuts workflow
+
+Use a **Run Apple Shortcut** card to run a workflow you created in the Mac’s **Shortcuts** app. Use matching versions of the EspDesktop Mac app and display firmware.
+
+1. Create a workflow in Shortcuts and run it there to check that it works.
+2. In the EspDesktop Mac app, open **Apple Shortcuts** and enable the workflow you want the display to run. Use **Refresh Apple Shortcuts** after creating, renaming, or deleting a workflow.
+3. In the display’s web editor, select an empty tile, choose **Companion → Run Apple Shortcut**, select the workflow, and save.
+4. With your Mac unlocked, tap the tile. If the workflow asks for input or permission, respond on the Mac.
+
+To remove access, turn off the workflow in **Apple Shortcuts** in the EspDesktop Mac app.
+
 ## Create a shortcut card
 
 1. In the display’s web editor, select an empty tile and choose **Companion → Key Shortcut**.
