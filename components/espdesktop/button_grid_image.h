@@ -517,12 +517,15 @@ inline void bind_visible_web_app_icons() {
     if (std::any_of(contexts, contexts + IMAGE_CARD_MAX_CONTEXTS, [&](const auto &ctx) {
           return ctx.active && ctx.widget == tile->widget;
         })) continue;
+    auto source = companion_web_app_icon_url(tile->entity);
+    if (source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0)
+      continue;
     auto *ctx = acquire_image_card_context(cfg, tile->entity);
     if (!ctx) break;
     ctx->widget = tile->widget;
     ctx->btn = tile->button;
     ctx->fallback_icon_label = tile->fallback;
-    ctx->source_url = companion_web_app_icon_url(tile->entity);
+    ctx->source_url = std::move(source);
     ctx->web_app_icon_size = tile->size;
     ctx->diagnostics_enabled = tile->diagnostics;
     image_card_request_source_url(ctx);
