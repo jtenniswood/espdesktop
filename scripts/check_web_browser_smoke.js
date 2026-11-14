@@ -4255,6 +4255,62 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function assertTokenUsageCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = { 2: COPY_SHORTCUT };
+  nativeState.document.settings.button_order = "2";
+  nativeState.document.subpages = {};
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  let slot;
+  const tile = () => page.locator('.sp-main [data-slot="' + slot + '"]');
+  const service = page.getByLabel("Services", { exact: true });
+  const save = () => page.getByRole("button", { name: "Save", exact: true }).click();
+  const load = async () => {
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await seedNativeDocument(page, nativeState);
+  };
+  const edit = async () => {
+    await tile().click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+  };
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await load();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "Token Usage card type", exact: true }).click();
+    await service.selectOption("both");
+    await save();
+    await waitForNativeState(nativeState, () => {
+      slot = Object.keys(nativeState.document.buttons).find(key =>
+        parseRawButtonConfig(nativeState.document.buttons[key]).type === "token_usage");
+      return slot && parseRawButtonConfig(nativeState.document.buttons[slot]).options.includes("services=both");
+    },
+      "Token Usage saves both services");
+    await page.reload();
+    await load();
+    await tile().getByAltText("Codex").waitFor();
+    await tile().getByAltText("Claude").waitFor();
+    assert.deepStrictEqual(await tile().locator(".sp-token-usage-reset").allTextContents(),
+      ["Resets in 2d", "Resets in 4d"]);
+    await edit();
+    assert.strictEqual(await service.inputValue(), "both");
+    await service.selectOption("claude");
+    await save();
+    await waitForNativeState(nativeState, () => parseRawButtonConfig(nativeState.document.buttons[slot]).options.includes("services=claude"),
+      "Token Usage saves Claude only");
+    await tile().getByAltText("Claude").waitFor();
+    assert.strictEqual(await tile().getByAltText("Codex").count(), 0);
+    console.log("Token Usage picker, weekly previews, save and reload passed.");
+  } finally {
+    await context.close();
+  }
+}
+
 async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -7699,6 +7755,7 @@ async function assertFirstRunSetup(browser) {
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
+    await assertTokenUsageCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);

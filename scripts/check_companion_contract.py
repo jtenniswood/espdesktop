@@ -36,7 +36,7 @@ def main() -> int:
         "hello", "pair.request", "pair.accepted", "auth.request", "auth.accepted",
         "capabilities", "catalogue.request", "catalogue.page", "action.invoke",
         "action.result", "value.set", "value.state", "focus.changed",
-        "timezone.changed", "now_playing", "system_metrics", "artwork.begin",
+        "timezone.changed", "now_playing", "system_metrics", "token_usage", "artwork.begin",
         "artwork.ack", "artwork.end", "artwork.abort", "artwork.request",
         "app_icon.request", "app_icon.begin", "app_icon.unchanged",
         "app_icon.unavailable", "app_icon.ack", "app_icon.end",

@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 33,
+    "cardTypes": 34,
     "entityNames": 92,
     "icons": 360,
     "structuralIcons": 39,
@@ -1612,6 +1612,7 @@
         "media_cover_art",
         "media_playlist",
         "push",
+        "token_usage",
         "companion",
         "subpage",
         "weather",
@@ -1972,6 +1973,18 @@
             "informationOnly": false,
             "subscriptions": false,
             "actions": true,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": false,
+            "subpage": true
+          }
+        },
+        "token_usage": {
+          "driver": "token_usage",
+          "capabilities": {
+            "informationOnly": true,
+            "subscriptions": false,
+            "actions": false,
             "numericControl": false,
             "modal": false,
             "runtimeAllocation": false,
@@ -4551,6 +4564,36 @@
           "options": ""
         }
       },
+      "token_usage": {
+        "label": "Token Usage",
+        "allowInSubpage": true,
+        "domains": [],
+        "options": [
+          {
+            "name": "services",
+            "label": "Services",
+            "kind": "choice",
+            "values": [
+              "codex",
+              "claude",
+              "both"
+            ],
+            "defaultValue": "codex",
+            "omitDefault": true
+          }
+        ],
+        "default": {
+          "entity": "",
+          "label": "",
+          "icon": "Auto",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "token_usage",
+          "precision": "",
+          "options": ""
+        }
+      },
       "companion": {
         "label": "Companion",
         "allowInSubpage": true,
@@ -5323,11 +5366,13 @@
       "climate_control": "HC",
       "push": "P",
       "companion": "CP",
+      "token_usage": "TU",
       "companion_mac_lock": "ML",
       "subpage": "G"
     },
     "releaseAvailability": {
       "stable": [
+        "token_usage",
         "companion",
         "companion_mac_lock",
         "subpage"

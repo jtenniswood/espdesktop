@@ -263,6 +263,7 @@ struct CompanionSettings: View {
     @State private var pairingPrompt: CompanionPairingPrompt = .unavailable
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
+    @State private var claudeUsageSetupMessage = ""
     @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
     @FocusState private var focusedField: CompanionSettingsField?
 
@@ -427,8 +428,35 @@ struct CompanionSettings: View {
                     .padding(.vertical, 4)
                 }
                 accessibilityAndStartupSections
+                tokenUsageSettings
             }
             .formStyle(.grouped)
+        }
+    }
+
+    private var tokenUsageSettings: some View {
+        Section("Token Usage") {
+            Toggle("Share ChatGPT (Codex) weekly usage", isOn: $store.sharesCodexUsage)
+            if store.sharesCodexUsage {
+                Text("Sign in to the Codex CLI with your ChatGPT account.")
+                    .foregroundStyle(.secondary)
+            }
+            Toggle("Share Claude weekly usage", isOn: $store.sharesClaudeUsage)
+            if store.sharesClaudeUsage {
+                Button("Connect Claude Code") {
+                    do {
+                        try TokenUsage.connectClaude()
+                        claudeUsageSetupMessage = "Claude usage will appear after your next Claude Code response."
+                    } catch {
+                        claudeUsageSetupMessage = "Could not update Claude Code settings. Check that your user settings file is valid JSON and writable."
+                    }
+                }
+                Text("Sign in to Claude Code with your Claude subscription. Connecting adds usage sharing to your status line.")
+                    .foregroundStyle(.secondary)
+                if !claudeUsageSetupMessage.isEmpty {
+                    Text(claudeUsageSetupMessage).foregroundStyle(.secondary)
+                }
+            }
         }
     }
 

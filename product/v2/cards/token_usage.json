@@ -1,0 +1,19 @@
+{
+  "label": "Token Usage",
+  "allowInSubpage": true,
+  "domains": [],
+  "options": [
+    {
+      "name": "services",
+      "label": "Services",
+      "kind": "choice",
+      "values": ["codex", "claude", "both"],
+      "defaultValue": "codex",
+      "omitDefault": true
+    }
+  ],
+  "default": {
+    "entity": "", "label": "", "icon": "Auto", "icon_on": "Auto",
+    "sensor": "", "unit": "", "type": "token_usage", "precision": "", "options": ""
+  }
+}

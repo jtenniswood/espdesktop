@@ -2021,6 +2021,99 @@
       }
     },
     {
+      "name": "token_usage: codex",
+      "sourceKind": "contract",
+      "sourceType": "token_usage",
+      "mode": "codex",
+      "canonicalType": "token_usage",
+      "web": {
+        "registration": "token_usage",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "a44987936e275242"
+        }
+      },
+      "firmware": {
+        "family": "TOKEN_USAGE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "token_usage: claude",
+      "sourceKind": "contract",
+      "sourceType": "token_usage",
+      "mode": "claude",
+      "canonicalType": "token_usage",
+      "web": {
+        "registration": "token_usage",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "01f065e534b5eafb"
+        }
+      },
+      "firmware": {
+        "family": "TOKEN_USAGE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "token_usage: both",
+      "sourceKind": "contract",
+      "sourceType": "token_usage",
+      "mode": "both",
+      "canonicalType": "token_usage",
+      "web": {
+        "registration": "token_usage",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "cd6815fbf68a0704"
+        }
+      },
+      "firmware": {
+        "family": "TOKEN_USAGE"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "none"
+        ],
+        "actions": [
+          "none"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "companion_mac_lock: lock",
       "sourceKind": "contract",
       "sourceType": "companion_mac_lock",
