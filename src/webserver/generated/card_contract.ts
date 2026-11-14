@@ -2589,7 +2589,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       },
       {
         "name": "limit",
-        "label": "Limit",
+        "label": "Time period",
         "kind": "choice",
         "values": [
           "weekly",

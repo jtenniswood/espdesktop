@@ -3042,7 +3042,7 @@
         },
         {
           "name": "limit",
-          "label": "Limit",
+          "label": "Time period",
           "kind": "choice",
           "values": [
             "weekly",

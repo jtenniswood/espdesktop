@@ -4307,7 +4307,7 @@ async function assertTokenUsageCard(browser) {
     await edit();
     assert.strictEqual(await service.inputValue(), "claude");
     await service.selectOption("opencode-go");
-    const limit = page.getByLabel("Limit", { exact: true });
+    const limit = page.getByLabel("Time period", { exact: true });
     assert.equal(await limit.inputValue(), "weekly");
     await limit.selectOption("monthly");
     await save();

@@ -51,7 +51,7 @@ export function registerTokenUsageCard(
           helpers.saveField("options", card.options);
           cardUi.renderPreview();
         });
-      const limit = fields.selectField("Limit", helpers.idPrefix + "token-usage-limit",
+      const limit = fields.selectField("Time period", helpers.idPrefix + "token-usage-limit",
         [["weekly", "Weekly"], ["monthly", "Monthly"]], openCodeLimit(card.options), () => {
           card.options = normalizeTokenUsageOptions(setConfigOptionValue(card.options, "limit", limit.select.value));
           helpers.saveField("options", card.options);
