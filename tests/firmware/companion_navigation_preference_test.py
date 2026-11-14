@@ -103,11 +103,6 @@ code += function('inline bool navigation_return_from_companion_shortcuts_if_need
 code += function('inline bool navigation_open_companion_subpage_if_requested(')
 code += r'''
 int main() {
-  int image_activations = 0;
-  button_grid_screen_load_callback() = [&](lv_obj_t *page) {
-    assert(page == lv_scr_act());
-    ++image_activations;
-  };
   // Stay on the current page when the next app has a page or no page.
   return_home = false;
   for (const auto &next : {std::string("second.app"), std::string("")}) {

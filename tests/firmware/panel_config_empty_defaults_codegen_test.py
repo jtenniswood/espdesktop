@@ -17,6 +17,7 @@ esp32:
     type: esp-idf
 logger:
 api:
+http_request:
 wifi:
   ssid: compiled-test-network
   password: test-password
@@ -39,7 +40,7 @@ external_components:
   - source:
       type: local
       path: {ROOT / "components"}
-    components: [espdesktop, web_server_idf]
+    components: [espdesktop, web_server_idf, card_image_store]
 text:
   - platform: template
     mode: text

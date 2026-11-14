@@ -523,6 +523,8 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-delete-btn:hover,.sp-hide-btn:hover,.sp-cancel-btn:hover,.sp-neutral-btn:hover{background:var(--border);color:var(--text)}" +
         ".sp-delete-btn.sp-destructive-btn{background:var(--danger);color:#fff}" +
         ".sp-delete-btn.sp-destructive-btn:hover{filter:brightness(.9)}" +
+        ".sp-save-btn{background:var(--accent);color:#fff}" +
+        ".sp-save-btn:hover{background:var(--accent-hover)}" +
         ".sp-transfer-copy-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;" +
         "border:1px solid var(--border);background:var(--surface2);color:var(--text2);" +
         "transition:background .25s,color .25s,border-color .25s,opacity .25s}" +
