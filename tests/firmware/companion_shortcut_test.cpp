@@ -134,7 +134,6 @@ int main() {
     brightness_slider.entity = "display.brightness";
     assert(!retired_home_assistant_card(brightness_slider));
   }
-  {
   // A confirmed window loss is separate from automatic opening and switching.
   {
     CompanionRuntimeService runtime;

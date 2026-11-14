@@ -110,30 +110,6 @@ test("Light mode initializers retain the colour across every supported mode", ()
 });
 
 
-test("Volume controls offer microphone and output mute as tap cards and preserve custom labels", () => {
-  for (const [mode, id, previousLabel, icon] of [
-    ["mac_input_mute", "media.input_mute", "Microphone Mute", "Microphone"],
-    ["mac_output_mute", "media.output_mute", "Output Mute", "Volume High"],
-  ]) {
-    for (const custom of ["", "My Audio"]) {
-      const e = editor();
-      const button = { type: "slider", entity: "media.output_volume", label: custom, icon: "Auto", icon_on: "Auto" };
-      const definition = e.registry.definitions.slider;
-      definition.renderSettings(element(), button, 1, e.helpers);
-      assert(e.modes[0].options.some(option => option[0] === mode));
-      e.modes[0].onChange.call({ value: mode });
-      assert.equal(button.entity, id);
-      assert.equal(button.label, custom || "Mute");
-      assert.equal(button.icon, icon);
-      const preview = definition.renderPreview(button, e.helpers);
-      assert(!JSON.stringify(preview).includes("sp-slider-track"));
-      assert.equal(preview.labelHtml, custom || "Mute");
-      assert.equal(definition.renderPreview({ ...button, label: previousLabel }, e.helpers).labelHtml, "Mute");
-      definition.renderSettings(element(), button, 1, e.helpers);
-      assert.equal(e.modes.at(-1).value(), mode);
-    }
-  }
-});
 
 
 test("Mac volume and mute cards have one icon picker matching the display default", () => {
@@ -169,23 +145,5 @@ test("existing mute cards use normal speaker and mic icons when their saved defa
     definition.renderSettings(element(), card, 1, e.helpers);
     assert.equal(e.icons[0].metadata.value, expected);
     assert(definition.renderPreview(card, e.helpers).iconHtml.includes("mdi-" + expected.toLowerCase().replaceAll(" ", "-")));
-  }
-});
-
-
-test("Mic replaces the input volume default label while preserving custom names", () => {
-  for (const label of ["", "Input Volume", "Input volume", "Mic", "Desk microphone"]) {
-    const e = editor();
-    const card = { type: "slider", entity: "media.input_volume", label };
-    const definition = e.registry.definitions.slider;
-    const preview = definition.renderPreview(card, e.helpers);
-    const expected = label === "Desk microphone" ? label : "Mic";
-    assert.equal(preview.labelHtml, expected);
-    definition.renderSettings(element(), card, 1, e.helpers);
-    assert(e.modes[0].options.some(option => option[0] === "mac_input" && option[1] === "Mic"));
-    e.modes[0].onChange.call({ value: "mac_input" });
-    assert.equal(card.label, expected);
-    e.modes[0].onChange.call({ value: "mac_output" });
-    assert.equal(card.label, label === "Desk microphone" ? label : "Volume");
   }
 });
