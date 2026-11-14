@@ -41,6 +41,16 @@ inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
       detail = std::string(espdesktop_i18n("Resets in")) + " " + std::to_string(count) + unit;
     }
   }
+  const bool show_detail = !detail.empty();
+  if (show_detail == lv_obj_has_flag(row.reset, LV_OBJ_FLAG_HIDDEN)) {
+    if (show_detail) {
+      lv_obj_clear_flag(row.reset, LV_OBJ_FLAG_HIDDEN);
+    } else {
+      lv_obj_add_flag(row.reset, LV_OBJ_FLAG_HIDDEN);
+    }
+    const auto line_height = lv_font_get_line_height(lv_obj_get_style_text_font(row.reset, LV_PART_MAIN));
+    lv_obj_set_y(row.value, show_detail ? -line_height : 0);
+  }
   if (normalize_display_text(value) != lv_label_get_text(row.value))
     lv_label_set_display_text(row.value, value.c_str());
   if (normalize_display_text(detail) != lv_label_get_text(row.reset))
@@ -97,7 +107,6 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   auto *tile = new TokenUsageTile{container};
   const auto *primary_font = lv_obj_get_style_text_font(slot.text_lbl, LV_PART_MAIN);
   const auto *secondary_font = display_small_text_font(display, primary_font);
-  const int line_height = lv_font_get_line_height(secondary_font);
   const auto foreground = lv_obj_get_style_text_color(slot.text_lbl, LV_PART_MAIN);
 
   tile->service = service;
@@ -123,7 +132,8 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
     lv_obj_set_style_text_align(label, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
   }
   lv_obj_set_style_text_opa(reset, LV_OPA_80, LV_PART_MAIN);
-  lv_obj_align(value, LV_ALIGN_BOTTOM_LEFT, 0, -line_height);
+  lv_obj_align(value, LV_ALIGN_BOTTOM_LEFT, 0, 0);
+  lv_obj_add_flag(reset, LV_OBJ_FLAG_HIDDEN);
   lv_obj_align(reset, LV_ALIGN_BOTTOM_LEFT, 0, 0);
   tile->row = {value, reset};
   refresh_token_usage_tile(*tile);
