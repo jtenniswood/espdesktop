@@ -1573,7 +1573,12 @@ export function registerCompanionCardTypes(
     });
 
     const coughDefaults = cardContractDefaultConfig("companion_cough");
+    const coughMetadata = {
+        icon: { fallback: coughDefaults.icon },
+        preview: { iconFallback: coughDefaults.icon, badge: COMPANION_CARD_METADATA.preview.badge },
+    };
     registry.register("companion_cough", {
+        cardMetadata: coughMetadata,
         label: coughDefaults.label,
         allowInSubpage: cardContractAllowInSubpage("companion_cough"),
         isAvailable: () => supported,
@@ -1581,11 +1586,10 @@ export function registerCompanionCardTypes(
         defaultConfig: () => coughDefaults,
         onSelect: (card) => Object.assign(card, coughDefaults),
         renderSettings: (panel, card, _slot, helpers) => {
-            helpers.renderCardIconPicker(panel, card, helpers, { fallback: coughDefaults.icon });
+            helpers.renderCardIconPicker(panel, card, helpers, coughMetadata.icon);
         },
         renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
-            iconFallback: coughDefaults.icon,
-            badge: COMPANION_CARD_METADATA.preview.badge,
+            ...coughMetadata.preview,
             label: card.label || coughDefaults.label,
         }),
     });
