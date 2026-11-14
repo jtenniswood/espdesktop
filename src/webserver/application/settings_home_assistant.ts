@@ -10,7 +10,7 @@ export function buildHomeAssistantSettings(
     const status = document.createElement("p");
     status.setAttribute("role", "status");
     const pair = makeButton("sp-action-btn", "Pair Home Assistant", "link");
-    const disconnect = makeButton("sp-action-btn", "Disconnect", "link-off");
+    const disconnect = makeButton("sp-action-btn", "Disconnect", "close");
     const card = makeCard("Home Assistant", body, true) as HTMLElement;
     card.hidden = true;
     body.append(status, pair, disconnect);
