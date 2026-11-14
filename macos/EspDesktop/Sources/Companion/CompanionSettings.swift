@@ -444,6 +444,7 @@ struct CompanionSettings: View {
                     }
                 }
             }
+            .tint(.blue)
             Toggle(isOn: $store.sharesClaudeUsage) {
                 Text("Share Claude weekly usage")
                 if store.sharesClaudeUsage {
@@ -453,6 +454,7 @@ struct CompanionSettings: View {
                     }
                 }
             }
+            .tint(.blue)
         }
     }
 
