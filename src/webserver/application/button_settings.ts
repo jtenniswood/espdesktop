@@ -935,7 +935,7 @@ export function createButtonSettingsFeature(
             }
             title.textContent = "Edit App Shortcuts";
             panel.classList.add("sp-app-subpage-settings");
-            renderShortcuts(panel, b, shortcutPage, { idPrefix, saveField });
+            renderShortcuts(panel, b, shortcutPage, { idPrefix, saveField }, true);
             const footer = document.createElement("div");
             footer.className = "sp-btn-row sp-btn-row--save";
             const cancel = createActionButton("sp-action-btn sp-cancel-btn", "Cancel");

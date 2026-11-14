@@ -4771,6 +4771,14 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
     };
     await showShortcuts();
+    const dialogRows = dialog.locator(".sp-light-tab-row:visible");
+    assert.strictEqual(await dialogRows.count(), safariShortcuts.length, "the standalone editor shows every shortcut");
+    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) shortcuts/ }).count(), 0);
+    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a shortcut…" });
+    await dialogSearch.fill(safariShortcutLabel(0));
+    assert(await dialogRows.count() < safariShortcuts.length, "search still filters the standalone list");
+    await dialogSearch.clear();
+    assert.strictEqual(await dialogRows.count(), safariShortcuts.length, "clearing search restores the full list");
     assert.strictEqual(await dialog.getByText("Card Settings", { exact: true }).count(), 0);
     assert.strictEqual(await dialog.getByText("Add app subpage", { exact: true }).count(), 0);
     const back = dialog.getByRole("checkbox", { name: safariShortcutLabel(0), exact: true });
