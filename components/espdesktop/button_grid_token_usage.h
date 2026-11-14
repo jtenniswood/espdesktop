@@ -115,7 +115,7 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
 #endif
     lv_obj_clear_flag(icon, LV_OBJ_FLAG_CLICKABLE);
     const auto row_anchor = both && i == 1 ? LV_ALIGN_BOTTOM_LEFT : LV_ALIGN_TOP_LEFT;
-    lv_obj_align(icon, row_anchor, 0, both && i == 1 ? -line_height / 3 : 0);
+    lv_obj_align(icon, row_anchor, 0, both && i == 1 ? -line_height : 0);
 
     auto *value = lv_label_create(container);
     auto *reset = lv_label_create(container);
@@ -132,10 +132,10 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
     lv_obj_set_style_text_align(reset, LV_TEXT_ALIGN_LEFT, LV_PART_MAIN);
     if (both && i == 0) {
       lv_obj_align(value, LV_ALIGN_TOP_LEFT, left, 0);
-      lv_obj_align(reset, LV_ALIGN_TOP_LEFT, left, line_height);
+      lv_obj_align(reset, LV_ALIGN_TOP_LEFT, 0, line_height + 3);
     } else {
       lv_obj_align(value, LV_ALIGN_BOTTOM_LEFT, left, -line_height);
-      lv_obj_align(reset, LV_ALIGN_BOTTOM_LEFT, left, 0);
+      lv_obj_align(reset, LV_ALIGN_BOTTOM_LEFT, 0, 0);
     }
     tile->rows[i] = {value, reset};
   }
