@@ -226,8 +226,9 @@ private final class AppVolumePlayback {
         let streams = AppVolumeController.objectIDs(output, kAudioDevicePropertyStreams, scope: kAudioObjectPropertyScopeOutput)
         guard streams.count == 1,
               let outputLayout = channelLayout(output, scope: kAudioObjectPropertyScopeOutput),
-              outputLayout.count == 1, (1...2).contains(outputLayout[0]) else { return nil }
-        let channels = outputLayout[0]
+              outputLayout.count == 1, let channels = outputLayout.first, channels > 0 else { return nil }
+        // A stream-specific tap keeps the device's channel layout, including
+        // multichannel outputs such as Studio Display speakers.
         let description = CATapDescription(processes: processes, deviceUID: uid, stream: 0)
         description.name = "EspDesktop App Volume"
         description.isPrivate = true

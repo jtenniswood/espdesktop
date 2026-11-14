@@ -46,7 +46,7 @@ An **App Volume** card controls one Mac app at a time. For example, give Spotify
 
 At **100%**, the app plays at its normal level. At **0%**, its output is silent. Disabling the app in EspDesktop or disconnecting the last paired display restores normal playback.
 
-If the app is missing from the picker, check that the Mac companion is connected and the app is enabled in **Apps**, then reopen the card editor. If the slider has no effect, check EspDesktop’s audio recording permission in **System Settings → Privacy & Security** and confirm the app plays through the Mac’s default sound output. Some apps and audio devices use output paths that the slider cannot adjust. Browser tabs that share one audio process share one volume setting.
+If the app is missing from the picker, check that the Mac companion is connected and the app is enabled in **Apps**, then reopen the card editor. If the slider has no effect, check EspDesktop’s audio recording permission in **System Settings → Privacy & Security** and confirm the app plays through the Mac’s default sound output. App Volume supports compatible mono, stereo, and multichannel output streams, including Studio Display speakers. Some apps and audio devices use output paths that the slider cannot adjust. Browser tabs that share one audio process share one volume setting.
 
 ## Ready-Made app subpages
 
