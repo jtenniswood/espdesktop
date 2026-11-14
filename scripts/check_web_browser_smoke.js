@@ -5003,9 +5003,22 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     assert(await page.locator('[data-card-type="companion_url"]').isVisible(),
       `${testCase.name}: Open URL remains available`);
+    const applications = page.locator('[data-card-type="companion_app"]');
     assert(
-      await page.locator('[data-card-type="companion_app"]').isVisible(),
+      await applications.isVisible(),
       `${testCase.name}: Companion-only picker opens on Mac Companion card types`,
+    );
+    await applications.hover();
+    const hoverBounds = await applications.evaluate(async (tile) => {
+      await Promise.all(tile.getAnimations().map((animation) => animation.finished));
+      return {
+        tileTop: tile.getBoundingClientRect().top,
+        panelTop: tile.closest(".sp-panel").getBoundingClientRect().top,
+      };
+    });
+    assert(
+      hoverBounds.tileTop >= hoverBounds.panelTop,
+      `${testCase.name}: hovering the first card keeps its top border inside the picker`,
     );
     assert.strictEqual(
       await page.locator('[data-card-type="companion_stats"]').count(),
