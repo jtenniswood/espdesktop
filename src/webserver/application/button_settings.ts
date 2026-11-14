@@ -481,7 +481,7 @@ export function createButtonSettingsFeature(
                 return Promise.resolve(false);
             }
             const previous = c.buttons[bIdx];
-            if (previous && !sameCardAction(previous, draft.button)) {
+            if (!draft.isNew && previous && !sameCardAction(previous, draft.button)) {
                 const exposure = cardExposure(draft.button.options);
                 draft.button.options = setCardExposure(draft.button.options, exposure.identity, false);
             }

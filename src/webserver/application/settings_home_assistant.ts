@@ -1,3 +1,4 @@
+import { resetAwareFetch } from "../api/reset_session";
 import type { ControlsFieldsFeature } from "./controls_fields";
 import type { ControlsShellFeature } from "./controls_shell";
 
@@ -20,7 +21,7 @@ export function buildHomeAssistantSettings(
         pending = true;
         pair.disabled = disconnect.disabled = true;
         try {
-            const response = await fetch("/api/v1/home-assistant", {
+            const response = await resetAwareFetch("/api/v1/home-assistant", {
                 method: action ? "POST" : "GET",
                 headers: action ? { "X-EspDesktop-Request": action } : {},
                 cache: "no-store",
