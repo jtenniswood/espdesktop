@@ -263,7 +263,6 @@ struct CompanionSettings: View {
     @State private var pairingPrompt: CompanionPairingPrompt = .unavailable
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
-    @State private var claudeUsageSetupFailed = false
     @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
     @FocusState private var focusedField: CompanionSettingsField?
 
@@ -454,21 +453,6 @@ struct CompanionSettings: View {
                     }
                 }
             }
-            if store.sharesClaudeUsage, !store.claudeSetup.helperConfigured,
-               [.detected, .unknown].contains(store.claudeSetup.account) {
-                Button("Set Up Claude Code") {
-                    do {
-                        try store.connectClaudeUsage()
-                        claudeUsageSetupFailed = false
-                    } catch {
-                        claudeUsageSetupFailed = true
-                    }
-                }
-                if claudeUsageSetupFailed {
-                    Text("Couldn’t save the Claude Code status line. Check that your Claude Code settings file is valid JSON and writable.")
-                        .foregroundStyle(.secondary)
-                }
-            }
         }
     }
 
@@ -484,7 +468,7 @@ struct CompanionSettings: View {
     }
 
     private func claudeUsageStatus(at date: Date) -> String {
-        switch store.claudeSetup.account {
+        switch store.claudeAccount {
         case .checking:
             return "Checking Claude Code…"
         case .missingCLI:
@@ -496,16 +480,13 @@ struct CompanionSettings: View {
         case .otherProvider:
             return "Claude Code is using a third-party provider. Use your Claude subscription to share weekly usage."
         case .detected, .unknown:
-            guard store.claudeSetup.helperConfigured else {
-                return "Set up usage sharing through the Claude Code status line."
-            }
             if let reading = store.claudeUsage, reading.isCurrent(at: date) {
                 return "\(reading.remainingPercent)% left this week"
             }
             if store.claudeUsage != nil {
-                return "Last weekly reading is out of date. Open a Claude Code session and send a message."
+                return "Last weekly reading is out of date."
             }
-            return "Waiting for weekly usage. Open a Claude Code session with your subscription and send a message."
+            return "Weekly usage unavailable. Update Claude Code and check that /usage shows your weekly plan limit."
         }
     }
 
