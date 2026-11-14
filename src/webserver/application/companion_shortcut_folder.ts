@@ -277,6 +277,9 @@ export function companionShortcutTabDefinitions(bundleIdentifier: string): Compa
 
 export function companionShortcutDefaultTabs(bundleIdentifier: string): string[] {
     if (bundleIdentifier === "com.apple.finder") return [];
+    if (bundleIdentifier.startsWith("webapp.")) {
+        return companionShortcutChoices(bundleIdentifier).map(item => item.id);
+    }
     const app = companionShortcutApp(bundleIdentifier);
     if (!app) return [];
     if (Array.isArray(app.defaultShortcutIds)) {

@@ -137,7 +137,7 @@ export function createCompanionCatalogue(fetchImpl: typeof fetch) {
   async function fetchDefinitions(): Promise<CompanionDefinitions> {
     const applications = new Map<string, AppShortcutApplication>();
     const webApplications: WebAppDefinition[] = [];
-    for (let page = 0; page < 64; page += 1) {
+    for (let page = 0; page < 128; page += 1) {
       const response = await fetchImpl(`/companion/definitions?page=${page}`, { cache: "no-store" });
       if (!response.ok) throw new Error("Companion definitions unavailable");
       const data: unknown = await response.json();

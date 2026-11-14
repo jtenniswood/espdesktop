@@ -74,6 +74,8 @@ std::string companion_web_app_icon_url(const std::string &) { return {}; }
 bool memory_available = true;
 bool image_card_memory_available(ImageCardCtx *, const char *, int, int) { return memory_available; }
 bool image_card_position_widget(lv_obj_t *, lv_obj_t *, int *w, int *h) { *w = 32; *h = 32; return true; }
+bool web_app_icon_keep_decoded(ImageCardCtx &) { return false; }
+void bind_visible_web_app_icons() {}
 inline bool image_card_context_visible_on_active_screen(ImageCardCtx *);
 inline void image_card_request_source_url(ImageCardCtx *, bool source_changed = false);
 '''

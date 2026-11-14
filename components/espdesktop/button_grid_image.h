@@ -8,6 +8,9 @@
 #include "esphome/core/version.h"
 #include "../artwork_image/image_pipeline_policy.h"
 #include <new>
+#include <cstring>
+#include <cstdlib>
+#include <memory>
 
 #ifndef ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS
 #define ESPDESKTOP_IMAGE_CARD_MAX_CONTEXTS 6
@@ -34,6 +37,59 @@ struct ImageCardCtx {
   bool download_active = false;
   bool diagnostics_enabled = false;
 };
+
+// A tile owns its decoded icon independently of the shared downloader.
+struct WebAppIconTile {
+  lv_obj_t *button;
+  lv_obj_t *widget;
+  lv_obj_t *fallback;
+  std::string entity;
+  lv_coord_t size;
+  bool diagnostics;
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  lv_image_dsc_t decoded{};
+  std::unique_ptr<uint8_t, decltype(&free)> pixels{nullptr, &free};
+#endif
+};
+
+inline std::vector<WebAppIconTile *> &web_app_icon_tiles() {
+  static std::vector<WebAppIconTile *> tiles;
+  return tiles;
+}
+
+inline WebAppIconTile *web_app_icon_tile(lv_obj_t *widget) {
+  for (auto *tile : web_app_icon_tiles())
+    if (tile->widget == widget) return tile;
+  return nullptr;
+}
+
+inline bool web_app_icon_keep_decoded(ImageCardCtx &ctx) {
+#if defined(ESP_PLATFORM) && ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  auto *tile = web_app_icon_tile(ctx.widget);
+  if (!tile) return false;
+  const auto *source = ctx.image->get_lv_image_dsc();
+  if (!source || !source->data || !source->data_size ||
+      heap_caps_get_free_size(MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT) <
+          IMAGE_CARD_MEMORY_HEADROOM_BYTES + source->data_size) return false;
+  auto *copy = static_cast<uint8_t *>(heap_caps_malloc(source->data_size, MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+  if (!copy) return false;
+  std::memcpy(copy, source->data, source->data_size);
+  lv_image_cache_drop(&tile->decoded);
+  tile->pixels.reset(copy);
+  tile->decoded = *source;
+  tile->decoded.data = copy;
+  lv_image_set_src(tile->widget, &tile->decoded);
+  lv_obj_clear_flag(tile->widget, LV_OBJ_FLAG_HIDDEN);
+  // The transfer callback is still running. Recycle this context on the next
+  // application tick, after the downloader has finished publishing.
+  ctx.widget = nullptr;
+  ctx.fallback_icon_label = nullptr;
+  return true;
+#else
+  (void) ctx;
+  return false;
+#endif
+}
 
 inline void image_card_request_source_url(ImageCardCtx *ctx, bool source_changed = false);
 inline bool image_card_context_visible_on_active_screen(ImageCardCtx *ctx);
@@ -217,9 +273,11 @@ inline void image_card_apply_downloaded(ImageCardCtx *ctx) {
   ctx->download_active = false;
   ctx->download_errors = 0;
   ctx->next_download_retry_ms = 0;
-  image_card_set_widget_source(ctx->widget, ctx->image);
-  if (!ctx->web_app_icon_size) lv_obj_move_foreground(ctx->widget);
-  if (ctx->fallback_icon_label) lv_obj_add_flag(ctx->fallback_icon_label, LV_OBJ_FLAG_HIDDEN);
+  auto *widget = ctx->widget;
+  auto *fallback = ctx->fallback_icon_label;
+  if (!web_app_icon_keep_decoded(*ctx)) image_card_set_widget_source(widget, ctx->image);
+  if (!ctx->web_app_icon_size) lv_obj_move_foreground(widget);
+  if (fallback) lv_obj_add_flag(fallback, LV_OBJ_FLAG_HIDDEN);
   if (ctx->btn) lv_obj_invalidate(ctx->btn);
   notify_dashboard_content_changed();
 }
@@ -414,6 +472,15 @@ inline bool image_card_context_on_active_screen(ImageCardCtx *ctx) {
 }
 
 inline void image_card_release_hidden_buffers() {
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+  for (auto *tile : web_app_icon_tiles()) {
+    if (!tile->pixels || lv_obj_get_screen(tile->button) == lv_scr_act()) continue;
+    image_card_clear_widget_source(tile->widget);
+    lv_image_cache_drop(&tile->decoded);
+    tile->pixels.reset();
+    if (tile->fallback) lv_obj_clear_flag(tile->fallback, LV_OBJ_FLAG_HIDDEN);
+  }
+#endif
   auto *contexts = image_card_contexts();
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
     auto &ctx = contexts[i];
@@ -429,7 +496,41 @@ inline void image_card_release_hidden_buffers() {
   }
 }
 
+inline void bind_visible_web_app_icons() {
+  auto *contexts = image_card_contexts();
+  for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
+    auto &ctx = contexts[i];
+    if (!ctx.active || !ctx.web_app_icon_size) continue;
+    if (!ctx.widget || (web_app_icon_tile(ctx.widget) &&
+                        lv_obj_get_screen(ctx.btn) != lv_scr_act()))
+      image_card_evict_optional_icon(&ctx);
+  }
+  if ((image_card_page_visible() && !image_card_page_visible()()) ||
+      control_modal_active().kind != ControlModalKind::NONE) return;
+  const auto &cfg = image_card_pool_grid_config();
+  for (auto *tile : web_app_icon_tiles()) {
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+    if (tile->pixels) continue;
+#endif
+    if (lv_obj_get_screen(tile->button) != lv_scr_act() ||
+        lv_obj_has_flag(tile->button, LV_OBJ_FLAG_HIDDEN)) continue;
+    if (std::any_of(contexts, contexts + IMAGE_CARD_MAX_CONTEXTS, [&](const auto &ctx) {
+          return ctx.active && ctx.widget == tile->widget;
+        })) continue;
+    auto *ctx = acquire_image_card_context(cfg, tile->entity);
+    if (!ctx) break;
+    ctx->widget = tile->widget;
+    ctx->btn = tile->button;
+    ctx->fallback_icon_label = tile->fallback;
+    ctx->source_url = companion_web_app_icon_url(tile->entity);
+    ctx->web_app_icon_size = tile->size;
+    ctx->diagnostics_enabled = tile->diagnostics;
+    image_card_request_source_url(ctx);
+  }
+}
+
 inline void refresh_visible_image_cards() {
+  bind_visible_web_app_icons();
   ImageCardCtx *contexts = image_card_contexts();
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
     if (image_card_context_visible_on_active_screen(&contexts[i]))
@@ -443,6 +544,7 @@ inline void refresh_image_cards() {
 
 inline void image_card_refresh_due(std::function<bool()> page_visible = nullptr) {
   image_card_page_visible() = std::move(page_visible);
+  bind_visible_web_app_icons();
   const uint32_t now = esphome::millis();
   ImageCardCtx *contexts = image_card_contexts();
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
@@ -468,9 +570,7 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
   if (!s.btn || p.type != "companion" || p.entity.rfind("webapp.", 0) != 0) return false;
   const std::string source = companion_web_app_icon_url(p.entity);
   if (!source.empty() && source.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) != 0) return false;
-  // The Mac may send the definition after the grid has already been built.
-  ImageCardCtx *ctx = acquire_image_card_context(cfg, p.entity);
-  if (!ctx || !ctx->image) return false;
+  if (cfg.image_card_image_count <= 0) return false;
 #if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
   lv_obj_t *widget = lv_image_create(s.btn);
 #else
@@ -520,20 +620,30 @@ inline bool image_card_bind_companion_webapp_icon(BtnSlot &s, const ParsedCfg &p
     lv_obj_move_foreground(s.text_lbl);
   }
   lv_obj_add_flag(widget, LV_OBJ_FLAG_HIDDEN);
-  ctx->widget = widget;
-  ctx->btn = s.btn;
-  ctx->entity_id = p.entity;
-  ctx->source_url = source;
-  ctx->fallback_icon_label = s.icon_lbl;
-  ctx->diagnostics_enabled = cfg.image_card_diagnostics;
-  ctx->web_app_icon_size = icon_size;
-  image_card_log_diagnostics(ctx, "bind-companion-webapp-icon");
-  if (!source.empty() && ctx->image_ready && ctx->image->get_url() == source) {
-    ctx->url = source;
-    image_card_apply_downloaded(ctx);
-  } else {
-    image_card_request_source_url(ctx, true);
+  auto *tile = new (std::nothrow) WebAppIconTile{s.btn, widget, s.icon_lbl, p.entity,
+                                                 icon_size, cfg.image_card_diagnostics};
+  if (!tile) {
+    lv_obj_del(widget);
+    if (large_icon && s.text_lbl) lv_obj_clear_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
+    return false;
   }
+  web_app_icon_tiles().push_back(tile);
+  lv_obj_add_event_cb(widget, [](lv_event_t *event) {
+    auto *tile = static_cast<WebAppIconTile *>(lv_event_get_user_data(event));
+    for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
+      auto &ctx = image_card_contexts()[i];
+      if (ctx.widget != tile->widget) continue;
+      ctx.widget = nullptr;
+      ctx.fallback_icon_label = nullptr;
+      image_card_evict_optional_icon(&ctx);
+    }
+    auto &tiles = web_app_icon_tiles();
+    tiles.erase(std::remove(tiles.begin(), tiles.end(), tile), tiles.end());
+#if ESPHOME_VERSION_CODE >= VERSION_CODE(2026, 4, 0)
+    if (tile->pixels) lv_image_cache_drop(&tile->decoded);
+#endif
+    delete tile;
+  }, LV_EVENT_DELETE, tile);
   return true;
 }
 

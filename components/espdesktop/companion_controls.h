@@ -1224,7 +1224,8 @@ class CompanionActionsHandler : public esphome::web_server_idf::AsyncWebHandler 
     const bool connected = runtime.connected();
     if (definitions) {
       constexpr size_t page_size = 4;
-      constexpr size_t maximum_pages = 64;
+      constexpr size_t maximum_definitions = 2 * COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
+      constexpr size_t maximum_pages = (maximum_definitions + page_size - 1) / page_size;
       size_t page = 0;
       httpd_req_t *req = *request;
       char query[64] = {};
