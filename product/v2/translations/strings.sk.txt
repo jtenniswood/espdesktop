@@ -343,3 +343,4 @@ mic=Mikrofón
 mute=Stlmiť
 mac_update_required=Aktualizujte aplikáciu pre Mac
 mac_update_reconnect=Na opätovné pripojenie aktualizujte EspDesktop na Macu.
+token_usage_resets=Obnova o

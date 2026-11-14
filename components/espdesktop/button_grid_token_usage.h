@@ -19,7 +19,7 @@ inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
   const auto [connected, readings] = companion_runtime_service().token_usage();
   const auto now = std::time(nullptr);
   constexpr int64_t seconds_per_hour = 3600;
-  constexpr int64_t seconds_per_day = 24 * seconds_per_hour;
+  constexpr int64_t hours_per_day = 24;
   const auto &row = tile.row;
   const auto &reading = readings[tile.service];
   const int64_t remaining = static_cast<int64_t>(reading.resets_at) - now;
@@ -33,12 +33,13 @@ inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
     if (stale) {
       detail = espdesktop_i18n("Out of date");
     } else if (clock_ready) {
-      const auto count = remaining >= seconds_per_day ? remaining / seconds_per_day
-        : remaining >= seconds_per_hour ? remaining / seconds_per_hour
-        : std::max<int64_t>(1, remaining / 60);
-      const char *unit = remaining >= seconds_per_day ? "d"
-        : remaining >= seconds_per_hour ? "h" : "m";
-      detail = std::string(espdesktop_i18n("Resets in")) + " " + std::to_string(count) + unit;
+      detail = espdesktop_i18n_key("token_usage_resets");
+      const auto total_hours = remaining / seconds_per_hour;
+      const auto days = total_hours / hours_per_day;
+      const auto hours = total_hours % hours_per_day;
+      if (days > 0) detail += " " + std::to_string(days) + "d";
+      if (hours > 0) detail += " " + std::to_string(hours) + "h";
+      if (total_hours == 0) detail += " " + std::to_string(std::max<int64_t>(1, remaining / 60)) + "m";
     }
   }
   const bool show_detail = !detail.empty();
