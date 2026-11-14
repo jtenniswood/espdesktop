@@ -123,7 +123,7 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
     for (auto *label : {value, reset}) {
       lv_obj_set_style_text_color(label, foreground, LV_PART_MAIN);
       lv_obj_set_style_text_font(label, label == value ? value_font : secondary_font, LV_PART_MAIN);
-      lv_obj_set_width(label, lv_pct(both ? 76 : 100));
+      lv_obj_set_width(label, lv_pct(100));
       lv_obj_set_height(label, LV_SIZE_CONTENT);
       lv_label_set_long_mode(label, LV_LABEL_LONG_CLIP);
     }
