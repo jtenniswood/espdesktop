@@ -513,6 +513,7 @@ function composeApplicationContext(liveFinderFolders: () => readonly CompanionAc
     requestApi,
     persistence: configurationPersistence,
     fetch: dom.fetch,
+    refreshSnapshot: () => nativePanelConfig.refreshAfterMutation(),
     renderPreview: () => preview.render(),
     renderButtonSettings: () => buttonSettings.render(),
   });

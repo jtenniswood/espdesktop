@@ -85,8 +85,8 @@ bool clear_option(std::string &options, const std::string &asset_id) {
   return true;
 }
 
-bool clear_button(std::string &button, bool compact, const std::string &asset_id) {
-  const char delimiter = compact ? ',' : ';';
+bool clear_button(std::string &button, bool compact, char legacy_delimiter, const std::string &asset_id) {
+  const char delimiter = compact ? ',' : legacy_delimiter;
   std::vector<std::string> fields = split(button, delimiter);
   if (fields.size() <= 8) return false;
   std::string options = compact ? decode_field(fields[8]) : fields[8];
@@ -101,7 +101,7 @@ bool clear_document(std::string &config, const std::string &asset_id, bool subpa
   const bool compact = config.front() == '~';
   if (!subpage) {
     std::string body = compact ? config.substr(1) : config;
-    if (!clear_button(body, compact, asset_id)) return false;
+    if (!clear_button(body, compact, ';', asset_id)) return false;
     config = compact ? "~" + body : body;
     return true;
   }
@@ -111,7 +111,7 @@ bool clear_document(std::string &config, const std::string &asset_id, bool subpa
   bool changed = false;
   // Segment zero is the subpage order/navigation header.
   for (size_t index = 1; index < segments.size(); ++index) {
-    changed = clear_button(segments[index], compact, asset_id) || changed;
+    changed = clear_button(segments[index], compact, ':', asset_id) || changed;
   }
   if (changed) config = (compact ? "~" : "") + join(segments, '|');
   return changed;

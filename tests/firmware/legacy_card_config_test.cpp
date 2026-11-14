@@ -30,12 +30,12 @@ int main() {
   }
 
   std::string shared =
-      "1,2|light.a;A;;;;;light;;bg_image=asset-123|switch.b;B;;;;;switch;;bg_image=other|"
-      "sensor.c;C;;;;;sensor;;large_numbers,bg_image=asset-123";
+      "1,2|light.a:A:::::light::bg_image=asset-123|switch.b:B:::::switch::bg_image=other|"
+      "sensor.c:C:::::sensor::large_numbers,bg_image=asset-123";
   if (!subpage_config_references_asset(shared, id) ||
       !clear_subpage_background_references(shared, id) ||
-      shared != "1,2|light.a;A;;;;;light;;|switch.b;B;;;;;switch;;bg_image=other|"
-                "sensor.c;C;;;;;sensor;;large_numbers") {
+      shared != "1,2|light.a:A:::::light::|switch.b:B:::::switch::bg_image=other|"
+                "sensor.c:C:::::sensor::large_numbers") {
     return EXIT_FAILURE;
   }
 

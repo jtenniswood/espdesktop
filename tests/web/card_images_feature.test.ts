@@ -398,6 +398,7 @@ export async function runCardImagesFeatureTests(): Promise<void> {
     resetPostError() { deviceDeleteEvents.push("reset"); },
     async deleteImage() { deviceDeleteEvents.push("delete"); },
     clearLocalReferences() { deviceDeleteEvents.push("clear-local"); },
+    async refreshSnapshot() { deviceDeleteEvents.push("refresh-snapshot"); },
     rerender() { deviceDeleteEvents.push("rerender"); },
   });
   await Promise.resolve();
@@ -405,7 +406,7 @@ export async function runCardImagesFeatureTests(): Promise<void> {
     "device-owned deletion waits for an already queued card save");
   releasePendingPost?.();
   await deviceDelete;
-  deepEqual(deviceDeleteEvents, ["wait", "reset", "delete", "clear-local", "rerender"],
+  deepEqual(deviceDeleteEvents, ["wait", "reset", "delete", "clear-local", "rerender", "refresh-snapshot"],
     "device-owned deletion drains the queue before deleting and updating local state");
 
   // A request started before a mutation must not republish deleted/renamed rows.

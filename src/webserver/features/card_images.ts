@@ -104,6 +104,7 @@ export interface CardImageDeviceDeletionDependencies {
   resetPostError(): void;
   deleteImage(): Promise<void>;
   clearLocalReferences(): void;
+  refreshSnapshot?(): Promise<void>;
   rerender(): void;
 }
 
@@ -118,6 +119,7 @@ export async function deleteCardImageWithDeviceTransaction(
   await dependencies.deleteImage();
   dependencies.clearLocalReferences();
   dependencies.rerender();
+  await dependencies.refreshSnapshot?.();
   return true;
 }
 

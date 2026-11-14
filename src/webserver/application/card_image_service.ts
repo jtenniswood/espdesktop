@@ -24,6 +24,7 @@ export interface CardImageServiceDependencies {
     "postQueueIdle" | "resetPostQueueError" | "postQueueHadError">;
   readonly persistence: Pick<ConfigPersistenceFeature, "clearCardImageReferences">;
   fetch(url: string, request?: RequestInit): Promise<Response>;
+  refreshSnapshot?(): Promise<void>;
   renderPreview(): void;
   renderButtonSettings(): void;
 }
@@ -83,6 +84,7 @@ export function createCardImageService(dependencies: CardImageServiceDependencie
         resetPostError: dependencies.requestApi.resetPostQueueError,
         deleteImage: () => cardImages.delete(id),
         clearLocalReferences: () => { dependencies.persistence.clearCardImageReferences(id, false); },
+        refreshSnapshot: () => dependencies.refreshSnapshot?.() ?? Promise.resolve(),
         rerender,
       });
     }
