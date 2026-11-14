@@ -37,10 +37,11 @@ test("retired editors cannot mutate saved cards or create controls", () => {
     }
   } finally { global.document=previous; }
 });
-test("Mac slider editors remain active", () => {
+test("Mac slider and Date & Time editors remain active", () => {
   for (const card of [
     {type:"slider",entity:"media.output_volume"},
     {type:"slider",entity:"media.input_volume"},
+    {type:"calendar",entity:"sensor.date"},
   ]) {
     let calls=0;
     const definition=createCardRegistry().register(card.type,{renderSettings:() => ++calls});

@@ -4052,6 +4052,10 @@ async function assertInlineCardNames(page, nativeState, label) {
     ["gate status", "cover.gate;Hidden name;Gate;Auto;;;gate;;label_display=status"],
     ["weather condition", "weather.home;Hidden name;Auto;Auto;;;weather"],
     ["legacy weather forecast", "weather.home;Hidden name;Auto;Auto;;;weather_forecast"],
+    ["calendar", "sensor.date;;Auto;Auto;;;calendar"],
+    ["calendar datetime", "sensor.date;;Auto;Auto;;;calendar;datetime"],
+    ["clock", ";;Auto;Auto;;;clock"],
+    ["timezone", "Europe/London;;Auto;Auto;;;timezone"],
   ]) {
     nativeState.document.buttons[1] = config;
     await seedNativeDocument(page, nativeState);
@@ -4993,8 +4997,8 @@ async function assertCompanionOnlyCardPicker(browser, testCase) {
     );
     assert.strictEqual(
       await page.locator('[data-card-type="calendar"]').count(),
-      0,
-      `${testCase.name}: Date & Time is absent from the Companion picker`,
+      1,
+      `${testCase.name}: Companion-only picker includes Date & Time`,
     );
     assert.strictEqual(
       await page.locator('[data-card-type="companion_webapp"]').count(),
@@ -6948,11 +6952,8 @@ async function assertRetiredCardRemoval(browser) {
   const contract = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/card_contract.json"), "utf8"));
   const types = [...Object.keys(contract.releaseAvailability.preview), ...contract.retiredCardTypes, ...contract.retiredSubpageTypeCodes];
   const testCase = ACTIVE_CASES[0];
-  const compactDateTypes = Object.entries(contract.subpageTypeCodes)
-    .filter(([type]) => ["calendar", "clock", "timezone"].includes(type));
   const cases = [
     ...types.filter(type => type !== "companion_window").map(type => ({ type, subpageType: type === "companion_webapp" ? "companion" : type, nativeV2: false })),
-    ...compactDateTypes.map(([type, code]) => ({ type, subpageType: code, nativeV2: true })),
     { type: "companion_webapp", subpageType: "companion", nativeV2: true },
     { type: "companion_window", subpageType: contract.subpageTypeCodes.companion, nativeV2: true },
     { type: "companion_window", subpageType: contract.subpageTypeCodes.companion, nativeV2: true, subpageOnly: true },
@@ -6982,7 +6983,7 @@ async function assertRetiredCardRemoval(browser) {
       nativeState.document.subpages[97] = "~B,1|companion,shortcut.command%2Bb,Bold";
     }
     const context = await browser.newContext({ viewport: testCase.viewport });
-    await installRoutes(context, testCase.slug, { nativeState, nativeV2, homeAssistantSupport: true });
+    await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
     const page = await context.newPage();
     await installFakeEventSource(page);
     try {
@@ -7042,7 +7043,6 @@ async function assertRetiredCardRemoval(browser) {
         `${testCase.name}: retired Webhook card is removed`);
       await page.locator(".sp-empty-cell:not(.sp-info-only-hidden)").first().click();
       await page.waitForSelector(".sp-settings-modal");
-      assert.strictEqual(await page.getByRole("button", { name: "Date & Time card type", exact: true }).count(), 0);
       assert.strictEqual(await page.getByRole("button", { name: "Action card type", exact: true }).count(), 0);
       assert.strictEqual(await page.getByRole("button", { name: "Local Action card type", exact: true }).count(), 0);
       assert.strictEqual(await page.getByRole("button", { name: "Subpage card type", exact: true }).count(), 1,
@@ -7055,7 +7055,7 @@ async function assertRetiredCardRemoval(browser) {
     } finally { await context.close(); }
   }
   console.log(`Action/HA picker absence passed for ${ACTIVE_CASES.length} layouts.`);
-  console.log(`Retired-card browser checks passed for ${cases.length} saved layouts.`);
+  console.log(`Retired-card browser checks passed for ${types.length} saved identifiers.`);
 }
 
 async function assertRetiredSettingsStayUnavailable(browser, testCase) {

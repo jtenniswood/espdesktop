@@ -1,5 +1,50 @@
 [
   {
+    "name": "timezone: timezone",
+    "input": "~Europe%2FLondon,,Auto,Auto,,,timezone,,",
+    "expected": {
+      "entity": "Europe/London",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "timezone",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "clock: local_time",
+    "input": "~,,Auto,Auto,,,clock,,",
+    "expected": {
+      "entity": "",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "clock",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "calendar: date",
+    "input": "~sensor.date,,Auto,Auto,,,calendar,,",
+    "expected": {
+      "entity": "sensor.date",
+      "label": "",
+      "icon": "Auto",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "calendar",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "timer: countdown",
     "input": "~timer.example,,Auto,Auto,,3,timer,,",
     "expected": {

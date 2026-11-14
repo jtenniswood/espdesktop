@@ -11,6 +11,9 @@ import {
     SENSOR_ACTIVE_COLOR_OPTION,
     SENSOR_LARGE_NUMBERS_OFF_VALUE,
     SENSOR_LARGE_NUMBERS_OPTION,
+    cardContractOptionSupportedFor,
+    copyLargeNumbersOption,
+    largeNumbersExplicitlyDisabled,
 } from "./config_option_core";
 export function createConfigSensorOptionsFeature(cardRegistry: CardRegistry) {
     function cardLargeNumbersSupported(this: any, b?: any) {
@@ -35,6 +38,20 @@ export function createConfigSensorOptionsFeature(cardRegistry: CardRegistry) {
         if (enabled)
             b.options = setConfigOption(b.options, SENSOR_LARGE_NUMBERS_OPTION, true);
         return b.options;
+    }
+    function normalizeDateTimeOptions(this: any, type?: any, options?: any, precision?: any) {
+        var out = "";
+        if (configOptionEnabled(options, SENSOR_LARGE_NUMBERS_OPTION) &&
+            cardContractOptionSupportedFor(type, SENSOR_LARGE_NUMBERS_OPTION, { precision: precision })) {
+            out = copyLargeNumbersOption(out, options);
+        } else if (largeNumbersExplicitlyDisabled(options) &&
+            cardContractOptionSupportedFor(type, SENSOR_LARGE_NUMBERS_OPTION, { precision: precision })) {
+            out = copyLargeNumbersOption(out, options);
+        }
+        if (type === "clock" && configOptionEnabled(options, "center_clock")) {
+            out = setConfigOption(out, "center_clock", true);
+        }
+        return preserveCardColorOptions(options, out);
     }
     function normalizeDoorWindowSubtype(this: any, value?: any) {
         value = String(value || "").trim();
@@ -84,6 +101,7 @@ export function createConfigSensorOptionsFeature(cardRegistry: CardRegistry) {
         cardLargeNumbersSupported,
         cardLargeNumbersEnabled,
         setSensorLargeNumbersEnabled,
+        normalizeDateTimeOptions,
         normalizeDoorWindowSubtype,
         doorWindowClosedIcon,
         doorWindowOpenIcon,

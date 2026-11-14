@@ -297,6 +297,17 @@ inline bool card_large_numbers_active_for_layout(const ParsedCfg &p, int row_spa
     card_large_numbers_enabled(p));
 }
 
+inline bool wide_large_date_time_card_layout(int row_span, int col_span) {
+  return card_span_is_wide(row_span, col_span);
+}
+
+inline void apply_wide_large_date_time_card_layout(const BtnSlot &s,
+                                                   lv_align_t align = LV_ALIGN_CENTER) {
+  if (s.text_lbl) lv_obj_add_flag(s.text_lbl, LV_OBJ_FLAG_HIDDEN);
+  if (s.sensor_container) lv_obj_align(s.sensor_container, align, 0, 0);
+}
+
+#include "button_grid_date_time_driver.h"
 #include "button_grid_basic_action_driver.h"
 #include "button_grid_numeric_selectable_driver.h"
 #include "button_grid_navigation_driver.h"
@@ -385,6 +396,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
   const DisplayProfile display = display_profile_from_grid_config(cfg);
   const CardPalette palette = card_palette_for_config(default_palette, p, display);
   const auto family = context.family;
+  espdesktop::cards::date_time_driver_cleanup(s, p, context);
   espdesktop::cards::basic_action_driver_cleanup(s, p, context);
   espdesktop::cards::numeric_selectable_driver_cleanup(s, p, context);
   espdesktop::cards::navigation_driver_cleanup(s, p, context);
@@ -434,6 +446,13 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     return;
   }
 
+  if (espdesktop::cards::date_time_driver_setup_visual(
+        s, p, context, palette)) {
+    espdesktop::cards::date_time_driver_attach_interaction(s, p, context);
+    espdesktop::cards::date_time_driver_refresh_layout(
+      s, p, context, display, row_span, col_span);
+    return;
+  }
   if (espdesktop::cards::basic_action_driver_setup_visual(
         s, p, context, palette.sensor_val)) {
 #ifdef USE_COMPANION
@@ -469,6 +488,7 @@ inline bool bind_passive_card(
     BtnSlot &s, const ParsedCfg &p,
     const espdesktop::cards::Context &context, const CardPalette &palette,
     int col_span = 1) {
+  if (espdesktop::cards::date_time_driver_bind_data(s, p, context)) return true;
   return false;
 }
 
@@ -608,6 +628,7 @@ inline bool grid_card_uses_sensor_surface(
   switch (context.runtime.driver) {
     case Driver::STATUS_ENTITY:
     case Driver::WEATHER:
+    case Driver::DATE_TIME:
       return true;
     case Driver::IMAGE:
       return image_card_modal_fit_enabled(config);
@@ -682,6 +703,8 @@ inline void grid_phase1(
   palette.surface_sensor_val = surface_sensor_val;
   set_current_button_primary_color(palette.on_val);
 
+  reset_calendar_cards();
+  reset_timezone_cards();
 
   for (int pos = 0; pos < NS; pos++) {
     int idx = order.positions[pos];
@@ -703,6 +726,7 @@ inline void grid_phase1(
       lv_obj_set_width(s.text_lbl, lv_pct(100));
     }
 
+    ParsedCfg p = parse_cfg(scfg);
     const auto context = card_runtime_context(p);
     const bool custom_background = card_palette_for_config(palette, p, display).custom_background;
     neutral_buttons[idx - 1] = context.family != espdesktop::cards::Family::IMAGE;
@@ -783,9 +807,7 @@ inline bool grid_refresh_subpage_layouts(
       ESP_LOGW("sensors", "Subpage %d is not ready for a layout refresh", si + 1);
       continue;
     }
-    const auto active_count = std::count_if(sp_btns.begin(), sp_btns.end(),
-      [](const SubpageBtn &button) { return !card_runtime_type_retired(button.type); });
-    if (entry->cards.size() != static_cast<size_t>(active_count)) {
+    if (entry->cards.size() != sp_btns.size()) {
       ESP_LOGW("sensors", "Subpage %d card count changed; repositioning existing cards", si + 1);
     }
 
@@ -800,8 +822,7 @@ inline bool grid_refresh_subpage_layouts(
     bool structural_change = false;
     for (int gp = 0; gp < NS; gp++) {
       const int button_index = sp_order.positions[gp];
-      if (button_index < 1 || button_index > static_cast<int>(sp_btns.size()) ||
-          card_runtime_type_retired(sp_btns[button_index - 1].type)) continue;
+      if (button_index < 1 || button_index > static_cast<int>(sp_btns.size())) continue;
       NavigationSubpageEntry::Card *card = navigation_subpage_card(*entry, button_index);
       if (card != nullptr &&
           !subpage_btn_same_definition(card->definition, sp_btns[button_index - 1])) {
@@ -837,8 +858,7 @@ inline bool grid_refresh_subpage_layouts(
       const int button_index = sp_order.positions[gp];
       if (button_index >= 1 &&
           button_index <= static_cast<int>(sp_btns.size()) &&
-          button_index <= MAX_GRID_SLOTS &&
-          !card_runtime_type_retired(sp_btns[button_index - 1].type)) {
+          button_index <= MAX_GRID_SLOTS) {
         visible_cards[button_index - 1] = true;
       }
     }
@@ -857,8 +877,7 @@ inline bool grid_refresh_subpage_layouts(
 
     for (int gp = 0; gp < NS; gp++) {
       const int button_index = sp_order.positions[gp];
-      if (button_index < 1 || button_index > static_cast<int>(sp_btns.size()) ||
-          card_runtime_type_retired(sp_btns[button_index - 1].type)) continue;
+      if (button_index < 1 || button_index > static_cast<int>(sp_btns.size())) continue;
       NavigationSubpageEntry::Card *card = navigation_subpage_card(*entry, button_index);
       if (card == nullptr || card->button == nullptr) {
         ESP_LOGW("sensors", "Subpage %d is missing card %d", si + 1, button_index);
@@ -1486,7 +1505,6 @@ inline void grid_phase2(
       int bn = sp_ord.positions[gp];
       if (bn < 1 || bn > (int)sp_btns.size()) continue;
       auto &sb = sp_btns[bn - 1];
-      if (card_runtime_type_retired(sb.type)) continue;
       ParsedCfg sb_cfg = parsed_cfg_from_subpage_btn(sb);
       const auto context = card_runtime_context(
           sb_cfg, espdesktop::cards::Surface::SUBPAGE);

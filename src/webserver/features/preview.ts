@@ -51,9 +51,12 @@ interface PickerDetails {
 }
 
 const INFO_ONLY_CARD_TYPES = new Set([
+  "calendar",
+  "clock",
   "door_window",
   "image",
   "presence",
+  "timezone",
   "weather",
   "weather_forecast",
 ]);
@@ -61,6 +64,7 @@ const INFO_ONLY_CARD_TYPES = new Set([
 const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   "": { icon: "toggle-switch", description: "Toggle lights, switches, helpers, or fans." },
   alarm: { icon: "shield-home", description: "Control or trigger alarm panel actions." },
+  calendar: { icon: "calendar-clock", description: "Show date, time, or world clock values." },
   climate: { icon: "thermostat", description: "Show climate status and temperature controls." },
   companion_app: { icon: "application-outline", description: "Launch an app on the Mac." },
   companion_folder: { icon: "folder", description: "Open an approved folder on the Mac." },
@@ -275,8 +279,9 @@ export function cardTypePickerOptions(
     const source = cardTypeConnector(typeKey);
     const requiresHomeAssistant = !homeAssistantEnabled && (source === "home_assistant" ||
       source === "home_assistant_or_local");
+    const localDateTimePicker = !homeAssistantEnabled && typeKey === "calendar";
     const localFolderPicker = !homeAssistantEnabled && typeKey === "subpage";
-    if (requiresHomeAssistant && !localFolderPicker) {
+    if (requiresHomeAssistant && !localDateTimePicker && !localFolderPicker) {
       if (hasSelectedType && (selectedTypeKey === typeKey || (pickerKey && selectedTypeKey === pickerKey))) {
         selectedUnsupported = { key: selectedTypeKey, label };
       }
@@ -292,7 +297,7 @@ export function cardTypePickerOptions(
     if (pickerKey && pickerKey !== typeKey) continue;
     if (isSub && !allowInSubpage) continue;
     if (definition.isAvailable && !definition.isAvailable({ isSub }) && selectedTypeKey !== typeKey) continue;
-    if (!cardTypeVisibleForConnector(typeKey, connector) && !localFolderPicker) continue;
+    if (!cardTypeVisibleForConnector(typeKey, connector) && !localDateTimePicker && !localFolderPicker) continue;
     options.push({
       key: typeKey,
       label,

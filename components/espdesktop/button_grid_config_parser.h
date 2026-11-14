@@ -28,6 +28,7 @@
 #include "button_grid_saved_config_light_control_generated.h"
 #include "button_grid_saved_config_subpage_generated.h"
 #include "button_grid_saved_config_switch_generated.h"
+#include "button_grid_saved_config_date_time_generated.h"
 #include "button_grid_saved_config_fan_generated.h"
 #include "button_grid_saved_config_media_generated.h"
 #include "button_grid_saved_config_mower_generated.h"
@@ -107,7 +108,7 @@ inline std::string encode_compact_field(const std::string &value) {
 
 // Structured view of a button config string: entity;label;icon;icon_on;sensor;unit;type;precision;options
 struct ParsedCfg {
-  std::string entity;      // 0  HA entity_id
+  std::string entity;      // 0  HA entity_id, timezone option
   std::string label;       // 1  display name (blank = use HA friendly_name)
   std::string icon;        // 2  icon name for off/default state
   std::string icon_on;     // 3  icon name for on state (blank = no swap)
@@ -852,6 +853,21 @@ inline const char *subpage_companion_stat_default_unit(const std::string &entity
   return capability ? capability->unit : "%";
 }
 
+inline std::string date_time_card_options_normalized(const std::string &options,
+                                                     const ParsedCfg &p) {
+  if (!card_large_numbers_supported(p)) return "";
+  std::string out;
+  if (cfg_option_token_present(options, "large_numbers") ||
+      large_numbers_explicitly_disabled(options)) {
+    append_large_numbers_option(out, options);
+  }
+  if (p.type == "clock" && cfg_option_token_present(options, "center_clock")) {
+    if (!out.empty()) out += ",";
+    out += "center_clock";
+  }
+  return out;
+}
+
 inline std::string companion_metric_options_normalized(const std::string &options) {
   return cfg_option_token_present(options, "stat_labels_off") ? "stat_labels_off" : "";
 }
@@ -1061,6 +1077,12 @@ inline void normalize_saved_config_fan_fields(ParsedCfg &p) {
   } else {
     p.icon_on = "Auto";
   }
+}
+
+inline void normalize_saved_config_date_time_fields(ParsedCfg &p) {
+  if (!p.entity.empty()) return;
+  if (p.type == "calendar") p.entity = "sensor.date";
+  else if (p.type == "timezone") p.entity = "UTC (GMT+0)";
 }
 
 inline void normalize_saved_config_mower_fields(ParsedCfg &p) {
@@ -1378,6 +1400,8 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
   normalize_saved_config_image(
       p, normalize_saved_config_image_fields, normalize_saved_config_image_options);
   const bool normalized_saved_static = normalize_saved_config_static(p);
+  normalize_saved_config_date_time(
+      p, normalize_saved_config_date_time_fields, date_time_card_options_normalized);
   normalize_saved_config_light_control(p, normalize_saved_config_light_control_options);
   normalize_saved_config_subpage(
       p, normalize_saved_config_subpage_fields, normalize_saved_config_subpage_options);

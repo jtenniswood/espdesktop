@@ -63,6 +63,7 @@ Generated consumers include:
 - `src/webserver/generated/saved_config_media.ts`
 - `src/webserver/generated/saved_config_static.ts`
 - `src/webserver/generated/saved_config_fan.ts`
+- `src/webserver/generated/saved_config_date_time.ts`
 - `src/webserver/generated/saved_config_mower.ts`
 - `src/webserver/generated/saved_config_occupancy.ts`
 - `src/webserver/generated/saved_config_access.ts`
@@ -71,6 +72,7 @@ Generated consumers include:
 - `components/espdesktop/button_grid_saved_config_media_generated.h`
 - `components/espdesktop/button_grid_saved_config_static_generated.h`
 - `components/espdesktop/button_grid_saved_config_fan_generated.h`
+- `components/espdesktop/button_grid_saved_config_date_time_generated.h`
 - `components/espdesktop/button_grid_saved_config_mower_generated.h`
 - `components/espdesktop/button_grid_saved_config_occupancy_generated.h`
 - `components/espdesktop/button_grid_saved_config_access_generated.h`
@@ -88,7 +90,9 @@ card-registry definitions as `runtimeSpec`. Firmware receives matching
 in `button_grid_contract_generated.h`. Door/Window and Presence cards now use
 the shared handwritten `STATUS_ENTITY` lifecycle driver for main-grid and
 subpage visual setup, data binding, passive interaction, layout refresh, and
-cleanup.
+cleanup. Calendar, Clock, and Timezone use the shared handwritten `DATE_TIME`
+lifecycle driver for the same stages; Calendar keeps its Home Assistant date
+subscription, while Clock and Timezone share one local-time update registry.
 Weather and forecast compatibility use the shared `WEATHER` driver
 while retaining the specialised forecast request registry. All of these paths
 are shared by the main grid and subpages. Mac Companion uses the shared

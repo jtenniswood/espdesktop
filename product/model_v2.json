@@ -82,7 +82,10 @@
       "subpage": "product/v2/cards/subpage.json",
       "weather": "product/v2/cards/weather.json",
       "image": "product/v2/cards/image.json",
-      "weather_forecast": "product/v2/cards/weather_forecast.json"
+      "weather_forecast": "product/v2/cards/weather_forecast.json",
+      "calendar": "product/v2/cards/calendar.json",
+      "clock": "product/v2/cards/clock.json",
+      "timezone": "product/v2/cards/timezone.json"
     },
     "devices": {
       "guition-esp32-p4-jc1060p470": "product/v2/devices/guition-esp32-p4-jc1060p470.json",

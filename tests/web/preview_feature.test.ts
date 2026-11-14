@@ -64,6 +64,10 @@ export function runPreviewFeatureTests(): void {
     equal(cardTypeVisibleForConnector(key, "home_assistant"), false, `${key} remains in the Home Assistant picker`);
     equal(cardTypeVisibleForConnector(key, "mac_companion"), false, `${key} is hidden from the Companion picker`);
   }
+  for (const key of ["calendar"]) {
+    equal(cardTypeConnector(key), "local", `${key} is classified as a local card`);
+    equal(cardTypeVisibleForConnector(key, "mac_companion"), true, `${key} remains available without Home Assistant`);
+  }
   equal(cardRequiresHomeAssistant("climate", {}), true, "Home Assistant-only cards require Home Assistant");
   equal(cardRequiresHomeAssistant("", {}), true, "the canonical empty-string Switch type requires Home Assistant");
   equal(cardRequiresHomeAssistant("push", {}), true, "Trigger cards require the Home Assistant event bus");
@@ -86,16 +90,19 @@ export function runPreviewFeatureTests(): void {
 
   const definitions = {
     action: { label: "Action", allowInSubpage: true },
+    calendar: { label: "Date & Time", allowInSubpage: true },
     climate: { label: "Climate", allowInSubpage: false },
     climate_control: { label: "Climate controls", pickerKey: "climate", allowInSubpage: false },
     subpage: { label: "Subpage", allowInSubpage: false },
   };
   deepEqual(
     cardTypePickerOptions(definitions, [], false, true, null).map((option) => option.key),
-    [],
-    "subpage picker excludes unavailable types",
+    ["calendar"],
+    "subpage picker retains local cards and the Date & Time route",
   );
   const defaultPicker = cardTypePickerOptions(definitions, [], false, false, null);
+  equal(defaultPicker.some((option) => option.key === "calendar"), true,
+    "the Date & Time route remains available for local Clock and World Clock modes");
   equal(defaultPicker.some((option) => option.key === "climate"), false,
     "Home Assistant cards stay hidden while support is disabled");
   equal(defaultPicker.some((option) => option.key === "subpage"), true,
@@ -105,6 +112,7 @@ export function runPreviewFeatureTests(): void {
     "legacy firmware opt-in cannot restore HA cards");
   const companionOptions = cardTypePickerOptions({
       ...definitions,
+      calendar: { label: "Date & Time", allowInSubpage: true },
       companion: { label: "Companion", allowInSubpage: true },
       companion_app: { label: "Applications", allowInSubpage: true },
       companion_shortcut: { label: "Key Shortcut", allowInSubpage: true },
@@ -116,7 +124,7 @@ export function runPreviewFeatureTests(): void {
     }, [], false, false, null, "mac_companion");
   deepEqual(
     companionOptions.map((option) => option.key),
-    ["companion_app", "companion_folder", "companion_shortcut", "subpage", "companion_url"],
+    ["companion_app", "calendar", "companion_folder", "companion_shortcut", "subpage", "companion_url"],
     "Companion picker excludes retired controls and Home Assistant-only controls",
   );
   equal(

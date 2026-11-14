@@ -10,8 +10,8 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "subpage"; }
-inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "webhook" || type == "companion_webapp" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
+inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "subpage" || type == "calendar" || type == "clock" || type == "timezone"; }
+inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "webhook" || type == "companion_webapp" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
@@ -48,6 +48,9 @@ enum class CardTypeId : uint8_t {
   WEATHER,
   IMAGE,
   WEATHER_FORECAST,
+  CALENDAR,
+  CLOCK,
+  TIMEZONE,
   UNKNOWN,
 };
 
@@ -87,6 +90,7 @@ enum class CardDriverId : uint8_t {
   WEATHER,
   IMAGE,
   TIMER,
+  DATE_TIME,
   UNKNOWN,
 };
 
@@ -145,6 +149,9 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "weather") return CardTypeId::WEATHER;
   if (type == "image") return CardTypeId::IMAGE;
   if (type == "weather_forecast") return CardTypeId::WEATHER_FORECAST;
+  if (type == "calendar") return CardTypeId::CALENDAR;
+  if (type == "clock") return CardTypeId::CLOCK;
+  if (type == "timezone") return CardTypeId::TIMEZONE;
   return CardTypeId::UNKNOWN;
 }
 
@@ -183,6 +190,9 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::WEATHER: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::IMAGE: return {type, CardDriverId::IMAGE, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER_FORECAST: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
+    case CardTypeId::CALENDAR: return {type, CardDriverId::DATE_TIME, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
+    case CardTypeId::CLOCK: return {type, CardDriverId::DATE_TIME, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
+    case CardTypeId::TIMEZONE: return {type, CardDriverId::DATE_TIME, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_SUBPAGE)};
     default: return {};
   }
 }
@@ -267,6 +277,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_HIDE_LABEL = "app_hide_label
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUT_PRESET = "app_shortcut_preset";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS = "app_shortcuts";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_TABS = "app_shortcuts_tabs";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_CENTER_CLOCK = "center_clock";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CLIMATE_TABS = "climate_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_MESSAGE = "confirm_message";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_NO = "confirm_no";
@@ -280,6 +291,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_COVER_MODE = "cover_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_COVER_POSITION = "cover_position";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_COVER_TABS = "cover_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CUSTOM_ICON = "custom_icon";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_DATE_TIME_MODE = "date_time_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_FAN_LIGHT_ENTITY = "fan_light_entity";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_FAN_TABS = "fan_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_FINDER_OPEN_BEHAVIOR = "finder_open_behavior";
@@ -554,6 +566,9 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "weather") return "Weather";
   if (type == "image") return "Camera Card";
   if (type == "weather_forecast") return "Weather Forecast";
+  if (type == "calendar") return "Date & Time";
+  if (type == "clock") return "Date & Time";
+  if (type == "timezone") return "Date & Time";
   return type.empty() ? "Switch" : type.c_str();
 }
 
@@ -591,6 +606,9 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "weather") return true;
   if (type == "image") return true;
   if (type == "weather_forecast") return true;
+  if (type == "calendar") return true;
+  if (type == "clock") return true;
+  if (type == "timezone") return true;
   return false;
 }
 
@@ -628,6 +646,9 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "weather") return "Auto";
   if (type == "image") return "Auto";
   if (type == "weather_forecast") return "Auto";
+  if (type == "calendar") return "Auto";
+  if (type == "clock") return "Auto";
+  if (type == "timezone") return "Auto";
   return "Auto";
 }
 
@@ -665,6 +686,9 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "weather") return "Auto";
   if (type == "image") return "Auto";
   if (type == "weather_forecast") return "Auto";
+  if (type == "calendar") return "Auto";
+  if (type == "clock") return "Auto";
+  if (type == "timezone") return "Auto";
   return "Auto";
 }
 
@@ -694,9 +718,10 @@ inline const char *card_contract_fan_default_icon_on_name(const std::string &typ
 
 inline bool card_contract_large_numbers_supported(const std::string &type, const std::string &precision) {
   (void) precision;
-  return type == "" || type == "action" ||
+  return type == "" || type == "action" || type == "calendar" || type == "clock" ||
          type == "companion" ||
-         type == "climate" || type == "media" || type == "subpage";
+         type == "climate" || type == "media" || type == "subpage" ||
+         type == "timezone";
 }
 
 inline std::string_view card_contract_subpage_code_view(std::string_view type) {

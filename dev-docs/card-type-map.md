@@ -70,6 +70,9 @@ The generated card contract and the public documentation mapping define this tab
 | [weather.md](../docs/card-types/weather.md) | `weather` |
 | [cameras.md](../docs/card-types/cameras.md) | `image` |
 | [weather.md](../docs/card-types/weather.md) | `weather_forecast` |
+| [calendar.md](../docs/card-types/calendar.md) | `calendar` |
+| [calendar.md](../docs/card-types/calendar.md) | `clock` |
+| [timezones.md](../docs/card-types/timezones.md) | `timezone` |
 
 ## Generated Matrix
 
@@ -110,6 +113,9 @@ This table is generated from the card contract and typed `registry.register(...)
 | `weather` | Weather | `src/webserver/cards/weather.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_subpages.h`, `components/espdesktop/button_grid_card_runtime.h`, `components/espdesktop/retired_home_assistant_cards.h` | `weather`, `sensor`, `input_number` | Yes | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Hidden | Contract, Codec, Parser, HA, Backup |
 | `image` | Camera Card | `src/webserver/cards/image.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_subpages.h`, `components/espdesktop/button_grid_card_runtime.h` | `camera`, `image` | Yes | None | Hidden | Contract, Codec, Parser, HA, Modals, Backup |
 | `weather_forecast` | Weather Forecast | `src/webserver/cards/weather_forecast.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_subpages.h`, `components/espdesktop/button_grid_card_runtime.h` | `weather` | Yes | None | Hidden | Contract, Codec, Parser, HA |
+| `calendar` | Date & Time | `src/webserver/cards/calendar.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_datetime_cards.h`, `components/espdesktop/button_grid_card_runtime.h` | `sensor` | Yes | Type: clock, timezone; Large Clock | Visible | Contract, Codec, Parser, HA, Backup |
+| `clock` | Date & Time | `src/webserver/cards/clock.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_card_runtime.h` | None | Yes | Type: clock, timezone; Large Clock; Center Clock | Visible | Contract, Codec, Parser, Backup |
+| `timezone` | Date & Time | `src/webserver/cards/timezone.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_datetime_cards.h`, `components/espdesktop/button_grid_card_runtime.h` | None | Yes | Type: clock, timezone; Large Clock | Visible | Contract, Codec, Parser, Backup |
 <!-- END GENERATED CARD TYPE MAP -->
 
 Camera refresh defaults to Off. Periodic refresh applies to the expanded view at 5, 10 or 30 seconds. On activity uses a binary sensor or event entity and refreshes visible images every five seconds for 30 seconds, extending the window after another activation. Hidden pages, other modals and screensavers stop downloads without replaying old activity on return. Home Assistant image entities refresh on image-update timestamp changes rather than credential rotation; errors retain the last image and back off. Companion web-app icon loading retains its existing behavior.

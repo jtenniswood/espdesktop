@@ -155,6 +155,9 @@ export function createWebStyles(dragAnimation: boolean): string {
         ".sp-climate-temp-card .sp-btn-label-row{margin-top:auto}" +
         ".sp-btn-big .sp-sensor-preview-large .sp-sensor-value,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-weight:300}" +
         ".sp-btn-big .sp-sensor-preview-large .sp-sensor-unit,.sp-btn-wide .sp-sensor-preview-large .sp-sensor-unit{transform:translateY(var(--large-sensor-unit-offset-y,-20px))}" +
+        ".sp-clock-large .sp-sensor-value{font-size:calc(var(--btn-icon)*2.5);font-family:Roboto,sans-serif;font-weight:300}" +
+        ".sp-clock-left-mid{justify-content:center;align-items:flex-start}" +
+        ".sp-clock-centered{justify-content:center;align-items:center}" +
         ".sp-forecast-preview{white-space:nowrap;gap:0}" +
         ".sp-btn.sp-rainfall-card>.sp-btn-label{max-height:none}.sp-rainfall-value{display:block;margin-top:.2em}" +
         ".sp-weather-daily-card{font-size:var(--btn-label)}" +

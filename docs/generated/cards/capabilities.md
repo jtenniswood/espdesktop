@@ -42,6 +42,9 @@ This generated reference lists release availability and setup facts from the sha
 | Weather | weather | weather, sensor, input_number | Yes | Own picker item | Type: default, today, tomorrow, daily, wind, rainfall; Wind Source: weather, sensors; Rainfall Source: sensor, forecast | Retired |
 | Camera Card | image | camera, image | Yes | Own picker item | None | Retired |
 | Weather Forecast | weather_forecast | weather | Yes | Own picker item | None | Retired |
+| Date & Time | calendar | sensor | Yes | Own picker item | Type: clock, timezone; Large Clock | Stable |
+| Date & Time | clock | None | Yes | Date & Time (calendar) | Type: clock, timezone; Large Clock; Center Clock | Stable |
+| Date & Time | timezone | None | Yes | Date & Time (calendar) | Type: clock, timezone; Large Clock | Stable |
 
 ## Preview cards
 

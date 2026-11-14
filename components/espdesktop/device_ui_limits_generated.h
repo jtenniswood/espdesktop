@@ -38,6 +38,9 @@ inline constexpr DeviceCardTypeSupport DEVICE_UI_CARD_TYPES_0[] = {
     {"weather", true},
     {"image", true},
     {"weather_forecast", true},
+    {"calendar", true},
+    {"clock", true},
+    {"timezone", true},
 };
 
 inline constexpr DeviceUiLimits DEVICE_UI_PROFILES[] = {

@@ -4,7 +4,7 @@ const { loadTypescriptTest } = require("./helpers/load_typescript_test");
 
 test("retired cards release their whole span and preserve neighbouring cards", () => {
   const { removeRetiredCards } = loadTypescriptTest("src/webserver/features/retired_cards.ts");
-  const { CARD_CONTRACT_RETIRED_TYPES } = loadTypescriptTest("src/webserver/generated/card_contract.ts");
+  const { CARD_CONTRACT_RETIRED_TYPES, cardContractSubpageTypeCode, cardContractSubpageTypeFromCode } = loadTypescriptTest("src/webserver/generated/card_contract.ts");
   const { emptyCardConfig } = loadTypescriptTest("src/webserver/model/card.ts");
   for (const type of CARD_CONTRACT_RETIRED_TYPES) {
     const neighbour = { ...emptyCardConfig(), entity: "switch.lamp", label: "Lamp" };

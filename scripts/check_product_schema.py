@@ -64,15 +64,15 @@ def run_self_test() -> int:
     expect_error(validate_card_contract(invalid_version), "contractVersion: must be 1")
 
     missing_runtime_spec = copy.deepcopy(card_contract)
-    missing_runtime_spec["runtime"]["specs"].pop("timer")
-    expect_error(validate_card_contract(missing_runtime_spec), "missing card types: timer")
+    missing_runtime_spec["runtime"]["specs"].pop("clock")
+    expect_error(validate_card_contract(missing_runtime_spec), "missing card types: clock")
 
     invalid_runtime_driver = copy.deepcopy(card_contract)
-    invalid_runtime_driver["runtime"]["specs"]["timer"]["driver"] = "arbitrary_code"
+    invalid_runtime_driver["runtime"]["specs"]["clock"]["driver"] = "arbitrary_code"
     expect_error(validate_card_contract(invalid_runtime_driver), "must name a permitted runtime driver")
 
     incomplete_runtime_capabilities = copy.deepcopy(card_contract)
-    incomplete_runtime_capabilities["runtime"]["specs"]["timer"]["capabilities"].pop("subscriptions")
+    incomplete_runtime_capabilities["runtime"]["specs"]["clock"]["capabilities"].pop("subscriptions")
     expect_error(validate_card_contract(incomplete_runtime_capabilities), "must define every runtime capability exactly once")
 
     mismatched_subpage_capability = copy.deepcopy(card_contract)

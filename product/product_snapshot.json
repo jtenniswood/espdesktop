@@ -10,7 +10,7 @@
   },
   "summary": {
     "deviceProfiles": 9,
-    "cardTypes": 33,
+    "cardTypes": 36,
     "entityNames": 92,
     "icons": 360,
     "structuralIcons": 39,
@@ -1567,7 +1567,8 @@
       "normalize_subpage_fields",
       "normalize_subpage_options",
       "normalize_switch_options",
-      "normalize_vacuum_fields"
+      "normalize_vacuum_fields",
+      "normalize_date_time_fields"
     ],
     "fields": [
       "entity",
@@ -1616,7 +1617,8 @@
         "subpage",
         "weather",
         "image",
-        "timer"
+        "timer",
+        "date_time"
       ],
       "capabilities": [
         "informationOnly",
@@ -2047,6 +2049,42 @@
             "numericControl": false,
             "modal": true,
             "runtimeAllocation": true,
+            "subpage": true
+          }
+        },
+        "calendar": {
+          "driver": "date_time",
+          "capabilities": {
+            "informationOnly": true,
+            "subscriptions": true,
+            "actions": false,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": false,
+            "subpage": true
+          }
+        },
+        "clock": {
+          "driver": "date_time",
+          "capabilities": {
+            "informationOnly": true,
+            "subscriptions": true,
+            "actions": false,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": false,
+            "subpage": true
+          }
+        },
+        "timezone": {
+          "driver": "date_time",
+          "capabilities": {
+            "informationOnly": true,
+            "subscriptions": true,
+            "actions": false,
+            "numericControl": false,
+            "modal": false,
+            "runtimeAllocation": false,
             "subpage": true
           }
         }
@@ -5164,6 +5202,252 @@
           "precision": "tomorrow",
           "options": ""
         }
+      },
+      "calendar": {
+        "label": "Date & Time",
+        "allowInSubpage": true,
+        "domains": [
+          "sensor"
+        ],
+        "options": [
+          {
+            "name": "date_time_mode",
+            "label": "Type",
+            "kind": "choice",
+            "values": [
+              "clock",
+              "timezone"
+            ],
+            "defaultValue": "clock",
+            "storageField": "type",
+            "omitDefault": false
+          },
+          {
+            "name": "large_numbers",
+            "label": "Large Clock",
+            "kind": "flag",
+            "omitDefault": true
+          }
+        ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "hook",
+              "hook": "normalize_date_time_fields"
+            },
+            "label": {
+              "policy": "clear"
+            },
+            "icon": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "calendar"
+            },
+            "precision": {
+              "policy": "allowed",
+              "values": [
+                "",
+                "datetime"
+              ],
+              "fallback": ""
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_date_time_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "large_numbers"
+          ],
+          "optionHook": "normalize_date_time_options"
+        },
+        "default": {
+          "entity": "sensor.date",
+          "label": "",
+          "icon": "Auto",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "calendar",
+          "precision": "",
+          "options": ""
+        }
+      },
+      "clock": {
+        "label": "Date & Time",
+        "allowInSubpage": true,
+        "pickerKey": "calendar",
+        "domains": [],
+        "options": [
+          {
+            "name": "date_time_mode",
+            "label": "Type",
+            "kind": "choice",
+            "values": [
+              "clock",
+              "timezone"
+            ],
+            "defaultValue": "clock",
+            "storageField": "type",
+            "omitDefault": false
+          },
+          {
+            "name": "large_numbers",
+            "label": "Large Clock",
+            "kind": "flag",
+            "omitDefault": true
+          },
+          {
+            "name": "center_clock",
+            "label": "Center Clock",
+            "kind": "flag",
+            "omitDefault": true
+          }
+        ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "clear"
+            },
+            "label": {
+              "policy": "clear"
+            },
+            "icon": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "clock"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_date_time_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "large_numbers",
+            "center_clock"
+          ],
+          "optionHook": "normalize_date_time_options"
+        },
+        "default": {
+          "entity": "",
+          "label": "",
+          "icon": "Auto",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "clock",
+          "precision": "",
+          "options": ""
+        }
+      },
+      "timezone": {
+        "label": "Date & Time",
+        "allowInSubpage": true,
+        "pickerKey": "calendar",
+        "domains": [],
+        "options": [
+          {
+            "name": "date_time_mode",
+            "label": "Type",
+            "kind": "choice",
+            "values": [
+              "clock",
+              "timezone"
+            ],
+            "defaultValue": "timezone",
+            "storageField": "type",
+            "omitDefault": false
+          },
+          {
+            "name": "large_numbers",
+            "label": "Large Clock",
+            "kind": "flag",
+            "omitDefault": true
+          }
+        ],
+        "normalization": {
+          "fields": {
+            "entity": {
+              "policy": "hook",
+              "hook": "normalize_date_time_fields"
+            },
+            "label": {
+              "policy": "clear"
+            },
+            "icon": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "icon_on": {
+              "policy": "default",
+              "value": "Auto"
+            },
+            "sensor": {
+              "policy": "clear"
+            },
+            "unit": {
+              "policy": "clear"
+            },
+            "type": {
+              "policy": "default",
+              "value": "timezone"
+            },
+            "precision": {
+              "policy": "clear"
+            },
+            "options": {
+              "policy": "hook",
+              "hook": "normalize_date_time_options"
+            }
+          },
+          "unknownOptions": "drop",
+          "canonicalOptionOrder": [
+            "large_numbers"
+          ],
+          "optionHook": "normalize_date_time_options"
+        },
+        "default": {
+          "entity": "UTC (GMT+0)",
+          "label": "",
+          "icon": "Auto",
+          "icon_on": "Auto",
+          "sensor": "",
+          "unit": "",
+          "type": "timezone",
+          "precision": "",
+          "options": ""
+        }
       }
     },
     "migrationActions": {
@@ -5330,7 +5614,10 @@
       "stable": [
         "companion",
         "companion_mac_lock",
-        "subpage"
+        "subpage",
+        "calendar",
+        "clock",
+        "timezone"
       ],
       "preview": {
         "companion_window": {
@@ -5357,9 +5644,6 @@
       "action",
       "local",
       "option_select",
-      "calendar",
-      "clock",
-      "timezone",
       "webhook",
       "companion_webapp",
       "companion_audio"
