@@ -10,7 +10,7 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "companion_app_volume" || type == "subpage"; }
+inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "companion_app_volume" || type == "companion_cough" || type == "subpage"; }
 inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "webhook" || type == "companion_webapp" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
 namespace espdesktop::card_runtime {
 
@@ -44,6 +44,7 @@ enum class CardTypeId : uint8_t {
   COMPANION,
   COMPANION_MAC_LOCK,
   COMPANION_APP_VOLUME,
+  COMPANION_COUGH,
   SLIDER,
   SUBPAGE,
   WEATHER,
@@ -142,6 +143,7 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "companion") return CardTypeId::COMPANION;
   if (type == "companion_mac_lock") return CardTypeId::COMPANION_MAC_LOCK;
   if (type == "companion_app_volume") return CardTypeId::COMPANION_APP_VOLUME;
+  if (type == "companion_cough") return CardTypeId::COMPANION_COUGH;
   if (type == "slider") return CardTypeId::SLIDER;
   if (type == "subpage") return CardTypeId::SUBPAGE;
   if (type == "weather") return CardTypeId::WEATHER;
@@ -181,6 +183,7 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::COMPANION: return {type, CardDriverId::COMPANION, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION_MAC_LOCK: return {type, CardDriverId::COMPANION, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION_APP_VOLUME: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
+    case CardTypeId::COMPANION_COUGH: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::SLIDER: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::SUBPAGE: return {type, CardDriverId::SUBPAGE, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
@@ -551,6 +554,7 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "media") return "Media";
   if (type == "push") return "Trigger";
   if (type == "companion_app_volume") return "App Volume";
+  if (type == "companion_cough") return "Cough";
   if (type == "companion_mac_lock") return "Mac Lock";
   if (type == "companion") return "Companion";
   if (type == "slider") return "Legacy Slider";
@@ -589,6 +593,7 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "media") return true;
   if (type == "push") return true;
   if (type == "companion_app_volume") return true;
+  if (type == "companion_cough") return true;
   if (type == "companion_mac_lock") return true;
   if (type == "companion") return true;
   if (type == "slider") return true;
@@ -627,6 +632,7 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "media") return "Auto";
   if (type == "push") return "Gesture Tap";
   if (type == "companion_app_volume") return "Volume High";
+  if (type == "companion_cough") return "Microphone";
   if (type == "companion_mac_lock") return "Lock";
   if (type == "companion") return "Monitor";
   if (type == "slider") return "Auto";
@@ -665,6 +671,7 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "media") return "Auto";
   if (type == "push") return "Auto";
   if (type == "companion_app_volume") return "Auto";
+  if (type == "companion_cough") return "Auto";
   if (type == "companion_mac_lock") return "Auto";
   if (type == "companion") return "Auto";
   if (type == "slider") return "Auto";
@@ -741,6 +748,7 @@ inline std::string_view card_contract_subpage_code_view(std::string_view type) {
   if (type == "companion") return "CP";
   if (type == "companion_mac_lock") return "ML";
   if (type == "companion_app_volume") return "AV";
+  if (type == "companion_cough") return "CC";
   if (type == "subpage") return "G";
   return type;
 }
@@ -780,6 +788,7 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "companion") return "CP";
   if (type == "companion_mac_lock") return "ML";
   if (type == "companion_app_volume") return "AV";
+  if (type == "companion_cough") return "CC";
   if (type == "subpage") return "G";
   return type.c_str();
 }
@@ -819,6 +828,7 @@ inline std::string_view card_contract_subpage_type_view(const std::string_view &
   if (code == "CP") return "companion";
   if (code == "ML") return "companion_mac_lock";
   if (code == "AV") return "companion_app_volume";
+  if (code == "CC") return "companion_cough";
   if (code == "G") return "subpage";
   return code;
 }
@@ -858,6 +868,7 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "CP") return "companion";
   if (code == "ML") return "companion_mac_lock";
   if (code == "AV") return "companion_app_volume";
+  if (code == "CC") return "companion_cough";
   if (code == "G") return "subpage";
   return code;
 }

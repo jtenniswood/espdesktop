@@ -1378,6 +1378,7 @@ def gen_saved_config_media_h(data):
 
 
 SAVED_CONFIG_STATIC_CARD_TYPES = (
+    "companion_cough",
     "light_brightness",
     "light_switch",
     "light_temperature",

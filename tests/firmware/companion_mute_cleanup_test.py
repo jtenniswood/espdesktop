@@ -30,6 +30,8 @@ bool lv_obj_is_valid(lv_obj_t *) { return true; }
 void lv_label_set_text(lv_obj_t *obj, const char *text) { obj->text=text; }
 struct Registry { std::vector<CompanionMuteRef> mutes; } registry;
 Registry &companion_view_registry() { return registry; }
+constexpr auto COMPANION_COUGH_ID = "media.cough";
+void unbind_cough_button(lv_obj_t *) {}
 bool companion_mute_control_valid(const std::string &id) {
   return id == "media.input_mute" || id == "media.output_mute";
 }

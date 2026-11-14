@@ -1508,5 +1508,57 @@
     "direction": "panel_to_mac",
     "state": "authenticating",
     "valid": false
+  },
+  {
+    "name": "Cough button press",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 100,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button confirm",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 50,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button release",
+    "message": {
+      "protocol": 4,
+      "type": "value.set",
+      "controlId": "media.cough",
+      "value": 0,
+      "requestId": "cough-test"
+    },
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true
+  },
+  {
+    "name": "Cough button state",
+    "message": {
+      "protocol": 4,
+      "type": "value.state",
+      "controlId": "media.cough",
+      "value": 100,
+      "available": true
+    },
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true
   }
 ]

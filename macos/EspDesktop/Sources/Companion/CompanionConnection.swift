@@ -72,6 +72,7 @@ final class CompanionConnection: NSObject {
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
     private var supportsPairingReset = false
+    private var supportsCoughButton = false
     private var pairingResetCompletion: CheckedContinuation<Void, Never>?
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
@@ -208,6 +209,7 @@ final class CompanionConnection: NSObject {
     }
 
     private func tearDownConnection() {
+        releaseCoughButton()
         finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
@@ -388,6 +390,7 @@ final class CompanionConnection: NSObject {
 
     private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        releaseCoughButton()
         finishPairingResetRequest()
         print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
@@ -415,6 +418,12 @@ final class CompanionConnection: NSObject {
         session?.invalidateAndCancel()
         session = nil
         scheduleReconnect()
+    }
+
+    private func releaseCoughButton() {
+        guard supportsCoughButton else { return }
+        supportsCoughButton = false
+        _ = resources.setCoughButtonValue(0, from: ObjectIdentifier(self))
     }
 
     private func resetAppIconTransferState(clearPendingRequests: Bool = false) {
@@ -508,6 +517,7 @@ final class CompanionConnection: NSObject {
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
             appVolumeSupported = payload.capabilityVersion >= 10
+            supportsCoughButton = payload.capabilityVersion >= 11
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -611,7 +621,11 @@ final class CompanionConnection: NSObject {
                 return false
             }
             let activeTask = task
-            let changed = await resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            let changed = if controlIdentifier == SystemMediaController.coughID {
+                supportsCoughButton && resources.setCoughButtonValue(value, from: ObjectIdentifier(self))
+            } else {
+                await resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            }
             guard task === activeTask, sessionAuthenticated else { return true }
             sendJSON(["type": "action.result", "requestId": requestIdentifier,
                       "status": changed ? "performed" : "not_allowed"])
@@ -972,7 +986,8 @@ final class CompanionConnection: NSObject {
     }
 
     private func validMediaControlIdentifier(_ value: String) -> Bool {
-        SystemMediaController.volumeControlIDs.contains(value) ||
+        if value == SystemMediaController.coughID { return supportsCoughButton }
+        return SystemMediaController.volumeControlIDs.contains(value) ||
             (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)
     }
 

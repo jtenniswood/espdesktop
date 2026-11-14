@@ -263,6 +263,11 @@
       "lifecycle": { "subscriptions": ["none"], "actions": ["local"], "modalOwner": "none" },
       "modes": [{ "name": "lock", "config": {} }]
     },
+    "companion_cough": {
+      "classification": "canonical", "canonicalType": "companion_cough", "webRegistration": "companion_cough", "firmwareFamily": "SLIDER",
+      "lifecycle": { "subscriptions": ["state"], "actions": ["local"], "modalOwner": "none" },
+      "modes": [{ "name": "hold_to_mute", "config": {} }]
+    },
     "slider": {
       "classification": "canonical", "canonicalType": "slider", "webRegistration": "slider", "firmwareFamily": "SLIDER",
       "lifecycle": { "subscriptions": ["state"], "actions": ["home_assistant_service"], "modalOwner": "none" },

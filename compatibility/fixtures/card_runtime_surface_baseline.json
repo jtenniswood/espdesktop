@@ -2083,6 +2083,37 @@
       }
     },
     {
+      "name": "companion_cough: hold_to_mute",
+      "sourceKind": "contract",
+      "sourceType": "companion_cough",
+      "mode": "hold_to_mute",
+      "canonicalType": "companion_cough",
+      "web": {
+        "registration": "companion_cough",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "8f990ba050264f65"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "slider: numeric",
       "sourceKind": "contract",
       "sourceType": "slider",

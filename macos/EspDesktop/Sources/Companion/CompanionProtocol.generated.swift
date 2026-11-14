@@ -239,7 +239,7 @@ enum CompanionProtocolDecoder {
                   text.utf8.count <= rule["maxLength"] as! Int else { return false }
             if let options = rule["enum"] as? [String], !options.contains(text) { return false }
             if rule["pattern"] as? String == "volume_control_id" {
-                return ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"].contains(text)
+                return ["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute", "media.cough"].contains(text)
                     || appVolumeBundleIdentifier(text) != nil
             }
             if rule["pattern"] as? String == "hex64" {

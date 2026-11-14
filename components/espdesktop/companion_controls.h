@@ -298,6 +298,8 @@ inline void companion_set_keyboard_actions_supported(bool supported) {
   companion_runtime_service().set_keyboard_actions_supported(supported);
 }
 
+inline constexpr char COMPANION_COUGH_ID[] = "media.cough";
+
 inline bool companion_mute_control_valid(const std::string &control_id) {
   return control_id == "media.output_mute" || control_id == "media.input_mute";
 }
@@ -317,6 +319,10 @@ inline bool companion_volume_control_valid(const std::string &control_id) {
     companion_mute_control_valid(control_id) || companion_app_volume_control_valid(control_id);
 }
 
+inline bool companion_value_control_valid(const std::string &control_id) {
+  return control_id == COMPANION_COUGH_ID || companion_volume_control_valid(control_id);
+}
+
 inline const char *companion_volume_control_label(const std::string &control_id) {
   if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
   if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
@@ -329,7 +335,7 @@ inline bool companion_value(const std::string &control_id, int &value) {
 }
 
 inline void companion_set_value(const std::string &control_id, int value) {
-  if (!companion_volume_control_valid(control_id)) return;
+  if (!companion_value_control_valid(control_id)) return;
   value = std::max(0, std::min(100, value));
   if (companion_app_volume_control_valid(control_id)) {
     // A regular Mac catalogue is bounded. Apply the same bound to the audio
@@ -341,7 +347,7 @@ inline void companion_set_value(const std::string &control_id, int value) {
 }
 
 inline void companion_remove_value(const std::string &control_id) {
-  if (!companion_volume_control_valid(control_id)) return;
+  if (!companion_value_control_valid(control_id)) return;
   companion_runtime_service().remove_value(control_id);
 }
 
@@ -875,7 +881,8 @@ inline void companion_track_mute(lv_obj_t *button, const std::string &control_id
                                   lv_obj_t *icon_label = nullptr,
                                   const char *icon_unmuted = nullptr,
                                   const char *icon_muted = nullptr) {
-  if (!button || !companion_mute_control_valid(control_id)) return;
+  if (!button || !(companion_mute_control_valid(control_id) ||
+                   control_id == COMPANION_COUGH_ID)) return;
   companion_forget_mute(button);
   companion_view_registry().mutes.push_back(
     {button, control_id, icon_label, icon_unmuted, icon_muted});
@@ -1174,7 +1181,7 @@ inline bool invoke_companion_url(const std::string &url_config,
 
 inline bool invoke_companion_value(const std::string &control_id, int value,
                                    const std::string &request_id) {
-  if (!companion_connected() || !companion_volume_control_valid(control_id) ||
+  if (!companion_connected() || !companion_value_control_valid(control_id) ||
       value < 0 || value > 100 || !companion_value_sender() ||
       (companion_mute_control_valid(control_id) && value != 0 && value != 100)) return false;
   return companion_value_sender()(control_id, value, request_id);

@@ -38,6 +38,7 @@ It records the pre-migration baseline; it does not move executable behaviour int
 | companion | canonical | companion | actions, subpage | companion | companion | COMPANION | 1 |
 | companion_app_volume | canonical | numeric | subscriptions, actions, numericControl, runtimeAllocation, subpage | companion_app_volume | companion_app_volume | SLIDER | 1 |
 | companion_mac_lock | canonical | companion | actions, subpage | companion_mac_lock | companion_mac_lock | COMPANION | 1 |
+| companion_cough | canonical | numeric | subscriptions, actions, subpage | companion_cough | companion_cough | SLIDER | 1 |
 | slider | canonical | numeric | subscriptions, actions, numericControl, runtimeAllocation, subpage | slider | slider | SLIDER | 1 |
 | subpage | canonical | subpage | actions, runtimeAllocation, subpage | subpage | subpage | SUBPAGE | 1 |
 | weather | canonical | weather | informationOnly, subscriptions, actions, modal, runtimeAllocation, subpage | weather | weather | WEATHER | 4 |

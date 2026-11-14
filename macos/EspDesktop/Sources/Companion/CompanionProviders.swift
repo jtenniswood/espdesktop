@@ -15,6 +15,8 @@ protocol SystemMetricsProviding: AnyObject {
 protocol MediaControlling: AnyObject {
     func values() -> [String: Int]
     func setValue(_ value: Int, controlIdentifier: String) -> Bool
+    func beginCoughMute() -> Bool
+    func endCoughMute() -> Bool
     func unavailableVolumeIDs(
         values: [String: Int],
         previousValues: [String: Int],

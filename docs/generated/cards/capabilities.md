@@ -36,6 +36,7 @@ This generated reference lists release availability and setup facts from the sha
 | Media | media | media_player | Yes | Own picker item | None | Retired |
 | Trigger | push | None | Yes | Own picker item | None | Retired |
 | App Volume | companion_app_volume | None | Yes | Own picker item | None | Stable |
+| Cough | companion_cough | None | Yes | Own picker item | None | Stable |
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Stable |
 | Legacy Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Retired |

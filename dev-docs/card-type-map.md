@@ -64,6 +64,7 @@ The generated card contract and the public documentation mapping define this tab
 | [media.md](../docs/card-types/media.md) | `media` |
 | [buttons.md](../docs/card-types/buttons.md) | `push` |
 | [apps.md](../docs/mac-controls/apps.md) | `companion_app_volume` |
+| [shortcuts.md](../docs/mac-controls/shortcuts.md) | `companion_cough` |
 | [index.md](../docs/index.md) | `companion_mac_lock` |
 | [index.md](../docs/index.md) | `companion` |
 | [sliders.md](../docs/card-types/sliders.md) | `slider` |
@@ -105,6 +106,7 @@ This table is generated from the card contract and typed `registry.register(...)
 | `media` | Media | `src/webserver/cards/media.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_subpages.h`, `components/espdesktop/button_grid_card_runtime.h` | `media_player` | Yes | None | Hidden | Contract, Codec, Parser, HA, Modals, Backup |
 | `push` | Trigger | `src/webserver/cards/push.ts` | `components/espdesktop/button_grid_basic_action_driver.h`, `components/espdesktop/button_grid_cards.h`, `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_card_runtime.h` | None | Yes | None | Hidden | Contract, Codec, Parser, HA |
 | `companion_app_volume` | App Volume | `src/webserver/cards/companion_app_volume.ts` | `components/espdesktop/button_grid_numeric_selectable_driver.h`, `components/espdesktop/button_grid_sliders.h`, `components/espdesktop/button_grid_card_runtime.h` | None | Yes | None | Visible | Contract, Codec, Parser |
+| `companion_cough` | Cough | `src/webserver/cards/companion.ts` | `components/espdesktop/button_grid_actions.h`, `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_numeric_selectable_driver.h`, `components/espdesktop/button_grid_card_runtime.h` | None | Yes | None | Visible | Contract, Codec, Parser |
 | `companion_mac_lock` | Mac Lock | `src/webserver/cards/companion.ts` | `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_subpages.h`, `components/espdesktop/button_grid_card_runtime.h` | None | Yes | None | Visible | Contract, Codec, Parser |
 | `companion` | Companion | `src/webserver/cards/companion.ts` | `components/espdesktop/button_grid_basic_action_driver.h`, `components/espdesktop/button_grid_card_runtime.h`, `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_grid.h`, `components/espdesktop/button_grid_subpages.h` | None | Yes | App Subpage; Large Sensor Numbers; Show capacity label | Visible | Contract, Codec, Parser, Backup |
 | `slider` | Legacy Slider | `src/webserver/cards/slider.ts` | `components/espdesktop/button_grid_card_runtime.h`, `components/espdesktop/button_grid_config_parser.h`, `components/espdesktop/button_grid_numeric_selectable_driver.h`, `components/espdesktop/button_grid_sliders.h` | `light`, `fan`, `number`, `input_number` | Yes | None | Hidden | Contract, Codec, Parser, HA |

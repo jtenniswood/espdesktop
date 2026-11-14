@@ -990,6 +990,21 @@
     }
   },
   {
+    "name": "companion_cough: hold_to_mute",
+    "input": "~,Cough,Microphone,Auto,,,companion_cough,,",
+    "expected": {
+      "entity": "",
+      "label": "Cough",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_cough",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "slider: numeric",
     "input": "~input_number.example,,Auto,Auto,,,slider,,",
     "expected": {

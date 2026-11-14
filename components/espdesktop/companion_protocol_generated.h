@@ -28,7 +28,7 @@ inline bool number_valid(JsonVariantConst value, double minimum, double maximum,
 inline bool volume_control_id_valid(std::string_view id) {
   constexpr std::string_view prefix = "app.volume.";
   if (id == "media.output_volume" || id == "media.input_volume" ||
-      id == "media.output_mute" || id == "media.input_mute") return true;
+      id == "media.output_mute" || id == "media.input_mute" || id == "media.cough") return true;
   if (id.size() <= prefix.size() || id.size() > 107 || id.substr(0, prefix.size()) != prefix)
     return false;
   for (char c : id.substr(prefix.size())) {

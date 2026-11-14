@@ -7,6 +7,19 @@ import type { CardConfig } from "../contracts/types";
 import { configOptionEnabled } from "../model/config_primitives";
 
 export function normalizeSavedConfigStatic(config: CardConfig): boolean {
+  if (config.type === "companion_cough") {
+    config.entity = "";
+    if (!config.label) config.label = "Cough";
+    if (config.icon === "") config.icon = "Microphone";
+    if (config.icon === "Auto") config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_cough";
+    config.precision = "";
+    config.options = "";
+    return true;
+  }
   if (config.type === "light_brightness") {
     config.sensor = "";
     config.type = "light_brightness";

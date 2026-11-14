@@ -36,3 +36,9 @@ When you add a **Key Shortcut** card inside an app subpage, the **Application** 
 The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 
 <span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a shortcut](/mac-controls/improve-shortcuts).
+
+## Hold to mute your microphone
+
+In the web editor, choose **Add Card → Mac Companion → Cough**. Touch and hold the card to mute the Mac’s default microphone. Lift your finger to restore its previous state. A microphone that was already muted stays muted.
+
+The card requires matching display firmware and Mac app updates. It is available when the paired Mac can mute its default microphone or adjust its input level.

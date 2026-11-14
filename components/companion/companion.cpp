@@ -830,7 +830,7 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
 
     if (const auto *payload = std::get_if<companion_protocol::ValueState>(&*decoded)) {
       const std::string control_id = payload->controlId;
-      if (!companion_volume_control_valid(control_id)) return false;
+      if (!companion_value_control_valid(control_id)) return false;
       if (!payload->available) {
         this->defer_session_([control_id] { companion_remove_value(control_id); });
         return true;
@@ -1175,7 +1175,7 @@ bool CompanionService::invoke_url_(const std::string &encoded_url, const std::st
 bool CompanionService::invoke_value_(const std::string &control_id, int value,
                                      const std::string &request_id) {
   const int socket_fd = this->session_.authenticated_socket();
-  if (socket_fd < 0 || !companion_volume_control_valid(control_id) ||
+  if (socket_fd < 0 || !companion_value_control_valid(control_id) ||
       value < 0 || value > 100 || !safe_field(request_id, 64)) return false;
   const companion_protocol::ValueSet payload{request_id, control_id, static_cast<uint32_t>(value)};
   return this->send_(socket_fd, json::build_json([&payload](JsonObject root) {
