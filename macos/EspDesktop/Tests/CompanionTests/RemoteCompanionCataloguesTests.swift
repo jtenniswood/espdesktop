@@ -4,6 +4,25 @@ import XCTest
 
 final class RemoteCompanionCataloguesTests: XCTestCase {
     @MainActor
+    func testUpdatedWebCatalogueRestoresIndependentlyOfNativeCatalogue() throws {
+        let suite = "WebCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let bundled = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let app = try XCTUnwrap(bundled.webApplications.first)
+
+        let cached = RemoteCompanionCatalogues(
+            version: bundled.version, applications: [], webApplications: [app],
+            webVersion: (bundled.webVersion ?? 0) + 1
+        )
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+        let restored = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertEqual(restored.applications, bundled.applications)
+        XCTAssertEqual(restored.webVersion, cached.webVersion)
+        XCTAssertEqual(restored.webApplications, cached.webApplications)
+    }
+
+    @MainActor
     func testLargeBundledCatalogueFitsInBoundedFrames() throws {
         let suite = "ExpandedCatalogueTests." + UUID().uuidString
         let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))

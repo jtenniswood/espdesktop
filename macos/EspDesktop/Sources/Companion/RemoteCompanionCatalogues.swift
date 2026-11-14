@@ -95,9 +95,10 @@ func decodeBundledCatalogueEntries<T: Decodable>(
 }
 
 struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
-    let version: Int
-    let applications: [RemoteMacApplicationDefinition]
+    var version: Int
+    var applications: [RemoteMacApplicationDefinition]
     var webApplications: [RemoteWebApplicationDefinition] = []
+    var webVersion: Int?
 
     static let empty = RemoteCompanionCatalogues(version: 1, applications: [], webApplications: [])
 
@@ -144,8 +145,9 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
               Set(webApps.map(\.id)).count == webApps.count else {
             throw CatalogueError.invalid
         }
-        return RemoteCompanionCatalogues(version: max(nativeIndex.catalogueVersion, webIndex?.catalogueVersion ?? 0),
-                                         applications: apps, webApplications: webApps)
+        return RemoteCompanionCatalogues(version: nativeIndex.catalogueVersion,
+                                         applications: apps, webApplications: webApps,
+                                         webVersion: webIndex?.catalogueVersion)
     }
 
     fileprivate static func supports(_ minimum: String, current: String) -> Bool {
@@ -308,9 +310,17 @@ final class RemoteCompanionCatalogueStore {
         value = Self.bundled()
         if let cache = defaults.data(forKey: Self.cacheKey),
            let decoded = try? JSONDecoder().decode(RemoteCompanionCatalogues.self, from: cache),
-           decoded.version > value.version,
            Self.valid(decoded) {
-            value = decoded
+            if decoded.version > value.version {
+                value.version = decoded.version
+                value.applications = decoded.applications
+            }
+            // Earlier builds stored both catalogues under the native version.
+            let cachedWebVersion = decoded.webVersion ?? (decoded.webApplications.isEmpty ? 0 : 1)
+            if cachedWebVersion >= (value.webVersion ?? 0), !decoded.webApplications.isEmpty {
+                value.webVersion = cachedWebVersion
+                value.webApplications = decoded.webApplications
+            }
         }
     }
 
@@ -330,15 +340,15 @@ final class RemoteCompanionCatalogueStore {
 
     private func refreshOnce() async {
         var next = value
-        if let native = try? await loadCatalogue(directory: "app_shortcuts", webApps: false) {
-            next = RemoteCompanionCatalogues(version: max(next.version, native.version),
-                                             applications: native.applications,
-                                             webApplications: next.webApplications)
+        if let native = try? await loadCatalogue(directory: "app_shortcuts", webApps: false),
+           native.version >= next.version {
+            next.version = native.version
+            next.applications = native.applications
         }
-        if let web = try? await loadCatalogue(directory: "web_apps", webApps: true) {
-            next = RemoteCompanionCatalogues(version: max(next.version, web.version),
-                                             applications: next.applications,
-                                             webApplications: web.webApplications)
+        if let web = try? await loadCatalogue(directory: "web_apps", webApps: true),
+           let webVersion = web.webVersion, webVersion >= (next.webVersion ?? 0) {
+            next.webVersion = webVersion
+            next.webApplications = web.webApplications
         }
         guard next != value, Self.valid(next), let encoded = try? JSONEncoder().encode(next) else { return }
         defaults.set(encoded, forKey: Self.cacheKey)
@@ -369,7 +379,8 @@ final class RemoteCompanionCatalogueStore {
         if webApps {
             let apps = try definitions.map { try decoder.decode(RemoteWebApplicationDefinition.self, from: $0) }
             guard apps.allSatisfy(RemoteCompanionCatalogues.valid) else { throw RemoteCompanionCatalogues.CatalogueError.invalid }
-            return RemoteCompanionCatalogues(version: manifest.catalogueVersion, applications: [], webApplications: apps)
+            return RemoteCompanionCatalogues(version: 1, applications: [], webApplications: apps,
+                                             webVersion: manifest.catalogueVersion)
         }
         let apps = try definitions.map { try decoder.decode(RemoteMacApplicationDefinition.self, from: $0) }
         guard apps.allSatisfy(RemoteCompanionCatalogues.valid) else { throw RemoteCompanionCatalogues.CatalogueError.invalid }
@@ -409,6 +420,7 @@ final class RemoteCompanionCatalogueStore {
         guard let applications else { return .empty }
         let folderWeb = "WebApps"
         var webApps: [RemoteWebApplicationDefinition] = []
+        var webVersion: Int?
         if let index = resources.url(forResource: "manifest", withExtension: "json", subdirectory: folderWeb),
            let indexData = try? Data(contentsOf: index) {
             webApps = decodeBundledCatalogueEntries(manifestData: indexData, companionVersion: companionVersion) { path in
@@ -416,8 +428,12 @@ final class RemoteCompanionCatalogueStore {
                 return resources.url(forResource: file.deletingPathExtension, withExtension: file.pathExtension,
                                      subdirectory: folderWeb).flatMap { try? Data(contentsOf: $0) }
             } ?? []
+            if !webApps.isEmpty {
+                webVersion = (try? JSONDecoder().decode(RemoteCatalogueManifest.self, from: indexData))?.catalogueVersion
+            }
         }
-        let result = RemoteCompanionCatalogues(version: manifest.catalogueVersion, applications: applications, webApplications: webApps)
+        let result = RemoteCompanionCatalogues(version: manifest.catalogueVersion, applications: applications,
+                                               webApplications: webApps, webVersion: webVersion)
         return Self.valid(result) ? result : .empty
     }
 
