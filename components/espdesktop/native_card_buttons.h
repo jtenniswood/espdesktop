@@ -25,6 +25,50 @@ inline bool is_native_card_web_press(std::string_view path) {
       });
 }
 
+inline std::string native_card_label(const ParsedCfg &config, const CompanionRuntimeSnapshot &mac) {
+  if (!config.label.empty()) return config.label;
+  if (config.type == "subpage") return "Folder";
+  auto label = companion_default_action_label(config.entity, config.sensor, &mac);
+  if (label.empty() || label == config.entity) {
+    if (config.entity.rfind("folder.", 0) == 0) return "Finder Folder";
+    if (config.type == "companion_mac_lock") return "Lock Machine";
+    return "Mac action";
+  }
+  return label;
+}
+
+inline std::string native_card_name(const SharedCard &card, const pages::PageStore &store,
+                                    const CompanionRuntimeSnapshot &mac) {
+  auto name = native_card_label(card.config, mac);
+  const auto &entity = card.config.entity;
+  const bool opens_folder = entity.rfind("folder.", 0) == 0;
+  const bool opens_app = card.config.type == "companion" && entity.find('.') != std::string::npos &&
+      entity.rfind("shortcut.", 0) != 0 && companion_encoded_url(card.config.sensor).empty();
+  if (card.config.type == "subpage" || opens_folder || opens_app) name += " – Open";
+
+  for (auto page_id = card.page; page_id != 0;) {
+    const auto *page = store.page(page_id);
+    if (!page) break;
+    const auto *owner = store.card(page->owner);
+    if (!owner || page->parent == pages::NO_PAGE) break;
+    auto label = native_card_label(grid_saved_card_config(store, *owner), mac);
+    name.insert(0, label + " – ");
+    page_id = page->parent;
+  }
+
+  // Leave room for the ID suffix and preserve the last complete UTF-8 character.
+  constexpr size_t max_label = esphome::ESPHOME_FRIENDLY_NAME_MAX_LEN -
+      NATIVE_CARD_NAME_SEPARATOR.size() - NATIVE_CARD_NAME_ID_LENGTH;
+  if (name.size() > max_label) {
+    size_t length = max_label;
+    while ((static_cast<unsigned char>(name[length]) & 0xc0) == 0x80) --length;
+    name.resize(length);
+  }
+  name += NATIVE_CARD_NAME_SEPARATOR;
+  name.append(card.id, 0, NATIVE_CARD_NAME_ID_LENGTH);
+  return name;
+}
+
 class NativeCardButton final : public esphome::button::Button {
  public:
   void configure(std::string id, std::string name, uint32_t key) {
@@ -67,10 +111,13 @@ class NativeCardButtons {
     auto *server = esphome::api::global_api_server;
     if (!store || !server || hooks().fingerprint.empty()) return;
     const bool authorized = native_api_enabled.load() && server->get_noise_ctx().has_psk();
-    if (refreshed_ && generation_ == store->generation() && authorized == authorized_) return;
+    const auto catalogue = authorized ? companion_runtime_service().action_catalogue_generation() : 0;
+    if (refreshed_ && generation_ == store->generation() && authorized == authorized_ &&
+        catalogue == catalogue_generation_) return;
     refreshed_ = true;
     generation_ = store->generation();
     authorized_ = authorized;
+    catalogue_generation_ = catalogue;
 
     std::vector<Entry> entries;
     if (authorized) {
@@ -81,15 +128,7 @@ class NativeCardButtons {
                                [&](const auto *button) {
                                  return !is_card(button) && button->get_object_id_hash() == key;
                                })) continue;
-        auto name = card.config.label.empty()
-            ? (card.config.type == "subpage" ? "Subpage" :
-               companion_default_action_label(card.config.entity, card.config.sensor, &mac))
-            : card.config.label;
-        if (name.empty() || name == card.config.entity) name = "Mac action";
-        // A replacement card gets a fresh identity even if its label is reused.
-        name += NATIVE_CARD_NAME_SEPARATOR;
-        name.append(card.id, 0, NATIVE_CARD_NAME_ID_LENGTH);
-        entries.push_back({card.id, std::move(name), key});
+        entries.push_back({card.id, native_card_name(card, *store, mac), key});
       }
       std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b) { return a.key < b.key; });
       for (size_t i = 0; i < entries.size();) {
@@ -136,6 +175,7 @@ class NativeCardButtons {
   std::vector<std::unique_ptr<NativeCardButton>> buttons_;
   std::vector<Entry> entries_;
   uint32_t generation_{0};
+  uint32_t catalogue_generation_{0};
   bool refreshed_{false};
   bool authorized_{false};
 };

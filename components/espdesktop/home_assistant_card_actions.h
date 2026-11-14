@@ -13,6 +13,7 @@ struct SharedCard {
   std::string id;
   std::string focus;
   int target{0};
+  pages::PageId page{0};
 };
 
 // Cards that predate Home Assistant have no saved sharing ID. Key them by
@@ -81,7 +82,7 @@ inline std::vector<SharedCard> shared_cards() {
           saved_id.compare(0, 64, hooks().fingerprint) == 0;
       auto id = has_saved_id ? saved_id.substr(64) :
           automatic_card_id(page_id ? page_entry->key : 0, record.slot, config, focus);
-      if (!id.empty()) cards.push_back({std::move(config), std::move(id), std::move(focus), key});
+      if (!id.empty()) cards.push_back({std::move(config), std::move(id), std::move(focus), key, page_id});
     }
   }
   // A malformed imported layout must never send a press to an ambiguous card.

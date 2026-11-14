@@ -26,7 +26,8 @@ can press saved cards that have a tap action.
    generate the native encryption key automatically.
 4. Open the display in Home Assistant to find its buttons. Saved app, Finder folder,
    website, shortcut, Lock Machine, and Subpage cards appear automatically,
-   including cards on nested pages.
+   including cards on nested pages. Button names start with the app or folder
+   that contains the action, for example **Safari – Close Tab**.
 5. In Home Assistant, add the button to a dashboard or use **Button: Press**
    as an action in an automation. The card list refreshes when Home Assistant reconnects. Mac actions require an unlocked Mac with EspDesktop running and paired.
 
