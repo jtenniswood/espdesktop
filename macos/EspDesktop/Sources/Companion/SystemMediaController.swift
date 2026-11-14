@@ -54,7 +54,8 @@ final class SystemMediaController {
         previousValues: [String: Int],
         force: Bool
     ) -> Set<String> {
-        let candidates = force ? volumeControlIDs : Set(previousValues.keys)
+        let previousIDs = Set(previousValues.keys)
+        let candidates = force ? volumeControlIDs.union(previousIDs) : previousIDs
         return candidates.subtracting(values.keys)
     }
 
@@ -134,20 +135,28 @@ final class SystemMediaController {
     }
 
     func beginCoughMute() -> Bool {
-        let scope = kAudioDevicePropertyScopeInput
         _ = endCoughMute()
-        guard let device = findDevice(scope), coughRestores[device] == nil else { return false }
+        return continueCoughMute()
+    }
+
+    // Each input keeps its own restore state until the last hold ends.
+    func continueCoughMute() -> Bool {
+        let scope = kAudioDevicePropertyScopeInput
+        guard let device = findDevice(scope) else { return false }
+        let previous = coughRestores[device]
         let input: CoughInput
         if let muted = readMute(device, scope) {
+            if muted && previous != nil { return false }
             guard muted || writeMute(true, device, scope) else { return false }
             input = muted ? .unchanged : .nativeMute
         } else if let level = readVolume(device, scope) {
+            if level == 0 && previous != nil { return false }
             guard level == 0 || writeVolume(0, device, scope) else { return false }
             input = level == 0 ? .unchanged : .inputLevel(level)
         } else {
             return false
         }
-        coughRestores[device] = input
+        coughRestores[device] = previous ?? input
         return true
     }
 

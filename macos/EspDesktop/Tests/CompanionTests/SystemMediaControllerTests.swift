@@ -24,6 +24,20 @@ final class SystemMediaControllerTests: XCTestCase {
         XCTAssertEqual(unavailable, [SystemMediaController.outputVolumeID])
     }
 
+    func testForcedSnapshotRemovesAPreviouslyPublishedMicrophone() {
+        let disconnectedInput = "input.level." + String(repeating: "a", count: 64)
+        let connectedInput = "input.level." + String(repeating: "b", count: 64)
+        let values = [SystemMediaController.outputVolumeID: 45, connectedInput: 50]
+        let unavailable = SystemMediaController.unavailableVolumeIDs(
+            values: values,
+            previousValues: [disconnectedInput: 60, connectedInput: 50],
+            force: true
+        )
+
+        XCTAssertEqual(unavailable, SystemMediaController.volumeControlIDs
+            .subtracting(values.keys).union([disconnectedInput]))
+    }
+
     @MainActor
     private final class AudioFixture {
         var output: AudioDeviceID = 1
@@ -85,6 +99,27 @@ final class SystemMediaControllerTests: XCTestCase {
         audio.levels[2] = 0
         XCTAssertTrue(controller.endCoughMute())
         XCTAssertEqual(audio.levels[2], original)
+    }
+
+    func testCoughFollowsTheDefaultMicrophoneDuringAHoldAndRestoresBothInputs() {
+        let audio = AudioFixture(), controller = audio.controller()
+        let original = audio.levels[2]
+        audio.nativeMutes[3] = false
+        XCTAssertTrue(controller.beginCoughMute())
+        XCTAssertFalse(controller.continueCoughMute())
+
+        audio.input = 3
+        XCTAssertTrue(controller.continueCoughMute())
+        XCTAssertEqual(audio.nativeMutes[3], true)
+        XCTAssertEqual(audio.levels[2], 0)
+
+        audio.input = 2
+        audio.levels[2] = 0.6
+        XCTAssertTrue(controller.continueCoughMute())
+        XCTAssertEqual(audio.levels[2], 0)
+        XCTAssertTrue(controller.endCoughMute())
+        XCTAssertEqual(audio.levels[2], original)
+        XCTAssertEqual(audio.nativeMutes[3], false)
     }
 
     func testCoughMuteRespectsAnAlreadyMutedMicrophone() {

@@ -1064,14 +1064,15 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         guard value == 50 || value == 100, !sessionLock.refresh() else { return false }
         // A renewal cannot start a new hold after disconnect, sleep or expiry.
-        let startsMute = coughHolds[session] == nil && coughHolds.isEmpty
-        if coughHolds[session] == nil {
-            guard value == 100 else { return false }
-            if coughHolds.isEmpty {
-                guard mediaController.beginCoughMute() else { return false }
-                coughRestoreRetry?.cancel()
-                coughRestoreRetry = nil
-            }
+        guard coughHolds[session] != nil || value == 100 else { return false }
+        let changedInput: Bool
+        if coughHolds.isEmpty {
+            guard mediaController.beginCoughMute() else { return false }
+            coughRestoreRetry?.cancel()
+            coughRestoreRetry = nil
+            changedInput = true
+        } else {
+            changedInput = mediaController.continueCoughMute()
         }
         coughHolds[session]?.cancel()
         coughHolds[session] = Task { [weak self] in
@@ -1079,7 +1080,7 @@ final class CompanionStore: NSObject, ObservableObject {
             guard !Task.isCancelled else { return }
             _ = self?.setCoughButtonValue(0, from: session)
         }
-        if startsMute { publishCoughTransition() }
+        if changedInput { publishCoughTransition() }
         return true
     }
 

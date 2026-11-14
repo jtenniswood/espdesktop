@@ -18,6 +18,7 @@ protocol MediaControlling: AnyObject {
     func values() -> [String: Int]
     func setValue(_ value: Int, controlIdentifier: String) -> Bool
     func beginCoughMute() -> Bool
+    func continueCoughMute() -> Bool
     func endCoughMute() -> Bool
     func unavailableVolumeIDs(
         values: [String: Int],

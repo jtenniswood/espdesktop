@@ -18,8 +18,10 @@ private final class DisplayMediaFixture: MediaControlling {
     func values() -> [String: Int] { readValues() }
     func setValue(_ value: Int, controlIdentifier: String) -> Bool { false }
     var coughStarts = 0
+    var coughContinuations = 0
     var coughEnds = 0
     func beginCoughMute() -> Bool { coughStarts += 1; return true }
+    func continueCoughMute() -> Bool { coughContinuations += 1; return false }
     func endCoughMute() -> Bool { coughEnds += 1; return true }
     func unavailableVolumeIDs(values: [String: Int], previousValues: [String: Int], force: Bool) -> Set<String> { [] }
 }
@@ -37,8 +39,10 @@ final class CompanionDisplayTests: XCTestCase {
         let a = ObjectIdentifier(first), b = ObjectIdentifier(second)
 
         XCTAssertFalse(store.setCoughButtonValue(50, from: a))
+        XCTAssertEqual(media.coughContinuations, 0)
         XCTAssertTrue(store.setCoughButtonValue(100, from: a))
         XCTAssertTrue(store.setCoughButtonValue(50, from: a))
+        XCTAssertEqual(media.coughContinuations, 1)
         XCTAssertTrue(store.setCoughButtonValue(100, from: b))
         XCTAssertEqual(media.coughStarts, 1)
         XCTAssertTrue(store.setCoughButtonValue(0, from: a))
