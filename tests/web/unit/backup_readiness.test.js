@@ -68,7 +68,8 @@ test("application export waits for readiness before reading or downloading a bac
   controllers.runtime = { els: {} };
   controllers.waitForInitialState = () => gate.promise;
   controllers.nativePanelConfig = { async readForBackup() { reads++; throw new Error("Stop after readiness"); } };
-  controllers.backupFile = { download() { downloads++; } };
+  controllers.cardImages = { backupAssetProvider: { createArchiveEntries: async () => [] } };
+  controllers.backupFile = { downloadArchive() { downloads++; } };
   const application = createAppBackupFeature(controllers);
   const exporting = application.exportConfig(); await tick();
   assert.equal(reads, 0); assert.equal(downloads, 0);

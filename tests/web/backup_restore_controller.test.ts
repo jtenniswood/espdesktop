@@ -65,7 +65,7 @@ export async function runBackupRestoreControllerTests(): Promise<void> {
     "overlapping restores do not overwrite active transaction state");
   pending.resolve();
   equal(await completion, true, "completion promise reports success");
-  equal(success.events.slice(-4).join(","), "queue,commit,success:Configuration imported successfully,throttle:0",
+  equal(success.events.slice(-4).join(","), "queue,commit,warning:Configuration imported successfully Different device,throttle:0",
     "assets commit only after settings finish");
   equal(success.controller.stage, "idle", "finished coordinator can be reused");
 
