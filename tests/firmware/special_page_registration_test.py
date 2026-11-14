@@ -33,6 +33,8 @@ int main() {
   lv_obj_t regular, special;
   navigation_register_subpage(1,0,"subpage",&regular);
   navigation_register_subpage(NAVIGATION_SPECIAL_PAGE_SLOT,0,"special",&special);
+  assert(navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT)->screen == &special);
+  assert(navigation_find_slot(0) == nullptr);
   assert(entries.size()==2 && clock_pages.size()==1 && clock_pages[0]==&regular);
 }
 '''

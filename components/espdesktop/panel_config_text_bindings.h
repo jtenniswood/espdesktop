@@ -63,11 +63,11 @@ class PanelConfigTextBindings {
   CompatibilityStatus persistence_admission(const uint8_t *document, size_t size);
   CompatibilityStatus persist_document_status(const uint8_t *document, size_t size);
   CompatibilityStatus publish_document_status(const uint8_t *document, size_t size);
-  // Native graph publication needs the root order and shared accent colour.
+  // Publish the live screen settings used outside the native card graph.
   // Update those live values without clearing per-card/subpage compatibility
   // fields or claiming that a complete legacy layout has been published.
   CompatibilityStatus publish_global_values(std::string_view profile,
-      std::string_view order, std::string_view on_color);
+      std::string_view order, std::string_view on_color, std::string_view special_page);
 
   bool validate_live_document(const uint8_t *document, size_t size) const {
     return compatible_document(document, size);

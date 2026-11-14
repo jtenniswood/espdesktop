@@ -118,6 +118,9 @@ bool current_layout_publishes_only_bound_screen_settings() {
   bindings.set_button_order(&order);
   bindings.set_button_on_color(&color);
   std::array<PanelConfigTextValue *, PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> chunks{};
+  FakeText special("1|:Clock:::::clock");
+  chunks[0] = &special;
+  bindings.set_special_page_chunks(chunks);
   chunks[0] = &child;
   if (!bindings.set_button(1, &button, chunks)) return false;
   PanelConfigLegacyAdapter adapter(bindings, ConfigurationBuffer::allocate_host,
@@ -130,11 +133,15 @@ bool current_layout_publishes_only_bound_screen_settings() {
   FakeText old_order(""), old_color("000000"), old_button("stale"), old_child("stale child");
   bindings.set_button_order(&old_order);
   bindings.set_button_on_color(&old_color);
+  FakeText old_special("stale special");
+  chunks[0] = &old_special;
+  bindings.set_special_page_chunks(chunks);
   chunks[0] = &old_child;
   if (!bindings.set_button(1, &old_button, chunks)) return false;
   return adapter.publish_status(2, document.data(), loaded.document_size) ==
              CompatibilityStatus::NATIVE_ONLY &&
          old_order.value() == "1" && old_color.value() == "FF8800" &&
+         old_special.value() == special.value() && old_special.runtime_publishes == 1 &&
          old_button.value() == "stale" && old_child.value() == "stale child" &&
          old_button.runtime_publishes == 0 && old_child.runtime_publishes == 0;
 }

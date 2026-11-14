@@ -498,7 +498,7 @@ inline NavigationSubpageEntry *navigation_find_first_kind(const std::string &kin
 }
 
 inline NavigationSubpageEntry *navigation_find_slot(int slot) {
-  if (slot <= 0) return nullptr;
+  if (slot <= 0 && slot != NAVIGATION_SPECIAL_PAGE_SLOT) return nullptr;
   for (auto &entry : navigation_subpages()) {
     if (entry.slot == slot) return &entry;
   }
