@@ -30,6 +30,8 @@ can press saved cards that have a tap action.
    that contains the action, for example **Safari – Close Tab**.
 5. In Home Assistant, add the button to a dashboard or use **Button: Press**
    as an action in an automation. The card list refreshes when Home Assistant reconnects. Mac actions require an unlocked Mac with EspDesktop running and paired.
+   Pressing a keyboard shortcut on an app's subpage opens or focuses that app
+   before sending the shortcut.
 
 Resizing a card keeps its button identity. Home Assistant can track a rename
 while connected. After renaming a card with Home Assistant stopped, check any

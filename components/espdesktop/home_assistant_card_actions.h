@@ -2,6 +2,7 @@
 
 #include "home_assistant_cards.h"
 #include "device_reset.h"
+#include "native_api_setting.h"
 #ifdef USE_COMPANION
 #include <mbedtls/sha256.h>
 #endif
@@ -99,7 +100,7 @@ inline std::vector<SharedCard> shared_cards() {
 inline bool card_available(const SharedCard &card, const CompanionRuntimeSnapshot &mac) {
   if (screen_lock_enabled() || reset::pending()) return false;
   if (card.config.type == "subpage") return card.target && navigation_allows_companion_focus();
-  if (!mac.connected || (!card.focus.empty() && !companion_action_focused(mac, card.focus))) return false;
+  if (!mac.connected) return false;
   if (card.config.type == "slider") return true;
   return !companion_encoded_url(card.config.sensor).empty() ||
       companion_action_available(mac, card.config.entity);
@@ -122,6 +123,48 @@ inline std::string list_cards() {
   return output + "]}";
 }
 
+inline std::string shortcut_application(const SharedCard &card) {
+  if (!card.page || !companion_shortcut_action_valid(card.config.entity)) return {};
+  if (!card.focus.empty()) return card.focus;
+  const auto preset = cfg_option_value(card.config.options, "app_shortcut_preset");
+  if (auto app = companion_shortcut_preset_app(preset); !app.empty()) return app;
+
+  const auto *store = grid_native_page_store();
+  if (!store) return {};
+  for (auto page_id = card.page; page_id != 0;) {
+    const auto *page = store->page(page_id);
+    if (!page || page->parent == pages::NO_PAGE) break;
+    const auto *owner = store->card(page->owner);
+    if (!owner) break;
+    const auto config = grid_saved_card_config(*store, *owner);
+    if (config.entity.rfind("folder.", 0) == 0) return "com.apple.finder";
+    if (companion_app_launch_card(config)) return config.entity;
+    page_id = page->parent;
+  }
+  return {};
+}
+
+inline bool press_app_shortcut(const SharedCard &card, const std::string &app,
+                                const std::string &request) {
+  const auto shortcut = companion_app_scoped_shortcut(card.config.entity);
+  if (shortcut.empty() || !companion_action_sender()) return false;
+  return companion_activate_then(app, request, esphome::millis() + 10000,
+      [id = card.id, app, shortcut, request] {
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+        if (!native_api_enabled.load()) return;
+#endif
+        const auto mac = companion_runtime_snapshot();
+        for (const auto &current : shared_cards()) {
+          if (current.id != id) continue;
+          if (card_available(current, mac) && shortcut_application(current) == app &&
+              companion_app_scoped_shortcut(current.config.entity) == shortcut &&
+              companion_action_sender())
+            companion_action_sender()(shortcut, request + "-keys", "new_window", app);
+          return;
+        }
+      });
+}
+
 inline bool press_card(const std::string &id) {
   for (const auto &card : shared_cards()) {
     if (id != card.id) continue;
@@ -131,6 +174,8 @@ inline bool press_card(const std::string &id) {
     char request[24];
     snprintf(request, sizeof(request), "ha-%08lx",
              static_cast<unsigned long>(companion_next_request_number()));
+    if (const auto app = shortcut_application(card); !app.empty())
+      return press_app_shortcut(card, app, request);
     return espdesktop::cards::invoke_saved_companion_card(card.config, request, card.focus);
   }
   return false;

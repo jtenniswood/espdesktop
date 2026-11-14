@@ -1128,6 +1128,26 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
   return invoke_companion_action(action_id, request_id, folder_open_behavior);
 }
 
+// Route even legacy single-stroke shortcuts through the Companion's
+// app-scoped replay, which checks the frontmost process at delivery time.
+inline std::string companion_app_scoped_shortcut(const std::string &action_id) {
+  if (!companion_shortcut_action_valid(action_id)) return {};
+  if (companion_scoped_shortcut(action_id)) return action_id;
+  auto keys = action_id.substr(9);
+  if (keys == "claude-escape") keys = "escape";
+  if (keys == "escape-twice") keys = "escape~escape";
+  auto scoped = "shortcut.scoped." + keys;
+  return companion_shortcut_action_valid(scoped) ? scoped : std::string{};
+}
+
+inline bool companion_activate_then(const std::string &app, const std::string &request,
+                                    uint32_t deadline, CompanionActionResultHandler success) {
+  if (!companion_expect_action_result(request, std::move(success), deadline)) return false;
+  if (invoke_companion_action(app, request)) return true;
+  companion_cancel_action_result(request);
+  return false;
+}
+
 inline bool invoke_companion_url(const std::string &url_config,
                                  const std::string &request_id,
                                  bool new_window = false) {
