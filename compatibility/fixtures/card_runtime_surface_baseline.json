@@ -2083,6 +2083,130 @@
       }
     },
     {
+      "name": "companion_output_volume: default_device",
+      "sourceKind": "contract",
+      "sourceType": "companion_output_volume",
+      "mode": "default_device",
+      "canonicalType": "companion_output_volume",
+      "web": {
+        "registration": "companion_output_volume",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "ed15558ad833049f"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "companion_input_volume: default_device",
+      "sourceKind": "contract",
+      "sourceType": "companion_input_volume",
+      "mode": "default_device",
+      "canonicalType": "companion_input_volume",
+      "web": {
+        "registration": "companion_input_volume",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "00f5088580ffc6c0"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "companion_output_mute: default_device",
+      "sourceKind": "contract",
+      "sourceType": "companion_output_mute",
+      "mode": "default_device",
+      "canonicalType": "companion_output_mute",
+      "web": {
+        "registration": "companion_output_mute",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "2d8b762c5f661736"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
+      "name": "companion_input_mute: default_device",
+      "sourceKind": "contract",
+      "sourceType": "companion_input_mute",
+      "mode": "default_device",
+      "canonicalType": "companion_input_mute",
+      "web": {
+        "registration": "companion_input_mute",
+        "picker": {
+          "main": false,
+          "subpage": false,
+          "infoOnly": false
+        },
+        "preview": {
+          "available": true,
+          "fingerprint": "8affcf804f0f425a"
+        }
+      },
+      "firmware": {
+        "family": "SLIDER"
+      },
+      "lifecycle": {
+        "subscriptions": [
+          "state"
+        ],
+        "actions": [
+          "local"
+        ],
+        "modalOwner": "none"
+      }
+    },
+    {
       "name": "companion_cough: hold_to_mute",
       "sourceKind": "contract",
       "sourceType": "companion_cough",

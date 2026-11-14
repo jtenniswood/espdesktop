@@ -54,6 +54,10 @@ inline Family family_for_runtime_type(espdesktop::card_runtime::CardTypeId type)
     case Type::COMPANION:
     case Type::COMPANION_MAC_LOCK: return Family::COMPANION;
     case Type::COMPANION_APP_VOLUME:
+    case Type::COMPANION_OUTPUT_VOLUME:
+    case Type::COMPANION_INPUT_VOLUME:
+    case Type::COMPANION_OUTPUT_MUTE:
+    case Type::COMPANION_INPUT_MUTE:
     case Type::COMPANION_COUGH:
     case Type::SLIDER:
     case Type::LIGHT_BRIGHTNESS: return Family::SLIDER;

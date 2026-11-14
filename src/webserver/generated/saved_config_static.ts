@@ -7,6 +7,54 @@ import type { CardConfig } from "../contracts/types";
 import { configOptionEnabled } from "../model/config_primitives";
 
 export function normalizeSavedConfigStatic(config: CardConfig): boolean {
+  if (config.type === "companion_output_volume") {
+    config.entity = "media.output_volume";
+    if (!config.label) config.label = "Output Volume";
+    if (!config.icon) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_output_volume";
+    config.precision = "";
+    config.options = "";
+    return true;
+  }
+  if (config.type === "companion_input_volume") {
+    config.entity = "media.input_volume";
+    if (!config.label) config.label = "Input Level";
+    if (!config.icon) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_input_volume";
+    config.precision = "";
+    config.options = "";
+    return true;
+  }
+  if (config.type === "companion_output_mute") {
+    config.entity = "media.output_mute";
+    if (!config.label) config.label = "Output Mute";
+    if (!config.icon) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_output_mute";
+    config.precision = "";
+    config.options = "";
+    return true;
+  }
+  if (config.type === "companion_input_mute") {
+    config.entity = "media.input_mute";
+    if (!config.label) config.label = "Input Mute";
+    if (!config.icon) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor = "";
+    config.unit = "";
+    config.type = "companion_input_mute";
+    config.precision = "";
+    config.options = "";
+    return true;
+  }
   if (config.type === "companion_cough") {
     config.entity = "";
     if (!config.label) config.label = "Cough";

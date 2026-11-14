@@ -4294,7 +4294,24 @@ async function assertAppVolumeCard(browser) {
     await page.getByRole("button", { name: "Edit", exact: true }).click();
     await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
     assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
-    console.log("App Volume enabled-app selection, save and reopen passed.");
+    await page.keyboard.press("Escape");
+    const deviceAudio = [
+      ["Output Volume", "output_volume", "Volume High", true],
+      ["Input Level", "input_volume", "Microphone", true],
+      ["Output Mute", "output_mute", "Volume High", false],
+      ["Input Mute", "input_mute", "Microphone", false],
+    ];
+    for (const [label, control, icon, slider] of deviceAudio) {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await page.getByRole("button", { name: label + " card type", exact: true }).click();
+      await page.getByRole("button", { name: "Save", exact: true }).click();
+      const expected = `media.${control};${label};${icon};Auto;;;companion_${control}`;
+      await waitForNativeState(nativeState, () => Object.values(nativeState.document.buttons).includes(expected),
+        label + " saves its own control");
+      const preview = page.locator(".sp-main [data-slot]").filter({ hasText: label });
+      assert.equal(await preview.locator(".sp-slider-preview").count(), slider ? 1 : 0, label);
+    }
+    console.log("App Volume and all four device audio cards passed picker and save checks.");
   } finally { await context.close(); }
 }
 

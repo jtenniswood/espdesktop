@@ -48,6 +48,19 @@ At **100%**, the app plays at its normal level. At **0%**, its output is silent.
 
 If the app is missing from the picker, check that the Mac companion is connected and the app is enabled in **Apps**, then reopen the card editor. If the slider has no effect, check EspDesktop’s audio recording permission in **System Settings → Privacy & Security** and confirm the app plays through the Mac’s default sound output. App Volume supports compatible mono, stereo, and multichannel output streams, including Studio Display speakers. Some apps and audio devices use output paths that the slider cannot adjust. Browser tabs that share one audio process share one volume setting.
 
+## Control Mac sound and microphone {#mac-audio}
+
+In the display editor, select an empty tile and add any of these cards to Home or a folder.
+
+| Card | What it controls |
+| --- | --- |
+| **Output Volume** | Drag to set the Mac’s overall sound level on its current default output. |
+| **Input Level** | Drag to set the level of the Mac’s current default microphone or audio input. |
+| **Output Mute** | Tap to mute the Mac’s sound output. Tap again to restore it. |
+| **Input Mute** | Tap to mute the Mac’s microphone. Tap again to restore it. |
+
+Mute cards show a crossed-out icon when the Mac reports mute. [Cough](/mac-controls/cough) mutes the microphone while you hold the card. If a card is unavailable, check the Mac connection and whether the selected audio device exposes that control in macOS. Raising a level above zero also unmutes that device.
+
 ## Ready-Made app subpages
 
 An approved **Applications** card can offer an editable subpage when EspDesktop includes shortcut templates for that app. Examples include **Safari**, **Slack**, **Codex**, and **OpenCode Desktop**.

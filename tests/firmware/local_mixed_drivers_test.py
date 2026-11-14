@@ -131,6 +131,26 @@ int main() {
  assert(!numeric_selectable_driver_matches(c, config));
  config.entity = "app.volume.";
  assert(!numeric_selectable_driver_matches(c, config));
+ for (const std::string control : {"output_volume", "input_volume", "output_mute", "input_mute"}) {
+  const std::string entity = "media." + control;
+  config = {"companion_" + control, entity, "", "", "", "Custom label"};
+  label.text = config.label;
+  assert(numeric_selectable_driver_setup_visual(slot,config,c,palette,display));
+  assert(numeric_selectable_driver_bind_main(slot,config,c,palette,display));
+  assert(numeric_selectable_driver_bind_subpage(slot,config,c,{}));
+  assert(label.text == "Custom label");
+  if (companion_mute_control_valid(entity)) {
+   assert(numeric_selectable_driver_handle_main_click(c,config,&button));
+   assert(commands.back() == std::make_pair(entity,100));
+   callbacks.back()();
+   assert(commands.back() == std::make_pair(entity,100));
+  } else {
+   assert(send_slider_action(entity,35));
+   assert(commands.back() == std::make_pair(entity,35));
+  }
+  config.entity = "media.cough";
+  assert(!numeric_selectable_driver_matches(c, config));
+ }
  for (auto *p : allocations) delete static_cast<std::string *>(p);
 }
 '''

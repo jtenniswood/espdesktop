@@ -10,6 +10,10 @@ inline bool numeric_selectable_driver_matches(const Context &, const ParsedCfg &
   if (config.type == "companion_cough") return true;
   if (config.type == "companion_app_volume")
     return companion_app_volume_control_valid(config.entity);
+  if (config.type == "companion_output_volume") return config.entity == "media.output_volume";
+  if (config.type == "companion_input_volume") return config.entity == "media.input_volume";
+  if (config.type == "companion_output_mute") return config.entity == "media.output_mute";
+  if (config.type == "companion_input_mute") return config.entity == "media.input_mute";
   return config.type == "slider" && companion_volume_control_valid(config.entity) &&
     !companion_app_volume_control_valid(config.entity);
 }
@@ -65,8 +69,8 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
   if (companion_mute_control_valid(config.entity)) {
     const bool microphone = config.entity == "media.input_mute";
     const char *previous_default_label = microphone ? "Microphone Mute" : "Output Mute";
-    if (slot.text_lbl && (config.label.empty() || config.label == "Mute" ||
-                         config.label == previous_default_label))
+    if (slot.text_lbl && (config.label.empty() || (config.type == "slider" &&
+                         (config.label == "Mute" || config.label == previous_default_label))))
       lv_label_set_display_text(slot.text_lbl, companion_volume_control_label(config.entity));
     const char *muted_icon_name = microphone ? "Microphone Off" : "Volume Off";
     // Older cards saved the muted glyph as their default icon.
@@ -90,11 +94,11 @@ inline void numeric_selectable_driver_bind_slider(BtnSlot &slot, const ParsedCfg
   if (slot.icon_lbl) {
     lv_label_set_display_text(slot.icon_lbl, icon_off);
   }
-  if (slot.text_lbl && (config.label.empty() ||
+  if (slot.text_lbl && (config.label.empty() || (config.type == "slider" && (
       (config.entity == "media.output_volume" &&
        (config.label == "Output Volume" || config.label == "Volume")) ||
       (config.entity == "media.input_volume" &&
-       (config.label == "Input Volume" || config.label == "Input volume" || config.label == "Mic")))) {
+       (config.label == "Input Volume" || config.label == "Input volume" || config.label == "Mic")))))) {
     lv_label_set_display_text(
       slot.text_lbl, companion_volume_control_label(config.entity));
   }

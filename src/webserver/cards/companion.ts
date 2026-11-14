@@ -25,7 +25,7 @@ import {
     type CompanionCardModeId,
 } from "../model/companion_card";
 export { COMPANION_SYSTEM_METRICS } from "../generated/companion_capabilities";
-import type { CardRegistry, CardUiServices } from "../application/card_registry";
+import type { CardDefinition, CardRegistry, CardUiServices } from "../application/card_registry";
 import type { ControlsFieldsFeature } from "../application/controls_fields";
 import type { ConfigCodecFeature } from "../application/config_codec";
 import type { ButtonSettingsSelectionFeature } from "../application/button_settings_selection";
@@ -1546,6 +1546,35 @@ export function registerCompanionCardTypes(
     registry.register("companion", companionDefinition);
 
     registerAppVolumeCard(registry, supported, async () => companionApplicationActions(await loadCompanionActions(true)), cardUi, fields);
+
+    function deviceAudioCard(type: string, slider: boolean): CardDefinition {
+        const defaults = cardContractDefaultConfig(type);
+        const metadata = { icon: { fallback: defaults.icon } };
+        return {
+            label: defaults.label,
+            cardMetadata: metadata,
+            allowInSubpage: cardContractAllowInSubpage(type),
+            isAvailable: () => supported,
+            labelPlaceholder: defaults.label,
+            defaultConfig: () => defaults,
+            onSelect: (card) => Object.assign(card, defaults),
+            renderSettings: (panel, card, _slot, helpers) => {
+                helpers.renderCardIconPicker(panel, card, helpers, metadata.icon);
+            },
+            renderPreview: (card, helpers) => cardBadgePreview(card, helpers, {
+                label: card.label || defaults.label,
+                iconFallback: defaults.icon,
+                iconExtraHtml: slider
+                    ? '<span class="sp-slider-preview"><span class="sp-slider-track"><span class="sp-slider-fill"></span></span></span>'
+                    : "",
+            }),
+        };
+    }
+
+    registry.register("companion_output_volume", deviceAudioCard("companion_output_volume", true));
+    registry.register("companion_input_volume", deviceAudioCard("companion_input_volume", true));
+    registry.register("companion_output_mute", deviceAudioCard("companion_output_mute", false));
+    registry.register("companion_input_mute", deviceAudioCard("companion_input_mute", false));
 
     const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
     const macLockMetadata = {

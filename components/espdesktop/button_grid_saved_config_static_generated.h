@@ -9,6 +9,54 @@
 
 template<typename Config>
 inline bool normalize_saved_config_static(Config &config) {
+  if (config.type == "companion_output_volume") {
+    config.entity = "media.output_volume";
+    if (config.label.empty()) config.label = "Output Volume";
+    if (config.icon.empty()) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_output_volume";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_input_volume") {
+    config.entity = "media.input_volume";
+    if (config.label.empty()) config.label = "Input Level";
+    if (config.icon.empty()) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_input_volume";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_output_mute") {
+    config.entity = "media.output_mute";
+    if (config.label.empty()) config.label = "Output Mute";
+    if (config.icon.empty()) config.icon = "Volume High";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_output_mute";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
+  if (config.type == "companion_input_mute") {
+    config.entity = "media.input_mute";
+    if (config.label.empty()) config.label = "Input Mute";
+    if (config.icon.empty()) config.icon = "Microphone";
+    config.icon_on = "Auto";
+    config.sensor.clear();
+    config.unit.clear();
+    config.type = "companion_input_mute";
+    config.precision.clear();
+    config.options.clear();
+    return true;
+  }
   if (config.type == "companion_cough") {
     config.entity.clear();
     if (config.label.empty()) config.label = "Cough";

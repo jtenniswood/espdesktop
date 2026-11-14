@@ -990,6 +990,66 @@
     }
   },
   {
+    "name": "companion_output_volume: default_device",
+    "input": "~media.output_volume,Output%20Volume,Volume%20High,Auto,,,companion_output_volume,,",
+    "expected": {
+      "entity": "media.output_volume",
+      "label": "Output Volume",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_volume: default_device",
+    "input": "~media.input_volume,Input%20Level,Microphone,Auto,,,companion_input_volume,,",
+    "expected": {
+      "entity": "media.input_volume",
+      "label": "Input Level",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_volume",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_output_mute: default_device",
+    "input": "~media.output_mute,Output%20Mute,Volume%20High,Auto,,,companion_output_mute,,",
+    "expected": {
+      "entity": "media.output_mute",
+      "label": "Output Mute",
+      "icon": "Volume High",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_output_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
+    "name": "companion_input_mute: default_device",
+    "input": "~media.input_mute,Input%20Mute,Microphone,Auto,,,companion_input_mute,,",
+    "expected": {
+      "entity": "media.input_mute",
+      "label": "Input Mute",
+      "icon": "Microphone",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_input_mute",
+      "precision": "",
+      "options": ""
+    }
+  },
+  {
     "name": "companion_cough: hold_to_mute",
     "input": "~,Cough,Microphone,Auto,,,companion_cough,,",
     "expected": {
