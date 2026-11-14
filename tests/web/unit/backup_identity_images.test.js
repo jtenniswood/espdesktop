@@ -53,7 +53,7 @@ for (const result of ['saved', 'mirror-failed', 'failed', 'discovery-failed']) {
     const events = [];
     const noop = () => undefined;
     const emptyFeature = new Proxy({}, { get: () => noop });
-    const document = { deviceProfile: 'test-panel', buttons: {}, subpages: {}, settings: { button_order: '', button_on_color: '' } };
+  const document = { deviceProfile: 'test-panel', buttons: {}, subpages: {}, settings: { button_order: '', button_on_color: '' } };
     const plan = { importedSettings: {}, importedGridCols: 3, backupPlan: {
       screen: { device: 'test-panel' }, buttons: [], subpages: {}, config: { native_config: null },
     } };
@@ -100,8 +100,13 @@ test("image restore remaps nested pages in native backups", async () => {
   const { createNativeConfigBackupPayload, decodeNativeConfigBackupPayload, decodeNativeConfigDocument } =
     loadTypescriptTest("src/webserver/model/native_config_backup.ts");
   const { encodePanelPageDocument } = loadTypescriptTest("src/webserver/model/panel_config_conversion.ts");
-  const { parseRawButtonConfig, serializeCardConfig } = loadTypescriptTest("src/webserver/model/card.ts");
-  const { parseRawSubpageConfig, serializeRawSubpageConfig } = loadTypescriptTest("src/webserver/model/subpage.ts");
+  const { parseRawButtonConfig, CARD_CONFIG_FIELDS } = loadTypescriptTest("src/webserver/model/card.ts");
+  const { parseRawSubpageConfig, serializeCompactSubpageConfig } = loadTypescriptTest("src/webserver/model/subpage.ts");
+    const { encodeConfigField } = loadTypescriptTest("src/webserver/model/config_primitives.ts");
+  const serializeCardConfig = card => "~" + CARD_CONFIG_FIELDS.map(key => encodeConfigField(card[key])).join(",");
+  const serializeSubpage = page => serializeCompactSubpageConfig(page.order, page.buttons.map(card =>
+    ["type", "entity", "label", "icon", "icon_on", "sensor", "unit", "precision", "options"]
+      .map(key => encodeConfigField(card[key]))));
   const document = { deviceProfile: "test-panel", buttons: { 1: ";;;;;;subpage" },
     subpages: { 1: "~B,1|subpage,,Folder", 33: "~B,1|companion,shortcut.command%2Bc,Copy,,,,,,bg_image%3Dold-id" },
     settings: { button_order: "1", untouched: "keep" },
@@ -118,7 +123,7 @@ test("image restore remaps nested pages in native backups", async () => {
     backupFile: { import: receive => receive({}, {}) },
     codec: { parseButtonConfig: parseRawButtonConfig, serializeButtonConfig: serializeCardConfig,
       parseSubpageConfig: value => parseRawSubpageConfig(value, type => type),
-      serializeSubpageConfig: value => serializeRawSubpageConfig(value, type => type) },
+      serializeSubpageConfig: serializeSubpage },
     cardImages: { backupAssetProvider: { createRestore: () => ({
       stage: noop, commit: noop, rollback: noop,
       remapImportedReferences: value => {
