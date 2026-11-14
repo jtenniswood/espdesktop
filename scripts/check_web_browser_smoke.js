@@ -4934,11 +4934,11 @@ async function assertAppSubpageCapacity(browser, testCase) {
   const { encodeConfigField } = loadTypeScriptModule("src/webserver/model/config_primitives.ts");
   for (const native of [false, true]) {
     const fixture = nativeConfigState(testCase.slug);
-    fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C5%7C6";
-    const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "5", "6"]);
+    fixture.document.buttons[1] = "com.openai.codex;Codex;Auto;Auto;;;companion;;app_shortcuts,app_shortcuts_tabs=0%7C3%7C10%7C14";
+    const subpage = shortcuts.createCompanionShortcutSubpage("com.openai.codex", ["0", "3", "10", "14"]);
     subpage.buttons.shift();
     subpage.order = ["B", "1", "2", "3", "4"];
-    subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+p", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
+    subpage.buttons.push({ type: "companion", entity: "shortcut.command+shift+t", label: "Custom shortcut", icon: "Application", icon_on: "Auto", options: "" });
     subpage.order.push("5", "", "", "");
     fixture.document.subpages[1] = "~" + subpage.order.join(",") + "|" + subpage.buttons.map(card =>
       [card.type, card.entity, card.label, card.icon, card.icon_on, card.sensor, card.unit, card.precision, card.options]
@@ -4968,7 +4968,7 @@ async function assertAppSubpageCapacity(browser, testCase) {
       assert.strictEqual(await page.locator(".sp-main .sp-empty-cell").count(), 3);
       await page.locator(".sp-back-btn .sp-back-hit").click();
       let app = await openAppSettings();
-      for (const id of ["7", "2", "4"]) {
+      for (const id of ["7", "19", "22"]) {
         await page.locator("#sp-inp-companion-shortcut-" + id).evaluate(input => input.click());
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "available shortcut enables");
         assert.strictEqual(await app.getByText(/No free subpage space/).count(), 0, "three empty cells do not produce a full-page warning");
@@ -4977,12 +4977,12 @@ async function assertAppSubpageCapacity(browser, testCase) {
       const saved = () => native ? fixture.document.subpages[1] : Object.entries(legacyTextState)
         .filter(([key]) => key.includes("subpage_1")).map(([,value]) => value).join("");
       const deadline = Date.now() + 10000;
-      while ((!saved()?.includes("shortcut.command+n") || !saved()?.includes("shortcut.option+command+b")) && Date.now() < deadline)
+      while ((!saved()?.includes("shortcut.command+n") || !saved()?.includes("shortcut.command+shift+u")) && Date.now() < deadline)
         await new Promise(resolve => setTimeout(resolve, 25));
-      assert(saved().includes("shortcut.command+n") && saved().includes("shortcut.command+t") && saved().includes("shortcut.option+command+b"), "all three added shortcuts are saved");
+      assert(saved().includes("shortcut.command+n") && saved().includes("shortcut.command+shift+a") && saved().includes("shortcut.command+shift+u"), "all three added shortcuts are saved");
       assert(saved().includes("Custom shortcut"), "the existing custom card is retained");
       app = await openAppSettings();
-      for (const id of ["7", "2", "4"])
+      for (const id of ["7", "19", "22"])
         assert(await page.locator("#sp-inp-companion-shortcut-" + id).isChecked(), "saved shortcut remains enabled when reopened");
       assert.deepStrictEqual(errors, []);
     } finally { await context.close(); }
