@@ -39,7 +39,7 @@ import type { ScreenRotationFeature } from "./screen_rotation_state";
 import type { ControlsShellFeature } from "./controls_shell";
 import type { GridFeature } from "./grid";
 import type { ButtonSettingsSelectionFeature } from "./button_settings_selection";
-
+import { cardBackgroundImage, cardBackgroundSupported, cardImageUrl } from "./config_option_core";
 export interface PreviewRenderDependencies {
     readonly displayDemo?: boolean;
     readonly updateClockBarItemUi: () => void;
@@ -558,6 +558,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 if (!btn.classList.contains("sp-image-card")) {
                     btn.style.setProperty("--card-text-color", cardOffColor || contrastBackground !== color
                         ? cardPreviewTextColor(contrastBackground) : "#" + previewColors.textPrimary);
+                }
+                var bgImage: any = cardBackgroundSupported(b) ? cardBackgroundImage(b) : "";
+                if (bgImage) {
+                    btn.className += " sp-btn-has-bg";
+                    btn.style.setProperty("--card-text-color", "#fff");
+                    btn.style.backgroundImage = "url('" + cardImageUrl(bgImage) + "')";
+                    btn.style.backgroundSize = "cover";
+                    btn.style.backgroundPosition = "center";
                 }
                 var badgeIcon: any = b.sensor ? "gauge" : "swap-horizontal";
                 var sensorBadge: any = hasWhenOn

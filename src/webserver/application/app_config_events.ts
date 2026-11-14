@@ -1,4 +1,5 @@
 import { state } from "../state/app_instance";
+import * as EspDesktopModel from "../model";
 import type { ConfigPersistenceFeature } from "./config_post_api";
 import type { ConfigCodecFeature } from "./config_codec";
 import type { ApplicationLayoutState } from "./application_context";
@@ -45,6 +46,8 @@ export function createAppConfigEventsFeature(
         b.precision = parsed.precision;
         b.options = parsed.options;
         if (migrateConfig && !state.nativeConfigLoading && !state.nativeTransferActive)
+        EspDesktopModel.setCardBackgroundAssetId(
+            b, EspDesktopModel.cardBackgroundAssetId(parsed));
             configPersistence.saveButtonConfig(slot);
         renderQueue.schedule();
     }

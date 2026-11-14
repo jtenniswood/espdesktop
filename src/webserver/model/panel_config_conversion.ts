@@ -190,7 +190,7 @@ function projectNativeGraph(input: Uint8Array, nested: boolean,
     text((i === 0 || i === 4) && id ? get(K.Entity, id)!.first : id));
   const viewCard = (card: NativeV2DecodedRecord, values = fields(card)): NativeLayoutCard => ({
     slot: card.second,
-    config: Object.fromEntries(CARD_CONFIG_FIELDS.map((key, index) => [key, values[index]])) as CardConfig,
+    config: Object.fromEntries(CARD_CONFIG_FIELDS.map((key, index) => [key, values[index]])) as unknown as CardConfig,
   });
   const source: PanelConfigDocument = {
     deviceProfile: get(K.Profile, 0)!.text,

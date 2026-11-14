@@ -27,6 +27,7 @@
 #include "i18n_generated.h"
 #include "icons.h"
 #include "backlight.h"
+#include "legacy_card_config_adapter.h"
 
 // Public compatibility include. Device YAML includes this file, while the
 // implementation is split into focused headers below for easier review.
@@ -57,3 +58,4 @@
 #include "button_grid_navigation.h"
 #include "theme_runtime_ui.h"
 #include "button_grid_grid.h"
+#include "legacy_card_config_adapter.h"

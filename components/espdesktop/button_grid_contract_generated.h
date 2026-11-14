@@ -236,6 +236,7 @@ inline CardRuntimeSpec resolve_card_runtime(const Config &config) {
 constexpr const char *CARD_CONTRACT_OPTION_SELECT_ACTION = "input_select.select_option";
 inline const char *const CARD_CONTRACT_OPTION_SELECT_ACTIONS[] = {"input_select.select_option", "select.select_option"};
 inline const char *const CARD_CONTRACT_BRIGHTNESS_SLIDER_TYPES[] = {"slider", "light_brightness", "fan_speed"};
+inline const char *const CARD_CONTRACT_BACKGROUND_IMAGE_TYPES[] = {"", "vacuum", "lawn_mower", "alarm", "alarm_action", "climate", "climate_control", "cover", "door_window", "presence", "fan_direction", "fan_oscillate", "fan_preset", "fan_speed", "fan_control", "fan_switch", "garage", "gate", "light_brightness", "light_switch", "light_temperature", "light_control", "lock", "media", "push", "companion", "slider", "subpage", "weather", "weather_forecast", "companion_mac_lock"};
 inline const char *const CARD_CONTRACT_COVER_MODES[] = {"modal", "", "tilt", "toggle", "open", "close", "stop", "set_position"};
 inline const char *const CARD_CONTRACT_COVER_CONTROL_TABS[] = {"position", "controls", "tilt", "presets"};
 inline const char *const CARD_CONTRACT_GARAGE_MODES[] = {"", "open", "close"};
@@ -259,6 +260,12 @@ inline const char *const CARD_CONTRACT_CLIMATE_NUMBER_DISPLAY_MODES[] = {"icon",
 inline const char *const CARD_CONTRACT_CLIMATE_TEMPERATURE_STEPS[] = {"1", "0.5"};
 inline const char *const CARD_CONTRACT_CLIMATE_PRECISION_VALUES[] = {"", "1", "2", "3"};
 inline const char *const CARD_CONTRACT_WEATHER_FORECAST_PRECISIONS[] = {"today", "tomorrow", "daily"};
+inline bool card_contract_supports_background(const std::string &type) {
+  for (const auto *supported : CARD_CONTRACT_BACKGROUND_IMAGE_TYPES) {
+    if (type == supported) return true;
+  }
+  return false;
+}
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ACTIONS = "actions";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ACTIVE_COLOR = "active_color";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_ALARM_CARD_TYPE = "alarm_card_type";
@@ -267,6 +274,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_HIDE_LABEL = "app_hide_label
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUT_PRESET = "app_shortcut_preset";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS = "app_shortcuts";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_APP_SHORTCUTS_TABS = "app_shortcuts_tabs";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_BG_IMAGE = "bg_image";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CLIMATE_TABS = "climate_tabs";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_MESSAGE = "confirm_message";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_CONFIRM_NO = "confirm_no";

@@ -4,7 +4,8 @@
     "display": "jc8012p4a1-1280x800",
     "modal": "large-landscape",
     "fonts": "large-panel-p4",
-    "network": "c6-firmware-update"
+    "network": "c6-firmware-update",
+    "assets": "card-backgrounds-20"
   },
   "config": {
     "layout": {

@@ -12,7 +12,7 @@ source = r'''
 #include <cassert>
 #include <functional>
 #include <vector>
-struct lv_obj_t { bool runtime_released = false; };
+struct lv_obj_t { bool runtime_released = false; bool background_released = false; };
 struct NavigationSubpageEntry { lv_obj_t *screen; };
 std::vector<NavigationSubpageEntry> entries;
 auto &navigation_subpages() { return entries; }
@@ -35,9 +35,10 @@ bool navigation_return_home(lv_obj_t *screen) {
 }
 int deleted = 0, released = 0, cleared_grid_pages = 0;
 void clock_bar_clear_responsive_grid_cards(lv_obj_t *) { ++cleared_grid_pages; }
+void card_background_unregister_page(lv_obj_t *screen) { screen->background_released = true; }
 void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   // A card owner may hold timers or images that reference its widgets.
-  assert(entry.screen && entry.screen != active_screen);
+  assert(entry.screen && entry.screen != active_screen && entry.screen->background_released);
   entry.screen->runtime_released = true;
   ++released;
 }

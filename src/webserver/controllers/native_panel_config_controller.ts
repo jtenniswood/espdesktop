@@ -173,6 +173,23 @@ export class NativePanelConfigController {
     return read;
   }
 
+  /** Rebase queued edits after another endpoint has changed the native document. */
+  refreshAfterMutation(): Promise<void> {
+    const client = this.client_, precedingSave = this.saveQueue_;
+    const refresh = precedingSave.then(async () => {
+      if (this.legacyFallback_ || !client) return;
+      const available = await this.waitForDiscovery();
+      if (available === "legacy-fallback") return;
+      if (available !== true) throw new Error("Configuration discovery is unavailable.");
+      const snapshot = await client.readSnapshot(this.dependencies.deviceProfile());
+      if (!snapshot) throw new Error("Could not load the updated configuration.");
+      client.acceptSnapshot(snapshot.document, snapshot.layout);
+      this.dependencies.saved?.(snapshot.document);
+    });
+    this.saveQueue_ = refresh.then(() => precedingSave, () => precedingSave);
+    return refresh;
+  }
+
   private report(result: NativePanelConfigSaveOutcome): NativePanelConfigSaveOutcome {
     if (result === "conflict") {
       this.dependencies.showBanner("Configuration changed in another browser. Reload before saving again.", "error");

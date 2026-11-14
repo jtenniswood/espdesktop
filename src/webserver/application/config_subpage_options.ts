@@ -8,6 +8,7 @@ import {
     SENSOR_LARGE_NUMBERS_OPTION,
     SUBPAGE_CONNECTOR_OPTION,
     SUBPAGE_KIND_OPTION,
+    copyCardBackgroundOptions,
     copyLargeNumbersOption,
     largeNumbersExplicitlyDisabled,
 } from "./config_option_core";
@@ -82,7 +83,7 @@ import {
         b.precision = "";
     }
     function normalizeSubpageOptions(this: any, options?: any, sensor?: any, precision?: any) {
-        var out: any = "";
+        var out: any = copyCardBackgroundOptions("", options, { type: "subpage" });
         var connector: any = normalizeSubpageConnector(configOptionValue(options, SUBPAGE_CONNECTOR_OPTION));
         if (connector === "mac_companion")
             out = setConfigOptionValue(out, SUBPAGE_CONNECTOR_OPTION, connector);

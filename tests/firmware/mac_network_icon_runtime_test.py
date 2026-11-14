@@ -67,6 +67,8 @@ constexpr int IMAGE_CARD_MAX_CONTEXTS = 2;
 constexpr uint32_t IMAGE_CARD_RETRY_INTERVAL_MS = 2000;
 struct GridConfig { int image_card_image_count; esphome::artwork_image::ArtworkImage **image_card_images; };
 ''' + context + r'''
+void card_background_activate_current_page() {}
+void card_background_refresh_due() {}
 void image_card_log_diagnostics(ImageCardCtx *, const char *, int = 0, int = 0) {}
 void image_card_set_widget_source(lv_obj_t *widget, esphome::artwork_image::ArtworkImage *) { widget->hidden = false; }
 void image_card_clear_widget_source(lv_obj_t *widget) { if (widget) widget->hidden = true; }

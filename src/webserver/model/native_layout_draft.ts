@@ -73,7 +73,7 @@ export class NativeLayoutDraft {
     return Object.fromEntries(CARD_CONFIG_FIELDS.map((name, index) => {
       const id = card.fields?.[index] ?? 0;
       return [name, this.text(entityField(index) ? this.records(K.Entity).get(id)?.first ?? 0 : id)];
-    })) as CardConfig;
+    })) as unknown as CardConfig;
   }
 
   private ownedPage(card: NativeV2Record): NativeV2Record | undefined {

@@ -37,6 +37,9 @@ struct Scene {
     events.push_back("scene stopped");
   }
 };
+struct CardAssets {
+  void stop() { events.push_back("card images stopped"); }
+};
 struct Core {
   void stop() {
     assert(events.back() == "registry cleared");
@@ -45,7 +48,7 @@ struct Core {
 };
 struct EspDesktopApp {
   bool shutting_down_{false}; Runtime *native_configuration_runtime_{nullptr};
-  Scene *application_scene_{nullptr}; Core core_;
+  Scene *application_scene_{nullptr}; CardAssets card_assets_; Core core_;
   void on_shutdown();
 };
 ''' + shutdown + r'''
@@ -56,11 +59,11 @@ int main() {
   app.native_configuration_runtime_ = &runtime; app.application_scene_ = &scene;
   app.on_shutdown();
   assert((events == std::vector<std::string>{"transactions stopped", "scene stopped",
-    "observer cleared", "registry cleared", "core stopped"}));
-  app.on_shutdown(); assert(events.size() == 5);
+    "card images stopped", "observer cleared", "registry cleared", "core stopped"}));
+  app.on_shutdown(); assert(events.size() == 6);
   events.clear(); EspDesktopApp not_initialized;
   not_initialized.on_shutdown();
-  assert((events == std::vector<std::string>{"observer cleared", "registry cleared", "core stopped"}));
+  assert((events == std::vector<std::string>{"card images stopped", "observer cleared", "registry cleared", "core stopped"}));
 }
 '''
 with tempfile.TemporaryDirectory(prefix='application-shutdown-') as temporary:

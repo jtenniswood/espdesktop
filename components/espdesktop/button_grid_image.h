@@ -34,6 +34,26 @@ struct ImageCardCtx {
   bool diagnostics_enabled = false;
 };
 
+inline lv_obj_t *image_card_label_shadow(lv_obj_t *label, lv_obj_t *btn) {
+  if (!label || !btn) return nullptr;
+  int32_t count = static_cast<int32_t>(lv_obj_get_child_cnt(btn));
+  for (int32_t i = 0; i < count; i++) {
+    lv_obj_t *child = lv_obj_get_child(btn, i);
+    if (child && child != label && lv_obj_check_type(child, &lv_label_class) &&
+        lv_obj_get_user_data(child) == label) {
+      return child;
+    }
+  }
+  return nullptr;
+}
+
+inline void image_card_delete_label_shadow(lv_obj_t *label, lv_obj_t *btn) {
+  lv_obj_t *shadow = image_card_label_shadow(label, btn);
+  if (shadow) lv_obj_del(shadow);
+}
+
+inline void card_background_refresh_due();
+inline void card_background_activate_current_page();
 inline void image_card_request_source_url(ImageCardCtx *ctx, bool source_changed = false);
 inline bool image_card_context_visible_on_active_screen(ImageCardCtx *ctx);
 inline lv_obj_t *image_card_loading_widget(lv_obj_t *widget);
@@ -423,6 +443,7 @@ inline void image_card_release_hidden_buffers() {
 }
 
 inline void refresh_visible_image_cards() {
+  card_background_activate_current_page();
   ImageCardCtx *contexts = image_card_contexts();
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {
     if (image_card_context_visible_on_active_screen(&contexts[i]))
@@ -436,6 +457,7 @@ inline void refresh_image_cards() {
 
 inline void image_card_refresh_due(std::function<bool()> page_visible = nullptr) {
   image_card_page_visible() = std::move(page_visible);
+  card_background_refresh_due();
   const uint32_t now = esphome::millis();
   ImageCardCtx *contexts = image_card_contexts();
   for (int i = 0; i < IMAGE_CARD_MAX_CONTEXTS; ++i) {

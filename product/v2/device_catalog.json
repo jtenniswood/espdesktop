@@ -7,7 +7,8 @@
       "esp32-p4": {
         "firmware": {
           "build": {
-            "chip": "ESP32-P4"
+            "chip": "ESP32-P4",
+            "flashBytes": 16777216
           },
           "package": {}
         }
@@ -15,7 +16,17 @@
       "esp32-s3": {
         "firmware": {
           "build": {
-            "chip": "ESP32-S3"
+            "chip": "ESP32-S3",
+            "flashBytes": 16777216
+          },
+          "package": {}
+        }
+      },
+      "esp32-p4-32mb": {
+        "firmware": {
+          "build": {
+            "chip": "ESP32-P4",
+            "flashBytes": 33554432
           },
           "package": {}
         }
@@ -452,6 +463,44 @@
           }
         }
       }
+    },
+    "assets": {
+      "card-backgrounds-6": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 6,
+            "partitionBytes": 2097152,
+            "residentFrames": 6
+          }
+        }
+      },
+      "card-backgrounds-9": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 9,
+            "partitionBytes": 2097152,
+            "residentFrames": 9
+          }
+        }
+      },
+      "card-backgrounds-15": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 15,
+            "partitionBytes": 2097152,
+            "residentFrames": 15
+          }
+        }
+      },
+      "card-backgrounds-20": {
+        "capabilities": {
+          "cardBackgrounds": {
+            "maxActive": 20,
+            "partitionBytes": 2097152,
+            "residentFrames": 20
+          }
+        }
+      }
     }
   },
   "devices": {
@@ -459,6 +508,7 @@
       "profiles": {
         "platform": "esp32-p4",
         "display": "jc1060p470-1024x600",
+        "assets": "card-backgrounds-15",
         "modal": "wide-landscape",
         "fonts": "large-panel-p4",
         "network": [
@@ -509,6 +559,7 @@
       "profiles": {
         "platform": "esp32-p4",
         "display": "jc1060p470-1024x600",
+        "assets": "card-backgrounds-15",
         "modal": "wide-landscape",
         "fonts": "large-panel-p4",
         "network": [
@@ -557,7 +608,8 @@
         "platform": "esp32-p4",
         "modal": "compact-portrait",
         "fonts": "portrait-panel-p4",
-        "network": "c6-firmware-update"
+        "network": "c6-firmware-update",
+        "assets": "card-backgrounds-6"
       },
       "config": {
         "slots": 6,
@@ -699,7 +751,8 @@
         "platform": "esp32-p4",
         "modal": "compact-portrait",
         "fonts": "portrait-panel-p4",
-        "network": "c6-firmware-update"
+        "network": "c6-firmware-update",
+        "assets": "card-backgrounds-6"
       },
       "config": {
         "slots": 6,
@@ -840,6 +893,7 @@
       "profiles": {
         "platform": "esp32-p4",
         "display": "jc8012p4a1-1280x800",
+        "assets": "card-backgrounds-20",
         "modal": "large-landscape",
         "fonts": "large-panel-p4",
         "network": "c6-firmware-update"
@@ -885,6 +939,7 @@
       "profiles": {
         "platform": "esp32-p4",
         "display": "jc8012p4a1-1280x800",
+        "assets": "card-backgrounds-20",
         "modal": "large-landscape",
         "fonts": "large-panel-p4",
         "network": "c6-firmware-update"
@@ -929,7 +984,8 @@
         "display": "jc8012p4a1-1280x800",
         "modal": "large-landscape",
         "fonts": "large-panel-p4",
-        "network": "c6-firmware-update"
+        "network": "c6-firmware-update",
+        "assets": "card-backgrounds-20"
       },
       "config": {
         "layout": {
@@ -980,7 +1036,7 @@
     },
     "esp32-p4-86": {
       "profiles": {
-        "platform": "esp32-p4",
+        "platform": "esp32-p4-32mb",
         "modal": "large-square",
         "fonts": "compact-panel",
         "network": [
@@ -990,7 +1046,8 @@
         ],
         "input": [
           "touchscreen"
-        ]
+        ],
+        "assets": "card-backgrounds-9"
       },
       "config": {
         "slots": 9,
@@ -1138,7 +1195,8 @@
       "profiles": {
         "platform": "esp32-s3",
         "modal": "compact-square-constrained",
-        "fonts": "compact-panel"
+        "fonts": "compact-panel",
+        "assets": "card-backgrounds-9"
       },
       "config": {
         "slots": 9,

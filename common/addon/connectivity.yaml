@@ -134,6 +134,7 @@ script:
                   lambda: 'return !navigation_present_focused_app_after_sleep();'
                 then:
                   - lvgl.page.show: main_page
+                  - lambda: refresh_visible_image_cards();
             - script.execute: display_active_finalize
           else:
             - lambda: |-

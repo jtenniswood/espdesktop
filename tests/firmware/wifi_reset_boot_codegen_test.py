@@ -24,12 +24,13 @@ wifi:
   password: test-password
   ap:
 web_server:
+http_request:
 espdesktop:
 external_components:
   - source:
       type: local
       path: {ROOT / "components"}
-    components: [espdesktop, web_server_idf]
+    components: [espdesktop, web_server_idf, card_image_store]
 packages:
   first:
     esphome:

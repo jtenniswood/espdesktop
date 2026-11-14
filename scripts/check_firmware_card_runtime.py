@@ -276,6 +276,40 @@ def check_root(root: Path) -> list[str]:
             failures.append(
                 f"components/espdesktop/{GRID_HEADER}: reset image-card contexts before deleting subpage screens"
             )
+        background_required = (
+            "apply_card_background_image(s, p, cfg);",
+            "sync_card_background_image(s, p, cfg);",
+            "card_background_move_content_foreground(s);",
+            "reset_card_background_image_pool(cfg);",
+            "card_background_activate_page(cfg, main_page_obj);",
+        )
+        for needle in background_required:
+            if needle not in text:
+                failures.append(
+                    f"components/espdesktop/{GRID_HEADER}: missing card background lifecycle guard {needle}"
+                )
+        navigation_path = grid_header.with_name("button_grid_navigation.h")
+        navigation = navigation_path.read_text(encoding="utf-8") if navigation_path.exists() else ""
+        for function in ("navigation_clear_subpages", "navigation_release_subpage_screen"):
+            body = function_body(navigation, function) or ""
+            unregister = body.find("card_background_unregister_page(entry.screen);")
+            release = body.find("navigation_release_subpage_runtime(entry);")
+            if unregister < 0 or release < 0 or unregister > release:
+                failures.append(f"{navigation_path.name}: {function} must detach backgrounds before releasing the page")
+        for relative in (
+            "common/addon/connectivity.yaml",
+            "common/addon/connectivity_deployed.yaml",
+            "common/addon/connectivity_ethernet.yaml",
+        ):
+            connectivity_path = root / relative
+            if not connectivity_path.exists():
+                continue
+            connectivity = connectivity_path.read_text(encoding="utf-8")
+            if not re.search(r"lvgl\.page\.show: main_page\s+- lambda: refresh_visible_image_cards\(\);",
+                             connectivity):
+                failures.append(
+                    f"{relative}: reconnect must activate the main page through the card background lifecycle"
+                )
     action_header = root / "components" / "espdesktop" / ACTION_HEADER
     if action_header.exists():
         text = action_header.read_text(encoding="utf-8")

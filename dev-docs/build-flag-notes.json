@@ -15,6 +15,42 @@
     "purpose": "Keeps Xtensa literal pools close enough for the large generated S3 firmware translation unit to link.",
     "remove_when": "The S3 firmware is split into smaller translation units or the toolchain makes the flag unnecessary."
   },
+  "ESPDESKTOP_CARD_BACKGROUND_MAX_ACTIVE=15": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_BACKGROUND_MAX_ACTIVE=20": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_BACKGROUND_MAX_ACTIVE=6": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_BACKGROUND_MAX_ACTIVE=9": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_BACKGROUND_RESIDENT_FRAMES=15": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_BACKGROUND_RESIDENT_FRAMES=20": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_BACKGROUND_RESIDENT_FRAMES=6": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_BACKGROUND_RESIDENT_FRAMES=9": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
+  "ESPDESKTOP_CARD_IMAGE_PARTITION_BYTES=2097152": {
+    "purpose": "Bounds uploaded card image storage or decoded background resources for the selected display profile.",
+    "remove_when": "The card image service receives this device capability directly instead of through generated build flags."
+  },
   "ESPDESKTOP_DEVICE_SLUG=\"${device_slug}\"": {
     "purpose": "Injects the selected device profile slug into the compiled firmware for diagnostics and runtime identification.",
     "remove_when": "The device slug is supplied through generated component configuration instead of a preprocessor definition."
@@ -86,6 +122,14 @@
   "ESPDESKTOP_LOW_HEAP_MEDIA_CONTROL=1": {
     "purpose": "Uses the reduced-memory media modal path on the constrained S3 panel.",
     "remove_when": "The full media path fits with safe runtime heap headroom."
+  },
+  "ESPDESKTOP_MAX_GRID_SLOTS=15": {
+    "purpose": "Sizes card runtime slots for the selected display.",
+    "remove_when": "Grid capacity is supplied through generated component configuration."
+  },
+  "ESPDESKTOP_MAX_GRID_SLOTS=20": {
+    "purpose": "Sizes card runtime slots for the selected display.",
+    "remove_when": "Grid capacity is supplied through generated component configuration."
   },
   "ESPDESKTOP_MAX_GRID_SLOTS=6": {
     "purpose": "Caps runtime grid allocation to six slots.",
