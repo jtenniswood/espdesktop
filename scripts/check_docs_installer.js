@@ -115,6 +115,7 @@ async function checkBrowser() {
       await grid.waitFor();
       await scope.locator('.sp-topbar').waitFor({ state: 'hidden' });
       const apps = touchscreen ? launcherApps : launcherApps.slice(0, 8);
+      await grid.locator(`[data-slot="${apps.length}"]`).waitFor();
       assert.equal(await grid.locator('[data-slot]').count(), apps.length);
       return Promise.all(apps.map(async (name, index) => {
         const tile = grid.locator(`[data-slot="${index + 1}"]`);
@@ -202,8 +203,10 @@ async function checkBrowser() {
     const editorGrid = page.locator('.sp-main');
     const editorIcons = touchscreenIcons.slice(0, 8);
     const ninthCell = editorGrid.locator('.sp-empty-cell[data-pos="8"]');
+    const ninthOutline = ninthCell.locator('.sp-card-outline > :is(path, rect)');
     assert.deepEqual(await checkLauncher(page), editorIcons, 'The first eight cards use the same artwork in both demos');
-    await ninthCell.waitFor();
+    await ninthOutline.waitFor();
+    assert.notEqual(await ninthOutline.evaluate(shape => getComputedStyle(shape).strokeDasharray), 'none');
     const appTile = editorGrid.locator('[data-slot="3"]');
     const applicationPicker = page.getByRole('combobox', { name: 'Application', exact: true });
     const editApplication = async () => {
@@ -294,7 +297,7 @@ async function checkBrowser() {
     page.once('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Reset demo', exact: true }).click();
     assert.deepEqual(await checkLauncher(page), editorIcons);
-    await ninthCell.waitFor();
+    await ninthOutline.waitFor();
     console.log('The separate editor saves and resets its own layout without changing the touchscreen demo.');
 
     const backToWebsite = page.getByRole('link', { name: 'Back to website', exact: true });

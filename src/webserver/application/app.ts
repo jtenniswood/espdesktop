@@ -70,14 +70,14 @@ export function createAppFeature(pageTitle: AppTitleFeature, webStyles: string, 
         setFavicon();
         pageTitle.applyPageTitle();
         pageTitle.loadPageTitleFromEventStream();
-        // Set CSS custom properties from the active device orientation.
-        syncPreviewOrientation();
         startInitialScreenRotationCheck();
         var style: any = document.createElement("style");
         style.textContent = webStyles;
         document.head.appendChild(style);
         installLocalWebAssets();
         buildUI();
+        // The preview must exist before its card outlines can be initialized.
+        syncPreviewOrientation();
         connectorsPage.start();
         addSupportButton();
         syncClockBarUi();
