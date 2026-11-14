@@ -16,6 +16,8 @@ usage documentation lives in the root `README.md` and under `docs/`.
 
 - [Documentation Search and Answer Visibility](docs-discovery.md) - build checks,
   crawler hosting, Search Console ownership, and measurement.
+- [Docs mobile performance baseline](hosting/mobile-baseline-2026-11-12.md) -
+  measured page weight and performance budgets for the setup journey.
 
 - [Task Router](task-router.md) - choose the correct workflow for a change.
 - [Task Playbooks](playbooks/README.md) - exact edit, generation, stop, and

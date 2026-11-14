@@ -226,6 +226,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otevřete 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otevřete prohlížeč a\nnastavte displej";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Stáhněte si do počítače aplikaci EspDesktop a postupujte podle pokynů k párování.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Příprava obrazovky\nNevypínejte napájení";
   if (std::strcmp(text, "Restarting display") == 0) return "Restartování displeje";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Viz instalační příručka";
@@ -257,6 +258,11 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nespárováno";
   if (std::strcmp(text, "Pairing") == 0) return "Párování";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadejte tento kód do desktopové aplikace";
+  if (std::strcmp(text, "Cancel") == 0) return "Zrušit";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Zrušit párování";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Zrušit párování?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Spárovaný Mac se odpojí. Budete ho muset znovu spárovat.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Párování se nepodařilo zrušit. Zkuste to znovu.";
   if (std::strcmp(text, "Expired") == 0) return "Platnost vypršela";
   if (std::strcmp(text, "Pair") == 0) return "Spárovat";
   if (std::strcmp(text, "Settings") == 0) return "Nastavení";
@@ -511,6 +517,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åbn 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Åbn din browser og\nkonfigurer din skærm";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Download EspDesktop-appen på din computer, og følg vejledningen til parring.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Forbereder skærmen\nSluk ikke for strømmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Genstarter skærm";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installationsvejledningen for hjælp";
@@ -540,6 +547,11 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ikke parret";
   if (std::strcmp(text, "Pairing") == 0) return "Parring";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Indtast denne kode i desktopappen";
+  if (std::strcmp(text, "Cancel") == 0) return "Annuller";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Nulstil parring";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Nulstil parring?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Den parrede Mac bliver afbrudt. Du skal parre den igen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Parringen kunne ikke nulstilles. Prøv igen.";
   if (std::strcmp(text, "Expired") == 0) return "Udløbet";
   if (std::strcmp(text, "Pair") == 0) return "Par";
   if (std::strcmp(text, "Settings") == 0) return "Indstillinger";
@@ -792,6 +804,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 öffnen";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Öffnen Sie Ihren Browser und\nkonfigurieren Sie Ihr Display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Laden Sie die EspDesktop-App auf Ihren Computer und folgen Sie den Schritten zur Kopplung.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Bildschirm wird vorbereitet\nNicht ausschalten";
   if (std::strcmp(text, "Restarting display") == 0) return "Display wird neu gestartet";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Installationsanleitung für Hilfe ansehen";
@@ -821,6 +834,11 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(text, "Pairing") == 0) return "Kopplung";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Gib diesen Code in der Desktop-App ein";
+  if (std::strcmp(text, "Cancel") == 0) return "Abbrechen";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Kopplung zurücksetzen";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Kopplung zurücksetzen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Die Verbindung zum gekoppelten Mac wird getrennt. Du musst ihn erneut koppeln.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Die Kopplung konnte nicht zurückgesetzt werden. Versuche es erneut.";
   if (std::strcmp(text, "Expired") == 0) return "Abgelaufen";
   if (std::strcmp(text, "Pair") == 0) return "Koppeln";
   if (std::strcmp(text, "Settings") == 0) return "Einstellungen";
@@ -1085,6 +1103,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abre 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abre tu navegador y\nconfigura la pantalla";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Descarga la app EspDesktop en tu ordenador y sigue los pasos para emparejar la pantalla.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparando la pantalla\nNo apagues el dispositivo";
   if (std::strcmp(text, "Restarting display") == 0) return "Reiniciando pantalla";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulta la guía de instalación para obtener ayuda";
@@ -1116,6 +1135,11 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Sin emparejar";
   if (std::strcmp(text, "Pairing") == 0) return "Emparejamiento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduce este código en la aplicación de escritorio";
+  if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Restablecer enlace";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "¿Restablecer el enlace?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "El Mac enlazado se desconectará. Tendrás que enlazarlo de nuevo.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "No se pudo restablecer el enlace. Inténtalo de nuevo.";
   if (std::strcmp(text, "Expired") == 0) return "Caducado";
   if (std::strcmp(text, "Pair") == 0) return "Emparejar";
   if (std::strcmp(text, "Settings") == 0) return "Ajustes";
@@ -1391,6 +1415,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Avaa 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Avaa selain ja\nmääritä näyttö";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Lataa EspDesktop-sovellus tietokoneellesi ja noudata pariliitoksen ohjeita.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Valmistellaan näyttöä\nÄlä katkaise virtaa";
   if (std::strcmp(text, "Restarting display") == 0) return "Käynnistetään näyttö uudelleen";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Katso asennusoppaasta ohjeita";
@@ -1422,6 +1447,11 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ei paritettu";
   if (std::strcmp(text, "Pairing") == 0) return "Paritus";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
+  if (std::strcmp(text, "Cancel") == 0) return "Peruuta";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Nollaa pariliitos";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Nollataanko pariliitos?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Pariliitetyn Macin yhteys katkeaa. Muodosta pariliitos uudelleen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Pariliitosta ei voitu nollata. Yritä uudelleen.";
   if (std::strcmp(text, "Expired") == 0) return "Vanhentunut";
   if (std::strcmp(text, "Pair") == 0) return "Parita";
   if (std::strcmp(text, "Settings") == 0) return "Asetukset";
@@ -1675,6 +1705,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Ouvrez 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Ouvrez votre navigateur et\nconfigurez votre écran";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Téléchargez l’application EspDesktop sur votre ordinateur et suivez les étapes de jumelage.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Préparation de l’écran\nNe coupez pas l’alimentation";
   if (std::strcmp(text, "Restarting display") == 0) return "Redémarrage de l’écran";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consultez le guide d’installation pour obtenir de l’aide";
@@ -1706,6 +1737,11 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Non jumelé";
   if (std::strcmp(text, "Pairing") == 0) return "Jumelage";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Saisissez ce code dans l’application de bureau";
+  if (std::strcmp(text, "Cancel") == 0) return "Annuler";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Réinitialiser le jumelage";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Réinitialiser le jumelage ?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Le Mac jumelé sera déconnecté. Vous devrez le jumeler à nouveau.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Impossible de réinitialiser le jumelage. Réessayez.";
   if (std::strcmp(text, "Expired") == 0) return "Expiré";
   if (std::strcmp(text, "Pair") == 0) return "Associer";
   if (std::strcmp(text, "Settings") == 0) return "Paramètres";
@@ -1991,6 +2027,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "פתחו 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "פתחו את הדפדפן\nוהגדירו את המסך";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "הורידו את אפליקציית EspDesktop למחשב ופעלו לפי הוראות הצימוד.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "מכין את המסך\nאין לנתק מהחשמל";
   if (std::strcmp(text, "Restarting display") == 0) return "מפעיל מחדש את המסך";
   if (std::strcmp(text, "See the install guide for help") == 0) return "לעזרה עיינו במדריך ההתקנה";
@@ -2022,6 +2059,11 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "לא מותאם";
   if (std::strcmp(text, "Pairing") == 0) return "התאמה";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "הזן קוד זה באפליקציה למחשב";
+  if (std::strcmp(text, "Cancel") == 0) return "ביטול";
+  if (std::strcmp(text, "Reset pairing") == 0) return "איפוס הצימוד";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "לאפס את הצימוד?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "מחשב ה-Mac המצומד ינותק. יהיה צורך לצמד אותו מחדש.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "לא ניתן לאפס את הצימוד. כדאי לנסות שוב.";
   if (std::strcmp(text, "Expired") == 0) return "פג תוקף";
   if (std::strcmp(text, "Pair") == 0) return "צימוד";
   if (std::strcmp(text, "Settings") == 0) return "הגדרות";
@@ -2289,6 +2331,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Nyissa meg: 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Nyissa meg a böngészőt, és\nállítsa be a kijelzőt";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Töltse le az EspDesktop alkalmazást a számítógépére, és kövesse a párosítási lépéseket.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Képernyő előkészítése\nNe kapcsolja ki";
   if (std::strcmp(text, "Restarting display") == 0) return "Kijelző újraindítása";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Segítségért nézze meg a telepítési útmutatót";
@@ -2319,6 +2362,11 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nincs párosítva";
   if (std::strcmp(text, "Pairing") == 0) return "Párosítás";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
+  if (std::strcmp(text, "Cancel") == 0) return "Mégse";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Párosítás visszaállítása";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Visszaállítod a párosítást?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "A párosított Mac kapcsolata megszakad. Újra kell párosítanod.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Nem sikerült visszaállítani a párosítást. Próbáld újra.";
   if (std::strcmp(text, "Expired") == 0) return "Lejárt";
   if (std::strcmp(text, "Pair") == 0) return "Párosítás";
   if (std::strcmp(text, "Settings") == 0) return "Beállítások";
@@ -2580,6 +2628,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Apri 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Apri il browser e\nconfigura il display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Scarica l’app EspDesktop sul computer e segui i passaggi per l’abbinamento.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparazione dello schermo\nNon spegnere";
   if (std::strcmp(text, "Restarting display") == 0) return "Riavvio display";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulta la guida di installazione per assistenza";
@@ -2610,6 +2659,11 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Non abbinato";
   if (std::strcmp(text, "Pairing") == 0) return "Abbinamento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Inserisci questo codice nell’app desktop";
+  if (std::strcmp(text, "Cancel") == 0) return "Annulla";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Reimposta abbinamento";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Reimpostare l’abbinamento?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Il Mac abbinato verrà disconnesso. Dovrai abbinarlo di nuovo.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Impossibile reimpostare l’abbinamento. Riprova.";
   if (std::strcmp(text, "Expired") == 0) return "Scaduto";
   if (std::strcmp(text, "Pair") == 0) return "Associa";
   if (std::strcmp(text, "Settings") == 0) return "Impostazioni";
@@ -2872,6 +2926,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Åpne 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Åpne nettleseren og\nkonfigurer skjermen";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Last ned EspDesktop-appen på datamaskinen og følg trinnene for sammenkobling.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Forbereder skjermen\nIkke slå av strømmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Starter skjermen på nytt";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installasjonsveiledningen for hjelp";
@@ -2903,6 +2958,11 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ikke paret";
   if (std::strcmp(text, "Pairing") == 0) return "Paring";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Skriv inn denne koden i skrivebordsappen";
+  if (std::strcmp(text, "Cancel") == 0) return "Avbryt";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Nullstill sammenkobling";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Nullstille sammenkoblingen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Den sammenkoblede Macen kobles fra. Du må koble den sammen på nytt.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Kunne ikke nullstille sammenkoblingen. Prøv igjen.";
   if (std::strcmp(text, "Expired") == 0) return "Utløpt";
   if (std::strcmp(text, "Pair") == 0) return "Koble sammen";
   if (std::strcmp(text, "Settings") == 0) return "Innstillinger";
@@ -3162,6 +3222,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Install") == 0) return "Firmware bijwerken";
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Open uw browser en\nconfigureer uw display";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Download de EspDesktop-app op je computer en volg de stappen om het scherm te koppelen.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Scherm voorbereiden\nSchakel de stroom niet uit";
   if (std::strcmp(text, "Restarting display") == 0) return "Display opnieuw starten";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Bekijk de installatiehandleiding voor hulp";
@@ -3190,6 +3251,11 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Niet gekoppeld";
   if (std::strcmp(text, "Pairing") == 0) return "Koppelen";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Voer deze code in de desktopapp in";
+  if (std::strcmp(text, "Cancel") == 0) return "Annuleren";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Koppeling wissen";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Koppeling wissen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "De gekoppelde Mac wordt losgekoppeld. Je moet hem opnieuw koppelen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "De koppeling kon niet worden gewist. Probeer het opnieuw.";
   if (std::strcmp(text, "Expired") == 0) return "Verlopen";
   if (std::strcmp(text, "Pair") == 0) return "Koppelen";
   if (std::strcmp(text, "Settings") == 0) return "Instellingen";
@@ -3448,6 +3514,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otwórz 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otwórz przeglądarkę i\nskonfiguruj wyświetlacz";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Pobierz aplikację EspDesktop na komputer i postępuj zgodnie z instrukcjami parowania.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Przygotowywanie ekranu\nNie wyłączaj zasilania";
   if (std::strcmp(text, "Restarting display") == 0) return "Ponowne uruchamianie wyświetlacza";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Zobacz instrukcję instalacji, aby uzyskać pomoc";
@@ -3479,6 +3546,11 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Niesparowano";
   if (std::strcmp(text, "Pairing") == 0) return "Parowanie";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Wpisz ten kod w aplikacji komputerowej";
+  if (std::strcmp(text, "Cancel") == 0) return "Anuluj";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Zresetuj parowanie";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Zresetować parowanie?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Sparowany Mac zostanie rozłączony. Trzeba będzie sparować go ponownie.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Nie udało się zresetować parowania. Spróbuj ponownie.";
   if (std::strcmp(text, "Expired") == 0) return "Wygasł";
   if (std::strcmp(text, "Pair") == 0) return "Sparuj";
   if (std::strcmp(text, "Settings") == 0) return "Ustawienia";
@@ -3739,6 +3811,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abra o navegador e\nconfigure a tela";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Baixe o aplicativo EspDesktop no computador e siga as etapas de pareamento.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Preparando a tela\nNão desligue";
   if (std::strcmp(text, "Restarting display") == 0) return "Reiniciando tela";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Veja o guia de instalação para obter ajuda";
@@ -3770,6 +3843,11 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Não pareado";
   if (std::strcmp(text, "Pairing") == 0) return "Pareamento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Digite este código no aplicativo para computador";
+  if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Redefinir pareamento";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Redefinir o pareamento?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "O Mac pareado será desconectado. Você precisará pareá-lo novamente.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Não foi possível redefinir o pareamento. Tente novamente.";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Parear";
   if (std::strcmp(text, "Settings") == 0) return "Configurações";
@@ -4029,6 +4107,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Abra o navegador e\nconfigure o ecrã";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Transfira a aplicação EspDesktop para o computador e siga os passos para emparelhar o ecrã.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "A preparar o ecrã\nNão desligue";
   if (std::strcmp(text, "Restarting display") == 0) return "A reiniciar o ecrã";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consulte o guia de instalação para obter ajuda";
@@ -4060,6 +4139,11 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Não emparelhado";
   if (std::strcmp(text, "Pairing") == 0) return "Emparelhamento";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introduza este código na aplicação para computador";
+  if (std::strcmp(text, "Cancel") == 0) return "Cancelar";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Repor emparelhamento";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Repor o emparelhamento?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "O Mac emparelhado será desligado. Terás de o emparelhar novamente.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Não foi possível repor o emparelhamento. Tenta novamente.";
   if (std::strcmp(text, "Expired") == 0) return "Expirado";
   if (std::strcmp(text, "Pair") == 0) return "Emparelhar";
   if (std::strcmp(text, "Settings") == 0) return "Definições";
@@ -4333,6 +4417,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Deschideți 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Deschideți browserul și\nconfigurați afișajul";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Descarcă aplicația EspDesktop pe computer și urmează pașii de asociere.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Se pregătește ecranul\nNu opriți alimentarea";
   if (std::strcmp(text, "Restarting display") == 0) return "Se repornește afișajul";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Consultați ghidul de instalare pentru ajutor";
@@ -4364,6 +4449,11 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Neasociat";
   if (std::strcmp(text, "Pairing") == 0) return "Asociere";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Introdu acest cod în aplicația desktop";
+  if (std::strcmp(text, "Cancel") == 0) return "Anulează";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Resetează asocierea";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Resetezi asocierea?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Mac-ul asociat va fi deconectat. Va trebui să îl asociezi din nou.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Asocierea nu a putut fi resetată. Încearcă din nou.";
   if (std::strcmp(text, "Expired") == 0) return "Expirat";
   if (std::strcmp(text, "Pair") == 0) return "Asociază";
   if (std::strcmp(text, "Settings") == 0) return "Setări";
@@ -4639,6 +4729,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Нет сохранённого подключения WiFi\nПереустановите через USB для настройки";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Откройте 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Откройте браузер и\nнастройте дисплей";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Загрузите приложение EspDesktop на компьютер и следуйте инструкциям по сопряжению.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Подготовка экрана\nНе выключайте питание";
   if (std::strcmp(text, "Restarting display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Смотрите руководство по установке";
@@ -4670,6 +4761,11 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Не сопряжено";
   if (std::strcmp(text, "Pairing") == 0) return "Сопряжение";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введите этот код в приложении для компьютера";
+  if (std::strcmp(text, "Cancel") == 0) return "Отмена";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Сбросить сопряжение";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Сбросить сопряжение?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Связь с сопряжённым Mac будет разорвана. Его нужно будет сопрячь снова.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Не удалось сбросить сопряжение. Попробуйте ещё раз.";
   if (std::strcmp(text, "Expired") == 0) return "Срок действия истёк";
   if (std::strcmp(text, "Pair") == 0) return "Сопряжение";
   if (std::strcmp(text, "Settings") == 0) return "Настройки";
@@ -4930,6 +5026,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Otvorte 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Otvorte prehliadač a\nnakonfigurujte displej";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Stiahnite si aplikáciu EspDesktop do počítača a postupujte podľa pokynov na párovanie.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Príprava obrazovky\nNevypínajte napájanie";
   if (std::strcmp(text, "Restarting display") == 0) return "Reštartovanie displeja";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Pomoc nájdete v inštalačnej príručke";
@@ -4961,6 +5058,11 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Nespárované";
   if (std::strcmp(text, "Pairing") == 0) return "Párovanie";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Zadajte tento kód do počítačovej aplikácie";
+  if (std::strcmp(text, "Cancel") == 0) return "Zrušiť";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Zrušiť párovanie";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Zrušiť párovanie?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Spárovaný Mac sa odpojí. Budete ho musieť znova spárovať.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Párovanie sa nepodarilo zrušiť. Skúste to znova.";
   if (std::strcmp(text, "Expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(text, "Pair") == 0) return "Spárovať";
   if (std::strcmp(text, "Settings") == 0) return "Nastavenia";
@@ -5226,6 +5328,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Odprite 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Odprite brskalnik in\nkonfigurirajte zaslon";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Prenesite aplikacijo EspDesktop v računalnik in sledite korakom za seznanjanje.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Priprava zaslona\nNe izklapljajte napajanja";
   if (std::strcmp(text, "Restarting display") == 0) return "Ponovni zagon zaslona";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Za pomoč glejte navodila za namestitev";
@@ -5257,6 +5360,11 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Ni seznanjeno";
   if (std::strcmp(text, "Pairing") == 0) return "Seznanjanje";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Vnesite to kodo v namizno aplikacijo";
+  if (std::strcmp(text, "Cancel") == 0) return "Prekliči";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Ponastavi seznanjanje";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Ponastavim seznanjanje?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Seznanjeni Mac bo prekinil povezavo. Znova ga bo treba seznaniti.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Seznanjanja ni bilo mogoče ponastaviti. Poskusite znova.";
   if (std::strcmp(text, "Expired") == 0) return "Poteklo";
   if (std::strcmp(text, "Pair") == 0) return "Seznani";
   if (std::strcmp(text, "Settings") == 0) return "Nastavitve";
@@ -5514,6 +5622,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Öppna 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Öppna webbläsaren och\nkonfigurera skärmen";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Ladda ner EspDesktop-appen på datorn och följ stegen för parkoppling.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Förbereder skärmen\nStäng inte av strömmen";
   if (std::strcmp(text, "Restarting display") == 0) return "Startar om skärmen";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Se installationsguiden för hjälp";
@@ -5544,6 +5653,11 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Inte parkopplad";
   if (std::strcmp(text, "Pairing") == 0) return "Parkoppling";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Ange den här koden i skrivbordsappen";
+  if (std::strcmp(text, "Cancel") == 0) return "Avbryt";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Återställ parkoppling";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Återställa parkopplingen?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Den parkopplade Macen kopplas från. Du behöver parkoppla den igen.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Det gick inte att återställa parkopplingen. Försök igen.";
   if (std::strcmp(text, "Expired") == 0) return "Utgången";
   if (std::strcmp(text, "Pair") == 0) return "Parkoppla";
   if (std::strcmp(text, "Settings") == 0) return "Inställningar";
@@ -5812,6 +5926,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "192.168.4.1 adresini açın";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Tarayıcınızı açın ve\nekranınızı yapılandırın";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "EspDesktop uygulamasını bilgisayarınıza indirin ve eşleştirme adımlarını izleyin.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Ekran hazırlanıyor\nGücü kapatmayın";
   if (std::strcmp(text, "Restarting display") == 0) return "Ekran yeniden başlatılıyor";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Yardım için kurulum kılavuzuna bakın";
@@ -5843,6 +5958,11 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(text, "Pairing") == 0) return "Eşleştirme";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Bu kodu masaüstü uygulamasına girin";
+  if (std::strcmp(text, "Cancel") == 0) return "İptal";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Eşlemeyi sıfırla";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Eşleme sıfırlansın mı?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "Eşlenen Mac’in bağlantısı kesilecek. Yeniden eşlemeniz gerekecek.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Eşleme sıfırlanamadı. Tekrar deneyin.";
   if (std::strcmp(text, "Expired") == 0) return "Süresi doldu";
   if (std::strcmp(text, "Pair") == 0) return "Eşleştir";
   if (std::strcmp(text, "Settings") == 0) return "Ayarlar";
@@ -6114,6 +6234,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "No saved WiFi connection\nReinstall by USB to reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(text, "Open 192.168.4.1") == 0) return "Відкрийте 192.168.4.1";
   if (std::strcmp(text, "Open your browser and\nconfigure your display") == 0) return "Відкрийте браузер і\nналаштуйте дисплей";
+  if (std::strcmp(text, "Download the EspDesktop app on your computer and follow the pairing steps.") == 0) return "Завантажте застосунок EspDesktop на комп’ютер і виконайте кроки сполучення.";
   if (std::strcmp(text, "Preparing the screen\nDo not power off") == 0) return "Підготовка екрана\nНе вимикайте живлення";
   if (std::strcmp(text, "Restarting display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(text, "See the install guide for help") == 0) return "Дивіться посібник зі встановлення для допомоги";
@@ -6145,6 +6266,11 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Not paired") == 0) return "Не сполучено";
   if (std::strcmp(text, "Pairing") == 0) return "Сполучення";
   if (std::strcmp(text, "Enter this code into the desktop app") == 0) return "Введіть цей код у програмі для комп’ютера";
+  if (std::strcmp(text, "Cancel") == 0) return "Скасувати";
+  if (std::strcmp(text, "Reset pairing") == 0) return "Скинути сполучення";
+  if (std::strcmp(text, "Reset pairing?") == 0) return "Скинути сполучення?";
+  if (std::strcmp(text, "This will disconnect the paired Mac. You’ll need to pair it again.") == 0) return "З’єднання зі сполученим Mac буде розірвано. Його потрібно буде сполучити знову.";
+  if (std::strcmp(text, "Could not reset pairing. Try again.") == 0) return "Не вдалося скинути сполучення. Спробуйте ще раз.";
   if (std::strcmp(text, "Expired") == 0) return "Термін дії минув";
   if (std::strcmp(text, "Pair") == 0) return "Сполучити";
   if (std::strcmp(text, "Settings") == 0) return "Налаштування";
@@ -6425,6 +6551,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No saved WiFi connection\nReinstall by USB to reconfigure";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Open 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Open your browser and\nconfigure your display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download the EspDesktop app on your computer and follow the pairing steps.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparing the screen\nDo not power off";
   if (std::strcmp(key, "restarting_display") == 0) return "Restarting display";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "See the install guide for help";
@@ -6457,6 +6584,11 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Not paired";
   if (std::strcmp(key, "pairing") == 0) return "Pairing";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Enter this code into the desktop app";
+  if (std::strcmp(key, "cancel") == 0) return "Cancel";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Reset pairing";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Reset pairing?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "This will disconnect the paired Mac. You’ll need to pair it again.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Could not reset pairing. Try again.";
   if (std::strcmp(key, "expired") == 0) return "Expired";
   if (std::strcmp(key, "pair") == 0) return "Pair";
   if (std::strcmp(key, "settings") == 0) return "Settings";
@@ -6740,6 +6872,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žádné uložené WiFi připojení\nPřeinstalujte přes USB pro nové nastavení";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otevřete 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otevřete prohlížeč a\nnastavte displej";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Stáhněte si do počítače aplikaci EspDesktop a postupujte podle pokynů k párování.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Příprava obrazovky\nNevypínejte napájení";
   if (std::strcmp(key, "restarting_display") == 0) return "Restartování displeje";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Viz instalační příručka";
@@ -6773,6 +6906,11 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nespárováno";
   if (std::strcmp(key, "pairing") == 0) return "Párování";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadejte tento kód do desktopové aplikace";
+  if (std::strcmp(key, "cancel") == 0) return "Zrušit";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Zrušit párování";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Zrušit párování?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Spárovaný Mac se odpojí. Budete ho muset znovu spárovat.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Párování se nepodařilo zrušit. Zkuste to znovu.";
   if (std::strcmp(key, "expired") == 0) return "Platnost vypršela";
   if (std::strcmp(key, "pair") == 0) return "Spárovat";
   if (std::strcmp(key, "settings") == 0) return "Nastavení";
@@ -7035,6 +7173,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen gemt WiFi-forbindelse\nGeninstaller via USB for at konfigurere igen";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åbn 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Åbn din browser og\nkonfigurer din skærm";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download EspDesktop-appen på din computer, og følg vejledningen til parring.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Forbereder skærmen\nSluk ikke for strømmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Genstarter skærm";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installationsvejledningen for hjælp";
@@ -7066,6 +7205,11 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ikke parret";
   if (std::strcmp(key, "pairing") == 0) return "Parring";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Indtast denne kode i desktopappen";
+  if (std::strcmp(key, "cancel") == 0) return "Annuller";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Nulstil parring";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Nulstil parring?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Den parrede Mac bliver afbrudt. Du skal parre den igen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Parringen kunne ikke nulstilles. Prøv igen.";
   if (std::strcmp(key, "expired") == 0) return "Udløbet";
   if (std::strcmp(key, "pair") == 0) return "Par";
   if (std::strcmp(key, "settings") == 0) return "Indstillinger";
@@ -7324,6 +7468,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Keine gespeicherte WiFi-Verbindung\nPer USB neu installieren, um neu zu konfigurieren";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 öffnen";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Öffnen Sie Ihren Browser und\nkonfigurieren Sie Ihr Display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Laden Sie die EspDesktop-App auf Ihren Computer und folgen Sie den Schritten zur Kopplung.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Bildschirm wird vorbereitet\nNicht ausschalten";
   if (std::strcmp(key, "restarting_display") == 0) return "Display wird neu gestartet";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Installationsanleitung für Hilfe ansehen";
@@ -7355,6 +7500,11 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nicht gekoppelt";
   if (std::strcmp(key, "pairing") == 0) return "Kopplung";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Gib diesen Code in der Desktop-App ein";
+  if (std::strcmp(key, "cancel") == 0) return "Abbrechen";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Kopplung zurücksetzen";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Kopplung zurücksetzen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Die Verbindung zum gekoppelten Mac wird getrennt. Du musst ihn erneut koppeln.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Die Kopplung konnte nicht zurückgesetzt werden. Versuche es erneut.";
   if (std::strcmp(key, "expired") == 0) return "Abgelaufen";
   if (std::strcmp(key, "pair") == 0) return "Koppeln";
   if (std::strcmp(key, "settings") == 0) return "Einstellungen";
@@ -7625,6 +7775,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "No hay conexión WiFi guardada\nReinstala por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abre 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abre tu navegador y\nconfigura la pantalla";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Descarga la app EspDesktop en tu ordenador y sigue los pasos para emparejar la pantalla.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparando la pantalla\nNo apagues el dispositivo";
   if (std::strcmp(key, "restarting_display") == 0) return "Reiniciando pantalla";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulta la guía de instalación para obtener ayuda";
@@ -7658,6 +7809,11 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Sin emparejar";
   if (std::strcmp(key, "pairing") == 0) return "Emparejamiento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduce este código en la aplicación de escritorio";
+  if (std::strcmp(key, "cancel") == 0) return "Cancelar";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Restablecer enlace";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "¿Restablecer el enlace?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "El Mac enlazado se desconectará. Tendrás que enlazarlo de nuevo.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "No se pudo restablecer el enlace. Inténtalo de nuevo.";
   if (std::strcmp(key, "expired") == 0) return "Caducado";
   if (std::strcmp(key, "pair") == 0) return "Emparejar";
   if (std::strcmp(key, "settings") == 0) return "Ajustes";
@@ -7940,6 +8096,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Tallennettua WiFi-yhteyttä ei ole\nAsenna uudelleen USB:n kautta määritystä varten";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Avaa 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Avaa selain ja\nmääritä näyttö";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Lataa EspDesktop-sovellus tietokoneellesi ja noudata pariliitoksen ohjeita.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Valmistellaan näyttöä\nÄlä katkaise virtaa";
   if (std::strcmp(key, "restarting_display") == 0) return "Käynnistetään näyttö uudelleen";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Katso asennusoppaasta ohjeita";
@@ -7973,6 +8130,11 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ei paritettu";
   if (std::strcmp(key, "pairing") == 0) return "Paritus";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Syötä tämä koodi työpöytäsovellukseen";
+  if (std::strcmp(key, "cancel") == 0) return "Peruuta";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Nollaa pariliitos";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Nollataanko pariliitos?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Pariliitetyn Macin yhteys katkeaa. Muodosta pariliitos uudelleen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Pariliitosta ei voitu nollata. Yritä uudelleen.";
   if (std::strcmp(key, "expired") == 0) return "Vanhentunut";
   if (std::strcmp(key, "pair") == 0) return "Parita";
   if (std::strcmp(key, "settings") == 0) return "Asetukset";
@@ -8234,6 +8396,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Aucune connexion WiFi enregistrée\nRéinstallez par USB pour reconfigurer";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Ouvrez 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Ouvrez votre navigateur et\nconfigurez votre écran";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Téléchargez l’application EspDesktop sur votre ordinateur et suivez les étapes de jumelage.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Préparation de l’écran\nNe coupez pas l’alimentation";
   if (std::strcmp(key, "restarting_display") == 0) return "Redémarrage de l’écran";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consultez le guide d’installation pour obtenir de l’aide";
@@ -8267,6 +8430,11 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Non jumelé";
   if (std::strcmp(key, "pairing") == 0) return "Jumelage";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Saisissez ce code dans l’application de bureau";
+  if (std::strcmp(key, "cancel") == 0) return "Annuler";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Réinitialiser le jumelage";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Réinitialiser le jumelage ?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Le Mac jumelé sera déconnecté. Vous devrez le jumeler à nouveau.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Impossible de réinitialiser le jumelage. Réessayez.";
   if (std::strcmp(key, "expired") == 0) return "Expiré";
   if (std::strcmp(key, "pair") == 0) return "Associer";
   if (std::strcmp(key, "settings") == 0) return "Paramètres";
@@ -8559,6 +8727,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "אין חיבור WiFi שמור\nהתקינו מחדש דרך USB";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "פתחו 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "פתחו את הדפדפן\nוהגדירו את המסך";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "הורידו את אפליקציית EspDesktop למחשב ופעלו לפי הוראות הצימוד.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "מכין את המסך\nאין לנתק מהחשמל";
   if (std::strcmp(key, "restarting_display") == 0) return "מפעיל מחדש את המסך";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "לעזרה עיינו במדריך ההתקנה";
@@ -8592,6 +8761,11 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "לא מותאם";
   if (std::strcmp(key, "pairing") == 0) return "התאמה";
   if (std::strcmp(key, "pairing_instructions") == 0) return "הזן קוד זה באפליקציה למחשב";
+  if (std::strcmp(key, "cancel") == 0) return "ביטול";
+  if (std::strcmp(key, "reset_pairing") == 0) return "איפוס הצימוד";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "לאפס את הצימוד?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "מחשב ה-Mac המצומד ינותק. יהיה צורך לצמד אותו מחדש.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "לא ניתן לאפס את הצימוד. כדאי לנסות שוב.";
   if (std::strcmp(key, "expired") == 0) return "פג תוקף";
   if (std::strcmp(key, "pair") == 0) return "צימוד";
   if (std::strcmp(key, "settings") == 0) return "הגדרות";
@@ -8867,6 +9041,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nincs mentett WiFi-kapcsolat\nTelepítse újra USB-n a beállításhoz";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Nyissa meg: 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Nyissa meg a böngészőt, és\nállítsa be a kijelzőt";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Töltse le az EspDesktop alkalmazást a számítógépére, és kövesse a párosítási lépéseket.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Képernyő előkészítése\nNe kapcsolja ki";
   if (std::strcmp(key, "restarting_display") == 0) return "Kijelző újraindítása";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Segítségért nézze meg a telepítési útmutatót";
@@ -8899,6 +9074,11 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nincs párosítva";
   if (std::strcmp(key, "pairing") == 0) return "Párosítás";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Írd be ezt a kódot az asztali alkalmazásba";
+  if (std::strcmp(key, "cancel") == 0) return "Mégse";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Párosítás visszaállítása";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Visszaállítod a párosítást?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "A párosított Mac kapcsolata megszakad. Újra kell párosítanod.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Nem sikerült visszaállítani a párosítást. Próbáld újra.";
   if (std::strcmp(key, "expired") == 0) return "Lejárt";
   if (std::strcmp(key, "pair") == 0) return "Párosítás";
   if (std::strcmp(key, "settings") == 0) return "Beállítások";
@@ -9168,6 +9348,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nessuna connessione WiFi salvata\nReinstalla via USB per riconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Apri 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Apri il browser e\nconfigura il display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Scarica l’app EspDesktop sul computer e segui i passaggi per l’abbinamento.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparazione dello schermo\nNon spegnere";
   if (std::strcmp(key, "restarting_display") == 0) return "Riavvio display";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulta la guida di installazione per assistenza";
@@ -9200,6 +9381,11 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Non abbinato";
   if (std::strcmp(key, "pairing") == 0) return "Abbinamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Inserisci questo codice nell’app desktop";
+  if (std::strcmp(key, "cancel") == 0) return "Annulla";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Reimposta abbinamento";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Reimpostare l’abbinamento?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Il Mac abbinato verrà disconnesso. Dovrai abbinarlo di nuovo.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Impossibile reimpostare l’abbinamento. Riprova.";
   if (std::strcmp(key, "expired") == 0) return "Scaduto";
   if (std::strcmp(key, "pair") == 0) return "Associa";
   if (std::strcmp(key, "settings") == 0) return "Impostazioni";
@@ -9469,6 +9655,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen lagret WiFi-tilkobling\nInstaller på nytt via USB for å konfigurere";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Åpne 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Åpne nettleseren og\nkonfigurer skjermen";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Last ned EspDesktop-appen på datamaskinen og følg trinnene for sammenkobling.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Forbereder skjermen\nIkke slå av strømmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Starter skjermen på nytt";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installasjonsveiledningen for hjelp";
@@ -9502,6 +9689,11 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ikke paret";
   if (std::strcmp(key, "pairing") == 0) return "Paring";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Skriv inn denne koden i skrivebordsappen";
+  if (std::strcmp(key, "cancel") == 0) return "Avbryt";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Nullstill sammenkobling";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Nullstille sammenkoblingen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Den sammenkoblede Macen kobles fra. Du må koble den sammen på nytt.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Kunne ikke nullstille sammenkoblingen. Prøv igjen.";
   if (std::strcmp(key, "expired") == 0) return "Utløpt";
   if (std::strcmp(key, "pair") == 0) return "Koble sammen";
   if (std::strcmp(key, "settings") == 0) return "Innstillinger";
@@ -9767,6 +9959,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "update_firmware") == 0) return "Firmware bijwerken";
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Geen opgeslagen WiFi-verbinding\nInstalleer opnieuw via USB om opnieuw te configureren";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Open uw browser en\nconfigureer uw display";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Download de EspDesktop-app op je computer en volg de stappen om het scherm te koppelen.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Scherm voorbereiden\nSchakel de stroom niet uit";
   if (std::strcmp(key, "restarting_display") == 0) return "Display opnieuw starten";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Bekijk de installatiehandleiding voor hulp";
@@ -9797,6 +9990,11 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Niet gekoppeld";
   if (std::strcmp(key, "pairing") == 0) return "Koppelen";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Voer deze code in de desktopapp in";
+  if (std::strcmp(key, "cancel") == 0) return "Annuleren";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Koppeling wissen";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Koppeling wissen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "De gekoppelde Mac wordt losgekoppeld. Je moet hem opnieuw koppelen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "De koppeling kon niet worden gewist. Probeer het opnieuw.";
   if (std::strcmp(key, "expired") == 0) return "Verlopen";
   if (std::strcmp(key, "pair") == 0) return "Koppelen";
   if (std::strcmp(key, "settings") == 0) return "Instellingen";
@@ -10060,6 +10258,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Brak zapisanej sieci WiFi\nZainstaluj ponownie przez USB, aby skonfigurować";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otwórz 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otwórz przeglądarkę i\nskonfiguruj wyświetlacz";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Pobierz aplikację EspDesktop na komputer i postępuj zgodnie z instrukcjami parowania.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Przygotowywanie ekranu\nNie wyłączaj zasilania";
   if (std::strcmp(key, "restarting_display") == 0) return "Ponowne uruchamianie wyświetlacza";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Zobacz instrukcję instalacji, aby uzyskać pomoc";
@@ -10093,6 +10292,11 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Niesparowano";
   if (std::strcmp(key, "pairing") == 0) return "Parowanie";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Wpisz ten kod w aplikacji komputerowej";
+  if (std::strcmp(key, "cancel") == 0) return "Anuluj";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Zresetuj parowanie";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Zresetować parowanie?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Sparowany Mac zostanie rozłączony. Trzeba będzie sparować go ponownie.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Nie udało się zresetować parowania. Spróbuj ponownie.";
   if (std::strcmp(key, "expired") == 0) return "Wygasł";
   if (std::strcmp(key, "pair") == 0) return "Sparuj";
   if (std::strcmp(key, "settings") == 0) return "Ustawienia";
@@ -10361,6 +10565,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma conexão WiFi salva\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abra o navegador e\nconfigure a tela";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Baixe o aplicativo EspDesktop no computador e siga as etapas de pareamento.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Preparando a tela\nNão desligue";
   if (std::strcmp(key, "restarting_display") == 0) return "Reiniciando tela";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Veja o guia de instalação para obter ajuda";
@@ -10394,6 +10599,11 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Não pareado";
   if (std::strcmp(key, "pairing") == 0) return "Pareamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Digite este código no aplicativo para computador";
+  if (std::strcmp(key, "cancel") == 0) return "Cancelar";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Redefinir pareamento";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Redefinir o pareamento?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "O Mac pareado será desconectado. Você precisará pareá-lo novamente.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Não foi possível redefinir o pareamento. Tente novamente.";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Parear";
   if (std::strcmp(key, "settings") == 0) return "Configurações";
@@ -10660,6 +10870,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nenhuma ligação WiFi guardada\nReinstale por USB para reconfigurar";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Abra 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Abra o navegador e\nconfigure o ecrã";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Transfira a aplicação EspDesktop para o computador e siga os passos para emparelhar o ecrã.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "A preparar o ecrã\nNão desligue";
   if (std::strcmp(key, "restarting_display") == 0) return "A reiniciar o ecrã";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consulte o guia de instalação para obter ajuda";
@@ -10693,6 +10904,11 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Não emparelhado";
   if (std::strcmp(key, "pairing") == 0) return "Emparelhamento";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introduza este código na aplicação para computador";
+  if (std::strcmp(key, "cancel") == 0) return "Cancelar";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Repor emparelhamento";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Repor o emparelhamento?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "O Mac emparelhado será desligado. Terás de o emparelhar novamente.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Não foi possível repor o emparelhamento. Tenta novamente.";
   if (std::strcmp(key, "expired") == 0) return "Expirado";
   if (std::strcmp(key, "pair") == 0) return "Emparelhar";
   if (std::strcmp(key, "settings") == 0) return "Definições";
@@ -10973,6 +11189,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Nu există o conexiune WiFi salvată\nReinstalați prin USB pentru reconfigurare";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Deschideți 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Deschideți browserul și\nconfigurați afișajul";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Descarcă aplicația EspDesktop pe computer și urmează pașii de asociere.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Se pregătește ecranul\nNu opriți alimentarea";
   if (std::strcmp(key, "restarting_display") == 0) return "Se repornește afișajul";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Consultați ghidul de instalare pentru ajutor";
@@ -11006,6 +11223,11 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Neasociat";
   if (std::strcmp(key, "pairing") == 0) return "Asociere";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Introdu acest cod în aplicația desktop";
+  if (std::strcmp(key, "cancel") == 0) return "Anulează";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Resetează asocierea";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Resetezi asocierea?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Mac-ul asociat va fi deconectat. Va trebui să îl asociezi din nou.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Asocierea nu a putut fi resetată. Încearcă din nou.";
   if (std::strcmp(key, "expired") == 0) return "Expirat";
   if (std::strcmp(key, "pair") == 0) return "Asociază";
   if (std::strcmp(key, "settings") == 0) return "Setări";
@@ -11289,6 +11511,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Нет сохранённого подключения WiFi\nПереустановите через USB для настройки";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Откройте 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Откройте браузер и\nнастройте дисплей";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Загрузите приложение EspDesktop на компьютер и следуйте инструкциям по сопряжению.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Подготовка экрана\nНе выключайте питание";
   if (std::strcmp(key, "restarting_display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Смотрите руководство по установке";
@@ -11322,6 +11545,11 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Не сопряжено";
   if (std::strcmp(key, "pairing") == 0) return "Сопряжение";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введите этот код в приложении для компьютера";
+  if (std::strcmp(key, "cancel") == 0) return "Отмена";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Сбросить сопряжение";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Сбросить сопряжение?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Связь с сопряжённым Mac будет разорвана. Его нужно будет сопрячь снова.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Не удалось сбросить сопряжение. Попробуйте ещё раз.";
   if (std::strcmp(key, "expired") == 0) return "Срок действия истёк";
   if (std::strcmp(key, "pair") == 0) return "Сопряжение";
   if (std::strcmp(key, "settings") == 0) return "Настройки";
@@ -11590,6 +11818,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Žiadne uložené WiFi pripojenie\nPreinštalujte cez USB na nové nastavenie";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Otvorte 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Otvorte prehliadač a\nnakonfigurujte displej";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Stiahnite si aplikáciu EspDesktop do počítača a postupujte podľa pokynov na párovanie.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Príprava obrazovky\nNevypínajte napájanie";
   if (std::strcmp(key, "restarting_display") == 0) return "Reštartovanie displeja";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Pomoc nájdete v inštalačnej príručke";
@@ -11623,6 +11852,11 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Nespárované";
   if (std::strcmp(key, "pairing") == 0) return "Párovanie";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Zadajte tento kód do počítačovej aplikácie";
+  if (std::strcmp(key, "cancel") == 0) return "Zrušiť";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Zrušiť párovanie";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Zrušiť párovanie?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Spárovaný Mac sa odpojí. Budete ho musieť znova spárovať.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Párovanie sa nepodarilo zrušiť. Skúste to znova.";
   if (std::strcmp(key, "expired") == 0) return "Platnosť vypršala";
   if (std::strcmp(key, "pair") == 0) return "Spárovať";
   if (std::strcmp(key, "settings") == 0) return "Nastavenia";
@@ -11896,6 +12130,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ni shranjene povezave WiFi\nZnova namestite prek USB za konfiguracijo";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Odprite 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Odprite brskalnik in\nkonfigurirajte zaslon";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Prenesite aplikacijo EspDesktop v računalnik in sledite korakom za seznanjanje.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Priprava zaslona\nNe izklapljajte napajanja";
   if (std::strcmp(key, "restarting_display") == 0) return "Ponovni zagon zaslona";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Za pomoč glejte navodila za namestitev";
@@ -11929,6 +12164,11 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Ni seznanjeno";
   if (std::strcmp(key, "pairing") == 0) return "Seznanjanje";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Vnesite to kodo v namizno aplikacijo";
+  if (std::strcmp(key, "cancel") == 0) return "Prekliči";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Ponastavi seznanjanje";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Ponastavim seznanjanje?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Seznanjeni Mac bo prekinil povezavo. Znova ga bo treba seznaniti.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Seznanjanja ni bilo mogoče ponastaviti. Poskusite znova.";
   if (std::strcmp(key, "expired") == 0) return "Poteklo";
   if (std::strcmp(key, "pair") == 0) return "Seznani";
   if (std::strcmp(key, "settings") == 0) return "Nastavitve";
@@ -12194,6 +12434,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Ingen sparad WiFi-anslutning\nInstallera om via USB för att konfigurera";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Öppna 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Öppna webbläsaren och\nkonfigurera skärmen";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Ladda ner EspDesktop-appen på datorn och följ stegen för parkoppling.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Förbereder skärmen\nStäng inte av strömmen";
   if (std::strcmp(key, "restarting_display") == 0) return "Startar om skärmen";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Se installationsguiden för hjälp";
@@ -12226,6 +12467,11 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Inte parkopplad";
   if (std::strcmp(key, "pairing") == 0) return "Parkoppling";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Ange den här koden i skrivbordsappen";
+  if (std::strcmp(key, "cancel") == 0) return "Avbryt";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Återställ parkoppling";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Återställa parkopplingen?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Den parkopplade Macen kopplas från. Du behöver parkoppla den igen.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Det gick inte att återställa parkopplingen. Försök igen.";
   if (std::strcmp(key, "expired") == 0) return "Utgången";
   if (std::strcmp(key, "pair") == 0) return "Parkoppla";
   if (std::strcmp(key, "settings") == 0) return "Inställningar";
@@ -12500,6 +12746,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Kayıtlı WiFi bağlantısı yok\nYeniden yapılandırmak için USB ile yeniden yükleyin";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "192.168.4.1 adresini açın";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Tarayıcınızı açın ve\nekranınızı yapılandırın";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "EspDesktop uygulamasını bilgisayarınıza indirin ve eşleştirme adımlarını izleyin.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Ekran hazırlanıyor\nGücü kapatmayın";
   if (std::strcmp(key, "restarting_display") == 0) return "Ekran yeniden başlatılıyor";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Yardım için kurulum kılavuzuna bakın";
@@ -12533,6 +12780,11 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Eşleştirilmedi";
   if (std::strcmp(key, "pairing") == 0) return "Eşleştirme";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Bu kodu masaüstü uygulamasına girin";
+  if (std::strcmp(key, "cancel") == 0) return "İptal";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Eşlemeyi sıfırla";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Eşleme sıfırlansın mı?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "Eşlenen Mac’in bağlantısı kesilecek. Yeniden eşlemeniz gerekecek.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Eşleme sıfırlanamadı. Tekrar deneyin.";
   if (std::strcmp(key, "expired") == 0) return "Süresi doldu";
   if (std::strcmp(key, "pair") == 0) return "Eşleştir";
   if (std::strcmp(key, "settings") == 0) return "Ayarlar";
@@ -12812,6 +13064,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "no_saved_wifi_connection_reinstall_by_usb_to_reconfigure") == 0) return "Немає збереженого підключення WiFi\nПеревстановіть через USB для налаштування";
   if (std::strcmp(key, "open_192_168_4_1") == 0) return "Відкрийте 192.168.4.1";
   if (std::strcmp(key, "open_your_browser_and_configure_your_display") == 0) return "Відкрийте браузер і\nналаштуйте дисплей";
+  if (std::strcmp(key, "download_companion_app_to_pair") == 0) return "Завантажте застосунок EspDesktop на комп’ютер і виконайте кроки сполучення.";
   if (std::strcmp(key, "preparing_the_screen_do_not_power_off") == 0) return "Підготовка екрана\nНе вимикайте живлення";
   if (std::strcmp(key, "restarting_display") == 0) return "Перезапуск дисплея";
   if (std::strcmp(key, "see_the_install_guide_for_help") == 0) return "Дивіться посібник зі встановлення для допомоги";
@@ -12845,6 +13098,11 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "not_paired") == 0) return "Не сполучено";
   if (std::strcmp(key, "pairing") == 0) return "Сполучення";
   if (std::strcmp(key, "pairing_instructions") == 0) return "Введіть цей код у програмі для комп’ютера";
+  if (std::strcmp(key, "cancel") == 0) return "Скасувати";
+  if (std::strcmp(key, "reset_pairing") == 0) return "Скинути сполучення";
+  if (std::strcmp(key, "reset_pairing_question") == 0) return "Скинути сполучення?";
+  if (std::strcmp(key, "reset_pairing_warning") == 0) return "З’єднання зі сполученим Mac буде розірвано. Його потрібно буде сполучити знову.";
+  if (std::strcmp(key, "reset_pairing_failed") == 0) return "Не вдалося скинути сполучення. Спробуйте ще раз.";
   if (std::strcmp(key, "expired") == 0) return "Термін дії минув";
   if (std::strcmp(key, "pair") == 0) return "Сполучити";
   if (std::strcmp(key, "settings") == 0) return "Налаштування";

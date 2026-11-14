@@ -145,7 +145,5 @@ script:
                   lv_label_set_text(id(setup_ip_label), url.c_str());
                 }
             - lvgl.page.show: button_setup_page
-            # Keep the network control available here so a Companion-only
-            # first-run setup can start physical pairing.
             - script.execute: clock_bar_apply
             - script.execute: setup_screen_dim

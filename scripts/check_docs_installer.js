@@ -150,18 +150,25 @@ async function checkBrowser() {
       const illustration = page.locator('.homepage-hero img');
       await illustration.scrollIntoViewIfNeeded();
       await illustration.evaluate(img => img.decode());
+      assert.match(await illustration.evaluate(img => img.currentSrc), /espdesktop-desk-(480|960)\.avif$/);
 
-      const demoSelector = 'iframe.homepage-demo';
+      const demoSelector = '.homepage-demo iframe';
       const demo = page.locator(demoSelector);
       const demoSection = page.locator('.homepage-editor');
-      const getStarted = demoSection.getByRole('link', { name: 'Get Started', exact: true });
-      assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040#where-to-buy');
+      const actions = demoSection.locator('.homepage-editor-actions');
+      assert.deepEqual(await actions.getByRole('link').allTextContents(), ['Getting Started', 'Preview Editor']);
+      const getStarted = actions.getByRole('link', { name: 'Getting Started', exact: true });
+      assert.equal(await getStarted.getAttribute('href'), '/screens/4848s040');
+      const buttonBackground = link => link.evaluate(element => getComputedStyle(element).backgroundColor);
+      assert.equal(await buttonBackground(getStarted), await buttonBackground(setup));
       if (width >= 768) {
         const copy = await demoSection.locator(':scope > div').boundingBox();
-        const mock = await demo.boundingBox();
+        const mock = await demoSection.locator('figure.homepage-demo').boundingBox();
         assert(copy && mock && Math.abs(copy.width - mock.width) < 1,
           'Homepage demo and copy must use equal desktop columns');
       }
+      assert.equal(await demoSection.locator('figure.homepage-demo img').count(), 0);
+      assert.equal(await demo.getAttribute('loading'), 'lazy');
       await demo.scrollIntoViewIfNeeded();
       const frame = page.frameLocator(demoSelector);
       const slack = frame.getByRole('button', { name: 'Slack', exact: true });
@@ -184,7 +191,7 @@ async function checkBrowser() {
       assert(await calendar.evaluate(tile => tile.classList.contains('demo-app-on')),
         'Tapping another app transfers the on state');
     }
-    await page.getByRole('link', { name: 'Open editor demo', exact: true }).click();
+    await page.getByRole('link', { name: 'Preview Editor', exact: true }).click();
     const editorUrl = `${home}editor-demo/index.html`;
     await page.waitForURL(editorUrl);
     await page.getByRole('tab', { name: 'Layout', exact: true }).waitFor();
@@ -218,7 +225,7 @@ async function checkBrowser() {
     const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
     await folderPicker.locator('option[value="folder.downloads"]').waitFor({ state: 'attached' });
     assert.deepEqual(await folderPicker.locator('option').allTextContents(),
-      ['Choose a folder…', 'Desktop', 'Documents', 'Downloads', 'Projects']);
+      ['Choose a folder…', 'Camera Uploads', 'Desktop', 'Documents', 'Downloads', 'Git', 'Projects']);
     await folderPicker.selectOption('folder.downloads');
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page.locator('.sp-settings-overlay.sp-visible').waitFor({ state: 'hidden' });
@@ -251,6 +258,31 @@ async function checkBrowser() {
     await page.goto(`${home}editor/index.html`);
     assert.deepEqual(await checkLauncher(page, true), touchscreenIcons);
     assert.equal(await page.getByRole('tab').count(), 0, 'The touchscreen demo stays read-only');
+    const shortcutPages = {
+      Finder: ['Camera Uploads', 'Desktop', 'Downloads', 'Git'],
+      Safari: ['Reload', 'Search Bar', 'Tab Overview', 'Previous Tab', 'Next Tab'],
+      Slack: ['New Message', 'Search', 'Browse DMs', 'Jump Unread', 'All Unread', 'Search chat', 'Shortcuts', 'Previous Unread'],
+      Notes: ['New Note', 'New Folder', 'Search Notes', 'Checklist', 'Cell Paragraph'],
+      ChatGPT: ['Command', 'Approve', 'Browser', 'Sidebar', 'Bottom Terminal', 'Side Terminal', 'Side Terminal'],
+      Claude: ['Quick Entry', 'Code Shortcuts', 'New Session', 'Next Session'],
+    };
+    for (const [app, expectedTiles] of Object.entries(shortcutPages)) {
+      const appTile = page.getByRole('button', { name: app, exact: true });
+      await appTile.click();
+      const back = page.getByRole('button', { name: 'Back — Home', exact: true });
+      const backIcon = back.locator('img.sp-companion-app-icon');
+      await backIcon.waitFor();
+      const icon = await backIcon.evaluate(image => image.src);
+      assert.equal(hash('sha256', icon), touchscreenIcons[launcherApps.indexOf(app)], app + ' Back tile artwork');
+      const shortcutTiles = page.locator('.sp-main button.sp-btn:not(.sp-back-btn)');
+      assert.deepEqual(await shortcutTiles.evaluateAll(tiles => tiles.map(tile => tile.getAttribute('aria-label'))),
+        expectedTiles, app + ' subpage tile order');
+      await shortcutTiles.first().click();
+      assert(await back.isVisible(), app + ' shortcuts should stay on the subpage');
+      await back.click();
+      await appTile.waitFor();
+      assert(await appTile.evaluate(tile => tile.classList.contains('demo-app-on')), app + ' stays active after Back');
+    }
 
     await page.goto(editorUrl);
     await editorGrid.getByText('My Downloads', { exact: true }).waitFor();
@@ -261,20 +293,94 @@ async function checkBrowser() {
 
     await page.goto(home);
     await setup.press('Enter');
-    await page.waitForURL(`${home}getting-started/install`);
+    await page.waitForURL(`${home}screens/4848s040`);
     console.log('Homepage checks passed at desktop, tablet and phone widths.');
     await assertSupportedInstaller();
-    await page.goto(`${base}/screens/4848s040`);
-    assert.equal(await page.locator('esp-web-install-button').count(), 0);
-    await page.locator('.VPSidebar a[href="/getting-started/install"]').click();
-    await page.waitForURL('**/getting-started/install');
-    await assertSupportedInstaller();
-    assert(manifests.length >= 2, 'Setup and hardware-guide navigation must check the S3 manifest');
+    const setupDownload = page.locator('.display-setup-step .mac-app-download a.docs-primary-action');
+    const setupDownloadHref = await setupDownload.getAttribute('href');
+    const wizard = page.locator('.display-setup-step a.docs-primary-action').getByText('View setup wizard', { exact: true });
+    assert.equal(await wizard.getAttribute('href'), '/features/first-run');
+    const setupPage = `${base}/screens/4848s040`;
+    const gettingStarted = page.locator('.VPNavBarMenu .VPFlyout').filter({
+      has: page.getByRole('button', { name: 'Getting started', exact: true }),
+    });
+    const gettingStartedButton = gettingStarted.getByRole('button', { name: 'Getting started', exact: true });
+    await gettingStartedButton.hover();
+    await gettingStarted.getByRole('link', { name: 'Install', exact: true }).click();
+    await page.waitForURL(`${setupPage}#install`);
+    await gettingStartedButton.hover();
+    await gettingStarted.getByRole('link', { name: 'Download', exact: true }).click();
+    await page.waitForURL(`${setupPage}#download`);
+    await page.getByRole('link', { name: /^(See all|View) Mac downloads$/ }).click();
+    await page.waitForURL(`${base}/download`);
+    await page.getByRole('heading', { name: 'Download EspDesktop for Mac', level: 1 }).waitFor();
+    const download = page.locator('.mac-app-download a');
+    await download.waitFor();
+    assert.match(await download.getAttribute('href'),
+      /^https:\/\/github\.com\/jtenniswood\/espdesktop\/releases(?:\/download\/v?\d+\.\d+\.\d+\/EspDesktop-\d+\.\d+\.\d+\.dmg)?$/);
+    const officialDownloadHref = await download.getAttribute('href');
+    assert.equal(setupDownloadHref, officialDownloadHref.endsWith('.dmg') ? officialDownloadHref : '/download');
+    await page.getByRole('link', { name: 'Install and pair the Mac app', exact: true }).click();
+    await page.waitForURL(`${setupPage}#download`);
+    await page.getByRole('heading', { name: 'Set up the Companion app' }).waitFor();
+    assert.equal(await page.locator('.VPSidebar a[href="/getting-started/mac-app"]').count(), 0);
+    await page.locator('#pair-the-display').waitFor({ state: 'attached' });
+    await page.getByText('Apple silicon Mac with macOS 13 or newer', { exact: true }).waitFor();
+    await page.goto(`${base}/screens/4848s040#where-to-buy`);
+    const buySection = page.locator('section[aria-labelledby="where-to-buy"]');
+    await buySection.getByRole('link', { name: 'AliExpress (US)', exact: true }).waitFor();
+    await buySection.getByRole('link', { name: 'AliExpress (Global)', exact: true }).waitFor();
+    assert.equal(await buySection.getByRole('link', { name: 'Check Mac requirements' }).count(), 0);
+    assert.equal(await page.locator('h2[id="_3-configure-your-cards"]').count(), 0);
+    for (const width of [320, 768, 1440]) {
+      await page.setViewportSize({ width, height: 900 });
+      assert(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+        `Display setup must fit a ${width}px viewport`);
+    }
+    const steps = page.locator('.display-setup-step');
+    assert.equal(await steps.count(), 4);
+    for (const step of await steps.all()) {
+      const copy = await step.locator('.display-setup-copy').boundingBox();
+      const photo = await step.locator('img').boundingBox();
+      assert(copy.x + copy.width <= photo.x, 'Desktop setup images must appear to the right of the instructions');
+    }
+    await page.setViewportSize({ width: 390, height: 844 });
+    for (const step of await steps.all()) {
+      const copy = await step.locator('.display-setup-copy').boundingBox();
+      const photo = await step.locator('img').boundingBox();
+      assert(copy.y + copy.height <= photo.y, 'Phone setup images must appear below the instructions');
+    }
+    const canonicalSetup = 'https://espdesktop.com/screens/4848s040';
+    // Intercept canonical redirect targets without contacting production.
+    await page.route(canonicalSetup, route => route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><title>EspDesktop setup destination</title>',
+    }));
+    await page.goto(`${base}/getting-started/install`);
+    await page.waitForURL(`${canonicalSetup}#install`);
+    await page.goto(`${base}/getting-started/install#connect-the-display-to-wifi`);
+    await page.waitForURL(`${canonicalSetup}#connect-the-display-to-wifi`);
+    await page.goto(`${base}/getting-started/mac-app`);
+    await page.waitForURL(`${canonicalSetup}#download`);
+    await page.goto(`${base}/getting-started/mac-app#pair-the-display`);
+    await page.waitForURL(`${canonicalSetup}#pair-the-display`);
     const beforeRetired = manifests.length;
-    const retired = await page.goto(`${base}/getting-started/c6-recovery`);
-    assert.equal(retired.status(), 404, 'Retired P4 recovery is not a public setup page');
+    const recovery = 'https://jtenniswood.github.io/espcontrol/getting-started/troubleshooting';
+    await page.route(recovery, route => route.fulfill({ contentType: 'text/html', body: 'EspControl recovery guide' }));
+    await page.goto(`${base}/getting-started/c6-recovery`);
+    await page.waitForURL(`${recovery}#a-p4-panel-has-unreliable-wifi`);
     assert.equal(await page.locator('esp-web-install-button').count(), 0);
     assert.equal(manifests.length, beforeRetired, 'Retired P4 setup must not offer an installer');
+    const immich = 'https://jtenniswood.github.io/espcontrol/immich/';
+    await page.route(immich, route => route.fulfill({ contentType: 'text/html', body: 'EspControl Immich guide' }));
+    await page.goto(`${base}/immich/installation`);
+    await page.waitForURL(`${immich}#installation`);
+    await page.goto(`${base}/immich/installation#manual-installation`);
+    await page.waitForURL(`${immich}#manual-installation`);
+
+    await page.goto(`${base}/features/setup#add-a-mac-control`);
+    await page.waitForURL(`${base}/features/home#add-a-card`);
     assert.deepEqual(errors, []);
     assert.deepEqual(externalScripts, [], 'USB installer must work without third-party scripts');
     console.log('Built-site installer checks passed (mocked Web Serial, no physical flashing).');

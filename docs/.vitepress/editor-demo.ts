@@ -1,7 +1,14 @@
+import {
+  createCompanionShortcutSubpage,
+  setCompanionShortcutTabs,
+} from '../../src/webserver/application/companion_shortcut_folder'
+import type { CardConfig } from '../../src/webserver/contracts/types'
 import { COMPANION_APP_ICON_SIDE } from '../../src/webserver/generated/companion_capabilities'
 import { COMPANION_FOLDER_PREFIX, companionCardHasAppIcon } from '../../src/webserver/model/companion_card_codec'
 import { appShortcutPageOwner } from '../../src/webserver/model/companion_shortcut_page'
+import { encodeConfigField, trimConfigFields } from '../../src/webserver/model/config_primitives'
 import { decodePanelPageSnapshot, encodePanelPageDocument } from '../../src/webserver/model/panel_config_conversion'
+import { serializeCompactSubpageConfig } from '../../src/webserver/model/subpage'
 
 const deviceProfile = 'guition-esp32-s3-4848s040'
 const maxConfigBytes = 512 * 1024
@@ -9,28 +16,44 @@ const configType = 'application/vnd.espdesktop.panel-config'
 const editorSessionKey = 'espdesktop-editor-demo-v2'
 const displayBacklightId = 'light/Display Backlight'
 const editable = document.documentElement.hasAttribute('data-espdesktop-editor-demo')
+const finderAppId = 'com.apple.finder'
 const slackAppId = 'com.tinyspeck.slackmacgap'
+const chatgptAppId = 'com.openai.codex'
 // Public demo IDs for the captured web apps are independent of any Mac installation.
 const sampleApps = [
-  { id: 'com.apple.finder', label: 'Finder', icon: 'finder' },
+  { id: finderAppId, label: 'Finder', icon: 'finder' },
   { id: 'com.apple.Safari', label: 'Safari', icon: 'safari' },
   { id: 'demo.web.calendar', label: 'Calendar', icon: 'calendar' },
   { id: 'demo.web.mail', label: 'Mail', icon: 'mail' },
   { id: slackAppId, label: 'Slack', icon: 'slack' },
   { id: 'com.apple.Notes', label: 'Notes', icon: 'notes' },
   { id: 'demo.web.athena', label: 'Athena', icon: 'athena' },
-  { id: 'com.openai.codex', label: 'ChatGPT', icon: 'chatgpt' },
+  { id: chatgptAppId, label: 'ChatGPT', icon: 'chatgpt' },
   { id: 'com.anthropic.claudefordesktop', label: 'Claude', icon: 'claude' },
 ]
-const sampleShortcutPages: Record<string, string> = {
-  'com.apple.Safari': '~B,1,2,3|CP,shortcut.command+l,Address Bar,Magnify|CP,shortcut.command+t,New Tab,Tab Plus|CP,shortcut.command+f,Find,Text Search',
-  [slackAppId]: '~B,1,2,3|CP,shortcut.command+n,New Message,Chat Plus|CP,shortcut.command+g,Search,Magnify|CP,shortcut.command+shift+k,Browse DMs,Chat',
+// Preset IDs and order from the original touchscreen demo.
+const sampleShortcutTabs: Record<string, readonly string[]> = {
+  [finderAppId]: [],
+  'com.apple.Safari': ['2', '6', '7', '9', '8'],
+  [slackAppId]: ['0', '1', '2', '3', '4', '5', '6', '7'],
+  'com.apple.Notes': ['0', '1', '2', '3', '4'],
+  [chatgptAppId]: ['0', '2', '3', '4', '5', '6'],
+  'com.anthropic.claudefordesktop': ['0', '1', '2', '3'],
 }
+const chatgptShortcutAppearance = [
+  { label: 'Command' },
+  { label: 'Browser', icon: 'Web' },
+  { icon: 'Dock Right' },
+  { label: 'Bottom Terminal', icon: 'Dock Bottom' },
+  { label: 'Side Terminal', icon: 'Dock Right' },
+  { label: 'Side Terminal', icon: 'Dock Right' },
+]
 const idleDelayMs = 5000
 const pressDurationMs = 180
 const embedded = !editable && window.parent !== window
-const demoFolders = ['Desktop', 'Documents', 'Downloads', 'Projects'].map(label => ({
-  id: COMPANION_FOLDER_PREFIX + label.toLowerCase(),
+const finderFolderLabels = ['Camera Uploads', 'Desktop', 'Downloads', 'Git']
+const demoFolders = [...finderFolderLabels, 'Documents', 'Projects'].map(label => ({
+  id: COMPANION_FOLDER_PREFIX + label.toLowerCase().replace(/ /g, '-'),
   label,
 }))
 
@@ -60,18 +83,53 @@ function entity(id: string, value: Entity['value'], details?: Partial<Entity>): 
   return { ...details, id, value, state }
 }
 
+type SamplePageCard = Pick<CardConfig, 'entity' | 'label' | 'icon'> & { options?: string }
+
+function samplePageCards(appId: string, tabs: readonly string[]): SamplePageCard[] {
+  if (appId === finderAppId) {
+    return demoFolders.filter(({ label }) => finderFolderLabels.includes(label))
+      .map(({ id, label }) => ({ entity: id, label, icon: 'Folder Outline' }))
+  }
+  const { buttons } = createCompanionShortcutSubpage(appId, tabs)
+  if (appId !== chatgptAppId) return buttons
+
+  // Keep the captured labels and the Approve shortcut, which was retired from the catalog.
+  const cards: SamplePageCard[] = buttons.map((card, index) => ({ ...card, ...chatgptShortcutAppearance[index] }))
+  cards.splice(1, 0, {
+    entity: 'shortcut.command+enter',
+    label: 'Approve',
+    icon: 'Check',
+    options: 'app_shortcut_preset=custom',
+  })
+  return cards
+}
+
+const sampleButtons: Record<number, string> = {}
+const sampleSubpages: Record<number, string> = {}
+for (const [index, { id, label }] of sampleApps.entries()) {
+  const slot = index + 1
+  const tabs = sampleShortcutTabs[id]
+  let options = 'app_hide_label'
+  if (tabs) {
+    options = setCompanionShortcutTabs({ entity: id, options: 'app_hide_label,app_shortcuts' }, tabs)
+    const cards = samplePageCards(id, tabs)
+    sampleSubpages[slot] = serializeCompactSubpageConfig(
+      ['B', ...cards.map((_, index) => String(index + 1))],
+      cards.map(({ entity, label, icon, options }) => trimConfigFields([
+        'CP', encodeConfigField(entity), encodeConfigField(label), encodeConfigField(icon),
+        '', '', '', '', encodeConfigField(options),
+      ])),
+    )
+  }
+  sampleButtons[slot] = `${id};${label};Auto;Auto;;;companion;;${options}`
+}
+
 const sample = {
   layout: encodePanelPageDocument({
     deviceProfile,
-    buttons: Object.fromEntries(sampleApps.map(({ id, label }, index) => [
-      index + 1,
-      `${id};${label};Auto;Auto;;;companion;;app_hide_label${sampleShortcutPages[id] ? ',app_shortcuts' : ''}`,
-    ])),
-    subpages: Object.fromEntries(sampleApps.flatMap(({ id }, index) => {
-      const page = sampleShortcutPages[id]
-      return page ? [[index + 1, page]] : []
-    })),
-    settings: { button_order: sampleApps.map((_, index) => index + 1).join(',') },
+    buttons: sampleButtons,
+    subpages: sampleSubpages,
+    settings: { button_order: Object.keys(sampleButtons).join(',') },
   }),
   entities: [
     entity('switch/Screen: Clock Bar', false),

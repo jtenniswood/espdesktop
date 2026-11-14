@@ -18,7 +18,7 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
     func launchableApps() -> [LaunchableApp] { [] }
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data? { nil }
     func focusedCompanionActionIdentifier() -> String { "" }
-    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String) async -> String { "not_allowed" }
+    func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String { "not_allowed" }
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool { false }
     func setMediaControlValue(_ value: Int, controlIdentifier: String) -> Bool { false }
     func load(account: String) -> Data? { credentialReads += 1; return nil }
@@ -26,6 +26,15 @@ private final class SessionFixture: CompanionSessionPreferences, CompanionSessio
 }
 
 final class CompanionSessionTests: XCTestCase {
+    func testOnlyPairingErrorsChangeTheSavedDisplayToPairingRequired() {
+        XCTAssertTrue(CompanionConnection.requiresNewPairing(errorCode: "pairing_reset", authenticated: true, authenticating: false))
+        XCTAssertTrue(CompanionConnection.requiresNewPairing(errorCode: "pairing_reset", authenticated: false, authenticating: true))
+        XCTAssertTrue(CompanionConnection.requiresNewPairing(errorCode: "authentication_failed", authenticated: false, authenticating: true))
+        XCTAssertFalse(CompanionConnection.requiresNewPairing(errorCode: "authentication_storage_failed", authenticated: false, authenticating: true))
+        XCTAssertFalse(CompanionConnection.requiresNewPairing(errorCode: "authentication_sequence", authenticated: false, authenticating: true))
+        XCTAssertFalse(CompanionConnection.requiresNewPairing(errorCode: "authentication_failed", authenticated: false, authenticating: false))
+    }
+
     @MainActor
     func testIndependentSessionsAndInvalidEndpointNeedNoSystemServices() {
         let firstPorts = SessionFixture(), secondPorts = SessionFixture()

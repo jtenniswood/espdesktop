@@ -3,6 +3,7 @@
   "appId": "com.obsproject.obs-studio",
   "label": "OBS Studio",
   "catalog": false,
+  "defaultShortcutIds": ["4", "12", "14", "0", "1", "2", "3", "5"],
   "shortcuts": [
     {
       "id": "0",
@@ -40,5 +41,20 @@
       "shortcut": "command+r",
       "icon": "Undo"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "6", "label": "Quit OBS Studio", "shortcut": "scoped.command+q", "icon": "Application Exit"},
+    {"id": "7", "label": "Remove source", "shortcut": "scoped.delete", "icon": "Delete"},
+    {"id": "8", "label": "Move source up in Sources list", "shortcut": "scoped.command+up", "icon": "Arrow Up"},
+    {"id": "9", "label": "Move source down in Sources list", "shortcut": "scoped.command+down", "icon": "Arrow Down"},
+    {"id": "10", "label": "Move source to top of Sources list", "shortcut": "scoped.command+function+left", "icon": "Arrow Left"},
+    {"id": "11", "label": "Move source to bottom of Sources list", "shortcut": "scoped.command+function+right", "icon": "Arrow Right"},
+    {"id": "12", "label": "Fit to screen", "shortcut": "scoped.command+f", "icon": "Shortcut Command"},
+    {"id": "13", "label": "Stretch to screen", "shortcut": "scoped.command+s", "icon": "Shortcut Command"},
+    {"id": "14", "label": "Center to screen", "shortcut": "scoped.command+d", "icon": "Shortcut Command"},
+    {"id": "15", "label": "Nudge source up", "shortcut": "scoped.up", "icon": "Arrow Up"},
+    {"id": "16", "label": "Nudge source down", "shortcut": "scoped.down", "icon": "Arrow Down"},
+    {"id": "17", "label": "Nudge source left", "shortcut": "scoped.left", "icon": "Arrow Left"},
+    {"id": "18", "label": "Nudge source right", "shortcut": "scoped.right", "icon": "Arrow Right"}
   ]
 }

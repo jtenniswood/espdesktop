@@ -27,7 +27,7 @@ for group, entity_id, setting in (
     assert f"ScalarSetting::{setting}," in entity["set_action"][0]["lambda"]
 trigger = next(item for item in config["text"] if item["id"] == "screen_schedule_trigger")
 assert not trigger["restore_value"] and not trigger["optimistic"]
-assert next(text for text in config["text"] if text["id"] == "screen_schedule_trigger")["initial_value"] == "time"
+assert trigger["initial_value"] == "disabled"
 assert next(select for select in config["select"] if select["id"] == "schedule_mode")["initial_option"] == "Screen Dimmed"
 defaults = {number["id"]: number.get("initial_value") for number in config["number"]}
 assert defaults["schedule_on_hour"] == 7
@@ -36,7 +36,7 @@ assert defaults["schedule_dimmed_brightness"] == 15
 for switch in config["switch"]:
     if switch["id"] != "schedule_enabled":
         continue
-    assert switch["restore_mode"] == "ALWAYS_ON"
+    assert switch["restore_mode"] == "DISABLED"
     assert switch["optimistic"] is False
     for handler in ("turn_on_action", "turn_off_action"):
         assert "edit_screen_schedule_preference" in switch[handler][0]["lambda"]

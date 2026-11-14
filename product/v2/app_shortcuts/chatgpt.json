@@ -1,8 +1,9 @@
 {
   "version": 1,
   "appId": "com.openai.chat",
-  "label": "ChatGPT",
+  "label": "ChatGPT Classic",
   "catalog": false,
+  "defaultShortcutIds": ["2", "0", "4", "7", "1", "3", "5", "6"],
   "shortcuts": [
     {
       "id": "0",
@@ -64,5 +65,9 @@
       "shortcut": "command+keyperiod",
       "icon": "Stop"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Share main desktop (ChatGPT Classic)", "shortcut": "scoped.command+shift+1", "icon": "Share"},
+    {"id": "11", "label": "Share window (ChatGPT Classic)", "shortcut": "scoped.command+shift+2", "icon": "Application"}
   ]
 }

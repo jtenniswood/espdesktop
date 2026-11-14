@@ -16,5 +16,5 @@ esphome:
 web_server:
   port: 80
   version: 3
-  js_url: https://jtenniswood.github.io/espdesktop/webserver/www.js?device=${device_slug}&v=${firmware_version}&ui=20260714-shared
+  js_url: https://espdesktop.com/webserver/www.js?device=${device_slug}&v=${firmware_version}&ui=20260714-shared
   js_include: "../docs/public/webserver/embedded/www.js"

@@ -3,6 +3,7 @@
   "appId": "com.apple.FaceTime",
   "label": "FaceTime",
   "catalog": false,
+  "defaultShortcutIds": ["0", "1", "2"],
   "shortcuts": [
     {
       "id": "0",
@@ -16,5 +17,13 @@
       "shortcut": "command+r",
       "icon": "Rotate Left"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "2", "label": "Open FaceTime settings", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "3", "label": "Hide FaceTime", "shortcut": "scoped.command+h", "icon": "Eye Off"},
+    {"id": "4", "label": "Hide everything except FaceTime", "shortcut": "scoped.command+option+h", "icon": "Eye Off"},
+    {"id": "5", "label": "Quit FaceTime", "shortcut": "scoped.command+q", "icon": "Application Exit"},
+    {"id": "6", "label": "Close FaceTime window", "shortcut": "scoped.command+w", "icon": "Application"},
+    {"id": "7", "label": "Minimise window", "shortcut": "scoped.command+m", "icon": "Window Minimise"}
   ]
 }

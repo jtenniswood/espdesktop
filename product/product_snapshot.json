@@ -12,7 +12,7 @@
     "deviceProfiles": 9,
     "cardTypes": 33,
     "entityNames": 92,
-    "icons": 347,
+    "icons": 360,
     "structuralIcons": 39,
     "compatibilityFixtureGroups": 2
   },
@@ -8336,6 +8336,71 @@
         "name": "Page Previous",
         "codepoint": "F0BB2",
         "mdi": "page-previous"
+      },
+      {
+        "name": "Duplicate",
+        "codepoint": "F0191",
+        "mdi": "content-duplicate"
+      },
+      {
+        "name": "Align Left",
+        "codepoint": "F0262",
+        "mdi": "format-align-left"
+      },
+      {
+        "name": "Align Right",
+        "codepoint": "F0263",
+        "mdi": "format-align-right"
+      },
+      {
+        "name": "Align Center",
+        "codepoint": "F0260",
+        "mdi": "format-align-center"
+      },
+      {
+        "name": "Justify",
+        "codepoint": "F0261",
+        "mdi": "format-align-justify"
+      },
+      {
+        "name": "Strikethrough",
+        "codepoint": "F0281",
+        "mdi": "format-strikethrough-variant"
+      },
+      {
+        "name": "Numbered List",
+        "codepoint": "F027B",
+        "mdi": "format-list-numbered"
+      },
+      {
+        "name": "Decrease Indent",
+        "codepoint": "F0275",
+        "mdi": "format-indent-decrease"
+      },
+      {
+        "name": "Increase Indent",
+        "codepoint": "F0276",
+        "mdi": "format-indent-increase"
+      },
+      {
+        "name": "Paint Format",
+        "codepoint": "F027C",
+        "mdi": "format-paint"
+      },
+      {
+        "name": "Subscript",
+        "codepoint": "F0282",
+        "mdi": "format-subscript"
+      },
+      {
+        "name": "Superscript",
+        "codepoint": "F0283",
+        "mdi": "format-superscript"
+      },
+      {
+        "name": "Subtitles",
+        "codepoint": "F0A17",
+        "mdi": "subtitles-outline"
       }
     ],
     "domain_defaults": {

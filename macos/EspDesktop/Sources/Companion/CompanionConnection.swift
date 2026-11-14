@@ -54,6 +54,10 @@ final class CompanionConnection: NSObject {
     private var session: URLSession?
     private var task: URLSessionWebSocketTask?
     private var mode: Mode = .authenticate
+    var isPairing: Bool {
+        if case .pair = mode { return true }
+        return false
+    }
     private var receiveTask: Task<Void, Never>?
     private var reconnectTask: Task<Void, Never>?
     private var reconnectAttempt = 0
@@ -67,7 +71,11 @@ final class CompanionConnection: NSObject {
     private var supportsHighResolutionAppIcons = false
     private var supportsImmediateApplicationFocus = false
     private var supportsSessionLock = false
+    private var supportsPairingReset = false
+    private var pairingResetCompletion: CheckedContinuation<Void, Never>?
+    private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
+    private var expandedShortcutsSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -75,6 +83,7 @@ final class CompanionConnection: NSObject {
     private var appIconGeneration: UInt32 = 0
     private var appIconOffset = 0
     private var pendingAppIconRequests: [CompanionWireAppIconRequest] = []
+    private var focusTargets: [(id: String, url: URL)] = []
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
     private var catalogueGeneration: UInt32 = 0
@@ -169,13 +178,46 @@ final class CompanionConnection: NSObject {
         updateConnectionStatus("Not connected", state: .disconnected)
     }
 
+    func cancelRePairing() {
+        guard isPairing else { return }
+        tearDownConnection()
+        updateConnectionStatus("Display needs to be paired again", state: .needsPairing,
+                               recovery: Self.rePairingInstructions)
+    }
+
+    func showPairingBeforeDisconnecting() async {
+        guard sessionAuthenticated, supportsPairingReset, pairingResetCompletion == nil else { return }
+        shouldReconnect = false
+        await withCheckedContinuation { continuation in
+            pairingResetCompletion = continuation
+            pairingResetTimeout = Task { [weak self] in
+                try? await Task.sleep(for: .seconds(2))
+                guard !Task.isCancelled else { return }
+                self?.finishPairingResetRequest()
+            }
+            sendJSON(["type": "pair.reset"])
+        }
+    }
+
+    private func finishPairingResetRequest() {
+        pairingResetTimeout?.cancel()
+        pairingResetTimeout = nil
+        pairingResetCompletion?.resume()
+        pairingResetCompletion = nil
+    }
+
     private func tearDownConnection() {
+        finishPairingResetRequest()
         if !shouldReconnect { discovery.stop() }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        pendingCertificateFingerprint = nil
+        focusTargets = []
+        applicationFocusPublisher.reset()
         supportsAlphaAppIcons = false
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
+        expandedShortcutsSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -267,10 +309,16 @@ final class CompanionConnection: NSObject {
         }
         let fingerprint = SHA256.hash(data: SecCertificateCopyData(certificate) as Data).map { String(format: "%02x", $0) }.joined()
         let saved = preferences.stringPreference(forKey: certificateFingerprintKey)
-        if let saved, saved != fingerprint {
+        if case .pair = mode, !preferences.allowsPairing(certificateFingerprint: fingerprint) {
             shouldReconnect = false
             hasTerminalConnectionError = true
-            updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code from its webpage.")
+            updateConnectionStatus("Display already paired", state: .failed,
+                                   recovery: "This display is already in Displays. Select it there to reconnect.")
+            completionHandler(.cancelAuthenticationChallenge, nil)
+        } else if let saved, saved != fingerprint {
+            shouldReconnect = false
+            hasTerminalConnectionError = true
+            updateConnectionStatus("Blocked: display certificate changed", state: .failed, recovery: "The display’s identity has changed. If you reset or replaced it, forget this display and pair again using the code shown on its touchscreen.")
             completionHandler(.cancelAuthenticationChallenge, nil)
         } else if saved != nil {
             endpointRecovery.verifiedFingerprint = fingerprint
@@ -282,7 +330,7 @@ final class CompanionConnection: NSObject {
             pendingCertificateFingerprint = fingerprint
             completionHandler(.useCredential, URLCredential(trust: trust))
         } else {
-            updateConnectionStatus("Open the device webpage to start pairing", state: .failed)
+            updateConnectionStatus("Start pairing on the display and enter its code", state: .failed)
             completionHandler(.cancelAuthenticationChallenge, nil)
         }
     }
@@ -338,14 +386,19 @@ final class CompanionConnection: NSObject {
 
     private func handleConnectionFailure(for failedTask: URLSessionWebSocketTask, reason: String = "Connection closed") {
         guard task === failedTask else { return }
+        finishPairingResetRequest()
         print("[EspDesktop] Companion connection lost: \(reason)")
         if !hasTerminalConnectionError, case .pair = mode {
             updateConnectionStatus("Pairing failed — try again", state: .failed)
         }
         connectionGeneration &+= 1
         sessionAuthenticated = false
+        pendingCertificateFingerprint = nil
+        focusTargets = []
+        applicationFocusPublisher.reset()
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
+        expandedShortcutsSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -430,14 +483,14 @@ final class CompanionConnection: NSObject {
         case .pairAccepted(let payload):
             guard let credential = Data(hex: payload.credential) else { updateConnectionStatus("Pairing failed", state: .failed); return true }
             guard let fingerprint = pendingCertificateFingerprint else { updateConnectionStatus("Pairing failed", state: .failed); return true }
-            let pairingAccount = preferences.panelHost
+            let pairingAccount = preferences.newPairingAccount
             guard credentials.save(credential, account: pairingAccount) else {
                 updateConnectionStatus("Pairing failed: the credential could not be saved in Keychain", state: .failed, recovery: "Unlock your Mac and allow EspDesktop to access Keychain, then try again.")
                 return true
             }
+            preferences.setPreference(fingerprint, forKey: "companion.certificateFingerprint.\(pairingAccount)")
+            preferences.removePreference(forKey: "companion.authenticationSequence.\(pairingAccount)")
             preferences.rememberPairingAccount(pairingAccount)
-            preferences.setPreference(fingerprint, forKey: certificateFingerprintKey)
-            preferences.removePreference(forKey: authenticationSequenceKey)
             pendingCertificateFingerprint = nil
             updateConnectionStatus("Paired — reconnecting", state: .connecting)
             connect(mode: .authenticate)
@@ -449,6 +502,8 @@ final class CompanionConnection: NSObject {
             supportsHighResolutionAppIcons = payload.capabilityVersion >= 5
             supportsImmediateApplicationFocus = payload.capabilityVersion >= 6
             supportsSessionLock = payload.capabilityVersion >= 7
+            supportsPairingReset = payload.capabilityVersion >= 8
+            expandedShortcutsSupported = payload.capabilityVersion >= 9
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -488,8 +543,8 @@ final class CompanionConnection: NSObject {
                       (url.scheme == "http" || url.scheme == "https"), url.host != nil else { return nil }
                 return (item.id, url)
             }
-            resources.setCompanionFocusRegistrations(Array(targets.prefix(64)))
-            publishFocusedAction()
+            focusTargets = Array(targets.prefix(64))
+            publishFocusedAction(invalidatePendingQuery: true)
         case .actionInvoke(let payload):
             guard sessionAuthenticated else { return false }
             let requestIdentifier = payload.requestId
@@ -500,7 +555,8 @@ final class CompanionConnection: NSObject {
                     guard let self, let requestingTask, self.task === requestingTask, self.sessionAuthenticated else { return }
                     let status = await self.resources.performResultStatus(
                         actionIdentifier: actionIdentifier,
-                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window"
+                        folderOpenBehavior: payload.folderOpenBehavior ?? "new_window",
+                        shortcutAppID: payload.appId
                     )
                     guard self.task === requestingTask, self.sessionAuthenticated else { return }
                     self.sendJSON(["type": "action.result", "requestId": requestIdentifier, "status": status])
@@ -552,7 +608,18 @@ final class CompanionConnection: NSObject {
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
             let code = payload.code
-            if code == "authentication_sequence",
+            if code == "pairing_reset_failed" { finishPairingResetRequest() }
+            if Self.requiresNewPairing(errorCode: code, authenticated: sessionAuthenticated,
+                                       authenticating: authenticationRequestOutstanding) {
+                let isForgetting = pairingResetCompletion != nil
+                hasTerminalConnectionError = true
+                shouldReconnect = false
+                tearDownConnection()
+                if !isForgetting {
+                    updateConnectionStatus("Display needs to be paired again", state: .needsPairing,
+                                           recovery: Self.rePairingInstructions)
+                }
+            } else if code == "authentication_sequence",
                let panelSequence = payload.lastSequence,
                panelSequence < UInt32.max {
                 preferences.setPreference(Int(panelSequence), forKey: authenticationSequenceKey)
@@ -566,10 +633,7 @@ final class CompanionConnection: NSObject {
                     hasTerminalConnectionError = true
                     shouldReconnect = false
                     tearDownConnection()
-                    let recovery = code == "authentication_failed"
-                        ? "The display rejected this app’s saved pairing. If you paired it with another copy of EspDesktop, choose Remove and pair this copy once."
-                        : nil
-                    updateConnectionStatus(message, state: .failed, recovery: recovery)
+                    updateConnectionStatus(message, state: .failed)
                 }
             }
         case .artworkAck, .artworkAbort, .artworkRequest:
@@ -579,6 +643,16 @@ final class CompanionConnection: NSObject {
             return false
         }
         return true
+    }
+
+    private static let rePairingInstructions = "Select Re-pair to reconnect."
+
+    nonisolated static func requiresNewPairing(errorCode: String, authenticated: Bool, authenticating: Bool) -> Bool {
+        switch errorCode {
+        case "pairing_reset": return authenticated || authenticating
+        case "authentication_failed": return authenticating
+        default: return false
+        }
     }
 
     func publishSystemMetrics(_ snapshot: CompanionSystemMetricsSnapshot, force: Bool = false) {
@@ -731,8 +805,20 @@ final class CompanionConnection: NSObject {
         }
         if remoteCatalogueDefinitionsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
-            let payloads: [(String, Data)] = definitions.compactMap { app in
-                guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
+            let installedIDs = Set(apps.map(\.bundleIdentifier))
+            let starter = definitions.map(\.starter)
+            let expanded = expandedShortcutsSupported ? definitions.filter { app in
+                installedIDs.contains(app.appId) ||
+                    (app.appId == "com.apple.Safari.WebApp" && installedIDs.contains {
+                        $0 != "com.apple.Safari" && CompanionKeyboardShortcut.isSafariApplication($0)
+                    }) ||
+                    (app.appId == "com.adobe.PremierePro" && installedIDs.contains {
+                        CompanionKeyboardShortcut.scopedTargetMatches(app.appId, frontmost: $0, approved: installedIDs)
+                    })
+            }.flatMap { $0.expandedPages() } : []
+            let encoder = JSONEncoder()
+            let payloads: [(String, Data)] = (starter + expanded).prefix(256).compactMap { app in
+                guard let data = try? encoder.encode(app), data.count <= 12_000 else { return nil }
                 return ("application", data)
             }
             let definitionPages = max(payloads.count, 1)
@@ -783,7 +869,7 @@ final class CompanionConnection: NSObject {
         guard sessionAuthenticated, focusPublicationTask == nil, let requestingTask = task else { return }
         focusPublicationTask = Task { [weak self, weak requestingTask] in
             guard let self else { return }
-            let focused = await self.resources.focusedCompanionActionIdentifiers()
+            let focused = await self.resources.focusedCompanionActionIdentifiers(for: self.focusTargets)
             guard !Task.isCancelled, let requestingTask, self.task === requestingTask,
                   self.sessionAuthenticated else { return }
             self.focusPublicationTask = nil

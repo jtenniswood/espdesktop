@@ -196,13 +196,13 @@ def test_publication_requires_tested_candidate() -> None:
     assert "name: release-candidate-compatibility" in publish
     assert '.conclusion == "success"' in publish and ".head_sha == $source" in publish
     assert '.workflow_id == $workflow' in publish
-    assert 'HARDWARE_REPORT: ${{ inputs.hardware_report }}' in publish
-    assert publish.index("scripts/test_release_hardware.py verify") < publish.index("scripts/companion_release.py verify")
+    assert 'confirmed_fingerprint:\n        description:' in publish
+    assert 'CONFIRMED_FINGERPRINT: ${{ inputs.confirmed_fingerprint }}' in publish
     assert publish.count("run-id: ${{ inputs.candidate_run }}") == 3
     pages_upload = publish.split("name: Make the tested editor available to Pages", 1)[1]
     pages_upload = pages_upload.split("name: Upload, verify, and publish draft release", 1)[0]
     assert "overwrite: true" in pages_upload, "Publication retries must replace the verified Pages artifact"
-    assert publish.index('--tested-fingerprint "${TESTED_FINGERPRINT}"') < publish.index(
+    assert publish.index('--tested-fingerprint "${CONFIRMED_FINGERPRINT}"') < publish.index(
         "scripts/firmware_release.py publish-draft"
     )
     assert 'workflows: ["Publish Release"]' in PAGES_WORKFLOW.read_text(encoding="utf-8")

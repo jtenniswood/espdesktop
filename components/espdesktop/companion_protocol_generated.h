@@ -205,6 +205,9 @@ struct SessionLock {
   bool locked{};
   std::optional<bool> displayAwake{};
 };
+struct PairReset {
+
+};
 inline void encode(JsonObject root, const Hello &message) {
   root["type"] = "hello";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
@@ -466,7 +469,12 @@ inline void encode(JsonObject root, const SessionLock &message) {
   root["locked"] = message.locked;
   if (message.displayAwake) root["displayAwake"] = *message.displayAwake;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock>;
+inline void encode(JsonObject root, const PairReset &message) {
+  root["type"] = "pair.reset";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  (void) message;
+}
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -1109,6 +1117,13 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     SessionLock result;
     result.locked = root["locked"].as<bool>();
     if (!root["displayAwake"].isUnbound()) result.displayAwake = root["displayAwake"].as<bool>();
+    return result;
+  }
+  if (type == "pair.reset") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+
+    PairReset result;
     return result;
   }
   return std::nullopt;

@@ -1,7 +1,7 @@
 ---
-title: EspDesktop — ESP32 Touchscreen Controller for Mac
+title: "EspDesktop: A touchscreen controller for your Mac"
 titleTemplate: :title
-description: Turn a 4-inch Guition 4848S040 ESP32 touchscreen into a Mac control panel for launching apps, opening websites and Finder folders, and running keyboard shortcuts.
+description: Launch apps, open websites and Finder folders, and run keyboard shortcuts from a 4-inch touchscreen paired with the free EspDesktop Mac app.
 layout: home
 ---
 
@@ -11,18 +11,21 @@ layout: home
 
 # A touchscreen controller *for your Mac*
 
-Open apps, visit websites and run shortcuts from this 4-inch touchscreen for less than **$26/£20**. Pair it over your local network with the free Mac app.
+EspDesktop turns a 4-inch ESP32-based touchscreen into a controller for opening apps, visiting websites and running shortcuts on your Mac for less than **$26/£20**. Pair it over your local network with the free Mac app.
 
 <div class="homepage-action">
 
-[Get started](/getting-started/install)
+[Get started](/screens/4848s040)
 
 </div>
 
 </div>
 
 <figure class="homepage-panel">
-  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen showing Mac app tiles beside a keyboard" width="1320" height="1093">
+  <picture>
+  <source type="image/avif" srcset="/images/espdesktop-desk-480.avif 480w, /images/espdesktop-desk-960.avif 960w" sizes="(min-width: 768px) 480px, 90vw">
+  <img src="/images/espdesktop-desk.jpg" alt="EspDesktop touchscreen beside a Mac keyboard, with tiles for Finder, Safari, Slack and other apps" width="1320" height="1093" fetchpriority="high">
+</picture>
 </figure>
 
 </section>
@@ -30,8 +33,6 @@ Open apps, visit websites and run shortcuts from this 4-inch touchscreen for les
 <section class="homepage-features">
 
 ## What you can control
-
-These controls are available in the [stable EspDesktop release](https://github.com/jtenniswood/espdesktop/releases/latest). Window Control cards are available in [development builds that enable the preview](https://github.com/jtenniswood/espdesktop/issues/309).
 
 <div class="homepage-grid">
 
@@ -125,7 +126,7 @@ Tap the Lock Machine tile when you step away from your desk.
 
 Resize tiles, choose their icons and colours, and group related controls into subpages.
 
-[Customise the display](/features/setup)
+[Customise the layout](/features/home)
 
 </article>
 
@@ -139,22 +140,23 @@ Resize tiles, choose their icons and colours, and group related controls into su
 
 ## EspDesktop in action {#a-look-at-the-web-editor}
 
-Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap the app icon to go back home.
+Tap Safari, Slack, Notes, ChatGPT, or Claude to see their shortcuts, or tap Finder to see its folders. Tap the app icon on any subpage to go back home.
 
 <div class="homepage-editor-actions">
 
-<a href="./editor/index.html" target="_self">Open full-size demo</a> <a href="./editor-demo/index.html" target="_self">Open editor demo</a> [Get Started](/screens/4848s040#where-to-buy)
+[Getting Started](/screens/4848s040) <a href="./editor-demo/index.html" target="_self">Preview Editor</a>
 
 </div>
 
 </div>
 
-<iframe
-  class="homepage-demo"
-  src="./editor/index.html"
-  title="Interactive EspDesktop touchscreen demo"
-  loading="lazy"
-></iframe>
+<figure class="homepage-demo">
+  <iframe
+    src="./editor/index.html"
+    title="Interactive EspDesktop touchscreen demo"
+    loading="lazy"
+  ></iframe>
+</figure>
 
 </section>
 
@@ -208,12 +210,14 @@ Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap th
   text-decoration: none;
 }
 
-.homepage-action a {
+.homepage-action a,
+.homepage-editor-actions a:first-child {
   background: var(--vp-button-brand-bg);
   color: var(--vp-button-brand-text);
 }
 
-.homepage-action a:hover {
+.homepage-action a:hover,
+.homepage-editor-actions a:first-child:hover {
   background: var(--vp-button-brand-hover-bg);
   color: var(--vp-button-brand-hover-text);
 }
@@ -303,13 +307,13 @@ Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap th
 }
 
 .homepage-grid article > p:last-child > a,
-.homepage-editor-actions a {
+.homepage-editor-actions a + a {
   background: var(--vp-button-alt-bg);
   color: var(--vp-button-alt-text);
 }
 
 .homepage-grid article > p:last-child > a:hover,
-.homepage-editor-actions a:hover {
+.homepage-editor-actions a + a:hover {
   background: var(--vp-button-alt-hover-bg);
   color: var(--vp-button-alt-hover-text);
 }
@@ -334,10 +338,18 @@ Try the nine-app launcher here. Tap Slack to open its shortcut page, then tap th
 .homepage-demo {
   display: block;
   width: min(100%, 452px);
-  height: auto;
+  margin: 0;
   aspect-ratio: 1;
   justify-self: center;
+}
+
+.homepage-demo iframe {
+  display: block;
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
   border: 0;
+  border-radius: 18px;
   color-scheme: only light;
 }
 

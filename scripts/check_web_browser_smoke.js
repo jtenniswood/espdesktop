@@ -16,6 +16,8 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
+  parseRawButtonConfig,
+  setConfigOptionValue,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
 const { encodePanelPageDocument, decodePanelPageSnapshot } = loadTypeScriptModule("src/webserver/model/panel_config_conversion.ts");
 const MANIFEST_PATH = path.join(ROOT, "devices", "manifest.json");
@@ -511,7 +513,7 @@ async function installRoutes(context, slug, options = {}) {
       await route.fulfill({ status: 204, contentType: "text/plain", body: "" });
       return;
     }
-    if (requestUrl.hostname === "jtenniswood.github.io") {
+    if (requestUrl.origin === "https://espdesktop.com" && requestUrl.pathname.startsWith("/firmware/")) {
       if (requestUrl.pathname.endsWith("/manifest.json")) {
         await route.fulfill({
           status: 200,
@@ -919,18 +921,18 @@ async function assertPageTitleEvents(browser) {
     );
 
     await page.evaluate(() =>
-      window.__seedEspPing({ title: "EspDesktop 7inch P4" }),
+      window.__seedEspPing({ title: "Guition ESP32-S3-4848S040 f45c6c" }),
     );
     assert.strictEqual(
       await page.title(),
-      "EspDesktop 7inch P4",
+      "EspDesktop - 5c6c",
       "ping title should set browser title",
     );
 
     await page.evaluate(() => window.__seedEspPing({ uptime: 12 }));
     assert.strictEqual(
       await page.title(),
-      "EspDesktop 7inch P4",
+      "EspDesktop - 5c6c",
       "keepalive ping should preserve browser title",
     );
 
@@ -942,12 +944,12 @@ async function assertPageTitleEvents(browser) {
     );
 
     await page.evaluate(() =>
-      window.__seedEspPing({ title: "EspDesktop 7inch P4" }),
+      window.__seedEspPing({ title: "Guition ESP32-S3-4848S040 f45c6c" }),
     );
     await page.evaluate(() => window.__seedEspPing({}));
     assert.strictEqual(
       await page.title(),
-      "EspDesktop 7inch P4",
+      "EspDesktop - 5c6c",
       "missing ping title should preserve current title",
     );
 
@@ -976,11 +978,11 @@ async function assertPageTitleEvents(browser) {
       () => window.__eventSources && window.__eventSources.length > 0,
     );
     await normalPage.evaluate(() =>
-      window.__seedEspPing({ title: "EspDesktop 4inch S3" }),
+      window.__seedEspPing({ title: "Workshop" }),
     );
     assert.strictEqual(
       await normalPage.title(),
-      "EspDesktop 4inch S3",
+      "EspDesktop - Workshop",
       "normal page should read title from one-shot event stream",
     );
     assert.strictEqual(
@@ -1525,7 +1527,7 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
       `${label}: install progress should stay in the action button`,
     );
     assert.strictEqual(
-      await firmwareCard.locator(".sp-fw-overview .sp-fw-status").innerText(),
+      await firmwareCard.locator("#sp-fw-status").innerText(),
       "",
       `${label}: install progress should not be duplicated below the action`,
     );
@@ -1636,7 +1638,10 @@ async function assertSettingsPage(page, label, options = {}, posts = []) {
   );
   await nightScheduleCard.locator(".card-header").click();
   const scheduleOnHour = nightScheduleCard.locator("#sp-set-schedule-on-hour");
-  assert(await scheduleOnHour.isVisible(), `${label}: Night Schedule shows time fields by default`);
+  assert.strictEqual(await scheduleOnHour.isVisible(), false,
+    `${label}: Night Schedule starts disabled and hides time fields`);
+  await nightScheduleCard.getByRole("button", { name: "Time", exact: true }).click();
+  assert(await scheduleOnHour.isVisible(), `${label}: enabling Night Schedule shows time fields`);
   await nightScheduleCard.getByRole("button", { name: "Disabled", exact: true }).click();
   assert.strictEqual(await scheduleOnHour.isVisible(), false,
     `${label}: disabled night schedule hides time fields`);
@@ -2196,12 +2201,12 @@ async function assertConnectorsManagement(page, testCase) {
     `${testCase.name}: retired Home Assistant connector is absent`);
   if (testCase.companionSupported) {
     assert(
-      await page.locator("#sp-connectors").getByText("Connect your Mac").count() > 0,
+      await page.locator("#sp-connectors").getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
       `${testCase.name}: Mac Companion remains available`,
     );
   } else {
     assert(
-      await page.locator("#sp-connectors .sp-companion-heading").count() === 0,
+      await page.locator("#sp-connectors").getByRole("heading", { name: "Mac Companion", exact: true }).count() === 0,
       `${testCase.name}: unsupported profiles hide Mac Companion setup`,
     );
   }
@@ -4309,6 +4314,8 @@ async function assertShortcutCatalogSettings(browser, testCase) {
   if (testCase.slug !== "guition-esp32-s3-4848s040") return;
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] = "shortcut.command+a;;Shortcut Command;Auto;;;companion;;";
+  nativeState.document.buttons[4] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[4] = "~B,1|companion,shortcut.command%2Bl,Address,Keyboard";
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
@@ -4355,6 +4362,7 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     const application = type.getByRole("tab", { name: "Application", exact: true });
     const app = page.locator('[id$="shortcut-catalog-app"]');
     const action = page.locator('[id$="shortcut-catalog-action"]');
+    const search = page.getByRole("searchbox", { name: "Search by name or keys" });
     assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "existing custom shortcuts open the Custom tab");
     assert.strictEqual(await page.locator('[id$="companion-shortcut"]').count(), 0, "the recording field is removed");
     await custom.press("ArrowRight");
@@ -4382,16 +4390,36 @@ async function assertShortcutCatalogSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0);
+    const safariShortcutCount = safariTemplate.shortcuts.length + (safariTemplate.safariShortcuts?.length || 0) + (safariTemplate.moreShortcuts?.length || 0);
     assert.strictEqual(
       await action.locator("option").count(),
       safariShortcutCount + 1,
       "Safari catalog shortcuts plus placeholder",
     );
+    const reloadPreset = "app_shortcut_preset=com.apple.Safari%3A2";
+    for (const query of ["reload", "Cmd+R", "⌘R"]) {
+      await search.fill(query);
+      const results = await action.locator("option").allTextContents();
+      assert(results.length < safariShortcutCount + 1);
+      assert(results.includes("Reload (⌘R)"), query);
+    }
+    await search.fill("ctrl shift tab");
+    assert((await action.locator("option").allTextContents()).includes("Previous Tab (⌃⇧Tab)"));
+    await search.fill("tab");
+    assert((await action.locator("option").allTextContents()).includes("Next Field (Tab)"));
+    await search.fill("zzzz");
+    await page.getByRole("status").filter({ hasText: "No matching shortcuts" }).waitFor();
+    assert.strictEqual(await action.locator("option").count(), 1);
     const beforeInvalidSave = nativeState.puts.length;
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeInvalidSave, "incomplete catalog choice cannot save");
-    await action.selectOption("app_shortcut_preset=com.apple.Safari%3A2");
+    await search.fill("reload");
+    await action.selectOption(reloadPreset);
+    assert.strictEqual(await search.inputValue(), "reload", "choosing a shortcut keeps the filter");
+    await search.fill("zzzz");
+    assert.strictEqual(await action.inputValue(), reloadPreset, "filtering keeps the selected shortcut");
+    await search.fill("");
+    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
     await saveCard();
     assert(String(nativeState.document.buttons[1]).includes("app_shortcut_preset=com.apple.Safari%3A2"));
     await page.reload({ waitUntil: "domcontentloaded" });
@@ -4405,7 +4433,16 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     assert.strictEqual(await action.inputValue(), "app_shortcut_preset=com.apple.Safari%3A2");
     const slack = require("../product/v2/app_shortcuts/slack.json");
     const slackPreset = "app_shortcut_preset=" + slack.appId + "%3A" + slack.shortcuts[0].id;
+    await app.selectOption("com.apple.FinalCut");
+    assert((await action.locator("option").count()) > 350, "Final Cut Pro has a large catalog");
+    await search.fill("blade at playhead");
+    assert.deepStrictEqual(await action.locator("option").allTextContents(),
+      ["Choose a shortcut…", "Blade at Playhead (⌘B)"]);
+    await search.fill("Cmd+B");
+    assert((await action.locator("option").allTextContents()).includes("Blade at Playhead (⌘B)"));
+    await search.fill("reload");
     await app.selectOption(slack.appId);
+    assert.strictEqual(await search.inputValue(), "", "switching apps clears the filter");
     assert.strictEqual(await application.getAttribute("aria-selected"), "true", "changing apps keeps the Application tab selected");
     await action.selectOption(slackPreset);
     await saveCard();
@@ -4484,6 +4521,39 @@ async function assertShortcutCatalogSettings(browser, testCase) {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     assert.strictEqual(nativeState.puts.length, beforeMissingKeySave, "a modifier without a key cannot save");
 
+    await page.locator(".sp-settings-close").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    const addShortcut = async () => {
+      await page.locator(".sp-main .sp-empty-cell").first().click();
+      await chooseCardType(page, "Key Shortcut");
+    };
+    await page.locator('.sp-main [data-slot="4"] .sp-subpage-badge').click();
+    await addShortcut();
+    assert.strictEqual(await application.getAttribute("aria-selected"), "true");
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari", "new shortcuts start with the page's app");
+    assert.strictEqual(await action.inputValue(), "", "the user still chooses a shortcut");
+    assert.strictEqual(await action.locator("option").count(), safariShortcutCount + 1);
+    await search.fill("new tab");
+    assert((await action.locator("option").allTextContents()).includes("New Tab (⌘T)"));
+    await app.selectOption("");
+    assert.strictEqual(await app.inputValue(), "", "the app selection can be cleared");
+    await app.selectOption(slack.appId);
+    await custom.click();
+    assert(await page.getByRole("tabpanel", { name: "Custom" }).isVisible());
+    await application.click();
+    assert.strictEqual(await app.inputValue(), slack.appId, "switching tabs retains the user's app choice");
+    await action.selectOption(slackPreset);
+    await saveCard();
+    const savedSubpage = nativeState.document.subpages[4];
+    assert(decodeURIComponent(savedSubpage).includes(slackPreset), "the saved shortcut keeps the selected preset");
+    await addShortcut();
+    assert.strictEqual(await app.inputValue(), "com.apple.Safari", "each new card starts with the page's app");
+    await page.locator(".sp-settings-close").click();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.locator('.sp-main [data-slot="3"] .sp-subpage-badge').click();
+    await addShortcut();
+    assert.strictEqual(await custom.getAttribute("aria-selected"), "true", "generic subpages still start on Custom");
+
   } finally {
     await context.close();
   }
@@ -4494,6 +4564,10 @@ async function assertCompanionShortcutSettings(browser, testCase) {
   const nativeState = nativeConfigState(testCase.slug);
   nativeState.document.buttons[1] =
     "com.apple.Safari;Safari;Shortcut Command;Auto;;;companion;;app_shortcuts";
+  nativeState.document.subpages[1] = "~B,1,2,3,4,5,6,7,8|" +
+    require("../product/v2/app_shortcuts/safari.json").shortcuts.slice(0, 8).map(shortcut =>
+      ["companion", "shortcut." + shortcut.shortcut, shortcut.label, shortcut.icon].join(",")
+    ).join("|");
   const context = await browser.newContext({ viewport: testCase.viewport });
   await installRoutes(context, testCase.slug, { nativeState });
   const page = await context.newPage();
@@ -4518,8 +4592,12 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       '"' + String.fromCodePoint(0xF0633) + '"',
       "saved Command cards render the bundled MDI glyph",
     );
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const appCard = page.locator('.sp-main [data-slot="1"]');
+    await appCard.click({ button: "right" });
+    const menu = page.locator(".sp-ctx-menu");
+    assert.strictEqual(await menu.getByText("Shortcut List", { exact: true }).count(), 0,
+      "the shortcut editor is available inside app subpages");
+    await menu.getByText("Edit Card", { exact: true }).click();
     await page.waitForSelector(".sp-settings-overlay.sp-visible");
 
     const cardSettings = page.locator(".sp-settings-modal .sp-disclosure").filter({
@@ -4546,15 +4624,99 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       path.join(ROOT, "product", "v2", "app_shortcuts", "safari.json"),
       "utf8",
     ));
-    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? [])];
+    const safariShortcuts = [...safariTemplate.shortcuts, ...(safariTemplate.safariShortcuts ?? []), ...(safariTemplate.moreShortcuts ?? [])];
     const safariShortcutLabel = (id) =>
       safariShortcuts.find((shortcut) => shortcut.id === String(id)).label;
+    const toggleList = appSubpage.getByRole("button", { name: /Show (all|fewer) shortcuts/ });
+    const toggleActions = appSubpage.locator(".sp-app-subpage-shortcut-actions");
+    const visibleRows = appSubpage.locator(".sp-light-tab-row:visible");
+    assert.strictEqual(await visibleRows.count(), 20);
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "false");
+    const assertToggleBelowRows = async () => {
+      assert.strictEqual(await visibleRows.last().evaluate(row => getComputedStyle(row).borderBottomWidth), "0px");
+      assert.strictEqual(await visibleRows.first().evaluate(row => getComputedStyle(row).borderBottomWidth), "1px");
+      assert.strictEqual(await toggleActions.evaluate(el => getComputedStyle(el).borderTopWidth), "1px");
+      const lastRow = await visibleRows.last().boundingBox();
+      const actions = await toggleActions.boundingBox();
+      const toggle = await toggleList.boundingBox();
+      assert(actions.y >= lastRow.y + lastRow.height && toggle.y > actions.y,
+        "the divider separates the visible rows from the button");
+      assert(actions.y + actions.height > toggle.y + toggle.height, "the button has space below it");
+    };
+    await assertToggleBelowRows();
+    const filter = appSubpage.getByRole("searchbox", { name: "Find a shortcut…" });
+    const lastShortcut = safariShortcuts.at(-1);
+    await filter.fill(lastShortcut.label);
+    assert(!(await toggleActions.isVisible()), "search hides the button and its divider");
+    assert(await rows.filter({ has: page.getByText(lastShortcut.label, { exact: true }) }).last().isVisible(),
+      "search includes shortcuts beyond the first 20");
+    await filter.clear();
+    assert.strictEqual(await visibleRows.count(), 20);
+    await toggleList.click();
+    assert.strictEqual(await visibleRows.count(), safariShortcuts.length);
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "true");
+    await assertToggleBelowRows();
+    await toggleList.click();
+    assert.strictEqual(await visibleRows.count(), 20);
+    await toggleList.click();
+
+    const modal = page.locator(".sp-settings-modal");
+    const body = modal.locator(".sp-config > .sp-panel");
+    const footer = modal.locator(".sp-btn-row--save");
+    for (const viewport of [testCase.viewport, { width: 360, height: 640 }]) {
+      await page.setViewportSize(viewport);
+      await body.evaluate(el => { el.scrollTop = 0; });
+      assert(await body.evaluate(el => {
+        const modal = el.closest(".sp-settings-modal");
+        const bounds = el.getBoundingClientRect();
+        const style = getComputedStyle(modal);
+        const edges = modal.getBoundingClientRect();
+        return getComputedStyle(el).borderRadius === "0px" &&
+          Math.abs(bounds.left - edges.left - parseFloat(style.borderLeftWidth)) < 1 &&
+          Math.abs(edges.right - bounds.right - parseFloat(style.borderRightWidth)) < 1;
+      }), "the square scrolling area extends to the modal's inside edges");
+      const beforeScroll = await footer.boundingBox();
+      await body.evaluate(el => { el.scrollTop = el.scrollHeight; });
+      assert(await body.evaluate(el => el.scrollTop) > 0, "the settings body scrolls");
+      const lastSection = body.locator(".sp-disclosure").last();
+      const panelBounds = await body.boundingBox();
+      const lastBounds = await lastSection.boundingBox();
+      assert(panelBounds.y + panelBounds.height - (lastBounds.y + lastBounds.height) >= 11,
+        "the last section scrolls fully into view with space below it");
+      assert.deepStrictEqual(await footer.boundingBox(), beforeScroll, "the action row stays fixed while settings scroll");
+      for (const control of [".sp-delete-btn", ".sp-edit-subpage-btn", ".sp-save-btn"]) {
+        assert(await footer.locator(control).evaluate(el => {
+          const bounds = el.getBoundingClientRect();
+          return bounds.top >= 0 && bounds.bottom <= window.innerHeight &&
+            el.contains(document.elementFromPoint(bounds.x + bounds.width / 2, bounds.y + bounds.height / 2));
+        }), control + " is visible and clickable while the body is scrolled");
+      }
+    }
+    await page.setViewportSize(testCase.viewport);
+    await body.evaluate(el => { el.scrollTop = 0; });
+
     assert.deepStrictEqual(
       await rows.locator(".sp-light-tab-label").allTextContents(),
       safariShortcuts.map((shortcut) => shortcut.label),
       `${testCase.name}: Safari should expose its reorderable shortcut list`,
     );
-    await page.getByRole("button", { name: `Move ${safariShortcutLabel(3)} up` }).click();
+    await filter.fill("Reload");
+    assert(await rows.filter({ hasText: safariShortcutLabel(2) }).first().isVisible());
+    assert(!(await rows.filter({ hasText: safariShortcutLabel(3) }).first().isVisible()));
+    assert.strictEqual(await visibleRows.last().evaluate(row => getComputedStyle(row).borderBottomWidth), "0px",
+      "the last filtered shortcut has no trailing divider");
+    await filter.clear();
+    assert.strictEqual(await rows.locator(".sp-light-tab-move").count(), 0, "shortcuts use drag handles to reorder");
+    const drag = rows.locator('[aria-label="Drag ' + safariShortcutLabel(3) + '"]').first();
+    assert.strictEqual(await drag.getAttribute("tabindex"), "0", "the drag handle is keyboard accessible");
+    await drag.press("ArrowUp");
+    assert.strictEqual(await rows.nth(2).getAttribute("data-tab"), "3", "Arrow Up reorders the shortcut");
+    assert(await drag.evaluate(handle => handle === document.activeElement), "the moved handle retains focus");
+    await page.keyboard.press("ArrowDown");
+    assert.strictEqual(await rows.nth(3).getAttribute("data-tab"), "3", "Arrow Down reorders the shortcut");
+    await drag.dragTo(appSubpage.locator('.sp-light-tab-row[data-tab="2"]'), {
+      targetPosition: { x: 16, y: 6 },
+    });
     assert.strictEqual(
       await appSubpage.locator(".sp-disclosure-button").getAttribute("aria-expanded"),
       "true",
@@ -4566,6 +4728,7 @@ async function assertCompanionShortcutSettings(browser, testCase) {
       "true",
       `${testCase.name}: App subpage stays open after toggling a shortcut`,
     );
+    assert.strictEqual(await toggleList.getAttribute("aria-expanded"), "true", "expanded list stays open after edits");
     const enabledOrder = ["0", "3", "2", "4", "5", "6", "7"];
     const disabledLabels = safariShortcuts.filter(shortcut => !enabledOrder.includes(shortcut.id))
       .map(shortcut => shortcut.label);
@@ -4594,6 +4757,49 @@ async function assertCompanionShortcutSettings(browser, testCase) {
         !subpage.includes("shortcut.command+keybracketright"),
       `${testCase.name}: saving should generate only enabled shortcuts`,
     );
+    const appWithoutShortcutSelection = (value) => {
+      const card = parseRawButtonConfig(value);
+      return { ...card, options: setConfigOptionValue(card.options, "app_shortcuts_tabs", "") };
+    };
+    const parentBefore = appWithoutShortcutSelection(nativeState.document.buttons[1]);
+    await appCard.locator(".sp-subpage-badge").click();
+    const shortcutCard = page.locator('.sp-main [data-slot="1"]');
+    const dialog = page.locator(".sp-settings-modal");
+    const showShortcuts = async (target = shortcutCard) => {
+      await target.click({ button: "right" });
+      await menu.getByText("Shortcut List", { exact: true }).click();
+      await dialog.getByText("Edit App Shortcuts", { exact: true }).waitFor();
+    };
+    await showShortcuts();
+    const dialogRows = dialog.locator(".sp-light-tab-row:visible");
+    assert.strictEqual(await dialogRows.count(), safariShortcuts.length, "the standalone editor shows every shortcut");
+    assert.strictEqual(await dialog.getByRole("button", { name: /Show (all|fewer) shortcuts/ }).count(), 0);
+    const dialogSearch = dialog.getByRole("searchbox", { name: "Find a shortcut…" });
+    await dialogSearch.fill(safariShortcutLabel(0));
+    assert(await dialogRows.count() < safariShortcuts.length, "search still filters the standalone list");
+    await dialogSearch.clear();
+    assert.strictEqual(await dialogRows.count(), safariShortcuts.length, "clearing search restores the full list");
+    assert.strictEqual(await dialog.getByText("Card Settings", { exact: true }).count(), 0);
+    assert.strictEqual(await dialog.getByText("Add app subpage", { exact: true }).count(), 0);
+    const back = dialog.getByRole("checkbox", { name: safariShortcutLabel(0), exact: true });
+    assert(await back.isChecked(), "the shortcut editor reads the existing page selection");
+    await back.evaluate(input => input.click());
+    const beforeCancel = nativeState.puts.length;
+    await dialog.getByRole("button", { name: "Cancel", exact: true }).click();
+    assert.strictEqual(nativeState.puts.length, beforeCancel, "cancelling discards shortcut changes");
+    await showShortcuts();
+    assert(await back.isChecked(), "reopening after cancellation restores the saved selection");
+    await back.evaluate(input => input.click());
+    await dialog.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      !nativeState.document.subpages[1].includes("shortcut.command+keybracketleft"),
+    "save shortcuts from inside the app page");
+    assert.deepStrictEqual(appWithoutShortcutSelection(nativeState.document.buttons[1]), parentBefore,
+      "only the parent app's shortcut option changes");
+    const backCard = page.locator(".sp-main .sp-back-btn");
+    assert(await backCard.isVisible(), "Save stays on the app subpage");
+    await showShortcuts(backCard);
+    assert(!(await back.isChecked()), "reopening shows the updated selection");
   } finally {
     await context.close();
   }
@@ -5198,7 +5404,7 @@ async function assertHostedCompatibility(browser) {
   const firmwareBody = "test firmware download";
   let releaseDownload;
   const downloadReady = new Promise(resolve => { releaseDownload = resolve; });
-  await context.route("https://jtenniswood.github.io/**/*.ota.bin", async route => {
+  await context.route("https://espdesktop.com/firmware/**/*.ota.bin", async route => {
     await downloadReady;
     return route.fulfill({
       status: 200,
@@ -5231,9 +5437,9 @@ async function assertHostedCompatibility(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), seededEvents());
     await page.waitForFunction(() => ["manifest.json", "versions.json"].every(name =>
-      window.__compatRequests.some(item => item.url.startsWith("https://jtenniswood.github.io/espdesktop/firmware/") && item.url.endsWith(name) && item.status === 200)));
+      window.__compatRequests.some(item => item.url.startsWith("https://espdesktop.com/firmware/") && item.url.endsWith(name) && item.status === 200)));
     const requests = await page.evaluate(() => window.__compatRequests);
-    for (const request of requests.filter(item => item.url.startsWith("https://jtenniswood.github.io/espdesktop/firmware/"))) {
+    for (const request of requests.filter(item => item.url.startsWith("https://espdesktop.com/firmware/"))) {
       assert.equal(request.credentials, "omit", "public metadata must not include browser credentials");
     }
     assert(requests.some(item => item.url.endsWith("/espdesktop/version") && item.credentials === "include"), "device state requests retain authentication");
@@ -5253,6 +5459,8 @@ async function assertHostedCompatibility(browser) {
     await page.waitForFunction(() => window.__compatRequests.some(item => item.url.endsWith(".ota.bin")));
     const download = await page.evaluate(() => window.__compatRequests.find(item => item.url.endsWith(".ota.bin")));
     assert.equal(download.credentials, "omit", "public firmware downloads must not include browser credentials");
+    assert.equal(download.url, `https://espdesktop.com/firmware/${testCase.slug}/versions/v1.11.0/${testCase.slug}.ota.bin`,
+      "rollback downloads the selected version directly from the firmware host");
     await page.evaluate(() => window.__seedEspState([
       { id: "update-firmware__update", state: "NO UPDATE", current_version: "v1.12.0", latest_version: "v1.13.0" },
     ]));
@@ -5267,6 +5475,10 @@ async function assertHostedCompatibility(browser) {
     assert(uploads[0].postData().includes(firmwareBody), "the downloaded firmware reaches the device upload");
     assert(uploads[0].postData().includes(`${testCase.slug}.ota.bin`), "the upload retains the device firmware filename");
     await page.getByText("Firmware uploaded. Waiting for device to restart…", { exact: true }).waitFor();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "text_sensor-firmware__version", state: "v1.11.0" },
+    ]));
+    await firmwareCard.getByText("Firmware v1.11.0 installed.", { exact: true }).waitFor();
   } finally { await context.close(); }
 }
 
@@ -5275,7 +5487,7 @@ async function assertFirmwareRetryFeedback(browser) {
   for (const action of ["check", "install", "check_then_install"]) {
     const context = await browser.newContext({ viewport: testCase.viewport });
     await installRoutes(context, testCase.slug, { nativeState: nativeConfigState(testCase.slug) });
-    await context.route("https://jtenniswood.github.io/**/*.ota.bin", route => route.fulfill({
+    await context.route("https://espdesktop.com/firmware/**/*.ota.bin", route => route.fulfill({
       status: 503, headers: { "Access-Control-Allow-Origin": "*" }, body: "Unavailable",
     }));
     const page = await context.newPage();
@@ -5291,14 +5503,15 @@ async function assertFirmwareRetryFeedback(browser) {
       await page.locator("#sp-fw-previous-panel .sp-disclosure-button").click();
       page.once("dialog", dialog => dialog.accept());
       await page.locator("#sp-fw-previous-panel .sp-fw-btn").click();
-      const status = page.locator("#sp-fw-updates-panel .sp-fw-status");
-      await page.waitForFunction(() => document.querySelector("#sp-fw-updates-panel .sp-fw-status")?.textContent.includes("Firmware update failed"));
+      const status = page.locator("#sp-fw-status");
+      await page.waitForFunction(() => document.querySelector("#sp-fw-status")?.textContent.includes("Firmware update failed"));
       await page.evaluate(action => window.__seedEspState([{
         id: "update-firmware__update",
         state: action === "install" ? "UPDATE AVAILABLE" : "NO UPDATE",
         current_version: action === "check" ? "v1.13.0" : "v1.12.0",
         latest_version: "v1.13.0",
       }]), action);
+      assert(await status.isVisible(), `${action}: rollback failure is visible with Firmware updates closed`);
       assert((await status.textContent()).includes("Firmware update failed"), `${action}: idle refresh preserves failure`);
       await page.locator("#sp-fw-updates-panel .sp-disclosure-button").click();
       await page.locator("#sp-fw-updates-panel .sp-fw-btn").click();
@@ -5495,6 +5708,18 @@ async function assertPanelNaming(browser) {
     await page.waitForFunction(() => document.title === "EspDesktop - Bedroom");
     assert.strictEqual(identityState.info.hostname, "bedroom-b2c3", "selected name restore keeps destination suffix");
     assert.strictEqual(identityState.posts.length, 3, "name written once after successful restore");
+    await page.getByRole("button", { name: "Close", exact: true }).click();
+    await page.getByRole("tab", { name: "System" }).click();
+    const header = card.locator(".card-header");
+    if (await card.evaluate(element => element.classList.contains("collapsed"))) await header.click();
+    const nameInput = page.locator("#sp-panel-name");
+    await page.waitForFunction(() => {
+      const input = document.querySelector("#sp-panel-name");
+      return input?.value === "Bedroom" && !input.disabled;
+    });
+    await nameInput.fill("");
+    await save.click();
+    await page.waitForFunction(() => document.title === "EspDesktop - b2c3");
     assert.deepStrictEqual(errors, [], "naming journey has no browser errors");
   } finally { await context.close(); }
 }
@@ -5520,10 +5745,10 @@ async function assertHomeAssistantConnectorLayout(browser) {
     await installRoutes(context, testCase.slug, { connectorsStatus: connectorStatus });
     const pairingState = {
       available: true, active: true, paired: false, connected: false,
-      expires_in_seconds: 900, pairing_code: "123456",
+      pairing_code: "ABCD",
     };
     if (testCase.companionSupported) {
-      await context.route("**/companion/pairing", route => route.fulfill({ json: pairingState }));
+      await context.route(/\/companion\/pairing(?:\?.*)?$/, route => route.fulfill({ json: pairingState }));
     }
     const page = await context.newPage();
     await installFakeEventSource(page);
@@ -5563,7 +5788,7 @@ async function assertHomeAssistantConnectorLayout(browser) {
       );
       if (testCase.companionSupported) {
         assert(
-          await connectors.getByText("Connect your Mac").count() > 0,
+          await connectors.getByRole("heading", { name: "Mac Companion", exact: true }).count() > 0,
           `${testCase.name}: Mac Companion setup remains available`,
         );
       } else {
@@ -5576,14 +5801,30 @@ async function assertHomeAssistantConnectorLayout(browser) {
         await page.goto(`http://espdesktop.test/${testCase.slug}?events=1&${query}`, { waitUntil: "domcontentloaded" });
         await page.waitForSelector("#sp-device.active #sp-connectors");
         if (testCase.companionSupported) {
-          assert(await page.locator("#sp-connectors").getByText("Connect your Mac").isVisible(),
-            `${testCase.name}: pairing link opens Mac Companion in System`);
+          const card = connectors.locator(".card").filter({ hasText: "Mac Companion" });
+          if (await card.evaluate(element => element.classList.contains("collapsed"))) {
+            await card.getByRole("heading", { name: "Mac Companion", exact: true }).click();
+          }
+          await connectors.getByText("Choose this display in the Mac app and enter the code.", { exact: true }).waitFor();
         }
       }
       if (testCase.companionSupported) {
         const companion = connectors.locator(".card").filter({ hasText: "Mac Companion" });
-        const status = companion.getByRole("status").filter({ hasText: "Pairing is open" });
-        await status.waitFor({ state: "visible" });
+        const code = companion.locator(".sp-companion-code");
+        await code.waitFor({ state: "visible" });
+        assert.deepEqual(await code.locator(".sp-companion-code-letter").allTextContents(), [..."ABCD"]);
+        assert.equal(await code.textContent(), "ABCD", "the boxes preserve the complete code for selection");
+        const copy = companion.getByRole("button", { name: "Copy pairing code" });
+        await copy.waitFor({ state: "visible" });
+        await page.setViewportSize({ width: 320, height: 740 });
+        assert(await code.evaluate(element => {
+          const codeBounds = element.getBoundingClientRect();
+          const letters = [...element.querySelectorAll(".sp-companion-code-letter")];
+          return codeBounds.right <= innerWidth && letters.every(letter =>
+            letter.getBoundingClientRect().top === letters[0].getBoundingClientRect().top);
+        }), `${testCase.name}: all code boxes fit on one line at phone width`);
+        assert.equal(await companion.getByText("Ready to pair", { exact: true }).isVisible(), false);
+        assert.equal(await companion.getByRole("button", { name: "Clear downloaded app icons" }).isVisible(), false);
 
         Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
         await companion.getByText("Mac paired, but not connected", { exact: true }).waitFor({ state: "visible" });
@@ -7021,8 +7262,11 @@ async function assertNestedCompanionPages(browser) {
     await page.waitForFunction(() => window.__eventSources?.length > 0);
     await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(fixture.document));
     await page.locator('.sp-main [data-slot="1"] .sp-subpage-badge').click();
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    const folderAppCard = page.locator('.sp-main [data-slot="1"]');
+    await folderAppCard.click({ button: "right" });
+    assert.strictEqual(await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).count(), 0,
+      "ordinary folders do not have a shortcut editor");
+    await page.locator(".sp-ctx-menu").getByText("Edit Card", { exact: true }).click();
     const creation = page.locator(".sp-settings-modal .sp-app-subpage-settings");
     if (await creation.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await creation.locator(".sp-disclosure-button").click();
     await page.locator('[id$="companion-app-shortcuts"]').evaluate(input => input.click());
@@ -7033,12 +7277,15 @@ async function assertNestedCompanionPages(browser) {
     // Start the independent edit/reload scenario with a custom existing card.
     fixture.document = existing; fixture.generation++; fixture.puts = [];
     await open();
-    await page.locator(".sp-back-btn .sp-back-hit").click();
-    await page.getByText("Safari", { exact: true }).first().waitFor();
-    await page.locator('.sp-main [data-slot="1"]').click();
-    await page.getByRole("button", { name: "Edit", exact: true }).click();
-    const app = page.locator(".sp-settings-modal .sp-app-subpage-settings");
-    if (await app.locator(".sp-disclosure-button").getAttribute("aria-expanded") !== "true") await app.locator(".sp-disclosure-button").click();
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await chooseCardType(page, "Key Shortcut");
+    assert.strictEqual(await page.getByRole("tab", { name: "Application", exact: true }).getAttribute("aria-selected"), "true");
+    assert.strictEqual(await page.locator('[id$="shortcut-catalog-app"]').inputValue(), "com.apple.Safari",
+      "a nested app page uses the app that owns the inner page");
+    await page.locator(".sp-settings-close").click();
+    await page.locator('.sp-main [data-slot="1"]').click({ button: "right" });
+    await page.locator(".sp-ctx-menu").getByText("Shortcut List", { exact: true }).click();
+    await page.locator(".sp-settings-modal").getByText("Edit App Shortcuts", { exact: true }).waitFor();
     await page.locator('[id$="companion-shortcut-1"]').evaluate(input => input.click());
     let rejectNext = true;
     await page.route("**/api/v1/config", async route => {
@@ -7064,6 +7311,8 @@ async function assertNestedCompanionPages(browser) {
     const parsed = loadTypeScriptModule("src/webserver/model/subpage.ts").parseRawSubpageConfig(fixture.document.subpages[33], code => code);
     const back = JSON.parse(fs.readFileSync(path.join(ROOT, "product/v2/app_shortcuts/safari.json"))).shortcuts.find(shortcut => shortcut.id === "1");
     assert(parsed.buttons.some(card => card.entity === "shortcut." + back.shortcut), "retry in the same dialog saves the newly selected shortcut");
+    assert(await page.locator(".sp-main").getByText("Address", { exact: true }).isVisible(),
+      "saving the nested shortcut list stays on that page");
     await open();
 
     const stale = await context.newPage();
@@ -7112,6 +7361,15 @@ async function assertFirstRunSetup(browser) {
   await installRoutes(context, testCase.slug, {
     nativeState: fixture, connectorsStatus: status, nativeV2: true, nativeAppSubpagePreference: true,
   });
+  let pairingUnavailable = false;
+  const pairingState = {
+    available: true, active: false, paired: true, connected: true, pairing_code: "",
+  };
+  let displayCodeRequests = 0;
+  await context.route(/\/companion\/pairing(?:\?.*)?$/, route => {
+    if (new URL(route.request().url()).searchParams.get("show_on_display") === "1") displayCodeRequests++;
+    return pairingUnavailable ? route.fulfill({ status: 503, body: "" }) : route.fulfill({ json: pairingState });
+  });
   const actions = [
     { id: "com.apple.Safari", label: "Safari" },
     { id: "com.apple.Notes", label: "Notes" },
@@ -7150,17 +7408,24 @@ async function assertFirstRunSetup(browser) {
     const dialog = page.getByRole("dialog");
     const appLimit = 8;
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
+    assert(await dialog.getByText("Step 1 of 2", { exact: true }).isVisible(),
+      "an already connected Mac starts at app selection");
     const title = dialog.getByRole("heading", { name: "Choose your apps", exact: true });
     assert(await title.evaluate(node => node === document.activeElement && getComputedStyle(node).outlineStyle === "none"),
       "the wizard heading receives focus without a visible outline");
     const close = dialog.getByRole("button", { name: "Close setup", exact: true });
-    await page.keyboard.press("Tab");
+    // WebKit on macOS uses Option-Tab to include buttons in the tab order.
+    const macWebKit = process.platform === "darwin" && browser.browserType().name() === "webkit";
+    await page.keyboard.press(macWebKit ? "Alt+Tab" : "Tab");
     assert(await close.evaluate(node => node.matches(":focus-visible") && getComputedStyle(node).boxShadow !== "none"),
       "the wizard controls retain a visible keyboard focus indicator");
     await close.click();
     await dialog.waitFor({ state: "detached" });
     assert.equal(fixture.puts.length, 0, "closing setup leaves it available on reload");
-    await open();
+    await open("&setup=1");
+    await title.waitFor();
+    assert(await dialog.getByRole("button", { name: "Skip setup", exact: true }).isVisible(),
+      "the Mac setup link on an empty display opens first-time setup");
     const setChecked = async (input, checked) => {
       const track = input.locator("..").locator(".sp-toggle-track");
       await track.waitFor();
@@ -7169,6 +7434,14 @@ async function assertFirstRunSetup(browser) {
     };
     await dialog.getByText("No apps available. Check app access on your Mac.", { exact: true }).waitFor();
     catalogueReady = true;
+    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
+    const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
+    await setChecked(dialog.getByLabel("App 0", { exact: true }), true);
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await addPages.isDisabled(), "apps without presets cannot add shortcut pages");
+    assert(await launchOnly.isChecked(), "setup falls back to launch-only when no selected apps have presets");
+    await dialog.getByRole("button", { name: "Back", exact: true }).click();
+    await setChecked(dialog.getByLabel("App 0", { exact: true }), false);
     await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
     // The selection cap disables remaining apps while allowing deselection.
     for (let i = 0; i < appLimit - 1; i++) await setChecked(dialog.getByLabel(`App ${i}`, { exact: true }), true);
@@ -7177,13 +7450,8 @@ async function assertFirstRunSetup(browser) {
     assert(await dialog.getByLabel("Notes", { exact: true }).isEnabled());
     await setChecked(dialog.getByLabel("Notes", { exact: true }), true);
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
-    const addPages = dialog.getByRole("radio", { name: "Add shortcut pages", exact: true });
-    const launchOnly = dialog.getByRole("radio", { name: "Launch apps only", exact: true });
     assert.equal(await dialog.getByRole("radio").count(), 2, "step two offers two exclusive modes");
-    assert(await launchOnly.isChecked(), "fresh setup defaults to launch-only cards");
-    assert(await dialog.getByRole("button", { name: "Done", exact: true }).isVisible(), "launch-only setup ends at step two");
-    await dialog.getByText("Add shortcut pages", { exact: true }).click();
-    assert(await addPages.isChecked(), "clicking the choice card selects it");
+    assert(await addPages.isChecked(), "fresh setup adds shortcut pages by default for supported apps");
     await dialog.getByRole("button", { name: "Back", exact: true }).click();
     assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "Back keeps selected apps");
     await dialog.getByRole("button", { name: "Next", exact: true }).click();
@@ -7229,6 +7497,17 @@ async function assertFirstRunSetup(browser) {
     await open();
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "completion survives page reload");
+    const beforeSetupLink = JSON.stringify(fixture.document);
+    await open("&setup=1");
+    await title.waitFor();
+    await dialog.getByText(/Saving setup replaces the current Home layout/).waitFor();
+    await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
+    assert(await dialog.getByLabel("Safari", { exact: true }).isChecked(), "the Mac setup link restores existing app selections");
+    assert.equal(await dialog.getByRole("button", { name: "Skip setup", exact: true }).count(), 0);
+    await close.click();
+    await dialog.waitFor({ state: "detached" });
+    assert.equal(JSON.stringify(fixture.document), beforeSetupLink, "opening and closing the Mac setup link preserves the layout");
+    assert.equal(fixture.puts.length, 1, "the setup link never saves automatically");
     // A second browser sees the same completion marker on the display.
     const second = await context.newPage();
     await second.goto(`http://espdesktop.test/${testCase.slug}`);
@@ -7294,19 +7573,97 @@ async function assertFirstRunSetup(browser) {
     assert.deepEqual(switches, []);
     await open();
     await dialog.waitFor({ state: "detached" });
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await launchOnly.isChecked(), "setup again restores a saved launch-only layout");
+    await dialog.getByRole("button", { name: "Close setup", exact: true }).click();
     assert.equal(Object.keys(fixture.document.subpages).length, 0, "Done saves launch-only cards directly from step two");
-    // Pairing links remain usable before connecting; connection offers setup.
+    // A fresh display offers download and pairing in the same wizard.
     fixture.document = { deviceProfile: testCase.slug, buttons: {}, subpages: {}, settings: {} };
-    status.mac_companion.connected = false;
+    Object.assign(status.mac_companion, { configured: false, paired: false, connected: false });
+    Object.assign(pairingState, {
+      active: true, paired: false, connected: false, pairing_code: "ABCD-EFGH",
+    });
+    pairingUnavailable = true;
+    await open();
+    const pairingTitle = dialog.getByRole("heading", { name: "Connect your Mac", exact: true });
+    await pairingTitle.waitFor();
+    assert(await dialog.getByText("Step 1 of 3", { exact: true }).isVisible());
+    const openApp = dialog.getByRole("link", { name: "Open EspDesktop", exact: true });
+    assert.equal(await openApp.getAttribute("href"), "espdesktop://open");
+    const download = dialog.getByRole("link", { name: "Download EspDesktop for Mac" });
+    assert.equal(await download.getAttribute("href"), "https://github.com/jtenniswood/espdesktop/releases/latest");
+    assert.equal(await download.getAttribute("target"), "_blank");
+    const next = dialog.getByRole("button", { name: "Next", exact: true });
+    assert(await next.isDisabled(), "the wizard waits for the Mac connection");
+    await dialog.getByText("Could not load the pairing code. Retrying…", { exact: true }).waitFor();
+    pairingUnavailable = false;
+    await dialog.getByText("ABCD-EFGH", { exact: true }).waitFor();
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "clipboard", { value: undefined });
+      document.execCommand = command => {
+        const field = document.activeElement;
+        return command === "copy" && field instanceof HTMLTextAreaElement &&
+          !!field.closest("dialog[open]") &&
+          field.value.slice(field.selectionStart, field.selectionEnd) === "ABCD-EFGH";
+      };
+    });
+    await dialog.getByRole("button", { name: "Copy pairing code" }).click();
+    await dialog.getByText("Copied", { exact: true }).waitFor();
+    pairingState.pairing_code = "JKLM-NPQR";
+    await dialog.getByText("JKLM-NPQR", { exact: true }).waitFor();
+    assert.equal(await dialog.getByText("ABCD-EFGH", { exact: true }).count(), 0, "the old code is cleared");
+    Object.assign(status.mac_companion, { configured: true, paired: true });
+    Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
+    await dialog.getByText("Open EspDesktop on your Mac to reconnect.", { exact: true }).waitFor();
+    assert(await openApp.isVisible(), "the launch link stays available when reconnecting");
+    assert(await download.isVisible(), "the download link stays available when reconnecting");
+    assert(await next.isDisabled(), "a saved pairing still needs a live connection");
+    assert.equal(await dialog.getByRole("button", { name: "Copy pairing code" }).count(), 0);
+    status.mac_companion.connected = pairingState.connected = true;
+    await dialog.getByText("Mac connected. Choose Next.", { exact: true }).waitFor();
+    await next.click();
+    await title.waitFor();
+    assert(await dialog.getByText("Step 2 of 3", { exact: true }).isVisible());
+    await dialog.getByLabel("Safari", { exact: true }).waitFor({ state: "attached" });
+    await dialog.getByRole("button", { name: "Back", exact: true }).click();
+    await pairingTitle.waitFor();
+
+    // Pairing links remain usable before connecting; connection offers setup.
+    assert.equal(displayCodeRequests, 0, "opening the normal editor and wizard does not show a code on the display");
+    status.mac_companion.connected = pairingState.connected = false;
+    const showCode = page.waitForResponse(response => new URL(response.url()).searchParams.get("show_on_display") === "1");
     await open("&connector=mac_companion");
+    await showCode;
+    await page.getByText("Confirm Reset pairing on the touchscreen.", { exact: true }).waitFor();
+    assert.equal(await page.getByRole("button", { name: "Copy pairing code" }).count(), 0,
+      "an already paired display requires confirmation before exposing a code");
+    await page.waitForResponse(response => {
+      const url = new URL(response.url());
+      return url.pathname === "/companion/pairing" && !url.search;
+    });
+    assert.equal(displayCodeRequests, 1, "the pairing link shows the code once and subsequent polling leaves the display alone");
     await page.waitForTimeout(200);
     assert.equal(await dialog.count(), 0, "pairing page must remain accessible");
-    status.mac_companion.connected = true;
+    Object.assign(status.mac_companion, { configured: false, paired: false });
+    Object.assign(pairingState, { active: true, paired: false, pairing_code: "STUV-WXYZ" });
+    await page.getByText("STUV-WXYZ", { exact: true }).waitFor();
+    Object.assign(status.mac_companion, { configured: true, paired: true });
+    Object.assign(pairingState, { active: false, paired: true, pairing_code: "" });
+    status.mac_companion.connected = pairingState.connected = true;
     await dialog.waitFor();
     await dialog.getByRole("button", { name: "Skip setup", exact: true }).click();
     await dialog.waitFor({ state: "detached" });
     assert.equal(Object.keys(fixture.document.buttons).length, 0);
     assert.equal(fixture.document.settings.web_onboarding_complete, "1");
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    if (await settingsCard.evaluate(node => node.classList.contains("collapsed"))) await settingsCard.locator(".card-header").click();
+    await page.getByRole("button", { name: "Setup Again", exact: true }).click();
+    await setChecked(dialog.getByLabel("Safari", { exact: true }), true);
+    await dialog.getByRole("button", { name: "Next", exact: true }).click();
+    assert(await addPages.isChecked(), "setup again defaults to shortcut pages when setup was skipped");
     assert.deepEqual(errors, []);
     console.log("First-run setup with interrupted and confirmed layout saves passed.");
   } finally { await context.close(); }
@@ -7316,6 +7673,13 @@ async function assertFirstRunSetup(browser) {
   const browser = await (process.env.ESPDESKTOP_BROWSER_ENGINE === "webkit" ? webkit : chromium).launch();
   const acceptanceOnly = process.env.ESPDESKTOP_BROWSER_ACCEPTANCE_ONLY === "1";
   try {
+    if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
+      await assertPageTitleEvents(browser);
+      await assertNamingOfflineBackups(browser);
+      await assertPanelNaming(browser);
+      console.log("Panel naming browser checks passed.");
+      return;
+    }
     if (process.env.ESPDESKTOP_CARD_REORDER_ONLY === "1") {
       await assertReorderAfterDelete(browser);
       return;
@@ -7490,12 +7854,6 @@ async function assertFirstRunSetup(browser) {
       assert(testCase, "4-inch S3 browser profile is available");
       await assertCompanionOnlyCardPicker(browser, testCase);
       console.log("Home Assistant connection transition browser checks passed.");
-      return;
-    }
-    if (process.env.ESPDESKTOP_NAMING_ONLY === "1") {
-      await assertNamingOfflineBackups(browser);
-      await assertPanelNaming(browser);
-      console.log("Panel naming browser checks passed.");
       return;
     }
     if (process.env.ESPDESKTOP_HA_VISIBILITY_ONLY === "1") {

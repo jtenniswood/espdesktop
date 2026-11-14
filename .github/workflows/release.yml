@@ -141,7 +141,7 @@ jobs:
           LEGACY_STABLE_TAG=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 \
             --json tagName --jq '.[0].tagName // ""')
           mkdir -p "${LEGACY_WEB_DIR}"
-          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/web-assets.json" \
+          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://espdesktop.com/webserver/web-assets.json" \
             -o "${LEGACY_WEB_MANIFEST}"; then
             BUNDLE_PATH=$(jq -er --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path' \
               "${LEGACY_WEB_MANIFEST}")
@@ -150,7 +150,7 @@ jobs:
               exit 1
             fi
             mkdir -p "docs/public/webserver/$(dirname "${BUNDLE_PATH}")"
-            curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
+            curl -fsSL "https://espdesktop.com/webserver/${BUNDLE_PATH}" \
               -o "docs/public/webserver/${BUNDLE_PATH}"
             # Verify imported bytes before generating or pre-verifying release assets.
             python3 - "${BUNDLE_PATH}" "${LEGACY_WEB_MANIFEST}" "${LEGACY_STABLE_TAG}" <<'PY'
@@ -579,6 +579,12 @@ jobs:
           python3 scripts/build.py companion --check
           swift test --package-path macos/EspDesktop -Xswiftc -warnings-as-errors
 
+      - name: Install disk image packaging tools
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/dmg-tools"
+          "${RUNNER_TEMP}/dmg-tools/bin/python" -m pip install --require-hashes -r macos/EspDesktop/Packaging/dmg-requirements.txt
+          echo "${RUNNER_TEMP}/dmg-tools/bin" >> "${GITHUB_PATH}"
+
       - name: Sign, notarize, staple, and verify EspDesktop
         env:
           RELEASE_TAG: ${{ inputs.release_tag }}
@@ -666,7 +672,7 @@ jobs:
           if-no-files-found: error
 
   prepare-candidate:
-    name: Prepare Hardware Test Candidate
+    name: Prepare Release Candidate
     needs: [preflight, assemble-release, espdesktop-release]
     runs-on: ubuntu-latest
     steps:
@@ -701,13 +707,11 @@ jobs:
             --version "${RELEASE_TAG}" --out dist/companion/companion-compatibility.json
           FINGERPRINT="$(sha256sum dist/companion/companion-compatibility.json | cut -d ' ' -f 1)"
           {
-            printf '## Test the release on a Guition 4848S040\n\n'
+            printf '## Install and confirm the candidate Mac app\n\n'
             printf 'Candidate run: %s\n\n' "${GITHUB_RUN_ID}"
             printf 'Candidate fingerprint: `%s`\n\n' "${FINGERPRINT}"
-            printf '%s\n' 'Use the firmware from **release-dist** and the signed Mac DMG from **espdesktop-app-release**.'
-            printf '%s\n' 'Start with a paired panel and an existing layout. Install both candidate files and download the **release-candidate-compatibility** manifest.'
-            printf '%s\n' 'Run `python3 scripts/test_release_hardware.py record --host PANEL_IP --candidate-run RUN_ID --manifest companion-compatibility.json` from the tagged checkout.'
-            printf '%s\n' 'Submit the resulting report.json to **Publish Release** with the candidate run ID.'
+            printf '%s\n' 'Download **espdesktop-app-release** and **release-candidate-compatibility** from this run.'
+            printf '%s\n' 'Install and open the verified candidate Mac app. Once it is confirmed working, provide this run ID and fingerprint to **Publish Release**.'
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Upload the candidate fingerprint manifest

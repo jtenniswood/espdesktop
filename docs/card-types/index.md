@@ -7,7 +7,7 @@ description: "Choose Mac controls, local panel actions, information cards and fo
 
 Webhook cards saved with older firmware appear as empty slots after updating.
 
-Cards show information and controls on the display. Mac controls use the paired [EspDesktop Mac app](/getting-started/mac-app); local cards run on the panel.
+Cards show information and controls on the display. Mac controls use the paired [EspDesktop Mac app](/screens/4848s040#install-and-pair-the-espdesktop-mac-app); local cards run on the panel.
 
 | Goal | Card |
 |---|---|

@@ -54,10 +54,7 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
-    assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
-    assert.match(companion, /Connect your Mac/);
-    assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
     assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
@@ -577,10 +574,10 @@ describe("browserless application contracts", () => {
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
     assert.match(card, /createCompanionCatalogueMonitor\(\s*\(\) => loadCompanionActions\(true\)/);
     assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)[\s\S]*espdesktop:app-icon-cache-cleared/);
-    assert.match(card, /renderModalTabSettings\(appSubpageDisclosure\.section/);
+    assert.match(card, /function renderAppShortcutSettings\([\s\S]*modalTabs\.renderModalTabSettings\(panel, card, helpers/);
     assert.match(card, /_appShortcutDisabledTabs = companionShortcutTabs\(card\)/);
     assert.match(card, /setCompanionShortcutTabs\(card, card\._appShortcutDisabledTabs\)/);
-    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderModalTabSettings/);
+    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderAppShortcutSettings\(appSubpageDisclosure\.section/);
     assert.doesNotMatch(card, /autoSwitchField|Auto switch to subpage/);
     assert.match(styles, /\.sp-app-subpage-options-divider\{/);
     assert.match(card, /No free subpage space\. Remove a custom card before enabling another shortcut\./);
@@ -946,7 +943,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /createConfigCodecFeature\([\s\S]*configurationPersistence/);
     assert.match(entry, /configPersistence: configurationPersistence/);
     assert.match(persistence, /publishAfter\(requests\(\)\.postText\(entityNameForSlot\("button_config", slot\)/);
-    assert.match(buttonSettings, /saveBtn\.addEventListener\("click", async function/);
+    assert.match(buttonSettings, /saveBtn\.addEventListener\("click", async \(\) =>/);
     assert.match(buttonSettings, /if \(await applySettingsDraft\(\)\)/);
     assert.match(buttonSettings, /restoreDraftState\(\);[\s\S]*return false/);
     assert.match(buttonSettings, /configPersistence\.saveButtonConfigAndOrder\(slot, serializeGrid\(state\.grid\)\)/);

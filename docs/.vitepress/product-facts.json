@@ -1,0 +1,8 @@
+{
+  "displaySlug": "guition-esp32-s3-4848s040",
+  "displayLabel": "4-inch Guition ESP32-S3 4848S040",
+  "macProcessor": "Apple silicon",
+  "minimumMacOS": "13",
+  "displayWiFiBand": "2.4 GHz",
+  "matchedRelease": "same EspDesktop release"
+}

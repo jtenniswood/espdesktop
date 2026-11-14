@@ -5,7 +5,7 @@ export interface CompanionSystemMetric { readonly mode: string; readonly id: str
 export interface CompanionCardMode { readonly id: string; readonly label: string; readonly capability: string; readonly defaultIcon: string; }
 export interface CompanionProtocolMessage { readonly id: string; readonly direction: string; readonly authorization: string; }
 
-export const COMPANION_CAPABILITY_VERSION = 7 as const;
+export const COMPANION_CAPABILITY_VERSION = 9 as const;
 export const COMPANION_PROTOCOL_VERSION = 4 as const;
 export const COMPANION_PROTOCOL_PATH = "/companion/v4" as const;
 export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
@@ -204,6 +204,11 @@ export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = 
     id: "session.lock",
     direction: "mac_to_panel",
     authorization: "paired"
+  },
+  {
+    id: "pair.reset",
+    direction: "mac_to_panel",
+    authorization: "session"
   }
 ];
 export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = [

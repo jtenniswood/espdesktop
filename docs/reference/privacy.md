@@ -4,7 +4,7 @@ description:
   How EspDesktop handles information in the documentation website, firmware, and web configuration interface.
 ---
 
-# Privacy Policy
+# Privacy policy
 
 **Effective date: November 8, 2026**
 
@@ -21,29 +21,6 @@ platform, or central service that collects your smart-home data. The firmware is
 designed to communicate with a paired Mac on your local network and with
 network services you choose to configure. Your device configuration is stored on your
 device or in your own backups.
-
-## The documentation website
-
-The documentation site is hosted by GitHub Pages. When you visit it, GitHub
-may process technical information such as your IP address, browser and device
-information, the pages requested, and timestamps in order to deliver and
-secure the site. GitHub controls that processing under its own policies; see
-the [GitHub Privacy Statement](https://docs.github.com/en/site-policy/privacy-policies/github-privacy-statement).
-
-The site does not intentionally use cookies, advertising trackers, or a
-first-party analytics service. Its search is generated and run in your
-browser.
-
-The support button image is served by this documentation site. Following the
-button takes you to Buy Me a Coffee, which has its own privacy policy.
-
-The install page loads the bundled USB installer from GitHub Pages when the
-browser supports Web Serial and checks a public firmware manifest. These
-requests may disclose normal request metadata, such as your IP address,
-browser and device information, and request time.
-
-The site also contains links to GitHub, ESPHome, and other
-third-party websites. Those sites have their own terms and privacy practices.
 
 ## The EspDesktop firmware and device
 
@@ -62,8 +39,6 @@ network request information, such as the device's IP address and request time,
 as observed by the hosting provider. They are not intended to include your
 saved card data or pairing credentials.
 
-ESPHome OTA or other update methods may contact the services you select.
-
 Current 4848S040 firmware serves the bundled editor directly from the display.
 Older firmware may first request the editor from the hosted EspDesktop site. That
 request includes the display model and firmware version along with normal browser
@@ -75,7 +50,7 @@ requests may disclose normal connection metadata to the pool operators. This
 traffic occurs even when no optional cards or services are configured and the
 EspDesktop update checker is disabled.
 
-## Optional EspDesktop macOS app
+## EspDesktop macOS app
 
 EspDesktop connects to the display you pair on your local network. It stores
 connection preferences and approved-folder bookmarks locally on the Mac, and
@@ -88,7 +63,7 @@ Opening the display’s Companion setup page starts pairing on an unpaired
 display and shows a temporary code. This uses the display’s configured web
 authentication; without a web password, anyone who can reach that page can
 start pairing. The Mac stores the paired credential in Keychain and pins the
-display certificate. **Forget Display** removes those saved pairing values.
+display certificate. **Forget** in **Settings → Displays** removes the saved pairing values for the selected display.
 
 Folder access is granted through the native folder picker. Finder automation
 can identify an approved folder in the frontmost Finder window; optional

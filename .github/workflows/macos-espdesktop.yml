@@ -39,6 +39,7 @@ jobs:
           APP="macos/EspDesktop/.build/standalone/EspDesktop.app"
           test -f "${APP}/Contents/Info.plist"
           test "$(plutil -extract CFBundleIdentifier raw -o - "${APP}/Contents/Info.plist")" = "io.espdesktop.app"
+          test "$(plutil -extract CFBundleURLTypes.0.CFBundleURLSchemes.0 raw -o - "${APP}/Contents/Info.plist")" = "espdesktop"
           test -f "${APP}/Contents/Resources/AppIcon.icns"
           cmp common/assets/images/buy-me-a-coffee-button.png "${APP}/Contents/Resources/EspDesktop_Companion.bundle/buy-me-a-coffee-button.png"
           test -f "${APP}/Contents/Resources/PrivacyInfo.xcprivacy"
@@ -47,8 +48,14 @@ jobs:
           ! codesign --display --entitlements - "${APP}" 2>&1 | grep -q 'com.apple.security.app-sandbox'
           codesign --display --entitlements - "${APP}" 2>&1 | grep -q 'com.apple.security.automation.apple-events'
 
+      - name: Install disk image packaging tools
+        run: |
+          python3 -m venv "${RUNNER_TEMP}/dmg-tools"
+          "${RUNNER_TEMP}/dmg-tools/bin/python" -m pip install --require-hashes -r macos/EspDesktop/Packaging/dmg-requirements.txt
+          echo "${RUNNER_TEMP}/dmg-tools/bin" >> "${GITHUB_PATH}"
+
       - name: Build EspDesktop disk image
-        run: ALLOW_ADHOC=1 SKIP_FINDER_LAYOUT=1 macos/EspDesktop/Packaging/build_dmg.sh
+        run: ALLOW_ADHOC=1 macos/EspDesktop/Packaging/build_dmg.sh
 
       - name: Verify packaged app starts away from its build resources
         shell: bash

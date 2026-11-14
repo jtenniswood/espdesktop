@@ -18,6 +18,7 @@
 #include "app_shortcuts_generated.h"
 #include "companion_capabilities_generated.h"
 #include "companion_runtime_access.h"
+#include "companion_shortcut_page.h"
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
 #endif
@@ -478,30 +479,11 @@ inline std::vector<std::string> companion_shortcut_parts(const std::string &acti
   return parts;
 }
 
-inline bool companion_shortcut_action_valid(const std::string &action_id) {
-  if (action_id == "shortcut.tab" || action_id == "shortcut.escape") return true;
-  if (action_id == "shortcut.shift+escape") return true;
-  if (action_id == "shortcut.left" || action_id == "shortcut.right" ||
-      action_id == "shortcut.space" || action_id == "shortcut.function+f") return true;
-  const auto parts = companion_shortcut_parts(action_id);
-  if (action_id == "shortcut.shift+f6") return true;
-  if (parts.size() == 1) {
-    const auto &key = parts.front();
-    return key == "f6" || key == "claude-escape" || key == "escape-twice" || key == "up" || key == "down" ||
-           (key.size() == 1 && key[0] >= '1' && key[0] <= '9');
-  }
-  if (parts.size() < 2 || parts.size() > 5) return false;
-  bool command = false, control = false, option = false, shift = false;
-  for (size_t i = 0; i + 1 < parts.size(); i++) {
-    const auto &part = parts[i];
-    if (part == "command" && !command) command = true;
-    else if (part == "control" && !control) control = true;
-    else if (part == "option" && !option) option = true;
-    else if (part == "shift" && !shift) shift = true;
-    else return false;
-  }
-  if (!command && !control && !option) return false;
-  const auto &key = parts.back();
+inline bool companion_scoped_shortcut(const std::string &action_id) {
+  return action_id.rfind("shortcut.scoped.", 0) == 0;
+}
+
+inline bool companion_shortcut_key_valid(const std::string &key, bool scoped) {
   if (key.size() == 1 && ((key[0] >= 'a' && key[0] <= 'z') || (key[0] >= '0' && key[0] <= '9'))) return true;
   static const std::vector<std::string> named_keys{
     "space", "enter", "tab", "escape", "delete", "forwarddelete",
@@ -514,12 +496,57 @@ inline bool companion_shortcut_action_valid(const std::string &action_id) {
     const int number = std::atoi(key.c_str() + 1);
     return number >= 1 && number <= 20 && key == "f" + std::to_string(number);
   }
-  return false;
+  if (!scoped || key.rfind("keypad", 0) != 0) return false;
+  const auto suffix = key.substr(6);
+  if (suffix.size() == 1 && suffix[0] >= '0' && suffix[0] <= '9') return true;
+  return suffix == "plus" || suffix == "minus" || suffix == "multiply" || suffix == "divide" ||
+         suffix == "decimal" || suffix == "equal" || suffix == "enter" || suffix == "clear";
 }
 
-inline std::string companion_shortcut_label(const std::string &action_id) {
-  if (!companion_shortcut_action_valid(action_id)) return "";
+inline bool companion_shortcut_stroke_valid(const std::vector<std::string> &parts, bool scoped) {
+  if (parts.empty() || parts.size() > (scoped ? 6 : 5)) return false;
+  bool command = false, control = false, option = false, shift = false, fn = false;
+  for (size_t i = 0; i + 1 < parts.size(); i++) {
+    const auto &part = parts[i];
+    if (part == "command" && !command) command = true;
+    else if (part == "control" && !control) control = true;
+    else if (part == "option" && !option) option = true;
+    else if (part == "shift" && !shift) shift = true;
+    else if (part == "function" && scoped && !fn) fn = true;
+    else return false;
+  }
+  return (scoped || command || control || option) && companion_shortcut_key_valid(parts.back(), scoped);
+}
+
+inline bool companion_shortcut_action_valid(const std::string &action_id) {
+  if (companion_scoped_shortcut(action_id)) {
+    if (action_id.size() > 96) return false;
+    size_t start = 16;
+    for (int count = 0; count < 3; ++count) {
+      const auto end = action_id.find('~', start);
+      if (!companion_shortcut_stroke_valid(
+            companion_shortcut_parts("shortcut." + action_id.substr(start, end - start)), true)) return false;
+      if (end == std::string::npos) return true;
+      start = end + 1;
+    }
+    return false;
+  }
+  if (action_id == "shortcut.tab" || action_id == "shortcut.escape") return true;
+  if (action_id == "shortcut.shift+escape") return true;
+  if (action_id == "shortcut.left" || action_id == "shortcut.right" ||
+      action_id == "shortcut.space" || action_id == "shortcut.function+f") return true;
   const auto parts = companion_shortcut_parts(action_id);
+  if (action_id == "shortcut.shift+f6") return true;
+  if (parts.size() == 1) {
+    const auto &key = parts.front();
+    return key == "f6" || key == "claude-escape" || key == "escape-twice" || key == "up" || key == "down" ||
+           (key.size() == 1 && key[0] >= '1' && key[0] <= '9');
+  }
+  return companion_shortcut_stroke_valid(parts, false);
+}
+
+inline std::string companion_shortcut_stroke_label(const std::string &stroke) {
+  const auto parts = companion_shortcut_parts(stroke);
   std::string label;
   for (size_t i = 0; i + 1 < parts.size(); i++) {
     if (parts[i] == "command") label += "\U000F0633";
@@ -559,6 +586,22 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
   else if (!key.empty()) key[0] = static_cast<char>(std::toupper(static_cast<unsigned char>(key[0])));
   return label + key;
 }
+
+inline std::string companion_shortcut_label(const std::string &action_id) {
+  if (!companion_shortcut_action_valid(action_id)) return "";
+  if (!companion_scoped_shortcut(action_id)) return companion_shortcut_stroke_label(action_id);
+  std::string label;
+  size_t start = 16;
+  while (start < action_id.size()) {
+    const auto end = action_id.find('~', start);
+    if (!label.empty()) label += " / ";
+    label += companion_shortcut_stroke_label("shortcut." + action_id.substr(start, end - start));
+    if (end == std::string::npos) break;
+    start = end + 1;
+  }
+  return label;
+}
+
 
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty()) return false;
@@ -1039,7 +1082,8 @@ inline bool invoke_companion_action(const std::string &action_id,
                                     const std::string &request_id,
                                     const std::string &folder_open_behavior = "new_window") {
   if (!companion_action_available(action_id) || !companion_action_sender()) return false;
-  return companion_action_sender()(action_id, request_id, folder_open_behavior);
+  if (companion_scoped_shortcut(action_id)) return false;
+  return companion_action_sender()(action_id, request_id, folder_open_behavior, {});
 }
 
 inline std::string companion_athena_shortcut_target(const std::string &preset) {
@@ -1051,13 +1095,27 @@ inline std::string companion_athena_shortcut_target(const std::string &preset) {
   return preset.substr(0, separator);
 }
 
+inline std::string companion_shortcut_preset_app(const std::string &preset) {
+  const auto separator = preset.rfind(':');
+  if (separator == std::string::npos) return {};
+  const auto app = preset.substr(0, separator);
+  return companion_shortcut_page_app(app) ? app : std::string{};
+}
+
 inline bool invoke_companion_action_for_app(const std::string &action_id,
                                              const std::string &request_id,
                                              const std::string &required_focus_id,
                                              const std::string &folder_open_behavior = "new_window",
-                                             const std::string &athena_target = {}) {
+                                             const std::string &preset = {}) {
   // Never use the early visual highlight to authorize app-specific keys.
   if (!required_focus_id.empty() && !companion_action_focused(required_focus_id)) return false;
+  if (companion_scoped_shortcut(action_id)) {
+    const auto target = companion_shortcut_preset_app(preset);
+    if (target.empty() || !companion_action_available(action_id) || !companion_action_sender()) return false;
+    // Companion independently checks approval and the frontmost process before every stroke.
+    return companion_action_sender()(action_id, request_id, folder_open_behavior, target);
+  }
+  const auto athena_target = companion_athena_shortcut_target(preset);
   if (!athena_target.empty()) {
     if ((!required_focus_id.empty() && required_focus_id != athena_target) ||
         !companion_action_focused(athena_target) || !companion_shortcut_action_valid(action_id) ||
@@ -1065,7 +1123,7 @@ inline bool invoke_companion_action_for_app(const std::string &action_id,
     // The Mac must confirm the same installation is still frontmost when the
     // command arrives. Older Macs reject this as an unrecognized shortcut.
     return companion_action_sender()("shortcut.@" + athena_target + ":" + action_id.substr(9),
-                                    request_id, folder_open_behavior);
+                                    request_id, folder_open_behavior, {});
   }
   return invoke_companion_action(action_id, request_id, folder_open_behavior);
 }
@@ -1287,9 +1345,9 @@ inline std::string companion_pairing_json(const CompanionPairingSnapshot &snapsh
     ",\"active\":" + (snapshot.active ? "true" : "false") +
     ",\"paired\":" + (snapshot.paired ? "true" : "false") +
     ",\"connected\":" + (snapshot.connected ? "true" : "false") +
-    ",\"expires_in_seconds\":" + std::to_string(snapshot.expires_in_seconds) +
     ",\"port\":" + std::to_string(snapshot.port) +
     ",\"system_metrics_generation\":" + std::to_string(snapshot.system_metrics_generation) +
+    ",\"code_length\":" + std::to_string(COMPANION_PAIRING_CODE_LENGTH) +
     ",\"pairing_code\":\"" + companion_json_escape(pairing_code) + "\",\"mdns_name\":\"" +
     companion_json_escape(snapshot.mdns_name) + "\"}";
 }
@@ -1312,6 +1370,10 @@ class CompanionPairingHandler : public esphome::web_server_idf::AsyncWebHandler 
       });
     if (!result) return;
     const auto &snapshot = *result;
+    if (companion_pairing_can_show_on_display(snapshot) && request->arg("show_on_display") == "1") {
+      const auto &show = companion_runtime_service().request_pairing_display;
+      if (show) show();
+    }
     const std::string json = companion_pairing_json(snapshot);
     httpd_req_t *req = *request;
     httpd_resp_set_status(req, snapshot.available ? "200 OK" : "404 Not Found");
@@ -1331,16 +1393,20 @@ class CompanionPairingResetHandler : public esphome::web_server_idf::AsyncWebHan
 
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
     if (!companion_authorize_web_request(request)) return;
-    auto &revoke = companion_runtime_service().revoke_pairing;
-    if (!revoke || !companion_pairing_provider() || !companion_pairing_provider()().available) {
+    const auto &runtime = companion_runtime_service();
+    if (!runtime.reset_and_begin_pairing || !companion_pairing_provider() || !companion_pairing_provider()().available) {
       httpd_req_t *raw_request = *request;
       httpd_resp_set_status(raw_request, "404 Not Found");
       httpd_resp_set_type(raw_request, "text/plain");
       httpd_resp_send(raw_request, "Companion pairing is unavailable", HTTPD_RESP_USE_STRLEN);
       return;
     }
-    revoke();
     httpd_req_t *raw_request = *request;
+    if (!runtime.reset_and_begin_pairing()) {
+      httpd_resp_send_err(raw_request, HTTPD_500_INTERNAL_SERVER_ERROR, "Could not reset Companion pairing");
+      return;
+    }
+    if (runtime.request_pairing_display) runtime.request_pairing_display();
     httpd_resp_set_status(raw_request, "200 OK");
     httpd_resp_set_type(raw_request, "application/json");
     httpd_resp_set_hdr(raw_request, "Cache-Control", "no-store");

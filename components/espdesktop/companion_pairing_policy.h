@@ -4,6 +4,10 @@
 #include "companion_runtime.h"
 #include "companion_capabilities_generated.h"
 
+inline bool companion_pairing_can_show_on_display(const CompanionPairingSnapshot &snapshot) {
+  return snapshot.available && (snapshot.paired || snapshot.active);
+}
+
 // This is the endpoint's operation, shared with the host tests. Authorization
 // is evaluated before calling providers or activating a pairing window.
 template<typename Provider, typename BeginPairing>

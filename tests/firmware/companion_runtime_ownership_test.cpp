@@ -43,7 +43,7 @@ int main() {
   bool has_more = false;
   assert(first.companion_runtime().remote_definitions_page(0, 4, definitions_connected, has_more).size() == 4);
   assert(definitions_connected && has_more);
-  assert(first.companion_runtime().remote_definitions_page(124, 4, definitions_connected, has_more).size() == 4);
+  assert(first.companion_runtime().remote_definitions_page(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE - 4, 4, definitions_connected, has_more).size() == 4);
   assert(definitions_connected && !has_more);
   assert(first.start());
   bool invoked = false;
@@ -53,11 +53,11 @@ int main() {
   assert(!invoked);
   auto lifetime = std::make_shared<int>(1);
   std::weak_ptr<int> callback_lifetime = lifetime;
-  companion_action_sender() = [lifetime](const std::string &, const std::string &, const std::string &) { return true; };
+  companion_action_sender() = [lifetime](const std::string &, const std::string &, const std::string &, const std::string &) { return true; };
   first.companion_runtime().begin_pairing = [lifetime] {};
-  first.companion_runtime().revoke_pairing = [lifetime] {};
+  first.companion_runtime().reset_and_begin_pairing = [lifetime] { return true; };
   assert(!second.companion_runtime().begin_pairing);
-  assert(!second.companion_runtime().revoke_pairing);
+  assert(!second.companion_runtime().reset_and_begin_pairing);
   lifetime.reset();
   assert(!callback_lifetime.expired());
   assert(first.stop());

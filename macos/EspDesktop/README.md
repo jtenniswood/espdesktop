@@ -1,6 +1,6 @@
 # EspDesktop for macOS
 
-EspDesktop is a native macOS 13+ menu-bar app for securely connecting a Mac to an EspDesktop display. It is distributed as a standalone Developer ID app.
+EspDesktop is a native macOS 13+ menu-bar app for securely connecting a Mac to one or more EspDesktop displays. It is distributed as a standalone Developer ID app.
 
 For the quickest local test, double-click **Run EspDesktop.command**. macOS may ask you to confirm that you want to open a downloaded script. Keep its Terminal window open while testing; press Control-C there to stop the app.
 
@@ -22,16 +22,19 @@ The output is `./.build/standalone/EspDesktop.app`. For distribution, set `CODE_
 To build a drag-to-Applications disk image from the local app bundle:
 
 ```bash
+python3 -m venv .build/dmg-tools
+source .build/dmg-tools/bin/activate
+python -m pip install --require-hashes -r Packaging/dmg-requirements.txt
 ALLOW_ADHOC=1 ./Packaging/build_dmg.sh
 ```
 
-The output is `./.build/standalone/EspDesktop-1.0.0.dmg` (with the app version in the filename). It contains the app and an Applications shortcut in a Finder icon view. Pass an existing app bundle path as the first argument when packaging a signed build. Set `SKIP_FINDER_LAYOUT=1` only for headless build machines where Finder cannot be automated.
+The output is `./.build/standalone/EspDesktop-1.0.0.dmg` (with the app version in the filename). Finder shows an arrow from EspDesktop to the Applications shortcut. Pass an existing app bundle path as the first argument when packaging a signed build.
 
 The manual release workflow signs and notarizes this standalone app and its disk image for each firmware release. Configure these repository secrets before using it: `MACOS_DEVELOPER_ID_P12_BASE64`, `MACOS_DEVELOPER_ID_P12_PASSWORD`, `MACOS_DEVELOPER_ID_APPLICATION`, `APPLE_NOTARY_KEY_BASE64`, `APPLE_NOTARY_KEY_ID`, and `APPLE_NOTARY_ISSUER_ID`. The certificate must be a Developer ID Application certificate, and the API key must be permitted to submit software for notarization. The workflow uploads the stapled, verified ZIP and DMG to the GitHub release.
 
-For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run. See the [public Mac app guide](https://espdesktop.com/getting-started/mac-app) for pairing, Accessibility and first-run setup.
+For Xcode debugging, open `Package.swift`, choose **EspDesktop**, and click Run. See the [public Mac app guide](https://espdesktop.com/screens/4848s040#install-and-pair-the-espdesktop-mac-app) for pairing, Accessibility and first-run setup.
 
-Use the menu-bar icon to connect or disconnect, open the browser editor with **Customize Display**, or open **Mac Settings**. The settings toolbar offers **Display**, **Apps**, **Folders**, **Updates** and **Support**. **Launch at login** is available in the packaged app. The local Swift launcher shows installation guidance for this setting.
+Use the menu-bar icon to connect or disconnect, open the browser editor with **Customize Display**, or open **Settings**. Add displays under **Settings → Displays**. The settings toolbar offers **Displays**, **Apps**, **Folders**, **Updates** and **Support**. **Launch at login** is available in the packaged app. The local Swift launcher shows installation guidance for this setting.
 
 The Mac shares approved app and folder names and identifiers with the paired display. Folder paths stay on the Mac. It also shares system statistics while connected.
 
@@ -39,9 +42,9 @@ The display can request approved app and folder actions, validated keyboard shor
 
 ### Companion updates
 
-Choose **Check for Updates…** from the **EspDesktop** app menu or from the EspDesktop icon in the menu bar. You can also choose **Check Now** in Mac Settings → Updates. **Automatically Check for Updates** is on by default. EspDesktop checks when you launch the app and daily while it’s running. Sparkle presents an update dialog when it finds a compatible version. If an update is waiting in the background, opening EspDesktop brings the dialog forward.
+Choose **Check Now** in **Settings → Updates**. **Automatically Check for Updates** is on by default. EspDesktop checks when you launch the app and daily while it’s running. Sparkle presents an update dialog when it finds a compatible version. If an update is waiting in the background, opening EspDesktop brings the dialog forward.
 
-Turn on **Notify Me About Updates** in Mac Settings → Updates and allow macOS notifications to receive one notification per available build. Clicking the notification opens the updater. **Automatically Install Updates** is off by default. Enabling it lets Sparkle download eligible updates in the background and install on quit. macOS may still request authorization. Turn off automatic checks to stop scheduled downloads as well. Launch at Login under Display → Permissions keeps Companion available after signing in.
+Turn on **Notify Me About Updates** in **Settings → Updates** and allow macOS notifications to receive one notification per available build. Clicking the notification opens the updater. **Automatically Install Updates** is off by default. Enabling it lets Sparkle download eligible updates in the background and install on quit. macOS may still request authorization. Turn off automatic checks to stop scheduled downloads as well. Launch at Login under Displays → Permissions keeps Companion available after signing in.
 
 GitHub Pages serves the newest signed Mac update feed for each Companion protocol, including when a newer release contains only firmware. Sparkle verifies the feed and archive using the public key embedded in the app. An incompatible protocol upgrade requires manually installing a matching app and firmware release. Builds that still use the old GitHub latest-release URL may need a one-time manual update. Local Swift launches without an app bundle show installation guidance.
 

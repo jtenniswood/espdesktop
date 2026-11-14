@@ -8,11 +8,11 @@ description:
 
 Screen schedule controls what the panel does overnight, then returns it to normal when the schedule says it should be available again.
 
-You will find it in **Screen > Sleep & Schedule > Night Schedule** on the [Setup](/features/setup) page.
+You will find it in **Screen > Sleep & Schedule > Night Schedule** on the [Screen settings](/settings/screen#sleep-schedule) page.
 
 ## Settings
 
-- **Mode** - choose **Disabled** or **Time**. **Time** is the default and uses the panel’s local time.
+- **Mode** - defaults to **Disabled**. Choose **Time** to enable the schedule using the panel’s local time.
 - **Daytime** - the first hour when the screen should be awake. The default is **7:00 AM**.
 - **Night Time** - the first hour when the night schedule starts. The default is **7:00 PM**.
 - **At Night Time** - what the panel should do overnight. The default, **Screen Dimmed**, keeps the panel usable at a set brightness. **Screen Off** turns the backlight off, and **Clock** shows the clock. Screen Off can protect the LCD in the background while the backlight stays off.
@@ -32,7 +32,7 @@ Time-based Night Schedule has priority over the screensaver while night time is 
 
 ## How the Times Work
 
-The on time is included, and the off time is not included. With the defaults, the screen uses its normal brightness from 7:00 AM until just before 7:00 PM, then dims to 15%.
+The on time is included, and the off time is not included. If you enable the schedule with its preset hours and brightness, the screen uses its normal brightness from 7:00 AM until just before 7:00 PM, then dims to 15%.
 
 Overnight schedules also work. For example, **8:00 PM** to **7:00 AM** keeps the screen on through the night and turns it off during the day.
 

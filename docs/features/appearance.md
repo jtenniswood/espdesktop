@@ -38,7 +38,7 @@ The curve setting is included in configuration backups. Restoring an older
 backup without it keeps the current choice. Change **Card Curve** in the web editor. Changes update the preview immediately
 and redraw the physical cards after the display's brief refresh delay.
 
-Find these controls in **Screen → Appearance** on the [Setup](/features/setup) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
+Find these controls in **Screen → Appearance** on the [Screen settings](/settings/screen#appearance) page. Your selection is saved on the panel and applies without a reboot. Existing panels default to Dark.
 
 ## App icon size
 
@@ -77,7 +77,7 @@ Backups include the theme mode, automatic method, times and offsets. Older backu
 
 ## Active colour
 
-- **Primary** — the colour cards show when an entity is active. Choose from the same compact grid used in individual card settings. It contains 19 preset colours and a final swatch with an eyedropper icon that opens your browser's native colour picker for any colour, including white. A checkmark shows the selected preset; an accent outline highlights a custom colour. The orange swatch is `FF8C00`, the panel's default active colour.
+- **Primary**: the colour cards show when an entity is active. Choose from the same compact grid used in individual card settings. It contains 19 preset colours and a final swatch with an eyedropper icon that opens your browser's native colour picker for any colour, including white. A checkmark shows the selected preset; an accent outline highlights a custom colour. The orange swatch is `FF8C00`, the panel's default active colour.
 - Secondary inactive cards and tertiary information cards use fixed panel colours so setup stays simpler and modal styling remains consistent.
 
 The eyedropper swatch has a dashed border while empty and a solid border once a custom colour is chosen. Choosing a preset keeps the custom colour visible in the swatch while selecting the preset. Click the eyedropper again to restore that custom colour and open the picker. This retained colour is kept while editing the current panel; the selected colour is what is saved.

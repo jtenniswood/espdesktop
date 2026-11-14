@@ -18,9 +18,11 @@ on:
       - 'scripts/release_devices.py'
       - 'scripts/check_public_firmware.py'
       - 'scripts/check_docs_site.py'
+      - 'scripts/check_published_docs.py'
       - 'scripts/check_docs_installer.js'
       - 'scripts/build.py'
       - 'scripts/prepare_release_web_assets.py'
+      - 'scripts/notify_docs_indexnow.py'
       - 'scripts/prune_actions_cache.sh'
       - 'package.json'
       - 'package-lock.json'
@@ -178,8 +180,39 @@ jobs:
       - name: Stage the hosted editor loader
         run: node scripts/build_web_bundle.js --bridge-only > docs/public/webserver/www.js
 
+      - name: Find the latest stable Mac installer
+        id: mac-download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASES="${RUNNER_TEMP}/espdesktop-releases.json"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > "${RELEASES}"
+          MAC_TAG=$(jq -rs '[.[][] |
+            select((.draft or .prerelease) | not) |
+            .tag_name as $tag |
+            select($tag | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) |
+            ($tag | ltrimstr("v")) as $version |
+            select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).dmg")) |
+            {tag: $tag, version: ($version | split(".") | map(tonumber))}
+          ] | max_by([.version, .tag]) | .tag // empty' "${RELEASES}")
+          RELEASE_DATE=$(jq -rs --arg tag "${MAC_TAG}" '[.[][] | select(.tag_name == $tag) | .published_at] | first // empty' "${RELEASES}")
+          echo "release_date=${RELEASE_DATE}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${MAC_TAG}" >> "${GITHUB_OUTPUT}"
+          MATCHED_TAG=$(jq -rs --arg tag "${MAC_TAG}" '
+            [.[][] | select(.tag_name == $tag) |
+              [.assets[] | select(.state == "uploaded") | .name] as $assets |
+              select(["companion-compatibility.json",
+                "guition-esp32-s3-4848s040.manifest.json",
+                "guition-esp32-s3-4848s040.factory.bin",
+                "guition-esp32-s3-4848s040.ota.bin"] - $assets == []) |
+              .tag_name] | first // empty' "${RELEASES}")
+          echo "matched_tag=${MATCHED_TAG}" >> "${GITHUB_OUTPUT}"
+
       - name: Build docs
         env:
+          ESPDESKTOP_MAC_RELEASE_DATE: ${{ steps.mac-download.outputs.release_date }}
+          ESPDESKTOP_MAC_RELEASE_TAG: ${{ steps.mac-download.outputs.tag }}
+          ESPDESKTOP_MATCHED_RELEASE_TAG: ${{ steps.mac-download.outputs.matched_tag }}
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
         run: npm run docs:build
 
@@ -191,8 +224,7 @@ jobs:
           FEED_DIR="docs/.vitepress/dist/updates"
           mkdir -p "${FEED_DIR}"
           # Keep the newest stable Mac release for each protocol, even when firmware ships on its own.
-          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" |
-            jq -rs '[.[][] |
+          jq -rs '[.[][] |
               select((.draft or .prerelease) | not) |
               .tag_name as $tag |
               select($tag | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) |
@@ -200,7 +232,7 @@ jobs:
               select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).zip")) |
               .assets[] | select(.state == "uploaded" and (.name | test("^companion-appcast-v[0-9]+\\.xml$"))) |
               {tag: $tag, version: ($version | split(".") | map(tonumber)), feed: .name}
-            ] | group_by(.feed)[] | max_by(.version) | [.tag, .feed] | @tsv' |
+            ] | group_by(.feed)[] | max_by(.version) | [.tag, .feed] | @tsv' "${RUNNER_TEMP}/espdesktop-releases.json" |
             while IFS=$'\t' read -r tag feed; do
               gh release download "$tag" --repo "${GITHUB_REPOSITORY}" \
                 --pattern "$feed" --output "${FEED_DIR}/${feed}"
@@ -506,8 +538,11 @@ jobs:
           sparse-checkout: |
             devices/manifest.json
             product/release_devices.json
+            scripts/notify_docs_indexnow.py
+            scripts/check_docs_site.py
             scripts/release_devices.py
             scripts/check_public_firmware.py
+            scripts/check_published_docs.py
           sparse-checkout-cone-mode: false
 
       - name: Download docs artifact
@@ -533,6 +568,13 @@ jobs:
               mv "${manifest}.tmp" "$manifest"
             done
 
+      - name: Compare public guides for IndexNow
+        id: indexnow-prepare
+        continue-on-error: true
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: python3 scripts/notify_docs_indexnow.py prepare --dist dist --receipt "${RUNNER_TEMP}/indexnow-changes.json"
+
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
@@ -541,6 +583,10 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Verify published documentation
+        # GitHub Pages can serve the prior artifact for its 10-minute cache lifetime.
+        run: python3 scripts/check_published_docs.py --dist dist --attempts 45
 
       - name: Verify public firmware assets
         if: needs.download-firmware.outputs.has_stable == 'true'
@@ -551,3 +597,10 @@ jobs:
           --optional-stable-slugs guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc4880p443-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
           --retries 5
           --delay 20
+
+      - name: Notify IndexNow of published guide changes
+        if: steps.indexnow-prepare.outcome == 'success'
+        continue-on-error: true
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: python3 scripts/notify_docs_indexnow.py submit --receipt "${RUNNER_TEMP}/indexnow-changes.json"

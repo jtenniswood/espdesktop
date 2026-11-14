@@ -46,6 +46,10 @@ class DisplayLifecycleService {
   bool blank_page_active() const { return blank_page_active_; }
 
   BacklightOnResponse backlight_on_response(bool waiting_for_time) const {
+    // WiFi setup needs the backlight before the device can get network time.
+    if (controller_.target_source_is(DisplayRequestSource::ONBOARDING)) {
+      return BacklightOnResponse::KEEP_ON;
+    }
     if (waiting_for_time ||
         (controller_.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE) &&
          controller_.target_mode_is(DisplayMode::DISPLAY_OFF))) {
@@ -78,7 +82,8 @@ class DisplayLifecycleService {
   bool allows_focus_navigation() const {
     return !blank_page_active_ && !wake_touch_guard_ &&
         controller_.current_mode_is(DisplayMode::ACTIVE) &&
-        controller_.target_mode_is(DisplayMode::ACTIVE);
+        controller_.target_mode_is(DisplayMode::ACTIVE) &&
+        !controller_.target_source_is(DisplayRequestSource::ONBOARDING);
   }
 
  private:

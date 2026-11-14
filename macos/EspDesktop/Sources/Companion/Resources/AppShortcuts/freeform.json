@@ -3,6 +3,7 @@
   "appId": "com.apple.freeform",
   "label": "Freeform",
   "catalog": false,
+  "defaultShortcutIds": ["0", "2", "33", "1", "7", "15", "16", "28"],
   "shortcuts": [
     {
       "id": "0",
@@ -40,5 +41,39 @@
       "shortcut": "command+u",
       "icon": "Underline"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "6", "label": "Create copy of board (duplicate)", "shortcut": "scoped.command+shift+d", "icon": "Duplicate"},
+    {"id": "7", "label": "Toggle sidebar", "shortcut": "scoped.command+control+s", "icon": "Dock Left"},
+    {"id": "8", "label": "Show boards as icons", "shortcut": "scoped.command+1", "icon": "Shortcut Command"},
+    {"id": "9", "label": "Show boards in list", "shortcut": "scoped.command+2", "icon": "Shortcut Command"},
+    {"id": "10", "label": "Move between items on board", "shortcut": "scoped.tab", "icon": "Shortcut Tab"},
+    {"id": "11", "label": "Duplicate object to right", "shortcut": "scoped.option+right", "icon": "Duplicate"},
+    {"id": "12", "label": "Duplicate object to left", "shortcut": "scoped.option+left", "icon": "Duplicate"},
+    {"id": "13", "label": "Duplicate object above or below", "shortcut": "scoped.option+up", "icon": "Duplicate"},
+    {"id": "14", "label": "Duplicate object above or below", "shortcut": "scoped.option+down", "icon": "Duplicate"},
+    {"id": "15", "label": "Zoom", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "16", "label": "Zoom out", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "17", "label": "Print board", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "18", "label": "Delete board", "shortcut": "scoped.delete", "icon": "Delete"},
+    {"id": "19", "label": "Close Freeform window", "shortcut": "scoped.command+w", "icon": "Application"},
+    {"id": "20", "label": "Show Colors window", "shortcut": "scoped.command+shift+c", "icon": "Application"},
+    {"id": "21", "label": "Increase font size of text", "shortcut": "scoped.command+option+shift+keyequal", "icon": "Zoom In"},
+    {"id": "22", "label": "Decrease font size of text", "shortcut": "scoped.command+option+keyminus", "icon": "Zoom Out"},
+    {"id": "23", "label": "Align text flush left", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Align Left"},
+    {"id": "24", "label": "Center text", "shortcut": "scoped.command+shift+keybackslash", "icon": "Align Center"},
+    {"id": "25", "label": "Align text flush right", "shortcut": "scoped.command+shift+keybracketright", "icon": "Align Right"},
+    {"id": "26", "label": "Increase indent level", "shortcut": "scoped.command+keybracketright", "icon": "Increase Indent"},
+    {"id": "27", "label": "Decrease indent level", "shortcut": "scoped.command+keybracketleft", "icon": "Increase Indent"},
+    {"id": "28", "label": "Mask (crop) photo", "shortcut": "scoped.command+shift+m", "icon": "Crop"},
+    {"id": "29", "label": "Move item in front of one item", "shortcut": "scoped.command+option+shift+f", "icon": "Shortcut Command"},
+    {"id": "30", "label": "Move item in front of all items", "shortcut": "scoped.command+shift+f", "icon": "Shortcut Command"},
+    {"id": "31", "label": "Move item behind one item", "shortcut": "scoped.command+option+shift+b", "icon": "Shortcut Command"},
+    {"id": "32", "label": "Move item behind all items", "shortcut": "scoped.command+shift+b", "icon": "Shortcut Command"},
+    {"id": "33", "label": "Group Selection", "shortcut": "scoped.command+option+g", "icon": "Group Selection"},
+    {"id": "34", "label": "Ungroup selected group", "shortcut": "scoped.command+option+shift+g", "icon": "Group Selection"},
+    {"id": "35", "label": "Lock items (after selecting them)", "shortcut": "scoped.command+l", "icon": "Shortcut Command"},
+    {"id": "36", "label": "Unlock selection", "shortcut": "scoped.command+option+l", "icon": "Group Selection"},
+    {"id": "37", "label": "Next Board Item", "shortcut": "scoped.tab", "icon": "Shortcut Tab"}
   ]
 }

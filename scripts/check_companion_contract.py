@@ -40,7 +40,7 @@ def main() -> int:
         "artwork.ack", "artwork.end", "artwork.abort", "artwork.request",
         "app_icon.request", "app_icon.begin", "app_icon.unchanged",
         "app_icon.unavailable", "app_icon.ack", "app_icon.end",
-        "app_icon.abort", "error", "catalogue.definitions.page", "focus.targets", "session.lock",
+        "app_icon.abort", "error", "catalogue.definitions.page", "focus.targets", "session.lock", "pair.reset",
     }
     require(set(message_ids) == required_messages, "the typed message registry is incomplete")
 
