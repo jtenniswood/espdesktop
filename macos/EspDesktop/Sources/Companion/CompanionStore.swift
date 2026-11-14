@@ -132,6 +132,7 @@ final class CompanionStore: NSObject, ObservableObject {
         didSet {
             defaults.set(sharesCodexUsage, forKey: "tokenUsage.codex")
             codexUsage = nil
+            didCheckCodexUsage = false
             lastCodexUsageAttempt = .distantPast
             restartTokenUsage()
         }
@@ -139,10 +140,16 @@ final class CompanionStore: NSObject, ObservableObject {
     @Published var sharesClaudeUsage = false {
         didSet {
             defaults.set(sharesClaudeUsage, forKey: "tokenUsage.claude")
+            claudeSetup = .init()
+            lastClaudeSetupCheck = .distantPast
             restartTokenUsage()
         }
     }
-    private var codexUsage: WeeklyUsageReading?
+    @Published private(set) var claudeSetup = TokenUsage.ClaudeSetup()
+    @Published private(set) var claudeUsage: WeeklyUsageReading?
+    @Published private(set) var codexUsage: WeeklyUsageReading?
+    @Published private(set) var didCheckCodexUsage = false
+    private var lastClaudeSetupCheck = Date.distantPast
     private var lastCodexUsageAttempt = Date.distantPast
     private var tokenUsageTask: Task<Void, Never>?
     private var tokenUsageDisplays: [CompanionDisplay] {
@@ -237,6 +244,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         if supportsLaunchAtLogin { refreshLaunchAtLoginStatus() }
         refreshApplications()
+        updateTokenUsageTask()
         Task { await remoteCatalogueStore.refresh() }
     }
 
@@ -832,17 +840,26 @@ final class CompanionStore: NSObject, ObservableObject {
     private func publishTokenUsage(to display: CompanionDisplay) {
         display.connection.publishTokenUsage(
             codex: sharesCodexUsage ? codexUsage : nil,
-            claude: sharesClaudeUsage ? TokenUsage.readClaude() : nil
+            claude: sharesClaudeUsage ? claudeUsage : nil
         )
     }
 
+    func connectClaudeUsage() throws {
+        try TokenUsage.connectClaude(settings: claudeSetup.settings)
+        lastClaudeSetupCheck = .distantPast
+        restartTokenUsage()
+    }
+
     private func restartTokenUsage() {
+        tokenUsageTask?.cancel()
+        tokenUsageTask = nil
+        refreshClaudeUsage()
         for display in tokenUsageDisplays { publishTokenUsage(to: display) }
         updateTokenUsageTask()
     }
 
     private func updateTokenUsageTask() {
-        guard !tokenUsageDisplays.isEmpty, sharesCodexUsage || sharesClaudeUsage else {
+        guard sharesCodexUsage || sharesClaudeUsage else {
             tokenUsageTask?.cancel()
             tokenUsageTask = nil
             return
@@ -856,17 +873,32 @@ final class CompanionStore: NSObject, ObservableObject {
         }
     }
 
+    private func refreshClaudeUsage() {
+        let reading = sharesClaudeUsage ? TokenUsage.readClaude() : nil
+        if claudeUsage != reading { claudeUsage = reading }
+    }
+
     private func refreshTokenUsage() async {
+        refreshClaudeUsage()
+        for display in tokenUsageDisplays { publishTokenUsage(to: display) }
+
+        if sharesClaudeUsage, Date().timeIntervalSince(lastClaudeSetupCheck) >= 60 {
+            let setup = await TokenUsage.checkClaudeSetup()
+            guard !Task.isCancelled else { return }
+            lastClaudeSetupCheck = .now
+            if claudeSetup != setup { claudeSetup = setup }
+        }
+
         if sharesCodexUsage, Date().timeIntervalSince(lastCodexUsageAttempt) >= 300 {
-            let attempt = Date()
-            lastCodexUsageAttempt = attempt
             let reading = await TokenUsage.readCodex()
             guard !Task.isCancelled else { return }
-            if sharesCodexUsage, lastCodexUsageAttempt == attempt, let reading {
+            lastCodexUsageAttempt = .now
+            didCheckCodexUsage = true
+            if let reading {
                 codexUsage = reading
+                for display in tokenUsageDisplays { publishTokenUsage(to: display) }
             }
         }
-        for display in tokenUsageDisplays { publishTokenUsage(to: display) }
     }
 
     private func updateSystemMetricsProvider() {

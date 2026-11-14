@@ -263,7 +263,7 @@ struct CompanionSettings: View {
     @State private var pairingPrompt: CompanionPairingPrompt = .unavailable
     @State private var pairingFlowActive = false
     @State private var pairingFlowError = ""
-    @State private var claudeUsageSetupMessage = ""
+    @State private var claudeUsageSetupFailed = false
     @State private var selectedPageID = CompanionSettingsPage.connection.rawValue
     @FocusState private var focusedField: CompanionSettingsField?
 
@@ -436,27 +436,76 @@ struct CompanionSettings: View {
 
     private var tokenUsageSettings: some View {
         Section("Token Usage") {
-            Toggle("Share ChatGPT (Codex) weekly usage", isOn: $store.sharesCodexUsage)
-            if store.sharesCodexUsage {
-                Text("Sign in to the Codex CLI with your ChatGPT account.")
-                    .foregroundStyle(.secondary)
-            }
-            Toggle("Share Claude weekly usage", isOn: $store.sharesClaudeUsage)
-            if store.sharesClaudeUsage {
-                Button("Connect Claude Code") {
-                    do {
-                        try TokenUsage.connectClaude()
-                        claudeUsageSetupMessage = "Claude usage will appear after your next Claude Code response."
-                    } catch {
-                        claudeUsageSetupMessage = "Could not update Claude Code settings. Check that your user settings file is valid JSON and writable."
+            Toggle(isOn: $store.sharesCodexUsage) {
+                Text("Share ChatGPT (Codex) weekly usage")
+                if store.sharesCodexUsage {
+                    TimelineView(.periodic(from: .now, by: 15)) { context in
+                        Text(codexUsageStatus(at: context.date))
+                            .foregroundStyle(.secondary)
                     }
                 }
-                Text("Sign in to Claude Code with your Claude subscription. Connecting adds usage sharing to your status line.")
-                    .foregroundStyle(.secondary)
-                if !claudeUsageSetupMessage.isEmpty {
-                    Text(claudeUsageSetupMessage).foregroundStyle(.secondary)
+            }
+            Toggle(isOn: $store.sharesClaudeUsage) {
+                Text("Share Claude weekly usage")
+                if store.sharesClaudeUsage {
+                    TimelineView(.periodic(from: .now, by: 15)) { context in
+                        Text(claudeUsageStatus(at: context.date))
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
+            if store.sharesClaudeUsage, !store.claudeSetup.helperConfigured,
+               [.detected, .unknown].contains(store.claudeSetup.account) {
+                Button("Set Up Claude Code") {
+                    do {
+                        try store.connectClaudeUsage()
+                        claudeUsageSetupFailed = false
+                    } catch {
+                        claudeUsageSetupFailed = true
+                    }
+                }
+                if claudeUsageSetupFailed {
+                    Text("Couldn’t save the Claude Code status line. Check that your Claude Code settings file is valid JSON and writable.")
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+    }
+
+    private func codexUsageStatus(at date: Date) -> String {
+        if let reading = store.codexUsage {
+            return reading.isCurrent(at: date)
+                ? "\(reading.remainingPercent)% left this week"
+                : "Last weekly reading is out of date."
+        }
+        return store.didCheckCodexUsage
+            ? "Weekly usage unavailable. Check that Codex CLI is installed and signed in with ChatGPT."
+            : "Checking weekly usage…"
+    }
+
+    private func claudeUsageStatus(at date: Date) -> String {
+        switch store.claudeSetup.account {
+        case .checking:
+            return "Checking Claude Code…"
+        case .missingCLI:
+            return "Install Claude Code to share your weekly subscription usage."
+        case .signedOut:
+            return "Sign in to Claude Code with your Claude subscription."
+        case .apiKey:
+            return "Claude Code is using an API key. Use your Claude subscription in Claude Code to share weekly usage."
+        case .otherProvider:
+            return "Claude Code is using a third-party provider. Use your Claude subscription to share weekly usage."
+        case .detected, .unknown:
+            guard store.claudeSetup.helperConfigured else {
+                return "Set up usage sharing through the Claude Code status line."
+            }
+            if let reading = store.claudeUsage, reading.isCurrent(at: date) {
+                return "\(reading.remainingPercent)% left this week"
+            }
+            if store.claudeUsage != nil {
+                return "Last weekly reading is out of date. Open a Claude Code session and send a message."
+            }
+            return "Waiting for weekly usage. Open a Claude Code session with your subscription and send a message."
         }
     }
 
