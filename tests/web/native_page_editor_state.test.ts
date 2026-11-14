@@ -29,7 +29,7 @@ export function runNativeRootSettingsEventTests(): void {
     let refreshes = 0, connected: any;
     const runtime = { els: {} } as any;
     const events = createAppStateEventHandlersFeature(runtime, noop, noop, noop, noop, noop, noop,
-      noop, noop, noop, noop, noop, { applyButtonOrderValue: (value: string) => orders.push(value) } as any, noop, noop);
+      noop, noop, noop, noop, noop, { applyButtonOrderValue: (value: string) => orders.push(value) } as any, noop, noop, () => {});
     createAppEventsFeature({ connect: (value: unknown) => { connected = value; } } as any, events,
       { patterns: () => [] }, runtime, noop, noop, noop, noop, noop, noop,
       { eventStreamEnabled: () => false } as any, noop,

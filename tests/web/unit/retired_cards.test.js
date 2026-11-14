@@ -34,13 +34,13 @@ test("native backup cleanup discards retired payloads before native or legacy re
     const retired = `old.entity;Old;Auto;Auto;old.sensor;;${type};;ssid64=old-network,pass64=old-secret`;
     for (const page of [`1b,,2|${retired.replaceAll(";", ":")}|${neighbour.replaceAll(";", ":")}`, `~1b,,2|${cardContractSubpageTypeCode(type)},old.entity,Old,,,old.sensor,,,pass64=old-secret|switch,switch.lamp,Lamp,,,,,,icon_size%3Dlarge`]) {
       const document = { deviceProfile: "test", buttons: { 1: retired, 2: neighbour },
-        subpages: { 3: page, 4: "", 98: page }, settings: { button_order: "1b,,2" } };
+        subpages: { 3: page, 4: "", 98: page }, settings: { button_order: "1b,,2", special_page: page } };
       removeRetiredPanelRecords(document, codec);
       assert.equal(document.buttons[1], undefined);
       assert.equal(document.buttons[2], neighbour);
       assert.equal(document.settings.button_order, ",,2");
       assert.equal(document.subpages[4], "");
-      for (const cleaned of [document.subpages[3], document.subpages[98]]) {
+      for (const cleaned of [document.subpages[3], document.subpages[98], document.settings.special_page]) {
         assert.ok(!cleaned.includes("old.entity") && !cleaned.includes("old.sensor") && !cleaned.includes("old-secret"));
         const parsed = parseRawSubpageConfig(cleaned, code => code);
         assert.equal(cleaned.split("|")[2], page.split("|")[2]);

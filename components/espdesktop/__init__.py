@@ -24,6 +24,7 @@ CONF_BUTTON_ON_COLOR = "button_on_color"
 CONF_BUTTONS = "buttons"
 CONF_CONFIG = "config"
 CONF_SUBPAGE_CHUNKS = "subpage_chunks"
+CONF_SPECIAL_PAGE_CHUNKS = "special_page_chunks"
 CONF_STORAGE = "storage"
 CONF_ON_LAYOUT_CHANGED = "on_layout_changed"
 CONF_WEB_AUTH_USERNAME = "web_auth_username"
@@ -49,6 +50,9 @@ PANEL_CONFIG_SCHEMA = cv.Schema(
         cv.Optional(CONF_ON_LAYOUT_CHANGED): automation.validate_automation(single=True),
         cv.Required(CONF_BUTTON_ORDER): cv.use_id(text.Text),
         cv.Optional(CONF_BUTTON_ON_COLOR): cv.use_id(text.Text),
+        cv.Optional(CONF_SPECIAL_PAGE_CHUNKS): cv.All(
+            cv.ensure_list(cv.use_id(text.Text)), cv.Length(min=4, max=8)
+        ),
         cv.Required(CONF_BUTTONS): cv.All(
             cv.ensure_list(PANEL_CONFIG_BUTTON_SCHEMA), cv.Length(min=1, max=32)
         ),
@@ -143,6 +147,12 @@ async def to_code(config):
         if CONF_BUTTON_ON_COLOR in panel_config:
             button_on_color = await cg.get_variable(panel_config[CONF_BUTTON_ON_COLOR])
             cg.add(var.set_panel_config_button_on_color(button_on_color))
+        if CONF_SPECIAL_PAGE_CHUNKS in panel_config:
+            special_page_chunks = [
+                await cg.get_variable(source)
+                for source in panel_config[CONF_SPECIAL_PAGE_CHUNKS]
+            ]
+            cg.add(var.set_panel_config_special_page(*special_page_chunks))
         referenced_texts = [panel_config[CONF_BUTTON_ORDER]]
         if CONF_BUTTON_ON_COLOR in panel_config:
             referenced_texts.append(panel_config[CONF_BUTTON_ON_COLOR])

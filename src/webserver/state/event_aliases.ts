@@ -9,7 +9,7 @@ export const SSE_ALIAS_GROUPS = {
   clockBarNightMode: ["switch-screen__clock_bar_night_mode_icon", "switch-screen_clock_bar_night_mode_icon", "switch-clock_bar_night_mode_enabled"],
   networkStatus: ["switch-screen__network_status_icon", "switch-screen_network_status_icon", "switch-network_status_enabled"],
   batteryStatus: ["switch-screen__battery_status", "switch-screen_battery_status", "switch-battery_status_enabled"],
-
+  swipeUpPage: ["switch-screen__swipe_up_page", "switch-screen_swipe_up_page", "switch-swipe_up_page_enabled"],
   subpageTitleBar: ["switch-screen__subpage_title_bar", "switch-screen_subpage_title_bar", "switch-subpage_title_bar_enabled"],
   autoOpenAppSubpages: ["switch-companion__auto_open_app_subpages", "switch-companion_auto_open_app_subpages", "switch-companion_auto_open_app_subpages_enabled"],
   returnHomeOnAppSwitch: ["switch-companion__return_home_on_app_switch", "switch-companion_return_home_on_app_switch", "switch-companion_return_home_on_app_switch_enabled"],
@@ -50,7 +50,7 @@ export function applySseHandlerAliases(handlers: SseHandlers): void {
   addSseAliases(handlers, SSE_ALIAS_GROUPS.clockBarNightMode, "switch-screen__clock_bar_night_mode_icon");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.networkStatus, "switch-screen__network_status_icon");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.batteryStatus, "switch-screen__battery_status");
-
+  addSseAliases(handlers, SSE_ALIAS_GROUPS.swipeUpPage, "switch-screen__swipe_up_page");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.subpageTitleBar, "switch-screen__subpage_title_bar");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.autoOpenAppSubpages, "switch-companion__auto_open_app_subpages");
   addSseAliases(handlers, SSE_ALIAS_GROUPS.returnHomeOnAppSwitch, "switch-companion__return_home_on_app_switch");

@@ -45,7 +45,7 @@ export interface SettingsPageFeature {
     buildSettingsPage(...args: any[]): any;
 }
 
-export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls">, scheduleSection: SettingsScheduleSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, openAppSetup: () => void, saveAppSubpagePreference: (enabled: boolean) => Promise<boolean>, saveDisplayThemePreference: (patch: Partial<DisplayThemePreferences>, legacySave: () => void) => Promise<void>): SettingsPageFeature {
+export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindTextPost">, runtime: UiRuntimeState, core: Pick<CoreFeature, "syncPreviewOrientation">, layout: ApplicationLayoutState, environment: EnvironmentStateFeature, schedule: ScreenScheduleStateFeature, screensaverTimeout: ScreensaverTimeoutFeature, screenRotation: ScreenRotationFeature, appearance: AppearanceFeature, clockBar: ClockBarFeature, entityState: Pick<EntityStateFeature, "entityName" | "entityInput">, shell: Pick<ControlsShellFeature, "createActionButton" | "buildApplyBar">, requestApi: Pick<ApplicationApiFeature, "postText" | "postSelect" | "postNumber" | "postScreensaverMode" | "postScreensaverTimeout">, statusPreview: Pick<AppStatusPreviewFeature, "appendTimezoneOption" | "syncInput" | "updateClock" | "updateSunInfo">, schedulePostApi: Pick<ScreenSchedulePostApiFeature, "postBrightnessMode" | "postDisplayBacklightBrightness" | "postBrightnessDawnTime" | "postBrightnessDuskTime">, clockBarPostApi: Pick<ClockBarPostApiFeature, "postClockBar" | "postBatteryStatus" | "postReturnHomeOnAppSwitch" | "postSubpageTitleBar" | "postSwipeUpPage">, fields: Pick<ControlsFieldsFeature, "colorField" | "condField" | "createRangeSlider" | "fieldLabel" | "makeCollapsibleCard" | "segmentControl" | "selectField" | "textInput" | "toggleRow">, helpers: Pick<SettingsPageHelpersFeature, "appendSettingsSection" | "createScreensaverThenControls" | "createTimeInput" | "statusBadge" | "syncClockScreensaverControls">, scheduleSection: SettingsScheduleSectionFeature, systemSection: SettingsSystemSectionFeature, preview: Pick<PreviewRenderFeature, "render">, connectorState: Pick<ConnectorsPageFeature, "buildPage" | "homeAssistantConnected" | "companionConfigured" | "onStatusChange">, openAppSetup: () => void, saveAppSubpagePreference: (enabled: boolean) => Promise<boolean>, saveDisplayThemePreference: (patch: Partial<DisplayThemePreferences>, legacySave: () => void) => Promise<void>, leaveSwipeUpPage: () => void): SettingsPageFeature {
     const { render: renderPreview } = preview;
     const { appendSettingsSection, createScreensaverThenControls, createTimeInput, statusBadge, syncClockScreensaverControls } = helpers;
     const { buildScreenScheduleSettingsCard } = scheduleSection;
@@ -59,7 +59,7 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
     const { syncPreviewOrientation } = core;
     const { homeAssistantConnected, companionConfigured, onStatusChange } = connectorState;
     const { postBrightnessMode, postDisplayBacklightBrightness, postBrightnessDawnTime, postBrightnessDuskTime } = schedulePostApi;
-    const { postClockBar, postBatteryStatus, postReturnHomeOnAppSwitch } = clockBarPostApi;
+    const { postClockBar, postBatteryStatus, postReturnHomeOnAppSwitch, postSwipeUpPage } = clockBarPostApi;
     const els = runtime.els;
     const { timezoneOptionsWithFallback } = environment;
     const { syncUi: syncScreenScheduleUi } = schedule;
@@ -540,11 +540,24 @@ export function createSettingsPageFeature(codec: Pick<ConfigCodecFeature, "bindT
             setupButton.addEventListener("click", openAppSetup);
             appSubpageBody.appendChild(setupButton);
         }
+        const swipeUpPageBody = document.createElement("div");
+        const swipeUpPage = toggleRow("Enable swipe-up page", "sp-set-swipe-up-page", state.swipeUpPageOn);
+        swipeUpPageBody.appendChild(swipeUpPage.row);
+        els.setSwipeUpPage = swipeUpPage.input;
+        swipeUpPage.input.addEventListener("change", function (this: HTMLInputElement) {
+            state.swipeUpPageOn = this.checked;
+            if (!this.checked) leaveSwipeUpPage();
+            renderPreview();
+            postSwipeUpPage(this.checked);
+        });
+
+        const swipeUpPageCard = makeCollapsibleCard("Swipe-up Page", swipeUpPageBody, true);
         const appSubpageCard = makeCollapsibleCard("App Subpages", appSubpageBody, true);
         appendSettingsSection(config, "Appearance", [
             activeColourCard,
             cardStyleCard,
             appSubpageCard,
+            swipeUpPageCard,
             themeCard,
             clockBarCard,
         ]);

@@ -73,6 +73,7 @@ export function createAppStateEventHandlersFeature(
     grid: Pick<GridFeature, "applyButtonOrderValue">,
     settingsHelpers: Pick<SettingsPageHelpersFeature, "syncClockScreensaverControls">,
     preview: Pick<PreviewRenderFeature, "render">,
+    leaveSwipeUpPage: () => void,
 ): AppStateEventHandlersFeature {
     const { syncClockScreensaverControls } = settingsHelpers;
     const { render: renderPreview } = preview;
@@ -157,7 +158,12 @@ export function createAppStateEventHandlersFeature(
                 state.batteryStatusOn = d.value === true || val === "ON";
                 syncClockBarUi();
             },
-
+            "switch-screen__swipe_up_page": function (this: any, val?: any, d?: any) {
+                state.swipeUpPageOn = d.value === true || val === "ON";
+                if (!state.swipeUpPageOn) leaveSwipeUpPage();
+                syncClockBarUi();
+                renderPreview();
+            },
             "switch-screen__subpage_title_bar": function (this: any, val?: any, d?: any) {
                 state.subpageTitleBarOn = d.value === true || val === "ON";
                 syncClockBarUi();

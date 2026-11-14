@@ -14,6 +14,8 @@ code = r'''
 #include <algorithm>
 #include <atomic>
 #include <cassert>
+[[maybe_unused]] constexpr int NAVIGATION_SPECIAL_PAGE_SLOT = -1;
+
 #include <functional>
 #include <string>
 #include <utility>

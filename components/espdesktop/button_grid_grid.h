@@ -63,6 +63,7 @@ struct GridConfig {
   int subpage_chevron_y = 2;
   int subpage_chevron_text_width_percent = 94;
   std::string timezone;
+  std::string special_page_config;
   std::function<void(espdesktop::DisplayTakeoverKind)> begin_display_takeover;
   std::function<void(espdesktop::DisplayTakeoverKind)> end_display_takeover;
   esphome::artwork_image::ArtworkImage **image_card_images = nullptr;
@@ -1387,12 +1388,13 @@ inline void grid_phase2(
                             const ParsedCfg &p, lv_obj_t *parent_screen,
                             const std::string &sp_order_str, std::vector<SubpageBtn> &sp_btns,
                             std::vector<NestedPageTask> *nested_pages) -> lv_obj_t * {
+    const bool is_special_page = navigation_slot == NAVIGATION_SPECIAL_PAGE_SLOT;
     const bool is_nested_page = parent != 0;
-    const int parent_index = is_nested_page ? parent - 1 : navigation_slot - 1;
+    const int parent_index = is_special_page ? 0 : is_nested_page ? parent - 1 : navigation_slot - 1;
     const auto parent_context = card_runtime_context(p);
-    if (!espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) return nullptr;
+    if (!is_special_page && !espdesktop::cards::navigation_driver_owns_subpage(parent_context, p)) return nullptr;
 
-    std::string sp_back_label = get_subpage_back_label(sp_order_str);
+    std::string sp_back_label = get_subpage_back_label(sp_order_str, is_special_page);
 
     SubpageOrder sp_ord;
     parse_subpage_order(sp_order_str, NS, sp_btns.size(), sp_ord, cfg.configured_slots);
@@ -1419,17 +1421,22 @@ inline void grid_phase2(
         break;
       }
     }
-    espdesktop::cards::navigation_driver_own_subpage(
-      owner_slot, p, parent_context, navigation_slot, display_order, sub_scr);
-    if (is_nested_page) {
-      navigation_register_home_target(navigation_slot, display_order, p.label, {}, owner_slot.btn);
-      navigation_find_slot(navigation_slot)->parent_slot = parent;
+    if (is_special_page) {
+      navigation_register_special_page(sub_scr, main_page_obj, get_subpage_title(sp_order_str));
+    } else {
+      espdesktop::cards::navigation_driver_own_subpage(
+        owner_slot, p, parent_context, navigation_slot, display_order, sub_scr);
+      if (is_nested_page) {
+        navigation_register_home_target(navigation_slot, display_order, p.label, {}, owner_slot.btn);
+        navigation_find_slot(navigation_slot)->parent_slot = parent;
+      }
     }
     lv_obj_set_style_bg_color(sub_scr, lv_obj_get_style_bg_color(main_page_obj, LV_PART_MAIN), LV_PART_MAIN);
     lv_obj_set_style_bg_opa(sub_scr, LV_OPA_COVER, LV_PART_MAIN);
     lv_obj_set_layout(sub_scr, LV_LAYOUT_GRID);
     lv_obj_set_grid_dsc_array(sub_scr, sp_col_dsc, sp_row_dsc);
-    lv_obj_set_style_pad_top(sub_scr, mp_pad_top, LV_PART_MAIN);
+    lv_obj_set_style_pad_top(sub_scr, is_special_page
+        ? mp_pad_bottom : mp_pad_top, LV_PART_MAIN);
     lv_obj_set_style_pad_bottom(sub_scr, mp_pad_bottom, LV_PART_MAIN);
     lv_obj_set_style_pad_left(sub_scr, mp_pad_left, LV_PART_MAIN);
     lv_obj_set_style_pad_right(sub_scr, mp_pad_right, LV_PART_MAIN);
@@ -1450,8 +1457,8 @@ inline void grid_phase2(
       cfg.subpage_chevron_font);
     display_apply_main_width(back_slot.icon_lbl, display);
     display_apply_slot_text_width(back_slot, display);
-    const bool app_back = companion_app_shortcuts_enabled(p);
-    lv_label_set_display_text(back_slot.icon_lbl, app_back
+    const bool app_back = !is_special_page && companion_app_shortcuts_enabled(p);
+    lv_label_set_display_text(back_slot.icon_lbl, is_special_page ? "\U000F0156" : app_back
       ? find_icon(companion_shortcut_page_back_icon(p.icon)) : "\U000F0141");
     lv_label_set_display_text(back_slot.text_lbl, sp_back_label.c_str());
     apply_card_label_line_clamp(back_slot.text_lbl, cfg, sp_ord.back_row_span);
@@ -1470,13 +1477,18 @@ inline void grid_phase2(
       const auto started = esphome::millis();
       ESP_LOGD("ui_latency", "Back press start at=%u", unsigned(started));
       navigation_consume_touch_press(static_cast<lv_obj_t *>(lv_event_get_target(e)));
+      if (lv_event_get_user_data(e) == &navigation_special_page_back_button_marker()) {
+        navigation_return_from_special_page();
+        return;
+      }
       lv_scr_load_anim((lv_obj_t *)lv_event_get_user_data(e), LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
       navigation_present_page_before_image_refresh(started);
-    }, LV_EVENT_PRESSED, parent_screen);
+    }, LV_EVENT_PRESSED, is_special_page ? static_cast<void *>(&navigation_special_page_back_button_marker()) : parent_screen);
     navigation_register_subpage_back_button(navigation_slot, back_slot, back_neutral_background);
 
     auto add_parent_indicator = [&](const std::string &entity_id,
                                     bool (*is_active_state)(esphome::StringRef) = is_entity_on_ref) {
+      if (is_special_page) return;
       espdesktop::cards::navigation_driver_add_child_indicator(
         navigation_child_indicators, owner_slot, parent_index, p, parent_context,
         entity_id, is_active_state);
@@ -1486,6 +1498,8 @@ inline void grid_phase2(
       int bn = sp_ord.positions[gp];
       if (bn < 1 || bn > (int)sp_btns.size()) continue;
       auto &sb = sp_btns[bn - 1];
+      if (is_special_page &&
+          (sb.type == "subpage" || sb.type == "companion_subpage")) continue;
       if (card_runtime_type_retired(sb.type)) continue;
       ParsedCfg sb_cfg = parsed_cfg_from_subpage_btn(sb);
       const auto context = card_runtime_context(
@@ -1518,7 +1532,7 @@ inline void grid_phase2(
       refresh_card_layout(sub_slot, sb_cfg, cfg, rs, cs);
       if (retired_home_assistant_card(sb_cfg)) continue;
 
-      if (!is_nested_page &&
+      if (!is_special_page && !is_nested_page &&
           espdesktop::cards::navigation_driver_owns_subpage(context, sb_cfg)) {
         const int child_key = 32 + (navigation_slot - 1) * 32 + bn;
         if (espdesktop::grid_native_page(child_key)) {
@@ -1562,9 +1576,9 @@ inline void grid_phase2(
       action_environment.child_capacity = MAX_SUBPAGE_ITEMS;
       action_environment.child_was_on =
         navigation_child_indicators.child_was_on;
-      action_environment.parent_btn = owner_slot.btn;
-      action_environment.parent_icon = owner_slot.icon_lbl;
-      action_environment.parent_index = parent_index;
+      action_environment.parent_btn = is_special_page ? nullptr : owner_slot.btn;
+      action_environment.parent_icon = is_special_page ? nullptr : owner_slot.icon_lbl;
+      action_environment.parent_index = is_special_page ? -1 : parent_index;
       action_environment.parent_has_icon_on =
         espdesktop::cards::navigation_driver_parent_has_alt_icon(
           p, parent_context);
@@ -1646,6 +1660,9 @@ inline void grid_phase2(
       render_eager(task.key, task.parent, task.owner, task.config, task.parent_screen, nullptr);
   }
 
+  auto special_cards = parse_subpage_config(cfg.special_page_config);
+  render_subpage(NAVIGATION_SPECIAL_PAGE_SLOT, 0, {}, ParsedCfg{}, main_page_obj,
+                 get_subpage_order(cfg.special_page_config), special_cards, nullptr);
   refresh_image_cards();
   grid_phase2_complete_state() = true;
   refresh_theme_grid_after_rebuild();

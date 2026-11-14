@@ -215,6 +215,7 @@ class EspDesktopApp::NativeConfigurationRuntime {
    configuration::ConfigurationMainLoop transactions;
    configuration::ConfigurationCompatibilityRetry compatibility_retry;
    uint32_t finder_poll_ms{0};
+   std::array<configuration::EspHomePanelConfigTextValue, configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> special_page{};
    bool document_available{false};
    bool service_configured{false};
    bool storage_ready{false};
@@ -260,6 +261,16 @@ void EspDesktopApp::set_panel_config_button_on_color(
   panel_config_button_on_color_ = button_on_color;
   panel_config_color_template_ = false;
   panel_config_chrome_empty_defaults_ &= ~uint8_t{2};
+}
+
+void EspDesktopApp::set_panel_config_special_page(
+    esphome::text::Text *chunk_0, esphome::text::Text *chunk_1,
+    esphome::text::Text *chunk_2, esphome::text::Text *chunk_3,
+    esphome::text::Text *chunk_4, esphome::text::Text *chunk_5,
+    esphome::text::Text *chunk_6, esphome::text::Text *chunk_7) {
+  panel_config_special_page_chunks_ = {
+      chunk_0, chunk_1, chunk_2, chunk_3,
+      chunk_4, chunk_5, chunk_6, chunk_7};
 }
 
 void EspDesktopApp::set_panel_config_button(
@@ -321,6 +332,15 @@ bool EspDesktopApp::create_native_configuration_runtime() {
       panel_config_button_on_color_, panel_config_color_template_,
       (panel_config_chrome_empty_defaults_ & 2u) != 0);
   runtime->text_bindings.set_button_on_color(&runtime->button_on_color);
+  std::array<configuration::PanelConfigTextValue *,
+             configuration::PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS>
+      special_page_chunks{};
+  for (size_t index = 0; index < panel_config_special_page_chunks_.size(); ++index) {
+    if (panel_config_special_page_chunks_[index] == nullptr) continue;
+    runtime->special_page[index].bind(panel_config_special_page_chunks_[index]);
+    special_page_chunks[index] = &runtime->special_page[index];
+  }
+  runtime->text_bindings.set_special_page_chunks(special_page_chunks);
   for (size_t index = 0; index < panel_config_button_texts_.size(); ++index) {
     const PanelConfigTextSources &sources = panel_config_button_texts_[index];
     // Device profiles only provide text entities for their real panel slots.

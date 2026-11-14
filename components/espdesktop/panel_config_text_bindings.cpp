@@ -9,6 +9,7 @@ namespace {
 
 constexpr char BUTTON_ORDER_KEY[] = "button_order";
 constexpr char BUTTON_ON_COLOR_KEY[] = "button_on_color";
+constexpr char SPECIAL_PAGE_KEY[] = "special_page";
 
 // Legacy text fields are independently validated as UTF-8. Never split a code
 // point between fields, even when the byte budget itself would otherwise fit.
@@ -22,6 +23,30 @@ size_t legacy_chunk_size(const uint8_t *value, size_t remaining) {
 
 
 }  // namespace
+
+bool PanelConfigTextBindings::apply_special_page_chunks(
+    const std::array<PanelConfigTextValue *,
+                     PanelConfigTextBindings::MAX_SUBPAGE_CHUNKS> &chunks,
+    const char *value, size_t value_size, ApplyMode mode) {
+  size_t offset = 0;
+  size_t remaining_chunks = static_cast<size_t>(std::count_if(
+      chunks.begin(), chunks.end(), [](PanelConfigTextValue *chunk) { return chunk != nullptr; }));
+  for (PanelConfigTextValue *chunk : chunks) {
+    if (chunk == nullptr) continue;
+    --remaining_chunks;
+    const size_t remaining = value_size - offset;
+    const size_t chunk_size = mode == ApplyMode::PUBLISH && remaining_chunks == 0 ? remaining
+        : remaining == 0 ? 0 : legacy_chunk_size(reinterpret_cast<const uint8_t *>(value) + offset, remaining);
+    if (!write_value(
+            chunk, value == nullptr ? "" : value + offset, chunk_size,
+            mode)) {
+      return false;
+    }
+    offset += chunk_size;
+  }
+  return offset == value_size;
+}
+
 
 void PanelConfigTextBindings::set_device_profile(const char *device_profile) {
   device_profile_ = device_profile == nullptr ? "" : device_profile;
@@ -75,7 +100,9 @@ bool PanelConfigTextBindings::owns_record(
           std::memcmp(record.key, BUTTON_ORDER_KEY, record.key_size) == 0) ||
          (record.key_size == sizeof(BUTTON_ON_COLOR_KEY) - 1 &&
           button_on_color_ &&
-          std::memcmp(record.key, BUTTON_ON_COLOR_KEY, record.key_size) == 0);
+          std::memcmp(record.key, BUTTON_ON_COLOR_KEY, record.key_size) == 0) ||
+         (record.key_size == sizeof(SPECIAL_PAGE_KEY) - 1 &&
+          std::memcmp(record.key, SPECIAL_PAGE_KEY, record.key_size) == 0);
 }
 
 bool PanelConfigTextBindings::merge_document(const uint8_t *native,
@@ -165,6 +192,16 @@ bool PanelConfigTextBindings::write_document(const uint8_t *native,
           button_on_color_->value().size()) != PanelConfigStatus::OK) {
     return false;
   }
+  std::string special_page;
+  for (auto *chunk : special_page_chunks_) {
+    if (!chunk) continue;
+    if (special_page.size() + chunk->value().size() >
+        PANEL_CONFIG_MAX_RECORD_BODY_BYTES - 1 - (sizeof(SPECIAL_PAGE_KEY) - 1)) return false;
+    special_page.append(chunk->value());
+  }
+  if (!special_page.empty() && writer.append_setting(
+      reinterpret_cast<const uint8_t *>(SPECIAL_PAGE_KEY), sizeof(SPECIAL_PAGE_KEY) - 1,
+      reinterpret_cast<const uint8_t *>(special_page.data()), special_page.size()) != PanelConfigStatus::OK) return false;
   if (native) {
     PanelConfigReader reader(native, native_size);
     if (reader.begin() != PanelConfigStatus::OK)
@@ -220,6 +257,15 @@ CompatibilityStatus PanelConfigTextBindings::persistence_admission(
   PanelConfigRecord record;
   while (reader.next(&record) == PanelConfigStatus::OK) {
     if (!owns_record(record)) continue;
+    if (record.type == PanelConfigRecordType::SETTING && record.key_size == sizeof(SPECIAL_PAGE_KEY) - 1 &&
+        std::memcmp(record.key, SPECIAL_PAGE_KEY, record.key_size) == 0) {
+      size_t offset = 0;
+      for (auto *chunk : special_page_chunks_) {
+        if (chunk) offset += legacy_chunk_size(record.value + offset, record.value_size - offset);
+      }
+      if (offset != record.value_size) return CompatibilityStatus::NOT_REPRESENTABLE;
+      continue;
+    }
     if ((record.type == PanelConfigRecordType::BUTTON ||
          (record.type == PanelConfigRecordType::SETTING && owns_record(record))) &&
         record.value_size > 255)
@@ -308,6 +354,7 @@ bool PanelConfigTextBindings::apply_document(const uint8_t *document,
   uint32_t subpage_slots = 0;
   bool has_button_order = false;
   bool has_button_on_color = false;
+  bool has_special_page = false;
   PanelConfigRecord record;
   PanelConfigStatus status = PanelConfigStatus::OK;
   while ((status = reader.next(&record)) == PanelConfigStatus::OK) {
@@ -378,6 +425,17 @@ bool PanelConfigTextBindings::apply_document(const uint8_t *document,
         return false;
       }
       has_button_on_color = true;
+    } else if (record.type == PanelConfigRecordType::SETTING &&
+               record.key_size == sizeof(SPECIAL_PAGE_KEY) - 1 &&
+               std::memcmp(record.key, SPECIAL_PAGE_KEY, record.key_size) ==
+                   0) {
+      if (!apply_special_page_chunks(
+              special_page_chunks_,
+              reinterpret_cast<const char *>(record.value),
+              record.value_size, mode)) {
+        return false;
+      }
+      has_special_page = true;
     }
   }
   if (status != PanelConfigStatus::END) return false;
@@ -386,6 +444,9 @@ bool PanelConfigTextBindings::apply_document(const uint8_t *document,
     return false;
   if (!has_button_on_color && button_on_color_ != nullptr &&
       !write_value(button_on_color_, "", 0, mode))
+    return false;
+  if (!has_special_page &&
+      !apply_special_page_chunks(special_page_chunks_, nullptr, 0, mode))
     return false;
   for (size_t index = 0; index < buttons_.size(); ++index) {
     ButtonSources &sources = buttons_[index];

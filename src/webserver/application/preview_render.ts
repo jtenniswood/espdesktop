@@ -375,6 +375,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
             selectedTypeKey,
             connector,
             dependencies.homeAssistantSupported(),
+            state.editingSubpage === -1,
         );
     }
     function buttonTypePickerKeys(this: any, isSub?: any, selectedTypeKey?: any, connector?: CardPickerConnector) {
@@ -406,6 +407,10 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         title.title = "Click to rename; Enter to save";
     }
     function renderPreview(this: any) {
+        if (els.specialPageEntry) {
+            els.specialPageEntry.hidden = !state.swipeUpPageOn || state.editingSubpage === -1;
+            els.specialPageEntry.disabled = state.configLocked;
+        }
         appIconResizeObserver?.disconnect();
         const previewColors = PREVIEW_THEME_COLORS[previewEffectiveTheme(state)];
         dependencies.updateClockBarItemUi();
@@ -443,7 +448,7 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
         updatePreviewHint(c);
         const pageKey = state.editingSubpage;
         const subpage = pageKey ? getSubpage(pageKey) : null;
-        const owner = previewSubpageOwner(pageKey, state.buttons, getSubpage);
+        const owner = pageKey === -1 ? undefined : previewSubpageOwner(pageKey, state.buttons, getSubpage);
         const shortcutOwner = appShortcutPageOwner(owner);
         const liveFolders = subpage && shortcutOwner === "com.apple.finder"
             ? finderFolderPreview(subpage.order, c.grid, c.buttons, dependencies.layout.totalSlots,
@@ -457,13 +462,14 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 var backBtn: any = document.createElement(dependencies.displayDemo ? "button" : "div");
                 if (dependencies.displayDemo) backBtn.type = "button";
                 var bkSz: any = c.sizes[-2];
-                var backLabel = subpage?.backLabel || "Back";
+                var isSpecialPage = state.editingSubpage === -1;
+                var backLabel = subpage?.backLabel || (isSpecialPage ? "Close" : "Back");
                 if (dependencies.displayDemo) backBtn.setAttribute("aria-label", backLabel);
                 var backColor = subpage?.backColor || previewColors.surfaceCard;
                 backBtn.className = "sp-btn sp-back-btn" + sizeClass(bkSz) +
                     (c.selected.indexOf(-2) !== -1 ? " sp-selected" : "");
                 backBtn.innerHTML =
-                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (shortcutOwner ? resolveIcon({ icon: appShortcutPageBackIcon(owner?.icon) }) + ' sp-app-back-icon' : 'chevron-left') + '"></span>' +
+                    '<span class="sp-btn-icon sp-back-hit mdi mdi-' + (shortcutOwner ? resolveIcon({ icon: appShortcutPageBackIcon(owner?.icon) }) + ' sp-app-back-icon' : isSpecialPage ? 'close' : 'chevron-left') + '"></span>' +
                         (shortcutOwner ? '<span class="sp-btn-label-row"><span class="sp-subpage-badge sp-back-badge mdi mdi-chevron-left" aria-hidden="true"></span></span>' : '') +
                         '<span class="sp-btn-label">' + escHtml(backLabel) + '</span>';
                 backBtn.style.backgroundColor = "#" + backColor;

@@ -38,6 +38,7 @@ struct NavigationSubpageEntry {
   int slot = 0;
   int display_order = 0;
   std::string kind;
+  std::string title;
   lv_obj_t *owner_button = nullptr;
   uint64_t last_used = 0;
   lv_obj_t *screen = nullptr;
@@ -71,6 +72,9 @@ inline void navigation_register_subpage(int slot, int display_order,
                                         lv_obj_t *screen);
 inline void navigation_register_grid_screen_gesture(lv_obj_t *screen);
 
+// Keep the standalone page outside the range of home-card-owned subpages.
+constexpr int NAVIGATION_SPECIAL_PAGE_SLOT = -1;
+
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry);
 
 using ButtonGridNavigationService =
@@ -98,9 +102,24 @@ inline std::vector<NavigationSubpageEntry> &navigation_subpages() {
   return grid_navigation_service().subpages();
 }
 
+inline lv_obj_t *&navigation_special_page_previous_screen() {
+  static lv_obj_t *screen = nullptr;
+  return screen;
+}
+
+inline lv_obj_t *&navigation_special_page_main_screen() {
+  static lv_obj_t *screen = nullptr;
+  return screen;
+}
+
 inline std::vector<lv_obj_t *> &navigation_grid_screens() {
   static std::vector<lv_obj_t *> screens;
   return screens;
+}
+
+inline bool &navigation_special_page_back_button_marker() {
+  static bool marker = false;
+  return marker;
 }
 
 inline std::string navigation_trim(const std::string &value) {
@@ -167,6 +186,48 @@ inline void navigation_present_page_before_image_refresh(uint32_t started) {
   ESP_LOGD("ui_latency", "Navigation images done at=%u", unsigned(esphome::millis()));
 }
 
+inline bool navigation_return_from_special_page() {
+  const auto started = esphome::millis();
+  navigation_hide_modals();
+  lv_obj_t *previous = navigation_special_page_previous_screen();
+  navigation_special_page_previous_screen() = nullptr;
+  if (previous == nullptr || !lv_obj_is_valid(previous)) {
+    previous = navigation_special_page_main_screen();
+    if (previous == nullptr || !lv_obj_is_valid(previous)) return false;
+  }
+  if (lv_scr_act() != previous) {
+    lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+  }
+  navigation_present_page_before_image_refresh(started);
+  return true;
+}
+
+inline bool &navigation_special_page_enabled() {
+  static bool enabled = false;
+  return enabled;
+}
+
+inline void navigation_set_special_page_enabled(bool enabled) {
+  navigation_special_page_enabled() = enabled;
+  const auto *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+  if (!enabled && entry != nullptr && lv_scr_act() == entry->screen)
+    navigation_return_from_special_page();
+}
+
+inline bool navigation_open_special_page() {
+  const auto started = esphome::millis();
+  if (!navigation_special_page_enabled()) return false;
+  NavigationSubpageEntry *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+  if (entry == nullptr || entry->screen == nullptr) return false;
+  if (lv_scr_act() != entry->screen) {
+    navigation_special_page_previous_screen() = lv_scr_act();
+    navigation_hide_modals();
+    lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+    navigation_present_page_before_image_refresh(started);
+  }
+  return true;
+}
+
 inline bool navigation_display_mode_allows_grid_gesture() {
   espdesktop::EspDesktopAppCore *core =
       espdesktop::active_espdesktop_app_core();
@@ -230,13 +291,28 @@ inline void navigation_grid_screen_gesture(lv_event_t *event) {
     for (const auto &entry : navigation_subpages()) {
       if (entry.screen != screen || entry.back_button == nullptr ||
           !lv_obj_is_valid(entry.back_button)) continue;
-      // Use the same Back action as a direct press on the subpage.
+      // Use the page's Back/Close action so special pages return to their
+      // previous screen and ordinary/app subpages keep their existing behavior.
       lv_indev_wait_release(indev);
       ESP_LOGD("ui_latency", "Swipe back recognized at=%u", unsigned(esphome::millis()));
       lv_obj_send_event(entry.back_button, LV_EVENT_PRESSED, nullptr);
       ESP_LOGD("ui_latency", "Swipe back finished at=%u", unsigned(esphome::millis()));
       return;
     }
+  } else {
+    const lv_coord_t screen_height = lv_obj_get_height(screen);
+    const lv_coord_t swipe_start_y = start.y;
+    if (screen_height <= 0) return;
+    const auto *special_page = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
+    if (special_page && special_page->screen == screen) {
+      // Preserve the top-edge dismissal added on main, using touch-down too.
+      if (direction != LV_DIR_BOTTOM || swipe_start_y < 0 ||
+          swipe_start_y > screen_height / 6) return;
+      if (navigation_return_from_special_page()) lv_indev_wait_release(indev);
+      return;
+    }
+    if (direction != LV_DIR_TOP || swipe_start_y < screen_height * 5 / 6) return;
+    if (navigation_open_special_page()) lv_indev_wait_release(indev);
   }
 }
 
@@ -336,7 +412,7 @@ inline void navigation_subpage_screen_changed(lv_event_t *) {
 inline void navigation_register_subpage(int slot, int display_order,
                                         const std::string &kind,
                                         lv_obj_t *screen) {
-  if (slot <= 0) return;
+  if (slot <= 0 && slot != NAVIGATION_SPECIAL_PAGE_SLOT) return;
   auto *entry = navigation_find_slot(slot);
   if (!entry) {
     navigation_subpages().emplace_back();
@@ -347,13 +423,22 @@ inline void navigation_register_subpage(int slot, int display_order,
   entry->kind = navigation_lower(navigation_trim(kind));
   entry->screen = screen;
   if (!screen) return;
-  clock_bar_register_button_grid_page(screen);
+  if (entry->kind != "special") clock_bar_register_button_grid_page(screen);
   // Both events run after LVGL has changed the active screen. Unloading also
   // restores temperatures immediately when returning home or opening another UI.
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,
                       LV_EVENT_SCREEN_LOADED, nullptr);
   lv_obj_add_event_cb(screen, navigation_subpage_screen_changed,
                       LV_EVENT_SCREEN_UNLOADED, nullptr);
+}
+
+inline void navigation_register_special_page(lv_obj_t *screen,
+                                             lv_obj_t *main_page_obj,
+                                             const std::string &title = "") {
+  navigation_special_page_main_screen() = main_page_obj;
+  navigation_register_subpage(NAVIGATION_SPECIAL_PAGE_SLOT, 0, "special", screen);
+  if (auto *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT)) entry->title = title;
+  navigation_register_grid_screen_gesture(screen);
 }
 
 inline int navigation_slot_from_target(const std::string &target) {
@@ -446,7 +531,7 @@ inline void navigation_trim_subpage_cache(size_t limit, int protected_slot) {
     size_t resident = 0;
     NavigationSubpageEntry *oldest = nullptr;
     for (auto &entry : navigation_subpages()) {
-      if (!entry.screen) continue;
+      if (!entry.screen || entry.slot == NAVIGATION_SPECIAL_PAGE_SLOT) continue;
       ++resident;
       if (entry.screen == lv_scr_act() || entry.slot == protected_slot) continue;
       const auto &pages = navigation_subpages();
@@ -549,6 +634,7 @@ inline std::string navigation_active_subpage_label() {
   const int slot = navigation_active_subpage_slot();
   NavigationSubpageEntry *entry = navigation_find_slot(slot);
   NavigationHomeTargetEntry *parent = navigation_find_slot_target(slot);
+  if (entry && entry->kind == "special") return "";
   if (entry == nullptr || parent == nullptr) return "";
   // The app's identity is shown on its return-home card instead of the clock bar.
   if (entry->kind == "app_shortcuts") return "";

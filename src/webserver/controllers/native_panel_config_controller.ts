@@ -350,4 +350,9 @@ export class NativePanelConfigController {
     return this.schedule(page === undefined ? update : this.withNativeEdit(update, draft => draft.writePage(slot, page)));
   }
 
+  writeSpecialPage(value: string): Promise<NativePanelConfigSaveOutcome> | null {
+    return this.schedule((current) => updateNativePanelConfigDocument(
+      current, this.dependencies.deviceProfile(), "settings", "special_page", value,
+    ));
+  }
 }

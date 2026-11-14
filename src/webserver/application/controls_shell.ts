@@ -195,6 +195,15 @@ export function createControlsShellFeature(
         hint.className = "sp-hint";
         hint.style.display = "none";
         els.previewHint = hint;
+        var specialPageEntry: any = document.createElement("button");
+        specialPageEntry.className = "sp-selection-btn sp-special-page-entry";
+        specialPageEntry.type = "button";
+        specialPageEntry.textContent = "Configure swipe-up page";
+        els.specialPageEntry = specialPageEntry;
+        var swipeWrap: any = document.createElement("div");
+        swipeWrap.className = "sp-swipe-wrap";
+        swipeWrap.appendChild(specialPageEntry);
+        page.appendChild(swipeWrap);
         page.appendChild(hint);
         var overlay: any = document.createElement("div");
         overlay.className = "sp-settings-overlay";

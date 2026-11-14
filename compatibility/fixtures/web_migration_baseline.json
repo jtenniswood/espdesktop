@@ -50,6 +50,7 @@
       "autoOpenAppSubpages": true,
       "returnHomeOnAppSwitch": true,
       "subpageTitleBar": true,
+      "swipeUpPage": false,
       "timezone": "Europe/London (GMT+0)",
       "language": "en",
       "clockFormat": "12h",

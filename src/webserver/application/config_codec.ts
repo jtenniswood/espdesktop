@@ -878,6 +878,9 @@ export function createConfigCodecFeature(
         else if (!subpage.backLabel) {
             subpage.backLabel = backLabelFromOrder(subpage.order);
         }
+        if (homeSlot === -1 && (!subpage.backLabel || subpage.backLabel === "Back")) {
+            subpage.backLabel = "Close";
+        }
         return subpage;
     }
     function buildSubpageGrid(this: any, sp?: any) {
@@ -899,7 +902,7 @@ export function createConfigCodecFeature(
         return EspDesktopModel.serializeSubpageGrid(sp.grid, sp.sizes || {}, sp.backLabel || "Back", sp.backColor, sp.title);
     }
     function enterSubpage(this: any, homeSlot?: any) {
-        if (!pageDepth(Number(homeSlot))) return;
+        if (Number(homeSlot) !== -1 && !pageDepth(Number(homeSlot))) return;
         state.editingSubpage = Number(homeSlot);
         state.subpageSelectedSlots = [];
         state.subpageLastClicked = -1;
@@ -909,13 +912,13 @@ export function createConfigCodecFeature(
         renderButtonSettings();
     }
     function canCreateSubpage(parent: number | null = state.editingSubpage): boolean {
-        return pageDepth(parent ?? 0) + 1 <= configPersistence.writableNavigationDepth();
+        return parent !== -1 && pageDepth(parent ?? 0) + 1 <= configPersistence.writableNavigationDepth();
     }
     function enterChildSubpage(parent: number | null, slot: number) {
         return enterSubpage(childPageKey(parent ?? 0, slot));
     }
     function exitSubpage(this: any) {
-        state.editingSubpage = state.editingSubpage ? parentPageKey(state.editingSubpage) || null : null;
+        state.editingSubpage = state.editingSubpage && state.editingSubpage !== -1 ? parentPageKey(state.editingSubpage) || null : null;
         state.subpageSelectedSlots = [];
         state.subpageLastClicked = -1;
         renderPreview();

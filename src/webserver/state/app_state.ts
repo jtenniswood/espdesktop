@@ -37,7 +37,7 @@ export function createInitialState(deviceConfig: DeviceConfig): AppState {
     networkStatusOn: true, batteryStatusOn: false,
 
     networkTransport: "wifi", wifiStrengthPercent: 100,
-    subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, presenceEntity: "",
+    subpageChevronsOn: true, autoOpenAppSubpages: true, returnHomeOnAppSwitch: true, subpageTitleBarOn: true, swipeUpPageOn: false, presenceEntity: "",
     screensaverCameraEntity: "", screensaverCameraImageMode: "Fit", screensaverCameraDimming: 0, screensaverCameraDimmingSupported: false, screensaverCameraSupported: false,
     clockDateSupported: false, clockDateOn: false,
     clockOverlaySupported: false,

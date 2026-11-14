@@ -16,6 +16,7 @@ const {
   encodePanelConfig,
   activeCardColor,
   decodeConfigField,
+  splitSubpageConfigChunks,
   parseRawButtonConfig,
   setConfigOptionValue,
 } = loadTypeScriptModule(path.join(ROOT, "src", "webserver", "model", "index.ts"));
@@ -708,6 +709,10 @@ function nativeDocumentEvents(document) {
   });
   Object.entries(document.subpages).forEach(([slot, state]) => {
     events.push({ id: `text-subpage_${slot}_config`, state });
+  });
+  const specialPageChunks = splitSubpageConfigChunks(document.settings.special_page || "", 8, 255) || [];
+  ["", "_ext", "_ext_2", "_ext_3", "_ext_4", "_ext_5", "_ext_6", "_ext_7"].forEach((suffix, index) => {
+    events.push({ id: `text-special_page_config${suffix}`, state: specialPageChunks[index] || "" });
   });
   return events;
 }
@@ -5969,8 +5974,8 @@ async function assertCardCurveSettings(browser, testCase) {
       const appearance = page.locator("#sp-settings .card").filter({ has: page.locator("#sp-set-card-curve") });
       if (!(await page.locator("#sp-set-card-curve").isVisible())) await appearance.locator(".card-header").click();
       await page.locator("#sp-set-card-curve").waitFor({ state: "visible" });
-      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 4)),
-        ["Active Colour", "Card Style", "App Subpages", "Theme"], "Appearance settings include the global App Subpages panel");
+      assert.deepStrictEqual(await page.locator("#sp-settings .card-header h3").allTextContents().then(titles => titles.slice(0, 5)),
+        ["Active Colour", "Card Style", "App Subpages", "Swipe-up Page", "Theme"], "Appearance settings include the global App Subpages panel");
       assert.strictEqual(await page.locator("#sp-set-wallpaper, #sp-set-card-transparency, #sp-set-active-card-transparency").count(), 0,
         "wallpaper controls belong exclusively to the wallpaper PR");
     };
@@ -6459,7 +6464,7 @@ async function assertS3ForecastEditorLayout(browser) {
 async function assertCameraScreensaverDimming(browser, testCase) {
   const context = await browser.newContext({ viewport: testCase.viewport });
   const nativeState = nativeConfigState(testCase.slug);
-  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true, connectorsStatus: { onboarding_complete: true, home_assistant: { available: true, configured: true, connected: true, actions_confirmed: true }, mac_companion: { available: false, configured: false, paired: false, connected: false } } });
+  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
   const page = await context.newPage();
   const posts = [], errors = [];
   page.on("pageerror", error => errors.push(error.message));
@@ -6890,6 +6895,7 @@ async function assertAppSubpageOpeningPreference(browser) {
 
 async function assertSubpageTitleBarSetting(browser, testCase) {
   const fixture = nativeConfigState(testCase.slug);
+  fixture.document.buttons[2] = "light.office;Office;Lightbulb;Auto";
   fixture.document.buttons[1] = "com.apple.Safari;Safari;Auto;Auto;;;companion;;app_shortcuts";
   fixture.document.subpages[1] = "~B,1|companion,shortcut.command+r,Reload,Refresh,Auto";
   const context = await browser.newContext({ viewport: testCase.viewport });
@@ -6902,6 +6908,7 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
     await page.evaluate(({ clockOn, savedTitle }) => window.__seedEspState([
       { id: "switch-screen__clock_bar", state: clockOn ? "ON" : "OFF", value: clockOn },
       { id: "switch-subpage_title_bar_enabled", state: savedTitle ? "ON" : "OFF", value: savedTitle },
+      { id: "switch-swipe_up_page_enabled", state: "ON", value: true },
     ]), { clockOn, savedTitle });
     await page.waitForFunction(on => document.querySelector(".sp-topbar").classList.contains("sp-hidden") === !on, clockOn);
   }
@@ -6933,6 +6940,8 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
           assert.strictEqual(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), !clockOn,
             "returning home restores its own Clock Bar setting");
         }
+        await page.getByRole("button", { name: "Configure swipe-up page", exact: true }).click();
+        await checkSubpage(compactTop);
       }
     }
     assert.deepStrictEqual(errors, []);
@@ -6942,6 +6951,81 @@ async function assertSubpageTitleBarSetting(browser, testCase) {
 
 async function assertSubpageClockBar(browser, testCase) {
   await assertSubpageTitleBarSetting(browser, testCase);
+}
+
+async function assertSpecialPageEntry(browser, testCase) {
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons[2] = "light.office;Office;Lightbulb;Auto";
+  nativeState.document.settings.special_page = "~B,1|companion,shortcut.command%2Bc,Kitchen,Shortcut Command,Auto";
+  const savedPage = nativeState.document.settings.special_page;
+  const context = await browser.newContext({ viewport: process.env.ESPDESKTOP_SPECIAL_PAGE_MOBILE === "1"
+    ? { width: 390, height: 844 } : testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState, homeAssistantSupport: true });
+  const page = await context.newPage();
+  await installFakeEventSource(page);
+  async function openPage() {
+    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
+    await entry.waitFor();
+    assert.strictEqual(await page.locator("#sp-screen .sp-apply-bar").count(), 0, "Layout has no Apply button or restart note");
+    const screenBounds = await page.locator(".sp-screen").boundingBox();
+    const entryBounds = await entry.boundingBox();
+    assert(entryBounds.y >= screenBounds.y + screenBounds.height, "swipe-up entry sits below the display");
+    assert(entryBounds.y - screenBounds.y - screenBounds.height <= 11, "swipe-up entry stays close to the display");
+    assert(Math.abs(entryBounds.width - screenBounds.width) < 1, "swipe-up entry matches the display width");
+    assert(Math.abs(entryBounds.x - screenBounds.x) < 1, "swipe-up entry aligns with the display");
+    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "home preview has no grab handle");
+    assert.strictEqual(await entry.innerText(), "Configure swipe-up page");
+    assert(entryBounds.height >= 48, "Configure swipe-up page has a taller click target");
+    assert(!(await page.locator("#sp-screen .sp-hint").isVisible()), "idle editing instructions are hidden without blank spacing");
+    assert.strictEqual(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, "entry fits the viewport");
+    if (process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_ENTRY_SCREENSHOT, fullPage: true });
+    await entry.focus();
+    await entry.press("Enter");
+    await page.locator(".sp-main .sp-back-btn").waitFor();
+    assert.strictEqual(await entry.count(), 0, "entry is hidden while editing the swipe-up page");
+    assert(await page.locator(".sp-topbar").evaluate(el => el.classList.contains("sp-hidden")), "swipe-up page has no clock bar");
+    assert.strictEqual(await page.locator(".sp-topbar .sp-clockbar-subpage-title").count(), 0, "swipe-up page has no title inside the display");
+    assert.strictEqual(await page.locator(".sp-display-swipe-handle").count(), 0, "special page preview has no grab handle");
+    assert.strictEqual(await page.getByRole("button", { name: "Rename Special Page", exact: true }).count(), 0, "page title is absent above the preview");
+    if (process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT) await page.screenshot({ path: process.env.ESPDESKTOP_SWIPE_PAGE_SCREENSHOT, fullPage: true });
+  }
+  try {
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForSelector("#sp-app");
+    await seedNativeDocument(page, nativeState);
+    const entry = page.getByRole("button", { name: "Configure swipe-up page", exact: true });
+    assert.strictEqual(await entry.count(), 0, "swipe-up editor entry is off by default");
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    const toggle = page.locator("#sp-set-swipe-up-page");
+    const card = page.locator("#sp-settings .card").filter({ has: toggle });
+    await card.locator(".card-header").click();
+    assert.strictEqual(await toggle.isChecked(), false, "swipe-up setting defaults off");
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await openPage();
+    await page.locator(".sp-back-btn .sp-back-hit").click();
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    assert.strictEqual(await entry.count(), 0, "turning swipe-up off hides its entry");
+    await page.getByRole("tab", { name: "Screen", exact: true }).click();
+    await toggle.locator("..").locator(".sp-toggle-track").click();
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await openPage();
+
+    await page.locator('.sp-main [data-slot="1"]').click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await page.locator(".sp-settings-overlay.sp-visible").waitFor();
+    await page.evaluate(() => window.__seedEspState([
+      { id: "switch-swipe_up_page_enabled", state: "OFF", value: false },
+    ]));
+    await page.waitForFunction(() => !document.querySelector(".sp-settings-overlay")?.classList.contains("sp-visible"));
+    assert.strictEqual(await page.locator(".sp-back-btn").count(), 0, "remote disable returns the editor home");
+    assert.strictEqual(await toggle.isChecked(), false, "remote disable updates the setting");
+    assert.strictEqual(nativeState.document.settings.special_page, savedPage, "toggling keeps saved swipe-up cards");
+    console.log(`${testCase.name}: swipe-up entry sizing, keyboard access, title-free page and return navigation passed.`);
+
+  } finally { await context.close(); }
 }
 
 async function assertRetiredCardRemoval(browser) {
@@ -7733,6 +7817,10 @@ async function assertFirstRunSetup(browser) {
       await assertAppSubpageOpeningPreference(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_SPECIAL_PAGE_ONLY === "1") {
+      for (const testCase of ACTIVE_CASES) await assertSpecialPageEntry(browser, testCase);
+      return;
+    }
     if (process.env.ESPDESKTOP_CONNECTOR_LAYOUT_ONLY === "1") {
       await assertHomeAssistantConnectorLayout(browser);
       console.log("System connector layout and pairing link browser checks passed.");
@@ -7762,6 +7850,7 @@ async function assertFirstRunSetup(browser) {
       console.log("Card and Appearance colour swatch browser checks passed.");
       return;
     }
+    await assertSpecialPageEntry(browser, ACTIVE_CASES[0]);
     await assertWindSensorEditor(browser);
     if (process.env.ESPDESKTOP_WIND_ONLY === "1") return;
     if (process.env.ESPDESKTOP_RAINFALL_ONLY === "1") { await assertRainfallEditor(browser); return; }
