@@ -1,6 +1,7 @@
 #pragma once
 #include "grid_layout_config.h"
 #include "screen_lock_state.h"
+#include "webhook_request.h"
 
 
 // Internal implementation detail for button_grid.h. Include button_grid.h from device YAML.
@@ -8,18 +9,6 @@
 
 
 using WebhookHeaders = std::vector<esphome::http_request::Header>;
-using WebhookSender = std::function<bool(const std::string &, const std::string &,
-                                         const std::string &, const WebhookHeaders &)>;
-
-inline WebhookSender &webhook_sender() {
-  static WebhookSender sender;
-  return sender;
-}
-
-inline void register_webhook_sender(WebhookSender sender) {
-  webhook_sender() = sender;
-}
-
 inline std::string trim_webhook_text(const std::string &value) {
   size_t start = 0;
   while (start < value.size() &&
@@ -105,13 +94,9 @@ inline void send_webhook_action(const ParsedCfg &p) {
   std::string method = normalize_webhook_method(p.sensor);
   std::string body = (method == "GET" || method == "DELETE") ? "" : p.unit;
   WebhookHeaders headers = parse_webhook_headers(webhook_card_headers(p), body);
-  WebhookSender &sender = webhook_sender();
-  if (!sender) {
-    ESP_LOGW("webhook", "Webhook sender is not registered");
-    return;
-  }
-  ESP_LOGI("webhook", "Calling webhook with method %s", method.c_str());
-  sender(url, method, body, headers);
+  ESP_LOGI("webhook", "Queueing webhook with method %s", method.c_str());
+  if (!espdesktop::enqueue_webhook_request(std::move(url), std::move(method), std::move(body), std::move(headers)))
+    ESP_LOGW("webhook", "Could not queue webhook request");
 }
 
 // Send a Mac volume percentage or the on-card mute/unmute toggle.
@@ -158,8 +143,12 @@ inline void handle_button_click(const std::string &cfg, int slot_num,
   const ParsedCfg p = grid_layout_card_config(slot_num, cfg);
   if (card_runtime_type_retired(p.type) || retired_home_assistant_card(p)) return;
   const auto context = card_runtime_context(p);
-  ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",
-           slot_num, p.type.c_str(), p.entity.c_str(), p.sensor.c_str(), p.label.c_str());
+  if (p.type == "webhook") {
+    ESP_LOGI("button", "Main button %d clicked: type=webhook", slot_num);
+  } else {
+    ESP_LOGI("button", "Main button %d clicked: type=%s entity=%s mode=%s label=%s",
+             slot_num, p.type.c_str(), p.entity.c_str(), p.sensor.c_str(), p.label.c_str());
+  }
   if (card_runtime_passive(context)) return;
   if (espdesktop::cards::basic_action_driver_handle_main_click(
         context, p, slot_num, btn_obj)) return;
