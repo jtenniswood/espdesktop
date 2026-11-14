@@ -4,6 +4,7 @@ use JSON::PP qw(decode_json encode_json);
 use File::Basename qw(dirname);
 use File::Temp qw(tempfile);
 use Fcntl qw(:flock);
+use Digest::SHA qw(sha256_hex);
 
 # Call the user's existing status line with the original stdin if supplied.
 local $/;
@@ -23,13 +24,20 @@ sub save_weekly {
     my $remaining = int(100 - $used + 0.5);
     open my $lock, '>>', "$dir/claude-weekly.lock" or return;
     flock($lock, LOCK_EX) or return;
-    if (open my $previous, '<', $snapshot) {
+    # Existing status lines can re-run on a timer. Count a new response
+    # even when its quota rounds to the same percentage.
+    my $duration = ref($data->{cost}) eq 'HASH' ? $data->{cost}{total_api_duration_ms} : undef;
+    my $response = defined($data->{session_id}) && defined($duration)
+        ? sha256_hex(encode_json([$data->{session_id}, $data->{prompt_id}, $duration, $used, $reset]))
+        : undef;
+    if (defined($response) && open my $previous, '<', $snapshot) {
         my $old = eval { decode_json(<$previous>) };
-        return if ref($old) eq 'HASH' && ($old->{resetsAt} // 0) == $reset
-            && ($old->{remainingPercent} // -1) == $remaining;
+        return if ref($old) eq 'HASH' && ($old->{response} // '') eq $response;
     }
     my ($file, $temp) = tempfile(DIR => $dir);
-    print {$file} encode_json({remainingPercent => $remaining, resetsAt => 0 + $reset, observedAt => $now});
+    my %reading = (remainingPercent => $remaining, resetsAt => 0 + $reset, observedAt => $now);
+    $reading{response} = $response if defined($response);
+    print {$file} encode_json(\%reading);
     if (!close($file) || !rename($temp, $snapshot)) { unlink $temp; }
 }
 eval { save_weekly() };
