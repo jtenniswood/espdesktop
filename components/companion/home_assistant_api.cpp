@@ -69,11 +69,13 @@ bool HomeAssistantApi::start(Defer defer, httpd_handle_t server, const std::stri
   for (const auto &route : routes)
     if (httpd_register_uri_handler(server, &route) != ESP_OK) return false;
   hooks().fingerprint = fingerprint_;
+#ifndef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
   hooks().paired = [this] {
     std::lock_guard<std::mutex> lock(mutex_);
     return !token().empty();
   };
   hooks().setup = [this](bool disconnect) { return setup(disconnect); };
+#endif
   return true;
 }
 
@@ -118,6 +120,9 @@ esp_err_t HomeAssistantApi::handle(httpd_req_t *request) {
 }
 
 esp_err_t HomeAssistantApi::request(httpd_req_t *request) {
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+  return respond(request, "404 Not Found", "{}");
+#endif
   if (request->content_len || espdesktop::reset::pending())
     return respond(request, "400 Bad Request", "{}");
   const bool pair = std::strcmp(request->uri, "/home-assistant/v1/pair") == 0;

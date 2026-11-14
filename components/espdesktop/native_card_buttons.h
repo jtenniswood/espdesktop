@@ -1,6 +1,7 @@
 #pragma once
 
 #ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+#include <map>
 #include "esphome/components/api/api_server.h"
 #include "esphome/components/button/button.h"
 
@@ -30,6 +31,15 @@ class NativeCardButton final : public esphome::button::Button {
 class NativeCardButtons {
  public:
   void setup() {
+    // The panel editor includes internal entities. Keep the existing
+    // editor and diagnostic controls local to the display's web interface.
+#define ENTITY_TYPE_(type, singular, plural, count, upper) \
+    for (auto *entity : esphome::App.get_##plural()) entity->set_internal(true);
+#define ENTITY_CONTROLLER_TYPE_(type, singular, plural, count, upper, callback) \
+    ENTITY_TYPE_(type, singular, plural, count, upper)
+#include "esphome/core/entity_types.h"
+#undef ENTITY_CONTROLLER_TYPE_
+#undef ENTITY_TYPE_
     for (size_t i = 0; i < buttons_.size(); ++i) {
       buttons_[i].configure({}, "Unassigned EspDesktop card", 0);
       esphome::App.register_button(&buttons_[i]);
@@ -59,11 +69,15 @@ class NativeCardButtons {
             ? (card.config.type == "subpage" ? "Subpage" :
                companion_default_action_label(card.config.entity, card.config.sensor, &mac))
             : card.config.label;
-        // Native Home Assistant identities include the entity name. The
-        // card suffix distinguishes duplicates and same-name replacements.
-        name += " · " + card.id.substr(0, 8);
+        // Home Assistant uses this name and the stable key to track the card.
+        // Only disambiguate names when multiple cards would otherwise match.
+        if (name.empty() || name == card.config.entity) name = "Mac action";
         entries.push_back({card.id, std::move(name), key});
       }
+      std::map<std::string, size_t> labels;
+      for (const auto &entry : entries) ++labels[entry.name];
+      for (auto &entry : entries)
+        if (labels[entry.name] > 1) entry.name += " · " + entry.id.substr(0, 8);
       std::sort(entries.begin(), entries.end(), [](const auto &a, const auto &b) { return a.key < b.key; });
       for (size_t i = 0; i < entries.size();) {
         size_t end = i + 1;

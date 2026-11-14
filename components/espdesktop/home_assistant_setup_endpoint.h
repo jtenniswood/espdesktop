@@ -15,6 +15,13 @@ class SetupEndpoint final : public esphome::web_server_idf::AsyncWebHandler {
   void handleRequest(esphome::web_server_idf::AsyncWebServerRequest *request) override {
     if (!companion_authorize_web_request(request)) return;
     httpd_req_t *raw = *request;
+#ifdef USE_ESPDESKTOP_NATIVE_CARD_BUTTONS
+    if (request->method() != HTTP_GET || hooks().fingerprint.empty()) {
+      httpd_resp_send_err(raw, HTTPD_404_NOT_FOUND, "Home Assistant setup uses the ESPHome integration");
+      return;
+    }
+    const auto body = std::string("{\"id\":\"") + hooks().fingerprint + "\"}";
+#else
     if (!hooks().setup || !hooks().paired) {
       httpd_resp_send_err(raw, HTTPD_404_NOT_FOUND, "Home Assistant is unavailable");
       return;
@@ -40,6 +47,7 @@ class SetupEndpoint final : public esphome::web_server_idf::AsyncWebHandler {
     }
     const auto body = std::string("{\"id\":\"") + hooks().fingerprint +
         "\",\"paired\":" + (hooks().paired() ? "true}" : "false}");
+#endif
     httpd_resp_set_type(raw, "application/json");
     httpd_resp_set_hdr(raw, "Cache-Control", "no-store");
     httpd_resp_send(raw, body.c_str(), body.size());
