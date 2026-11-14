@@ -5,6 +5,7 @@
 #include <cstring>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <variant>
 #include <vector>
 #include "companion_capabilities_generated.h"
@@ -24,6 +25,19 @@ inline bool number_valid(JsonVariantConst value, double minimum, double maximum,
   const double n = value.as<double>();
   return std::isfinite(n) && n >= minimum && n <= maximum && (!integer || std::floor(n) == n);
 }
+inline bool volume_control_id_valid(std::string_view id) {
+  constexpr std::string_view prefix = "app.volume.";
+  if (id == "media.output_volume" || id == "media.input_volume" ||
+      id == "media.output_mute" || id == "media.input_mute") return true;
+  if (id.size() <= prefix.size() || id.size() > 107 || id.substr(0, prefix.size()) != prefix)
+    return false;
+  for (char c : id.substr(prefix.size())) {
+    if (!((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+          (c >= '0' && c <= '9') || c == '.' || c == '-')) return false;
+  }
+  return true;
+}
+
 inline bool hex_valid(JsonVariantConst value) {
   if (!string_valid(value, 64, 64)) return false;
   for (const char *c = value.as<const char *>(); *c; ++c)
@@ -649,7 +663,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
       if (!(string_valid(root["requestId"], 1, 64))) return std::nullopt;
     }
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 107) && volume_control_id_valid(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(number_valid(root["value"], 0, 100, true))) return std::nullopt;
@@ -664,7 +678,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
     if (!(state == SessionState::CONNECTED)) return std::nullopt;
     {
-      if (!(string_valid(root["controlId"], 1, 19) && (root["controlId"].as<std::string>() == "media.output_volume" || root["controlId"].as<std::string>() == "media.input_volume" || root["controlId"].as<std::string>() == "media.output_mute" || root["controlId"].as<std::string>() == "media.input_mute"))) return std::nullopt;
+      if (!(string_valid(root["controlId"], 1, 107) && volume_control_id_valid(root["controlId"].as<const char *>()))) return std::nullopt;
     }
     {
       if (!(root["available"].is<bool>())) return std::nullopt;

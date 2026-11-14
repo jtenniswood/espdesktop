@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "protocol": {
     "version": 4,
     "path": "/companion/v4",
@@ -283,14 +283,9 @@
           },
           "controlId": {
             "type": "string",
-            "enum": [
-              "media.output_volume",
-              "media.input_volume",
-              "media.output_mute",
-              "media.input_mute"
-            ],
+            "pattern": "volume_control_id",
             "minLength": 1,
-            "maxLength": 19
+            "maxLength": 107
           },
           "value": {
             "type": "integer",
@@ -309,14 +304,9 @@
         "fields": {
           "controlId": {
             "type": "string",
-            "enum": [
-              "media.output_volume",
-              "media.input_volume",
-              "media.output_mute",
-              "media.input_mute"
-            ],
+            "pattern": "volume_control_id",
             "minLength": 1,
-            "maxLength": 19
+            "maxLength": 107
           },
           "available": {
             "type": "boolean"

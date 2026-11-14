@@ -51,6 +51,8 @@
 	<string>public.app-category.utilities</string>
 	<key>LSUIElement</key>
 	<true/>
+	<key>NSAudioCaptureUsageDescription</key>
+	<string>EspDesktop adjusts the sound from apps you control with App Volume cards.</string>
 	<key>NSAppleEventsUsageDescription</key>
 	<string>EspDesktop uses Apple Events to identify the folder shown in Finder and to open links and identify the active tab in Safari or Google Chrome.</string>
 	<key>NSAppBundlesUsageDescription</key>

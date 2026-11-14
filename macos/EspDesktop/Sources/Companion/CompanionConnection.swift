@@ -76,6 +76,7 @@ final class CompanionConnection: NSObject {
     private var pairingResetTimeout: Task<Void, Never>?
     private var remoteCatalogueDefinitionsSupported = false
     private var expandedShortcutsSupported = false
+    private var appVolumeSupported = false
     private var authenticationRequestOutstanding = false
     private var appIconData: Data?
     private var appIconIdentifier = ""
@@ -218,6 +219,7 @@ final class CompanionConnection: NSObject {
         supportsHighResolutionAppIcons = false
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        appVolumeSupported = false
         endpointRecovery.verifiedFingerprint = nil
         authenticationRequestOutstanding = false
         resetAppIconTransferState(clearPendingRequests: true)
@@ -342,7 +344,7 @@ final class CompanionConnection: NSObject {
                 do {
                     let message = try await task.receive()
                     guard !Task.isCancelled, self.task === task else { return }
-                    if case .string(let value) = message { self.handle(value) }
+                    if case .string(let value) = message { await self.handle(value) }
                 } catch {
                     guard !Task.isCancelled else { return }
                     self.handleConnectionFailure(for: task, reason: "Receive failed: \(error.localizedDescription)")
@@ -399,6 +401,7 @@ final class CompanionConnection: NSObject {
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
         expandedShortcutsSupported = false
+        appVolumeSupported = false
         connectionTimeoutTask?.cancel()
         connectionTimeoutTask = nil
         heartbeatTask?.cancel()
@@ -457,8 +460,8 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handle(_ message: String) {
-        guard handleJSON(message) else {
+    private func handle(_ message: String) async {
+        guard await handleJSON(message) else {
             hasTerminalConnectionError = true
             shouldReconnect = false
             tearDownConnection()
@@ -467,7 +470,7 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private func handleJSON(_ message: String) -> Bool {
+    private func handleJSON(_ message: String) async -> Bool {
         let state: CompanionProtocolState = sessionAuthenticated ? .connected : {
             if case .pair = mode { return .pairing }
             return .authenticating
@@ -504,6 +507,7 @@ final class CompanionConnection: NSObject {
             supportsSessionLock = payload.capabilityVersion >= 7
             supportsPairingReset = payload.capabilityVersion >= 8
             expandedShortcutsSupported = payload.capabilityVersion >= 9
+            appVolumeSupported = payload.capabilityVersion >= 10
             // A Bonjour TXT record never authorizes a location change. Both the
             // pinned TLS certificate and the authenticated session must agree.
             let expectedFingerprint = preferences.stringPreference(forKey: certificateFingerprintKey)
@@ -603,7 +607,12 @@ final class CompanionConnection: NSObject {
             let requestIdentifier = payload.requestId
             let controlIdentifier = payload.controlId
             let value = Int(payload.value)
-            let changed = resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            if CompanionProtocolDecoder.appVolumeBundleIdentifier(controlIdentifier) != nil && !appVolumeSupported {
+                return false
+            }
+            let activeTask = task
+            let changed = await resources.setMediaControlValue(value, controlIdentifier: controlIdentifier)
+            guard task === activeTask, sessionAuthenticated else { return true }
             sendJSON(["type": "action.result", "requestId": requestIdentifier,
                       "status": changed ? "performed" : "not_allowed"])
         case .error(let payload):
@@ -885,11 +894,11 @@ final class CompanionConnection: NSObject {
     }
 
     func publishMediaControlValues(_ values: [String: Int], unavailable: Set<String>) {
-        for identifier in unavailable.sorted() where Self.validMediaControlIdentifier(identifier) {
+        for identifier in unavailable.sorted() where validMediaControlIdentifier(identifier) {
             sendJSON(["type": "value.state", "controlId": identifier, "available": false])
         }
         for (identifier, value) in values.sorted(by: { $0.key < $1.key }) {
-            guard Self.validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
+            guard validMediaControlIdentifier(identifier), (0...100).contains(value) else { continue }
             sendJSON(["type": "value.state", "controlId": identifier, "available": true, "value": value])
         }
     }
@@ -962,8 +971,9 @@ final class CompanionConnection: NSObject {
         }
     }
 
-    private static func validMediaControlIdentifier(_ value: String) -> Bool {
-        SystemMediaController.volumeControlIDs.contains(value)
+    private func validMediaControlIdentifier(_ value: String) -> Bool {
+        SystemMediaController.volumeControlIDs.contains(value) ||
+            (appVolumeSupported && CompanionProtocolDecoder.appVolumeBundleIdentifier(value) != nil)
     }
 
     private static func catalogueLabel(_ value: String, fallback: String) -> String {

@@ -282,12 +282,16 @@ class CompanionRuntimeService {
         companion_reported_focus_matches(owner, focused_action_id_, focused_action_ids_);
   }
 
-  void set_value(const std::string &control_id, int value) {
+  void set_value(const std::string &control_id, int value, size_t limit = 0) {
     std::lock_guard<std::mutex> lock(mutex_);
     auto item = std::find_if(values_.begin(), values_.end(),
       [&control_id](const CompanionValue &candidate) { return candidate.id == control_id; });
-    if (item == values_.end()) values_.push_back({control_id, value});
-    else item->value = value;
+    if (item == values_.end()) {
+      if (limit && values_.size() >= limit) return;
+      values_.push_back({control_id, value});
+    } else {
+      item->value = value;
+    }
     request_refresh_();
   }
 

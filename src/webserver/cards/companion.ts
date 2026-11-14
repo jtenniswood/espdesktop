@@ -1,3 +1,4 @@
+import { registerAppVolumeCard } from "./companion_app_volume";
 import { childPageKey } from "../model/page_keys";
 import { renderCompanionStorageSelector } from "./companion_storage";
 import { COMPANION_FOLDER_PREFIX, decodeCompanionCard, encodeCompanionCard, companionMetricForEntity } from "../model/companion_card_codec";
@@ -1543,6 +1544,8 @@ export function registerCompanionCardTypes(
         },
     };
     registry.register("companion", companionDefinition);
+
+    registerAppVolumeCard(registry, supported, async () => companionApplicationActions(await loadCompanionActions(true)), cardUi, fields);
 
     const macLockDefaults = cardContractDefaultConfig("companion_mac_lock");
     const macLockMetadata = {

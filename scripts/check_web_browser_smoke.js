@@ -4255,6 +4255,49 @@ async function assertNativeProfileJourney(browser, testCase) {
   }
 }
 
+async function assertAppVolumeCard(browser) {
+  const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
+  const nativeState = nativeConfigState(testCase.slug);
+  nativeState.document.buttons = {};
+  nativeState.document.subpages = {};
+  nativeState.document.settings.button_order = "";
+  const context = await browser.newContext({ viewport: testCase.viewport });
+  await installRoutes(context, testCase.slug, { nativeState });
+  await context.route("**/companion/actions", route => route.fulfill({
+    status: 200,
+    json: [
+      { id: "com.spotify.client", label: "Spotify" },
+      { id: "com.google.Chrome", label: "Chrome" },
+      { id: "folder.music", label: "Music folder" },
+    ],
+  }));
+  try {
+    const page = await context.newPage();
+    await installFakeEventSource(page);
+    await page.goto(`http://espdesktop.test/${testCase.slug}?events=1`);
+    await page.waitForFunction(() => window.__eventSources?.length > 0);
+    await page.getByRole("tab", { name: "Layout", exact: true }).click();
+    await page.evaluate(events => window.__seedEspState(events), nativeDocumentEvents(nativeState.document));
+    await page.locator(".sp-main .sp-empty-cell").first().click();
+    await page.getByRole("button", { name: "App Volume card type", exact: true }).click();
+    const application = page.getByLabel("Application", { exact: true });
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.deepEqual(await application.locator("option").allTextContents(), ["Choose an app…", "Chrome", "Spotify"]);
+    await application.selectOption("app.volume.com.spotify.client");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await waitForNativeState(nativeState, () =>
+      nativeState.document.buttons[1] === "app.volume.com.spotify.client;Spotify;Volume High;Auto;;;companion_app_volume",
+    "App Volume saves the selected app and its label");
+    const card = page.locator('.sp-main [data-slot="1"]');
+    await card.locator(".sp-slider-preview").waitFor();
+    await card.click();
+    await page.getByRole("button", { name: "Edit", exact: true }).click();
+    await application.locator('option[value="app.volume.com.spotify.client"]').waitFor({ state: "attached" });
+    assert.equal(await application.inputValue(), "app.volume.com.spotify.client");
+    console.log("App Volume enabled-app selection, save and reopen passed.");
+  } finally { await context.close(); }
+}
+
 async function assertMacLockCard(browser) {
   const testCase = CASES.find(item => item.slug === "guition-esp32-s3-4848s040");
   const nativeState = nativeConfigState(testCase.slug);
@@ -7736,6 +7779,10 @@ async function assertFirstRunSetup(browser) {
       await assertFirstRunSetup(browser);
       return;
     }
+    if (process.env.ESPDESKTOP_APP_VOLUME_ONLY === "1") {
+      await assertAppVolumeCard(browser);
+      return;
+    }
     if (process.env.ESPDESKTOP_MAC_LOCK_ONLY === "1") {
       await assertMacLockCard(browser);
       return;
@@ -7747,6 +7794,7 @@ async function assertFirstRunSetup(browser) {
     await assertRetiredCardRemoval(browser);
     if (process.env.ESPDESKTOP_RETIRED_CARDS_ONLY === "1") return;
     await assertMacLockCard(browser);
+    await assertAppVolumeCard(browser);
     if (process.env.ESPDESKTOP_RETIRED_SETTINGS_ONLY === "1") {
       for (const testCase of ACTIVE_CASES) await assertRetiredSettingsStayUnavailable(browser, testCase);
       await assertNamingOfflineBackups(browser);
