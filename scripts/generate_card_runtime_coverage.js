@@ -361,6 +361,7 @@ function reportMarkdown(inventory, contract, cases) {
   const reasons = {
     local: "Older local-action input; normalizes to Action with local dispatch.",
     text_sensor: "Older sensor input; normalizes to Sensor text mode.",
+    companion_brightness: "Mac Companion picker alias that saves as a percentage Slider for the main Mac display.",
     companion_subpage: "Mac Companion picker alias that saves as a generic Subpage with its connector option.",
     media_cover_art: "Hidden compatibility registration that normalizes older Cover Art aliases to Media.",
   };

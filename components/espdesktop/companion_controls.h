@@ -304,13 +304,14 @@ inline bool companion_mute_control_valid(const std::string &control_id) {
 
 inline bool companion_volume_control_valid(const std::string &control_id) {
   return control_id == "media.output_volume" || control_id == "media.input_volume" ||
-    companion_mute_control_valid(control_id);
+         companion_mute_control_valid(control_id) || control_id == "display.brightness";
 }
 
 inline const char *companion_volume_control_label(const std::string &control_id) {
   if (control_id == "media.output_volume") return espdesktop_i18n("Volume");
   if (control_id == "media.input_volume") return espdesktop_i18n("Mic");
   if (companion_mute_control_valid(control_id)) return espdesktop_i18n("Mute");
+  if (control_id == "display.brightness") return espdesktop_i18n("brightness");
   return espdesktop_i18n("Volume");
 }
 
@@ -389,7 +390,7 @@ inline bool companion_consume_auto_subpage_action(const std::string &action_id) 
 inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
                                     const std::string &action_id, bool visual_only = false) {
   if (action_id.empty() || action_id.rfind("shortcut.", 0) == 0 ||
-      action_id.rfind("media.", 0) == 0) return false;
+      action_id.rfind("media.", 0) == 0 || action_id.rfind("system.", 0) == 0) return false;
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&
       action_id.rfind("folder.", 0) != 0 &&
@@ -606,6 +607,11 @@ inline std::string companion_shortcut_label(const std::string &action_id) {
 inline bool companion_action_available(const CompanionRuntimeSnapshot &snapshot, const std::string &action_id) {
   if (action_id.empty()) return false;
   if (!snapshot.connected) return false;
+  if (action_id == "system.brightness_up" || action_id == "system.brightness_down") {
+    if (std::none_of(snapshot.values.begin(), snapshot.values.end(), [](const auto &entry) {
+          return entry.id == "display.brightness";
+        })) return false;
+  }
   if (companion_shortcut_action_valid(action_id)) return snapshot.keyboard_actions_supported;
   // An older Companion may still advertise retired window identifiers.
   if (action_id.rfind("window.", 0) == 0) return false;

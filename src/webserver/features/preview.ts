@@ -68,6 +68,8 @@ const CARD_TYPE_PICKER_DETAILS: Readonly<Record<string, PickerDetails>> = {
   companion_shortcut: { icon: "apple-keyboard-command", description: "Run a keyboard shortcut on the Mac." },
   companion_subpage: { icon: "view-grid-plus", description: "Open a nested page of Mac Companion cards." },
   companion_url: { icon: "web", description: "Open a URL on the Mac." },
+  companion_brightness: { icon: "weather-sunny", description: "Adjust the main Mac display brightness." },
+  companion_system: { icon: "weather-sunny", description: "Brighten or dim the main Mac display." },
   cover: { icon: "window-shutter", description: "Control blinds, curtains, or covers." },
   door_window: { icon: "door-open", description: "Show open or closed sensor state." },
   presence: { icon: "account", description: "Show person or presence status." },
@@ -96,6 +98,8 @@ const CARD_TYPE_PICKER_DEFAULTS: Readonly<Record<string, string>> = {
   companion_shortcut: "companion",
   companion_subpage: "subpage",
   companion_url: "companion",
+  companion_system: "companion",
+  companion_brightness: "slider",
 };
 
 const MAC_COMPANION_HIDDEN_CARD_TYPES = new Set([
@@ -118,7 +122,7 @@ export function cardPickerConnectors(
 export function cardTypeVisibleForConnector(key: string, connector: CardPickerConnector): boolean {
   return connector === "mac_companion" &&
     !MAC_COMPANION_HIDDEN_CARD_TYPES.has(key) &&
-    cardContractAvailability(defaultCardTypeForPicker(key)) === "stable" &&
+    (key === "companion_brightness" || cardContractAvailability(defaultCardTypeForPicker(key)) === "stable") &&
     cardTypeConnector(key) !== "home_assistant";
 }
 

@@ -7,7 +7,9 @@ final class SystemMediaController {
     static let inputVolumeID = "media.input_volume"
     static let outputMuteID = "media.output_mute"
     static let inputMuteID = "media.input_mute"
-    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID, outputMuteID, inputMuteID])
+    static let brightnessID = "display.brightness"
+    static let volumeControlIDs = Set([outputVolumeID, inputVolumeID, outputMuteID, inputMuteID, brightnessID])
+    private let displayBrightness = SystemDisplayBrightness()
 
     private struct DeviceKey: Hashable {
         let device: AudioDeviceID
@@ -64,10 +66,16 @@ final class SystemMediaController {
                 result[muteID] = level == 0 ? 100 : 0
             }
         }
+        if let brightness = displayBrightness.value() {
+            result[Self.brightnessID] = brightness
+        }
         return result
     }
 
     func setValue(_ value: Int, controlIdentifier: String) -> Bool {
+        if controlIdentifier == Self.brightnessID {
+            return displayBrightness.setValue(value.clampedPercentage)
+        }
         let scope: AudioObjectPropertyScope
         switch controlIdentifier {
         case Self.outputVolumeID, Self.outputMuteID: scope = kAudioDevicePropertyScopeOutput

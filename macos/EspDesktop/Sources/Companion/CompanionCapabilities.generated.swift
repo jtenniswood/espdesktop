@@ -15,6 +15,7 @@ enum CompanionCapabilities {
     static let appIconsCapability = "app_icons"
     static let appIconsAlphaCapability = "app_icons_alpha"
     static let appIconsHighResolutionCapability = "app_icons_240"
+    static let systemActions: [String: String] = ["system.brightness_up": "Screen Brighter", "system.brightness_down": "Screen Dimmer"]
     static let protocolMessages: Set<String> = [
         "hello",
         "pair.request",
@@ -56,5 +57,6 @@ enum CompanionCapabilities {
         "url": "Open URL",
         "folder": "Open folder",
         "stats": "Stats",
+        "system": "Mac screen",
     ]
 }

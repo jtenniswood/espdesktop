@@ -287,7 +287,8 @@
               "media.output_volume",
               "media.input_volume",
               "media.output_mute",
-              "media.input_mute"
+              "media.input_mute",
+              "display.brightness"
             ],
             "minLength": 1,
             "maxLength": 19
@@ -313,7 +314,8 @@
               "media.output_volume",
               "media.input_volume",
               "media.output_mute",
-              "media.input_mute"
+              "media.input_mute",
+              "display.brightness"
             ],
             "minLength": 1,
             "maxLength": 19
@@ -1009,6 +1011,12 @@
       "label": "Stats",
       "capability": "system_metrics",
       "defaultIcon": "Gauge"
+    },
+    {
+      "id": "system",
+      "label": "Mac screen",
+      "capability": "system_controls",
+      "defaultIcon": "Weather Sunny"
     }
   ],
   "systemMetrics": [
@@ -1056,6 +1064,18 @@
       "label": "IP address",
       "labelKey": "ip_address",
       "unit": ""
+    }
+  ],
+  "systemActions": [
+    {
+      "id": "system.brightness_up",
+      "label": "Screen Brighter",
+      "icon": "Weather Sunny"
+    },
+    {
+      "id": "system.brightness_down",
+      "label": "Screen Dimmer",
+      "icon": "Weather Sunny Off"
     }
   ]
 }

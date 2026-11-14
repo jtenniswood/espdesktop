@@ -409,6 +409,16 @@ def load_companion_capabilities_data():
         if not all(isinstance(mode.get(key), str) and mode[key] for key in ("label", "capability", "defaultIcon")):
             raise BuildError(f"Invalid Companion card mode: {mode.get('id')}")
 
+    if not isinstance(data.get("systemActions"), list) or not data["systemActions"]:
+        raise BuildError("Companion capability registry requires a non-empty systemActions list")
+    system_ids = []
+    for action in data["systemActions"]:
+        if not all(isinstance(action.get(key), str) and action[key] for key in ("id", "label", "icon")) or not action["id"].startswith("system."):
+            raise BuildError("Each Companion system action requires a system.* id, label, and icon")
+        system_ids.append(action["id"])
+    if len(system_ids) != len(set(system_ids)):
+        raise BuildError("Companion system action ids must be unique")
+
     identifiers = []
     for metric in data["systemMetrics"]:
         if not all(isinstance(metric.get(key), str) and (metric[key] or key == "unit") for key in ("mode", "id", "label", "labelKey", "unit")):
@@ -809,6 +819,7 @@ def gen_companion_capabilities_ts(data):
         f"export const COMPANION_APP_ICON_SIDE = {protocol['appIconSide']} as const;\n"
         f"export const COMPANION_APP_ICONS_CAPABILITY = {json.dumps(protocol['appIconsCapability'])} as const;\n"
         f"export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = {json.dumps(protocol['appIconsAlphaCapability'])} as const;\n"
+        f"export const COMPANION_SYSTEM_ACTIONS = {companion_ts_literal(data['systemActions'])} as const;\n"
         f"export const COMPANION_CARD_MODES = {companion_ts_literal(data['cardModes'])} as const satisfies readonly CompanionCardMode[];\n"
         f"export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = {companion_ts_literal([{key: item[key] for key in ('id', 'direction', 'authorization')} for item in protocol['messages']])};\n"
         f"export const COMPANION_SYSTEM_METRICS: readonly CompanionSystemMetric[] = {companion_ts_literal([{key: item[key] for key in ('mode', 'id', 'freeId', 'label', 'unit') if key in item} for item in data['systemMetrics']])};\n"
@@ -889,6 +900,7 @@ def gen_companion_capabilities_swift(data):
         f"    static let appIconsCapability = {json.dumps(data['protocol']['appIconsCapability'])}\n",
         f"    static let appIconsAlphaCapability = {json.dumps(data['protocol']['appIconsAlphaCapability'])}\n",
         f"    static let appIconsHighResolutionCapability = {json.dumps(data['protocol']['appIconsHighResolutionCapability'])}\n",
+        "    static let systemActions: [String: String] = [" + ", ".join(json.dumps(item["id"]) + ": " + json.dumps(item["label"]) for item in data["systemActions"]) + "]\n",
         "    static let protocolMessages: Set<String> = [\n",
     ]
     lines.extend(f"        {json.dumps(item['id'])},\n" for item in data["protocol"]["messages"])

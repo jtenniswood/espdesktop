@@ -198,10 +198,25 @@ export function runCompanionShortcutFeatureTests(): void {
     COMPANION_SHORTCUT_APPS.pop();
   }
   const companionModes = companionCardModeOptions();
-  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats" ||
+  if (companionModes.map(([mode]) => mode).join() !== "app,shortcut,url,folder,stats,system" ||
       companionCardModeValid("window") || companionCardModeValid("webapp") || companionCardModeValid("home_assistant") ||
       companionCardDefaultIcon("shortcut") !== "Shortcut Command") {
     throw new Error("Companion card modes must come from the generated product contract");
+  }
+  if (decodeCompanionCard({ ...emptyCardConfig("companion"), entity: "system.default_browser", sensor: "url.https%3A%2F%2Fexample.com" }).mode !== "url") {
+    throw new Error("Mac screen actions must not hide the URL editor for default-browser cards");
+  }
+  for (const entity of ["system.brightness_up", "system.brightness_down"]) {
+    const card = { ...emptyCardConfig("companion"), entity };
+    normalizeCompanionCard(card);
+    if (decodeCompanionCard(card).mode !== "system" || companionAppIconEnabled(card)) {
+      throw new Error("Mac screen buttons must survive normalization without application artwork");
+    }
+  }
+  if (companionSliderMode({ entity: "display.brightness" }) !== "mac_brightness" ||
+      companionSliderIcon("Microphone", "mac_input", "mac_brightness") !== "Weather Sunny" ||
+      companionSliderIcon("Palette", "mac_brightness", "mac_input") !== "Palette") {
+    throw new Error("Mac brightness sliders must use the correct mode and preserve custom icons");
   }
   const storageCard = { ...emptyCardConfig("companion"), entity: "stat.storage_free:external-volume" };
   normalizeCompanionCard(storageCard);

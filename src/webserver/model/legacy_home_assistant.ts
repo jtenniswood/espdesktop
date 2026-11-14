@@ -43,7 +43,7 @@ export function cardRequiresHomeAssistant(
   } | null | undefined,
 ): boolean {
   if (key === "slider") {
-    return !isMacAudioCard(key, card?.entity);
+    return card?.entity !== "display.brightness" && !isMacAudioCard(key, card?.entity);
   }
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);

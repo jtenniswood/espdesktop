@@ -26,18 +26,21 @@ export const COMPANION_OUTPUT_VOLUME_ID = "media.output_volume";
 export const COMPANION_INPUT_VOLUME_ID = "media.input_volume";
 export const COMPANION_OUTPUT_MUTE_ID = "media.output_mute";
 export const COMPANION_INPUT_MUTE_ID = "media.input_mute";
+export const COMPANION_BRIGHTNESS_ID = "display.brightness";
 
 export function companionSliderMode(card: any): string {
     if (card?.entity === COMPANION_OUTPUT_VOLUME_ID) return "mac_output";
     if (card?.entity === COMPANION_INPUT_VOLUME_ID) return "mac_input";
     if (card?.entity === COMPANION_OUTPUT_MUTE_ID) return "mac_output_mute";
     if (card?.entity === COMPANION_INPUT_MUTE_ID) return "mac_input_mute";
+    if (card?.entity === COMPANION_BRIGHTNESS_ID) return "mac_brightness";
     return "home_assistant";
 }
 
 function companionSliderDefaultLabel(mode: string): string {
     if (mode === "mac_output") return "Volume";
     if (mode === "mac_input") return "Mic";
+    if (mode === "mac_brightness") return "Display Brightness";
     if (mode === "mac_output_mute" || mode === "mac_input_mute") return "Mute";
     return "";
 }
@@ -47,6 +50,7 @@ function companionSliderDefaultIcon(mode: string): string {
     if (mode === "mac_input") return "Microphone";
     if (mode === "mac_output_mute") return "Volume High";
     if (mode === "mac_input_mute") return "Microphone";
+    if (mode === "mac_brightness") return "Weather Sunny";
     return "Auto";
 }
 
@@ -145,10 +149,7 @@ export function registerSliderCardTypes(
                     label: "Control",
                     idSuffix: "slider-control",
                     options: [
-                        ["mac_output", "Mac output volume"],
-                        ["mac_input", "Mic"],
-                        ["mac_output_mute", "Output mute"],
-                        ["mac_input_mute", "Microphone mute"],
+                        ["mac_brightness", "Mac display brightness"],
                     ],
                     value: companionSliderMode,
                 },
@@ -193,12 +194,13 @@ export function registerSliderCardTypes(
                         mode: Object.assign({}, metadata.companionVolume.mode, {
                             value: function (this: any) { return sliderMode; },
                             onChange: function (this: HTMLSelectElement) {
-                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Mute", "Output Mute", "Microphone Mute"];
+                                const defaultLabels = ["Volume", "Output Volume", "Mic", "Input Volume", "Input volume", "Mute", "Output Mute", "Microphone Mute", "Display Brightness"];
                                 const identifiers: Record<string, string> = {
                                     mac_output: COMPANION_OUTPUT_VOLUME_ID,
                                     mac_input: COMPANION_INPUT_VOLUME_ID,
                                     mac_output_mute: COMPANION_OUTPUT_MUTE_ID,
                                     mac_input_mute: COMPANION_INPUT_MUTE_ID,
+                                    mac_brightness: COMPANION_BRIGHTNESS_ID,
                                 };
                                 const nextMode = this.value;
                                 if (!Object.hasOwn(identifiers, nextMode)) return;
@@ -539,6 +541,21 @@ export function registerSliderCardTypes(
         iconOnFieldLabel: "On Icon",
         companionVolumeModes: true,
     }));
+    registry.register("companion_brightness", {
+        ...registry.definitions.slider,
+        label: "Display brightness",
+        pickerKey: null,
+        isAvailable: () => companionSupported,
+        onSelect: (card: any) => {
+            card.type = "slider";
+            card.entity = COMPANION_BRIGHTNESS_ID;
+            card.label = "Display Brightness";
+            card.icon = "Weather Sunny";
+            card.icon_on = "Weather Sunny";
+            card.sensor = "";
+            card.unit = "";
+        },
+    });
     registry.register("cover", sliderTypeFactory({
         type: "cover",
         placeholder: "e.g. Office Blind",

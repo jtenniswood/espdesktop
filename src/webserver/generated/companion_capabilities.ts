@@ -12,6 +12,18 @@ export const COMPANION_MAXIMUM_TEXT_FRAME_BYTES = 16384 as const;
 export const COMPANION_APP_ICON_SIDE = 240 as const;
 export const COMPANION_APP_ICONS_CAPABILITY = "app_icons" as const;
 export const COMPANION_APP_ICONS_ALPHA_CAPABILITY = "app_icons_alpha" as const;
+export const COMPANION_SYSTEM_ACTIONS = [
+  {
+    id: "system.brightness_up",
+    label: "Screen Brighter",
+    icon: "Weather Sunny"
+  },
+  {
+    id: "system.brightness_down",
+    label: "Screen Dimmer",
+    icon: "Weather Sunny Off"
+  }
+] as const;
 export const COMPANION_CARD_MODES = [
   {
     id: "app",
@@ -42,6 +54,12 @@ export const COMPANION_CARD_MODES = [
     label: "Stats",
     capability: "system_metrics",
     defaultIcon: "Gauge"
+  },
+  {
+    id: "system",
+    label: "Mac screen",
+    capability: "system_controls",
+    defaultIcon: "Weather Sunny"
   }
 ] as const satisfies readonly CompanionCardMode[];
 export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = [

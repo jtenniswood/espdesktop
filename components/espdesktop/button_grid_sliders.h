@@ -315,6 +315,8 @@ inline const char *slider_icon_off(const std::string &type, const std::string &e
     return find_icon("Volume High");
   if ((icon.empty() || icon == "Auto") && entity_id == "media.input_volume")
     return find_icon("Microphone");
+  if ((icon.empty() || icon == "Auto") && entity_id == "display.brightness")
+    return find_icon("Weather Sunny");
   if (type == "cover" && (icon.empty() || icon == "Auto"))
     return find_icon("Blinds");
   if (icon.empty() || icon == "Auto")

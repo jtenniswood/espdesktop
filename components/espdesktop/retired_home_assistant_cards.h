@@ -15,7 +15,8 @@ inline bool retired_home_assistant_card(const Config &config) {
   if (type == "action" || type == "sensor") return config.sensor != "local";
   if (type == "slider") {
     return config.entity != "media.output_volume" && config.entity != "media.input_volume" &&
-           config.entity != "media.output_mute" && config.entity != "media.input_mute";
+           config.entity != "media.output_mute" && config.entity != "media.input_mute" &&
+           config.entity != "display.brightness";
   }
   return !card_contract_type_stable(type);
 }

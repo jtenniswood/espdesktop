@@ -7,6 +7,7 @@ inline void lv_label_set_text(lv_obj_t *, const char *) {}
 #include "companion_controls.h"
 #include "companion_timezone.h"
 #include "button_grid_config_parser.h"
+#include "retired_home_assistant_cards.h"
 #define ESPDESKTOP_SUBPAGE_PARSER_ONLY
 #include "button_grid_subpages.h"
 #include "finder_folder_sync.h"
@@ -113,6 +114,25 @@ int main() {
     runtime.set_connected(false);
     assert(!runtime.shortcut_page_ready("com.apple.finder"));
     assert(!runtime.snapshot().application_highlight_known);
+  }
+  {
+    CompanionRuntimeSnapshot snapshot;
+    snapshot.connected = true;
+    snapshot.actions = {{"system.brightness_up", "Screen Brighter"}};
+    assert(!companion_action_available(snapshot, "system.brightness_up"));
+    snapshot.values.push_back({"display.brightness", 50});
+    assert(companion_action_available(snapshot, "system.brightness_up"));
+    snapshot.connected = false;
+    assert(!companion_action_available(snapshot, "system.brightness_up"));
+    ParsedCfg system_card;
+    system_card.type = "companion";
+    system_card.entity = "system.brightness_down";
+    assert(!companion_app_icon_enabled(system_card));
+    assert(companion_volume_control_valid("display.brightness"));
+    ParsedCfg brightness_slider;
+    brightness_slider.type = "slider";
+    brightness_slider.entity = "display.brightness";
+    assert(!retired_home_assistant_card(brightness_slider));
   }
   // A confirmed window loss is separate from automatic opening and switching.
   {

@@ -787,7 +787,8 @@ final class CompanionConnection: NSObject {
         sendJSON(["type": "capabilities", "values": capabilities])
         // The browser receives identifiers, never application paths or shell commands.
         let apps = resources.launchableApps()
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+        let systemEntries = CompanionCapabilities.systemActions.sorted { $0.key < $1.key }.map { ["id": $0.key, "label": $0.value] }
+        let entries: [[String: String]] = systemEntries + resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in

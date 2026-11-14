@@ -1213,6 +1213,58 @@
     "valid": false
   },
   {
+    "name": "brightness value accepted",
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": true,
+    "message": {
+      "type": "value.set",
+      "requestId": "brightness-test",
+      "controlId": "display.brightness",
+      "value": 42,
+      "protocol": 4
+    }
+  },
+  {
+    "name": "brightness state accepted",
+    "direction": "mac_to_panel",
+    "state": "connected",
+    "valid": true,
+    "message": {
+      "type": "value.state",
+      "controlId": "display.brightness",
+      "available": true,
+      "value": 42,
+      "protocol": 4
+    }
+  },
+  {
+    "name": "brightness out of range rejected",
+    "direction": "panel_to_mac",
+    "state": "connected",
+    "valid": false,
+    "message": {
+      "type": "value.set",
+      "requestId": "brightness-test",
+      "controlId": "display.brightness",
+      "value": 101,
+      "protocol": 4
+    }
+  },
+  {
+    "name": "brightness requires authentication",
+    "direction": "panel_to_mac",
+    "state": "authenticating",
+    "valid": false,
+    "message": {
+      "type": "value.set",
+      "requestId": "brightness-test",
+      "controlId": "display.brightness",
+      "value": 42,
+      "protocol": 4
+    }
+  },
+  {
     "name": "Mac session locked",
     "message": {
       "protocol": 4,
