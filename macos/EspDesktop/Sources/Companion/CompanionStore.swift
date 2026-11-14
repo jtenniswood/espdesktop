@@ -447,7 +447,7 @@ final class CompanionStore: NSObject, ObservableObject {
                 return
             }
             appleShortcuts = shortcuts
-            publishToConnectedDisplays { $0.publishCatalogue() }
+            publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
         }
     }
 
@@ -458,7 +458,7 @@ final class CompanionStore: NSObject, ObservableObject {
             approvedAppleShortcutIDs.remove(shortcut.id)
         }
         defaults.set(approvedAppleShortcutIDs.map(\.uuidString).sorted(), forKey: Keys.approvedAppleShortcuts)
-        publishToConnectedDisplays { $0.publishCatalogue() }
+        publishToConnectedDisplays { $0.publishCatalogue(includeDefinitions: false) }
     }
 
     private func runAppleShortcut(_ actionIdentifier: String) async -> String {

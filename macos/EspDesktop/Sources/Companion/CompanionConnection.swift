@@ -781,7 +781,7 @@ final class CompanionConnection: NSObject {
         send(value)
     }
 
-    func publishCatalogue() {
+    func publishCatalogue(includeDefinitions: Bool = true) {
         // An initial empty scan is provisional; publishing it would prune the
         // panel's persistent icons before discovery supplies the real app list.
         guard resources.applicationCatalogueReady else { return }
@@ -809,14 +809,17 @@ final class CompanionConnection: NSObject {
         }
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
-        let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
-            Array(entries[$0..<min($0 + 48, entries.count)])
+        // Keep action updates small enough to decode while the display is
+        // serving the editor and rendering the active screen.
+        let pageSize = appleShortcutsSupported ? 16 : 48
+        let pages = stride(from: 0, to: max(entries.count, 1), by: pageSize).map {
+            Array(entries[$0..<min($0 + pageSize, entries.count)])
         }
         for (page, items) in pages.enumerated() {
             sendJSON(["type": "catalogue.page", "generation": catalogueGeneration,
                       "page": page, "complete": page == pages.count - 1, "items": items])
         }
-        if remoteCatalogueDefinitionsSupported {
+        if includeDefinitions, remoteCatalogueDefinitionsSupported {
             let definitions = resources.remoteCompanionCatalogues().applicationsForDisplay(approvedApps: apps)
             let installedIDs = Set(apps.map(\.bundleIdentifier))
             let starter = definitions.map(\.starter)
