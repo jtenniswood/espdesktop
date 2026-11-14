@@ -4557,6 +4557,96 @@ export const COMPANION_SHORTCUT_APPS: readonly AppShortcutApplication[] = [
   },
   {
     "version": 1,
+    "appId": "ai.opencode.desktop",
+    "label": "OpenCode",
+    "catalog": false,
+    "defaultShortcutIds": [
+      "0",
+      "1",
+      "2",
+      "3",
+      "4",
+      "5",
+      "6",
+      "7"
+    ],
+    "shortcuts": [
+      {
+        "id": "0",
+        "label": "New Session",
+        "shortcut": "command+n",
+        "icon": "Chat Plus"
+      },
+      {
+        "id": "1",
+        "label": "Command Palette",
+        "shortcut": "command+k",
+        "icon": "Shortcut Command"
+      },
+      {
+        "id": "2",
+        "label": "Find Files",
+        "shortcut": "command+p",
+        "icon": "File Search"
+      },
+      {
+        "id": "3",
+        "label": "Review Changes",
+        "shortcut": "command+shift+r",
+        "icon": "File Compare"
+      },
+      {
+        "id": "4",
+        "label": "Terminal",
+        "shortcut": "control+keybackquote",
+        "icon": "Terminal"
+      },
+      {
+        "id": "5",
+        "label": "Sidebar",
+        "shortcut": "command+shift+b",
+        "icon": "Dock Left"
+      },
+      {
+        "id": "6",
+        "label": "Previous Session",
+        "shortcut": "option+up",
+        "icon": "Chevron Left"
+      },
+      {
+        "id": "7",
+        "label": "Next Session",
+        "shortcut": "option+down",
+        "icon": "Chevron Right"
+      },
+      {
+        "id": "8",
+        "label": "Jump to Message",
+        "shortcut": "command+option+g",
+        "icon": "Chat"
+      },
+      {
+        "id": "9",
+        "label": "Focus Prompt",
+        "shortcut": "control+l",
+        "icon": "Keyboard"
+      },
+      {
+        "id": "10",
+        "label": "New Window",
+        "shortcut": "command+shift+n",
+        "icon": "Application"
+      },
+      {
+        "id": "11",
+        "label": "Open Settings",
+        "shortcut": "command+keycomma",
+        "icon": "Settings"
+      }
+    ]
+  },
+  {
+    "version": 1,
     "appId": "com.orcaslicer.OrcaSlicer",
     "label": "OrcaSlicer",
     "catalog": false,
