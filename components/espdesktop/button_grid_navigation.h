@@ -187,6 +187,7 @@ inline void navigation_present_page_before_image_refresh(uint32_t started) {
 }
 
 inline bool navigation_return_from_special_page() {
+  const auto started = esphome::millis();
   navigation_hide_modals();
   lv_obj_t *previous = navigation_special_page_previous_screen();
   navigation_special_page_previous_screen() = nullptr;
@@ -197,7 +198,7 @@ inline bool navigation_return_from_special_page() {
   if (lv_scr_act() != previous) {
     lv_scr_load_anim(previous, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
   }
-  navigation_present_page_before_image_refresh();
+  navigation_present_page_before_image_refresh(started);
   return true;
 }
 
@@ -214,6 +215,7 @@ inline void navigation_set_special_page_enabled(bool enabled) {
 }
 
 inline bool navigation_open_special_page() {
+  const auto started = esphome::millis();
   if (!navigation_special_page_enabled()) return false;
   NavigationSubpageEntry *entry = navigation_find_slot(NAVIGATION_SPECIAL_PAGE_SLOT);
   if (entry == nullptr || entry->screen == nullptr) return false;
@@ -221,7 +223,7 @@ inline bool navigation_open_special_page() {
     navigation_special_page_previous_screen() = lv_scr_act();
     navigation_hide_modals();
     lv_scr_load_anim(entry->screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-    navigation_present_page_before_image_refresh();
+    navigation_present_page_before_image_refresh(started);
   }
   return true;
 }

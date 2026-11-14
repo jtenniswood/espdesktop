@@ -21,7 +21,8 @@ stubs = r'''
 #include <vector>
 #include <string>
 using lv_coord_t = int;
-constexpr int NAVIGATION_SPECIAL_PAGE_SLOT=49, LV_SCR_LOAD_ANIM_NONE=0;
+namespace esphome { unsigned millis() { return 0; } }
+constexpr int NAVIGATION_SPECIAL_PAGE_SLOT=-1, LV_SCR_LOAD_ANIM_NONE=0;
 constexpr int LV_EVENT_GESTURE=1, LV_DIR_TOP=1, LV_DIR_RIGHT=2, LV_DIR_LEFT=3, LV_DIR_BOTTOM=4, LV_EVENT_PRESSED=4, LV_EVENT_RELEASED=5, LV_INDEV_TYPE_POINTER=1;
 struct lv_obj_t { int height=480, width=480; bool valid=true; } grid, other, overlay, back_button, special, subgrid;
 struct lv_point_t { int x=0,y=0; };
@@ -59,7 +60,7 @@ lv_obj_t *&navigation_special_page_previous_screen() { return previous; }
 lv_obj_t *&navigation_special_page_main_screen() { return home; }
 int restored=0;
 void navigation_hide_modals() {}
-void navigation_present_page_before_image_refresh() { ++restored; }
+void navigation_present_page_before_image_refresh(unsigned) { ++restored; }
 void lv_scr_load_anim(lv_obj_t *screen,int,int,int,bool) { active=screen; }
 lv_indev_t *lv_indev_get_next(lv_indev_t *p) { return p ? nullptr : &device; }
 int lv_indev_get_type(lv_indev_t *) { return LV_INDEV_TYPE_POINTER; }
