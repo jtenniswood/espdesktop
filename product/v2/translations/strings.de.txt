@@ -344,3 +344,4 @@ mute=Stumm
 mac_update_required=Mac-App aktualisieren
 mac_update_reconnect=Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.
 token_usage_resets=Reset in
+token_usage_last_seven_days=Letzte 7 Tage

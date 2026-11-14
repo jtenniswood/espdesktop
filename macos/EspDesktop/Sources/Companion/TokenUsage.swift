@@ -222,6 +222,108 @@ enum TokenUsage {
         return reading.valid ? reading : nil
     }
 
+    struct EnterpriseSpend: Equatable, Sendable {
+        let cents: UInt32
+        let observedAt: UInt32
+
+        var formatted: String {
+            let fraction = String(cents % 100)
+            return "$\(cents / 100).\(fraction.count == 1 ? "0" : "")\(fraction)"
+        }
+    }
+
+    private struct EnterpriseCostPage: Decodable {
+        struct Row: Decodable {
+            struct Cost: Decodable {
+                let amount: String
+                let currency: String
+            }
+            let cost: Cost
+        }
+        let data: [Row]
+        let has_more: Bool
+        let next_page: String?
+        let data_refreshed_at: String?
+    }
+
+    static let enterpriseKeychainService = "io.espdesktop.app.claude-enterprise"
+
+    static func validEnterpriseUserID(_ value: String) -> Bool {
+        value.wholeMatch(of: #/user_[A-Za-z0-9]+/#) != nil
+    }
+
+    static func validEnterpriseKey(_ value: String) -> Bool {
+        !value.isEmpty && value.utf8.allSatisfy { (33...126).contains($0) }
+    }
+
+    static func readEnterpriseSpend(userID: String, key: String, now: Date = .now) async -> EnterpriseSpend? {
+        guard validEnterpriseUserID(userID), validEnterpriseKey(key) else { return nil }
+        let formatter = ISO8601DateFormatter()
+        let start = now.addingTimeInterval(-7 * 24 * 60 * 60)
+        var url = URLComponents()
+        url.scheme = "https"
+        url.host = "api.anthropic.com"
+        url.path = "/v1/organizations/analytics/cost"
+        let filters = [
+            URLQueryItem(name: "starting_at", value: formatter.string(from: start)),
+            URLQueryItem(name: "ending_at", value: formatter.string(from: now)),
+            URLQueryItem(name: "actor_ids[]", value: userID),
+            URLQueryItem(name: "products[]", value: "claude_code"),
+        ]
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.httpShouldSetCookies = false
+        configuration.timeoutIntervalForResource = 15
+        let session = URLSession(configuration: configuration)
+        defer { session.finishTasksAndInvalidate() }
+
+        var pages: [Data] = []
+        var visitedCursors = Set<String>()
+        var cursor: String?
+        repeat {
+            url.queryItems = filters
+            if let cursor { url.queryItems?.append(URLQueryItem(name: "page", value: cursor)) }
+            guard let endpoint = url.url else { return nil }
+            var request = URLRequest(url: endpoint, timeoutInterval: 12)
+            request.setValue(key, forHTTPHeaderField: "x-api-key")
+            request.setValue("2026-10-21", forHTTPHeaderField: "anthropic-version")
+            request.setValue("analytics-usage-cost-2026-08-24", forHTTPHeaderField: "anthropic-beta")
+            guard let (data, response) = try? await session.data(for: request, delegate: RejectUsageRedirects()),
+                  (response as? HTTPURLResponse)?.statusCode == 200,
+                  let page = try? JSONDecoder().decode(EnterpriseCostPage.self, from: data)
+            else { return nil }
+            pages.append(data)
+            if !page.has_more { return parseEnterpriseSpend(pages, observedAt: now) }
+            guard let next = page.next_page, !next.isEmpty, visitedCursors.insert(next).inserted,
+                  !Task.isCancelled else { return nil }
+            cursor = next
+        } while pages.count < 10
+        return nil
+    }
+
+    static func parseEnterpriseSpend(_ pages: [Data], observedAt: Date) -> EnterpriseSpend? {
+        let timestamp = observedAt.timeIntervalSince1970
+        guard !pages.isEmpty, (1...Double(UInt32.max)).contains(timestamp) else { return nil }
+
+        var total: Decimal = 0
+        for (index, payload) in pages.enumerated() {
+            guard let page = try? JSONDecoder().decode(EnterpriseCostPage.self, from: payload),
+                  page.data_refreshed_at != nil,
+                  page.has_more == (index < pages.count - 1) else { return nil }
+            for row in page.data {
+                guard row.cost.currency == "USD",
+                      row.cost.amount.wholeMatch(of: #/[0-9]+(\.[0-9]+)?/#) != nil,
+                      let amount = Decimal(string: row.cost.amount, locale: Locale(identifier: "en_US_POSIX"))
+                else { return nil }
+                total += amount
+            }
+        }
+        var rounded: Decimal = 0
+        NSDecimalRound(&rounded, &total, 0, .plain)
+        guard rounded <= Decimal(UInt32.max) else { return nil }
+        return EnterpriseSpend(cents: NSDecimalNumber(decimal: rounded).uint32Value,
+                               observedAt: UInt32(timestamp))
+    }
+
     private struct Reply: Decodable {
         struct Limits: Decodable {
             struct Window: Decodable {

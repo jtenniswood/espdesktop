@@ -344,3 +344,4 @@ mute=Utišaj
 mac_update_required=Posodobite aplikacijo za Mac
 mac_update_reconnect=Za ponovno povezavo posodobite EspDesktop na Macu.
 token_usage_resets=Ponastavitev čez
+token_usage_last_seven_days=Zadnjih 7 dni

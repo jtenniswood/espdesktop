@@ -345,3 +345,4 @@ mute=השתקה
 mac_update_required=עדכון האפליקציה ב-Mac
 mac_update_reconnect=כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.
 token_usage_resets=איפוס בעוד
+token_usage_last_seven_days=7 הימים האחרונים

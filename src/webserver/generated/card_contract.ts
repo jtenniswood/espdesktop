@@ -2582,7 +2582,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "values": [
           "codex",
           "claude",
-          "opencode-go"
+          "opencode-go",
+          "claude-enterprise"
         ],
         "defaultValue": "codex",
         "omitDefault": true

@@ -4,6 +4,8 @@
     "message": {
       "protocol": 4,
       "type": "token_usage",
+      "claudeEnterpriseSpendCents": 1234,
+      "claudeEnterpriseObservedAt": 1700000000,
       "readings": [
         { "service": "codex", "remainingPercent": 41, "resetsAt": 1700172800, "observedAt": 1700000000 },
         { "service": "claude", "remainingPercent": 72, "resetsAt": 1700345600, "observedAt": 1700000000 },

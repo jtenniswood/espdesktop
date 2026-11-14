@@ -433,6 +433,10 @@ struct CompanionSettings: View {
         }
     }
 
+    @State private var enterpriseUserDraft = ""
+    @State private var enterpriseKeyDraft = ""
+    @State private var enterpriseSetupFailed = false
+
     private var tokenUsageSettings: some View {
         Section("Token Usage") {
             Toggle(isOn: $store.sharesCodexUsage) {
@@ -465,6 +469,41 @@ struct CompanionSettings: View {
                 }
             }
             .tint(.blue)
+            enterpriseSpendSettings
+        }
+    }
+
+    private var enterpriseSpendSettings: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Claude Enterprise spend")
+            if store.enterpriseUserID.isEmpty {
+                Text("Share one user’s Claude Code spend over the last 7 days. Ask your organization’s primary owner for a Claude Enterprise Analytics API key and the user ID.")
+                    .foregroundStyle(.secondary)
+                TextField("Claude Enterprise user ID", text: $enterpriseUserDraft)
+                SecureField("Analytics API key", text: $enterpriseKeyDraft)
+                Button("Connect Claude Enterprise") {
+                    enterpriseSetupFailed = !store.connectEnterpriseSpend(
+                        userID: enterpriseUserDraft.trimmingCharacters(in: .whitespacesAndNewlines),
+                        key: enterpriseKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                    )
+                    if !enterpriseSetupFailed {
+                        enterpriseUserDraft = ""
+                        enterpriseKeyDraft = ""
+                    }
+                }
+                .disabled(!TokenUsage.validEnterpriseUserID(enterpriseUserDraft.trimmingCharacters(in: .whitespacesAndNewlines))
+                          || enterpriseKeyDraft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                if enterpriseSetupFailed {
+                    Text("Couldn’t save the Analytics API key in Keychain.").foregroundStyle(.secondary)
+                }
+            } else {
+                Text(store.enterpriseSpend.map { "\($0.formatted) USD in the last 7 days" }
+                     ?? (store.enterpriseSpendChecked
+                         ? "Spend unavailable. Check the Analytics API key and user ID."
+                         : "Checking Claude Code spend…"))
+                    .foregroundStyle(.secondary)
+                Button("Disconnect Claude Enterprise") { store.disconnectEnterpriseSpend() }
+            }
         }
     }
 

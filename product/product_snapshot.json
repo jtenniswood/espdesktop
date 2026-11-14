@@ -4576,7 +4576,8 @@
             "values": [
               "codex",
               "claude",
-              "opencode-go"
+              "opencode-go",
+              "claude-enterprise"
             ],
             "defaultValue": "codex",
             "omitDefault": true

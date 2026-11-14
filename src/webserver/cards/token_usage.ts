@@ -8,11 +8,12 @@ const SERVICES = [
   ["codex", "ChatGPT (Codex)"],
   ["claude", "Claude"],
   ["opencode-go", "OpenCode Go"],
+  ["claude-enterprise", "Claude Enterprise"],
 ] as const;
 
 function selectedServices(options: string): typeof SERVICES[number][0] {
   const value = configOptionValue(options, "services");
-  return value === "claude" || value === "opencode-go" ? value : "codex";
+  return SERVICES.find(([id]) => id === value)?.[0] ?? "codex";
 }
 
 export function normalizeTokenUsageOptions(options: string): string {
@@ -49,16 +50,17 @@ export function registerTokenUsageCard(
     },
     renderPreview: (card, helpers) => {
       const selected = selectedServices(card.options);
+      const enterprise = selected === "claude-enterprise";
       const icon = '<span class="sp-btn-icon sp-token-usage-icon" role="img" aria-label="' +
-        (selected === "codex" ? "Codex" : selected === "claude" ? "Claude" : "OpenCode Go") +
-        '" style="--token-usage-icon:url(' + TOKEN_USAGE_ICONS[selected] + ')"></span>';
+        (selected === "codex" ? "Codex" : SERVICES.find(([id]) => id === selected)![1]) +
+        '" style="--token-usage-icon:url(' + TOKEN_USAGE_ICONS[enterprise ? "claude" : selected] + ')"></span>';
       const value = (left: string) =>
         '<span class="sp-btn-label sp-token-usage-value">' + helpers.escHtml(left) + '</span>';
       const reset = (text: string) =>
         '<span class="sp-token-usage-reset">' + helpers.escHtml(text) + '</span>';
       return {
         iconHtml: icon,
-        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value("41% left") + reset("Resets 2d 9h") + '</span>',
+        labelHtml: '<span class="sp-btn-label-row sp-token-usage-single">' + value(enterprise ? "$12.34" : "41% left") + reset(enterprise ? "Last 7 days" : "Resets 2d 9h") + '</span>',
         labelEditable: false,
       };
     },

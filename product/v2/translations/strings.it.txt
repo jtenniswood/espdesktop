@@ -344,3 +344,4 @@ mute=Muto
 mac_update_required=Aggiorna l’app per Mac
 mac_update_reconnect=Aggiorna EspDesktop sul Mac per riconnetterti.
 token_usage_resets=Si azzera tra
+token_usage_last_seven_days=Ultimi 7 giorni
