@@ -34,7 +34,7 @@
 .demo-actions button {
   padding: 0.4rem 0.75rem;
   border: 1px solid #9598ab;
-  border-radius: 0.5rem;
+  border-radius: 9999px;
   background: transparent;
   color: inherit;
   font: inherit;
