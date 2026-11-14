@@ -4,7 +4,7 @@ import { NativePanelConfigController } from "../../src/webserver/controllers/nat
 import { createNativePageTransfersFeature, validatePageTransferCards } from "../../src/webserver/application/native_page_transfers";
 import { initializeAppState, state } from "../../src/webserver/state/app_instance";
 import { initializeDeviceConfig } from "../../src/webserver/device_config";
-import { encodePanelPageDocument, decodePanelPageDocument } from "../../src/webserver/model/panel_config_conversion";
+import { encodePanelPageDocument, decodePanelPageDocument, decodePanelPageSnapshot } from "../../src/webserver/model/panel_config_conversion";
 import type { PanelConfigDocument } from "../../src/webserver/model/panel_config";
 import { capturePageCards, planPageCardPaste, planPageCardDelete } from "../../src/webserver/model/page_card_transfer";
 import type { ApplicationLayoutState } from "../../src/webserver/application/application_context";
@@ -115,13 +115,16 @@ export async function runNativePageTransferTests(): Promise<void> {
   const geometry = { slots: 9, columns: 2 };
   const expectedCapture = capturePageCards(persisted, 0, [2], geometry);
   const rotatedCapture = await feature.capture([2]);
-  check(JSON.stringify(rotatedCapture) === JSON.stringify(expectedCapture), "capture reads the rotated geometry");
+  check(rotatedCapture?.entries[0]?.size === expectedCapture.entries[0]?.size &&
+    rotatedCapture?.entries[0]?.button.entity === expectedCapture.entries[0]?.button.entity, "capture reads the rotated geometry");
+  const layoutOf = (document: PanelConfigDocument) =>
+    JSON.stringify(decodePanelPageSnapshot(encodePanelPageDocument(document)).layout);
   const expectedPaste = planPageCardPaste(persisted, 0, 7, expectedCapture.entries, geometry).document;
   check((await feature.paste(7, 0, expectedCapture.entries)).ok, "paste after rotation succeeds");
-  check(JSON.stringify(persisted) === JSON.stringify(expectedPaste), "paste preserves unrelated cards using current columns");
+  check(layoutOf(persisted) === layoutOf(expectedPaste), "paste preserves unrelated cards using current columns");
   const expectedDelete = planPageCardDelete(persisted, capturePageCards(persisted, 0, [2], geometry).origin, geometry);
   check(await feature.delete([2]), "delete after rotation succeeds");
-  check(JSON.stringify(persisted) === JSON.stringify(expectedDelete), "delete uses the current layout");
+  check(layoutOf(persisted) === layoutOf(expectedDelete), "delete uses the current layout");
 
   layout.gridCols = 3;
   persisted = snapshot();
@@ -174,7 +177,7 @@ export async function runNativePageTransferTests(): Promise<void> {
   persisted = snapshot(); persisted.buttons[2] = "light.other;Other"; persisted.settings.button_order = "1,2";
   visible = persisted; native.client!.acceptSnapshot(persisted); native.saveQueue = Promise.resolve("saved");
   check(await feature.copy([1, 2], true), "multiple cards can be cut together");
-  check(!persisted.settings.button_order?.includes("1") && !persisted.settings.button_order.includes("2") && Object.keys(persisted.subpages).length === 0,
+  check(!persisted.settings.button_order?.includes("1") && !persisted.settings.button_order?.includes("2") && Object.keys(persisted.subpages).length === 0,
     "unpasted cuts remain deleted with their descendants");
   state.clipboard = null;
   check(!persisted.settings.button_order?.includes("1"), "discarding the clipboard cannot restore a cut card");

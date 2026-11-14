@@ -10,7 +10,8 @@
 // =============================================================================
 
 constexpr int CARD_CONTRACT_VERSION = 1;
-inline bool card_contract_type_retired(const std::string &type) { return type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "webhook" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
+inline bool card_contract_type_stable(std::string_view type) { return type == "companion" || type == "companion_mac_lock" || type == "subpage"; }
+inline bool card_contract_type_retired(const std::string &type) { return type == "companion_window" || type == "sensor" || type == "local_sensor" || type == "text_sensor" || type == "internal" || type == "wifi_qr" || type == "wifi_qr_card" || type == "screen_lock" || type == "screensaver" || type == "action" || type == "local" || type == "option_select" || type == "calendar" || type == "clock" || type == "timezone" || type == "webhook" || type == "companion_audio" || type == "S" || type == "LS" || type == "I" || type == "SL" || type == "SS" || type == "A" || type == "U" || type == "WH"; }
 namespace espdesktop::card_runtime {
 
 enum class CardTypeId : uint8_t {
@@ -41,6 +42,7 @@ enum class CardTypeId : uint8_t {
   MEDIA,
   PUSH,
   COMPANION,
+  COMPANION_MAC_LOCK,
   SLIDER,
   SUBPAGE,
   WEATHER,
@@ -137,6 +139,7 @@ inline CardTypeId card_type_id(const std::string &type) {
   if (type == "media") return CardTypeId::MEDIA;
   if (type == "push") return CardTypeId::PUSH;
   if (type == "companion") return CardTypeId::COMPANION;
+  if (type == "companion_mac_lock") return CardTypeId::COMPANION_MAC_LOCK;
   if (type == "slider") return CardTypeId::SLIDER;
   if (type == "subpage") return CardTypeId::SUBPAGE;
   if (type == "weather") return CardTypeId::WEATHER;
@@ -174,6 +177,7 @@ inline CardRuntimeSpec card_runtime_spec(CardTypeId type) {
     case CardTypeId::MEDIA: return {type, CardDriverId::MEDIA, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::PUSH: return {type, CardDriverId::PUSH, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::COMPANION: return {type, CardDriverId::COMPANION, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
+    case CardTypeId::COMPANION_MAC_LOCK: return {type, CardDriverId::COMPANION, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_SUBPAGE)};
     case CardTypeId::SLIDER: return {type, CardDriverId::NUMERIC, static_cast<uint16_t>(CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_NUMERIC_CONTROL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::SUBPAGE: return {type, CardDriverId::SUBPAGE, static_cast<uint16_t>(CAPABILITY_ACTIONS | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
     case CardTypeId::WEATHER: return {type, CardDriverId::WEATHER, static_cast<uint16_t>(CAPABILITY_INFORMATION_ONLY | CAPABILITY_SUBSCRIPTIONS | CAPABILITY_ACTIONS | CAPABILITY_MODAL | CAPABILITY_RUNTIME_ALLOCATION | CAPABILITY_SUBPAGE)};
@@ -315,6 +319,7 @@ constexpr const char *CARD_CONTRACT_OPTION_NAME_STATE_LOW_LABEL = "state_low_lab
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_CONNECTOR = "subpage_connector";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_SUBPAGE_KIND = "subpage_kind";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_TEMPERATURE_STEP = "temperature_step";
+constexpr const char *CARD_CONTRACT_OPTION_NAME_URL_OPEN_BEHAVIOR = "url_open_behavior";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VACUUM_MODE = "vacuum_mode";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_VOLUME_MAX = "volume_max";
 constexpr const char *CARD_CONTRACT_OPTION_NAME_WEATHER_MODE = "weather_mode";
@@ -543,8 +548,9 @@ inline const char *card_contract_card_label(const std::string &type) {
   if (type == "lock") return "Lock";
   if (type == "media") return "Media";
   if (type == "push") return "Trigger";
+  if (type == "companion_mac_lock") return "Mac Lock";
   if (type == "companion") return "Companion";
-  if (type == "slider") return "Volume";
+  if (type == "slider") return "Legacy Slider";
   if (type == "subpage") return "Subpage";
   if (type == "weather") return "Weather";
   if (type == "image") return "Camera Card";
@@ -579,6 +585,7 @@ inline bool card_contract_allow_in_subpage(const std::string &type) {
   if (type == "lock") return true;
   if (type == "media") return true;
   if (type == "push") return true;
+  if (type == "companion_mac_lock") return true;
   if (type == "companion") return true;
   if (type == "slider") return true;
   if (type == "subpage") return true;
@@ -615,6 +622,7 @@ inline const char *card_contract_default_icon_name(const std::string &type) {
   if (type == "lock") return "Lock";
   if (type == "media") return "Auto";
   if (type == "push") return "Gesture Tap";
+  if (type == "companion_mac_lock") return "Lock";
   if (type == "companion") return "Monitor";
   if (type == "slider") return "Auto";
   if (type == "subpage") return "Auto";
@@ -651,6 +659,7 @@ inline const char *card_contract_default_icon_on_name(const std::string &type) {
   if (type == "lock") return "Lock Open";
   if (type == "media") return "Auto";
   if (type == "push") return "Auto";
+  if (type == "companion_mac_lock") return "Auto";
   if (type == "companion") return "Auto";
   if (type == "slider") return "Auto";
   if (type == "subpage") return "Auto";
@@ -724,6 +733,7 @@ inline std::string_view card_contract_subpage_code_view(std::string_view type) {
   if (type == "climate_control") return "HC";
   if (type == "push") return "P";
   if (type == "companion") return "CP";
+  if (type == "companion_mac_lock") return "ML";
   if (type == "subpage") return "G";
   return type;
 }
@@ -761,6 +771,7 @@ inline const char *card_contract_subpage_type_code(const std::string &type) {
   if (type == "climate_control") return "HC";
   if (type == "push") return "P";
   if (type == "companion") return "CP";
+  if (type == "companion_mac_lock") return "ML";
   if (type == "subpage") return "G";
   return type.c_str();
 }
@@ -798,6 +809,7 @@ inline std::string_view card_contract_subpage_type_view(const std::string_view &
   if (code == "HC") return "climate_control";
   if (code == "P") return "push";
   if (code == "CP") return "companion";
+  if (code == "ML") return "companion_mac_lock";
   if (code == "G") return "subpage";
   return code;
 }
@@ -835,6 +847,7 @@ inline std::string card_contract_subpage_type_from_code(const std::string &code)
   if (code == "HC") return "climate_control";
   if (code == "P") return "push";
   if (code == "CP") return "companion";
+  if (code == "ML") return "companion_mac_lock";
   if (code == "G") return "subpage";
   return code;
 }

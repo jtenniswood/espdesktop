@@ -20,7 +20,7 @@ You do not need to install developer tools. You can collect the logs from the sa
 ## Open the USB Log Viewer
 
 1. Connect the display to your computer with the USB-C cable.
-2. Open the [EspDesktop install page](/getting-started/install).
+2. Open the [EspDesktop install page](/screens/4848s040#set-up-espdesktop).
 3. Choose your panel model.
 4. Click **Install EspDesktop**.
 5. When the browser asks for a serial port, choose the port that appeared when you connected the display.

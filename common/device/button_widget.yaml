@@ -60,60 +60,9 @@ button:
         id: button_${num}_subpage_label
         text: $icon_chevron_right
         hidden: true
-  # Fire push event, navigate to subpage, or toggle the bound HA entity
   on_press:
-    - if:
-        condition:
-          lambda: 'return id(screensaver_wake_touch_guard_active);'
-        then:
-          - lambda: 'lv_obj_clear_state(id(button_${num}), LV_STATE_PRESSED);'
-        else:
-          - if:
-              condition:
-                lambda: |-
-                  return id(espdesktop_app).display().target_mode_is(
-                      espdesktop::DisplayMode::ACTIVE);
-              then:
-                - lambda: 'handle_button_press(id(button_${num}_config).state, ${num}, id(button_${num}));'
+    - !include { file: button_widget_touch.yaml, vars: { num: "${num}", event: "PRESS" } }
   on_short_click:
-    - if:
-        condition:
-          lambda: 'return id(screensaver_wake_touch_guard_active);'
-        then:
-          - script.stop: screensaver_wake_touch_guard_clear
-          - globals.set:
-              id: screensaver_wake_touch_guard_active
-              value: 'false'
-          - lambda: 'ESP_LOGD("screensaver", "Ignored button click after screensaver wake");'
-        else:
-          - if:
-              condition:
-                lambda: |-
-                  return !id(espdesktop_app).display().target_mode_is(
-                      espdesktop::DisplayMode::ACTIVE);
-              then:
-                - script.execute: screensaver_wake
-              else:
-                - lambda: 'handle_button_click(id(button_${num}_config).state, ${num}, id(button_${num}));'
+    - !include { file: button_widget_touch.yaml, vars: { num: "${num}", event: "TAP" } }
   on_long_press:
-    - if:
-        condition:
-          lambda: 'return id(screensaver_wake_touch_guard_active);'
-        then:
-          - script.stop: screensaver_wake_touch_guard_clear
-          - globals.set:
-              id: screensaver_wake_touch_guard_active
-              value: 'false'
-          - lambda: 'ESP_LOGD("screensaver", "Ignored button long press after screensaver wake");'
-        else:
-          - if:
-              condition:
-                lambda: |-
-                  return !id(espdesktop_app).display().target_mode_is(
-                      espdesktop::DisplayMode::ACTIVE);
-              then:
-                - script.execute: screensaver_wake
-              else:
-                - lambda: |-
-                    ESP_LOGD("button", "Treating grid card long press as normal tap for slot ${num}");
-                    handle_button_click(id(button_${num}_config).state, ${num}, id(button_${num}));
+    - !include { file: button_widget_touch.yaml, vars: { num: "${num}", event: "HOLD" } }

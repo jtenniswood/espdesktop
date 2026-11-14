@@ -53,6 +53,15 @@ inline std::string decode_compact_subpage_field(const std::string &value, size_t
 }
 
 inline SubpageBtn normalize_subpage_btn(SubpageBtn b) {
+  const std::string retired_type = retired_saved_card_type(b.type, b.entity);
+  if (retired_type == "companion_webapp" || retired_type == "companion_audio" ||
+      retired_type == "companion_window") {
+    b = SubpageBtn{};
+    b.type = retired_type;
+    b.icon = "Auto";
+    b.icon_on = "Auto";
+    return b;
+  }
   // Shared appearance options must survive the same cleanup as main cards.
   const std::string icon_size = cfg_option_value(b.options, "icon_size");
   std::string type_options;

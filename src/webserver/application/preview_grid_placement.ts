@@ -1,5 +1,5 @@
 import { state } from "../state/app_instance";
-import type { PreviewPlacementController } from "../features/preview_placement_controller";
+import type { PreviewPlacementController, PreviewPlacementResult } from "../features/preview_placement_controller";
 import { closestGridCell, swapGridCell } from "../features/preview";
 import {
     canPlaceSlotAt as canPlaceSlotAtInGrid,
@@ -21,13 +21,13 @@ export interface PreviewGridPlacementDependencies {
 export interface PreviewGridPlacementFeature {
     resolveSpanPos(position?: any): any;
     getCellFromEvent(event?: any, container?: any): any;
-    moveToCell(fromPosition?: any, toPosition?: any): void;
+    planMove(fromPosition: number, toPosition: number): PreviewPlacementResult;
+    applyMove(result: PreviewPlacementResult): void;
     canPlaceSlotAt(grid?: any, position?: any, size?: any, maxSlots?: any): boolean;
     findPlacementCell(grid?: any, start?: any, size?: any, maxSlots?: any): any;
     findDuplicatePlacement(grid?: any, start?: any, size?: any, maxSlots?: any): any;
     placeSlotAt(grid?: any, slot?: any, position?: any, size?: any): void;
     placeOrderedGridEntries(entries?: any, sizes?: any, maxSlots?: any): any;
-    moveSelectedToCell(fromPosition?: any, toPosition?: any): boolean;
 }
 
 export function createPreviewGridPlacementFeature(
@@ -57,17 +57,18 @@ export function createPreviewGridPlacementFeature(
         }
         return closestGridCell({ x: e.clientX, y: e.clientY }, cells);
     }
-    function moveToCell(this: any, fromPos?: any, toPos?: any) {
-        var c: any = ctx();
-        var result: any = previewPlacementController.moveSingle(c, fromPos, toPos, dependencies.layout.gridCols);
-        if (!result.accepted)
-            return;
-        if (c.isSub) {
-            var subpage: any = getSubpage(state.editingSubpage);
+    function planMove(fromPos: number, toPos: number): PreviewPlacementResult {
+        const context = ctx();
+        const columns = dependencies.layout.gridCols;
+        const selected = previewPlacementController.moveSelected(context, fromPos, toPos, columns);
+        return selected.accepted ? selected : previewPlacementController.moveSingle(context, fromPos, toPos, columns);
+    }
+    function applyMove(result: PreviewPlacementResult): void {
+        if (state.editingSubpage) {
+            const subpage = getSubpage(state.editingSubpage);
             subpage.grid = result.grid;
             subpage.sizes = result.sizes;
-        }
-        else {
+        } else {
             state.grid = result.grid;
             state.sizes = result.sizes;
         }
@@ -87,31 +88,15 @@ export function createPreviewGridPlacementFeature(
     function placeOrderedGridEntries(this: any, entries?: any, sizes?: any, maxSlots?: any) {
         return placeOrderedGridEntriesInGrid(entries, sizes, maxSlots, dependencies.layout.gridCols);
     }
-    function moveSelectedToCell(this: any, fromPos?: any, toPos?: any) {
-        var c: any = ctx();
-        var result: any = previewPlacementController.moveSelected(c, fromPos, toPos, dependencies.layout.gridCols);
-        if (!result.accepted)
-            return false;
-        if (c.isSub) {
-            var subpage: any = getSubpage(state.editingSubpage);
-            subpage.grid = result.grid;
-            subpage.sizes = result.sizes;
-        }
-        else {
-            state.grid = result.grid;
-            state.sizes = result.sizes;
-        }
-        return true;
-    }
     return {
         resolveSpanPos,
         getCellFromEvent,
-        moveToCell,
+        planMove,
+        applyMove,
         canPlaceSlotAt,
         findPlacementCell,
         findDuplicatePlacement,
         placeSlotAt,
         placeOrderedGridEntries,
-        moveSelectedToCell,
     };
 }

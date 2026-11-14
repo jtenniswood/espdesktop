@@ -1,6 +1,6 @@
 import type { CardConfig } from "../contracts/types";
 import type { PanelConfigDocument } from "./panel_config";
-import { parseRawButtonConfig } from "./card";
+import { isMacAudioCard, parseRawButtonConfig } from "./card";
 import { parseRawSubpageConfig } from "./subpage";
 import { cardContractSubpageTypeFromCode } from "../generated/card_contract";
 import { configOptionValue } from "./config_primitives";
@@ -43,8 +43,7 @@ export function cardRequiresHomeAssistant(
   } | null | undefined,
 ): boolean {
   if (key === "slider") {
-    return !["media.output_volume", "media.input_volume", "media.output_mute", "media.input_mute"]
-      .includes(card?.entity || "");
+    return !isMacAudioCard(key, card?.entity);
   }
   if (key === "subpage") {
     const connector = configOptionValue(card?.options, SUBPAGE_CONNECTOR_OPTION);

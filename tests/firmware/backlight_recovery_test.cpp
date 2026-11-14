@@ -171,47 +171,41 @@ int main() {
       CHECK(light.transition_length == 0);
     }
   }
-  for (const auto destination : {DisplayMode::ACTIVE, DisplayMode::COVER_ART}) {
-    // Interrupt an automatic screen-off fade.
-    {
-      Fixture fixture;
-      auto &controller = fixture.espdesktop_app.display();
-      auto &light = fixture.display_backlight;
-      controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DISPLAY_OFF);
-      const auto interrupted = controller.resolve();
-      CHECK(controller.start_transition(interrupted, 1000));
-      BacklightFade fade;
-      fade.start(light.stored_level, 0.0f, 1000, DISPLAY_OFF_FADE_OUT_MS);
-      light.physical_level = fade.level(1200);
-      CHECK(light.physical_level < light.stored_level);
+  // Interrupt an automatic screen-off fade.
+  {
+    Fixture fixture;
+    auto &controller = fixture.espdesktop_app.display();
+    auto &light = fixture.display_backlight;
+    controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DISPLAY_OFF);
+    const auto interrupted = controller.resolve();
+    CHECK(controller.start_transition(interrupted, 1000));
+    BacklightFade fade;
+    fade.start(light.stored_level, 0.0f, 1000, DISPLAY_OFF_FADE_OUT_MS);
+    light.physical_level = fade.level(1200);
+    CHECK(light.physical_level < light.stored_level);
 
-      if (destination == DisplayMode::ACTIVE) {
-        CHECK(controller.begin_takeover(DisplayTakeoverKind::CRITICAL));
-      } else {
-        CHECK(controller.request(DisplayRequestSource::MEDIA_PLAYBACK, destination));
-      }
-      CHECK(controller.cancel_transition());
-      const auto recovery = controller.resolve();
-      CHECK(recovery.target_mode == destination);
-      CHECK(controller.start_transition(recovery, 1200));
-      fixture.apply_brightness(80.0f);
-      CHECK(light.writes == 1);
-      CHECK(light.physical_level == 0.8f);
-      CHECK(fixture.backlight_expected_internal_level_valid);
-      CHECK(!controller.complete_transition(interrupted, 1300));
-      CHECK(controller.complete_transition(recovery, 1350));
+    CHECK(controller.begin_takeover(DisplayTakeoverKind::CRITICAL));
+    CHECK(controller.cancel_transition());
+    const auto recovery = controller.resolve();
+    CHECK(recovery.target_mode == DisplayMode::ACTIVE);
+    CHECK(controller.start_transition(recovery, 1200));
+    fixture.apply_brightness(80.0f);
+    CHECK(light.writes == 1);
+    CHECK(light.physical_level == 0.8f);
+    CHECK(fixture.backlight_expected_internal_level_valid);
+    CHECK(!controller.complete_transition(interrupted, 1300));
+    CHECK(controller.complete_transition(recovery, 1350));
 
-      // Once settled, retain duplicate-write suppression and explicit Wake.
-      fixture.apply_brightness(80.0f);
-      CHECK(light.writes == 1);
-      fixture.backlight_force_next_write = true;
-      fixture.apply_brightness(80.0f);
-      CHECK(light.writes == 2);
-      CHECK(!fixture.backlight_force_next_write);
-      fixture.apply_brightness(60.0f);
-      CHECK(light.writes == 3);
-      CHECK(light.physical_level == 0.6f);
-    }
+    // Once settled, retain duplicate-write suppression and explicit Wake.
+    fixture.apply_brightness(80.0f);
+    CHECK(light.writes == 1);
+    fixture.backlight_force_next_write = true;
+    fixture.apply_brightness(80.0f);
+    CHECK(light.writes == 2);
+    CHECK(!fixture.backlight_force_next_write);
+    fixture.apply_brightness(60.0f);
+    CHECK(light.writes == 3);
+    CHECK(light.physical_level == 0.6f);
   }
   return EXIT_SUCCESS;
 }

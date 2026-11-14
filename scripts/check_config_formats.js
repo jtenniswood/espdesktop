@@ -275,6 +275,10 @@ for (const type of ["wifi_qr", "wifi_qr_card"]) {
   assert.strictEqual(retired.options, "", "removed card credentials are discarded when loading saved layouts");
   assert(!hooks.serializeButtonConfig(retired).includes("pass64"), "removed card credentials cannot be re-saved");
 }
+const oldAudioFolder = hooks.parseSubpageConfig("~B,1,2|L,media.input_mute,Mute|L,number.level,Level");
+assert.strictEqual(oldAudioFolder.buttons[0].type, "companion_audio", "compact Mac audio cards retire inside folders");
+assert.strictEqual(oldAudioFolder.buttons[1].type, "slider", "the same compact code still reads other slider records");
+assert.strictEqual(oldAudioFolder.buttons[1].entity, "number.level");
 assertButtonTypeSpecBacked("garage", "garage card");
 assertButtonTypeSpecBacked("gate", "gate card");
 assertButtonTypeSpecBacked("lock", "lock card");

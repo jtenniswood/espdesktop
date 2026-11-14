@@ -437,6 +437,18 @@
           "subpage": true
         }
       },
+      "companion_mac_lock": {
+        "driver": "companion",
+        "capabilities": {
+          "informationOnly": false,
+          "subscriptions": false,
+          "actions": true,
+          "numericControl": false,
+          "modal": false,
+          "runtimeAllocation": false,
+          "subpage": true
+        }
+      },
       "slider": {
         "driver": "numeric",
         "capabilities": {
@@ -2943,6 +2955,61 @@
         "options": ""
       }
     },
+    "companion_mac_lock": {
+      "label": "Mac Lock",
+      "pickerLabel": "Lock Machine",
+      "allowInSubpage": true,
+      "domains": [],
+      "normalization": {
+        "fields": {
+          "entity": {
+            "policy": "default",
+            "value": "shortcut.command+control+q"
+          },
+          "label": {
+            "policy": "default_if_empty",
+            "value": "Mac Lock"
+          },
+          "icon": {
+            "policy": "default_if_empty",
+            "value": "Lock"
+          },
+          "icon_on": {
+            "policy": "default",
+            "value": "Auto"
+          },
+          "sensor": {
+            "policy": "clear"
+          },
+          "unit": {
+            "policy": "clear"
+          },
+          "type": {
+            "policy": "default",
+            "value": "companion_mac_lock"
+          },
+          "precision": {
+            "policy": "clear"
+          },
+          "options": {
+            "policy": "clear"
+          }
+        },
+        "unknownOptions": "drop",
+        "canonicalOptionOrder": []
+      },
+      "default": {
+        "entity": "shortcut.command+control+q",
+        "label": "Mac Lock",
+        "icon": "Lock",
+        "icon_on": "Auto",
+        "sensor": "",
+        "unit": "",
+        "type": "companion_mac_lock",
+        "precision": "",
+        "options": ""
+      }
+    },
     "companion": {
       "label": "Companion",
       "allowInSubpage": true,
@@ -2961,6 +3028,19 @@
           "label": "App Subpage",
           "kind": "flag",
           "omitDefault": true
+        },
+        {
+          "name": "url_open_behavior",
+          "label": "Open URL in",
+          "kind": "choice",
+          "values": [
+            "new_tab",
+            "new_window"
+          ],
+          "defaultValue": "new_tab",
+          "omitDefault": true,
+          "hidden": true,
+          "docsHidden": true
         },
         {
           "name": "finder_open_behavior",
@@ -3079,6 +3159,7 @@
         "canonicalOptionOrder": [
           "custom_icon",
           "app_shortcuts",
+          "url_open_behavior",
           "finder_open_behavior",
           "finder_open_override",
           "app_shortcuts_tabs",
@@ -3104,7 +3185,8 @@
       }
     },
     "slider": {
-      "label": "Volume",
+      "label": "Legacy Slider",
+      "hidden": true,
       "allowInSubpage": true,
       "domains": [
         "light",
@@ -3707,7 +3789,26 @@
     "climate_control": "HC",
     "push": "P",
     "companion": "CP",
+    "companion_mac_lock": "ML",
     "subpage": "G"
+  },
+  "releaseAvailability": {
+    "stable": [
+      "companion",
+      "companion_mac_lock",
+      "subpage"
+    ],
+    "preview": {
+      "companion_window": {
+        "label": "Window Control",
+        "issue": 309
+      }
+    },
+    "removeOnEdit": [
+      "companion_audio",
+      "wifi_qr",
+      "wifi_qr_card"
+    ]
   },
   "retiredCardTypes": [
     "sensor",
@@ -3724,6 +3825,7 @@
     "calendar",
     "clock",
     "timezone",
-    "webhook"
+    "webhook",
+    "companion_audio"
   ]
 }

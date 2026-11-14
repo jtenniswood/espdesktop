@@ -1,54 +1,38 @@
 ---
-title: Run Mac Keyboard Shortcuts
-description: Create Companion cards from custom Mac keyboard combinations or app shortcut templates, and contribute templates for more apps.
+title: Run Mac Keyboard Shortcuts from a Touchscreen
+description: Turn custom Mac keyboard shortcuts into tappable EspDesktop tiles or choose presets for apps such as Safari, Slack and Figma.
 ---
 
-# Run Mac Keyboard Shortcuts
+# Run Mac keyboard shortcuts
 
-A **Companion → Keyboard shortcut** card sends a chosen key combination to whichever Mac app is active when you tap it.
+Tap a **Key Shortcut** card to send a key combination to the active Mac app.
 
-## Create a Shortcut Card
+## Create a shortcut card
 
-1. In the display setup page, add a **Companion → Keyboard shortcut** card.
-2. Choose a type:
-   - **Custom Shortcut**: expand the **Shortcut** panel, choose the modifiers, then choose a key. For Command-W, select **⌘ Command**, choose **W**, and save.
-   - **Shortcut Catalog**: choose an app and one of its named shortcuts. The card starts with the template's label and icon; you can customise them in Card Settings.
-3. Give the card a label and icon if needed, then save the display configuration.
+1. In the display’s web editor, select an empty tile and choose **Companion → Key Shortcut**.
+2. Select the **Custom** tab to enter keys such as **⌘ Command + F**, or the **Application** tab to pick a preset for an app.
+3. Save the card. Bring the app to the front on your Mac, then tap the card.
 
-A shortcut card replays keys in the active Mac app. Choosing an app in **Shortcut Catalog** does not launch it. Bring that app to the front before using the card. If the app has an enabled subpage, touching its app card opens that page immediately while asking the Mac to focus the app. The page also follows app focus changes reported by the Mac by default. In **Screen → App Subpages**, turn off **Open app subpages on focus** to open subpages only by pressing an app card whose app is already active. Pressing an inactive app card focuses the app; press it again to open its subpage. This preference applies to all app subpages and is saved on the display.
+The **Application** tab lists apps with shortcut presets. After choosing an app, use **Search by name or keys** to narrow the list. For example, type **New Tab** or **Cmd+T**. Bundled presets are available while the Mac is offline. Expanded presets can include single keys and sequences, and need an updated display and Mac Companion. Bring the approved app to the front before tapping one.
 
-An app subpage can open before its app finishes activating. Its app-specific keyboard shortcuts remain disabled until activation is confirmed, so they cannot act on the previous app.
+Custom shortcuts need **Command**, **Control**, or **Option** plus a key. **Shift** is optional.
 
-Shortcuts must include Command, Control, or Option with a supported letter, number, function, navigation, or punctuation key. Shift is optional. Modifier-only combinations and unsupported system keys are rejected.
+[Look up keyboard shortcut presets by app](/reference/shortcut-presets).
 
-## Use a Template on an App Subpage
+## Allow accessibility access
 
-An approved **Companion → Applications** card can offer an **App Subpage** when the app has a matching shortcut definition. Turn on **Add app subpage** to start an editable page from that app's templates. Choose which shortcuts to include and arrange them in the order you want. These are the same definitions used by the standalone Shortcut Catalog.
+Enable **EspDesktop** in **System Settings → Privacy & Security → Accessibility** so it can send keystrokes.
 
-The available list grows as app templates are added to EspDesktop. Existing examples include Safari, Slack, and Codex. App-specific subpages are described on [Launch Mac Apps and Open Websites](/mac-controls/apps#ready-made-app-subpages).
+<a href="/images/mac-companion-shortcut-access.png"><picture><source type="image/avif" srcset="/images/mac-companion-shortcut-access-480.avif 480w, /images/mac-companion-shortcut-access-960.avif 960w" sizes="(min-width: 768px) 612px, 90vw"><img src="/images/mac-companion-shortcut-access.png" alt="EspDesktop’s Enable Shortcuts step with the macOS permission prompt and Open System Settings button" width="612" height="744" loading="lazy"></picture></a>
 
-## Add Templates for Another App
+If a tile still does nothing, follow [the shortcut and Mac Lock troubleshooting steps](/getting-started/troubleshooting#a-card-does-not-work).
 
-Anyone can contribute a template for an app that is not in the catalog. The matching key is the app's **bundle identifier**, not its display name or `.app` filename. To look it up, replace the example path with the actual location of the app and run this command in Terminal:
+## Group shortcuts by app {#use-a-template-on-an-app-subpage}
 
-```sh
-/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' \
-  "/Applications/Your App.app/Contents/Info.plist"
-```
+Use [ready-made app subpages](/mac-controls/apps#ready-made-app-subpages) to keep an app’s shortcuts together. New pages start with a selection of useful shortcuts for the app. Smaller displays show as many as will fit, with space for **Back**. From inside an app’s subpage in the web editor, right-click a card and choose **Shortcut List** to change which presets appear and how they’re ordered. This opens the full list, with **Find a shortcut** available for long lists. In the app card’s settings, use **Show all shortcuts** to expand a long list. You can add shortcuts or rearrange the ones on the page.
 
-Use the returned value exactly as `appId` in the app's JSON file. The `label` field is the friendly name shown in EspDesktop. For example, the Safari definition uses `appId` `com.apple.Safari`; that exact identifier is how its shortcuts are matched to Safari. The Mac app must approve the app before its Applications card and subpage can be used.
+When you add a **Key Shortcut** card inside an app subpage, the **Application** tab opens with that app selected. You can pick a different app or switch to **Custom**.
 
-To add a template:
+The web editor dims these shortcuts when the app loses focus or the Mac disconnects. You can still edit and rearrange the tiles.
 
-1. Copy an app file from the [`product/v2/app_shortcuts` folder](https://github.com/jtenniswood/espdesktop/tree/main/product/v2/app_shortcuts) and add a new `app-name.json` file there.
-2. Set `appId`, `label`, `catalog`, and the shortcut entries. Set `catalog` to `true` to make the shortcuts available as standalone cards. Set it to `false` to offer them on that app's subpage only. All app definitions can supply matching app subpages.
-3. Use permanent numeric IDs, supported key names, and existing icon names. Verify each key combination in the target app.
-4. Open a pull request with the JSON file and generated outputs. The [contributor format and checks](https://github.com/jtenniswood/espdesktop/blob/main/product/v2/app_shortcuts/README.md) explain the details.
-
-The build automatically discovers every JSON file in the folder. After the PR is reviewed and merged, later builds and releases include the new templates; there is no separate app registration step. Templates are packaged with EspDesktop rather than downloaded live from GitHub.
-
-## Allow Accessibility Access
-
-macOS requires Accessibility access so EspDesktop can replay keyboard input. In the Mac app, choose **Open Settings**, then enable EspDesktop in **System Settings → Privacy & Security → Accessibility**.
-
-For the currently active window, see [Window controls](/mac-controls/windows).
+<span id="add-templates-for-another-app">Missing a preset?</span> [Suggest a shortcut](/mac-controls/improve-shortcuts).

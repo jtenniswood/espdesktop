@@ -3,66 +3,144 @@
   "appId": "net.shinyfrog.bear",
   "label": "Bear",
   "catalog": false,
+  "defaultShortcutIds": ["8", "9", "4", "5", "7", "0", "19", "53"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Heading levels 1–6",
+      "label": "Heading",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Heading"
     },
     {
       "id": "1",
       "label": "Bold",
       "shortcut": "command+b",
-      "icon": "Application"
+      "icon": "Bold"
     },
     {
       "id": "2",
-      "label": "Insert link",
+      "label": "Insert Link",
       "shortcut": "command+k",
-      "icon": "Application"
+      "icon": "Link"
     },
     {
       "id": "3",
-      "label": "Unordered list",
+      "label": "Bullet List",
       "shortcut": "command+l",
-      "icon": "Application"
+      "icon": "Bullet List"
     },
     {
       "id": "4",
-      "label": "Create todo",
+      "label": "New To-do",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "Task List"
     },
     {
       "id": "5",
-      "label": "Toggle todo completion",
+      "label": "Toggle To-do",
       "shortcut": "command+keyperiod",
-      "icon": "Application"
+      "icon": "Check"
     },
     {
       "id": "6",
-      "label": "Search current note",
+      "label": "Find Text",
       "shortcut": "command+f",
-      "icon": "Application"
+      "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Search note list",
+      "label": "Search Notes",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Note Search"
     },
     {
       "id": "8",
-      "label": "New note",
+      "label": "New Note",
       "shortcut": "command+n",
-      "icon": "Application"
+      "icon": "Note Plus"
     },
     {
       "id": "9",
       "label": "Quick Open",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Folder Search"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Heading levels 2", "shortcut": "scoped.command+2", "icon": "Heading"},
+    {"id": "11", "label": "Heading levels 3", "shortcut": "scoped.command+3", "icon": "Heading"},
+    {"id": "12", "label": "Heading levels 4", "shortcut": "scoped.command+4", "icon": "Heading"},
+    {"id": "13", "label": "Heading levels 5", "shortcut": "scoped.command+5", "icon": "Heading"},
+    {"id": "14", "label": "Heading levels 6", "shortcut": "scoped.command+6", "icon": "Heading"},
+    {"id": "15", "label": "Insert line separator", "shortcut": "scoped.command+option+s", "icon": "Code"},
+    {"id": "16", "label": "Italic", "shortcut": "scoped.command+i", "icon": "Italic"},
+    {"id": "17", "label": "Underline", "shortcut": "scoped.command+u", "icon": "Underline"},
+    {"id": "18", "label": "Strikethrough", "shortcut": "scoped.command+shift+u", "icon": "Strikethrough"},
+    {"id": "19", "label": "Insert wiki link", "shortcut": "scoped.command+d", "icon": "Link"},
+    {"id": "20", "label": "Ordered list", "shortcut": "scoped.command+shift+l", "icon": "Numbered List"},
+    {"id": "21", "label": "Quote", "shortcut": "scoped.command+shift+t", "icon": "Shortcut Command"},
+    {"id": "22", "label": "Inline code", "shortcut": "scoped.command+option+c", "icon": "Code"},
+    {"id": "23", "label": "Code block", "shortcut": "scoped.command+control+c", "icon": "Code"},
+    {"id": "24", "label": "Highlight / marker", "shortcut": "scoped.command+shift+m", "icon": "Shortcut Command"},
+    {"id": "25", "label": "Insert footnote", "shortcut": "scoped.command+shift+e", "icon": "Plus"},
+    {"id": "26", "label": "Insert file", "shortcut": "scoped.command+shift+v", "icon": "Plus"},
+    {"id": "27", "label": "Create table", "shortcut": "scoped.command+option+t", "icon": "View Grid"},
+    {"id": "28", "label": "Add table row", "shortcut": "scoped.command+control+down", "icon": "View Grid"},
+    {"id": "29", "label": "Add table column", "shortcut": "scoped.command+control+right", "icon": "View Grid"},
+    {"id": "30", "label": "Delete table row", "shortcut": "scoped.command+control+delete", "icon": "Delete"},
+    {"id": "31", "label": "Delete table column", "shortcut": "scoped.command+control+shift+delete", "icon": "Delete"},
+    {"id": "32", "label": "Shift line right", "shortcut": "scoped.command+option+right", "icon": "Code"},
+    {"id": "33", "label": "Shift line left", "shortcut": "scoped.command+option+left", "icon": "Code"},
+    {"id": "34", "label": "Move line up", "shortcut": "scoped.command+option+up", "icon": "Arrow Up"},
+    {"id": "35", "label": "Move line down", "shortcut": "scoped.command+option+down", "icon": "Arrow Down"},
+    {"id": "36", "label": "Indent / outdent list item", "shortcut": "scoped.tab", "icon": "Decrease Indent"},
+    {"id": "37", "label": "Indent / outdent list item", "shortcut": "scoped.shift+tab", "icon": "Decrease Indent"},
+    {"id": "38", "label": "Insert long date and time", "shortcut": "scoped.command+shift+7", "icon": "Calendar"},
+    {"id": "39", "label": "Insert long-form date", "shortcut": "scoped.command+shift+8", "icon": "Calendar"},
+    {"id": "40", "label": "Insert short-form date", "shortcut": "scoped.command+shift+9", "icon": "Calendar"},
+    {"id": "41", "label": "Insert current time", "shortcut": "scoped.command+shift+0", "icon": "Plus"},
+    {"id": "42", "label": "Select all", "shortcut": "scoped.command+a", "icon": "Select All"},
+    {"id": "43", "label": "Finish editing", "shortcut": "scoped.command+enter", "icon": "Check"},
+    {"id": "44", "label": "Print note", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "45", "label": "Open link", "shortcut": "scoped.command+shift+k", "icon": "Link"},
+    {"id": "46", "label": "Toggle folding", "shortcut": "scoped.command+keyquote", "icon": "Shortcut Command"},
+    {"id": "47", "label": "Copy link to note", "shortcut": "scoped.command+option+shift+l", "icon": "Copy"},
+    {"id": "48", "label": "Copy note identifier", "shortcut": "scoped.command+option+shift+i", "icon": "Copy"},
+    {"id": "49", "label": "Zoom", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom Out"},
+    {"id": "50", "label": "Zoom out", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "51", "label": "Reset zoom", "shortcut": "scoped.command+0", "icon": "Fit to Screen"},
+    {"id": "52", "label": "Toggle statistics panel", "shortcut": "scoped.command+shift+i", "icon": "Application"},
+    {"id": "53", "label": "Toggle table of contents panel", "shortcut": "scoped.command+shift+a", "icon": "View Grid"},
+    {"id": "54", "label": "Toggle backlinks panel", "shortcut": "scoped.command+shift+b", "icon": "Application"},
+    {"id": "55", "label": "Find and replace in note", "shortcut": "scoped.command+option+f", "icon": "Find Replace"},
+    {"id": "56", "label": "New note in new window", "shortcut": "scoped.command+option+n", "icon": "New Window"},
+    {"id": "57", "label": "Move through notes or tags Up", "shortcut": "scoped.up", "icon": "Notes"},
+    {"id": "58", "label": "Move through notes or tags Down", "shortcut": "scoped.down", "icon": "Notes"},
+    {"id": "59", "label": "Move focus between areas / Toggle nested tags", "shortcut": "scoped.left", "icon": "Open File"},
+    {"id": "60", "label": "Move focus between areas / Toggle nested tags", "shortcut": "scoped.right", "icon": "Open File"},
+    {"id": "61", "label": "Edit note", "shortcut": "scoped.enter", "icon": "Notes"},
+    {"id": "62", "label": "Delete note", "shortcut": "scoped.command+delete", "icon": "Delete"},
+    {"id": "63", "label": "Restore note", "shortcut": "scoped.command+shift+r", "icon": "Notes"},
+    {"id": "64", "label": "Pin / unpin note", "shortcut": "scoped.command+shift+p", "icon": "Pin Off"},
+    {"id": "65", "label": "Select all notes in list", "shortcut": "scoped.command+a", "icon": "Select All"},
+    {"id": "66", "label": "Empty Trash", "shortcut": "scoped.command+shift+delete", "icon": "Delete"},
+    {"id": "67", "label": "Select sidebar section 1", "shortcut": "scoped.command+option+1", "icon": "Dock Left"},
+    {"id": "68", "label": "Select sidebar section 2", "shortcut": "scoped.command+option+2", "icon": "Dock Left"},
+    {"id": "69", "label": "Select sidebar section 3", "shortcut": "scoped.command+option+3", "icon": "Dock Left"},
+    {"id": "70", "label": "Select sidebar section 4", "shortcut": "scoped.command+option+4", "icon": "Dock Left"},
+    {"id": "71", "label": "Select sidebar section 5", "shortcut": "scoped.command+option+5", "icon": "Dock Left"},
+    {"id": "72", "label": "Select sidebar section 6", "shortcut": "scoped.command+option+6", "icon": "Dock Left"},
+    {"id": "73", "label": "Select sidebar section 0", "shortcut": "scoped.command+option+0", "icon": "Dock Left"},
+    {"id": "74", "label": "Select sidebar section 9", "shortcut": "scoped.command+option+9", "icon": "Dock Left"},
+    {"id": "75", "label": "Navigate back in note history", "shortcut": "scoped.command+keybracketleft", "icon": "Notes"},
+    {"id": "76", "label": "Navigate forward in note history", "shortcut": "scoped.command+keybracketright", "icon": "Notes"},
+    {"id": "77", "label": "Export selected notes", "shortcut": "scoped.command+shift+s", "icon": "Export"},
+    {"id": "78", "label": "Import notes", "shortcut": "scoped.command+shift+o", "icon": "Import"},
+    {"id": "79", "label": "Change window layout 1", "shortcut": "scoped.control+1", "icon": "Application"},
+    {"id": "80", "label": "Change window layout 2", "shortcut": "scoped.control+2", "icon": "Application"},
+    {"id": "81", "label": "Change window layout 3", "shortcut": "scoped.control+3", "icon": "Application"},
+    {"id": "82", "label": "Show Preferences", "shortcut": "scoped.command+keycomma", "icon": "Settings"},
+    {"id": "83", "label": "Enter full screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "84", "label": "Open main Bear window", "shortcut": "scoped.command+keybackslash", "icon": "Application"}
   ]
 }

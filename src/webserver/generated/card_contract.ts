@@ -10,8 +10,17 @@ type LargeNumbersRule = true | {
 };
 
 export const CARD_CONTRACT_VERSION = 1 as const;
-export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
+const STABLE_CARD_TYPES: readonly string[] = ["companion", "companion_mac_lock", "subpage"];
+const PREVIEW_CARD_TYPES: readonly string[] = ["companion_window"];
+const REMOVE_ON_EDIT: readonly string[] = ["companion_audio", "wifi_qr", "wifi_qr_card", "companion_window"];
+export const CARD_CONTRACT_RETIRED_TYPES: readonly string[] = ["companion_window", "sensor", "local_sensor", "text_sensor", "internal", "wifi_qr", "wifi_qr_card", "screen_lock", "screensaver", "action", "local", "option_select", "calendar", "clock", "timezone", "webhook", "companion_audio", "S", "LS", "I", "SL", "SS", "A", "U", "WH"];
 export function cardContractTypeRetired(type: string | null | undefined): boolean { return CARD_CONTRACT_RETIRED_TYPES.includes(type || ""); }
+export function cardContractRemoveOnEdit(type: string | null | undefined): boolean { return REMOVE_ON_EDIT.includes(type || ""); }
+export function cardContractAvailability(type: string): "stable" | "preview" | "retired" | null {
+  if (STABLE_CARD_TYPES.includes(type)) return "stable";
+  if (PREVIEW_CARD_TYPES.includes(type)) return "preview";
+  return Object.hasOwn(CARD_CONTRACT_CARDS, type) || cardContractTypeRetired(type) ? "retired" : null;
+}
 export const CARD_CONTRACT_NORMALIZATION_HOOKS = ["normalize_action_fields", "action_large_numbers_supported", "normalize_action_options", "normalize_media_fields", "normalize_media_options", "normalize_fan_fields", "normalize_fan_options", "normalize_date_time_options", "normalize_mower_fields", "normalize_occupancy_fields", "normalize_occupancy_options", "normalize_access_fields", "normalize_access_options", "normalize_security_fields", "normalize_security_options", "normalize_weather_fields", "normalize_weather_options", "normalize_image_fields", "normalize_image_options", "normalize_climate_fields", "normalize_climate_options", "normalize_light_control_options", "normalize_subpage_fields", "normalize_subpage_options", "normalize_switch_options", "normalize_vacuum_fields"] as const;
 export const CARD_CONTRACT_MIGRATION_ACTIONS: Readonly<Record<string, MigrationActionSpec>> = {
   "legacy_weather_forecast": {
@@ -2506,6 +2515,61 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "options": ""
     }
   },
+  "companion_mac_lock": {
+    "label": "Mac Lock",
+    "pickerLabel": "Lock Machine",
+    "allowInSubpage": true,
+    "domains": [],
+    "normalization": {
+      "fields": {
+        "entity": {
+          "policy": "default",
+          "value": "shortcut.command+control+q"
+        },
+        "label": {
+          "policy": "default_if_empty",
+          "value": "Mac Lock"
+        },
+        "icon": {
+          "policy": "default_if_empty",
+          "value": "Lock"
+        },
+        "icon_on": {
+          "policy": "default",
+          "value": "Auto"
+        },
+        "sensor": {
+          "policy": "clear"
+        },
+        "unit": {
+          "policy": "clear"
+        },
+        "type": {
+          "policy": "default",
+          "value": "companion_mac_lock"
+        },
+        "precision": {
+          "policy": "clear"
+        },
+        "options": {
+          "policy": "clear"
+        }
+      },
+      "unknownOptions": "drop",
+      "canonicalOptionOrder": []
+    },
+    "default": {
+      "entity": "shortcut.command+control+q",
+      "label": "Mac Lock",
+      "icon": "Lock",
+      "icon_on": "Auto",
+      "sensor": "",
+      "unit": "",
+      "type": "companion_mac_lock",
+      "precision": "",
+      "options": ""
+    }
+  },
   "companion": {
     "label": "Companion",
     "allowInSubpage": true,
@@ -2524,6 +2588,19 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
         "label": "App Subpage",
         "kind": "flag",
         "omitDefault": true
+      },
+      {
+        "name": "url_open_behavior",
+        "label": "Open URL in",
+        "kind": "choice",
+        "values": [
+          "new_tab",
+          "new_window"
+        ],
+        "defaultValue": "new_tab",
+        "omitDefault": true,
+        "hidden": true,
+        "docsHidden": true
       },
       {
         "name": "finder_open_behavior",
@@ -2642,6 +2719,7 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
       "canonicalOptionOrder": [
         "custom_icon",
         "app_shortcuts",
+        "url_open_behavior",
         "finder_open_behavior",
         "finder_open_override",
         "app_shortcuts_tabs",
@@ -2667,7 +2745,8 @@ export const CARD_CONTRACT_CARDS: Readonly<Record<string, CardTypeSpec>> = {
     }
   },
   "slider": {
-    "label": "Volume",
+    "label": "Legacy Slider",
+    "hidden": true,
     "allowInSubpage": true,
     "domains": [
       "light",
@@ -3464,6 +3543,18 @@ export const CARD_RUNTIME_SPECS: Readonly<Record<string, CardRuntimeSpec>> = {
       "subpage": true
     }
   },
+  "companion_mac_lock": {
+    "driver": "companion",
+    "capabilities": {
+      "informationOnly": false,
+      "subscriptions": false,
+      "actions": true,
+      "numericControl": false,
+      "modal": false,
+      "runtimeAllocation": false,
+      "subpage": true
+    }
+  },
   "slider": {
     "driver": "numeric",
     "capabilities": {
@@ -3578,6 +3669,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPE_CODES: Readonly<Record<string, string>> 
   "climate_control": "HC",
   "push": "P",
   "companion": "CP",
+  "companion_mac_lock": "ML",
   "subpage": "G"
 };
 export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string>> = {
@@ -3613,6 +3705,7 @@ export const CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE: Readonly<Record<string, string
   "HC": "climate_control",
   "P": "push",
   "CP": "companion",
+  "ML": "companion_mac_lock",
   "G": "subpage"
 };
 export const CARD_CONTRACT_LARGE_NUMBERS: Readonly<Record<string, LargeNumbersRule>> = {
@@ -3683,6 +3776,7 @@ export const CARD_CONTRACT_OPTION_NAMES: Readonly<Record<string, string>> = {
   "subpage_connector": "subpage_connector",
   "subpage_kind": "subpage_kind",
   "temperature_step": "temperature_step",
+  "url_open_behavior": "url_open_behavior",
   "vacuum_mode": "vacuum_mode",
   "volume_max": "volume_max",
   "weather_mode": "weather_mode",

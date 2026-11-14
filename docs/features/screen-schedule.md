@@ -8,33 +8,31 @@ description:
 
 Screen schedule controls what the panel does overnight, then returns it to normal when the schedule says it should be available again.
 
-You will find it in **Screen > Sleep & Schedule > Night Schedule** on the [Setup](/features/setup) page.
+You will find it in **Screen > Sleep & Schedule > Night Schedule** on the [Screen settings](/settings/screen#sleep-schedule) page.
 
 ## Settings
 
-- **Mode** - choose **Disabled** or **Time**. Time uses the daytime and night-time hours.
-- **Daytime** - the first hour when the screen should be awake. The default is **6:00 AM**.
-- **Night Time** - the first hour when the night schedule starts. The default is **11:00 PM**.
-- **At Night Time** - what the panel should do overnight. **Screen Off** is the default, **Screen Dimmed** keeps the panel usable at a set brightness, and **Clock** shows the clock instead. Screen Off can protect the LCD in the background while the backlight stays off.
+- **Mode** - defaults to **Disabled**. Choose **Time** to enable the schedule using the panel’s local time.
+- **Daytime** - the first hour when the screen should be awake. The default is **7:00 AM**.
+- **Night Time** - the first hour when the night schedule starts. The default is **7:00 PM**.
+- **At Night Time** - what the panel should do overnight. The default, **Screen Dimmed**, keeps the panel usable at a set brightness. **Screen Off** turns the backlight off, and **Clock** shows the clock. Screen Off can protect the LCD in the background while the backlight stays off.
 - **When Woken, Idle Time to Screen Off** - shown only for **Screen Off**. It controls how long the screen stays awake after you tap it during scheduled-off hours. The default is **1 minute**.
 - **When Woken, Screen Brightness** - shown only for **Screen Off**. It controls the brightness used for a temporary wake during scheduled-off hours. The default is **10%**.
-- **Dimmed Screen Brightness** - shown only for **Screen Dimmed**. It controls the overnight brightness while the panel stays usable. The default is **10%**.
+- **Dimmed Screen Brightness** - shown only for **Screen Dimmed**. It controls the overnight brightness while the panel stays usable. The default is **15%**.
 - **Clock Brightness** - shown only for **Clock**. It controls the backlight level used by the overnight clock. The default is **10%**.
 - **Clock Text Colour** - shown only for **Clock**. It controls the colour of the overnight schedule clock text.
 
-## Updating an Existing Panel
-
-Saved Home Assistant sensor schedules become **Disabled**, including when importing an older backup. Choose **Time** to configure local hours. Existing time schedules, night-time actions and brightness settings are preserved.
+## How the Schedule Affects Sleep
 
 When the schedule is disabled, the panel uses the normal [screensaver](/features/screensaver) and [backlight](/features/backlight) rules.
 
 To see at a glance when the night period is active, turn on **Show Night Mode Icon** in [Clock Bar](/features/clock-bar). A moon appears beside the connectivity icon for as long as the night schedule is running.
 
-Time-based Night Schedule has priority over the screensaver and media cover art while night time is active. Touch the screen to wake it temporarily.
+Time-based Night Schedule has priority over the screensaver while night time is active. Touch the screen to wake it temporarily.
 
 ## How the Times Work
 
-The on time is included, and the off time is not included. For example, **6:00 AM** to **11:00 PM** keeps the screen in normal use from 6:00 AM until just before 11:00 PM. At 11:00 PM, the selected night mode starts.
+The on time is included, and the off time is not included. If you enable the schedule with its preset hours and brightness, the screen uses its normal brightness from 7:00 AM until just before 7:00 PM, then dims to 15%.
 
 Overnight schedules also work. For example, **8:00 PM** to **7:00 AM** keeps the screen on through the night and turns it off during the day.
 

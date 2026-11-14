@@ -8,8 +8,7 @@
       "c6-firmware-update",
       "network-coprocessor",
       "ethernet-selection"
-    ],
-    "artwork": "landscape-1024x600"
+    ]
   },
   "config": {
     "public": {

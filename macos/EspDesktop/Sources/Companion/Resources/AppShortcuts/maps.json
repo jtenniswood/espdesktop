@@ -3,30 +3,46 @@
   "appId": "com.apple.Maps",
   "label": "Maps",
   "catalog": false,
+  "defaultShortcutIds": ["4", "14", "10", "11", "12", "13", "15", "16"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Switch to explore view",
+      "label": "Explore",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Map"
     },
     {
       "id": "1",
-      "label": "Switch to driving view",
+      "label": "Driving",
       "shortcut": "command+2",
-      "icon": "Application"
+      "icon": "Car"
     },
     {
       "id": "2",
-      "label": "Switch to public transport view",
+      "label": "Transit",
       "shortcut": "command+3",
-      "icon": "Application"
+      "icon": "Train"
     },
     {
       "id": "3",
-      "label": "Switch to satellite view",
+      "label": "Satellite",
       "shortcut": "command+4",
-      "icon": "Application"
+      "icon": "Satellite"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "4", "label": "Show your current location", "shortcut": "scoped.command+l", "icon": "Shortcut Command"},
+    {"id": "5", "label": "Move up, left", "shortcut": "scoped.left", "icon": "Arrow Down"},
+    {"id": "6", "label": "Move down, right", "shortcut": "scoped.right", "icon": "Arrow Down"},
+    {"id": "7", "label": "Move up, left", "shortcut": "scoped.up", "icon": "Arrow Down"},
+    {"id": "8", "label": "Move down, right", "shortcut": "scoped.down", "icon": "Arrow Down"},
+    {"id": "9", "label": "Return to north-facing orientation", "shortcut": "scoped.command+shift+up", "icon": "Arrow Up"},
+    {"id": "10", "label": "Zoom In", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "11", "label": "Zoom out", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "12", "label": "Toggle 3D map", "shortcut": "scoped.command+d", "icon": "Eye Off"},
+    {"id": "13", "label": "Toggle Look Around", "shortcut": "scoped.command+k", "icon": "Eye Off"},
+    {"id": "14", "label": "Toggle directions", "shortcut": "scoped.command+r", "icon": "Eye Off"},
+    {"id": "15", "label": "Drop pin in middle of map", "shortcut": "scoped.command+shift+d", "icon": "Pin"},
+    {"id": "16", "label": "Toggle sidebar", "shortcut": "scoped.command+control+s", "icon": "Dock Left"}
   ]
 }

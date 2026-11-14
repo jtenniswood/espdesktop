@@ -7,8 +7,6 @@ import type { CardEditorValidationController } from "../features/card_editor_val
 import type { PreviewPlacementController } from "../features/preview_placement_controller";
 
 import type { ClockBarController } from "../features/clock_bar_controller";
-import type { CoverArtScreensaverController } from "../features/cover_art_screensaver_controller";
-import type { MediaPlaybackController } from "../features/media_playback_controller";
 import type { ScreenScheduleController } from "../features/screen_schedule_controller";
 import type { ScreensaverController } from "../features/screensaver_controller";
 import type { SettingsUiFeature } from "../features/settings";
@@ -55,7 +53,6 @@ import type { AppEventsFeature } from "./app_events";
 import type { AppStatusPreviewFeature } from "./app_status_preview";
 import type { GridFeature } from "./grid";
 import type { FirmwareUpdatePostApiFeature } from "./firmware_update_post_api";
-import type { ArtworkPostApiFeature } from "./artwork_post_api";
 import type { ScreenSchedulePostApiFeature } from "./screen_schedule_post_api";
 import type { ClockBarPostApiFeature } from "./clock_bar_post_api";
 import type { PublicFirmwareInstallFeature } from "./public_firmware_install";
@@ -130,7 +127,6 @@ export interface ApplicationContext {
     readonly firmwareVersion: FirmwareVersionFeature;
     readonly firmwareUpdate: FirmwareUpdateFeature;
     readonly firmwarePostApi: FirmwareUpdatePostApiFeature;
-    readonly artworkPostApi: ArtworkPostApiFeature;
     readonly schedulePostApi: ScreenSchedulePostApiFeature;
     readonly clockBarPostApi: ClockBarPostApiFeature;
     readonly publicFirmwareInstall: PublicFirmwareInstallFeature;
@@ -151,8 +147,6 @@ export interface ApplicationContext {
     readonly cardEditorSave: CardEditorSaveController;
     readonly cardEditorValidation: CardEditorValidationController;
     readonly clockBar: ClockBarController;
-    readonly coverArtScreensaver: CoverArtScreensaverController;
-    readonly mediaPlayback: MediaPlaybackController;
     readonly pageTitle: AppTitleFeature;
     readonly previewPlacement: PreviewPlacementController;
     readonly reconnect: ReconnectController<unknown>;
@@ -210,7 +204,6 @@ export interface ApplicationContextOptions {
   readonly firmwareVersion: FirmwareVersionFeature;
   readonly firmwareUpdate: FirmwareUpdateFeature;
   readonly firmwarePostApi: FirmwareUpdatePostApiFeature;
-  readonly artworkPostApi: ArtworkPostApiFeature;
   readonly schedulePostApi: ScreenSchedulePostApiFeature;
   readonly clockBarPostApi: ClockBarPostApiFeature;
   readonly publicFirmwareInstall: PublicFirmwareInstallFeature;
@@ -231,8 +224,6 @@ export interface ApplicationContextOptions {
   readonly cardEditorSave: CardEditorSaveController;
   readonly cardEditorValidation: CardEditorValidationController;
   readonly clockBar: ClockBarController;
-  readonly coverArtScreensaver: CoverArtScreensaverController;
-  readonly mediaPlayback: MediaPlaybackController;
   readonly pageTitle: AppTitleFeature;
   readonly previewPlacement: PreviewPlacementController;
   readonly reconnect: ReconnectController<unknown>;
@@ -311,7 +302,6 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       firmwareVersion: options.firmwareVersion,
       firmwareUpdate: options.firmwareUpdate,
       firmwarePostApi: options.firmwarePostApi,
-      artworkPostApi: options.artworkPostApi,
       schedulePostApi: options.schedulePostApi,
       clockBarPostApi: options.clockBarPostApi,
       publicFirmwareInstall: options.publicFirmwareInstall,
@@ -332,8 +322,6 @@ export function createApplicationContext(options: ApplicationContextOptions): Ap
       cardEditorSave: options.cardEditorSave,
       cardEditorValidation: options.cardEditorValidation,
       clockBar: options.clockBar,
-      coverArtScreensaver: options.coverArtScreensaver,
-      mediaPlayback: options.mediaPlayback,
       pageTitle: options.pageTitle,
       previewPlacement: options.previewPlacement,
       reconnect: options.reconnect,

@@ -6,17 +6,9 @@
 # =============================================================================
 
 globals:
-  - id: card_curve_medium_default_migrated
-    type: bool
-    restore_value: yes
-    initial_value: 'false'
   - id: screen_rotation_ready
     type: bool
     restore_value: no
-    initial_value: 'false'
-  - id: media_player_sleep_prevention_default_on_migrated
-    type: bool
-    restore_value: yes
     initial_value: 'false'
   # Live copy of "the night schedule is the winning display request", kept in
   # step by display_mode_reconcile so the clock bar can show a moon without
@@ -28,33 +20,78 @@ globals:
 
 esphome:
   on_boot:
-    # Apply the new default before the grid's -100 boot phase uses the radius.
-    - priority: -90
-      then:
-        - lambda: |-
-            if (!id(card_curve_medium_default_migrated)) {
-              auto call = id(card_curve_select).make_call();
-              call.set_option("Medium");
-              call.perform();
-              id(card_curve_medium_default_migrated) = true;
-              // Store the marker now, rather than waiting for the global's poll.
-              card_curve_medium_default_migrated->update();
-              global_preferences->sync();
-            }
-    # Restore the icon default before the grid's -100 initialization phase.
+    # Publish panel settings before the grid starts. The native document
+    # replaces these defaults when its saved generation is activated.
     - priority: -95
       then:
         - lambda: |-
+            using Setting = espdesktop::panel_settings::ScalarSetting;
+            auto &app = *id(espdesktop_app);
+            app.bind_panel_scalar(Setting::SCREEN_ROTATION, [](std::string_view value) {
+              id(screen_rotation_select).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CLOCK_BAR, [](std::string_view value) {
+              id(clock_bar_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_NETWORK_STATUS_ICON, [](std::string_view value) {
+              id(network_status_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CLOCK_BAR_NIGHT_MODE, [](std::string_view value) {
+              id(clock_bar_night_mode_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CLOCK_BAR_TIME, [](std::string_view value) {
+              id(clock_bar_time_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SUBPAGE_TITLE_BAR, [](std::string_view value) {
+              id(subpage_title_bar_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SUBPAGE_CHEVRON, [](std::string_view value) {
+              id(subpage_chevrons_enabled).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::COMPANION_AUTO_OPEN_APP_SUBPAGES, [](std::string_view value) {
+              const bool enabled = value == "1";
+              id(companion_auto_open_app_subpages_enabled).publish_state(enabled);
+              companion_set_auto_open_app_subpages(enabled);
+            });
+            app.bind_panel_scalar(Setting::COMPANION_RETURN_HOME_ON_APP_SWITCH, [](std::string_view value) {
+              const bool enabled = value == "1";
+              id(companion_return_home_on_app_switch_enabled).publish_state(enabled);
+              companion_set_return_home_on_app_switch(enabled);
+            });
+            app.bind_panel_scalar(Setting::SCREEN_DEFAULT_ICON_SIZE, [](std::string_view value) {
+              id(default_icon_size_select).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_CARD_CURVE, [](std::string_view value) {
+              id(card_curve_select).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SAVER_ACTION, [](std::string_view value) {
+              id(screensaver_action).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREENSAVER_MODE, [](std::string_view value) {
+              id(screensaver_mode).publish_state(std::string(value));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SAVER_SHOW_DATE, [](std::string_view value) {
+              id(clock_screensaver_show_date).publish_state(value == "1");
+            });
+            app.bind_panel_scalar(Setting::SCREENSAVER_TIMEOUT, [](std::string_view value) {
+              id(screensaver_timeout).publish_state(std::atoi(std::string(value).c_str()));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SAVER_DIMMED_BRIGHTNESS, [](std::string_view value) {
+              id(screensaver_dimmed_brightness).publish_state(std::atoi(std::string(value).c_str()));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SAVER_DAYTIME_DIMMED_BRIGHTNESS, [](std::string_view value) {
+              id(screensaver_dimmed_brightness_day).publish_state(std::atoi(std::string(value).c_str()));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SAVER_NIGHTTIME_DIMMED_BRIGHTNESS, [](std::string_view value) {
+              id(screensaver_dimmed_brightness_night).publish_state(std::atoi(std::string(value).c_str()));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SAVER_DAYTIME_CLOCK_BRIGHTNESS, [](std::string_view value) {
+              id(clock_brightness_day).publish_state(std::atoi(std::string(value).c_str()));
+            });
+            app.bind_panel_scalar(Setting::SCREEN_SAVER_NIGHTTIME_CLOCK_BRIGHTNESS, [](std::string_view value) {
+              id(clock_brightness_night).publish_state(std::atoi(std::string(value).c_str()));
+            });
             espdesktop::set_card_icon_default_size(id(default_icon_size_select).current_option());
-    # Template switches restore before the application core starts. Apply the
-    # saved Companion navigation preference after startup, before grid setup.
-    - priority: -96
-      then:
-        - lambda: |-
-            if (espdesktop::active_espdesktop_app_core() != nullptr) {
-              companion_set_auto_open_app_subpages(id(companion_auto_open_app_subpages_enabled).state);
-              companion_set_return_home_on_app_switch(id(companion_return_home_on_app_switch_enabled).state);
-            }
     - priority: -100
       then:
         - lambda: |-
@@ -107,29 +144,6 @@ esphome:
     # Apply restored clock-bar visibility before subpages copy main-page padding.
     - priority: -150
       then:
-        - lambda: |-
-            bool preferences_changed = false;
-            size_t legacy_action_index = 0;
-            auto action_preference = id(screensaver_action).make_entity_preference<size_t>();
-            if (action_preference.load(&legacy_action_index) && legacy_action_index == 3) {
-              auto call = id(screensaver_action).make_call();
-              call.set_option("Display Off");
-              call.perform();
-              preferences_changed = true;
-            }
-            if (!id(media_player_sleep_prevention_default_on_migrated)) {
-              id(media_player_sleep_prevention_enabled).turn_on();
-              id(media_player_sleep_prevention_default_on_migrated) = true;
-              preferences_changed = true;
-            }
-            float cover_art_delay_seconds = id(cover_art_delay).state;
-            if (std::isnan(cover_art_delay_seconds) || cover_art_delay_seconds < 3.0f) {
-              auto call = id(cover_art_delay).make_call();
-              call.set_value(3.0f);
-              call.perform();
-              preferences_changed = true;
-            }
-            if (preferences_changed) global_preferences->sync();
         - script.execute: clock_bar_hide
         - script.execute: clock_bar_apply
 
@@ -168,15 +182,12 @@ script:
               id(main_page)->obj,
               id(espdesktop_app).display().target_mode(),
               id(espdesktop_app).display().target_schedule_inactive());
-          const bool pairing_onboarding =
-              lv_scr_act() == id(button_setup_page)->obj && id(button_order).state.empty();
           bool reserve_clock_bar_space = visibility.reserve_space;
-          bool visible = visibility.visible || pairing_onboarding;
+          const bool visible = visibility.visible;
           bool show_time = visibility.visible && id(clock_bar_time_enabled).state &&
               lv_scr_act() == id(main_page)->obj && navigation_active_subpage_slot() == 0 &&
               clock_bar_left_title().empty();
-          const bool show_network = pairing_onboarding ||
-              (visibility.visible && id(network_status_enabled).state);
+          const bool show_network = visibility.visible && id(network_status_enabled).state;
           bool show_night_mode = visibility.visible && id(clock_bar_night_mode_enabled).state &&
                                  id(clock_bar_night_mode_active);
           int clock_bar_screen_width = clock_bar_current_screen_width(${screen_width});
@@ -288,12 +299,16 @@ switch:
     name: "${entity_screen_clock_bar}"
     internal: true
     id: clock_bar_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:clock-digital"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
       - delay: 50ms
@@ -307,12 +322,16 @@ switch:
     name: "${entity_screen_network_status_icon}"
     internal: true
     id: network_status_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:wifi"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_NETWORK_STATUS_ICON, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_NETWORK_STATUS_ICON, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
     on_turn_off:
@@ -322,12 +341,16 @@ switch:
     name: "${entity_screen_clock_bar_night_mode}"
     internal: true
     id: clock_bar_night_mode_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:weather-night"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_NIGHT_MODE, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_NIGHT_MODE, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
     on_turn_off:
@@ -337,12 +360,16 @@ switch:
     name: "${entity_screen_clock_bar_time}"
     internal: true
     id: clock_bar_time_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:clock-time-four-outline"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_TIME, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CLOCK_BAR_TIME, "0");'
     on_turn_on:
       - script.execute: clock_bar_apply
     on_turn_off:
@@ -352,12 +379,16 @@ switch:
     name: "${entity_screen_subpage_title_bar}"
     internal: true
     id: subpage_title_bar_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:page-layout-header"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_TITLE_BAR, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_TITLE_BAR, "0");'
     on_state:
       - lambda: |-
           clock_bar_subpage_title_bar_enabled() = x;
@@ -367,50 +398,46 @@ switch:
     name: "${entity_companion_auto_open_app_subpages}"
     internal: true
     id: companion_auto_open_app_subpages_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:application"
     web_server:
       sorting_group_id: sg_display
-    on_turn_on:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_auto_open_app_subpages(true);
-    on_turn_off:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_auto_open_app_subpages(false);
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_AUTO_OPEN_APP_SUBPAGES, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_AUTO_OPEN_APP_SUBPAGES, "0");'
 
   - platform: template
     name: "${entity_companion_return_home_on_app_switch}"
     internal: true
     id: companion_return_home_on_app_switch_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:application"
     web_server:
       sorting_group_id: sg_display
-    on_turn_on:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_return_home_on_app_switch(true);
-    on_turn_off:
-      - lambda: |-
-          if (espdesktop::active_espdesktop_app_core() != nullptr)
-            companion_set_return_home_on_app_switch(false);
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::COMPANION_RETURN_HOME_ON_APP_SWITCH, "0");'
 
   - platform: template
     name: "${entity_screen_subpage_chevron}"
     internal: true
     id: subpage_chevrons_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
+    optimistic: false
+    restore_mode: DISABLED
     entity_category: config
     icon: "mdi:chevron-right"
     web_server:
       sorting_group_id: sg_display
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_CHEVRON, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SUBPAGE_CHEVRON, "0");'
     on_turn_on:
       - script.execute: refresh_button_grid
     on_turn_off:
@@ -420,88 +447,37 @@ switch:
     name: "${entity_screen_saver_clock}"
     internal: true
     id: clock_screensaver_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    restore_mode: DISABLED
     icon: "mdi:clock-outline"
     entity_category: config
     web_server:
       sorting_group_id: sg_screensaver
-    on_turn_on:
-      - if:
-          condition:
-            lambda: 'return !id(screensaver_action_clock);'
-          then:
-            - select.set:
-                id: screensaver_action
-                option: "Clock"
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
-          then:
-            - script.execute: screensaver_idle_check
-    on_turn_off:
-      - if:
-          condition:
-            lambda: 'return id(screensaver_action_clock);'
-          then:
-            - select.set:
-                id: screensaver_action
-                option: "Display Off"
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
-          then:
-            - script.execute: screensaver_idle_check
-
-  - platform: template
-    name: "${entity_screen_saver_media_player_sleep_prevention}"
-    internal: true
-    id: media_player_sleep_prevention_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_ON
-    icon: "mdi:speaker-play"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
-          then:
-            - script.execute: screensaver_idle_check
-    on_turn_off:
-      - if:
-          condition:
-            lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
-          then:
-            - script.execute: screensaver_idle_check
-
-  - platform: template
-    name: "${entity_screen_saver_cover_art}"
-    internal: true
-    id: cover_art_screensaver_enabled
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
-    icon: "mdi:image-album"
-    entity_category: config
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_turn_on:
-      - script.execute: cover_art_refresh_source
-      - script.execute: cover_art_playback_refresh
-    on_turn_off:
-      - script.execute: cover_art_disable
+    turn_on_action:
+      - lambda: |-
+          id(espdesktop_app).edit_panel_scalar(
+              espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_ACTION, "Clock");
+    turn_off_action:
+      - lambda: |-
+          if (id(screensaver_action_clock)) {
+            id(espdesktop_app).edit_panel_scalar(
+                espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_ACTION, "Display Off");
+          }
 
   - platform: template
     name: "${entity_screen_saver_show_date}"
     internal: true
     id: clock_screensaver_show_date
-    optimistic: true
-    restore_mode: RESTORE_DEFAULT_OFF
+    optimistic: false
+    restore_mode: DISABLED
     icon: "mdi:calendar"
     entity_category: config
     web_server:
       sorting_group_id: sg_screensaver
+    turn_on_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_SHOW_DATE, "1");'
+    turn_off_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_SHOW_DATE, "0");'
     on_turn_on:
       - script.execute: clock_screensaver_update_time
     on_turn_off:
@@ -513,15 +489,19 @@ select:
     id: default_icon_size_select
     entity_category: config
     icon: "mdi:arrow-expand"
-    optimistic: true
-    restore_value: true
-    initial_option: "Small"
+    optimistic: false
+    restore_value: false
+    initial_option: "Large"
     options:
       - "Small"
       - "Medium"
       - "Large"
     web_server:
       sorting_group_id: sg_display
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_DEFAULT_ICON_SIZE,
+              std::string_view(x.c_str(), x.size()));
     on_value:
       then:
         - lambda: 'espdesktop::set_card_icon_default_size(x);'
@@ -536,15 +516,19 @@ select:
     id: card_curve_select
     entity_category: config
     icon: "mdi:rounded-corner"
-    optimistic: true
-    restore_value: true
-    initial_option: "Medium"
+    optimistic: false
+    restore_value: false
+    initial_option: "Large"
     options:
       - "Small"
       - "Medium"
       - "Large"
     web_server:
       sorting_group_id: sg_display
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_CARD_CURVE,
+              std::string_view(x.c_str(), x.size()));
     on_value:
       then:
         - if:
@@ -559,8 +543,8 @@ select:
     id: screensaver_action
     entity_category: config
     icon: "mdi:monitor-shimmer"
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_option: "Display Off"
     options:
       - "Display Off"
@@ -568,24 +552,22 @@ select:
       - "Clock"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: |-
+          id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_ACTION,
+              std::string_view(x.c_str(), x.size()));
     on_value:
       then:
         - lambda: |-
             std::string action = id(screensaver_action).current_option();
             id(screensaver_action_clock) = screensaver_action_clock_mode(action);
             id(screensaver_action_dimmed) = screensaver_action_dimmed_mode(action);
+            id(clock_screensaver_enabled).publish_state(id(screensaver_action_clock));
         - if:
             condition:
-              lambda: |-
-                return id(screensaver_action_clock) && !id(clock_screensaver_enabled).state;
+              lambda: 'return screen_lock_enabled();'
             then:
-              - switch.turn_on: clock_screensaver_enabled
-        - if:
-            condition:
-              lambda: |-
-                return !id(screensaver_action_clock) && id(clock_screensaver_enabled).state;
-            then:
-              - switch.turn_off: clock_screensaver_enabled
+              - script.execute: screensaver_companion_reconcile
         - if:
             condition:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
@@ -597,8 +579,8 @@ text:
     name: "Screensaver Mode"
     internal: true
     id: screensaver_mode
-    optimistic: true
-    restore_value: true
+    optimistic: false
+    restore_value: false
     initial_value: "disabled"
     min_length: 0
     max_length: 10
@@ -608,6 +590,8 @@ text:
     update_interval: never
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_scalar(espdesktop::panel_settings::ScalarSetting::SCREENSAVER_MODE, x);'
     on_value:
       then:
         - if:
@@ -632,13 +616,15 @@ number:
     max_value: 100
     step: 1
     initial_value: 10
-    restore_value: true
-    optimistic: true
+    restore_value: false
+    optimistic: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-7"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_number(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_DAYTIME_DIMMED_BRIGHTNESS, x);'
     on_value:
       then:
         - if:
@@ -655,13 +641,15 @@ number:
     max_value: 100
     step: 1
     initial_value: 10
-    restore_value: true
-    optimistic: true
+    restore_value: false
+    optimistic: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-4"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_number(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_NIGHTTIME_DIMMED_BRIGHTNESS, x);'
     on_value:
       then:
         - if:
@@ -678,16 +666,17 @@ number:
     max_value: 100
     step: 1
     initial_value: ${screen_saver_clock_default_brightness}
-    restore_value: true
-    optimistic: true
+    restore_value: false
+    optimistic: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-7"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_number(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_DAYTIME_CLOCK_BRIGHTNESS, x);'
     on_value:
       then:
-        - lambda: 'global_preferences->sync();'
         - if:
             condition:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::CLOCK);'
@@ -702,24 +691,24 @@ number:
     max_value: 100
     step: 1
     initial_value: ${screen_saver_clock_default_brightness}
-    restore_value: true
-    optimistic: true
+    restore_value: false
+    optimistic: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-4"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_number(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_NIGHTTIME_CLOCK_BRIGHTNESS, x);'
     on_value:
       then:
-        - lambda: 'global_preferences->sync();'
         - if:
             condition:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::CLOCK);'
             then:
               - script.execute: clock_screensaver_refresh_brightness
 
-  # Retained for Manual brightness mode and to migrate existing panels to
-  # separate automatic day/night dimmed-screen settings.
+  # Manual dimmed-screen level. Automatic brightness uses its day/night levels.
   - platform: template
     name: "${entity_screen_saver_dimmed_brightness}"
     internal: true
@@ -728,13 +717,15 @@ number:
     max_value: 100
     step: 1
     initial_value: 10
-    restore_value: true
-    optimistic: true
+    restore_value: false
+    optimistic: false
     unit_of_measurement: "%"
     entity_category: config
     icon: "mdi:brightness-4"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_number(espdesktop::panel_settings::ScalarSetting::SCREEN_SAVER_DIMMED_BRIGHTNESS, x);'
     on_value:
       then:
         - if:
@@ -742,92 +733,6 @@ number:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::DIMMED);'
             then:
               - script.execute: screensaver_dimmed_refresh_brightness
-
-  - platform: template
-    name: "${entity_screen_saver_cover_art_delay}"
-    internal: true
-    id: cover_art_delay
-    min_value: 3
-    max_value: 300
-    step: 1
-    initial_value: 10
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "s"
-    entity_category: config
-    icon: "mdi:timer-outline"
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - script.execute: cover_art_playback_refresh
-
-  - platform: template
-    name: "${entity_screen_saver_track_overlay_duration}"
-    internal: true
-    id: cover_art_track_overlay_duration
-    min_value: -1
-    max_value: 60
-    step: 1
-    initial_value: 5
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "s"
-    entity_category: config
-    icon: "mdi:playlist-music-outline"
-    web_server:
-      sorting_group_id: sg_screensaver
-    on_value:
-      then:
-        - if:
-            condition:
-              lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::COVER_ART);'
-            then:
-              - script.execute: cover_art_show_track_overlay
-
-  # Legacy setting kept so existing panels can migrate their saved single
-  # clock brightness into the new day/night settings, and so older cached web
-  # UIs still change the live screensaver brightness after startup.
-  - platform: template
-    name: "${entity_screen_saver_clock_brightness}"
-    internal: true
-    id: clock_brightness
-    min_value: ${screen_saver_clock_min_brightness}
-    max_value: 100
-    step: 1
-    initial_value: ${screen_saver_clock_default_brightness}
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "%"
-    entity_category: config
-    icon: "mdi:clock-outline"
-    on_value:
-      then:
-        - lambda: |-
-            if (!id(clock_brightness_legacy_sync_ready)) return;
-            auto clamp_clock_pct = [](float pct, float fallback) -> float {
-              if (std::isnan(pct) || pct <= 0.0f) pct = fallback;
-              if (pct < ${screen_saver_clock_min_brightness}.0f) {
-                pct = ${screen_saver_clock_min_brightness}.0f;
-              }
-              if (pct > 100.0f) pct = 100.0f;
-              return pct;
-            };
-            float legacy_pct = clamp_clock_pct(
-              id(clock_brightness).state, ${screen_saver_clock_default_brightness}.0f);
-            float previous_pct = clamp_clock_pct(
-              id(clock_brightness_legacy_last_level), legacy_pct);
-            if (legacy_pct == previous_pct) return;
-            id(clock_brightness_legacy_last_level) = legacy_pct;
-
-            auto day_call = id(clock_brightness_day).make_call();
-            day_call.set_value(legacy_pct);
-            day_call.perform();
-
-            auto night_call = id(clock_brightness_night).make_call();
-            night_call.set_value(legacy_pct);
-            night_call.perform();
-            global_preferences->sync();
 
   # Screensaver idle timeout
   - platform: template
@@ -838,13 +743,15 @@ number:
     max_value: 3600
     step: 10
     initial_value: 1800
-    restore_value: true
-    optimistic: true
+    restore_value: false
+    optimistic: false
     unit_of_measurement: "s"
     entity_category: config
     icon: "mdi:timer-outline"
     web_server:
       sorting_group_id: sg_screensaver
+    set_action:
+      - lambda: 'id(espdesktop_app).edit_panel_number(espdesktop::panel_settings::ScalarSetting::SCREENSAVER_TIMEOUT, x);'
     on_value:
       then:
         - if:
@@ -852,20 +759,3 @@ number:
               lambda: 'return id(espdesktop_app).display().current_mode_is(espdesktop::DisplayMode::ACTIVE) && lv_scr_act() == id(main_page)->obj;'
             then:
               - script.execute: screensaver_idle_check
-
-  # Home screen return timeout (0 = disabled)
-  - platform: template
-    name: "${entity_home_screen_timeout}"
-    internal: true
-    id: home_screen_timeout
-    min_value: 0
-    max_value: 300
-    step: 1
-    initial_value: 60
-    restore_value: true
-    optimistic: true
-    unit_of_measurement: "s"
-    entity_category: config
-    icon: "mdi:home-clock"
-    web_server:
-      sorting_group_id: sg_screensaver

@@ -10,12 +10,12 @@ The panel can display a clock in the top bar, updated every minute from network 
 
 ## Settings
 
-Configured in **System > Preferences > Time** in [Setup](/features/setup).
+Configured in **System > Preferences > Time** in [System settings](/settings/system#display-system-settings).
 
-- **Timezone** — use **Auto (Mac Companion)** to follow the paired Mac’s timezone, or select a fixed timezone from the dropdown. This also determines sunrise and sunset times used by the [backlight schedule](/features/backlight).
-- **Clock Format** — choose **12-hour** for time without an AM/PM suffix, or **24-hour** for 24-hour time. Defaults to 24h.
-- **Custom NTP Servers** — turn this on to show and edit the NTP server fields. When it is off, the panel uses the defaults: `0.pool.ntp.org`, `1.pool.ntp.org`, and `2.pool.ntp.org`.
-- **NTP Server 1 / 2 / 3** — choose the network time servers used to keep the panel clock accurate when custom NTP servers are enabled.
+- **Timezone**: use **Auto (Mac Companion)** to follow the paired Mac’s timezone, or select a fixed timezone from the dropdown. This also determines sunrise and sunset times used by the [backlight schedule](/features/backlight).
+- **Clock Format**: choose **12-hour** for time without an AM/PM suffix, or **24-hour** for 24-hour time. Defaults to 24h.
+- **Custom NTP Servers**: turn this on to show and edit the NTP server fields. When it is off, the panel uses the defaults: `0.pool.ntp.org`, `1.pool.ntp.org`, and `2.pool.ntp.org`.
+- **NTP Server 1 / 2 / 3**: choose the network time servers used to keep the panel clock accurate when custom NTP servers are enabled.
 
 **Screen > Appearance > Clock Bar** controls whether the top bar is shown. The clock bar shows the time, local folder or Mac app titles, and status icons. Select an item in the screen preview to edit or hide it. When the connectivity icon is shown, tap it on the panel to see the device name, IP address, WiFi strength, and firmware version.
 

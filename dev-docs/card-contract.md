@@ -1,6 +1,8 @@
 # Card Contract
 
-`product/v2/card_contract.json` is the source of truth for card type metadata.
+Card type metadata is authored in `product/v2/cards/`. Shared rules live in
+`product/v2/card_contract_shared.json`, and the build composes the generated
+`product/v2/card_contract.json`.
 It keeps the web setup page and firmware aligned.
 
 `contractVersion` versions the authored contract language. It is deliberately
@@ -244,7 +246,12 @@ Baseline migration decision: leading and trailing whitespace in saved Media play
 
 Malformed UTF-8 percent runs are preserved as literal saved text, matching the browser's safe decoder. Valid percent-encoded UTF-8 and delimiters continue to decode normally.
 
-Retired card identifiers are listed in `retiredCardTypes`; their compact saved codes remain in `retiredSubpageTypeCodes`. Browser and firmware discard their bindings and settings. The setup preview releases the retired tile and its entire span so the space can be reused.
+`releaseAvailability` in the shared contract lists stable card IDs and
+preview cards developed separately. Other card definitions are retained for
+reading older layouts. `removeOnEdit` lists retired IDs whose slots are freed
+when a layout is edited. Stable firmware also frees preview slots. Fully
+removed IDs remain reserved in `retiredCardTypes` and
+`retiredSubpageTypeCodes` so their old values keep their meaning.
 
 Action state, script-field, and confirmation text values also ignore leading and trailing whitespace during normalization. Padded confirmation defaults are omitted so a second normalization pass is identical to the first.
 
@@ -252,7 +259,7 @@ Action state, script-field, and confirmation text values also ignore leading and
 
 | Concern | Typical path |
 |---|---|
-| Type metadata and defaults | `product/v2/card_contract.json` |
+| Type metadata and defaults | `product/v2/cards/` |
 | Web settings and preview | `src/webserver/cards/<type>.ts` |
 | Web parsing/serialization | `src/webserver/application/config_codec.ts` |
 | Firmware parsing | `components/espdesktop/button_grid_config.h` |

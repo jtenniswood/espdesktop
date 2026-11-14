@@ -5,7 +5,8 @@ device-specific ESPHome YAML.
 
 ## Edit First
 
-- `product/v2/device_catalog.json`
+- `product/v2/devices/<slug>.json` for the device definition
+- `product/v2/device_catalog_shared.json` for shared profiles
 - `devices/<slug>/packages.yaml`
 - `devices/<slug>/dev.yaml`
 - `devices/<slug>/esphome.yaml`
@@ -23,7 +24,7 @@ shared behavior change.
 
 ## Checklist
 
-- [ ] Add or update the device entry in `product/v2/device_catalog.json`.
+- [ ] Add or update the device definition in `product/v2/devices/`. Register new entries in `product/model_v2.json`.
 - [ ] Select profiles for shared capabilities instead of copying those fields
       into the device `config` block.
 - [ ] Use explicit `overrides` only when a device must replace an inherited
@@ -50,6 +51,7 @@ source-to-generated mapping is in
 
 Expected generated files commonly include:
 
+- `product/v2/device_catalog.json`
 - `docs/public/device-profiles.json`
 - `docs/generated/screens/*.md`
 - generated blocks in `devices/*/packages.yaml`

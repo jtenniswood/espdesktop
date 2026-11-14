@@ -69,12 +69,9 @@ export function runApplicationContextTests(): void {
   const statusPreview = {} as any;
   const grid = {} as any;
   const firmwarePostApi = {} as any;
-  const artworkPostApi = {} as any;
   const schedulePostApi = {} as any;
   const clockBarPostApi = {} as any;
   const publicFirmwareInstall = {} as any;
-  const coverArtScreensaver = {} as any;
-  const mediaPlayback = {} as any;
   const pageTitle = {} as any;
   const screenSchedule = {} as any;
   const screenScheduleState = {} as any;
@@ -129,7 +126,6 @@ export function runApplicationContextTests(): void {
     firmwareVersion,
     firmwareUpdate,
     firmwarePostApi,
-    artworkPostApi,
     schedulePostApi,
     clockBarPostApi,
     publicFirmwareInstall,
@@ -150,8 +146,6 @@ export function runApplicationContextTests(): void {
     appEvents,
     statusPreview,
     grid,
-    coverArtScreensaver,
-    mediaPlayback,
     pageTitle,
     reconnect,
     screenSchedule,
@@ -182,7 +176,6 @@ export function runApplicationContextTests(): void {
   equal(context.controllers.firmwareVersion, firmwareVersion, "context owns firmware version behavior");
   equal(context.controllers.firmwareUpdate, firmwareUpdate, "context owns firmware update behavior");
   equal(context.controllers.firmwarePostApi, firmwarePostApi, "context owns firmware update posting behavior");
-  equal(context.controllers.artworkPostApi, artworkPostApi, "context owns artwork posting behavior");
   equal(context.controllers.schedulePostApi, schedulePostApi, "context owns screen schedule posting behavior");
   equal(context.controllers.clockBarPostApi, clockBarPostApi, "context owns Clock Bar posting behavior");
   equal(context.controllers.publicFirmwareInstall, publicFirmwareInstall, "context owns public firmware upload behavior");
@@ -242,8 +235,6 @@ export function runApplicationContextTests(): void {
   equal(context.controllers.cardEditorValidation, cardEditorValidation, "context retains editor validation ownership");
   equal(context.controllers.previewPlacement, previewPlacement, "context retains preview placement ownership");
   equal(context.controllers.clockBar, clockBar, "context retains clock bar ownership");
-  equal(context.controllers.coverArtScreensaver, coverArtScreensaver, "context retains cover art settings ownership");
-  equal(context.controllers.mediaPlayback, mediaPlayback, "context retains media settings ownership");
   equal(context.controllers.pageTitle, pageTitle, "context retains page title ownership");
   equal(context.controllers.screenSchedule, screenSchedule, "context retains schedule settings ownership");
   equal(context.controllers.screensaver, screensaver, "context retains screensaver settings ownership");

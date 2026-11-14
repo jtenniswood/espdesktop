@@ -65,22 +65,8 @@ class PanelConfigTextBindings {
   CompatibilityStatus publish_global_values(std::string_view profile,
       std::string_view order, std::string_view on_color);
 
-  // Trusted, already-validated runtime values are not saved wire records.
-  // Their escaped text may exceed the saved-record byte limit.
-  bool validate_runtime_records(const PanelConfigRecord *records, size_t count) const;
-  bool publish_runtime_records(const PanelConfigRecord *records, size_t count);
-
   bool validate_live_document(const uint8_t *document, size_t size) const {
     return compatible_document(document, size);
-  }
-  void refresh_runtime_pages() {
-    for (const auto &button : buttons_)
-      for (auto *chunk : button.subpage_chunks)
-        if (chunk) {
-          const auto &value = chunk->value();
-          chunk->publish_value(value.data(), value.size());
-          return;
-        }
   }
  private:
   enum class ApplyMode { PUBLISH, CHECK_PERSIST, PREPARE_EMPTY, PERSIST };
@@ -97,8 +83,6 @@ class PanelConfigTextBindings {
                       size_t *document_size) const;
   bool apply_document(const uint8_t *document, size_t document_size,
                       ApplyMode mode);
-  bool apply_records(PanelConfigReader *reader, const PanelConfigRecord *records,
-                     size_t count, ApplyMode mode);
   bool write_value(PanelConfigTextValue *target, const char *value,
                    size_t value_size, ApplyMode mode);
 

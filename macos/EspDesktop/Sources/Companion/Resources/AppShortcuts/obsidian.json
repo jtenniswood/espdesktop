@@ -3,66 +3,85 @@
   "appId": "md.obsidian",
   "label": "Obsidian",
   "catalog": false,
+  "defaultShortcutIds": ["1", "0", "3", "4", "5", "12", "9"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open the Command Palette",
+      "label": "Command Palette",
       "shortcut": "command+p",
-      "icon": "Application"
+      "icon": "Shortcut Command"
     },
     {
       "id": "1",
-      "label": "Open the Quick Switcher",
+      "label": "Quick Switch",
       "shortcut": "command+o",
-      "icon": "Application"
+      "icon": "Swap Horizontal"
     },
     {
       "id": "2",
-      "label": "Open the selected Quick Switcher note in a ne…",
+      "label": "Open Note",
       "shortcut": "command+enter",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "3",
-      "label": "Search all files in the vault",
+      "label": "Search Vault",
       "shortcut": "command+shift+f",
-      "icon": "Application"
+      "icon": "Folder Search"
     },
     {
       "id": "4",
-      "label": "Toggle Reading view and Editing view",
+      "label": "Toggle Reading",
       "shortcut": "command+e",
-      "icon": "Application"
+      "icon": "Book"
     },
     {
       "id": "5",
-      "label": "Open a new tab",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Application"
+      "icon": "New Tab"
     },
     {
       "id": "6",
-      "label": "Switch to the next tab",
+      "label": "Next Tab",
       "shortcut": "control+tab",
-      "icon": "Application"
+      "icon": "Chevron Right"
     },
     {
       "id": "7",
-      "label": "Switch to the previous tab",
+      "label": "Previous Tab",
       "shortcut": "control+shift+tab",
-      "icon": "Application"
+      "icon": "Chevron Left"
     },
     {
       "id": "8",
-      "label": "Switch directly to a tab by position",
+      "label": "Jump Tab",
       "shortcut": "command+1",
-      "icon": "Application"
+      "icon": "Tab"
     },
     {
       "id": "9",
-      "label": "Reopen the recently closed tab",
+      "label": "Reopen Tab",
       "shortcut": "command+shift+t",
-      "icon": "Application"
+      "icon": "Tab Restore"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "And run Command Palette result", "shortcut": "scoped.up", "icon": "Keyboard"},
+    {"id": "11", "label": "And run Command Palette result", "shortcut": "scoped.down~enter", "icon": "Keyboard"},
+    {"id": "12", "label": "Switch between recent notes", "shortcut": "scoped.command+o~down~enter", "icon": "Notes"},
+    {"id": "13", "label": "Switch directly to tab by position 2", "shortcut": "scoped.command+2", "icon": "Tab"},
+    {"id": "14", "label": "Switch directly to tab by position 3", "shortcut": "scoped.command+3", "icon": "Tab"},
+    {"id": "15", "label": "Switch directly to tab by position 4", "shortcut": "scoped.command+4", "icon": "Tab"},
+    {"id": "16", "label": "Switch directly to tab by position 5", "shortcut": "scoped.command+5", "icon": "Tab"},
+    {"id": "17", "label": "Switch directly to tab by position 6", "shortcut": "scoped.command+6", "icon": "Tab"},
+    {"id": "18", "label": "Switch directly to tab by position 7", "shortcut": "scoped.command+7", "icon": "Tab"},
+    {"id": "19", "label": "Switch directly to tab by position 8", "shortcut": "scoped.command+8", "icon": "Tab"},
+    {"id": "20", "label": "Switch directly to tab by position 9", "shortcut": "scoped.command+9", "icon": "Tab"},
+    {"id": "21", "label": "Copy paragraph", "shortcut": "scoped.command+c", "icon": "Copy"},
+    {"id": "22", "label": "Cut paragraph", "shortcut": "scoped.command+x", "icon": "Cut"},
+    {"id": "23", "label": "Format text as bold", "shortcut": "scoped.command+b", "icon": "Bold"},
+    {"id": "24", "label": "Format text as italic", "shortcut": "scoped.command+i", "icon": "Italic"},
+    {"id": "25", "label": "Delete line", "shortcut": "scoped.command+shift+k", "icon": "Delete"}
   ]
 }

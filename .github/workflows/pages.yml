@@ -5,20 +5,30 @@ on:
     branches: [main]
     paths:
       - 'docs/**'
-      - 'devices/manifest.json'
+      - 'src/webserver/**'
+      - 'common/addon/time.yaml'
+      - 'common/assets/**'
+      - 'product/v2/**'
+      - 'scripts/build_web_bundle.js'
+      - 'scripts/web_source.js'
+      - 'scripts/web_icon_names.js'
+      - 'scripts/device_profiles.py'
+      - 'devices/**'
       - 'product/release_devices.json'
       - 'scripts/release_devices.py'
       - 'scripts/check_public_firmware.py'
       - 'scripts/check_docs_site.py'
+      - 'scripts/check_published_docs.py'
       - 'scripts/check_docs_installer.js'
       - 'scripts/build.py'
       - 'scripts/prepare_release_web_assets.py'
+      - 'scripts/notify_docs_indexnow.py'
       - 'scripts/prune_actions_cache.sh'
       - 'package.json'
       - 'package-lock.json'
       - '.github/workflows/pages.yml'
   workflow_run:
-    workflows: ["Build Release"]
+    workflows: ["Publish Release"]
     types: [completed]
   workflow_dispatch:
 
@@ -46,6 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+          filter: blob:none
       - run: git sparse-checkout disable || true
 
       - uses: actions/setup-node@v7
@@ -71,9 +84,12 @@ jobs:
 
       - name: Use verified release web assets
         if: github.event_name == 'workflow_run'
-        run: cp -a release-web-assets/. docs/public/webserver/
+        run: |
+          rm -rf docs/public/webserver
+          cp -a release-web-assets docs/public/webserver
 
       - name: Prepare published release web assets
+        id: prepare-web
         if: github.event_name != 'workflow_run'
         env:
           GH_TOKEN: ${{ github.token }}
@@ -81,27 +97,69 @@ jobs:
           RELEASE_TAG=$(gh release list --limit 30 --json tagName,isDraft \
             --jq '[.[] | select(.isDraft == false) | .tagName][0] // ""')
           if [ -z "${RELEASE_TAG}" ]; then
-            echo "No published release exists yet; keeping the checked-in web asset compatibility list."
+            echo "No published release exists yet; building the editor with the retained compatibility bundle."
+            npm run webserver:build
             exit 0
           fi
-          python3 scripts/prepare_release_web_assets.py --legacy-only "${RELEASE_TAG}"
-
           LEGACY_WEB_DIR="${RUNNER_TEMP}/espdesktop-published-web"
           LEGACY_WEB_MANIFEST="${LEGACY_WEB_DIR}/web-assets.json"
           LEGACY_WEB_ARGS=()
           LEGACY_STABLE_TAG=$(gh release list --exclude-drafts --exclude-pre-releases --limit 1 \
             --json tagName --jq '.[0].tagName // ""')
           mkdir -p "${LEGACY_WEB_DIR}"
-          if [ -n "${LEGACY_STABLE_TAG}" ] && curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/web-assets.json" \
-            -o "${LEGACY_WEB_MANIFEST}"; then
-            BUNDLE_PATH=$(jq -er --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path' \
-              "${LEGACY_WEB_MANIFEST}")
+          RELEASE_MANIFEST="${RUNNER_TEMP}/espdesktop-release-manifest.json"
+          BUNDLE_PATH=""
+          if [ -n "${LEGACY_STABLE_TAG}" ]; then
+            gh release download "${LEGACY_STABLE_TAG}" --pattern release-manifest.json --output "${RELEASE_MANIFEST}"
+            VERIFIED_BUNDLE_PATH=$(jq -er '.webBundle.path' "${RELEASE_MANIFEST}")
+            if curl -fsSL "https://espdesktop.com/webserver/web-assets.json" -o "${LEGACY_WEB_MANIFEST}"; then
+              BUNDLE_PATH=$(jq -r --arg tag "${LEGACY_STABLE_TAG}" '[.bundles[] | select(.firmwareVersions | index($tag))][0].path // empty' \
+                "${LEGACY_WEB_MANIFEST}")
+              if [ "${BUNDLE_PATH}" != "${VERIFIED_BUNDLE_PATH}" ]; then
+                BUNDLE_PATH=""
+              fi
+            fi
+          fi
+          if [ -n "${LEGACY_STABLE_TAG}" ] && [ -z "${BUNDLE_PATH}" ]; then
+            # Recover the verified editor if Pages is unavailable or serves a different bundle.
+            RELEASE_SOURCE=$(gh api "repos/${GITHUB_REPOSITORY}/commits/${LEGACY_STABLE_TAG}" --jq .sha)
+            RELEASE_RUN=$(gh run list --workflow release.yml --branch "${LEGACY_STABLE_TAG}" \
+              --event workflow_dispatch --status success --json databaseId,headSha | \
+              jq -r --arg source "${RELEASE_SOURCE}" '[.[] | select(.headSha == $source)][0].databaseId // empty')
+            if [ -z "${RELEASE_RUN}" ]; then
+              echo "::error::No successful Build Release run found for ${LEGACY_STABLE_TAG} at ${RELEASE_SOURCE}"
+              exit 1
+            fi
+            RELEASE_WEB_DIR="${RUNNER_TEMP}/espdesktop-release-web"
+            gh run download "${RELEASE_RUN}" --name release-web-assets --dir "${RELEASE_WEB_DIR}"
+            PYTHONPATH=scripts python3 - "${RELEASE_MANIFEST}" "${RELEASE_WEB_DIR}" "${LEGACY_STABLE_TAG}" "${RELEASE_SOURCE}" <<'PY'
+          import json
+          import sys
+          from pathlib import Path
+
+          from firmware_release import current_web_bundle
+
+          manifest_path, web_dir = map(Path, sys.argv[1:3])
+          version, source = sys.argv[3:]
+          release = json.loads(manifest_path.read_text(encoding="utf-8"))
+          bundle = current_web_bundle(web_dir / "web-assets.json", web_dir)
+          if (release["releaseVersion"] != version or release["sourceRevision"] != source
+                  or release["webBundle"] != bundle or version not in bundle["firmwareVersions"]):
+              raise SystemExit("Build Release editor does not match the published firmware manifest")
+          print(f"Verified the hosted editor for {version}: {bundle['sha256']}")
+          PY
+            rm -rf docs/public/webserver
+            cp -a "${RELEASE_WEB_DIR}" docs/public/webserver
+            echo "used-release-artifact=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -n "${BUNDLE_PATH}" ]; then
             if [[ ! "${BUNDLE_PATH}" =~ ^bundles/[0-9a-f]{64}/www\.js$ ]]; then
               echo "::error::Published web asset manifest has an invalid bundle path"
               exit 1
             fi
             mkdir -p "docs/public/webserver/$(dirname "${BUNDLE_PATH}")"
-            curl -fsSL "https://jtenniswood.github.io/espdesktop/webserver/${BUNDLE_PATH}" \
+            curl -fsSL "https://espdesktop.com/webserver/${BUNDLE_PATH}" \
               -o "docs/public/webserver/${BUNDLE_PATH}"
             export ESPDESKTOP_LEGACY_WEB_MANIFEST="${LEGACY_WEB_MANIFEST}"
             export ESPDESKTOP_LEGACY_FIRMWARE_VERSION="${LEGACY_STABLE_TAG}"
@@ -109,15 +167,76 @@ jobs:
             echo "ESPDESKTOP_LEGACY_FIRMWARE_VERSION=${LEGACY_STABLE_TAG}" >> "$GITHUB_ENV"
             LEGACY_WEB_ARGS=(--legacy-web-manifest "${LEGACY_WEB_MANIFEST}")
           else
-            echo "::warning::Could not download the published web asset manifest; using the checked-in fallback bundle."
+            echo "::warning::No stable release found; using the checked-in compatibility bundle."
           fi
+          python3 scripts/prepare_release_web_assets.py --legacy-only "${RELEASE_TAG}"
           python3 scripts/build.py www --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
           python3 scripts/build.py www --check --retain-current-bundle "${LEGACY_WEB_ARGS[@]}"
 
+      - name: Verify rebuilt hosted editor
+        if: github.event_name != 'workflow_run' && steps.prepare-web.outputs.used-release-artifact != 'true'
+        run: node scripts/check_web_asset_manifest.js --manifest-only
+
+      - name: Stage the hosted editor loader
+        run: node scripts/build_web_bundle.js --bridge-only > docs/public/webserver/www.js
+
+      - name: Find the latest stable Mac installer
+        id: mac-download
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASES="${RUNNER_TEMP}/espdesktop-releases.json"
+          gh api --paginate "repos/${GITHUB_REPOSITORY}/releases?per_page=100" > "${RELEASES}"
+          MAC_TAG=$(jq -rs '[.[][] |
+            select((.draft or .prerelease) | not) |
+            .tag_name as $tag |
+            select($tag | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) |
+            ($tag | ltrimstr("v")) as $version |
+            select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).dmg")) |
+            {tag: $tag, version: ($version | split(".") | map(tonumber))}
+          ] | max_by([.version, .tag]) | .tag // empty' "${RELEASES}")
+          RELEASE_DATE=$(jq -rs --arg tag "${MAC_TAG}" '[.[][] | select(.tag_name == $tag) | .published_at] | first // empty' "${RELEASES}")
+          echo "release_date=${RELEASE_DATE}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${MAC_TAG}" >> "${GITHUB_OUTPUT}"
+          MATCHED_TAG=$(jq -rs --arg tag "${MAC_TAG}" '
+            [.[][] | select(.tag_name == $tag) |
+              [.assets[] | select(.state == "uploaded") | .name] as $assets |
+              select(["companion-compatibility.json",
+                "guition-esp32-s3-4848s040.manifest.json",
+                "guition-esp32-s3-4848s040.factory.bin",
+                "guition-esp32-s3-4848s040.ota.bin"] - $assets == []) |
+              .tag_name] | first // empty' "${RELEASES}")
+          echo "matched_tag=${MATCHED_TAG}" >> "${GITHUB_OUTPUT}"
+
       - name: Build docs
         env:
+          ESPDESKTOP_MAC_RELEASE_DATE: ${{ steps.mac-download.outputs.release_date }}
+          ESPDESKTOP_MAC_RELEASE_TAG: ${{ steps.mac-download.outputs.tag }}
+          ESPDESKTOP_MATCHED_RELEASE_TAG: ${{ steps.mac-download.outputs.matched_tag }}
           GOOGLE_SITE_VERIFICATION: ${{ vars.GOOGLE_SITE_VERIFICATION }}
         run: npm run docs:build
+
+      - name: Stage signed Mac update feeds
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -o pipefail
+          FEED_DIR="docs/.vitepress/dist/updates"
+          mkdir -p "${FEED_DIR}"
+          # Keep the newest stable Mac release for each protocol, even when firmware ships on its own.
+          jq -rs '[.[][] |
+              select((.draft or .prerelease) | not) |
+              .tag_name as $tag |
+              select($tag | test("^v?[0-9]+\\.[0-9]+\\.[0-9]+$")) |
+              ($tag | ltrimstr("v")) as $version |
+              select(any(.assets[]; .state == "uploaded" and .name == "EspDesktop-\($version).zip")) |
+              .assets[] | select(.state == "uploaded" and (.name | test("^companion-appcast-v[0-9]+\\.xml$"))) |
+              {tag: $tag, version: ($version | split(".") | map(tonumber)), feed: .name}
+            ] | group_by(.feed)[] | max_by(.version) | [.tag, .feed] | @tsv' "${RUNNER_TEMP}/espdesktop-releases.json" |
+            while IFS=$'\t' read -r tag feed; do
+              gh release download "$tag" --repo "${GITHUB_REPOSITORY}" \
+                --pattern "$feed" --output "${FEED_DIR}/${feed}"
+            done
 
       - name: Upload docs artifact
         uses: actions/upload-artifact@v7
@@ -408,6 +527,7 @@ jobs:
   deploy:
     name: Deploy to Pages
     needs: [build-docs, download-firmware]
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -418,8 +538,11 @@ jobs:
           sparse-checkout: |
             devices/manifest.json
             product/release_devices.json
+            scripts/notify_docs_indexnow.py
+            scripts/check_docs_site.py
             scripts/release_devices.py
             scripts/check_public_firmware.py
+            scripts/check_published_docs.py
           sparse-checkout-cone-mode: false
 
       - name: Download docs artifact
@@ -435,6 +558,23 @@ jobs:
           name: firmware
           path: dist/firmware
 
+      - name: Remove retired integration metadata from public installer manifests
+        if: needs.download-firmware.outputs.has_firmware == 'true'
+        shell: bash
+        run: |
+          find dist/firmware -type f -name manifest.json -print0 |
+            while IFS= read -r -d '' manifest; do
+              jq 'del(.home_assistant_domain)' "$manifest" > "${manifest}.tmp"
+              mv "${manifest}.tmp" "$manifest"
+            done
+
+      - name: Compare public guides for IndexNow
+        id: indexnow-prepare
+        continue-on-error: true
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: python3 scripts/notify_docs_indexnow.py prepare --dist dist --receipt "${RUNNER_TEMP}/indexnow-changes.json"
+
       - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v5
         with:
@@ -443,6 +583,10 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Verify published documentation
+        # GitHub Pages can serve the prior artifact for its 10-minute cache lifetime.
+        run: python3 scripts/check_published_docs.py --dist dist --attempts 45
 
       - name: Verify public firmware assets
         if: needs.download-firmware.outputs.has_stable == 'true'
@@ -453,3 +597,10 @@ jobs:
           --optional-stable-slugs guition-esp32-p4-jc8012p4a1 guition-esp32-p4-jc8012p4a1-v2 guition-esp32-p4-jc8012p4a1-v3 guition-esp32-p4-jc4880p443-v3 guition-esp32-p4-jc1060p470-v2 esp32-p4-86
           --retries 5
           --delay 20
+
+      - name: Notify IndexNow of published guide changes
+        if: steps.indexnow-prepare.outcome == 'success'
+        continue-on-error: true
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
+        run: python3 scripts/notify_docs_indexnow.py submit --receipt "${RUNNER_TEMP}/indexnow-changes.json"

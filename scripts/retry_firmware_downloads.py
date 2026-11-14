@@ -10,7 +10,7 @@ import time
 
 # Match download diagnostics, not arbitrary compiler errors containing numbers.
 TRANSIENT_DOWNLOAD = re.compile(
-    r"(?:Failed to download|Download failure|Could not prefetch)[^\n]*"
+    r"(?:Failed to download|Download failure|Could not prefetch|Download of [^\n]* failed)[^\n]*"
     r"(?:\b50[0234]\b|timed? out|Connection reset|Temporary failure in name resolution)",
     re.IGNORECASE,
 )

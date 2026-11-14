@@ -1,4 +1,6 @@
 import { cardTransferOwnsSubpage } from "./card_transfer";
+import type { CardConfig } from "../contracts/types";
+import { CARD_CONFIG_FIELDS } from "./card";
 /** Lossless bridge for negotiated editor saves and staged firmware compatibility. */
 import { decodePanelConfig, encodePanelConfig, PanelConfigError, type PanelConfigDocument } from "./panel_config";
 import { decodeNativeV2, encodeNativeV2, NativeV2Kind as K, type NativeV2Record, type NativeV2DecodedRecord } from "./panel_config_v2";
@@ -8,6 +10,23 @@ import { CARD_CONTRACT_SUBPAGE_TYPES_BY_CODE, CARD_CONTRACT_SUBPAGE_TYPE_CODES }
 import { childPageKey, pageDepth } from "./page_keys";
 
 const RAW = 1, ABSENT = 2, NO_ID = 65535;
+
+interface NativeLayoutCard {
+  readonly slot: number;
+  readonly config: Readonly<CardConfig>;
+}
+
+interface NativeLayoutPage {
+  readonly key: number;
+  readonly order: string;
+  readonly cards: readonly NativeLayoutCard[];
+}
+
+export interface NativePageLayout {
+  readonly rootCards: readonly NativeLayoutCard[];
+  readonly pages: readonly NativeLayoutPage[];
+  readonly nested: boolean;
+}
 function check(value: unknown, reason: string): asserts value {
   if (!value) throw new PanelConfigError(`Native configuration conversion: ${reason}`);
 }
@@ -145,7 +164,21 @@ export function decodePanelPageDocument(input: Uint8Array): PanelConfigDocument 
   return projectNativeGraph(input, true);
 }
 
-function projectNativeGraph(input: Uint8Array, nested: boolean): PanelConfigDocument {
+/** The editor uses the native fields directly. The text view is for older
+ * callers that still edit or export the compatibility format. */
+export interface NativePanelConfigGraph {
+  readonly document: PanelConfigDocument;
+  readonly layout: NativePageLayout;
+}
+
+export function decodePanelPageSnapshot(input: Uint8Array): NativePanelConfigGraph {
+  const rootCards: NativeLayoutCard[] = [], pages: NativeLayoutPage[] = [];
+  const document = projectNativeGraph(input, true, rootCards, pages);
+  return { document, layout: { rootCards, pages, nested: pages.some(page => pageDepth(page.key) === 2) } };
+}
+
+function projectNativeGraph(input: Uint8Array, nested: boolean,
+    rootCards?: NativeLayoutCard[], pages?: NativeLayoutPage[]): PanelConfigDocument {
   const records = decodeNativeV2(input), byKind = new Map<number, Map<number, NativeV2DecodedRecord>>();
   for (const record of records) {
     if (!byKind.has(record.kind)) byKind.set(record.kind, new Map());
@@ -155,6 +188,10 @@ function projectNativeGraph(input: Uint8Array, nested: boolean): PanelConfigDocu
   const text = (id: number) => id ? get(K.String, id)!.text : "";
   const fields = (r: NativeV2DecodedRecord) => r.fields.map((id, i) =>
     text((i === 0 || i === 4) && id ? get(K.Entity, id)!.first : id));
+  const viewCard = (card: NativeV2DecodedRecord, values = fields(card)): NativeLayoutCard => ({
+    slot: card.second,
+    config: Object.fromEntries(CARD_CONFIG_FIELDS.map((key, index) => [key, values[index]])) as CardConfig,
+  });
   const source: PanelConfigDocument = {
     deviceProfile: get(K.Profile, 0)!.text,
     buttons: Object.create(null) as Record<number, string>,
@@ -192,6 +229,7 @@ function projectNativeGraph(input: Uint8Array, nested: boolean): PanelConfigDocu
         "root card exceeds the v1 byte limit");
       source.buttons[card.second] = fits(compact) ? compact : plain;
     }
+    if (card.flags !== ABSENT) rootCards?.push(viewCard(card, saved));
   }
   function key(page: NativeV2DecodedRecord): number {
     if (page.first === 0) return get(K.Card, page.second)!.second;
@@ -248,7 +286,9 @@ function projectNativeGraph(input: Uint8Array, nested: boolean): PanelConfigDocu
     }
     const raw = serialize(originalCompact) ?? serialize(!originalCompact);
     check(raw !== undefined, "page cannot preserve raw imports in a v1 spelling");
-    source.subpages[key(page)] = raw;
+    const path = key(page);
+    source.subpages[path] = raw;
+    pages?.push({ key: path, order, cards: children.map(card => viewCard(card)) });
   }
   // Reuse deployed v1 record, UTF-8 and byte limits before returning any result.
   encodePanelConfig({ ...source, subpages: Object.fromEntries(Object.entries(source.subpages).filter(([key]) => Number(key) <= 32)) });

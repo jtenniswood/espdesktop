@@ -20,9 +20,21 @@ struct CompanionApp: App {
                 }
             }
             CommandGroup(replacing: .appSettings) {
-                Button("Mac Settings") { appDelegate.openCompanionWindow() }
+                Button("Settings") { appDelegate.openCompanionWindow() }
                     .keyboardShortcut(",", modifiers: .command)
             }
+            CompanionUpdateCommands(updater: appDelegate.store.updater)
+        }
+    }
+}
+
+private struct CompanionUpdateCommands: Commands {
+    @ObservedObject var updater: CompanionUpdater
+
+    var body: some Commands {
+        CommandGroup(after: .appSettings) {
+            Button("Check for Updates…") { updater.check() }
+                .disabled(updater.isChecking)
         }
     }
 }
@@ -46,7 +58,7 @@ private final class WindowRestorationMarkerView: NSView {
 }
 
 @MainActor
-final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSWindowDelegate {
+final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate, NSMenuItemValidation, NSWindowDelegate {
     private static let ipcIdentifier = "io.espdesktop.app"
     private static let openSettingsNotification = Notification.Name(
         "\(ipcIdentifier).open-settings"
@@ -82,15 +94,15 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         }
         item.menu = NSMenu()
         item.menu?.delegate = self
-        updateStatusItemImage(connected: store.isConnected)
-        connectionObservation = store.$isConnected
+        updateStatusItemImage(connected: false)
+        connectionObservation = store.$connectedDisplayCount
+            .map { $0 > 0 }
             .removeDuplicates()
             .sink { [weak self] connected in self?.updateStatusItemImage(connected: connected) }
-        if store.hasSavedPairing && !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-            store.connect()
-        }
-        store.updater.startAutomaticChecks()
-        if !launchedAsLoginItem() {
+        store.connectSavedDisplays()
+        let openedByUser = !launchedAsLoginItem()
+        store.updater.startAutomaticChecks(checkOnLaunch: openedByUser)
+        if openedByUser {
             DispatchQueue.main.async { [weak self] in self?.openCompanionWindow() }
         }
     }
@@ -113,78 +125,94 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         return true
     }
 
+    func application(_ application: NSApplication, open urls: [URL]) {
+        guard urls.contains(where: { $0.absoluteString == "espdesktop://open" }) else { return }
+        openCompanionWindow()
+    }
+
     func applicationDockMenu(_ sender: NSApplication) -> NSMenu? {
         let menu = NSMenu()
-        addContextualControlMenuItems(to: menu)
+        addContextualControlMenuItems(to: menu, isMenuBarMenu: false)
         return menu
     }
 
     func menuNeedsUpdate(_ menu: NSMenu) {
         menu.removeAllItems()
-        menu.addItem(connectionStatusItem())
-        menu.addItem(.separator())
+        if store.displays.isEmpty {
+            menu.addItem(NSMenuItem(title: "No displays paired", action: nil, keyEquivalent: ""))
+            menu.addItem(.separator())
+        }
 
-        addContextualControlMenuItems(to: menu)
+        addContextualControlMenuItems(to: menu, isMenuBarMenu: true)
         addMenuItem(
             "Quit", action: #selector(quit), key: "q",
             image: menuSymbol("power", description: "Quit"), to: menu)
     }
 
-    private func addContextualControlMenuItems(to menu: NSMenu) {
-        let panelWebpageItem = NSMenuItem(
-            title: "Customize Display",
-            action: #selector(openDisplaySettings),
-            keyEquivalent: "d"
-        )
-        panelWebpageItem.target = self
-        panelWebpageItem.keyEquivalentModifierMask = [.command]
-        panelWebpageItem.image = menuSymbol("display", description: "Customize Display")
-        panelWebpageItem.isEnabled = !store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        menu.addItem(panelWebpageItem)
+    private func addContextualControlMenuItems(to menu: NSMenu, isMenuBarMenu: Bool) {
+        for display in store.displays {
+            let item = NSMenuItem(title: display.name, action: nil, keyEquivalent: "")
+            if isMenuBarMenu {
+                item.onStateImage = connectionDot(connected: true)
+                item.offStateImage = connectionDot(connected: false)
+                item.state = display.state == .connected ? .on : .off
+            } else {
+                item.image = menuSymbol(display.state.symbol, description: display.state.title)
+            }
+            item.toolTip = display.panelHost
+            let actions = NSMenu()
+            let status = NSMenuItem(title: display.state.title, action: nil, keyEquivalent: "")
+            actions.addItem(status)
+            actions.addItem(.separator())
+            let enabled = display.state == .connected || display.state.isBusy
+            let toggle = display.state == .needsPairing
+                ? NSMenuItem(title: "Display Settings…", action: #selector(openSettings), keyEquivalent: "")
+                : NSMenuItem(title: enabled ? "Disconnect" : "Connect",
+                             action: #selector(toggleDisplayConnection(_:)), keyEquivalent: "")
+            toggle.target = self
+            toggle.representedObject = display
+            actions.addItem(toggle)
+            let customize = NSMenuItem(title: "Customize Display", action: #selector(openDisplaySettings(_:)),
+                                       keyEquivalent: store.displays.count == 1 ? "d" : "")
+            customize.target = self
+            customize.representedObject = display
+            actions.addItem(customize)
+            item.submenu = actions
+            menu.addItem(item)
+        }
+        if !store.displays.isEmpty { menu.addItem(.separator()) }
 
-        addMenuItem("Mac Settings", action: #selector(openSettings), key: ",",
-                    image: menuSymbol("gearshape", description: "Mac Settings"), to: menu)
-        addMenuItem("Updates",
-                    action: #selector(checkForUpdates), key: "u",
-                    image: menuSymbol("arrow.triangle.2.circlepath", description: "Updates"), to: menu)
-        menu.items.last?.isEnabled = !store.updater.isChecking
+        if isMenuBarMenu {
+            addMenuItem("Add device", action: #selector(addDevice),
+                        image: menuSymbol("plus", description: "Add device"), to: menu)
+        }
+        addMenuItem("Settings", action: #selector(openSettings), key: ",",
+                    image: menuSymbol("gearshape", description: "Settings"), to: menu)
+        if !isMenuBarMenu {
+            addMenuItem("Check for Updates…",
+                        action: #selector(checkForUpdates), key: "u",
+                        image: menuSymbol("arrow.triangle.2.circlepath", description: "Check for Updates"), to: menu)
+        }
         addMenuItem("Support", action: #selector(openHelp), key: "?",
                     image: menuSymbol("questionmark.circle", description: "Support"), to: menu)
     }
 
-    private func connectionStatusItem() -> NSMenuItem {
-        let item = NSMenuItem()
-        let container = NSView(frame: NSRect(x: 0, y: 0, width: 260, height: 58))
-        let menuFont = NSFont.menuFont(ofSize: 0)
+    func validateMenuItem(_ menuItem: NSMenuItem) -> Bool {
+        menuItem.action != #selector(checkForUpdates) || !store.updater.isChecking
+    }
 
-        let title = NSTextField(labelWithString: "EspDesktop")
-        title.font = .systemFont(ofSize: menuFont.pointSize, weight: .semibold)
-
-        let status = NSTextField(labelWithString: store.isConnected ? "Connected" : "Disconnected")
-        status.font = menuFont
-        status.textColor = .secondaryLabelColor
-
-        let labels = NSStackView(views: [title, status])
-        labels.orientation = .vertical
-        labels.alignment = .leading
-        labels.spacing = 1
-
-        let connectionSwitch = NSHostingView(rootView: CompanionMenuConnectionToggle(store: store))
-
-        container.addSubview(labels)
-        container.addSubview(connectionSwitch)
-        labels.translatesAutoresizingMaskIntoConstraints = false
-        connectionSwitch.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            labels.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 14),
-            labels.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            labels.trailingAnchor.constraint(lessThanOrEqualTo: connectionSwitch.leadingAnchor, constant: -12),
-            connectionSwitch.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -14),
-            connectionSwitch.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-        ])
-
-        item.view = container
-        return item
+    private func connectionDot(connected: Bool) -> NSImage {
+        NSImage(size: NSSize(width: 12, height: 12), flipped: false) { bounds in
+            let dot = NSBezierPath(ovalIn: bounds.insetBy(dx: 2.5, dy: 2.5))
+            if connected {
+                NSColor.systemGreen.setFill()
+                dot.fill()
+            } else {
+                NSColor.secondaryLabelColor.setStroke()
+                dot.stroke()
+            }
+            return true
+        }
     }
 
     private func addMenuItem(
@@ -202,7 +230,15 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         return image
     }
 
-    @objc private func openDisplaySettings() { store.openPanelWebServer() }
+    @objc private func openDisplaySettings(_ sender: NSMenuItem) {
+        guard let display = sender.representedObject as? CompanionDisplay else { return }
+        store.openPanelWebServer(display)
+    }
+
+    @objc private func toggleDisplayConnection(_ sender: NSMenuItem) {
+        guard let display = sender.representedObject as? CompanionDisplay else { return }
+        store.setConnection(display.state != .connected && !display.state.isBusy, for: display)
+    }
 
     private func updateStatusItemImage(connected: Bool) {
         guard let button = statusItem?.button else { return }
@@ -213,10 +249,9 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
         button.image = image
     }
 
+    @objc private func addDevice() { openCompanionWindow(destination: .addDevice) }
     @objc private func openSettings() { openCompanionWindow() }
-    @objc private func openHelp() {
-        openCompanionWindow(showHelp: true)
-    }
+    @objc private func openHelp() { openCompanionWindow(destination: .support) }
     @objc private func checkForUpdates() { store.updater.check() }
     @objc private func quit() { NSApp.terminate(nil) }
     @objc private func existingInstanceWasOpened(_ notification: Notification) { openCompanionWindow() }
@@ -240,8 +275,11 @@ final class CompanionApplicationDelegate: NSObject, NSApplicationDelegate, NSMen
             .booleanValue == true
     }
 
-    func openCompanionWindow(showHelp: Bool = false) {
-        store.requestedSettingsPage = showHelp ? "help" : "connection"
+    func openCompanionWindow(destination: CompanionSettingsDestination = .displays) {
+        defer {
+            if destination != .addDevice { store.updater.showAvailableUpdate() }
+        }
+        store.requestedSettingsDestination = destination
         store.settingsRequestID = UUID()
         activateCompanionApplication()
 
@@ -291,22 +329,4 @@ func activateCompanionApplication() {
         .activateIgnoringOtherApps,
     ])
     NSApp.activate(ignoringOtherApps: true)
-}
-
-private struct CompanionMenuConnectionToggle: View {
-    @ObservedObject var store: CompanionStore
-
-    var body: some View {
-        Toggle("EspDesktop connection", isOn: Binding(
-            get: { store.isConnected },
-            set: { connected in
-                if connected { store.connect() } else { store.disconnect() }
-            }
-        ))
-        .labelsHidden()
-        .toggleStyle(SwitchToggleStyle(tint: .accentColor))
-        .disabled(!store.isConnected && store.panelHost.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        .help(store.isConnected ? "Disconnect from the display" : "Connect to the display")
-        .fixedSize()
-    }
 }

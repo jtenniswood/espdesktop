@@ -6,8 +6,13 @@
 #include <functional>
 #include <iostream>
 #include <string>
+#include <utility>
 #include <vector>
-#include "display_mode_controller.h"
+#include "display_brightness_preferences.h"
+#include "display_lifecycle_service.h"
+#include "display_theme_preferences.h"
+#include "screen_schedule_preferences.h"
+#include "screen_lock_state.h"
 using namespace espdesktop;
 #define id(x) x
 #define ESP_LOGD(...) log_stub(__VA_ARGS__)
@@ -72,7 +77,11 @@ Step branch(Script &owner, std::function<bool()> condition, Steps yes, Steps no)
   return [&owner, condition, yes, no](Next next) { run_branch(owner, owner.epoch, condition() ? yes : no, 0, next); };
 }
 // Hardware/settings boundary; production predicates use these values unchanged.
-struct App { DisplayModeController controller; auto &display() { return controller; } } espdesktop_app;
+struct App {
+  DisplayLifecycleService lifecycle;
+  auto &display() { return lifecycle.controller(); }
+  auto &display_lifecycle() { return lifecycle; }
+} espdesktop_app;
 struct Time { int hour = 6; bool valid = true; bool is_valid() const { return valid; } } clock_time;
 struct Clock { Time now() { return clock_time; } } panel_time, homeassistant_time;
 Time panel_time_or_fallback(Time primary, Time fallback) { return primary.valid ? primary : fallback; }
@@ -83,39 +92,39 @@ int *active_page = nullptr;
 int *lv_scr_act() { return active_page; }
 struct Text { std::string state; std::string current_option() { return state; } };
 Text button_order{"1"}, screen_schedule_trigger{"time"}, screensaver_mode{"timer"};
+enum class GridBoardOperation { REBUILD };
+std::string rendered_button_order;
+void grid_run_board(GridBoardOperation) { rendered_button_order = button_order.state; }
 struct Number { float state; } schedule_on_hour{7}, schedule_off_hour{22}, schedule_wake_timeout{60}, screensaver_timeout{300};
-struct Toggle { bool state = false; } schedule_enabled{true}, cover_art_screensaver_enabled{}, media_player_sleep_prevention_enabled{};
+struct Toggle { bool state = false; } schedule_enabled{true};
 bool connectivity_setup_display_active = false,
+     first_layout_preview_active = false,
      schedule_mode_always_on = false, schedule_mode_clock = true,
-     clock_bar_night_mode_active = false, cover_art_media_playing = false;
-bool screensaver_companion_ready = true, mac_connected = true, mac_locked = false;
+     clock_bar_night_mode_active = false;
+bool screensaver_companion_ready = true, mac_connected = true;
 bool companion_connected() { return mac_connected; }
-bool screen_lock_enabled() { return mac_locked; }
 bool screensaver_action_clock = false, screensaver_action_dimmed = false,
      screensaver_action_camera = false;
-uint32_t manual_wake_ms = 0, cover_art_transition_generation = 0, cover_art_download_generation = 0;
+uint32_t manual_wake_ms = 0;
 uint32_t camera_screensaver_transition_generation = 0;
-std::string cover_art_active_media_player_entity;
-struct TextState { std::string state; } cover_art_media_player_entity;
-bool cover_art_companion_source_active = false;
-uint32_t cover_art_manual_pause_until_ms = 0;
-struct CoverArtPlaybackControl {
-  bool retains_pause(const std::string &) const { return false; }
-  void reset() {}
-} cover_art_playback_control;
 void image_card_resume_pipeline() {}
+void navigation_return_home(int *) {}
 // SCHEDULE_HELPERS
-Script cover_art_playback_started;
 // SCRIPT_DECLARATIONS
 
 void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   events.clear(); now_ms = 1000;
-  screensaver_companion_ready = true; mac_connected = true; mac_locked = false;
+  screensaver_companion_ready = true; mac_connected = true;
+  screen_lock_mac_locked() = false;
+  screen_lock_mac_display_awake().reset();
   // Every modeled script, including delayed branches, is idle before a case.
   display_mode_reconcile.stop(); screen_schedule_check.stop(); screen_schedule_wake.stop();
   display_mode_apply_transition.stop(); display_mode_effect_active.stop();
   display_active_finalize.stop(); screensaver_idle_check.stop();
-  screensaver_idle_check.calls = home_screen_idle_check.calls = 0;
+  screen_schedule_wake_timeout_check.stop(); schedule_wake_timeout.state = 60;
+  save_button_order.stop(); first_layout_preview_active = false; button_order.state = "1";
+  rendered_button_order.clear();
+  screensaver_idle_check.calls = 0;
   clock_time = {6, true}; active_page = home.obj;
   schedule_enabled.state = true;
   screen_schedule_trigger.state = "time";
@@ -123,35 +132,154 @@ void reset(DisplayMode night_mode = DisplayMode::CLOCK) {
   schedule_mode_always_on = night_mode == DisplayMode::ACTIVE;
   manual_wake_ms = 0; screensaver_mode.state = "timer";
   screensaver_action_clock = screensaver_action_dimmed = screensaver_action_camera = false;
-  cover_art_screensaver_enabled.state = media_player_sleep_prevention_enabled.state = false;
-  cover_art_media_playing = false;
-  espdesktop_app.controller = {};
+  espdesktop_app.lifecycle = {};
   auto &controller = espdesktop_app.display();
   controller.request(DisplayRequestSource::SCREEN_SCHEDULE, night_mode);
   controller.complete_transition(controller.resolve());
 }
+void assert_backlight_on_policy() {
+  DisplayLifecycleService lifecycle;
+  auto &controller = lifecycle.controller();
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::KEEP_ON);
+  assert(lifecycle.backlight_on_response(true) == BacklightOnResponse::KEEP_OFF);
+  controller.request(DisplayRequestSource::SCREEN_SCHEDULE, DisplayMode::DISPLAY_OFF);
+  const auto night = controller.resolve();
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::KEEP_OFF);
+  assert(controller.start_transition(night, 1));
+  assert(controller.complete_transition(night, 2));
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::KEEP_OFF);
+  controller.clear(DisplayRequestSource::SCREEN_SCHEDULE);
+  controller.resolve();
+  assert(lifecycle.backlight_on_response(false) == BacklightOnResponse::WAKE);
+
+  // With Night Schedule enabled, WiFi setup must still light the screen
+  // before network time is available.
+  const bool waiting_for_time = screen_schedule_waiting_for_time(
+      "time", /*enabled=*/true, /*time_valid=*/false);
+  controller.request(DisplayRequestSource::ONBOARDING, DisplayMode::ACTIVE);
+  assert(lifecycle.backlight_on_response(waiting_for_time) == BacklightOnResponse::KEEP_ON);
+  controller.clear(DisplayRequestSource::ONBOARDING);
+  assert(lifecycle.backlight_on_response(waiting_for_time) == BacklightOnResponse::KEEP_OFF);
+}
+
 int main() {
+  assert_backlight_on_policy();
+  // PANEL_SETTING_FIXTURES
   // Distinct LVGL objects so off/setup-page tests cannot match main by accident.
   int objects[5]{};
   home.obj = &objects[0]; setup.obj = &objects[1]; ha.obj = &objects[2];
   actions.obj = &objects[3]; off.obj = &objects[4];
   // SCRIPT_SETUP
   auto &controller = espdesktop_app.display();
-  navigate_after_api.io = [] { active_page = home.obj; display_active_finalize.execute(); };
+  navigate_after_api.io = [] {
+    // Configured navigation reconciles when cancelling the setup dim timer,
+    // and waits for ACTIVE before switching pages.
+    display_mode_reconcile.execute();
+    if (!espdesktop_app.display().target_mode_is(DisplayMode::ACTIVE)) return;
+    active_page = home.obj;
+    espdesktop_app.display_lifecycle().set_blank_page_active(false);
+    display_active_finalize.execute();
+  };
   display_mode_apply_transition.io = [&] {
     if (static_cast<DisplayMode>(display_mode_apply_transition.args[1]) != DisplayMode::ACTIVE)
       controller.complete_transition(controller.resolve(), millis());
   };
-  screensaver_sleep_timer.io = [&] {
-    controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DISPLAY_OFF);
-    display_mode_reconcile.execute();
+  register_screen_lock_changed_handler([](bool) { screensaver_companion_reconcile.execute(); });
+  screensaver_wake.io = [&] { display_mode_clear_automatic.execute(); };
+  auto reset_companion = [&] {
+    reset();
+    screensaver_mode.state = "companion";
+    clock_time.hour = 9;
+    controller.clear(DisplayRequestSource::SCREEN_SCHEDULE);
+    controller.complete_transition(controller.resolve());
   };
+  // Power changes wake and sleep the panel without clearing the lock.
+  reset_companion();
+  screen_lock_set_mac_locked(true, true);
+  advance(10000);
+  assert(controller.target_mode_is(DisplayMode::ACTIVE) && screen_lock_enabled());
+  screen_lock_set_mac_locked(true, false);
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF) && screen_lock_enabled());
+  screen_lock_set_mac_locked(true, true);
+  advance(500);
+  assert(controller.current_mode_is(DisplayMode::ACTIVE) && screen_lock_enabled());
+  screen_lock_set_mac_locked(true, false);
+  screen_lock_set_mac_locked(false);
+  advance(500);
+  assert(controller.current_mode_is(DisplayMode::ACTIVE) && !screen_lock_enabled());
+
+  // A disconnected or older Mac cannot keep the lock screen lit.
+  reset_companion();
+  screen_lock_set_mac_locked(true, true);
+  mac_connected = false;
+  screen_lock_mac_display_awake().reset();
+  screensaver_companion_reconcile.execute();
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF) && screen_lock_enabled());
+  mac_connected = true;
+  screensaver_companion_reconcile.execute();
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+  screen_lock_set_mac_locked(true, true);
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  screen_lock_set_mac_locked(true);
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+
+  for (auto action : {DisplayMode::CLOCK, DisplayMode::DIMMED}) {
+    reset_companion();
+    screensaver_action_clock = action == DisplayMode::CLOCK;
+    screensaver_action_dimmed = action == DisplayMode::DIMMED;
+    screen_lock_set_mac_locked(true, true);
+    assert(controller.target_mode_is(action));
+  }
+
+  // The night schedule keeps priority. When it ends, an awake Mac keeps
+  // the lock screen visible instead of handing off to automatic Display Off.
+  reset();
+  screensaver_mode.state = "companion";
+  screen_lock_set_mac_locked(true, true);
+  assert(controller.target_mode_is(DisplayMode::CLOCK));
+  clock_time.hour = 9;
+  display_mode_reconcile.execute();
+  screen_schedule_check.execute();
+  advance(500);
+  assert(controller.current_mode_is(DisplayMode::ACTIVE) && screen_lock_enabled());
+
+  // Scheduled dimming must not keep the lock screen lit during Mac sleep.
+  reset(DisplayMode::ACTIVE);
+  screensaver_mode.state = "companion";
+  screen_lock_set_mac_locked(true, true);
+  assert(controller.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE));
+  screen_lock_set_mac_locked(true, false);
+  assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+  assert(controller.target_source_is(DisplayRequestSource::MAC_DISPLAY_SLEEP));
+  mac_connected = false;
+  screensaver_companion_reconcile.execute();
+  assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+  mac_connected = true;
+  screensaver_companion_reconcile.execute();
+  assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+  screen_lock_set_mac_locked(true, true);
+  advance(500);
+  assert(controller.current_mode_is(DisplayMode::ACTIVE) && screen_lock_enabled());
+  assert(controller.target_source_is(DisplayRequestSource::SCREEN_SCHEDULE));
+
+  // A temporary night wake cannot keep the panel lit when the Mac display sleeps.
+  reset(DisplayMode::CLOCK);
+  screensaver_mode.state = "companion";
+  manual_wake_ms = millis();
+  display_mode_reconcile.execute();
+  assert(controller.target_source_is(DisplayRequestSource::USER_WAKE));
+  screen_lock_set_mac_locked(true, false);
+  assert(controller.target_source_is(DisplayRequestSource::MAC_DISPLAY_SLEEP));
+
   // Both callback orders, all scheduled modes, and a temporary night wake.
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DISPLAY_OFF, DisplayMode::ACTIVE}) {
     for (bool fast_first : {false, true}) {
       for (bool temporary_wake : {false, true}) {
         reset(mode);
-        if (mode == DisplayMode::DISPLAY_OFF) active_page = off.obj;
+        if (mode == DisplayMode::DISPLAY_OFF) {
+          active_page = off.obj;
+          espdesktop_app.display_lifecycle().set_blank_page_active(true);
+        }
         controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DISPLAY_OFF);
         if (temporary_wake) {
           manual_wake_ms = millis();
@@ -214,7 +342,7 @@ int main() {
   for (bool fast_first : {false, true}) {
     for (bool locked : {false, true}) {
       reset(); screensaver_mode.state = "companion";
-      mac_connected = locked; mac_locked = locked;
+      mac_connected = locked; screen_lock_mac_locked() = locked;
       controller.request(DisplayRequestSource::IDLE_TIMER, DisplayMode::DISPLAY_OFF);
       clock_time.hour = 9;
       (fast_first ? display_mode_reconcile : screen_schedule_check).execute();
@@ -228,16 +356,26 @@ int main() {
     (fast_first ? screen_schedule_check : display_mode_reconcile).execute(); advance(1000);
     assert(controller.current_mode_is(DisplayMode::ACTIVE));
   }
-  // Disabled screensavers and media sleep prevention still allow normal wake.
-  for (bool playing : {false, true}) {
-    reset(); clock_time.hour = 7;
-    screensaver_mode.state = playing ? "timer" : "disabled";
-    cover_art_screensaver_enabled.state = playing;
-    media_player_sleep_prevention_enabled.state = playing;
-    cover_art_media_playing = playing;
-    display_mode_reconcile.execute(); advance(500);
-    assert(controller.current_mode_is(DisplayMode::ACTIVE));
-  }
+  // A new timeout applies to the elapsed temporary wake. It does not give
+  // the display a fresh timeout starting at the settings edit.
+  reset(DisplayMode::DISPLAY_OFF);
+  manual_wake_ms = millis();
+  schedule_wake_timeout.state = 3600;
+  screen_schedule_wake_timeout_check.execute();
+  advance(2000);
+  schedule_wake_timeout.state = 10;
+  screen_schedule_check.execute();
+  screen_schedule_wake_timeout_check.execute();
+  advance(7999);
+  assert(manual_wake_ms != 0);
+  advance(1);
+  assert(manual_wake_ms == 0);
+
+  // A disabled screensaver lets the panel wake when the night schedule ends.
+  reset(); clock_time.hour = 7;
+  screensaver_mode.state = "disabled";
+  display_mode_reconcile.execute(); advance(500);
+  assert(controller.current_mode_is(DisplayMode::ACTIVE));
   // Disabling the schedule is a deliberate normal wake, not an idle handoff.
   for (bool fast_first : {false, true}) {
     reset(); schedule_enabled.state = false;
@@ -282,18 +420,70 @@ int main() {
   display_mode_reconcile.execute(); advance(301000);
   assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
   assert(screensaver_idle_check.calls == 0);
-  assert(home_screen_idle_check.calls == 0);
-  button_order.state = "1";
-  // Night boot and media ownership must not start a normal idle countdown.
+  // A first save must build and show the new grid without a touch. Check both
+  // factory defaults and a saved Night Schedule, with and without valid time.
+  for (const auto &[schedule_on, time_valid] :
+       {std::pair{false, false}, std::pair{true, false}, std::pair{true, true}}) {
+    reset(DisplayMode::DISPLAY_OFF);
+    clock_time = {6, time_valid};
+    schedule_enabled.state = schedule_on;
+    screen_schedule_trigger.state = schedule_on ? "time" : "disabled";
+    screensaver_mode.state = "disabled";
+    button_order.state.clear();
+    active_page = setup.obj;
+    display_mode_reconcile.execute(); advance(500);
+    assert(controller.current_source_is(DisplayRequestSource::ONBOARDING));
+    button_order.state = "1";
+    save_button_order.execute();
+    display_mode_reconcile.execute();  // Time or Companion callbacks may run during the save.
+    advance(500);
+    assert(active_page == setup.obj);
+    assert(rendered_button_order.empty());
+    assert(controller.target_source_is(DisplayRequestSource::ONBOARDING));
+    advance(500);
+    assert(active_page == home.obj);
+    assert(rendered_button_order == "1");
+    assert(controller.current_source_is(DisplayRequestSource::ONBOARDING));
+    assert(!espdesktop_app.display_lifecycle().allows_focus_navigation());
+    assert(espdesktop_app.display_lifecycle().backlight_on_response(!time_valid) ==
+           BacklightOnResponse::KEEP_ON);
+    advance(10000);
+    assert(controller.target_mode_is(DisplayMode::ACTIVE));
+    advance(5000);
+    if (schedule_on) {
+      assert(controller.current_mode_is(DisplayMode::DISPLAY_OFF));
+      assert(controller.current_source_is(time_valid ? DisplayRequestSource::SCREEN_SCHEDULE
+                                                     : DisplayRequestSource::BOOT_GUARD));
+    } else {
+      assert(controller.current_mode_is(DisplayMode::ACTIVE) && active_page == home.obj);
+      assert(espdesktop_app.display_lifecycle().allows_focus_navigation());
+    }
+  }
+  // A new panel stays visible before network time arrives. A saved enabled
+  // schedule still applies its boot guard while the clock is unavailable.
+  reset(); controller = {};
+  const ScreenSchedulePreferences defaults;
+  assert(!defaults.enabled);
+  schedule_enabled.state = defaults.enabled;
+  screen_schedule_trigger.state = "disabled";
+  schedule_on_hour.state = defaults.on_hour;
+  schedule_off_hour.state = defaults.off_hour;
+  clock_time.valid = false;
+  screen_schedule_boot_guard.execute();
+  assert(controller.target_mode_is(DisplayMode::ACTIVE));
+  const auto saved = parse_screen_schedule_preferences("1,1,7,19,dim,60,10,15,10,FFFFFF");
+  assert(saved && saved->enabled);
+  schedule_enabled.state = saved->enabled;
+  screen_schedule_trigger.state = "time";
+  screen_schedule_boot_guard.execute();
+  assert(controller.target_mode_is(DisplayMode::DISPLAY_OFF));
+  assert(controller.target_source_is(DisplayRequestSource::BOOT_GUARD));
+  clock_time.valid = true;
+  // Night boot must not start a normal idle countdown.
   for (auto mode : {DisplayMode::CLOCK, DisplayMode::DISPLAY_OFF}) {
     reset(mode); display_active_finalize.execute(); advance(100);
     assert(screensaver_idle_check.calls == 0);
   }
-  reset(); clock_time.hour = 7;
-  controller.request(DisplayRequestSource::MEDIA_PLAYBACK, DisplayMode::COVER_ART);
-  display_mode_reconcile.execute(); advance(500);
-  assert(controller.target_mode_is(DisplayMode::COVER_ART));
-  assert(screensaver_idle_check.calls == 0);
   // A newer sleep decision during page settling must suppress finalization.
   reset(); clock_time.hour = 7; screensaver_mode.state = "disabled";
   display_mode_reconcile.execute(); advance(310);
@@ -313,5 +503,5 @@ int main() {
   active_page = actions.obj;
   display_active_finalize.execute(); advance(100);
   assert(screensaver_idle_check.is_running());
-  std::cout << "Schedule callback orders, idle expiry, manual sleep, stale finalization and boot passed\n";
+  std::cout << "Schedule callback orders, Mac display sleep and wake, idle expiry, manual sleep, stale finalization and boot passed\n";
 }

@@ -1,50 +1,478 @@
 {
   "version": 1,
   "appId": "com.openai.codex",
-  "label": "Codex",
+  "label": "ChatGPT Desktop",
   "catalog": false,
+  "defaultShortcutIds": ["7", "0", "8", "9", "6", "11", "14", "2"],
   "shortcuts": [
     {
-      "id": "0",
-      "label": "Command",
-      "shortcut": "command+k",
-      "icon": "Application"
+      "id": "7",
+      "label": "New Chat",
+      "shortcut": "command+n",
+      "icon": "Chat Plus"
     },
     {
-      "id": "1",
-      "label": "Approve",
-      "shortcut": "command+enter",
-      "icon": "Check"
+      "id": "0",
+      "label": "Command Menu",
+      "shortcut": "command+k",
+      "icon": "Shortcut Command"
+    },
+    {
+      "id": "8",
+      "label": "Needs Attention",
+      "shortcut": "option+command+a",
+      "icon": "Message Alert"
+    },
+    {
+      "id": "9",
+      "label": "Review Changes",
+      "shortcut": "control+shift+g",
+      "icon": "File Compare"
+    },
+    {
+      "id": "6",
+      "label": "Terminal",
+      "shortcut": "control+keybackquote",
+      "icon": "Terminal"
+    },
+    {
+      "id": "10",
+      "label": "Find Text",
+      "shortcut": "command+f",
+      "icon": "Search"
+    },
+    {
+      "id": "11",
+      "label": "Find Files",
+      "shortcut": "command+p",
+      "icon": "File Search"
     },
     {
       "id": "2",
-      "label": "Browser",
+      "label": "Browser Tab",
       "shortcut": "command+t",
-      "icon": "Web"
+      "icon": "Web Plus"
     },
     {
       "id": "3",
       "label": "Sidebar",
       "shortcut": "command+b",
-      "icon": "View Headline"
+      "icon": "Dock Left"
     },
     {
-      "id": "4",
-      "label": "Terminal (Bottom)",
-      "shortcut": "option+command+b",
-      "icon": "Dock Bottom"
+      "id": "12",
+      "label": "File Tree",
+      "shortcut": "command+shift+e",
+      "icon": "File Tree"
+    },
+    {
+      "id": "13",
+      "label": "Project Picker",
+      "shortcut": "option+command+shift+o",
+      "icon": "Folder Search"
+    },
+    {
+      "id": "14",
+      "label": "Model / Effort",
+      "shortcut": "control+shift+m",
+      "icon": "Robot"
+    },
+    {
+      "id": "15",
+      "label": "Open Folder",
+      "shortcut": "command+o",
+      "icon": "Folder Open Outline"
     },
     {
       "id": "5",
-      "label": "Terminal (Side)",
+      "label": "Bottom Panel",
       "shortcut": "command+j",
-      "icon": "Dock Right"
+      "icon": "Dock Bottom"
     },
     {
-      "id": "6",
-      "label": "Terminal (Side)",
-      "shortcut": "control+keybackquote",
-      "icon": "Dock Right"
+      "id": "4",
+      "label": "Chat / Tabs",
+      "shortcut": "option+command+b",
+      "icon": "Swap Horizontal"
+    },
+    {
+      "id": "16",
+      "label": "Copy Link",
+      "shortcut": "option+command+l",
+      "icon": "Link"
+    },
+    {
+      "id": "17",
+      "label": "Previous Chat",
+      "shortcut": "control+shift+tab",
+      "icon": "Chevron Left"
+    },
+    {
+      "id": "18",
+      "label": "Next Chat",
+      "shortcut": "control+tab",
+      "icon": "Chevron Right"
+    },
+    {
+      "id": "19",
+      "label": "Archive Chat",
+      "shortcut": "command+shift+a",
+      "icon": "Archive"
+    },
+    {
+      "id": "20",
+      "label": "Standalone Chat",
+      "shortcut": "command+option+o",
+      "icon": "New Window"
+    },
+    {
+      "id": "21",
+      "label": "Side Chat",
+      "shortcut": "command+option+s",
+      "icon": "Chat"
+    },
+    {
+      "id": "22",
+      "label": "Mark Unread",
+      "shortcut": "command+shift+u",
+      "icon": "Message Unread"
+    },
+    {
+      "id": "23",
+      "label": "Toggle Pin",
+      "shortcut": "command+option+p",
+      "icon": "Pin"
+    },
+    {
+      "id": "24",
+      "label": "Back",
+      "shortcut": "command+keybracketleft",
+      "icon": "Back"
+    },
+    {
+      "id": "25",
+      "label": "Forward",
+      "shortcut": "command+keybracketright",
+      "icon": "Forward"
+    },
+    {
+      "id": "26",
+      "label": "Next Sidebar",
+      "shortcut": "command+option+keybracketright",
+      "icon": "Arrow Right"
+    },
+    {
+      "id": "27",
+      "label": "Previous Sidebar",
+      "shortcut": "command+option+keybracketleft",
+      "icon": "Arrow Left"
+    },
+    {
+      "id": "28",
+      "label": "Activity",
+      "shortcut": "command+option+u",
+      "icon": "Bell"
+    },
+    {
+      "id": "29",
+      "label": "Reopen Tab",
+      "shortcut": "command+shift+t",
+      "icon": "Tab Restore"
+    },
+    {
+      "id": "30",
+      "label": "Full View",
+      "shortcut": "command+shift+f",
+      "icon": "Full Screen"
+    },
+    {
+      "id": "31",
+      "label": "Cycle Layout",
+      "shortcut": "command+shift+b",
+      "icon": "Split Vertical"
+    },
+    {
+      "id": "32",
+      "label": "Show Mini",
+      "shortcut": "option+space",
+      "icon": "Picture in Picture"
+    },
+    {
+      "id": "33",
+      "label": "Settings",
+      "shortcut": "command+keycomma",
+      "icon": "Settings"
+    },
+    {
+      "id": "34",
+      "label": "Close Others",
+      "shortcut": "command+option+w",
+      "icon": "Window Close"
+    },
+    {
+      "id": "35",
+      "label": "Close Tab",
+      "shortcut": "command+w",
+      "icon": "Close Tab"
+    },
+    {
+      "id": "36",
+      "label": "Recent Models",
+      "shortcut": "command+control+m",
+      "icon": "Robot"
+    },
+    {
+      "id": "37",
+      "label": "Voice Chat",
+      "shortcut": "control+shift+v",
+      "icon": "Microphone"
+    },
+    {
+      "id": "38",
+      "label": "Copy Chat Path",
+      "shortcut": "command+option+shift+c",
+      "icon": "Copy"
+    },
+    {
+      "id": "39",
+      "label": "Copy Folder Path",
+      "shortcut": "command+shift+c",
+      "icon": "Folder Outline"
+    },
+    {
+      "id": "40",
+      "label": "Force Reload",
+      "shortcut": "command+shift+r",
+      "icon": "Restart"
+    },
+    {
+      "id": "41",
+      "label": "Mini Voice",
+      "shortcut": "option+v",
+      "icon": "Microphone"
+    },
+    {
+      "id": "42",
+      "label": "Reload Page",
+      "shortcut": "command+r",
+      "icon": "Refresh"
+    },
+    {
+      "id": "43",
+      "label": "Rename Chat",
+      "shortcut": "command+option+r",
+      "icon": "Rename"
+    },
+    {
+      "id": "44",
+      "label": "Screenshot Chat",
+      "shortcut": "control+shift+4",
+      "icon": "Screenshot"
+    },
+    {
+      "id": "45",
+      "label": "Screenshot New Chat",
+      "shortcut": "control+option+shift+4",
+      "icon": "Screenshot"
+    },
+    {
+      "id": "46",
+      "label": "Shortcut List",
+      "shortcut": "command+keyslash",
+      "icon": "Keyboard"
+    },
+    {
+      "id": "47",
+      "label": "Toggle Notch",
+      "shortcut": "option+c",
+      "icon": "Dock Top"
+    },
+    {
+      "id": "48",
+      "label": "Tab 1",
+      "shortcut": "command+1",
+      "icon": "Tab"
+    },
+    {
+      "id": "49",
+      "label": "Tab 2",
+      "shortcut": "command+2",
+      "icon": "Tab"
+    },
+    {
+      "id": "50",
+      "label": "Tab 3",
+      "shortcut": "command+3",
+      "icon": "Tab"
+    },
+    {
+      "id": "51",
+      "label": "Tab 4",
+      "shortcut": "command+4",
+      "icon": "Tab"
+    },
+    {
+      "id": "52",
+      "label": "Tab 5",
+      "shortcut": "command+5",
+      "icon": "Tab"
+    },
+    {
+      "id": "53",
+      "label": "Tab 6",
+      "shortcut": "command+6",
+      "icon": "Tab"
+    },
+    {
+      "id": "54",
+      "label": "Tab 7",
+      "shortcut": "command+7",
+      "icon": "Tab"
+    },
+    {
+      "id": "55",
+      "label": "Tab 8",
+      "shortcut": "command+8",
+      "icon": "Tab"
+    },
+    {
+      "id": "56",
+      "label": "Tab 9",
+      "shortcut": "command+9",
+      "icon": "Tab"
+    },
+    {
+      "id": "57",
+      "label": "Recent 1",
+      "shortcut": "command+option+1",
+      "icon": "History"
+    },
+    {
+      "id": "58",
+      "label": "Recent 2",
+      "shortcut": "command+option+2",
+      "icon": "History"
+    },
+    {
+      "id": "59",
+      "label": "Recent 3",
+      "shortcut": "command+option+3",
+      "icon": "History"
+    },
+    {
+      "id": "60",
+      "label": "Recent 4",
+      "shortcut": "command+option+4",
+      "icon": "History"
+    },
+    {
+      "id": "61",
+      "label": "Recent 5",
+      "shortcut": "command+option+5",
+      "icon": "History"
+    },
+    {
+      "id": "62",
+      "label": "Recent 6",
+      "shortcut": "command+option+6",
+      "icon": "History"
     }
+  ],
+  "additionalShortcuts": [
+    {
+      "id": "63",
+      "label": "Clear Unreads",
+      "shortcut": "shift+escape",
+      "icon": "Check"
+    },
+    {
+      "id": "64",
+      "label": "Chat 1",
+      "shortcut": "control+1",
+      "icon": "Chat"
+    },
+    {
+      "id": "65",
+      "label": "Chat 2",
+      "shortcut": "control+2",
+      "icon": "Chat"
+    },
+    {
+      "id": "66",
+      "label": "Chat 3",
+      "shortcut": "control+3",
+      "icon": "Chat"
+    },
+    {
+      "id": "67",
+      "label": "Chat 4",
+      "shortcut": "control+4",
+      "icon": "Chat"
+    },
+    {
+      "id": "68",
+      "label": "Chat 5",
+      "shortcut": "control+5",
+      "icon": "Chat"
+    },
+    {
+      "id": "69",
+      "label": "Chat 6",
+      "shortcut": "control+6",
+      "icon": "Chat"
+    },
+    {
+      "id": "70",
+      "label": "Chat 7",
+      "shortcut": "control+7",
+      "icon": "Chat"
+    },
+    {
+      "id": "71",
+      "label": "Chat 8",
+      "shortcut": "control+8",
+      "icon": "Chat"
+    },
+    {
+      "id": "72",
+      "label": "Chat 9",
+      "shortcut": "control+9",
+      "icon": "Chat"
+    }
+  ],
+  "moreShortcuts": [
+    {"id": "73", "label": "Command Palette", "shortcut": "scoped.command+shift+p", "icon": "Keyboard"},
+    {"id": "74", "label": "Command Palette", "shortcut": "scoped.command+k", "icon": "Keyboard"},
+    {"id": "75", "label": "Increase text size", "shortcut": "scoped.command+shift+keyequal", "icon": "Zoom In"},
+    {"id": "76", "label": "Increase text size", "shortcut": "scoped.command+keypadplus", "icon": "Zoom In"},
+    {"id": "77", "label": "Decrease text size", "shortcut": "scoped.command+keyminus", "icon": "Zoom Out"},
+    {"id": "78", "label": "Decrease text size", "shortcut": "scoped.command+keypadminus", "icon": "Zoom Out"},
+    {"id": "79", "label": "Reset text size", "shortcut": "scoped.command+0", "icon": "Heading"},
+    {"id": "80", "label": "Reset text size", "shortcut": "scoped.command+keypad0", "icon": "Heading"},
+    {"id": "81", "label": "Clear terminal", "shortcut": "scoped.control+l", "icon": "Delete"},
+    {"id": "82", "label": "Clear terminal", "shortcut": "scoped.command+k", "icon": "Delete"},
+    {"id": "83", "label": "Undo last app action", "shortcut": "scoped.command+z", "icon": "Undo"},
+    {"id": "84", "label": "Redo last app action", "shortcut": "scoped.command+shift+z", "icon": "Redo"},
+    {"id": "85", "label": "Toggle full screen", "shortcut": "scoped.command+control+f", "icon": "Full Screen"},
+    {"id": "86", "label": "Quit ChatGPT", "shortcut": "scoped.command+q", "icon": "Application Exit"},
+    {"id": "87", "label": "New chat", "shortcut": "scoped.command+shift+o", "icon": "Chat Plus"},
+    {"id": "88", "label": "Quick chat", "shortcut": "scoped.command+option+n", "icon": "Chat"},
+    {"id": "89", "label": "New temporary chat", "shortcut": "scoped.command+shift+n", "icon": "Chat"},
+    {"id": "90", "label": "Find next match", "shortcut": "scoped.command+g", "icon": "Search"},
+    {"id": "91", "label": "Find previous match", "shortcut": "scoped.command+shift+g", "icon": "Search"},
+    {"id": "92", "label": "Previous chat or tab", "shortcut": "scoped.command+shift+keybracketleft", "icon": "Tab"},
+    {"id": "93", "label": "Previous chat or tab", "shortcut": "scoped.command+option+left", "icon": "Tab"},
+    {"id": "94", "label": "Next chat or tab", "shortcut": "scoped.command+shift+keybracketright", "icon": "Tab"},
+    {"id": "95", "label": "Next chat or tab", "shortcut": "scoped.command+option+right", "icon": "Tab"},
+    {"id": "96", "label": "Start dictation", "shortcut": "scoped.control+shift+d", "icon": "Microphone"},
+    {"id": "97", "label": "Restore previous composer prompt", "shortcut": "scoped.up", "icon": "Arrow Left"},
+    {"id": "98", "label": "Run primary environment action", "shortcut": "scoped.command+shift+d", "icon": "Run"},
+    {"id": "99", "label": "Focus browser address bar or go to line", "shortcut": "scoped.command+l", "icon": "Code"},
+    {"id": "100", "label": "Browser back", "shortcut": "scoped.command+left", "icon": "Arrow Left"},
+    {"id": "101", "label": "Browser forward", "shortcut": "scoped.command+right", "icon": "Arrow Right"},
+    {"id": "102", "label": "Copy browser URL", "shortcut": "scoped.command+shift+c", "icon": "Copy"},
+    {"id": "103", "label": "Toggle browser browse or comment mode", "shortcut": "scoped.command+keyperiod", "icon": "Chat"},
+    {"id": "104", "label": "Copy session ID", "shortcut": "scoped.command+option+c", "icon": "Copy"},
+    {"id": "105", "label": "Copy working directory", "shortcut": "scoped.command+shift+c", "icon": "Copy"}
   ]
 }

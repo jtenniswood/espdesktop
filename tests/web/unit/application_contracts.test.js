@@ -54,10 +54,7 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(connectors, /buildHomeAssistantCard|connectors\/home-assistant|actions_confirmed|home_assistant:/);
     assert.match(connectors, /No external connectors are available on this display\./);
     assert.match(companion, /sp-action-btn sp-delete-btn sp-destructive-btn/);
-    assert.match(companion, /setHidden\(instructions, value\.connected\)/);
     assert.match(companion, /setHidden\(badge, !value\.paired\)/);
-    assert.match(companion, /Connect your Mac/);
-    assert.match(companion, /Copy the code below/);
     assert.match(companion, /Copy pairing code/);
     assert.match(styles, /\.sp-connectors-config\{display:flex;flex-direction:column;gap:16px\}/);
     assert.match(styles, /\.sp-hidden\{display:none!important\}/);
@@ -165,7 +162,6 @@ describe("browserless application contracts", () => {
     const modules = [
       "api.ts",
       "firmware_update_post_api.ts",
-      "artwork_post_api.ts",
       "screen_schedule_post_api.ts",
       "clock_bar_post_api.ts",
       "config_post_api.ts",
@@ -184,13 +180,9 @@ describe("browserless application contracts", () => {
     assert.doesNotMatch(entry, /installFirmwareUpdatePostApiModule/);
     assert.doesNotMatch(firmwarePosts, /GlobalDescriptors|staticGlobal|installFirmwareUpdatePostApiModule/);
     assert.doesNotMatch(globals, /\bvar (?:postFirmwareUpdateInstall|postFirmwareUpdateCheck|postC6FirmwareUpdateInstall|postC6FirmwareUpdateCheck):/);
-    const artworkPosts = fs.readFileSync(path.join(ROOT, "src/webserver/application/artwork_post_api.ts"), "utf8");
-    assert.match(entry, /artworkPostApi = createArtworkPostApiFeature\(entityState, requestApi\)/);
-    assert.doesNotMatch(entry, /installArtworkPostApiModule/);
-    assert.doesNotMatch(artworkPosts, /GlobalDescriptors|staticGlobal|installArtworkPostApiModule/);
     assert.doesNotMatch(globals, /\bvar (?:postPresenceSensorEntity|postMediaPlayerSleepPrevention|postMediaPlayerSleepPreventionEntity|postCoverArtScreensaver|postCoverArtMediaPlayerEntity|postCoverArtSecondaryMediaPlayerEntity|postCoverArtConditions|coverArtHideExternalInputPostUrls|postCoverArtHideExternalInput|coverArtDelayPostUrls|postCoverArtDelay|coverArtTrackOverlayDurationPostUrls|postCoverArtTrackOverlayDuration|homeAssistantArtworkPortPostUrls|postHomeAssistantArtworkPort|postHomeAssistantArtworkProtocol):/);
     const schedulePosts = fs.readFileSync(path.join(ROOT, "src/webserver/application/screen_schedule_post_api.ts"), "utf8");
-    assert.match(entry, /schedulePostApi = createScreenSchedulePostApiFeature\(entityState, requestApi\)/);
+    assert.match(entry, /schedulePostApi = createScreenSchedulePostApiFeature\(entityState, requestApi,/);
     assert.doesNotMatch(entry, /installScreenSchedulePostApiModule/);
     assert.doesNotMatch(schedulePosts, /GlobalDescriptors|staticGlobal|liveGlobal|installScreenSchedulePostApiModule/);
     assert.doesNotMatch(globals, /\bvar (?:BRIGHTNESS_TIME_UNAVAILABLE|SCREEN_SCHEDULE_CLOCK_BRIGHTNESS_UNAVAILABLE|SCREEN_SCHEDULE_DIMMED_BRIGHTNESS_UNAVAILABLE|SCREEN_SCHEDULE_MODE_UNAVAILABLE|SCREEN_SCHEDULE_SENSOR_ACTIVATION_UNAVAILABLE|SCREEN_SCHEDULE_TRIGGER_UNAVAILABLE|SCREEN_SCHEDULE_UNAVAILABLE|SCREEN_SCHEDULE_WAKE_BRIGHTNESS_UNAVAILABLE|SCREEN_SCHEDULE_WAKE_TIMEOUT_UNAVAILABLE|postBrightnessMode|postDisplayBacklightBrightness|postBrightnessDawnTime|postBrightnessDuskTime|postScreenScheduleClockBrightness|postScreenScheduleDimmedBrightness|postScreenScheduleEnabled|postScreenScheduleMode|postScreenScheduleOffHour|postScreenScheduleOnHour|postScreenScheduleSensorActivation|postScreenScheduleSensorEntity|postScreenScheduleTrigger|postScreenScheduleWakeBrightness|postScreenScheduleWakeTimeout):/);
@@ -364,12 +356,12 @@ describe("browserless application contracts", () => {
     const settings = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_page.ts"), "utf8");
     const handlers = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_state_event_handlers.ts"), "utf8");
     const backup = fs.readFileSync(path.join(ROOT, "src/webserver/application/app_backup.ts"), "utf8");
-    assert.doesNotMatch(entry, /install(?:Language|Ntp|Idle|Artwork|Screensaver)StateModule/);
+    assert.doesNotMatch(entry, /install(?:Language|Ntp|Artwork|Screensaver)StateModule/);
     assert.equal(fs.existsSync(path.join(ROOT, "src/webserver/application/artwork_state.ts")), false);
     for (const source of [settings, handlers, backup]) {
-      assert.match(source, /from "\.\/(?:language|ntp|idle|screensaver)_state"/);
+      assert.match(source, /from "\.\/(?:language|ntp|screensaver)_state"/);
     }
-    assert.doesNotMatch(globals, /\bvar (?:appendLanguageOption|getActiveScreensaverMode|hasCustomNtpServers|languageLabel|languageOptionsWithFallback|resetNtpServersToDefaults|syncIdleUi|syncLanguageSelect|syncNtpServerUi):/);
+    assert.doesNotMatch(globals, /\bvar (?:appendLanguageOption|getActiveScreensaverMode|hasCustomNtpServers|languageLabel|languageOptionsWithFallback|resetNtpServersToDefaults|syncLanguageSelect|syncNtpServerUi):/);
   });
 
   test("owns environment state without application globals", () => {
@@ -578,14 +570,14 @@ describe("browserless application contracts", () => {
     const card = fs.readFileSync(path.join(ROOT, "src/webserver/cards/companion.ts"), "utf8");
     const styles = fs.readFileSync(path.join(ROOT, "src/webserver/application/styles.ts"), "utf8");
     assert.doesNotMatch(card, /\b(?:GlobalDescriptors|staticGlobal|liveGlobal|CFG)\b/);
-    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,?\s*\);/);
+    assert.match(entry, /registerCompanionCardTypes\(\s*registry,\s*!!context\.device\.profile\.features\?\.companion,\s*context\.dom\.document,\s*context\.dom\.fetch,\s*fields,\s*cardUi,\s*context\.configuration\.modalTabs,\s*context\.configuration\.codec,\s*context\.controllers\.selection,\s*context\.layout\.numSlots,\s*context\.controllers\.connectorsPage,\s*publishFinderFolders,?\s*\);/);
     assert.match(card, /disclosureSection\(\s*"App Subpage"/);
     assert.match(card, /createCompanionCatalogueMonitor\(\s*\(\) => loadCompanionActions\(true\)/);
     assert.match(card, /onCompanionConnectionChange\(function \(connected\)[\s\S]*companionCatalogueMonitor\.start\(\)[\s\S]*companionCatalogueMonitor\.stop\(\)[\s\S]*espdesktop:app-icon-cache-cleared/);
-    assert.match(card, /renderModalTabSettings\(appSubpageDisclosure\.section/);
+    assert.match(card, /function renderAppShortcutSettings\([\s\S]*modalTabs\.renderModalTabSettings\(panel, card, helpers/);
     assert.match(card, /_appShortcutDisabledTabs = companionShortcutTabs\(card\)/);
     assert.match(card, /setCompanionShortcutTabs\(card, card\._appShortcutDisabledTabs\)/);
-    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderModalTabSettings/);
+    assert.match(card, /appendChild\(shortcutFolderField\);[\s\S]*sp-app-subpage-options-divider[\s\S]*renderAppShortcutSettings\(appSubpageDisclosure\.section/);
     assert.doesNotMatch(card, /autoSwitchField|Auto switch to subpage/);
     assert.match(styles, /\.sp-app-subpage-options-divider\{/);
     assert.match(card, /No free subpage space\. Remove a custom card before enabling another shortcut\./);
@@ -601,7 +593,7 @@ describe("browserless application contracts", () => {
     assert.match(card, /shortcutField[\s\S]*markCardPrimaryField\(shortcutField, "shortcut"\)/);
     assert.match(card, /urlField[\s\S]*markCardPrimaryField\(urlField, "url"\)/);
     assert.match(card, /folderField[\s\S]*markCardPrimaryField\(folderField, "folder"\)/);
-    assert.match(card, /windowField[\s\S]*markCardPrimaryField\(windowField, "window"\)/);
+    assert.doesNotMatch(card, /"companion_window"/);
     assert.match(card, /folderPlaceholder\.disabled = true/);
     assert.match(card, /folderPlaceholder\.hidden = true/);
     assert.doesNotMatch(card, /Unavailable folder/);
@@ -610,8 +602,6 @@ describe("browserless application contracts", () => {
     assert.match(fields, /url: false/);
     assert.match(fields, /media: false/);
     assert.match(fields, /folder: false/);
-    assert.match(fields, /window: false/);
-    assert.match(card, /first\.group\.localeCompare\(second\.group/);
   });
 
   test("imports entity-mode helpers without compatibility globals", () => {
@@ -914,7 +904,6 @@ describe("browserless application contracts", () => {
       "src/webserver/application/grid.ts",
       "src/webserver/application/settings_page.ts",
       "src/webserver/application/settings_page_helpers.ts",
-      "src/webserver/application/settings_schedule_section.ts",
     ];
     for (const relativePath of consumers) {
       const source = fs.readFileSync(path.join(ROOT, relativePath), "utf8");
@@ -928,6 +917,9 @@ describe("browserless application contracts", () => {
     assert.match(core, /serializeSubpageGrid: \(subpage: any\) => any/);
     assert.match(entry, /\(subpage\) => configurationCodec\.serializeSubpageGrid\(subpage\)/);
     assert.match(entry, /configurationPersistence\.connectCodec\(configurationCodec\)/);
+    const schedule = fs.readFileSync(path.join(ROOT, "src/webserver/application/settings_schedule_section.ts"), "utf8");
+    assert.match(schedule, /ScreenSchedulePostApiFeature/);
+    assert.doesNotMatch(schedule, /ConfigCodecFeature/);
     assert.match(entry, /createAppConfigEventsFeature\(configurationPersistence, configurationCodec, layout, renderQueue\)/);
     assert.doesNotMatch(entry, /configuration\.codec\.globals/);
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
@@ -951,7 +943,7 @@ describe("browserless application contracts", () => {
     assert.match(entry, /createConfigCodecFeature\([\s\S]*configurationPersistence/);
     assert.match(entry, /configPersistence: configurationPersistence/);
     assert.match(persistence, /publishAfter\(requests\(\)\.postText\(entityNameForSlot\("button_config", slot\)/);
-    assert.match(buttonSettings, /saveBtn\.addEventListener\("click", async function/);
+    assert.match(buttonSettings, /saveBtn\.addEventListener\("click", async \(\) =>/);
     assert.match(buttonSettings, /if \(await applySettingsDraft\(\)\)/);
     assert.match(buttonSettings, /restoreDraftState\(\);[\s\S]*return false/);
     assert.match(buttonSettings, /configPersistence\.saveButtonConfigAndOrder\(slot, serializeGrid\(state\.grid\)\)/);
@@ -1249,7 +1241,6 @@ describe("browserless application contracts", () => {
     const modules = [
       "settings_page_helpers.ts",
       "settings_schedule_section.ts",
-      "settings_cover_art_section.ts",
       "settings_page.ts",
       "settings_system_section.ts",
     ];
@@ -1262,7 +1253,6 @@ describe("browserless application contracts", () => {
     const globals = fs.readFileSync(path.join(ROOT, "src/webserver/runtime/application_globals.d.ts"), "utf8");
     assert.match(entry, /settingsHelpers = createSettingsPageHelpersFeature\(/);
     assert.match(entry, /const scheduleSection = createSettingsScheduleSectionFeature\(/);
-    assert.match(entry, /const coverArtSection = createSettingsCoverArtSectionFeature\(/);
     assert.match(entry, /const companionSection = createSettingsCompanionSectionFeature\(dom, shell, fields\)/);
     assert.match(entry, /const systemSection = createSettingsSystemSectionFeature\(/);
     assert.match(entry, /settingsPage = createSettingsPageFeature\(/);
@@ -1277,7 +1267,7 @@ describe("browserless application contracts", () => {
   test("injects display-state DOM references", () => {
     const modules = [
       "appearance_state.ts", "c6_firmware_ui.ts", "clock_bar_state.ts",
-      "firmware_update_state.ts", "firmware_version_state.ts", "idle_state.ts",
+      "firmware_update_state.ts", "firmware_version_state.ts",
       "language_state.ts", "ntp_state.ts", "screen_schedule_state.ts", "screensaver_timeout.ts",
     ];
     for (const moduleName of modules) {

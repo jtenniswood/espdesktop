@@ -3,33 +3,189 @@ import XCTest
 @testable import Companion
 
 final class RemoteCompanionCataloguesTests: XCTestCase {
-    private let docs = RemoteWebApplicationDefinition(
-        version: 1,
-        id: "google-docs",
-        label: "Google Docs",
-        url: "https://docs.google.com/document/u/0/",
-        matchHost: "docs.google.com",
-        matchPath: "/document/",
-        icon: "https://raw.githubusercontent.com/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/google-docs.png",
-        shortcuts: [RemoteShortcutDefinition(id: "0", label: "Bold", shortcut: "command+b", icon: "Web")]
-    )
+    @MainActor
+    func testLargeBundledCatalogueFitsInBoundedFrames() throws {
+        let suite = "ExpandedCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let finalCut = try XCTUnwrap(catalogue.applications.first { $0.appId == "com.apple.FinalCut" })
+        let more = try XCTUnwrap(finalCut.moreShortcuts)
+        XCTAssertGreaterThan(more.count, 300)
+        XCTAssertNil(finalCut.starter.moreShortcuts)
+        XCTAssertEqual(finalCut.starter.defaultShortcutIds?.prefix(3), ["279", "18", "177"])
+        XCTAssertTrue(finalCut.expandedPages().allSatisfy { $0.defaultShortcutIds == nil })
+        XCTAssertEqual(finalCut.expandedPages().flatMap { $0.moreShortcuts ?? [] }, more)
 
-    func testWebAppMatchingUsesHostAndPathAndIgnoresQueryAndFragment() throws {
-        let match = try XCTUnwrap(URL(string: "https://docs.google.com/document/d/abc/edit?tab=t.0#heading"))
-        XCTAssertEqual(ActiveTabURLMatcher.matchingWebAppIDs(url: match, definitions: [docs]), ["google-docs"])
-        XCTAssertEqual(ActiveTabURLMatcher.matchingConfiguredWebAppIDs(
-            url: match, definitions: [docs], configuredIDs: ["google-docs"]
-        ), ["google-docs"])
-        XCTAssertTrue(ActiveTabURLMatcher.matchingConfiguredWebAppIDs(
-            url: match, definitions: [docs], configuredIDs: ["notion"]
-        ).isEmpty)
-        XCTAssertTrue(ActiveTabURLMatcher.matchingWebAppIDs(
-            url: URL(string: "https://docs.google.com/spreadsheets/d/abc"), definitions: [docs]
-        ).isEmpty)
-        XCTAssertTrue(ActiveTabURLMatcher.matchingWebAppIDs(
-            url: URL(string: "https://docs.google.com.evil.test/document/d/abc"), definitions: [docs]
-        ).isEmpty)
-        XCTAssertTrue(ActiveTabURLMatcher.matchingWebAppIDs(url: nil, definitions: [docs]).isEmpty)
+        XCTAssertLessThanOrEqual(catalogue.applications.reduce(0) { $0 + 1 + $1.expandedPages().count }, 256)
+
+        // Validate the actual escaped frames, including labels with punctuation.
+        let encoder = JSONEncoder()
+        for app in catalogue.applications {
+            for (index, page) in ([app.starter] + app.expandedPages()).enumerated() {
+                let data = try encoder.encode(page)
+                let frame = try JSONSerialization.data(withJSONObject: [
+                    "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+                    "page": index, "generation": 1, "complete": false,
+                    "items": [["kind": "application", "json": String(decoding: data, as: UTF8.self)]],
+                ])
+                XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected), app.appId)
+                XCTAssertLessThanOrEqual(frame.count, CompanionCapabilities.maximumTextFrameBytes)
+            }
+        }
+    }
+
+    @MainActor
+    func testBundledClaudePresetsTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "ClaudeCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        let claude = try XCTUnwrap(catalogue.applications.first {
+            $0.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier
+        })
+        XCTAssertEqual(claude.shortcuts.count, 60)
+        XCTAssertEqual(claude.claudeShortcuts?.count, 33)
+        XCTAssertTrue(claude.claudeShortcuts?.contains { $0.shortcut == "escape-twice" } == true)
+
+        struct LegacyDefinition: Decodable {
+            let shortcuts: [RemoteShortcutDefinition]
+            let extendedShortcuts: [RemoteShortcutDefinition]?
+            let additionalShortcuts: [RemoteShortcutDefinition]?
+        }
+        let data = try JSONEncoder().encode(claude)
+        let legacy = try JSONDecoder().decode(LegacyDefinition.self, from: data)
+        XCTAssertEqual(legacy.shortcuts.count, 60)
+        XCTAssertNil(legacy.extendedShortcuts)
+        XCTAssertNil(legacy.additionalShortcuts)
+
+        let json = String(decoding: data, as: UTF8.self)
+        let frame = try JSONSerialization.data(withJSONObject: [
+            "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+            "page": 0, "generation": 1, "complete": false,
+            "items": [["kind": "application", "json": json]],
+        ])
+        XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected))
+    }
+
+    @MainActor
+    func testBundledChatGPTPresetsFitInOneFrameAndKeepLegacyShortcutsReadable() throws {
+        struct LegacyDefinition: Decodable {
+            let shortcuts: [RemoteShortcutDefinition]
+            let extendedShortcuts: [RemoteShortcutDefinition]?
+        }
+        let suite = "ChatGPTCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let chatGPT = try XCTUnwrap(catalogue.applications.first {
+            $0.appId == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier
+        })
+        let data = try JSONEncoder().encode(chatGPT)
+        let legacy = try JSONDecoder().decode(LegacyDefinition.self, from: data)
+        XCTAssertEqual(legacy.shortcuts.count, 62)
+        XCTAssertNil(legacy.extendedShortcuts)
+        XCTAssertEqual(chatGPT.additionalShortcuts?.count, 10)
+        XCTAssertTrue(chatGPT.additionalShortcuts?.contains { $0.shortcut == "shift+escape" } == true)
+        let frame = try JSONSerialization.data(withJSONObject: [
+            "type": "catalogue.definitions.page", "protocol": CompanionCapabilities.protocolVersion,
+            "page": 0, "generation": 1, "complete": false,
+            "items": [["kind": "application", "json": String(decoding: data, as: UTF8.self)]],
+        ])
+        XCTAssertNotNil(CompanionProtocolDecoder.decode(frame, direction: .macToPanel, state: .connected))
+    }
+    @MainActor
+    func testBundledBooksPresetsTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "BooksCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let books = try XCTUnwrap(catalogue.applications.first { $0.appId == "com.apple.iBooksX" })
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        XCTAssertEqual(books.extendedShortcuts?.map(\.shortcut), ["right", "left", "function+f", "space"])
+    }
+
+    func testExtendedShortcutsAreSeparateAndRestrictedToBooks() throws {
+        struct LegacyDefinition: Decodable {
+            let shortcuts: [RemoteShortcutDefinition]
+        }
+        let manifest = Data(#"{"formatVersion":1,"catalogueVersion":13,"minimumCompanionVersion":"1.0.0","entries":[{"path":"books.json"}]}"#.utf8)
+        let app = #"{"version":1,"appId":"com.apple.iBooksX","label":"Books","catalog":false,"shortcuts":[{"id":"0","label":"Collection","shortcut":"command+n","icon":"Folder Plus"}],"extendedShortcuts":[{"id":"29","label":"Next Page","shortcut":"right","icon":"Page Next"}]}"#
+        let decode: (String) throws -> RemoteCompanionCatalogues = { definition in
+            try RemoteCompanionCatalogues.decode(nativeManifest: manifest, nativeDefinitions: [Data(definition.utf8)],
+                                                 companionVersion: "1.0.0")
+        }
+
+        let catalogue = try decode(app)
+        XCTAssertEqual(catalogue.applications.first?.extendedShortcuts?.map(\.shortcut), ["right"])
+        XCTAssertEqual(try JSONDecoder().decode(LegacyDefinition.self, from: Data(app.utf8)).shortcuts.map(\.shortcut),
+                       ["command+n"])
+        XCTAssertThrowsError(try decode(app.replacingOccurrences(of: "com.apple.iBooksX", with: "com.example.Reader")))
+        XCTAssertThrowsError(try decode(app.replacingOccurrences(of: #""29""#, with: #""0""#)))
+        XCTAssertThrowsError(try decode(app.replacingOccurrences(of: #""right""#, with: #""a""#)))
+    }
+
+    @MainActor
+    func testBundledSafariTemplatesTakePriorityOverOlderCachedCatalogue() throws {
+        let suite = "SafariCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let cached = RemoteCompanionCatalogues(version: 12, applications: [])
+        defaults.set(try JSONEncoder().encode(cached), forKey: "remoteCompanionCatalogues")
+
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        XCTAssertGreaterThan(catalogue.version, cached.version)
+        for appId in ["com.apple.Safari", "com.apple.Safari.WebApp"] {
+            let app = try XCTUnwrap(catalogue.applications.first { $0.appId == appId })
+            XCTAssertNil(app.extendedShortcuts)
+            XCTAssertEqual(app.safariShortcuts?.map(\.shortcut), ["tab", "escape"])
+        }
+    }
+
+    @MainActor
+    func testAthenaTemplateUsesApprovedSafariInstallationIDs() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+
+        func installedApp(id: String, manifestName: String, path: String) throws -> LaunchableApp {
+            let url = directory.appendingPathComponent(path + ".app")
+            let contents = url.appendingPathComponent("Contents")
+            try FileManager.default.createDirectory(at: contents, withIntermediateDirectories: true)
+            let plist: [String: Any] = [
+                "CFBundleIdentifier": id, "CFBundlePackageType": "AAPL",
+                "Manifest": ["name": manifestName],
+            ]
+            try PropertyListSerialization.data(fromPropertyList: plist, format: .xml, options: 0)
+                .write(to: contents.appendingPathComponent("Info.plist"))
+            return LaunchableApp(bundleIdentifier: id, name: path, url: url)
+        }
+
+        let athena = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
+                                      manifestName: "Athena for Hermes Agent", path: "Renamed App")
+        let other = try installedApp(id: "com.apple.Safari.WebApp." + UUID().uuidString,
+                                      manifestName: "Different Site", path: "Athena")
+        let native = try installedApp(id: "com.example.athena",
+                                       manifestName: "Athena for Hermes Agent", path: "Native App")
+        let suite = "AthenaCatalogueTests." + UUID().uuidString
+        let defaults = try XCTUnwrap(UserDefaults(suiteName: suite))
+        defer { defaults.removePersistentDomain(forName: suite) }
+        let catalogue = RemoteCompanionCatalogueStore(defaults: defaults).value
+        let template = try XCTUnwrap(catalogue.applications.first { $0.label == "Athena" })
+        XCTAssertFalse(catalogue.applicationsForDisplay(approvedApps: [other, native]).contains { $0.label == "Athena" })
+        let resolved = catalogue.applicationsForDisplay(approvedApps: [athena, other, native])
+        XCTAssertEqual(resolved.filter { $0.label == "Athena" }.map(\.appId), [athena.bundleIdentifier])
+        XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.shortcuts, template.shortcuts)
+        XCTAssertEqual(resolved.first { $0.appId == athena.bundleIdentifier }?.defaultShortcutIds,
+                       template.defaultShortcutIds)
+        XCTAssertTrue(resolved.contains { $0.appId == "com.apple.Safari.WebApp" })
     }
 
     func testURLCardTargetsMatchFullConfiguredURLAndClearWhenUnavailable() throws {
@@ -44,64 +200,14 @@ final class RemoteCompanionCataloguesTests: XCTestCase {
         ).isEmpty)
     }
 
-    func testRemoteCatalogueRequiresSupportedVersionAndValidHostMatch() throws {
-        let nativeManifest = Data(#"{"formatVersion":1,"catalogueVersion":2,"minimumCompanionVersion":"1.0.0","entries":[{"path":"example.json"}]}"#.utf8)
-        let webManifest = Data(#"{"formatVersion":1,"catalogueVersion":4,"minimumCompanionVersion":"1.0.0","entries":[{"path":"google-docs.json"}]}"#.utf8)
-        let native = Data(#"{"version":1,"appId":"org.example.Editor","label":"Editor","catalog":false,"shortcuts":[{"id":"0","label":"New","shortcut":"command+n","icon":"Plus"}]}"#.utf8)
-        let web = try JSONEncoder().encode(docs)
-        let catalogues = try RemoteCompanionCatalogues.decode(
-            nativeManifest: nativeManifest,
-            nativeDefinitions: [native],
-            webManifest: webManifest,
-            webDefinitions: [web],
-            companionVersion: "1.2.0"
-        )
-        XCTAssertEqual(catalogues.version, 4)
-        XCTAssertEqual(catalogues.webApplications.map(\.id), ["google-docs"])
+    func testRemoteCatalogueRequiresSupportedVersion() throws {
+        let manifest = Data(#"{"formatVersion":1,"catalogueVersion":2,"minimumCompanionVersion":"1.0.0","entries":[{"path":"example.json"}]}"#.utf8)
+        let app = Data(#"{"version":1,"appId":"org.example.Editor","label":"Editor","catalog":false,"shortcuts":[{"id":"0","label":"New","shortcut":"command+n","icon":"Plus"}]}"#.utf8)
+        XCTAssertEqual(try RemoteCompanionCatalogues.decode(
+            nativeManifest: manifest, nativeDefinitions: [app], companionVersion: "1.2.0"
+        ).applications.map(\.appId), ["org.example.Editor"])
         XCTAssertThrowsError(try RemoteCompanionCatalogues.decode(
-            nativeManifest: nativeManifest,
-            nativeDefinitions: [native],
-            webManifest: webManifest,
-            webDefinitions: [web],
-            companionVersion: "0.9.0"
-        ))
-
-        let invalidWeb = RemoteWebApplicationDefinition(
-            version: docs.version, id: docs.id, label: docs.label, url: docs.url,
-            matchHost: "not-google.example", matchPath: docs.matchPath, icon: docs.icon,
-            shortcuts: docs.shortcuts
-        )
-        XCTAssertThrowsError(try RemoteCompanionCatalogues.decode(
-            nativeManifest: nativeManifest,
-            nativeDefinitions: [native],
-            webManifest: webManifest,
-            webDefinitions: [JSONEncoder().encode(invalidWeb)],
-            companionVersion: "1.2.0"
-        ))
-    }
-
-    func testRemoteDefinitionsEnforceLabelAndWireSizeLimits() throws {
-        let nativeManifest = Data(#"{"formatVersion":1,"catalogueVersion":1,"minimumCompanionVersion":"1.0.0","entries":[{"path":"example.json"}]}"#.utf8)
-        let webManifest = Data(#"{"formatVersion":1,"catalogueVersion":1,"minimumCompanionVersion":"1.0.0","entries":[{"path":"google-docs.json"}]}"#.utf8)
-        let native = Data(#"{"version":1,"appId":"org.example.Editor","label":"Editor","catalog":false,"shortcuts":[{"id":"0","label":"New","shortcut":"command+n","icon":"Plus"}]}"#.utf8)
-
-        let oversizedLabel = RemoteWebApplicationDefinition(
-            version: docs.version, id: docs.id, label: String(repeating: "A", count: 49), url: docs.url,
-            matchHost: docs.matchHost, matchPath: docs.matchPath, icon: docs.icon, shortcuts: docs.shortcuts
-        )
-        XCTAssertThrowsError(try RemoteCompanionCatalogues.decode(
-            nativeManifest: nativeManifest, nativeDefinitions: [native], webManifest: webManifest,
-            webDefinitions: [JSONEncoder().encode(oversizedLabel)], companionVersion: "1.2.0"
-        ))
-
-        let oversizedDefinition = RemoteWebApplicationDefinition(
-            version: docs.version, id: docs.id, label: docs.label,
-            url: docs.url + "?q=" + String(repeating: "x", count: 12_000), matchHost: docs.matchHost,
-            matchPath: docs.matchPath, icon: docs.icon, shortcuts: docs.shortcuts
-        )
-        XCTAssertThrowsError(try RemoteCompanionCatalogues.decode(
-            nativeManifest: nativeManifest, nativeDefinitions: [native], webManifest: webManifest,
-            webDefinitions: [JSONEncoder().encode(oversizedDefinition)], companionVersion: "1.2.0"
+            nativeManifest: manifest, nativeDefinitions: [app], companionVersion: "0.9.0"
         ))
     }
 

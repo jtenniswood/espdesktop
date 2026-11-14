@@ -1317,8 +1317,6 @@ def self_test() -> None:
         raise AssertionError("dev-docs cache keys omit runtime validation inputs")
     if not {"c++", "g++", "clang++"} <= set(registry["firmware-parser"].cache_tools):
         raise AssertionError("firmware parser cache keys omit compiler tool versions")
-    if "components/artwork_image/artwork_image.cpp" not in registry["cover-art-contract"].inputs:
-        raise AssertionError("cover-art cache keys omit the downloader source")
     if "common/config/*_card_normalization_fixtures.json" not in registry["firmware-parser"].inputs:
         raise AssertionError("firmware parser cache keys omit normalization fixtures")
     if "common/config/card_normalization_fixtures.json" not in registry["saved-config-parity"].inputs:

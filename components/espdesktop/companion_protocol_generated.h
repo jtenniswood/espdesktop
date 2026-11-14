@@ -69,6 +69,7 @@ struct ActionInvoke {
   std::optional<std::string> actionId{};
   std::optional<std::string> folderOpenBehavior{};
   std::optional<std::string> appId{};
+  std::optional<std::string> urlOpenBehavior{};
   std::optional<std::string> encodedUrl{};
 };
 struct ActionResult {
@@ -202,6 +203,10 @@ struct FocusTargets {
 };
 struct SessionLock {
   bool locked{};
+  std::optional<bool> displayAwake{};
+};
+struct PairReset {
+
 };
 inline void encode(JsonObject root, const Hello &message) {
   root["type"] = "hello";
@@ -264,6 +269,7 @@ inline void encode(JsonObject root, const ActionInvoke &message) {
   if (message.actionId) root["actionId"] = *message.actionId;
   if (message.folderOpenBehavior) root["folderOpenBehavior"] = *message.folderOpenBehavior;
   if (message.appId) root["appId"] = *message.appId;
+  if (message.urlOpenBehavior) root["urlOpenBehavior"] = *message.urlOpenBehavior;
   if (message.encodedUrl) root["encodedUrl"] = *message.encodedUrl;
 }
 inline void encode(JsonObject root, const ActionResult &message) {
@@ -461,8 +467,14 @@ inline void encode(JsonObject root, const SessionLock &message) {
   root["type"] = "session.lock";
   root["protocol"] = COMPANION_PROTOCOL_VERSION;
   root["locked"] = message.locked;
+  if (message.displayAwake) root["displayAwake"] = *message.displayAwake;
 }
-using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock>;
+inline void encode(JsonObject root, const PairReset &message) {
+  root["type"] = "pair.reset";
+  root["protocol"] = COMPANION_PROTOCOL_VERSION;
+  (void) message;
+}
+using Message = std::variant<Hello, PairRequest, PairAccepted, AuthRequest, AuthAccepted, Capabilities, CatalogueRequest, CataloguePage, ActionInvoke, ActionResult, ValueSet, ValueState, FocusChanged, TimezoneChanged, NowPlaying, SystemMetrics, ArtworkBegin, ArtworkAck, ArtworkEnd, ArtworkAbort, ArtworkRequest, AppIconRequest, AppIconBegin, AppIconUnchanged, AppIconUnavailable, AppIconAck, AppIconEnd, AppIconAbort, Error, CatalogueDefinitionsPage, FocusTargets, SessionLock, PairReset>;
 inline std::optional<Message> decode(JsonObjectConst root, Direction direction, SessionState state) {
   if (!number_valid(root["protocol"], COMPANION_PROTOCOL_VERSION, COMPANION_PROTOCOL_VERSION, true) || !root["type"].is<const char *>()) return std::nullopt;
   const std::string type = root["type"].as<std::string>();
@@ -594,6 +606,9 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!root["appId"].isUnbound()) {
       if (!(string_valid(root["appId"], 1, 96))) return std::nullopt;
     }
+    if (!root["urlOpenBehavior"].isUnbound()) {
+      if (!(string_valid(root["urlOpenBehavior"], 7, 10) && (root["urlOpenBehavior"].as<std::string>() == "new_tab" || root["urlOpenBehavior"].as<std::string>() == "new_window"))) return std::nullopt;
+    }
     if (!root["encodedUrl"].isUnbound()) {
       if (!(string_valid(root["encodedUrl"], 1, 128))) return std::nullopt;
     }
@@ -610,6 +625,7 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     if (!root["actionId"].isUnbound()) result.actionId = root["actionId"].as<std::string>();
     if (!root["folderOpenBehavior"].isUnbound()) result.folderOpenBehavior = root["folderOpenBehavior"].as<std::string>();
     if (!root["appId"].isUnbound()) result.appId = root["appId"].as<std::string>();
+    if (!root["urlOpenBehavior"].isUnbound()) result.urlOpenBehavior = root["urlOpenBehavior"].as<std::string>();
     if (!root["encodedUrl"].isUnbound()) result.encodedUrl = root["encodedUrl"].as<std::string>();
     return result;
   }
@@ -1095,8 +1111,19 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
     {
       if (!(root["locked"].is<bool>())) return std::nullopt;
     }
+    if (!root["displayAwake"].isUnbound()) {
+      if (!(root["displayAwake"].is<bool>())) return std::nullopt;
+    }
     SessionLock result;
     result.locked = root["locked"].as<bool>();
+    if (!root["displayAwake"].isUnbound()) result.displayAwake = root["displayAwake"].as<bool>();
+    return result;
+  }
+  if (type == "pair.reset") {
+    if (direction != Direction::MAC_TO_PANEL) return std::nullopt;
+    if (!(state == SessionState::CONNECTED)) return std::nullopt;
+
+    PairReset result;
     return result;
   }
   return std::nullopt;

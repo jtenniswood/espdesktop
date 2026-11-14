@@ -41,13 +41,6 @@ export function screensaverControlState(
   };
 }
 
-export function timedSettingLabel(value: unknown, formatDuration: (seconds: number) => string): string {
-  const seconds = Number(value);
-  if (seconds < 0) return "Always";
-  if (seconds > 0) return formatDuration(seconds);
-  return "Never";
-}
-
 export function createSettingsUiFeature(dependencies: SettingsUiDependencies): SettingsUiFeature {
   const { document, textSpan, createDisclosureChevron } = dependencies;
 

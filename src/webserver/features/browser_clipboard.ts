@@ -1,5 +1,7 @@
 // Display pages use local HTTP, where the modern Clipboard API may be unavailable.
-export async function copyTextToClipboard(document: Document, navigator: Navigator, code: string): Promise<void> {
+export async function copyTextToClipboard(
+    document: Document, navigator: Navigator, code: string, container: HTMLElement = document.body,
+): Promise<void> {
     if (navigator.clipboard) {
         try {
             await navigator.clipboard.writeText(code);
@@ -11,7 +13,7 @@ export async function copyTextToClipboard(document: Document, navigator: Navigat
     field.value = code;
     field.readOnly = true;
     field.style.cssText = "position:fixed;left:-9999px;top:0";
-    document.body.appendChild(field);
+    container.appendChild(field);
     try {
         field.select();
         if (!document.execCommand("copy")) throw new Error("Clipboard unavailable");

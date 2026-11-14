@@ -9,10 +9,41 @@ struct RemoteShortcutDefinition: Codable, Sendable, Equatable {
 
 struct RemoteMacApplicationDefinition: Codable, Sendable, Equatable {
     let version: Int
-    let appId: String
+    var appId: String
     let label: String
     let catalog: Bool
-    let shortcuts: [RemoteShortcutDefinition]
+    var defaultShortcutIds: [String]?
+    var shortcuts: [RemoteShortcutDefinition]
+    var extendedShortcuts: [RemoteShortcutDefinition]?
+    var additionalShortcuts: [RemoteShortcutDefinition]?
+    var claudeShortcuts: [RemoteShortcutDefinition]?
+    var safariShortcuts: [RemoteShortcutDefinition]?
+    var moreShortcuts: [RemoteShortcutDefinition]?
+
+    var starter: Self {
+        var app = self
+        app.moreShortcuts = nil
+        return app
+    }
+
+    func expandedPages() -> [Self] {
+        guard let moreShortcuts, !moreShortcuts.isEmpty else { return [] }
+        var page = starter
+        page.shortcuts = []
+        page.defaultShortcutIds = nil
+        page.extendedShortcuts = nil
+        page.additionalShortcuts = nil
+        page.claudeShortcuts = nil
+        page.safariShortcuts = nil
+        // At the catalogue's field limits, 52 entries still fit the escaped
+        // 16 KB frame. This also leaves room for every bundled app to sync.
+        let pageSize = 52
+        return stride(from: 0, to: moreShortcuts.count, by: pageSize).map { offset in
+            var chunk = page
+            chunk.moreShortcuts = Array(moreShortcuts[offset..<min(offset + pageSize, moreShortcuts.count)])
+            return chunk
+        }
+    }
 }
 
 struct RemoteWebApplicationDefinition: Codable, Sendable, Equatable {
@@ -66,25 +97,44 @@ func decodeBundledCatalogueEntries<T: Decodable>(
 struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     let version: Int
     let applications: [RemoteMacApplicationDefinition]
-    let webApplications: [RemoteWebApplicationDefinition]
+    var webApplications: [RemoteWebApplicationDefinition] = []
 
     static let empty = RemoteCompanionCatalogues(version: 1, applications: [], webApplications: [])
+
+    func applicationsForDisplay(approvedApps: [LaunchableApp]) -> [RemoteMacApplicationDefinition] {
+        let athenaTemplateID = "io.github.jtenniswood.athena"
+        guard let template = applications.first(where: { $0.appId == athenaTemplateID }) else { return applications }
+        let existingIDs = Set(applications.map(\.appId))
+        let installedTemplates = approvedApps.compactMap { app -> RemoteMacApplicationDefinition? in
+            // Safari generates a different bundle ID for each installation. Match
+            // Athena by its web manifest so renamed Dock icons still work.
+            let id = app.bundleIdentifier
+            guard !existingIDs.contains(id), id != "com.apple.Safari",
+                  CompanionKeyboardShortcut.isSafariApplication(id),
+                  let manifest = Bundle(url: app.url)?.object(forInfoDictionaryKey: "Manifest") as? [String: Any],
+                  manifest["name"] as? String == "Athena for Hermes Agent" else { return nil }
+            var installed = template
+            installed.appId = id
+            return installed
+        }
+        return applications.filter { $0.appId != athenaTemplateID } + installedTemplates
+    }
 
     static func decode(
         nativeManifest: Data,
         nativeDefinitions: [Data],
-        webManifest: Data,
-        webDefinitions: [Data],
+        webManifest: Data? = nil,
+        webDefinitions: [Data] = [],
         companionVersion: String
     ) throws -> RemoteCompanionCatalogues {
         let decoder = JSONDecoder()
         let nativeIndex = try decoder.decode(RemoteCatalogueManifest.self, from: nativeManifest)
-        let webIndex = try decoder.decode(RemoteCatalogueManifest.self, from: webManifest)
-        guard nativeIndex.formatVersion == 1, webIndex.formatVersion == 1,
+        let webIndex = try webManifest.map { try decoder.decode(RemoteCatalogueManifest.self, from: $0) }
+        guard nativeIndex.formatVersion == 1, (webIndex?.formatVersion ?? 1) == 1,
               nativeDefinitions.count == nativeIndex.entries.count,
-              webDefinitions.count == webIndex.entries.count,
+              webDefinitions.count == (webIndex?.entries.count ?? 0),
               supports(nativeIndex.minimumCompanionVersion, current: companionVersion),
-              supports(webIndex.minimumCompanionVersion, current: companionVersion) else {
+              (webIndex.map { supports($0.minimumCompanionVersion, current: companionVersion) } ?? true) else {
             throw CatalogueError.incompatible
         }
         let apps = try nativeDefinitions.map { try decoder.decode(RemoteMacApplicationDefinition.self, from: $0) }
@@ -94,7 +144,7 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
               Set(webApps.map(\.id)).count == webApps.count else {
             throw CatalogueError.invalid
         }
-        return RemoteCompanionCatalogues(version: max(nativeIndex.catalogueVersion, webIndex.catalogueVersion),
+        return RemoteCompanionCatalogues(version: max(nativeIndex.catalogueVersion, webIndex?.catalogueVersion ?? 0),
                                          applications: apps, webApplications: webApps)
     }
 
@@ -115,11 +165,58 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
     }
 
     fileprivate static func valid(_ app: RemoteMacApplicationDefinition) -> Bool {
-        let encodedSize = (try? JSONEncoder().encode(app).count) ?? Int.max
+        let encodedSize = (try? JSONEncoder().encode(app.starter).count) ?? Int.max
+        let extended = app.extendedShortcuts ?? []
+        let additional = app.additionalShortcuts ?? []
+        let claude = app.claudeShortcuts ?? []
+        let safari = app.safariShortcuts ?? []
+        let more = app.moreShortcuts ?? []
+        let starterShortcuts = app.shortcuts + extended + additional + claude + safari
+        let allShortcuts = starterShortcuts + more
+        let allIDs = Set(allShortcuts.map(\.id))
+        if let defaults = app.defaultShortcutIds {
+            guard (1...8).contains(defaults.count), Set(defaults).count == defaults.count,
+                  defaults.allSatisfy(allIDs.contains) else { return false }
+        }
+        let validSafari = safari.isEmpty ||
+            (extended.isEmpty && CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
+                safari.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isSafariUnmodifiedShortcut($0.shortcut) })
+        let validAdditional = additional.isEmpty ||
+            (app.appId == CompanionKeyboardShortcut.chatGPTDesktopBundleIdentifier && !app.catalog &&
+                additional.allSatisfy {
+                    $0.shortcut == CompanionKeyboardShortcut.chatGPTClearUnreads ? validMetadata($0) : validRegularShortcut($0)
+                })
+        let validClaude = claude.isEmpty ||
+            (app.appId == CompanionKeyboardShortcut.claudeDesktopBundleIdentifier && !app.catalog &&
+                claude.allSatisfy {
+                    validRegularShortcut($0) || (validMetadata($0) && CompanionKeyboardShortcut.isClaudeScopedShortcut($0.shortcut))
+                })
         return app.version == 1 && !app.label.isEmpty && app.label.utf8.count <= 48 &&
         app.appId.range(of: #"^[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$"#, options: .regularExpression) != nil &&
-        !app.shortcuts.isEmpty && app.shortcuts.allSatisfy(valid) &&
-        Set(app.shortcuts.map(\.id)).count == app.shortcuts.count && encodedSize <= 12_000
+        !app.shortcuts.isEmpty && app.shortcuts.count + extended.count + safari.count <= 64 && starterShortcuts.count <= 96 &&
+        more.count <= 900 && more.allSatisfy { validRegularShortcut($0) ||
+            (validMetadata($0) && CompanionKeyboardShortcut.scopedStrokes($0.shortcut) != nil) } &&
+        app.shortcuts.allSatisfy(validRegularShortcut) &&
+        (extended.isEmpty ||
+            (CompanionKeyboardShortcut.isSafariTemplate(app.appId) &&
+                extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isSafariUnmodifiedShortcut($0.shortcut) }) ||
+            (app.appId == CompanionKeyboardShortcut.booksBundleIdentifier && !app.catalog &&
+                extended.allSatisfy { validMetadata($0) && CompanionKeyboardShortcut.isBooksExtendedShortcut($0.shortcut) })) &&
+        validAdditional && validClaude && validSafari &&
+        allIDs.count == allShortcuts.count && encodedSize <= 12_000
+    }
+
+    fileprivate static func validWebShortcut(_ shortcut: RemoteShortcutDefinition) -> Bool {
+        guard shortcut.id.range(of: #"^(0|[1-9][0-9]{0,2})$"#, options: .regularExpression) != nil,
+              !shortcut.label.isEmpty, shortcut.label.utf8.count <= 48, !shortcut.icon.isEmpty else { return false }
+        let parts = shortcut.shortcut.split(separator: "+").map(String.init)
+        guard let key = parts.last, parts.count >= 2 else { return false }
+        let modifiers = parts.dropLast()
+        let allowed = Set(["command", "control", "option", "shift"])
+        return Set(modifiers).count == modifiers.count && modifiers.allSatisfy(allowed.contains) &&
+            modifiers.contains(where: { $0 != "shift" }) &&
+            (key.range(of: #"^[a-z0-9]$|^f(?:[1-9]|1[0-9]|20)$"#, options: .regularExpression) != nil ||
+             Set("space enter tab escape delete forwarddelete left right up down home end pageup pagedown keycomma keyperiod keyslash keysemicolon keyquote keybackslash keyminus keyequal keybracketleft keybracketright keybackquote".split(separator: " ").map(String.init)).contains(key))
     }
 
     fileprivate static func valid(_ app: RemoteWebApplicationDefinition) -> Bool {
@@ -136,22 +233,26 @@ struct RemoteCompanionCatalogues: Codable, Sendable, Equatable {
               iconURL.path.hasPrefix("/jtenniswood/espdesktop/restore-web-app-card/product/v2/web_apps/icons/"),
               !iconURL.path.split(separator: "/").contains(".."),
               ["png", "jpg", "jpeg"].contains(iconURL.pathExtension.lowercased()),
-              !app.shortcuts.isEmpty, app.shortcuts.allSatisfy(valid),
+              !app.shortcuts.isEmpty, app.shortcuts.allSatisfy(validWebShortcut),
               Set(app.shortcuts.map(\.id)).count == app.shortcuts.count, encodedSize <= 12_000 else { return false }
         return true
     }
 
-    fileprivate static func valid(_ shortcut: RemoteShortcutDefinition) -> Bool {
-        guard shortcut.id.range(of: #"^(0|[1-9][0-9]{0,2})$"#, options: .regularExpression) != nil,
-              !shortcut.label.isEmpty, shortcut.label.utf8.count <= 48, !shortcut.icon.isEmpty else { return false }
-        let parts = shortcut.shortcut.split(separator: "+").map(String.init)
-        guard let key = parts.last, parts.count >= 2 else { return false }
-        let modifiers = parts.dropLast()
-        let allowed = Set(["command", "control", "option", "shift"])
-        return Set(modifiers).count == modifiers.count && modifiers.allSatisfy(allowed.contains) &&
-            modifiers.contains(where: { $0 != "shift" }) &&
-            (key.range(of: #"^[a-z0-9]$|^f(?:[1-9]|1[0-9]|20)$"#, options: .regularExpression) != nil ||
-             Set("space enter tab escape delete forwarddelete left right up down home end pageup pagedown keycomma keyperiod keyslash keysemicolon keyquote keybackslash keyminus keyequal keybracketleft keybracketright keybackquote".split(separator: " ").map(String.init)).contains(key))
+    private static func validRegularShortcut(_ shortcut: RemoteShortcutDefinition) -> Bool {
+        validMetadata(shortcut) &&
+            !CompanionKeyboardShortcut.isBooksExtendedShortcut(shortcut.shortcut) &&
+            !CompanionKeyboardShortcut.isClaudeScopedShortcut(shortcut.shortcut) &&
+            !CompanionKeyboardShortcut.isSafariUnmodifiedShortcut(shortcut.shortcut) &&
+            shortcut.shortcut != CompanionKeyboardShortcut.chatGPTClearUnreads &&
+            CompanionKeyboardShortcut(actionIdentifier: CompanionKeyboardShortcut.actionPrefix + shortcut.shortcut) != nil
+    }
+
+    private static func validMetadata(_ shortcut: RemoteShortcutDefinition) -> Bool {
+        shortcut.id.range(of: #"^(0|[1-9][0-9]{0,2})$"#, options: .regularExpression) != nil &&
+            !shortcut.label.isEmpty && shortcut.label.utf8.count <= 48 &&
+            !shortcut.icon.isEmpty && shortcut.icon.utf8.count <= 48 &&
+            !shortcut.label.unicodeScalars.contains { $0.value < 32 } &&
+            !shortcut.icon.unicodeScalars.contains { $0.value < 32 }
     }
 
     enum CatalogueError: Error { case incompatible, invalid }
@@ -207,6 +308,7 @@ final class RemoteCompanionCatalogueStore {
         value = Self.bundled()
         if let cache = defaults.data(forKey: Self.cacheKey),
            let decoded = try? JSONDecoder().decode(RemoteCompanionCatalogues.self, from: cache),
+           decoded.version > value.version,
            Self.valid(decoded) {
             value = decoded
         }
@@ -286,26 +388,36 @@ final class RemoteCompanionCatalogueStore {
 
     private static func bundled() -> RemoteCompanionCatalogues {
         let companionVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
-        func load<T: Decodable>(_ type: T.Type, folder: String) -> [T] {
-            guard let manifestURL = Bundle.module.url(
-                forResource: "manifest", withExtension: "json", subdirectory: folder
-            ), let manifestData = try? Data(contentsOf: manifestURL) else { return [] }
-            return decodeBundledCatalogueEntries(
-                manifestData: manifestData, companionVersion: companionVersion
-            ) { path in
-                let relative = URL(fileURLWithPath: path)
-                let parent = relative.deletingLastPathComponent().path
-                let subdirectory = parent == "." ? folder : "\(folder)/\(parent)"
-                return Bundle.module.url(
-                    forResource: relative.deletingPathExtension().lastPathComponent,
-                    withExtension: relative.pathExtension,
-                    subdirectory: subdirectory
-                ).flatMap { try? Data(contentsOf: $0) }
+        let folder = "AppShortcuts"
+        guard let resources = Bundle.companionResources,
+              let manifestURL = resources.url(forResource: "manifest", withExtension: "json", subdirectory: folder),
+              let manifestData = try? Data(contentsOf: manifestURL),
+              let manifest = try? JSONDecoder().decode(RemoteCatalogueManifest.self, from: manifestData) else { return .empty }
+        let applications: [RemoteMacApplicationDefinition]? = decodeBundledCatalogueEntries(
+            manifestData: manifestData, companionVersion: companionVersion
+        ) { path in
+            let relative = path as NSString
+            let parent = relative.deletingLastPathComponent
+            let subdirectory = parent.isEmpty || parent == "." ? folder : "\(folder)/\(parent)"
+            let filename = relative.lastPathComponent as NSString
+            return resources.url(
+                forResource: filename.deletingPathExtension,
+                withExtension: filename.pathExtension,
+                subdirectory: subdirectory
+            ).flatMap { try? Data(contentsOf: $0) }
+        }
+        guard let applications else { return .empty }
+        let folderWeb = "WebApps"
+        var webApps: [RemoteWebApplicationDefinition] = []
+        if let index = resources.url(forResource: "manifest", withExtension: "json", subdirectory: folderWeb),
+           let indexData = try? Data(contentsOf: index) {
+            webApps = decodeBundledCatalogueEntries(manifestData: indexData, companionVersion: companionVersion) { path in
+                let file = path as NSString
+                return resources.url(forResource: file.deletingPathExtension, withExtension: file.pathExtension,
+                                     subdirectory: folderWeb).flatMap { try? Data(contentsOf: $0) }
             } ?? []
         }
-        let applications: [RemoteMacApplicationDefinition] = load(RemoteMacApplicationDefinition.self, folder: "AppShortcuts")
-        let webApps: [RemoteWebApplicationDefinition] = load(RemoteWebApplicationDefinition.self, folder: "WebApps")
-        let result = RemoteCompanionCatalogues(version: 1, applications: applications, webApplications: webApps)
+        let result = RemoteCompanionCatalogues(version: manifest.catalogueVersion, applications: applications, webApplications: webApps)
         return Self.valid(result) ? result : .empty
     }
 

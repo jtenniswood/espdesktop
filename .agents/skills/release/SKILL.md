@@ -13,12 +13,13 @@ description: >-
 Use `.github/workflows/release.yml` (`Build Release`) to build both products from
 one immutable source revision. It builds all release devices, signs and notarizes
 EspDesktop on a GitHub Mac runner, and signs the Sparkle automatic-update feed.
-The final job uploads and verifies the complete distribution before publishing
-the draft. A release is incomplete if either firmware or the Mac app fails.
+Build Release creates a private candidate. Install and open its notarized app
+on the Mac handling the release, then ask once whether it works. Use
+`.github/workflows/publish-release.yml` (Publish Release) after confirmation
+to verify and publish those same files.
 
-This builds flashable downloads; it does not flash connected screens, install the
-Mac app, or archive the locally installed version. Those are separate requests.
-A request to customize or inspect this skill does not authorize publishing.
+An explicit release request includes this local Mac installation. Editing or
+inspecting this skill does not start a release.
 
 ## 1. Select the source and check readiness
 
@@ -40,7 +41,7 @@ edits in the user's checkout. Do not switch or reset a dirty checkout. Only
 committed, pushed source can be released; include release-related edits through
 a reviewed preparation PR before tagging. Confirm required CI is successful for
 the selected revision and the workflow's self-hosted firmware runners are
-available. The Mac job uses `macos-15`; it does not depend on the local Keychain.
+available. The Mac job uses a GitHub-hosted macOS runner; it does not depend on the local Keychain.
 
 Check repository secret **names only**:
 
@@ -116,7 +117,7 @@ For a new tag:
 git tag -a "$TAG" "$SOURCE_SHA" -m "Release $TAG"
 git push origin "$TAG"
 gh release create "$TAG" --verify-tag --draft \
-  --notes "Screen firmware and the signed Mac app are being built and verified. This draft will publish automatically when complete." \
+  --notes "Screen firmware and the signed Mac app are being built and verified. This draft is awaiting confirmation of the local Mac installation." \
   --fail-on-no-commits
 ```
 
@@ -147,8 +148,8 @@ checks. Report meaningful progress and failures for both paths:
 - Firmware assembly, recovery images where declared, manifests and provenance.
 - Mac tests, P12 import, Developer ID signing, Apple acceptance of app and DMG,
   stapling, signature/Gatekeeper checks and Sparkle feed signature verification.
-- Compatibility manifest verification and `Publish Verified Draft`, which depends
-  on both the firmware assembly and Mac jobs succeeding.
+- Prepare Release Candidate, which verifies the compatibility manifest
+  and records the candidate run ID and fingerprint.
 
 On failure, inspect the failed job and confirm the release remains a draft.
 Never publish a partial firmware-only release to bypass a Mac failure. For a
@@ -158,9 +159,45 @@ if the same failure recurs without new evidence or a repair. Source changes need
 a new reviewed revision and new tag, not a moved tag. Do not close issues unless
 explicitly requested.
 
-## 6. Verify the complete published distribution
+## 6. Install the candidate Mac app and ask once
 
-After the workflow succeeds:
+Download the Mac ZIP and compatibility manifest from the successful
+`CANDIDATE_RUN` into a fresh staging directory:
+
+```bash
+gh run download "$CANDIDATE_RUN" -n espdesktop-app-release -D "$STAGE/mac"
+gh run download "$CANDIDATE_RUN" -n release-candidate-compatibility -D "$STAGE"
+```
+
+Check that `companion-compatibility.json` names the selected tag and source SHA.
+Compare its SHA-256 to the candidate fingerprint in the run summary and check
+the ZIP's SHA-256 against its manifest entry. Retain the matched manifest hash
+as `CANDIDATE_FINGERPRINT`. Extract the ZIP with `ditto -x -k` and verify the
+app's Developer ID signature, notarization ticket and Gatekeeper assessment.
+
+Follow the [archive, install, and open steps](../make-local-signed-app/SKILL.md#archive-install-and-open)
+using the extracted candidate app. Verify that the installed candidate is running
+from `/Applications/EspDesktop.app`. If installation fails, recover the previous
+app as described there and keep the release private.
+
+Ask one question once the candidate is running: “Does EspDesktop $TAG work on
+this Mac?” Wait for a positive answer before dispatching Publish Release. If the
+user reports a problem, keep the draft private. The firmware remains available
+as build artifacts, and a display test is optional.
+
+```bash
+gh workflow run publish-release.yml --ref "$TAG" \
+  -f release_tag="$TAG" -f candidate_run="$CANDIDATE_RUN" \
+  -f confirmed_fingerprint="$CANDIDATE_FINGERPRINT"
+```
+
+Monitor Publish Release through completion. For a retry, reuse the confirmed
+run and fingerprint while its artifacts are still available. Ask for a new
+confirmation if the candidate changes.
+
+## 7. Verify the complete published distribution
+
+After Publish Release succeeds:
 
 ```bash
 gh release view "$TAG" --json tagName,url,isDraft,isPrerelease,assets \
@@ -193,9 +230,36 @@ check the `Deploy Docs` run triggered by the successful release and its publishe
 links; distinguish publishing from Pages propagation. Do not claim physical
 screen testing or Accessibility permission persistence from CI results.
 
+### Verify Homebrew after publication
+
+For a stable release with a Mac ZIP, verify the Homebrew tap after **Publish
+Release** succeeds and the release is public. Find the automatic run created
+after the publication run and watch it with `gh run watch <run-id> --exit-status`.
+
+```bash
+gh run list --repo jtenniswood/espdesktop --workflow homebrew.yml \
+  --event workflow_run --limit 10 --json databaseId,createdAt,status,conclusion,url
+```
+
+Compare the [public cask](https://github.com/jtenniswood/homebrew-tap/blob/main/Casks/espdesktop.rb)
+with GitHub's published Mac ZIP metadata. Confirm the version, download URL and
+SHA-256 match. If a higher stable Mac version is already public, confirm the tap
+still tracks it. Skip the Homebrew check for prereleases and firmware-only releases.
+
+If the automatic run is missing after a brief wait or fails, inspect the run
+status or logs. After confirming successful publication, dispatch one recovery
+run if the automatic run is missing or a transient failure has cleared.
+
+```bash
+gh workflow run homebrew.yml --repo jtenniswood/espdesktop --ref main
+```
+
+Watch the recovery run and verify the cask again.
+
 ## Report back
 
 Give the tag, release URL and run result; confirm firmware for all declared
 screens, signed/notarized Mac ZIP and DMG, and signed update feed are attached.
 State whether publication and any checked Pages deployment succeeded, along with
-remaining user testing or failures. No local install or screen flash is implied.
+the installed Mac version and any failures. For stable Mac releases, include
+the Homebrew run URL, verified cask version and any unresolved tap issue.

@@ -46,7 +46,7 @@ jobs:
             --paginate \
             --jq '.[].filename' > changed-files.txt
 
-          if grep -Eq '^(\.github/esphome\.env|\.github/workflows/(firmware-compile|nightly-firmware|release)\.yml|common/.*|components/.*|devices/.*|builds/.*|product/(model_v2\.json|v2/.*)|src/webserver/.*|docs/public/webserver/.*|scripts/(build|device_matrix|device_profiles|generate_device_manifest|generate_device_slots|prepare_c6_firmware|product_model_v2|report_firmware_size)\.py|package(-lock)?\.json)$' changed-files.txt; then
+          if grep -Eq '^(\.github/esphome\.env|\.github/workflows/(firmware-compile|firmware-editor|nightly-firmware|release)\.yml|common/.*|components/.*|devices/.*|builds/.*|product/((model_v2|release_devices)\.json|v2/.*)|src/webserver/.*|docs/public/webserver/.*|scripts/(build|check_timezones|release_devices|device_matrix|device_profiles|generate_device_manifest|generate_device_slots|prepare_c6_firmware|product_model_v2|panel_settings_codegen|report_firmware_size)\.py|scripts/(build_web_bundle|web_icon_names)\.js|package(-lock)?\.json)$' changed-files.txt; then
             echo "compile_required=true" >> "$GITHUB_OUTPUT"
           else
             echo "compile_required=false" >> "$GITHUB_OUTPUT"
@@ -108,9 +108,15 @@ jobs:
           fi
           echo "matrix=${MATRIX}" >> "$GITHUB_OUTPUT"
 
+  editor:
+    name: Prepare editor
+    needs: detect-changes
+    if: needs.detect-changes.outputs.compile_required == 'true'
+    uses: ./.github/workflows/firmware-editor.yml
+
   compile:
     name: Compile Firmware (${{ matrix.slug }})
-    needs: [detect-changes, device-matrix]
+    needs: [detect-changes, device-matrix, editor]
     if: needs.detect-changes.outputs.compile_required == 'true'
     runs-on: ubuntu-latest
     strategy:
@@ -136,6 +142,12 @@ jobs:
             find builds -maxdepth 1 -type f -print | sort || true
             exit 1
           fi
+
+      - name: Install editor for this build
+        uses: actions/download-artifact@v8
+        with:
+          name: firmware-editor
+          path: espdesktop-${{ matrix.slug }}/docs/public/webserver/embedded
 
       - name: Load ESPHome version
         working-directory: espdesktop-${{ matrix.slug }}
@@ -231,6 +243,21 @@ jobs:
             compile_config "${{ matrix.slug }}.recovery.yaml" "${RECOVERY_BUILD_CACHE}"
           fi
 
+      - name: Collect test firmware
+        run: |
+          FACTORY=$(find "${BUILD_CACHE}/build" -name firmware.factory.bin -print -quit)
+          test -n "${FACTORY}"
+          mkdir -p dist/pr-firmware
+          cp "${FACTORY}" "dist/pr-firmware/${{ matrix.slug }}.factory.bin"
+          cp "$(dirname "${FACTORY}")/firmware.ota.bin" "dist/pr-firmware/${{ matrix.slug }}.ota.bin"
+
+      - name: Upload test firmware
+        uses: actions/upload-artifact@v7
+        with:
+          name: pr-firmware-${{ matrix.slug }}
+          path: dist/pr-firmware/
+          if-no-files-found: error
+
       - name: Clean firmware caches
         if: always()
         working-directory: espdesktop-${{ matrix.slug }}
@@ -243,7 +270,7 @@ jobs:
 
   firmware-compile-gate:
     name: Firmware Compile Gate
-    needs: [detect-changes, device-matrix, compile]
+    needs: [detect-changes, device-matrix, editor, compile]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -260,9 +287,11 @@ jobs:
           fi
 
           if [ "${{ needs.device-matrix.result }}" != "success" ] ||
+             [ "${{ needs.editor.result }}" != "success" ] ||
              [ "${{ needs.compile.result }}" != "success" ]; then
             echo "::error::Required firmware compile jobs did not pass."
             echo "Prepare Device Matrix: ${{ needs.device-matrix.result }}"
+            echo "Prepare editor: ${{ needs.editor.result }}"
             echo "Compile Firmware: ${{ needs.compile.result }}"
             exit 1
           fi

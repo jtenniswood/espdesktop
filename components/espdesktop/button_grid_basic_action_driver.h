@@ -134,8 +134,9 @@ inline bool basic_action_driver_bind_subpage(
     case Driver::COMPANION: {
       if (companion_metric_key_valid(config.entity)) break;
       std::string required_focus_id;
-      if (environment.parent_config && companion_app_shortcuts_enabled(*environment.parent_config) &&
-          (config.entity.rfind("shortcut.", 0) == 0 || config.entity.rfind("window.", 0) == 0))
+      if (config.type == "companion" && environment.parent_config &&
+          companion_app_shortcuts_enabled(*environment.parent_config) &&
+          config.entity.rfind("shortcut.", 0) == 0)
         required_focus_id = environment.parent_config->entity;
       auto *click = grid_delete_with_owner(slot.btn,
         new CompanionSubpageActionContext{config, required_focus_id});
@@ -146,10 +147,13 @@ inline bool basic_action_driver_bind_subpage(
         const auto *card = &context->card;
         if (companion_app_shortcuts_enabled(*card)) {
           auto *button = static_cast<lv_obj_t *>(lv_event_get_target(event));
-          auto *screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+          const auto started = esphome::millis();
           const bool active = companion_action_active(card->entity);
-          if (screen && lv_obj_is_valid(screen) && (companion_auto_open_app_subpages() || active)) {
-            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+          auto *screen = (companion_auto_open_app_subpages() || active)
+              ? navigation_screen_for_button(button) : nullptr;
+          if (screen && lv_obj_is_valid(screen)) {
+            navigation_begin_page_open(screen, started);
+            navigation_show_companion_subpage(screen, /*from_card=*/true);
             refresh_visible_image_cards();
             if (!companion_auto_open_app_subpages()) return;
           }
@@ -159,8 +163,10 @@ inline bool basic_action_driver_bind_subpage(
                  static_cast<unsigned long>(companion_next_request_number()));
         const bool invoked = companion_encoded_url(card->sensor).empty()
           ? invoke_companion_action_for_app(card->entity, request_id, context->required_focus_id,
-                                    companion_folder_open_behavior(*card))
-          : invoke_companion_url(card->entity, card->sensor, request_id);
+                                    companion_folder_open_behavior(*card),
+                                    cfg_option_value(card->options, "app_shortcut_preset"))
+          : invoke_companion_url(card->sensor, request_id,
+                                 companion_url_opens_new_window(*card));
         if (!invoked) {
           ESP_LOGW("companion", "Action unavailable: %s", card->entity.c_str());
         }
@@ -186,26 +192,32 @@ inline bool basic_action_driver_handle_main_click(
                static_cast<unsigned long>(companion_next_request_number()), slot_number);
       lv_obj_t *screen = nullptr;
       if (companion_app_shortcuts_enabled(config) && button) {
-        screen = static_cast<lv_obj_t *>(lv_obj_get_user_data(button));
+        const auto started = esphome::millis();
+        if (companion_auto_open_app_subpages() || companion_action_active(config.entity))
+          screen = navigation_screen_for_button(button);
         if (screen && !companion_auto_open_app_subpages()) {
           // In manual mode, the first press focuses the app. Only an already
           // active (on) card opens its subpage, without invoking the app again.
           if (companion_action_active(config.entity) && lv_obj_is_valid(screen)) {
-            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            navigation_begin_page_open(screen, started);
+            navigation_show_companion_subpage(screen, /*from_card=*/true);
             break;
           }
         }
         if (screen && companion_auto_open_app_subpages()) {
           // Navigation is local; do not wait for Mac focus/acknowledgement.
           if (lv_obj_is_valid(screen)) {
-            lv_scr_load_anim(screen, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+            navigation_begin_page_open(screen, started);
+            navigation_show_companion_subpage(screen, /*from_card=*/true);
           }
         }
       }
       const bool invoked = companion_encoded_url(config.sensor).empty()
-        ? invoke_companion_action(config.entity, request_id,
-                                  companion_folder_open_behavior(config))
-        : invoke_companion_url(config.entity, config.sensor, request_id);
+        ? invoke_companion_action_for_app(config.entity, request_id, {},
+                                  companion_folder_open_behavior(config),
+                                  cfg_option_value(config.options, "app_shortcut_preset"))
+        : invoke_companion_url(config.sensor, request_id,
+                                 companion_url_opens_new_window(config));
       if (!invoked) {
         companion_cancel_action_result(request_id);
         ESP_LOGW("companion", "Action unavailable: %s", config.entity.c_str());

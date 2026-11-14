@@ -3,66 +3,132 @@
   "appId": "com.google.Chrome",
   "label": "Google Chrome",
   "catalog": false,
+  "defaultShortcutIds": ["22", "24", "2", "47", "3", "10", "7", "1"],
   "shortcuts": [
     {
       "id": "0",
-      "label": "Open a new window",
+      "label": "New Window",
       "shortcut": "command+n",
-      "icon": "Plus"
+      "icon": "New Window"
     },
     {
       "id": "1",
-      "label": "Open a new window in Incognito mode",
+      "label": "Incognito",
       "shortcut": "command+shift+n",
-      "icon": "Plus"
+      "icon": "Incognito"
     },
     {
       "id": "2",
-      "label": "Open a new tab, and jump to it",
+      "label": "New Tab",
       "shortcut": "command+t",
-      "icon": "Tab"
+      "icon": "New Tab"
     },
     {
       "id": "3",
-      "label": "Open the Find Bar to search the current page",
+      "label": "Find Text",
       "shortcut": "command+f",
       "icon": "Search"
     },
     {
       "id": "4",
-      "label": "Jump to the next match to your Find Bar search",
+      "label": "Next Match",
       "shortcut": "command+g",
-      "icon": "Search"
+      "icon": "Chevron Down"
     },
     {
       "id": "5",
-      "label": "Jump to the previous match to your Find Bar",
+      "label": "Previous Match",
       "shortcut": "command+shift+g",
-      "icon": "Search"
+      "icon": "Chevron Up"
     },
     {
       "id": "6",
-      "label": "When Find Bar is open, search for selected text",
+      "label": "Find Selection",
       "shortcut": "command+e",
       "icon": "Search"
     },
     {
       "id": "7",
-      "label": "Save your current webpage as a bookmark",
+      "label": "Bookmark",
       "shortcut": "command+d",
-      "icon": "Download"
+      "icon": "Bookmark"
     },
     {
       "id": "8",
-      "label": "Save all open tabs as bookmarks in a new folder",
+      "label": "Bookmark Tabs",
       "shortcut": "command+shift+d",
-      "icon": "Tab"
+      "icon": "Folder Plus"
     },
     {
       "id": "9",
-      "label": "Search the web",
+      "label": "Web Search",
       "shortcut": "command+option+f",
-      "icon": "Search"
+      "icon": "Web"
     }
+  ],
+  "moreShortcuts": [
+    {"id": "10", "label": "Reopen previously closed tabs", "shortcut": "scoped.command+shift+t", "icon": "Tab Restore"},
+    {"id": "11", "label": "Jump to next open tab", "shortcut": "scoped.command+option+right", "icon": "Tab"},
+    {"id": "12", "label": "Jump to previous open tab", "shortcut": "scoped.command+option+left", "icon": "Tab"},
+    {"id": "13", "label": "Jump to specific tab 1", "shortcut": "scoped.command+1", "icon": "Tab"},
+    {"id": "14", "label": "Jump to specific tab 2", "shortcut": "scoped.command+2", "icon": "Tab"},
+    {"id": "15", "label": "Jump to specific tab 3", "shortcut": "scoped.command+3", "icon": "Tab"},
+    {"id": "16", "label": "Jump to specific tab 4", "shortcut": "scoped.command+4", "icon": "Tab"},
+    {"id": "17", "label": "Jump to specific tab 5", "shortcut": "scoped.command+5", "icon": "Tab"},
+    {"id": "18", "label": "Jump to specific tab 6", "shortcut": "scoped.command+6", "icon": "Tab"},
+    {"id": "19", "label": "Jump to specific tab 7", "shortcut": "scoped.command+7", "icon": "Tab"},
+    {"id": "20", "label": "Jump to specific tab 8", "shortcut": "scoped.command+8", "icon": "Tab"},
+    {"id": "21", "label": "Jump to last tab", "shortcut": "scoped.command+9", "icon": "Tab"},
+    {"id": "22", "label": "Open previous page", "shortcut": "scoped.command+keybracketleft", "icon": "Page Previous"},
+    {"id": "23", "label": "Open previous page", "shortcut": "scoped.command+left", "icon": "Page Previous"},
+    {"id": "24", "label": "Open next page", "shortcut": "scoped.command+keybracketright", "icon": "Page Next"},
+    {"id": "25", "label": "Open next page", "shortcut": "scoped.command+right", "icon": "Page Next"},
+    {"id": "26", "label": "Close tab or pop-up", "shortcut": "scoped.command+w", "icon": "Close Tab"},
+    {"id": "27", "label": "Close window", "shortcut": "scoped.command+shift+w", "icon": "Window Close"},
+    {"id": "28", "label": "Move tabs left", "shortcut": "scoped.control+shift+pageup", "icon": "Shortcut Command"},
+    {"id": "29", "label": "Move tabs right", "shortcut": "scoped.control+shift+pagedown", "icon": "Shortcut Command"},
+    {"id": "30", "label": "Turn on full-screen mode", "shortcut": "scoped.function+f", "icon": "Full Screen"},
+    {"id": "31", "label": "Turn off full-screen mode", "shortcut": "scoped.function+f", "icon": "Full Screen"},
+    {"id": "32", "label": "Toggle Bookmarks Bar", "shortcut": "scoped.command+shift+b", "icon": "Eye Off"},
+    {"id": "33", "label": "Open Bookmark Manager", "shortcut": "scoped.command+option+b", "icon": "Bookmark"},
+    {"id": "34", "label": "Open Settings page in new tab", "shortcut": "scoped.command+keycomma", "icon": "New Tab"},
+    {"id": "35", "label": "Open History page in new tab", "shortcut": "scoped.command+y", "icon": "New Tab"},
+    {"id": "36", "label": "Open Downloads page in new tab", "shortcut": "scoped.command+shift+j", "icon": "New Tab"},
+    {"id": "37", "label": "Open Developer Tools", "shortcut": "scoped.command+option+i", "icon": "Open File"},
+    {"id": "38", "label": "Open Delete Browsing Data options", "shortcut": "scoped.command+shift+delete", "icon": "Delete"},
+    {"id": "39", "label": "Log", "shortcut": "scoped.command+shift+m", "icon": "Information"},
+    {"id": "40", "label": "Jump to main menu bar", "shortcut": "scoped.control+f2", "icon": "Shortcut Command"},
+    {"id": "41", "label": "Cycle focus to unfocused dialog (if showing)", "shortcut": "scoped.command+option+up", "icon": "Arrow Up"},
+    {"id": "42", "label": "Cycle focus to unfocused dialog (if showing)", "shortcut": "scoped.command+option+down", "icon": "Arrow Down"},
+    {"id": "43", "label": "Open feedback form", "shortcut": "scoped.command+option+shift+i", "icon": "Open File"},
+    {"id": "44", "label": "Turn on caret browsing", "shortcut": "scoped.f7", "icon": "Shortcut Command"},
+    {"id": "45", "label": "Focus on inactive dialogs", "shortcut": "scoped.command+option+shift+a", "icon": "Shortcut Command"},
+    {"id": "46", "label": "Open split view in tab", "shortcut": "scoped.command+option+n", "icon": "Tab"},
+    {"id": "47", "label": "Jump to address bar", "shortcut": "scoped.command+l", "icon": "Shortcut Command"},
+    {"id": "48", "label": "Add \"www.\" and \".com\" to site name in tab", "shortcut": "scoped.control+enter", "icon": "Tab"},
+    {"id": "49", "label": "Add \"www.\" and \".com\" to site name in new", "shortcut": "scoped.control+shift+enter", "icon": "New Window"},
+    {"id": "50", "label": "Open website in new background tab", "shortcut": "scoped.command+enter", "icon": "Tab"},
+    {"id": "51", "label": "Remove predictions from your address bar", "shortcut": "scoped.down~shift+function+delete", "icon": "Delete"},
+    {"id": "52", "label": "Move cursor to address bar", "shortcut": "scoped.control+f5", "icon": "Shortcut Command"},
+    {"id": "53", "label": "Compose new email message with link to page", "shortcut": "scoped.command+shift+i", "icon": "Link"},
+    {"id": "54", "label": "Open options to print page", "shortcut": "scoped.command+p", "icon": "Printer"},
+    {"id": "55", "label": "Open options to save page", "shortcut": "scoped.command+s", "icon": "Save"},
+    {"id": "56", "label": "Open Page Setup dialog", "shortcut": "scoped.command+option+p", "icon": "Book"},
+    {"id": "57", "label": "Reload your page, ignoring cached content", "shortcut": "scoped.command+shift+r", "icon": "Book"},
+    {"id": "58", "label": "Stop page loading", "shortcut": "scoped.escape", "icon": "Stop"},
+    {"id": "59", "label": "Browse clickable items moving forward", "shortcut": "scoped.tab", "icon": "Arrow Right"},
+    {"id": "60", "label": "Browse clickable items moving backward", "shortcut": "scoped.shift+tab", "icon": "Skip Previous"},
+    {"id": "61", "label": "Open file", "shortcut": "scoped.command+o", "icon": "Open File"},
+    {"id": "62", "label": "Display non-editable HTML source code for page", "shortcut": "scoped.command+option+u", "icon": "Code"},
+    {"id": "63", "label": "Open JavaScript Console", "shortcut": "scoped.command+option+j", "icon": "Terminal"},
+    {"id": "64", "label": "Make everything on page bigger", "shortcut": "scoped.command+shift+keyequal", "icon": "Book"},
+    {"id": "65", "label": "Make everything on page smaller", "shortcut": "scoped.command+keyminus", "icon": "Book"},
+    {"id": "66", "label": "Return everything on page to default size", "shortcut": "scoped.command+0", "icon": "Book"},
+    {"id": "67", "label": "Scroll down webpage, screen at time", "shortcut": "scoped.space", "icon": "Arrow Down"},
+    {"id": "68", "label": "Scroll up webpage, screen at time", "shortcut": "scoped.shift+space", "icon": "Arrow Up"},
+    {"id": "69", "label": "Move your cursor to beginning", "shortcut": "scoped.option+left", "icon": "Heading"},
+    {"id": "70", "label": "Move your cursor to back", "shortcut": "scoped.option+right", "icon": "Heading"},
+    {"id": "71", "label": "Delete previous word in text field", "shortcut": "scoped.option+delete", "icon": "Delete"},
+    {"id": "72", "label": "Open your home page in tab", "shortcut": "scoped.command+shift+h", "icon": "Tab"}
   ]
 }

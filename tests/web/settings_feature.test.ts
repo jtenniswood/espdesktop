@@ -1,7 +1,5 @@
-import { screensaverControlState, timedSettingLabel } from "../../src/webserver/features/settings";
+import { screensaverControlState } from "../../src/webserver/features/settings";
 import { createScreensaverController } from "../../src/webserver/features/screensaver_controller";
-import { createCoverArtScreensaverController } from "../../src/webserver/features/cover_art_screensaver_controller";
-import { createMediaPlaybackController } from "../../src/webserver/features/media_playback_controller";
 import { createClockBarController } from "../../src/webserver/features/clock_bar_controller";
 import { createScreenScheduleController } from "../../src/webserver/features/screen_schedule_controller";
 import { cardCurveRadius, normalizeCardCurve, normalizeThemeAutoMethod, normalizeThemeMode, normalizeTimeOfDay, parseThemeSunOffset } from "../../src/webserver/model/settings";
@@ -35,7 +33,7 @@ function placeholderOutline(textMuted: string, background: string): string {
 }
 
 export function runSettingsFeatureTests(): void {
-  equal(normalizeCardCurve(undefined), "Medium", "new curve settings default to Medium");
+  equal(normalizeCardCurve(undefined), "Large", "new curve settings default to Large");
   equal(normalizeCardCurve("medium"), "Medium", "curve values normalize for backup restore");
   for (const [large, small, medium] of [[20, 12, 16], [22, 13, 18], [35, 21, 28], [26, 16, 21]]) {
     equal(cardCurveRadius(large!, "Small"), small, "Small radius matches firmware rounding");
@@ -107,11 +105,6 @@ export function runSettingsFeatureTests(): void {
   equal(clock.nightBrightnessLabel, "13%", "night brightness label retains rounding");
   equal(clock.dimBrightnessLabel, "8%", "dim brightness label retains rounding");
 
-  const format = (seconds: number): string => `${seconds} seconds`;
-  equal(timedSettingLabel(-1, format), "Always", "negative duration means always");
-  equal(timedSettingLabel(0, format), "Never", "zero duration means never");
-  equal(timedSettingLabel(15, format), "15 seconds", "positive duration uses the injected formatter");
-
   const screensaver = createScreensaverController({
     action: (value) => ["off", "dim", "clock"].includes(String(value)) ? String(value) : "off",
     dimBrightness: (value) => Math.max(1, Math.min(100, Number(value))),
@@ -139,48 +132,6 @@ export function runSettingsFeatureTests(): void {
         20, "nighttime dim brightness falls back to the daytime value");
   equal(screensaver.setClockBrightness(clockMode, "clockBrightnessNight", 0).clockBrightnessNight,
         35, "night brightness uses daytime brightness as its fallback");
-
-  const coverArt = createCoverArtScreensaverController({
-    delay: (value) => Math.max(0, Math.min(120, Number(value) || 0)),
-    trackOverlayDuration: (value) => Math.max(0, Number(value) || 0),
-  });
-  const coverArtInitial = {
-    enabled: false,
-    delay: 10,
-    trackOverlayDuration: 5,
-    hideExternalInput: true,
-    filteringEnabled: false,
-    attributeConditions: "",
-  };
-  equal(coverArt.uiState(coverArtInitial).contentVisible, false, "cover art settings hide when disabled");
-  const coverArtEnabled = coverArt.setEnabled(coverArtInitial, true);
-  equal(coverArt.uiState(coverArtEnabled).badgeVisible, true, "cover art badge shows when enabled");
-  equal(coverArt.setDelay(coverArtEnabled, 300).delay, 120, "cover art delay is normalized");
-  equal(coverArt.setShowExternalSources(coverArtEnabled, true).hideExternalInput, false,
-        "showing external sources clears the hide setting");
-  equal(coverArt.setFilteringEnabled({ ...coverArtEnabled, attributeConditions: "app_id=music" }, false).attributeConditions,
-        "", "turning filtering off clears its conditions");
-  equal(coverArt.initialState({ ...coverArtEnabled, filteringEnabled: true }).filteringEnabled, false,
-        "a freshly built empty filter starts disabled");
-  equal(coverArt.normalize({ ...coverArtEnabled, filteringEnabled: true }).filteringEnabled, true,
-        "an enabled empty filter remains visible while editing");
-  equal(coverArt.uiState(coverArt.setAttributeConditions(coverArtInitial, "media_content_type=music")).filterOptionsVisible,
-        true, "saved conditions keep filtering controls visible");
-
-  const mediaPlayback = createMediaPlaybackController();
-  const playbackInitial = {
-    sleepPreventionEnabled: true,
-    sleepPreventionEntity: "media_player.living_room",
-    coverArtEntity: "media_player.living_room",
-  };
-  equal(mediaPlayback.uiState(playbackInitial).sleepPreventionEnabled, true,
-        "sleep prevention state is shared by every settings surface");
-  equal(mediaPlayback.setSleepPreventionEnabled(playbackInitial, false).sleepPreventionEnabled, false,
-        "sleep prevention toggle updates its shared state");
-  const changedEntity = mediaPlayback.setCoverArtEntity(playbackInitial, "media_player.kitchen");
-  equal(changedEntity.coverArtEntity, "media_player.kitchen", "cover art entity is updated");
-  equal(changedEntity.sleepPreventionEntity, "media_player.kitchen",
-        "cover art entity remains mirrored to sleep prevention");
 
   const clockBar = createClockBarController();
   const clockBarInitial = { enabled: true, timeEnabled: true, nightModeEnabled: false, selectedItem: "network" };
