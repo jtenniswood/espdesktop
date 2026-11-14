@@ -12,6 +12,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <mutex>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <utility>
@@ -51,11 +52,12 @@ struct CompanionNetworkInterface {
   std::string address;
 };
 
-enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, COUNT };
+enum class TokenUsageService : size_t { CODEX, CLAUDE, OPENCODE_GO, CLAUDE_ENTERPRISE, COUNT };
 
 inline TokenUsageService token_usage_service(std::string_view service) {
   if (service == "claude") return TokenUsageService::CLAUDE;
   if (service == "opencode-go") return TokenUsageService::OPENCODE_GO;
+  if (service == "claude-enterprise") return TokenUsageService::CLAUDE_ENTERPRISE;
   return TokenUsageService::CODEX;
 }
 
@@ -63,6 +65,7 @@ struct CompanionTokenUsageReading {
   uint8_t remaining_percent{0};
   uint32_t resets_at{0};
   uint32_t observed_at{0};
+  std::optional<uint32_t> spend_cents;
 };
 
 using CompanionTokenUsage = std::array<CompanionTokenUsageReading, static_cast<size_t>(TokenUsageService::COUNT)>;

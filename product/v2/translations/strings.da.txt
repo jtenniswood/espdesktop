@@ -344,3 +344,4 @@ mute=Slå lyd fra
 mac_update_required=Opdater Mac-appen
 mac_update_reconnect=Opdater EspDesktop på din Mac for at oprette forbindelse igen.
 token_usage_resets=Nulstilles om
+token_usage_last_seven_days=Seneste 7 dage

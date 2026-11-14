@@ -36,7 +36,7 @@ This generated reference lists release availability and setup facts from the sha
 | Media | media | media_player | Yes | Own picker item | None | Retired |
 | Trigger | push | None | Yes | Own picker item | None | Retired |
 | Lock Machine | companion_mac_lock | None | Yes | Own picker item | None | Stable |
-| Token Usage | token_usage | None | Yes | Own picker item | Service: codex, claude, opencode-go | Stable |
+| Token Usage | token_usage | None | Yes | Own picker item | Service: codex, claude, opencode-go, claude-enterprise | Stable |
 | Companion | companion | None | Yes | Own picker item | App Subpage; Large Sensor Numbers; Show capacity label | Stable |
 | Legacy Slider | slider | light, fan, number, input_number | Yes | Own picker item | None | Retired |
 | Subpage | subpage | None | Yes | Own picker item | Subpage Connector: default, mac_companion; Subpage Type: default, switch, lights, climate, presence, media, alarm, cover, garage, gate, lock, vacuum, lawn_mower, weather, sensor, image, companion_stat; Large State Numbers | Stable |

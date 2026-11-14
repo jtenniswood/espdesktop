@@ -28,7 +28,15 @@ inline void refresh_token_usage_tile(const TokenUsageTile &tile) {
   const bool reset_known = connected && clock_ready && remaining > 0 && age <= 15 * 60;
   std::string value = espdesktop_i18n("Unavailable");
   std::string detail;
-  if (reading.observed_at) {
+  if (tile.service == static_cast<size_t>(TokenUsageService::CLAUDE_ENTERPRISE)) {
+    if (reading.spend_cents && connected && clock_ready && age <= 60 * 60) {
+      const auto cents = *reading.spend_cents;
+      const auto fractional = cents % 100;
+      value = "$" + std::to_string(cents / 100) + (fractional < 10 ? ".0" : ".") +
+              std::to_string(fractional);
+      detail = espdesktop_i18n_key("token_usage_last_seven_days");
+    }
+  } else if (reading.observed_at) {
     value = std::to_string(reading.remaining_percent) + espdesktop_i18n("% left");
     if (reset_known) {
       detail = espdesktop_i18n_key("token_usage_resets");
@@ -71,7 +79,8 @@ inline void token_usage_tile_tick(lv_timer_t *timer) {
 inline const lv_image_dsc_t *token_usage_icon(size_t index) {
   static const auto descriptors = [] {
     std::array<lv_image_dsc_t, static_cast<size_t>(TokenUsageService::COUNT)> result{};
-    const uint8_t *pixels[] = {token_usage_codex_icon, token_usage_claude_icon, token_usage_opencode_go_icon};
+    const uint8_t *pixels[] = {token_usage_codex_icon, token_usage_claude_icon, token_usage_opencode_go_icon,
+                               token_usage_claude_icon};
     for (size_t i = 0; i < result.size(); ++i) {
       auto &icon = result[i];
       icon.header.magic = LV_IMAGE_HEADER_MAGIC;
@@ -116,7 +125,7 @@ inline void setup_token_usage_card(BtnSlot &slot, const ParsedCfg &config,
   lv_obj_set_style_image_recolor_opa(icon, LV_OPA_COVER, LV_PART_MAIN);
 #else
   auto *icon = lv_label_create(container);
-  const char *names[] = {"Codex", "Claude", "OpenCode Go"};
+  const char *names[] = {"Codex", "Claude", "OpenCode Go", "Claude Enterprise"};
   lv_label_set_text(icon, names[tile->service]);
 #endif
   lv_obj_clear_flag(icon, LV_OBJ_FLAG_CLICKABLE);

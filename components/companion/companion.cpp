@@ -882,6 +882,13 @@ void CompanionService::handle_json_(int socket_fd, const std::string &message) {
         entry = {static_cast<uint8_t>(reading.remainingPercent),
                  static_cast<uint32_t>(reading.resetsAt), static_cast<uint32_t>(reading.observedAt)};
       }
+      if (payload->claudeEnterpriseSpendCents.has_value() != payload->claudeEnterpriseObservedAt.has_value())
+        return false;
+      if (payload->claudeEnterpriseSpendCents) {
+        auto &entry = readings[static_cast<size_t>(TokenUsageService::CLAUDE_ENTERPRISE)];
+        entry.spend_cents = *payload->claudeEnterpriseSpendCents;
+        entry.observed_at = *payload->claudeEnterpriseObservedAt;
+      }
       this->defer_session_([readings] { companion_runtime_service().set_token_usage(readings); }, "token_usage");
       return true;
     }

@@ -310,6 +310,7 @@ inline const char *espdesktop_i18n_cs(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizovat aplikaci pro Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
   if (std::strcmp(text, "Resets") == 0) return "Obnova za";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Posledních 7 dní";
   return text;
 }
 
@@ -599,6 +600,7 @@ inline const char *espdesktop_i18n_da(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Opdater Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
   if (std::strcmp(text, "Resets") == 0) return "Nulstilles om";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Seneste 7 dage";
   return text;
 }
 
@@ -892,6 +894,7 @@ inline const char *espdesktop_i18n_de(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
   if (std::strcmp(text, "Resets") == 0) return "Reset in";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Letzte 7 Tage";
   return text;
 }
 
@@ -1196,6 +1199,7 @@ inline const char *espdesktop_i18n_es(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
   if (std::strcmp(text, "Resets") == 0) return "Se reinicia en";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Últimos 7 días";
   return text;
 }
 
@@ -1503,6 +1507,7 @@ inline const char *espdesktop_i18n_fi(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Päivitä Mac-sovellus";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
   if (std::strcmp(text, "Resets") == 0) return "Nollautuu";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Viimeiset 7 päivää";
   return text;
 }
 
@@ -1801,6 +1806,7 @@ inline const char *espdesktop_i18n_fr(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
   if (std::strcmp(text, "Resets") == 0) return "Réinit. dans";
+  if (std::strcmp(text, "Last 7 days") == 0) return "7 derniers jours";
   return text;
 }
 
@@ -2115,6 +2121,7 @@ inline const char *espdesktop_i18n_he(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "עדכון האפליקציה ב-Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
   if (std::strcmp(text, "Resets") == 0) return "איפוס בעוד";
+  if (std::strcmp(text, "Last 7 days") == 0) return "7 הימים האחרונים";
   return text;
 }
 
@@ -2421,6 +2428,7 @@ inline const char *espdesktop_i18n_hu(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Frissítse a Mac-alkalmazást";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
   if (std::strcmp(text, "Resets") == 0) return "Visszaáll";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Elmúlt 7 nap";
   return text;
 }
 
@@ -2724,6 +2732,7 @@ inline const char *espdesktop_i18n_it(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
   if (std::strcmp(text, "Resets") == 0) return "Si azzera tra";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Ultimi 7 giorni";
   return text;
 }
 
@@ -3019,6 +3028,7 @@ inline const char *espdesktop_i18n_nb(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Oppdater Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
   if (std::strcmp(text, "Resets") == 0) return "Nullstilles om";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Siste 7 dager";
   return text;
 }
 
@@ -3314,6 +3324,7 @@ inline const char *espdesktop_i18n_nl(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Update de Mac-app";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
   if (std::strcmp(text, "Resets") == 0) return "Reset over";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Afgelopen 7 dagen";
   return text;
 }
 
@@ -3609,6 +3620,7 @@ inline const char *espdesktop_i18n_pl(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Zaktualizuj aplikację na Macu";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
   if (std::strcmp(text, "Resets") == 0) return "Reset za";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Ostatnie 7 dni";
   return text;
 }
 
@@ -3905,6 +3917,7 @@ inline const char *espdesktop_i18n_pt_br(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
   if (std::strcmp(text, "Resets") == 0) return "Reinicia em";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Últimos 7 dias";
   return text;
 }
 
@@ -4208,6 +4221,7 @@ inline const char *espdesktop_i18n_pt(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
   if (std::strcmp(text, "Resets") == 0) return "Reinicia em";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Últimos 7 dias";
   return text;
 }
 
@@ -4514,6 +4528,7 @@ inline const char *espdesktop_i18n_ro(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Actualizează aplicația pentru Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
   if (std::strcmp(text, "Resets") == 0) return "Resetare în";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Ultimele 7 zile";
   return text;
 }
 
@@ -4827,6 +4842,7 @@ inline const char *espdesktop_i18n_ru(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Обновите приложение для Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
   if (std::strcmp(text, "Resets") == 0) return "Сброс через";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Последние 7 дней";
   return text;
 }
 
@@ -5126,6 +5142,7 @@ inline const char *espdesktop_i18n_sk(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Aktualizujte aplikáciu pre Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
   if (std::strcmp(text, "Resets") == 0) return "Obnova o";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Posledných 7 dní";
   return text;
 }
 
@@ -5429,6 +5446,7 @@ inline const char *espdesktop_i18n_sl(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Posodobite aplikacijo za Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
   if (std::strcmp(text, "Resets") == 0) return "Ponastavitev čez";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Zadnjih 7 dni";
   return text;
 }
 
@@ -5722,6 +5740,7 @@ inline const char *espdesktop_i18n_sv(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Uppdatera Mac-appen";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
   if (std::strcmp(text, "Resets") == 0) return "Återställs om";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Senaste 7 dagarna";
   return text;
 }
 
@@ -6029,6 +6048,7 @@ inline const char *espdesktop_i18n_tr(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Mac uygulamasını güncelleyin";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
   if (std::strcmp(text, "Resets") == 0) return "Sıfırlanır";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Son 7 gün";
   return text;
 }
 
@@ -6337,6 +6357,7 @@ inline const char *espdesktop_i18n_uk(const char *text) {
   if (std::strcmp(text, "Update Mac app") == 0) return "Оновіть застосунок для Mac";
   if (std::strcmp(text, "Update EspDesktop on your Mac to reconnect.") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
   if (std::strcmp(text, "Resets") == 0) return "Скидання через";
+  if (std::strcmp(text, "Last 7 days") == 0) return "Останні 7 днів";
   return text;
 }
 
@@ -6680,6 +6701,7 @@ inline const char *espdesktop_i18n_key_en(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Update Mac app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Update EspDesktop on your Mac to reconnect.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Resets";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Last 7 days";
   return key;
 }
 
@@ -6988,6 +7010,7 @@ inline const char *espdesktop_i18n_key_cs(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizovat aplikaci pro Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Pro opětovné připojení aktualizujte EspDesktop na Macu.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Obnova za";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Posledních 7 dní";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7285,6 +7308,7 @@ inline const char *espdesktop_i18n_key_da(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Opdater Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Opdater EspDesktop på din Mac for at oprette forbindelse igen.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Nulstilles om";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Seneste 7 dage";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7586,6 +7610,7 @@ inline const char *espdesktop_i18n_key_de(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Mac-App aktualisieren";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aktualisiere EspDesktop auf deinem Mac, um die Verbindung wiederherzustellen.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Reset in";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Letzte 7 Tage";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -7899,6 +7924,7 @@ inline const char *espdesktop_i18n_key_es(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Actualizar la app de Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualiza EspDesktop en tu Mac para volver a conectar.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Se reinicia en";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Últimos 7 días";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8216,6 +8242,7 @@ inline const char *espdesktop_i18n_key_fi(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Päivitä Mac-sovellus";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Muodosta yhteys uudelleen päivittämällä EspDesktop Macissa.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Nollautuu";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Viimeiset 7 päivää";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8523,6 +8550,7 @@ inline const char *espdesktop_i18n_key_fr(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Mettre à jour l’app Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Mettez à jour EspDesktop sur votre Mac pour rétablir la connexion.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Réinit. dans";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "7 derniers jours";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -8847,6 +8875,7 @@ inline const char *espdesktop_i18n_key_he(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "עדכון האפליקציה ב-Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "כדי להתחבר מחדש, יש לעדכן את EspDesktop ב-Mac.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "איפוס בעוד";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "7 הימים האחרונים";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9163,6 +9192,7 @@ inline const char *espdesktop_i18n_key_hu(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Frissítse a Mac-alkalmazást";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "A csatlakozáshoz frissítse az EspDesktopot a Macen.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Visszaáll";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Elmúlt 7 nap";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9475,6 +9505,7 @@ inline const char *espdesktop_i18n_key_it(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Aggiorna l’app per Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Aggiorna EspDesktop sul Mac per riconnetterti.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Si azzera tra";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Ultimi 7 giorni";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -9779,6 +9810,7 @@ inline const char *espdesktop_i18n_key_nb(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Oppdater Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Oppdater EspDesktop på Macen for å koble til igjen.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Nullstilles om";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Siste 7 dager";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10080,6 +10112,7 @@ inline const char *espdesktop_i18n_key_nl(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Update de Mac-app";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Werk EspDesktop op je Mac bij om opnieuw verbinding te maken.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Reset over";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Afgelopen 7 dagen";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10385,6 +10418,7 @@ inline const char *espdesktop_i18n_key_pl(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Zaktualizuj aplikację na Macu";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Zaktualizuj EspDesktop na Macu, aby ponownie się połączyć.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Reset za";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Ostatnie 7 dni";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -10690,6 +10724,7 @@ inline const char *espdesktop_i18n_key_pt_br(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar o app do Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para se reconectar.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Reinicia em";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Últimos 7 dias";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11002,6 +11037,7 @@ inline const char *espdesktop_i18n_key_pt(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Atualizar a app para Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Atualize o EspDesktop no Mac para voltar a ligar.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Reinicia em";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Últimos 7 dias";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11318,6 +11354,7 @@ inline const char *espdesktop_i18n_key_ro(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Actualizează aplicația pentru Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Actualizează EspDesktop pe Mac pentru a te reconecta.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Resetare în";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Ultimele 7 zile";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11641,6 +11678,7 @@ inline const char *espdesktop_i18n_key_ru(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Обновите приложение для Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Обновите EspDesktop на Mac, чтобы восстановить соединение.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Сброс через";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Последние 7 дней";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -11950,6 +11988,7 @@ inline const char *espdesktop_i18n_key_sk(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Aktualizujte aplikáciu pre Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Na opätovné pripojenie aktualizujte EspDesktop na Macu.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Obnova o";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Posledných 7 dní";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12263,6 +12302,7 @@ inline const char *espdesktop_i18n_key_sl(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Posodobite aplikacijo za Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Za ponovno povezavo posodobite EspDesktop na Macu.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Ponastavitev čez";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Zadnjih 7 dni";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12564,6 +12604,7 @@ inline const char *espdesktop_i18n_key_sv(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Uppdatera Mac-appen";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Uppdatera EspDesktop på din Mac för att ansluta igen.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Återställs om";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Senaste 7 dagarna";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -12881,6 +12922,7 @@ inline const char *espdesktop_i18n_key_tr(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Mac uygulamasını güncelleyin";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Yeniden bağlanmak için Mac’inizde EspDesktop’u güncelleyin.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Sıfırlanır";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Son 7 gün";
   return espdesktop_i18n_key_en(key);
 }
 
@@ -13199,6 +13241,7 @@ inline const char *espdesktop_i18n_key_uk(const char *key) {
   if (std::strcmp(key, "mac_update_required") == 0) return "Оновіть застосунок для Mac";
   if (std::strcmp(key, "mac_update_reconnect") == 0) return "Оновіть EspDesktop на Mac, щоб відновити з’єднання.";
   if (std::strcmp(key, "token_usage_resets") == 0) return "Скидання через";
+  if (std::strcmp(key, "token_usage_last_seven_days") == 0) return "Останні 7 днів";
   return espdesktop_i18n_key_en(key);
 }
 

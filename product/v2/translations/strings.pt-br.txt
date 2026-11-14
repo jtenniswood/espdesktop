@@ -344,3 +344,4 @@ mute=Silenciar
 mac_update_required=Atualizar o app do Mac
 mac_update_reconnect=Atualize o EspDesktop no Mac para se reconectar.
 token_usage_resets=Reinicia em
+token_usage_last_seven_days=Últimos 7 dias

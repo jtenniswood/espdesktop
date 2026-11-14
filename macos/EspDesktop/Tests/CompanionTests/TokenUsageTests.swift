@@ -67,6 +67,26 @@ final class TokenUsageTests: XCTestCase {
         XCTAssertNil(TokenUsage.openCodeGoKey(from: Data(zenOnly.utf8)))
     }
 
+    func testEnterpriseSpendSumsFractionalCentsBeforeRounding() throws {
+        let first = #"{"data":[{"cost":{"amount":"100.250000","currency":"USD"}}],"data_refreshed_at":"2025-06-15T12:00:00Z","has_more":true,"next_page":"next"}"#
+        let last = #"{"data":[{"cost":{"amount":"23.250000","currency":"USD"}}],"data_refreshed_at":"2025-06-15T12:00:00Z","has_more":false}"#
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let reading = try XCTUnwrap(TokenUsage.parseEnterpriseSpend([Data(first.utf8), Data(last.utf8)], observedAt: now))
+        XCTAssertEqual(reading.cents, 124)
+        XCTAssertEqual(reading.formatted, "$1.24")
+        XCTAssertNil(TokenUsage.parseEnterpriseSpend([Data(first.utf8)], observedAt: now))
+    }
+
+    func testEnterpriseSpendDistinguishesZeroFromInvalidData() {
+        let now = Date(timeIntervalSince1970: 1_750_000_000)
+        let empty = #"{"data":[],"data_refreshed_at":"2025-06-15T12:00:00Z","has_more":false}"#
+        XCTAssertEqual(TokenUsage.parseEnterpriseSpend([Data(empty.utf8)], observedAt: now)?.formatted, "$0.00")
+        let noExport = #"{"data":[],"data_refreshed_at":null,"has_more":false}"#
+        XCTAssertNil(TokenUsage.parseEnterpriseSpend([Data(noExport.utf8)], observedAt: now))
+        let invalid = #"{"data":[{"cost":{"amount":"190","currency":"GBP"}}],"data_refreshed_at":"2025-06-15T12:00:00Z","has_more":false}"#
+        XCTAssertNil(TokenUsage.parseEnterpriseSpend([Data(invalid.utf8)], observedAt: now))
+    }
+
     func testReadsOnlyTheWeeklyCodexLimit() throws {
         let snapshot = #"{"id":2,"result":{"rateLimits":{"limitId":"codex","primary":{"usedPercent":10,"windowDurationMins":300,"resetsAt":1700003600},"secondary":{"usedPercent":59,"windowDurationMins":10080,"resetsAt":1700172800}}}}"#
         let reading = try XCTUnwrap(TokenUsage.parseCodex(Data(snapshot.utf8), observedAt: 1_700_000_000))

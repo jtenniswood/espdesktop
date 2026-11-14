@@ -344,3 +344,4 @@ mute=Némítás
 mac_update_required=Frissítse a Mac-alkalmazást
 mac_update_reconnect=A csatlakozáshoz frissítse az EspDesktopot a Macen.
 token_usage_resets=Visszaáll
+token_usage_last_seven_days=Elmúlt 7 nap

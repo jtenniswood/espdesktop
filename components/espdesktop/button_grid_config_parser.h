@@ -1390,7 +1390,7 @@ inline ParsedCfg normalize_parsed_cfg(ParsedCfg p) {
     p.sensor.clear();
     p.unit.clear();
     p.precision.clear();
-    p.options = services == "claude" || services == "opencode-go" ? "services=" + services : "";
+    p.options = (services == "claude" || services == "opencode-go" || services == "claude-enterprise") ? "services=" + services : "";
   }
   if (p.type == "companion_mac_lock") {
     p.entity = "shortcut.command+control+q";

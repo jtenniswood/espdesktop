@@ -344,3 +344,4 @@ mute=Без звуку
 mac_update_required=Оновіть застосунок для Mac
 mac_update_reconnect=Оновіть EspDesktop на Mac, щоб відновити з’єднання.
 token_usage_resets=Скидання через
+token_usage_last_seven_days=Останні 7 днів

@@ -117,6 +117,8 @@ struct TokenUsageReadingsItem {
 };
 struct TokenUsage {
   std::vector<TokenUsageReadingsItem> readings{};
+  std::optional<uint32_t> claudeEnterpriseSpendCents{};
+  std::optional<uint32_t> claudeEnterpriseObservedAt{};
 };
 struct SystemMetricsStorageDevicesItem {
   std::string id{};
@@ -346,6 +348,8 @@ inline void encode(JsonObject root, const TokenUsage &message) {
     entry["resetsAt"] = item.resetsAt;
     entry["observedAt"] = item.observedAt;
   }
+  if (message.claudeEnterpriseSpendCents) root["claudeEnterpriseSpendCents"] = *message.claudeEnterpriseSpendCents;
+  if (message.claudeEnterpriseObservedAt) root["claudeEnterpriseObservedAt"] = *message.claudeEnterpriseObservedAt;
 }
 inline void encode(JsonObject root, const SystemMetrics &message) {
   root["type"] = "system_metrics";
@@ -817,10 +821,18 @@ inline std::optional<Message> decode(JsonObjectConst root, Direction direction, 
         }
       }
     }
+    if (!root["claudeEnterpriseSpendCents"].isUnbound()) {
+      if (!(number_valid(root["claudeEnterpriseSpendCents"], 0, 4294967295, true))) return std::nullopt;
+    }
+    if (!root["claudeEnterpriseObservedAt"].isUnbound()) {
+      if (!(number_valid(root["claudeEnterpriseObservedAt"], 1, 4294967295, true))) return std::nullopt;
+    }
     TokenUsage result;
     for (JsonVariantConst item : root["readings"].as<JsonArrayConst>()) {
       result.readings.push_back({item["service"].as<std::string>(), item["remainingPercent"].as<uint32_t>(), item["resetsAt"].as<uint32_t>(), item["observedAt"].as<uint32_t>()});
     }
+    if (!root["claudeEnterpriseSpendCents"].isUnbound()) result.claudeEnterpriseSpendCents = root["claudeEnterpriseSpendCents"].as<uint32_t>();
+    if (!root["claudeEnterpriseObservedAt"].isUnbound()) result.claudeEnterpriseObservedAt = root["claudeEnterpriseObservedAt"].as<uint32_t>();
     return result;
   }
   if (type == "system_metrics") {
