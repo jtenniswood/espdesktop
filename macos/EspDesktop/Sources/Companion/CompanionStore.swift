@@ -162,6 +162,7 @@ final class CompanionStore: NSObject, ObservableObject {
     private var lastMediaControlValues: [String: Int] = [:]
     private var coughHolds: [ObjectIdentifier: Task<Void, Never>] = [:]
     private var coughRestoreRetry: Task<Void, Never>?
+    private var coughStateRefresh: Task<Void, Never>?
 
     override convenience init() {
         self.init(
@@ -806,6 +807,8 @@ final class CompanionStore: NSObject, ObservableObject {
             activatedApplicationPID = nil
             invalidateBrowserFocusQuery()
             lastMediaControlValues = [:]
+            coughStateRefresh?.cancel()
+            coughStateRefresh = nil
             lastAppVolumeValues = [:]
             appVolumeRefresh?.cancel()
             appVolumeRefresh = nil
@@ -1056,6 +1059,7 @@ final class CompanionStore: NSObject, ObservableObject {
         }
         guard value == 50 || value == 100, !sessionLock.refresh() else { return false }
         // A renewal cannot start a new hold after disconnect, sleep or expiry.
+        let startsMute = coughHolds[session] == nil && coughHolds.isEmpty
         if coughHolds[session] == nil {
             guard value == 100 else { return false }
             if coughHolds.isEmpty {
@@ -1070,7 +1074,7 @@ final class CompanionStore: NSObject, ObservableObject {
             guard !Task.isCancelled else { return }
             _ = self?.setCoughButtonValue(0, from: session)
         }
-        if value == 100 { publishMediaControlValues() }
+        if startsMute { publishCoughTransition() }
         return true
     }
 
@@ -1084,7 +1088,7 @@ final class CompanionStore: NSObject, ObservableObject {
         if mediaController.endCoughMute() {
             coughRestoreRetry?.cancel()
             coughRestoreRetry = nil
-            publishMediaControlValues()
+            publishCoughTransition()
         } else if coughRestoreRetry == nil {
             // The original device can become temporarily unavailable while held.
             coughRestoreRetry = Task { [weak self] in
@@ -1093,6 +1097,29 @@ final class CompanionStore: NSObject, ObservableObject {
                 coughRestoreRetry = nil
                 restoreCoughInput()
             }
+        }
+    }
+
+    private func publishCoughTransition() {
+        coughStateRefresh?.cancel()
+        coughStateRefresh = nil
+        guard connectedDisplayCount > 0 else { return }
+        let previous = lastMediaControlValues[SystemMediaController.coughID]
+        publishMediaControlValues()
+        let confirmed = lastMediaControlValues[SystemMediaController.coughID]
+        guard previous == nil || confirmed == previous else { return }
+
+        // Some input devices report the previous state immediately after a
+        // successful write. Recheck briefly so the icon can follow the device
+        // between the regular one-second snapshots.
+        coughStateRefresh = Task { [weak self] in
+            for _ in 0..<20 {
+                try? await Task.sleep(for: .milliseconds(50))
+                guard !Task.isCancelled, let self else { return }
+                self.publishMediaControlValues()
+                if self.lastMediaControlValues[SystemMediaController.coughID] != confirmed { break }
+            }
+            self?.coughStateRefresh = nil
         }
     }
 

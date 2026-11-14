@@ -14,7 +14,8 @@ private final class DisplayMetricsFixture: SystemMetricsProviding {
 
 @MainActor
 private final class DisplayMediaFixture: MediaControlling {
-    func values() -> [String: Int] { [:] }
+    var readValues: () -> [String: Int] = { [:] }
+    func values() -> [String: Int] { readValues() }
     func setValue(_ value: Int, controlIdentifier: String) -> Bool { false }
     var coughStarts = 0
     var coughEnds = 0
@@ -46,6 +47,33 @@ final class CompanionDisplayTests: XCTestCase {
         XCTAssertTrue(store.setCoughButtonValue(0, from: b))
         XCTAssertEqual(media.coughEnds, 1)
         XCTAssertFalse(store.setCoughButtonValue(50, from: b))
+    }
+
+    @MainActor
+    func testCoughRechecksMicrophoneBeforeThePeriodicRefresh() async {
+        let suite = "CompanionDisplayTests.\(UUID())"
+        let defaults = UserDefaults(suiteName: suite)!
+        defer { defaults.removePersistentDomain(forName: suite) }
+        CompanionSavedDisplays(defaults: defaults).save([
+            CompanionDisplayRecord(host: "office.local", account: "office")
+        ])
+        let media = DisplayMediaFixture()
+        let store = CompanionStore(mediaController: media, systemMetricsProvider: DisplayMetricsFixture(),
+                                   defaults: defaults)
+        let display = store.displays[0]
+        display.connection.onEvent?(.connection(message: "Connected", state: .connected, recovery: nil))
+        defer { store.setConnection(false, for: display) }
+        let refreshed = expectation(description: "Reads the confirmed mute before the next regular snapshot")
+        var reads = 0
+        media.readValues = {
+            reads += 1
+            if reads == 2 { refreshed.fulfill() }
+            return [SystemMediaController.coughID: reads > 1 ? 100 : 0]
+        }
+
+        XCTAssertTrue(store.setCoughButtonValue(100, from: ObjectIdentifier(display.connection)))
+        XCTAssertEqual(reads, 1)
+        await fulfillment(of: [refreshed], timeout: 0.75)
     }
 
     @MainActor
