@@ -114,8 +114,9 @@ async function checkBrowser() {
       const grid = scope.locator('.sp-main[aria-disabled="false"]');
       await grid.waitFor();
       await scope.locator('.sp-topbar').waitFor({ state: 'hidden' });
-      assert.equal(await grid.locator('[data-slot]').count(), launcherApps.length);
-      return Promise.all(launcherApps.map(async (name, index) => {
+      const apps = touchscreen ? launcherApps : launcherApps.slice(0, 8);
+      assert.equal(await grid.locator('[data-slot]').count(), apps.length);
+      return Promise.all(apps.map(async (name, index) => {
         const tile = grid.locator(`[data-slot="${index + 1}"]`);
         if (touchscreen) assert.equal(await tile.getAttribute('aria-label'), name);
         const artwork = tile.locator('img.sp-companion-app-icon');
@@ -199,7 +200,10 @@ async function checkBrowser() {
       assert(await page.getByRole('tab', { name: tab, exact: true }).isVisible());
     }
     const editorGrid = page.locator('.sp-main');
-    assert.deepEqual(await checkLauncher(page), touchscreenIcons, 'Both demos use the same launcher artwork');
+    const editorIcons = touchscreenIcons.slice(0, 8);
+    const ninthCell = editorGrid.locator('.sp-empty-cell[data-pos="8"]');
+    assert.deepEqual(await checkLauncher(page), editorIcons, 'The first eight cards use the same artwork in both demos');
+    await ninthCell.waitFor();
     const appTile = editorGrid.locator('[data-slot="3"]');
     const applicationPicker = page.getByRole('combobox', { name: 'Application', exact: true });
     const editApplication = async () => {
@@ -220,7 +224,8 @@ async function checkBrowser() {
     await page.getByRole('button', { name: 'Close settings' }).click();
     await appTile.click({ button: 'right' });
     await page.locator('.sp-ctx-item').getByText('Delete', { exact: true }).click();
-    await editorGrid.locator('.sp-empty-cell').first().click();
+    await editorGrid.locator('.sp-empty-cell[data-pos="2"]').waitFor();
+    await ninthCell.click();
     await page.locator('[data-card-type="companion_folder"]').click();
     const folderPicker = page.getByRole('combobox', { name: 'Folder', exact: true });
     await folderPicker.locator('option[value="folder.downloads"]').waitFor({ state: 'attached' });
@@ -288,7 +293,8 @@ async function checkBrowser() {
     await editorGrid.getByText('My Downloads', { exact: true }).waitFor();
     page.once('dialog', dialog => dialog.accept());
     await page.getByRole('button', { name: 'Reset demo', exact: true }).click();
-    assert.deepEqual(await checkLauncher(page), touchscreenIcons);
+    assert.deepEqual(await checkLauncher(page), editorIcons);
+    await ninthCell.waitFor();
     console.log('The separate editor saves and resets its own layout without changing the touchscreen demo.');
 
     const backToWebsite = page.getByRole('link', { name: 'Back to website', exact: true });
