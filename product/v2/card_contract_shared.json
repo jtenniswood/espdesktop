@@ -682,7 +682,7 @@
     "preview": {
       "companion_window": { "label": "Window Control", "issue": 309 }
     },
-    "removeOnEdit": ["companion_webapp", "companion_audio", "wifi_qr", "wifi_qr_card"]
+    "removeOnEdit": ["companion_audio", "wifi_qr", "wifi_qr_card"]
   },
   "retiredCardTypes": [
     "sensor",
@@ -700,7 +700,7 @@
     "clock",
     "timezone",
     "webhook",
-    "companion_webapp",
+
     "companion_audio"
   ]
 }

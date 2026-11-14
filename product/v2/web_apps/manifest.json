@@ -1,0 +1,8 @@
+{
+  "formatVersion": 1,
+  "catalogueVersion": 1,
+  "minimumCompanionVersion": "1.0.0",
+  "entries": [
+    { "path": "google-docs.json" }
+  ]
+}

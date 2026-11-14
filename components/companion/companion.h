@@ -38,9 +38,9 @@ struct CompanionIdentityPreference {
 struct CompanionFocusTargetsPreference {
   uint32_t version{1};
   uint8_t url_count{0};
-  uint8_t reserved_count{0}; // Retain the version 1 preference layout.
+  uint8_t web_app_count{0};
   char urls[64][129]{};
-  char reserved_ids[64][65]{};
+  char web_app_ids[64][65]{};
 };
 
 class CompanionService final : public Component {
@@ -123,6 +123,7 @@ class CompanionService final : public Component {
   std::vector<std::string> catalogue_enabled_icons_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   uint16_t application_definition_count_{0};
+  uint16_t web_app_definition_count_{0};
   uint32_t catalogue_generation_{0};
   uint16_t catalogue_next_page_{0};
   uint32_t definitions_generation_{0};

@@ -440,6 +440,7 @@ inline void setup_card_visual(BtnSlot &s, const ParsedCfg &p,
     if (p.type == "companion")
       grid_update_companion_app_icon_palette(s, p, palette, display);
 #endif
+    image_card_bind_companion_webapp_icon(s, p, cfg);
     espdesktop::cards::basic_action_driver_attach_interaction(s, p, context);
     espdesktop::cards::basic_action_driver_refresh_layout(
       s, p, context, display, row_span, col_span);
@@ -1134,6 +1135,7 @@ inline void grid_release_runtime_allocations(
 
 inline void navigation_release_subpage_runtime(NavigationSubpageEntry &entry) {
   if (!entry.screen) return;
+  image_card_release_owner(entry.back_button);
   grid_release_runtime_allocations(entry.back_button);
   for (const auto &card : entry.cards) {
     image_card_release_owner(card.button);
@@ -1461,8 +1463,12 @@ inline void grid_phase2(
       espdesktop::card_icons::attach(back_btn, back_slot.icon_lbl, back_slot.text_lbl,
           "large", display_main_width_percent(display), cfg.width_compensation_vertical);
 #ifdef USE_COMPANION
-      companion_set_card_icon_image(back_slot, p.entity, "large");
-      esphome::companion::request_app_icon(p.entity);
+      if (p.entity.rfind("webapp.", 0) == 0) {
+        image_card_bind_companion_webapp_icon(back_slot, p, cfg, true);
+      } else {
+        companion_set_card_icon_image(back_slot, p.entity, "large");
+        esphome::companion::request_app_icon(p.entity);
+      }
 #endif
     }
 

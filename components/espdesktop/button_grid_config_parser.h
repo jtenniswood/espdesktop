@@ -1253,7 +1253,8 @@ inline bool companion_app_launch_card(const ParsedCfg &p) {
 }
 
 inline bool companion_app_icon_enabled(const ParsedCfg &p) {
-  return companion_app_launch_card(p);
+  return companion_app_launch_card(p) &&
+         p.entity.rfind("webapp.", 0) != 0;
 }
 
 inline bool companion_url_opens_new_window(const ParsedCfg &p) {
@@ -1303,6 +1304,10 @@ inline std::string companion_card_options_normalized(const ParsedCfg &p) {
     return companion_url_opens_new_window(p) ? "url_open_behavior=new_window" : "";
   }
   std::string out;
+  if (p.entity.rfind("webapp.", 0) == 0 &&
+      cfg_option_token_present(p.options, "webapp_icon_title")) {
+    out = "webapp_icon_title";
+  }
   const std::string preset = companion_shortcut_preset_normalized(p);
   if (!preset.empty()) {
     if (!out.empty()) out += ",";

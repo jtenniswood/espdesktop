@@ -42,6 +42,12 @@ export const COMPANION_CARD_MODES = [
     label: "Stats",
     capability: "system_metrics",
     defaultIcon: "Gauge"
+  },
+  {
+    id: "webapp",
+    label: "Web App",
+    capability: "applications",
+    defaultIcon: "Web"
   }
 ] as const satisfies readonly CompanionCardMode[];
 export const COMPANION_PROTOCOL_MESSAGES: readonly CompanionProtocolMessage[] = [

@@ -83,6 +83,7 @@ final class CompanionConnection: NSObject {
     private var appIconGeneration: UInt32 = 0
     private var appIconOffset = 0
     private var pendingAppIconRequests: [CompanionWireAppIconRequest] = []
+    private var webAppFocusIDs: [String] = []
     private var focusTargets: [(id: String, url: URL)] = []
     private var focusPublicationTask: Task<Void, Never>?
     private var applicationFocusPublisher = CompanionApplicationFocusPublisher()
@@ -213,6 +214,7 @@ final class CompanionConnection: NSObject {
         sessionAuthenticated = false
         pendingCertificateFingerprint = nil
         focusTargets = []
+        webAppFocusIDs = []
         applicationFocusPublisher.reset()
         supportsAlphaAppIcons = false
         supportsHighResolutionAppIcons = false
@@ -395,6 +397,7 @@ final class CompanionConnection: NSObject {
         sessionAuthenticated = false
         pendingCertificateFingerprint = nil
         focusTargets = []
+        webAppFocusIDs = []
         applicationFocusPublisher.reset()
         resetAppIconTransferState(clearPendingRequests: true)
         remoteCatalogueDefinitionsSupported = false
@@ -544,6 +547,10 @@ final class CompanionConnection: NSObject {
                 return (item.id, url)
             }
             focusTargets = Array(targets.prefix(64))
+            let configuredWebApps = Array((payload.webAppIDs ?? []).prefix(64))
+            let changed = configuredWebApps != webAppFocusIDs
+            webAppFocusIDs = configuredWebApps
+            if changed && remoteCatalogueDefinitionsSupported { publishCatalogue() }
             publishFocusedAction(invalidatePendingQuery: true)
         case .actionInvoke(let payload):
             guard sessionAuthenticated else { return false }
@@ -785,15 +792,28 @@ final class CompanionConnection: NSObject {
         capabilities.append(CompanionCapabilities.appIconsHighResolutionCapability)
         capabilities.append("url_card_focus")
         sendJSON(["type": "capabilities", "values": capabilities])
-        // The browser receives identifiers, never application paths or shell commands.
+        // Bundle identifiers are stable and opaque to the browser layout editor;
+        // it never receives a path or an arbitrary shell command. Configured
+        // Web Apps go first so they survive the firmware's action catalogue cap.
         let apps = resources.launchableApps()
-        let entries: [[String: String]] = resources.folderActions().compactMap { folder -> [String: String]? in
+        let catalogues = resources.remoteCompanionCatalogues()
+        let configuredWebAppIDs = Set(webAppFocusIDs)
+        let configuredWebApps = catalogues.webApplications.filter { configuredWebAppIDs.contains($0.id) }
+        let otherWebApps = catalogues.webApplications.filter { !configuredWebAppIDs.contains($0.id) }
+        let webAppEntries: ([RemoteWebApplicationDefinition]) -> [[String: String]] = { apps in
+            apps.compactMap { app -> [String: String]? in
+                let identifier = "webapp.\(app.id)"
+                guard Self.validCatalogueIdentifier(identifier) else { return nil }
+                return ["id": identifier, "label": Self.catalogueLabel(app.label, fallback: app.id)]
+            }
+        }
+        let entries: [[String: String]] = webAppEntries(configuredWebApps) + resources.folderActions().compactMap { folder -> [String: String]? in
             guard Self.validCatalogueIdentifier(folder.actionIdentifier) else { return nil }
             return ["id": folder.actionIdentifier, "label": Self.catalogueLabel(folder.name, fallback: "Folder")]
         } + apps.compactMap { app -> [String: String]? in
             guard Self.validCatalogueIdentifier(app.bundleIdentifier) else { return nil }
             return ["id": app.bundleIdentifier, "label": Self.catalogueLabel(app.name, fallback: app.bundleIdentifier)]
-        }
+        } + webAppEntries(otherWebApps)
         catalogueGeneration &+= 1
         if catalogueGeneration == 0 { catalogueGeneration = 1 }
         let pages = stride(from: 0, to: max(entries.count, 1), by: 48).map {
@@ -820,6 +840,9 @@ final class CompanionConnection: NSObject {
             let payloads: [(String, Data)] = (starter + expanded).prefix(256).compactMap { app in
                 guard let data = try? encoder.encode(app), data.count <= 12_000 else { return nil }
                 return ("application", data)
+            } + catalogues.webApplications.compactMap { app in
+                guard let data = try? JSONEncoder().encode(app), data.count <= 12_000 else { return nil }
+                return ("webapp", data)
             }
             let definitionPages = max(payloads.count, 1)
             definitionGeneration &+= 1
@@ -869,7 +892,7 @@ final class CompanionConnection: NSObject {
         guard sessionAuthenticated, focusPublicationTask == nil, let requestingTask = task else { return }
         focusPublicationTask = Task { [weak self, weak requestingTask] in
             guard let self else { return }
-            let focused = await self.resources.focusedCompanionActionIdentifiers(for: self.focusTargets)
+            let focused = await self.resources.focusedCompanionActionIdentifiers(for: self.focusTargets, webAppIDs: Set(self.webAppFocusIDs))
             guard !Task.isCancelled, let requestingTask, self.task === requestingTask,
                   self.sessionAuthenticated else { return }
             self.focusPublicationTask = nil

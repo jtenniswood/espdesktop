@@ -22,6 +22,7 @@
 #ifdef USE_COMPANION
 #include "../companion/app_icon_store.h"
 #endif
+#include "web_apps_generated.h"
 #include "companion_pairing_policy.h"
 #include "companion_timezone.h"
 #include "i18n_generated.h"
@@ -240,16 +241,28 @@ inline CompanionPairingProvider &companion_pairing_provider() {
 
 inline void companion_set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
   size_t application_count = 0;
+  size_t web_app_count = 0;
   definitions.erase(std::remove_if(definitions.begin(), definitions.end(),
-    [&application_count](const CompanionRemoteDefinition &definition) {
-      if (definition.kind != "application" ||
+    [&application_count, &web_app_count](const CompanionRemoteDefinition &definition) {
+      if ((definition.kind != "application" && definition.kind != "webapp") ||
           definition.json.empty() || definition.json.size() > 12000 ||
-          !companion_remote_definition_capacity_available(definition.kind, application_count))
+          !companion_remote_definition_capacity_available(definition.kind, application_count, web_app_count))
         return true;
-      ++application_count;
+      if (definition.kind == "application") ++application_count;
+      else ++web_app_count;
       return false;
     }), definitions.end());
   companion_runtime_service().set_remote_definitions(std::move(definitions));
+}
+
+inline std::string companion_web_app_icon_url(const std::string &action_id) {
+  constexpr const char *prefix = "webapp.";
+  if (action_id.rfind(prefix, 0) != 0) return "";
+  const std::string id = action_id.substr(7);
+  const std::string icon_url = companion_runtime_service().remote_definition_icon_url("webapp", id);
+  if (icon_url.rfind("https://raw.githubusercontent.com/jtenniswood/espdesktop/", 0) == 0)
+    return icon_url;
+  return companion_web_app_catalog::icon_url(id);
 }
 
 inline std::string companion_url_card_focus_id(const std::string &url_config);
@@ -279,11 +292,17 @@ inline bool companion_url_focus_target_valid(const std::string &id, const std::s
   return !authority.empty() && authority.find('@') == std::string::npos;
 }
 
-inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarget> targets) {
+inline void companion_set_focus_registrations(std::vector<CompanionURLFocusTarget> targets,
+                                               std::vector<std::string> web_app_ids) {
   targets.erase(std::remove_if(targets.begin(), targets.end(), [](const auto &target) {
     return !companion_url_focus_target_valid(target.id, target.url);
   }), targets.end());
-  companion_runtime_service().set_focus_registrations(std::move(targets));
+  web_app_ids.erase(std::remove_if(web_app_ids.begin(), web_app_ids.end(), [](const auto &id) {
+    return id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
+      return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+    });
+  }), web_app_ids.end());
+  companion_runtime_service().set_focus_registrations(std::move(targets), std::move(web_app_ids));
 }
 
 inline void companion_set_actions(std::vector<CompanionAction> actions) {
@@ -393,6 +412,7 @@ inline bool companion_action_focused(const CompanionRuntimeSnapshot &snapshot,
   if (!snapshot.connected) return false;
   if (visual_only && snapshot.application_highlight_known &&
       action_id.rfind("folder.", 0) != 0 &&
+      action_id.rfind("webapp.", 0) != 0 &&
       action_id.rfind("urlcard.", 0) != 0 &&
       action_id.rfind("stat.", 0) != 0)
     return snapshot.application_highlight_id == action_id;
@@ -1308,6 +1328,7 @@ class CompanionFocusTargetsHandler final : public esphome::web_server_idf::Async
     if (!companion_authorize_web_request(request)) return;
     const auto content_type = request->get_header("Content-Type");
     std::vector<CompanionURLFocusTarget> targets;
+    std::vector<std::string> web_app_ids;
     const bool parsed = content_type.has_value() && *content_type == "application/json" &&
       valid_ && received_ == expected_ && esphome::json::parse_json(body_.data(), received_, [&](JsonObject root) {
         if (!root["targets"].is<JsonArrayConst>()) return false;
@@ -1322,12 +1343,25 @@ class CompanionFocusTargetsHandler final : public esphome::web_server_idf::Async
           if (!companion_url_focus_target_valid(id, url)) return false;
           targets.push_back({id, url});
         }
+        if (!root["webAppIDs"].isUnbound()) {
+          if (!root["webAppIDs"].is<JsonArrayConst>()) return false;
+          const JsonArrayConst ids = root["webAppIDs"].as<JsonArrayConst>();
+          if (ids.size() > 64) return false;
+          for (JsonVariantConst value : ids) {
+            if (!value.is<const char *>()) return false;
+            const std::string id = value.as<const char *>();
+            if (id.empty() || id.size() > 64 || id.front() == '-' || !std::all_of(id.begin(), id.end(), [](unsigned char c) {
+                  return (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-';
+                })) return false;
+            web_app_ids.push_back(id);
+          }
+        }
         return true;
       });
     valid_ = false;
     httpd_req_t *raw = *request;
     if (!parsed) { httpd_resp_send_err(raw, HTTPD_400_BAD_REQUEST, "Invalid Companion focus targets"); return; }
-    companion_set_focus_registrations(std::move(targets));
+    companion_set_focus_registrations(std::move(targets), std::move(web_app_ids));
     httpd_resp_set_type(raw, "application/json");
     httpd_resp_set_hdr(raw, "Cache-Control", "no-store");
     httpd_resp_send(raw, "{\"saved\":true}", HTTPD_RESP_USE_STRLEN);

@@ -11,6 +11,7 @@ test("every Companion normalizer preserves saved colour through repeated editor 
     ["folder.home", "", "finder_open_behavior=same_window,finder_open_override"],
     ["com.apple.Safari", "", "app_shortcuts"],
     ["com.apple.Safari", "url.https%3A%2F%2Fexample.com", ""],
+    ["webapp.browser", "", "webapp_icon_title"],
     ["shortcut.command+shift+k", "", "app_shortcut_preset=custom"],
   ]) {
     const card = { type: "companion", entity, sensor, options: [flags, "card_off_color=6633b9"].filter(Boolean).join(",") };

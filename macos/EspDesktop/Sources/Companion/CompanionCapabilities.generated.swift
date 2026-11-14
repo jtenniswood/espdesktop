@@ -56,5 +56,6 @@ enum CompanionCapabilities {
         "url": "Open URL",
         "folder": "Open folder",
         "stats": "Stats",
+        "webapp": "Web App",
     ]
 }

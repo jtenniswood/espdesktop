@@ -9,6 +9,7 @@ import { appIconArtworkBounds, appIconFitSide } from "../model/app_icon_layout";
 import { PREVIEW_THEME_COLORS, defaultCardBackgroundColor, previewEffectiveTheme } from "../state/preview_theme";
 import { cardIconSize, configOptionValue, cardActiveColor } from "../model/config_primitives";
 import { PANEL_CONFIG_MAX_SLOT_COUNT } from "../model/panel_config";
+import { COMPANION_WEB_APPS, companionAppShortcutFolderEnabled } from "./companion_shortcut_folder";
 import { escHtml, iconSlug } from "./ui_primitives";
 import { companionCardDefaultIcon } from "../model/companion_card";
 import { appShortcutPageBackIcon, appShortcutPageOwner, previewSubpageOwner } from "../model/companion_shortcut_page";
@@ -317,6 +318,18 @@ export function createPreviewRenderFeature(dependencies: PreviewRenderDependenci
                 btn.classList.add("sp-companion-app-icon-card");
             }
         };
+        if (applicationId.startsWith("webapp.")) {
+            const url = COMPANION_WEB_APPS.find(app => "webapp." + app.id === applicationId)?.icon;
+            if (!url) return;
+            const source = document.createElement("img");
+            source.onload = () => applyIcon({
+                dataUrl: url, defaultColor: "", activeColor: "", online: true,
+                insetLeftPercent: 0, insetTopPercent: 0,
+                artworkWidthFraction: 1, artworkHeightFraction: 1,
+            });
+            source.src = url;
+            return;
+        }
         const loadAppIcon = function (attempt: number): void {
             if (!btn.isConnected) return;
             const cached = cachedAppIcon(JSON.stringify([applicationId, backgroundColor]));

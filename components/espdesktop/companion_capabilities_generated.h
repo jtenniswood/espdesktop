@@ -66,6 +66,7 @@ inline constexpr CompanionCardModeCapability COMPANION_CARD_MODES[] = {
   {"url", "Open URL", "applications", "Web"},
   {"folder", "Open folder", "folders", "Folder Outline"},
   {"stats", "Stats", "system_metrics", "Gauge"},
+  {"webapp", "Web App", "applications", "Web"},
 };
 
 struct CompanionMetricCapability { const char *id; const char *label; const char *label_key; const char *unit; };

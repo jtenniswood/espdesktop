@@ -1,3 +1,5 @@
+import { nativeConfigDocumentVersion } from "../model/native_config_backup";
+import { encodePanelPageDocument } from "../model/panel_config_conversion";
 import { isRetiredLayoutCard, removeRetiredPanelRecords } from "../features/retired_cards";
 import { legacyHomeAssistantCards, legacyHomeAssistantWarning } from "../model/legacy_home_assistant";
 import { normalizeCardIconSize } from "../model/config_primitives";
@@ -67,8 +69,8 @@ import type { PreviewRenderFeature } from "./preview_render";
 import type { ButtonSettingsFeature } from "./button_settings";
 import { legacyRestoreFailureMessage, restoreLegacyLayoutDocument } from "../features/legacy_layout_restore";
 import { NATIVE_BACKUP_UPDATE_REQUIRED_MESSAGE, nativeBackupHasInactiveRecords } from "../features/native_panel_config";
-import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument, nativeConfigDocumentVersion } from "../model/native_config_backup";
-import { encodePanelPageDocument, panelPageDocumentDepth } from "../model/panel_config_conversion";
+import { decodeNativeConfigBackupPayload, decodeNativeConfigDocument } from "../model/native_config_backup";
+import { panelPageDocumentDepth } from "../model/panel_config_conversion";
 
 export interface AppBackupControllers {
     readonly identity?: PanelIdentityFeature;

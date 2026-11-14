@@ -155,9 +155,10 @@ int main() {
   assert(companion_json_payload_valid(R"({"label":"A, B | C"})", 12000));
   assert(!companion_json_payload_valid(std::string("{\"label\":\"bad\nvalue\"}"), 12000));
   assert(!companion_json_payload_valid("{}", 1));
-  assert(companion_remote_definition_capacity_available("application", 255));
-  assert(!companion_remote_definition_capacity_available("application", 256));
-  assert(!companion_remote_definition_capacity_available("webapp", 0));
+  assert(companion_remote_definition_capacity_available("application", 255, 0));
+  assert(!companion_remote_definition_capacity_available("application", 256, 0));
+  assert(companion_remote_definition_capacity_available("webapp", 256, 0));
+  assert(!companion_remote_definition_capacity_available("webapp", 0, 256));
 
   const std::string page = "~B,1,,|companion,folder.one,My folder,Folder Outline,Auto,,,,";
   const std::vector<CompanionAction> folders = {{"folder.one", "Changed"}, {"folder.two", "A,B|C"}};
@@ -296,12 +297,13 @@ int main() {
 
   for (const std::string raw : {"webapp.google-docs;Docs;Web;Auto;;;companion;;app_shortcuts",
                                 "~webapp.google-docs,Docs,Web,Auto,,,companion,,app_shortcuts"}) {
-    const auto retired = parse_cfg(raw);
-    assert(card_runtime_type_retired(retired.type) && retired.entity.empty() && retired.options.empty());
+    const auto webapp = parse_cfg(raw);
+    assert(webapp.type == "companion" && webapp.entity == "webapp.google-docs");
+    assert(companion_app_shortcuts_enabled(webapp));
   }
-  const auto retired_child = parse_subpage_config("~B,1|companion,webapp.google-docs,Docs,Web,Auto");
-  assert(retired_child.size() == 1 && card_runtime_type_retired(retired_child[0].type));
-  assert(retired_child[0].entity.empty());
+  const auto webapp_child = parse_subpage_config("~B,1|companion,webapp.google-docs,Docs,Web,Auto");
+  assert(webapp_child.size() == 1 && webapp_child[0].type == "companion");
+  assert(webapp_child[0].entity == "webapp.google-docs");
 
   ParsedCfg companion_stat_subpage;
   companion_stat_subpage.type = "subpage";
@@ -331,9 +333,9 @@ int main() {
   const std::string focus_url = "https://example.com/";
   const std::string focus_url_id = companion_url_card_focus_id(
       "url." + companion_encode_url_focus_value(focus_url));
-  companion_set_focus_registrations({{focus_url_id, focus_url}});
+  companion_set_focus_registrations({{focus_url_id, focus_url}}, {});
   assert(focus_registration_updates == 1);
-  companion_set_focus_registrations({{focus_url_id, focus_url}});
+  companion_set_focus_registrations({{focus_url_id, focus_url}}, {});
   assert(focus_registration_updates == 1);
   companion_runtime_service().focus_registrations_changed_handler = {};
   companion_set_actions({{"com.apple.Safari", "Safari"}, {folder_action, "Projects"}});
@@ -445,10 +447,10 @@ int main() {
   assert(companion_consume_subpage_return_request());
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs", "urlcard.0123456789abcdef"});
   assert(companion_action_focused("com.apple.Safari"));
-  assert(!companion_action_focused("webapp.google-docs"));
-  assert(companion_pending_auto_subpage_action() == "com.apple.Safari");
-  assert(!companion_consume_subpage_return_request());
-  assert(companion_consume_auto_subpage_action("com.apple.Safari"));
+  assert(companion_action_focused("webapp.google-docs"));
+  assert(companion_pending_auto_subpage_action() == "webapp.google-docs");
+  assert(companion_consume_subpage_return_request());
+  assert(companion_consume_auto_subpage_action("webapp.google-docs"));
   companion_set_focused_action("");
   assert(companion_consume_subpage_return_request());
   assert(!companion_consume_subpage_return_request());
@@ -465,7 +467,7 @@ int main() {
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_focused_actions({"com.apple.Safari", "webapp.google-docs"});
-  assert(!companion_action_active("webapp.google-docs"));
+  assert(companion_action_active("webapp.google-docs"));
   assert(companion_pending_auto_subpage_action().empty());
   assert(!companion_consume_subpage_return_request());
   companion_set_auto_open_app_subpages(true);

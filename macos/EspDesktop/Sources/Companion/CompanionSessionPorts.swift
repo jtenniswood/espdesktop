@@ -30,7 +30,7 @@ protocol CompanionSessionResources: AnyObject {
     func appIconPixels(bundleIdentifier: String, pixelSide: Int) -> Data?
     func focusedCompanionActionIdentifier() async -> String
     func immediateFocusedApplicationIdentifier() -> String?
-    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String]
+    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)], webAppIDs: Set<String>) async -> [String]
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues
     func performResultStatus(actionIdentifier: String, folderOpenBehavior: String, shortcutAppID: String?) async -> String
     func openURL(encodedURL: String, newWindow: Bool) async -> Bool
@@ -64,7 +64,7 @@ extension CompanionSessionResources {
     func immediateFocusedApplicationIdentifier() -> String? { nil }
     var applicationCatalogueReady: Bool { true }
     func remoteCompanionCatalogues() -> RemoteCompanionCatalogues { .empty }
-    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
+    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)], webAppIDs: Set<String>) async -> [String] {
         let identifier = await focusedCompanionActionIdentifier()
         return identifier.isEmpty ? [] : [identifier]
     }

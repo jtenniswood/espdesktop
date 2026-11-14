@@ -53,7 +53,7 @@ export async function runCompanionCatalogueTests(): Promise<void> {
   if (!rejectedEmpty || (await catalogue.loadDefinitions()).applications[0]?.appId !== "org.example.updated") {
     throw new Error("An empty offline response must preserve the last valid Companion definitions");
   }
-  await catalogue.saveFocusRegistrations({ urls: ["https://example.com/docs?q=1#intro", "invalid"] });
+  await catalogue.saveFocusRegistrations({ webAppIDs: [], urls: ["https://example.com/docs?q=1#intro", "invalid"] });
   const request = calls.find((call) => call.url === "/companion/focus-targets");
   if (request?.init?.method !== "POST" || typeof request.init.body !== "string") {
     throw new Error("Configured URL cards must be posted to the paired display");

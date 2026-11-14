@@ -64,6 +64,7 @@ struct CompanionSystemMetricsSnapshot {
 struct CompanionRemoteDefinition {
   std::string kind;
   std::string id;
+  std::string icon_url;
   std::string json;
 };
 
@@ -87,8 +88,13 @@ inline bool companion_json_payload_valid(const std::string &value, size_t limit)
 }
 
 inline bool companion_remote_definition_capacity_available(const std::string &kind,
-                                                           size_t application_count) {
-  return kind == "application" && application_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
+                                                           size_t application_count,
+                                                           size_t web_app_count) {
+  if (application_count + web_app_count >= COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2)
+    return false;
+  if (kind == "application") return application_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
+  if (kind == "webapp") return web_app_count < COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE;
+  return false;
 }
 
 struct CompanionRuntimeSnapshot {
@@ -100,6 +106,7 @@ struct CompanionRuntimeSnapshot {
   bool connected{false};
   CompanionSystemMetricsSnapshot system_metrics;
   std::vector<CompanionURLFocusTarget> url_focus_targets;
+  std::vector<std::string> web_app_focus_ids;
   uint32_t url_focus_targets_generation{0};
   bool application_highlight_known{false};
   std::string application_highlight_id;
@@ -206,6 +213,15 @@ class CompanionRuntimeService {
     return {remote_definitions_.begin() + begin, remote_definitions_.begin() + end};
   }
 
+  std::string remote_definition_icon_url(const std::string &kind, const std::string &id) const {
+    std::lock_guard<std::mutex> lock(mutex_);
+    const auto definition = std::find_if(remote_definitions_.begin(), remote_definitions_.end(),
+      [&kind, &id](const CompanionRemoteDefinition &candidate) {
+        return candidate.kind == kind && candidate.id == id;
+      });
+    return definition == remote_definitions_.end() ? std::string() : definition->icon_url;
+  }
+
   bool value(const std::string &id, int &result) const {
     std::lock_guard<std::mutex> lock(mutex_);
     const auto item = std::find_if(values_.begin(), values_.end(),
@@ -218,7 +234,7 @@ class CompanionRuntimeService {
   CompanionRuntimeSnapshot snapshot() const {
     std::lock_guard<std::mutex> lock(mutex_);
     return {actions_, values_, focused_action_id_, focused_action_ids_, keyboard_actions_supported_,
-            connected_, system_metrics_, url_focus_targets_,
+            connected_, system_metrics_, url_focus_targets_, web_app_focus_ids_,
             url_focus_targets_generation_, application_highlight_known_, application_highlight_id_};
   }
 
@@ -232,14 +248,16 @@ class CompanionRuntimeService {
     return {connected_, url_focus_targets_generation_};
   }
 
-  void set_focus_registrations(std::vector<CompanionURLFocusTarget> targets) {
+  void set_focus_registrations(std::vector<CompanionURLFocusTarget> targets, std::vector<std::string> web_app_ids) {
     std::function<void()> changed_handler;
     {
       std::lock_guard<std::mutex> lock(mutex_);
       if (targets.size() > 64) targets.resize(64);
-      if (targets.size() == url_focus_targets_.size() && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
+      if (web_app_ids.size() > 64) web_app_ids.resize(64);
+      if (targets.size() == url_focus_targets_.size() && web_app_ids == web_app_focus_ids_ && std::equal(targets.begin(), targets.end(), url_focus_targets_.begin(),
           [](const auto &a, const auto &b) { return a.id == b.id && a.url == b.url; })) return;
       url_focus_targets_ = std::move(targets);
+      web_app_focus_ids_ = std::move(web_app_ids);
       ++url_focus_targets_generation_;
       if (url_focus_targets_generation_ == 0) url_focus_targets_generation_ = 1;
       changed_handler = focus_registrations_changed_handler;
@@ -249,8 +267,8 @@ class CompanionRuntimeService {
 
   void set_remote_definitions(std::vector<CompanionRemoteDefinition> definitions) {
     std::lock_guard<std::mutex> lock(mutex_);
-    if (definitions.size() > COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE)
-      definitions.resize(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE);
+    if (definitions.size() > COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2)
+      definitions.resize(COMPANION_MAX_REMOTE_DEFINITIONS_PER_CATALOGUE * 2);
     remote_definitions_ = std::move(definitions);
     request_refresh_();
   }
@@ -343,7 +361,7 @@ class CompanionRuntimeService {
     std::lock_guard<std::mutex> lock(mutex_);
     std::vector<std::string> accepted;
     for (auto &identifier : identifiers) {
-      if (identifier.empty() || identifier.size() > 96 || identifier.rfind("webapp.", 0) == 0 ||
+      if (identifier.empty() || identifier.size() > 96 ||
           std::find(accepted.begin(), accepted.end(), identifier) != accepted.end()) continue;
       accepted.push_back(std::move(identifier));
     }
@@ -355,7 +373,11 @@ class CompanionRuntimeService {
       return std::string();
     };
     const std::string application_id = parent_id(accepted);
-    const std::string &auto_subpage_id = application_id;
+    const std::string auto_subpage_id = [&accepted, &application_id]() {
+      for (const auto &value : accepted)
+        if (value.rfind("webapp.", 0) == 0) return value;
+      return application_id;
+    }();
     const std::string previous_auto_subpage_id = focused_auto_subpage_id_;
     if (focused_action_ids_ == accepted && previous_auto_subpage_id == auto_subpage_id) return false;
     // The Mac still has this app in front, but its detailed focus report no
@@ -443,6 +465,7 @@ class CompanionRuntimeService {
   std::string application_highlight_id_;
   std::vector<CompanionRemoteDefinition> remote_definitions_;
   std::vector<CompanionURLFocusTarget> url_focus_targets_;
+  std::vector<std::string> web_app_focus_ids_;
   uint32_t url_focus_targets_generation_{0};
   std::vector<CompanionValue> values_;
   std::string focused_action_id_;

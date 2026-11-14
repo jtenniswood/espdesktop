@@ -857,9 +857,7 @@ export function createConfigCodecFeature(
             sp.sizes = sp.sizes || {};
             var layoutNormalized: any = buildSubpageGridAndNormalizeOrder(sp);
             state.subpages[slot] = sp;
-            if (retired.slots.size)
-                scheduleSliderSubpageMigration(slot, retired.value);
-            else if (!pending && (migrateConfig || layoutNormalized))
+            if (migrateConfig || layoutNormalized)
                 scheduleSliderSubpageMigration(slot);
         }
         else {

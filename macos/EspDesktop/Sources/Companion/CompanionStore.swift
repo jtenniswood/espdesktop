@@ -431,7 +431,7 @@ final class CompanionStore: NSObject, ObservableObject {
     }
 
     func focusedCompanionActionIdentifier() async -> String {
-        await focusedCompanionActionIdentifiers(for: []).first ?? ""
+        await focusedCompanionActionIdentifiers(for: [], webAppIDs: []).first ?? ""
     }
 
     func immediateFocusedApplicationIdentifier() -> String? {
@@ -444,7 +444,7 @@ final class CompanionStore: NSObject, ObservableObject {
         return identifier
     }
 
-    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
+    func focusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)], webAppIDs: Set<String>) async -> [String] {
         // Activation notifications can arrive before NSWorkspace updates its
         // frontmostApplication cache. Never confirm the previous app as current.
         let expectedPID = activatedApplicationPID
@@ -458,23 +458,28 @@ final class CompanionStore: NSObject, ObservableObject {
         guard ready else { return [] }
         return await CompanionFocusQuery.readStable(
             currentApplication: { NSWorkspace.shared.frontmostApplication?.processIdentifier },
-            query: { await self.queryFocusedCompanionActionIdentifiers(for: targets) }
+            query: { await self.queryFocusedCompanionActionIdentifiers(for: targets, webAppIDs: webAppIDs) }
         )
     }
 
-    private func queryFocusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)]) async -> [String] {
+    private func queryFocusedCompanionActionIdentifiers(for targets: [(id: String, url: URL)], webAppIDs: Set<String>) async -> [String] {
         guard let application = NSWorkspace.shared.frontmostApplication,
               let bundleIdentifier = application.bundleIdentifier else { return [] }
         if bundleIdentifier == "com.apple.Safari" || bundleIdentifier == "com.google.Chrome" {
             let browser = focusedLaunchableApplicationIdentifier()
-            guard !targets.isEmpty else {
+            guard !targets.isEmpty || !webAppIDs.isEmpty else {
                 return browser.isEmpty ? [] : [browser]
             }
             let activeURL = await sharedActiveBrowserTabURL(bundleIdentifier: bundleIdentifier)
             guard let url = activeURL else {
                 return browser.isEmpty ? [] : [browser]
             }
+            let catalogues = remoteCatalogueStore.value
+            let webApps = ActiveTabURLMatcher.matchingConfiguredWebAppIDs(
+                url: url, definitions: catalogues.webApplications, configuredIDs: webAppIDs
+            ).map { "webapp.\($0)" }
             var matches = browser.isEmpty ? [] : [browser]
+            matches.append(contentsOf: webApps)
             matches.append(contentsOf: ActiveTabURLMatcher.matchingURLCardIDs(url: url, targets: targets))
             return matches
         }
@@ -861,13 +866,40 @@ final class CompanionStore: NSObject, ObservableObject {
         guard !sessionLock.refresh() else { return "not_allowed" }
         let performed = await perform(actionIdentifier: actionIdentifier,
                                       folderOpenBehavior: folderOpenBehavior, shortcutAppID: shortcutAppID)
+        if performed, actionIdentifier.hasPrefix("webapp.") {
+            return await waitForWebAppActivation(actionIdentifier) ? "activated" : "performed"
+        }
         return Self.actionResultStatus(actionIdentifier: actionIdentifier, performed: performed)
+    }
+
+    private func waitForWebAppActivation(_ actionIdentifier: String) async -> Bool {
+        guard actionIdentifier.hasPrefix("webapp.") else { return false }
+        let webAppID = String(actionIdentifier.dropFirst("webapp.".count))
+        let deadline = ContinuousClock.now + .seconds(6)
+        while ContinuousClock.now < deadline {
+            guard !Task.isCancelled else { return false }
+            let focusedActionIdentifiers = await focusedCompanionActionIdentifiers(for: [], webAppIDs: [webAppID])
+            if Self.webAppActivationObserved(
+                actionIdentifier: actionIdentifier,
+                focusedActionIdentifiers: focusedActionIdentifiers
+            ) { return true }
+            try? await Task.sleep(nanoseconds: 150_000_000)
+        }
+        return false
+    }
+
+    nonisolated static func webAppActivationObserved(
+        actionIdentifier: String,
+        focusedActionIdentifiers: [String]
+    ) -> Bool {
+        focusedActionIdentifiers.contains(actionIdentifier)
     }
 
     nonisolated static func actionResultStatus(actionIdentifier: String, performed: Bool) -> String {
         guard performed else { return "not_allowed" }
         let isApplicationLaunch = !actionIdentifier.hasPrefix(ApprovedFolder.actionPrefix)
             && !actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix)
+            && !actionIdentifier.hasPrefix("webapp.")
         return isApplicationLaunch ? "activated" : "performed"
     }
 
@@ -921,6 +953,11 @@ final class CompanionStore: NSObject, ObservableObject {
         guard !actionIdentifier.hasPrefix("window.") else { return false }
 
         guard actionIdentifier.hasPrefix(CompanionKeyboardShortcut.actionPrefix) else {
+            if actionIdentifier.hasPrefix("webapp."),
+               let definition = remoteCatalogueStore.value.webApplications.first(where: { "webapp.\($0.id)" == actionIdentifier }),
+               let url = URL(string: definition.url) {
+                return NSWorkspace.shared.open(url)
+            }
             return await launch(bundleIdentifier: actionIdentifier)
         }
         if actionIdentifier.hasPrefix(CompanionKeyboardShortcut.installedWebAppActionPrefix) {

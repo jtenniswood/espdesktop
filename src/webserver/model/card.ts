@@ -36,7 +36,6 @@ export function isMacAudioCard(type: string, entity: string | null | undefined):
 export function retiredSavedCardType(card?: Partial<Pick<CardConfig, "type" | "entity">>): string {
   if (card?.type === "companion") {
     if (card.entity?.startsWith("window.")) return "companion_window";
-    if (card.entity?.startsWith("webapp.")) return "companion_webapp";
   }
   if (card?.type && isMacAudioCard(card.type, card.entity)) return "companion_audio";
   return card?.type && cardContractTypeRetired(card.type) ? card.type : "";

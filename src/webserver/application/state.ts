@@ -12,7 +12,7 @@ export interface UiRuntimeState {
     orderReceived: boolean;
     migrationTimer: number | null;
     sliderMigrationTimer: number | null;
-    pendingSliderSubpageMigrations: Record<string, true | { source: string; cleaned: string }>;
+    pendingSliderSubpageMigrations: Record<string, true>;
     eventSource: any;
     isSettingsFocused(): boolean;
     isSettingsOpen(): boolean;

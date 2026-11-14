@@ -1,10 +1,13 @@
 import { COMPANION_SHORTCUT_APPS as BUNDLED_SHORTCUT_APPS } from "../generated/app_shortcuts";
+import { COMPANION_WEB_APPS as BUNDLED_WEB_APPS } from "../generated/web_apps";
+import type { WebAppDefinition } from "../generated/web_apps";
 import { bundledExpandedShortcuts, SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 import type { AppShortcutApplication } from "../generated/app_shortcuts";
 export { SCOPED_SHORTCUT_PREFIX } from "./companion_shortcut_data";
 export const COMPANION_SHORTCUT_APPS: AppShortcutApplication[] = [...BUNDLED_SHORTCUT_APPS];
+export const COMPANION_WEB_APPS: WebAppDefinition[] = [...BUNDLED_WEB_APPS];
 
-export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[]): boolean {
+export function replaceCompanionDefinitions(apps: readonly AppShortcutApplication[], webApps: readonly WebAppDefinition[] = BUNDLED_WEB_APPS): boolean {
     const normalized = apps.map(({ extendedShortcuts, additionalShortcuts, claudeShortcuts, safariShortcuts, ...app }) => {
         if (app.appId === CODEX_BUNDLE_ID && !app.catalog && Array.isArray(additionalShortcuts)) {
             const additional = additionalShortcuts.filter((item) => {
@@ -55,7 +58,9 @@ export function replaceCompanionDefinitions(apps: readonly AppShortcutApplicatio
     const definitions = [...byAppId.values()];
     const shortcutChanged = JSON.stringify(COMPANION_SHORTCUT_APPS) !== JSON.stringify(definitions);
     if (shortcutChanged) COMPANION_SHORTCUT_APPS.splice(0, COMPANION_SHORTCUT_APPS.length, ...definitions);
-    return shortcutChanged;
+    const webChanged = JSON.stringify(COMPANION_WEB_APPS) !== JSON.stringify(webApps);
+    if (webChanged) COMPANION_WEB_APPS.splice(0, COMPANION_WEB_APPS.length, ...webApps);
+    return shortcutChanged || webChanged;
 }
 
 import { companionSavedCardMode } from "../model/companion_card_codec";
@@ -117,6 +122,9 @@ export interface CompanionShortcutTabDefinition {
 export function companionShortcutFolderAppLabel(bundleIdentifier: unknown): string {
     if (bundleIdentifier === "com.apple.finder") return "Finder";
     if (typeof bundleIdentifier !== "string") return "";
+    if (bundleIdentifier.startsWith("webapp.")) {
+        return COMPANION_WEB_APPS.find((app) => "webapp." + app.id === bundleIdentifier)?.label || "";
+    }
     return companionShortcutApp(bundleIdentifier)?.label || "";
 }
 
@@ -146,7 +154,10 @@ export function editableAppShortcutPage(card?: CardConfig): boolean {
 
 export function normalizeCompanionAppShortcutOptions(card: any): string {
     if (!card || card.type !== "companion") return "";
-    const finish = (options: string): string => preserveCardColorOptions(card.options, options);
+    const retainWebAppTitle = typeof card.entity === "string" && card.entity.startsWith("webapp.") &&
+        configOptionEnabled(card.options, "webapp_icon_title");
+    const finish = (options: string): string => preserveCardColorOptions(card.options,
+        retainWebAppTitle ? setConfigOption(options, "webapp_icon_title", true) : options);
     const presetMarker = configOptionValue(card.options, COMPANION_SHORTCUT_PRESET_OPTION);
     if (presetMarker === COMPANION_SHORTCUT_CUSTOM_PRESET && companionShortcutActionIdValid(card.entity)) {
         return finish(setConfigOptionValue("", COMPANION_SHORTCUT_PRESET_OPTION, presetMarker));
@@ -157,7 +168,8 @@ export function normalizeCompanionAppShortcutOptions(card: any): string {
     }
     if (!companionShortcutFolderAppLabel(card.entity)) {
         const identifier = typeof card.entity === "string" ? card.entity : "";
-        const mayBeRemoteApplication = /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$/.test(identifier);
+        const mayBeRemoteApplication = identifier.startsWith("webapp.") ||
+            /^[A-Za-z0-9_-]+(?:\.[A-Za-z0-9_-]+)+$/.test(identifier);
         // A remote definition may arrive after saved cards have been parsed.
         // Keep its options intact so startup cannot migrate them away.
         return finish(mayBeRemoteApplication ? String(card.options || "") : "");
@@ -383,6 +395,9 @@ function shortcutCard(entity: string, label: string, icon: string): CompanionSho
 }
 
 function companionShortcutChoices(bundleIdentifier: string) {
+    if (bundleIdentifier.startsWith("webapp.")) {
+        return COMPANION_WEB_APPS.find(app => app.id === bundleIdentifier.slice(7))?.shortcuts ?? [];
+    }
     const app = companionShortcutApp(bundleIdentifier);
     if (!app) return [];
     const more = new Map<string, ReturnType<typeof bundledExpandedShortcuts>[number]>();
